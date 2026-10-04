@@ -159,3 +159,23 @@ describe("content recovery with generated external storage", () => {
     expect(storage.peakWrite).toBeLessThanOrEqual(32); expect(storage.live.size).toBe(0); await f.close();
   });
 });
+
+it("keeps text bytes in caller backing through operand recovery", async () => {
+  const text="("+"ab\\101".repeat(2048)+") q ";
+  const f=await fixture(text.repeat(40)+"Tj ".repeat(40));
+  const data=new Uint8Array(4*1024*1024);let end=0;
+  const backing={allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return data.subarray(at,at+n);},async write(at:number,bytes:Uint8Array){data.set(bytes,at);}};
+  let count=0;
+  for await(const op of parseContentRangeOperators(f.source,f.storage,{pathStorage:backing})){
+    if(op.operator!=="Tj")continue;
+    const value=op.operands[0];
+    expect(value?.kind).toBe("string");
+    if(value?.kind!=="string")throw Error("Expected text");
+    expect(value.bytes.length).toBe(0);
+    const stored=(value as typeof value & {storedBytes?:{position:number;byteLength:number;storage:unknown}}).storedBytes!;
+    expect(stored.storage).toBe(backing);
+    expect(new TextDecoder().decode(data.subarray(stored.position,stored.position+stored.byteLength))).toBe("abA".repeat(2048));
+    count++;
+  }
+  expect(count).toBe(40);await f.close();
+});

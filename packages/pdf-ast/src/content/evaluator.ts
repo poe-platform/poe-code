@@ -18,6 +18,7 @@ import {
   type PdfCosDict,
   type PdfCosNode,
   type PdfCosStream,
+  type PdfCosString,
   type PdfDisplayList,
   type PdfEvaluatedImage,
   type PdfEvaluatedPath,
@@ -1028,7 +1029,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
+export type PdfEvaluationRequest = { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
   | {readonly kind:"font-unicode";readonly lookup:(code:number)=>Promise<string|undefined>;readonly code:number}
   | {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
   | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>;storedSegments?(code:number,storage:PdfPixelStorage,signal?:AbortSignal):AsyncIterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
@@ -1134,8 +1135,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
 
   function* decodeTokenGlyphs(
     bytes: Uint8Array,
-    font: ResolvedPageFont | undefined
-  ): Generator<{ charCode: number; cid?: number; isSpace: boolean; unicode: string; advance1000: number } | PdfEvaluationRequest, void, PdfEvaluationResult> {
+    font: ResolvedPageFont | undefined,
+    tokenLength = bytes.length
+  ): Generator<{ byteLength: number; charCode: number; cid?: number; isSpace: boolean; unicode: string; advance1000: number } | PdfEvaluationRequest, void, PdfEvaluationResult> {
     function* lookup(map:StoredCMap,code:number):EvaluationWork<number|string|undefined>{
       const reply=yield {kind:"cmap-lookup",map,code};
       if(!reply||!("kind" in reply)||reply.kind!=="resolved")throw new TypeError("Expected CMap value");
@@ -1165,18 +1167,19 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         const hasEncoding=!!(encoding||font.encodingCMap),cid=hasEncoding?(typeof encoded==="number"?encoded:0):code;
         const mapped=font.storedCMap?yield* lookup(font.storedCMap,code):font.cmap?.map.get(code);
         const fallback=hasEncoding?((yield* difference(cid))??(cid>=0x20&&cid<=0x10ffff?String.fromCodePoint(cid):"")):font.isTwoByteCid?(code>=0x20&&code<=0x10ffff?String.fromCodePoint(code):""):((yield* difference(code))??decodeWinAnsiByte(code));
-        yield {charCode:code,...(hasEncoding?{cid}:{}),isSpace:hasEncoding?length===1&&bytes[offset]===0x20:!font.isTwoByteCid&&code===0x20,unicode:typeof mapped==="string"?mapped:fallback,advance1000:(yield* fontWidth(font,cid))??font.defaultWidth};
+        yield {byteLength:length,charCode:code,...(hasEncoding?{cid}:{}),isSpace:hasEncoding?length===1&&bytes[offset]===0x20:!font.isTwoByteCid&&code===0x20,unicode:typeof mapped==="string"?mapped:fallback,advance1000:(yield* fontWidth(font,cid))??font.defaultWidth};
         offset+=length;
       }
       return;
     }
     if (font?.encodingCMap) {
       const encoding = font.encodingCMap;
-      for (const { charCode, isSpace } of iterateCMapCharacters(encoding, bytes)) {
+      let byteLength = 0;
+      for (const { charCode, isSpace } of iterateCMapCharacters(encoding, bytes, length => { byteLength = length; })) {
         const value = encoding.lookup(charCode);
         const cid = typeof value === "number" ? value : 0;
         const unicode = font.cmap?.map.get(charCode) ?? (yield* difference(cid)) ?? (cid >= 0x20 && cid <= 0x10ffff ? String.fromCodePoint(cid) : "");
-        yield { charCode, cid, isSpace, unicode, advance1000: (yield* fontWidth(font,cid)) ?? font.defaultWidth };
+        yield { byteLength, charCode, cid, isSpace, unicode, advance1000: (yield* fontWidth(font,cid)) ?? font.defaultWidth };
       }
       return;
     }
@@ -1185,20 +1188,21 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         for (let i = 0; i < bytes.length; i++) {
           const code = bytes[i]!;
           const unicode = font.cmap.map.get(code) ?? ((yield* difference(code)) ?? decodeWinAnsiByte(code));
-          yield { charCode: code, isSpace: code === 0x20, unicode, advance1000: (yield* fontWidth(font,code)) ?? font.defaultWidth };
+          yield { byteLength: 1, charCode: code, isSpace: code === 0x20, unicode, advance1000: (yield* fontWidth(font,code)) ?? font.defaultWidth };
         }
         return;
       }
-      for (const item of font.cmap.iterateBytes(bytes)) yield {
-        charCode: item.charCode, isSpace: false, unicode: item.unicode,
+      let byteLength = 0;
+      for (const item of font.cmap.iterateBytes(bytes, length => { byteLength = length; })) yield {
+        byteLength, charCode: item.charCode, isSpace: false, unicode: item.unicode,
         advance1000: (yield* fontWidth(font,item.charCode)) ?? font.defaultWidth,
       };
       return;
     }
-    if (font?.isTwoByteCid && bytes.length >= 2 && bytes.length % 2 === 0) {
+    if (font?.isTwoByteCid && tokenLength >= 2 && tokenLength % 2 === 0) {
       for (let i = 0; i < bytes.length; i += 2) {
         const cid = (bytes[i]! << 8) | bytes[i + 1]!;
-        yield { charCode: cid, isSpace: false, unicode: cid >= 0x20 ? String.fromCodePoint(cid) : "",
+        yield { byteLength: 2, charCode: cid, isSpace: false, unicode: cid >= 0x20 ? String.fromCodePoint(cid) : "",
           advance1000: (yield* fontWidth(font,cid)) ?? font.defaultWidth };
       }
       return;
@@ -1206,8 +1210,39 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     const stdMetrics = STANDARD_14_FONTS[normalizeStandard14FontName(font?.baseFont ?? curState().fontName)];
     for (let i = 0; i < bytes.length; i++) {
       const code = bytes[i]!;
-      yield { charCode: code, isSpace: code === 0x20, unicode: (yield* difference(code)) ?? decodeWinAnsiByte(code),
+      yield { byteLength: 1, charCode: code, isSpace: code === 0x20, unicode: (yield* difference(code)) ?? decodeWinAnsiByte(code),
         advance1000: font ? (yield* fontWidth(font,code)) ?? font.defaultWidth : stdMetrics.widthsByCode[code] ?? stdMetrics.defaultWidth };
+    }
+  }
+
+  function* decodeTextToken(token: PdfCosString, font: ResolvedPageFont | undefined): ReturnType<typeof decodeTokenGlyphs> {
+    const stored = token.storedBytes;
+    if (!stored) { yield* decodeTokenGlyphs(token.bytes, font); return; }
+    let offset = 0;
+    while (offset < stored.byteLength) {
+      const length = Math.min(4096, stored.byteLength - offset);
+      const reply = yield { kind: "string-bytes", value: stored, offset, length };
+      if (!reply || !("kind" in reply) || reply.kind !== "resolved" || reply.node?.kind !== "string") throw new TypeError("Expected stored text bytes");
+      const bytes = reply.node.bytes;
+      if (bytes.length !== length) throw new PdfError("E_PARSE", "Incomplete stored PDF string");
+      const final = offset + length === stored.byteLength;
+      const work = decodeTokenGlyphs(bytes, font, stored.byteLength);
+      let consumed = 0;
+      try {
+        let step = work.next();
+        while (!step.done) {
+          if (!("charCode" in step.value)) { step = work.next(yield step.value); continue; }
+          consumed += step.value.byteLength;
+          yield step.value;
+          // CMap characters contain at most four bytes. Leave three bytes of
+          // lookahead until the next range, without changing final-token recovery.
+          if (!final && consumed >= length - 3) break;
+          step = work.next();
+        }
+      } finally { work.return(); }
+      if (final) return;
+      if (!consumed) throw new PdfError("E_PARSE", "Stored text decoder made no progress");
+      offset += consumed;
     }
   }
 
@@ -1916,9 +1951,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           let tm: Matrix6 = activeTm;
           let tlm: Matrix6 = activeTlm;
 
-          function* emitTokenBytes(bytes: Uint8Array): EvaluationWork {
+          function* emitTokenBytes(token: PdfCosString): EvaluationWork {
             const font = yield* selectedFont(st.fontOverride ? [st.fontOverride] : activeFonts, st.fontName);
-            const decoded = decodeTokenGlyphs(bytes, font);
+            const decoded = decodeTextToken(token, font);
             const scaleH = st.horizScale / 100;
             let decodedStep=decoded.next();
             while(!decodedStep.done){
@@ -2151,12 +2186,12 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 yield* applyStateOperator(st, cmd.operator, cmd.operands, activeResources, activeFonts, depth);
                 break;
               case "show-text":
-                yield* emitTokenBytes(cmd.token.bytes);
+                yield* emitTokenBytes(cmd.token);
                 break;
               case "show-text-array":
                 for (const part of cmd.items) {
                   if (part.kind === "string") {
-                    yield* emitTokenBytes(part.bytes);
+                    yield* emitTokenBytes(part);
                   } else if (part.kind === "number") {
                     const shiftUser = ((-part.value * st.fontSize) / 1000) * (st.horizScale / 100);
                     tm = multiplyMatrices([1, 0, 0, 1, shiftUser, 0], tm);
@@ -2216,7 +2251,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "string-bytes" || step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

@@ -144,6 +144,11 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
           await selected?.return(); break;
         }
         case "resolve": case "catalog": reply = { kind: "resolved", node: await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node) }; break;
+        case "string-bytes": {
+          const bytes = await request.value.storage.read(request.value.position + request.offset, request.length, signal ? { signal } : undefined);
+          signal?.throwIfAborted();
+          reply = { kind: "resolved", node: { kind: "string", bytes: bytes.slice() } }; break;
+        }
         case "font-width": {const value=await request.widths.get(request.code);reply={kind:"resolved",node:value===undefined?undefined:cosNumber(value)};break;}
         case "font-unicode": {const value=await request.lookup(request.code);reply={kind:"resolved",node:value===undefined?undefined:cosName(value)};break;}
         case "cmap-lookup": {const value=await request.map.lookup(request.code);reply={kind:"resolved",node:typeof value==="number"?cosNumber(value):typeof value==="string"?cosName(value):undefined};break;}

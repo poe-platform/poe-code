@@ -1,3 +1,4 @@
+import { StoredMetadataStack } from "./stored-record.js";
 import type { PdfCosNode } from "../ast.js";
 import { CosRangeLexer, type CosToken } from "../cos/lexer.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -29,8 +30,36 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
   }
   if (!Number.isSafeInteger(limits.chunkBytes) || limits.chunkBytes < 8) throw new RangeError("chunkBytes must be at least 8");
   const { signal } = options;
-  const lexer = new CosRangeLexer(source, { maxTokenBytes: limits.maxTokenBytes, knownCommands: PDF_KNOWN_COMMANDS, ...(signal ? { signal } : {}) });
+  const lexer = new CosRangeLexer(source, { maxTokenBytes: limits.maxTokenBytes, knownCommands: PDF_KNOWN_COMMANDS, ...(options.pathStorage ? { stringStorage: options.pathStorage } : {}), ...(signal ? { signal } : {}) });
   const stack = new PdfOperandStack(storage, limits);
+  const backedStack = options.pathStorage ? new StoredMetadataStack<PdfCosNode>(options.pathStorage, signal) : undefined;
+  const operands = backedStack ?? stack;
+  // Non-text consumers still require their normal COS value representation.
+  async function materialize(node: PdfCosNode): Promise<PdfCosNode> {
+    if (node.kind === "string" && node.storedBytes) {
+      const { storedBytes, ...value } = node;
+      const bytes = new Uint8Array(storedBytes.byteLength);
+      for (let at = 0; at < bytes.length; at += 4096) {
+        signal?.throwIfAborted();
+        const part = await storedBytes.storage.read(storedBytes.position + at, Math.min(4096, bytes.length - at), signal ? { signal } : undefined);
+        signal?.throwIfAborted();
+        if (part.length !== Math.min(4096, bytes.length - at)) throw new Error("Incomplete stored PDF string");
+        bytes.set(part, at);
+      }
+      return { ...value, bytes };
+    }
+    if (node.kind === "array") {
+      const items: PdfCosNode[] = [];
+      for (const item of node.items) items.push(await materialize(item));
+      return { ...node, items };
+    }
+    if (node.kind === "dict") {
+      const entries = [];
+      for (const entry of node.entries) entries.push({ ...entry, value: await materialize(entry.value) });
+      return { ...node, entries };
+    }
+    return node;
+  }
   const work = contentOperatorSteps(lexer, source.size, limits);
   let cache: Uint8Array = new Uint8Array(0); let cacheStart = 0; let turns = 0;
   let failed = false;
@@ -54,9 +83,18 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
           }
           break;
         }
-        case "push": await stack.push(request.node); break;
-        case "pop": result = await stack.pop(); break;
-        case "operator": yield request.value; break;
+        case "push": await operands.push(request.node); break;
+        case "pop": result = await operands.pop(); break;
+        case "operator": {
+          const value = request.value;
+          if (options.pathStorage && !["Tj", "TJ", "'", '"'].includes(value.operator)) {
+            const operands: PdfCosNode[] = [];
+            for (const node of value.operands) operands.push(await materialize(node));
+            const inlineImage = value.inlineImage ? { ...value.inlineImage, dict: await materialize(value.inlineImage.dict) as typeof value.inlineImage.dict } : undefined;
+            yield { ...value, operands, ...(inlineImage ? { inlineImage } : {}) };
+          } else yield value;
+          break;
+        }
       }
       step = work.next(result);
     }

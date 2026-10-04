@@ -7,7 +7,7 @@ import { CMap } from "../vendor/pdfjs-fonts.mjs";
 export interface ParsedToUnicodeCMap {
   readonly map: ReadonlyMap<number, string>;
   readonly isTwoByte: boolean;
-  iterateBytes(bytes: Uint8Array): Generator<{ charCode: number; unicode: string }, void, void>;
+  iterateBytes(bytes: Uint8Array, onCharacterLength?: (length: number) => void): Generator<{ charCode: number; unicode: string }, void, void>;
   decodeBytes(bytes: Uint8Array): Array<{ charCode: number; unicode: string }>;
 }
 
@@ -109,13 +109,14 @@ function* parseCMapTokens(allocation:PdfFontAllocation):Generator<void,CMap,CosT
   return cmap;
 }
 
-export function* iterateCMapCharacters(cmap: CMap, bytes: Uint8Array): Generator<{ charCode: number; isSpace: boolean }, void, void> {
+export function* iterateCMapCharacters(cmap: CMap, bytes: Uint8Array, onCharacterLength?: (length: number) => void): Generator<{ charCode: number; isSpace: boolean }, void, void> {
   // PDF.js only requires charCodeAt; avoid constructing a token-sized string.
   const input = { charCodeAt: (index: number) => bytes[index] ?? NaN };
   const result = { charcode: 0, length: 0 };
   for (let offset = 0; offset < bytes.length;) {
     cmap.readCharCode(input, offset, result);
     if (offset + result.length > bytes.length) break;
+    onCharacterLength?.(result.length);
     yield { charCode: result.charcode, isSpace: result.length === 1 && bytes[offset] === 0x20 };
     offset += result.length;
   }
@@ -137,8 +138,8 @@ function unicodeMap(cmap:CMap,allocation:PdfFontAllocation):ParsedToUnicodeCMap{
     map.set(code, decodeCMapDestination(value));
   });
   const isTwoByte = cmap.codespaceRanges.slice(1).some(ranges => ranges.length > 0);
-  function* iterateBytes(bytes: Uint8Array): Generator<{ charCode: number; unicode: string }, void, void> {
-    for (const { charCode } of iterateCMapCharacters(cmap, bytes)) yield {
+  function* iterateBytes(bytes: Uint8Array, onCharacterLength?: (length: number) => void): Generator<{ charCode: number; unicode: string }, void, void> {
+    for (const { charCode } of iterateCMapCharacters(cmap, bytes, onCharacterLength)) yield {
       charCode,
       unicode: map.get(charCode) ?? (charCode >= 0x20 && charCode <= 0x10ffff ? String.fromCodePoint(charCode) : ""),
     };

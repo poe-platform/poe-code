@@ -38,6 +38,8 @@ export interface PdfCosName {
 }
 
 export interface PdfCosString {
+  /** Retained content payload. When present, bytes is empty and the caller owns backing lifetime. */
+  readonly storedBytes?: PdfStoredBytes;
   readonly kind: "string";
   readonly format?: "literal" | "hex" | undefined;
   readonly encoding?: "literal" | "hex" | undefined;
@@ -286,6 +288,7 @@ export interface PdfPixelStorage {
   write(position: number, bytes: Uint8Array, options?: {readonly signal?: AbortSignal}): Promise<void>;
 }
 export interface PdfStoredPixels { readonly storage: PdfPixelStorage; readonly position: number }
+export interface PdfStoredBytes extends PdfStoredPixels { readonly byteLength: number }
 
 export interface PdfEvaluatedImage {
   readonly name: string;

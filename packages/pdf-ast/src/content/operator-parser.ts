@@ -41,9 +41,9 @@ function* parseOperandToken(tok: CosToken, limits: ContentOperandLimits, depth =
     case "name":
       return { kind: "name", decoded: tok.decoded, rawBytes: tok.rawBytes, span: tok.span };
     case "string":
-      return { kind: "string", encoding: "literal", bytes: tok.bytes, span: tok.span };
+      return { kind: "string", encoding: "literal", bytes: tok.bytes, ...(tok.storedBytes ? { storedBytes: tok.storedBytes } : {}), span: tok.span };
     case "hex-string":
-      return { kind: "string", encoding: "hex", bytes: tok.bytes, span: tok.span };
+      return { kind: "string", encoding: "hex", bytes: tok.bytes, ...(tok.storedBytes ? { storedBytes: tok.storedBytes } : {}), span: tok.span };
     case "array-start": {
       const items: PdfCosNode[] = [];
       while (true) {

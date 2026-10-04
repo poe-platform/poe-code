@@ -1,3 +1,4 @@
+import {AsciiUrlHost} from "./ascii-url-host.js";
 import type {ExecutionContext} from "./execution.js";
 
 /** Classify paths and URLs without an authority using bounded state. Authorities
@@ -50,22 +51,26 @@ export async function retainedImageOriginAllowed(chunks: () => AsyncIterable<str
   }
   if (state === "authority" || state === "authorityEnd" || state === "slashes") {
     const finish = hostEnd < 0 ? trimEnd : hostEnd;
+    const ascii = new AsciiUrlHost(); let hostnameEnd = finish;
     let authority = "", position = 0, bracket = false, portStarted = false, portDigits = false, port = 0, hostSeen = false, ipv6 = false;
     for await (const part of chunks()) {
       const end = position + part.length;
+      let cursor = Math.max(position, hostStart);
       if (end > hostStart && position < finish) for (const char of part.slice(Math.max(0, hostStart - position), Math.min(part.length, finish - position))) {
+        const charPosition = cursor; cursor += char.length;
         if (char === "\t" || char === "\r" || char === "\n") continue;
         if (portStarted) {
           if (scheme === "file" || char < "0" || char > "9") return false;
           port = port * 10 + char.charCodeAt(0) - 48; portDigits = true;
           if (port > 65535) return false;
-        } else if (char === ":" && !bracket) {portStarted = true; authority += ":";}
+        } else if (char === ":" && !bracket) {portStarted = true; hostnameEnd = charPosition;}
         else {
           if (!hostSeen) {hostSeen = true; ipv6 = char === "[";}
           if (!special && !ipv6) {
             if (char === "\0" || " #/:<>?@[\\]^|".includes(char)) return false;
             authority = "x";
-          } else {
+          } else if (special && !ipv6) ascii.write(char);
+          else {
             authority += char;
             // Eight 16-bit groups, or six groups and an IPv4 tail, fit in 47
             // characters including brackets. Longer literals cannot be IPv6.
@@ -77,6 +82,24 @@ export async function retainedImageOriginAllowed(chunks: () => AsyncIterable<str
       position = end; await context.cooperate(0);
       if (position >= finish) break;
     }
+    if (special && !ipv6) {
+      const valid = ascii.finish();
+      if (valid === false && !(scheme === "file" && ascii.windowsDrive && !portStarted)) return false;
+      if (scheme === "file" && ascii.windowsDrive && !portStarted) authority = ascii.windowsDrive;
+      else if (valid === undefined) {
+        position = 0;
+        for await (const part of chunks()) {
+          const end = position + part.length;
+          if (end > hostStart && position < hostnameEnd) authority += part.slice(Math.max(0, hostStart - position), Math.min(part.length, hostnameEnd - position));
+          position = end; await context.cooperate(0);
+          if (position >= hostnameEnd) break;
+        }
+      } else if (scheme === "file" && portStarted) {
+        if (!ascii.singleLetter) return false;
+        authority = ascii.singleLetter;
+      } else authority = hostSeen ? "host.invalid" : "";
+    }
+    if (portStarted) authority += ":";
     if (portDigits) authority += String(port);
     return URL.canParse(`${special ? scheme : "x"}://${credentials ? "x@" : ""}${authority}${hostEnd < 0 ? "" : "/"}`);
   }

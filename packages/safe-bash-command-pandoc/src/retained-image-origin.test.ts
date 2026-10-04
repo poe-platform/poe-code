@@ -69,7 +69,7 @@ it("matches authority parsing for credentials, ports, IPv6 and malformed delimit
   const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
   const {ExecutionContext} = await import("./execution.js");
   const context = new ExecutionContext("convert", {});
-  const authorities = ["", "user@", "@host", "a:b:c@host", "user@user@host", "[::1]", "[::1]:65535", "[ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]", "[::1]:65536", "host:", "host:bad", "host:00080", "host:0x80", "host\0", "host ", "[bad]", "host%2f", "xn--bcher-kva.test", "bücher.test", "0xffffffff", "1.2.3.999", "127.1", "a\\b", "@", "[x]@host"];
+  const authorities = ["", "user@", "@host", "a:b:c@host", "user@user@host", "[::1]", "[::1]:65535", "[ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255]", "[::1]:65536", "host:", "host:bad", "host:00080", "host:0x80", "host\0", "host ", "[bad]", "host%2f", "xn--bcher-kva.test", "bücher.test", "0xffffffff", "1.2.3.999", "127.1", "a\\b", "@", "[x]@host", "C|", "C|é", "C|%30", "C:", "C|a"];
   let seed = 1770;
   const tokens = ["@", ":", " ", "\t", "\r", "\0", "[", "]", "80", "a", "%00", "%2f", "\\", "/", "?", "#"];
   for (let i = 0; i < 1000; i++) {
@@ -112,5 +112,22 @@ it("validates opaque hosts and rejects oversized IPv6 without retaining host pay
   });
   try {
     for (const value of values) expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += 128) yield value.slice(i, i + 128);}, context)).toBe(native(value));
+  } finally {parse.mockRestore(); await context.close();}
+});
+
+it("validates long ASCII domains and IPv4 numbers without resident host strings", async () => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {}), native = URL.canParse.bind(URL);
+  const hosts = ["_".repeat(20000), "x".repeat(20000) + "^", "x".repeat(20000), "a.".repeat(10000) + "test", "0".repeat(20000), "0".repeat(20000) + "9", "0x" + "0".repeat(20000) + "ffffffff", "1.2.3." + "0".repeat(20000) + "7"];
+  const parse = vi.spyOn(URL, "canParse").mockImplementation((value, base) => {
+    if (String(value).length > 128) throw new Error("Whole domain forbidden");
+    return native(value, base);
+  });
+  try {
+    for (const host of hosts) for (const scheme of ["http", "file"]) {
+      const value = `${scheme}://${host}/path`;
+      expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += 128) yield value.slice(i, i + 128);}, context)).toBe(native(value));
+    }
   } finally {parse.mockRestore(); await context.close();}
 });

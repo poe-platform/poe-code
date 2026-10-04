@@ -1,3 +1,4 @@
+import { iterateQpdfPageRange } from "./page-range.js";
 import { linearizationParts } from "./linearization.js";
 import { attachmentChunks, QpdfMissingAttachment } from "./attachments.js";
 import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
@@ -15,6 +16,7 @@ import type { QpdfLimits } from "./index.js";
 export interface RetainedQpdfOptions {
   inputFile: string | undefined;
   emptyInput: boolean;
+  rotateSpecs: readonly { range: string; angle: number; relative: boolean; sign: number }[];
   listAttachments: boolean;
   showLinearization: boolean;
   showAttachmentKey: string | undefined;
@@ -189,7 +191,14 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
     if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");
     const { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels } = options;
-    const producer = saveRetainedDocumentChunks(document, storage, { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, signal, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
+    async function* rotations() {
+      if (!options.rotateSpecs.length) return;
+      let count = 0; for await (const ignored of document!.pages()) { void ignored; count++; }
+      for (const edit of options.rotateSpecs) for (const number of iterateQpdfPageRange(edit.range, count)) {
+        yield { pageIndex: number - 1, degrees: edit.angle * (edit.relative ? edit.sign : 1), relative: edit.relative };
+      }
+    }
+    const producer = saveRetainedDocumentChunks(document, storage, { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, signal, maxOutputBytes: limits.maxOutputBytes, rotations: rotations(), ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
     finally { await producer.return(undefined); }
     if (destination === "-") { for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal); }

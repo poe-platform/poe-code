@@ -807,6 +807,9 @@ original trailer identifier; both are preserved by default. `removeInfo` keeps a
 existing modification date and removes the catalog metadata link;
 `removeMetadata`, `removeStructure`, `removeAcroform` and `removePageLabels`
 remove the corresponding document entries while preserving other objects.
+Pass `rotations` as an iterable or async iterable of `{ pageIndex, degrees,
+relative? }` edits. Indices are zero-based, angles are multiples of 90, and
+ordered relative edits accumulate without collecting the selection.
 
 `copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
 PDF for a synchronous or asynchronous iterable of zero-based page indices.

@@ -9,7 +9,17 @@ import { serializeCosNodeChunks } from "../cos/writer.js";
 import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
 
+export interface RetainedPageRotation {
+  /** Zero-based page index in the retained document. */
+  readonly pageIndex: number;
+  /** A safe integer multiple of 90; normalized to a quarter turn. */
+  readonly degrees: number;
+  readonly relative?: boolean;
+}
+
 export interface SaveRetainedDocumentOptions {
+  /** Ordered edits; duplicate page selections apply cumulatively. */
+  readonly rotations?: Iterable<RetainedPageRotation> | AsyncIterable<RetainedPageRotation>;
   /** Defaults to the retained input version. */
   readonly version?: string;
   /** Omit the original document identifier from the output trailer. */
@@ -62,6 +72,19 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
     for (let i = 0; i < pageCount; i++) {
       await checkpoint(); const bytes = await pages.read(pageBase + i * 16, 16), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       yield cosRef(view.getFloat64(0), view.getFloat64(8));
+    }
+  }
+  async function applyRotations() {
+    for await (const edit of options.rotations ?? []) {
+      await checkpoint();
+      if (!Number.isSafeInteger(edit.pageIndex) || edit.pageIndex < 0 || edit.pageIndex >= pageCount) throw new RangeError("Page index out of bounds");
+      if (!Number.isSafeInteger(edit.degrees) || edit.degrees % 90 !== 0) throw new RangeError("Page rotation must be a multiple of 90 degrees");
+      const bytes = await pages.read(pageBase + edit.pageIndex * 16, 16), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      const object = (await objects.get(view.getFloat64(0)))!, dict = object.value as PdfCosDict;
+      const original = await resolve(dictGet(dict, "Rotate")), normalized = original?.kind === "number" ? ((original.value % 360) + 360) % 360 : 0;
+      const current = edit.relative && (normalized === 90 || normalized === 180 || normalized === 270) ? normalized : 0;
+      const degrees = (current + ((edit.degrees % 360) + 360) % 360) % 360;
+      dictSet(dict, "Rotate", cosNumber(degrees)); await objects.set({ ...object, value: dict });
     }
   }
   const encoder = new TextEncoder();
@@ -120,15 +143,17 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
         const bytes = new Uint8Array(16), view = new DataView(bytes.buffer); view.setFloat64(0, ref.objectNumber); view.setFloat64(8, ref.generationNumber);
         await pages.write(pages.allocate(16), bytes); pageCount++;
       }
+      await applyRotations();
       if (!pagesRef) { pagesDict = cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }); pagesRef = await objects.allocate(pagesDict); dictSet(catalog, "Pages", pagesRef); }
       for await (const ref of references()) {
         const object = (await objects.get(ref.objectNumber))!, dict = object.value as PdfCosDict;
         dictSet(dict, "Parent", pagesRef); await objects.set({ ...object, value: dict });
       }
-      dictSet(pagesDict!, "Kids", cosArray([])); dictSet(pagesDict!, "Count", cosNumber(pageCount));
+      pagesDict = (await objects.get(pagesRef.objectNumber))!.value as PdfCosDict;
+      dictSet(pagesDict, "Kids", cosArray([])); dictSet(pagesDict!, "Count", cosNumber(pageCount));
       await objects.set({ ...(await objects.get(pagesRef.objectNumber))!, value: pagesDict! });
       await objects.set({ ...(await objects.get(document.crossReference.rootRef.objectNumber))!, value: catalog });
-    }
+    } else await applyRotations();
     async function* output() {
       for await (const object of objects.outputObjects()) {
         if (object.objectNumber !== pagesRef?.objectNumber) { yield object; continue; }

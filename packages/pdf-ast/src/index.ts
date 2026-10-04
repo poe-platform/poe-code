@@ -89,4 +89,4 @@ export { PdfRawTextIndex, type PdfRawTextIndexOptions, type PdfStoredTextWord, t
 
 export { retainedCosObjects, type PdfRetainedObjectsOptions } from "./cos/retained-objects.js";
 
-export { saveRetainedDocumentChunks, type SaveRetainedDocumentOptions } from "./edit/retained-save.js";
+export { saveRetainedDocumentChunks, type SaveRetainedDocumentOptions, type RetainedPageRotation } from "./edit/retained-save.js";

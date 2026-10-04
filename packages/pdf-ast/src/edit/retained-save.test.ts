@@ -103,3 +103,39 @@ it.each(["page", "write"])("preserves %s failures and cleans save backing", asyn
   await expect((async () => { for await (const ignored of saveRetainedDocumentChunks(document, { fs: guarded, directory: "/scratch" })) void ignored; })()).rejects.toBe(reason);
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["plain", "inherited", "aliased", "invalid-inherited", "indirect", "root-page"])("applies ordered retained rotations with %s pages", async mode => {
+  const original = PdfDocument.create(); original.addPage([100, 200]); original.addPage([200, 300]);
+  const root = original.cos.resolveDict(dictGet(original.cos.resolveDict(original.cos.rootRef)!, "Pages"))!;
+  if (mode === "inherited" || mode === "invalid-inherited") dictSet(root, "Rotate", cosNumber(mode === "inherited" ? -90 : 45));
+  if (mode === "indirect") dictSet(original.getPage(0).dict, "Rotate", original.cos.allocateObject(cosNumber(450)));
+  if (mode === "root-page") dictSet(original.cos.resolveDict(original.cos.rootRef)!, "Pages", original.getPage(0).ref);
+  if (mode === "aliased") dictSet(root, "Kids", cosArray([original.getPage(0).ref, original.getPage(0).ref]));
+  const input = serializeCosDocument({ objects: [...original.cos.objects.values()], rootRef: original.cos.rootRef, infoRef: original.cos.infoRef });
+  const edits = [{ pageIndex: 0, degrees: 90, relative: true }, { pageIndex: 0, degrees: -180, relative: true }, { pageIndex: 1, degrees: 180 }, { pageIndex: 1, degrees: 90, relative: true }];
+  if (mode === "aliased" || mode === "root-page") for (const edit of edits) edit.pageIndex = 0;
+  const buffered = PdfDocument.load(input);
+  for (const edit of edits) { const page = buffered.getPage(edit.pageIndex); page.setRotation((((edit.relative ? page.getRotation() : 0) + edit.degrees) % 360 + 360) % 360 as 0 | 90 | 180 | 270); }
+  const expected = buffered.save(), fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", input);
+  const storage = { fs, directory: "/scratch" }, source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+  try { const chunks = []; for await (const bytes of saveRetainedDocumentChunks(document, storage, { rotations: (async function* () { yield* edits; })() })) chunks.push(bytes); expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected); }
+  finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it.each(["index", "angle", "cancel"])("releases retained rotation edits after %s failure before output", async mode => {
+  const original = PdfDocument.create(); original.addPage([100, 200]);
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
+  const storage = { fs, directory: "/scratch" }, source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+  const controller = new AbortController(), reason = new Error("cancel rotation edits"); let returned = false, yielded = 0;
+  async function* rotations() {
+    try { yield { pageIndex: 0, degrees: 90 }; if (mode === "cancel") controller.abort(reason); yield { pageIndex: mode === "index" ? 1 : 0, degrees: mode === "angle" ? 45 : 90 }; }
+    finally { returned = true; }
+  }
+  try {
+    await expect((async () => { for await (const bytes of saveRetainedDocumentChunks(document, storage, { rotations: rotations(), signal: controller.signal })) yielded += bytes.length; })())
+      .rejects.toThrow(mode === "index" ? "Page index out of bounds" : mode === "angle" ? "multiple of 90" : reason.message);
+    expect(returned).toBe(true); expect(yielded).toBe(0);
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

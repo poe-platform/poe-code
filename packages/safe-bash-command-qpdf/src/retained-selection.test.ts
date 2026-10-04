@@ -5,7 +5,7 @@ import { PdfDocument, cosStream, cosString, dictSet } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-stdin", "empty", "empty-no-pages", "none", "duplicate", "stdout", "replace", "remove", "remove-large", "decrypt", "collate", "collate-two", "collate-large", "collate-single", "collate-empty"]) it(`copies ${mode} page selections through retained storage with exact bytes`, async () => {
+for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-stdin", "empty", "empty-no-pages", "none", "duplicate", "stdout", "replace", "remove", "remove-large", "decrypt", "collate", "collate-two", "collate-large", "collate-single", "collate-empty", "rotate-absolute", "rotate-relative", "rotate-duplicates", "rotate-collated", "rotate-plain"]) it(`copies ${mode} page selections through retained storage with exact bytes`, async () => {
   const base = PdfDocument.create(), other = PdfDocument.create();
   for (let i = 0; i < 3; i++) base.addPage([100 + i * 10, 200]).drawText(`Base ${i + 1}`, { x: 10, y: 20 });
   for (let i = 0; i < 2; i++) other.addPage([200 + i * 10, 300]).drawText(`Other ${i + 1}`, { x: 10, y: 20 });
@@ -18,9 +18,9 @@ for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-st
   const extra = other.save(mode === "source-password" ? { encrypt: { userPassword: "other", ownerPassword: "owner" } } : {});
   const mainName = mode === "stdin" ? "-" : "in.pdf", otherName = mode === "source-stdin" ? "-" : "other.pdf";
   const target = mode === "stdout" ? "-" : mode === "replace" ? mainName : "out.pdf";
-  const args = [...(mode.startsWith("collate") ? [`--collate=${mode === "collate-two" ? 2 : mode === "collate-large" ? 100000000 : 1}`] : []), ...(encrypted ? ["--password=reader"] : []), ...(mode.startsWith("empty") ? ["--empty"] : [mainName]),
+  const args = [...(mode.startsWith("rotate") ? [mode === "rotate-absolute" ? "--rotate=270:1-z" : mode === "rotate-duplicates" ? "--rotate=+90:1-z,1" : "--rotate=+90:1-z", "--rotate=-180:2-z"] : []), ...(mode.startsWith("collate") || mode === "rotate-collated" ? [`--collate=${mode === "collate-two" ? 2 : mode === "collate-large" ? 100000000 : 1}`] : []), ...(encrypted ? ["--password=reader"] : []), ...(mode.startsWith("empty") ? ["--empty"] : [mainName]),
     ...(mode === "replace" ? ["--replace-input"] : []), ...(mode.startsWith("remove") ? ["--remove-info", "--remove-metadata"] : []), ...(mode === "decrypt" ? ["--decrypt"] : []),
-    ...(mode === "empty-no-pages" ? [] : ["--pages", ...(mode === "empty" ? [] : [".", mode === "none" || mode === "collate-empty" ? "1-z,x1-z" : mode.startsWith("collate") ? "3-1,1" : "3-1,x2"]),
+    ...(mode === "empty-no-pages" || mode === "rotate-plain" ? [] : ["--pages", ...(mode === "empty" ? [] : [".", mode === "none" || mode === "collate-empty" ? "1-z,x1-z" : mode.startsWith("collate") ? "3-1,1" : "3-1,x2"]),
       ...(mode === "none" || mode === "collate-single" ? [] : [otherName, ...(mode === "source-password" ? ["--password=other"] : []), "1-z"]), ...(mode === "duplicate" ? [".", "2,2"] : []), "--"]),
     ...(mode === "replace" ? [] : [target])];
   const files = new Map([[mainName, input], [otherName, extra]]), expected = await runQpdfCli(args, files);

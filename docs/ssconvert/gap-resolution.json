@@ -4579,7 +4579,7 @@
     {
       "id": "rendering-font-print-fidelity",
       "status": "open",
-      "currentFinding": "Qualified page breaks, explicit fonts, neutral materialized styles and rounded glyph advances are implemented. Measured glyph-bound differences remain; full pixel, style, chart, merge, rich-text and overflow fidelity remains open."
+      "currentFinding": "Qualified PDF profiles now include implicit/materialized defaults, selected fonts/colors, native decorations and indentation, directional overflow, row clipping, explicit multiline spacing, zero hiding and parsed scalar/array formula views. Independent source, text, geometry and screenshot controls support these profiles; automatic wrapping, shrink/rotation, borders, merges, rich text, chart/object fidelity and full Unicode/RTL behavior remain open."
     },
     {
       "id": "solver-analysis-accuracy",
@@ -4619,7 +4619,19 @@
       "460b6547a0828fe90621e0612bc8b91f02ed7074",
       "0187df3739530d7f377b7a4c9c6000d25378231b",
       "4c264d499eda94928133f5c1b2ee96f4faa84839",
-      "b58fabd556f49fc22c6ff53b658aa113de03918f"
+      "b58fabd556f49fc22c6ff53b658aa113de03918f",
+    "3c9d5819cf20ff2d5f9359396f298158192e27cc",
+    "6344d7a2e6c82e43a4930dc003380eb32749d800",
+    "83c140cd93addbf3d73e56cad4c61e10cc1e4c9a",
+    "91fc82a77fa12db87c258314302834d183ebd6e6",
+    "3917f8f9c26a5a7fd832d10b835375369ba59ce2",
+    "1fd689d0ba8dd6bea60ad6f98241289815bc4def",
+    "b2e336c4336b56759e0654c84b35633bee59c341",
+    "7b278f1baa02436098faef896b0eaf4673a6b7f0",
+    "243d6d3d402340d252f802c1e6c4ad77a404cd2e",
+    "4f4c0b2ce181a49b5fe4ea6728bcb48e19f590fa",
+    "d1ce7009f00e7ee0d072ce5eff3c1d5a19bfe166",
+    "1a1af21d9839f6771a5e4e9d62b4c785aa211e08"
     ],
     "playgroundReleaseRepair": {"commit": "54f660fdfc56d2c63b8b25009ff9ff330b37257a",
       "delivery": "Verified on remote main. Superseded owned pin 36536622833 was canceled before the subsequent fixes. Replacement full pin 36541934977 is pending at 41af7960f989f497e29556d67936527716cc9ace; publication remains unverified.",
@@ -5145,6 +5157,29 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "pdfTextLayout20261004": {
+      "commits": [
+        "3c9d5819cf20ff2d5f9359396f298158192e27cc",
+        "6344d7a2e6c82e43a4930dc003380eb32749d800",
+        "83c140cd93addbf3d73e56cad4c61e10cc1e4c9a",
+        "91fc82a77fa12db87c258314302834d183ebd6e6",
+        "3917f8f9c26a5a7fd832d10b835375369ba59ce2",
+        "1fd689d0ba8dd6bea60ad6f98241289815bc4def",
+        "b2e336c4336b56759e0654c84b35633bee59c341",
+        "7b278f1baa02436098faef896b0eaf4673a6b7f0",
+        "243d6d3d402340d252f802c1e6c4ad77a404cd2e",
+        "4f4c0b2ce181a49b5fe4ea6728bcb48e19f590fa",
+        "d1ce7009f00e7ee0d072ce5eff3c1d5a19bfe166",
+        "1a1af21d9839f6771a5e4e9d62b4c785aa211e08"
+      ],
+      "profile": "gnumeric-1.12.61-optional-python-glossary; native binary SHA256 d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82; explicit DejaVu font controls",
+      "styles": "Native underline values0-4, OS/2 strike metrics, top/center/bottom placement, font-metric indentation, protection flags and row clipping are implemented. Unstyled cells now use the same default shaping path as materialized styles.",
+      "multiline": "LF,CR and CRLF preserve blank/trailing lines and logical extraction text. Each line has its own shaping, native centered pixel rounding and decorations. Justify spreads lines; distributed centers the block. Widths requiring implicit automatic wrapping still refuse.",
+      "formulaViews": "Formula mode doubles column geometry, including fit/centering. Zero hiding uses the strict64-epsilon native tolerance and preserves displayed formulas. Array member cells use {=...}. Parsed expression output normalizes numbers, known function names, references and sheet quoting while retaining explicit grouping and unknown function spelling.",
+      "currentChecks": "882 focused formula/print/PDF tests plus40 final spelling regressions; selected19-workspace build, engine and command lint/source/test types and Node/browser consumer types pass.",
+      "independentControls": "Implicit defaults:12 public PDFs/6 native controls, max text-origin difference0.0017pt. Multiline:50 public PDFs/25 native controls, max0.0017pt. Array views:14 public PDFs/7 native controls, max0.003pt. Canonical formulas:62 public PDFs/31 native controls, max0.003pt. Screenshots inspected for each repair; these are profile comparisons, not global pixel parity.",
+      "remaining": "Automatic wrapping, Unicode paragraph separators/full bidi, shrink/rotation, rich text/merges, patterned fills/borders, chart/object fidelity, R1C1 conventions and complete live-name/label/optional-function rendering remain unqualified. All19 families stay open; containing release publication is not asserted."
+    },
     "pdfAlphaColors": {
       "finding": "Three alpha controls originally refused styled/merged cells. Native XML color parsing and print_cell_gtk carry8-bit alpha into Cairo.",
       "implementation": "Retain high-byte alpha for foreground and solid fills. PDF text uses a scoped nonstroking graphics state, while solid rectangles receive their own opacity. Zero/low-byte/half/opaque boundaries and subsequent opaque text are covered.",

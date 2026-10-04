@@ -4,11 +4,12 @@ import { fixture, run } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
-for (const args of ["-- -p", "-- --parents", "-- --", "-p -- -p --parents --", "--parents -- -p --parents --"]) {
-  test(`mkdir preserves option-like operands in ${args}`, async context => {
+for (const warm of [false, true]) for (const args of ["-- -p", "-- --parents", "-- --", "-p -- -p", "--parents -- --parents", "-p -- -p --parents --", "--parents -- -p --parents --"]) {
+  test(`mkdir preserves option-like operands in ${args} (warm=${warm})`, async context => {
     const fs = await fixture();
     const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
     context.after(() => shell.dispose());
+    if (warm) assert.equal((await shell.exec("")).exitCode, 0);
     const result = await shell.exec(`mkdir ${args}`);
     assert.equal(result.exitCode, 0, result.stderr);
     const operands = args.slice(args.indexOf("-- ") + 3).split(" ");

@@ -1,4 +1,4 @@
-import {reserveRetainedOutput} from "./retained-output-budgets.js";
+import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {RetainedOptions} from "./retained-options.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -12,7 +12,7 @@ import {PandocError} from "./errors.js";
 type Job = {
   op: string; node: number; path: number; mode?: string; cursor?: number; index?: number;
   value?: string; columns?: number; columnCount?: number; occupancy?: number; column?: number;
-  row?: number; rowHeads?: number; header?: boolean;
+  start?: number; row?: number; rowHeads?: number; header?: boolean;
 };
 type HtmlResource = (node: number) => Promise<AsyncIterable<Uint8Array> | undefined>;
 type Section = {node: number; id: TextRange; number: string};
@@ -91,8 +91,9 @@ class HtmlTape {
   private async tag(node: number): Promise<string> {return (await this.tree.smallText((await this.tree.property(node, "t"))!, 32))!;}
   private async number(node: number): Promise<number> {return readJsonNumber(this.tree.scalarChunks(node), units => this.context.cooperate(units));}
   private async add(value: string | TextRange): Promise<void> {
-    if (!this.extractingText && Number.isFinite(this.context.limits.references)) {
+    if (!this.extractingText && (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes))) {
       this.context.bound("outputBytes", this.output.units + (typeof value === "string" ? value.length : value.units));
+      if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (typeof value === "string" ? value.length : value.units) * 2);
       this.context.charge("references", 1);
     }
     await this.text.append(this.output, await this.text.from(typeof value === "string" ? [value] : this.text.chunks(value)));
@@ -115,7 +116,7 @@ class HtmlTape {
       if (this.options.ascii && char.codePointAt(0)! > 127) return `&#${char.codePointAt(0)};`;
       return char === "&" ? "&amp;" : char === "<" ? "&lt;" : char === ">" ? "&gt;" : char === "\r" ? "&#13;" : attribute && char === '"' ? "&quot;" : char;
     };
-    if (Number.isFinite(this.context.limits.references)) {
+    if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) {
       let fragment = "";
       for await (const chunk of this.text.unicodeChunks(range)) for (const char of chunk) {
         fragment += escape(char);
@@ -175,7 +176,9 @@ class HtmlTape {
     }
     if (last && !last.trim()) await this.fail("Unsupported URL characters");
     if (colon && !["http", "https", "mailto", "tel"].includes(scheme.toLowerCase())) await this.fail("Unsupported URI scheme");
-    return this.map(value, char => " \"<>`".includes(char) ? encodeURIComponent(char) : char);
+    const result = await this.map(value, char => " \"<>`".includes(char) ? encodeURIComponent(char) : char);
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 2);
+    return result;
   }
   private async unique(base: TextRange, used = this.reserved): Promise<TextRange> {
     let id = base, suffix = 1;
@@ -240,11 +243,12 @@ class HtmlTape {
       const job = frame.job;
       if (job.op === "literal") {if (job.value) await this.add(job.value); continue;}
       if (job.op === "list") {
+        if (job.mode === "plainInline" && Number.isFinite(this.context.limits.retainedBytes) && job.start === undefined) job.start = this.output.units;
         const cursor = job.cursor ?? job.node + 32, end = (await this.tree.describe(job.node)).end, index = job.index ?? 0;
         if (cursor < end) {
           await this.push({...job, cursor: (await this.tree.describe(cursor)).end, index: index + 1});
           await this.push({...job, op: job.mode!, node: cursor, path: await this.path(job.path, `[${index}]`), index});
-        }
+        } else if (job.mode === "plainInline" && Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (this.output.units - job.start!) * 2);
         continue;
       }
       const part = async (index: number) => ({node: await this.at(job.node, index), path: await this.path(job.path, `[${index}]`)});
@@ -462,8 +466,9 @@ class HtmlTape {
       if (header.kind === "object") {
         const tag = await this.tree.property(position, "t");
         if (tag !== undefined && await this.tree.smallText(tag, 6) === "Header") {
-          const section = await this.record(await this.section(position));
+          const value = await this.section(position), section = await this.record(value);
           if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
+          if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (value.id.units + value.number.length) * 2);
           await this.sections.set(BigInt(this.sectionCount++), BigInt(section)); await this.sectionByNode.set(BigInt(position), BigInt(section));
         }
       }
@@ -493,6 +498,7 @@ class HtmlTape {
       await this.add("</ol>\n</section>\n");
     }
     if (this.options.standalone) await this.add("</body>\n</html>\n");
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", this.output.units * 2);
     return this.output;
   }
 }
@@ -514,10 +520,10 @@ export async function writeRetainedHtml(tree: BackedJson, context: ExecutionCont
       const encoder = new TextEncoder();
       for await (const chunk of included ? included() : writer.text.unicodeChunks(result)) yield encoder.encode(options.eol === "crlf" ? chunk.split("\n").join("\r\n") : chunk);
     };
-    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references) && !Number.isFinite(context.limits.retainedBytes)) {
       let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}
     }
-    for await (const bytes of chunks()) await context.emit(bytes);
+    await emitRetainedOutput(chunks(), context);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};}
   finally {release();}

@@ -5464,9 +5464,10 @@ const SubbandsGainLog2 = {
   HL: 1,
   HH: 2
 };
-function* jpxVectorAllocate(length, bytesPerElement, stored) {
+function* jpxVectorAllocate(length, bytesPerElement, stored, integer = false) {
+  if (!stored && integer) return bytesPerElement === 4 ? new Uint32Array(length) : bytesPerElement === 2 ? new Uint16Array(length) : new Uint8Array(length);
   if (!stored) return bytesPerElement === 4 ? new Float32Array(length) : new Uint8ClampedArray(length);
-  return {length, bytesPerElement, position: yield {kind: "vector-allocate", length: length * bytesPerElement}};
+  return {length, bytesPerElement, integer, position: yield {kind: "vector-allocate", length: length * bytesPerElement}};
 }
 function* jpxVectorRead(vector, index) {
   if (!Number.isInteger(index) || index < 0 || index >= vector.length) return undefined;
@@ -5484,10 +5485,14 @@ function* jpxVectorUpdate(vector, index, operator, value) {
   if (operator === "+") value = previous + value;
   else if (operator === "-") value = previous - value;
   else if (operator === "*") value = previous * value;
+  else if (operator === "&") value = previous & value;
+  else if (operator === "|") value = previous | value;
+  else if (operator === "^") value = previous ^ value;
   else throw new Error("Unknown JPEG 2000 vector operation");
   return yield* jpxVectorWrite(vector, index, value);
 }
 function* jpxVectorCopy(target, targetStart, source, start, end) {
+  if (target.position === undefined && source.position === undefined) { target.set(source.subarray(start, end), targetStart); return; }
   for (let index = start; index < end; index++) yield* jpxVectorWrite(target, targetStart++, yield* jpxVectorRead(source, index));
 }
 function* jpxReadUint(position, count) {
@@ -6616,7 +6621,7 @@ function* parseTilePackets(context, data, offset, dataLength) {
   }
   return position;
 }
-function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation) {
+function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation, stored) {
   const x0 = subband.tbx0;
   const y0 = subband.tby0;
   const width = subband.tbx1 - subband.tbx0;
@@ -6633,7 +6638,8 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
     if (codeblock.data === undefined) {
       continue;
     }
-    const bitModel = new BitModel(blockWidth, blockHeight, codeblock.subbandType, codeblock.zeroBitPlanes, mb, onAllocation);
+    const bitModel = new BitModel();
+    yield* bitModel.initialize(blockWidth, blockHeight, codeblock.subbandType, codeblock.zeroBitPlanes, mb, onAllocation, stored);
     let currentCodingpassType = 2;
     const data = codeblock.data;
     let totalLength = 0,
@@ -6663,13 +6669,13 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
     for (j = 0; j < codingpasses; j++) {
       switch (currentCodingpassType) {
         case 0:
-          bitModel.runSignificancePropagationPass();
+          (yield* bitModel.runSignificancePropagationPass());
           break;
         case 1:
-          bitModel.runMagnitudeRefinementPass();
+          (yield* bitModel.runMagnitudeRefinementPass());
           break;
         case 2:
-          bitModel.runCleanupPass();
+          (yield* bitModel.runCleanupPass());
           if (segmentationSymbolUsed) {
             bitModel.checkSegmentationSymbol();
           }
@@ -6692,13 +6698,13 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
       const row = offset / width | 0;
       const levelOffset = 2 * row * (levelWidth - width) + right + bottom;
       for (k = 0; k < blockWidth; k++) {
-        n = magnitude[position];
+        n = (yield* jpxVectorRead(magnitude,position));
         if (n !== 0) {
           n = (n + magnitudeCorrection) * delta;
-          if (sign[position] !== 0) {
+          if ((yield* jpxVectorRead(sign,position)) !== 0) {
             n = -n;
           }
-          nb = bitsDecoded[position];
+          nb = (yield* jpxVectorRead(bitsDecoded,position));
           const pos = interleave ? levelOffset + (offset << 1) : offset;
           (yield* jpxVectorWrite(coefficients,pos,reversible && nb >= mb ? n : n * (1 << mb - nb)));
         }
@@ -6744,7 +6750,7 @@ function* transformTile(context, tile, c) {
       const gainLog2 = SubbandsGainLog2[subband.type];
       const delta = reversible ? 1 : 2 ** (precision + gainLog2 - epsilon) * (1 + mu / 2048);
       const mb = guardBits + epsilon - 1;
-      (yield* copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, context.onAllocation));
+      (yield* copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, context.onAllocation, context.storedPlanes));
     }
     subbandCoefficients.push({
       width,
@@ -6989,7 +6995,7 @@ class BitModel {
   static LLAndLHContextsLabel = new Uint8Array([0, 5, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 1, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 2, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 2, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 2, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8]);
   static HLContextLabel = new Uint8Array([0, 3, 4, 0, 5, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 1, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 2, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 2, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 2, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8]);
   static HHContextLabel = new Uint8Array([0, 1, 2, 0, 1, 2, 2, 0, 2, 2, 2, 0, 0, 0, 0, 0, 3, 4, 5, 0, 4, 5, 5, 0, 5, 5, 5, 0, 0, 0, 0, 0, 6, 7, 7, 0, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 0, 0, 8, 8, 8, 0, 8, 8, 8, 0, 8, 8, 8, 0, 0, 0, 0, 0, 8, 8, 8, 0, 8, 8, 8, 0, 8, 8, 8]);
-  constructor(width, height, subband, zeroBitPlanes, mb, onAllocation) {
+  *initialize(width, height, subband, zeroBitPlanes, mb, onAllocation, stored) {
     this.onAllocation = onAllocation;
     this.width = width;
     this.height = height;
@@ -7003,23 +7009,23 @@ class BitModel {
     }
     this.contextLabelTable = contextLabelTable;
     const coefficientCount = width * height;
-    onAllocation?.(coefficientCount * (4 + (mb > 14 ? 4 : mb > 6 ? 2 : 1)) + 1024);
-    this.neighborsSignificance = new Uint8Array(coefficientCount);
-    this.coefficentsSign = new Uint8Array(coefficientCount);
+    onAllocation?.(stored ? 1024 : coefficientCount * (4 + (mb > 14 ? 4 : mb > 6 ? 2 : 1)) + 1024);
+    this.neighborsSignificance = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
+    this.coefficentsSign = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
     let coefficentsMagnitude;
     if (mb > 14) {
-      coefficentsMagnitude = new Uint32Array(coefficientCount);
+      coefficentsMagnitude = (yield* jpxVectorAllocate(coefficientCount,4,stored,true));
     } else if (mb > 6) {
-      coefficentsMagnitude = new Uint16Array(coefficientCount);
+      coefficentsMagnitude = (yield* jpxVectorAllocate(coefficientCount,2,stored,true));
     } else {
-      coefficentsMagnitude = new Uint8Array(coefficientCount);
+      coefficentsMagnitude = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
     }
     this.coefficentsMagnitude = coefficentsMagnitude;
-    this.processingFlags = new Uint8Array(coefficientCount);
-    const bitsDecoded = new Uint8Array(coefficientCount);
+    this.processingFlags = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
+    const bitsDecoded = (yield* jpxVectorAllocate(coefficientCount,1,stored,true));
     if (zeroBitPlanes !== 0) {
       for (let i = 0; i < coefficientCount; i++) {
-        bitsDecoded[i] = zeroBitPlanes;
+        (yield* jpxVectorWrite(bitsDecoded,i,zeroBitPlanes));
       }
     }
     this.bitsDecoded = bitsDecoded;
@@ -7035,7 +7041,7 @@ class BitModel {
     this.contexts[BitModel.UNIFORM_CONTEXT] = 46 << 1 | 0;
     this.contexts[BitModel.RUNLENGTH_CONTEXT] = 3 << 1 | 0;
   }
-  setNeighborsSignificance(row, column, index) {
+  *setNeighborsSignificance(row, column, index) {
     const neighborsSignificance = this.neighborsSignificance;
     const width = this.width,
       height = this.height;
@@ -7045,32 +7051,32 @@ class BitModel {
     if (row > 0) {
       i = index - width;
       if (left) {
-        neighborsSignificance[i - 1] += 0x10;
+        (yield* jpxVectorUpdate(neighborsSignificance,i - 1,"+",0x10));
       }
       if (right) {
-        neighborsSignificance[i + 1] += 0x10;
+        (yield* jpxVectorUpdate(neighborsSignificance,i + 1,"+",0x10));
       }
-      neighborsSignificance[i] += 0x04;
+      (yield* jpxVectorUpdate(neighborsSignificance,i,"+",0x04));
     }
     if (row + 1 < height) {
       i = index + width;
       if (left) {
-        neighborsSignificance[i - 1] += 0x10;
+        (yield* jpxVectorUpdate(neighborsSignificance,i - 1,"+",0x10));
       }
       if (right) {
-        neighborsSignificance[i + 1] += 0x10;
+        (yield* jpxVectorUpdate(neighborsSignificance,i + 1,"+",0x10));
       }
-      neighborsSignificance[i] += 0x04;
+      (yield* jpxVectorUpdate(neighborsSignificance,i,"+",0x04));
     }
     if (left) {
-      neighborsSignificance[index - 1] += 0x01;
+      (yield* jpxVectorUpdate(neighborsSignificance,index - 1,"+",0x01));
     }
     if (right) {
-      neighborsSignificance[index + 1] += 0x01;
+      (yield* jpxVectorUpdate(neighborsSignificance,index + 1,"+",0x01));
     }
-    neighborsSignificance[index] |= 0x80;
+    (yield* jpxVectorUpdate(neighborsSignificance,index,"|",0x80));
   }
-  runSignificancePropagationPass() {
+  *runSignificancePropagationPass() {
     const decoder = this.decoder;
     const width = this.width,
       height = this.height;
@@ -7092,59 +7098,59 @@ class BitModel {
           if (i >= height) {
             break;
           }
-          processingFlags[index] &= processedInverseMask;
-          if (coefficentsMagnitude[index] || !neighborsSignificance[index]) {
+          (yield* jpxVectorUpdate(processingFlags,index,"&",processedInverseMask));
+          if ((yield* jpxVectorRead(coefficentsMagnitude,index)) || !(yield* jpxVectorRead(neighborsSignificance,index))) {
             continue;
           }
-          const contextLabel = labels[neighborsSignificance[index]];
+          const contextLabel = labels[(yield* jpxVectorRead(neighborsSignificance,index))];
           const decision = decoder.readBit(contexts, contextLabel);
           if (decision) {
-            const sign = this.decodeSignBit(i, j, index);
-            coefficentsSign[index] = sign;
-            coefficentsMagnitude[index] = 1;
-            this.setNeighborsSignificance(i, j, index);
-            processingFlags[index] |= firstMagnitudeBitMask;
+            const sign = (yield* this.decodeSignBit(i,j,index));
+            (yield* jpxVectorWrite(coefficentsSign,index,sign));
+            (yield* jpxVectorWrite(coefficentsMagnitude,index,1));
+            (yield* this.setNeighborsSignificance(i,j,index));
+            (yield* jpxVectorUpdate(processingFlags,index,"|",firstMagnitudeBitMask));
           }
-          bitsDecoded[index]++;
-          processingFlags[index] |= processedMask;
+          (yield* jpxVectorUpdate(bitsDecoded,index,"+",1));
+          (yield* jpxVectorUpdate(processingFlags,index,"|",processedMask));
         }
       }
     }
   }
-  decodeSignBit(row, column, index) {
+  *decodeSignBit(row, column, index) {
     const width = this.width,
       height = this.height;
     const coefficentsMagnitude = this.coefficentsMagnitude;
     const coefficentsSign = this.coefficentsSign;
     let contribution, sign0, sign1, significance1;
     let contextLabel, decoded;
-    significance1 = column > 0 && coefficentsMagnitude[index - 1] !== 0;
-    if (column + 1 < width && coefficentsMagnitude[index + 1] !== 0) {
-      sign1 = coefficentsSign[index + 1];
+    significance1 = column > 0 && (yield* jpxVectorRead(coefficentsMagnitude,index - 1)) !== 0;
+    if (column + 1 < width && (yield* jpxVectorRead(coefficentsMagnitude,index + 1)) !== 0) {
+      sign1 = (yield* jpxVectorRead(coefficentsSign,index + 1));
       if (significance1) {
-        sign0 = coefficentsSign[index - 1];
+        sign0 = (yield* jpxVectorRead(coefficentsSign,index - 1));
         contribution = 1 - sign1 - sign0;
       } else {
         contribution = 1 - sign1 - sign1;
       }
     } else if (significance1) {
-      sign0 = coefficentsSign[index - 1];
+      sign0 = (yield* jpxVectorRead(coefficentsSign,index - 1));
       contribution = 1 - sign0 - sign0;
     } else {
       contribution = 0;
     }
     const horizontalContribution = 3 * contribution;
-    significance1 = row > 0 && coefficentsMagnitude[index - width] !== 0;
-    if (row + 1 < height && coefficentsMagnitude[index + width] !== 0) {
-      sign1 = coefficentsSign[index + width];
+    significance1 = row > 0 && (yield* jpxVectorRead(coefficentsMagnitude,index - width)) !== 0;
+    if (row + 1 < height && (yield* jpxVectorRead(coefficentsMagnitude,index + width)) !== 0) {
+      sign1 = (yield* jpxVectorRead(coefficentsSign,index + width));
       if (significance1) {
-        sign0 = coefficentsSign[index - width];
+        sign0 = (yield* jpxVectorRead(coefficentsSign,index - width));
         contribution = 1 - sign1 - sign0 + horizontalContribution;
       } else {
         contribution = 1 - sign1 - sign1 + horizontalContribution;
       }
     } else if (significance1) {
-      sign0 = coefficentsSign[index - width];
+      sign0 = (yield* jpxVectorRead(coefficentsSign,index - width));
       contribution = 1 - sign0 - sign0 + horizontalContribution;
     } else {
       contribution = horizontalContribution;
@@ -7158,7 +7164,7 @@ class BitModel {
     }
     return decoded;
   }
-  runMagnitudeRefinementPass() {
+  *runMagnitudeRefinementPass() {
     const decoder = this.decoder;
     const width = this.width,
       height = this.height;
@@ -7175,24 +7181,24 @@ class BitModel {
       indexNext = Math.min(length, index0 + width4);
       for (let j = 0; j < width; j++) {
         for (let index = index0 + j; index < indexNext; index += width) {
-          if (!coefficentsMagnitude[index] || (processingFlags[index] & processedMask) !== 0) {
+          if (!(yield* jpxVectorRead(coefficentsMagnitude,index)) || ((yield* jpxVectorRead(processingFlags,index)) & processedMask) !== 0) {
             continue;
           }
           let contextLabel = 16;
-          if ((processingFlags[index] & firstMagnitudeBitMask) !== 0) {
-            processingFlags[index] ^= firstMagnitudeBitMask;
-            const significance = neighborsSignificance[index] & 127;
+          if (((yield* jpxVectorRead(processingFlags,index)) & firstMagnitudeBitMask) !== 0) {
+            (yield* jpxVectorUpdate(processingFlags,index,"^",firstMagnitudeBitMask));
+            const significance = (yield* jpxVectorRead(neighborsSignificance,index)) & 127;
             contextLabel = significance === 0 ? 15 : 14;
           }
           const bit = decoder.readBit(contexts, contextLabel);
-          coefficentsMagnitude[index] = coefficentsMagnitude[index] << 1 | bit;
-          bitsDecoded[index]++;
-          processingFlags[index] |= processedMask;
+          (yield* jpxVectorWrite(coefficentsMagnitude,index,(yield* jpxVectorRead(coefficentsMagnitude,index)) << 1 | bit));
+          (yield* jpxVectorUpdate(bitsDecoded,index,"+",1));
+          (yield* jpxVectorUpdate(processingFlags,index,"|",processedMask));
         }
       }
     }
   }
-  runCleanupPass() {
+  *runCleanupPass() {
     const decoder = this.decoder;
     const width = this.width,
       height = this.height;
@@ -7215,7 +7221,7 @@ class BitModel {
       const checkAllEmpty = i0 + 3 < height;
       for (let j = 0; j < width; j++) {
         const index0 = indexBase + j;
-        const allEmpty = checkAllEmpty && processingFlags[index0] === 0 && processingFlags[index0 + oneRowDown] === 0 && processingFlags[index0 + twoRowsDown] === 0 && processingFlags[index0 + threeRowsDown] === 0 && neighborsSignificance[index0] === 0 && neighborsSignificance[index0 + oneRowDown] === 0 && neighborsSignificance[index0 + twoRowsDown] === 0 && neighborsSignificance[index0 + threeRowsDown] === 0;
+        const allEmpty = checkAllEmpty && (yield* jpxVectorRead(processingFlags,index0)) === 0 && (yield* jpxVectorRead(processingFlags,index0 + oneRowDown)) === 0 && (yield* jpxVectorRead(processingFlags,index0 + twoRowsDown)) === 0 && (yield* jpxVectorRead(processingFlags,index0 + threeRowsDown)) === 0 && (yield* jpxVectorRead(neighborsSignificance,index0)) === 0 && (yield* jpxVectorRead(neighborsSignificance,index0 + oneRowDown)) === 0 && (yield* jpxVectorRead(neighborsSignificance,index0 + twoRowsDown)) === 0 && (yield* jpxVectorRead(neighborsSignificance,index0 + threeRowsDown)) === 0;
         let i1 = 0,
           index = index0;
         let i = i0,
@@ -7223,10 +7229,10 @@ class BitModel {
         if (allEmpty) {
           const hasSignificantCoefficent = decoder.readBit(contexts, BitModel.RUNLENGTH_CONTEXT);
           if (!hasSignificantCoefficent) {
-            bitsDecoded[index0]++;
-            bitsDecoded[index0 + oneRowDown]++;
-            bitsDecoded[index0 + twoRowsDown]++;
-            bitsDecoded[index0 + threeRowsDown]++;
+            (yield* jpxVectorUpdate(bitsDecoded,index0,"+",1));
+            (yield* jpxVectorUpdate(bitsDecoded,index0 + oneRowDown,"+",1));
+            (yield* jpxVectorUpdate(bitsDecoded,index0 + twoRowsDown,"+",1));
+            (yield* jpxVectorUpdate(bitsDecoded,index0 + threeRowsDown,"+",1));
             continue;
           }
           i1 = decoder.readBit(contexts, BitModel.UNIFORM_CONTEXT) << 1 | decoder.readBit(contexts, BitModel.UNIFORM_CONTEXT);
@@ -7234,31 +7240,31 @@ class BitModel {
             i = i0 + i1;
             index += i1 * width;
           }
-          sign = this.decodeSignBit(i, j, index);
-          coefficentsSign[index] = sign;
-          coefficentsMagnitude[index] = 1;
-          this.setNeighborsSignificance(i, j, index);
-          processingFlags[index] |= firstMagnitudeBitMask;
+          sign = (yield* this.decodeSignBit(i,j,index));
+          (yield* jpxVectorWrite(coefficentsSign,index,sign));
+          (yield* jpxVectorWrite(coefficentsMagnitude,index,1));
+          (yield* this.setNeighborsSignificance(i,j,index));
+          (yield* jpxVectorUpdate(processingFlags,index,"|",firstMagnitudeBitMask));
           index = index0;
           for (let i2 = i0; i2 <= i; i2++, index += width) {
-            bitsDecoded[index]++;
+            (yield* jpxVectorUpdate(bitsDecoded,index,"+",1));
           }
           i1++;
         }
         for (i = i0 + i1; i < iNext; i++, index += width) {
-          if (coefficentsMagnitude[index] || (processingFlags[index] & processedMask) !== 0) {
+          if ((yield* jpxVectorRead(coefficentsMagnitude,index)) || ((yield* jpxVectorRead(processingFlags,index)) & processedMask) !== 0) {
             continue;
           }
-          const contextLabel = labels[neighborsSignificance[index]];
+          const contextLabel = labels[(yield* jpxVectorRead(neighborsSignificance,index))];
           const decision = decoder.readBit(contexts, contextLabel);
           if (decision === 1) {
-            sign = this.decodeSignBit(i, j, index);
-            coefficentsSign[index] = sign;
-            coefficentsMagnitude[index] = 1;
-            this.setNeighborsSignificance(i, j, index);
-            processingFlags[index] |= firstMagnitudeBitMask;
+            sign = (yield* this.decodeSignBit(i,j,index));
+            (yield* jpxVectorWrite(coefficentsSign,index,sign));
+            (yield* jpxVectorWrite(coefficentsMagnitude,index,1));
+            (yield* this.setNeighborsSignificance(i,j,index));
+            (yield* jpxVectorUpdate(processingFlags,index,"|",firstMagnitudeBitMask));
           }
-          bitsDecoded[index]++;
+          (yield* jpxVectorUpdate(bitsDecoded,index,"+",1));
         }
       }
     }

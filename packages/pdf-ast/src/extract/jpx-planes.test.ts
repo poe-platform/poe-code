@@ -6,11 +6,24 @@ import { PdfFileSource } from "../source.js";
 import { PdfRetainedJpx } from "./retained-jpx.js";
 import { decodeJpxToRgba } from "./images.js";
 
-it.each(["rgb-lossless.j2k", "rgb-lossless.jp2", "rgb-tiled.jp2", "gray-lossless.jp2"])(
-  "backs JPEG 2000 planes with caller storage: %s",
-  async (name) => {
+it.each(
+  ["rgb-lossless.j2k", "rgb-lossless.jp2", "rgb-tiled.jp2", "gray-lossless.jp2"].flatMap((name) =>
+    [0, -7, 7, 17].map((delta) => ({ name, delta }))
+  )
+)(
+  "backs JPEG 2000 planes with caller storage: $name, quantization delta $delta",
+  async ({ name, delta }) => {
     const bytes = new Uint8Array(readFileSync(new URL("../fixtures/" + name, import.meta.url))),
       fs = createMemoryFileSystem();
+    if (delta)
+      for (let i = 0; i < bytes.length - 4; i++)
+        if (bytes[i] === 255 && bytes[i + 1] === 92) {
+          const mode = bytes[i + 4]! & 31,
+            end = i + 2 + ((bytes[i + 2]! << 8) | bytes[i + 3]!);
+          for (let j = i + 5; j < end; j += mode === 0 ? 1 : 2)
+            bytes[j] = (Math.max(0, Math.min(31, (bytes[j]! >> 3) + delta)) << 3) | (bytes[j]! & 7);
+          break;
+        }
     await fs.mkdir("/scratch");
     await fs.writeFile("/input", bytes);
     const source = await PdfFileSource.open(fs, "/input"),

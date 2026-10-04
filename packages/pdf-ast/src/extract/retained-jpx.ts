@@ -100,8 +100,10 @@ export class PdfRetainedJpx {
       cache = bytes.slice();
       cacheStart = position;
     }
-    if (options.coefficientStorage) charge(4096 * 10 + 2048);
+    if (options.coefficientStorage) charge(4096 * 14 + 2048);
     const clamped = new Uint8ClampedArray(1);
+    // Five bit-model arrays can each span the current and neighboring page.
+    // Two spare pages cover coefficient/output windows without backend thrashing.
     const pages: {
       position: number;
       bytes: Uint8Array;
@@ -112,7 +114,7 @@ export class PdfRetainedJpx {
     const selected = options.signal ? { signal: options.signal } : undefined;
     async function loadPage(position: number, length: number, used: number) {
       const storage = options.coefficientStorage!;
-      if (pages.length === 8) {
+      if (pages.length === 12) {
         let oldest = 0;
         for (let i = 1; i < pages.length; i++) if (pages[i]!.used < pages[oldest]!.used) oldest = i;
         const page = pages.splice(oldest, 1)[0]!;
@@ -188,10 +190,20 @@ export class PdfRetainedJpx {
             const at = offset - pageOffset;
             if (request.kind === "vector-read")
               step = program.next(
-                vector.bytesPerElement === 4 ? page.view.getFloat32(at, true) : page.bytes[at]
+                vector.bytesPerElement === 4
+                  ? vector.integer
+                    ? page.view.getUint32(at, true)
+                    : page.view.getFloat32(at, true)
+                  : vector.bytesPerElement === 2
+                    ? page.view.getUint16(at, true)
+                    : page.bytes[at]
               );
             else {
-              if (vector.bytesPerElement === 4) page.view.setFloat32(at, request.value, true);
+              if (vector.bytesPerElement === 4 && vector.integer)
+                page.view.setUint32(at, request.value, true);
+              else if (vector.bytesPerElement === 2) page.view.setUint16(at, request.value, true);
+              else if (vector.bytesPerElement === 4) page.view.setFloat32(at, request.value, true);
+              else if (vector.integer) page.bytes[at] = request.value;
               else {
                 clamped[0] = request.value;
                 page.bytes[at] = clamped[0]!;

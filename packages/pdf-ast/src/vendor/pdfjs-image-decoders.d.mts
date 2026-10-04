@@ -6,7 +6,7 @@ export class Jbig2Image {
   parse(data: Uint8Array, options?: { packed?: boolean }): Uint8ClampedArray;
   parseChunks(chunks: Array<{ data: Uint8Array; start: number; end: number }>): Uint8Array | undefined;
 }
-export interface JpxStoredVector { readonly position:number; readonly length:number; readonly bytesPerElement:number }
+export interface JpxStoredVector { readonly position:number; readonly length:number; readonly bytesPerElement:number; readonly integer?:boolean }
 export type JpxReadRequest = number | {start:number;end:number} | {kind:"vector-allocate";length:number} | {kind:"vector-read";vector:JpxStoredVector;index:number} | {kind:"vector-write";vector:JpxStoredVector;index:number;value:number};
 export class JpxImage {
   constructor(onImageDimensions?: (width: number, height: number) => void, onAllocation?: (bytes: number) => void, options?: {storedPlanes?:boolean});

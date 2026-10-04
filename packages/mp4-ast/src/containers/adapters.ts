@@ -35,6 +35,8 @@ import {
   type MediaAudioData,
   type MediaDocument,
   type MediaProbeResult,
+  type MediaProbeRecords,
+  type MediaSourceProbeOptions,
   type MediaProbeSource,
   type MediaSample,
   type MediaTrack,
@@ -391,6 +393,8 @@ export function isWavSignature(bytes: Uint8Array): boolean {
   );
 }
 
+const wavPacketFrames = 1024;
+
 export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const header = readWavHeader(bytes);
   const { formatTag, channels, sampleRate, bitsPerSample } = header;
@@ -424,7 +428,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   }
 
   const samples: MediaSample[] = [];
-  const chunkFrames = 1024;
+  const chunkFrames = wavPacketFrames;
   for (let offsetSample = 0; offsetSample < totalPcmSamples; offsetSample += chunkFrames) {
     const count = Math.min(chunkFrames, totalPcmSamples - offsetSample);
     const byteStart = offsetSample * bytesPerFrame;
@@ -536,22 +540,56 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
   const samples = doc.duration;
   const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
   return { ...result, streams: [{ ...result.streams[0]!,
-    nb_frames: String(Math.ceil(samples / 1024)),
+    nb_frames: String(Math.ceil(samples / wavPacketFrames)),
     bit_rate: doc.durationSeconds > 0
       ? String(Math.round(samples * bytesPerFrame * 8 / doc.durationSeconds)) : "0"
   }] };
 }
 
-/** Reads only RIFF headers through caller-owned range reads; does not close the source.
- * Packet/frame enumeration remains available through the byte-buffer probe API.
- */
-export async function probeWavSource(source: MediaProbeSource, options: { filename?: string; signal?: AbortSignal } = {}): Promise<MediaProbeResult> {
-  return wavMetadata(await readWavSourceHeader(source, options.signal), options.filename);
+function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaProbeRecords {
+  const metadata = wavMetadata(header, options.filename), stream = metadata.streams[0]!;
+  const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
+  const samples = Math.floor(header.dataSize / bytesPerFrame), rate = Math.max(1, header.sampleRate);
+  function* spans() {
+    for (let pts = 0; pts < samples; pts += wavPacketFrames) {
+      options.signal?.throwIfAborted();
+      const count = Math.min(wavPacketFrames, samples - pts);
+      yield { pts, count, size: String(count * bytesPerFrame), time: (pts / rate).toFixed(6), duration: (count / rate).toFixed(6) };
+    }
+    options.signal?.throwIfAborted();
+  }
+  return { ...metadata,
+    packets: options.showPackets ? { *[Symbol.iterator]() {
+      for (const s of spans()) yield { codec_type: "audio" as const, stream_index: 0, pts: s.pts, pts_time: s.time,
+        dts: s.pts, dts_time: s.time, duration: s.count, duration_time: s.duration, size: s.size,
+        pos: String(s.pts * bytesPerFrame), flags: "K_" };
+    } } : undefined,
+    frames: options.showFrames ? { *[Symbol.iterator]() {
+      for (const s of spans()) yield { media_type: "audio" as const, stream_index: 0, key_frame: 1,
+        pts: s.pts, pts_time: s.time, pkt_dts: s.pts, pkt_dts_time: s.time,
+        best_effort_timestamp: s.pts, best_effort_timestamp_time: s.time, pkt_duration: s.count,
+        pkt_duration_time: s.duration, pkt_size: s.size, width: undefined, height: undefined,
+        pix_fmt: undefined, pict_type: undefined, sample_fmt: stream.sample_fmt, nb_samples: s.count, channels: header.channels };
+    } } : undefined
+  };
 }
 
-/** Metadata from a sequential borrowed source; consumes through EOF without retaining sample payloads. */
-export async function probeWavStream(source: AsyncIterable<Uint8Array>, options: { filename?: string; signal?: AbortSignal } = {}): Promise<MediaProbeResult> {
-  return wavMetadata(await readWavStreamHeader(source, options.signal), options.filename);
+type WavMetadataOnlyOptions = MediaSourceProbeOptions & { showPackets?: false; showFrames?: false };
+
+/** Reads only RIFF headers through caller-owned ranges; never closes the source.
+ * Requested packet/frame descriptors are lazy and remain valid after source closure.
+ */
+export function probeWavSource(source: MediaProbeSource, options?: WavMetadataOnlyOptions): Promise<MediaProbeResult>;
+export function probeWavSource(source: MediaProbeSource, options: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
+export async function probeWavSource(source: MediaProbeSource, options: MediaSourceProbeOptions = {}): Promise<MediaProbeRecords> {
+  return wavRecords(await readWavSourceHeader(source, options.signal), options);
+}
+
+/** Consumes sequential borrowed chunks through EOF without retaining sample payloads. */
+export function probeWavStream(source: AsyncIterable<Uint8Array>, options?: WavMetadataOnlyOptions): Promise<MediaProbeResult>;
+export function probeWavStream(source: AsyncIterable<Uint8Array>, options: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
+export async function probeWavStream(source: AsyncIterable<Uint8Array>, options: MediaSourceProbeOptions = {}): Promise<MediaProbeRecords> {
+  return wavRecords(await readWavStreamHeader(source, options.signal), options);
 }
 
 export function wavAst(): MediaAstPlugin {

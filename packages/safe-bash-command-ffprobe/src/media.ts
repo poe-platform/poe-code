@@ -1,9 +1,10 @@
+import { writeProbeOutput } from "./probe-output.js";
 import { readFileStream } from "safe-bash-contracts/filesystem";
 import { probe as probeAudio } from "./probe.js";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { allMediaAsts, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
-  type MediaAstPlugin, type MediaFeatureOptions, type MediaProbeResult, type MediaResourceLimits } from "@poe-code/mp4-ast";
+  type MediaAstPlugin, type MediaFeatureOptions, type MediaProbeResult, type MediaProbeRecords, type MediaResourceLimits } from "@poe-code/mp4-ast";
 
 export interface MediaCommandsOptions {
   /**
@@ -224,9 +225,7 @@ export function formatIntrospectionOutput(
   ].join("\n");
 }
 
-export function formatFfprobeResult(
-  probe: MediaProbeResult,
-  opts: {
+export type FfprobeFormatOptions = {
     printFormat: string;
     showFormat: boolean;
     showStreams: boolean;
@@ -238,14 +237,21 @@ export function formatFfprobeResult(
     showEntries?: string | undefined;
     countFrames?: boolean | undefined;
     countPackets?: boolean | undefined;
-  },
-  audioInput?: { bytes: Uint8Array; args: readonly string[] }
-): string {
+  };
+
+/** Explicit buffering convenience for synchronous callers. */
+export function formatFfprobeResult(probe: MediaProbeResult, opts: FfprobeFormatOptions, audioInput?: { bytes: Uint8Array; args: readonly string[] }): string {
+  return Array.from(formatFfprobeResultChunks(probe, opts, audioInput)).join("");
+}
+
+export function* formatFfprobeResultChunks(probe: MediaProbeRecords, opts: FfprobeFormatOptions, audioInput?: { bytes: Uint8Array; args: readonly string[] }): Generator<string> {
   // Both execution paths retain qualified audio schemas while media-only options
   // and mixed streams use the general media formatter.
   if (audioInput && !opts.showPackets && !opts.showFrames && !opts.showChapters && !opts.showPrograms && !opts.countFrames && !opts.countPackets &&
       probe.streams.length > 0 && probe.streams.every(stream => stream.codec_type === "audio")) {
-    try { return probeAudio(audioInput.bytes, audioInput.args); } catch { /* Other containers and extended options use the media formatter. */ }
+    let formatted: string | undefined;
+    try { formatted = probeAudio(audioInput.bytes, audioInput.args); } catch { /* Other containers and extended options use the media formatter. */ }
+    if (formatted !== undefined) { yield formatted; return; }
   }
   // Filter streams by `-select_streams`
   let filteredStreams = [...probe.streams];
@@ -369,16 +375,36 @@ export function formatFfprobeResult(
   }
 
   if (fmt === "json") {
-    const jsonObj: Record<string, unknown> = {};
-    if (includePrograms) jsonObj.programs = [];
-    if (includePackets && probe.packets) jsonObj.packets = probe.packets;
-    if (includeFrames && probe.frames) jsonObj.frames = probe.frames;
-    if (finalStreams !== undefined) jsonObj.streams = finalStreams;
-    if (includeChapters) jsonObj.chapters = probe.chapters;
-    if (finalFormat !== undefined) jsonObj.format = finalFormat;
-
+    const sections: { name: string; rows?: Iterable<unknown>; value?: unknown }[] = [];
+    if (includePrograms) sections.push({ name: "programs", rows: [] });
+    if (includePackets && probe.packets) sections.push({ name: "packets", rows: probe.packets });
+    if (includeFrames && probe.frames) sections.push({ name: "frames", rows: probe.frames });
+    if (finalStreams !== undefined) sections.push({ name: "streams", rows: finalStreams });
+    if (includeChapters) sections.push({ name: "chapters", rows: probe.chapters });
+    if (finalFormat !== undefined) sections.push({ name: "format", value: finalFormat });
     const compact = paramMap.c === "1" || paramMap.compact === "1";
-    return (compact ? JSON.stringify(jsonObj) : JSON.stringify(jsonObj, null, 2)) + "\n";
+    yield "{";
+    let firstSection = true;
+    for (const section of sections) {
+      yield (firstSection ? "" : ",") + (compact ? "" : "\n  ") + JSON.stringify(section.name) + (compact ? ":" : ": ");
+      firstSection = false;
+      if (section.rows) {
+        yield "[";
+        let firstRow = true;
+        for (const row of section.rows) {
+          yield (firstRow ? "" : ",") + (compact ? "" : "\n    ");
+          firstRow = false;
+          const text = JSON.stringify(row, null, compact ? undefined : 2) ?? "null";
+          yield compact ? text : text.replaceAll("\n", "\n    ");
+        }
+        yield (compact || firstRow ? "" : "\n  ") + "]";
+      } else {
+        const text = JSON.stringify(section.value, null, compact ? undefined : 2)!;
+        yield compact ? text : text.replaceAll("\n", "\n  ");
+      }
+    }
+    yield (compact || firstSection ? "" : "\n") + "}\n";
+    return;
   }
 
   const noWrappers =
@@ -436,7 +462,7 @@ export function formatFfprobeResult(
       }
       lines.push(vals.join(sep));
     }
-    return lines.join("\n") + (lines.length > 0 ? "\n" : "");
+    yield lines.join("\n") + (lines.length > 0 ? "\n" : ""); return;
   }
 
   if (fmt === "flat") {
@@ -456,7 +482,7 @@ export function formatFfprobeResult(
         lines.push(`format${sep}${k}=${probeText(v)}`);
       }
     }
-    return lines.join("\n") + (lines.length > 0 ? "\n" : "");
+    yield lines.join("\n") + (lines.length > 0 ? "\n" : ""); return;
   }
 
   // Default format (`[STREAM] ... [/STREAM]` and `[FORMAT] ... [/FORMAT]`)
@@ -510,7 +536,7 @@ export function formatFfprobeResult(
     if (!noWrappers) lines.push("[/FORMAT]");
   }
 
-  return lines.join("\n") + (lines.length > 0 ? "\n" : "");
+  yield lines.join("\n") + (lines.length > 0 ? "\n" : ""); return;
 }
 
 let defaultAstPluginsCache: readonly MediaAstPlugin[] | undefined;
@@ -577,7 +603,7 @@ function parseProbeArguments(args: readonly string[]) {
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget };
 }
 
-async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPlugin, path: string, filename: string, budget: MediaBudgetTracker): Promise<MediaProbeResult | undefined> {
+async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPlugin, path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }): Promise<MediaProbeRecords | undefined> {
   if (!plugin.canDemux || !plugin.probeMetadata || !context.fs.openReadFile) return undefined;
   context.signal.throwIfAborted();
   const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
@@ -594,7 +620,7 @@ async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPl
     budget.checkInputBytes(stat.size);
     const result = await plugin.probeMetadata({ size: stat.size,
       read: (offset, length) => handle.read(offset, length, { signal: context.signal })
-    }, { filename, signal: context.signal, budget, limits: budget.limits });
+    }, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
     context.signal.throwIfAborted();
     failed = false;
     return result;
@@ -604,7 +630,7 @@ async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPl
   }
 }
 
-async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlugin, filename: string, budget: MediaBudgetTracker): Promise<MediaProbeResult | undefined> {
+async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlugin, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }): Promise<MediaProbeRecords | undefined> {
   if (!plugin.canDemux || !plugin.probeMetadataStream) return undefined;
   context.signal.throwIfAborted();
   let source: AsyncIterable<Uint8Array>;
@@ -627,7 +653,7 @@ async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlug
     }
     context.signal.throwIfAborted();
   }
-  const result = await plugin.probeMetadataStream(admitted(), { filename, signal: context.signal, budget, limits: budget.limits });
+  const result = await plugin.probeMetadataStream(admitted(), { ...records, filename, signal: context.signal, budget, limits: budget.limits });
   context.signal.throwIfAborted();
   return result;
 }
@@ -690,11 +716,11 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         const { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
         const explicitPlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : undefined;
-        let probeResult = explicitPlugin && !showPackets && !showFrames && !isStdin(inputTarget)
-          ? await probeRetainedMetadata(context, explicitPlugin, resolvePath(context.cwd, inputTarget), inputTarget, budget)
+        let probeResult = explicitPlugin && !isStdin(inputTarget)
+          ? await probeRetainedMetadata(context, explicitPlugin, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames })
           : undefined;
-        if (!probeResult && explicitPlugin && !showPackets && !showFrames)
-          probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget);
+        if (!probeResult && explicitPlugin)
+          probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames });
         let audioInput: { bytes: Uint8Array; args: readonly string[] } | undefined;
         if (!probeResult) {
           const bytes = await readInput(inputTarget);
@@ -720,7 +746,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           if (!options.asts && !explicitFormat) audioInput = { bytes, args };
         }
 
-        const formatted = formatFfprobeResult(probeResult, {
+        const formatted = formatFfprobeResultChunks(probeResult, {
           printFormat,
           showFormat,
           showStreams,
@@ -734,9 +760,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           countPackets
         }, audioInput);
 
-        const output = encodeUtf8(formatted);
-        budget.checkOutputBytes(output.byteLength);
-        await writeBytes(context.stdout, output, context.signal);
+        await writeProbeOutput(context, formatted, total => budget.checkOutputBytes(total));
         options.onMetrics?.(budget.getStats());
         return { exitCode: 0 };
       } catch (err) {

@@ -512,6 +512,18 @@ export interface MediaProbeResult {
   readonly frames?: readonly MediaProbeFrame[] | undefined;
 }
 
+/** Probe descriptors without materializing potentially large packet/frame collections. */
+export type MediaProbeRecords = Omit<MediaProbeResult, "packets" | "frames"> & {
+  readonly packets?: Iterable<MediaProbePacket> | undefined;
+  readonly frames?: Iterable<MediaProbeFrame> | undefined;
+};
+
+export interface MediaSourceProbeOptions extends ParseMediaOptions {
+  readonly signal?: AbortSignal;
+  readonly showPackets?: boolean;
+  readonly showFrames?: boolean;
+}
+
 export interface ParseMediaOptions {
   /** Resolve a manifest-relative segment URI synchronously from caller-owned storage. */
   readonly resolveResource?: ((uri: string) => Uint8Array) | undefined;
@@ -598,10 +610,10 @@ export interface MediaAstPlugin {
   parse(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument;
   serialize(doc: MediaDocument, options?: SerializeMediaOptions): Uint8Array;
   probe(bytes: Uint8Array, options?: ParseMediaOptions & { showPackets?: boolean; showFrames?: boolean }): MediaProbeResult;
-  /** Optional bounded metadata path; packet/frame enumeration uses probe. */
-  probeMetadata?(source: MediaProbeSource, options?: ParseMediaOptions & { signal?: AbortSignal }): Promise<MediaProbeResult>;
+  /** Optional bounded range path; packet/frame descriptors may be lazy iterables. */
+  probeMetadata?(source: MediaProbeSource, options?: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
   /** Optional bounded sequential metadata path; consumes input through EOF. */
-  probeMetadataStream?(source: AsyncIterable<Uint8Array>, options?: ParseMediaOptions & { signal?: AbortSignal }): Promise<MediaProbeResult>;
+  probeMetadataStream?(source: AsyncIterable<Uint8Array>, options?: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
   concat?(docs: readonly MediaDocument[], options?: ConcatMediaOptions): MediaDocument;
   slice?(doc: MediaDocument, options?: SliceMediaOptions): MediaDocument;
 }

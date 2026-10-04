@@ -22,3 +22,5 @@ Writer options include `nk`, `nw`, `p` and `s` where applicable.
 `FfprobeLimits` support direct host integration. Defaults: 32 MiB input, 1 MiB output.
 
 Inspection uses the supplied virtual filesystem and never spawns native tools.
+
+For WAV metadata, `ffprobe -f wav -show_streams recording.wav` uses bounded header reads when the injected filesystem supports retained reads. Input limits still apply to the full logical file size. Packet/frame enumeration, stdin, and automatic audio probing still use the buffered path.

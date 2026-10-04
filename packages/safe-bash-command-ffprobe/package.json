@@ -31,7 +31,8 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/audio-ast": "*",
-    "@poe-code/mp4-ast": "*"
+    "@poe-code/mp4-ast": "*",
+    "@poe-code/safe-fs": "*"
   },
   "sideEffects": false
 }

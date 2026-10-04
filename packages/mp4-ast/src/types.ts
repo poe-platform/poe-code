@@ -570,6 +570,13 @@ export interface MuxMediaOptions {
   readonly budget?: MediaBudgetTracker | undefined;
 }
 
+/** Borrowed random-access bytes. The adapter owns source lifetime and filesystem authority. */
+export interface MediaProbeSource {
+  readonly size: number;
+  /** Return at most length bytes; short nonempty reads are supported. */
+  read(offset: number, length: number): Promise<Uint8Array>;
+}
+
 /**
  * Modular AST Plugin Contract consumed by `ffmpeg` and `ffprobe`.
  * `ffmpeg` and `ffprobe` inspect the registered `MediaAstPlugin` instances
@@ -591,6 +598,8 @@ export interface MediaAstPlugin {
   parse(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument;
   serialize(doc: MediaDocument, options?: SerializeMediaOptions): Uint8Array;
   probe(bytes: Uint8Array, options?: ParseMediaOptions & { showPackets?: boolean; showFrames?: boolean }): MediaProbeResult;
+  /** Optional bounded metadata path; packet/frame enumeration uses probe. */
+  probeMetadata?(source: MediaProbeSource, options?: ParseMediaOptions & { signal?: AbortSignal }): Promise<MediaProbeResult>;
   concat?(docs: readonly MediaDocument[], options?: ConcatMediaOptions): MediaDocument;
   slice?(doc: MediaDocument, options?: SliceMediaOptions): MediaDocument;
 }

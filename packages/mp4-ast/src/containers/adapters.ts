@@ -1,3 +1,4 @@
+import { readWavHeader, readWavSourceHeader, type WavHeader } from "./wav-header.js";
 import { parseAudio } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { encodeFlacPackets } from "./flac.js";
@@ -34,6 +35,7 @@ import {
   type MediaAudioData,
   type MediaDocument,
   type MediaProbeResult,
+  type MediaProbeSource,
   type MediaSample,
   type MediaTrack,
   type MediaVideoFrame,
@@ -390,32 +392,9 @@ export function isWavSignature(bytes: Uint8Array): boolean {
 }
 
 export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
-  if (!isWavSignature(bytes)) {
-    throw new Error("Invalid WAV file: missing RIFF WAVE signature");
-  }
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  let formatTag = 1;
-  let channels = 2;
-  let sampleRate = 44100;
-  let bitsPerSample = 16;
-  let pcmData: Uint8Array = new Uint8Array(0);
-
-  let pos = 12;
-  while (pos + 8 <= bytes.byteLength) {
-    const id = decodeFourCC(bytes, pos);
-    const size = view.getUint32(pos + 4, true);
-    const start = pos + 8;
-    const end = Math.min(bytes.byteLength, start + size);
-    if (id === "fmt " && size >= 16) {
-      formatTag = view.getUint16(start, true);
-      channels = view.getUint16(start + 2, true) || 2;
-      sampleRate = view.getUint32(start + 4, true) || 44100;
-      bitsPerSample = view.getUint16(start + 14, true) || 16;
-    } else if (id === "data") {
-      pcmData = bytes.subarray(start, end);
-    }
-    pos = end + (size & 1);
-  }
+  const header = readWavHeader(bytes);
+  const { formatTag, channels, sampleRate, bitsPerSample } = header;
+  const pcmData = bytes.subarray(header.dataOffset, header.dataOffset + header.dataSize);
 
   const bytesPerFrame = Math.max(1, channels * (bitsPerSample >>> 3));
   const totalPcmSamples = Math.floor(pcmData.byteLength / bytesPerFrame);
@@ -462,6 +441,12 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     });
   }
 
+  return wavDocument(header, samples, decodedAudio);
+}
+
+function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: MediaAudioData): MediaDocument {
+  const { formatTag, channels, sampleRate, bitsPerSample, dataSize, byteLength } = header;
+  const totalPcmSamples = Math.floor(dataSize / Math.max(1, channels * (bitsPerSample >>> 3)));
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
   return {
     containerFormat: "wav",
@@ -491,7 +476,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       }
     ],
     metadata: {},
-    byteLength: bytes.byteLength
+    byteLength
   };
 }
 
@@ -542,8 +527,31 @@ export function serializeWav(doc: MediaDocument): Uint8Array {
   return writer.toUint8Array();
 }
 
+/** Metadata-only WAV probing without payload or per-packet allocation. */
+function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResult {
+  const doc = wavDocument(header, []);
+  const result = buildProbeResultFromDoc(doc, header.byteLength, filename, {
+    formatName: "wav", formatLongName: "WAV / WAVE (Waveform Audio)"
+  });
+  const samples = doc.duration;
+  const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
+  return { ...result, streams: [{ ...result.streams[0]!,
+    nb_frames: String(Math.ceil(samples / 1024)),
+    bit_rate: doc.durationSeconds > 0
+      ? String(Math.round(samples * bytesPerFrame * 8 / doc.durationSeconds)) : "0"
+  }] };
+}
+
+/** Reads only RIFF headers through caller-owned range reads; does not close the source.
+ * Packet/frame enumeration remains available through the byte-buffer probe API.
+ */
+export async function probeWavSource(source: MediaProbeSource, options: { filename?: string; signal?: AbortSignal } = {}): Promise<MediaProbeResult> {
+  return wavMetadata(await readWavSourceHeader(source, options.signal), options.filename);
+}
+
 export function wavAst(): MediaAstPlugin {
   return {
+    probeMetadata: probeWavSource,
     id: "wav",
     formatName: "wav",
     formatLongName: "WAV / WAVE (Waveform Audio)",
@@ -565,6 +573,7 @@ export function wavAst(): MediaAstPlugin {
       return serializeWav(doc);
     },
     probe(bytes, options) {
+      if (!options?.showPackets && !options?.showFrames) return wavMetadata(readWavHeader(bytes), options?.filename);
       const doc = parseWav(bytes, { ...options, decodeAudio: false });
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.wav", {
         ...options,

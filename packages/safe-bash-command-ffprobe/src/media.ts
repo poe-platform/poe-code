@@ -576,6 +576,33 @@ function parseProbeArguments(args: readonly string[]) {
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget };
 }
 
+async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPlugin, path: string, filename: string, budget: MediaBudgetTracker): Promise<MediaProbeResult | undefined> {
+  if (!plugin.canDemux || !plugin.probeMetadata || !context.fs.openReadFile) return undefined;
+  context.signal.throwIfAborted();
+  const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
+  context.signal.throwIfAborted();
+  if (capabilities.retainedRead !== true) return undefined;
+  const handle = await context.fs.openReadFile(path, { signal: context.signal });
+  let failed = true;
+  try {
+    context.signal.throwIfAborted();
+    const stat = await handle.stat({ signal: context.signal });
+    context.signal.throwIfAborted();
+    if (!Number.isSafeInteger(stat.size) || stat.size < 0) throw new Error("Invalid media source size");
+    context.inputBudget?.check(stat.size);
+    budget.checkInputBytes(stat.size);
+    const result = await plugin.probeMetadata({ size: stat.size,
+      read: (offset, length) => handle.read(offset, length, { signal: context.signal })
+    }, { filename, signal: context.signal, budget, limits: budget.limits });
+    context.signal.throwIfAborted();
+    failed = false;
+    return result;
+  } finally {
+    if (failed) { try { await handle.close(); } catch { /* Preserve the primary failure. */ } }
+    else await handle.close();
+  }
+}
+
 export function createFfprobeCommand(options: MediaCommandsOptions = {}): CommandDefinition {
   const limits = { maxInputBytes: 32 * 1024 * 1024, maxOutputBytes: 1024 * 1024, ...options.limits };
   for (const value of [limits.maxInputBytes, limits.maxOutputBytes]) {
@@ -633,26 +660,34 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       try {
         const { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
-        const bytes = await readInput(inputTarget);
+        const explicitPlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : undefined;
+        let probeResult = explicitPlugin && !showPackets && !showFrames && !isStdin(inputTarget)
+          ? await probeRetainedMetadata(context, explicitPlugin, resolvePath(context.cwd, inputTarget), inputTarget, budget)
+          : undefined;
+        let audioInput: { bytes: Uint8Array; args: readonly string[] } | undefined;
+        if (!probeResult) {
+          const bytes = await readInput(inputTarget);
 
-        const plugin = registry.detect(bytes, inputTarget, explicitFormat);
-        if (!plugin || !plugin.canDemux) {
-          const msg = explicitFormat
-            ? `ffprobe: Unknown input format: '${explicitFormat}' (AST not registered)\n`
-            : `ffprobe: ${inputTarget}: Invalid data found when processing input or format AST not registered\n`;
-          if (!quiet) await writeBytes(context.stderr, encodeUtf8(msg), context.signal);
-          return { exitCode: 1 };
+          const plugin = registry.detect(bytes, inputTarget, explicitFormat);
+          if (!plugin || !plugin.canDemux) {
+            const msg = explicitFormat
+              ? `ffprobe: Unknown input format: '${explicitFormat}' (AST not registered)\n`
+              : `ffprobe: ${inputTarget}: Invalid data found when processing input or format AST not registered\n`;
+            if (!quiet) await writeBytes(context.stderr, encodeUtf8(msg), context.signal);
+            return { exitCode: 1 };
+          }
+
+          const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget);
+          probeResult = plugin.probe(bytes, {
+            resolveResource,
+            filename: inputTarget,
+            limits: options.limits,
+            budget,
+            showPackets,
+            showFrames
+          });
+          if (!options.asts && !explicitFormat) audioInput = { bytes, args };
         }
-
-        const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget);
-        const probeResult = plugin.probe(bytes, {
-          resolveResource,
-          filename: inputTarget,
-          limits: options.limits,
-          budget,
-          showPackets,
-          showFrames
-        });
 
         const formatted = formatFfprobeResult(probeResult, {
           printFormat,
@@ -666,7 +701,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           showEntries,
           countFrames,
           countPackets
-        }, !options.asts && !explicitFormat ? { bytes, args } : undefined);
+        }, audioInput);
 
         const output = encodeUtf8(formatted);
         budget.checkOutputBytes(output.byteLength);

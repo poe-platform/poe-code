@@ -3563,12 +3563,49 @@ function* processSegments(segments, visitor) {
     (yield* processSegment(segments[i], visitor));
   }
 }
+// Sequential chunks consume each header immediately. Random-access files first
+// locate the payload area, then rescan headers while advancing one payload cursor.
+// Neither layout needs a resident segment index.
+function* processStoredSegments(fileHeader, data, start, end, visitor) {
+  let currentBytes = 0;
+  const admit = bytes => {
+    currentBytes += bytes;
+    const peak = visitor.headerBytes ?? 0;
+    if (currentBytes > peak) {
+      visitor.onAllocation?.(currentBytes - peak);
+      visitor.headerBytes = currentBytes;
+    }
+  };
+  let payload = start;
+  if (fileHeader.randomAccess) {
+    while (payload < end) {
+      currentBytes = 0;
+      const header = yield* readSegmentHeader(data, payload, admit);
+      payload = header.headerEnd;
+      if (header.type === 51) break;
+    }
+  }
+  const headersEnd = fileHeader.randomAccess ? payload : end;
+  while (start < headersEnd) {
+    currentBytes = 0;
+    const header = yield* readSegmentHeader(data, start, admit);
+    const position = fileHeader.randomAccess ? payload : header.headerEnd;
+    const segmentEnd = position + header.length;
+    yield* processSegment({header, data, start: position, end: segmentEnd}, visitor);
+    start = fileHeader.randomAccess ? header.headerEnd : segmentEnd;
+    payload = segmentEnd;
+    if (header.type === 51) break;
+  }
+}
 function* parseJbig2Chunks(chunks, onImageDimensions, onAllocation, storedBitmap) {
   const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation, storedBitmap);
   for (let i = 0, ii = chunks.length; i < ii; i++) {
     const chunk = chunks[i];
-    const segments = (yield* readSegments({}, chunk.data, chunk.start, chunk.end, onAllocation));
-    (yield* processSegments(segments, visitor));
+    if (storedBitmap) yield* processStoredSegments({}, chunk.data, chunk.start, chunk.end, visitor);
+    else {
+      const segments = (yield* readSegments({}, chunk.data, chunk.start, chunk.end, onAllocation));
+      (yield* processSegments(segments, visitor));
+    }
   }
   return visitor.buffer;
 }
@@ -3586,9 +3623,12 @@ function* parseJbig2(data, onImageDimensions, onAllocation, packed, storedBitmap
     header.numberOfPages = (yield* jbigReadUint(data, position, 4));
     position += 4;
   }
-  const segments = (yield* readSegments(header, data, position, end, onAllocation));
   const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation, storedBitmap);
-  (yield* processSegments(segments, visitor));
+  if (storedBitmap) yield* processStoredSegments(header, data, position, end, visitor);
+  else {
+    const segments = (yield* readSegments(header, data, position, end, onAllocation));
+    (yield* processSegments(segments, visitor));
+  }
   const {
     width,
     height
@@ -3688,7 +3728,18 @@ class SimpleSegmentVisitor {
   }
   *onImmediateGenericRegion(region, data, start, end) {
     const regionInfo = region.info;
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
+    // Generic-region contexts and row windows are released after painting. Keep
+    // their peak admission separate from persistent dictionaries and page state.
+    let regionBytes = 0;
+    const admit = this.storedBitmap ? bytes => {
+      regionBytes += bytes;
+      const peak = this.genericRegionBytes ?? 0;
+      if (regionBytes > peak) {
+        this.onAllocation?.(regionBytes - peak);
+        this.genericRegionBytes = regionBytes;
+      }
+    } : this.onAllocation;
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit);
     if (this.storedBitmap) {
       const visitor = this;
       yield* decodeBitmap(region.mmr, regionInfo.width, regionInfo.height, region.template, region.prediction, null, region.at, decodingContext, function* (row, y) {

@@ -5,9 +5,9 @@ import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 import {decodeJbig2ToRgba} from "./images.js";
 
-it.each(["page", "region", "arithmetic"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
+it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
  const inputs=new Map<number,{bytes:Uint8Array;sum:number}>();
- for(const height of profile === "arithmetic" ? [129,513] : [8193,32769]){
+ for(const height of profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile === "repeated regions") ? [17,129] : [8193,32769]){
   let bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
   if(profile === "region") {
    // One vertical-zero MMR code per all-white row, with a complete region
@@ -26,6 +26,21 @@ it.each(["page", "region", "arithmetic"])("keeps growing JBIG2 %s state in exter
    region.set([3,255,253,255,2,254,254,254],59);region.set([255,172],region.length-2);bytes=region;
   }
   new DataView(bytes.buffer).setUint32(15,height);
+  if(profile.includes("segments")) {
+   const records:Uint8Array[]=[];
+   for(let n=0;n<height;n++){const header=new Uint8Array(11);new DataView(header.buffer).setUint32(0,n+2);header[4]=62;records.push(header);}
+   for(let at=0;at<bytes.length;){const length=11+new DataView(bytes.buffer).getUint32(at+7);records.push(bytes.slice(at,at+length));at+=length;}
+   if(profile === "random segments") {
+    const end=new Uint8Array(11);end[4]=51;records.push(end);
+    const input=new Uint8Array(9+records.reduce((sum,record)=>sum+record.length,0));input.set([151,74,66,50,13,10,26,10,2]);
+    let at=9;for(const record of records){input.set(record.subarray(0,11),at);at+=11;}
+    for(const record of records){input.set(record.subarray(11),at);at+=record.length-11;}bytes=input;
+   }else{const input=new Uint8Array(records.reduce((sum,record)=>sum+record.length,0));let at=0;for(const record of records){input.set(record,at);at+=record.length;}bytes=input;}
+  }
+  if(profile === "repeated regions") {
+   const region=bytes.subarray(30),input=new Uint8Array(30+height*region.length);input.set(bytes.subarray(0,30));
+   for(let n=0;n<height;n++){input.set(region,30+n*region.length);new DataView(input.buffer).setUint32(30+n*region.length,n+1);}bytes=input;
+  }
   const expected=decodeJbig2ToRgba(bytes,64,height);
   inputs.set(height,{bytes,sum:expected.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0)});
  }

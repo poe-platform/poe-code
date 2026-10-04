@@ -907,6 +907,13 @@ dictionary with the correct `/Length` and encoding entries, and `stream` supplie
 encoded bytes separately. Both declared lengths are admitted before either input
 is consumed; neither dictionary nor payload needs a resident buffer.
 
+`QpdfJsonValues.open(tree, storage, { signal })` converts a completed
+`@poe-code/json-ast` backed tree into COS syntax with `chunks(position)`.
+Dictionary order, duplicate keys, decoded-name collisions, reference tokens and
+string encodings follow QPDF JSON import semantics. Its indexes use caller
+storage; strings and containers stream without a resident value tree. Keep the
+source tree open while reading, and close the view to release its indexes.
+
 `saveRetainedDocumentChunks(document, storage, options)` saves the complete
 object graph with the ordinary document-save page-tree behavior: inherited page
 attributes become explicit, page parents point to the root, and the root's

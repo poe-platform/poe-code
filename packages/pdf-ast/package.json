@@ -46,6 +46,7 @@
   "devDependencies": {
     "@poe-code/compression": "*",
     "pako": "3.0.1",
-    "@poe-code/safe-fs": "*"
+    "@poe-code/safe-fs": "*",
+    "@poe-code/json-ast": "*"
   }
 }

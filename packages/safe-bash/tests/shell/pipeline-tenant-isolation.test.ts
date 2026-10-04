@@ -89,6 +89,27 @@ test("recursive find pipelines continue after asynchronous traversal", async con
   }
 });
 
+for (const [pipeline, expected] of [
+  ["head -n 5", "/work/a.txt\n/work/sub/c.txt\n"],
+  ["head -n 1", "/work/a.txt\n"],
+  ["head -n 5 | wc -l", "2\n"],
+] as const) {
+  test(`recursive find completes downstream stages: ${pipeline}`, async context => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work/sub", { recursive: true });
+    await fs.writeFile("/work/a.txt", new TextEncoder().encode("alpha:1\n"));
+    await fs.writeFile("/work/sub/c.txt", new TextEncoder().encode("alpha:2\n"));
+    const shell = new Shell({ fs }).use(agentCommands());
+    context.after(() => shell.dispose());
+    for (let run = 0; run < 3; run++) {
+      const result = await shell.exec(`find /work -name '*.txt' | ${pipeline}`);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    }
+  });
+}
+
 test("repeated command execution preserves complete patterns, AWK context and strict jq booleans", async context => {
   const fs = new MemoryFileSystem();
   const encoder = new TextEncoder();

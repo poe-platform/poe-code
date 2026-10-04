@@ -5,6 +5,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { toByteSource, type FileSystem } from "safe-bash-contracts";
 import { Budget } from "safe-bash-diff-engine/shared";
 import { createDiffCommand } from "./index.js";
+import { createBufferedDiffCommand } from "./helpers.test-support.js";
 
 for (const [args, expected] of [
   [[], "2c2\n< old\n---\n> new\n"],
@@ -30,10 +31,10 @@ for (const [args, expected] of [
 
 test("indexed hunks preserve buffered output across deterministic edit patterns", async () => {
   const fs = createMemoryFileSystem();
-  const execute = async (args: string[]) => {
+  const execute = async (args: string[], buffered = false) => {
     const chunks: Uint8Array[] = [];
     let error = "";
-    const result = await createDiffCommand().execute({
+    const result = await (buffered ? createBufferedDiffCommand : createDiffCommand)().execute({
       command: "diff", args: [...args, "/left", "/right"], cwd: "/", env: {}, fs,
       signal: new AbortController().signal, stdin: toByteSource(""),
       stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
@@ -52,7 +53,7 @@ test("indexed hunks preserve buffered output across deterministic edit patterns"
     await fs.writeFile("/left", new TextEncoder().encode(make()));
     await fs.writeFile("/right", new TextEncoder().encode(make()));
     for (const options of [[], ["-U0"], ["-U1"], ["-u"], ["-C0"], ["-C1"], ["-c"], ["-n"], ["-D", "FLAG"]]) {
-      const expected = await execute([...options, "-I", "^NEVER$"]);
+      const expected = await execute([...options, "-I", "^NEVER$"], true);
       assert.deepEqual(await execute(options), expected, `example ${example}: ${options}`);
     }
   }
@@ -65,7 +66,7 @@ for (const count of [4094, 4095, 4096]) test(`indexed matrix preserves alignment
   const execute = async (buffered: boolean) => {
     const chunks: Uint8Array[] = [];
     let error = "";
-    const result = await createDiffCommand().execute({
+    const result = await (buffered ? createBufferedDiffCommand : createDiffCommand)().execute({
       command: "diff", args: [...(buffered ? ["-I", "^NEVER$"] : []), "-U1", "/left", "/right"], cwd: "/", env: {}, fs,
       signal: new AbortController().signal, stdin: toByteSource(""),
       stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
@@ -162,7 +163,7 @@ for (const args of [["-u", "-", "/right"], ["-u", "/dev/stdin", "/right"], ["-Nu
     await fs.writeFile("/right", new TextEncoder().encode("new\n"));
     const run = async (forceBuffer: boolean) => {
       let stdout = "", stderr = "", pulls = 0;
-      const result = await createDiffCommand().execute({
+      const result = await (forceBuffer ? createBufferedDiffCommand : createDiffCommand)().execute({
         command: "diff", args: [...(forceBuffer ? ["-I", "^NEVER$"] : []), ...args], cwd: "/", env: {}, fs,
         signal: new AbortController().signal,
         stdin: (async function* () { pulls++; yield new TextEncoder().encode("old\n"); })(),

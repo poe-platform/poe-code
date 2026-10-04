@@ -17,8 +17,12 @@ retried without exposing a partial program.
 match existence without retaining input or captures. For those patterns,
 `testStream(chunks, budget)` consumes asynchronous text chunks with working memory
 proportional to the compiled pattern. UTF-16 chunk boundaries, word boundaries,
-anchors and cancellation are preserved. Patterns requiring capture replay, such
-as backreferences, continue to use the existing buffered matching APIs.
+anchors and cancellation are preserved. `supportsStoredTest(budget)` and
+`testStored(input, budget)` additionally support sed/awk backreferences through
+caller-owned random-access UTF-16 text and a deduplicated work queue. The caller
+can keep input-dependent state in external storage with bounded caches. Pure
+matching code does not choose a filesystem. Unicode `BytePattern` subjects must
+use the existing decoding APIs; these new matching paths explicitly decline them.
 
 Use commands through `@poe-platform/safe-bash` and its existing command exports. This
 private workspace is bundled into Safe Bash and is not independently published.

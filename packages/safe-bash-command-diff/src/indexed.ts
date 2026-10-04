@@ -2,6 +2,7 @@ import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { renderEd, renderSideBySide, type IndexedGroup as Group } from "./indexed-output.js";
 import { comparisonSource, documentText, expandedSource, stripTrailingCr, terminatedSource } from "./indexed-normalization.js";
 import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
+import { matchesPattern } from "./indexed-pattern.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { IndexedDocument, closeDocumentResources } from "safe-bash-diff-engine/document";
 import { Budget, ToolError } from "safe-bash-diff-engine/shared";
@@ -201,7 +202,7 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
           const bounds = await document.line(start + row);
           const bodyEnd = bounds.end - Number((await document.data.read(8 + bounds.end - 1, 1))[0] === 10);
           for (const pattern of options.ignorePatterns) {
-            if (await pattern.testStream(documentText(document, bounds.start, bodyEnd, render.utf8), budget)) { matches = true; break; }
+            if (await matchesPattern(pattern, document, bounds.start, bodyEnd, render.utf8, budget)) { matches = true; break; }
           }
           ignored &&= matches;
           const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint;
@@ -302,7 +303,7 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
         const bounds = await old.line(position);
         let matches = false;
         for (const pattern of options.functions) {
-          if (await pattern.testStream(documentText(old, bounds.start, bounds.end, render.utf8), budget)) { matches = true; break; }
+          if (await matchesPattern(pattern, old, bounds.start, bounds.end, render.utf8, budget)) { matches = true; break; }
         }
         if (matches) {
           const bodyEnd = bounds.end - Number((await old.data.read(8 + bounds.end - 1, 1))[0] === 10);

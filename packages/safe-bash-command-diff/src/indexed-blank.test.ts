@@ -13,8 +13,7 @@ for (const format of [[], ["-u"], ["-c"], ["-e"], ["-n"], ["-D", "FLAG"], ["-y"]
       const files = { left: text(), right: text() };
       const args = ["-B", ...(sample % 2 ? ["-b"] : []), ...format, "left", "right"];
       const indexed = await run("diff", args, { files });
-      // A pattern that cannot match this fixture keeps the buffered oracle path.
-      const buffered = await run("diff", ["-I", "^\\(__unused_ignore_pattern__\\)\\1$", ...args], { files });
+      const buffered = await run("diff", ["-I", "^__unused_ignore_pattern__$", ...args], { files, buffered: true });
       assert.deepEqual([indexed.exitCode, indexed.stdout, indexed.stderr], [buffered.exitCode, buffered.stdout, buffered.stderr], JSON.stringify({ args, files }));
     }
   });

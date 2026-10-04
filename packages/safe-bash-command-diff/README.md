@@ -51,7 +51,8 @@ exclusive creation, and conditional removal. Paginated output is staged in calle
 storage and emitted in bounded blocks after formatting succeeds; its single-column
 formatter also emits bounded chunks within long lines.
 Blank-line filtering (`-B`) scans indexed lines in bounded blocks across output modes.
-Ignored-line and function-heading patterns without backreferences also scan bounded
-blocks; headings retain only their displayed prefix. Patterns requiring capture
-replay, directory metadata, and special-file
+Ignored-line and function-heading patterns scan bounded blocks; backreferences
+replay text and deduplicated search state through caller storage with a shared
+256 KiB page cache. Headings retain only their displayed prefix. Directory
+metadata and special-file
 backends without streaming reads still have buffered paths; this is not a general bounded-memory guarantee for every diff option.

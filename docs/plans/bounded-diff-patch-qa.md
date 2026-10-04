@@ -8,8 +8,9 @@ Indexed documents, line indexes, LCS cells, edit groups and output use caller-ba
 page caches. Streaming FIFO and character operands use the same staged indexes;
 non-streaming backends retain a buffered compatibility path. Blank-line filtering
 uses bounded scans and stored edit flags across output modes. Regex ignored lines
-and function headings stream when their patterns do not require capture replay;
-backreferences and directory metadata still need migration. GNU patch
+and function headings stream when their patterns do not require capture replay.
+Backreferences replay UTF-16 text and deduplicated search states in caller storage
+with a shared 256 KiB page cache. Directory metadata still needs migration. GNU patch
 target payloads, hunk application and publication now use caller-backed documents
 and retained staging writers, including merge/ifdef, backups, rejects and output
 concatenation. Target documents now share a 256 KiB aggregate page cache.

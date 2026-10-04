@@ -232,6 +232,17 @@ export interface PatternLimits {
 
 export interface Match { readonly start: number; readonly end: number; readonly groups: readonly (string | undefined)[]; readonly captureOffsets?: readonly (number | undefined)[] }
 
+/** Caller-owned replay text and deduplicated work queue. All offsets are UTF-16.
+ * enqueue must copy its state before resolving and suppress previously seen
+ * identical states (including NaN slots), even after they have been dequeued.
+ * Each invocation requires a fresh queue; read returns the exact requested span. */
+export interface StoredPatternInput {
+  readonly length: number;
+  read(start: number, length: number): Promise<string>;
+  enqueue(state: readonly number[]): Promise<void>;
+  dequeue(): Promise<number[] | undefined>;
+}
+
 type PatternBudget = Pick<Budget, "step" | "maxBufferBytes"> & { readonly options?: PatternLimits } & Partial<Pick<Budget, "checkpointSync">> & {
   checkpoint(): void | Promise<void>;
 };
@@ -1229,6 +1240,71 @@ export class Pattern {
     const full = text.slice(found, matchEnd);
     const groups = captured ? [full, text.slice(groupStart, groupEnd)] : [full];
     return { start: found, end: matchEnd, groups };
+  }
+
+  async supportsStoredTest(budget: PatternBudget): Promise<boolean> {
+    await this.prepare(budget);
+    return (this.dialect === "sed" || this.dialect === "awk") && this.code.every(instruction =>
+      instruction.kind === "character" || instruction.kind === "boundary" || instruction.kind === "match"
+      || instruction.kind === "save" || instruction.kind === "jump" || instruction.kind === "split" || instruction.kind === "backreference"
+      || (instruction.kind === "begin" || instruction.kind === "end") && !instruction.multiline && !instruction.trailingNewlines);
+  }
+
+  /** Replay captures as bounded spans; input-dependent search state belongs to the caller. */
+  async testStored(source: StoredPatternInput, budget: PatternBudget): Promise<boolean> {
+    if (!await this.supportsStoredTest(budget)) throw new ProgramError("pattern requires unsupported stored matching");
+    if (await this.supportsStreamTest(budget)) return this.testStream({ async *[Symbol.asyncIterator]() {
+      for (let position = 0; position < source.length; position += 4096) yield await source.read(position, Math.min(4096, source.length - position));
+    } }, budget);
+    const fields = 2 + (this.groupCount + 1) * 2;
+    if (fields * 16 > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    const checkpoint = async () => { const pause = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint(); if (pause) await pause; };
+    await checkpoint();
+    for (let start = 0; start <= source.length;) {
+      const initial = new Array<number>(fields).fill(NaN);
+      initial[0] = 0; initial[1] = start;
+      await source.enqueue(initial);
+      for (;;) {
+        budget.step(); await checkpoint();
+        const state = await source.dequeue();
+        if (!state) break;
+        const pc = state[0]!, position = state[1]!, instruction = this.code[pc]!;
+        const enqueue = async (next: number, at = position) => { state[0] = next; state[1] = at; await source.enqueue(state); };
+        if (instruction.kind === "match") { await checkpoint(); return true; }
+        if (instruction.kind === "character") {
+          const text = await source.read(position, Math.min(2, source.length - position));
+          if (text) { const character = String.fromCodePoint(text.codePointAt(0)!); if (instruction.accepts(character)) await enqueue(pc + 1, position + character.length); }
+        } else if (instruction.kind === "backreference") {
+          const begin = state[2 + instruction.index * 2]!, end = state[3 + instruction.index * 2]!;
+          if (!Number.isFinite(begin) || !Number.isFinite(end) || position + end - begin > source.length) continue;
+          let matches = true;
+          for (let offset = 0; offset < end - begin && matches;) {
+            const count = Math.min(4096, end - begin - offset);
+            const expected = await source.read(begin + offset, count), actual = await source.read(position + offset, count);
+            for (let index = 0; index < count; index++) {
+              if (instruction.ignoreCase ? expected[index]!.toLowerCase() !== actual[index]!.toLowerCase() : expected[index] !== actual[index]) { matches = false; break; }
+            }
+            budget.step(count); await checkpoint(); offset += count;
+          }
+          if (matches) await enqueue(pc + 1, position + end - begin);
+        } else if (instruction.kind === "split") { await enqueue(instruction.first); await enqueue(instruction.second); }
+        else if (instruction.kind === "jump") await enqueue(instruction.target);
+        else if (instruction.kind === "save") {
+          for (let slot = instruction.slot + 2; slot < Math.min(instruction.clearUntil ?? 0, fields - 2); slot++) state[slot + 2] = NaN;
+          state[instruction.slot + 2] = position;
+          await enqueue(pc + 1);
+        } else if (instruction.kind === "boundary") {
+          const before = position > 0 && instruction.accepts(await source.read(position - 1, 1));
+          const after = position < source.length && instruction.accepts(await source.read(position, 1));
+          const boundary = instruction.edge === "start" ? !before && after : instruction.edge === "end" ? before && !after : before !== after;
+          if (boundary === instruction.positive) await enqueue(pc + 1);
+        } else if (instruction.kind === "begin" ? position === 0 : position === source.length) await enqueue(pc + 1);
+      }
+      if (this.anchored || start === source.length) break;
+      const text = await source.read(start, Math.min(2, source.length - start));
+      start += text.codePointAt(0)! > 0xffff ? 2 : 1;
+    }
+    await checkpoint(); return false;
   }
 
   /** Existence-only streaming does not retain captures or the input text. */
@@ -2481,6 +2557,10 @@ export class BytePattern extends Pattern {
   override async supportsStreamTest(budget: PatternBudget): Promise<boolean> {
     // Unicode byte subjects require byte-preserving decoding before matching.
     return !this.usesUnicode(budget) && await super.supportsStreamTest(budget);
+  }
+
+  override async supportsStoredTest(budget: PatternBudget): Promise<boolean> {
+    return !this.usesUnicode(budget) && await super.supportsStoredTest(budget);
   }
 
   override canFindSync(): boolean {

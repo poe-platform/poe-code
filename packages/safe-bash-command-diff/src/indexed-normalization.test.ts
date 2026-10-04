@@ -4,6 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { toByteSource, type FileSystem } from "safe-bash-contracts";
 import { Budget } from "safe-bash-diff-engine/shared";
 import { createDiffCommand } from "./index.js";
+import { createBufferedDiffCommand } from "./helpers.test-support.js";
 
 for (const [flags, left, right] of [
   [["--strip-trailing-cr"], "binary\r\n\0", "binary\n\0"],
@@ -22,7 +23,7 @@ for (const [flags, left, right] of [
   await fs.writeFile("/right", new TextEncoder().encode(right));
   const run = async (reference: boolean, format: string[]) => {
     let stdout = "", stderr = "";
-    const result = await createDiffCommand().execute({
+    const result = await (reference ? createBufferedDiffCommand : createDiffCommand)().execute({
       command: "diff", args: [...flags, ...format, ...(reference ? ["-I", "^NEVER$"] : []), "/left", "/right"],
       cwd: "/", env: {}, fs, stdin: toByteSource(""), signal: new AbortController().signal,
       stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
@@ -63,7 +64,7 @@ for (const flags of [["-aq"], ["-q", "-D", "FLAG"], ["-qy"]]) test(`brief line q
   await fs.writeFile("/right", new TextEncoder().encode("same\n"));
   const run = async (reference: boolean) => {
     let stdout = "", stderr = "";
-    const result = await createDiffCommand({ maxLines: 1 }).execute({
+    const result = await (reference ? createBufferedDiffCommand : createDiffCommand)({ maxLines: 1 }).execute({
       command: "diff", args: [...flags, ...(reference ? ["-I", "^NEVER$"] : []), "/left", "/right"],
       cwd: "/", env: {}, fs, stdin: toByteSource(""), signal: new AbortController().signal,
       stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
@@ -138,7 +139,7 @@ for (const invalid of [false, true]) test(`normalization respects split UTF-8 an
   await fs.writeFile("/left", left); await fs.writeFile("/right", right);
   const run = async (reference: boolean) => {
     const output: Uint8Array[] = [];
-    const result = await createDiffCommand().execute({
+    const result = await (reference ? createBufferedDiffCommand : createDiffCommand)().execute({
       command: "diff", args: ["-i", "-b", "-E", "--strip-trailing-cr", "-u", "-t", ...(reference ? ["-I", "^NEVER$"] : []), "-", "/right"],
       cwd: "/", env: {}, fs, signal: new AbortController().signal,
       stdin: (async function* () { for (const byte of left) yield new Uint8Array([byte]); })(),
@@ -160,7 +161,7 @@ for (const invalid of [false, true]) test(`normalization and display cross a UTF
   await fs.writeFile("/right", invalid ? new Uint8Array([...body, 255]) : body);
   const run = async (reference: boolean) => {
     const chunks: Uint8Array[] = [];
-    const result = await createDiffCommand().execute({
+    const result = await (reference ? createBufferedDiffCommand : createDiffCommand)().execute({
       command: "diff", args: ["-i", "-E", "-u", "-t", ...(reference ? ["-I", "^NEVER$"] : []), "/left", "/right"],
       cwd: "/", env: {}, fs, stdin: toByteSource(""), signal: new AbortController().signal,
       stdout: { async write(bytes) { assert.ok(bytes.length <= 16384); chunks.push(bytes.slice()); } },

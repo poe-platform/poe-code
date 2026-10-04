@@ -63,3 +63,32 @@ it("honors asynchronous checkpoints before pulling and releases the source on ca
   })).rejects.toBe(failure);
   expect(pulls).toBe(1); expect(closed).toBe(true); expect(units).toBe(1024);
 });
+
+it("validates a stream without retaining descendants, text, attributes or document content", async () => {
+  let observed = 0, closed = false;
+  async function* source() {
+    try {
+      yield '<?xml version="1.0"?><!--prolog--><x xmlns="urn:x" attr="value">';
+      for (let i = 0; i < 1000; i++) yield '<y>first<![CDATA[second]]><!--third--><?p fourth?><z/></y>';
+      yield '</x><!--epilog-->';
+    } finally { closed = true; }
+  }
+  const root = await parseXmlStream(source(), { retainTree: false, onElement(_element, parent, depth) {
+    observed++;
+    if (parent) {
+      expect(parent).toMatchObject({ children: [], content: [], text: '', attributes: [] });
+      expect(depth).toBeGreaterThan(1);
+    }
+  } });
+  expect(root).toEqual({ kind: 'element', name: 'x', namespace: 'urn:x', localName: 'x', children: [], content: [], attributes: [], text: '', namespaces: new Map() });
+  expect(observed).toBe(2001); expect(closed).toBe(true);
+});
+
+it("keeps complete-document validation and admission when tree retention is disabled", async () => {
+  const xml = '<x xmlns="urn:x" attr="value"><y/>text</x>';
+  for (const limits of [{ maxNodes: 1 }, { maxDepth: 1 }, { maxAttributes: 1 }, { maxAttributesPerElement: 1 },
+    { maxNamespaces: 1 }, { maxContentNodes: 2 }, { maxTextLength: 4 }])
+    await expect(parseXmlStream(chunks(xml, 1), { ...limits, retainTree: false })).rejects.toBeInstanceOf(XmlLimitError);
+  for (const suffix of ['<x/>', 'text', '<!--unclosed'])
+    await expect(parseXmlStream(chunks(xml + suffix, 1), { retainTree: false })).rejects.toBeInstanceOf(SyntaxError);
+});

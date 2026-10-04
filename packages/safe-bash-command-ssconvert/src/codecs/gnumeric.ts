@@ -37,7 +37,7 @@ function limit(message: string): never { throw new SsconvertError("resource-limi
 function invalid(message: string): never { throw new SsconvertError("io", `E Invalid Gnumeric XML: ${message}`); }
 
 export async function probeGnumeric(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<boolean> {
-  try { const root = await readGnumericDocument(bytes, context); return root.localName === "Workbook" && namespaces.has(root.namespace); }
+  try { const root = await readGnumericDocument(bytes, context, false); return root.localName === "Workbook" && namespaces.has(root.namespace); }
   catch (error) { if (error instanceof GnumericSourceFailure) throw error.cause; if (error instanceof SsconvertError && error.code === "io") return false; throw error; }
 }
 

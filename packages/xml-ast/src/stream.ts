@@ -2,10 +2,15 @@ import { SaxesParser } from "saxes/saxes.js";
 import { XmlLimitError } from "./errors.js";
 import type { XmlContent, XmlElement, XmlLimits } from "./index.js";
 
-/** Incremental source consumption. The returned tree and individual XML tokens remain resident. */
+export interface XmlStreamLimits extends XmlLimits {
+  /** Validate the full document but return only its root name, without a retained tree. */
+  readonly retainTree?: boolean;
+}
+
+/** Incremental source consumption. Individual XML tokens and optional trees remain resident. */
 export async function parseXmlStream(
   source: AsyncIterable<string> | Iterable<string>,
-  limits: XmlLimits = {},
+  limits: XmlStreamLimits = {},
   checkpoint?: (units: number) => void | Promise<void>
 ): Promise<XmlElement> {
   if (limits.recover) throw new TypeError("XML stream recovery is unsupported; use parseXmlSteps");
@@ -19,7 +24,7 @@ export async function parseXmlStream(
     if (value > (limits[key] ?? Infinity)) throw new XmlLimitError(key, "XML resource limit exceeded");
   }
   function charge(key: keyof typeof counters, value = 1) { counters[key] += value; bound(key, counters[key]); }
-  const retain = limits.retainContent !== false;
+  const retainContent = limits.retainContent !== false, tree = limits.retainTree !== false, retain = tree && retainContent;
   const stack: { element: XmlElement; namespaces: Map<string, string> }[] = [];
   const prolog: XmlContent[] = [], epilog: XmlContent[] = [];
   const emptyNamespaces = new Map<string, string>();
@@ -27,7 +32,7 @@ export async function parseXmlStream(
   const parser = new SaxesParser({ xmlns: true, defaultXMLVersion: "1.0", forceXMLVersion: true });
   parser.on("error", error => { throw new SyntaxError(`Invalid XML: ${error.message}`); });
   parser.on("doctype", () => { throw new SyntaxError("Invalid XML: DTD and entity declarations are forbidden"); });
-  let prefix = "", capturing = true;
+  let prefix = "", capturing = retain;
   parser.on("xmldecl", value => {
     const encoding = value.encoding?.toUpperCase();
     if (value.version !== "1.0" || encoding !== undefined &&
@@ -53,15 +58,15 @@ export async function parseXmlStream(
     for (const attr of attrs) charge("maxTextLength", attr.value.length);
     const name = { name: tag.name, namespace: tag.uri, localName: tag.local };
     limits.onElement?.(name, parent?.element, stack.length + 1);
-    charge("maxContentNodes", 1 + (retain ? attrs.length : 0));
+    charge("maxContentNodes", 1 + (retainContent ? attrs.length : 0));
     const element: XmlElement = { kind: "element", ...name, children: [], content: [], text: "",
       attributes: retain ? attrs.map(attr => ({ name: attr.name, localName: attr.local, namespace: attr.uri, value: attr.value })) : [],
       namespaces: retain ? namespaces : emptyNamespaces,
       ...(!root && retain ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
-    if (parent) {
+    if (parent && tree) {
       parent.element.children.push(element);
       if (retain) (parent.element.content as XmlContent[]).push(element);
-    } else root = element;
+    } else if (!parent) root = element;
     stack.push({ element, namespaces });
   });
   parser.on("closetag", () => { stack.pop(); });
@@ -69,7 +74,7 @@ export async function parseXmlStream(
     charge("maxTextLength", content.text.length);
     charge("maxContentNodes");
     const parent = stack.at(-1)?.element;
-    if (parent && (content.kind === "text" || content.kind === "cdata")) parent.text += content.text;
+    if (tree && parent && (content.kind === "text" || content.kind === "cdata")) parent.text += content.text;
     if (retain) (parent ? parent.content as XmlContent[] : root ? epilog : prolog).push(content);
   }
   parser.on("text", text => { if (text.length) append({ kind: "text", text }); });

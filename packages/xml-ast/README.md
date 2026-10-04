@@ -19,7 +19,7 @@ console.log(document.children[0].text); // A & B
 | `parseXmlStream(chunks, limits?, checkpoint?)` | Consume synchronous or asynchronous string chunks into an `XmlElement`. |
 | `parseXmlSteps(source, limits?)` | Advance a parser through work checkpoints; the generator returns the completed element. |
 | `XmlLimitError` | Inspect which configured resource limit was exceeded through its `limit` property. |
-| `XmlElement`, `XmlContent`, `XmlAttribute`, `XmlName`, `XmlLimits` | Describe and consume the XML tree without Node.js types. |
+| `XmlElement`, `XmlContent`, `XmlAttribute`, `XmlName`, `XmlLimits`, `XmlStreamLimits` | Describe and consume the XML tree without Node.js types. |
 
 Pass positive integer limits for depth, element and content counts, attributes, namespaces, and text. Omitted limits are unlimited. `retainContent` preserves ordered mixed content; `onElement` observes element names, parents, and depths during parsing. `expectedEncoding` checks an XML declaration against the caller's decoded input.
 
@@ -29,3 +29,5 @@ mismatched closing tags, and undeclared entities. Each repair calls the callback
 Resource limits and the prohibition on DTDs remain in force.
 
 `parseXmlStream` consumes each chunk before requesting the next and calls the optional asynchronous checkpoint with at most 512 UTF-16 units. It preserves the buffered parser’s tree shape, namespaces and retained content. The source is closed on parsing or checkpoint failure. Decode byte sources incrementally before passing their strings. This avoids a full source string; the resulting tree and individual XML tokens still reside in memory. Recovery remains available through the buffered parser.
+
+For validation or root-name detection, pass `retainTree: false` to `parseXmlStream`. It validates the complete document and enforces the same limits, but returns a root element with empty data fields. Only open element frames, namespace scopes and current parser tokens remain resident; completed descendants, text, attributes and document content are not retained. `onElement` still observes each element.

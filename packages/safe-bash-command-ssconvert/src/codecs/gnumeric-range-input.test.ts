@@ -33,6 +33,7 @@ it.each(['UTF-8', 'UTF-16LE', 'UTF-16BE', 'ISO-8859-1'])('reads %s through bound
       } };
       const book = await readGnumeric(source, context);
       expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: 'string', value });
+      expect(await probeGnumeric(source, context)).toBe(true);
       expect(maximum).toBeLessThanOrEqual(16384);
     } finally { spy.mockRestore(); }
   }
@@ -146,4 +147,42 @@ it.each([false, true])('owns byte subclasses with borrowed slice semantics, gzip
   const reading = readGnumeric(bytes, context);
   bytes.fill(0);
   expect((await reading).sheets[0]!.cells[0]!.value).toEqual({ kind: 'string', value });
+});
+
+it.each([false, true])('probes the entire document without retaining XML elements, gzip=%s', async gzip => {
+  const xml = '<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets>' +
+    '<g:Sheet><g:Name>Data</g:Name><g:Cells>' + '<g:Cell Row="0" Col="0" ValueType="60">value</g:Cell>'.repeat(1000) +
+    '</g:Cells></g:Sheet></g:Sheets></g:Workbook>';
+  const bytes = gzip ? new Uint8Array(gzipSync(xml)) : new TextEncoder().encode(xml), reused = new Uint8Array(257);
+  const push = Array.prototype.push;
+  Array.prototype.push = function(this: unknown[], ...items: unknown[]) {
+    if (items.some(item => item && typeof item === 'object' && 'kind' in item && item.kind === 'element')) throw new Error('resident probe tree');
+    return push.apply(this, items);
+  };
+  let end = 0;
+  try {
+    expect(await probeGnumeric({ size: bytes.length, async read(position, count) {
+      const length = Math.min(count, reused.length, bytes.length - position);
+      end = Math.max(end, position + length); reused.set(bytes.subarray(position, position + length)); return reused.subarray(0, length);
+    } }, context)).toBe(true);
+  } finally { Array.prototype.push = push; }
+  expect(end).toBe(bytes.length);
+});
+
+
+it.each([false, true])('keeps complete probe validation and resource admission, gzip=%s', async gzip => {
+  const xml = '<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets/></g:Workbook>';
+  const encode = (text: string) => gzip ? new Uint8Array(gzipSync(text)) : new TextEncoder().encode(text);
+  for (const suffix of ['<other/>', 'bad', '<!--incomplete']) expect(await probeGnumeric(encode(xml + suffix), context)).toBe(false);
+  await expect(probeGnumeric(encode(xml), { ...context, limits: { ...context.limits, workbookNodes: 1 } })).rejects.toMatchObject({ code: 'resource-limit' });
+  await expect(probeGnumeric(encode('<!DOCTYPE g:Workbook>' + xml), context)).rejects.toMatchObject({ code: 'capability-denied' });
+});
+
+it.each(['read', 'cancel'])('preserves late probe %s failure identity', async mode => {
+  const bytes = fixture('UTF-8', false), reason = { late: mode }, controller = new AbortController();
+  const source = { size: bytes.length, async read(position: number, count: number) {
+    if (position >= 1024) { if (mode === 'read') throw reason; controller.abort(reason); }
+    return bytes.subarray(position, position + Math.min(257, count));
+  } };
+  await expect(probeGnumeric(source, { ...context, signal: controller.signal })).rejects.toBe(reason);
 });

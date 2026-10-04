@@ -1,5 +1,5 @@
 import { streamTextHtml } from "./text-markup.js";
-import { PdfError, PdfNameIndex, PdfFileSource, PdfRetainedDocument, PdfStagingStorage } from "@poe-code/pdf-ast";
+import { PdfError, PdfNameIndex, PdfFileSource, PdfRetainedDocument, PdfStagingStorage, dictGet, type PdfRetainedPage, type PdfCosDict } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -23,6 +23,12 @@ interface RawTextPlan {
   readonly nopgbrk: boolean;
   readonly nodiag: boolean;
   readonly clip: boolean;
+  readonly cropbox: boolean;
+  readonly cropX?: number;
+  readonly cropY?: number;
+  readonly cropW?: number;
+  readonly cropH?: number;
+  readonly resolution: number;
   readonly encoding: string;
   readonly eol: "unix" | "dos" | "mac";
 }
@@ -114,7 +120,8 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
         await yieldTurn(signal);
         if (page.index + 1 < first) continue;
         if (page.index + 1 > last) break;
-        const raw = page.streamRawText(storage, { rejoinHyphens: false, discardDiagonal: plan.nodiag, clipText: plan.clip, signal });
+        const crop = await rawCrop(retained, page, plan);
+        const raw = page.streamRawText(storage, { ...(crop ? { crop } : {}), rejoinHyphens: false, discardDiagonal: plan.nodiag, clipText: plan.clip, signal });
         if (!plan.urls) yield* raw;
         else {
           const names = new PdfNameIndex(storage, Infinity, signal);
@@ -171,4 +178,29 @@ async function containsText(source: PdfFileSource, needle: string, signal: Abort
     overlap = needle.length > 1 ? text.slice(-(needle.length - 1)) : "";
   }
   return (overlap + decoder.decode()).includes(needle);
+}
+
+async function rawCrop(document: PdfRetainedDocument, page: PdfRetainedPage, plan: RawTextPlan): Promise<readonly [number, number, number, number] | undefined> {
+  let box: number[] | undefined;
+  if (plan.cropbox) {
+    let current: PdfCosDict | undefined = page.dict, depth = 0; const visited = new Set<number>();
+    while (current) {
+      if (++depth > document.depthLimit) throw new PdfError("E_LIMIT", "PDF inherited crop depth limit exceeded");
+      const candidate = (await document.lookup(dictGet(current, "CropBox")))?.value;
+      if (candidate?.kind === "array" && candidate.items.length >= 4) {
+        box = []; for (const item of candidate.items.slice(0, 4)) { const value = (await document.lookup(item))?.value; box.push(value?.kind === "number" ? value.value : 0); } break;
+      }
+      const parent = dictGet(current, "Parent");
+      if (parent?.kind === "ref") { if (visited.has(parent.objectNumber)) break; visited.add(parent.objectNumber); }
+      const value = (await document.lookup(parent))?.value; current = value?.kind === "dict" ? value : undefined;
+    }
+  }
+  if (!box && plan.cropX === undefined && plan.cropY === undefined && plan.cropW === undefined && plan.cropH === undefined) return undefined;
+  const { mediaBox } = await page.attributes(), width = Math.abs(mediaBox[2] - mediaBox[0]), height = Math.abs(mediaBox[3] - mediaBox[1]), scale = plan.resolution / 72;
+  const x0 = box ? Math.min(box[0]!, box[2]!) : 0, y0 = box ? Math.min(box[1]!, box[3]!) : 0;
+  const x1 = box ? Math.max(box[0]!, box[2]!) : width, y1 = box ? Math.max(box[1]!, box[3]!) : height;
+  const minX = x0 + (plan.cropX ?? 0) / scale, minTop = height - y1 + (plan.cropY ?? 0) / scale;
+  const maxX = plan.cropW !== undefined && plan.cropW > 0 ? minX + plan.cropW / scale : x1;
+  const maxTop = plan.cropH !== undefined && plan.cropH > 0 ? minTop + plan.cropH / scale : height - y0;
+  return [minX, height - maxTop, maxX, height - minTop];
 }

@@ -95,7 +95,9 @@ bounded page renderer. Use `page.annotations()` separately for link metadata.
 retained evaluation. `streamRawTextChunks(glyphs, storage, options)` formats an
 existing glyph stream the same way. It preserves ActualText, paragraph spacing,
 clipping/diagonal filters and hyphen joining, while staging one line at a time
-to determine its final geometry. `chunkBytes` bounds output buffers;
+to determine its final geometry. Optional `crop: [x0, y0, x1, y1]` selects whole
+words by bounding-box center in page coordinates, staging one word in addition
+to the current line and preserving original paragraph boundaries. `chunkBytes` bounds output buffers;
 `maxWorkingBytes` admits formatter scratch before input is pulled. Page resource
 and rendering allocations still belong to the evaluator described above.
 

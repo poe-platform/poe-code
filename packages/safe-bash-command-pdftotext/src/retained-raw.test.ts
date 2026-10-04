@@ -1,7 +1,7 @@
 import { FsError } from "safe-bash-contracts/errors";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { PdfDocument, cosDict, cosName, cosString, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, cosDict, cosName, cosString, cosArray, cosNumber, dictSet, dictGet } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createPdftotextCommand, runPdftotextCli } from "./index.js";
@@ -171,5 +171,16 @@ for (const encoding of ["UTF-8", "UCS-2", "Latin1"]) for (const stdin of [false,
     assert.equal((await createPdftotextCommand({ limits: { maxInputBytes: input.length } }).execute(f.context)).exitCode, expected.exitCode);
     assert.deepEqual(stdin ? joined(f.stdout) : await f.fs.readFile("/output.txt"), encoded(expected.output, encoding));
     assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: stdin ? 0 : 1 }); await f.clean();
+  });
+}
+
+for (const flags of [["-x", "40", "-W", "30"], ["-y", "690", "-H", "35"], ["-r", "144", "-x", "80", "-W", "60"], ["-cropbox"], ["-cropbox", "-x", "5", "-W", "30", "-htmlmeta"], ["-W", "0", "-H", "-1", "-urls"]]) {
+  test(`retained raw crop preserves grouped words and bytes: ${flags.join(" ")}`, async () => {
+    const doc = PdfDocument.load(pdf());
+    const first = doc.getPage(0); dictSet(doc.cos.resolveDict(dictGet(first.dict, "Parent"))!, "CropBox", cosArray([30, 60, 150, 115].map(value => cosNumber(value))));
+    const input = doc.save(), args = ["-raw", ...flags, "input.pdf", "output.txt"], expected = await runPdftotextCli(args, new Map([["input.pdf", input]]));
+    const f = await fixture(input, args); assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, expected.exitCode);
+    assert.deepEqual(await f.fs.readFile("/output.txt"), new TextEncoder().encode(expected.output));
+    assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: 1 }); await f.clean();
   });
 }

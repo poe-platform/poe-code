@@ -107,3 +107,57 @@ it("observes cancellation before yielding the remainder of an already-read chunk
   await work.next(); await work.next(); controller.abort(reason);
   await expect(work.next()).rejects.toBe(reason); expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(scenarios.map((glyphs, index) => ({ glyphs, index })))("crops whole words after raw grouping for scenario $index", async ({ glyphs }) => {
+  const display: PdfDisplayList = { pageIndex: 0, width: 200, height: 200, rotation: 0, glyphs, paths: [], images: [], operations: [], annotations: [] };
+  for (const crop of [[0, 0, 200, 200], [10, 0, 200, 200], [-20, 0, 10, 75], [0, 70, 10, 95]] as const) {
+    const extracted = extractPageFromDisplayList(display, { mode: "raw", rejoinHyphens: false });
+    const blocks = extracted.blocks.flatMap(block => {
+      const lines = block.lines.flatMap(line => {
+        const words = line.words.filter(word => { const x = (word.bbox[0] + word.bbox[2]) / 2, y = (word.bbox[1] + word.bbox[3]) / 2; return x >= crop[0] && y >= crop[1] && x <= crop[2] && y <= crop[3]; });
+        return words.length ? [{ ...line, words, text: words.map(word => word.text).join(" ") }] : [];
+      });
+      return lines.length ? [{ ...block, lines }] : [];
+    });
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const chunks = [];
+    for await (const bytes of streamRawTextChunks(glyphs, { fs, directory: "/scratch" }, { crop, rejoinHyphens: false, chunkBytes: 8 })) chunks.push(bytes.slice());
+    expect(new TextDecoder().decode(Buffer.concat(chunks))).toBe(formatExtractedPageText({ ...extracted, blocks }, { mode: "raw", rejoinHyphens: false }));
+    expect(await fs.readdir("/scratch")).toEqual([]);
+  }
+});
+
+it.each([8192, 131072])("crops a %i-byte word using scalar external backing", async length => {
+  const scope = {}, sizes = new Map<string, number>(); let peakFiles = 0, peakBytes = 0, outstanding = 0;
+  const stat = (path: string) => ({ type: "file" as const, size: sizes.get(path)!, revision: sizes.get(path)!, identityScope: scope, opaqueIdentity: path });
+  const fs = {
+    capabilities: { retainedRead: true, retainedStagingWrite: true, retainedStagingCleanup: true },
+    stat: async () => ({ type: "directory", size: 0 }),
+    async createStagedFile(path: string) {
+      sizes.set(path, 0); peakFiles = Math.max(peakFiles, sizes.size);
+      return { file: { path, stat: stat(path) }, cleanup: { remove: async () => { sizes.delete(path); }, close: async () => {} }, writer: {
+        async write(bytes: Uint8Array) {
+          expect(outstanding).toBe(0); outstanding += bytes.byteLength; peakBytes = Math.max(peakBytes, outstanding);
+          expect(bytes.every(byte => byte === 97)).toBe(true); await Promise.resolve(); sizes.set(path, sizes.get(path)! + bytes.length); outstanding -= bytes.length;
+        }, finish: async () => stat(path),
+      } };
+    },
+    async openReadFile(path: string) { return { stat: async () => stat(path), close: async () => {}, async read(at: number, count: number) {
+      expect(count).toBeLessThanOrEqual(1024); return new Uint8Array(Math.min(count, sizes.get(path)! - at)).fill(97);
+    } }; },
+    readFile() { throw new Error("whole read forbidden"); }, writeFile() { throw new Error("whole write forbidden"); },
+  } as unknown as import("@poe-code/safe-fs/contracts").FileSystem;
+  async function* glyphs() { for (let at = 0; at < length; at += 32) yield glyph("a".repeat(32), at * 5, 80, { advanceWidth: 160 }); }
+  let total = 0;
+  for await (const bytes of streamRawTextChunks(glyphs(), { fs, directory: "/external" }, { crop: [0, 0, length * 5, 200], chunkBytes: 1024 })) { total += bytes.length; await Promise.resolve(); }
+  expect(total).toBe(length); expect(peakFiles).toBe(2); expect(peakBytes).toBeLessThanOrEqual(1024); expect(sizes.size).toBe(0);
+});
+
+it.each(["cancel", "return", "limit"])("cleans both cropped word and line staging on %s", async outcome => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const controller = new AbortController(), reason = new Error("cancel cropped word"); let closed = false;
+  async function* glyphs() { try { for (let i = 0; i < 100; i++) { if (outcome === "cancel" && i === 3) controller.abort(reason); yield glyph("abcdefgh", i * 5, 80, { advanceWidth: 40 }); } } finally { closed = true; } }
+  const work = streamRawTextChunks(glyphs(), { fs, directory: "/scratch" }, { crop: [0, 0, 1000, 200], chunkBytes: 32, signal: controller.signal, ...(outcome === "limit" ? { maxStagingBytes: 40 } : {}) });
+  if (outcome === "cancel") await expect(work.next()).rejects.toBe(reason);
+  else if (outcome === "limit") await expect(work.next()).rejects.toThrow("limit");
+  else { expect((await work.next()).done).toBe(false); await work.return(); }
+  expect(closed).toBe(true); expect(await fs.readdir("/scratch")).toEqual([]);
+});

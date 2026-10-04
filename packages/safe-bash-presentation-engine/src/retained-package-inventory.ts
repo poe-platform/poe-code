@@ -8,6 +8,7 @@ import { RetainedValues, literal, folded, equal, digest, characters } from './re
 import { RetainedOrder } from './retained-order.js';
 import type { XmlRange } from './retained-xml.js';
 import { resourceContext } from './resource-limits.js';
+import { diagramContentTypes, diagramRelationshipKinds, type DiagramInventory } from './diagram-resources.js';
 import { dialects } from './validation-schema.js';
 
 export interface RetainedPartInventory {
@@ -16,7 +17,16 @@ export interface RetainedPartInventory {
   readonly bytes: number;
   readonly sha256: string;
 }
+export interface RetainedDiagramInventory {
+  readonly part: string;
+  readonly kind: DiagramInventory['kind'];
+  readonly semanticEditing: false;
+  owners(): AsyncGenerator<ByteSource>;
+  dependencies(): AsyncGenerator<ByteSource>;
+  missing(): AsyncGenerator<ByteSource>;
+}
 export interface RetainedPackageInventory {
+  diagrams(): AsyncGenerator<RetainedDiagramInventory>;
   readonly counts: { readonly parts: number; readonly media: number; readonly masters: number; readonly layouts: number; readonly themes: number };
   parts(): AsyncGenerator<RetainedPartInventory>;
   media(): AsyncGenerator<RetainedPartInventory>;
@@ -25,12 +35,13 @@ export interface RetainedPackageInventory {
   unsupported(): AsyncGenerator<{ readonly part: string; reason(): ByteSource }>;
   close(): Promise<void>;
 }
-enum P { Name, NameLength, Type, TypeLength, Bytes, Hash, HashLength, Media, Count }
+enum P { Name, NameLength, Type, TypeLength, Bytes, Hash, HashLength, Media, Diagram, Owners, Dependencies, Missing, Count }
 enum E { Owner, OwnerLength, Id, IdLength, Type, TypeLength, Raw, RawLength, Target, TargetLength, External, Present, Count }
+const diagramKinds = Object.keys(diagramContentTypes) as DiagramInventory['kind'][];
 const targetKinds = ['slideMaster', 'slideLayout', 'theme'] as const;
 async function* joined(...sources: ByteSource[]): ByteSource { for (const source of sources) yield* source; }
 
-/** Package metadata only. Presentation/style and diagram semantic consumers must
+/** Package metadata and diagram dependencies. Presentation/style consumers must
  * still run before a caller claims to have a complete presentation inventory. */
 export async function openRetainedPackageInventory(
   archive: Pick<RetainedPackageArchive, 'parts' | 'has' | 'read' | 'byteLength'>,
@@ -71,6 +82,21 @@ export async function openRetainedPackageInventory(
     for (const d of dialects) if (await equal(edge.type(), literal(`${d.r}/${kind}`))) return true;
     return false;
   }
+  // Persist each sorted list so diagram records retain only numeric descriptors,
+  // rather than keeping one JavaScript sort object per diagram.
+  async function sortedList(order: RetainedOrder) {
+    await order.seal(); let first = 0, last = 0;
+    for await (const value of order.entries()) {
+      const pointer = pages.allocate(24); await write(pointer, [0, value.start, value.length]);
+      if (last) await write(last, [pointer]); else first = pointer;
+      last = pointer;
+    }
+    return first;
+  }
+  async function* list(pointer: number): AsyncGenerator<ByteSource> {
+    try { check(); while (pointer) { const data = await row(pointer, 3); yield read(range(data, 1)); pointer = data[0]!; } }
+    catch (error) { throw failure(error); }
+  }
   let graph: Awaited<ReturnType<typeof openRetainedRelationshipGraph>> | undefined, content: Awaited<ReturnType<typeof openRetainedContentTypes>> | undefined;
   try {
     // Metadata SAX admission did not consume presentation XML node/depth budgets.
@@ -100,6 +126,44 @@ export async function openRetainedPackageInventory(
       }
     }
     for await (const name of graph.parts()) {
+      const key = await values.store(literal(name)); await values.insert('graph-present', key, key);
+    }
+    async function diagram(name: string, type: XmlRange | undefined, scope: number): Promise<number[]> {
+      let kind: DiagramInventory['kind'] | undefined;
+      if (type) for (const candidate of diagramKinds) if (await equal(read(type), literal(diagramContentTypes[candidate]))) { kind = candidate; break; }
+      if (!kind) for await (const edge of graph!.incoming(name)) {
+        for (const [uri, candidate] of Object.entries(diagramRelationshipKinds)) if (await equal(edge.type(), literal(uri))) { kind = candidate; break; }
+        if (kind) break;
+      }
+      if (!kind) return [0, 0, 0, 0];
+      const owners = new RetainedOrder(pages, values, check), dependencies = new RetainedOrder(pages, values, check), missing = new RetainedOrder(pages, values, check);
+      for await (const edge of graph!.incoming(name)) {
+        const key = await values.store(literal(edge.owner));
+        if (await values.insert(`owners:${scope}`, key, key)) await owners.add(read(key), key);
+      }
+      const root = await values.store(literal(name)); await values.insert(`visited:${scope}`, root, root);
+      let first = pages.allocate(24), last = first;
+      await write(first, [0, root.start, root.length]);
+      // The FIFO, exact visited set, missing targets and sort runs all live in
+      // caller pages. Only names already admitted by ZIP enter boundedText.
+      while (first) {
+        const current = await row(first, 3);
+        for await (const edge of graph!.outgoing(await boundedText(range(current, 1)))) {
+          if (edge.external || !edge.targetPart) continue;
+          const target = await values.store(edge.targetPart()), present = await values.find('graph-present', () => read(target));
+          if (!present) {
+            if (await values.insert(`missing:${scope}`, target, target)) await missing.add(read(target), target);
+          } else if (await values.insert(`visited:${scope}`, present, present)) {
+            await dependencies.add(read(present), present);
+            const pointer = pages.allocate(24); await write(pointer, [0, present.start, present.length]);
+            await write(last, [pointer]); last = pointer;
+          }
+        }
+        first = (await row(first, 3))[0]!;
+      }
+      return [diagramKinds.indexOf(kind) + 1, await sortedList(owners), await sortedList(dependencies), await sortedList(missing)];
+    }
+    for await (const name of graph.parts()) {
       const key = await values.store(literal(name)); let type: XmlRange | undefined;
       if (content) try { type = await values.store(await content.get(name)); }
       catch (error) { if (!(error instanceof OfficeError) || error.code !== 'missing-binding') throw error; }
@@ -110,7 +174,7 @@ export async function openRetainedPackageInventory(
         media = ['image/', 'audio/', 'video/'].includes(prefix);
       }
       const hash = await values.store(literal(await digest(archive.read(name)))), size = await archive.byteLength(name), pointer = pages.allocate(P.Count * 8);
-      await write(pointer, [key.start, key.length, type?.start ?? 0, type?.length ?? 0, size, hash.start, hash.length, Number(media)]);
+      await write(pointer, [key.start, key.length, type?.start ?? 0, type?.length ?? 0, size, hash.start, hash.length, Number(media), ...await diagram(name, type, pointer)]);
       await names.add(read(key), { start: pointer, length: P.Count * 8 }); partCount++; if (media) mediaCount++;
     }
     await names.seal(); await edges.seal(); for (const target of targets) await target.seal();
@@ -124,6 +188,13 @@ export async function openRetainedPackageInventory(
       } } catch (error) { throw failure(error); }
     }
     return Object.freeze({ close, parts, media: () => parts(true), counts: Object.freeze({ parts: partCount, media: mediaCount, masters: targetCounts[0]!, layouts: targetCounts[1]!, themes: targetCounts[2]! }),
+      async *diagrams() {
+        try { check(); for await (const entry of names.entries()) {
+          const data = await row(entry.start, P.Count); if (!data[P.Diagram]) continue;
+          yield Object.freeze({ part: await boundedText(range(data, P.Name)), kind: diagramKinds[data[P.Diagram]! - 1]!, semanticEditing: false as const,
+            owners: () => list(data[P.Owners]!), dependencies: () => list(data[P.Dependencies]!), missing: () => list(data[P.Missing]!) });
+        } } catch (error) { throw failure(error); }
+      },
       async *relationships() {
         try { check(); for await (const entry of edges.entries()) {
           const data = await row(entry.start, E.Count);

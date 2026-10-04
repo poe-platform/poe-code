@@ -88,3 +88,89 @@ for (const mode of ['source', 'storage', 'cancel'] as const) it(`retires scratch
   await expect(openRetainedPackageInventory(archive, { signal: controller.signal, workingStorage: { fs, directory: '/', cacheBytes: 16384 } })).rejects.toMatchObject({ code: mode === 'cancel' ? 'cancelled' : 'io-failure' });
   expect(await fs.readdir('/')).toEqual([]);
 });
+
+for (const reverse of [false, true]) it(`retains diagram kind precedence and sorted cyclic dependencies, reversed ${reverse}`, async () => {
+  const incoming = [['z', 'diagramColors', 'data.xml'], ['a', 'diagramData', 'data.xml']];
+  if (reverse) incoming.reverse();
+  const reader = read(fixture({
+    'data.xml': '<data/>', 'resource.xml': '<resource/>',
+    '_rels/opaque.xml.rels': rels(incoming),
+    '_rels/data.xml.rels': rels([['b', 'diagramLayout', 'resource.xml'], ['a', 'image', 'missing.bin'], ['c', 'image', 'missing.bin'], ['d', 'image', 'https://example.org/', 'External']]),
+    '_rels/resource.xml.rels': rels([['cycle', 'diagramData', 'data.xml'], ['missing', 'image', 'other.bin']])
+  })), fs = createMemoryFileSystem();
+  const archive = { async *parts() { yield* reader.names; }, async has(part: string) { return reader.has(part); }, async byteLength(part: string) { return reader.get(part).length; }, async *read(part: string) { yield reader.get(part); } };
+  const expected = buildSelectionIndex(reader, 'a'.repeat(64)).inventory.diagrams;
+  const inventory = await openRetainedPackageInventory(archive, { workingStorage: { fs, directory: '/', cacheBytes: 16384 } });
+  const actual = [];
+  for await (const diagram of inventory.diagrams()) actual.push({ ...diagram,
+    owners: await Promise.all((await all(diagram.owners())).map(text)),
+    dependencies: await Promise.all((await all(diagram.dependencies())).map(text)),
+    missing: await Promise.all((await all(diagram.missing())).map(text))
+  });
+  expect(actual).toEqual(expected);
+  await inventory.close(); expect(await fs.readdir('/')).toEqual([]);
+  await expect(inventory.diagrams().next()).rejects.toMatchObject({ code: 'invalid-handle' });
+});
+
+it('prefers each exact diagram MIME type over conflicting incoming relationships', async () => {
+  const { diagramContentTypes } = await import('./diagram-resources.js');
+  for (const [kind, type] of Object.entries(diagramContentTypes)) {
+    const volume = fixture({ 'data.xml': '<data/>', '_rels/opaque.xml.rels': rels([['data', 'diagramData', 'data.xml']]) });
+    const manifest = volume.readFileSync('/deck/[Content_Types].xml', 'utf8') as string;
+    volume.writeFileSync('/deck/[Content_Types].xml', manifest.slice(0, -8) + `<Override PartName="/data.xml" ContentType="${type}"/></Types>`);
+    const reader = read(volume), fs = createMemoryFileSystem();
+    const archive = { async *parts() { yield* reader.names; }, async has(part: string) { return reader.has(part); }, async byteLength(part: string) { return reader.get(part).length; }, async *read(part: string) { yield reader.get(part); } };
+    const inventory = await openRetainedPackageInventory(archive, { workingStorage: { fs, directory: '/', cacheBytes: 16384 } });
+    expect((await all(inventory.diagrams())).map(({ part, kind }) => ({ part, kind }))).toEqual([{ part: '/data.xml', kind }]);
+    await inventory.close(); expect(await fs.readdir('/')).toEqual([]);
+  }
+});
+
+for (const mode of ['success', 'read', 'write', 'cancel'] as const) it(`uses bounded caller storage for a large diagram closure: ${mode}`, async () => {
+  const fs = createMemoryFileSystem(), open = fs.open!.bind(fs), controller = new AbortController();
+  let phase = false, written = 0, pending = 0, peak = 0, handles = 0;
+  fs.readFile = async () => { throw new Error('payload-wide reads forbidden'); };
+  fs.open = async (...args) => { const handle = await open(...args); handles++; return new Proxy(handle, { get(target, key) {
+    if (key === 'read' && phase && mode === 'read') return async () => { throw new Error('injected diagram read failure'); };
+    if (key === 'write') return async (...parameters: Parameters<typeof handle.write>) => {
+      if (phase && mode === 'write') throw new Error('injected diagram write failure');
+      if (phase && mode === 'cancel') controller.abort();
+      const length = parameters[0].length; if (phase) written += length;
+      pending += length; peak = Math.max(peak, pending);
+      try { await Promise.resolve(); return await handle.write(...parameters); } finally { pending -= length; }
+    };
+    if (key === 'close') return async (...parameters: Parameters<typeof handle.close>) => { handles--; return handle.close(...parameters); };
+    const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value;
+  } }); };
+  const changes: Record<string, string> = {
+    'data.xml': '<data/>', '_rels/opaque.xml.rels': rels([['d', 'diagramData', 'data.xml']]),
+    '_rels/data.xml.rels': rels([['first', 'image', 'node0.xml'], ['lost', 'image', 'unused']])
+  };
+  for (let n = 0; n < 128; n++) {
+    changes[`node${n}.xml`] = '<node/>';
+    changes[`_rels/node${n}.xml.rels`] = rels([['next', 'image', n === 127 ? 'data.xml' : `node${n + 1}.xml`]]);
+  }
+  const reader = read(fixture(changes)), encode = (value: string) => new TextEncoder().encode(value);
+  const archive = { async *parts() { yield* reader.names; }, async has(part: string) { return reader.has(part); },
+    async byteLength(part: string) { if (part === '/data.xml') phase = true; return reader.get(part).length; },
+    async *read(part: string) {
+      if (part !== '/_rels/data.xml.rels') { yield reader.get(part); return; }
+      yield encode('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="first" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="node0.xml"/><Relationship Id="lost" Type="urn:test" Target="');
+      const chunk = new Uint8Array(4096);
+      for (let n = 0; n < 10; n++) { chunk.fill(97); yield chunk; chunk.fill(255); }
+      yield encode('"/></Relationships>');
+    }
+  };
+  const admission = openRetainedPackageInventory(archive, { signal: controller.signal, workingStorage: { fs, directory: '/', cacheBytes: 16384 } });
+  if (mode !== 'success') await expect(admission).rejects.toMatchObject({ code: mode === 'cancel' ? 'cancelled' : 'io-failure' });
+  else {
+    const inventory = await admission, diagrams = await all(inventory.diagrams()); expect(diagrams).toHaveLength(1);
+    const diagram = diagrams[0]!;
+    expect(await Promise.all((await all(diagram.dependencies())).map(text))).toEqual(Array.from({ length: 128 }, (_, n) => `/node${n}.xml`).sort());
+    const missing = await all(diagram.missing()); expect(missing).toHaveLength(1);
+    let count = 0; for await (const bytes of missing[0]!) { await Promise.resolve(); for (const byte of bytes) expect(byte).toBe(count++ === 0 ? 47 : 97); }
+    expect(count).toBe(40961); expect(written).toBeGreaterThan(16384 * 4); expect(peak).toBeLessThanOrEqual(16384);
+    await inventory.close(); await expect(diagram.dependencies().next()).rejects.toMatchObject({ code: 'invalid-handle' });
+  }
+  expect(phase).toBe(true); expect(handles).toBe(0); expect(await fs.readdir('/')).toEqual([]);
+});

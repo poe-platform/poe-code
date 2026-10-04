@@ -162,8 +162,24 @@ long shared-prefix keys, reused source buffers, actual spill writes capped at
 16 KiB, slow consumers, cancellation and source/storage failure cleanup. Independent
 python-pptx verification matched sizes and SHA-256 hashes for all 25 parts in a
 two-slide deck with an embedded chart workbook. This is package metadata only:
-slide inheritance/visibility, handout references, diagrams and text styles still
+slide inheritance/visibility, handout references and text styles still
 need retained inventory admission, followed by shipped-operation integration.
+
+Diagram inventory now also uses caller pages for each traversal FIFO, visited
+and missing-target sets, owner deduplication, and sorted result lists. MIME
+classification takes precedence over the first matching incoming relationship,
+as in the buffered path. Cycles, shared dependencies, external edges and missing
+targets retain their existing meaning; arbitrarily long missing targets stream
+from stored ranges. Returned diagram lists are immutable and replayable until
+inventory retirement, without keeping one JavaScript collection per diagram.
+
+Tests cover all five diagram MIME types, incoming-order fallback, sorted cyclic
+closures, a 128-part generated dependency chain, a 40 KiB reused-buffer target,
+slow consumers, actual caller spill writes capped at 16 KiB and read/write/cancel
+failure cleanup during traversal. A Python-authored diagram resource graph inside
+a native-readable PPTX matched owners, cyclic dependencies and missing targets.
+This is dependency inventory, not semantic diagram editing or Worker runtime
+qualification.
 
 ## Remaining implementation
 

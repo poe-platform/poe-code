@@ -6065,7 +6065,10 @@ function buildCodeblocks(context, subband, dimensions) {
   subband.precincts = precincts;
 }
 function createPacket(resolution, precinctNumber, layerNumber) {
-  resolution.onAllocation?.(128);
+  if (resolution.packetAdmission === undefined) {
+    resolution.onAllocation?.(128);
+    resolution.packetAdmission = 128;
+  }
   const precinctCodeblocks = [];
   const subbands = resolution.subbands;
   for (let i = 0, ii = subbands.length; i < ii; i++) {
@@ -6076,7 +6079,11 @@ function createPacket(resolution, precinctNumber, layerNumber) {
       if (codeblock.precinctNumber !== precinctNumber) {
         continue;
       }
-      resolution.onAllocation?.(16);
+      const admission = 128 + (precinctCodeblocks.length + 1) * 16;
+      if (admission > resolution.packetAdmission) {
+        resolution.onAllocation?.(admission - resolution.packetAdmission);
+        resolution.packetAdmission = admission;
+      }
       precinctCodeblocks.push(codeblock);
     }
   }
@@ -6605,7 +6612,10 @@ function* parseTilePackets(context, data, offset, dataLength) {
       const codingpassesLog2 = log2(codingpasses);
       const bits = (codingpasses < 1 << codingpassesLog2 ? codingpassesLog2 - 1 : codingpassesLog2) + codeblock.Lblock;
       const codedDataLength = (yield* readBits(bits));
-      context.onAllocation?.(256);
+      if (queue.length >= (context.packetQueueAdmission ?? 0)) {
+        context.onAllocation?.(256);
+        context.packetQueueAdmission = queue.length + 1;
+      }
       queue.push({
         codeblock,
         codingpasses,
@@ -6619,20 +6629,59 @@ function* parseTilePackets(context, data, offset, dataLength) {
     while (queue.length > 0) {
       const packetItem = queue.shift();
       codeblock = packetItem.codeblock;
-      if (codeblock.data === undefined) {
-        codeblock.data = [];
-      }
-      context.onAllocation?.(256);
-      codeblock.data.push({
-        data,
-        start: offset + position,
-        end: offset + position + packetItem.dataLength,
-        codingpasses: packetItem.codingpasses
-      });
+      yield* appendJpxSegment(codeblock, data, offset + position,
+        offset + position + packetItem.dataLength, packetItem.codingpasses, context);
       position += packetItem.dataLength;
     }
   }
   return position;
+}
+// One segment block fits in a single fixed vector-cache page. Keep only the
+// head and tail descriptors on each codeblock; older blocks replay from storage.
+const jpxSegmentsPerBlock = 255;
+function* appendJpxSegment(codeblock, data, start, end, codingpasses, context) {
+  if (!context.storedPlanes) {
+    context.onAllocation?.(256);
+    (codeblock.data ??= []).push({data, start, end, codingpasses});
+    return;
+  }
+  let list = codeblock.data;
+  if (!list) {
+    context.onAllocation?.(256);
+    const block = yield* jpxVectorAllocate(1 + jpxSegmentsPerBlock * 2, 8, true);
+    codeblock.data = list = {head: block, tail: block, used: 0, length: 0,
+      sourceLength: data.length, totalLength: 0, codingpasses: 0};
+  }
+  if (list.used === jpxSegmentsPerBlock) {
+    const block = yield* jpxVectorAllocate(1 + jpxSegmentsPerBlock * 2, 8, true);
+    yield* jpxVectorWrite(list.tail, 0, block.position + 1);
+    list.tail = block;
+    list.used = 0;
+  }
+  yield* jpxVectorWrite(list.tail, 1 + list.used * 2, start);
+  yield* jpxVectorWrite(list.tail, 2 + list.used * 2, end);
+  list.used++;
+  list.length++;
+  list.totalLength += end - start;
+  list.codingpasses += codingpasses;
+}
+function* readJpxSegment(list, index, cursor) {
+  if (Array.isArray(list)) return list[index];
+  const blockIndex = Math.floor(index / jpxSegmentsPerBlock);
+  if (!cursor.block || cursor.index > blockIndex) {
+    cursor.block = list.head;
+    cursor.index = 0;
+  }
+  while (cursor.index < blockIndex) {
+    const position = (yield* jpxVectorRead(cursor.block, 0)) - 1;
+    if (position < 0) throw new JpxError("Missing codeblock segment backing");
+    cursor.block = {...list.head, position};
+    cursor.index++;
+  }
+  const slot = index % jpxSegmentsPerBlock;
+  return {data: {length: list.sourceLength},
+    start: yield* jpxVectorRead(cursor.block, 1 + slot * 2),
+    end: yield* jpxVectorRead(cursor.block, 2 + slot * 2)};
 }
 function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation, stored) {
   const x0 = subband.tbx0;
@@ -6655,10 +6704,10 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
     yield* bitModel.initialize(blockWidth, blockHeight, codeblock.subbandType, codeblock.zeroBitPlanes, mb, onAllocation, stored);
     let currentCodingpassType = 2;
     const data = codeblock.data;
-    let totalLength = 0,
-      codingpasses = 0;
+    let totalLength = data.totalLength ?? 0,
+      codingpasses = data.codingpasses ?? 0;
     let j, jj, dataItem;
-    for (j = 0, jj = data.length; j < jj; j++) {
+    for (j = 0, jj = Array.isArray(data) ? data.length : 0; j < jj; j++) {
       dataItem = data[j];
       totalLength += dataItem.end - dataItem.start;
       codingpasses += dataItem.codingpasses;
@@ -6668,6 +6717,7 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
     // truncated tail. Walk existing segments without copying compressed bytes.
     let segment = 0, logicalStart = 0, first = 0, count = 0;
     const decoder = new ArithmeticDecoder(null);
+    const segmentCursor = {};
     function* driveCodeblock(steps) {
       let next = steps.next();
       while (!next.done) {
@@ -6677,7 +6727,7 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
           if (offset < logicalStart) { segment = 0; logicalStart = 0; count = 0; }
           while (offset >= logicalStart + count && segment < data.length) {
             logicalStart += count;
-            const item = data[segment++], size = item.data.length;
+            const item = yield* readJpxSegment(data, segment++, segmentCursor), size = item.data.length;
             first = item.start < 0 ? Math.max(size + item.start, 0) : Math.min(item.start, size);
             const last = item.end < 0 ? Math.max(size + item.end, 0) : Math.min(item.end, size);
             count = Math.max(0, last - first);

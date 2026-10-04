@@ -14,6 +14,7 @@ export function ownedProvider(
 	const commands: string[][] = [];
 	const closes: Promise<void>[] = [];
 	const handshake = Promise.withResolvers<void>();
+	let targetUrl = "about:blank";
 	const binding = {
 		fetch: Object.assign(
 			async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -59,14 +60,22 @@ export function ownedProvider(
 					}
 					const command = JSON.parse(event.data);
 					commands[index]!.push(command.method);
+					if (command.method === "Target.createTarget" || command.method === "Page.navigate")
+						targetUrl = command.params.url;
 					peer.send(
 						JSON.stringify({
 							id: command.id,
 							sessionId: command.sessionId,
-							result: reply(command.method),
+							result: reply(command.method, targetUrl),
 						}),
 					);
-					if (command.method === "Page.navigate")
+					if (command.method === "Page.navigate") {
+						peer.send(
+							JSON.stringify({
+								method: "Target.targetInfoChanged",
+								params: reply("Target.getTargetInfo", targetUrl),
+							}),
+						);
 						peer.send(
 							JSON.stringify({
 								method: "Page.loadEventFired",
@@ -74,6 +83,7 @@ export function ownedProvider(
 								params: {},
 							}),
 						);
+					}
 					if (command.method === "Target.closeTarget") retire(peers);
 				});
 				return new Response(null, { status: 101, webSocket: pair[0] });
@@ -107,7 +117,7 @@ function retire(peers: WebSocket[]) {
 	}
 }
 
-function reply(method: string) {
+function reply(method: string, targetUrl: string) {
 	switch (method) {
 		case "Browser.getVersion":
 			return { product: "Chrome/123.0", userAgent: "HeadlessChrome/123.0" };
@@ -123,6 +133,7 @@ function reply(method: string) {
 					targetId: "private-target",
 					type: "browser",
 					browserContextId: "context",
+					url: targetUrl,
 				},
 			};
 		case "Target.closeTarget":

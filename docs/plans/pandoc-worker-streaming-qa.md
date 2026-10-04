@@ -645,6 +645,10 @@ Remaining ownership and exit gates (proposed coordination split):
   At path admission, assert that backing reads stop at the chunk containing the
   first query/fragment delimiter; suffix counts come from the retained scalar
   extent. Cover delimiters on both sides of a 4096-unit chunk boundary.
+  Grow path depth and component width independently. Resource directory and URI
+  normalization must avoid whole-path component arrays and decoded-character
+  arrays while preserving parent traversal rejection, one-pass percent decoding
+  and tilde rules. The required final filesystem path string remains resident.
 - Final exits: run the composed public SDK/command workerd matrix without Node
   compatibility, then the increasing-size and concurrent deployed Cloudflare
   cohorts above. Record actual memory, CPU and first-byte measurements. Local

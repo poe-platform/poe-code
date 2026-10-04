@@ -9,13 +9,26 @@ export interface ResourceOrigin { readonly base?: string; readonly source?: stri
 const targetOrigins = new WeakMap<object, ResourceOrigin>();
 const missing = (error: unknown): boolean => typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 
+/** Iterate components without a path-sized split array. */
+function* pathComponents(path: string): Generator<string> {
+  for (let start = 0;;) {
+    const end = path.indexOf("/", start);
+    if (end < 0) {yield path.slice(start); return;}
+    yield path.slice(start, end);
+    start = end + 1;
+  }
+}
+
 /** VFS path spelling, deliberately independent of URI decoding. */
 export function resourceDirectory(path: string, cwd = "/"): string {
   if (!path || path.includes("\\") || path.includes(":") || path.includes("\0") || path.startsWith("~"))
     throw new PandocError("E_OPTION", "convert", "Invalid resource directory");
-  const parts = (path.startsWith("/") ? path : `${cwd}/${path}`).split("/");
-  if (parts.includes("..")) throw new PandocError("E_OPTION", "convert", "Resource directories cannot traverse parents");
-  return "/" + parts.filter(p => p && p !== ".").join("/");
+  let result = "";
+  for (const part of pathComponents(path.startsWith("/") ? path : `${cwd}/${path}`)) {
+    if (part === "..") throw new PandocError("E_OPTION", "convert", "Resource directories cannot traverse parents");
+    if (part && part !== ".") result += "/" + part;
+  }
+  return result || "/";
 }
 
 export function localResourceTarget(url: string, context: ExecutionContext): {name: string; suffix: string} {
@@ -24,19 +37,25 @@ export function localResourceTarget(url: string, context: ExecutionContext): {na
   const raw = url.slice(0, end);
   if (!raw || raw.startsWith("/") || raw.startsWith("~") || raw.includes(":") || raw.includes("\\"))
     context.fail("E_CAPABILITY", "Only relative local image resources are supported");
-  const parts: string[] = [];
-  for (const component of raw.split("/")) {
+  let name = "";
+  for (const component of pathComponents(raw)) {
     context.checkpoint();
     let decoded: string;
     try {decoded = decodeURIComponent(component);} catch {return context.fail("E_CAPABILITY", "Invalid image URI escape");}
-    if (decoded.includes("/") || decoded.includes("\\") || decoded.includes(":") || [...decoded].some(ch => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127))
+    if (decoded.includes("/") || decoded.includes("\\") || decoded.includes(":"))
       context.fail("E_CAPABILITY", "Invalid image resource component");
+    for (let index = 0; index < decoded.length; index++) {
+      const unit = decoded.charCodeAt(index);
+      if (unit < 32 || unit === 127) context.fail("E_CAPABILITY", "Invalid image resource component");
+    }
     if (!decoded || decoded === ".") continue;
-    if (decoded === "..") {if (!parts.length) context.fail("E_CAPABILITY", "Image resource escapes its search directory"); parts.pop();}
-    else parts.push(decoded);
+    if (decoded === "..") {
+      if (!name) context.fail("E_CAPABILITY", "Image resource escapes its search directory");
+      name = name.slice(0, Math.max(0, name.lastIndexOf("/")));
+    } else name += (name ? "/" : "") + decoded;
   }
-  if (!parts.length || parts[0]!.startsWith("~")) context.fail("E_CAPABILITY", "Invalid image resource name");
-  return {name: parts.join("/"), suffix: url.slice(end)};
+  if (!name || name.startsWith("~")) context.fail("E_CAPABILITY", "Invalid image resource name");
+  return {name, suffix: url.slice(end)};
 }
 
 function mediaKeyBasename(key: string, context: ExecutionContext): string {

@@ -26,7 +26,7 @@ function jpeg(progressive = false): Uint8Array {
 
 it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolver"].flatMap(capability => ["rtf", "odt"].map(to => ({format, capability, to})))))("retains streamed $format pictures from $capability into $to in R2 under workerd", async ({format, capability, to}) => {
   const bytes = format === "png" ? png() : jpeg(format === "progressive");
-  const input = {"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "x".repeat(65536)]}, {t: "Para", c: [{t: "Image", c: [["",[],[]], [], [capability === "filesystem" ? "picture?" + "query%20😀".repeat(4096) + "#fragment" : "picture", ""]]}]}]};
+  const input = {"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "x".repeat(65536)]}, {t: "Para", c: [{t: "Image", c: [["",[],[]], [], [capability === "filesystem" ? "unused/../".repeat(64) + "picture?" + "query%20😀".repeat(4096) + "#fragment" : "picture", ""]]}]}]};
   const root = fileURLToPath(new URL("../", import.meta.url));
   const bundled = await build({stdin: {resolveDir: root, contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
@@ -41,7 +41,7 @@ it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolve
       const {fs, events} = api.createR2PagedFixture(namespace, env.PAGES), controller = new AbortController();
       let length = 0, hash = 2166136261, closed = 0, aborted = 0, returned = 0, pulls = 0, error, largest = 0;
       try {
-        await api.convertToOutput([{bytes: new TextEncoder().encode(${JSON.stringify(JSON.stringify(input))})}], {from: "json", to: ${JSON.stringify(to)}, resourcePath: ["/images"]}, {
+        await api.convertToOutput([{bytes: new TextEncoder().encode(${JSON.stringify(JSON.stringify(input))})}], {from: "json", to: ${JSON.stringify(to)}, resourcePath: ["/images//./"]}, {
           limits: {references: 2000000, retainedBytes: 32000000}, signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
           ${capability === "resolver" ? "resources" : "resourceFiles"}: {
             async lstat(path) {return {type: (path === "/" || path === "/images") ? "directory" : "file"};},

@@ -1,3 +1,4 @@
+import {PagedStorage} from "@poe-code/safe-fs/storage";
 import { cosDict, dictGet, type PdfCosDict, type PdfCosNode } from "../ast.js";
 import { decodePdfStreamChunks, pdfImageCodec } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -63,7 +64,8 @@ export class PdfRetainedDecodedImage {
     if ((maxDepth !== Infinity && (!Number.isSafeInteger(maxDepth) || maxDepth < 0)) || !Number.isSafeInteger(chunkBytes) || chunkBytes <= 0) throw new RangeError("Invalid image decoder limits");
     if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF image mask depth limit exceeded");
     const { signal } = options; signal?.throwIfAborted(); const sources = new Set<PdfFileSource>(); let owned = 0;
-    let colorStaged=0;
+    let colorStaged=0,codecStaged=0;
+    let codecBacking:PagedStorage|undefined;
     let colorOwner:Awaited<ReturnType<typeof openRetainedImageColor>>|undefined;
     let codec: PdfRetainedJpeg | PdfRetainedJpx | PdfRetainedJbig2 | undefined;
     function charge(bytes: number) {
@@ -76,7 +78,7 @@ export class PdfRetainedDecodedImage {
       budget.staged -= source.size; budget.working -= chunkBytes * 4; owned -= chunkBytes * 4; await source.close();
     }
     async function cleanup() {
-      codec?.close(); codec = undefined; const results = await Promise.allSettled([...sources].map(release).concat(colorOwner?[colorOwner.close()]:[])); colorOwner=undefined; budget.staged-=colorStaged; colorStaged=0; budget.working -= owned; owned = 0;
+      codec?.close(); codec = undefined; const results = await Promise.allSettled([...sources].map(release).concat(colorOwner?[colorOwner.close()]:[],codecBacking?[codecBacking.close()]:[])); colorOwner=undefined;codecBacking=undefined;budget.staged-=codecStaged;codecStaged=0; budget.staged-=colorStaged; colorStaged=0; budget.working -= owned; owned = 0;
       for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
     }
     async function stage(input: AsyncIterable<Uint8Array>) {
@@ -172,7 +174,14 @@ export class PdfRetainedDecodedImage {
       const decode = await pairs(dict);
       const colorTransform = parameter?.kind === "dict" ? await resolve(dictGet(parameter, "ColorTransform")) : undefined;
       const codecOptions = { onDecoderAllocation: charge, maxWorkingBytes: workingLimit - budget.working, maxOutputBytes: outputLimit, ...(signal ? { signal } : {}) };
-      if (encoding === "jpeg") codec = await PdfRetainedJpeg.open(samples, { ...codecOptions, isSourcePdf: true, decode, colorTransform: colorTransform?.kind === "number" ? colorTransform.value : undefined });
+      if (encoding === "jpeg") {
+        charge(65536);
+        codecBacking=new PagedStorage({fs:storage.fs,cwd:storage.directory,env:{},signal:signal??new AbortController().signal},2);
+        const backing=codecBacking;
+        codec = await PdfRetainedJpeg.open(samples, { ...codecOptions,maxWorkingBytes:workingLimit-budget.working,
+          coefficientStorage:{allocate(length){if(length>stagingLimit-budget.staged)throw new PdfError("E_LIMIT","PDF image staging byte limit exceeded");const position=backing.allocate(length);budget.staged+=length;codecStaged+=length;return position;},read:backing.read.bind(backing),write:backing.write.bind(backing)},
+          isSourcePdf: true, decode, colorTransform: colorTransform?.kind === "number" ? colorTransform.value : undefined });
+      }
       else if (encoding === "jpx") codec = await PdfRetainedJpx.open(samples, { ...codecOptions, ...(colorNode ? { color } : {}) });
       else if (encoding === "jbig2") {
         const globalsValue = parameter?.kind === "dict" ? await document.lookup(dictGet(parameter, "JBIG2Globals")) : undefined;

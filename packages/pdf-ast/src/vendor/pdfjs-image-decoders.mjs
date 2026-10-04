@@ -4588,13 +4588,23 @@ function* decodeScan(data, offset, frame, components, resetInterval, spectralSta
         blockRow = mcuRow * component.v + row;
         const blockCol = mcuCol * component.h + col;
         const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
-        (yield* decode(component, blockOffset));
+        if (component.blockPosition !== undefined) {
+            component.blockData = yield {kind:"block-read",position:component.blockPosition+blockOffset*2};
+            yield* decode(component, 0);
+            yield {kind:"block-write",position:component.blockPosition+blockOffset*2,values:component.blockData};
+            component.blockData = undefined;
+        } else yield* decode(component, blockOffset);
     }
     function* decodeBlock(component, decode, mcu) {
         blockRow = mcu / component.blocksPerLine | 0;
         const blockCol = mcu % component.blocksPerLine;
         const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
-        (yield* decode(component, blockOffset));
+        if (component.blockPosition !== undefined) {
+            component.blockData = yield {kind:"block-read",position:component.blockPosition+blockOffset*2};
+            yield* decode(component, 0);
+            yield {kind:"block-write",position:component.blockPosition+blockOffset*2,values:component.blockData};
+            component.blockData = undefined;
+        } else yield* decode(component, blockOffset);
     }
     const componentsLength = components.length;
     let component, i, j, k, n;
@@ -4865,7 +4875,7 @@ function quantizeAndInverse(component, blockBufferOffset, p) {
     blockData[blockBufferOffset + col + 56] = p7;
   }
 }
-function buildComponentData(frame, component, onAllocation) {
+function* buildComponentData(frame, component, onAllocation) {
   onAllocation?.(128);
   const blocksPerLine = component.blocksPerLine;
   const blocksPerColumn = component.blocksPerColumn;
@@ -4873,10 +4883,15 @@ function buildComponentData(frame, component, onAllocation) {
   for (let blockRow = 0; blockRow < blocksPerColumn; blockRow++) {
     for (let blockCol = 0; blockCol < blocksPerLine; blockCol++) {
       const offset = getBlockBufferOffset(component, blockRow, blockCol);
-      quantizeAndInverse(component, offset, computationBuffer);
+      if (component.blockPosition !== undefined) {
+        component.blockData = yield {kind:"block-read",position:component.blockPosition+offset*2};
+        quantizeAndInverse(component, 0, computationBuffer);
+        yield {kind:"block-write",position:component.blockPosition+offset*2,values:component.blockData};
+        component.blockData = undefined;
+      } else quantizeAndInverse(component, offset, computationBuffer);
     }
   }
-  return component.blockData;
+  return component.blockPosition ?? component.blockData;
 }
 function* findNextFileMarker(data, currentPos, startPos = currentPos) {
     const maxPos = data.length - 1;
@@ -4909,11 +4924,13 @@ class JpegImage {
   constructor({
     decodeTransform = null,
     colorTransform = -1,
+    storedBlocks = false,
     onImageDimensions,
     onAllocation
   } = {}) {
     this.onAllocation = onAllocation;
     this.onImageDimensions = onImageDimensions;
+    this.storedBlocks = storedBlocks;
     this._decodeTransform = decodeTransform;
     this._colorTransform = colorTransform;
   }
@@ -4928,7 +4945,9 @@ class JpegImage {
   }
   *parseSteps(data, { dnlScanLines = null } = {}) {
     const onAllocation = this.onAllocation;
+    const storedBlocks = this.storedBlocks;
     onAllocation?.(512);
+    if (storedBlocks) onAllocation?.(512);
     function* readDataBlock(marker) {
         const length = (yield* readJpegUint16(offset));
         offset += 2;
@@ -4944,7 +4963,7 @@ class JpegImage {
         offset += Math.max(0, Math.min(data.length, endOffset) - Math.min(data.length, offset));
         return array;
     }
-    function prepareComponents(frame) {
+    function* prepareComponents(frame) {
         const mcusPerLine = Math.ceil(frame.samplesPerLine / 8 / frame.maxH);
         const mcusPerColumn = Math.ceil(frame.scanLines / 8 / frame.maxV);
         for (const component of frame.components) {
@@ -4953,8 +4972,11 @@ class JpegImage {
             const blocksPerLineForMcu = mcusPerLine * component.h;
             const blocksPerColumnForMcu = mcusPerColumn * component.v;
             const blocksBufferSize = 64 * blocksPerColumnForMcu * (blocksPerLineForMcu + 1);
-            onAllocation?.(blocksBufferSize * 2);
-            component.blockData = new Int16Array(blocksBufferSize);
+            if (storedBlocks) component.blockPosition = yield { kind: "block-allocate", length: blocksBufferSize * 2 };
+            else {
+                onAllocation?.(blocksBufferSize * 2);
+                component.blockData = new Int16Array(blocksBufferSize);
+            }
             component.blocksPerLine = blocksPerLine;
             component.blocksPerColumn = blocksPerColumn;
         }
@@ -5095,7 +5117,7 @@ class JpegImage {
                 frame.maxH = maxH;
                 frame.maxV = maxV;
                 this.onImageDimensions?.(frame.samplesPerLine, frame.scanLines);
-                prepareComponents(frame);
+                yield* prepareComponents(frame);
                 break;
             case 0xffc4:
                 const huffmanLength = (yield* readJpegUint16(offset));
@@ -5196,7 +5218,7 @@ class JpegImage {
         onAllocation?.(96);
         this.components.push({
             index: component.index,
-            output: buildComponentData(frame, component, onAllocation),
+            output: yield* buildComponentData(frame, component, onAllocation),
             scaleX: component.h / frame.maxH,
             scaleY: component.v / frame.maxV,
             blocksPerLine: component.blocksPerLine,
@@ -5206,7 +5228,7 @@ class JpegImage {
     this.numComponents = this.components.length;
     return undefined;
 }
-  _getLinearizedBlockData(width, height, isSourcePDF = false, rowStart = 0, rowCount = height) {
+  *_getLinearizedBlockDataSteps(width, height, isSourcePDF = false, rowStart = 0, rowCount = height) {
     const scaleX = this.width / width,
       scaleY = this.height / height;
     let component, componentScaleX, componentScaleY, blocksPerScanline;
@@ -5239,7 +5261,7 @@ class JpegImage {
         j = 0 | y * componentScaleY;
         index = blocksPerScanline * (j & mask3LSB) | (j & 7) << 3;
         for (x = 0; x < width; x++) {
-          data[offset] = output[index + xScaleBlockOffset[x]];
+          data[offset] = typeof output === "number" ? yield {kind:"sample",position:output,index:index+xScaleBlockOffset[x]} : output[index + xScaleBlockOffset[x]];
           offset += numComponents;
         }
       }
@@ -5365,7 +5387,12 @@ class JpegImage {
     }
     return data;
   }
-  getData({
+  getData(options) {
+    const step = this.getDataSteps(options).next();
+    if (!step.done) throw new JpegError("Stored JPEG samples require a retained driver");
+    return step.value;
+  }
+  *getDataSteps({
     width,
     height,
     forceRGBA = false,
@@ -5380,7 +5407,7 @@ class JpegImage {
     if (this.numComponents > 4) {
       throw new JpegError("Unsupported color mode");
     }
-    const data = this._getLinearizedBlockData(width, height, isSourcePDF, rowStart, rowCount);
+    const data = yield* this._getLinearizedBlockDataSteps(width, height, isSourcePDF, rowStart, rowCount);
     if (this.numComponents === 1 && (forceRGBA || forceRGB)) {
       const len = data.length * (forceRGBA ? 4 : 3);
       this.onAllocation?.(len);

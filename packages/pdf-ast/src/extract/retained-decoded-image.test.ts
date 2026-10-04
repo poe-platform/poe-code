@@ -174,3 +174,14 @@ it("reports image allocation to a containing owner before payload reads", async 
   await expect(PdfRetainedDecodedImage.open(f.document, f.image, f.storage, { onAllocation() { throw rejection; } })).rejects.toBe(rejection);
   expect(contents).not.toHaveBeenCalled(); expect(await f.storage.fs.readdir("/scratch")).toEqual(before); await f.close();
 });
+
+it('charges JPEG coefficient staging and cleans it on early return, cancellation and output failure',async()=>{
+ const {encodeJpeg}=await import('../render/raster.js'),width=129,height=129,data=new Uint8Array(width*height*4).fill(123),bytes=encodeJpeg({width,height,data});
+ const f=await open(bytes,cosDict({Filter:cosName('DCTDecode'),Width:cosNumber(width),Height:cosNumber(height)}));const baseline=await f.storage.fs.readdir('/scratch');
+ try{
+  await expect(PdfRetainedDecodedImage.open(f.document,f.image,f.storage,{maxStagingBytes:bytes.length+1024})).rejects.toThrow('staging');expect(await f.storage.fs.readdir('/scratch')).toEqual(baseline);
+  const image=await PdfRetainedDecodedImage.open(f.document,f.image,f.storage),rows=image.rows();await rows.next();await rows.return();await image.close();expect(await f.storage.fs.readdir('/scratch')).toEqual(baseline);
+  const controller=new AbortController(),failure=new Error('cancel rows'),cancelled=await PdfRetainedDecodedImage.open(f.document,f.image,f.storage,{signal:controller.signal}),output=cancelled.rows();await output.next();controller.abort(failure);await expect(output.next()).rejects.toBe(failure);await cancelled.close();expect(await f.storage.fs.readdir('/scratch')).toEqual(baseline);
+  const failed=await PdfRetainedDecodedImage.open(f.document,f.image,f.storage),sinkFailure=new Error('sink');await expect((async()=>{for await(const ignored of failed.rows()){void ignored;throw sinkFailure;}})()).rejects.toBe(sinkFailure);await failed.close();expect(await f.storage.fs.readdir('/scratch')).toEqual(baseline);
+ }finally{await f.close();}
+});

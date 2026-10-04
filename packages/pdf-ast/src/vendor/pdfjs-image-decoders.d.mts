@@ -16,9 +16,12 @@ export class JpxImage {
   parse(data: Uint8Array): void;
 }
 
+export type JpegReadRequest = number | {start:number;end:number} | {kind:"block-allocate";length:number} | {kind:"block-read";position:number} | {kind:"block-write";position:number;values:Int16Array} | {kind:"sample";position:number;index:number};
+export type JpegReadResult = number | Uint8Array | Int16Array | undefined;
 export class JpegImage {
   constructor(options?: {
     colorTransform?: number | undefined;
+    storedBlocks?: boolean;
     decodeTransform?: Int32Array | undefined;
     onImageDimensions?: ((width: number, height: number) => void) | undefined;
     /** Typed buffers and conservative metadata charges, before allocation. */
@@ -28,6 +31,7 @@ export class JpegImage {
   height: number;
   numComponents: number;
   parse(data: Uint8Array): void;
-  parseSteps(data: {readonly length: number}): Generator<number | {start: number; end: number}, void, number | Uint8Array | undefined>;
+  parseSteps(data: {readonly length: number}): Generator<JpegReadRequest, void, JpegReadResult>;
+  getDataSteps(options: { width: number; height: number; forceRGB?: boolean; forceRGBA?: boolean; isSourcePDF?: boolean; rowStart?: number; rowCount?: number }): Generator<JpegReadRequest, Uint8ClampedArray, JpegReadResult>;
   getData(options: { width: number; height: number; forceRGB?: boolean; forceRGBA?: boolean; isSourcePDF?: boolean; rowStart?: number; rowCount?: number }): Uint8ClampedArray;
 }

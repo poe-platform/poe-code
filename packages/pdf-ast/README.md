@@ -273,7 +273,11 @@ cache and admits decoder allocations before decoding. `rows()` yields owned RGBA
 RGBA planes; `width`, `height` and `components` describe the decoded image.
 `maxWorkingBytes` conservatively charges parse allocations, including metadata,
 and reuses one row-scratch allowance; `maxOutputBytes` admits image dimensions.
-DCT coefficient state remains resident; encoded input does not.
+Supply caller-owned `coefficientStorage` to keep DCT blocks and converted samples
+in backing storage with fixed block scratch. Retained PDF image decoding supplies
+this storage through the injected filesystem, shares its staging budget with
+image/mask streams, and cleans it on every exit. Without it, the standalone
+convenience decoder retains coefficient planes.
 The source stays caller-owned and can close after `open()`; call `jpeg.close()`
 to release decoder references. PDF Decode and ColorTransform options are supported.
 

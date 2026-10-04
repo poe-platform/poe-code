@@ -183,3 +183,47 @@ for (const trailingNewline of ["", "\n"]) {
     });
   }
 }
+
+for (const output of ['print s', 'printf "%d\\n", s']) {
+  test(`repeated field aggregation preserves END ${output}`, async () => {
+    const { run } = await fixture("item:10\n".repeat(50));
+    for (let invocation = 0; invocation < 3; invocation++) {
+      const result = await run(`{ s += $2 } END { ${output} }`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "500\n");
+    }
+  });
+}
+
+test("aggregating printf observes environment and argument changes independently", async () => {
+  const { run } = await fixture("item:10\n".repeat(50));
+  const program = '{ s += $2 } END { printf "%s %s %s %d %d\\n", ENVIRON["PREFIX"], FILENAME, ARGV[1], ARGC, s }';
+  for (const [file, prefix] of [["/data", "first"], ["/data", "second"], ["data", "second"], ["/data", "first"]]) {
+    const result = await run(program, file, { PREFIX: prefix });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `${prefix} ${file} ${file} 2 500\n`);
+  }
+});
+
+test("aggregating END output is complete across buffered flushes on every run", async () => {
+  const { run } = await fixture("item:10\n".repeat(50));
+  const program = '{ s += $2 } END { for (i = 0; i < 5000; i++) printf "%d\\n", s; print "done" }';
+  for (let invocation = 0; invocation < 3; invocation++) {
+    const result = await run(program);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "500\n".repeat(5000) + "done\n");
+  }
+});
+
+test("aggregating END printf reevaluates random state", async () => {
+  const { run } = await fixture("item:10\n".repeat(50));
+  const program = '{ s += $2 } END { srand(ENVIRON["SEED"]); printf "%d %.9f\\n", s, rand() }';
+  const results = [];
+  for (const SEED of ["1", "2", "1"]) {
+    const result = await run(program, "/data", { SEED });
+    assert.equal(result.exitCode, 0, result.stderr);
+    results.push(result.stdout);
+  }
+  assert.notEqual(results[0], results[1]);
+  assert.equal(results[0], results[2]);
+});

@@ -265,7 +265,7 @@ for (const code of ["ENOTSUP", "EACCES"] as const) test(`patch conditional mutat
       if (property === "confineExtraction") return async (...args: Parameters<MemoryFileSystem["confineExtraction"]>) => {
         const confined = await target.confineExtraction(...args);
         return new Proxy(confined, { get(view, key) {
-          if (key === "writeFileConditional") return async (path: string) => { writes++; assert.equal(path, "/new"); throw new FsError(code); };
+          if (key === "publishStagedFile") return async (_staging: unknown, path: string) => { writes++; assert.equal(path, "/new"); throw new FsError(code); };
           const member = Reflect.get(view, key);
           return typeof member === "function" ? member.bind(view) : member;
         } });
@@ -322,7 +322,7 @@ test("null writes stay available while ordinary paths retain backing read-only c
 });
 
 for (const source of ["cat /input", "head /input", "cat < /input", "split /input /piece", "sort /input -o /sorted"]) {
-  for (const retained of [false, true]) test(`ordinary buffered capability survives the mixed device view: ${source}, retained=${retained}`, async context => {
+  for (const retained of [false, true]) test(`ordinary read capability admission survives the mixed device view: ${source}, retained=${retained}`, async context => {
     const backing = new MemoryFileSystem();
     await backing.writeFile("/input", new TextEncoder().encode("b\na\n"));
     let streamCalls = 0;
@@ -345,9 +345,18 @@ for (const source of ["cat /input", "head /input", "cat < /input", "split /input
     const shell = new Shell({ fs }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(source);
-    assert.equal(result.exitCode, 0, result.stderr);
+    // Sequential commands require streams or retained ranges; shell redirection
+    // still supports the explicit buffering convenience API.
+    const supported = retained || source === "cat < /input";
+    assert.equal(result.exitCode, supported ? 0 : source.startsWith("sort") ? 2 : 1, result.stderr);
     assert.equal(streamCalls, 0);
-    if (source.startsWith("split")) assert.equal(new TextDecoder().decode(await backing.readFile("/pieceaa")), "b\na\n");
+    if (!supported) {
+      const command = source.split(" ")[0]!;
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, `${command}: ${command === "split" ? "" : "ENOTSUP: "}operation not supported, openReadFile '/input'\n`);
+      assert.equal(retainedCalls, 0);
+      assert.deepEqual((await backing.readdir("/")).map(entry => entry.name), ["input"]);
+    } else if (source.startsWith("split")) assert.equal(new TextDecoder().decode(await backing.readFile("/pieceaa")), "b\na\n");
     else if (source.startsWith("sort")) assert.equal(new TextDecoder().decode(await backing.readFile("/sorted")), "a\nb\n");
     else assert.equal(result.stdout, "b\na\n");
     const offset = retainedCalls;
@@ -419,7 +428,7 @@ for (const retainedRead of [true, false]) for (const source of ["diff /input /in
 }
 
 for (const source of ["join /input /input", "html-to-markdown /input", "rg -F a /input", "node /input", "curl --data-binary @/input https://example.test/"]) {
-  test(`absent optional reader retains bounded ordinary fallback: ${source}`, async context => {
+  test(`whole-file-only backend honors sequential read admission: ${source}`, async context => {
     const backing = new MemoryFileSystem();
     await backing.writeFile("/input", new TextEncoder().encode("a\nb\n"));
     const readLimits: number[] = [];
@@ -459,8 +468,19 @@ for (const source of ["join /input /input", "html-to-markdown /input", "rg -F a 
     }));
     context.after(() => shell.dispose());
     const result = await shell.exec(source);
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.ok(readLimits.length > 0);
+    if (source === "node /input") {
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(readLimits.length > 0, "the source loader retains its bounded buffering API");
+    } else {
+      const command = source.split(" ")[0]!;
+      assert.equal(result.exitCode, command === "curl" ? 26 : command === "rg" ? 2 : 1, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, command === "curl" ? "curl: (26) Failed to read virtual upload file\n"
+        : `${command}: ENOTSUP: operation not supported, openReadFile '/input'\n`);
+      assert.deepEqual(readLimits, [], "sequential input must not silently buffer whole files");
+    }
+    assert.equal(new TextDecoder().decode(await backing.readFile("/input")), "a\nb\n");
+    assert.deepEqual((await backing.readdir("/")).map(entry => entry.name), ["input"]);
   });
 }
 

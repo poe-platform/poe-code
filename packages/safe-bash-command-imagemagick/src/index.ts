@@ -1,4 +1,5 @@
-import { convolvePixelSteps } from "./convolve-kernel.js";
+import { morphologyPixelSteps } from "./morphology-kernel.js";
+import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
 export type {CompareFileInput} from "./compare-file.js";
 export interface ConvertFileInput extends CompareFileInput { readonly stderr?: ByteSink; }
@@ -495,12 +496,8 @@ function createDefaultState(): MagickState {
   };
 }
 
-function* applyMagickMorphology4ChSteps(
-  img: RgbaImage,
-  methodRaw: string,
-  kernelSpec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const m = methodRaw.toLowerCase();
+type MorphologyStep = { mode: "min" | "max" | "median"; source: number } | { mode: "diff"; a: number; b: number };
+function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rx: number; ry: number; steps: MorphologyStep[] } {
   let rx = 1;
   let ry = 1;
   const colonIdx = kernelSpec.indexOf(":");
@@ -514,82 +511,43 @@ function* applyMagickMorphology4ChSteps(
     ry = rx;
   }
 
-  const step = (src: RgbaImage, isMax: boolean): RgbaImage => {
-    const w = src.width;
-    const h = src.height;
-    const out = new Uint8Array(src.data.length);
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const dstOff = (y * w + x) * 4;
-        for (let c = 0; c < 4; c++) {
-          let best = src.data[dstOff + c]!;
-          for (let dy = -ry; dy <= ry; dy++) {
-            const sy = Math.max(0, Math.min(h - 1, y + dy));
-            for (let dx = -rx; dx <= rx; dx++) {
-              const sx = Math.max(0, Math.min(w - 1, x + dx));
-              const v = src.data[(sy * w + sx) * 4 + c]!;
-              if (isMax ? v > best : v < best) best = v;
-            }
-          }
-          out[dstOff + c] = best;
-        }
-      }
-    }
-    return { ...src, data: out };
-  };
-
-  const diffImg = (a: RgbaImage, b: RgbaImage): RgbaImage => {
-    const out = new Uint8Array(a.data.length);
-    for (let i = 0; i < out.length; i++) {
-      out[i] = clampByteVal(a.data[i]! - b.data[i]!);
-    }
-    return { ...a, data: out };
-  };
-
-  if (m === "erode" || m === "minimum") return step(img, false);
-  if (m === "dilate" || m === "maximum") return step(img, true);
-  if (m === "open") return step(step(img, false), true);
-  if (m === "close") return step(step(img, true), false);
-  if (m === "edgein") return diffImg(img, step(img, false));
-  if (m === "edgeout") return diffImg(step(img, true), img);
-  if (m === "edge" || m === "gradient") return diffImg(step(img, true), step(img, false));
-  if (m === "tophat") return diffImg(img, step(step(img, false), true));
-  if (m === "bottomhat") return diffImg(step(step(img, true), false), img);
-  if (m === "median") {
-    const w = img.width;
-    const h = img.height;
-    const out = new Uint8Array(img.data.length);
-    const win: number[] = [];
-    for (let y = 0; y < h; y++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            for (let x = 0; x < w; x++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                const dstOff = (y * w + x) * 4;
-        for (let c = 0; c < 4; c++) {
-                    if (++cooperativeWork % 65536 === 0)
-                        yield;
-                    win.length = 0;
-          for (let dy = -ry; dy <= ry; dy++) {
-                        if (++cooperativeWork % 65536 === 0)
-                            yield;
-                        const sy = Math.max(0, Math.min(h - 1, y + dy));
-            for (let dx = -rx; dx <= rx; dx++) {
-                            if (++cooperativeWork % 65536 === 0)
-                                yield;
-                            const sx = Math.max(0, Math.min(w - 1, x + dx));
-              win.push(img.data[(sy * w + sx) * 4 + c]!);
-            }
-          }
-          win.sort((a, b) => a - b);
-          out[dstOff + c] = win[Math.floor(win.length / 2)]!;
-        }
-      }
-    }
-    return { ...img, data: out };
+  const filter = (source: number, mode: "min" | "max" | "median"): MorphologyStep => ({ source, mode });
+  const diff = (a: number, b: number): MorphologyStep => ({ mode: "diff", a, b });
+  let steps: MorphologyStep[];
+  switch (methodRaw.toLowerCase()) {
+    case "erode": case "minimum": steps = [filter(0, "min")]; break;
+    case "median": steps = [filter(0, "median")]; break;
+    case "open": steps = [filter(0, "min"), filter(1, "max")]; break;
+    case "close": steps = [filter(0, "max"), filter(1, "min")]; break;
+    case "edgein": steps = [filter(0, "min"), diff(0, 1)]; break;
+    case "edgeout": steps = [filter(0, "max"), diff(1, 0)]; break;
+    case "edge": case "gradient": steps = [filter(0, "max"), filter(0, "min"), diff(1, 2)]; break;
+    case "tophat": steps = [filter(0, "min"), filter(1, "max"), diff(0, 2)]; break;
+    case "bottomhat": steps = [filter(0, "max"), filter(1, "min"), diff(2, 0)]; break;
+    default: steps = [filter(0, "max")];
   }
-  return step(img, true);
+  return { rx, ry, steps };
+}
+function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array): Generator<void, Uint8Array, void> {
+    const result = new Uint8Array(a.length);
+    for (let i = 0; i < a.length; i++) {
+        if (i % 16384 === 0) yield;
+        result[i] = clampByteVal(a[i]! - b[i]!);
+    }
+    return result;
+}
+function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kernelSpec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const plan = magickMorphologyPlan(methodRaw, kernelSpec), images = [img];
+    for (const step of plan.steps) {
+        if (step.mode === "diff") {
+            const a = images[step.a]!, b = images[step.b]!;
+            images.push({ ...a, data: yield* subtractMagickPixelSteps(a.data, b.data) });
+        } else {
+            const source = images[step.source]!;
+            images.push(yield* applyMagickRasterSteps(source, morphologyPixelSteps(source, plan.rx, plan.ry, step.mode), signal));
+        }
+    }
+    return images.at(-1)!;
 }
 
 function* createRoseImageSteps(): Generator<void, RgbaImage, void> {
@@ -771,7 +729,7 @@ function parseMagickConvolveKernel(spec: string): number[] {
 }
 function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const kernel = parseMagickConvolveKernel(spec);
-    return kernel.length ? yield* applyMagickConvolveSteps(img, kernel, 0, signal) : img;
+    return kernel.length ? yield* applyMagickRasterSteps(img, convolvePixelSteps(img, kernel, 0), signal) : img;
 }
 
 function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -2604,8 +2562,8 @@ function* applyMagickPosterizeSteps(img: RgbaImage, levelsRaw: number, signal?: 
     return { ...img, data: out };
 }
 
-function* applyMagickConvolveSteps(img: RgbaImage, kernel: readonly number[], bias = 0, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    const data = new Uint8Array(img.data.length), steps = convolvePixelSteps(img, kernel, bias);
+function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const data = new Uint8Array(img.data.length);
     let next = steps.next();
     while (!next.done) {
         signal?.throwIfAborted();
@@ -4766,19 +4724,20 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-edge" || t === "-canny") {
             i++;
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickConvolveSteps(im, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0, signal));
+                return (yield* applyMagickRasterSteps(im, convolvePixelSteps(im, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0), signal));
             });
         }
         else if (t === "-emboss") {
             i++;
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickConvolveSteps(im, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 128, signal));
+                return (yield* applyMagickRasterSteps(im, convolvePixelSteps(im, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 128), signal));
             });
         }
         else if (t === "-charcoal" || t === "-sketch") {
             i++;
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* grayscaleImageSteps((yield* negateImageSteps((yield* applyMagickConvolveSteps((yield* blurImageSteps(im, 1)), [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0, signal)), { alpha: false }))));
+                const blurred = yield* blurImageSteps(im, 1);
+                return yield* grayscaleImageSteps(yield* negateImageSteps(yield* applyMagickRasterSteps(blurred, convolvePixelSteps(blurred, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0), signal), { alpha: false }));
             });
         }
         else if (t === "+repage" || t === "-repage") {
@@ -5339,6 +5298,45 @@ async function convolveStoredMagickImage(image: StoredRgbaImage, backend: Compar
     return { ...image, position };
 }
 
+async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal): Promise<StoredRgbaImage> {
+    const images = [image], size = image.width * image.height * 4;
+    for (const step of plan.steps) {
+        const position = backend.storage.allocate(size);
+        if (step.mode === "diff") {
+            const a = images[step.a]!, b = images[step.b]!;
+            for (let offset = 0; offset < size; offset += 16384) {
+                await yieldTurn(signal);
+                const length = Math.min(16384, size - offset);
+                const left = new Uint8Array(await backend.storage.read(a.position + offset, length));
+                const bytes = await drainSteps(subtractMagickPixelSteps(left, await backend.storage.read(b.position + offset, length)), signal);
+                await backend.storage.write(position + offset, bytes);
+            }
+        } else {
+            const source = images[step.source]!, cache = new Map<number, Uint8Array>();
+            const steps = morphologyPixelSteps(source, plan.rx, plan.ry, step.mode);
+            let next = steps.next();
+            while (!next.done) {
+                signal.throwIfAborted();
+                const request = next.value;
+                if (!request) { await yieldTurn(signal); next = steps.next(); }
+                else if (request.kind === "write") { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
+                else {
+                    const page = Math.floor(request.position / 4096) * 4096;
+                    let bytes = cache.get(page);
+                    if (!bytes) {
+                        bytes = new Uint8Array(await backend.storage.read(source.position + page, Math.min(4096, size - page)));
+                        if (cache.size === 32) cache.delete(cache.keys().next().value!);
+                        cache.set(page, bytes);
+                    }
+                    next = steps.next(bytes.subarray(request.position - page, request.position - page + request.length));
+                }
+            }
+        }
+        images.push({ ...image, position });
+    }
+    return images.at(-1)!;
+}
+
 async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend: CompareFileSession, token: string, geometry: string, state: MagickState, signal: AbortSignal): Promise<StoredRgbaImage> {
     const g = parseMagickGeometry(geometry), w = image.width, h = image.height;
     type Span = { source: number; target: number; length: number };
@@ -5402,6 +5400,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
     for (let i = 0; i < tokens.length; i++) {
         if (i && i % 64 === 0) await yieldTurn(signal);
         const token = tokens[i]!;
+        if (token === "") continue;
         if (!operandsOnly && token === "--") { operandsOnly = true; continue; }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) { i = setting; continue; }
@@ -5430,7 +5429,19 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && ["-convolve", "-edge", "-canny", "-emboss", "-charcoal", "-sketch"].includes(token)) {
+        if (!operandsOnly && (token === "-morphology" || token === "-statistic")) {
+            const method = (tokens[++i] ?? (token === "-morphology" ? "dilate" : "median")).toLowerCase();
+            let spec = "";
+            if (token === "-statistic") spec = tokens[++i] ?? "3x3";
+            else if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
+            if (token === "-morphology" && (method.includes("convolve") || method.includes("correlate"))) {
+                const kernel = parseMagickConvolveKernel(spec);
+                steps.push(async (image, backend) => image ? convolveStoredMagickImage(image, backend, kernel, 0, signal) : undefined);
+            } else {
+                const plan = magickMorphologyPlan(method, spec);
+                steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal) : undefined);
+            }
+        } else if (!operandsOnly && ["-convolve", "-edge", "-canny", "-emboss", "-charcoal", "-sketch"].includes(token)) {
             const spec = tokens[++i] ?? "1", charcoal = token === "-charcoal" || token === "-sketch";
             const kernel = token === "-convolve" ? parseMagickConvolveKernel(spec) : token === "-emboss" ? [-2, -1, 0, -1, 1, 1, 0, 1, 2] : [-1, -1, -1, -1, 8, -1, -1, -1, -1];
             if (charcoal) transform(() => ({ kind: "blur", sigma: 1 }));

@@ -609,7 +609,7 @@ function parseProbeArguments(args: readonly string[]) {
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget };
 }
 
-async function probeSourceMetadata(context: CommandContext, plugin: MediaAstPlugin, input: MediaProbeSource, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void): Promise<MediaProbeRecords | undefined> {
+async function probeSourceMetadata(context: CommandContext, plugin: MediaAstPlugin, input: MediaProbeSource, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<MediaProbeRecords | undefined> {
   let sourceFailed = false;
   const source: MediaProbeSource = { size: input.size, async read(offset, length) {
     try {
@@ -619,7 +619,7 @@ async function probeSourceMetadata(context: CommandContext, plugin: MediaAstPlug
     }
     catch (error) { sourceFailed = true; throw error; }
   } };
-  if (onAudio) {
+  if (detect || onAudio) {
     if (input.size < 12) { return undefined; }
     const header = await source.read(0, 12);
     context.signal.throwIfAborted();
@@ -642,7 +642,7 @@ async function probeSourceMetadata(context: CommandContext, plugin: MediaAstPlug
   return result;
 }
 
-async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPlugin, path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void): Promise<MediaProbeRecords | undefined> {
+async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPlugin, path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<MediaProbeRecords | undefined> {
   if (!plugin.canDemux || !plugin.probeMetadata || !context.fs.openReadFile) return undefined;
   context.signal.throwIfAborted();
   const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
@@ -660,7 +660,7 @@ async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPl
     budget.checkInputBytes(stat.size);
     const result = await probeSourceMetadata(context, plugin, { size: stat.size,
       read: (offset, length) => handle.read(offset, length, { signal: context.signal })
-    }, filename, budget, records, onAudio, retain);
+    }, filename, budget, records, onAudio, retain, detect);
     context.signal.throwIfAborted();
     failed = false;
     return result;
@@ -761,11 +761,11 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         let audioInput: AudioProbeInput | undefined;
         let automaticAudio = !options.asts && !explicitFormat && !showPackets && !showFrames && !showChapters && !showPrograms && !countFrames && !countPackets;
         if (automaticAudio) { try { parseAudioArguments(args); } catch { automaticAudio = false; } }
-        const automaticPlugin = automaticAudio ? registry.findByFormatName("wav") : undefined;
+        const automaticPlugin = !options.asts && !explicitFormat ? registry.findByFormatName("wav") : undefined;
         const explicitPlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : undefined;
         const retainedPlugin = explicitPlugin ?? automaticPlugin;
         let probeResult = retainedPlugin && !isStdin(inputTarget)
-          ? await probeRetainedMetadata(context, retainedPlugin, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain)
+          ? await probeRetainedMetadata(context, retainedPlugin, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, automaticPlugin !== undefined)
           : undefined;
         if (!probeResult && explicitPlugin)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames });
@@ -777,7 +777,15 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               context.inputBudget?.check(total); budget.checkInputBytes(total);
             });
             if (sniffed.wav) {
-              probeResult = await withStagedProbeSource(context, sniffed.stream, source => probeSourceMetadata(context, automaticPlugin, source, inputTarget, budget, { showPackets, showFrames }, (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; }, retain), retain);
+              if (!automaticAudio && automaticPlugin.probeMetadataStream) {
+                // Sniff replay already admits each source chunk exactly once.
+                probeResult = await automaticPlugin.probeMetadataStream(sniffed.stream, {
+                  showPackets, showFrames, filename: inputTarget, signal: context.signal, budget, limits: budget.limits
+                });
+                context.signal.throwIfAborted();
+              } else {
+                probeResult = await withStagedProbeSource(context, sniffed.stream, source => probeSourceMetadata(context, automaticPlugin, source, inputTarget, budget, { showPackets, showFrames }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain), retain);
+              }
             } else replay = sniffed.stream;
           }
         }

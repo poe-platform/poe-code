@@ -4,10 +4,10 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
 
-async function run(route: "file" | "stdin", mode = "success") {
+async function run(route: "file" | "stdin", mode = "success", extra: string[] = []) {
   const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(65536)] }, { tags: { title: "streamed title" } });
   if (mode === "fallback") new DataView(bytes.buffer).setUint16(32, 7, true);
-  const args = ["-of", "json", "-show_streams", "-show_format", route === "stdin" ? "-" : "/input.wav"];
+  const args = ["-of", "json", "-show_streams", "-show_format", ...extra, route === "stdin" ? "-" : "/input.wav"];
   const expected = evalSyncFfprobe(route === "stdin" ? bytes : undefined, args, () => bytes);
   const base = new MemoryFileSystem(), controller = new AbortController();
   let reads = 0, sourceClosed = false, opened = 0, closed = 0, output = "", diagnostic = "", admitted = 0;
@@ -69,11 +69,11 @@ it("checks the input budget before reading beyond a split signature", async () =
   expect(r.result?.exitCode).toBe(1); expect(r.reads).toBe(2); expect(r.sourceClosed).toBe(true); expect(r.opened).toBe(0);
 });
 
-it("preserves a non-WAV stdin probe after signature replay", async () => {
+it.each([{ extra: [] }, { extra: ["-show_packets"] }, { extra: ["-of", "json=c=1"] }])("preserves a non-WAV stdin probe after signature replay: $extra", async ({ extra }) => {
   const bytes = new Uint8Array(42); bytes.set([102, 76, 97, 67, 128, 0, 0, 34]);
   const view = new DataView(bytes.buffer); view.setUint16(8, 16); view.setUint16(10, 16);
   view.setBigUint64(18, (8000n << 44n) | (15n << 36n) | 8n);
-  const args = ["-of", "json", "-show_streams", "-show_format", "-"];
+  const args = ["-of", "json", "-show_streams", "-show_format", ...extra, "-"];
   const expected = evalSyncFfprobe(bytes, args); expect(expected).toBeTypeOf("string");
   let output = "", diagnostic = "", closed = false;
   const checks: number[] = [];
@@ -87,3 +87,26 @@ it("preserves a non-WAV stdin probe after signature replay", async () => {
   expect(result.exitCode, diagnostic).toBe(0); expect(output).toBe(expected);
   expect(checks).toEqual(Array.from({ length: 14 }, (_, i) => (i + 1) * 3));
 });
+
+for (const route of ["stdin", "file"] as const) {
+  for (const extra of [["-show_packets", "-show_frames"], ["-count_packets", "-count_frames"], ["-of", "json=c=1"], ["-show_chapters", "-show_programs"]]) {
+    it(`streams automatic media-only WAV ${route}: ${extra.join(" ")}`, async () => {
+      const r = await run(route, "success", extra);
+      expect(r.expected).toBeTypeOf("string");
+      expect(r.result?.exitCode, r.diagnostic).toBe(0); expect(r.output).toBe(r.expected);
+      expect(r.sourceClosed).toBe(true); expect(r.admitted).toBe(r.size);
+      // This small result needs no spill; streaming media headers need no input backing.
+      expect(r.opened).toBe(0); expect(r.remaining).toEqual([]);
+    });
+  }
+}
+
+for (const route of ["stdin", "file"] as const) {
+  for (const mode of ["source", "cancel", "limit", "sink"]) it(`cleans automatic media-only ${route} on ${mode}`, async () => {
+    const r = await run(route, mode, ["-show_packets", "-show_frames"]);
+    expect(r.output).toBe(""); expect(r.sourceClosed).toBe(true); expect(r.opened).toBe(0); expect(r.remaining).toEqual([]);
+    if (mode === "cancel") expect(r.error).toEqual(new Error("cancelled input"));
+    else if (mode === "sink") expect(r.error).toMatchObject({ code: "EPIPE" });
+    else { expect(r.result?.exitCode).toBe(1); expect(r.diagnostic).toContain(mode === "limit" ? "maxInputBytes" : "source failed"); }
+  });
+}

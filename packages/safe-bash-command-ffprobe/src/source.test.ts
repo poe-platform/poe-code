@@ -14,7 +14,7 @@ function fixture() {
   return { bytes, size };
 }
 
-async function run(options: { failRead?: Error; failClose?: Error; maxInputBytes?: number; abortRead?: boolean; failOutput?: Error; abortOpen?: boolean; failStat?: Error } = {}) {
+async function run(options: { failRead?: Error; failClose?: Error; maxInputBytes?: number; abortRead?: boolean; failOutput?: Error; abortOpen?: boolean; failStat?: Error; automatic?: boolean } = {}) {
   const { bytes, size } = fixture(), base = new MemoryFileSystem(), controller = new AbortController();
   await base.writeFile("/input.wav", bytes);
   let closes = 0, reads = 0, output = "", diagnostic = "", admitted = 0;
@@ -35,7 +35,7 @@ async function run(options: { failRead?: Error; failClose?: Error; maxInputBytes
     const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
   }});
   const context = {
-    command: "ffprobe", ...createCommandArguments(["-f", "wav", "-show_entries", "stream=duration,nb_frames", "-of", "json", "/input.wav"]),
+    command: "ffprobe", ...createCommandArguments([...(options.automatic ? ["-count_packets"] : ["-f", "wav"]), "-show_entries", "stream=duration,nb_frames", "-of", "json", "/input.wav"]),
     cwd: "/", env: {}, fs, signal: controller.signal, inputBudget: { maxBytes: Number.MAX_SAFE_INTEGER, check(count: number) { admitted = count; } },
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(chunk: Uint8Array) { if (options.failOutput) throw options.failOutput; output += new TextDecoder().decode(chunk); } },
@@ -93,4 +93,11 @@ it.each(["json", "compact", "csv", "default", "flat"])("preserves the %s schema 
     stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } }, stderr: { async write() { throw new Error("unexpected diagnostic"); } }
   });
   expect(result.exitCode).toBe(0); expect(output).toBe(expected);
+});
+
+it("detects automatic media-only WAV with bounded retained reads", async () => {
+  const result = await run({ automatic: true });
+  expect(result.result?.exitCode, result.diagnostic).toBe(0);
+  expect(JSON.parse(result.output)).toEqual({ streams: [{ duration: "16777.216000", nb_frames: "131072" }] });
+  expect(result.reads).toBe(5); expect(result.closes).toBe(1); expect(result.admitted).toBe(result.size);
 });

@@ -27,11 +27,18 @@ beforeAll(async () => {
   runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request,env){
-      const mode=new URL(request.url).pathname.slice(1),header=new Uint8Array(${JSON.stringify([...head()])}),namespace=new api.MemoryFileSystem();
+      const [route,mode]=new URL(request.url).pathname.slice(1).split('/'),header=new Uint8Array(${JSON.stringify([...head()])}),namespace=new api.MemoryFileSystem();
       await namespace.mkdir('/spill');await namespace.writeFile('/input.wav',header);
       const backing=api.createR2PagedFixture(namespace,env.PAGES),controller=new AbortController();
       let inputClosed=0,total=0,hash=2166136261,largestWrite=0,largestAllocation=0,diagnostic='',thrown;
+      async function* source(){const chunk=new Uint8Array(16384);try{yield header;for(let offset=0;offset<${payload};offset+=chunk.length)yield chunk;}finally{inputClosed++;}}
+      const capabilities={...backing.fs.capabilities,retainedRead:false,streamingRead:true};
       const fs=new Proxy(backing.fs,{get(target,key){
+        if(key==='readFile')return()=>{throw new Error('Whole input forbidden');};
+        if(route==='stdin'||route==='file'){
+          if(key==='capabilities')return capabilities;if(key==='capabilitiesFor')return async()=>capabilities;
+          if(key==='openReadFile')return undefined;if(key==='readStream')return()=>source();
+        }
         if(key==='openReadFile')return async()=>({stat:async()=>({...await namespace.stat('/input.wav'),size:${payload + 44}}),
           async read(offset,length){if(offset+length>44)throw new Error('Payload read');return header.slice(offset,offset+length);},async close(){inputClosed++;}});
         if(key==='open')return async(...args)=>{
@@ -47,7 +54,7 @@ beforeAll(async () => {
       }});
       const Native=globalThis.Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=Reflect.construct(target,args);largestAllocation=Math.max(largestAllocation,value.length);if(value.length>65536)throw new Error('Unbounded allocation');return value;}});
       let result;
-      try{result=await api.createFfprobeCommand({limits:{maxOutputBytes:mode==='limit'?100000:4000000}}).execute({command:'ffprobe',...api.createCommandArguments(['-f','wav','-of',mode==='compact'?'json=c=1':'json','-show_packets','-show_frames','/input.wav']),cwd:'/spill',env:{},fs,signal:controller.signal,stdin:{async *[Symbol.asyncIterator](){}},
+      try{result=await api.createFfprobeCommand({limits:{maxOutputBytes:mode==='limit'?100000:4000000}}).execute({command:'ffprobe',...api.createCommandArguments([...(route==='explicit'?['-f','wav']:[]),'-of',mode==='compact'?'json=c=1':'json','-show_packets','-show_frames',route==='stdin'?'-':'/input.wav']),cwd:'/spill',env:{},fs,signal:controller.signal,stdin:route==='stdin'?source():{async *[Symbol.asyncIterator](){}},
         stdout:{async write(chunk){if(inputClosed!==1)throw new Error('Input still open');largestWrite=Math.max(largestWrite,chunk.length);if(mode==='sink')throw Object.assign(new Error('pipe failed'),{code:'EPIPE'});total+=chunk.length;for(const byte of chunk)hash=Math.imul(hash^byte,16777619)>>>0;}},
         stderr:{async write(chunk){diagnostic+=new TextDecoder().decode(chunk);}}
       });}catch(error){thrown={message:error.message,code:error.code};}finally{globalThis.Uint8Array=Native;}
@@ -56,9 +63,9 @@ beforeAll(async () => {
   });
 });
 afterAll(async () => { await runtime?.dispose(); });
-for (const mode of ["success", "compact", "limit", "cancel", "sink", "backing-write", "backing-read", "close"]) {
-  it(`streams WAV packet/frame output through external Worker backing: ${mode}`, async () => {
-    const response = await runtime.dispatchFetch(`http://worker/${mode}`); expect(response.status).toBe(200);
+for (const route of ["explicit", "automatic", "stdin", "file"]) for (const mode of ["success", "compact", "limit", "cancel", "sink", "backing-write", "backing-read", "close"]) {
+  it(`streams WAV packet/frame output through external Worker backing from ${route}: ${mode}`, async () => {
+    const response = await runtime.dispatchFetch(`http://worker/${route}/${mode}`); expect(response.status).toBe(200);
     const result = await response.json() as { code?: number; thrown?: { message: string; code?: string }; total: number; hash: number; largestWrite: number; largestAllocation: number; inputClosed: number; diagnostic: string; events: { opened: number; closed: number; largestTransfer: number }; remaining: number; nodeFree: boolean };
     expect(result.nodeFree).toBe(true); expect(result.inputClosed).toBe(1); expect(result.events.opened).toBe(1); expect(result.events.closed).toBe(1); expect(result.remaining).toBe(0);
     expect(result.largestWrite).toBeLessThanOrEqual(16384); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384); expect(result.largestAllocation).toBeLessThanOrEqual(65536);

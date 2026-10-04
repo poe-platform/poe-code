@@ -599,7 +599,7 @@ for (const scenario of [{ reason: undefined }, { reason: null }, { reason: false
 }
 
 for (const scenario of [
-  { name: "limit4 preserves the source without staging", limit: 4, published: false, fails: true, suffix: "" },
+  { name: "limit4 preserves the source and removes empty staging", limit: 4, published: false, fails: true, suffix: "" },
   { name: "limit5 admits staged publication and removes staging", limit: 5, published: true, fails: false, suffix: "" },
   { name: "limit5 charges staged write against later stdout", limit: 5, published: true, fails: true, suffix: "; review-stdout" },
 ]) {
@@ -610,26 +610,48 @@ for (const scenario of [
     const before = await fs.stat("/input.yaml");
     const createStaged = fs.createStagedFile.bind(fs);
     const publishStaged = fs.publishStagedFile.bind(fs);
-    const removeStaged = fs.removeStagedFile.bind(fs);
     const staged = [];
     const publishedReceipts = [];
     const removedReceipts = [];
+    const closedReceipts = [];
     const events = [];
     fs.createStagedFile = async (path, kind, entry, options) => {
       events.push("stage");
       const receipt = await createStaged(path, kind, entry, options);
-      staged.push({ path, kind, bytes: Uint8Array.from(entry.data), mode: options?.mode, receipt });
-      return receipt;
+      assert.ok(receipt.writer && receipt.cleanup);
+      const writes = [];
+      const retained = { ...receipt, writer: {
+        async write(bytes, writeOptions) {
+          events.push("write");
+          writes.push(Uint8Array.from(bytes));
+          return receipt.writer.write(bytes, writeOptions);
+        },
+        async finish(finishOptions) {
+          events.push("finish");
+          return receipt.writer.finish(finishOptions);
+        },
+      }, cleanup: {
+        async remove() {
+          events.push("remove");
+          removedReceipts.push(retained);
+          return receipt.cleanup.remove();
+        },
+        async close() {
+          events.push("close");
+          closedReceipts.push(retained);
+          return receipt.cleanup.close();
+        },
+      } };
+      staged.push({ path, kind, bytes: Uint8Array.from(entry.data), writes, mode: options?.mode, receipt: retained });
+      return retained;
     };
     fs.publishStagedFile = async (receipt, destination, options) => {
       events.push("publish");
-      publishedReceipts.push({ receipt, destination });
+      publishedReceipts.push({ receipt, destination, bytes: await fs.readFile(receipt.file.path) });
       return publishStaged(receipt, destination, options);
     };
-    fs.removeStagedFile = async (receipt) => {
-      events.push("remove");
-      removedReceipts.push(receipt);
-      return removeStaged(receipt);
+    fs.removeStagedFile = async () => {
+      assert.fail("retained staging must use its owned cleanup handle");
     };
     fs.rename = async () => {
       events.push("rename");
@@ -661,20 +683,28 @@ for (const scenario of [
       bytes: new Uint8Array(Buffer.from(scenario.published ? "a: 2\n" : "a: 1\n")), mode: 0o640,
       retainedIdentity: !scenario.published, entries: [{ name: "input.yaml", type: "file" }],
     });
+    assert.equal(staged.length, 1);
+    assert.ok(staged[0].path.startsWith("/.yq-"));
+    assert.equal(staged[0].kind, "file");
+    assert.deepEqual(staged[0].bytes, new Uint8Array());
+    assert.equal(staged[0].mode, 0o640);
+    assert.deepEqual(removedReceipts, [staged[0].receipt]);
+    assert.deepEqual(closedReceipts, [staged[0].receipt]);
     if (scenario.published) {
-      assert.equal(staged.length, 1);
-      assert.ok(staged[0].path.startsWith("/.yq-"));
-      assert.equal(staged[0].kind, "file");
-      assert.deepEqual(staged[0].bytes, new Uint8Array(Buffer.from("a: 2\n")));
-      assert.equal(staged[0].mode, 0o640);
-      assert.deepEqual(publishedReceipts, [{ receipt: staged[0].receipt, destination: "/input.yaml" }]);
-      assert.deepEqual(removedReceipts, [staged[0].receipt]);
-      assert.deepEqual(events, ["stage", "publish", "remove", ...(scenario.suffix ? ["stdout"] : [])]);
+      const expected = new Uint8Array(Buffer.from("a: 2\n"));
+      assert.deepEqual(staged[0].writes, [expected]);
+      assert.equal(publishedReceipts.length, 1);
+      assert.equal(publishedReceipts[0].destination, "/input.yaml");
+      assert.deepEqual(publishedReceipts[0].bytes, expected);
+      assert.equal(publishedReceipts[0].receipt.file.path, staged[0].receipt.file.path);
+      assert.equal(publishedReceipts[0].receipt.file.stat.size, expected.length);
+      assert.equal(publishedReceipts[0].receipt.directory.path, staged[0].path);
+      assert.equal(publishedReceipts[0].receipt.file.stat.ino, staged[0].receipt.file.stat.ino);
+      assert.deepEqual(events, ["stage", "write", "finish", "publish", "remove", "close", ...(scenario.suffix ? ["stdout"] : [])]);
     } else {
-      assert.deepEqual(staged, []);
+      assert.deepEqual(staged[0].writes, []);
       assert.deepEqual(publishedReceipts, []);
-      assert.deepEqual(removedReceipts, []);
-      assert.deepEqual(events, []);
+      assert.deepEqual(events, ["stage", "remove", "close"]);
     }
     await shell.dispose();
   } finally { await owner.shell?.dispose(); }

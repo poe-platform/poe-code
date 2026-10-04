@@ -3,6 +3,11 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxBiffMarginDiagnostics": {
+      "scope": "Suppress XLSX pageMargins loss warnings only when each supported source attribute exactly matches the emitted BIFF float64 field, including header/footer SETUP offsets. Changed, malformed, unknown and unrepresented metadata still warn.",
+      "verification": "Six original failures repaired;2444 affected tests, selected build and owner lint/types pass.32 compiled SDK/command exports remain byte-identical to independently qualified BIFF7/8 outputs while retaining exactly three unrelated warnings. All192 margin points in their pinned Gnumeric readbacks match independent OpenPyXL controls. CLI screenshot inspected.",
+      "remaining": "Precision loss for other margin values, wider print metadata/rendering and all broader compatibility/qualification families remain open. No release/family closure."
+    },
     "xlsxToBiffWorkbookProtection": {
       "scope": "Standard-namespace XLSX workbookProtection structure/window flags and1-4hex-digit legacy password verifiers convert to BIFF7/8 global records. Retained edits work; unknown/modern/revision fields and malformed values retain warnings.",
       "verification": "Two original failures repaired;2437 affected tests, selected build and owner lint/types pass. Eight independently generated OpenPyXL3.1.5 controls produce32 SDK/command exports with96 exact encoded fields and four exact unrelated warnings each. Gnumeric1.12.61 reads all32 structure states; Calc25.2.3.2 reads all16 BIFF8 window flags. Screenshot inspected.",

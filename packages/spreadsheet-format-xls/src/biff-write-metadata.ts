@@ -79,6 +79,15 @@ export class BiffMetadataWriter {
         !node.text.trim() && !node.children.length && Object.entries(node.attributes).every(([name, value]) =>
           Object.hasOwn(printFlags, name) && ["0", "1", "false", "true"].includes(value) &&
           emitted.get(printFlags[name]!)?.has(value === "1" || value === "true" ? "0100" : "0000"))) continue;
+      if (record.kind === "pageMargins" && node?.namespace === "http://schemas.openxmlformats.org/spreadsheetml/2006/main" &&
+        !node.text.trim() && !node.children.length && Object.entries(node.attributes).every(([name, value]) => {
+          const fields: Readonly<Record<string, readonly [number, number]>> = { left: [0x26, 0], right: [0x27, 0], top: [0x28, 0], bottom: [0x29, 0], header: [0xa1, 16], footer: [0xa1, 24] };
+          if (!Object.hasOwn(fields, name) || !value.trim() || !Number.isFinite(Number(value)) || Number(value) < 0) return false;
+          const [opcode, offset] = fields[name]!, bytes = new Uint8Array(8);
+          new DataView(bytes.buffer).setFloat64(0, Number(value), true);
+          const encoded = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+          return [...emitted.get(opcode) ?? []].some(payload => payload.slice(offset * 2, offset * 2 + 16) === encoded);
+        })) continue;
       if (record.kind === "Objects" && node?.children.every(n => ["CellComment", "GnmCellComment"].includes(n.name))) continue;
       await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF export metadata: ${record.kind}` });
     }

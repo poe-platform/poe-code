@@ -30,11 +30,11 @@ for (const format of ["html", "docx", "pdf", "csv", "xlsx"]) for (const empty of
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), [...new Set(["input.xlsx", `input.${format}`])].sort());
 });
 
-for (const filter of ['csv:Text - txt - csv (StarCalc):59,39', 'csv:Text - txt - csv (StarCalc):44,34,0,0,0,0,true']) it(`preserves retained CSV filter quoting: ${filter}`, async () => {
+for (const input of ["/input.xlsx", "/input.csv"]) for (const filter of ['csv:Text - txt - csv (StarCalc):59,39', 'csv:Text - txt - csv (StarCalc):44,34,0,0,0,0,true']) it(`preserves retained CSV filter quoting: ${input} ${filter}`, async () => {
   const fs = new MemoryFileSystem();
-  const bytes = createStoredZipArchive({ "xl/worksheets/sheet1.xml": new TextEncoder().encode('<worksheet><row><c t="inlineStr"><is><t>' + 'a'.repeat(4095) + '&quot;;&apos;\nend</t></is></c><c><v>42</v></c></row></worksheet>') });
-  await fs.writeFile("/input.xlsx", bytes);
-  const files = new Map([["/input.xlsx", bytes]]), args = ["--convert-to", filter, "/input.xlsx"], expected = await runSofficeCli(args, files);
+  const bytes = input.endsWith(".csv") ? new TextEncoder().encode('"' + 'a'.repeat(4095) + '"";\'\nend",42') : createStoredZipArchive({ "xl/worksheets/sheet1.xml": new TextEncoder().encode('<worksheet><row><c t="inlineStr"><is><t>' + 'a'.repeat(4095) + '&quot;;&apos;\nend</t></is></c><c><v>42</v></c></row></worksheet>') });
+  await fs.writeFile(input, bytes);
+  const files = new Map([[input, bytes]]), args = ["--convert-to", filter, input], expected = await runSofficeCli(args, files);
   const filesystem = new Proxy(fs, { get(target, key) {
     if (key === "readFile" || key === "writeFile") return () => { throw new Error("Whole-file I/O forbidden"); };
     const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;

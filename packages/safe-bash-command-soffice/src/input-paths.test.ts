@@ -42,7 +42,8 @@ it("reads only source operands and charges their bytes once across normalized al
   for (const name of ["txt", "Text", "en-US", "pid", "data.txt"]) await fs.writeFile(`/work/${name}`, encode("not an input"));
   const reads: string[] = [];
   const originalRead = fs.readFile.bind(fs);
-  fs.readFile = async (path, options) => { reads.push(path); return originalRead(path, options); };
+  const stream = fs.readStream.bind(fs);
+  fs.readStream = (path, options) => { reads.push(path); return stream(path, options); };
   const totals: number[] = [];
   const result = await createSofficeCommand().execute(invocation(fs, ["--convert-to", "txt", "--infilter", "Text", "--language", "en-US", "--pidfile", "pid", "--outdir", ".", "data.csv", "./data.csv"], bytes => totals.push(bytes)));
   assert.equal(result.exitCode, 0);
@@ -57,9 +58,9 @@ for (const outdir of [".", "./out", "../out", "/work/out/../out"]) {
     await fs.mkdir("/work/sub", { recursive: true });
     await fs.writeFile("/work/data.csv", encode("a,b"));
     const observed: string[] = [];
-    const read = fs.readFile.bind(fs), write = fs.writeFile.bind(fs);
-    fs.readFile = async (path, options) => { observed.push(path); return read(path, options); };
-    fs.writeFile = async (path, bytes, options) => { observed.push(path); return write(path, bytes, options); };
+    const read = fs.readStream.bind(fs), publish = fs.publishStagedFile.bind(fs);
+    fs.readStream = (path, options) => { observed.push(path); return read(path, options); };
+    fs.publishStagedFile = async (staging, path, options) => { observed.push(path); return publish(staging, path, options); };
     const result = await createSofficeCommand().execute(invocation(fs, ["--convert-to=txt", `--outdir=${outdir}`, "./sub/../data.csv"], () => {}));
     assert.equal(result.exitCode, 0);
     const expected = outdir === "." ? "/work/data.txt" : outdir === "../out" ? "/out/data.txt" : "/work/out/data.txt";

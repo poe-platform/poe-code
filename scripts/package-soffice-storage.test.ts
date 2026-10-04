@@ -175,8 +175,8 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
   expect(sheetConversion.exitCode).toBe(0);
   expect(new TextDecoder().decode(await fs.readFile("/book.txt"))).toBe("Packed spreadsheet\n");
-  for (const format of ["html", "docx", "pdf", "csv", "xlsx"]) {
-    const converted = await runSofficeFileCli(["--convert-to", format, "/book.xlsx"], {filesystem,
+  for (const input of ["/book.xlsx", "/book.csv"]) for (const format of ["html", "docx", "pdf", "csv", "xlsx"]) {
+    const converted = await runSofficeFileCli(["--convert-to", format, input], {filesystem,
       stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
     expect(converted.exitCode).toBe(0);
     const bytes = await fs.readFile("/book." + format);

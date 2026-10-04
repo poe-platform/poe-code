@@ -1,4 +1,4 @@
-import { retainXlsxConversion } from "./retained-xlsx-conversion.js";
+import { retainSpreadsheetConversion } from "./retained-spreadsheet-conversion.js";
 import { retainXlsxText } from "./retained-xlsx.js";
 import { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { retainOdtText } from "./retained-odt.js";
@@ -33,7 +33,7 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   const openDocumentConversion = (input: string) => [".odt", ".ods", ".odp"].some(extension => input.toLowerCase().endsWith(extension)) &&
     !(input.toLowerCase().endsWith(".ods") && ["csv", "xlsx"].includes(format));
   const spreadsheetTextConversion = (input: string) => input.toLowerCase().endsWith(".xlsx") && !["pdf", "html", "docx", "xlsx", "csv"].includes(format);
-  if (!inputs.every(input => openDocumentConversion(input) || input.toLowerCase().endsWith(".xlsx") ? true : input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
+  if (!inputs.every(input => openDocumentConversion(input) || [".xlsx", ".csv"].some(extension => input.toLowerCase().endsWith(extension)) ? true : input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
     input.toLowerCase().endsWith(".rtf") ? true :
     !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["xlsx", "csv"].includes(format))) return undefined;
   return withSofficeInputs(inputs, context, limits, async (storage, sources) => {
@@ -50,8 +50,8 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
       const stem = dot >= 0 && dot < basename.length - 1 ? basename.slice(0, dot) : basename;
       const path = resolvePath(cwd, outdir, `${stem}.${format}`);
       let output = source;
-      if (input.toLowerCase().endsWith(".xlsx") && !spreadsheetTextConversion(input)) {
-        try { output = await retainXlsxConversion(storage, source, context, format, stem, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1)); }
+      if (input.toLowerCase().endsWith(".csv") || (input.toLowerCase().endsWith(".xlsx") && !spreadsheetTextConversion(input))) {
+        try { output = await retainSpreadsheetConversion(storage, source, context, format, stem, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1), input.toLowerCase().endsWith(".csv")); }
         catch (error) {
           signal.throwIfAborted(); stderr = `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n`;
           messages.length = 0; break;

@@ -1,5 +1,6 @@
 import type { PagedStorage } from "@poe-code/safe-fs/storage";
 import { RetainedOfficeBlocks } from "./retained-office-blocks.js";
+import { retainCsv } from "./retained-csv.js";
 import { retainXlsxText } from "./retained-xlsx.js";
 import { retainTextPdf } from "./retained-pdf.js";
 import { retainOfficeXml } from "./retained-docx.js";
@@ -9,10 +10,11 @@ import { escapeHtmlText } from "./html.js";
 import type { RetainedSofficeContext, SofficeSnapshot } from "./retained-input.js";
 
 /** Keep spreadsheet structure and all encoded output in the caller's backing. */
-export async function retainXlsxConversion(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext,
-  format: string, title: string, filter?: string): Promise<SofficeSnapshot> {
+export async function retainSpreadsheetConversion(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext,
+  format: string, title: string, filter?: string, csvInput = false): Promise<SofficeSnapshot> {
   const { signal } = context, blocks = new RetainedOfficeBlocks(storage, signal), encoder = new TextEncoder();
-  await retainXlsxText(storage, source, context, blocks);
+  if (csvInput) await retainCsv(storage, source, blocks, signal);
+  else await retainXlsxText(storage, source, context, blocks);
   const snapshot = blocks.snapshot(), table = (await blocks.table(snapshot, 0))!;
   const escapeXml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   let separator = ",", quote = '"', quoteAll = false;
@@ -48,6 +50,9 @@ export async function retainXlsxConversion(storage: PagedStorage, source: Soffic
           if (quoted) yield quote;
           for await (const text of cellText(row, cell)) yield quoted ? text.replaceAll(quote, quote + quote) : text;
           if (quoted) yield quote;
+        } else if (!["html", "docx", "xlsx"].includes(format)) {
+          if (cell) yield "\t";
+          yield* cellText(row, cell);
         } else {
           if (format === "html") yield "<td>";
           else if (format === "docx") yield "<w:tc><w:p><w:r><w:t>";

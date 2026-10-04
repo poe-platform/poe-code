@@ -3680,6 +3680,15 @@ class SimpleSegmentVisitor {
   *onImmediateGenericRegion(region, data, start, end) {
     const regionInfo = region.info;
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
+    if (this.storedBitmap && region.mmr) {
+      this.onImageDimensions?.(regionInfo.width, regionInfo.height);
+      const input = new Reader(data, start, end);
+      const visitor = this;
+      yield* decodeMMRBitmap(input, regionInfo.width, regionInfo.height, false, this.onAllocation, function* (row, y) {
+        yield* visitor.drawBitmap({...regionInfo, y: regionInfo.y + y, height: 1}, [row]);
+      });
+      return;
+    }
     const bitmap = (yield* decodeBitmap(region.mmr, regionInfo.width, regionInfo.height, region.template, region.prediction, null, region.at, decodingContext));
     (yield* this.drawBitmap(regionInfo, bitmap));
   }
@@ -4168,8 +4177,8 @@ function* readUncompressedBitmap(reader, width, height, onAllocation) {
   }
   return bitmap;
 }
-function* decodeMMRBitmap(input, width, height, endOfBlock, onAllocation) {
-  onAllocation?.((width + 256) * height + (width + 2) * 8 + 1024);
+function* decodeMMRBitmap(input, width, height, endOfBlock, onAllocation, onRow) {
+  onAllocation?.((width + 256) * (onRow ? 1 : height) + (width + 2) * 8 + 1024);
   const params = {
     K: -1,
     Columns: width,
@@ -4180,11 +4189,12 @@ function* decodeMMRBitmap(input, width, height, endOfBlock, onAllocation) {
   const decoder = new CCITTFaxDecoder(input, params);
   yield* decoder.initialize();
   const bitmap = [];
+  const scratch = onRow ? new Uint8Array(width) : undefined;
   let currentByte,
     eof = false;
   for (let y = 0; y < height; y++) {
-    const row = new Uint8Array(width);
-    bitmap.push(row);
+    const row = scratch ?? new Uint8Array(width);
+    if (!onRow) bitmap.push(row);
     let shift = -1;
     for (let x = 0; x < width; x++) {
       if (shift < 0) {
@@ -4198,6 +4208,7 @@ function* decodeMMRBitmap(input, width, height, endOfBlock, onAllocation) {
       row[x] = currentByte >> shift & 1;
       shift--;
     }
+    if (onRow) yield* onRow(row, y);
   }
   if (endOfBlock && !eof) {
     const lookForEOFLimit = 5;

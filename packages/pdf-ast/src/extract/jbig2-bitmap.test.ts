@@ -44,3 +44,23 @@ it("cancels a suspended backed bitmap read on close and keeps backing caller-own
   expect(await storage.read(position,1)).toEqual(new Uint8Array([7]));
  }finally{await storage.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
 });
+
+// Exercise non-white MMR rows, an unaligned destination, and both supported
+// page composition operators against the unchanged buffered decoder.
+it.each([0,2])("streams MMR regions with destination offset and operator %s",async operator=>{
+ const bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-mmr-stream.bin",import.meta.url)));
+ const view=new DataView(bytes.buffer);
+ view.setUint32(11,80);view.setUint32(15,40);bytes[27]=(bytes[27]!&~24)|(operator<<3)|(operator===2?4:0);
+ view.setUint32(49,3);view.setUint32(53,4);
+ const expected=new Jbig2Image().parseChunks([{data:bytes,start:0,end:bytes.length}])!;
+ expect(expected.some(value=>value!==255)).toBe(true);
+ const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",bytes);
+ const source=await PdfFileSource.open(fs,"/input"),storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal},2);
+ try{
+  const image=await PdfRetainedJbig2.open(source,80,40,{bitmapStorage:storage});
+  try{let y=0;for await(const row of image.rows()){
+   for(let x=0;x<80;x++)expect(row[x*4]).toBe(expected[y*10+(x>>3)]!>>(7-(x&7))&1?0:255);
+   y++;
+  }expect(y).toBe(40);}finally{image.close();}
+ }finally{await storage.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
+});

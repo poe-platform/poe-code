@@ -5,10 +5,20 @@ import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 import {decodeJbig2ToRgba} from "./images.js";
 
-it("keeps growing packed JBIG2 pages in external caller storage in Workerd",async()=>{
+it.each(["page", "region"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
  const inputs=new Map<number,{bytes:Uint8Array;sum:number}>();
  for(const height of [8193,32769]){
-  const bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
+  let bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
+  if(profile === "region") {
+   // One vertical-zero MMR code per all-white row, with a complete region
+   // payload rather than relying on truncated-input recovery.
+   const payload = Math.ceil(height / 8), region = new Uint8Array(30 + 11 + 18 + payload);
+   region.set(bytes.subarray(0,30));
+   const view = new DataView(region.buffer);
+   view.setUint32(30,1); region[34]=38; region[36]=1; view.setUint32(37,18+payload);
+   view.setUint32(41,64); view.setUint32(45,height); region[58]=1; region.fill(255,59);
+   bytes=region;
+  }
   new DataView(bytes.buffer).setUint32(15,height);
   const expected=decodeJbig2ToRgba(bytes,64,height);
   inputs.set(height,{bytes,sum:expected.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0)});
@@ -33,7 +43,7 @@ it("keeps growing packed JBIG2 pages in external caller storage in Workerd",asyn
  let admission:number|undefined;
  try{for(const[height,input]of inputs){const response=await runtime.dispatchFetch("https://verify/",{method:"POST",body:JSON.stringify({height,length:input.bytes.length})});if(response.status!==200)throw Error(await response.text());
   const result=await response.json() as {sum:number;peak:number;opened:number;closed:number;decoderBytes:number;nodeGlobals:boolean};
-  expect(result.sum).toBe(input.sum);expect(result.peak).toBeLessThanOrEqual(65536);expect(result.opened).toBe(1);expect(result.closed).toBe(1);expect(result.nodeGlobals).toBe(false);expect(backing.length).toBe(0);
+  expect(result.sum).toBe(input.sum);expect(result.peak).toBeLessThanOrEqual(65536);if(profile==="page")expect(result.opened).toBe(1);expect(result.closed).toBe(result.opened);expect(result.nodeGlobals).toBe(false);expect(backing.length).toBe(0);
   if(admission!==undefined)expect(result.decoderBytes).toBe(admission);admission=result.decoderBytes;
  }}finally{await runtime.dispose();}
 });

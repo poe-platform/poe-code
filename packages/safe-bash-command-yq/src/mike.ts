@@ -1,4 +1,4 @@
-import { utf8ByteLength, utf8Encoder } from "safe-bash-query-engine/bytes";
+import { utf8ByteLength } from "safe-bash-query-engine/bytes";
 import { escapeText } from "safe-bash-contracts/escaping";
 import { decodeFormat, encodeFormat } from "./formats.js";
 import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
@@ -6,7 +6,7 @@ import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAll
 import { compileExpression } from "./expression.js";
 import { Evaluator } from "./evaluate.js";
 import { loadYaml, nodeTag, root, scalar, truth, type Candidate, type YamlModule } from "./nodes.js";
-import { writeFileOutputCounted } from "safe-bash-contracts/filesystem-output-budget";
+import { openFileOutput } from "safe-bash-contracts/filesystem-output";
 import { encodeNative } from "./native-encoder.js";
 import { limitsFor, MikeError, NativeWork, type MikeLimits } from "./native-work.js";
 import { captureInPlace, publishInPlace, InPlaceOutput, type InPlaceTarget } from "./inplace.js";
@@ -30,7 +30,7 @@ async function encodeNodeInfo(candidate: Candidate, yaml: YamlModule, work: Nati
 async function writeVerbose(message: string, work: NativeWork): Promise<void> {
   const text = `time=${new Date().toISOString()} level=DEBUG source=safe-bash/yq msg=${JSON.stringify(message)}\n`;
   work.output(utf8ByteLength(text));
-  await work.write(utf8Encoder.encode(text), true);
+  await work.write(text, true);
 }
 
 export interface MikeYqOptions {
@@ -51,7 +51,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     if (options.help || options.version) {
       const text = options.help ? commandMode === "eval-all" ? mikeAllHelp : commandMode === "eval" ? mikeEvalHelp : mikeHelp : "yq (safe-bash; bounded Mike Farah v4.53.3 profile)\n";
       work.output(utf8ByteLength(text));
-      await work.write(utf8Encoder.encode(text));
+      await work.write(text);
       return { exitCode: 0 };
     }
     const readText = async (filename: string): Promise<string> => {
@@ -119,14 +119,12 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
           const parent = path.slice(0, path.lastIndexOf("/")) || "/";
           await work.track(context.fs.mkdir(parent, { recursive: true, signal: work.signal }));
           work.assertOpen();
-          const data = utf8Encoder.encode(text);
-          await work.track(writeFileOutputCounted({ signal: work.signal, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}) }, data, async () => {
-            await context.fs.writeFile(path, data, { flag: "w", signal: work.signal });
-            return data.length;
-          }));
+          const destination = await work.acquire(() => openFileOutput({ ...context, signal: work.signal, cleanupFailurePrioritySignal: context.signal }, path, { flag: "w", descriptor: true }), output => output.abort(work.signal.reason));
+          for await (const bytes of work.encode(text)) await work.track(destination.sink.write(bytes));
+          await work.track(destination.finish());
           work.assertOpen();
         } else if (options.inplace) await (results ??= new InPlaceOutput(work)).append(text);
-        else await work.write(utf8Encoder.encode(text));
+        else await work.write(text);
         qualified ||= truth(candidate.node, yaml);
         previous = origin;
       }
@@ -191,12 +189,12 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
       const selected = commandMode === "eval-all" ? mikeAllHelp : commandMode === "eval" ? mikeEvalHelp : undefined;
       const usage = selected ? selected.slice(selected.indexOf("Usage:")) + "\n" : mikeUsage;
       const message = escapeText(`Error: ${error.message}\n${error.usage ? usage : ""}`, "diagnostic");
-      await work.write(utf8Encoder.encode(message), true);
+      await work.write(message, true);
       return { exitCode: 1 };
     }
     if (error instanceof FsError) {
       const message = escapeText(error.message, "diagnostic");
-      await work.write(utf8Encoder.encode(utf8ByteLength(message) < 65520 ? `Error: ${message}\n` : "Error: yq diagnostic exceeds safety limit\n"), true);
+      await work.write(utf8ByteLength(message) < 65520 ? `Error: ${message}\n` : "Error: yq diagnostic exceeds safety limit\n", true);
       return { exitCode: 1 };
     }
     throw error;

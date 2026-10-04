@@ -46,17 +46,12 @@ export class InPlaceOutput {
     work.register(() => this.storage.close());
   }
   async append(text: string): Promise<void> {
-    const encoder = new TextEncoder();
-    for (let offset = 0; offset < text.length;) {
-      this.work.assertOpen();
-      let end = Math.min(text.length, offset + 4096);
-      const last = text.charCodeAt(end - 1);
-      if (end < text.length && last >= 0xd800 && last <= 0xdbff) end--;
-      const bytes = encoder.encode(text.slice(offset, end));
-      await this.work.track(this.storage.append(bytes)); this.size += bytes.length; offset = end;
-      const checkpoint = this.work.tick(); if (checkpoint) await checkpoint;
+    for await (const bytes of this.work.encode(text)) {
+      await this.work.track(this.storage.append(bytes));
+      this.size += bytes.length;
     }
   }
+
   async *bytes(): AsyncGenerator<Uint8Array> {
     for (let offset = 0; offset < this.size; offset += 16384) {
       this.work.assertOpen();

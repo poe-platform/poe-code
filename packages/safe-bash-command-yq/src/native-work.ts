@@ -45,6 +45,7 @@ export class NativeWork {
   #aliases = 0;
   #output = 0;
   #documents = 0;
+  readonly #outputs = new Map<boolean, ReturnType<typeof createOutputOperation>>();
 
   constructor(readonly context: CommandContext, readonly limits: MikeLimits) {
     inheritYieldCheckpoint(context.signal, this.signal);
@@ -181,11 +182,31 @@ export class NativeWork {
     return result;
   }
 
-  async write(bytes: Uint8Array, stderr = false): Promise<void> {
+  async *encode(text: string): AsyncGenerator<Uint8Array> {
+    const encoder = new TextEncoder();
+    for (let offset = 0; offset < text.length;) {
+      this.assertOpen();
+      let end = Math.min(text.length, offset + 4096);
+      const last = text.charCodeAt(end - 1);
+      if (end < text.length && last >= 0xd800 && last <= 0xdbff) end--;
+      yield encoder.encode(text.slice(offset, end));
+      offset = end;
+      const checkpoint = this.tick(); if (checkpoint) await checkpoint;
+    }
+  }
+
+  async write(bytes: Uint8Array | string, stderr = false): Promise<void> {
     this.assertOpen();
-    const operation = createOutputOperation({ signal: this.signal, registerCleanup: cleanup => this.register(cleanup) }, stderr ? this.context.stderr : this.context.stdout);
-    try { await this.track(operation.output.write(bytes)); this.assertOpen(); }
-    finally { await operation.close(); }
+    let operation = this.#outputs.get(stderr);
+    if (!operation) {
+      operation = createOutputOperation({ signal: this.signal, registerCleanup: cleanup => this.register(cleanup) }, stderr ? this.context.stderr : this.context.stdout);
+      this.#outputs.set(stderr, operation);
+    }
+    const source = typeof bytes === "string" ? this.encode(bytes) : [bytes];
+    for await (const chunk of source) {
+      await this.track(operation.output.write(chunk));
+      this.assertOpen();
+    }
   }
 
   close(): Promise<void> {

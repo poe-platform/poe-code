@@ -17,6 +17,15 @@ function maximum(value: number | undefined): number {
   return value;
 }
 
+// The general parser records input syntax in encoding, while the writer uses
+// format. Stored values must replay the syntax we chose when accepting them.
+function restoreStringFormats(value: PdfCosNode): PdfCosNode {
+  if (value.kind === "string") return { ...value, format: value.encoding ?? "literal" };
+  if (value.kind === "array") for (let i = 0; i < value.items.length; i++) value.items[i] = restoreStringFormats(value.items[i]!);
+  if (value.kind === "dict") for (let i = 0; i < value.entries.length; i++) { const entry = value.entries[i]!; value.entries[i] = { ...entry, value: restoreStringFormats(entry.value) }; }
+  return value;
+}
+
 /** Mutable COS ownership with fixed caches and caller-backed payloads/indexes.
  * Replacements commit their index pointer only after all bytes are accepted.
  * Existing snapshots remain readable until close; obsolete bytes are reclaimed
@@ -96,7 +105,7 @@ export class PdfMutableObjectStore {
     } };
     const parsed = await parseCosRangeValue(source, 0, { ...this.options, signal });
     if (!parsed.value) throw new PdfError("E_PARSE", "Missing mutable PDF value");
-    const object = { objectNumber: number, generationNumber: generation, value: parsed.value };
+    const object = { objectNumber: number, generationNumber: generation, value: restoreStringFormats(parsed.value) };
     if (!hasStream) return object;
     async function* chunks() {
       for (let offset = 0; offset < length; offset += 16384) {

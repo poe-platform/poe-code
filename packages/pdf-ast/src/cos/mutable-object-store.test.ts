@@ -63,3 +63,12 @@ it("yields to timer cancellation while accepting reused payload chunks", async (
   } finally { clearTimeout(timer); await store.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("preserves explicit hexadecimal string serialization through replacement snapshots", async () => {
+  const { serializeCosNodeBytes } = await import("./writer.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const store = new PdfMutableObjectStore({ fs, directory: "/scratch" });
+  const value = cosDict({ Hex: { kind: "string", format: "hex", bytes: Uint8Array.of(0, 65, 255) }, Literal: cosString("text") });
+  try { const ref = await store.allocate(value); expect(serializeCosNodeBytes((await store.get(ref.objectNumber))!.value)).toEqual(serializeCosNodeBytes(value)); }
+  finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

@@ -114,3 +114,27 @@ for (const filter of ["env", "$ENV"]) test(`${filter} enforces environment resou
   assert.notEqual(collection.exitCode, 0);
   assert.ok(collection.stderr.includes("maxCollectionSize"));
 });
+
+for (const separateCommand of [false, true]) test(`select/project output survives intervening compact queries (separate command=${separateCommand})`, async () => {
+  const fs = createMemoryFileSystem();
+  const input = '{"id":1,"active":true,"name":"alice"}\n'.repeat(20);
+  const expected = '{"id":1,"name":"alice"}\n'.repeat(20);
+  const other = '{"msg":"CORRUPTED_BY_OTHER_JQ_COMMAND"}\n';
+  assert.ok(bytes(input).byteLength >= 512);
+  await fs.writeFile("/big.ndjson", bytes(input));
+  await fs.writeFile("/other.ndjson", bytes(other));
+  const command = createJqCommand();
+  const projection = ["-c", "select(.active) | {id: .id, name: .name}", "/big.ndjson"];
+  for (let i = 0; i < 3; i++) {
+    const projected = await run(command, fs, projection);
+    assert.equal(projected.exitCode, 0, projected.stderr);
+    assert.equal(projected.stderr, "");
+    assert.equal(projected.stdout, expected);
+    assert.equal(projected.charges, 1, "projection must exercise synchronous file execution");
+    const identity = await run(separateCommand ? createJqCommand() : command, fs, ["-c", ".", "/other.ndjson"]);
+    assert.equal(identity.exitCode, 0, identity.stderr);
+    assert.equal(identity.stderr, "");
+    assert.equal(identity.stdout, other);
+    assert.equal(identity.charges, 1, "intervening query must exercise synchronous file execution");
+  }
+});

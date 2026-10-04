@@ -1,3 +1,4 @@
+import { ImageMagickLexer } from './imagemagick-lex.js';
 import { byteText, textBytes } from "./bytes.js";
 import { parseImageMagickOperand, parseImageMagickFontOperand } from "./imagemagick-operand.js";
 import { imageMagickOptions, imageMagickReference, imageMagickGrammarRevision } from "./imagemagick.generated.js";
@@ -13,6 +14,8 @@ export interface ImageMagickDiscoveryContext {
   /** Native IsPathDirectory/stat classification at filename expansion sites.
    * Unknown results remain advisory; existence/accessibility cannot infer this. */
   isDirectory?(path: Uint8Array): Promise<boolean | undefined>;
+  /** Streaming advisory read. Chunks may be borrowed until the next pull. */
+  readStream?(path: Uint8Array): AsyncIterable<Uint8Array>;
   /** Optional advisory content read. Native must read again at execution time. */
   read?(path: Uint8Array): Promise<Uint8Array | undefined>;
 }
@@ -51,47 +54,10 @@ export interface ImageMagickDiscovery {
 /** Script lexical rules from MagickWand/script-token.c. Incomplete tokens are
  * withheld; completed tokens before a lexical failure still carry predictions. */
 export function imageMagickScriptTokens(bytes: Uint8Array): { tokens: Uint8Array[]; incomplete: boolean } {
-  // GetChar normalizes standalone CR, but preserves CRLF inside strings.
-  const input = byteText(bytes);
-  const tokens: Uint8Array[] = [];
-  let word = "", quote = "", active = false, column = 0;
-  for (let i = 0; i < input.length; i++) {
-    const c = input[i] === '\r' && input[i + 1] !== '\n' ? '\n' : input[i];
-    const code = c.charCodeAt(0);
-    if (code < 7 || (code > 13 && code < 32 && code !== 27)) return { tokens, incomplete: true };
-    if (!quote && !active && (c === '#' || (column === 0 && (c === ':' || c === '@')))) {
-      while (i < input.length && input[i] !== '\n' && !(input[i] === '\r' && input[i + 1] !== '\n')) {
-        const code = input.charCodeAt(i);
-        if (code < 7 || (code > 13 && code < 32 && code !== 27)) return { tokens, incomplete: true };
-        i++;
-      }
-      column = 0;
-      continue;
-    }
-    column = c === '\n' ? 0 : column + 1;
-    if (c === '\\' && quote !== "'") {
-      const next = input[i + 1] === '\r' && input[i + 2] !== '\n' ? '\n' : input[i + 1];
-      if (next === undefined) break;
-      const code = next.charCodeAt(0);
-      if (code < 7 || (code > 13 && code < 32 && code !== 27)) return { tokens, incomplete: true };
-      if (next === '\n') { i++; column = 0; continue; }
-      if (!quote || next === '"' || next === '\\') {
-        i++;
-        column++;
-        word += next; active = true; continue;
-      }
-    }
-    if (quote) {
-      if (c === quote) quote = ''; else word += c;
-    } else if (c === "'" || c === '"') { quote = c; active = true; }
-    else if (' \t\r\n'.includes(c)) {
-      if (active) tokens.push(textBytes(word));
-      word = ''; active = false;
-    } else { word += c; active = true; }
-  }
-  if (quote) return { tokens, incomplete: true };
-  if (active) tokens.push(textBytes(word));
-  return { tokens, incomplete: false };
+  const lexer = new ImageMagickLexer('script');
+  lexer.push(bytes);
+  const { tokens, incomplete } = lexer.finish();
+  return { tokens, incomplete };
 }
 
 const noFinalOutput = new Set(['identify','mogrify','conjure','animate','display']);
@@ -120,8 +86,21 @@ export async function discoverImageMagick(tool: string, args: readonly Uint8Arra
   let literalFilenames = false;
   let pedantic = false;
   const visited = new Set<string>();
-  const read = async (name: string): Promise<Uint8Array | undefined> => {
-    try { return await context.read?.(textBytes(name)); } catch { return undefined; }
+  const read = async (name: string, kind: 'script' | 'list') => {
+    const lexer = new ImageMagickLexer(kind, Boolean(context.readStream));
+    try {
+      if (context.readStream) {
+        for await (const chunk of context.readStream(textBytes(name))) {
+          lexer.push(chunk);
+          if (lexer.done) break;
+        }
+      } else {
+        const bytes = await context.read?.(textBytes(name));
+        if (!bytes) return undefined;
+        lexer.push(bytes);
+      }
+      return lexer.finish();
+    } catch { return undefined; }
   };
   async function interpreted(value: Uint8Array, index: number, source: string): Promise<void> {
     // InterpretImageProperties checks leading C whitespace and IsPathAccessible
@@ -182,24 +161,11 @@ export async function discoverImageMagick(tool: string, args: readonly Uint8Arra
       const membersStart = resources.length;
       if (visited.has('list:' + list) || visited.size < 32) {
         visited.add('list:' + list);
-        const bytes = await read(list);
-        if (bytes) {
-          // ExpandFilenames uses StringToArgv, NOT the magick-script lexer:
-          // quotes only at word start; no escapes or comments.
-          const contents = byteText(bytes).split('\0')[0];
-          const members: Uint8Array[] = [];
-          let offset = 0;
-          while (offset < contents.length) {
-            while (' \t\r\n\f\v'.includes(contents[offset] ?? '\0')) offset++;
-            if (offset >= contents.length) break;
-            const quote = ['"', "'"].includes(contents[offset]) ? contents[offset++] : undefined;
-            const start = offset;
-            while (offset < contents.length && (quote ? contents[offset] !== quote : !' \t\r\n\f\v'.includes(contents[offset]))) offset++;
-            // utility.c transfers this list directly into argv; it does not
-            // recurse through ExpandFilenames for substituted list entries.
-            members.push(textBytes(contents.slice(start, offset)));
-            while (offset < contents.length && !' \t\r\n\f\v'.includes(contents[offset])) offset++;
-          }
+        const lexed = await read(list, 'list');
+        if (lexed) {
+          if (lexed.limited) defer(index, list, 'advisory prediction budget; native expands complete input');
+          // StringToArgv is distinct from the magick-script grammar.
+          const members = lexed.tokens;
           const directories: (boolean | undefined)[] = [];
           for (const member of members) {
             let directory: boolean | undefined;
@@ -240,9 +206,9 @@ export async function discoverImageMagick(tool: string, args: readonly Uint8Arra
     if (path === '-' || path.toLowerCase().startsWith('fd:')) return;
     if (visited.has('script:' + path) || visited.size >= 32) return;
     visited.add('script:' + path);
-    const bytes = await read(path);
-    if (!bytes) return;
-    const lexed = imageMagickScriptTokens(bytes);
+    const lexed = await read(path, 'script');
+    if (!lexed) return;
+    if (lexed.limited) defer(index, path, 'advisory prediction budget; native executes complete script');
     if (lexed.incomplete) defer(index, path, 'incomplete script token');
     await scan(lexed.tokens, 0, path, true);
   }

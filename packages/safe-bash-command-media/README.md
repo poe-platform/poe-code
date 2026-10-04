@@ -16,3 +16,11 @@ portable commands with your explicitly supplied media bindings. Pass
 `runBash` keeps the portable commands and never connects to a remote media service.
 
 The reusable media parser and native bridge remain in the media engine package.
+
+ImageMagick list and script discovery pulls 64 KiB chunks from your injected
+safe-fs streaming or retained-range reader; it never buffers a media payload or
+creates a private spool. Streaming predictions retain at most 64 KiB of token
+bytes and 4,096 tokens per discovery input. Larger prediction sets are marked
+as deferred; the complete original list/script remains a remote input, and native
+execution still expands it without a new file-size limit. Filesystems without
+bounded reads leave discovery advisory and remote execution authoritative.

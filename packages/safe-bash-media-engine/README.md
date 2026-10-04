@@ -36,6 +36,12 @@ Root package routes are `poe-code/media`, `poe-code/media/server` and
 - `safe-bash-media-engine/server`: Node-only media deployment and explicit service
   bootstrap. Importing it does not start a listener or native process.
 
+ImageMagick discovery accepts a `readStream(path)` callback for borrowed byte
+chunks. It takes precedence over the optional buffering `read(path)` convenience
+callback. Streaming token predictions are bounded (64 KiB and 4,096 tokens per
+input); complete native list/script expansion remains authoritative when the
+prediction budget is reached. Comments and whitespace are discarded incrementally.
+
 Discovery is advisory. Original argv and native executables remain authoritative
 for diagnostics, media processing, late dependencies and partial effects.
 `DependencyResolver` accepts already observed content; it does not read stdin,

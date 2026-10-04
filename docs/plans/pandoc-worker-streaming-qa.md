@@ -7,14 +7,15 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
 
 ## Coverage to complete
 
-- Single-input and joined-input MediaWiki now retain UTF-16 source spans, line indexes, inline
+- Single-input, joined-input and file-scope MediaWiki now retain UTF-16 source spans, line indexes, inline
   continuations and AST nodes in caller storage. Compare long paragraphs, code
   blocks, wide tables, many list items and nested markup with the compatibility
   reader, including finite quotas, source locations and failure cleanup. The
   public reference Worker matrix covers SDK/command with no filter, JSON and
   Lua filters, plus joined SDK/command operands with finite byte/reference quotas.
-  Multiple file-scope operands remain resident; preserve independent normalization
-  and per-source image origins before claiming full reader coverage.
+  File-scope SDK/command cases also cover Lua filters. Separate documents retain
+  quota ordering, acquisition precedence and per-source image origins through
+  metadata merges, Lua filters and transforms; image checks cover RTF/ODT/HTML.
 
 - Composed workerd coverage in `scripts/pandoc-composed-worker.test.ts` builds
   the shipped Sips, Shuf and Pandoc exports with explicit Node-import rejection

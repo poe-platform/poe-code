@@ -53,7 +53,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>> & {referencesAggregated?: boolean; resources?: Awaited<ReturnType<typeof readRetainedRtfDocument>>["resources"]; closeResources?: () => Promise<void>}>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>> & {referencesAggregated?: boolean; origins?: RetainedOrigins; originFor?: (source: number) => ResourceOrigin; resources?: Awaited<ReturnType<typeof readRetainedRtfDocument>>["resources"]; closeResources?: () => Promise<void>}>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
   let closeResources: (() => Promise<void>) | undefined;
   let originStorage:PagedStorage | undefined, origins:RetainedOrigins | undefined;
   let releaseOrigins:(()=>void) | undefined;
@@ -80,6 +80,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       origins=new RetainedOrigins(originStorage,units=>context.cooperate(units));
     }
     const loaded = await load();
+    origins = loaded.origins ?? origins;
     const inputResources = loaded.resources, resourceCount = inputResources?.count ?? 0;
     closeResources = loaded.closeResources;
     document = loaded;
@@ -96,6 +97,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     let metadataChanged = false;
     for (const file of options.metadataFiles ?? []) {
       const next = await mergeRetainedMetadata(document, {source: file}, context, working);
+      await origins?.transfer(document.tree, next.tree);
       await document.close();
       document = next; metadataChanged = true;
     }
@@ -103,6 +105,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       const tree = includes.metadata.tree;
       for await (const root of tree.children(tree.rootPosition)) {
         const next = await mergeRetainedMetadata(document, {tree, root}, context, working);
+        await origins?.transfer(document.tree, next.tree);
         await document.close(); document = next; metadataChanged = true;
       }
     }
@@ -172,7 +175,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       document = next;
     }
     if (target === "rtf" || target === "odt" || target === "html5" && options.embedResources) {
-      const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, options, origins ? async node=>await origins!.inherited(node)?origin??{}:{} : options.filters?.length ? undefined : origin, inputResources);
+      const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, options, origins ? async node=>{const source=await origins!.source(node);return source ? loaded.originFor?.(source) ?? origin ?? {} : {};} : options.filters?.length ? undefined : origin, inputResources);
       let writerFailure: {reason: unknown} | undefined;
       try {if (target === "html5") await writeRetainedHtml(document.tree, context, working, {...options, standalone: includes ? includes.standalone : options.standalone || options.embedResources === true}, includes, resources.html);
       else if (target === "odt") await writeRetainedOdt(document.tree, context, working, options, resources);

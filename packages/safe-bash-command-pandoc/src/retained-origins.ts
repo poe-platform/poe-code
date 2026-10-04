@@ -7,11 +7,13 @@ import type {BackedJson} from "./backed-json.js";
 export class RetainedOrigins {
   private current:IntegerTable | undefined;
   constructor(private readonly storage:PagedStorage,private readonly cooperate:(units?:number)=>Promise<void>){}
-  async inherited(target:number):Promise<boolean>{return this.current===undefined || await this.current.get(BigInt(target))===1n;}
+  async source(target:number):Promise<number>{return this.current===undefined ? 1 : Number(await this.current.get(BigInt(target)) ?? 0n);}
+  async inherited(target:number):Promise<boolean>{return await this.source(target)>0;}
+  async seed(target:number,source:number):Promise<void>{this.current ??= new IntegerTable(this.storage,64);await this.current.set(BigInt(target),BigInt(source));}
   clear():void {this.current=new IntegerTable(this.storage,64);}
   copy(): (before:number,after:number)=>Promise<void> {
     const previous=this.current,next=new IntegerTable(this.storage,64);this.current=next;
-    return async(before,after)=>{if(previous===undefined || await previous.get(BigInt(before))===1n)await next.set(BigInt(after),1n);};
+    return async(before,after)=>{const source=previous===undefined ? 1n : await previous.get(BigInt(before)) ?? 0n;if(source)await next.set(BigInt(after),source);};
   }
   private async equal(before:BackedJson,left:number,after:BackedJson,right:number):Promise<boolean> {
     const a=await before.describe(left),b=await after.describe(right);
@@ -120,7 +122,7 @@ export class RetainedOrigins {
         const oldTarget=await this.imageTarget(before,left),newTarget=await this.imageTarget(after,right);
         if(oldTarget!==undefined && newTarget!==undefined && await this.inherited(oldTarget+32)) {
           const oldTitle=(await before.describe(oldTarget+32)).end,newTitle=(await after.describe(newTarget+32)).end;
-          if(await this.equal(before,oldTarget+32,after,newTarget+32) && await this.equal(before,oldTitle,after,newTitle))await next.set(BigInt(newTarget+32),1n);
+          if(await this.equal(before,oldTarget+32,after,newTarget+32) && await this.equal(before,oldTitle,after,newTitle))await next.set(BigInt(newTarget+32),BigInt(await this.source(oldTarget+32)));
         }
         const keys = await this.indexKeys(before, left);
         for (let fresh = right + 32; fresh < b.end;) {

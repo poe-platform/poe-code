@@ -1,3 +1,4 @@
+import {RetainedOrigins} from "./retained-origins.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {RetainedSourceText, type SourceRange} from "./retained-source-text.js";
 import {RetainedRtfAst, type RtfValue} from "./retained-rtf-ast.js";
@@ -8,13 +9,14 @@ import type {ExecutionContext} from "./execution.js";
 import type {InputSource, WorkingStorageOptions} from "./types.js";
 
 /** MediaWiki source, parser continuations and document nodes stay in caller storage. */
-export async function readRetainedMediawiki(inputs: readonly InputSource[], context: ExecutionContext, working: WorkingStorageOptions, fileScope = false, onReaderStarted?: () => void) {
+export async function readRetainedMediawiki(inputs: readonly InputSource[], context: ExecutionContext, working: WorkingStorageOptions, fileScope = false, onReaderStarted?: (index: number) => void) {
   const cache = working.cacheBytes ?? 1048576;
   if (!Number.isSafeInteger(cache) || cache < 16384 || cache % 16384) context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
   if (typeof working.directory !== "string" || !working.directory.startsWith("/")) context.fail("E_OPTION", "Working storage requires an absolute caller filesystem directory");
   const owner = {fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal};
   const source = new PagedStorage(owner, cache / 16384), records = new PagedStorage(owner, cache / 16384), nodes = new PagedStorage(owner, cache / 16384), wire = new PagedStorage(owner, cache / 16384);
-  const stores = [source, records, nodes, wire];
+  const combined = new PagedStorage(owner, cache / 16384);
+  const stores = [source, records, nodes, wire, combined];
   let closing: Promise<void> | undefined;
   const close = () => closing ??= (async () => {let error: unknown; for (const store of stores) {try {await store.close();} catch (reason) {error ??= reason;}} release(); if (error) throw error;})();
   const release = context.onClose(close);
@@ -35,7 +37,7 @@ export async function readRetainedMediawiki(inputs: readonly InputSource[], cont
       const start = text.length;
       await context.decodeUtf8To(retainInput("bytes" in input ? [input.bytes] : input.chunks, context, records, ["inputBytes"], true), async chunk => {await text.append([chunk]);}, [], false);
       context.charge("retainedBytes", (text.length - start) * 2);
-      const position = await put([start, text.length, -1]);
+      const position = await put([start, text.length, -1, 0]);
       if (previous >= 0) {
         const next = new Uint8Array(8); new DataView(next.buffer).setFloat64(0, position, true);
         await records.write(previous + 16, next);
@@ -56,8 +58,7 @@ export async function readRetainedMediawiki(inputs: readonly InputSource[], cont
       context.charge("retainedBytes", (text.length - sourceStart) * 2);
       context.charge("retainedBytes", (text.length - sourceStart) * 3);
     }
-    onReaderStarted?.();
-    const sourceEnd = text.length;
+    const parse = async (sourceStart: number, sourceEnd: number) => {
     const lineStart = records.allocate(0); let lineCount = 0, start = sourceStart, cursor = sourceStart;
     for await (const chunk of text.chunks({start: sourceStart, end: sourceEnd})) for (const char of chunk.split("")) {
       if (char === "\n") {await put([start, cursor]); start = cursor + 1; lineCount++;} cursor++;
@@ -226,6 +227,65 @@ export async function readRetainedMediawiki(inputs: readonly InputSource[], cont
     const tree = new BackedJson(wire, units => context.cooperate(units));
     await tree.begin("object"); await tree.key("pandoc-api-version"); await tree.value([1, 23, 1, 2]); await tree.key("meta"); await tree.value({}); await tree.key("blocks"); await ast.write(blocks, tree); await tree.end();
     const document = await readRetainedJson({chunks: tree.chunks()}, context, working, false);
-    await close(); return document;
+    return document;
+    };
+    if (!fileScope || inputs.length === 1) {
+      onReaderStarted?.(0);
+      const document = await parse(sourceStart, text.length);
+      await close(); return document;
+    }
+    const encoder = new TextEncoder();
+    const begin = combined.allocate(0); let length = 0, count = 0, index = 0;
+    const append = async (bytes: Uint8Array) => {await combined.append(bytes); length += bytes.length;};
+    await append(encoder.encode('{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":['));
+    for (let position = first; position >= 0;) {
+      const [start, end, next] = await get(position, 3);
+      onReaderStarted?.(index++);
+      const document = await parse(start!, end!);
+      onReaderStarted?.(-1);
+      try {
+        const blocks = (await document.tree.property(document.tree.rootPosition, "blocks"))!;
+        const blockCount = (await document.tree.describe(blocks)).children;
+        const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, blockCount, true); await records.write(position + 24, bytes);
+        context.charge("references", blockCount);
+        for await (const block of document.tree.children(blocks)) {
+          if (count++) await append(encoder.encode(","));
+          for await (const bytes of document.tree.chunks(block, document.order)) await append(bytes);
+        }
+      } finally {await document.close();}
+      position = next!;
+    }
+    onReaderStarted?.(-1);
+    await append(encoder.encode("]}"));
+    const document = await readRetainedJson({chunks: (async function* () {
+      for (let offset = 0; offset < length; offset += 16384) yield await combined.read(begin + offset, Math.min(16384, length - offset));
+    })()}, context, working, false, false);
+    const originStorage = new PagedStorage(owner, cache / 16384);
+    const releaseOrigins = context.onClose(() => originStorage.close());
+    const origins = new RetainedOrigins(originStorage, units => context.cooperate(units)); origins.clear();
+    const blocks = (await document.tree.property(document.tree.rootPosition, "blocks"))!;
+    let position = first, sourceIndex = 1, remaining = (await get(first + 24, 1))[0]!;
+    for await (const block of document.tree.children(blocks)) {
+      while (!remaining) {position = (await get(position + 16, 1))[0]!; sourceIndex++; remaining = (await get(position + 24, 1))[0]!;}
+      remaining--;
+      const end = (await document.tree.describe(block)).end;
+      for (let node = block; node < end;) {
+        const header = await document.tree.describe(node);
+        if (header.kind === "object") {
+          const tag = await document.tree.property(node, "t");
+          if (tag !== undefined && await document.tree.smallText(tag, 5) === "Image") {
+            let target = (await document.tree.property(node, "c"))! + 32;
+            for (let i = 0; i < 2; i++) target = (await document.tree.describe(target)).end;
+            await origins.seed(target + 32, sourceIndex);
+          }
+        }
+        node = header.kind === "array" || header.kind === "object" ? node + 32 : header.end;
+        await context.cooperate();
+      }
+    }
+    await close();
+    return {...document, referencesAggregated: true, origins, originFor: (source: number) => inputs[source - 1]!, async closeResources() {
+      try {await originStorage.close();} finally {releaseOrigins();}
+    }};
   } catch (error) {try {await close();} catch { /* Preserve the conversion failure. */ } throw error;}
 }

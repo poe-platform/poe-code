@@ -77,3 +77,29 @@ it("clears typed replacements even with identical tuples while retaining deep Me
     expect(await targets(after, origins)).toEqual([["keep.jpg", true], ["replace.jpg", false], ["long.jpg", false]]);
   } finally {for (const store of stores) await store.close(); expect(await fs.readdir("/")).toEqual([]);}
 });
+
+it("retains distinct source identities across copies and Lua tuple matching", async () => {
+  const fs = new MemoryFileSystem(), owner = {fs, cwd: "/", env: {}, signal: new AbortController().signal};
+  const stores = Array.from({length: 3}, () => new PagedStorage(owner, 1));
+  const before = new BackedJson(stores[0]!, async () => {}), after = new BackedJson(stores[1]!, async () => {}), origins = new RetainedOrigins(stores[2]!, async () => {});
+  try {
+    await before.value({meta: {}, blocks: [image("a"), image("b")]});
+    await after.value({meta: {}, blocks: [image("a"), image("b")]});
+    const locations = async (tree: BackedJson) => {
+      const result: number[] = [];
+      for await (const block of tree.children((await tree.property(tree.rootPosition, "blocks"))!)) {
+        let target = (await tree.property(block, "c"))! + 32;
+        for (let i = 0; i < 2; i++) target = (await tree.describe(target)).end;
+        result.push(target + 32);
+      }
+      return result;
+    };
+    const old = await locations(before), fresh = await locations(after);
+    origins.clear(); await origins.seed(old[0]!, 2); await origins.seed(old[1]!, 3);
+    await origins.transfer(before, after);
+    expect(await Promise.all(fresh.map(node => origins.source(node)))).toEqual([2, 3]);
+    const copy = origins.copy(); await copy(fresh[0]!, 100); await copy(fresh[1]!, 200);
+    expect(await origins.source(100)).toBe(2); expect(await origins.source(200)).toBe(3);
+    origins.clear(); expect(await origins.source(100)).toBe(0);
+  } finally {for (const store of stores) await store.close(); expect(await fs.readdir("/")).toEqual([]);}
+});

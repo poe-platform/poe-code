@@ -1,3 +1,4 @@
+import {createLuaFilterCapability} from "./lua-filters.js";
 import {createJsonFilterCapability} from "./json-filters.js";
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
@@ -95,4 +96,20 @@ it("resolves newly filtered image targets from resourceCwd rather than the origi
   const run = async ({stdout}: {stdout: {write(bytes: Uint8Array): Promise<void>}}) => {await stdout.write(bytes); return 0;};
   const filters = createJsonFilterCapability({run, runStream: run});
   await parity([],false,false,{filters},{filters:[{kind:"json",path:"add-image"}]});
+});
+
+it.each(["rtf", "odt", "html5"].flatMap(to => [false, true].map(lua => ({to, lua}))))("retains separate MediaWiki image origins to $to lua=$lua", async ({to, lua}) => {
+  const inputs = [{bytes: new Uint8Array()}, {bytes: new TextEncoder().encode("== [[File:p%20x.jpg|first]] =="), source: "/doc/one.wiki", base: "/doc"}, {bytes: new Uint8Array()}, {bytes: new TextEncoder().encode("== [[File:fallback.jpg|second]] =="), source: "/cwd/two.wiki", base: "/cwd"}];
+  const filters = lua ? createLuaFilterCapability({readStream: () => [new TextEncoder().encode("function Image(el) return el end")]}) : undefined;
+  const options = {from: "mediawiki", to, lossy: true, metadataJson: [{title: "example"}], metadataFiles: [{bytes: new TextEncoder().encode('{"author":"author"}')}], ...(lua ? {filters: [{kind: "lua" as const, path: "/filter.lua"}]} : {}), fileScope: true, shiftHeadingLevelBy: -1, ...(to === "html5" ? {embedResources: true} : {})};
+  const expectedHost = host(), actualHost = host(), fs = new MemoryFileSystem();
+  const expected: number[] = [], actual: number[] = [];
+  const output = (target: number[]) => ({async write(bytes: Uint8Array) {target.push(...bytes);}, async close() {}, async abort() {}});
+  await convert(inputs, options, {...(filters ? {filters} : {}), resourceFiles: expectedHost.fs, resourceCwd: "/missing", output: output(expected)});
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole source forbidden"));
+  try {await convertToOutput(inputs, options, {...(filters ? {filters} : {}), resourceFiles: actualHost.fs, resourceCwd: "/missing", workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: output(actual)});}
+  finally {acquire.mockRestore();}
+  expect(actual).toEqual(expected);
+  expect(actualHost.readStream.mock.calls.map(call => call[0])).toEqual(["/doc/p x.jpg", "/cwd/fallback.jpg"]);
+  expect(actualHost.readFile).not.toHaveBeenCalled(); expect(await fs.readdir("/")).toEqual([]);
 });

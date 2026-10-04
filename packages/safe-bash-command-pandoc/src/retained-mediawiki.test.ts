@@ -43,8 +43,8 @@ it.each([
   expect(await fs.readdir("/")).toEqual([]);
 });
 
-it.each(["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].flatMap(to => [false, true].map(joined => ({to, joined}))))("preserves MediaWiki byte/reference quotas to $to joined=$joined", async ({to, joined}) => {
-  const input = {bytes: new TextEncoder().encode("== Title ==\n\n''body 😀'' [[target|link]]\n")}, options = {from: "mediawiki", to, lossy: true};
+it.each(["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].flatMap(to => ["single", "joined", "fileScope"].map(mode => ({to, joined: mode !== "single", fileScope: mode === "fileScope"}))))("preserves MediaWiki byte/reference quotas to $to joined=$joined scope=$fileScope", async ({to, joined, fileScope}) => {
+  const input = {bytes: new TextEncoder().encode("== Title ==\n\n''body 😀'' [[target|link]]\n")}, options = {from: "mediawiki", to, lossy: true, fileScope};
   const inputs = joined ? [input, {bytes: new TextEncoder().encode("second"), source: "second.wiki"}, {bytes: new Uint8Array()}] : [input];
   const ceiling = 1000000, boundaries = new Set<number>(), original = ExecutionContext.prototype.charge;
   const sink = (bytes: number[]) => ({async write(chunk: Uint8Array) {bytes.push(...chunk);}, async close() {}, async abort() {}});
@@ -69,21 +69,22 @@ it.each(["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "
 
 it.each(["nodes", "text", "depth", "attributes", "tableCells"] as const)("preserves MediaWiki %s failures and locations", async budget => {
   const input = {bytes: new TextEncoder().encode("== Heading ==\n\n{|\n! A !! B\n|-\n| a || b\n|}\n"), source: "document.wiki"};
-  for (const limit of [0, 1, 8, 32, 64, 512]) for (const fileScope of [false, true]) {
+  for (const limit of [0, 1, 8, 32, 64, 512]) for (const fileScope of [false, true]) for (const multiple of [false, true]) {
+    const inputs = multiple ? [input, {...input, source: "second.wiki"}] : [input];
     const options = {from: "mediawiki", to: "json", fileScope}, limits = {[budget]: limit};
-    const expected = await convert([input], options, {limits}).catch(error => error);
+    const expected = await convert(inputs, options, {limits}).catch(error => error);
     const fs = new MemoryFileSystem(); let text = "";
-    const actual = await convertToOutput([input], options, {limits, workingFiles: {fs, directory: "/"}, output: {async write(bytes) {text += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}}).catch(error => error);
+    const actual = await convertToOutput(inputs, options, {limits, workingFiles: {fs, directory: "/"}, output: {async write(bytes) {text += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}}).catch(error => error);
     if (expected instanceof Error) expect(actual, `${budget}=${limit} scope=${fileScope}`).toMatchObject({code: (expected as {code?: string}).code, message: expected.message, location: (expected as {location?: string}).location});
     else {expect(actual).not.toBeInstanceOf(Error); expect(text).toBe(expected.text);}
     expect(await fs.readdir("/")).toEqual([]);
   }
 });
 
-it.each(["source", "cancel", "sink"])("cleans MediaWiki storage after %s failure", async mode => {
+it.each(["source", "cancel", "sink"].flatMap(mode => [false, true].map(fileScope => ({mode, fileScope}))))("cleans MediaWiki storage after $mode failure scope=$fileScope", async ({mode, fileScope}) => {
   const fs = new MemoryFileSystem(), controller = new AbortController(); let returned = false, writes = 0;
   const input = {chunks: (async function* () {try {yield new TextEncoder().encode("body"); if (mode === "source") throw new Error("Source failed"); if (mode === "cancel") controller.abort();} finally {returned = true;}})()};
-  await expect(convertToOutput([input], {from: "mediawiki", to: "plain"}, {signal: controller.signal, workingFiles: {fs, directory: "/"}, output: {async write() {writes++; throw new Error("Sink failed");}, async close() {}, async abort() {}}})).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
+  await expect(convertToOutput(fileScope ? [{bytes: new TextEncoder().encode("first")}, input] : [input], {from: "mediawiki", to: "plain", fileScope}, {signal: controller.signal, workingFiles: {fs, directory: "/"}, output: {async write() {writes++; throw new Error("Sink failed");}, async close() {}, async abort() {}}})).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
   expect(returned).toBe(true); expect(writes).toBe(mode === "sink" ? 1 : 0); expect(await fs.readdir("/")).toEqual([]);
 });
 
@@ -117,10 +118,10 @@ it("retains joined MediaWiki operands without whole-source acquisition", async (
   expect(await fs.readdir("/")).toEqual([]);
 });
 
-it("acquires later joined operands before MediaWiki reader failures", async () => {
+it.each([false, true])("acquires later operands before MediaWiki reader failures scope=%s", async fileScope => {
   const fs = new MemoryFileSystem(); let pulled = false;
   const inputs = [{bytes: new TextEncoder().encode("== Heading ==")}, {chunks: (async function* () {pulled = true; throw new Error("Later source failed"); yield new Uint8Array();})()}];
-  await expect(convertToOutput(inputs, {from: "mediawiki", to: "json"}, {limits: {nodes: 0}, workingFiles: {fs, directory: "/"}, output: {async write() {}, async close() {}, async abort() {}}})).rejects.toMatchObject({code: "E_IO", message: "Capability failed"});
+  await expect(convertToOutput(inputs, {from: "mediawiki", to: "json", fileScope}, {limits: {nodes: 0}, workingFiles: {fs, directory: "/"}, output: {async write() {}, async close() {}, async abort() {}}})).rejects.toMatchObject({code: "E_IO", message: "Capability failed"});
   expect(pulled).toBe(true); expect(await fs.readdir("/")).toEqual([]);
 });
 
@@ -131,5 +132,17 @@ it("preserves native quotas for two large joined operands", async () => {
   const fs = new MemoryFileSystem(); let text = "";
   await convertToOutput(inputs, options, {limits, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {text += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}});
   expect(text).toBe(expected.kind === "text" ? expected.text : undefined);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("retains file-scope MediaWiki operands as separate documents", async () => {
+  const inputs = ["<pre>\nfirst", "second\n</pre>"].map(text => ({bytes: new TextEncoder().encode(text)}));
+  const options = {from: "mediawiki", to: "json", fileScope: true};
+  const expected = await convert(inputs, options, {}), fs = new MemoryFileSystem(); let actual = "";
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole source forbidden"));
+  try {
+    await convertToOutput(inputs, options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {actual += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}});
+    expect(acquire).not.toHaveBeenCalled(); expect(actual).toBe(expected.kind === "text" ? expected.text : undefined);
+  } finally {acquire.mockRestore();}
   expect(await fs.readdir("/")).toEqual([]);
 });

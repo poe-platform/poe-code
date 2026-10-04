@@ -280,6 +280,8 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
       if (replayable && codec.readWorkbookSource) {
         const decoded = await codec.readWorkbookSource(source, importContext, encoding);
         if (decoded) {
+          check(context);
+          if (!("metadata" in decoded)) return { book: retain(decoded, storageLimits), bytes: source.size };
           const owned = await ownWorkbookSource(decoded, storageLimits, () => check(context));
           return { book: owned.metadata, source: owned, bytes: source.size };
         }

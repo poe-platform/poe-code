@@ -1,3 +1,4 @@
+import { createXlsxCellStorage } from "./cell-storage.js";
 import { createWorksheetIndexes, type XlsxSharedFormula } from "./worksheet-indexes.js";
 import { createWorksheetStorage } from "./worksheet-storage.js";
 import { createSharedStringStorage } from "./shared-string-storage.js";
@@ -328,7 +329,9 @@ function formula(source: string, sheet: string, row: number, column: number, con
   });
   return serializeExpression(document, simpleSheets ? { ...gnumericGrammar, unquotedSheets: true } : gnumericGrammar, false, true);
 }
-export async function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook> {
+export function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook>;
+export function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode: true): Promise<Workbook | WorkbookSource>;
+export async function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode = false): Promise<Workbook | WorkbookSource> {
   let close: (() => Promise<void>) | undefined;
   try {
     const opc = await openPackage(bytes, context);
@@ -414,6 +417,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
     if (sheetNodes.length > context.limits.sheets) limit("sheets");
     const storedRows = context.createWorkingStorage ? createWorksheetStorage(context, namespace => spreadsheetNamespaces.has(namespace)) : undefined;
     const storedIndexes = context.createWorkingStorage ? createWorksheetIndexes(context) : undefined;
+    const storedCells = context.createWorkingStorage ? createXlsxCellStorage(context) : undefined;
+    let sourceEligible = sourceMode && !!storedCells;
     let cellCount = 0;
     const sheets: Sheet[] = [];
     for (const sheetNode of sheetNodes) {
@@ -427,7 +432,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       let source = await opc.document(relation.target, storedRows?.streamElements, storedRows?.restore); rootIs(source, "worksheet");
       source = await recognize(source, "xlsx_sheet_dtd", context, storedRows);
       const sheetRelations = await opc.relations(relation.target);
-      const cells: Cell[] = [], rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], groups: FormulaGroup[] = [];
+      const cells = storedCells?.sheet(sheets.length) ?? new Map<number, Cell>();
+      const rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], groups: FormulaGroup[] = [];
       const indexes = storedIndexes?.sheet();
       const cellIndexes = indexes?.cells ?? new Map<number, number>();
       const arrayGroups = new Map<string, FormulaGroup>();
@@ -527,6 +533,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             const f = child(node, "f"); let expression: string | undefined, groupId: string | undefined, arrayRange: Range | undefined;
             let semantics = readFormulaSemantics(f);
             if (f) {
+              sourceEligible = false;
               const kind = attr(f, "t"), si = kind === "shared" ? attr(f, "si") : undefined;
               const existing = si === undefined ? undefined : await shared.get(si), ref = attr(f, "ref");
               if (existing && ref === undefined) {
@@ -577,13 +584,13 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                   expression = undefined; groupId = undefined; arrayRange = undefined;
                 } else {
                   for (const group of overlaps) arrayGroups.delete(group.id);
-                  opc.charge(cells.length);
-                  for (let index = 0; index < cells.length; index++) {
-                    const cell = cells[index]!;
+                  opc.charge(cells.size);
+                  for (let index = 0; index < cells.size; index++) {
+                    const cell = (await cells.get(index))!;
                     if (cell.row < target.startRow || cell.row > target.endRow || cell.column < target.startColumn || cell.column > target.endColumn) continue;
                     const { formula: ignoredFormula, cachedResult: ignoredCache, formulaDirty: ignoredDirty,
                       formulaGroup: ignoredGroup, arrayStringLiterals: ignoredSemantics, ...retained } = cell;
-                    cells[index] = { ...retained, formulaGroup: groupId! };
+                    await cells.set(index, { ...retained, formulaGroup: groupId! });
                   }
                   arrayGroups.set(groupId!, { id: groupId!, kind: "array", expression, range: target, ...semantics });
                 }
@@ -595,8 +602,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                     // A scalar expression cannot replace one member of a multi-cell array.
                     if (style) {
                       const key = position.row * 16384 + position.column, index = await cellIndexes.get(key);
-                      if (index === undefined) { await cellIndexes.set(key, cells.length); cells.push({ ...position, value: { kind: "blank" }, formulaGroup: array.id, ...style }); }
-                      else cells[index] = { ...cells[index]!, ...style };
+                      if (index === undefined) { await cellIndexes.set(key, cells.size); await cells.set(cells.size, { ...position, value: { kind: "blank" }, formulaGroup: array.id, ...style }); }
+                      else await cells.set(index, { ...(await cells.get(index))!, ...style });
                     }
                     continue;
                   }
@@ -609,7 +616,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             const hasCache = type === "inlineStr" ? inline !== undefined
               : raw !== undefined && (raw !== "" || type === "str");
             const key = position.row * 16384 + position.column, index = await cellIndexes.get(key);
-            const previous = index === undefined ? undefined : cells[index];
+            const previous = index === undefined ? undefined : await cells.get(index);
             let retained: Partial<Cell> = previous ?? {};
             const cache = hasCache ? value : previous?.value.kind === "blank" ? undefined : previous?.value;
             if (value.kind !== "blank" || hasCache) {
@@ -628,8 +635,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                 : { formula: expression, ...semantics, formulaDirty: arrayRange !== undefined || !hasCache, ...(cache === undefined ? {} : { cachedResult: cache }) }),
               ...(f && expression === undefined && !hasCache && previous?.formula ? { formulaDirty: true } : {}),
               ...(groupId ? { formulaGroup: groupId } : {}), ...(style ?? {}), ...(richText ? { richText } : {}) };
-            if (index === undefined) { await cellIndexes.set(key, cells.length); cells.push(cell); }
-            else cells[index] = cell;
+            if (index === undefined) { await cellIndexes.set(key, cells.size); await cells.set(cells.size, cell); }
+            else await cells.set(index, cell);
           }
         }
       }
@@ -637,10 +644,10 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       if (groups.length) {
         // A shared ref bounds explicitly recorded members; it does not create cells.
         // Keep compact rectangular groups only when every member still belongs to them.
-        opc.charge(cells.length * 2 + groups.length * 3);
+        opc.charge(cells.size * 2 + groups.length * 3);
         const sharedRanges = new Map(groups.map(group => [group.id, group.range]));
         const sharedCounts = new Map<string, number>();
-        for (const cell of cells) {
+        for await (const cell of cells.values()) {
           const bounds = cell.formulaGroup && sharedRanges.get(cell.formulaGroup);
           if (bounds && cell.row >= bounds.startRow && cell.row <= bounds.endRow &&
             cell.column >= bounds.startColumn && cell.column <= bounds.endColumn) {
@@ -650,11 +657,11 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
         completeSharedGroups = groups.filter(group => sharedCounts.get(group.id) ===
           (group.range.endRow - group.range.startRow + 1) * (group.range.endColumn - group.range.startColumn + 1));
         const completeSharedIds = new Set(completeSharedGroups.map(group => group.id));
-        for (let index = 0; index < cells.length; index++) {
-          const cell = cells[index]!;
+        for (let index = 0; index < cells.size; index++) {
+          const cell = (await cells.get(index))!;
           if (cell.formulaGroup && sharedRanges.has(cell.formulaGroup) && !completeSharedIds.has(cell.formulaGroup)) {
             const { formulaGroup: ignoredGroup, ...retained } = cell;
-            cells[index] = retained;
+            await cells.set(index, retained);
           }
         }
       }
@@ -719,21 +726,21 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
         if (external) { const url = external.target.toLowerCase(); type = url.startsWith("mailto:") ? "GnmHLinkEMail" : url.startsWith("http:") || url.startsWith("https:") ? "GnmHLinkURL" : "GnmHLinkExternal"; target = external.target + (location === undefined ? "" : "#" + location); }
         else if (location && relationId === undefined) { target = location; type = "GnmHLinkCurWB"; }
         if (!target || !type) { await context.diagnostic?.({ severity: "warning", code: "xlsx-hyperlink",
-          message: `${name}!${formatA1(nextRow, cells.length ? cells[cells.length - 1]!.column + 1 : 0)} : Unknown type of hyperlink` }); continue; }
+          message: `${name}!${formatA1(nextRow, cells.size ? (await cells.get(cells.size - 1))!.column + 1 : 0)} : Unknown type of hyperlink` }); continue; }
         const hyperlink: ImportedValue = { name: "HyperLink", namespace: "http://www.gnumeric.org/v10.dtd", text: "", children: [],
           attributes: Object.entries({ type, target, ...(tooltip === undefined ? {} : { tip: tooltip }) }).map(([name, value]) => ({ name, namespace: "", value })) };
         const style: ImportedValue = { name: "Style", namespace: "http://www.gnumeric.org/v10.dtd", text: "", attributes: [], children: [hyperlink] };
         hyperlinkRegions.push({ name: "StyleRegion", namespace: "http://www.gnumeric.org/v10.dtd", text: "",
           attributes: Object.entries({ startCol: bounds.startColumn, startRow: bounds.startRow, endCol: bounds.endColumn, endRow: bounds.endRow }).map(([name, value]) => ({ name, namespace: "", value: String(value) })), children: [style] });
         // Merge metadata into existing cell styles so later per-cell style export cannot overwrite the link.
-        opc.charge(cells.length);
-        for (let index = 0; index < cells.length; index++) {
-          const cell = cells[index]!;
+        opc.charge(cells.size);
+        for (let index = 0; index < cells.size; index++) {
+          const cell = (await cells.get(index))!;
           if (cell.row < bounds.startRow || cell.row > bounds.endRow || cell.column < bounds.startColumn || cell.column > bounds.endColumn) continue;
           const saved = cell.style?.gnumeric;
           const original = saved && !Array.isArray(saved) && typeof saved === "object" ? saved as { readonly [key: string]: ImportedValue } : undefined;
-          cells[index] = { ...cell, style: { ...cell.style, gnumeric: { ...(original ?? style as { readonly [key: string]: ImportedValue }),
-            children: [...(Array.isArray(original?.children) ? original.children : []), hyperlink] } } };
+          await cells.set(index, { ...cell, style: { ...cell.style, gnumeric: { ...(original ?? style as { readonly [key: string]: ImportedValue }),
+            children: [...(Array.isArray(original?.children) ? original.children : []), hyperlink] } } });
         }
       }
       if (hyperlinkRegions.length) records.push({ source: "Gnumeric_XmlIO:sax", kind: "Styles", disposition: "retained", data: {
@@ -745,7 +752,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       if (comments) records.push(readXlsxComments(comments, context));
       for (const extension of children(child(source, "extLst"), "ext")) {
         if (attr(extension, "uri") === undefined) await context.diagnostic?.({ severity: "warning", code: "xlsx-extension",
-          message: `${name}!${formatA1(nextRow, cells.length ? cells[cells.length - 1]!.column + 1 : 0)} : Encountered uninterpretable "ext" extension with missing namespace` });
+          message: `${name}!${formatA1(nextRow, cells.size ? (await cells.get(cells.size - 1))!.column + 1 : 0)} : Encountered uninterpretable "ext" extension with missing namespace` });
       }
       const handled = new Set(["sheetData", "cols", "dimension", "mergeCells", "sheetViews"]);
       for (const node of source.children) if (spreadsheetNamespaces.has(node.namespace) && !handled.has(node.localName)) records.push(record(node, relation.target));
@@ -774,7 +781,9 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           [...password].every(character => "0123456789abcdefABCDEF".includes(character)) ? Number.parseInt(password, 16) : undefined
         : undefined;
       if (protection) viewAttributes.Protected = boolean(attr(child(source, "sheetProtection"), "sheet")) ? "1" : "0";
-      sheets.push({ id, name, cells, size: { rows: 1048576, columns: 16384 },
+      const importedCells: Cell[] = [];
+      if (!storedCells) for await (const cell of cells.values()) importedCells.push(cell);
+      sheets.push({ id, name, cells: importedCells, size: { rows: 1048576, columns: 16384 },
         visibility: visibility === "hidden" ? "hidden" : visibility === "veryHidden" ? "very-hidden" : "visible", rows, columns,
         merges: children(child(source, "mergeCells"), "mergeCell").map(node => range(attr(node, "ref"))), formulaGroups: [...completeSharedGroups, ...arrayGroups.values()],
         view: { ...dimensions, ...(protectedPasswordHash === undefined ? {} : { protectedPasswordHash }), ...(protectedAllow ? { protectedAllow } : {}), ...(child(source, "sheetViews") ? { xlsx: data(child(source, "sheetViews")!) } : {}),
@@ -815,12 +824,23 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
         if (node.localName === "keywords" && node.text) documentProperties["dc:keywords"] = node.text.split(" ").filter(Boolean);
       }
     }
-    return { sheets, names, dateSystem: boolean(attr(properties, "date1904")) || attr(properties, "date1904") === "on" ? "1904" : "1900",
+    const book: Workbook = { sheets, names, dateSystem: boolean(attr(properties, "date1904")) || attr(properties, "date1904") === "on" ? "1904" : "1900",
       calculationMode: attr(calc, "calcMode") === "manual" ? "manual" : "automatic",
       ...(calc ? { iteration: { enabled: boolean(attr(calc, "iterate")), maximum: integer(attr(calc, "iterateCount"), 100), tolerance: number(attr(calc, "iterateDelta"), 0.001) } } : {}),
       ...(active ? { activeSheet: active.id } : {}), ...(view ? { view: { xlsx: data(view) } } : {}),
       ...(Object.keys(documentProperties).length ? { properties: documentProperties } : {}),
       ...(workbookRecords.length ? { unsupportedRecords: workbookRecords } : {}) };
+    if (sourceEligible && storedCells) return { metadata: book, async *cells(sheet: string) {
+      const index = sheets.findIndex(value => value.id === sheet);
+      if (index < 0) throw new SsconvertError("invalid-request", "Unknown XLSX sheet");
+      try { yield* storedCells.values(index, true); }
+      catch (error) { return translateFailure(error, context); }
+    } };
+    if (storedCells) for (let index = 0; index < sheets.length; index++) {
+      const cells: Cell[] = []; for await (const cell of storedCells.values(index)) cells.push(cell);
+      sheets[index] = { ...sheets[index]!, cells };
+    }
+    return book;
   } catch (error) { return translateFailure(error, context); }
   finally { await close?.(); }
 }

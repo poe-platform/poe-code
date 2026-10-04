@@ -18,12 +18,12 @@ vi.mock('@poe-code/safe-fs/xml', async original => {
 const context: CapabilityContext = { signal: new AbortController().signal, own() {}, limits: defaultSsconvertLimits,
   environment: { env: {}, locale: 'C', timezone: 'UTC' } };
 const ns = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', rel = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
-async function fixture(alias = false, reused = false) {
+async function fixture(alias = false, reused = false, formulas = true) {
   const parts = [
     ['_rels/.rels', `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="r" Type="${rel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
     ['xl/workbook.xml', `<workbook xmlns="${ns}" xmlns:r="${rel}"><sheets><sheet name="Data" sheetId="1" r:id="sheet"/>${reused ? '<sheet name="Copy" sheetId="2" r:id="sheet"/>' : ''}</sheets></workbook>`],
     ['xl/_rels/workbook.xml.rels', `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="sheet" Type="${rel}/worksheet" Target="sheet.xml"/></Relationships>`],
-    ['xl/sheet.xml', `<worksheet xmlns="${ns}"><sheetFormatPr defaultRowHeight="17"/><cols><col min="1" max="160" width="12" outlineLevel="2"/><col min="1" max="159" hidden="1"/></cols><sheetData>  \n` + Array.from({ length: 160 }, (_, i) => `<row r="${i + 1}"><bad/><c r="A${i + 1}"><v>${i}</v></c><c r="B${i + 1}"><f t="shared" si="${i}">A${i + 1}+1</f><v>${i + 1}</v></c><c r="C${i + 1}"><f t="shared" si="${i}"/><v>${i + 2}</v></c></row> \n`).join('') + '<row r="1"><c r="A1"><v>999</v></c></row> \n</sheetData><sheetFormatPr defaultRowHeight="23"/><sheetData><row><c t="inlineStr"><is><r><rPr><b/></rPr><t>é😀</t></r></is></c></row></sheetData></worksheet>']
+    ['xl/sheet.xml', `<worksheet xmlns="${ns}"><sheetFormatPr defaultRowHeight="17"/><cols><col min="1" max="160" width="12" outlineLevel="2"/><col min="1" max="159" hidden="1"/></cols><sheetData>  \n` + Array.from({ length: 160 }, (_, i) => `<row r="${i + 1}"><bad/><c r="A${i + 1}"><v>${i}</v></c><c r="B${i + 1}">${formulas ? `<f t="shared" si="${i}">A${i + 1}+1</f>` : ""}<v>${i + 1}</v></c><c r="C${i + 1}">${formulas ? `<f t="shared" si="${i}"/>` : ""}<v>${i + 2}</v></c></row> \n`).join('') + '<row r="1"><c r="A1"><v>999</v></c></row> \n</sheetData><sheetFormatPr defaultRowHeight="23"/><sheetData><row><c t="inlineStr"><is><r><rPr><b/></rPr><t>é😀</t></r></is></c></row></sheetData></worksheet>']
   ];
   if (alias) parts.push(['xl/_rels/sheet.xml.rels', `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="comments" Type="${rel}/comments" Target="sheet.xml"/></Relationships>`]);
   const zip = createZipCodec(), limits = { maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity, maxMembers: Infinity, maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity, chunkSize: 16384 };
@@ -113,5 +113,52 @@ it.each(['acquire', 'write', 'read', 'cancel', 'read-close'])('cleans worksheet 
   finally { await engine.dispose(); }
   const leaves = (error: unknown): unknown[] => error instanceof AggregateError ? error.errors.flatMap(leaves) : error instanceof ZipStorageFailure ? leaves(error.cause) : [error];
   expect(leaves(caught)).toContain(failure); if (mode === 'read-close') expect(leaves(caught)).toContain(closeFailure);
+  expect(await fs.readdir('/')).toEqual([]);
+});
+
+
+it('imports scalar XLSX as stored row-major cells without a resident cell array', async () => {
+  const bytes = await fixture(false, true, false), expected = await readXlsx(bytes, context);
+  const fs = createMemoryFileSystem();
+  const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: '', extensions: [], async readSource(source, ctx) {
+    const push = Array.prototype.push;
+    Array.prototype.push = function(...items: unknown[]) {
+      if (items.some(item => item && typeof item === 'object' && 'row' in item && 'column' in item && 'value' in item)) throw Error('resident cell array');
+      return push.apply(this, items);
+    };
+    let imported;
+    try { imported = await readXlsx(source, ctx, true); }
+    finally { Array.prototype.push = push; }
+    expect('metadata' in imported).toBe(true);
+    if (!('metadata' in imported)) throw Error('missing scalar source');
+    expect(imported.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [] })) });
+    for (const sheet of expected.sheets) {
+      const cells = []; for await (const cell of imported.cells(sheet.id)) cells.push(cell);
+      expect(cells).toEqual([...sheet.cells].sort((a, b) => a.row - b.row || a.column - b.column));
+    }
+    return { sheets: [] };
+  } }] });
+  try { await engine.readWorkbook({ kind: 'range', source: { size: bytes.length, async read(position, count) { return bytes.subarray(position, position + Math.min(count, 257)); } } }, { importType: 'fixture' }, { signal: context.signal }); }
+  finally { await engine.dispose(); }
+  expect(await fs.readdir('/')).toEqual([]);
+});
+
+it.each(['read', 'cancel'])('preserves backing %s failures during scalar source replay', async mode => {
+  const bytes = await fixture(false, false, false), fs = createMemoryFileSystem(), controller = new AbortController(), failure = Error('source replay');
+  const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: '', extensions: [], async readSource(source, ctx) {
+    let replay = false;
+    const imported = await readXlsx(source, { ...ctx, createWorkingStorage() {
+      const backing = ctx.createWorkingStorage!();
+      return { ...backing, async read(position, count) {
+        if (replay && mode === 'read') throw failure;
+        const value = await backing.read(position, count); if (replay && mode === 'cancel') controller.abort(failure); return value;
+      } };
+    } }, true);
+    if (!('metadata' in imported)) throw Error('expected scalar source');
+    replay = true; await imported.cells(imported.metadata.sheets[0]!.id)[Symbol.asyncIterator]().next();
+    return { sheets: [] };
+  } }] });
+  try { await expect(engine.readWorkbook({ kind: 'range', source: { size: bytes.length, async read(at, count) { return bytes.subarray(at, at + count); } } }, { importType: 'fixture' }, { signal: controller.signal })).rejects.toBe(failure); }
+  finally { await engine.dispose(); }
   expect(await fs.readdir('/')).toEqual([]);
 });

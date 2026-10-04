@@ -1,6 +1,14 @@
 export { createEngine, defaultSsconvertLimits } from "./engine.js";
 export type { RuntimeLimits as SsconvertLimits } from "./contracts.js";
-export const readXlsx: typeof import("./codecs/xlsx.js")["readXlsx"] = async (...args) => (await import("@poe-code/spreadsheet-format-xlsx/xlsx")).readXlsx(...args);
+import type { CapabilityContext, RangeSource } from "./contracts.js";
+import type { Workbook } from "./workbook.js";
+import type { WorkbookSource } from "./codecs/types.js";
+export function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook>;
+export function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode: true): Promise<Workbook | WorkbookSource>;
+export async function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode?: true): Promise<Workbook | WorkbookSource> {
+  const codec = await import("@poe-code/spreadsheet-format-xlsx/xlsx");
+  return sourceMode ? codec.readXlsx(bytes, context, true) : codec.readXlsx(bytes, context);
+}
 export const probeXlsx: typeof import("./codecs/xlsx.js")["probeXlsx"] = async (...args) => (await import("@poe-code/spreadsheet-format-xlsx/xlsx")).probeXlsx(...args);
 import { snapshotXlsxWorkbook } from "@poe-code/spreadsheet-format-xlsx/xlsx-write-input";
 export const createXlsxWriter: typeof import("./codecs/xlsx.js")["createXlsxWriter"] = (edition = "2006") => async (book, options, context) => {

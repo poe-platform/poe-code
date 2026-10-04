@@ -17,7 +17,9 @@ try {
 }
 ```
 
-With engine `workingFiles`, both XLSX exporters stage archive members and central
+With engine `workingFiles`, scalar XLSX imports replay stored cells without a
+complete cell array. Formula imports use the normal workbook evaluation path.
+Both XLSX exporters stage archive members and central
 records through the caller’s safe-fs. XML encoding, member compression and archive
 output use bounded chunks and backpressure. Worksheet rows use caller-backed
 staging, and row, worksheet and shared-string XML containers stream. Shared-string

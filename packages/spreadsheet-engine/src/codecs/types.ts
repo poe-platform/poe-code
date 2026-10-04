@@ -49,7 +49,9 @@ export interface Codec extends ServiceDescriptor {
   probeName?(filename: string, context: CapabilityContext): boolean | Promise<boolean>;
   probeContent?(bytes: Uint8Array, context: CapabilityContext): boolean | Promise<boolean>;
   probeSource?(source: RangeSource, context: CapabilityContext): boolean | Promise<boolean>;
-  readWorkbookSource?(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<WorkbookSource | undefined>;
+  /** Return a replayable source, or an already-decoded workbook when global
+   * evaluation is needed. Undefined declines without emitting diagnostics. */
+  readWorkbookSource?(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<WorkbookSource | Workbook | undefined>;
   readSource?(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<Workbook>;
   read?(bytes: Uint8Array, context: CapabilityContext, encoding?: string): Promise<Workbook>;
   write?(book: Workbook, options: readonly string[], context: CapabilityContext,

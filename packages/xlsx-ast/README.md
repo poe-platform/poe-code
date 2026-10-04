@@ -57,7 +57,9 @@ import { readXlsx, probeXlsx, createXlsxWriter, createXlsxStreamWriter } from "@
 const engine = createEngine({ codecs: [{
   id: "xlsx", description: "XLSX workbook", extensions: ["xlsx"],
   probeContent: probeXlsx, probeSource: probeXlsx, contentProbe: true,
-  read: readXlsx, readSource: readXlsx, write: createXlsxWriter("2008"),
+  read: readXlsx, readSource: readXlsx,
+  readWorkbookSource: (source, context) => readXlsx(source, context, true),
+  write: createXlsxWriter("2008"),
   writeStream: createXlsxStreamWriter("2008"),
   writeWorkbookSource: createXlsxStreamWriter("2008")
 }] });
@@ -73,13 +75,16 @@ including UTF-8 and both UTF-16 byte orders, without full decoded byte/string
 copies. Keep the source open until the operation settles. With engine `workingFiles`,
 the directory and member indexes, shared strings, worksheet row XML, duplicate-cell
 positions, shared-formula definitions, row/column metadata and captured default
-heights use
-caller-backed scratch storage with bounded transfer windows and caches. Rows
+heights use caller-backed scratch storage with bounded transfer windows and caches. Rows
 replay through schema recognition and cell decoding in source order. Parts also
 used as opaque metadata preserve that role's original XML. Individual rows,
-strings, parser tokens, other metadata and the final workbook model remain
-resident; large workbook conversion still requires further storage migration.
-Without working storage, the convenience reader retains the directory and XML trees.
+strings, parser tokens and other metadata remain resident. Scalar conversions
+replay stored cells in row-major order; formula imports and explicit workbook SDK
+reads materialize cells for the existing evaluation path. Final axis metadata
+arrays also remain resident; full bounded conversion needs further migration.
+`readXlsx(input, context, true)` prefers a replayable source and returns a normal
+workbook when formulas need evaluation. Without working storage, the convenience
+reader retains the directory and XML trees.
 
 `createXlsxStreamWriter` uses `workingFiles` to stage ZIP member payloads and
 central records in the caller’s safe-fs. XML encoding and member compression

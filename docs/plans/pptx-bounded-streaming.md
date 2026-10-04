@@ -305,10 +305,29 @@ reopened a streamed text-span rewrite with the expected edit, unchanged embedded
 workbook and every unrelated part, valid ZIP CRCs and clean caller storage.
 This is a shared mutation primitive, not migrated PPTX command behavior: consumers
 still need their format-specific intent/result checks and guarded publication.
-Next, migrate slide label/visibility changes and then slide ordering against the
-retained selection/index and archive rewrite APIs, retaining signature, macro,
-protection and compatibility guards before using this editor. Broader text,
+The retained slide-setting SDK integration is described below; slide ordering
+and shipped publication integration remain. Broader text,
 extraction and workbook command migration remains as listed below.
+
+`openRetainedSlideSettings` now supplies a caller-backed changed-part view for
+slide labels and visibility. It retains selection identities, ordered source
+locations and replacement payloads in caller pages, shares option validation with
+the buffered API, and validates the original and candidate presentation graphs.
+Signature, macro, protection and conditional-presentation guards remain active.
+Raw XML updates preserve quote styles, whitespace and unchanged bytes; original
+archive ownership remains with the caller. Its `replacement(part)` method feeds
+only changed members to retained archive rewriting, preserving unrelated members'
+compressed payloads and metadata. No-op callers reuse their exact original bytes.
+Verification covers exact part-byte parity, Strict OOXML, selection errors,
+allow-empty/duplicate selections, guard rejection, long labels, reused buffers,
+real spills capped at 16 KiB outstanding writes, cancellation and read/write
+failure cleanup. The focused slide suites passed 111 tests, scoped lint/typechecks
+and the maintained engine build. A native python-pptx chart deck confirmed the
+new label and visibility, unchanged text/chart/workbook and unrelated members,
+valid ZIP CRCs and clean storage. The default command is still buffered: next wire
+this view into `slides set` with staged output metadata, retained original identity,
+force/dry-run/in-place policy, output limits and cleanup. Slide ordering and other
+mutations, richer reads, extraction and embedded workbook migration remain.
 
 ## Remaining implementation
 

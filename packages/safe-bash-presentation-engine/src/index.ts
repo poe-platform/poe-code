@@ -124,6 +124,8 @@ export {
 export {
   addSlide,
   mutateSlides,
+  openRetainedSlideSettings,
+  type RetainedSlideSettings,
   type MutateSlidesOptions,
   type AddSlideOptions,
   type PlaceholderText

@@ -96,11 +96,11 @@ function fields(value: unknown, allowed: readonly string[]): void {
   )
     invalid("Expected a structured slide insertion object.");
 }
-function escape(text: string, maximum: number): string {
+function* escapedSlideText(text: string, maximum: number): Generator<string> {
   if (typeof text !== "string") invalid("Expected text.");
   if (text.length > maximum)
     throw new OfficeError("resource-limit", "Slide text exceeds limits.", "usage");
-  let result = "";
+  let length = 0;
   for (const ch of text) {
     const code = ch.codePointAt(0)!;
     if (
@@ -110,7 +110,7 @@ function escape(text: string, maximum: number): string {
       code === 0xffff
     )
       invalid("Text contains an invalid XML character.");
-    result +=
+    const value =
       (
         {
           "&": "&amp;",
@@ -122,10 +122,14 @@ function escape(text: string, maximum: number): string {
           "\t": "&#9;"
         } as Record<string, string>
       )[ch] ?? ch;
-    if (result.length > maximum)
+    length += value.length;
+    if (length > maximum)
       throw new OfficeError("resource-limit", "Slide text exceeds limits.", "usage");
+    yield value;
   }
-  return result;
+}
+function escape(text: string, maximum: number): string {
+  let result = ""; for (const value of escapedSlideText(text, maximum)) result += value; return result;
 }
 function relationshipPart(owner: string): string {
   const slash = owner.lastIndexOf("/");
@@ -517,11 +521,7 @@ export function prepareSlideInsertion(
   return { changes, part: slide, slideId, position };
 }
 
-export async function mutateSlides(
-  input: BinaryInput,
-  options: MutateSlidesOptions,
-  context: SelectionContext
-): Promise<Uint8Array> {
+export function prepareSlideMutationOptions(options: MutateSlidesOptions, context: SelectionContext): readonly SelectionQuery[] {
   fields(options, ["selection", "position", "name", "hidden", "allowEmpty"]);
   if ([options.position, options.name, options.hidden].every((value) => value === undefined))
     invalid("At least one slide update is required.");
@@ -537,7 +537,7 @@ export async function mutateSlides(
       invalid("Expected a boolean slide setting.");
   if (!context?.xmlLimits || !context.relationshipLimits)
     invalid("Explicit XML and relationship limits are required.");
-  if (options.name !== undefined) escape(options.name, context.xmlLimits.maxBytes);
+  if (options.name !== undefined) for (const value of escapedSlideText(options.name, context.xmlLimits.maxBytes)) void value;
   const queries: readonly SelectionQuery[] = Array.isArray(options.selection)
     ? options.selection
     : [options.selection as SelectionQuery];
@@ -557,6 +557,15 @@ export async function mutateSlides(
         query.position === undefined)
     )
       throw new SelectionError("invalid-selection");
+  return queries;
+}
+
+export async function mutateSlides(
+  input: BinaryInput,
+  options: MutateSlidesOptions,
+  context: SelectionContext
+): Promise<Uint8Array> {
+  const queries = prepareSlideMutationOptions(options, context);
   const source = await readBinary(input, context);
   const reader = await readPackage(source, context);
   const limits = {
@@ -698,3 +707,5 @@ export async function mutateSlides(
     );
   return output;
 }
+
+export { openRetainedSlideSettings, type RetainedSlideSettings } from './retained-slide-settings.js';

@@ -44,5 +44,13 @@ original field caches independently of compatibility-projected text.
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves
 mixed content and keeps its traversal spans in caller storage. Close the result
 after reading. `stageRetainedXmlPart` supplies the staged command formats.
+`openRetainedSlideSettings` (from `slides`) applies label and visibility changes
+to a caller-backed part view, preserving mutation guards and validating the result.
+It borrows the archive and returns `changed`, `affected`, original target locations,
+and streamed part access. Pass its `replacement` method to the archive rewrite
+API to preserve untouched compressed members. When `changed` is false, retain the
+original archive bytes. Close the view after rewriting; publication remains the
+caller's responsibility. The default slide mutation commands still use buffered
+APIs while their retained publication integration is completed.
 Other default operations and the synchronous presentation model still use buffered
 APIs.

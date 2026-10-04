@@ -389,7 +389,8 @@
     "saxes": "6.0.0",
     "@noble/hashes": "2.4.0",
     "@poe-code/safe-fs": "*",
-    "safe-bash-contracts": "*"
+    "safe-bash-contracts": "*",
+    "@poe-code/office-xml": "*"
   },
   "devDependencies": {
     "toolcraft-schema": "*"

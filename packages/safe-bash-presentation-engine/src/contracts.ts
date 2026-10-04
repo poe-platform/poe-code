@@ -51,17 +51,8 @@ export interface Location {
   readonly coordinateSystem: "identity";
 }
 
-export type Phase =
-  | "usage"
-  | "admit"
-  | "parse"
-  | "index"
-  | "select"
-  | "validate-intent"
-  | "mutate"
-  | "validate-result"
-  | "serialize"
-  | "publish";
+export type { OfficePhase as Phase } from "@poe-code/office-xml";
+import type { OfficePhase as Phase } from "@poe-code/office-xml";
 
 export interface Diagnostic {
   readonly code: string;

@@ -8,7 +8,7 @@ import {retainedPath, retainedValues} from "./retained-wire.js";
 
 export interface RetainedAstUsage {nodes: number; text: number}
 
-const wireEnums = new Set(["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter", "SingleQuote", "DoubleQuote", "InlineMath", "DisplayMath", "AuthorInText", "SuppressAuthor", "NormalCitation", "DefaultStyle", "Example", "Decimal", "LowerRoman", "UpperRoman", "LowerAlpha", "UpperAlpha", "DefaultDelim", "Period", "OneParen", "TwoParens"]);
+export const wireEnums = new Set(["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter", "SingleQuote", "DoubleQuote", "InlineMath", "DisplayMath", "AuthorInText", "SuppressAuthor", "NormalCitation", "DefaultStyle", "Example", "Decimal", "LowerRoman", "UpperRoman", "LowerAlpha", "UpperAlpha", "DefaultDelim", "Period", "OneParen", "TwoParens"]);
 
 /** Reserve normalized nodes, attributes and cell spans without collecting the AST.
  * When translation positions are supplied, also perform the scalar checks that

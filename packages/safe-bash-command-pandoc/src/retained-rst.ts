@@ -1,3 +1,5 @@
+import {wireEnums} from "./retained-ast-budgets.js";
+import {reserveRetainedOutput} from "./retained-output-budgets.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import {BackedTextSet} from "./backed-text-set.js";
@@ -73,13 +75,16 @@ class RstTape {
       buffer += !literal && "\\`*_|<>[]".includes(char) ? `\\${char}` : char;
       if (buffer.length >= 4096) {await this.text.append(output, await this.literal(buffer)); buffer = "";}
     }
-    if (buffer) await this.text.append(output, await this.literal(buffer)); return output;
+    if (buffer) await this.text.append(output, await this.literal(buffer));
+    if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", output.units);
+    return output;
   }
   private async unique(base: TextRange): Promise<TextRange> {
     let name = base, count = 1;
     while (await this.used.has(name) || await this.text.includes(this.source, name)) {
       name = await this.join(await this.copy(base), await this.literal(`-ref-${++count}`)); await this.context.cooperate();
     }
+    if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
     await this.used.add(name); return name;
   }
   private async id(source: TextRange): Promise<TextRange> {
@@ -164,6 +169,9 @@ class RstTape {
     while (this.top) {
       const frame = await this.read<{parent: number; job: Job}>(this.top); this.top = frame.parent; const job = frame.job;
       await this.context.cooperate();
+      if (job.op === "reserveFinish") {
+        this.context.bound("outputBytes", this.source.units - job.start!); continue;
+      }
       if (job.op === "reserveNext") {
         if (job.node < job.end!) {await this.push({...job, node: (await this.tree.describe(job.node)).end}); await this.push({op: "reserve", node: job.node, path: 0});} continue;
       }
@@ -172,6 +180,7 @@ class RstTape {
       if (header.kind === "object") {
         const tagPosition = await this.tree.property(job.node, "t"), tag = tagPosition === undefined ? undefined : await this.tree.smallText(tagPosition, 16);
         if (tag && ["Space", "SoftBreak", "LineBreak"].includes(tag)) {await this.text.append(this.source, await this.literal(" ")); continue;}
+        if (tag && wireEnums.has(tag)) {await this.text.append(this.source, await this.scalar(tagPosition!)); continue;}
         const content = await this.tree.property(job.node, "c");
         if (content !== undefined) {
           if (tag && ["Header", "CodeBlock", "Div"].includes(tag)) {
@@ -181,7 +190,10 @@ class RstTape {
           await this.push({op: "reserve", node: content, path: 0}); continue;
         }
       }
-      if (header.kind === "object" || header.kind === "array") await this.push({op: "reserveNext", node: job.node + 32, path: 0, end: header.end});
+      if (header.kind === "object" || header.kind === "array") {
+        if (Number.isFinite(this.context.limits.references)) await this.push({op: "reserveFinish", node: 0, path: 0, start: this.source.units});
+        await this.push({op: "reserveNext", node: job.node + 32, path: 0, end: header.end});
+      }
     }
     this.source = await this.text.lower(this.source);
   }
@@ -229,12 +241,16 @@ class RstTape {
           child = {op: job.mode!, node, path: await this.path(job.path, `[${job.index}]`), index: job.index, nested: job.nested, literal: job.literal, start: job.start, parentPath: job.parentPath}; job.cursor = after;
           if (job.mode === "block") {child.previous = job.previous; child.next = after < job.end! ? await this.tag(after) : ""; job.next = await this.tag(node);}
         }
-        if (child) {await this.push({...job, stage: 1}); await this.push(child);} else {result = job.text!; markup = false;}
+        if (child) {await this.push({...job, stage: 1}); await this.push(child);} else {
+          result = job.text!; markup = false;
+          if (Number.isFinite(this.context.limits.references) && (job.mode === "inline" || job.mode === "block")) this.context.bound("outputBytes", result.units);
+        }
         continue;
       }
       if (job.op === "post") {
         if (job.mode === "surround") result = await this.join(await this.literal(job.first!), result, await this.literal(job.last!));
         if (job.mode === "structural" && !result.units && !["Plain", "Para", "Div", "Figure"].includes(job.tag!)) await this.fail("Empty RST structural container", job.path);
+        if (job.mode === "structural" && Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", result.units);
         if (job.mode === "paragraph") result = await this.paragraph(result);
         if (job.mode === "style") {
           if (job.nested) await this.loss("Nested RST inline style projected to text", job.path);
@@ -381,7 +397,9 @@ class RstTape {
     }
     const output = this.strikeout ? await this.literal(".. role:: strikeout") : emptyText();
     for (const value of [body, this.definitions]) if (value.units) {if (output.units) await this.text.append(output, await this.literal("\n\n")); await this.text.append(output, value);}
-    if (body.units || this.definitions.units) await this.text.append(output, await this.literal("\n")); return output;
+    if (body.units || this.definitions.units) await this.text.append(output, await this.literal("\n"));
+    if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", output.units);
+    return output;
   }
 
   private async table(job: Job, result: TextRange): Promise<TextRange> {
@@ -439,11 +457,12 @@ export async function writeRetainedRst(tree: BackedJson, context: ExecutionConte
     const writer = new RstTape(tree, storage, context, options), result = await writer.render();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {const first = diagnostics[0]!; throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);}
+    await reserveRetainedOutput(() => writer.text.unicodeChunks(result), context, options.eol);
     const chunks = async function* () {
       const encoder = new TextEncoder();
       for await (const part of writer.text.unicodeChunks(result)) yield encoder.encode(options.eol === "crlf" ? part.split("\n").join("\r\n") : part);
     };
-    if (Number.isFinite(context.limits.outputBytes)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
     for await (const bytes of chunks()) await context.emit(bytes);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};} finally {release();}

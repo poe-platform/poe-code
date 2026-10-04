@@ -6030,5 +6030,13 @@
     "implementation": "Advance Fill tabs to shared eight-space stops across repeated copies. Shape tab-separated runs independently, retain leading/trailing tab widths and omit wholly clipped horizontal glyphs from extracted PDF text.",
     "validation": "Two original failures reproduced.449 PDF tests, selected workspace build and command lint/source/test/public-consumer types pass.40 independent native inputs produce160 SDK/command XML/PDF outputs;80 character comparisons and common-word position comparisons pass within0.013pt. Native/public screenshots checked for repeated, leading, rotated and clipped tabs.",
     "remaining": "U+2028 vector control glyphs,CR control boxes and broader rich-text/font/Unicode/decorations/merged multipage qualification;all19families remain open."
+  },
+  "pdfFillLineSeparators": {
+    "status": "Focused Fill U+2028 profile verified; broader rendering remains open",
+    "implementation": "Render line separators as vector return markers using supplied monospace hexadecimal-box metrics. Preserve native itemization, separator-only line extents, Fill repetition, tabs, rotation and decoration bounds without changing workbook text.",
+    "validation": "Original rejection and marker-only strike-through failures reproduced.452 PDF tests plus87 final focused tests,selected build and command lint/source/test/public-consumer types pass.38 native inputs produce152 compiled SDK/command XML/PDF outputs;76 path/text comparisons pass with marker coordinates within0.005pt,word positions and decoration bounds within0.015pt. Native/public screenshots inspected including decorated marker-only and rotated cells.",
+    "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+    "source": "Pango1.50.12 pangocairo-font.c hexadecimal box metrics and pangocairo-render.c return-marker geometry; unhinted native layout extents independently inspected.",
+    "remaining": "CR control boxes,broader rich-text/font/Unicode/decorations/merged multipage qualification and all19families remain open."
   }
 }

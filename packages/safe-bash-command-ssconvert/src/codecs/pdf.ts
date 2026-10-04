@@ -6,7 +6,7 @@ import {printDiagonalBorders} from "@poe-code/spreadsheet-engine/rendering/print
 import {createPrintMerges} from "@poe-code/spreadsheet-engine/rendering/print/merges";
 import {justifyPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/justify-line";
 import {wrapPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/wrap-lines";
-import { PDFDocument, PDFHexString, PDFName, PDFOperator, PDFOperatorNames, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, setGraphicsState, type PDFPage, type PDFFont } from "pdf-lib";
+import { PDFDocument, PDFHexString, PDFName, PDFOperator, PDFOperatorNames, rgb, moveTo, lineTo, closePath, fill as fillPath, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, setGraphicsState, type PDFPage, type PDFFont } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
 import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "safe-bash-pdf-engine";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
@@ -259,12 +259,15 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     }
     const singleParagraph = cellBox?.style.alignment === "fill";
     const tabbedFill = singleParagraph && value.includes("\t");
-    if (singleParagraph && (value.includes("\r") || value.includes("\u2028"))) unsupported("fill control-character layout");
+    const separatorFill = singleParagraph && value.includes("\u2028");
+    const vectorFill = tabbedFill || separatorFill;
+    const markerOnly = separatorFill && value.split("\u2028").join("").split("\u2029").join("") === "";
+    if (singleParagraph && value.includes("\r")) unsupported("fill control-character layout");
     const paragraphs = cellBox && !singleParagraph ? splitPrintLines(value, tick) : [{text: value, forced: false}];
     const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line.text, supported, tick) : line.text);
     for (const line of shapedLines) for (const scalar of line) {
       tick();
-      if (!(singleParagraph && (scalar === "\u2029" || scalar === "\t")) && !supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
+      if (!(singleParagraph && (scalar === "\u2029" || scalar === "\u2028" || scalar === "\t")) && !supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
     }
     let baseline = page.getHeight() - y - size;
     let width = cellBox ? 0 : font.widthOfTextAtSize(value, size);
@@ -279,7 +282,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           unsupported("supplied font parsing");
         }
       }
-      const ascent = ascentRatio * size, lineHeight = ascent + descentRatio * size;
+      let ascent = ascentRatio * size, lineHeight = ascent + descentRatio * size;
       let tabWidth = 0, displayTabWidth = 0;
       if (tabbedFill) {
         if (!supported.has(32)) unsupported("font coverage");
@@ -291,8 +294,44 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
         if (!(tabWidth > 0) || !Number.isFinite(tabWidth) || !(displayTabWidth > 0) || !Number.isFinite(displayTabWidth)) unsupported("supplied font advances");
       }
+      let separator: {width: number; displayWidth: number; inkLeft: number; inkRight: number; inkBottom: number; points: readonly (readonly [number, number])[]} | undefined;
+      if (separatorFill) {
+        // Pango's unhinted control marker uses a half-size monospace font to
+        // measure hexadecimal boxes, then draws the return arrow as a path.
+        const mini = await selectFont("monospace", bold, italic);
+        const miniSize = Math.round(cellBox.style.size / 2.2 * 1024) / 1024;
+        let digitWidth = 0, digitHeight = 0;
+        for (const digit of "0123456789ABCDEF") {
+          tick();
+          if (!mini.supported.has(digit.codePointAt(0)!)) unsupported("font coverage");
+          const box = mini.metrics.glyphForCodePoint(digit.codePointAt(0)!).bbox;
+          digitWidth = Math.max(digitWidth, (box.maxX - box.minX) / mini.metrics.unitsPerEm * miniSize);
+          digitHeight = Math.max(digitHeight, (box.maxY - box.minY) / mini.metrics.unitsPerEm * miniSize);
+        }
+        const pad = Math.min((ascentRatio + descentRatio) * cellBox.style.size / 43, miniSize);
+        const boxHeight = 5 * pad + 2 * digitHeight;
+        const fontAscent = ascentRatio * cellBox.style.size, fontDescent = descentRatio * cellBox.style.size;
+        const boxDescent = boxHeight <= fontAscent ? 2 * pad : boxHeight <= fontAscent + fontDescent - 2 * pad ?
+          2 * pad + boxHeight - fontAscent : fontDescent * boxHeight / (fontAscent + fontDescent);
+        if (markerOnly) {
+          ascent = Math.trunc((boxHeight + pad - boxDescent) * 1024) / 1024 * printDisplayScale;
+          lineHeight = Math.trunc((boxHeight + 2 * pad) * 1024) / 1024 * printDisplayScale;
+        }
+        const logicalWidth = Math.trunc((7 * pad + 2 * digitWidth) * 1024) / 1024;
+        const width = Math.round(logicalWidth) * printDisplayScale;
+        const length = width * 0.6, tip = Math.min(digitWidth * printDisplayScale, length * 0.75);
+        const halfLine = pad * printDisplayScale / 2, halfTip = 5 * halfLine;
+        const height = length - tip / 2;
+        const x = width * 0.2, y = ((5 * pad + 2 * digitHeight) * printDisplayScale - length) / 2;
+        separator = {width, inkLeft: pad * printDisplayScale, inkRight: (6 * pad + 2 * digitWidth) * printDisplayScale,
+          inkBottom: -boxDescent * printDisplayScale, displayWidth: Math.round(logicalWidth / printDisplayScale) * printDisplayScale,
+          points: [[x,y],[x+tip,y+halfTip],[x+tip,y+halfLine],[x+length-halfLine,y+halfLine],
+            [x+length-halfLine,y+height],[x+length+halfLine,y+height],[x+length+halfLine,y-halfLine],
+            [x+tip,y-halfLine],[x+tip,y-halfTip]]};
+      }
       const shapeLine = (shapedValue: string) => {
         const glyphs: {x: number; y: number}[] = [];
+        const markers: number[] = [];
         let width = 0, displayWidth = 0;
         const advances: number[] = [];
         const runs: ReturnType<typeof shaper.shape>[] = [];
@@ -305,10 +344,16 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             width = (Math.floor(width / tabWidth) + 1) * tabWidth;
             displayWidth = (Math.floor(displayWidth / displayTabWidth) + 1) * displayTabWidth;
           }
-          const parts = singleParagraph ? chunk.split("\u2029") : [chunk];
+          const parts = singleParagraph ? chunk.split("\u2029").flatMap(part => part.split("\u2028").flatMap((piece, index) => index ? ["\u2028", piece] : [piece])) : [chunk];
           for (const part of parts) {
             tick();
             if (!part) continue;
+            if (part === "\u2028" && separator) {
+              markers.push(width);
+              width += separator.width;
+              displayWidth += separator.displayWidth;
+              continue;
+            }
             const run = shaper.shape(metrics, part);
             runs.push(run);
             for (const position of run.positions) {
@@ -327,7 +372,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const run = runs.length < 2 ? runs[0] : Object.create(runs[0]!, {
           glyphs: {value: runs.flatMap(run => run.glyphs)}, positions: {value: runs.flatMap(run => run.positions)}
         }) as NonNullable<typeof runs[0]>;
-        return {shapedValue, run, glyphs, width, displayWidth, advances};
+        return {shapedValue, run, glyphs, width, displayWidth, advances, markers};
       };
       let indent = 0, displayIndent = 0;
       if (cellBox.style.indent && alignment !== "center" && cellBox.style.alignment !== "fill" && cellBox.style.alignment !== "justify" && cellBox.style.alignment !== "distributed") {
@@ -362,6 +407,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const repeatWidth = fillLayout?.width ?? naturalWidth;
         const copies = rotation && bordered ? 1 : repeatWidth > 0 ? Math.floor((cellBox.width - 5) / repeatWidth) : 1;
         if (copies >= 2) {
+          // Copy separators have ordinary font extents. Native retains the
+          // original Fill height but paints the repeated line with its new baseline.
+          if (separatorFill) ascent = ascentRatio * size;
           tick(copies * (value.length + 1));
           if (!supported.has(0x200b)) unsupported("font coverage");
           shapedLines[0] = Array.from({length: copies}, () => shapedLines[0]!).join("​");
@@ -422,11 +470,11 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       if (!rotation && (overflows || height > cellBox.height - 1)) page.pushOperators(
         pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height, clipWidth, cellBox.height), clip(), endPath());
-      if (!wraps && !rotation && !tabbedFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+      if (!wraps && !rotation && !vectorFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
         [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]));
       for (const [lineIndex, line] of lines.entries()) {
         const {run, glyphs, shapedValue} = line;
-        if (!run) continue;
+        if (!run && !line.markers.length) continue;
         // Pango hints centered lines to whole display pixels when layout and
         // line widths are integral; an implicit wrapping width need not be.
         const centeredOffset = (width - line.width) / 2;
@@ -439,40 +487,46 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           page.pushOperators(pushGraphicsState(), concatTransformationMatrix(Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), cellX + 2.5 + origin.x, page.getHeight() - cellY - origin.y));
           x = 0; baseline = 0;
         }
-        if ((wraps || rotation) && line.marked && !tabbedFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+        if ((wraps || rotation) && line.marked && !vectorFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
           [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(line.logicalText)}).toString()]));
         // Encode the same shaped run that supplies the positioned glyphs.
         const layout = metrics.layout;
-        let encoded: string;
+        let encoded = "";
         try {
-          metrics.layout = () => run;
-          encoded = font.encodeText(shapedValue).asString();
+          if (run) {
+            metrics.layout = () => run;
+            encoded = font.encodeText(shapedValue).asString();
+          }
         } finally { metrics.layout = layout; }
         if (encoded.length !== glyphs.length * 4) unsupported("supplied font glyph mapping");
         page.pushOperators(beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));
         for (const [index, glyph] of glyphs.entries()) {
           tick();
-          const points = run.glyphs[index]!.codePoints;
-          if (tabbedFill && !rotation && overflows) {
+          const points = run!.glyphs[index]!.codePoints;
+          if (vectorFill && !rotation && overflows) {
             // Cairo omits wholly clipped glyphs; emitting them would expose
             // invisible tab overflow to PDF text extractors.
-            const box = run.glyphs[index]!.bbox, scale = size / metrics.unitsPerEm;
+            const box = run!.glyphs[index]!.bbox, scale = size / metrics.unitsPerEm;
             const left = x + glyph.x + (box.minX + Math.min(shear * box.minY, shear * box.maxY)) * scale;
             const right = x + glyph.x + (box.maxX + Math.max(shear * box.minY, shear * box.maxY)) * scale;
             if (left >= clipLeft + clipWidth || right <= clipLeft) continue;
           }
-          if (tabbedFill && points.length > 0 && points.every(point => point === 0x200b) && run.positions[index]!.xAdvance === 0) continue;
+          if (vectorFill && points.length > 0 && points.every(point => point === 0x200b) && run!.positions[index]!.xAdvance === 0) continue;
           page.pushOperators(setTextMatrix(1, 0, shear, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
         }
         page.pushOperators(endText());
-        if ((wraps || rotation) && line.marked && !tabbedFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
+        if ((wraps || rotation) && line.marked && !vectorFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
+        if (separator) for (const offset of line.markers) {
+          tick(separator.points.length);
+          page.pushOperators(...separator.points.map(([px, py], index) => (index ? lineTo : moveTo)(x + offset + px, baseline + py)), closePath(), fillPath());
+        }
         if (cellBox.style.underline || cellBox.style.strikeThrough) {
           // Pango uses font underline metrics and the union of positioned ink bounds.
           const scale = size / metrics.unitsPerEm;
           const thickness = metrics.underlineThickness ? metrics.underlineThickness * scale : printDisplayScale;
           const position = metrics.underlinePosition ? metrics.underlinePosition * scale : -printDisplayScale;
           let inkLeft = Infinity, inkRight = -Infinity, inkBottom = Infinity;
-          for (const [index, glyph] of run.glyphs.entries()) {
+          for (const [index, glyph] of (run?.glyphs ?? []).entries()) {
             tick();
             const box = glyph.bbox, origin = glyphs[index]!;
             if (!Number.isFinite(box.minX)) continue; // Spaces have no ink.
@@ -480,15 +534,27 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             inkRight = Math.max(inkRight, origin.x + (box.maxX + shear * box.maxY) * scale);
             inkBottom = Math.min(inkBottom, origin.y + box.minY * scale);
           }
+          if (separator) for (const offset of line.markers) {
+            tick();
+            inkLeft = Math.min(inkLeft, offset + separator.inkLeft);
+            inkRight = Math.max(inkRight, offset + separator.inkRight);
+            inkBottom = Math.min(inkBottom, separator.inkBottom);
+          }
           const low = cellBox.style.underline === 3;
           const lineY = baseline + (low ? Math.min(0, inkBottom) - 2 * thickness : position - thickness);
           if (low && !rotation) page.pushOperators(pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height,
             clipWidth, cellBox.height), clip(), endPath());
           for (let decoration = 0; decoration < (cellBox.style.underline === 0 ? 0 : cellBox.style.underline === 2 || cellBox.style.underline === 4 ? 2 : 1); decoration++) {
             tick();
-            page.drawRectangle({x: x + Math.min(0, inkLeft), y: lineY - decoration * 2 * thickness,
+            const decorationY = lineY - decoration * 2 * thickness;
+            // A marker-only bottom-aligned line can put its underline beyond
+            // the cell edge. Native clips that paint, but leaves rotated lines free.
+            const bottom = separator && !rotation ? Math.max(decorationY, page.getHeight() - y - cellBox.height) : decorationY;
+            const top = separator && !rotation ? Math.min(decorationY + thickness, page.getHeight() - y) : decorationY + thickness;
+            if (top <= bottom) continue;
+            page.drawRectangle({x: x + Math.min(0, inkLeft), y: bottom,
               width: Math.max(line.width, Number.isFinite(inkRight - inkLeft) ? inkRight - inkLeft : 0),
-              height: thickness, color: rgb(...cellBox.style.foreground)});
+              height: top - bottom, color: rgb(...cellBox.style.foreground)});
           }
           if (cellBox.style.strikeThrough && Number.isFinite(inkRight - inkLeft)) {
             // Fontkit decodes these standard OS/2 fields, but omits them from its declaration.
@@ -497,12 +563,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             const strikePosition = os2?.yStrikeoutPosition ? os2.yStrikeoutPosition * scale : ascent / 2;
             tick();
             page.drawRectangle({x: x + inkLeft, y: baseline + strikePosition - strikeThickness,
-              width: inkRight - inkLeft, height: strikeThickness, color: rgb(...cellBox.style.foreground)});
+              width: markerOnly ? inkRight : inkRight - inkLeft, height: strikeThickness, color: rgb(...cellBox.style.foreground)});
           }
         }
         if (rotated) page.pushOperators(popGraphicsState());
       }
-      if (!wraps && !rotation && !tabbedFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
+      if (!wraps && !rotation && !vectorFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
       page.pushOperators(popGraphicsState());
       return;
     }

@@ -322,7 +322,7 @@ it("ignores wrapping and indentation for filled cells", async () => {
   expect(actual.runs).toEqual(expected.runs);
 });
 it("refuses unqualified single-paragraph control glyphs in filled cells", async () => {
-  const book = await fixture([{text: "ab\u2028cd", attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
+  const book = await fixture([{text: "ab&#13;cd", attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
   await expect(writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}})).rejects.toThrow("fill control-character layout");
 });
 
@@ -355,4 +355,24 @@ it("omits fully clipped glyphs after a Fill tab from PDF text", async () => {
   const book = await fixture([{text: "abcdefgh\tb", font: font.replace('Unit="10"', 'Unit="14"'), attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
   const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
   expect(runs.map(run => run.text).join("")).toBe("abcdefgh");
+});
+
+it.each(["a\u2028b", "\u2028"])("draws Fill line separators as vector markers without changing stored text: %s", async value => {
+  const book = await fixture([{text: value, attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
+  const before = structuredClone(book);
+  const {runs, pdf} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  expect(runs.map(run => run.text).join("").split("\u200b").join("")).toMatch(value.length === 1 ? /^$/ : /^(ab)+$/);
+  const content = (pdf.getPage(0).node.Contents() as PDFArray).asArray().map(ref => new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
+  expect(content).toContain(" m\n");
+  expect(content).toContain(" l\n");
+  expect(book).toEqual(before);
+});
+it("retains strike-through ink for a Fill line containing only a return marker", async () => {
+  const book = await fixture([{text: "\u2028", attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"'), font: font.replace('StrikeThrough="0"', 'StrikeThrough="1"').replace('Underline="0"', 'Underline="1"')}]);
+  const rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
+  try {
+    await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}});
+    expect(rectangle.mock.calls).toHaveLength(1);
+    expect(rectangle.mock.calls[0]![0]!.width).toBeGreaterThan(0);
+  } finally {rectangle.mockRestore();}
 });

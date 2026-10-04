@@ -26,7 +26,7 @@ function jpeg(progressive = false): Uint8Array {
 
 it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolver"].flatMap(capability => ["rtf", "odt"].map(to => ({format, capability, to})))))("retains streamed $format pictures from $capability into $to in R2 under workerd", async ({format, capability, to}) => {
   const bytes = format === "png" ? png() : jpeg(format === "progressive");
-  const input = {"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "x".repeat(65536)]}, {t: "Para", c: [{t: "Image", c: [["",[],[]], [], ["picture", ""]]}]}]};
+  const input = {"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "x".repeat(65536)]}, {t: "Para", c: [{t: "Image", c: [["",[],[]], [], [capability === "filesystem" ? "picture?" + "query%20😀".repeat(4096) + "#fragment" : "picture", ""]]}]}]};
   const root = fileURLToPath(new URL("../", import.meta.url));
   const bundled = await build({stdin: {resolveDir: root, contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";

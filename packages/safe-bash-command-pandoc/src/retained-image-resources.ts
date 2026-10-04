@@ -48,6 +48,30 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   const scalar = async (node: number): Promise<string> => {
     let value = ""; for await (const chunk of tree.scalarChunks(node)) value += chunk; return value;
   };
+  const suffixStart = (chunk: string): number => {
+    const query = chunk.indexOf("?"), fragment = chunk.indexOf("#");
+    return query < 0 ? fragment : fragment < 0 ? query : Math.min(query, fragment);
+  };
+  // Only filesystem paths cross the host's string boundary. Query/fragment
+  // contents can be arbitrarily large and remain in the retained document.
+  const localTarget = async (node: number): Promise<{name: string; suffixUnits: number}> => {
+    let path = "", suffixUnits = 0, inSuffix = false;
+    for await (const chunk of tree.scalarChunks(node)) {
+      if (inSuffix) {suffixUnits += chunk.length; continue;}
+      const start = suffixStart(chunk);
+      if (start < 0) path += chunk;
+      else {path += chunk.slice(0, start); suffixUnits += chunk.length - start; inSuffix = true;}
+    }
+    return {name: localResourceTarget(path, context).name, suffixUnits};
+  };
+  const suffix = async function* (node: number) {
+    let started = false;
+    for await (const chunk of tree.scalarChunks(node)) {
+      if (started) {yield chunk; continue;}
+      const start = suffixStart(chunk);
+      if (start >= 0) {started = true; yield chunk.slice(start);}
+    }
+  };
   const at = async (node: number, index: number): Promise<number> => {
     let child = node + 32; for (let i = 0; i < index; i++) child = (await tree.describe(child)).end; return child;
   };
@@ -105,8 +129,12 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   };
   const resourceIdentity = async (node: number, span: Span): Promise<number> => {
     let prefix = ""; for await (const chunk of tree.scalarChunks(node)) {prefix = chunk.slice(0, 32); break;}
-    const suffix = dataPrefix(prefix) ? "" : localResourceTarget(await scalar(node), context).suffix;
-    return identities.add(await text.from([String(span.position) + ":", suffix]));
+    const embedded = dataPrefix(prefix);
+    if (!embedded) await localTarget(node);
+    return identities.add(await text.from((async function* () {
+      yield String(span.position) + ":";
+      if (!embedded) yield* suffix(node);
+    })()));
   };
   const dataPrefix = (url: string): number => {
     const comma = url.indexOf(",");
@@ -173,7 +201,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         if (start) {
           if (!await targetSpans.get(key)) await targetSpans.set(key, BigInt(await save(await data(image.target, start))));
         } else {
-          localResourceTarget(await scalar(image.target), context);
+          await localTarget(image.target);
           if (!search) resourceDirectory((await originAt(image.target)).base ?? context.context.resourceCwd ?? "/");
         }
       }
@@ -197,7 +225,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
       for await (const image of images()) {
         const id = await targetKey(image.target);
         if (await inputSpans.get(id) || await targetSpans.get(id)) continue;
-        const url = await scalar(image.target), target = localResourceTarget(url, context), origin=await originAt(image.target);
+        const target = await localTarget(image.target), origin=await originAt(image.target);
         const roots = [resourceDirectory(origin.base ?? context.context.resourceCwd ?? "/")];
         if (origin.base && context.context.resourceCwd) {const cwd = resourceDirectory(context.context.resourceCwd); if (!roots.includes(cwd)) roots.push(cwd);}
         let record = 0;
@@ -227,7 +255,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           await pathSpans.set(key, BigInt(record)); break;
         }
         if (!record) {
-          const at = await location(image.node,origin);
+          const at = await location(image.node,origin), url = await scalar(image.target);
           if (!options.lossy) throw new PandocError("E_RESOURCE", "convert", "Missing image resource: " + url, undefined, at);
           context.report({code: "W_RESOURCE_MISSING", operation: "convert", message: "Missing image resource: " + url, location: at});
         } else {
@@ -236,7 +264,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
             const identity = BigInt(await resourceIdentity(image.target, await load(record)));
             if (!await publishedReferences.get(identity)) {
               context.charge("references", 1);
-              if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", (Number(await encodedNameLengths.get(BigInt(record))) + target.suffix.length) * 2 + 64);
+              if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", (Number(await encodedNameLengths.get(BigInt(record))) + target.suffixUnits) * 2 + 64);
               await publishedReferences.set(identity, 1n);
             }
           }
@@ -280,8 +308,9 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         else if (!await inputSpans.get(key)) {
           let prefix = ""; for await (const chunk of tree.scalarChunks(node)) {prefix = chunk.slice(0, 32); break;}
           if (!dataPrefix(prefix)) {
-            const suffix = localResourceTarget(await scalar(node), context).suffix;
-            for (const char of suffix) units += " \"<>`".includes(char) ? encodeURIComponent(char).length : char.length;
+            await localTarget(node);
+            for await (const chunk of suffix(node)) for (const char of chunk)
+              units += " \"<>`".includes(char) ? encodeURIComponent(char).length : char.length;
           }
         }
         context.charge("retainedBytes", units * 2);

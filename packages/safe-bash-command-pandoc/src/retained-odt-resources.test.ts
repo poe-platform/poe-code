@@ -1,3 +1,4 @@
+import * as resourcePaths from "./resources.js";
 import {createJsonFilterCapability} from "./json-filters.js";
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
@@ -112,4 +113,37 @@ it("resolves newly filtered image targets from resourceCwd rather than the origi
   const run = async ({stdout}: {stdout: {write(bytes: Uint8Array): Promise<void>}}) => {await stdout.write(bytes); return 0;};
   const filters = createJsonFilterCapability({run, runStream: run});
   await parity([],false,false,{filters},{filters:[{kind:"json",path:"add-image"}]});
+});
+
+it.each(["odt", "rtf", "html5"].flatMap(to => [1, 3000].map(repeats => ({to, repeats}))))("keeps image suffixes out of the local path collector for $to ($repeats repetitions)", async ({to, repeats}) => {
+  const suffix = "?" + "a%20😀 <>`".repeat(repeats) + "#fragment";
+  const urls = ["p%20x.jpg" + suffix, "p%20x.jpg" + suffix, "p%20x.jpg#other"];
+  const bytes = new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: urls.map(image)}]}));
+  const options = {from: "json", to, ...(to === "html5" ? {embedResources: true} : {})};
+  const limits = {references: 2000000, retainedBytes: 32000000};
+  const expected = await convert([{bytes, base: "/doc"}], options, {resourceFiles: host().fs, limits});
+  const output = expected.kind === "text" ? new TextEncoder().encode(expected.text) : expected.bytes;
+  let expectedHash = 2166136261;
+  for (const byte of output) expectedHash = Math.imul(expectedHash ^ byte, 16777619) >>> 0;
+  const paths = vi.spyOn(resourcePaths, "localResourceTarget");
+  const actualHost = host(), backing = new MemoryFileSystem();
+  let hash = 2166136261, length = 0;
+  try {
+    await convertToOutput([{base: "/doc", chunks: (async function* () {
+      const reused = new Uint8Array(113);
+      for (let start = 0; start < bytes.length; start += reused.length) {
+        const count = Math.min(reused.length, bytes.length - start);
+        reused.set(bytes.subarray(start, start + count)); yield reused.subarray(0, count);
+      }
+    })()}], options, {limits, resourceFiles: actualHost.fs, workingFiles: {fs: backing, directory: "/", cacheBytes: 16384}, output: {
+      async write(chunk) {expect(chunk.length).toBeLessThanOrEqual(16384); await Promise.resolve(); length += chunk.length; for (const byte of chunk) hash = Math.imul(hash ^ byte, 16777619) >>> 0;},
+      async close() {}, async abort() {}
+    }});
+    expect({length, hash}).toEqual({length: output.length, hash: expectedHash});
+    expect(paths).toHaveBeenCalled();
+    expect(paths.mock.calls.every(([path]) => path === "p%20x.jpg")).toBe(true);
+    expect(actualHost.readStream).toHaveBeenCalledOnce();
+    expect(actualHost.readFile).not.toHaveBeenCalled();
+    expect(await backing.readdir("/")).toEqual([]);
+  } finally {paths.mockRestore();}
 });

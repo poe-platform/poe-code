@@ -291,7 +291,9 @@ Resolvers should honor `signal` while waiting for data. `resolveStream` takes pr
 when both methods are supplied; a stream-only provider also works with buffered
 convenience APIs, which collect its bytes when required by an adapter. Explicit
 byte-only `resolve` and `readFile` capabilities remain buffering boundaries.
-Filesystem path strings and diagnostic messages still materialize; this does not
+For filesystem resources, image query strings and fragments stay in caller storage
+through identity and budget accounting, including embedded HTML output. Filesystem
+paths, diagnostic messages and custom resolver IDs still materialize; this does not
 qualify all resource handling or conversion formats for bounded Worker memory.
 Malformed base64 image data reports `E_RESOURCE` consistently across both paths.
 

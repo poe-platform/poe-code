@@ -619,3 +619,30 @@ closes it, and one that aborts during creation; require exactly one return call
 and no further pulls in both cases. The RTF workerd/R2 fixture covers both filesystem streams
 and custom resolvers for PNG, baseline JPEG and progressive JPEG. Those bounded
 transfer/cleanup checks do not replace deployed memory and CPU measurements.
+
+
+Remaining ownership and exit gates (proposed coordination split):
+
+- Conversion/storage work owns retained readers, writers, resources and atomic
+  publication. Lua/runtime work owns the portable Lua graph, Unicode IDNA and
+  citeproc runtime storage boundaries. Composed qualification covers both.
+- Reader exits: CommonMark/GFM, HTML, RST, LaTeX, EPUB, DOCX, ODT, PPTX, PDF and
+  XLSX must each demonstrate caller-backed intermediate state, output parity,
+  failure/cancellation cleanup and no mandatory document collector. Recheck the
+  actual registry and admission routes before implementing any format.
+- Writer exits: EPUB, PDF, DOCX and PPTX need equivalent retained-state evidence.
+  Exercise supported options and finite budgets without silently selecting the
+  buffered converter. Preserve supported real filters and resource identities.
+- Runtime exits: valid Unicode IDNA retains native URL parity; citeproc preserves
+  citation ordering, disambiguation and bibliography output; Lua preserves real
+  filters and diagnostics. Document and measure any mandatory native whole-value
+  state rather than treating a bounded surrounding stream as completion.
+- Resource exits: grow local-image paths, queries/fragments and diagnostics
+  independently. Query/fragment identity and budget accounting now stream; path
+  strings and full diagnostic messages remain explicit whole-value boundaries.
+  Repeat long-suffix cases for RTF, ODT and embedded HTML with duplicate paths,
+  distinct fragments, Unicode, finite budgets, slow sinks and cleanup failures.
+- Final exits: run the composed public SDK/command workerd matrix without Node
+  compatibility, then the increasing-size and concurrent deployed Cloudflare
+  cohorts above. Record actual memory, CPU and first-byte measurements. Local
+  workerd transfer checks alone do not satisfy deployment qualification.

@@ -177,7 +177,8 @@ resource deduplication and output checks preserve native budget diagnostics.
 JSON/RTF/CSV/TSV → JSON/plain/HTML/RST/CommonMark/GFM/LaTeX/RTF/ODT also supports finite `retainedBytes` with LF/native/CRLF
 line endings, heading shifts and HTML-comment removal, plus supported standalone,
 ASCII, contents, numbering, wrapping and raw-content options, metadata overrides
-and JSON metadata files, and streamed JSON/Lua filters (JSON/RTF accept one input). CSV/TSV retain
+and JSON metadata files, streamed JSON/Lua filters, and HTML templates/includes
+with variables (JSON/RTF accept one input). CSV/TSV retain
 multiple operands, ragged rows and literal cell text with native acquisition, decoder
 and cell-construction quota order. RTF retains token, font, run and picture quota
 charges, including binary picture payloads. Plain output includes wrapping, indentation

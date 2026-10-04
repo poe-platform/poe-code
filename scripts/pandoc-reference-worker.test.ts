@@ -19,6 +19,7 @@ cases.push(...modes.flatMap(mode => ["csv", "tsv"].flatMap(from => ["json", "pla
 cases.push(...modes.flatMap(mode => ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].map(to => ({mode, from: "rtf", to, ...ordinary, byteQuota: true}))));
 cases.push(...modes.flatMap(mode => ["json", "html5"].map(to => ({mode, from: "json", to, ...ordinary, transform: true, byteQuota: true}))));
 cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, metadata: true, byteQuota: true})));
+cases.push(...modes.map(mode => ({mode, from: "json", to: "html5", ...ordinary, template: true, byteQuota: true})));
 for (const option of ["filter", "lua"] as const)
   cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, [option]: true, byteQuota: true})));
 it.each(cases)("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata filter=$filter lua=$lua template=$template crlf=$crlf writerOptions=$writerOptions byteQuota=$byteQuota", async ({mode, from, to, transform, metadata, filter, lua, template, crlf, writerOptions, byteQuota}) => {

@@ -16,13 +16,14 @@ export class RetainedTemplate {
   async acquire(source: InputSource): Promise<void> {
     this.context.charge("includes", 1);
     this.start = this.storage.allocate(0);
-    const references = Number.isFinite(this.context.limits.references), chunks = "bytes" in source ? [source.bytes] : source.chunks;
-    await this.context.decodeUtf8To(references ? retainInput(chunks, this.context, this.storage, ["inputBytes", "resourceBytes"]) : chunks, async chunk => {
+    const retained = Number.isFinite(this.context.limits.retainedBytes), references = Number.isFinite(this.context.limits.references) || retained, chunks = "bytes" in source ? [source.bytes] : source.chunks;
+    await this.context.decodeUtf8To(references ? retainInput(chunks, this.context, this.storage, ["inputBytes", "resourceBytes"], retained) : chunks, async chunk => {
       if (!this.length) this.start = this.storage.allocate(0);
       const bytes = new Uint8Array(chunk.length * 2), view = new DataView(bytes.buffer);
       for (let i = 0; i < chunk.length; i++) view.setUint16(i * 2, chunk.charCodeAt(i), true);
       await this.storage.append(bytes); this.length += chunk.length;
-    }, references ? [] : ["inputBytes", "resourceBytes"]);
+    }, references ? [] : ["inputBytes", "resourceBytes"], !retained);
+    if (retained) this.context.charge("retainedBytes", this.length * 2);
   }
   private async char(position: number): Promise<string> {
     if (position >= this.length) return "";
@@ -69,13 +70,16 @@ export class RetainedTemplate {
     const context = this.context;
     return text.from((async function* (this: RetainedTemplate) {
       let cursor = 0, end = this.length, depth = 0, stack = 0, length = 0;
-      const append = (units: number) => {length += units; context.bound("outputBytes", length);};
+      const append = (units: number) => {length += units; context.bound("outputBytes", length); context.charge("retainedBytes", units * 2);};
       while (true) {
         if (cursor >= end) {
+          context.charge("retainedBytes", length * 2);
           if (!stack) break;
           const bytes = await this.storage.read(stack, 88), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
           const item = view.getFloat64(64, true), arrayEnd = view.getFloat64(72, true);
+          const childLength = length;
           length += view.getFloat64(80, true); context.bound("outputBytes", length);
+          context.charge("retainedBytes", childLength * 2);
           if (item && arrayEnd) {
             const next = (await variables!.tree.describe(item)).end;
             if (next < arrayEnd) {

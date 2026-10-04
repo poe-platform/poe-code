@@ -21,7 +21,7 @@ export class RetainedOptions {
   private readonly header = emptyText();
   private readonly release: () => void;
   private closing: Promise<void> | undefined;
-  private constructor(private readonly storage: PagedStorage, context: ExecutionContext) {
+  private constructor(private readonly storage: PagedStorage, private readonly context: ExecutionContext) {
     this.text = new BackedText(storage, units => context.cooperate(units));
     this.release = context.onClose(() => this.close());
   }
@@ -39,10 +39,11 @@ export class RetainedOptions {
       for (const [sources, target] of [[options.includeInHeader, result.header], [options.includeBeforeBody, result.before], [options.includeAfterBody, result.after]] as const) {
         for (const source of sources ?? []) {
           context.charge("includes", 1);
-          const references = Number.isFinite(context.limits.references), chunks = "bytes" in source ? [source.bytes] : source.chunks;
-          await context.decodeUtf8To(references ? retainInput(chunks, context, storage, ["inputBytes", "resourceBytes"]) : chunks, async chunk => {
+          const retained = Number.isFinite(context.limits.retainedBytes), references = Number.isFinite(context.limits.references) || retained, startUnits = target.units, chunks = "bytes" in source ? [source.bytes] : source.chunks;
+          await context.decodeUtf8To(references ? retainInput(chunks, context, storage, ["inputBytes", "resourceBytes"], retained) : chunks, async chunk => {
             await result.text.append(target, await result.text.from([chunk]));
-          }, references ? [] : ["inputBytes", "resourceBytes"]);
+          }, references ? [] : ["inputBytes", "resourceBytes"], !retained);
+          if (retained) context.charge("retainedBytes", (target.units - startUnits) * 2);
         }
       }
       if (options.metadata !== undefined) result.typedMetadata = await retainTypedMetadata(options.metadata, context, working, storage);
@@ -124,6 +125,7 @@ export class RetainedOptions {
       const text = this.text, before = this.before, after = this.after, body = value;
       value = await text.from((async function* () {yield* text.chunks(before); yield* text.chunks(body); yield* text.chunks(after);})());
     }
+    this.context.charge("retainedBytes", value.units * 2);
     return () => this.text.unicodeChunks(value);
   }
 }

@@ -76,3 +76,54 @@ for (const mode of ["format", "c14n", "exc-c14n"] as const) for (const format of
     } finally { await document.close(); }
   });
 }
+
+for (const mode of ["format", "c14n", "exc-c14n"] as const) for (const formatted of [false, true])
+test(`deep ${mode} (formatted=${formatted}) serialization stores pending ancestry in caller backing`, async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const depth = 300;
+  const input = '<r xmlns:p="urn:p">' + '<x>'.repeat(depth) + '<p:leaf/>' + '</x>'.repeat(depth) + '</r>';
+  const document = await StoredXmlDocument.parse([input], { fs, cwd: "/", env: {}, signal }, budget, 1);
+  let allocations = 0;
+  const allocate = document.storage.allocate.bind(document.storage);
+  document.storage.allocate = length => { allocations += length; return allocate(length); };
+  try {
+    let actual = "", expected = "";
+    for await (const part of serializeDocument(parseXml(input), mode, budget, formatted)) expected += part;
+    for await (const part of serializeDocument(document, mode, budget, formatted)) { await Promise.resolve(); actual += part; }
+    assert.equal(actual, expected);
+    assert.ok(allocations > 16384, "pending traversal frames must be stored, not retained in iterator closures");
+  } finally { await document.close(); }
+  assert.deepEqual(await fs.readdir("/"), []);
+});
+
+for (const cancel of [false, true]) test(`serializer retires stored frames after backing failure (cancel=${cancel})`, async () => {
+  const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("frame backing failed");
+  let serializing = false, opened = 0, closed = 0;
+  const injected = new Proxy(fs, { get(target, key) {
+    if (key === "open") return async (...args: Parameters<typeof fs.open>) => {
+      const handle = await fs.open(...args); opened++;
+      return new Proxy(handle, { get(descriptor, member) {
+        if (member === "write") return async (...args: Parameters<typeof handle.write>) => {
+          assert.ok(args[0].length <= 16384);
+          if (serializing) { if (cancel) controller.abort(failure); throw failure; }
+          return handle.write(...args);
+        };
+        if (member === "close") return async () => { closed++; await handle.close(); };
+        const value = Reflect.get(descriptor, member, descriptor);
+        return typeof value === "function" ? value.bind(descriptor) : value;
+      } });
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const budget = new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {});
+  const document = await StoredXmlDocument.parse(['<r>' + '<x>'.repeat(200) + 'text' + '</x>'.repeat(200) + '</r>'],
+    { fs: injected, cwd: "/", env: {}, signal: controller.signal }, budget, 1);
+  serializing = true;
+  try {
+    await assert.rejects(async () => { for await (const part of serializeDocument(document, "format", budget, false)) assert.ok(part.length <= 4096); }, error => error === failure);
+  } finally { await document.close(); }
+  assert.equal(opened, 1); assert.equal(closed, opened);
+  assert.deepEqual(await fs.readdir("/"), []);
+});

@@ -34,3 +34,8 @@ Other query prefixes resolve through namespace declarations on the document root
 matching uses namespace URIs, so aliases for the same URI select the same nodes.
 Unprefixed names select nodes with no namespace. Use
 `//*[local-name()="item"]` to select elements regardless of namespace.
+
+Stored formatting and canonicalization also place pending traversal frames in the
+caller-backed page store. Canonical namespace validation follows stored tree links;
+indentation is emitted in fixed windows. Parser ancestry and individual namespace
+metadata/tokens still require separate memory qualification.

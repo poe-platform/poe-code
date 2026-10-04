@@ -83,6 +83,79 @@ async function attributes(
   return selected;
 }
 
+type Reference = XmlContent | number;
+interface Frame {
+  content: Reference | string;
+  depth: number;
+  namespaces: ReadonlyMap<string, string>;
+  preserveSpace: boolean;
+  preserveBlanks: boolean;
+  inline: boolean;
+}
+
+/** Pending traversal state belongs to the same caller-backed cache as nodes.
+ * Reverse links in place to schedule siblings in order without retaining them. */
+class StoredFrames {
+  private head = 0;
+  private readonly namespaces = new WeakMap<ReadonlyMap<string, string>, number>();
+  constructor(private readonly document: StoredXmlDocument) {}
+
+  private async store(value: unknown): Promise<number> {
+    const bytes = new TextEncoder().encode(JSON.stringify(value));
+    const header = new Uint8Array(8);
+    new DataView(header.buffer).setFloat64(0, bytes.length, true);
+    const reference = await this.document.storage.append(header);
+    await this.document.storage.append(bytes);
+    return reference;
+  }
+
+  private async load(reference: number): Promise<unknown> {
+    const size = await this.document.storage.read(reference, 8);
+    const length = new DataView(size.buffer, size.byteOffset, 8).getFloat64(0, true);
+    return JSON.parse(new TextDecoder().decode(await this.document.storage.read(reference + 8, length)));
+  }
+
+  async push(source: AsyncIterable<Frame>): Promise<void> {
+    let reversed = 0;
+    for await (const frame of source) {
+      const checkpoint = this.document.budget.tick(); if (checkpoint) await checkpoint;
+      let namespaces = this.namespaces.get(frame.namespaces);
+      if (namespaces === undefined) {
+        namespaces = await this.store([...frame.namespaces]);
+        this.namespaces.set(frame.namespaces, namespaces);
+      }
+      const value = await this.store({ ...frame, namespaces });
+      const link = new Uint8Array(16), view = new DataView(link.buffer);
+      view.setFloat64(0, reversed, true); view.setFloat64(8, value, true);
+      reversed = await this.document.storage.append(link);
+    }
+    while (reversed) {
+      const checkpoint = this.document.budget.tick(); if (checkpoint) await checkpoint;
+      const link = await this.document.storage.read(reversed, 8);
+      const view = new DataView(link.buffer, link.byteOffset, 8), previous = view.getFloat64(0, true);
+      view.setFloat64(0, this.head, true);
+      await this.document.storage.write(reversed, link);
+      this.head = reversed; reversed = previous;
+    }
+  }
+
+  async pop(): Promise<Frame | undefined> {
+    if (!this.head) return undefined;
+    const link = await this.document.storage.read(this.head, 16);
+    const view = new DataView(link.buffer, link.byteOffset, 16);
+    this.head = view.getFloat64(0, true);
+    const frame = await this.load(view.getFloat64(8, true)) as Omit<Frame, "namespaces"> & { namespaces: number };
+    const namespaces = new Map(await this.load(frame.namespaces) as [string, string][]);
+    this.namespaces.set(namespaces, frame.namespaces);
+    return { ...frame, namespaces };
+  }
+}
+
+function* indentation(depth: number): Generator<string> {
+  yield "\n";
+  for (let left = depth; left > 0; left -= 2048) yield "  ".repeat(Math.min(left, 2048));
+}
+
 export async function* serializeDocument(
   source: XmlElement | StoredXmlDocument,
   mode: DocumentMode,
@@ -90,7 +163,6 @@ export async function* serializeDocument(
   format = mode === "format",
   options: { noblanks?: boolean; declaration?: string | undefined } = {}
 ): AsyncGenerator<string> {
-  type Reference = XmlContent | number;
   const stored = source instanceof StoredXmlDocument ? source : undefined;
   const rootReference: Reference = stored ? stored.root : source as XmlElement;
   const load = async (reference: Reference): Promise<XmlContent> => {
@@ -108,11 +180,21 @@ export async function* serializeDocument(
   const escaping = { canonical, ascii: !canonical && !documentDeclaration?.includes("encoding") };
   if (canonical) {
     // Iterators retain only the active ancestry, never an array of all siblings.
-    const pending: AsyncIterator<Reference>[] = [(async function* () { yield rootReference; })()];
-    while (pending.length) {
-      const next = await pending.at(-1)!.next();
-      if (next.done) { pending.pop(); continue; }
-      const element = await load(next.value);
+    async function* descendants(): AsyncGenerator<Reference> {
+      if (stored) {
+        for await (const entry of stored.walk(stored.root)) if (!entry.closing) yield entry.reference;
+      } else {
+        const pending: AsyncIterator<Reference>[] = [(async function* () { yield rootReference; })()];
+        while (pending.length) {
+          const next = await pending.at(-1)!.next();
+          if (next.done) { pending.pop(); continue; }
+          yield next.value;
+          pending.push(children(next.value));
+        }
+      }
+    }
+    for await (const reference of descendants()) {
+      const element = await load(reference);
       if (element.kind !== "element") continue;
       { const p = budget.tick(); if (p) await p; }
       for (const [prefix, uri] of element.namespaces) {
@@ -125,17 +207,8 @@ export async function* serializeDocument(
         }
         if (!absolute) throw new XmlQueryError("Failed to canonicalize: relative namespace URI", 6);
       }
-      pending.push(children(next.value));
     }
   } else yield declaration(documentDeclaration);
-  interface Frame {
-    content: Reference | string;
-    depth: number;
-    namespaces: ReadonlyMap<string, string>;
-    preserveSpace: boolean;
-    preserveBlanks: boolean;
-    inline: boolean;
-  }
   const namespaces = new Map<string, string>([["xml", xml]]);
   async function* siblings(): AsyncGenerator<Reference> {
     if (stored) yield* stored.children(stored.document);
@@ -187,12 +260,23 @@ export async function* serializeDocument(
       }
     } finally { await iterator.return(undefined); }
   }
-  const pending: AsyncIterator<Frame>[] = [documentFrames()];
-  while (pending.length) {
+  const pending: AsyncIterator<Frame>[] = [];
+  const frames = stored ? new StoredFrames(stored) : undefined;
+  async function push(source: AsyncIterable<Frame>): Promise<void> {
+    if (frames) await frames.push(source);
+    else pending.push(source[Symbol.asyncIterator]());
+  }
+  await push(documentFrames());
+  while (true) {
     { const p = budget.tick(); if (p) await p; }
-    const next = await pending.at(-1)!.next();
-    if (next.done) { pending.pop(); continue; }
-    const frame = next.value;
+    let frame: Frame | undefined;
+    if (frames) frame = await frames.pop();
+    else while (pending.length) {
+      const next = await pending.at(-1)!.next();
+      if (next.done) pending.pop();
+      else { frame = next.value; break; }
+    }
+    if (!frame) break;
     if (typeof frame.content === "string") { yield frame.content; continue; }
     const reference = frame.content;
     const current = await load(reference);
@@ -226,17 +310,21 @@ export async function* serializeDocument(
       if (!count && !canonical) { yield "/>"; continue; }
       yield ">";
       const indent = !canonical && format && !frame.inline && !mixed && count > 0;
-      const childNamespaces = new Map(frame.namespaces);
-      if (canonical) for (const attribute of ordered) {
-        if (attribute.namespace === xmlns) childNamespaces.set(attribute.localName, attribute.value);
+      let childNamespaces = frame.namespaces;
+      if (canonical && ordered.some(attribute => attribute.namespace === xmlns)) {
+        const changed = new Map(frame.namespaces);
+        for (const attribute of ordered) if (attribute.namespace === xmlns) changed.set(attribute.localName, attribute.value);
+        childNamespaces = changed;
       }
       const childFrame = { depth: frame.depth + 1, namespaces: childNamespaces, preserveSpace, preserveBlanks, inline: frame.inline || mixed };
-      pending.push((async function* (): AsyncGenerator<Frame> {
+      const parentFrame = frame;
+      await push((async function* (): AsyncGenerator<Frame> {
         for await (const child of selectedChildren(reference, preserveSpace, preserveBlanks)) {
-          if (indent) yield { ...childFrame, content: "\n" + "  ".repeat(childFrame.depth) };
+          if (indent) for (const part of indentation(childFrame.depth)) yield { ...childFrame, content: part };
           yield { ...childFrame, content: child.reference };
         }
-        yield { ...frame, content: `${indent ? "\n" + "  ".repeat(frame.depth) : ""}</${current.name}>` };
+        if (indent) for (const part of indentation(parentFrame.depth)) yield { ...parentFrame, content: part };
+        yield { ...parentFrame, content: `</${current.name}>` };
       })());
     } else if (current.kind === "text" || (current.kind === "cdata" && canonical)) {
       for await (const part of typeof reference === "number" ? stored!.text(reference) : [current.text])

@@ -78,3 +78,12 @@ and that replay begins only after serialization and shell output-budget admissio
 This fallback retains the backend's ordinary write guarantees; it does not add
 atomicity to a backend without it. Measure both paths with the Worker procedure
 above; local deterministic spill tests alone are not Worker qualification.
+
+### Deep XML serialization
+
+Generate increasing nesting depths with formatting on/off and both canonical modes.
+Measure parser and serializer phases separately: parser ancestry remains resident,
+while pending serialization frames use the injected document backing. Verify frame
+allocations reach external storage, indentation chunks stay bounded, namespace
+rebindings match native xmllint, and backing failures/cancellation retire handles.
+Include wide sibling sets to capture traversal spill volume and first-byte cost.

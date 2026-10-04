@@ -146,6 +146,7 @@
           "dependencies": {},
           "devDependencies": {
             "@poe-code/pdf-ast": "*",
+            "@poe-code/safe-fs": "*",
             "safe-bash-contracts": "*"
           },
           "portable": true

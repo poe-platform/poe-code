@@ -43,9 +43,10 @@ class MarkdownTape {
   private async put(position: number, value: number): Promise<void> {const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, value, true); await this.storage.write(position, bytes);}
   private async push(job: Job): Promise<void> {this.top = await this.record({parent: this.top, job: {projection: this.projection, ...job}});}
   private async addProjection(units: number, projection = this.projection): Promise<void> {
-    if (!projection || !Number.isFinite(this.context.limits.references)) return;
+    if (!projection || !Number.isFinite(this.context.limits.references) && !Number.isFinite(this.context.limits.retainedBytes)) return;
     const length = await this.pointer(projection) + units;
     this.context.bound("outputBytes", length);
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", units * 2);
     this.context.charge("references", 1);
     await this.put(projection, length);
   }
@@ -70,7 +71,7 @@ class MarkdownTape {
   private async literal(value: string): Promise<TextRange> {return this.text.from([value]);}
   private reserve(units: number): void {
     if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.context.bound("outputBytes", units);
-    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", units * 2);
+    if (!this.projection && Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", units * 2);
   }
   private async join(...values: TextRange[]): Promise<TextRange> {
     this.reserve(values.reduce((length, value) => length + value.units, 0));
@@ -215,7 +216,7 @@ class MarkdownTape {
         if (job.mode === "surround") result = await this.join(await this.literal(job.first!), result, await this.literal(job.rest!));
         if (job.mode === "indent") result = result.units || job.first === "> " ? await this.indent(result, job.first!, job.rest!) : await this.literal(job.first!.trimEnd());
         if (job.mode === "escape") result = await this.escape(result);
-        if (job.mode === "trim") result = await this.text.trimFinalNewline(result);
+        if (job.mode === "trim") {if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 2); result = await this.text.trimFinalNewline(result);}
         continue;
       }
       if (job.op === "parts" || job.op === "list") {
@@ -336,6 +337,10 @@ class MarkdownTape {
             if (loss) await this.loss(job.path, "code language");
           }
           this.reserve(original.units * 2);
+          if (job.cell && Number.isFinite(this.context.limits.retainedBytes)) {
+            const normalized = await this.code(original, false);
+            this.reserve(normalized.units * 2);
+          }
           const value = await this.code(original, tag === "CodeBlock", job.cell), details = await this.inspect(value), size = Math.max(tag === "CodeBlock" ? 3 : 1, details.run + 1);
           this.reserve(value.units + size * 2 + (tag === "CodeBlock" ? info.units : 0) + 2);
           if (tag === "CodeBlock") result = await this.join(await this.repeat("`", size), info, await this.literal("\n"), value, await this.literal(details.last === "\n" ? "" : "\n"), await this.repeat("`", size));
@@ -410,13 +415,16 @@ class MarkdownTape {
     return result;
   }
   private async tableEscape(value: TextRange): Promise<TextRange> {
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", value.units * 2);
     const source = this.text.unicodeChunks(value), projection = this.projection;
     const context = this.context; let length = projection ? await this.pointer(projection) : 0;
     const result = await this.text.from((async function* () {let output = "";
       for await (const chunk of source) for (const char of chunk) {
         const escaped = "\\`*_{}[]<>|!#".includes(char) ? `\\${char}` : "\n\r\t".includes(char) ? " " : char;
-        if (projection && Number.isFinite(context.limits.references)) {
-          length += escaped.length; context.bound("outputBytes", length); context.charge("references", 1);
+        if (projection && (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes))) {
+          length += escaped.length; context.bound("outputBytes", length);
+          if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", escaped.length * 2);
+          context.charge("references", 1);
         }
         output += escaped;
         if (output.length >= 4096) {yield output; output = "";}
@@ -499,6 +507,7 @@ class MarkdownTape {
         }
         return result;
       }
+      if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 2);
       let headLength = 0;
       headLine: for await (const chunk of this.text.chunks(result)) for (const char of chunk) {headLength += char.length; if (char === "\n") break headLine;}
       await this.addProjection(headLength); await this.addProjection(2);

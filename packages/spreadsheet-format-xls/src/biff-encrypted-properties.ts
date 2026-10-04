@@ -1,12 +1,12 @@
-import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { Binary, invalidBiff } from "./biff-binary.js";
 import { biffPropertyFormats } from "./biff-properties.js";
-import { readBiffPropertySections, readBiffPropertyValues } from "./biff-properties-layout.js";
+import { propertyRange, readPropertySectionRanges, readPropertyValueRanges } from "./biff-property-range.js";
 
 /** Admit the outer container and reject hidden plaintext property collisions
  * before asking for a password. POI emits an empty document-summary placeholder. */
-export function encryptedBiffPropertyStream(streams: ReadonlyMap<string, Uint8Array> | undefined,
-  context: CapabilityContext, charge: (amount: number) => void): Uint8Array {
+export async function encryptedBiffPropertyStream(streams: ReadonlyMap<string, Uint8Array> | undefined,
+  context: CapabilityContext, charge: (amount: number) => void, propertySources?: ReadonlyMap<string, RangeSource>): Promise<Uint8Array> {
   let encrypted: Uint8Array | undefined, nodes = 0;
   const names = new Set<string>();
   const admit = (count: number) => {
@@ -19,13 +19,15 @@ export function encryptedBiffPropertyStream(streams: ReadonlyMap<string, Uint8Ar
     if (!["ENCRYPTION", "\u0005SUMMARYINFORMATION", "\u0005DOCUMENTSUMMARYINFORMATION"].includes(key)) continue;
     if (names.has(key)) invalidBiff("duplicate encrypted property stream"); names.add(key);
     if (key === "ENCRYPTION") { encrypted = bytes; continue; }
-    if (!bytes.length) continue;
+    const file = propertyRange(propertySources?.get(name) ?? bytes, context);
+    if (file.size > context.limits.inputBytes) invalidBiff("invalid property source size");
+    if (!file.size) continue;
     if (key === "\u0005SUMMARYINFORMATION") invalidBiff("ambiguous plaintext document properties");
-    charge(bytes.length);
-    for (const section of readBiffPropertySections(bytes, admit, charge)) {
+    charge(file.size);
+    for (const section of await readPropertySectionRanges(file, admit, charge)) {
       if (![biffPropertyFormats.document, biffPropertyFormats.custom].includes(section.guid)) invalidBiff("ambiguous plaintext document properties");
-      const values = readBiffPropertyValues(new Binary(bytes.subarray(section.offset, section.end)), admit, charge);
-      for (const [id, value] of values) if (id > 1 || id === 0 && value.u32(0) !== 0 || id === 1 && value.u32(0) !== 2)
+      const values = await readPropertyValueRanges(file.slice(section.offset, section.end - section.offset), admit, charge);
+      for (const [id, value] of values) if (id > 1 || id === 0 && (await value.u32(0)) !== 0 || id === 1 && (await value.u32(0)) !== 2)
         invalidBiff("ambiguous plaintext document properties");
     }
   }

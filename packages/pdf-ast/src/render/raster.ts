@@ -12,7 +12,7 @@ import type { PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, Pdf
 import { applyPredictor, decodeFlate, encodeFlate, encodeLzw } from "../cos/filters.js";
 import { flattenCubic, flattenCubicPoints } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
-import { strokeOutlines, type StrokePoint, type StrokeSubpath } from "./stroke.js";
+import { strokeOutlinePoints, type StrokePoint, type StrokeSubpath } from "./stroke.js";
 
 export interface RgbaBitmap {
   readonly width: number;
@@ -722,7 +722,7 @@ function prepareStroke(path: PdfEvaluatedPath, scale: number) {
   return { matrix, width, dashArray, dashPhase };
 }
 
-function *strokeContoursSteps(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0): Generator<void, StrokePoint[][], void> {
+function *strokeContoursSteps(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0, offsetX = 0, offsetY = 0): Generator<void, Iterable<StrokePoint | undefined>, void> {
   const stroke = prepareStroke(path, scale);
   if (!stroke) return [];
   const inverse = inverseStrokeMatrix(stroke.matrix);
@@ -736,31 +736,32 @@ function *strokeContoursSteps(path: PdfEvaluatedPath, pageHeight: number, scale:
     (inverse[1]! * x + inverse[3]! * y + inverse[5]!) * strokeScale,
   ];
   const toScreen = ([x, y]: StrokePoint): StrokePoint => [
-    (a * x / strokeScale + c * y / strokeScale + e - originX) * scale,
-    (pageHeight + originY - b * x / strokeScale - d * y / strokeScale - f) * scale,
+    (a * x / strokeScale + c * y / strokeScale + e - originX) * scale - offsetX,
+    (pageHeight + originY - b * x / strokeScale - d * y / strokeScale - f) * scale - offsetY,
   ];
-  const contours = strokeOutlines((yield* segmentsToScreenPathsSteps(path.segments, pageHeight, scale, project)),
-    stroke.width * strokeScale, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10,
-    stroke.dashArray?.map(value => Math.max(0, value * strokeScale)), stroke.dashPhase * strokeScale);
-  return contours.map(points => points.map(toScreen));
+  const paths = yield* segmentsToScreenPathsSteps(path.segments, pageHeight, scale, project);
+  const dash = stroke.dashArray?.map(value => Math.max(0, value * strokeScale));
+  return { *[Symbol.iterator]() {
+    for (const point of strokeOutlinePoints(paths, stroke.width * strokeScale, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10, dash, stroke.dashPhase * strokeScale)) {
+      yield point ? toScreen(point) : undefined;
+    }
+  }};
 }
 
-function *pathsToEdgesSteps(paths: readonly StrokeSubpath[], closeSubpaths = false): Generator<void, Edge[], void> {
-  let work = 0;
-  const edges: Edge[] = [];
-  for (const { points, closed } of paths) {
-    if (++work % 16384 === 0) yield;
-    for (let i = 1; i < points.length; i++) {
-    if (++work % 16384 === 0) yield;
-      const a = points[i - 1]!, b = points[i]!;
-      edges.push({ x0: a[0], y0: a[1], x1: b[0], y1: b[1] });
+function strokeEdges(contours: Iterable<StrokePoint | undefined>): Iterable<Edge> {
+  return { *[Symbol.iterator]() {
+    let first: StrokePoint | undefined, previous: StrokePoint | undefined, count = 0;
+    for (const point of contours) {
+      if (point) {
+        if (previous) yield {x0:previous[0], y0:previous[1], x1:point[0], y1:point[1]};
+        else first = point;
+        previous = point; count++;
+      } else {
+        if (count > 1) yield {x0:previous![0], y0:previous![1], x1:first![0], y1:first![1]};
+        first = previous = undefined; count = 0;
+      }
     }
-    if ((closed || closeSubpaths) && points.length > 1) {
-      const a = points[points.length - 1]!, b = points[0]!;
-      edges.push({ x0: a[0], y0: a[1], x1: b[0], y1: b[1] });
-    }
-  }
-  return edges;
+  }};
 }
 
 const SUB_OFFSETS_4X4 = [0.125, 0.375, 0.625, 0.875] as const;
@@ -1155,7 +1156,7 @@ function *renderDisplayListLayerSteps(
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
         const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
           ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
-        const edges = (yield* pathsToEdgesSteps((yield* strokeContoursSteps(path, displayList.height, scale, originX, originY)).map(points => ({ points: window ? points.map(([x, y]) => [x - offsetX, y - offsetY] as StrokePoint) : points, closed: true }))));
+        const edges = strokeEdges(yield* strokeContoursSteps(path, displayList.height, scale, originX, originY, offsetX, offsetY));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
           ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
         (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
@@ -1796,7 +1797,12 @@ function strokeContours(
   const steps = strokeContoursSteps(path, pageHeight, scale, originX, originY);
   let next = steps.next();
   while (!next.done) next = steps.next();
-  return next.value;
+  const contours: StrokePoint[][] = []; let contour: StrokePoint[] = [];
+  for (const point of next.value) {
+    if (point) contour.push(point);
+    else {contours.push(contour); contour = [];}
+  }
+  return contours;
 }
 
 function renderSoftMask(

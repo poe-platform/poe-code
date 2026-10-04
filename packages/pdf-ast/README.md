@@ -582,9 +582,10 @@ Retained mesh shading streams free-form triangles and stores lattice vertices
 and patch control points in the caller's filesystem. Fixed caches and one-patch
 tessellation preserve global subdivision density without retaining a whole mesh.
 Fill and clip rasterization replay projected edges and cubic points with
-row-sized crossing scratch; scratch is local to each render. Color-function
-snapshots, parser path segments, and stroke outlines still have separate memory
-ownership.
+row-sized crossing scratch; scratch is local to each render. Stroke outlines
+and their projected raster edges also stream. Color-function snapshots, parser
+path segments, stroke point normalization, and dash expansion still have separate
+memory ownership.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in
 bitmap and SVG output, including uncolored tiles and transformed Forms.

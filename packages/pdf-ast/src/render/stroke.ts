@@ -91,64 +91,64 @@ function dashSubpath(path: StrokeSubpath, pattern: readonly number[], phase: num
   return result;
 }
 
-/** Generate AGG's two-sided stroke contours in device coordinates. */
-export function strokeOutlines(
+/** Generate AGG stroke points in device coordinates; undefined ends a contour.
+ * Generated outlines are streamed. Dash expansion and input point normalization
+ * retain their own ownership and vertex admission. */
+export function* strokeOutlinePoints(
   paths: readonly StrokeSubpath[], width: number, cap: 0 | 1 | 2,
   join: 0 | 1 | 2, miterLimit: number, dashArray: readonly number[] = [], dashPhase = 0
-): StrokePoint[][] {
+): Generator<StrokePoint | undefined, void, void> {
   const half = width / 2;
-  const contours: StrokePoint[][] = [];
   const pattern = dashArray.length % 2 ? [...dashArray, ...dashArray] : dashArray;
   let count = 0;
-  let contour: StrokePoint[] = [];
-  const add = (x: number, y: number) => {
+  function* add(x: number, y: number): Generator<StrokePoint, void, void> {
     if (++count > MAX_STROKE_VERTICES) throw new PdfError("E_LIMIT", "Stroke outline exceeds the vertex limit");
-    contour.push([x, y]);
+    yield [x, y];
   };
-  const arc = (point: StrokePoint, dx1: number, dy1: number, dx2: number, dy2: number) => {
+  function* arc(point: StrokePoint, dx1: number, dy1: number, dx2: number, dy2: number): Generator<StrokePoint, void, void> {
     let a1 = Math.atan2(dy1, dx1), a2 = Math.atan2(dy2, dx2);
     const ccw = a1 - a2 > 0 && a1 - a2 < Math.PI;
     const step = Math.acos(half / (half + 0.125)) * 2;
-    add(point[0] + dx1, point[1] + dy1);
+    yield* add(point[0] + dx1, point[1] + dy1);
     if (step > 0) {
       if (!ccw) {
         if (a1 > a2) a2 += 2 * Math.PI;
         a2 -= step / 4;
         if ((a2 - a1) / step > MAX_STROKE_VERTICES - count) throw new PdfError("E_LIMIT", "Stroke arc exceeds the vertex limit");
-        for (a1 += step; a1 < a2; a1 += step) add(point[0] + half * Math.cos(a1), point[1] + half * Math.sin(a1));
+        for (a1 += step; a1 < a2; a1 += step) yield* add(point[0] + half * Math.cos(a1), point[1] + half * Math.sin(a1));
       } else {
         if (a1 < a2) a2 -= 2 * Math.PI;
         a2 += step / 4;
         if ((a1 - a2) / step > MAX_STROKE_VERTICES - count) throw new PdfError("E_LIMIT", "Stroke arc exceeds the vertex limit");
-        for (a1 -= step; a1 > a2; a1 -= step) add(point[0] + half * Math.cos(a1), point[1] + half * Math.sin(a1));
+        for (a1 -= step; a1 > a2; a1 -= step) yield* add(point[0] + half * Math.cos(a1), point[1] + half * Math.sin(a1));
       }
     }
-    add(point[0] + dx2, point[1] + dy2);
+    yield* add(point[0] + dx2, point[1] + dy2);
   };
-  const addCap = (point: StrokePoint, next: StrokePoint) => {
+  function* addCap(point: StrokePoint, next: StrokePoint): Generator<StrokePoint, void, void> {
     const length = Math.hypot(next[0] - point[0], next[1] - point[1]);
     const dx = half * (next[1] - point[1]) / length;
     const dy = half * (next[0] - point[0]) / length;
     if (cap !== 1) {
       const sx = cap === 2 ? dy : 0, sy = cap === 2 ? dx : 0;
-      add(point[0] - dx - sx, point[1] + dy - sy);
-      add(point[0] + dx - sx, point[1] - dy - sy);
+      yield* add(point[0] - dx - sx, point[1] + dy - sy);
+      yield* add(point[0] + dx - sx, point[1] - dy - sy);
     } else {
       const angle = Math.atan2(dy, -dx);
       const step = Math.max(0.001, Math.acos(half / (half + 0.125)) * 2);
-      add(point[0] - dx, point[1] + dy);
-      for (let a = angle + step; a < angle + Math.PI - step / 4; a += step) add(point[0] + half * Math.cos(a), point[1] + half * Math.sin(a));
-      add(point[0] + dx, point[1] - dy);
+      yield* add(point[0] - dx, point[1] + dy);
+      for (let a = angle + step; a < angle + Math.PI - step / 4; a += step) yield* add(point[0] + half * Math.cos(a), point[1] + half * Math.sin(a));
+      yield* add(point[0] + dx, point[1] - dy);
     }
   };
-  const addJoin = (prev: StrokePoint, point: StrokePoint, next: StrokePoint) => {
+  function* addJoin(prev: StrokePoint, point: StrokePoint, next: StrokePoint): Generator<StrokePoint, void, void> {
     const len1 = Math.hypot(point[0] - prev[0], point[1] - prev[1]);
     const len2 = Math.hypot(next[0] - point[0], next[1] - point[1]);
     const dx1 = half * (point[1] - prev[1]) / len1, dy1 = half * (point[0] - prev[0]) / len1;
     const dx2 = half * (next[1] - point[1]) / len2, dy2 = half * (next[0] - point[0]) / len2;
     const inner = (next[0] - point[0]) * (point[1] - prev[1]) - (next[1] - point[1]) * (point[0] - prev[0]) > 0;
     if (!inner && join === 1) {
-      arc(point, dx1, -dy1, dx2, -dy2);
+      yield* arc(point, dx1, -dy1, dx2, -dy2);
       return;
     }
     if (inner || join === 0) {
@@ -161,17 +161,17 @@ export function strokeOutlines(
         const t = ((ay - cy) * (dx - cx) - (ax - cx) * (dy - cy)) / den;
         const x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
         if (Math.hypot(x - point[0], y - point[1]) <= half * (inner ? 1.01 : miterLimit)) {
-          add(x, y);
+          yield* add(x, y);
           return;
         }
       } else if (((bx - prev[0]) * dy1 - (prev[1] - by) * dx1 < 0) !== ((bx - next[0]) * dy1 - (next[1] - by) * dx1 < 0)) {
-        add(bx, by);
+        yield* add(bx, by);
         return;
       }
     }
     // PDFium maps PDF miter joins to miter_join_revert: bevel at the limit.
-    add(point[0] + dx1, point[1] - dy1);
-    add(point[0] + dx2, point[1] - dy2);
+    yield* add(point[0] + dx1, point[1] - dy1);
+    yield* add(point[0] + dx2, point[1] - dy2);
   };
   for (const path of paths) {
     for (const subpath of pattern.length ? dashSubpath(path, pattern, dashPhase) : [path]) {
@@ -184,36 +184,45 @@ export function strokeOutlines(
       if (closed && points.length > 1 && Math.hypot(points[0]![0] - points[points.length - 1]![0], points[0]![1] - points[points.length - 1]![1]) <= 1e-14) points.pop();
       if (points.length < 3) closed = false;
       if (points.length === 1 && cap === 2 && subpath.zeroLengthDash) {
-        contour = [];
         // Canvas/PDF.js uses a user-axis square for a zero-length dash.
         const [x, y] = points[0]!;
-        add(x - half, y - half);
-        add(x + half, y - half);
-        add(x + half, y + half);
-        add(x - half, y + half);
-        contours.push(contour);
+        yield* add(x - half, y - half);
+        yield* add(x + half, y - half);
+        yield* add(x + half, y + half);
+        yield* add(x - half, y + half);
+        yield undefined;
       } else if (points.length === 1 && subpath.points.length > 1 && cap === 1) {
-        contour = [];
         const [x, y] = points[0]!;
-        addCap([x, y], [x + 1, y]);
-        addCap([x, y], [x - 1, y]);
-        contours.push(contour);
+        yield* addCap([x, y], [x + 1, y]);
+        yield* addCap([x, y], [x - 1, y]);
+        yield undefined;
       } else if (points.length >= 2) {
-        contour = [];
-        if (!closed) addCap(points[0]!, points[1]!);
+        if (!closed) yield* addCap(points[0]!, points[1]!);
         for (let i = closed ? 0 : 1; i < points.length - (closed ? 0 : 1); i++) {
-          addJoin(points[(i + points.length - 1) % points.length]!, points[i]!, points[(i + 1) % points.length]!);
+          yield* addJoin(points[(i + points.length - 1) % points.length]!, points[i]!, points[(i + 1) % points.length]!);
         }
         if (closed) {
-          contours.push(contour);
-          contour = [];
-        } else addCap(points[points.length - 1]!, points[points.length - 2]!);
+          yield undefined;
+        } else yield* addCap(points[points.length - 1]!, points[points.length - 2]!);
         for (let i = points.length - (closed ? 1 : 2); i >= (closed ? 0 : 1); i--) {
-          addJoin(points[(i + 1) % points.length]!, points[i]!, points[(i + points.length - 1) % points.length]!);
+          yield* addJoin(points[(i + 1) % points.length]!, points[i]!, points[(i + points.length - 1) % points.length]!);
         }
-        contours.push(contour);
+        yield undefined;
       }
     }
+  }
+}
+
+/** Buffered convenience adapter for callers that need complete contours. */
+export function strokeOutlines(
+  paths: readonly StrokeSubpath[], width: number, cap: 0 | 1 | 2,
+  join: 0 | 1 | 2, miterLimit: number, dashArray: readonly number[] = [], dashPhase = 0
+): StrokePoint[][] {
+  const contours: StrokePoint[][] = [];
+  let contour: StrokePoint[] = [];
+  for (const point of strokeOutlinePoints(paths, width, cap, join, miterLimit, dashArray, dashPhase)) {
+    if (point) contour.push(point);
+    else {contours.push(contour); contour = [];}
   }
   return contours;
 }

@@ -242,3 +242,15 @@ it.each(["", "user", "user:password", "first@second"])("rejects file credentials
     expect(read).toBe(value.length);
   } finally {await context.close();}
 });
+
+it.each(["\ufdd0", "%EF%B7%90", "\u{10ffff}", "%F4%8F%BF%BF"])("rejects noncharacter %s without collecting the complete hostname", async suffix => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const value = "https://é" + "x".repeat(10000) + suffix + "/image";
+  const context = new ExecutionContext("convert", {});
+  const chunks = vi.fn(async function* () {for (let offset = 0; offset < value.length; offset += 127) yield value.slice(offset, offset + 127);});
+  try {
+    expect(await retainedImageOriginAllowed(chunks, context)).toBe(false);
+    expect(chunks).toHaveBeenCalledTimes(2);
+  } finally {await context.close();}
+});

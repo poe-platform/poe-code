@@ -65,6 +65,10 @@ export class AsciiUrlHost {
     this.used = 0;
   }
   private domain(char: string): void {
+    const point = char.codePointAt(0)!;
+    // IDNA disallows the Unicode noncharacters in every plane. Reject them
+    // before deferring valid Unicode to the native whole-host parser.
+    if (point >= 0xfdd0 && point <= 0xfdef || (point & 0xfffe) === 0xfffe) {this.invalid = true; return;}
     if (char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127 || "%#/:<>?@[\\]^|\ufffd".includes(char)) {this.invalid = true; return;}
     if (char.length !== 1 || char.charCodeAt(0) > 127) {this.native = true; return;}
     if (this.native) return;

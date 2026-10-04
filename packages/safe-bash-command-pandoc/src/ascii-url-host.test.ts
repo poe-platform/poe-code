@@ -27,3 +27,15 @@ it("matches native ASCII punctuation and forbidden domain code points", () => {
     expect(state.finish(), String(code)).toBe(URL.canParse(`http://${host}/`));
   }
 });
+
+it("rejects all Unicode noncharacters without native hostname collection", () => {
+  const points = [...Array.from({length: 32}, (_, index) => 0xfdd0 + index), ...Array.from({length: 17}, (_, plane) => [plane * 0x10000 + 0xfffe, plane * 0x10000 + 0xffff]).flat()];
+  for (const point of points) for (const encode of [false, true]) {
+    const scalar = String.fromCodePoint(point), host = "é" + (encode ? encodeURIComponent(scalar) : scalar) + "example";
+    expect(() => new URL(`https://${host}/`)).toThrow();
+    const state = new AsciiUrlHost();
+    // Feed UTF-16 units separately, including split supplementary scalars.
+    for (let index = 0; index < host.length; index++) state.write(host[index]!);
+    expect(state.finish(), `U+${point.toString(16)}, escaped=${encode}`).toBe(false);
+  }
+});

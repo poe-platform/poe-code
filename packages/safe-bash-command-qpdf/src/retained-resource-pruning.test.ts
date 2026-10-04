@@ -5,7 +5,7 @@ import { PdfDocument, cosArray, cosDict, cosName, cosStream, dictDelete, dictGet
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["direct", "indirect", "inherited", "transitive", "annotations", "escaped", "long", "split", "selection", "linearize", "slow", "boundary", "hex-tail", "pattern", "shared", "auto", "unsupported", "flatten", "resource-self", "page-self"]) it(`prunes ${mode} resources through caller storage`, async () => {
+for (const mode of ["direct", "indirect", "inherited", "transitive", "annotations", "escaped", "long", "split", "selection", "linearize", "slow", "boundary", "hex-tail", "pattern", "shared", "auto", "unsupported", "flatten", "resource-self", "page-self", "normalize"]) it(`prunes ${mode} resources through caller storage`, async () => {
   const document = PdfDocument.create(), page = document.addPage(), other = document.addPage();
   const font = document.cos.allocateObject(cosDict({ Type: cosName("Font"), BaseFont: cosName("Helvetica"), Subtype: cosName("Type1") }));
   const resources = cosDict({ Font: cosDict({ Used: font, Unused: font, Hidden: font }), XObject: cosDict({ Form: document.cos.allocateObject(cosStream(new TextEncoder().encode("/Hidden 10 Tf"))) }) });
@@ -27,7 +27,7 @@ for (const mode of ["direct", "indirect", "inherited", "transitive", "annotation
   }
   other.setRawContentStream(mode === "shared" ? "/Hidden 10 Tf" : "");
   if (mode === "unsupported") { const stream = document.cos.resolve(dictGet(page.dict, "Contents")); if (stream?.kind === "stream") dictSet(stream.dict, "Filter", cosName("Unsupported")); }
-  const input = document.save(), args = ["in.pdf", "out.pdf", mode === "auto" ? "--remove-unreferenced-resources=auto" : "--remove-unreferenced-resources=yes", ...(mode === "flatten" ? ["--flatten-rotation"] : []), ...(mode === "linearize" ? ["--linearize"] : []), ...(mode === "split" ? ["--split-pages"] : []), ...(mode === "selection" ? ["--pages", ".", "1,1", "--"] : [])];
+  const input = document.save(), args = ["in.pdf", "out.pdf", ...(mode === "normalize" ? ["--stream-data=uncompress"] : []), mode === "auto" ? "--remove-unreferenced-resources=auto" : "--remove-unreferenced-resources=yes", ...(mode === "flatten" ? ["--flatten-rotation"] : []), ...(mode === "linearize" ? ["--linearize"] : []), ...(mode === "split" ? ["--split-pages"] : []), ...(mode === "selection" ? ["--pages", ".", "1,1", "--"] : [])];
   let expectedError: Error | undefined, actualError: Error | undefined;
   const files = new Map([["in.pdf", input]]), expected = await runQpdfCli(args, files).catch((error: Error) => { expectedError = error; return { exitCode: 2, stdout: "", stderr: "" }; });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);

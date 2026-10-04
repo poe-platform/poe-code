@@ -9,8 +9,9 @@ export interface PdfRetainedOutputObject {
   readonly objectNumber: number;
   readonly generationNumber: number;
   readonly value: PdfCosNode;
-  /** Encoded bytes for a dictionary stream. Length must be known before output. */
-  readonly stream?: { readonly length: number; readonly chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> };
+  /** Encoded bytes for a dictionary stream. Length must be known before output.
+   * decoded records known decoded content; chunks still contain encoded bytes. */
+  readonly stream?: { readonly decoded?: boolean; readonly length: number; readonly chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> };
 }
 /** Pre-serialized object body (without obj/endobj). The producer owns COS
  * syntax and stream encoding; the writer validates identity and byte length. */

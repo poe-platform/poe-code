@@ -29,7 +29,7 @@ export function formatSplitName(template: string, total: number, group: number, 
 }
 
 export async function* splitPageOutputs(document: PdfRetainedDocument, storage: PdfIndexStorage, target: string, group: number,
-  edits: RetainedQpdfOptions["rotateSpecs"], signal: AbortSignal): AsyncGenerator<PdfOutputEntry> {
+  edits: RetainedQpdfOptions["rotateSpecs"], signal: AbortSignal, normalizeContent = false): AsyncGenerator<PdfOutputEntry> {
   const backing = edits.length ? new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4) : undefined;
   const rotations = backing ? new IntegerTable(backing) : undefined;
   let failed = false;
@@ -50,7 +50,7 @@ export async function* splitPageOutputs(document: PdfRetainedDocument, storage: 
     for (let start = 0; start < count; start += group) {
       signal.throwIfAborted(); const end = Math.min(count, start + group);
       function* indices() { for (let index = start; index < end; index++) yield index; }
-      yield { name: formatSplitName(target, count, group, start + 1, end), chunks: copyRetainedPagesChunks(document, indices(), storage, { metadata, signal, ...(pageRotation ? { pageRotation } : {}) }) };
+      yield { name: formatSplitName(target, count, group, start + 1, end), chunks: copyRetainedPagesChunks(document, indices(), storage, { metadata, signal, normalizeContent, ...(pageRotation ? { pageRotation } : {}) }) };
     }
   } catch (error) { failed = true; throw error; }
   finally { await backing?.close().catch(error => { if (!failed) return Promise.reject(error); }); }

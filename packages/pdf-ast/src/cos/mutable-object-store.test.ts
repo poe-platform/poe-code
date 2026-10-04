@@ -147,3 +147,17 @@ it("admits serialized values before consumption and leaves failed replacements u
   } finally { await store.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+
+it("records completed decoding without marking a replacement of the same identity", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const store = new PdfMutableObjectStore({ fs, directory: "/scratch" });
+  const object = { objectNumber: 1, generationNumber: 0, value: cosDict(), stream: { length: 1, chunks: [Uint8Array.of(1)] } };
+  try {
+    await store.set(object); const old = (await store.get(1))!;
+    await store.markDecoded(old); expect((await store.get(1))!.stream?.decoded).toBe(true);
+    await store.set(object); await store.markDecoded(old);
+    expect((await store.get(1))!.stream?.decoded).toBe(false);
+    await store.markDecoded((await store.get(1))!); expect((await store.get(1))!.stream?.decoded).toBe(true);
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

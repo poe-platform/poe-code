@@ -1,3 +1,4 @@
+import { cosNumber, dictSet } from "../ast.js";
 import { decryptedPdfStreamDictionary } from "./security.js";
 import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
@@ -6,6 +7,7 @@ import type { PdfIndexStorage } from "./object-index.js";
 import type { PdfRetainedOutputObject } from "./retained-writer.js";
 
 export interface PdfRetainedObjectsOptions {
+  readonly normalizeContent?: boolean;
   /** Number of live indirect objects admitted before parsing their values. */
   readonly maxObjects?: number;
   /** Encoded output payload bytes per stream, after decryption. */
@@ -36,6 +38,17 @@ export async function* retainedCosObjects(document: PdfRetainedDocument, storage
     if (!object) throw new PdfError("E_PARSE", "Missing indexed PDF object");
     const identity = { objectNumber: entry.objectNumber, generationNumber, value: object.value };
     if (!object.stream) { yield identity; continue; }
+    if (options.normalizeContent && object.decoded && object.value.kind === "dict") {
+      const decoded = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(entry.objectNumber, generationNumber), { ...(signal ? { signal } : {}), maxInputBytes: maxStreamBytes });
+      let failed = false;
+      try {
+        const value = { ...object.value, entries: object.value.entries.filter(item => !["Filter", "DecodeParms", "Length"].includes(item.key.decoded)) };
+        dictSet(value, "Length", cosNumber(decoded.size));
+        yield { ...identity, value, stream: { decoded: true, length: decoded.size, chunks: decoded.stream(0, decoded.size, signal) } };
+      } catch (error) { failed = true; throw error; }
+      finally { await decoded.close().catch(error => { if (!failed) throw error; }); }
+      continue;
+    }
     const encodedLength = object.stream.end - object.stream.start;
     if (!document.encryption && encodedLength > maxStreamBytes) throw new PdfError("E_LIMIT", "PDF retained stream byte limit exceeded");
     const decoded = document.objects.decodeStream(entry.objectNumber, generationNumber, { raw: true });
@@ -55,7 +68,7 @@ export async function* retainedCosObjects(document: PdfRetainedDocument, storage
         const value = await decryptedPdfStreamDictionary(document.encryption, entry.objectNumber, identity.value, staged.size,
           async node => node?.kind === "ref" ? (await document.lookup(node))?.value : node);
         yield { ...identity, value, stream: { length: staged.size, chunks: staged.stream(0, staged.size, signal) } };
-      } else yield { ...identity, stream: { length: encodedLength, chunks: checked } };
+      } else yield { ...identity, stream: { ...(object.decoded ? { decoded: true } : {}), length: encodedLength, chunks: checked } };
     } catch (error) { failed = true; throw error; }
     finally {
       const results = await Promise.allSettled([checked.return(undefined), decoded.return(undefined), staged?.close()]);

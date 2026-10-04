@@ -31,6 +31,7 @@ function restoreStringFormats(value: PdfCosNode): PdfCosNode {
  * Existing snapshots remain readable until close; obsolete bytes are reclaimed
  * when the store closes. Structural values are admitted by parser limits. */
 export class PdfMutableObjectStore {
+  private readonly receipts = new WeakMap<object, number>();
   private readonly backing: PagedStorage;
   private readonly index: IntegerTable;
   private readonly controller = new AbortController();
@@ -127,7 +128,7 @@ export class PdfMutableObjectStore {
       }
     }
     const record = new Uint8Array(64), view = new DataView(record.buffer);
-    [generation, valueAt, valueLength, streamAt, length, object.stream ? 1 : 0, outputValueAt, outputValueLength].forEach((value, i) => view.setFloat64(i * 8, value));
+    [generation, valueAt, valueLength, streamAt, length, object.stream ? object.stream.decoded ? 2 : 1 : 0, outputValueAt, outputValueLength].forEach((value, i) => view.setFloat64(i * 8, value));
     await this.backing.write(recordAt, record); this.signal.throwIfAborted();
     await this.index.set(BigInt(number), BigInt(recordAt)); this.highest = Math.max(this.highest, number);
   }
@@ -154,7 +155,18 @@ export class PdfMutableObjectStore {
         signal.throwIfAborted(); yield await backing.read(streamAt + offset, Math.min(16384, length - offset));
       }
     }
-    return { ...object, stream: { length, chunks: { [Symbol.asyncIterator]: chunks } } };
+    const stream = { length, chunks: { [Symbol.asyncIterator]: chunks }, decoded: hasStream === 2 };
+    this.receipts.set(stream, at);
+    return { ...object, stream };
+  }
+  /** Remember successful decoding only while this stream snapshot is current. */
+  markDecoded(object: PdfRetainedOutputObject): Promise<void> {
+    return this.operation(async () => {
+      const at = object.stream && this.receipts.get(object.stream); if (at === undefined) return;
+      if (await this.index.get(BigInt(object.objectNumber)) !== BigInt(at)) return;
+      const flag = new Uint8Array(8); new DataView(flag.buffer).setFloat64(0, 2);
+      await this.backing.write(at + 40, flag);
+    });
   }
   /** Enumerate live identities without parsing values or reading payloads. */
   async *identities(): AsyncGenerator<{ objectNumber: number; generationNumber: number }, void, void> {

@@ -14,6 +14,8 @@ import { PdfError } from "../errors.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 
 export interface CopyRetainedPageOptions {
+  /** Emit streams decoded by earlier edits without their encoded filters. */
+  readonly normalizeContent?: boolean;
   /** Override a source page's rotation before cloning its indirect values.
    * Return undefined to preserve the source; angles must be quarter turns. */
   readonly pageRotation?: (document: PdfRetainedDocument, index: number) => number | undefined | Promise<number | undefined>;
@@ -136,13 +138,19 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
         if (!original) return cosRef(0);
         if (!original.stream && original.value.kind === "dict" && dictGet(original.value, "Linearized") !== undefined) mayLinearize = true;
         const reference = await store.allocate(); await memo.set(BigInt(node.objectNumber), BigInt(reference.objectNumber));
-        const value = await clone(original.value, depth + 1);
+        let value = await clone(original.value, depth + 1);
         if (original.stream) {
           // Decrypted encoded streams can change length, so admit a retained
           // snapshot before constructing the target stream's /Length.
-          const source = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(original.objectNumber, original.generationNumber, { raw: true }), { signal });
+          const source = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(original.objectNumber, original.generationNumber, { raw: !(options.normalizeContent && original.decoded) }), { signal });
           let streamFailed = false;
-          try { await store.set({ objectNumber: reference.objectNumber, generationNumber: 0, value, stream: { length: source.size, chunks: source.stream(0, source.size, signal) } }); }
+          try {
+            if (options.normalizeContent && original.decoded && value.kind === "dict") {
+              value = { ...value, entries: value.entries.filter(entry => !["Filter", "DecodeParms", "Length"].includes(entry.key.decoded)) };
+              dictSet(value, "Length", cosNumber(source.size));
+            }
+            await store.set({ objectNumber: reference.objectNumber, generationNumber: 0, value, stream: { ...(original.decoded ? { decoded: true } : {}), length: source.size, chunks: source.stream(0, source.size, signal) } });
+          }
           catch (error) { streamFailed = true; throw error; }
           finally { await source.close().catch(error => { if (!streamFailed) throw error; }); }
         } else await store.set({ objectNumber: reference.objectNumber, generationNumber: 0, value });

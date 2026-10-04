@@ -21,6 +21,8 @@ export interface ParseCosRangeOptions extends ValueArrayStorage {
 }
 
 export interface PdfRangeObject {
+  /** Editable stores remember completed decoding for compatibility normalization. */
+  readonly decoded?: boolean;
   readonly objectNumber: number;
   readonly generationNumber: number;
   /** Stream objects retain their dictionary here and their payload range below. */

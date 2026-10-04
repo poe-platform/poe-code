@@ -5,11 +5,12 @@ import { PdfDocument, cosStream } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["ordinary", "objects", "linearize", "permissions", "empty", "flatten", "split", "decrypt", "large", "slow"]) it(`encrypts ${mode} output through caller storage`, async () => {
+for (const mode of ["ordinary", "objects", "linearize", "permissions", "empty", "flatten", "split", "decrypt", "large", "slow", "inline-qdf", "inline-uncompress", "inline-objects-qdf", "inline-normalize"]) it(`encrypts ${mode} output through caller storage`, async () => {
   const doc = PdfDocument.create(); doc.setTitle("Encrypted title"); const page = doc.addPage(); page.setRotation(90);
   if (mode !== "empty") page.setRawContentStream("1 0 0 rg 10 20 30 40 re f\n".repeat(3000));
   if (mode === "large" || mode === "slow") doc.cos.allocateObject(cosStream(new Uint8Array(mode === "large" ? 1048579 : 65539).fill(199)));
-  const input = doc.save(), args = ["in.pdf", "out.pdf", "--encrypt", "reader", "owner", "256", ...(mode === "permissions" ? ["--print=none", "--modify=none", "--extract=n"] : []), "--", ...(mode === "objects" ? ["--object-streams=generate"] : []), ...(mode === "linearize" ? ["--linearize"] : []), ...(mode === "flatten" ? ["--flatten-rotation"] : []), ...(mode === "split" ? ["--split-pages"] : []), ...(mode === "decrypt" ? ["--decrypt"] : [])];
+  if (mode.startsWith("inline")) page.setRawContentStream("BI /W 2 /H 1 /BPC 8 /CS /RGB ID abcdef EI");
+  const input = doc.save(), args = ["in.pdf", "out.pdf", "--encrypt", "reader", "owner", "256", ...(mode === "permissions" ? ["--print=none", "--modify=none", "--extract=n"] : []), "--", ...((mode === "objects" || mode === "inline-objects-qdf") ? ["--object-streams=generate"] : []), ...(mode === "linearize" ? ["--linearize"] : []), ...(mode === "flatten" ? ["--flatten-rotation"] : []), ...(mode === "split" ? ["--split-pages"] : []), ...(mode === "decrypt" ? ["--decrypt"] : []), ...(mode.startsWith("inline") ? ["--externalize-inline-images", "--ii-min-bytes=1", mode === "inline-uncompress" ? "--stream-data=uncompress" : mode === "inline-normalize" ? "--normalize-content=y" : "--qdf"] : [])];
   const original = crypto.getRandomValues; let counter = 0;
   Object.defineProperty(crypto, "getRandomValues", { configurable: true, value: <T extends ArrayBufferView | null>(value: T): T => { if (!value) throw new Error("Missing random target"); const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength); for (let i = 0; i < bytes.length; i++) bytes[i] = counter++ % 251; return value; } });
   try {

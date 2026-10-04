@@ -21,6 +21,8 @@ export interface RetainedQpdfOptions extends QpdfJsonOptions {
   encryptConfig: { userPassword: string; ownerPassword: string; print: boolean; modify: boolean; copy: boolean; addNotes: boolean } | undefined;
   removeUnreferencedResources: "no" | "yes" | "auto";
   flattenRotation: boolean;
+  externalizeInlineImages: boolean;
+  iiMinBytes: number;
   removeAttachmentKeys: readonly string[];
   addAttachmentSpecs: readonly { file: string; key: string; filename: string; description?: string; replace?: boolean }[];
   inputFile: string | undefined;
@@ -202,7 +204,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       return { exitCode: 0 };
     }
     if (options.jsonVersion !== undefined) {
-      try { editedGraph = await editRetainedDocument(document, storage, { signal }); }
+      try { editedGraph = await editRetainedDocument(document, storage, { ...(options.externalizeInlineImages ? { externalizeInlineImages: { minBytes: options.iiMinBytes, compress: options.streamDataMode !== "uncompress" } } : {}), signal }); }
       catch (error) {
         signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
         return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
@@ -270,8 +272,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         yield { ...spec, length: input.size, chunks: input.stream(0, input.size, signal) };
       }
     }
-    if (options.removeUnreferencedResources !== "no" || options.flattenRotation || options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
-      editedGraph = await editRetainedDocument(document, storage, { removeUnreferencedResources: options.removeUnreferencedResources !== "no", flattenRotation: options.flattenRotation, ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+    if (options.externalizeInlineImages || options.removeUnreferencedResources !== "no" || options.flattenRotation || options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
+      editedGraph = await editRetainedDocument(document, storage, { ...(options.externalizeInlineImages ? { externalizeInlineImages: { minBytes: options.iiMinBytes, compress: options.streamDataMode !== "uncompress" } } : {}), removeUnreferencedResources: options.removeUnreferencedResources !== "no", flattenRotation: options.flattenRotation, ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
     }
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
     if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");
@@ -279,7 +281,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       if (!editedGraph) for await (const object of retainedCosObjects(document, storage, { signal })) {
         if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
       }
-      const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal);
+      const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal, options.qdf);
       async function* entries() {
         // Preserve original Map insertion order when a split filename replaces
         // an input. Empty seed entries are discarded after staging.

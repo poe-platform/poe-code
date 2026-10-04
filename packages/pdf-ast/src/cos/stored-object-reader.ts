@@ -36,7 +36,7 @@ export async function openStoredPdfObjectReader(store: PdfMutableObjectStore, st
       if (number === 0) return undefined;
       const object = await store.get(number); check();
       if (!object || object.generationNumber !== generation) return undefined;
-      return { objectNumber: number, generationNumber: generation, value: object.value, span: { start: 0, end: 0 },
+      return { objectNumber: number, generationNumber: generation, value: object.value, ...(object.stream?.decoded ? { decoded: true } : {}), span: { start: 0, end: 0 },
         ...(object.stream ? { stream: { start: 0, end: object.stream.length } } : {}) };
     },
     async *decodeStream(number, generation = 0, decodeOptions: Pick<PdfStreamDecodeOptions, "stopBeforeImageCodec" | "raw"> = {}) {
@@ -49,6 +49,8 @@ export async function openStoredPdfObjectReader(store: PdfMutableObjectStore, st
         for await (const bytes of snapshot.chunks) { check(); yield bytes; }
       }
       yield* decodePdfStreamChunks(dict, input, { ...options, ...decodeOptions });
+      check();
+      if (!decodeOptions.raw && !decodeOptions.stopBeforeImageCodec) await store.markDecoded(object);
     },
     async *objectStreamEntries() {
       // Every stored graph object has its own index entry.

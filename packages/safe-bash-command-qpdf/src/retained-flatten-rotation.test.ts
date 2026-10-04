@@ -5,11 +5,11 @@ import { PdfDocument, cosArray, cosDict, cosName, cosNumber, dictDelete, dictGet
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["90", "180", "270", "shared", "array", "annotations", "split", "selection", "rotate", "empty", "inline", "self-annotation", "inherited", "encrypted", "linearize", "objects", "slow", "unsupported"]) it(`flattens ${mode} rotation through caller storage`, async () => {
+for (const mode of ["90", "180", "270", "shared", "array", "annotations", "split", "selection", "rotate", "empty", "inline", "self-annotation", "inherited", "encrypted", "linearize", "objects", "slow", "unsupported", "normalize", "shared-linearize"]) it(`flattens ${mode} rotation through caller storage`, async () => {
   const document = PdfDocument.create(), page = document.addPage(), other = document.addPage();
   if (mode !== "empty") page.setRawContentStream("1 0 0 rg 10 20 30 40 re f\n".repeat(3000));
   page.setRotation(mode === "180" ? 180 : mode === "270" ? 270 : 90); other.setRotation(270);
-  if (mode === "shared") dictSet(other.dict, "Contents", dictGet(page.dict, "Contents")!);
+  if ((mode === "shared" || mode === "shared-linearize")) dictSet(other.dict, "Contents", dictGet(page.dict, "Contents")!);
   if (mode === "array") dictSet(page.dict, "Contents", document.cos.allocateObject(cosArray([dictGet(page.dict, "Contents")!])));
   const rect = () => cosArray([10, 20, 30, 40].map(value => cosNumber(value)));
   dictSet(page.dict, "CropBox", rect());
@@ -29,7 +29,7 @@ for (const mode of ["90", "180", "270", "shared", "array", "annotations", "split
     dictDelete(page.dict, "MediaBox");
   }
   if (mode === "unsupported") { const stream = document.cos.resolve(dictGet(page.dict, "Contents")); if (stream?.kind === "stream") dictSet(stream.dict, "Filter", cosName("Unsupported")); }
-  const input = document.save(mode === "encrypted" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : {}), args = ["in.pdf", "out.pdf", "--flatten-rotation", ...(mode === "encrypted" ? ["--password=reader"] : []), ...(mode === "linearize" ? ["--linearize"] : []), ...(mode === "objects" ? ["--object-streams=generate"] : []), ...(mode === "split" ? ["--split-pages"] : []), ...(mode === "selection" ? ["--pages", ".", "2,1,1", "--"] : []), ...(mode === "rotate" ? ["--rotate=+90:1"] : [])];
+  const input = document.save(mode === "encrypted" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : {}), args = ["in.pdf", "out.pdf", "--flatten-rotation", ...(mode === "normalize" ? ["--stream-data=uncompress"] : []), ...(mode === "encrypted" ? ["--password=reader"] : []), ...((mode === "linearize" || mode === "shared-linearize") ? ["--linearize"] : []), ...(mode === "objects" ? ["--object-streams=generate"] : []), ...(mode === "split" ? ["--split-pages"] : []), ...(mode === "selection" ? ["--pages", ".", "2,1,1", "--"] : []), ...(mode === "rotate" ? ["--rotate=+90:1"] : [])];
   let expectedError: Error | undefined, actualError: Error | undefined;
   const files = new Map([["in.pdf", input]]), expected = await runQpdfCli(args, files).catch((error: Error) => { expectedError = error; return { exitCode: 2, stdout: "", stderr: "" }; });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);

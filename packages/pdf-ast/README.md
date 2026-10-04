@@ -903,6 +903,12 @@ Stream payloads use fixed-size cipher blocks and caller-provided backing.
 The caller keeps ownership of the source and supplies the backing filesystem.
 `PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
 existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
+Use `externalizeInlineImages: { minBytes: 1024, compress: true }` to move inline
+image payloads into image objects while streaming page content through caller
+storage. Resource collisions, shared contents and nested content groups preserve
+the buffered editor's behavior. Save or copy with `normalizeContent: true` to
+emit streams decoded by edits without encoded filters; untouched encoded streams
+remain encoded.
 
 `createRetainedPageCopy(document, indices, storage, options)` owns a copied graph
 on caller storage. Use `openDocument()` to compose more retained operations or

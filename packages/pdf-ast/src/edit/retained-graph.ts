@@ -1,3 +1,5 @@
+import { externalizeRetainedInlineImages, type RetainedInlineImageOptions } from "./retained-inline-images.js";
+export type { RetainedInlineImageOptions } from "./retained-inline-images.js";
 import { pruneRetainedResources } from "./retained-resource-pruning.js";
 import { flattenRetainedRotations } from "./retained-flatten-rotation.js";
 import { editRetainedAttachments, type RetainedAttachmentInput } from "./retained-attachment-edits.js";
@@ -13,7 +15,7 @@ import { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
 import { PdfError } from "../errors.js";
 import type { SaveRetainedDocumentOptions } from "./retained-save.js";
 
-export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly flattenRotation?: boolean; readonly removeUnreferencedResources?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
+export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly flattenRotation?: boolean; readonly externalizeInlineImages?: RetainedInlineImageOptions; readonly removeUnreferencedResources?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
 
 /** Own an editable graph and logical page index on caller storage. This applies
  * edits without the stream dictionary normalization performed by PDF saving.
@@ -45,7 +47,6 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
       const ref = page.reference ?? await store.allocate(page.dict), bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
       view.setFloat64(0, ref.objectNumber); view.setFloat64(8, ref.generationNumber); await pages.write(pages.allocate(16), bytes); count++;
     }
-    if (options.linearize) await store.allocate(cosDict({ Linearized: cosNumber(1), N: cosNumber(count) }));
     const configured = { rootRef: source.crossReference.rootRef, version: source.crossReference.version, ...(source.crossReference.idArray ? { idArray: source.crossReference.idArray } : {}), signal, pageReferences,
       ...(options.maxPages === undefined ? {} : { maxPages: options.maxPages }), ...(options.maxRecursionDepth === undefined ? {} : { maxRecursionDepth: options.maxRecursionDepth }) };
     document = await PdfRetainedDocument.openStore(store, storage, { ...configured, ...(infoRef ? { infoRef } : {}) });
@@ -59,7 +60,9 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
       dictSet(object.value, "Rotate", cosNumber(((current + edit.degrees) % 360 + 360) % 360)); await store.set(object);
     }
     if (options.flattenRotation) { await flattenRetainedRotations(document, store, storage, signal); addedObjects = true; }
+    if (options.externalizeInlineImages) { await externalizeRetainedInlineImages(document, store, storage, options.externalizeInlineImages, signal); addedObjects = true; }
     if (options.removeUnreferencedResources) await pruneRetainedResources(document, store, storage, signal);
+    if (options.linearize) { await store.allocate(cosDict({ Linearized: cosNumber(1), N: cosNumber(count) })); addedObjects = true; }
     async function removeRoot(keys: readonly string[]) {
       const found = await document!.lookup(source.crossReference.rootRef);
       if (found?.value.kind !== "dict" || found.stream || !found.reference) return;

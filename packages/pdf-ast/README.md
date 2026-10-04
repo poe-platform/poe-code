@@ -131,6 +131,11 @@ Annotations are returned individually; callers own any results they collect.
 Individual COS arrays/dictionaries still use the object reader's admitted
 representation.
 
+`doc.pageLabels()` streams page-label definitions in source number-tree order,
+including duplicate indices, with `index`, `start`, optional `prefix` and `style`.
+Traversal state uses caller storage; closing the document releases suspended
+iterations. Individual COS values remain subject to object-reader admission.
+
 `doc.fonts({ firstPage, lastPage })` lazily inspects fonts in the selected
 one-based page range, inherited resources, forms, patterns, annotations and
 AcroForm defaults. It reports font names, types, encoding, embedding, Unicode

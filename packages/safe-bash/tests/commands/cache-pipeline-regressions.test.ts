@@ -291,6 +291,35 @@ test('reported asynchronous and oversized pipelines settle before context reuse'
   }
 });
 
+test('warmed pure pipelines finish UTF-8 grep, missing-file diagnostics and recursive find', async context => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/utf8.txt', enc.encode('alpha:café:1\nalpha:naïve:2\nbeta:3\n'));
+  await fs.mkdir('/work/dir/nested', { recursive: true });
+  await fs.writeFile('/work/dir/top.txt', enc.encode('top\n'));
+  await fs.writeFile('/work/dir/nested/child.txt', enc.encode('child\n'));
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  await shell.exec('');
+  for (let iteration = 0; iteration < 3; iteration++) {
+    for (const command of [
+      'grep alpha /utf8.txt | wc -l',
+      'grep alpha /utf8.txt | cut -d: -f2 | sort | wc -l',
+      'find /work/dir -name "*.txt" | wc -l',
+    ]) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, command);
+      assert.equal(result.stdout, '2\n', command);
+      assert.equal(result.stderr, '', command);
+    }
+    for (const pipefail of [false, true]) {
+      const result = await shell.exec(`set ${pipefail ? '-o' : '+o'} pipefail; grep alpha /work/missing.txt | wc -l`);
+      assert.equal(result.exitCode, pipefail ? 2 : 0);
+      assert.equal(result.stdout, '0\n');
+      assert.match(result.stderr, /missing\.txt/);
+    }
+  }
+});
+
 test('overlapping async pure pipelines keep output, diagnostics and budgets isolated', async context => {
   const shells = await Promise.all(['left', 'right'].map(async value => {
     const fs = new MemoryFileSystem();

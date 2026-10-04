@@ -1,3 +1,4 @@
+import { generateRetainedFormAppearances } from "./retained-form-appearances.js";
 import { flattenRetainedAnnotations } from "./retained-flatten-annotations.js";
 import { stampRetainedPages, type RetainedStampInput } from "./retained-stamps.js";
 export type { RetainedStampInput } from "./retained-stamps.js";
@@ -18,7 +19,7 @@ import { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
 import { PdfError } from "../errors.js";
 import type { SaveRetainedDocumentOptions } from "./retained-save.js";
 
-export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly stamps?: Iterable<RetainedStampInput> | AsyncIterable<RetainedStampInput>; readonly flattenAnnotations?: "all" | "print" | "screen"; readonly flattenRotation?: boolean; readonly externalizeInlineImages?: RetainedInlineImageOptions; readonly removeUnreferencedResources?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
+export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly stamps?: Iterable<RetainedStampInput> | AsyncIterable<RetainedStampInput>; readonly generateAppearances?: boolean; readonly flattenAnnotations?: "all" | "print" | "screen"; readonly flattenRotation?: boolean; readonly externalizeInlineImages?: RetainedInlineImageOptions; readonly removeUnreferencedResources?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
 
 /** Own an editable graph and logical page index on caller storage. This applies
  * edits without the stream dictionary normalization performed by PDF saving.
@@ -94,6 +95,7 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
         finally { await labels.close().catch(error => { if (!failed) throw error; }); }
       }
     } else if (options.removePageLabels) await removeRoot(["PageLabels"]);
+    if (options.generateAppearances && !options.removeAcroform) { await generateRetainedFormAppearances(document, store, storage, signal); addedObjects = true; }
     if (options.removeInfo) {
       await removeRoot(["Metadata"]);
       const found = await document.lookup(source.crossReference.infoRef);

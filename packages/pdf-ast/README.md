@@ -53,6 +53,12 @@ surfaces and evaluator resources; individual decoded resources and metadata
 still need bounded ownership. Rendering repeats page evaluation per
 tile and uses seekable staging before yielding the first output chunk.
 
+`editRetainedDocument(input, storage, { generateAppearances: true })` regenerates
+form appearances using caller-backed traversal and streamed text operators. It
+preserves text, choice, button, password and comb fields, including existing
+appearances unless `NeedAppearances` requests regeneration. Individual COS
+values and default-appearance tokens retain their existing memory requirements.
+
 `PdfFileSource.open(fs, path, options)` provides retained random-access input
 using the caller's safe-fs. `read(position, maxBytes)` returns owned bytes up to
 `chunkBytes`, and `stream(position, length)` yields ranges under consumer

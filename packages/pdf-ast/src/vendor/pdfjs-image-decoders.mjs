@@ -1765,32 +1765,39 @@ const QeTable = [{
 class ArithmeticDecoder {
   constructor(data, start, end) {
     this.data = data;
+    if (data) this.drive(this.initializeSteps(start, end));
+  }
+  drive(steps) {
+    let next = steps.next();
+    while (!next.done) next = steps.next(this.data[next.value]);
+    return next.value;
+  }
+  *initializeSteps(start, end) {
     this.bp = start;
     this.dataEnd = end;
-    this.chigh = data[start];
+    this.chigh = yield start;
     this.clow = 0;
-    this.byteIn();
+    yield* this.byteInSteps();
     this.chigh = this.chigh << 7 & 0xffff | this.clow >> 9 & 0x7f;
     this.clow = this.clow << 7 & 0xffff;
     this.ct -= 7;
     this.a = 0x8000;
   }
-  byteIn() {
-    const data = this.data;
+  *byteInSteps() {
     let bp = this.bp;
-    if (data[bp] === 0xff) {
-      if (data[bp + 1] > 0x8f) {
+    if ((yield bp) === 0xff) {
+      if ((yield bp + 1) > 0x8f) {
         this.clow += 0xff00;
         this.ct = 8;
       } else {
         bp++;
-        this.clow += data[bp] << 9;
+        this.clow += (yield bp) << 9;
         this.ct = 7;
         this.bp = bp;
       }
     } else {
       bp++;
-      this.clow += bp < this.dataEnd ? data[bp] << 8 : 0xff00;
+      this.clow += bp < this.dataEnd ? (yield bp) << 8 : 0xff00;
       this.ct = 8;
       this.bp = bp;
     }
@@ -1800,6 +1807,9 @@ class ArithmeticDecoder {
     }
   }
   readBit(contexts, pos) {
+    return this.drive(this.readBitSteps(contexts, pos));
+  }
+  *readBitSteps(contexts, pos) {
     let cx_index = contexts[pos] >> 1,
       cx_mps = contexts[pos] & 1;
     const qeTableIcx = QeTable[cx_index];
@@ -1838,7 +1848,7 @@ class ArithmeticDecoder {
     }
     do {
       if (this.ct === 0) {
-        this.byteIn();
+        yield* this.byteInSteps();
       }
       a <<= 1;
       this.chigh = this.chigh << 1 & 0xffff | this.clow >> 15 & 1;
@@ -6650,21 +6660,36 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
       totalLength += dataItem.end - dataItem.start;
       codingpasses += dataItem.codingpasses;
     }
-    onAllocation?.(totalLength + 256);
-    const encodedData = new Uint8Array(totalLength);
-    let position = 0;
-    for (j = 0, jj = data.length; j < jj; j++) {
-      dataItem = data[j];
-      const size = dataItem.data.length;
-      const first = dataItem.start < 0 ? Math.max(size + dataItem.start, 0) : Math.min(dataItem.start, size);
-      const last = dataItem.end < 0 ? Math.max(size + dataItem.end, 0) : Math.min(dataItem.end, size);
-      for (let at = first; at < last; at += 4096) {
-        const chunk = yield {start: at, end: Math.min(last, at + 4096)};
-        encodedData.set(chunk, position);
-        position += chunk.length;
+    onAllocation?.(256);
+    // Arithmetic offsets address the concatenation, including its zero-filled
+    // truncated tail. Walk existing segments without copying compressed bytes.
+    let segment = 0, logicalStart = 0, first = 0, count = 0;
+    const decoder = new ArithmeticDecoder(null);
+    function* driveCodeblock(steps) {
+      let next = steps.next();
+      while (!next.done) {
+        const offset = next.value;
+        let value;
+        if (offset >= 0 && offset < totalLength) {
+          if (offset < logicalStart) { segment = 0; logicalStart = 0; count = 0; }
+          while (offset >= logicalStart + count && segment < data.length) {
+            logicalStart += count;
+            const item = data[segment++], size = item.data.length;
+            first = item.start < 0 ? Math.max(size + item.start, 0) : Math.min(item.start, size);
+            const last = item.end < 0 ? Math.max(size + item.end, 0) : Math.min(item.end, size);
+            count = Math.max(0, last - first);
+          }
+          value = offset < logicalStart + count ? yield first + offset - logicalStart : 0;
+        }
+        next = steps.next(value);
       }
+      return next.value;
     }
-    const decoder = new ArithmeticDecoder(encodedData, 0, totalLength);
+    yield* driveCodeblock(decoder.initializeSteps(0, totalLength));
+    const readBitSteps = decoder.readBitSteps.bind(decoder);
+    decoder.readBitSteps = function* (contexts, pos) {
+      return yield* driveCodeblock(readBitSteps(contexts, pos));
+    };
     bitModel.setDecoder(decoder);
     for (j = 0; j < codingpasses; j++) {
       switch (currentCodingpassType) {
@@ -6677,7 +6702,7 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
         case 2:
           (yield* bitModel.runCleanupPass());
           if (segmentationSymbolUsed) {
-            bitModel.checkSegmentationSymbol();
+            yield* bitModel.checkSegmentationSymbol();
           }
           break;
       }
@@ -6692,7 +6717,7 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
     const bitsDecoded = bitModel.bitsDecoded;
     const magnitudeCorrection = reversible ? 0 : 0.5;
     let k, n, nb;
-    position = 0;
+    let position = 0;
     const interleave = subband.type !== "LL";
     for (j = 0; j < blockHeight; j++) {
       const row = offset / width | 0;
@@ -7103,7 +7128,7 @@ class BitModel {
             continue;
           }
           const contextLabel = labels[(yield* jpxVectorRead(neighborsSignificance,index))];
-          const decision = decoder.readBit(contexts, contextLabel);
+          const decision = (yield* decoder.readBitSteps(contexts, contextLabel));
           if (decision) {
             const sign = (yield* this.decodeSignBit(i,j,index));
             (yield* jpxVectorWrite(coefficentsSign,index,sign));
@@ -7157,10 +7182,10 @@ class BitModel {
     }
     if (contribution >= 0) {
       contextLabel = 9 + contribution;
-      decoded = this.decoder.readBit(this.contexts, contextLabel);
+      decoded = (yield* this.decoder.readBitSteps(this.contexts, contextLabel));
     } else {
       contextLabel = 9 - contribution;
-      decoded = this.decoder.readBit(this.contexts, contextLabel) ^ 1;
+      decoded = (yield* this.decoder.readBitSteps(this.contexts, contextLabel)) ^ 1;
     }
     return decoded;
   }
@@ -7190,7 +7215,7 @@ class BitModel {
             const significance = (yield* jpxVectorRead(neighborsSignificance,index)) & 127;
             contextLabel = significance === 0 ? 15 : 14;
           }
-          const bit = decoder.readBit(contexts, contextLabel);
+          const bit = (yield* decoder.readBitSteps(contexts, contextLabel));
           (yield* jpxVectorWrite(coefficentsMagnitude,index,(yield* jpxVectorRead(coefficentsMagnitude,index)) << 1 | bit));
           (yield* jpxVectorUpdate(bitsDecoded,index,"+",1));
           (yield* jpxVectorUpdate(processingFlags,index,"|",processedMask));
@@ -7227,7 +7252,7 @@ class BitModel {
         let i = i0,
           sign;
         if (allEmpty) {
-          const hasSignificantCoefficent = decoder.readBit(contexts, BitModel.RUNLENGTH_CONTEXT);
+          const hasSignificantCoefficent = (yield* decoder.readBitSteps(contexts, BitModel.RUNLENGTH_CONTEXT));
           if (!hasSignificantCoefficent) {
             (yield* jpxVectorUpdate(bitsDecoded,index0,"+",1));
             (yield* jpxVectorUpdate(bitsDecoded,index0 + oneRowDown,"+",1));
@@ -7235,7 +7260,7 @@ class BitModel {
             (yield* jpxVectorUpdate(bitsDecoded,index0 + threeRowsDown,"+",1));
             continue;
           }
-          i1 = decoder.readBit(contexts, BitModel.UNIFORM_CONTEXT) << 1 | decoder.readBit(contexts, BitModel.UNIFORM_CONTEXT);
+          i1 = (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT)) << 1 | (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT));
           if (i1 !== 0) {
             i = i0 + i1;
             index += i1 * width;
@@ -7256,7 +7281,7 @@ class BitModel {
             continue;
           }
           const contextLabel = labels[(yield* jpxVectorRead(neighborsSignificance,index))];
-          const decision = decoder.readBit(contexts, contextLabel);
+          const decision = (yield* decoder.readBitSteps(contexts, contextLabel));
           if (decision === 1) {
             sign = (yield* this.decodeSignBit(i,j,index));
             (yield* jpxVectorWrite(coefficentsSign,index,sign));
@@ -7269,10 +7294,10 @@ class BitModel {
       }
     }
   }
-  checkSegmentationSymbol() {
+  *checkSegmentationSymbol() {
     const decoder = this.decoder;
     const contexts = this.contexts;
-    const symbol = decoder.readBit(contexts, BitModel.UNIFORM_CONTEXT) << 3 | decoder.readBit(contexts, BitModel.UNIFORM_CONTEXT) << 2 | decoder.readBit(contexts, BitModel.UNIFORM_CONTEXT) << 1 | decoder.readBit(contexts, BitModel.UNIFORM_CONTEXT);
+    const symbol = (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT)) << 3 | (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT)) << 2 | (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT)) << 1 | (yield* decoder.readBitSteps(contexts, BitModel.UNIFORM_CONTEXT));
     if (symbol !== 0xa) {
       throw new JpxError("Invalid segmentation symbol");
     }

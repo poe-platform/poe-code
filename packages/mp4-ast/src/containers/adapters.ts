@@ -733,8 +733,96 @@ export function mp3Ast(): MediaAstPlugin {
   };
 }
 
+/** Shares the resident parser's metadata semantics without retaining encoded audio. */
+function flacDocument(bytes: Uint8Array, byteLength: number, data: Uint8Array = new Uint8Array()): MediaDocument {
+  let sampleRate = 44100;
+  let channels = 2;
+  let totalSamples = 44100;
+  if (bytes.byteLength >= 42 && decodeFourCC(bytes, 0) === "fLaC") {
+    // STREAMINFO block starts at byte 8 (18 bytes header)
+    const b18 = bytes[18]!;
+    const b19 = bytes[19]!;
+    const b20 = bytes[20]!;
+    sampleRate = ((b18 << 12) | (b19 << 4) | (b20 >>> 4)) || 44100;
+    channels = (((b20 >>> 1) & 0x07) + 1) || 2;
+    const b21 = bytes[21]!;
+    const view = new DataView(bytes.buffer, bytes.byteOffset + 22, 4);
+    totalSamples = ((b21 & 0x0f) * 4294967296 + view.getUint32(0, false)) || 44100;
+  }
+  return {
+    containerFormat: "flac",
+    timescale: sampleRate,
+    duration: totalSamples,
+    durationSeconds: totalSamples / sampleRate,
+    tracks: [
+      {
+        id: 1,
+        type: "audio",
+        handlerType: "soun",
+        timescale: sampleRate,
+        duration: totalSamples,
+        language: "und",
+        enabled: true,
+        codecDescriptions: [
+          {
+            formatFourCC: "fLaC",
+            codecName: "flac",
+            sampleRate,
+            channels,
+            bitsPerSample: 16
+          }
+        ],
+        samples: [
+          {
+            data,
+            dts: 0,
+            pts: 0,
+            cts: 0,
+            duration: totalSamples,
+            size: byteLength,
+            isKeyframe: true,
+            sampleDescriptionIndex: 1
+          }
+        ]
+      }
+    ],
+    metadata: {},
+    byteLength
+  };
+}
+
 export function flacAst(): MediaAstPlugin {
   return {
+    async probeMetadata(source, options = {}) {
+      options.signal?.throwIfAborted();
+      if (!Number.isSafeInteger(source.size) || source.size < 0) throw new RangeError("Invalid FLAC source size");
+      const header = new Uint8Array(Math.min(42, source.size));
+      for (let offset = 0; offset < header.length;) {
+        const chunk = await source.read(offset, header.length - offset);
+        options.signal?.throwIfAborted();
+        if (!chunk.length) throw new Error("Unexpected end of FLAC source");
+        if (chunk.length > header.length - offset) throw new Error("FLAC source returned more bytes than requested");
+        header.set(chunk, offset); offset += chunk.length;
+      }
+      return buildProbeResultFromDoc(flacDocument(header, source.size), source.size, options.filename ?? "input.flac", {
+        ...options, formatName: "flac", formatLongName: "raw FLAC"
+      });
+    },
+    async probeMetadataStream(source, options = {}) {
+      options.signal?.throwIfAborted();
+      const header = new Uint8Array(42);
+      let size = 0;
+      for await (const chunk of source) {
+        options.signal?.throwIfAborted();
+        if (size < header.length) header.set(chunk.subarray(0, header.length - size), size);
+        size += chunk.length;
+        if (!Number.isSafeInteger(size)) throw new RangeError("Invalid FLAC source size");
+      }
+      options.signal?.throwIfAborted();
+      return buildProbeResultFromDoc(flacDocument(header.subarray(0, Math.min(size, header.length)), size), size, options.filename ?? "input.flac", {
+        ...options, formatName: "flac", formatLongName: "raw FLAC"
+      });
+    },
     id: "flac",
     formatName: "flac",
     formatLongName: "raw FLAC",
@@ -751,62 +839,7 @@ export function flacAst(): MediaAstPlugin {
       }
       return false;
     },
-    parse(bytes) {
-      let sampleRate = 44100;
-      let channels = 2;
-      let totalSamples = 44100;
-      if (bytes.byteLength >= 42 && decodeFourCC(bytes, 0) === "fLaC") {
-        // STREAMINFO block starts at byte 8 (18 bytes header)
-        const b18 = bytes[18]!;
-        const b19 = bytes[19]!;
-        const b20 = bytes[20]!;
-        sampleRate = ((b18 << 12) | (b19 << 4) | (b20 >>> 4)) || 44100;
-        channels = (((b20 >>> 1) & 0x07) + 1) || 2;
-        const b21 = bytes[21]!;
-        const view = new DataView(bytes.buffer, bytes.byteOffset + 22, 4);
-        totalSamples = ((b21 & 0x0f) * 4294967296 + view.getUint32(0, false)) || 44100;
-      }
-      return {
-        containerFormat: "flac",
-        timescale: sampleRate,
-        duration: totalSamples,
-        durationSeconds: totalSamples / sampleRate,
-        tracks: [
-          {
-            id: 1,
-            type: "audio",
-            handlerType: "soun",
-            timescale: sampleRate,
-            duration: totalSamples,
-            language: "und",
-            enabled: true,
-            codecDescriptions: [
-              {
-                formatFourCC: "fLaC",
-                codecName: "flac",
-                sampleRate,
-                channels,
-                bitsPerSample: 16
-              }
-            ],
-            samples: [
-              {
-                data: bytes,
-                dts: 0,
-                pts: 0,
-                cts: 0,
-                duration: totalSamples,
-                size: bytes.byteLength,
-                isKeyframe: true,
-                sampleDescriptionIndex: 1
-              }
-            ]
-          }
-        ],
-        metadata: {},
-        byteLength: bytes.byteLength
-      };
-    },
+    parse(bytes) { return flacDocument(bytes, bytes.byteLength, bytes); },
     serialize(doc) { return concatBytes(encodeFlacPackets(doc)); },
     probe(bytes, options) {
       const doc = this.parse(bytes, options);

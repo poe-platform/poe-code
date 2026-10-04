@@ -21,7 +21,7 @@ Writer options include `nk`, `nw`, `p` and `s` where applicable.
 `createFfprobeCommand`, `createFfprobeCommands`, `FfprobeCommandsOptions` and
 `FfprobeLimits` support direct host integration. Defaults: 32 MiB input, 1 MiB output.
 
-Inspection uses the supplied virtual filesystem and never spawns native tools.
+Inspection uses the supplied virtual filesystem and never spawns native tools. Explicit FLAC probes (`-f flac`) use bounded header reads on retained filesystems and discard encoded audio incrementally on stdin or streaming filesystems, including packet/frame and count requests. Input limits apply to the full logical size and input closes before output. Automatic FLAC probing still uses the existing audio metadata path.
 
 For WAV inspection, `ffprobe -f wav -show_streams recording.wav` uses bounded header reads when the injected filesystem supports retained reads. Input limits still apply to the full logical file size. For stdin (`-`) and streaming filesystems without retained reads, the command scans headers incrementally and discards sample payloads without temporary storage. WAV packet/frame descriptors are generated incrementally. Output uses a bounded cache and caller-authorized filesystem backing before publication, so output-limit failures write no stdout. Large output needs a backing provider with retained read/write handles and conditional removal; memory filesystems keep backing data in RAM.
 

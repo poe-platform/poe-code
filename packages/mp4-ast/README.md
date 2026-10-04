@@ -28,4 +28,6 @@ initialization file and one complete media fragment per audio/video track.
 `dashAst().serialize(doc)` returns only the manifest bytes.
 H.264 decoding handles native CAVLC/CABAC streams, reference pictures, delayed B frames, SPS cropping, and color conversion. `decodeH264Samples` yields complete tracks in presentation order; standalone access units can pass their `avcC` configuration to `decodeH264FrameToRgba`.
 
+`flacAst().probeMetadata(source)` reads only the first 42 bytes through caller-owned ranges; `probeMetadataStream(chunks)` consumes borrowed chunks through EOF while retaining only that header. Both preserve the byte probe’s stream, packet and frame schema without retaining encoded audio. The caller owns source lifetime and admission limits.
+
 FLAC output encodes decoded PCM as lossless 16-bit verbatim frames. Ogg output defaults to Vorbis; `{ audioCodec: "opus" }` selects Opus and `{ audioCodec: "flac" }` selects Ogg FLAC. `.opus` format output defaults to Opus. All write complete audio packets with page checksums and accurate final durations. Encoding requires decoded PCM. The codecs run as static JavaScript in browsers and Workers, without native processes or runtime WebAssembly compilation.

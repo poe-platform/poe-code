@@ -785,6 +785,8 @@ encoded payloads remain on caller storage. Authenticated input saves without
 output encryption. Use `maxPages`, `maxObjects`, `maxOutputBytes`,
 `maxRecursionDepth`, `chunkBytes` and `signal` to control the operation; keep the
 source/document open while consuming it and stage bytes before publication.
+Use `version` to override the output PDF version and `omitId: true` to omit the
+original trailer identifier; both are preserved by default.
 
 `copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
 PDF for a synchronous or asynchronous iterable of zero-based page indices.

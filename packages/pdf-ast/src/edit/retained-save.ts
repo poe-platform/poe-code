@@ -10,6 +10,10 @@ import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
 
 export interface SaveRetainedDocumentOptions {
+  /** Defaults to the retained input version. */
+  readonly version?: string;
+  /** Omit the original document identifier from the output trailer. */
+  readonly omitId?: boolean;
   readonly maxObjects?: number;
   readonly maxPages?: number;
   readonly maxOutputBytes?: number;
@@ -108,7 +112,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
       }
     }
     const ref = document.crossReference;
-    yield* serializeRetainedCosDocumentChunks({ ...options, objects: output(), rootRef: ref.rootRef, infoRef: ref.infoRef, idArray: ref.idArray, version: ref.version, signal }, storage);
+    yield* serializeRetainedCosDocumentChunks({ ...options, objects: output(), rootRef: ref.rootRef, infoRef: ref.infoRef, idArray: options.omitId ? undefined : ref.idArray, version: options.version ?? ref.version, signal }, storage);
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([objects.close(), pages.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

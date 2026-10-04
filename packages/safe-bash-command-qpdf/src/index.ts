@@ -2607,7 +2607,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     if (parsed.options) {
       const defaults = parseQpdfArguments([]).options!;
       const retained = Object.entries(parsed.options).every(([key, value]) => {
-        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0"].includes(key)) return true;
+        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt"].includes(key)) return true;
         if (key === "normalizeContentFlag" && value === false) return true;
         if (key === "objectStreamsMode" && value === "disable") return true;
         const baseline = defaults[key as keyof typeof defaults];

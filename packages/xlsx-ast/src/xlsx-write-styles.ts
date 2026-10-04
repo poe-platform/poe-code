@@ -1,3 +1,4 @@
+import { SsconvertError } from "@poe-code/spreadsheet-engine/contracts";
 import type { Cell, ImportedValue } from "@poe-code/spreadsheet-ast";
 import { cellValueFormat } from "@poe-code/spreadsheet-engine/workbook/value-format";
 import { metadataNode, type ElementWriter, type MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
@@ -8,7 +9,14 @@ const builtinFormats = new Map<string, number>(Object.entries({ General: 0, "0":
   "h:mm AM/PM": 18, "h:mm:ss AM/PM": 19, "h:mm": 20, "h:mm:ss": 21, "m/d/yy h:mm": 22,
   "#,##0 ;(#,##0)": 37, "#,##0 ;[Red](#,##0)": 38, "#,##0.00;(#,##0.00)": 39, "#,##0.00;[Red](#,##0.00)": 40,
   "mm:ss": 45, "[h]:mm:ss": 46, "mmss.0": 47, "##0.0E+0": 48, "@": 49 }));
-const patterns = ["none", "solid", "darkGray", "mediumGray", "lightGray", "gray125", "gray0625", "darkHorizontal", "darkVertical", "darkUp", "darkDown", "darkGrid", "darkTrellis", "lightHorizontal", "lightVertical", "lightDown", "lightUp", "lightGrid", "lightTrellis"];
+const patterns = ["none", "solid", "darkGray", "mediumGray", "lightGray", "gray125", "gray0625", "darkHorizontal", "darkVertical", "darkUp", "darkDown", "darkGrid", "darkTrellis", "lightHorizontal", "lightVertical", "lightDown", "lightUp", "lightGrid", "lightTrellis",
+  "lightVertical", "darkHorizontal", "lightGray", "lightGray", "darkGray", "solid"];
+function fillPattern(shade: number): string {
+  const pattern = patterns[shade];
+  if (!Number.isInteger(shade) || pattern === undefined)
+    throw new SsconvertError("unsupported-feature", "Unsupported XLSX fill pattern");
+  return pattern;
+}
 const borderStyles = ["none", "thin", "medium", "dashed", "dotted", "thick", "double", "hair", "mediumDashed", "dashDot", "mediumDashDot", "dashDotDot", "mediumDashDotDot", "slantDashDot"];
 function rgb(source: string | undefined, fallback: string): string {
   if (!source) return fallback;
@@ -48,7 +56,7 @@ export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", n
         xml("vertAlign", { val: Number(fa.Script) > 0 ? "superscript" : Number(fa.Script) < 0 ? "subscript" : "baseline" }) +
         xml("sz", { val: Number(fa.Unit ?? 10) }) + xml("strike", { val: Number(fa.StrikeThrough ?? 0) }));
       const shade = Number(a.Shade ?? 0);
-      const fill = xml("fill", {}, xml("patternFill", { patternType: patterns[shade] ?? "solid" }, shade
+      const fill = xml("fill", {}, xml("patternFill", { patternType: fillPattern(shade) }, shade || a.Back !== undefined || a.PatternColor !== undefined
         ? xml("fgColor", { rgb: rgb(a.Back, "FFFFFFFF") }) + xml("bgColor", { rgb: rgb(a.PatternColor, "FF000000") }) : ""));
       const edges = style.node?.children.find(n => n.name === "StyleBorder")?.children ?? [];
       const border = xml("border", { diagonalUp: edges.some(n => n.name === "Rev-Diagonal") ? 1 : 0, diagonalDown: edges.some(n => n.name === "Diagonal") ? 1 : 0 },
@@ -69,7 +77,7 @@ export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", n
       xml("cellStyles", { count: 1 }, xml("cellStyle", { name: "Normal", xfId: 0, builtinId: 0 })) +
       (dxfs.length ? xml("dxfs", { count: dxfs.length }, dxfs.map(node => {
         const a = node.attributes; let content = "";
-        if (a.Back !== undefined || a.Shade !== undefined) content += xml("fill", {}, xml("patternFill", { patternType: patterns[Number(a.Shade ?? 1)] ?? "solid" }, xml("bgColor", { rgb: rgb(a.Back, "FFFFFFFF") })));
+        if (a.Back !== undefined || a.Shade !== undefined) content += xml("fill", {}, xml("patternFill", { patternType: fillPattern(Number(a.Shade ?? 1)) }, xml(Number(a.Shade ?? 1) === 1 ? "bgColor" : "fgColor", { rgb: rgb(a.Back, "FFFFFFFF") })));
         const font = node.children.find(n => n.name === "Font"), fa = font?.attributes ?? {};
         if (font || a.Fore !== undefined) content += xml("font", {}, (font?.text ? xml("name", { val: encodeXlsxString(font.text) }) : "") +
           (fa.Bold === undefined ? "" : xml("b", { val: Number(fa.Bold) })) + (fa.Italic === undefined ? "" : xml("i", { val: Number(fa.Italic) })) +

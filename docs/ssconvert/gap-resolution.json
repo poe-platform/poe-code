@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxFillPatternFallback": {
+      "finding": "XLSX exported shades19–24 as solid, dropped inactive shade0 colors, and used solid-fill differential color roles for fallback patterns.",
+      "repair": "Use native pattern fallbacks for all valid shades0–24; reject invalid shades; preserve inactive colors and native differential background polarity. Regular foreground/background roles were confirmed unchanged against pinned source.",
+      "verification": "1257 combined tests and310 final owner/print tests pass;selected build and owner lint/types pass. Eight compiled SDK/command exports across both XLSX editions match384 pattern/foreground/background fields using independent OpenPyXL3.1.5 against native Gnumeric exports. Product diagnostics empty; native default-style reader warning retained. Command screenshot inspected.",
+      "remaining": "Patterned rendering, wider style profiles and all19 families remain open."
+    },
     "xmlPrintMarginFormatting": {
       "finding": "XML print margins emitted full internal binary64 values instead of native four-significant-digit strings. Two original regressions reproduced the boundary mismatch.",
       "repair": "Format only current-namespace PrintInformation/Margins point fields during XML serialization; preserve model precision and foreign/unrelated metadata.",

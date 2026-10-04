@@ -39,3 +39,8 @@ Stored formatting and canonicalization also place pending traversal frames in th
 caller-backed page store. Canonical namespace validation follows stored tree links;
 indentation is emitted in fixed windows. Parser ancestry and individual namespace
 metadata/tokens still require separate memory qualification.
+
+`storedXmlToJson` streams the xmltodict mapping from a `StoredXmlDocument`, using
+paged repeated-name groups and traversal tasks. The legacy `xmlToJson` convenience
+API still returns a complete JSON value. Downstream query engines own their value
+storage independently.

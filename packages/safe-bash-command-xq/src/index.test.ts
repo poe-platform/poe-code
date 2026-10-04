@@ -1,3 +1,4 @@
+import { XmlQueryError } from "safe-bash-xml-engine/limits";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
@@ -19,9 +20,8 @@ test("xq behavior works through the standalone portable factory", async () => {
  assert.equal(output, "\"ok\"\n");
 });
 
-test("xq preserves output failure identity instead of reporting an XML parse failure", async () => {
+for (const failure of [new SyntaxError("sink failed"), new XmlQueryError("sink failed", 6)]) test(`xq preserves output failure identity (${failure.name})`, async () => {
   const command = createXqCommand();
-  const failure = new SyntaxError("sink failed");
   await assert.rejects(Promise.resolve(command.execute({
     command: "xq", args: ["."], cwd: "/", env: {}, fs: createMemoryFileSystem(),
     signal: new AbortController().signal, stdin: toByteSource("<a/>"),

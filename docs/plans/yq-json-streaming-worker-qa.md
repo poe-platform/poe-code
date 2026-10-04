@@ -87,3 +87,15 @@ while pending serialization frames use the injected document backing. Verify fra
 allocations reach external storage, indentation chunks stay bounded, namespace
 rebindings match native xmllint, and backing failures/cancellation retire handles.
 Include wide sibling sets to capture traversal spill volume and first-byte cost.
+
+### xq conversion
+
+Exercise repeated and distinct sibling names beyond the fixed index cache, deep
+nesting, attributes, namespaces, CDATA, whitespace trimming, and multiple input
+files. Compare the streamed mapping with the legacy conversion and run equivalent
+filters through native jq. Use generated/reused chunks and slow sinks; verify XML
+node and group storage reaches the injected external backend and is retired on
+conversion failures, cancellation, and early query termination. Measure XML
+conversion separately from jq: jq still retains arbitrary query values, and XML
+parser tokens/ancestry still need bounded backing. Record Worker memory, CPU,
+first-byte latency, and concurrent-request behavior using the procedure above.

@@ -19,8 +19,11 @@ Also available: `createXqCommand`, `createXqCommands`, and typed options and lim
 (`#text`) to JSON, then applies a jq filter. It supports stdin, virtual files,
 `-r`, `-c`, `--arg`, and filter files (`-f`). DTDs and XML output are unsupported;
 filters and filenames must be valid, lossless UTF-8. XML input is decoded and
-parsed incrementally, so parser limits can stop further reads immediately. The
-XML tree and converted JSON value still remain in memory for query execution.
+parsed incrementally, so parser limits can stop further reads immediately. XML nodes and repeated-child groups use a shared 1 MiB page cache backed by the
+supplied filesystem; JSON conversion feeds jq in bounded chunks. Large inputs need
+an external backing provider, since a memory filesystem retains its contents in
+RAM. jq query values, individual XML tokens, and parser ancestry still remain in
+memory, so this is not yet a bounded-memory guarantee for arbitrary queries.
 
 Pass `limits` to bound input/output bytes, filter bytes, XML depth/nodes/attributes,
 query steps, and results. Limits are opt-in; omitted limits retain the existing

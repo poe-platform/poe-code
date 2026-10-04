@@ -2,8 +2,8 @@ import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { XmlElement } from "@poe-code/safe-fs/core";
 import type { CommandDefinition } from "safe-bash-contracts";
 import { resolveXmlQueryLimits, type XmlCommandsOptions } from "safe-bash-xml-engine/limits";
-import { parseXmlStream, parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
-import { getCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
+import { parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
+import { getCommandArguments, type CommandContext } from "safe-bash-contracts";
 import { readXmlChunks } from "safe-bash-xml-engine/io";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { shellValueByteLength } from "safe-bash-contracts/value";
@@ -12,15 +12,17 @@ import { pathOf } from "safe-bash-io-engine/internal";
 import { interruptible } from "safe-bash-query-engine/limits";
 import { XmlBudget, XmlQueryError, XmlQueryLimitError, type XmlQueryLimits } from "safe-bash-xml-engine/limits";
 import { executeJq } from "safe-bash-command-jq/jq";
-import { Budget, JqError, resolveJqLimits } from "safe-bash-query-engine/limits";
-import { stringify } from "safe-bash-query-engine/input";
-import { xmlToJson } from "safe-bash-xml-engine/json";
+import { JqError, resolveJqLimits } from "safe-bash-query-engine/limits";
+import { storedXmlToJson } from "safe-bash-xml-engine/json";
+import { StoredXmlDocument } from "safe-bash-xml-engine/stored-document";
 const runtime = { yieldTurn, pathOf, interruptible, writeDiagnostic };
 async function executeXq(
   context: CommandContext,
   limits: XmlQueryLimits
 ): Promise<{ exitCode: number }> {
   const budget = new XmlBudget(limits, context.signal, yieldTurn);
+  let active: StoredXmlDocument | undefined;
+  let completed = false, queryStarted = false;
   try {
     const carrier = getCommandArguments(context);
     for (let index = 0; index < carrier.args.length; index++) {
@@ -45,45 +47,44 @@ async function executeXq(
       maxSteps: limits.maxSteps,
       maxResults: limits.maxResults
     });
-    const conversionBudget = new Budget(jqLimits, context.signal);
+    function conversionError(error: unknown): never {
+      context.signal.throwIfAborted();
+      if (error instanceof XmlQueryError) throw new JqError(error.message, error.status);
+      if (error instanceof XmlLimitError) throw new JqError(error.message, 5);
+      if (error instanceof SyntaxError) throw new JqError(error.message, 1);
+      throw error;
+    }
     // Only XML conversion errors are translated; jq owns its sink failures.
-    return executeJq(context, jqLimits, async (bytes) => {
+    queryStarted = true;
+    const result = await executeJq(context, jqLimits, async (bytes) => {
       try {
+        if (active) await active.close();
         const source = readXmlChunks({ ...context, stdin: bytes }, undefined, budget, runtime);
-        const root = await parseXmlStream(source, {
-          ...limits,
-          maxContentNodes: limits.maxNodes,
-          expectedEncoding: "UTF-8"
-        }, units => budget.tick(units));
-        const value = await xmlToJson(root, budget);
-        conversionBudget.value(value);
-        return toByteSource(
-          (await stringify(
-            value,
-            conversionBudget,
-            false,
-            jqLimits.maxValueBytes,
-            "maxValueBytes"
-          )) + "\n"
-        );
-      } catch (error) {
-        context.signal.throwIfAborted();
-        if (error instanceof XmlQueryError) throw new JqError(error.message, error.status);
-        if (error instanceof XmlLimitError) throw new JqError(error.message, 5);
-        if (error instanceof SyntaxError) throw new JqError(error.message, 1);
-        throw error;
-      }
+        const document = await StoredXmlDocument.parse(source, context, budget);
+        active = document;
+        return (async function* () {
+          let converted = false;
+          try { yield* storedXmlToJson(document, budget); converted = true; }
+          catch (error) { conversionError(error); }
+          finally {
+            try { await document.close().catch(error => { if (converted) throw error; }); }
+            finally { if (active === document) active = undefined; }
+          }
+        })();
+      } catch (error) { return conversionError(error); }
     });
+    completed = true;
+    return result;
   } catch (error) {
     context.signal.throwIfAborted();
-    if (!(error instanceof XmlQueryError)) throw error;
+    if (queryStarted || !(error instanceof XmlQueryError)) throw error;
     await writeDiagnostic(
       context.stderr,
       `${context.command}: ${error.message.slice(0, 1000)}\n`,
       context.signal
     );
     return { exitCode: error.status };
-  }
+  } finally { if (active) await active.close().catch(error => { if (completed) throw error; }); }
 }
 import type { VirtualShellPlugin } from "safe-bash-contracts";
 export type { XmlCommandsOptions as XqCommandsOptions, XmlQueryLimits as XqLimits } from "safe-bash-xml-engine/limits";

@@ -37,3 +37,5 @@ export async function xmlToJson(root: XmlElement, budget: XmlBudget): Promise<Js
   result[root.name] = await element(root);
   return result;
 }
+
+export { storedXmlToJson } from "./stored-json.js";

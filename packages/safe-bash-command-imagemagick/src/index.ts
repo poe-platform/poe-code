@@ -5569,7 +5569,8 @@ export function runConvertCliSync(argv: readonly string[], files: Map<string, Ui
     return next.value;
 }
 
-function* runMogrifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: string; args: string[] }[], void> {
+    const plans: { target: string; args: string[] }[] = [];
     let cooperativeWork = 63;
     let outFormatExt: string | undefined;
     let outDir: string | undefined;
@@ -5697,9 +5698,6 @@ function* runMogrifyCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t.startsWith("-") || t.startsWith("+")) {
             opTokens.push(t);
         }
-        else if (files.has(t)) {
-            targets.push(t);
-        }
         else {
             targets.push(t);
         }
@@ -5707,27 +5705,47 @@ function* runMogrifyCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     for (const target of targets) {
         if (++cooperativeWork % 64 === 0)
             yield;
-        if (!files.has(target)) {
-            return {
-                exitCode: 1,
-                stdout: "",
-                stderr: `mogrify: unable to open image '${target}': No such file or directory\n`
-            };
-        }
         const baseName = target.split("/").pop() ?? target;
         const stem = baseName.replace(/\.[^.]+$/, "");
         const origExt = baseName.includes(".") ? baseName.split(".").pop()! : "png";
         const targetExt = outFormatExt ?? origExt;
         const destDir = outDir ? outDir.replace(/\/+$/, "") : target.slice(0, Math.max(0, target.lastIndexOf("/")));
         const destPath = outFormatExt || outDir ? `${destDir ? destDir + "/" : ""}${stem}.${targetExt}` : target;
-        const res = (yield* runConvertCliSteps([...readSettings, target, ...opTokens, destPath], files, undefined, signal));
-        if (res.exitCode !== 0)
-            return res;
+        plans.push({ target, args: [...readSettings, target, ...opTokens, destPath] });
+    }
+    return plans;
+}
+function* runMogrifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    for (const plan of yield* parseMogrifySteps(argv)) {
+        if (!files.has(plan.target)) return { exitCode: 1, stdout: "", stderr: `mogrify: unable to open image '${plan.target}': No such file or directory\n` };
+        const result = yield* runConvertCliSteps(plan.args, files, undefined, signal);
+        if (result.exitCode !== 0) return result;
     }
     return { exitCode: 0, stdout: "", stderr: "" };
 }
-export async function runMogrifyCli(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
-    return drainSteps(runMogrifyCliSteps(argv, files, _stdinBytes, signal), signal);
+export async function runMogrifyCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, _stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    if (files instanceof Map) return drainSteps(runMogrifyCliSteps(argv, files, _stdinBytes, signal), signal);
+    const active = signal ?? new AbortController().signal;
+    let accounted = 0;
+    for (const plan of await drainSteps(parseMogrifySteps(argv), active)) {
+        active.throwIfAborted();
+        let exists = false;
+        try { exists = (await files.filesystem.stat(resolvePath(files.cwd, plan.target), { signal: active })).type === "file"; }
+        catch (error) {
+            active.throwIfAborted();
+            if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
+        }
+        if (!exists) {
+            const stderr = `mogrify: unable to open image '${plan.target}': No such file or directory\n`;
+            if (files.stderr) await writeIdentifyText(files.stderr, stderr, active);
+            return { exitCode: 1, stdout: "", stderr: files.stderr ? "" : stderr };
+        }
+        let current = 0;
+        const result = await runConvertCli(plan.args, { ...files, inputBudget: { check(total) { files.inputBudget?.check(accounted + total); current = total; } } }, undefined, active);
+        accounted += current;
+        if (result.exitCode !== 0) return result;
+    }
+    return { exitCode: 0, stdout: "", stderr: "" };
 }
 export function runMogrifyCliSync(argv: readonly string[], files: Map<string, Uint8Array>, _stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runMogrifyCliSteps(argv, files, _stdinBytes, signal);
@@ -6312,7 +6330,8 @@ export async function runMagickCli(argv: readonly string[], files: Map<string, U
     if (files instanceof Map) return drainIdentifySteps(runMagickCliSteps(argv, files, stdinBytes, signal), signal);
     if (argv[0] === "identify") return runIdentifyCli(argv.slice(1), files, stdinBytes, signal);
     if (argv[0] === "compare") return runCompareCli(argv.slice(1), files, stdinBytes, signal);
-    if (["mogrify", "composite", "montage"].includes(argv[0] ?? "")) return runBufferedImageFiles(argv, files, runMagickCli, stdinBytes, signal ?? new AbortController().signal);
+    if (argv[0] === "mogrify") return runMogrifyCli(argv.slice(1), files, stdinBytes, signal);
+    if (["composite", "montage"].includes(argv[0] ?? "")) return runBufferedImageFiles(argv, files, runMagickCli, stdinBytes, signal ?? new AbortController().signal);
     return runConvertCli(argv[0] === "convert" ? argv.slice(1) : argv, files, stdinBytes, signal);
 }
 export function runMagickCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
@@ -6441,7 +6460,10 @@ async function executeVfsMagickTool(
     }
     const fileInput: ConvertFileInput = { filesystem: context.fs, cwd: context.cwd, stdin: context.stdin, stderr: context.stderr, stdout: invocation.child(context.stdout).output, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}), inputBudget: { check(total) { chargeInput(total - accountedBytes); } } };
     const isConvert = runner === runConvertCli || (runner === runMagickCli && !["mogrify", "composite", "montage"].includes(argv[0] ?? ""));
-    const res = isConvert ? await runConvertCli(runner === runMagickCli && argv[0] === "convert" ? argv.slice(1) : argv, fileInput, undefined, invocation.signal) : await runBufferedImageFiles(argv, fileInput, runner, undefined, invocation.signal);
+    const isMogrify = runner === runMogrifyCli || (runner === runMagickCli && argv[0] === "mogrify");
+    const res = isConvert ? await runConvertCli(runner === runMagickCli && argv[0] === "convert" ? argv.slice(1) : argv, fileInput, undefined, invocation.signal)
+        : isMogrify ? await runMogrifyCli(runner === runMagickCli ? argv.slice(1) : argv, fileInput, undefined, invocation.signal)
+        : await runBufferedImageFiles(argv, fileInput, runner, undefined, invocation.signal);
 
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);

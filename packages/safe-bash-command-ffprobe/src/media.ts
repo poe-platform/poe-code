@@ -393,6 +393,7 @@ export function formatFfprobeResult(
   }
 
   function probeText(value: unknown, separator = "."): string {
+    if (fmt === "flat" && typeof value === "number") return String(value);
     const text = String(value);
     if (fmt === "csv") {
       return [separator, '"', "\n", "\r"].some(character => text.includes(character))

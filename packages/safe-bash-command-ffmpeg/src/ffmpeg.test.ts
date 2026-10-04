@@ -676,3 +676,10 @@ it("matches native sine mono and anullsrc stereo channel defaults", async () => 
     assert.equal(track.codecDescriptions[0]!.sampleRate, 16000);
   }
 });
+
+it("matches native ffprobe flat numeric and string field types", async () => {
+  const vfs = createTestVfs({ "/clip.mp4": createSyntheticMp4({ width: 80, height: 60, frameCount: 1, includeAudio: false }) });
+  const result = await runCmd(createFfprobeCommand(), ["-of", "flat", "-show_entries", "stream=codec_name,width,height", "/clip.mp4"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, 'streams.stream.0.codec_name="h264"\nstreams.stream.0.width=80\nstreams.stream.0.height=60\n');
+});

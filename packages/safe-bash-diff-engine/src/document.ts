@@ -19,6 +19,7 @@ export class IndexedDocument {
   size = 0;
   length = 0;
   binary = false;
+  validUtf8 = true;
   private closing: Promise<void> | undefined;
   private loaded = false;
 
@@ -31,6 +32,7 @@ export class IndexedDocument {
   async load(source: ByteSource): Promise<void> {
     if (this.loaded) throw new Error("Document is already loaded");
     this.loaded = true;
+    const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
     const records = new Uint8Array(24 * 512);
     const view = new DataView(records.buffer);
     let used = 0, start = 0, hash = 2166136261;
@@ -48,6 +50,10 @@ export class IndexedDocument {
       for (let offset = 0; offset < bytes.length; offset += 16384) {
         const block = bytes.subarray(offset, offset + 16384);
         await this.data.append(block);
+        if (this.validUtf8) {
+          try { decoder.decode(block, { stream: true }); }
+          catch { this.validUtf8 = false; }
+        }
         for (let i = 0; i < block.length; i++) {
           const byte = block[i]!;
           this.binary ||= byte === 0;
@@ -59,6 +65,9 @@ export class IndexedDocument {
         const checkpoint = this.budget.checkpoint();
         if (checkpoint) await checkpoint;
       }
+    }
+    if (this.validUtf8) {
+      try { decoder.decode(); } catch { this.validUtf8 = false; }
     }
     if (start < this.size) await record(this.size);
     if (used) await this.index.append(records.subarray(0, used));

@@ -9,8 +9,9 @@ output and explicit resource limits.
 - Optional input, output, line, work, matrix, file, hunk and exclusion limits.
 - Exact `--brief` comparisons of regular files use retained 64 KiB reads,
   including binary files and arbitrarily long lines.
-- Exact normal, unified, context, RCS and conditional output uses bounded
-  document, line-index and LCS caches backed by your filesystem, including stdin.
+- Normal, unified, context, RCS, conditional, ed and side-by-side output uses
+  bounded document, line-index and LCS caches backed by your filesystem, including
+  stdin, whitespace/case normalization and display transformations.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
@@ -46,6 +47,5 @@ spill through retained handles in your filesystem under `TMPDIR` (or the working
 directory); use external storage for large workloads, since memory filesystems
 retain spilled data in RAM. The backend must support positioned reads/writes,
 exclusive creation, and conditional removal.
-Normalization, ignored-line options, ed, side-by-side, display transformations,
-brief stdin comparisons, directory metadata, and pagination still have buffered
-paths; this is not a general bounded-memory guarantee for every diff option.
+Ignored-line and function-heading options, directory metadata, special-file
+operands, and pagination still have buffered paths; this is not a general bounded-memory guarantee for every diff option.

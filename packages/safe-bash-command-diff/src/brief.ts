@@ -1,7 +1,7 @@
 import { Budget } from "safe-bash-diff-engine/shared";
 
 /** Compare without a line index, including arbitrarily long lines and binary files. */
-export async function compareBrief(budget: Budget, left: string, right: string, text: boolean): Promise<boolean> {
+export async function compareBrief(budget: Budget, left: string, right: string, text: boolean, countEqualLines = false): Promise<boolean> {
   const sources = [budget.diffSource(left), budget.diffSource(right)];
   const blocks: (Uint8Array | undefined)[] = [undefined, undefined];
   const offsets = [0, 0];
@@ -46,8 +46,8 @@ export async function compareBrief(budget: Budget, left: string, right: string, 
       offsets[0]! += length;
       offsets[1]! += length;
     }
-    // The buffered command skips line accounting for binary and unforced equal inputs.
-    if (text || !same && !binary) {
+    // Binary and equal ordinary comparisons bypass line splitting in the buffered command.
+    if ((text || !binary) && (!same || countEqualLines)) {
       budget.countLines(lines[0]! + lines[1]! + Number(last[0] !== -1 && last[0] !== 10) + Number(last[1] !== -1 && last[1] !== 10));
     }
   } catch (error) { failure = { error }; }

@@ -94,7 +94,7 @@ for (const [name, args, left, right, limits, status] of [
   ["binary skips line quota", [], "a\n\0", "c\nd", { maxLines: 1 }, 1],
   ["forced binary text counts lines", ["-a"], "a\n\0", "c\nd", { maxLines: 1 }, 2],
   ["equal unforced skips line quota", [], "a\nb", "a\nb", { maxLines: 1 }, 0],
-  ["equal forced counts lines", ["-a"], "a\nb", "a\nb", { maxLines: 1 }, 2],
+  ["equal forced skips line quota", ["-a"], "a\nb", "a\nb", { maxLines: 1 }, 0],
 ] as const) test(`brief preserves ${name}`, async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/left", new TextEncoder().encode(left));

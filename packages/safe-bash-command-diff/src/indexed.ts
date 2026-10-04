@@ -1,21 +1,23 @@
+import { writeDiagnostic } from "safe-bash-contracts/escaping";
+import { renderEd, renderSideBySide, type IndexedGroup as Group } from "./indexed-output.js";
+import { comparisonSource, expandedSource, stripTrailingCr, terminatedSource } from "./indexed-normalization.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { IndexedDocument, closeDocumentResources } from "safe-bash-diff-engine/document";
 import { Budget, ToolError } from "safe-bash-diff-engine/shared";
 import type { DiffFlags } from "./diff-options.js";
-import { quoteDiffArgument, quoteDiffName } from "./diff-output.js";
+import { colorText, quoteDiffArgument, quoteDiffName } from "./diff-output.js";
 
-interface Group { oldStart: number; newStart: number; oldCount: number; newCount: number }
 export interface StdinDocument { document?: IndexedDocument; loading?: Promise<void> }
 
 type Append = (bytes: Uint8Array) => Promise<void>;
 const encoder = new TextEncoder();
 
 /** LCS cells and edit groups live in caller storage; only scalar cursors stay in RAM. */
-async function buildGroups(old: IndexedDocument, next: IndexedDocument, matrix: PagedStorage, groups: PagedStorage, budget: Budget): Promise<number> {
+async function buildGroups(old: IndexedDocument, next: IndexedDocument, matrix: PagedStorage, groups: PagedStorage, budget: Budget, admitLines = true): Promise<number> {
   let prefix = 0, suffix = 0, count = 0;
   while (prefix < Math.min(old.length, next.length) && await old.equal(prefix, next, prefix)) prefix++;
   if (prefix === old.length && prefix === next.length) return 0;
-  budget.countLines(old.length + next.length);
+  if (admitLines) budget.countLines(old.length + next.length);
   while (suffix < Math.min(old.length, next.length) - prefix
     && await old.equal(old.length - suffix - 1, next, next.length - suffix - 1)) suffix++;
   const oldCount = old.length - prefix - suffix, newCount = next.length - prefix - suffix;
@@ -70,26 +72,40 @@ function range(start: number, count: number, unified = false): string {
   return count === 0 ? `${start}${unified ? ",0" : ""}` : count === 1 ? `${start + 1}` : `${start + 1},${unified ? count : start + count}`;
 }
 
-async function line(document: IndexedDocument, position: number, prefix: string, append: Append): Promise<void> {
+interface LineOutput { append: Append; options: DiffFlags; utf8: boolean }
+
+async function line(document: IndexedDocument, position: number, prefix: string, output: LineOutput, color?: 31 | 32): Promise<void> {
+  const { append, options, utf8 } = output;
   const bounds = await document.line(position);
+  const terminated = (await document.data.read(8 + bounds.end - 1, 1))[0] === 10;
+  if (options.initialTab) prefix = (prefix.length === 2 ? prefix.slice(0, -1) : prefix.trimEnd()) + "\t";
+  if (options.color && color !== undefined) await append(encoder.encode(`\u001b[${color}m`));
   await append(encoder.encode(prefix));
-  for await (const bytes of document.range(bounds.start, bounds.end)) await append(bytes);
-  const last = await document.data.read(8 + bounds.end - 1, 1);
-  if (last[0] !== 10) await append(encoder.encode("\n\\ No newline at end of file\n"));
+  const end = bounds.end - Number(terminated);
+  const source = options.expand ? expandedSource(document, bounds.start, end, utf8) : document.range(bounds.start, end);
+  for await (const bytes of source) await append(bytes);
+  if (options.color && color !== undefined) await append(encoder.encode("\u001b[0m"));
+  await append(encoder.encode("\n"));
+  if (!terminated) await append(encoder.encode("\\ No newline at end of file\n"));
 }
 
 export async function indexedDiff(budget: Budget, options: DiffFlags, left: string, right: string, nested: boolean, append: Append,
-  sources: { left: string | undefined; right: string | undefined }, stdin: StdinDocument): Promise<boolean> {
+  sources: { left: string | undefined; right: string | undefined }, stdin: StdinDocument): Promise<{ different: boolean; trouble: boolean }> {
+  let trouble = false;
   const acquire = (source: string | undefined) => source === "-" ? stdin.document ??= new IndexedDocument(budget) : new IndexedDocument(budget);
-  const old = acquire(sources.left), next = acquire(sources.right);
+  const rawOld = acquire(sources.left), rawNext = acquire(sources.right);
+  let old = rawOld, next = rawNext;
   const load = async (document: IndexedDocument, source: string | undefined) => {
-    if (source === "-") await (stdin.loading ??= document.load(budget.stdinSource()));
-    else if (source !== undefined) await document.load(budget.diffSource(source));
+    if (source === undefined) return;
+    const input = source === "-" ? budget.stdinSource() : budget.diffSource(source);
+    if (source === "-") await (stdin.loading ??= document.load(input));
+    else await document.load(input);
   };
+  const keys: IndexedDocument[] = [];
   const matrix = new PagedStorage(budget.context, 8), groups = new PagedStorage(budget.context, 16);
   budget.context.registerCleanup?.(() => matrix.close());
   budget.context.registerCleanup?.(() => groups.close());
-  const text = async (value: string) => { await append(encoder.encode(value)); };
+  const text = async (value: string, color?: 1 | 36) => { await append(encoder.encode(color === undefined ? value : colorText(value, color, options))); };
   const group = async (index: number): Promise<Group> => {
     const bytes = await groups.read(8 + index * 32, 32), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     return { oldStart: view.getFloat64(0, true), newStart: view.getFloat64(8, true), oldCount: view.getFloat64(16, true), newCount: view.getFloat64(24, true) };
@@ -100,27 +116,83 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
     if (!options.text && (old.binary || next.binary)) {
       let same = old.size === next.size && old.length === next.length;
       for (let index = 0; same && index < old.length; index++) same = await old.equal(index, next, index);
-      if (!same) await text(`Binary files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
+      if (!same) await text(`${options.brief ? "Files" : "Binary files"} ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
       else if (options.reportSame) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
-      return !same;
+      return { different: !same, trouble };
     }
-    const count = await buildGroups(old, next, matrix, groups, budget);
+    if (options.format === "ed" && !options.brief) {
+      for (const [document, path] of [[old, left], [next, right]] as const) {
+        if (document.size && (await document.data.read(8 + document.size - 1, 1))[0] !== 10) {
+          trouble = true;
+          await writeDiagnostic(budget.context.stderr, `diff: ${path}: No newline at end of file\n\n`, budget.context.signal);
+        }
+      }
+    }
+    if (options.stripTrailingCr) {
+      old = new IndexedDocument(budget); next = new IndexedDocument(budget);
+      keys.push(old, next);
+      await old.load(stripTrailingCr(rawOld.range(0, rawOld.size), budget.context.signal));
+      await next.load(stripTrailingCr(rawNext.range(0, rawNext.size), budget.context.signal));
+    }
+    if (options.format === "ed" && !options.brief && trouble) {
+      const before = old, after = next;
+      old = new IndexedDocument(budget); next = new IndexedDocument(budget);
+      keys.push(old, next);
+      await old.load(terminatedSource(before)); await next.load(terminatedSource(after));
+    }
+    let oldKeys = old, nextKeys = next;
+    const normalize = options.whitespace !== "exact" || options.ignoreCase || options.ignoreTabs || options.ignoreTrailing;
+    let sameRaw = false;
+    if (normalize) {
+      sameRaw = old.size === next.size && old.length === next.length;
+      for (let index = 0; sameRaw && index < old.length; index++) sameRaw = await old.equal(index, next, index);
+    }
+    const counted = options.format === "ifdef" || options.format === "side" || normalize && !sameRaw;
+    if (counted) budget.countLines(old.length + next.length);
+    if (normalize && !sameRaw) {
+      oldKeys = new IndexedDocument(budget); nextKeys = new IndexedDocument(budget);
+      keys.push(oldKeys, nextKeys);
+      const utf8 = old.validUtf8 && next.validUtf8;
+      await oldKeys.load(comparisonSource(old, options, utf8));
+      await nextKeys.load(comparisonSource(next, options, utf8));
+    }
+    if (options.brief) {
+      let same = oldKeys.size === nextKeys.size && oldKeys.length === nextKeys.length;
+      for (let index = 0; same && index < oldKeys.length; index++) same = await oldKeys.equal(index, nextKeys, index);
+      if (!same) {
+        if (!counted) budget.countLines(old.length + next.length);
+        await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
+      } else if (options.reportSame) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+      return { different: !same, trouble };
+    }
+    const render = { append, options, utf8: old.validUtf8 && next.validUtf8 };
+    const count = sameRaw ? 0 : await buildGroups(oldKeys, nextKeys, matrix, groups, budget, !counted);
+    if (options.format === "side") {
+      if (nested && (count || !options.suppressCommon)) await text(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ") + "\n");
+      await renderSideBySide(old, next, count, group, options, budget, append);
+      if (!count && options.reportSame) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+      return { different: count > 0, trouble };
+    }
     if (!count) {
       if (options.format === "ifdef") for await (const bytes of old.range(0, old.size)) await append(bytes);
-      if (options.reportSame) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
-      return false;
+      if (options.reportSame && !trouble) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+      return { different: false, trouble };
     }
     if (nested) await text(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ") + "\n");
+    if (options.format === "ed") {
+      await renderEd(next, count, group, budget, append);
+      return { different: true, trouble };
+    }
     if (options.format === "normal") {
       for (let index = 0; index < count; index++) {
         const change = await group(index);
         budget.hunk();
-        await text(`${range(change.oldStart, change.oldCount)}${change.oldCount === 0 ? "a" : change.newCount === 0 ? "d" : "c"}${range(change.newStart, change.newCount)}\n`);
-        for (let row = 0; row < change.oldCount; row++) await line(old, change.oldStart + row, "< ", append);
+        await text(`${range(change.oldStart, change.oldCount)}${change.oldCount === 0 ? "a" : change.newCount === 0 ? "d" : "c"}${range(change.newStart, change.newCount)}\n`, 36);
+        for (let row = 0; row < change.oldCount; row++) await line(old, change.oldStart + row, "< ", render, 31);
         if (change.oldCount && change.newCount) await text("---\n");
-        for (let row = 0; row < change.newCount; row++) await line(next, change.newStart + row, "> ", append);
+        for (let row = 0; row < change.newCount; row++) await line(next, change.newStart + row, "> ", render, 32);
       }
-      return true;
+      return { different: true, trouble };
     }
     if (options.format === "rcs" || options.format === "ifdef") {
       let position = 0;
@@ -148,10 +220,11 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
         }
       }
       if (options.format === "ifdef") for await (const bytes of old.range(position, old.size)) await append(bytes);
-      return true;
+      return { different: true, trouble };
     }
     const unified = options.format === "unified";
-    await text(`${unified ? "---" : "***"} ${options.labels[0] ?? quoteDiffName(sources.left === undefined ? "/dev/null" : left)}\n${unified ? "+++" : "---"} ${options.labels[1] ?? quoteDiffName(sources.right === undefined ? "/dev/null" : right)}\n`);
+    await text(`${unified ? "---" : "***"} ${options.labels[0] ?? quoteDiffName(sources.left === undefined ? "/dev/null" : left)}\n`, 1);
+    await text(`${unified ? "+++" : "---"} ${options.labels[1] ?? quoteDiffName(sources.right === undefined ? "/dev/null" : right)}\n`, 1);
     for (let index = 0; index < count;) {
       const first = await group(index);
       let last = first, end = index + 1;
@@ -166,19 +239,21 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
       const oldEnd = last.oldStart + last.oldCount + trail, newEnd = last.newStart + last.newCount + trail;
       budget.hunk();
       if (unified) {
-        await text(`@@ -${range(oldStart, oldEnd - oldStart, true)} +${range(newStart, newEnd - newStart, true)} @@\n`);
+        await text(`@@ -${range(oldStart, oldEnd - oldStart, true)} +${range(newStart, newEnd - newStart, true)} @@`, 36);
+        await text("\n");
         let position = oldStart;
         for (let at = index; at < end; at++) {
           const change = await group(at);
-          while (position < change.oldStart) await line(old, position++, " ", append);
-          for (let row = 0; row < change.oldCount; row++) await line(old, position++, "-", append);
-          for (let row = 0; row < change.newCount; row++) await line(next, change.newStart + row, "+", append);
+          while (position < change.oldStart) await line(old, position++, " ", render);
+          for (let row = 0; row < change.oldCount; row++) await line(old, position++, "-", render, 31);
+          for (let row = 0; row < change.newCount; row++) await line(next, change.newStart + row, "+", render, 32);
         }
-        while (position < oldEnd) await line(old, position++, " ", append);
+        while (position < oldEnd) await line(old, position++, " ", render);
       } else {
-        await text(`***************\n*** ${range(oldStart, oldEnd - oldStart)} ****\n`);
+        await text("***************\n");
+        await text(`*** ${range(oldStart, oldEnd - oldStart)} ****\n`, 36);
         for (const side of ["old", "new"] as const) {
-          if (side === "new") await text(`--- ${range(newStart, newEnd - newStart)} ----\n`);
+          if (side === "new") await text(`--- ${range(newStart, newEnd - newStart)} ----\n`, 36);
           let changed = false;
           for (let at = index; at < end; at++) { const change = await group(at); changed ||= (side === "old" ? change.oldCount : change.newCount) > 0; }
           if (!changed) continue;
@@ -188,20 +263,20 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
             const change = await group(at);
             const start = side === "old" ? change.oldStart : change.newStart;
             const length = side === "old" ? change.oldCount : change.newCount;
-            while (position < start) await line(document, position++, "  ", append);
-            for (let row = 0; row < length; row++) await line(document, position++, change.oldCount && change.newCount ? "! " : side === "old" ? "- " : "+ ", append);
+            while (position < start) await line(document, position++, "  ", render, side === "old" ? 31 : 32);
+            for (let row = 0; row < length; row++) await line(document, position++, change.oldCount && change.newCount ? "! " : side === "old" ? "- " : "+ ", render, side === "old" ? 31 : 32);
           }
           const limit = side === "old" ? oldEnd : newEnd;
-          while (position < limit) await line(document, position++, "  ", append);
+          while (position < limit) await line(document, position++, "  ", render, side === "old" ? 31 : 32);
         }
       }
       index = end;
     }
-    return true;
+    return { different: true, trouble };
   } finally {
     await closeDocumentResources([
-      ...(old === stdin.document ? [] : [old]),
-      ...(next === stdin.document ? [] : [next]), matrix, groups,
+      ...(rawOld === stdin.document ? [] : [rawOld]),
+      ...(rawNext === stdin.document ? [] : [rawNext]), ...keys, matrix, groups,
     ]);
   }
 }

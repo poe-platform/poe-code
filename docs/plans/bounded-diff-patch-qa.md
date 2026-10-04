@@ -2,11 +2,11 @@
 
 This is a manual execution plan, not a qualification result. Current coverage is
 exact `diff --brief` regular-file payload comparison plus indexed normal, unified,
-context, RCS and conditional output (including stdin and missing-file operands).
+context, RCS, conditional, ed and side-by-side output (including stdin and
+missing-file operands, normalization, display transformations and brief stdin).
 Indexed documents, line indexes, LCS cells, edit groups and output use caller-backed
-page caches. Normalization, ignored lines, ed/side output, display transformations,
-brief stdin, directory metadata, pagination, patch, apply-patch and diff3 still
-need migration. Do not infer qualification of those paths from migrated tests.
+page caches. Ignored lines, function headings, special-file operands, directory
+metadata, pagination, patch, apply-patch and diff3 still need migration. Do not infer qualification of those paths from migrated tests.
 
 ## Runtime and storage
 

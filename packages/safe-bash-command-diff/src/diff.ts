@@ -330,23 +330,21 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
       && !options.ignoreTabs && !options.ignoreTrailing && !options.stripTrailingCr
       && !options.ignoreBlank && options.ignorePatterns.length === 0
       && leftStat?.type === "file" && rightStat?.type === "file" && !isStdin(left) && !isStdin(right)) {
-      const same = await compareBrief(budget, pathOf(context, left), pathOf(context, right), options.text);
+      const same = await compareBrief(budget, pathOf(context, left), pathOf(context, right), options.text, options.format === "side" || options.format === "ifdef");
       if (!same) {
         different = true;
         await append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
       } else if (options.reportSame) await append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
       continue;
     }
-    if (!options.brief && options.whitespace === "exact" && !options.ignoreCase
-      && !options.ignoreTabs && !options.ignoreTrailing && !options.stripTrailingCr
-      && !options.ignoreBlank && options.ignorePatterns.length === 0 && !options.functions.length
-      && !options.expand && !options.color && !options.initialTab
-      && (options.format === "normal" || options.format === "unified" || options.format === "context" || options.format === "rcs" || options.format === "ifdef")
+    if (!options.ignoreBlank && options.ignorePatterns.length === 0 && !options.functions.length
       && (!leftStat || leftStat.type === "file") && (!rightStat || rightStat.type === "file")) {
-      different = await indexedDiff(budget, options, left, right, pair.nested, appendBytes, {
+      const result = await indexedDiff(budget, options, left, right, pair.nested, appendBytes, {
         left: !leftStat ? undefined : isStdin(left) ? "-" : pathOf(context, left),
         right: !rightStat ? undefined : isStdin(right) ? "-" : pathOf(context, right),
-      }, stdinDocument) || different;
+      }, stdinDocument);
+      different ||= result.different;
+      trouble ||= result.trouble;
       continue;
     }
     const read = async (path: string, stat: { type: string } | undefined) => {

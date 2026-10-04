@@ -1,3 +1,4 @@
+import { clutPixelSteps, interpolatePixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
 import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
@@ -662,7 +663,6 @@ function* applyMagickFloodfillSteps(
 }
 
 function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
     if (stack.length === 0) {
         throw new Error("evaluate-sequence requires at least one image");
     }
@@ -674,61 +674,7 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
     const normalized = (yield* mapSteps(stack, function* (im) {
         return im.width === w && im.height === h ? im : (yield* applyMagickResizeSteps(im, `${w}x${h}!`, "bilinear"));
     }));
-    const n = normalized.length;
-    const out = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
-    const op = opRaw.toLowerCase().replace(/[-_]/g, "");
-    const vals = new Float64Array(n);
-    for (let i = 0; i < out.length; i++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        if ((i & 3) === 3) {
-            out[i] = base.data[i]!;
-            continue;
-        }
-        for (let k = 0; k < n; k++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            vals[k] = normalized[k]!.data[i]!;
-        }
-        let res = vals[0]!;
-        if (op === "mean" || op === "average") {
-            let s = 0;
-            for (let k = 0; k < n; k++)
-                s += vals[k]!;
-            res = s / n;
-        }
-        else if (op === "median") {
-            const baseOff = i & ~3;
-            const order = Array.from({ length: n }, (_, k) => k).sort((a, b) => {
-                const da = normalized[a]!.data;
-                const db = normalized[b]!.data;
-                const sumA = da[baseOff]! + da[baseOff + 1]! + da[baseOff + 2]! + da[baseOff + 3]!;
-                const sumB = db[baseOff]! + db[baseOff + 1]! + db[baseOff + 2]! + db[baseOff + 3]!;
-                return sumA - sumB;
-            });
-            res = vals[order[Math.floor(n / 2)]!]!;
-        }
-        else if (op === "min") {
-            res = Math.min(...vals);
-        }
-        else if (op === "max") {
-            res = Math.max(...vals);
-        }
-        else if (op === "add") {
-            let s = 0;
-            for (let k = 0; k < n; k++)
-                s += vals[k]!;
-            res = s;
-        }
-        else if (op === "multiply") {
-            let p = 1;
-            for (let k = 0; k < n; k++)
-                p *= vals[k]! / 255;
-            res = p * 255;
-        }
-        out[i] = clampByteVal(res);
-    }
-    return { ...base, data: out };
+    return yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized.length, opRaw), signal, base, normalized);
 }
 
 function parseMagickConvolveKernel(spec: string): number[] {
@@ -1307,13 +1253,7 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, s
             const h = Math.max(1, Math.round(a.height * (1 - t) + b.height * t));
             const ra = a.width === w && a.height === h ? a : (yield* applyMagickResizeSteps(a, `${w}x${h}!`, "bilinear"));
             const rb = b.width === w && b.height === h ? b : (yield* applyMagickResizeSteps(b, `${w}x${h}!`, "bilinear"));
-            const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
-            for (let p = 0; p < data.length; p++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                data[p] = clampByteVal(ra.data[p]! * (1 - t) + rb.data[p]! * t);
-            }
-            out.push({ ...ra, width: w, height: h, data });
+            out.push(yield* applyMagickRasterSteps(ra, interpolatePixelSteps(w * h * 4, t), signal, ra, [ra, rb]));
         }
     }
     out.push(stack[stack.length - 1]!);
@@ -1572,28 +1512,7 @@ function* applyMagickClutSteps(baseImg: RgbaImage, lutImg: RgbaImage, channels: 
     b: boolean;
     a: boolean;
 }, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const out = new Uint8Array(baseImg.data);
-    const horiz = lutImg.width >= lutImg.height;
-    const len = Math.max(1, horiz ? lutImg.width : lutImg.height);
-    const mask = [channels.r, channels.g, channels.b, channels.a];
-    for (let i = 0; i < out.length; i += 4) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let c = 0; c < 4; c++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            if (!mask[c])
-                continue;
-            const t = out[i + c]! / 255;
-            const pos = Math.max(0, Math.min(len - 1, Math.round(t * (len - 1))));
-            const lx = horiz ? pos : 0;
-            const ly = horiz ? 0 : pos;
-            const lutIdx = (ly * lutImg.width + lx) * 4;
-            out[i + c] = lutImg.data[lutIdx + c]!;
-        }
-    }
-    return { ...baseImg, data: out };
+    return yield* applyMagickRasterSteps(baseImg, clutPixelSteps(baseImg.width * baseImg.height * 4, lutImg, [channels.r, channels.g, channels.b, channels.a]), signal, baseImg, [baseImg, lutImg]);
 }
 
 type FxImage = Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;
@@ -4609,16 +4528,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const gIm = stack[1] ?? rIm;
                 const bIm = stack[2] ?? rIm;
                 const aIm = stack[3];
-                const out = new Uint8Array(rIm.width * rIm.height * 4);
-                for (let p = 0; p < out.length; p += 4) {
-                    if (++cooperativeWork % 65536 === 0)
-                        yield;
-                    out[p] = rIm.data[p]!;
-                    out[p + 1] = gIm.data[p]!;
-                    out[p + 2] = bIm.data[p]!;
-                    out[p + 3] = aIm ? aIm.data[p]! : 255;
-                }
-                stack = [{ ...rIm, space: "srgb", data: out, channels: 4, hasAlpha: Boolean(aIm) }];
+                const sources = [rIm, gIm, bIm, ...(aIm ? [aIm] : [])];
+                const result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(rIm.width * rIm.height * 4, sources.map(image => image.data.length)), signal, rIm, sources);
+                stack = [{ ...result, space: "srgb", channels: 4, hasAlpha: Boolean(aIm) }];
             }
         }
         else if (t === "-draw") {
@@ -5108,6 +5020,57 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
                     const raw = token === "+insert" ? 0 : Number(spec), target = raw < 0 ? Math.max(0, stack.length + raw) : Math.min(stack.length - 1, Math.max(0, raw));
                     for (let n = stack.length - 1; n > target; n--) { await yieldTurn(signal); await stack.swap(n, n - 1); }
                 } else { const values = (token === "+swap" ? "-2,-1" : spec).split(",").map(Number); const a = values[0] ?? -2, b = values[1] ?? -1; await stack.swap(a < 0 ? stack.length + a : a, b < 0 ? stack.length + b : b); }
+                return stack;
+            });
+            continue;
+        }
+        if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence"].includes(token)) {
+            const argument = token === "-morph" || token === "-evaluate-sequence" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : "", settings = { ...state, channels: { ...state.channels } };
+            stackStep(async (stack, backend) => {
+                const resize = async (image: StoredRgbaImage, width: number, height: number) => image.width === width && image.height === height ? image : transformStoredImage(image, backend.storage, { kind: "resize", ...magickResizeOptions(image, `${width}x${height}!`, "bilinear")! }, signal);
+                if (token === "-clut" || token === "-hald-clut") {
+                    if (stack.length < 2) return stack;
+                    const lut = (await stack.get(stack.length - 1))!, mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];
+                    stack.length--;
+                    for (let index = 0; index < stack.length; index++) {
+                        const image = (await stack.get(index))!;
+                        await stack.set(index, await transformStoredMagickRaster(image, backend, clutPixelSteps(image.width * image.height * 4, lut, mask), signal, image, [image, lut]));
+                    }
+                } else if (token === "-separate") {
+                    const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];
+                    for (let index = 0; index < stack.length; index++) {
+                        const image = (await stack.get(index))!;
+                        for (const channel of [0, 1, 2, 3] as const) if (settings.channelExplicit ? mask[channel] : channel < 3 || image.hasAlpha) {
+                            const source = channel === 3 ? await transformStoredImage(image, backend.storage, { kind: "ensureAlpha", alpha: 1 }, signal) : image;
+                            await result.push(await transformStoredImage(source, backend.storage, { kind: "extractChannel", channel }, signal));
+                        }
+                    }
+                    return result;
+                } else if (token === "-combine") {
+                    if (stack.length < 3) return stack;
+                    const sources: StoredRgbaImage[] = [];
+                    for (let index = 0; index < Math.min(4, stack.length); index++) sources.push((await stack.get(index))!);
+                    const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(base.width * base.height * 4, sources.map(image => image.width * image.height * 4)), signal, base, sources);
+                    stack.length = 0; await stack.push({ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 });
+                } else if (token === "-morph") {
+                    const count = Math.max(0, Math.round(Number(argument))); if (stack.length < 2 || count === 0) return stack;
+                    const result = new StoredImageStack(backend.storage, signal, stack);
+                    for (let index = 0; index < stack.length - 1; index++) {
+                        const a = (await stack.get(index))!, b = (await stack.get(index + 1))!; await result.push(a);
+                        for (let step = 1; step <= count; step++) {
+                            await yieldTurn(signal);
+                            const fraction = step / (count + 1), width = Math.max(1, Math.round(a.width * (1 - fraction) + b.width * fraction)), height = Math.max(1, Math.round(a.height * (1 - fraction) + b.height * fraction));
+                            const first = await resize(a, width, height), last = await resize(b, width, height);
+                            await result.push(await transformStoredMagickRaster(first, backend, interpolatePixelSteps(width * height * 4, fraction), signal, first, [first, last]));
+                        }
+                    }
+                    await result.push((await stack.get(stack.length - 1))!); return result;
+                } else if (stack.length > 1) {
+                    const base = (await stack.get(0))!;
+                    for (let index = 1; index < stack.length; index++) await stack.set(index, await resize((await stack.get(index))!, base.width, base.height));
+                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, stack.length, argument), signal, base, async index => (await stack.get(index))!);
+                    stack.length = 0; await stack.push(result);
+                }
                 return stack;
             });
             continue;

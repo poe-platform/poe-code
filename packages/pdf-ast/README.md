@@ -898,6 +898,11 @@ older snapshots remain valid until `close()`. The 64 KiB byte cache and bounded
 index caches do not grow with object count. Backing is append-only until close,
 so `maxStagingBytes` includes superseded values; parser limits govern individual
 COS values. Close the store on every outcome.
+Use `setSerializedValue({ objectNumber, generationNumber, body, stream })` when
+the value is already produced as COS syntax chunks. For a stream, `body` is its
+dictionary with the correct `/Length` and encoding entries, and `stream` supplies
+encoded bytes separately. Both declared lengths are admitted before either input
+is consumed; neither dictionary nor payload needs a resident buffer.
 
 `saveRetainedDocumentChunks(document, storage, options)` saves the complete
 object graph with the ordinary document-save page-tree behavior: inherited page

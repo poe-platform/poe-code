@@ -77,35 +77,43 @@ export class PdfMutableObjectStore {
       return true;
     });
   }
-  /** Accept a caller-serialized COS value (not a stream body). Values are
-   * parsed only on get(); output replay stays bounded even for wide arrays.
-   * The caller owns syntax validity, as with PdfSerializedOutputObject. */
-  setSerializedValue(object: PdfSerializedOutputObject): Promise<void> {
+  /** Accept caller-serialized COS syntax without materializing a value tree.
+   * With stream, body is the dictionary, including the correct /Length and
+   * encoding entries; stream contains the encoded bytes. The caller owns syntax
+   * validity, as with PdfSerializedOutputObject. Both inputs are admitted before
+   * consumption and the replacement is published only after both finish. */
+  setSerializedValue(object: PdfSerializedOutputObject & Pick<PdfRetainedOutputObject, "stream">): Promise<void> {
     return this.operation(async () => {
-      const number = object.objectNumber, generation = object.generationNumber, length = object.body.length;
+      const number = object.objectNumber, generation = object.generationNumber, length = object.body.length, streamLength = object.stream?.length ?? 0;
       if (!Number.isSafeInteger(number) || number < 1 || !Number.isSafeInteger(generation) || generation < 0 || generation > 65535) throw new RangeError("Invalid PDF object identity");
       if (number > this.maxObjects) throw new PdfError("E_LIMIT", "PDF mutable object limit exceeded");
       if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("Invalid serialized PDF value length");
-      if (length + 64 > this.maxBytes - this.reserved) throw new PdfError("E_LIMIT", "PDF mutable backing byte limit exceeded");
-      const recordAt = this.reserve(64), valueAt = this.reserve(length);
-      const buffer = new Uint8Array(Math.min(16384, length)); let written = 0, consumed = 0, buffered = 0, work = 0, turns = 0;
-      for await (const bytes of object.body.chunks) {
-        this.signal.throwIfAborted(); if (bytes.length > length - consumed) throw new PdfError("E_PARSE", "Excess serialized PDF value bytes");
-        for (let at = 0; at < bytes.length;) {
-          const take = Math.min(buffer.length - buffered, bytes.length - at);
-          buffer.set(bytes.subarray(at, at + take), buffered); buffered += take; at += take;
-          if (buffered === buffer.length) {
-            await this.backing.write(valueAt + written, buffer); written += buffered; buffered = 0;
-            if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      if (!Number.isSafeInteger(streamLength) || streamLength < 0) throw new RangeError("Invalid PDF stream length");
+      const available = this.maxBytes - this.reserved;
+      if (available < 64 || length > available - 64 || streamLength > available - 64 - length) throw new PdfError("E_LIMIT", "PDF mutable backing byte limit exceeded");
+      const recordAt = this.reserve(64), valueAt = this.reserve(length), streamAt = this.reserve(streamLength);
+      const copy = async (input: PdfSerializedOutputObject["body"], position: number, label: string) => {
+        const buffer = new Uint8Array(Math.min(16384, input.length)); let written = 0, consumed = 0, buffered = 0, work = 0, turns = 0;
+        for await (const bytes of input.chunks) {
+          this.signal.throwIfAborted(); if (bytes.length > input.length - consumed) throw new PdfError("E_PARSE", `Excess ${label} bytes`);
+          for (let at = 0; at < bytes.length;) {
+            const take = Math.min(buffer.length - buffered, bytes.length - at);
+            buffer.set(bytes.subarray(at, at + take), buffered); buffered += take; at += take;
+            if (buffered === buffer.length) {
+              await this.backing.write(position + written, buffer); written += buffered; buffered = 0;
+              if (++work % 64 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); this.signal.throwIfAborted(); }
+            }
           }
+          consumed += bytes.length;
+          if (++turns % 1024 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); this.signal.throwIfAborted(); }
         }
-        consumed += bytes.length;
-        if (++turns % 1024 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
-      }
-      if (consumed !== length) throw new PdfError("E_PARSE", "Incomplete serialized PDF value bytes");
-      if (buffered) await this.backing.write(valueAt + written, buffer.subarray(0, buffered));
+        if (consumed !== input.length) throw new PdfError("E_PARSE", `Incomplete ${label} bytes`);
+        if (buffered) await this.backing.write(position + written, buffer.subarray(0, buffered));
+      };
+      await copy(object.body, valueAt, "serialized PDF value");
+      if (object.stream) await copy(object.stream, streamAt, "mutable PDF stream");
       const record = new Uint8Array(64), view = new DataView(record.buffer);
-      [generation, valueAt, length, 0, 0, 0, valueAt, length].forEach((value, i) => view.setFloat64(i * 8, value));
+      [generation, valueAt, length, streamAt, streamLength, object.stream ? object.stream.decoded ? 2 : 1 : 0, valueAt, length].forEach((value, i) => view.setFloat64(i * 8, value));
       await this.backing.write(recordAt, record); this.signal.throwIfAborted();
       await this.index.set(BigInt(number), BigInt(recordAt)); this.highest = Math.max(this.highest, number);
     });

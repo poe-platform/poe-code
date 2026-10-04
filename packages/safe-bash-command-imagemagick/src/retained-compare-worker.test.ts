@@ -5,8 +5,8 @@ import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { runCompareCli, runConvertCli, runMogrifyCli, runCompositeCli, runMontageCli } from "./index.js";
-for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-stack", "convert-animation", "convert-text", "composite", "montage", "convert-sequence"] as const)
-for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation" || tool === "convert-text" || tool === "composite" || tool === "montage" || tool === "convert-sequence") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
+for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-stack", "convert-animation", "convert-text", "composite", "montage", "convert-sequence", "convert-malformed"] as const)
+for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation" || tool === "convert-text" || tool === "composite" || tool === "montage" || tool === "convert-sequence" || tool === "convert-malformed") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
 for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation") ? [false] : [false, true])
     it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
@@ -23,6 +23,7 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
             doc.addPage([73, 59]).drawImage(doc.embedPng(png), { x: 0, y: 0, width: 73, height: 59 });
             bytes = doc.save();
         }
+        if (tool === "convert-malformed") bytes.fill(0);
         expect(bytes.length).toBeGreaterThan(1048576);
         const generated = ["label", "gradient", "radial-gradient", "pattern", "tile"].includes(format);
         const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : format === "gradient" || format === "radial-gradient" ? format + ":red-blue" : format === "pattern" ? "pattern:checkerboard" : format === "tile" ? "tile:rose:" : "/input";
@@ -34,6 +35,7 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
         if (tool === "composite") args.splice(0, args.length, "-compose", "multiply", "-geometry", "123x97+3+5", operand, operand);
         if (tool === "montage") args.splice(0, args.length, "-tile", "2x1", "-geometry", "307x311+2+3", "-border", "2", "-bordercolor", "#12345680", operand, operand);
         if (tool === "convert-sequence") args.splice(0, args.length, operand, "+clone", "-flop", "-evaluate-sequence", "Median", "+clone", "-negate", "-clut", "-separate", "-combine", "+clone", "-morph", "1", "-append", "-raise", "3", "-transpose", "-transverse", "-layers", "merge", "-tile", "2x3", "-deskew", "40%");
+        if (tool === "convert-malformed") args.splice(0, args.length, operand);
         const expectedFiles = new Map([["/input", bytes]]), expected = tool === "montage" ? await runMontageCli([...args, "png:/out.bmp"], expectedFiles) : tool === "composite" ? await runCompositeCli([...args, "png:/out.bmp"], expectedFiles) : tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : tool === "mogrify" ? await runMogrifyCli(["-format", "png", ...args.slice(3), operand], expectedFiles) : await runConvertCli([...args, tool === "convert-text" ? "txt:/out.bmp" : tool === "convert-animation" ? "gif:/out.bmp" : "png:/out.bmp"], expectedFiles);
         const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
  import {runCompareCli,runConvertCli,runMogrifyCli,runCompositeCli,runMontageCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
@@ -95,14 +97,15 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
                 nodeGlobals: boolean;
             };
             expect(result.metadata).toEqual(expected);
-            expect(result.opened).toBeGreaterThan(generated ? 0 : 1);
+            expect(result.opened).toBeGreaterThan(generated || tool === "convert-malformed" ? 0 : 1);
             expect(result.closed).toBe(result.opened);
             expect(result.removed).toBe(result.opened - (generated ? 0 : (tool === "compare" || tool === "composite" || tool === "montage") ? 2 : 1));
-            expect(result.files).toBe(tool === "convert-write" ? 3 : stdout ? 1 : 2);
+            expect(result.files).toBe(tool === "convert-write" ? 3 : stdout || tool === "convert-malformed" ? 1 : 2);
             expect(result.reads).toBeGreaterThan(8);
             expect(result.maxAllocation).toBeLessThanOrEqual(65536);
             expect(result.nodeGlobals).toBe(false);
-            expect(await (await backing.fetch("https://backing/")).json()).toEqual(tool === "convert-write" ? ["/input", "/middle", "/result"] : ["/input", "/result"]);
+            expect(await (await backing.fetch("https://backing/")).json()).toEqual(tool === "convert-write" ? ["/input", "/middle", "/result"] : tool === "convert-malformed" ? ["/input"] : ["/input", "/result"]);
+            if (tool === "convert-malformed") return;
             if (tool === "convert-write") {
                 const middle = new Uint8Array(await (await backing.fetch("https://backing/middle")).arrayBuffer());
                 expect(middle.length).toBeGreaterThan(1048576);

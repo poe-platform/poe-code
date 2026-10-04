@@ -1,4 +1,4 @@
-import { decodeFileImage } from "./image-raster.js";
+import { decodeFileImage, rejectUnknownImage } from "./image-raster.js";
 import { withImageInputs, type ImageFileInput } from "./image-input.js";
 import { readImageMetadataFromSource, tryPdfMetadata, computeStoredImageStats, readImageMetadata, decodeImage, computeImageStatsSteps, UnsupportedStoredResource, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
@@ -55,7 +55,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                         throw error;
                                     const pdf = await tryPdfMetadata(checked, fs, cwd, signal, options);
                                     if (!pdf)
-                                        throw error;
+                                        return await rejectUnknownImage(checked, signal);
                                     metadata = pdf;
                                 }
                                 if (custom)

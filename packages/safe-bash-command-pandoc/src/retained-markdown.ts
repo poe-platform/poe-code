@@ -8,7 +8,7 @@ import type {FormatSelection} from "./formats.js";
 import {readJsonNumber} from "./json-number.js";
 import {PandocError} from "./errors.js";
 
-type Job = {op: string; node: number; path: number; mode?: string | undefined; stage?: number | undefined; cursor?: number | undefined; end?: number | undefined; index?: number | undefined;
+type Job = {projection?: number | undefined; op: string; node: number; path: number; mode?: string | undefined; stage?: number | undefined; cursor?: number | undefined; end?: number | undefined; index?: number | undefined;
   text?: TextRange | undefined; parts?: Job[] | undefined; sep?: string | undefined; previous?: string | undefined; previousMarker?: string | undefined; marker?: string | undefined; choice?: string | undefined;
   next?: string | undefined; digits?: boolean | undefined; start?: boolean | undefined; finish?: boolean | undefined; task?: boolean | undefined; cell?: boolean | undefined; first?: string | undefined; rest?: string | undefined;
   begin?: number | undefined; stop?: number | undefined; width?: number | undefined; lineWidth?: number | undefined; gap?: string | undefined; column?: number | undefined; columns?: number | undefined;
@@ -19,6 +19,9 @@ type Job = {op: string; node: number; path: number; mode?: string | undefined; s
 class MarkdownTape {
   readonly text: BackedText;
   private top = 0;
+  // Each native table/text projection has an independent cumulative length.
+  // Jobs inherit a pointer to that length; nested projections use another slot.
+  private projection = 0;
   private readonly buckets: IntegerTable;
   private firstTarget = 0;
   private lastTarget = 0;
@@ -38,7 +41,14 @@ class MarkdownTape {
   }
   private async pointer(position: number): Promise<number> {const bytes = await this.storage.read(position, 8); return new DataView(bytes.buffer, bytes.byteOffset, 8).getFloat64(0, true);}
   private async put(position: number, value: number): Promise<void> {const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, value, true); await this.storage.write(position, bytes);}
-  private async push(job: Job): Promise<void> {this.top = await this.record({parent: this.top, job});}
+  private async push(job: Job): Promise<void> {this.top = await this.record({parent: this.top, job: {projection: this.projection, ...job}});}
+  private async addProjection(units: number, projection = this.projection): Promise<void> {
+    if (!projection || !Number.isFinite(this.context.limits.references)) return;
+    const length = await this.pointer(projection) + units;
+    this.context.bound("outputBytes", length);
+    this.context.charge("references", 1);
+    await this.put(projection, length);
+  }
   private async path(parent: number, suffix: string): Promise<number> {return this.record({parent, suffix});}
   private async location(path: number): Promise<string> {
     let result = "";
@@ -184,10 +194,12 @@ class MarkdownTape {
     let result = emptyText();
     while (this.top) {
       await this.context.cooperate();
-      const frame = await this.read<{parent: number; job: Job}>(this.top); this.top = frame.parent; const job = frame.job;
+      const frame = await this.read<{parent: number; job: Job}>(this.top); this.top = frame.parent; const job = frame.job; this.projection = job.projection ?? 0;
+      if (job.op === "projectionAdd") {await this.addProjection(result.units); continue;}
       if (job.op === "empty") {result = emptyText(); continue;}
       if (job.op === "scalar") {result = await this.scalar(job.node); continue;}
       if (job.op === "post") {
+        if (job.mode === "surround" && job.rest) await this.addProjection(job.rest.length);
         if (job.mode === "surround") result = await this.join(await this.literal(job.first!), result, await this.literal(job.rest!));
         if (job.mode === "indent") result = result.units || job.first === "> " ? await this.indent(result, job.first!, job.rest!) : await this.literal(job.first!.trimEnd());
         if (job.mode === "escape") result = await this.escape(result);
@@ -231,7 +243,7 @@ class MarkdownTape {
           }
           if (job.mode === "item") {child.first = job.first; child.number = job.number; child.delimiter = job.delimiter;}
         }
-        if (child) {job.stage = 1; await this.push(job); await this.push(child);} else {
+        if (child) {if (job.index && job.sep) await this.addProjection(job.sep.length); job.stage = 1; await this.push(job); await this.push(child);} else {
           result = job.text!;
           if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", result.units);
         }
@@ -280,7 +292,13 @@ class MarkdownTape {
         const child = async (index: number, op: string): Promise<Job> => ({op, node: await this.at(content!, index), path: await this.path(cp, `[${index}]`)});
         if (tag === "Str") {
           const value = await this.scalar(content!);
-          if (job.cell) {let loss = false; for await (const chunk of this.text.chunks(value)) if ([...chunk].some(char => "\r\n\t".includes(char))) loss = true; if (loss) await this.loss(job.path, "Flattened cell text line boundaries", true, true);}
+          if (job.cell) {
+            let loss = false; for await (const chunk of this.text.chunks(value)) if ([...chunk].some(char => "\r\n\t".includes(char))) loss = true;
+            if (loss) {
+              await this.loss(job.path, "Flattened cell text line boundaries", true, true);
+              if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", value.units);
+            }
+          }
           result = await this.escape(value, false, true, job.start, job.finish, job.digits, job.cell); continue;
         }
         if (tag === "Space" || tag === "SoftBreak" || tag === "LineBreak" || tag === "HorizontalRule") {
@@ -374,17 +392,25 @@ class MarkdownTape {
     return result;
   }
   private async tableEscape(value: TextRange): Promise<TextRange> {
-    const source = this.text.chunks(value);
-    return this.text.from((async function* () {let output = "";
+    const source = this.text.unicodeChunks(value), projection = this.projection;
+    const context = this.context; let length = projection ? await this.pointer(projection) : 0;
+    const result = await this.text.from((async function* () {let output = "";
       for await (const chunk of source) for (const char of chunk) {
-        output += "\\`*_{}[]<>|!#".includes(char) ? `\\${char}` : "\n\r\t".includes(char) ? " " : char;
+        const escaped = "\\`*_{}[]<>|!#".includes(char) ? `\\${char}` : "\n\r\t".includes(char) ? " " : char;
+        if (projection && Number.isFinite(context.limits.references)) {
+          length += escaped.length; context.bound("outputBytes", length); context.charge("references", 1);
+        }
+        output += escaped;
         if (output.length >= 4096) {yield output; output = "";}
       }
       if (output) yield output;
     })());
+    if (projection) await this.put(projection, length);
+    return result;
   }
   private async tableJob(job: Job, result: TextRange): Promise<TextRange> {
     const part = async (index: number, op: string): Promise<Job> => ({op, node: await this.at(job.node, index), path: await this.path(job.path, `[${index}]`)});
+    if (job.op === "savedText") return job.text!;
     if (job.op === "tableEscape") return this.tableEscape(result);
     if (job.op === "table") {
       if (!this.selection.extensions.pipe_tables) throw new PandocError("E_UNSUPPORTED_FEATURE", "convert", "Pipe tables are unavailable", this.selection.descriptor.name, await this.location(job.path));
@@ -392,10 +418,20 @@ class MarkdownTape {
       const path = await this.path(tablePath, ".c"), columns = await this.at(job.node, 2), count = await this.count(columns);
       if (!count) throw new PandocError("E_CAPABILITY", "convert", "GFM requires at least one column", "gfm", "$.blocks[0]");
       const element = async (index: number, op: string): Promise<Job> => ({op, node: await this.at(job.node, index), path: await this.path(path, `[${index}]`)});
-      await this.attrs(job.node + 32, await this.path(path, "[0]"), true);
+      if (!job.stage) {
+        this.projection = this.storage.allocate(8);
+        await this.attrs(job.node + 32, await this.path(path, "[0]"), true);
+      }
       const caption = await element(1, "caption"), short = caption.node + 32, long = await this.at(caption.node, 1);
       const hasCaption = await this.count(short) || await this.count(long);
-      if (hasCaption) await this.loss(caption.path, "Flattened table caption", true);
+      if (!job.stage) {
+        if (hasCaption) await this.loss(caption.path, "Flattened table caption", true);
+        await this.push({...job, projection: this.projection, stage: 1});
+        if (hasCaption) await this.push({...caption, op: "tableCaption", node: await this.count(long) ? long : short, mode: await this.count(long) ? "fblock" : "finline"});
+        else await this.push({op: "empty", node: 0, path});
+        return result;
+      }
+      const captionText = result;
       let index = 0;
       for await (const column of this.tree.children(columns)) {
         if (await this.tag(await this.at(column, 1)) !== "ColWidthDefault") await this.loss(await this.path(path, `[2][${index}][1]`), "Flattened column width", true);
@@ -423,27 +459,38 @@ class MarkdownTape {
         await rowAttrs(await this.at(body, 2), await this.path(bp, "[2]")); await rowAttrs(await this.at(body, 3), await this.path(bp, "[3]"));
       }
       await rowAttrs(await this.at(foot.node, 1), await this.path(foot.path, "[1]"));
-      const captionJob: Job = hasCaption ? {...caption, op: "tableCaption", node: await this.count(long) ? long : short, mode: await this.count(long) ? "fblock" : "finline"} : {op: "empty", node: 0, path};
+      const captionJob: Job = {op: "savedText", node: 0, path, text: captionText};
       await this.push({op: "post", node: 0, path, mode: "trim"});
       await this.push({op: "parts", node: 0, path, parts: [captionJob, {...head, columns, width: count}, {...bodies, width: count}, {...foot, width: count}]});
       return result;
     }
     if (job.op === "tableCaption") {
       await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: "", rest: "\n\n"});
-      await this.push({op: "tableEscape", node: 0, path: job.path}); await this.push(this.list(job.node, job.path, job.mode!, {sep: job.mode === "fblock" ? " " : ""})); return result;
+      await this.push({op: "tableEscape", node: 0, path: job.path}); await this.push(this.list(job.node, job.path, job.mode!, {sep: job.mode === "fblock" ? " " : "", projection: this.storage.allocate(8)})); return result;
     }
     if (job.op === "tableHead") {
       if (!job.stage) {
         const rows = await this.at(job.node, 1); await this.push({...job, stage: 1});
+        this.projection = this.storage.allocate(8);
         if (await this.count(rows)) await this.push({op: "tableRows", node: rows, path: await this.path(job.path, "[1]"), width: job.width});
         else {
           this.context.charge("tableCells", job.width!);
-          result = await this.literal("| ");
-          for (let column = 0; column < job.width!; column++) await this.text.append(result, await this.literal(column + 1 === job.width ? " |" : " | "));
-          await this.text.append(result, await this.literal("\n"));
+          await this.addProjection(2); result = await this.literal("| ");
+          for (let column = 0; column < job.width!; column++) {const separator = column + 1 === job.width ? " |" : " | "; await this.addProjection(separator.length); await this.text.append(result, await this.literal(separator));}
+          await this.addProjection(1); await this.text.append(result, await this.literal("\n"));
         }
         return result;
       }
+      let headLength = 0;
+      headLine: for await (const chunk of this.text.chunks(result)) for (const char of chunk) {headLength += char.length; if (char === "\n") break headLine;}
+      await this.addProjection(headLength); await this.addProjection(2);
+      let columnIndex = 0;
+      for await (const column of this.tree.children(job.columns!)) {
+        if (columnIndex++) await this.addProjection(3);
+        const tag = await this.tag(column + 32);
+        await this.addProjection(tag === "AlignCenter" ? 5 : tag === "AlignDefault" ? 3 : 4);
+      }
+      await this.addProjection(3); await this.addProjection(result.units - headLength);
       let first = true; const output = emptyText();
       for await (const chunk of this.text.chunks(result)) {
         const split = first ? chunk.indexOf("\n") : -1;
@@ -483,8 +530,8 @@ class MarkdownTape {
       return result;
     }
     if (job.op === "tableRow") {
-      if (!job.stage) {job.text = await this.literal("| "); job.cursor = job.node + 32; job.end = (await this.tree.describe(job.node)).end; job.index = 0; job.column = 0; job.number = 0;}
-      const separator = async () => {await this.text.append(job.text!, await this.literal(job.column! + 1 === job.width ? " |" : " | ")); job.column!++;};
+      if (!job.stage) {await this.addProjection(2); job.text = await this.literal("| "); job.cursor = job.node + 32; job.end = (await this.tree.describe(job.node)).end; job.index = 0; job.column = 0; job.number = 0;}
+      const separator = async () => {await this.addProjection(job.column! + 1 === job.width ? 2 : 3); await this.text.append(job.text!, await this.literal(job.column! + 1 === job.width ? " |" : " | ")); job.column!++;};
       if (job.stage) {await this.text.append(job.text!, result); await separator(); job.index!++;}
       if (job.cursor! < job.end!) {
         const node = job.cursor!, path = await this.path(job.path, `[${job.index}]`); job.cursor = (await this.tree.describe(node)).end;
@@ -499,10 +546,13 @@ class MarkdownTape {
         const blocks = await this.at(node, 4), bp = await this.path(path, "[4]"), count = await this.count(blocks);
         await this.push({...job, stage: 1});
         if (count > 1 || count === 1 && !["Plain", "Para"].includes(await this.tag(blocks + 32))) {
-          await this.loss(bp, "Flattened complex cell blocks", true); await this.push({op: "tableEscape", node: 0, path: bp}); await this.push(this.list(blocks, bp, "fblock", {sep: " "}));
-        } else if (count) await this.push(this.list((await this.tree.property(blocks + 32, "c"))!, await this.path(bp, "[0].c"), "inline", {cell: true}));
+          await this.loss(bp, "Flattened complex cell blocks", true); await this.push({op: "tableEscape", node: 0, path: bp}); await this.push(this.list(blocks, bp, "fblock", {sep: " ", projection: this.storage.allocate(8)}));
+        } else if (count) {
+          await this.push({op: "projectionAdd", node: 0, path: bp});
+          await this.push(this.list((await this.tree.property(blocks + 32, "c"))!, await this.path(bp, "[0].c"), "inline", {cell: true, projection: 0}));
+        }
         else await this.push({op: "empty", node: 0, path: bp});
-      } else {while (job.column! < job.width!) await separator(); await this.text.append(job.text!, await this.literal("\n")); result = job.text!;}
+      } else {while (job.column! < job.width!) await separator(); await this.addProjection(1); await this.text.append(job.text!, await this.literal("\n")); result = job.text!;}
       return result;
     }
     if (job.op === "finline" || job.op === "fblock") {
@@ -510,9 +560,10 @@ class MarkdownTape {
       const list = async (index: number | undefined, mode: string, sep = ""): Promise<void> => {
         await this.push(this.list(index === undefined ? content! : await this.at(content!, index), cp, mode, {sep}));
       };
-      if (tag === "Str") return this.scalar(content!);
-      if (["Space", "SoftBreak", "LineBreak"].includes(tag)) return this.literal(" ");
-      if (["Code", "Math", "RawInline", "CodeBlock", "RawBlock"].includes(tag)) return this.scalar(await this.at(content!, 1));
+      if (tag === "Str" || ["Code", "Math", "RawInline", "CodeBlock", "RawBlock"].includes(tag)) {
+        const value = await this.scalar(tag === "Str" ? content! : await this.at(content!, 1)); await this.addProjection(value.units); return value;
+      }
+      if (["Space", "SoftBreak", "LineBreak"].includes(tag)) {await this.addProjection(1); return this.literal(" ");}
       if (["Link", "Image", "Span", "Quoted", "Cite"].includes(tag)) await list(1, "finline");
       else if (["Note", "BlockQuote"].includes(tag)) await list(undefined, "fblock", " ");
       else if (["Plain", "Para"].includes(tag)) await list(undefined, "finline");
@@ -541,7 +592,7 @@ class MarkdownTape {
       await this.push({op: "parts", node: 0, path: job.path, parts: [term, definitions]}); return result;
     }
     if (job.op === "fdefinitions") {await this.push(this.list(job.node, job.path, "fdefinitionBody")); return result;}
-    if (job.op === "fdefinitionBody") {await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: " ", rest: ""}); await this.push(this.list(job.node, job.path, "fblock", {sep: " "})); return result;}
+    if (job.op === "fdefinitionBody") {await this.addProjection(1); await this.push({op: "post", node: 0, path: job.path, mode: "surround", first: " ", rest: ""}); await this.push(this.list(job.node, job.path, "fblock", {sep: " "})); return result;}
     throw new Error(`Unknown retained Markdown job: ${job.op}`);
   }
 }

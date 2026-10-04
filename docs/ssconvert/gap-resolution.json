@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "printCopyCounts": {
+      "scope": "Read/export/edit print copies through shared PrintInformation copies metadata. BIFF7/8 SETUP uses the unsigned16-bit count; XLSX uses unsigned32-bit counts. Reject nonrepresentable outputs. Native invalid-data SETUP continues to ignore copies.",
+      "verification": "Ten original failures repaired;2736 combined format/print tests, added imported-edit regressions, selected build and both owner lint/types pass.16 public BIFF exports match direct pinned native counts and all16 native re-exports.48 public XLSX exports across both editions and XLSX/nativeBIFF7/nativeBIFF8 sources match96 independent OpenPyXL copy-count/creator fields. All64 export diagnostics asserted exactly. Screenshot inspected.",
+      "relatedAdmission": "Independent native BIFF inputs exposed an unpadded property-stream rejection, repaired separately under nativePropertyAlignment before qualification could complete. Original native controls and metadata remained intact.",
+      "remaining": "Actual printing, wider native profiles, XML/ODF transport and all broader requirements remain open. No family/release closure."
+    },
     "nativePropertyAlignment": {
       "finding": "Native Gnumeric/libgsf BIFF output has a90-byte custom-property section and a value at relative offset73 after its unpadded byte-string dictionary. Reader rejected both alignment conditions despite valid declared bounds.",
       "repair": "Accept unpadded section lengths and property offsets. Keep section-start/table boundaries, length checks, duplicate/overlapping property guards and value/string validation. Exact native182-byte stream is a memory fixture with a truncation rejection control.",

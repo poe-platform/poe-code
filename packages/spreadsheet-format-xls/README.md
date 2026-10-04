@@ -47,6 +47,8 @@ loss warnings.
 BIFF starting-page words survive import/export through `PrintInformation`
 `first_page_number` metadata, following Gnumeric's native record behavior.
 The separate print enable flag and XML transport remain unqualified.
+Print copy counts also survive BIFF7/8 and XLSX transport and metadata edits;
+BIFF output rejects counts outside its unsigned 16-bit range.
 BIFF editing preserves the workbook Normal style and font-aware column widths,
 including sheet defaults. Change `sheet.view.defaultColumnWidth` in points and
 adopt the edited workbook before export; BIFF stores defaults in whole font

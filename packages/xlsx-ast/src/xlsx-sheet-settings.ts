@@ -85,6 +85,9 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
   const currentPrint = records.find(record => record.record.kind === "PrintInformation")?.node ?? originalPrint;
   function printNodes(pi: MetadataNode | undefined) {
     const firstPage = child(pi, "first_page_number")?.attributes.value;
+    const copies = child(pi, "copies")?.attributes.value;
+    if (copies !== undefined && (!Number.isInteger(Number(copies)) || Number(copies) < 0 || Number(copies) > 0xffffffff))
+      throw new SsconvertError("unsupported-feature", "Invalid XLSX print copies");
     const scale = child(pi, "Scale"), margins = child(pi, "Margins"), fitToPage = ["fit", "size_fit"].includes(scale?.attributes.type ?? "");
     const marginAttrs: Record<string, number> = { left: 1, right: 1, top: 120 / 72, bottom: 120 / 72, header: 1, footer: 1 };
     for (const margin of margins?.children ?? []) if (Object.hasOwn(marginAttrs, margin.name)) marginAttrs[margin.name] = Number(margin.attributes.Points) / 72;
@@ -97,7 +100,7 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
         horizontalCentered: Number(child(pi, "hcenter")?.attributes.value ?? 0) ? 1 : undefined,
         verticalCentered: Number(child(pi, "vcenter")?.attributes.value ?? 0) ? 1 : undefined
       }), node("pageMargins", marginAttrs), node("pageSetup", {
-        blackAndWhite: Number(child(pi, "monochrome")?.attributes.value ?? 0), cellComments: comments[child(pi, "comments")?.attributes.placement ?? ""] ?? "asDisplayed",
+        copies, blackAndWhite: Number(child(pi, "monochrome")?.attributes.value ?? 0), cellComments: comments[child(pi, "comments")?.attributes.placement ?? ""] ?? "asDisplayed",
         draft: Number(child(pi, "draft")?.attributes.value ?? 0), errors: errors[child(pi, "errors")?.attributes.PrintErrorsAs ?? ""] ?? "displayed",
         fitToHeight: fitToPage ? Number(scale?.attributes.rows ?? 0) : 0, fitToWidth: fitToPage ? Number(scale?.attributes.cols ?? 0) : 0,
         orientation: child(pi, "orientation")?.text ?? "portrait", pageOrder: child(pi, "order")?.text === "r_then_d" ? "overThenDown" : "downThenOver",

@@ -133,7 +133,8 @@ function* metadataSteps(length: number, revision: number, codepage: number, cont
         print.first_page_number = data.u16(4);
         const percentage = data.u16(2); scale = { type: "percentage", percentage: percentage >= 1 && percentage <= 1000 ? percentage : 100 };
       }
-      if (revision > 4) { margins.header = data.f64(16) * 72; margins.footer = data.f64(24) * 72;
+      if (revision > 4) { if (!(flags & 4)) print.copies = data.u16(32);
+        margins.header = data.f64(16) * 72; margins.footer = data.f64(24) * 72;
         if (!Number.isFinite(margins.header) || !Number.isFinite(margins.footer)) invalidBiff("invalid print margin"); }
       hasPrint = true;
     } else if (opcode === 0x81) {

@@ -265,6 +265,9 @@ export class BiffMetadataWriter {
     }
     const setup = new Uint8Array(34), view = new DataView(setup.buffer), scale = child("Scale")?.attributes;
     view.setUint16(0, ({ na_letter: 1, na_legal: 5, iso_a3: 8, iso_a4: 9, iso_a5: 11 } as Record<string, number>)[child("paper")?.text ?? "iso_a4"] ?? 9, true);
+    const copies = Number(child("copies")?.attributes.value ?? 1);
+    if (!Number.isInteger(copies) || copies < 0 || copies > 65535)
+      throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF print copies");
     const firstPage = Number(child("first_page_number")?.attributes.value ?? 1);
     if (!Number.isInteger(firstPage) || firstPage < -1 || firstPage > 65535)
       throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF first page number");
@@ -282,7 +285,7 @@ export class BiffMetadataWriter {
       (revision === 8 ? (placement === "GNM_PRINT_COMMENTS_AT_END" ? 0x200 : 0) | errorMode << 10 : 0), true);
     view.setUint16(12, 600, true); view.setUint16(14, 600, true);
     view.setFloat64(16, Number(child("Margins")?.children.find(n => n.name === "header")?.attributes.Points ?? 72) / 72, true);
-    view.setFloat64(24, Number(child("Margins")?.children.find(n => n.name === "footer")?.attributes.Points ?? 72) / 72, true); view.setUint16(32, 1, true); output.record(0xa1, setup);
+    view.setFloat64(24, Number(child("Margins")?.children.find(n => n.name === "footer")?.attributes.Points ?? 72) / 72, true); view.setUint16(32, copies, true); output.record(0xa1, setup);
     const substitutions: Readonly<Record<string, string>> = { PAGE: "P", PAGES: "N", DATE: "D", TIME: "T", FILE: "F", TAB: "A", PATH: "Z" };
     for (const [name, opcode, fallback] of [["Header", 0x14, "&C&A"], ["Footer", 0x15, "&CPage &P"]] as const) {
       const node = child(name); let text = node ? "" : fallback;

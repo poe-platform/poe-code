@@ -59,6 +59,12 @@ export function readXlsxMetadata(sheet: SourceNode): readonly UnsupportedRecord[
       return value === undefined ? [] : [gnode(name, { Points: numeric(value, 0) * 72, PrefUnit: "mm" })];
     })));
     if (setup) {
+      const copyCount = attribute(setup, "copies");
+      if (copyCount !== undefined) {
+        const copies = numeric(copyCount, 1);
+        if (!Number.isInteger(copies) || copies < 0 || copies > 0xffffffff) throw new SsconvertError("io", "E Invalid XLSX: invalid print copies");
+        print.push(gnode("copies", { value: copies }));
+      }
       const useFirstPage = attribute(setup, "useFirstPageNumber");
       if (useFirstPage === "1" || useFirstPage === "true") {
         const firstPage = numeric(attribute(setup, "firstPageNumber"), 1);

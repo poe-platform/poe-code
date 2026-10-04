@@ -625,10 +625,16 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const reader = registry.resolve(options.from, "read"), writer = registry.resolve(options.to, "write");
   const streamedFilters = options.filters === undefined || Array.isArray(options.filters) && options.filters.every(request =>
     (request?.kind === "json" || request?.kind === "lua") && typeof context.filters?.applyJsonStream === "function");
+  const retainedLimits = Object.entries(context.limits ?? {}).every(([key, value]) => [
+    "inputBytes", "outputBytes", "work", "diagnostics", "fonts", "includes", "images", "binaryBytes", "layoutWork",
+    "parts", "compressedBytes", "expandedBytes", "tableRows", "tableColumns", "tableFieldText",
+    // These format-specific budgets have no consumers in the retained format pairs.
+    "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
+  ].includes(key) || key === "tableCells" && ["csv", "tsv"].includes(reader.descriptor.name) && !options.filters?.length && !options.metadata || value === Infinity);
   const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && ["json", "rtf"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" && (["rtf", "odt"].includes(writer.descriptor.name) || writer.descriptor.name === "html5" && options.embedResources) || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
-    && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes", "work", "diagnostics", "fonts", "includes", "images", "binaryBytes", "layoutWork", "parts", "compressedBytes", "expandedBytes", "tableRows", "tableColumns", "tableFieldText"].includes(key) || value === Infinity);
+    && retainedLimits;
   if (backedDocument) {
     const session = new Session("convert", context);
     try {
@@ -656,7 +662,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const incremental = context.workingFiles && !context.reader && !context.writer
     && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json", "plain", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" && (["rtf", "odt"].includes(writer.descriptor.name) || writer.descriptor.name === "html5" && options.embedResources) || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
-    && Object.entries(context.limits ?? {}).every(([key, value]) => (["inputBytes", "outputBytes", "work", "diagnostics", "fonts", "includes", "images", "binaryBytes", "layoutWork", "parts", "compressedBytes", "expandedBytes", "tableRows", "tableColumns", "tableFieldText"].includes(key) || !options.filters?.length && !options.metadata && key === "tableCells") || value === Infinity);
+    && retainedLimits;
   if (!incremental) {
     const result = await convert(inputs, options, context);
     return {kind: "output", diagnostics: result.diagnostics};

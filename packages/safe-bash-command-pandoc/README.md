@@ -289,7 +289,10 @@ The unfiltered backed CSV/TSV paths support line endings (and ASCII conversion f
 `tableFieldText` limits. With filters, finite input/output, work, diagnostics, font, include, image, binary-byte,
 layout-work, archive-part, compressed-byte and expanded-byte budgets are supported;
 finite row, column and field-text limits remain on the retained reader path, including typed metadata.
-Finite table-cell budgets with filters still use the compatibility converter. Additional transformations, other finite limits,
+Finite table-cell budgets with filters still use the compatibility converter. Limits for unrelated formats
+(`glyphs`, `pages`, `objects`, `xmlDepth`, `xmlNodes`, `macros`, `directives`, `entities`,
+`entityBytes`, `yamlAliases`) do not force these retained conversions to buffer.
+Additional transformations, other finite limits,
 and other format pairs
 currently use the existing buffered converter. The Safe Bash command uses the
 output-only API for stdout and selects backing storage in the injected filesystem

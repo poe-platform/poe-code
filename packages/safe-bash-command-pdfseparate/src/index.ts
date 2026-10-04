@@ -1,7 +1,7 @@
-import { resolvePath } from "safe-bash-contracts/path";
+import { parsePdfseparateArgs, parsePdfseparateSpec } from "./parse.js";
+import { executeRetainedSeparate } from "./retained.js";
 import { drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
-import { InputByteBudget, writeBytes } from "safe-bash-contracts/io";
-import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
+import { writeBytes } from "safe-bash-contracts/io";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
@@ -25,7 +25,6 @@ function resolveLimits(options: PdfseparateCommandsOptions): PdfseparateLimits {
   }
   return limits;
 }
-const usage = "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n";
 
 function copyDocumentMetadata(srcDoc: PdfDocument, dstDoc: PdfDocument): void {
   const meta = srcDoc.getMetadata();
@@ -37,62 +36,6 @@ function copyDocumentMetadata(srcDoc: PdfDocument, dstDoc: PdfDocument): void {
   if (meta.producer) dstDoc.setProducer(meta.producer);
 }
 
-function parsePdfseparateSpec(pattern: string): {
-  readonly hasPageSpec: boolean;
-  format(pageNumber: number): string;
-} {
-  let hasPageSpec = false;
-  for (let i = 0; i < pattern.length; i++) {
-    if (pattern[i] !== "%") continue;
-    if (pattern[i + 1] === "%") {
-      i++;
-      continue;
-    }
-    let j = i + 1;
-    while (j < pattern.length && pattern[j]! >= "0" && pattern[j]! <= "9") j++;
-    if (pattern[j] === "d") {
-      hasPageSpec = true;
-      break;
-    }
-  }
-  return {
-    hasPageSpec,
-    format(pageNumber: number): string {
-      let out = "";
-      let replaced = false;
-      for (let i = 0; i < pattern.length; i++) {
-        if (pattern[i] !== "%") {
-          out += pattern[i]!;
-          continue;
-        }
-        if (pattern[i + 1] === "%") {
-          out += "%";
-          i++;
-          continue;
-        }
-        if (!replaced) {
-          let j = i + 1;
-          let digits = "";
-          while (j < pattern.length && pattern[j]! >= "0" && pattern[j]! <= "9") {
-            digits += pattern[j]!;
-            j++;
-          }
-          if (pattern[j] === "d") {
-            const width = digits.length > 0 ? Number.parseInt(digits, 10) || 0 : 0;
-            if (!Number.isSafeInteger(width) || width > 4096) throw new RangeError("Filename width limit exceeded");
-            const padChar = digits.startsWith("0") ? "0" : " ";
-            out += width > 0 ? String(pageNumber).padStart(width, padChar) : String(pageNumber);
-            replaced = true;
-            i = j;
-            continue;
-          }
-        }
-        out += "%";
-      }
-      return out;
-    },
-  };
-}
 
 function* runPdfseparateCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal, options: PdfseparateCommandsOptions = {}): Generator<void, {
     exitCode: number;
@@ -102,37 +45,10 @@ function* runPdfseparateCliSteps(argv: readonly string[], files: Map<string, Uin
     const limits = resolveLimits(options);
     let inputBytes = 0;
     let outputBytes = 0;
-    let cooperativeWork = 63;
-    let firstPage = 1;
-    let lastPage = 0;
-    const positionals: string[] = [];
-    for (let i = 0; i < argv.length; i++) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        const arg = argv[i]!;
-        if (arg === "-v" || arg === "--version") return { exitCode: 0, stdout: "", stderr: "pdfseparate version 24.08.0\n" };
-        if (["-h", "-help", "--help", "-?"].includes(arg)) return { exitCode: 0, stdout: "", stderr: usage };
-        if (arg === "--") { positionals.push(...argv.slice(i + 1)); break; }
-        if (arg === "-f" || arg === "-l") {
-          const token = argv[++i];
-          const digits = token?.startsWith("-") ? token.slice(1) : token;
-          if (!digits || [...digits].some(c => c < "0" || c > "9") || !Number.isSafeInteger(Number(token))) return { exitCode: 99, stdout: "", stderr: usage };
-          if (arg === "-f") firstPage = Math.max(1, Number(token));
-          else lastPage = Math.max(0, Number(token));
-          continue;
-        }
-        if (arg.startsWith("-")) return { exitCode: 99, stdout: "", stderr: usage };
-        positionals.push(arg);
-    }
-    if (positionals.length !== 2) {
-        return {
-            exitCode: 99,
-            stdout: "",
-            stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n"
-        };
-    }
-    const srcPath = positionals[0]!;
-    const pattern = positionals[1]!;
+    yield;
+    const plan = parsePdfseparateArgs(argv);
+    if ("exitCode" in plan) return plan;
+    const { firstPage, lastPage, srcPath, pattern } = plan;
     const srcBytes = files.get(srcPath);
     if (!srcBytes) {
         return { exitCode: 99, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}': No such file or directory.\nSyntax Error: Could not extract page(s) from damaged file ('${srcPath}')\n` };
@@ -193,54 +109,18 @@ export function createPdfseparateCommand(options: PdfseparateCommandsOptions = {
     name: "pdfseparate",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Split PDF pages into individual PDF files via @poe-code/pdf-ast",
-    execute(context: CommandContext) {
-      return new InputByteBudget(limits.maxInputBytes).run(context, async context => {
-        const operation = createOutputOperation(context, { write: async () => {} });
-        try {
-          const argv = [...getCommandArguments(context).args];
-          const paths: string[] = [];
-          let informational = false;
-          for (let i = 0; i < argv.length; i++) {
-            const arg = argv[i]!;
-            if (arg === "--") { paths.push(...argv.slice(i + 1)); break; }
-            if (arg === "-f" || arg === "-l") { i++; continue; }
-            if (["-h", "-help", "--help", "-?", "-v", "--version"].includes(arg)) informational = true;
-            if (!arg.startsWith("-")) paths.push(arg);
-          }
-          const files = new Map<string, Uint8Array>();
-          let inputBytes = 0;
-          if (!informational) for (const path of new Set(paths.slice(0, 1))) {
-            let bytes: Uint8Array;
-            try { bytes = await context.fs.readFile(resolvePath(context.cwd, path), { signal: operation.signal }); }
-            catch (error) {
-              operation.signal.throwIfAborted();
-              if (!(error instanceof Error) || !("code" in error)) throw error;
-              continue;
-            }
-            inputBytes += bytes.byteLength;
-            context.inputBudget?.check(inputBytes);
-            if (inputBytes > limits.maxInputBytes) throw new RangeError("Input byte limit exceeded");
-            files.set(path, bytes);
-          }
-          const before = new Map(files);
-          const result = await runPdfseparateCli(argv, files, operation.signal, { limits });
-          if (result.stderr) await writeBytes(context.stderr, new TextEncoder().encode(result.stderr), operation.signal);
-          if (result.stdout) await writeBytes(operation.child(context.stdout).output, new TextEncoder().encode(result.stdout), operation.signal);
-          if (result.exitCode !== 0) return { exitCode: result.exitCode };
-          for (const [path, bytes] of files) {
-            if (before.get(path) === bytes) continue;
-            try {
-              await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, path), data, { signal: operation.signal }));
-            } catch (error) {
-              operation.signal.throwIfAborted();
-              if (!(error instanceof Error) || !("code" in error)) throw error;
-              await writeBytes(context.stderr, new TextEncoder().encode(`I/O Error: Couldn't open file '${path}'\n`), operation.signal);
-              return { exitCode: 99 };
-            }
-          }
-          return { exitCode: 0 };
-        } finally { await operation.close(); }
-      });
+    async execute(context: CommandContext) {
+      const operation = createOutputOperation(context, { write: async () => {} });
+      let failed = false;
+      try {
+        const plan = parsePdfseparateArgs(getCommandArguments(context).args);
+        if ("exitCode" in plan) {
+          if (plan.stderr) await writeBytes(context.stderr, new TextEncoder().encode(plan.stderr), operation.signal);
+          return { exitCode: plan.exitCode };
+        }
+        return await executeRetainedSeparate(context, plan, limits, operation.signal);
+      } catch (error) { failed = true; throw error; }
+      finally { await operation.close().catch(error => { if (!failed) throw error; }); }
     }
   });
 }

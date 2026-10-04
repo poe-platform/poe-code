@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 import * as api from "./index.js";
+import * as browserApi from "./index.browser.js";
 import { exchangeAuthorizationCode, refreshAccessToken, revokeOAuthToken, registerOAuthClient } from "mcp-oauth";
-import { discoverOAuthMetadata } from "tiny-mcp-client";
+import { discoverOAuthMetadata, OAuthMetadataError } from "tiny-mcp-client";
 
 it("exposes the existing OAuth implementation to hosts through the bundled MCP API", () => {
   expect(api.exchangeAuthorizationCode).toBe(exchangeAuthorizationCode);
@@ -39,4 +40,8 @@ it("preserves an eight-request host budget for discovery plus refresh through th
   attempts = 0;
   await expect(refresh(issuer)).resolves.toMatchObject({ accessToken: "synthetic" });
   expect(attempts).toBe(3);
+});
+
+it("exports the canonical error class from the browser MCP entry", () => {
+  expect(browserApi.OAuthMetadataError).toBe(OAuthMetadataError);
 });

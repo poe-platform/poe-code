@@ -1,5 +1,4 @@
 import {createJsonFilterCapability} from "./json-filters.js";
-import {rasterPng, rasterGif, rasterBmp, rasterTiff} from "../../safe-bash-docx-engine/tests/fixtures/raster.js";
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {Volume} from "memfs";
@@ -95,7 +94,14 @@ it("rejects retained metadata resource warnings before output when requested", a
 });
 
 it("preserves streamed PNG/GIF/BMP/TIFF packaging and physical dimensions", async () => {
-  for (const bytes of [rasterPng(10,20,[1654,945,1]), rasterGif(), rasterBmp(), rasterTiff(), rasterTiff(false)]) {
+  for (const bytes of [
+    // Fixed PNG (10x20, asymmetric density), GIF, BMP and both TIFF byte orders.
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAUCAYAAAC07qxWAAAACXBIWXMAAAZ2AAADsQGrVuziAAAAEElEQVR4AQEFAPr/AAAAAAAABQABZHiVOAAAAABJRU5ErkJggg==",
+    "R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAkQBADs=",
+    "Qk06AAAAAAAAADYAAAAoAAAAAQAAAP////8BABgAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAHlp4AA==",
+    "SUkqAAgAAAAFAAABBAABAAAAAQAAAAEBBAABAAAAAQAAABoBBQABAAAASgAAABsBBQABAAAAUgAAACgBAwABAAAAAgAAAAAAAACQAAAAAQAAAEgAAAABAAAAUA==",
+    "TU0AKgAAAAgABQEAAAQAAAABAAAAAQEBAAQAAAABAAAAAQEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAAAAAAAAAACQAAAAAQAAAEgAAAABUA=="
+  ].map(value => Uint8Array.from(atob(value), character => character.charCodeAt(0)))) {
     const result = await parity(["p%20x.jpg", "p%20x.jpg"], false, false, {}, {}, bytes);
     expect(result.expected).not.toBeInstanceOf(Error); expect(result.readStream).toHaveBeenCalledOnce();
   }

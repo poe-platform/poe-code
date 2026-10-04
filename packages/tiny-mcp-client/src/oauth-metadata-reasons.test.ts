@@ -1,6 +1,5 @@
 import { expect, it, vi } from "vitest";
 import { discoverOAuthMetadata, OAuthMetadataError } from "./index.js";
-import * as bundled from "../../safe-bash-command-mcp/src/index.browser.js";
 
 const resource = "https://resource.example/mcp";
 const issuer = "https://issuer.example";
@@ -51,10 +50,6 @@ it("preserves caller cancellation without fallback", async () => {
   });
   await expect(discoverOAuthMetadata(resource, { fetch, signal: controller.signal })).rejects.toBe(reason);
   expect(fetch).toHaveBeenCalledTimes(2);
-});
-
-it("exports the error class from the bundled MCP entry", () => {
-  expect(bundled).toHaveProperty("OAuthMetadataError", OAuthMetadataError);
 });
 
 it.each(["protected-resource", "authorization-server"] as const)("classifies malformed JSON in %s", async phase => {

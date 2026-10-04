@@ -196,9 +196,10 @@ for (const output of ['print s', 'printf "%d\\n", s']) {
 }
 
 test("aggregating printf observes environment and argument changes independently", async () => {
-  const { run } = await fixture("item:10\n".repeat(50));
+  const { run, fs, input } = await fixture("item:10\n".repeat(50));
+  await fs.writeFile("/identical", encoder.encode(input));
   const program = '{ s += $2 } END { printf "%s %s %s %d %d\\n", ENVIRON["PREFIX"], FILENAME, ARGV[1], ARGC, s }';
-  for (const [file, prefix] of [["/data", "first"], ["/data", "second"], ["data", "second"], ["/data", "first"]]) {
+  for (const [file, prefix] of [["/data", "first"], ["/data", "second"], ["/identical", "second"], ["data", "second"], ["/data", "first"]]) {
     const result = await run(program, file, { PREFIX: prefix });
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, `${prefix} ${file} ${file} 2 500\n`);

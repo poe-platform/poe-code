@@ -7,7 +7,6 @@ import { compileExpression } from "./expression.js";
 import { Evaluator } from "./evaluate.js";
 import { decodeDocuments, loadYaml, nodeTag, root, scalar, truth, type Candidate, type NativeDocument, type YamlModule } from "./nodes.js";
 import { readFileStream } from "safe-bash-contracts/filesystem";
-import { openFileOutput } from "safe-bash-contracts/filesystem-output";
 import { encodeNative } from "./native-encoder.js";
 import { limitsFor, MikeError, NativeWork, type MikeLimits } from "./native-work.js";
 import { captureInPlace, publishInPlace, InPlaceOutput, type InPlaceTarget } from "./inplace.js";
@@ -129,9 +128,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
           const parent = path.slice(0, path.lastIndexOf("/")) || "/";
           await work.track(context.fs.mkdir(parent, { recursive: true, signal: work.signal }));
           work.assertOpen();
-          const destination = await work.acquire(() => openFileOutput({ ...context, signal: work.signal, cleanupFailurePrioritySignal: context.signal }, path, { flag: "w", descriptor: true }), output => output.abort(work.signal.reason));
-          for await (const bytes of work.encode(text)) await work.track(destination.sink.write(bytes));
-          await work.track(destination.finish());
+          await work.writeFile(path, text);
           work.assertOpen();
         } else if (options.inplace) await (results ??= new InPlaceOutput(work)).append(text);
         else await work.write(text);

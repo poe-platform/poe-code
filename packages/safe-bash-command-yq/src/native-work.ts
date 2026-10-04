@@ -1,4 +1,6 @@
 import { createOutputOperation, type ByteSource, type CommandContext, type InvocationCleanup } from "safe-bash-contracts";
+import { openFileOutput } from "safe-bash-contracts/filesystem-output";
+import { filesystemOutputBudgets } from "safe-bash-contracts/filesystem-output-budget";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 
 export const mikeLimits = Object.freeze({
@@ -33,7 +35,7 @@ export class NativeWork {
   readonly headComments = new WeakMap<object, string>();
   readonly controller = new AbortController();
   readonly signal: AbortSignal = this.controller.signal;
-  readonly #cleanup: InvocationCleanup[] = [];
+  readonly #cleanup = new Set<InvocationCleanup>();
   readonly #pending = new Set<Promise<unknown>>();
   #closing: Promise<void> | undefined;
   #open = true;
@@ -54,7 +56,7 @@ export class NativeWork {
     this.signal.addEventListener("abort", () => { this.#aborted = true; }, { once: true });
     if (context.signal.aborted) abort();
     else context.signal.addEventListener("abort", abort, { once: true });
-    this.#cleanup.push(() => { context.signal.removeEventListener("abort", abort); });
+    this.#cleanup.add(() => { context.signal.removeEventListener("abort", abort); });
   }
 
   assertOpen(): void {
@@ -109,7 +111,11 @@ export class NativeWork {
     this.#output += bytes;
   }
 
-  register(cleanup: InvocationCleanup): void { this.assertOpen(); this.#cleanup.push(cleanup); }
+  register(cleanup: InvocationCleanup): () => void {
+    this.assertOpen();
+    this.#cleanup.add(cleanup);
+    return () => { this.#cleanup.delete(cleanup); };
+  }
 
   track<Value>(promise: Promise<Value>): Promise<Value> {
     this.#pending.add(promise);
@@ -203,6 +209,41 @@ export class NativeWork {
     yield decode();
   }
 
+  async writeFile(path: string, text: string): Promise<void> {
+    this.assertOpen();
+    const cleanups: InvocationCleanup[] = [];
+    const registerCleanup = (cleanup: InvocationCleanup): void => { cleanups.push(cleanup); };
+    // Local cleanup ownership must still debit the shell's invocation budget.
+    const budget = this.context.registerCleanup && filesystemOutputBudgets.get(this.context.registerCleanup);
+    if (budget) filesystemOutputBudgets.set(registerCleanup, budget);
+    const acquisition = this.track(Promise.resolve().then(() => {
+      this.assertOpen();
+      return openFileOutput({
+        ...this.context, signal: this.signal, cleanupFailurePrioritySignal: this.context.signal, registerCleanup,
+      }, path, { flag: "w", descriptor: true });
+    }));
+    let closing: Promise<void> | undefined;
+    const close = () => closing ??= (async () => {
+      await acquisition.catch(() => {});
+      const results = await Promise.allSettled(cleanups.map(cleanup => cleanup()));
+      cleanups.length = 0;
+      const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
+      if (failures.length === 1) throw failures[0];
+      if (failures.length) throw new AggregateError(failures, "yq file output cleanup failed");
+    })();
+    const unregister = this.register(close);
+    let failure: { reason: unknown } | undefined;
+    try {
+      const destination = await acquisition;
+      for await (const bytes of this.encode(text)) await this.track(destination.sink.write(bytes));
+      await this.track(destination.finish());
+      this.assertOpen();
+    } catch (reason) { failure = { reason }; }
+    try { await close(); } catch (reason) { failure ??= { reason }; }
+    finally { unregister(); }
+    if (failure) throw failure.reason;
+  }
+
   async *encode(text: string): AsyncGenerator<Uint8Array> {
     const encoder = new TextEncoder();
     for (let offset = 0; offset < text.length;) {
@@ -235,7 +276,7 @@ export class NativeWork {
     this.#open = false;
     this.controller.abort(new MikeError("yq invocation is closed"));
     this.#closing = (async () => {
-      const closed = Promise.allSettled(this.#cleanup.map(async cleanup => cleanup()));
+      const closed = Promise.allSettled(Array.from(this.#cleanup, async cleanup => cleanup()));
       while (this.#pending.size) await Promise.allSettled([...this.#pending]);
       const failures = (await closed).filter(result => result.status === "rejected").map(result => result.reason);
       if (failures.length) throw new AggregateError(failures, "yq cleanup failed");

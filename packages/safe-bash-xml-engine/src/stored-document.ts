@@ -1,4 +1,4 @@
-import { parseXmlStream, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
+import { parseXmlSteps, parseXmlStream, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { XmlBudget } from "./limits.js";
 
@@ -9,6 +9,7 @@ const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField
 const textFlag = 1, preserveSpaceFlag = 2;
 
 export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
+type XmlStreamEvent = Parameters<NonNullable<NonNullable<Parameters<typeof parseXmlStream>[1]>["events"]>>[0];
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
   kind: "element"; name: string; localName: string; namespace: string;
   attributes: XmlElement["attributes"]; namespaces: [string, string][]; declaration?: string;
@@ -30,15 +31,13 @@ export class StoredXmlDocument {
   get document(): number { return this.documentReference; }
 
   static async parse(source: AsyncIterable<string> | Iterable<string>, context: PagedStorageContext & { readonly registerCleanup?: (cleanup: () => Promise<void>) => void },
-    budget: XmlBudget, pages = 64): Promise<StoredXmlDocument> {
+    budget: XmlBudget, pages = 64, recover?: (message: string) => void): Promise<StoredXmlDocument> {
     const document = new StoredXmlDocument(context, budget, pages);
     try {
       context.registerCleanup?.(document.close.bind(document));
       document.documentReference = await document.storage.append(new Uint8Array(headerBytes));
       let parent = document.documentReference;
-      await parseXmlStream(source, {
-        ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false,
-        events: async event => {
+      const consume = async (event: XmlStreamEvent): Promise<void> => {
           if (event.type === "close") { parent = await document.field(parent, parentField); return; }
           let metadata: Metadata;
           if (event.type === "content") metadata = event.content;
@@ -57,7 +56,27 @@ export class StoredXmlDocument {
             if (!document.rootReference) document.rootReference = reference;
             parent = reference;
           }
-        }
+      };
+      if (recover) {
+        if (typeof source !== "string") throw new TypeError("XML recovery currently requires a complete source string");
+        const queued: XmlStreamEvent[] = [];
+        const parser = parseXmlSteps(source, {
+          ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false,
+          recover, events: event => { queued.push(event); },
+        });
+        let step = parser.next();
+        try {
+          while (true) {
+            for (const event of queued) await consume(event);
+            queued.length = 0;
+            if (step.done) break;
+            const checkpoint = budget.tick(step.value); if (checkpoint) await checkpoint;
+            step = parser.next();
+          }
+        } finally { if (!step.done) parser.return(undefined as never); }
+      } else await parseXmlStream(source, {
+        ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false,
+        events: consume,
       }, units => budget.tick(units));
       return document;
     } catch (error) {

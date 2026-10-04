@@ -4,7 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createXmllintCommand } from "./index.js";
 
-for (const args of [[], ["--xpath", "concat(/r, /r)"], ["--nocdata"], ["--noblanks", "--xpath", "count(//x)"], ["--noblanks"], ["--encode", "UTF-16"], ["--xpath", "count(//x)"], ["--xpath", "//x[last()]"]])
+for (const args of [[], ["--recover"], ["--recover", "--nocdata"], ["--recover", "--xpath", "count(//x)"], ["--xpath", "concat(/r, /r)"], ["--nocdata"], ["--noblanks", "--xpath", "count(//x)"], ["--noblanks"], ["--encode", "UTF-16"], ["--xpath", "count(//x)"], ["--xpath", "//x[last()]"]])
 for (const cancel of [false, true]) test(`XML formatting uses injected paged storage and retires it (${args.join(" ")}, cancel=${cancel})`, async () => {
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("sink stopped");
   let opened = 0, closed = 0, written = 0, output = 0, outstanding = 0;
@@ -40,14 +40,18 @@ for (const cancel of [false, true]) test(`XML formatting uses injected paged sto
       yield encoder.encode("<r>");
       const reused = encoder.encode(`<x>${payload}</x>`);
       for (let index = 0; index < records; index++) yield reused;
-      yield encoder.encode("</r>");
+      if (!args.includes("--recover")) yield encoder.encode("</r>");
     } },
     stdout: { async write(bytes) {
       await Promise.resolve(); output += bytes.length;
       assert.ok(bytes.length <= 16384);
       if (cancel) controller.abort(failure);
     } },
-    stderr: { async write(bytes) { assert.fail(new TextDecoder().decode(bytes)); } },
+    stderr: { async write(bytes) {
+      const text = new TextDecoder().decode(bytes);
+      if (args.includes("--recover")) assert.equal(text, "xmllint: incomplete document (recovered)\n");
+      else assert.fail(text);
+    } },
   }));
   if (cancel) await assert.rejects(result, error => error === failure);
   else {

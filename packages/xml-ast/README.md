@@ -26,7 +26,10 @@ Pass positive integer limits for depth, element and content counts, attributes, 
 `parseXmlSteps` yields work counts so a host can account for parsing and yield between checkpoints. Syntax errors and resource limits remain errors by default; parsing never fetches external entities.
 Pass `recover: message => report(message)` to repair truncated elements,
 mismatched closing tags, and undeclared entities. Each repair calls the callback.
-Resource limits and the prohibition on DTDs remain in force.
+Resource limits and the prohibition on DTDs remain in force. With `retainTree: false`,
+`parseXmlSteps` discards completed nodes and can emit synchronous `events`, including
+repaired closing events. Drain events between generator checkpoints to await
+external storage; the source string and open parser frames remain resident.
 
 `parseXmlStream` consumes each chunk before requesting the next and calls the optional asynchronous checkpoint with at most 512 UTF-16 units. It preserves the buffered parser’s tree shape, namespaces and retained content. The source is closed on parsing or checkpoint failure. Decode byte sources incrementally before passing their strings. This avoids a full source string; the resulting tree and individual XML tokens still reside in memory. Recovery remains available through the buffered parser.
 

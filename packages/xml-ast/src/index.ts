@@ -1,3 +1,4 @@
+import type { XmlStreamEvent } from "./stream.js";
 import { XmlLimitError } from "./errors.js";
 export { XmlLimitError } from "./errors.js";
 
@@ -202,11 +203,22 @@ function* validDeclaration(content: string, expectedEncoding: XmlLimits["expecte
   return offset === content.length;
 }
 
-export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator<number, XmlElement, void> {
+export interface XmlStepLimits extends XmlLimits {
+  /** Return root metadata without retaining descendants or text. */
+  readonly retainTree?: boolean;
+  /** Synchronous ordered events, including repaired closes. Requires retainTree:
+   * false. Drive the step iterator to await external consumers between windows. */
+  readonly events?: (event: XmlStreamEvent) => void;
+}
+
+export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Generator<number, XmlElement, void> {
   const maxDepth = limits.maxDepth ?? Infinity;
   const maxNodes = limits.maxNodes ?? Infinity;
   const maxAttributes = limits.maxAttributes ?? Infinity;
   const retainContent = limits.retainContent !== false;
+  const retainTree = limits.retainTree !== false;
+  const retain = retainTree && retainContent;
+  if (limits.events && retainTree) throw new TypeError("XML events require retainTree: false");
   const maxContentNodes = limits.maxContentNodes ?? Infinity;
   const emptyContent: readonly XmlContent[] = Object.freeze([]);
   const emptyAttributes: readonly XmlAttribute[] = Object.freeze([]);
@@ -312,10 +324,11 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       admitText(resolved);
       const parent = stack.at(-1);
       if (parent) {
-        parent.element.text += resolved;
+        if (retainTree) parent.element.text += resolved;
         if (resolved.length) {
           admitContent();
-          if (retainContent) parent.content!.push({ kind: "text", text: resolved });
+          if (retain) parent.content!.push({ kind: "text", text: resolved });
+          limits.events?.({ type: "content", content: { kind: "text", text: resolved }, parent: parent.element });
         }
       } else {
         for (let index = 0; index < resolved.length; index++) {
@@ -327,7 +340,8 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         if (resolved.length) {
           admitContent();
-          if (retainContent) (root ? epilog : prolog).push({ kind: "text", text: resolved });
+          if (retain) (root ? epilog : prolog).push({ kind: "text", text: resolved });
+          limits.events?.({ type: "content", content: { kind: "text", text: resolved }, parent: undefined });
         }
       }
       offset = endPos;
@@ -340,7 +354,8 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       const text = source.slice(offset + 4, end);
       admitText(text);
       admitContent();
-      if (retainContent) { (parent?.content ?? (root ? epilog : prolog)).push({ kind: "comment", text }); }
+      if (retain) { (parent?.content ?? (root ? epilog : prolog)).push({ kind: "comment", text }); }
+      limits.events?.({ type: "content", content: { kind: "comment", text }, parent: parent?.element });
       offset = end + 3;
     } else if (source.startsWith("<![CDATA[", offset)) {
       if (!stack.length) invalid("CDATA outside root");
@@ -349,9 +364,10 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       const cdataText = source.slice(offset + 9, end);
       admitText(cdataText);
       const parent = stack.at(-1)!;
-      parent.element.text += cdataText;
+      if (retainTree) parent.element.text += cdataText;
       admitContent();
-      if (retainContent) parent.content!.push({ kind: "cdata", text: cdataText });
+      if (retain) parent.content!.push({ kind: "cdata", text: cdataText });
+      limits.events?.({ type: "content", content: { kind: "cdata", text: cdataText }, parent: parent.element });
       offset = end + 3;
     } else if (source.startsWith("<?", offset)) {
       const start = offset;
@@ -377,9 +393,10 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         const text = content.slice(wsStart);
         admitText(text);
         admitContent();
-        if (retainContent) {
+        if (retain) {
           (parent?.content ?? (root ? epilog : prolog)).push({ kind: "processing-instruction", target, text });
         }
+        limits.events?.({ type: "content", content: { kind: "processing-instruction", target, text }, parent: parent?.element });
       }
       offset = end + 2;
     } else if (source.startsWith("<!", offset)) {
@@ -389,10 +406,12 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       const [name] = yield* scanName();
       yield* skipWhitespace();
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-      if (source[offset++] !== ">" || stack.pop()?.name !== name) {
+      const closed = source[offset++] === ">" ? stack.pop() : undefined;
+      if (closed?.name !== name) {
         if (!limits.recover) invalid("mismatched closing tag");
         limits.recover("mismatched closing tag");
       }
+      if (closed) limits.events?.({ type: "close", element: closed.element, parent: stack.at(-1)?.element });
     } else {
       offset++;
       const repeated = previousEmpty && source.startsWith(previousEmpty.suffix, offset) ? previousEmpty : undefined;
@@ -488,10 +507,10 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         }
       }
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-      const content: XmlContent[] | undefined = retainContent ? [] : undefined;
+      const content: XmlContent[] | undefined = retain ? [] : undefined;
       const element: XmlElement = { kind: "element", name, namespace, localName, children: [], text: "", content: content ?? emptyContent, attributes: retainContent ? retainedAttributes : emptyAttributes, namespaces: retainContent ? namespaces : emptyNamespaces, ...(root === undefined && retainContent ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
       const parent = stack.at(-1);
-      if (parent) { parent.element.children.push(element); parent.content?.push(element); }
+      if (parent) { if (retainTree) { parent.element.children.push(element); parent.content?.push(element); } }
       else if (root) invalid("multiple root elements");
       else root = element;
       const empty = source[offset] === "/";
@@ -504,7 +523,9 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       // every admission counter still run for each distinct physical element.
       if (empty && !attributes && name.length <= 512 && source.slice(offset - name.length - 3, offset) === `<${name}/>`)
         previousEmpty = { suffix: name + "/>", name, prefix, localName };
+      limits.events?.({ type: "open", element, parent: parent?.element });
       if (!empty) stack.push({ element, content, name, namespaces });
+      else limits.events?.({ type: "close", element, parent: parent?.element });
     }
   }
   if (pendingWork > 0) { yield pendingWork; pendingWork = 0; }
@@ -512,6 +533,11 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
   if (stack.length) {
     if (!limits.recover) invalid("incomplete document");
     limits.recover("incomplete document");
+    while (stack.length) {
+      const closed = stack.pop()!;
+      limits.events?.({ type: "close", element: closed.element, parent: stack.at(-1)?.element });
+      yield 1;
+    }
   }
   return root;
 }

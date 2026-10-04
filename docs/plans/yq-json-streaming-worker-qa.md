@@ -55,6 +55,11 @@ exercise backed algorithm state. Repeat with `--nocdata` and
 text node. Verify `count(text())`, whitespace inheritance and byte output against
 native xmllint without a concatenated value in the formatting/selection path.
 
+For recovery, repeat formatting, CDATA conversion and XPath with a missing final
+closing tag. Verify repaired output and diagnostics, paged node writes and cleanup
+on cancellation. Recovery source text is still buffered: report its size-dependent
+memory separately and do not qualify recovery as bounded end to end.
+
 ## Remaining qualification scope
 
 Repeat with increasing *single-document* sizes, eval-all joins, YAML anchors/edits,

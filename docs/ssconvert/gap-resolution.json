@@ -6038,5 +6038,13 @@
     "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
     "source": "Pango1.50.12 pangocairo-font.c hexadecimal box metrics and pangocairo-render.c return-marker geometry; unhinted native layout extents independently inspected.",
     "remaining": "CR control boxes,broader rich-text/font/Unicode/decorations/merged multipage qualification and all19families remain open."
+  },
+  "pdfFillCarriageReturns": {
+    "status": "Focused Fill carriage-return profile verified; broader rendering remains open",
+    "implementation": "Render CR as a bounded two-row 000D box using supplied monospace font metrics and Pango1.56.3 framing. Reuse control-marker itemization, repetition and rotated placement; clip unrotated boxes and digits to the cell. CRLF retains both the CR box and LF return arrow.",
+    "validation": "Original rejection reproduced with an in-memory fixture.455 PDF tests plus90 final focused tests,selected workspace build and command lint/source/test/public-consumer types pass.48 independent native inputs produce192 SDK/command XML/PDF outputs.96 visible-page path/frame/decoration/text comparisons pass within0.015pt;96 XML text-preservation comparisons pass. Screenshots inspected for CRLF,rotation,tabs,vertical alignment and clipped decorated CR-only cells.",
+    "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+    "source": "Native pkg-config reports Pango1.56.3; pangocairo-render.c defines its 1.5-padding frame inset and three-padding digit origin.",
+    "remaining": "Bidirectional Fill and broader rich-text/font/Unicode/decorations/merged multipage qualification;all19families remain open."
   }
 }

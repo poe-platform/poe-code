@@ -321,9 +321,14 @@ it("ignores wrapping and indentation for filled cells", async () => {
   const actual = await pdfText(await writePdf(await fixture([{text: "ab", attributes: plain.replace('WrapText="0"', 'WrapText="1"').replace('Indent="0"', 'Indent="8"')}]), [], ctx));
   expect(actual.runs).toEqual(expected.runs);
 });
-it("refuses unqualified single-paragraph control glyphs in filled cells", async () => {
-  const book = await fixture([{text: "ab&#13;cd", attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
-  await expect(writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}})).rejects.toThrow("fill control-character layout");
+it.each(["ab&#13;cd", "&#13;", "a&#13;&#10;b", "a&#9;&#13;\u2028b"])("prints carriage returns as hexadecimal boxes in filled cells: %s", async text => {
+  const book = await fixture([{text, attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
+  const before = structuredClone(book);
+  const {runs, pdf} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  expect(runs.map(run => run.text).join("")).toContain("000D");
+  const content = (pdf.getPage(0).node.Contents() as PDFArray).asArray().map(ref => new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
+  expect(content).toContain("W\n");
+  expect(book).toEqual(before);
 });
 
 it("prints LF as a return arrow in filled strings", async () => {

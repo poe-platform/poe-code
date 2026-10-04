@@ -259,15 +259,14 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     }
     const singleParagraph = cellBox?.style.alignment === "fill";
     const tabbedFill = singleParagraph && value.includes("\t");
-    const separatorFill = singleParagraph && value.includes("\u2028");
+    const separatorFill = singleParagraph && (value.includes("\u2028") || value.includes("\r"));
     const vectorFill = tabbedFill || separatorFill;
-    const markerOnly = separatorFill && value.split("\u2028").join("").split("\u2029").join("") === "";
-    if (singleParagraph && value.includes("\r")) unsupported("fill control-character layout");
+    const markerOnly = separatorFill && value.split("\u2028").join("").split("\u2029").join("").split("\r").join("") === "";
     const paragraphs = cellBox && !singleParagraph ? splitPrintLines(value, tick) : [{text: value, forced: false}];
     const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line.text, supported, tick) : line.text);
     for (const line of shapedLines) for (const scalar of line) {
       tick();
-      if (!(singleParagraph && (scalar === "\u2029" || scalar === "\u2028" || scalar === "\t")) && !supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
+      if (!(singleParagraph && (scalar === "\u2029" || scalar === "\u2028" || scalar === "\r" || scalar === "\t")) && !supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
     }
     let baseline = page.getHeight() - y - size;
     let width = cellBox ? 0 : font.widthOfTextAtSize(value, size);
@@ -294,10 +293,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
         if (!(tabWidth > 0) || !Number.isFinite(tabWidth) || !(displayTabWidth > 0) || !Number.isFinite(displayTabWidth)) unsupported("supplied font advances");
       }
-      let separator: {width: number; displayWidth: number; inkLeft: number; inkRight: number; inkBottom: number; points: readonly (readonly [number, number])[]} | undefined;
+      let separator: {width: number; displayWidth: number; inkLeft: number; inkRight: number; inkBottom: number; points: readonly (readonly [number, number])[];
+        frame: {x: number; y: number; width: number; height: number; stroke: number};
+        digits: readonly {text: string; x: number; y: number}[]; mini: Awaited<ReturnType<typeof selectFont>>; miniSize: number} | undefined;
       if (separatorFill) {
-        // Pango's unhinted control marker uses a half-size monospace font to
-        // measure hexadecimal boxes, then draws the return arrow as a path.
+        // Pango 1.56.3 measures control boxes with a smaller monospace font.
+        // U+2028 uses those metrics for a vector arrow; CR prints its hex value.
         const mini = await selectFont("monospace", bold, italic);
         const miniSize = Math.round(cellBox.style.size / 2.2 * 1024) / 1024;
         let digitWidth = 0, digitHeight = 0;
@@ -323,7 +324,15 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const halfLine = pad * printDisplayScale / 2, halfTip = 5 * halfLine;
         const height = length - tip / 2;
         const x = width * 0.2, y = ((5 * pad + 2 * digitHeight) * printDisplayScale - length) / 2;
-        separator = {width, inkLeft: pad * printDisplayScale, inkRight: (6 * pad + 2 * digitWidth) * printDisplayScale,
+        const frameWidth = (5 * pad + 2 * digitWidth) * printDisplayScale;
+        const frameLeft = Math.floor((width - frameWidth) / (2 * pad * printDisplayScale)) * pad * printDisplayScale;
+        separator = {width, mini, miniSize: miniSize * printDisplayScale,
+          frame: {x: frameLeft + 3 * halfLine, y: (-boxDescent + pad / 2) * printDisplayScale,
+            width: frameWidth - pad * printDisplayScale, height: (boxHeight - pad) * printDisplayScale, stroke: pad * printDisplayScale},
+          digits: [..."000D"].map((text, index) => ({text,
+            x: frameLeft + (3 * pad + index % 2 * (digitWidth + pad)) * printDisplayScale,
+            y: (-boxDescent + 2 * pad + (index < 2 ? digitHeight + pad : 0)) * printDisplayScale})),
+          inkLeft: pad * printDisplayScale, inkRight: (6 * pad + 2 * digitWidth) * printDisplayScale,
           inkBottom: -boxDescent * printDisplayScale, displayWidth: Math.round(logicalWidth / printDisplayScale) * printDisplayScale,
           points: [[x,y],[x+tip,y+halfTip],[x+tip,y+halfLine],[x+length-halfLine,y+halfLine],
             [x+length-halfLine,y+height],[x+length+halfLine,y+height],[x+length+halfLine,y-halfLine],
@@ -331,7 +340,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       const shapeLine = (shapedValue: string) => {
         const glyphs: {x: number; y: number}[] = [];
-        const markers: number[] = [];
+        const markers: {x: number; carriageReturn: boolean}[] = [];
         let width = 0, displayWidth = 0;
         const advances: number[] = [];
         const runs: ReturnType<typeof shaper.shape>[] = [];
@@ -344,12 +353,13 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             width = (Math.floor(width / tabWidth) + 1) * tabWidth;
             displayWidth = (Math.floor(displayWidth / displayTabWidth) + 1) * displayTabWidth;
           }
-          const parts = singleParagraph ? chunk.split("\u2029").flatMap(part => part.split("\u2028").flatMap((piece, index) => index ? ["\u2028", piece] : [piece])) : [chunk];
+          const parts = singleParagraph ? chunk.split("\u2029").flatMap(part => ["\u2028", "\r"].reduce(
+            (parts, separator) => parts.flatMap(part => part.split(separator).flatMap((piece, index) => index ? [separator, piece] : [piece])), [part])) : [chunk];
           for (const part of parts) {
             tick();
             if (!part) continue;
-            if (part === "\u2028" && separator) {
-              markers.push(width);
+            if ((part === "\u2028" || part === "\r") && separator) {
+              markers.push({x: width, carriageReturn: part === "\r"});
               width += separator.width;
               displayWidth += separator.displayWidth;
               continue;
@@ -516,9 +526,25 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
         page.pushOperators(endText());
         if ((wraps || rotation) && line.marked && !vectorFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
-        if (separator) for (const offset of line.markers) {
-          tick(separator.points.length);
-          page.pushOperators(...separator.points.map(([px, py], index) => (index ? lineTo : moveTo)(x + offset + px, baseline + py)), closePath(), fillPath());
+        if (separator) {
+          const miniResource = line.markers.some(marker => marker.carriageReturn) ? page.node.newFontDictionary(separator.mini.font.name, separator.mini.font.ref) : undefined;
+          for (const marker of line.markers) {
+            tick(separator.points.length);
+            if (marker.carriageReturn) {
+              if (!rotation) page.pushOperators(pushGraphicsState(), pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height,
+                clipWidth, cellBox.height), clip(), endPath());
+              const frame = separator.frame;
+              page.drawRectangle({x: x + marker.x + frame.x, y: baseline + frame.y, width: frame.width, height: frame.height,
+                borderWidth: frame.stroke, borderColor: rgb(...cellBox.style.foreground)});
+              page.pushOperators(beginText(), setFontAndSize(miniResource!, separator.miniSize));
+              for (const digit of separator.digits) {
+                tick();
+                page.pushOperators(setTextMatrix(1, 0, separator.mini.shear, 1, x + marker.x + digit.x, baseline + digit.y), showText(separator.mini.font.encodeText(digit.text)));
+              }
+              page.pushOperators(endText());
+              if (!rotation) page.pushOperators(popGraphicsState());
+            } else page.pushOperators(...separator.points.map(([px, py], index) => (index ? lineTo : moveTo)(x + marker.x + px, baseline + py)), closePath(), fillPath());
+          }
         }
         if (cellBox.style.underline || cellBox.style.strikeThrough) {
           // Pango uses font underline metrics and the union of positioned ink bounds.
@@ -534,7 +560,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             inkRight = Math.max(inkRight, origin.x + (box.maxX + shear * box.maxY) * scale);
             inkBottom = Math.min(inkBottom, origin.y + box.minY * scale);
           }
-          if (separator) for (const offset of line.markers) {
+          if (separator) for (const {x: offset} of line.markers) {
             tick();
             inkLeft = Math.min(inkLeft, offset + separator.inkLeft);
             inkRight = Math.max(inkRight, offset + separator.inkRight);

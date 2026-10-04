@@ -140,7 +140,7 @@ export class PdfRetainedDocument {
         if (depth > doc.depthLimit) throw new PdfError("E_LIMIT", "PDF page tree depth limit exceeded");
         if (node.kind === "ref" && !await visited.add(node.objectNumber)) return;
         const resolved = await doc.lookup(node);
-        if (resolved?.value.kind !== "dict" || resolved.stream) return;
+        if (resolved?.value.kind !== "dict") return;
         const dict = resolved.value;
         const type = (await doc.lookup(dictGet(dict, "Type")))?.value;
         const kids = (await doc.lookup(dictGet(dict, "Kids")))?.value;

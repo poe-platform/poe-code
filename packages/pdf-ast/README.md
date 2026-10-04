@@ -773,6 +773,15 @@ index caches do not grow with object count. Backing is append-only until close,
 so `maxStagingBytes` includes superseded values; parser limits govern individual
 COS values. Close the store on every outcome.
 
+`saveRetainedDocumentChunks(document, storage, options)` saves the complete
+object graph with the ordinary document-save page-tree behavior: inherited page
+attributes become explicit, page parents point to the root, and the root's
+`Kids` array streams from caller-backed reference records. Object snapshots and
+encoded payloads remain on caller storage. Authenticated input saves without
+output encryption. Use `maxPages`, `maxObjects`, `maxOutputBytes`,
+`maxRecursionDepth`, `chunkBytes` and `signal` to control the operation; keep the
+source/document open while consuming it and stage bytes before publication.
+
 `copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
 PDF for a synchronous or asynchronous iterable of zero-based page indices.
 Order and repeated pages are preserved, along with shared resources, forms,

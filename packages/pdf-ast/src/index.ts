@@ -88,3 +88,5 @@ export { copyRetainedPageChunks, copyRetainedPagesChunks, type CopyRetainedPageO
 export { PdfRawTextIndex, type PdfRawTextIndexOptions, type PdfStoredTextWord, type PdfStoredTextLine, type PdfStoredTextBlock } from "./extract/raw-text-index.js";
 
 export { retainedCosObjects, type PdfRetainedObjectsOptions } from "./cos/retained-objects.js";
+
+export { saveRetainedDocumentChunks, type SaveRetainedDocumentOptions } from "./edit/retained-save.js";

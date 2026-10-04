@@ -16,14 +16,14 @@ async function deadline<Value>(promise: Promise<Value>): Promise<Value> {
   finally { clearTimeout(timer); }
 }
 
-test("HTML operation uses the accounted stdout path once", async () => {
-  const closed = new AbortController(); let ordinary = 0, accounted = 0;
+test("HTML operation accounts each stdout byte once", async () => {
+  const closed = new AbortController(); let ordinary = 0, accountedBytes = 0;
   const chunks: Uint8Array[] = [];
   const result = await convert("<h1>Once</h1>", {}, { stdout: {
     async write() { ordinary++; },
-    ownedOutput: { consumerClosed: closed.signal, async write(bytes) { accounted++; chunks.push(new Uint8Array(bytes)); } },
+    ownedOutput: { consumerClosed: closed.signal, async write(bytes) { accountedBytes += bytes.length; chunks.push(new Uint8Array(bytes)); } },
   } });
-  assert.equal(result.exitCode, 0); assert.equal(ordinary, 0); assert.equal(accounted, 1);
+  assert.equal(result.exitCode, 0); assert.equal(ordinary, 0); assert.equal(accountedBytes, 7);
   assert.equal(Buffer.concat(chunks).toString(), "# Once\n");
 });
 

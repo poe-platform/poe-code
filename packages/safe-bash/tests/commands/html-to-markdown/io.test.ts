@@ -178,7 +178,7 @@ for (const scenario of cleanupCases) {
     context.after(() => { release.resolve(); });
     const events: string[] = [];
     const document = Inputs.prototype.document;
-    context.mock.method(Inputs.prototype, "document", function (this: Inputs, name: string) {
+    context.mock.method(Inputs.prototype, "document", function (this: Inputs, ...args: Parameters<Inputs["document"]>) {
       const close = this.close;
       context.mock.method(this, "close", async () => {
         await close();
@@ -192,7 +192,7 @@ for (const scenario of cleanupCases) {
         events.push("output closed");
         if (scenario.outputFailure) throw scenario.outputFailure.reason;
       });
-      return document.call(this, name);
+      return document.apply(this, args);
     });
     const stdout: Uint8Array[] = [];
     const commandContext: CommandContext = {
@@ -225,7 +225,7 @@ for (const primary of ["producer", "diagnostic", "cancel"] as const)
     const events: string[] = [], diagnostics: Uint8Array[] = [];
     const internalErrors: unknown[] = [];
     const document = Inputs.prototype.document;
-    context.mock.method(Inputs.prototype, "document", function (this: Inputs, name: string) {
+    context.mock.method(Inputs.prototype, "document", function (this: Inputs, ...args: Parameters<Inputs["document"]>) {
       const close = this.close;
       context.mock.method(this, "close", async () => {
         await close(); events.push("input closed"); throw new Error("input close");
@@ -234,7 +234,7 @@ for (const primary of ["producer", "diagnostic", "cancel"] as const)
         events.push("output closing"); started.resolve(); await release.promise;
         events.push("output closed"); throw new Error("output close");
       });
-      return document.call(this, name);
+      return document.apply(this, args);
     });
     const source: ByteSource = { [Symbol.asyncIterator]() { return {
       async next() {

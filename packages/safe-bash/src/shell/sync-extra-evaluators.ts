@@ -7546,9 +7546,9 @@ const syncExtraRuntimeMethods = {
         const nextBuf = (index & 1) === 0 ? sharedSyncPipeBuf0 : sharedSyncPipeBuf1;
         let stageStdout: ByteSink;
         if (isLast) stageStdout = io.stdout; else {
-          const nextCmd = pipeline.commands[index + 1]! as Extract<Command, { kind: "simple" }>;
-          const isNextWcL = nextCmd.words[0]!.plain === "wc" && (nextCmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs?.length === 1 && (nextCmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs![0] === "-l";
-          sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf, isNextWcL ? 0 : -1);
+          // Downstream commands consume bytes, including wc; do not advertise a
+          // count-only sink that leaves the intermediate byte buffer unwritten.
+          sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf);
           stageStdout = sharedSyncPipeWriter;
         }
         if (!context) {

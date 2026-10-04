@@ -323,3 +323,39 @@ test("find printf batches large raw formats without altering bytes or retaining 
   assert.deepEqual(Buffer.concat(writes), Buffer.concat([entry, entry]));
   assert.ok(writes.every(bytes => bytes.length <= 4096));
 });
+
+for (const deletedType of ["file", "directory"] as const) {
+  test(`find count shortcut skips deleted ${deletedType} slots`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/dir");
+    await fs.writeFile("/dir/a.txt", new Uint8Array());
+    if (deletedType === "file") {
+      await fs.writeFile("/dir/deleted", new Uint8Array());
+      await fs.unlink("/dir/deleted");
+    } else {
+      await fs.mkdir("/dir/deleted");
+      await fs.rmdir("/dir/deleted");
+    }
+    await fs.writeFile("/dir/c.txt", new Uint8Array());
+    registerRuntimeBackingFileSystem(fs, fs, () => {});
+    let counted = false;
+    const result = await createFindCommand().execute({
+      ...{ _hasInfiniteFsOpsLimit: true },
+      command: "find", args: ["/dir", "-name", "*"], cwd: "/", env: {}, fs,
+      stdin: toByteSource(""), signal: new AbortController().signal,
+      stdout: {
+        lineCountOnly: 0,
+        writeLineCountSync(count: number, totalBytes: number) {
+          assert.equal(count, 3);
+          assert.equal(totalBytes, new TextEncoder().encode("/dir\n/dir/a.txt\n/dir/c.txt\n").length);
+          counted = true;
+          return true;
+        },
+        async write() { assert.fail("expected count shortcut"); },
+      },
+      stderr: { async write() { assert.fail("unexpected stderr"); } },
+    });
+    assert.equal(result.exitCode, 0);
+    assert.equal(counted, true);
+  });
+}

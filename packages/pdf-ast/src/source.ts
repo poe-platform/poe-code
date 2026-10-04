@@ -155,7 +155,9 @@ export class PdfFileSource {
     const operation = this.pending.then(async () => {
       this.signal?.throwIfAborted();
       signal?.throwIfAborted();
-      const activeSignal = this.signal && signal ? AbortSignal.any([this.signal, signal]) : signal ?? this.signal;
+      // Traversals pass the lifetime signal through every read. Reuse it rather
+      // than accumulating thousands of redundant dependent signals.
+      const activeSignal = this.signal && signal && this.signal !== signal ? AbortSignal.any([this.signal, signal]) : signal ?? this.signal;
       const io = activeSignal === undefined ? {} : { signal: activeSignal };
       if (this.expected) {
         verifyReceipt(await this.handle.stat(io), this.expected);

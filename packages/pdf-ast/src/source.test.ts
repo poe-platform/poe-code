@@ -25,6 +25,32 @@ function generatedFile(size = 2 ** 30, shortRead = Infinity) {
 const options = { chunkBytes: 16, cacheBytes: 32 };
 
 describe("retained PDF ranges", () => {
+  it("reuses the source cancellation signal across repeated range reads", async () => {
+    const backend = generatedFile(), controller = new AbortController();
+    const source = await PdfFileSource.open(backend.fs, "/large.pdf", { ...options, signal: controller.signal });
+    try {
+      for (let at = 0; at < 128; at += 16) await source.read(at, 16, controller.signal);
+      for (const call of vi.mocked(backend.handle.read).mock.calls) {
+        expect(call[2]?.signal).toBe(controller.signal);
+      }
+      const failure = new Error("cancel shared signal"); controller.abort(failure);
+      await expect(source.read(0, 1, controller.signal)).rejects.toBe(failure);
+    } finally { await source.close(); }
+  });
+
+  it.each(["source", "caller"])("keeps distinct %s cancellation active during a read", async origin => {
+    const backend = generatedFile(), lifetime = new AbortController(), caller = new AbortController();
+    const failure = new Error(`cancel ${origin}`);
+    backend.read.mockImplementationOnce(async () => {
+      (origin === "source" ? lifetime : caller).abort(failure);
+      return new Uint8Array(16);
+    });
+    const source = await PdfFileSource.open(backend.fs, "/large.pdf", { ...options, signal: lifetime.signal });
+    try {
+      await expect(source.read(0, 16, caller.signal)).rejects.toBe(failure);
+    } finally { await source.close(); }
+  });
+
   it("reads a large generated file with bounded requests and an evicting cache", async () => {
     const backend = generatedFile();
     const source = await PdfFileSource.open(backend.fs, "/large.pdf", options);

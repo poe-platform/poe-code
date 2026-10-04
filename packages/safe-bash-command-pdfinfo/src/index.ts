@@ -850,10 +850,7 @@ function applyPopplerOutputEncoding(text: string, encoding: string): string {
   return text;
 }
 
-function* inspectPdfBytesSteps(bytes: Uint8Array,
-argv: readonly string[] = [],
-options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
-  const args = parseArgs(argv);
+function pdfinfoArgumentResult(args: ParsedArgs): PdfinfoCliResult | undefined {
   if (args.error) {
     return { exitCode: args.errorExitCode ?? 99, stdout: "", stderr: args.error };
   }
@@ -879,6 +876,16 @@ options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
       stderr: ""
     };
   }
+
+  return undefined;
+}
+
+function* inspectPdfBytesSteps(bytes: Uint8Array,
+argv: readonly string[] = [],
+options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
+  const args = parseArgs(argv);
+  const argumentResult = pdfinfoArgumentResult(args);
+  if (argumentResult) return argumentResult;
 
   if (bytes.byteLength === 0) {
     return { exitCode: 1, stdout: "", stderr: "Syntax Error: Document stream is empty\n" };
@@ -1144,9 +1151,8 @@ export async function runPdfinfoCli(argv: readonly string[], files: ReadonlyMap<
 export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOptions = {}): Promise<{ exitCode: number }> {
   const argv = getCommandArguments(context).args;
   const args = parseArgs(argv);
-  const plan = args.error || args.listenc || args.version || args.help
-    ? inspectPdfBytes(new Uint8Array(0), argv)
-    : { inputPath: args.inputFile ?? "-", password: args.opw ?? args.upw ?? "" };
+  const plan = pdfinfoArgumentResult(args)
+    ?? { inputPath: args.inputFile ?? "-", password: args.opw ?? args.upw ?? "" };
   return executeRetainedPdf(context, options, plan, async (doc, plan, { emit, error, signal, fileSize, storage }) => {
     let pageCount = 0;
     for await (const ignored of doc.pages()) pageCount++;

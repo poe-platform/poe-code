@@ -10,7 +10,7 @@ import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import type { PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate, encodeLzw } from "../cos/filters.js";
-import { flattenCubic } from "./cubic.js";
+import { flattenCubic, flattenCubicPoints } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
 import { strokeOutlines, type StrokePoint, type StrokeSubpath } from "./stroke.js";
 
@@ -647,6 +647,43 @@ function *segmentsToScreenPathsSteps(segments: readonly PdfPathSegment[], pageHe
   return paths;
 }
 
+/** Replayable fill geometry. Only the current segment and cubic subdivision
+ * stack are resident; each scanline can traverse edges without a path copy. */
+function screenFillEdges(segments: readonly PdfPathSegment[], toScreen: (x: number, y: number) => StrokePoint): Iterable<Edge> {
+  return { *[Symbol.iterator]() {
+    let current: StrokePoint = [0, 0], first: StrokePoint | undefined;
+    let points = 0;
+    function edge(a: StrokePoint, b: StrokePoint): Edge {return {x0:a[0], y0:a[1], x1:b[0], y1:b[1]};}
+    for (const segment of segments) {
+      if (segment.kind === "move" || segment.kind === "rect") {
+        if (first && points > 1) yield edge(current, first);
+        current = toScreen(segment.x, segment.y); first = current; points = 1;
+        if (segment.kind === "rect") {
+          const second = toScreen(segment.x + segment.width, segment.y), third = toScreen(segment.x + segment.width, segment.y + segment.height), fourth = toScreen(segment.x, segment.y + segment.height);
+          yield edge(current, second); yield edge(second, third); yield edge(third, fourth); yield edge(fourth, current);
+          first = undefined; points = 0;
+        }
+      } else if (segment.kind === "line") {
+        if (!first) {first = current; points = 1;}
+        const next = toScreen(segment.x, segment.y); yield edge(current, next); current = next; points++;
+      } else if (segment.kind === "cubic") {
+        if (!first) {first = current; points = 1;}
+        const a = toScreen(segment.x1, segment.y1), b = toScreen(segment.x2, segment.y2), end = toScreen(segment.x, segment.y);
+        let initial = true;
+        for (const next of flattenCubicPoints(current[0], current[1], a[0], a[1], b[0], b[1], end[0], end[1])) {
+          if (initial) {initial = false; continue;}
+          yield edge(current, next); current = next; points++;
+        }
+      } else {
+        if (first && points > 1) yield edge(current, first);
+        if (first) current = first;
+        first = undefined; points = 0;
+      }
+    }
+    if (first && points > 1) yield edge(current, first);
+  }};
+}
+
 function inverseStrokeMatrix(matrix: NonNullable<PdfEvaluatedPath["strokeMatrix"]>): number[] | undefined {
   const [a, b, c, d, e, f] = matrix;
   const det = a * d - b * c;
@@ -727,80 +764,44 @@ function *pathsToEdgesSteps(paths: readonly StrokeSubpath[], closeSubpaths = fal
 }
 
 const SUB_OFFSETS_4X4 = [0.125, 0.375, 0.625, 0.875] as const;
-let sharedCrossingX = new Float64Array(1024);
-let sharedCrossingDir = new Int8Array(1024);
-let sharedIntervalLeft = new Float64Array(512);
-let sharedIntervalRight = new Float64Array(512);
-let sharedRowCounts = new Uint8Array(4096);
-
-function ensureScanlineScratch(maxEdges: number, width: number): void {
-  if (sharedCrossingX.length < maxEdges) {
-    const cap = Math.max(maxEdges, sharedCrossingX.length * 2);
-    sharedCrossingX = new Float64Array(cap);
-    sharedCrossingDir = new Int8Array(cap);
-    sharedIntervalLeft = new Float64Array(cap);
-    sharedIntervalRight = new Float64Array(cap);
+/** Accumulate sample coverage without retaining/sorting edge intersections.
+ * First count crossings strictly left of each sample; then replay exact ties
+ * in original edge order to preserve inclusive interval endpoints. Scratch is
+ * local to this render and proportional to the row, never to path complexity. */
+function* computeSubScanlineCountsSteps(edges: Iterable<Edge>, scanY: number,
+  fillRule: "nonzero" | "evenodd", deltas: Float64Array, winding: Float64Array, rowCounts: Uint8Array): Generator<void, void, void> {
+  const samples = winding.length;
+  deltas.fill(0);
+  let work = 0;
+  for (const edge of edges) {
+    if (++work % 16384 === 0) yield;
+    if (!((edge.y0 <= scanY && edge.y1 > scanY) || (edge.y1 <= scanY && edge.y0 > scanY))) continue;
+    const x = edge.x0 + ((scanY - edge.y0) / (edge.y1 - edge.y0)) * (edge.x1 - edge.x0);
+    const index = Math.max(0, Math.floor((x - 0.125) * 4) + 1);
+    if (index < samples) deltas[index] = deltas[index]! + (fillRule === "evenodd" || edge.y0 < edge.y1 ? 1 : -1);
   }
-  if (sharedRowCounts.length < width) {
-    sharedRowCounts = new Uint8Array(Math.max(width, sharedRowCounts.length * 2));
+  let value = 0;
+  for (let index = 0; index < samples; index++) {
+    value += deltas[index]!; winding[index] = value;
+    if (fillRule === "evenodd" ? value % 2 !== 0 : value !== 0) rowCounts[index >>> 2] = rowCounts[index >>> 2]! + 1;
   }
-}
-
-function computeSubScanlineIntervals(
-  edges: readonly Edge[],
-  scanY: number,
-  fillRule: "nonzero" | "evenodd"
-): number {
-  let nCross = 0;
-  const edgeCount = edges.length;
-  for (let ei = 0; ei < edgeCount; ei++) {
-    const e = edges[ei]!;
-    const y0 = e.y0;
-    const y1 = e.y1;
-    if ((y0 <= scanY && y1 > scanY) || (y1 <= scanY && y0 > scanY)) {
-      const x = e.x0 + ((scanY - y0) / (y1 - y0)) * (e.x1 - e.x0);
-      const dir = y0 < y1 ? 1 : -1;
-      let ins = nCross++;
-      while (ins > 0 && sharedCrossingX[ins - 1]! > x) {
-        sharedCrossingX[ins] = sharedCrossingX[ins - 1]!;
-        sharedCrossingDir[ins] = sharedCrossingDir[ins - 1]!;
-        ins--;
-      }
-      sharedCrossingX[ins] = x;
-      sharedCrossingDir[ins] = dir;
-    }
+  for (const edge of edges) {
+    if (++work % 16384 === 0) yield;
+    if (!((edge.y0 <= scanY && edge.y1 > scanY) || (edge.y1 <= scanY && edge.y0 > scanY))) continue;
+    const x = edge.x0 + ((scanY - edge.y0) / (edge.y1 - edge.y0)) * (edge.x1 - edge.x0);
+    const index = (x - 0.125) * 4;
+    if (!Number.isInteger(index) || index < 0 || index >= samples) continue;
+    const before = winding[index]!;
+    if (fillRule === "evenodd" ? before % 2 === 0 : before === 0) rowCounts[index >>> 2] = rowCounts[index >>> 2]! + 1;
+    winding[index] = before + (fillRule === "evenodd" || edge.y0 < edge.y1 ? 1 : -1);
   }
-  if (nCross < 2) return 0;
-  let nIntervals = 0;
-  if (fillRule === "evenodd") {
-    for (let i = 0; i + 1 < nCross; i += 2) {
-      sharedIntervalLeft[nIntervals] = sharedCrossingX[i]!;
-      sharedIntervalRight[nIntervals] = sharedCrossingX[i + 1]!;
-      nIntervals++;
-    }
-  } else {
-    let winding = 0;
-    let intervalStart = 0;
-    for (let i = 0; i < nCross; i++) {
-      const prevWinding = winding;
-      winding += sharedCrossingDir[i]!;
-      if (prevWinding === 0 && winding !== 0) {
-        intervalStart = sharedCrossingX[i]!;
-      } else if (prevWinding !== 0 && winding === 0) {
-        sharedIntervalLeft[nIntervals] = intervalStart;
-        sharedIntervalRight[nIntervals] = sharedCrossingX[i]!;
-        nIntervals++;
-      }
-    }
-  }
-  return nIntervals;
 }
 
 function *fillEdgesScanline4x4Steps(
   rgba: Uint8Array,
   width: number,
   height: number,
-  edges: readonly Edge[],
+  edges: Iterable<Edge>,
   color: PdfRgbColor,
   alpha = 1,
   fillRule: "nonzero" | "evenodd" = "nonzero",
@@ -811,11 +812,10 @@ function *fillEdgesScanline4x4Steps(
   groupAlpha?: Float32Array
 ): Generator<void, void, void> {
   let work = 0;
-  if (edges.length === 0) return;
   let minY = Infinity;
   let maxY = -Infinity;
-  for (let i = 0; i < edges.length; i++) {
-    const e = edges[i]!;
+  for (const e of edges) {
+    if (++work % 16384 === 0) yield;
     if (e.y0 < minY) minY = e.y0;
     if (e.y1 < minY) minY = e.y1;
     if (e.y0 > maxY) maxY = e.y0;
@@ -829,38 +829,15 @@ function *fillEdgesScanline4x4Steps(
   const endRow = Math.min(clipMaxY, Math.ceil(maxY));
   if (startRow > endRow) return;
 
-  ensureScanlineScratch(edges.length + 4, width);
-  const rowCounts = sharedRowCounts;
+  const rowCounts = new Uint8Array(width);
+  const deltas = new Float64Array(width * 4), winding = new Float64Array(width * 4);
   for (let py = startRow; py <= endRow; py++) {
     if (++work % 256 === 0) yield;
     rowCounts.fill(0, 0, width);
-    let rowMinPx = width;
-    let rowMaxPx = -1;
     for (let si = 0; si < 4; si++) {
-      const scanY = py + SUB_OFFSETS_4X4[si]!;
-      const nIntervals = computeSubScanlineIntervals(edges, scanY, fillRule);
-      for (let k = 0; k < nIntervals; k++) {
-        const xLeft = sharedIntervalLeft[k]!;
-        const xRight = sharedIntervalRight[k]!;
-        const xStart = Math.max(clipMinX, Math.floor(xLeft));
-        const xEnd = Math.min(clipMaxX, Math.ceil(xRight));
-        if (xStart < rowMinPx) rowMinPx = xStart;
-        if (xEnd > rowMaxPx) rowMaxPx = xEnd;
-        for (let px = xStart; px <= xEnd; px++) {
-          const s0 = px + 0.125;
-          const s1 = px + 0.375;
-          const s2 = px + 0.625;
-          const s3 = px + 0.875;
-          let add = 0;
-          if (s0 >= xLeft && s0 <= xRight) add++;
-          if (s1 >= xLeft && s1 <= xRight) add++;
-          if (s2 >= xLeft && s2 <= xRight) add++;
-          if (s3 >= xLeft && s3 <= xRight) add++;
-          rowCounts[px] = rowCounts[px]! + add;
-        }
-      }
+      yield* computeSubScanlineCountsSteps(edges, py + SUB_OFFSETS_4X4[si]!, fillRule, deltas, winding, rowCounts);
     }
-    for (let px = rowMinPx; px <= rowMaxPx; px++) {
+    for (let px = clipMinX; px <= clipMaxX; px++) {
       const count = rowCounts[px]!;
       if (count > 0) {
         const cov = antialias ? count / 16 : count >= 8 ? 1 : 0;
@@ -874,19 +851,15 @@ function *fillMaskScanline4x4Steps(
   mask: Uint8Array,
   width: number,
   height: number,
-  edges: readonly Edge[],
+  edges: Iterable<Edge>,
   fillRule: "nonzero" | "evenodd" = "nonzero",
   intersect = false
 ): Generator<void, void, void> {
   let work = 0;
-  if (edges.length === 0) {
-    mask.fill(0);
-    return;
-  }
   let minY = Infinity;
   let maxY = -Infinity;
-  for (let i = 0; i < edges.length; i++) {
-    const e = edges[i]!;
+  for (const e of edges) {
+    if (++work % 16384 === 0) yield;
     if (e.y0 < minY) minY = e.y0;
     if (e.y1 < minY) minY = e.y1;
     if (e.y0 > maxY) maxY = e.y0;
@@ -900,32 +873,13 @@ function *fillMaskScanline4x4Steps(
     if (startRow > 0) mask.fill(0, 0, startRow * width);
     if (endRow + 1 < height) mask.fill(0, (endRow + 1) * width, height * width);
   }
-  ensureScanlineScratch(edges.length + 4, width);
-  const rowCounts = sharedRowCounts;
+  const rowCounts = new Uint8Array(width);
+  const deltas = new Float64Array(width * 4), winding = new Float64Array(width * 4);
   for (let py = startRow; py <= endRow; py++) {
     if (++work % 256 === 0) yield;
     rowCounts.fill(0, 0, width);
     for (let si = 0; si < 4; si++) {
-      const scanY = py + SUB_OFFSETS_4X4[si]!;
-      const nIntervals = computeSubScanlineIntervals(edges, scanY, fillRule);
-      for (let k = 0; k < nIntervals; k++) {
-        const xLeft = sharedIntervalLeft[k]!;
-        const xRight = sharedIntervalRight[k]!;
-        const xStart = Math.max(0, Math.floor(xLeft));
-        const xEnd = Math.min(width - 1, Math.ceil(xRight));
-        for (let px = xStart; px <= xEnd; px++) {
-          const s0 = px + 0.125;
-          const s1 = px + 0.375;
-          const s2 = px + 0.625;
-          const s3 = px + 0.875;
-          let add = 0;
-          if (s0 >= xLeft && s0 <= xRight) add++;
-          if (s1 >= xLeft && s1 <= xRight) add++;
-          if (s2 >= xLeft && s2 <= xRight) add++;
-          if (s3 >= xLeft && s3 <= xRight) add++;
-          rowCounts[px] = rowCounts[px]! + add;
-        }
-      }
+      yield* computeSubScanlineCountsSteps(edges, py + SUB_OFFSETS_4X4[si]!, fillRule, deltas, winding, rowCounts);
     }
     const rowBase = py * width;
     if (!intersect) {
@@ -1145,7 +1099,7 @@ function *renderDisplayListLayerSteps(
       for (const clip of clips) {
         if (++work % 16384 === 0) yield;
         const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
-        (yield* fillMaskScanline4x4Steps(clipMask, width, height, (yield* pathsToEdgesSteps((yield* segmentsToScreenPathsSteps(segments, displayList.height, scale, toScreen)), true)), fillRule, !firstClip));
+        (yield* fillMaskScanline4x4Steps(clipMask, width, height, screenFillEdges(segments, toScreen), fillRule, !firstClip));
         firstClip = false;
       }
       cachedClips = clips;
@@ -1193,7 +1147,7 @@ function *renderDisplayListLayerSteps(
     if (operation.kind === "path") {
       const path = operation.value;
       if (path.fillColor) {
-        const edges = (yield* pathsToEdgesSteps((yield* segmentsToScreenPathsSteps(path.segments, displayList.height, scale, toScreen)), true));
+        const edges = screenFillEdges(path.segments, toScreen);
         const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
         (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask, groupAlpha));
       }

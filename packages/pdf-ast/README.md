@@ -571,7 +571,9 @@ composite captures still require separate backing in retained execution.
 Retained mesh shading streams free-form triangles and stores lattice vertices
 and patch control points in the caller's filesystem. Fixed caches and one-patch
 tessellation preserve global subdivision density without retaining a whole mesh.
-Color-function snapshots and individual path geometry still have separate memory
+Fill and clip rasterization replay projected edges and cubic points with
+row-sized crossing scratch; scratch is local to each render. Color-function
+snapshots, parser path segments, and stroke outlines still have separate memory
 ownership.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in

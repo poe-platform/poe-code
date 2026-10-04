@@ -96,3 +96,28 @@ test("pair substitutions enforce finite step limits on cold and warm programs", 
     assert.equal((await run(createSedCommand(), fs, args, "range")).exitCode, 0);
   }
 });
+
+for (const pattern of ["foo", "^foo"]) {
+  for (const [address, selected] of [
+    ["1", [1]],
+    ["2!", [1, 3, 4]],
+    ["1,2", [1, 2]],
+    ["/match/", [1, 3]],
+    ["/skip/!", [1, 3]],
+    ["/match/,2", [1, 2, 3]],
+  ] as const) {
+    for (const mode of ["range", "sync", "async"] as const) {
+      test(`paired file substitutions honor ${address} with ${pattern} and ${mode} output`, async () => {
+        const fs = createMemoryFileSystem();
+        const words = ["match", "skip", "match", "skip"];
+        await fs.writeFile("/input", bytes(words.map(word => `foo ${word} baz\n`).join("")));
+        const result = await run(createSedCommand(), fs, [`${address}s/${pattern}/BAR/;s/baz/QUX/`, "/input"], mode);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, words.map((word, index) =>
+          `${(selected as readonly number[]).includes(index + 1) ? "BAR" : "foo"} ${word} QUX\n`
+        ).join(""));
+      });
+    }
+  }
+}

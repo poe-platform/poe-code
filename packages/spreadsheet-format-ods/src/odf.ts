@@ -589,7 +589,7 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
             if (defaultStyle) columnDefaults.push({ start, end: start + count, name: defaultStyle }); column += count; continue;
           }
           let cellColumn = 0;
-          for (const c of n.children) {
+          for await (const c of childNodes(n)) {
             pkg.charge(); if (!table.includes(c.namespace) || !["table-cell", "covered-table-cell"].includes(c.localName)) continue;
             const repeat = integer(attr(c, "number-columns-repeated"));
             if (repeat > MAX_SHEET_SIZE.columns - cellColumn) limit("column extent");

@@ -7,9 +7,12 @@ const table = 'urn:oasis:names:tc:opendocument:xmlns:table:1.0';
 const context: CapabilityContext = { limits: defaultSsconvertLimits, signal: new AbortController().signal,
   environment: { env: {}, locale: 'C', timezone: 'UTC' }, own() {} };
 
-it.each([false, true])('replays exact mixed content with sibling groups: %s', async siblingGroups => {
+it.each(['rows', 'groups', 'cells'])('replays exact mixed content with sibling groups: %s', async mode => {
   const grouped = `<table:table xmlns:table="${table}">` + Array.from({ length: 300 }, (_, i) => `<table:table-row-group>before<table:table-header-rows><table:table-rows><table:table-row><table:table-cell>${i}</table:table-cell></table:table-row></table:table-rows></table:table-header-rows>tail</table:table-row-group>`).join('') + 'after</table:table>';
-  const xml = siblingGroups ? grouped : `<table:table xmlns:table="${table}">before<!--comment--><table:table-row-group>` +
+  const wide = `<table:table xmlns:table="${table}"><table:table-row>` +
+    Array.from({ length: 300 }, (_, i) => `before<table:table-cell>${i}😀</table:table-cell><table:covered-table-cell/>`).join('') +
+    '</table:table-row>after</table:table>';
+  const xml = mode === 'cells' ? wide : mode === 'groups' ? grouped : `<table:table xmlns:table="${table}">before<!--comment--><table:table-row-group>` +
     Array.from({ length: 300 }, (_, i) => `x<table:table-row><table:table-cell>${i}😀</table:table-cell></table:table-row>`).join('') +
     '</table:table-row-group><![CDATA[middle]]><?pi data?><table:table-row><table:table-cell>last</table:table-cell></table:table-row>after</table:table>';
   const expected = await parseXmlStream([xml]);
@@ -22,6 +25,7 @@ it.each([false, true])('replays exact mixed content with sibling groups: %s', as
   }; } }, [table]);
   const root = await parseXmlStream([xml], { streamElements: store.streamElements });
   expect(root.children).toEqual([]); expect(root.text).toBe('after');
+  if (mode === 'cells') for await (const row of store.children(root)) expect(row.children.length).toBe(0);
   const [first, second] = await Promise.all([store.materialize(root), store.materialize(root)]);
   expect(first).toEqual(expected); expect(second).toEqual(expected);
   first.children.length = 0; expect((await store.materialize(root)).children).toEqual(expected.children);

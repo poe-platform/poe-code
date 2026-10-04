@@ -18,7 +18,7 @@ it.each(['strict', 'extended'] as const)('replays %s scalar ODF cells and axes w
   const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: 'fixture', extensions: [], async readSource(input, ctx) {
     const push = Array.prototype.push;
     Array.prototype.push = function(this: unknown[], ...items: unknown[]) {
-      if (items.some(item => item && typeof item === 'object' && ('localName' in item && item.localName === 'table-row' || 'row' in item && 'column' in item && 'value' in item || 'index' in item && ('hidden' in item || 'sizePoints' in item)))) throw new Error('resident ODF workbook array');
+      if (items.some(item => item && typeof item === 'object' && ('localName' in item && typeof item.localName === 'string' && ['table-row', 'table-cell', 'covered-table-cell'].includes(item.localName) || 'row' in item && 'column' in item && 'value' in item || 'index' in item && ('hidden' in item || 'sizePoints' in item)))) throw new Error('resident ODF workbook array');
       return push.apply(this, items);
     };
     let source;

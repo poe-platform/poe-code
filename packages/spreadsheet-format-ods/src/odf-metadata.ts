@@ -120,7 +120,7 @@ export async function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) =
       }
       if (n.localName !== "table-row") continue;
       column = 0;
-      for (const c of n.children) {
+      for await (const c of children(n)) {
         charge(); if (!ns.table.includes(c.namespace) || !["table-cell", "covered-table-cell"].includes(c.localName)) continue;
         const address = formatA1(row, column);
         for (const annotation of c.children.filter(n => n.localName === "annotation" && ns.office.includes(n.namespace))) {

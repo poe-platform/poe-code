@@ -5904,5 +5904,18 @@
     },
     "source": "Authenticated Gnumeric1.12.61 and Pango1.56.3 justify_words/justify_clusters/distribute_letter_spacing; attribution and source hash in print/NOTICE.md.",
     "remaining": "Full bidi,rotated/merged/rich cells,other format effects and complete rendering/profile acceptance remain open."
+  },
+  "pdfForcedLineJustification": {
+    "status": "U+2028 forced-line justification qualified; all19 families remain open",
+    "implementation": "Preserves forced-line metadata separately from LF/CR/CRLF/U+2029 paragraph endings. Horizontal Justify and wrapped Distributed expand the forced line; unwrapped Distributed remains unexpanded. Consecutive and paragraph-adjacent separators retain native blank-line heights.",
+    "source": "Authenticated Pango1.56.3 pango-layout.c BREAK_LINE_SEPARATOR sets wrapped for justification; existing source hash in print/NOTICE.md.",
+    "validation": {
+      "tests": 395,
+      "nativeInputs": 28,
+      "publicOutputs": 112,
+      "publicPDFComparisons": 56,
+      "checks": "Two original failing regressions repaired;selected build,engine/command lint/types and native/product screenshots pass. Word geometry compared in visual line order because PDF extractors can reorder separated runs."
+    },
+    "remaining": "Other rendering effects and the complete19-family acceptance remain open."
   }
 }

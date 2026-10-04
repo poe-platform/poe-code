@@ -249,8 +249,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       value = value.split("\n").join("↩");
       tick(value.length);
     }
-    const paragraphs = cellBox ? splitPrintLines(value, tick) : [value];
-    const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line, supported, tick) : line);
+    const paragraphs = cellBox ? splitPrintLines(value, tick) : [{text: value, forced: false}];
+    const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line.text, supported, tick) : line.text);
     for (const line of shapedLines) for (const scalar of line) {
       tick();
       if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
@@ -323,8 +323,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
       }
       const wraps = cellBox.wrap === true;
-      const lines = (wraps ? paragraphs.flatMap(line => wrapPrintLine(line, Math.max(0, cellBox.width - 5 - indent),
-        candidate => shapeLine(normalizeFontText(candidate, supported, tick)).width, tick).map((part, index, parts) => ({...part, justify: index < parts.length - 1}))) : shapedLines.map(text => ({text, hyphen: false, justify: false})))
+      const lines = (wraps ? paragraphs.flatMap(line => wrapPrintLine(line.text, Math.max(0, cellBox.width - 5 - indent),
+        candidate => shapeLine(normalizeFontText(candidate, supported, tick)).width, tick).map((part, index, parts) => ({...part, justify: line.forced || index < parts.length - 1}))) : shapedLines.map(text => ({text, hyphen: false, justify: false})))
         .map(line => {
           if (line.hyphen && !supported.has(0x2010)) unsupported("font coverage");
           const paintText = line.hyphen && line.text.endsWith("­") ? line.text.slice(0, -1) : line.text;

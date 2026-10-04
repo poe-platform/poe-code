@@ -11,8 +11,8 @@ const context: CapabilityContext = {signal: new AbortController().signal, own() 
   environment: {env: {}, locale: "C", timezone: "UTC"}, formatting: createFormattingCapability(),
   fonts: {async resolve() {return suppliedDefaultFont().bytes;}},
   limits: {inputBytes: 1000000, outputBytes: 4000000, workbookWork: 6000000, cells: 10000, sheets: 4, operations: 100}};
-async function fixture(alignment: string, unit = 10, width = 72, vertical = "BOTTOM", height = 20) {
-  return readGnumeric(new TextEncoder().encode(`<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Version Epoch="1" Major="12" Minor="61" Full="1.12.61"/><g:SheetNameIndex><g:SheetName g:Cols="256" g:Rows="65536">S</g:SheetName></g:SheetNameIndex><g:Sheets><g:Sheet><g:Name>S</g:Name><g:PrintInformation><g:paper>na_letter</g:paper><g:Margins><g:top Points="72"/><g:bottom Points="72"/><g:left Points="72"/><g:right Points="72"/></g:Margins><g:Header Left="" Middle="" Right=""/><g:Footer Left="" Middle="" Right=""/></g:PrintInformation><g:Styles><g:StyleRegion startRow="0" endRow="3" startCol="0" endCol="0"><g:Style HAlign="${alignment}" VAlign="GNM_VALIGN_${vertical}" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General"><g:Font Unit="${unit}" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</g:Font></g:Style></g:StyleRegion></g:Styles><g:Cols DefaultSizePts="${width}"><g:ColInfo No="0" Unit="${width}" HardSize="1"/></g:Cols><g:Rows DefaultSizePts="${height}"><g:RowInfo No="0" Unit="${height}" HardSize="1" Count="4"/></g:Rows><g:Cells><g:Cell Row="0" Col="0" ValueType="60">alpha</g:Cell><g:Cell Row="1" Col="0" ValueType="40">-12.5</g:Cell><g:Cell Row="2" Col="0" ValueType="20">TRUE</g:Cell><g:Cell Row="3" Col="0" ValueType="50">#DIV/0!</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>`), context);
+async function fixture(alignment: string, unit = 10, width = 72, vertical = "BOTTOM", height = 20, wrap = 0) {
+  return readGnumeric(new TextEncoder().encode(`<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Version Epoch="1" Major="12" Minor="61" Full="1.12.61"/><g:SheetNameIndex><g:SheetName g:Cols="256" g:Rows="65536">S</g:SheetName></g:SheetNameIndex><g:Sheets><g:Sheet><g:Name>S</g:Name><g:PrintInformation><g:paper>na_letter</g:paper><g:Margins><g:top Points="72"/><g:bottom Points="72"/><g:left Points="72"/><g:right Points="72"/></g:Margins><g:Header Left="" Middle="" Right=""/><g:Footer Left="" Middle="" Right=""/></g:PrintInformation><g:Styles><g:StyleRegion startRow="0" endRow="3" startCol="0" endCol="0"><g:Style HAlign="${alignment}" VAlign="GNM_VALIGN_${vertical}" WrapText="${wrap}" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General"><g:Font Unit="${unit}" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</g:Font></g:Style></g:StyleRegion></g:Styles><g:Cols DefaultSizePts="${width}"><g:ColInfo No="0" Unit="${width}" HardSize="1"/></g:Cols><g:Rows DefaultSizePts="${height}"><g:RowInfo No="0" Unit="${height}" HardSize="1" Count="4"/></g:Rows><g:Cells><g:Cell Row="0" Col="0" ValueType="60">alpha</g:Cell><g:Cell Row="1" Col="0" ValueType="40">-12.5</g:Cell><g:Cell Row="2" Col="0" ValueType="20">TRUE</g:Cell><g:Cell Row="3" Col="0" ValueType="50">#DIV/0!</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>`), context);
 }
 it.each([
   ["GNM_HALIGN_GENERAL", [76.75, 121.25, 101.25, 94.5]],
@@ -313,4 +313,22 @@ it("supports exact fontkit cluster mappings without native shaping", async () =>
     const {runs} = await pdfText(await writePdf({...original, sheets: [{...sheet, cells: [{...sheet.cells[0]!, value: {kind: "string" as const, value: "12345678901234567890"}}]}]}, [], context));
     expect(runs[0]!.glyphs.at(-1)!.x).toBeCloseTo(139.25, 2);
   } finally {create.mockRestore();}
+});
+
+
+it.each(["JUSTIFY", "DISTRIBUTED"])("expands U+2028 forced lines but not paragraph endings with %s", async alignment => {
+  for (const separator of ["\n", "\r", "\r\n", "\u2028", "\u2029", "\u2028\n", "\u2028\u2028"]) {
+    const original = await fixture(`GNM_HALIGN_${alignment}`, 10, 72, "TOP", 60, 1), sheet = original.sheets[0]!;
+    const value = "alpha beta" + separator + "delta";
+    const {runs} = await pdfText(await writePdf({...original, sheets: [{...sheet, cells: [{...sheet.cells[0]!, value: {kind: "string" as const, value}}]}]}, [], context));
+    expect(runs.map(run => run.text)).toEqual(["alpha beta", "delta"]);
+    const first = runs[0]!;
+    expect(first.glyphs[6]!.x - first.glyphs[0]!.x, separator).toBeCloseTo(separator.startsWith("\u2028") ? 49 : 27, 3);
+  }
+});
+it("does not expand Distributed forced lines without wrapping", async () => {
+  const original = await fixture("GNM_HALIGN_DISTRIBUTED", 10, 72, "TOP", 60), sheet = original.sheets[0]!;
+  const value = "alpha beta\u2028delta";
+  const {runs} = await pdfText(await writePdf({...original, sheets: [{...sheet, cells: [{...sheet.cells[0]!, value: {kind: "string" as const, value}}]}]}, [], context));
+  expect(runs[0]!.glyphs[6]!.x - runs[0]!.glyphs[0]!.x).toBe(27);
 });

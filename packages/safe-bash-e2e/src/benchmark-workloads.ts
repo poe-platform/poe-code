@@ -430,6 +430,80 @@ export async function runStandardBenchmarkSuite(
       },
       { category: "binary-crypto", warmup, iterations },
     );
+
+    // 21. Multi-Format Archive & Compression (tar --transform + xz + bzip2 + zip/unzip)
+    await recorder.measureScenario(
+      "archive-multi-format-tar-xz-bzip2-zip-pipeline",
+      async () => {
+        const res = await h.exec(
+          [
+            "rm -rf /tmp/arch_bench && mkdir -p /tmp/arch_bench",
+            "tar --sort=name --transform='s,^,release-v1/,' -cf /tmp/arch_bench/pkg.tar -C /workspace/packages core cli",
+            "xz -c /tmp/arch_bench/pkg.tar > /tmp/arch_bench/pkg.tar.xz",
+            "bzip2 -c /tmp/arch_bench/pkg.tar > /tmp/arch_bench/pkg.tar.bz2",
+            "xzcat /tmp/arch_bench/pkg.tar.xz | tar -tf - | wc -l",
+            "zip -q -r /tmp/arch_bench/config.zip /workspace/config",
+            "unzip -l /tmp/arch_bench/config.zip | tail -n 1",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "archives-compression", warmup, iterations },
+    );
+
+    // 22. Advanced SQLite3 Recursive CTE + Window Functions + JSON Aggregation
+    await recorder.measureScenario(
+      "sqlite3-window-cte-analytics-pipeline",
+      async () => {
+        const res = await h.exec(
+          [
+            "sqlite3 -json :memory: \"WITH RECURSIVE seq(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM seq WHERE n < 40), sales AS (SELECT n AS id, CASE n % 3 WHEN 0 THEN 'us' WHEN 1 THEN 'eu' ELSE 'apac' END AS region, (n * 17) % 100 + 50 AS revenue FROM seq), ranked AS (SELECT region, id, revenue, DENSE_RANK() OVER (PARTITION BY region ORDER BY revenue DESC) AS rnk, SUM(revenue) OVER (PARTITION BY region) AS region_total FROM sales) SELECT region, COUNT(*) AS top_n, MAX(region_total) AS total FROM ranked WHERE rnk <= 3 GROUP BY region ORDER BY total DESC;\" | jq -c 'map({region, total})'",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "database-sqlite3", warmup, iterations },
+    );
+
+    // 23. Media & Office Document Pipeline (ffmpeg lavfi -> ffprobe -> soffice HTML conversion)
+    await recorder.measureScenario(
+      "media-office-ffmpeg-soffice-pipeline",
+      async () => {
+        const res = await h.exec(
+          [
+            "rm -rf /tmp/media_bench && mkdir -p /tmp/media_bench",
+            "ffmpeg -y -f lavfi -i sine=frequency=440:sample_rate=8000:duration=0.1 -c:a pcm_s16le /tmp/media_bench/tone.wav >/dev/null 2>&1",
+            "ffprobe -v quiet -print_format json -show_format -show_streams /tmp/media_bench/tone.wav | jq -r '.streams[0].codec_name'",
+            "printf '# Quarterly Report\\n\\nRevenue increased by 18%%.\\n' > /tmp/media_bench/report.md",
+            "soffice --headless --convert-to html --outdir /tmp/media_bench /tmp/media_bench/report.md >/dev/null",
+            "wc -c < /tmp/media_bench/report.html",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "document-media", warmup, iterations },
+    );
+
+    // 24. Polyglot Config & Schema Compiler (yq + jq + xmllint + envsubst)
+    await recorder.measureScenario(
+      "polyglot-yq-jq-xmllint-config-compiler",
+      async () => {
+        const res = await h.exec(
+          [
+            "export DEPLOY_ENV=production DEPLOY_REGION=us-east-1",
+            "yq -o=json '.' /workspace/config/base.yaml /workspace/config/prod.yaml | jq -s '.[0] * .[1] | {env: env.DEPLOY_ENV, region: env.DEPLOY_REGION, replicas: .services.api.replicas}' > /tmp/compiled_cfg.json",
+            "printf '<cluster env=\"$DEPLOY_ENV\" region=\"$DEPLOY_REGION\"><service name=\"api\"/></cluster>\\n' | envsubst | xmllint --xpath 'string(/cluster/@region)' -",
+            "jq -r '.replicas' /tmp/compiled_cfg.json",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "structured-data", warmup, iterations },
+    );
   } finally {
     await h.dispose();
   }

@@ -4,7 +4,7 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
 
 ## What This Package Covers
 
-1. **32 End-to-End Integration Suites (624 Scenarios)**:
+1. **36 End-to-End Integration Suites (704 Scenarios)**:
    - `shell-grammar-expansion.test.ts` — POSIX & Bash grammar, parameter expansions, indexed/associative arrays, functions, traps, arithmetic, `read`/`mapfile`, background jobs.
    - `pipelines-redirections-streams.test.ts` — Multi-stage pipelines, `PIPESTATUS`, FD duplication, heredocs, `/dev/null` & `/dev/zero`, `tee`, `sponge`, `split`, `paste`, `join`, `comm`, `diff`, `patch`.
    - `search-find-xargs-refactor.test.ts` — `rg`, `grep`, `find`, `fd`, `xargs`, `locate` across realistic multi-package TypeScript + Rust monorepo trees.
@@ -15,7 +15,7 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
    - `vfs-isolation-mounts-overlays.test.ts` — `OverlayFileSystem` copy-on-write, `MountFileSystem`, `ReadOnlyFileSystem`, symlinks, hardlinks, `chmod`, `umask`, `stat`, `du`, `df`, `tree`, `pathchk`, `mktemp`.
    - `math-system-utilities.test.ts` — `bc -l`, `expr`, `factor`, `seq`, `numfmt`, `envsubst`, `iconv`, `dos2unix`/`unix2dos`, `cal`, `date`, `timeout`, `getopt`, `id`, `uname`, `env`.
    - `budgets-cancellation-chaos.test.ts` — `ShellLimits` enforcement, `AbortSignal` cancellation, VFS byte quotas (`ENOSPC`), fork-bomb/expansion-bomb defense, and adversarial filename safety.
-   - `benchmark-suite.test.ts` — Verification of the 20 end-to-end benchmark workloads and multi-run comparison report generator.
+   - `benchmark-suite.test.ts` — Verification of the 24 end-to-end benchmark workloads and multi-run comparison report generator.
    - `diff-patch-merge-workflows.test.ts` — `diff`, `diff3`, `patch`, `comm`, `cmp`, and 3-way merge conflict resolution workflows.
    - `csv-data-science-csvkit-mlr.test.ts` — `csvcut`, `csvgrep`, `csvstat`, `csvsort`, `csvjoin`, `csvstack`, `csvsql`, `csvjson`, `in2csv`, `sql2csv`, `xan`, and `mlr`.
    - `html-xml-web-scraping.test.ts` — `htmlq`, `html-to-markdown`, `xmllint`, `xpath`, and `xq` scraping and structured extraction pipelines.
@@ -37,10 +37,14 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
    - `coreutils-filesystem-printf-formatting.test.ts` — `printf` numeric/float/escape/quoting conversions, `numfmt` SI/IEC/IEC-i scaling & delimited column formatting, `shuf`, `truncate`, `install -d/-D/-m/-C/--backup=numbered`, `cp`, `mv`, `ln -sr`, `touch`, `readlink`, `realpath`, `stat`, `chmod`, `ls`, `du`, and `find -printf`.
    - `binary-inspection-encoding-crypto-streams.test.ts` — `xxd` (`-p`, `-r`, `-i`, `-b`), `od`, `hexdump`/`hd`, `dd` (`conv=ucase,swab,notrunc,block,unblock,ebcdic,ascii`), `base64`/`base32`, `sha256sum`/`sha512sum`/`sha384sum`/`md5sum`/`cksum -c`, `cmp`, `strings`, `file` magic classification, `iconv`, `dos2unix`/`unix2dos`, `tac`/`rev`/`nl`/`expand`/`unexpand`/`fold`, `split`/`csplit`, `fmt`/`column`/`tsort`, `expr`/`bc`/`factor`, and `getopt`/`envsubst`.
    - `shell-traps-jobs-arrays-read-mapfile.test.ts` — `trap` (`EXIT`, `ERR` with `set -E`, `RETURN` with `set -T`, `DEBUG` with `shopt -s extdebug`, `trap -p`), background jobs (`&`, `$!`, `wait`, `kill`), `read`, `mapfile`/`readarray`, indexed & associative arrays, parameter expansions (`${var@Q}`, `${var@E}`), `getopts`, and `select` menus.
+   - `network-curl-wget-llm-op-workflows.test.ts` — `curl` (`-G --data-urlencode`, `--json`, `--data-binary @file`, `-u`/`--oauth2-bearer`, `-L`, `-w`, URL globs, `--compressed` + ETag `304`, `--retry`), `createOriginAuthorizer`, `wget` (`-O`, `-P`, `--post-data`, `-c`, `-nc`, `-i`), `llm` (`-m`, `-s`, `-o`, `-a` attachments), and `op` (`op read`, `op inject`, `op run` secret masking, `op item`/`document`/`vault`/`account`).
+   - `archive-tar-zip-compression-formats.test.ts` — `tar` (`--sort=name`, `-z`/`-j`/`-J`/`-a`, `--strip-components`, `--exclude`, `-X`, `--wildcards`, `--transform`, `--null -T -`, `-O`, `-r`/`-u`/`--delete`/`-A`, `-d`, `-h`, `-p`, `-k`, `--exclude-caches`, `--format=ustar`/`pax`), `zip`/`unzip` (`-r`, `-sf`, `-l`, `-d`, `-p`, `-t`, `-j`, `-x`, `-u`/`-f`/`-d`/`-m`, `-T`, `-n`/`-o`, `-z`, `-s` multi-volume splits), `gzip`/`gunzip`/`zcat`, `bzip2`/`bunzip2`/`bzcat`, and `xz`/`unxz`/`xzcat`.
+   - `node-python-safejs-sandboxes.test.ts` — `node` (`nodeCommands` with `SafeJsRuntime` & `NodeRuntimeProvider` / `NODE_PROFILE`: `-e`, `-p`, `--env-file`, `--require`, `--check`, `node:fs/promises`, `Buffer`, timers, capability confinement), `safeJsCommands`, `python`/`python3` (`pythonCommands` with VFS descriptor bridge, streaming stdio, `createPythonExecutorPool`, `inspectPythonCapabilities`), and `playwright-cli` (`createPlaywrightCli` sessions, custom abilities, `--raw`/`--json`, `screenshot`).
+   - `filesystem-bridges-s3-webdav-virtual-devices.test.ts` — `S3FileSystem`, `MockS3Client`, `createS3Transport`, `createS3HttpTransport` (SigV4 signing), `WebDavFileSystem` (RFC 4918 `PROPFIND`/`GET`/`PUT`/`MKCOL`/`COPY`/`MOVE`/`DELETE`), `createDeviceFileSystem` (`/dev/null`, `/dev/zero`, `/dev/random`, `/dev/urandom`), `OverlayFileSystem`, `MountFileSystem`, `ReadOnlyFileSystem`, and `df` multi-mount topologies.
 
 2. **Performance Benchmarking & Multi-Run Comparison (`benchmarks/`)**:
    - High-resolution per-exec metrics (`durationMs`, `cpuUserUs`, `cpuSystemUs`, `heapDeltaBytes`, `stdoutBytes`).
-   - 20 multi-iteration E2E benchmark workloads (`p50`, `p95`, `p99`, `mean`, `stddev`, `opsPerSec`, geometric mean).
+   - 24 multi-iteration E2E benchmark workloads (`p50`, `p95`, `p99`, `mean`, `stddev`, `opsPerSec`, geometric mean).
    - Stored baselines across optimization profiles (`ts-baseline-warm-memory-fastpath`, `ts-baseline-overlay-cow-fs`, `ts-baseline-strict-budgets-mount-dev`) and side-by-side comparison tables in `benchmarks/COMPARISON_REPORT.md`.
 
 ## Commands

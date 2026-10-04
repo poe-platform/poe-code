@@ -91,3 +91,10 @@ authenticated Pango archive above has SHA-256
 `273709ebcc6b1333b5e7126ffc4d510e95daaa0f42c7b3fe3007c1019a5c2836`.
 The helper expands explicit shaped advances with invocation work accounting;
 fontkit mappings that cannot establish logical clusters are refused.
+
+Merged-cell painting follows Gnumeric 1.12.61 `src/print-cell.c`
+(`print_merged_range_gtk`, `print_cell_gtk` and `gnm_print_sheet`), under the
+Gnumeric license above. The authenticated source SHA-256 is
+`6a057396fc6c920ca5cf239b24150e1e5e9e38f888096a4e7540775b4b98c8b4`.
+Corner values and styles use full merged geometry, with page clipping and
+native visibility rules; range indexing does not expand merged cells.

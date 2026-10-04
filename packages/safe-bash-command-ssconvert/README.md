@@ -117,16 +117,15 @@ including combining marks whose glyph positions differ from their text order.
 Styled Latin, Greek and Cyrillic text uses font-supported canonical composition;
 missing intermediate or final glyphs retain the supported decomposition.
 With explicit fonts, it also admits fully materialized Gnumeric styles for blank cells
-and values with LF, CRLF, CR or Unicode line/paragraph breaks: General or explicit left/right/center alignment,
+and values with LF, CRLF, CR or Unicode line/paragraph breaks: General or explicit left/right/center/justify/distributed alignment,
 font-metric indentation, top/center/bottom vertical placement, justified line spacing
 (distributed uses center), host-selected families with regular, bold or
 italic faces, positive finite sizes including fractional points, underline and
 strikethrough, and RGB/RGBA text and solid backgrounds, including transparency.
-Wrapped strings and displayed formulas use Unicode word boundaries with grapheme fallback and discretionary hyphens; numeric cells ignore wrapping and General numbers reduce precision to fit. Single-line Fill alignment repeats text without kerning between copies and ignores wrapping and indentation; LF characters in left-to-right filled strings print as return arrows; other Fill control glyphs and bidirectional Fill remain unsupported. Oversized text is clipped at row boundaries. Font selections
+Wrapped strings and displayed formulas use Unicode word boundaries with grapheme fallback and discretionary hyphens; numeric cells ignore wrapping and General numbers reduce precision to fit. Single-line Fill alignment repeats text without kerning between copies and ignores wrapping and indentation; LF characters in left-to-right filled strings print as return arrows; other Fill control glyphs and bidirectional Fill remain unsupported. Horizontal Justify forces wrapping; Distributed expands wrapped lines and centers paragraph endings. U+2028 forces a justified break when wrapping is active. Merged cells use their corner value and style across the merged rectangle, including hidden-axis geometry and clipping across pages; covered values remain stored but are not printed. Oversized text is clipped at row or merged-box boundaries. Font selections
 share one invocation byte budget. This profile uses the captured native 96-DPI
 scale and print insets, so size 10 paints at 7.5 points. Cell alignment, fit and glyph placement
-use shaped advances and offsets. Exact native rendering remains unqualified. Other styles,
-merges and text layouts retain explicit refusals. BIFF7/8 imports preserve external
+use shaped advances and offsets. Exact native rendering remains unqualified. Other styles and text layouts, including rich text and rotation, retain explicit refusals. BIFF7/8 imports preserve external
 workbook, sheet, cell/range and defined-name identities, cached values and raw link records.
 Recalculation uses the explicit `externalReferences` host binding and otherwise
 returns `#REF!`; linked workbooks are never fetched automatically. External names

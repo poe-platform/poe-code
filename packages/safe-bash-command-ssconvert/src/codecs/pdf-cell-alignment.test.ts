@@ -332,3 +332,34 @@ it("does not expand Distributed forced lines without wrapping", async () => {
   const {runs} = await pdfText(await writePdf({...original, sheets: [{...sheet, cells: [{...sheet.cells[0]!, value: {kind: "string" as const, value}}]}]}, [], context));
   expect(runs[0]!.glyphs[6]!.x - runs[0]!.glyphs[0]!.x).toBe(27);
 });
+
+it.each(["LEFT", "RIGHT", "CENTER", "JUSTIFY", "DISTRIBUTED"])("uses the full merged-cell box for %s text", async alignment => {
+  const original = await fixture(`GNM_HALIGN_${alignment}`, 10, 72, "BOTTOM", 60, 1), sheet = original.sheets[0]!;
+  const cells = [{...sheet.cells[0]!, value: {kind: "string" as const, value: "alpha beta gamma delta epsilon"}}];
+  const merged = {...original, sheets: [{...sheet, cells, merges: [{startRow: 0, startColumn: 0, endRow: 2, endColumn: 2}]}]};
+  const expanded = {...original, sheets: [{...sheet, cells, columns: [{index: 0, sizePoints: 216}], rows: [{index: 0, sizePoints: 180}]}]};
+  expect((await pdfText(await writePdf(merged, [], context))).runs).toEqual((await pdfText(await writePdf(expanded, [], context))).runs);
+});
+it("ignores noncorner merged values without mutating workbook contents", async () => {
+  const original = await fixture("GNM_HALIGN_LEFT"), sheet = original.sheets[0]!;
+  const merges = [{startRow: 0, startColumn: 0, endRow: 2, endColumn: 2}];
+  const book = {...original, sheets: [{...sheet, merges, cells: sheet.cells.slice(0, 3)}]}, before = structuredClone(book);
+  expect((await pdfText(await writePdf(book, [], context))).runs.map(run => run.text)).toEqual(["alpha"]);
+  expect(book).toEqual(before);
+});
+
+it.each(["row", "column"])("does not print a merge whose anchor %s is hidden", async axis => {
+  const original = await fixture("GNM_HALIGN_LEFT"), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, cells: [sheet.cells[0]!], merges: [{startRow: 0, startColumn: 0, endRow: 2, endColumn: 2}],
+    ...(axis === "row" ? {rows: [{index: 0, hidden: true, sizePoints: 20}]} : {columns: [{index: 0, hidden: true, sizePoints: 72}]})}]};
+  expect((await pdfText(await writePdf(book, [], context))).runs).toEqual([]);
+});
+
+it("prints a hidden-row merge anchor when other cells expose its visible rectangle", async () => {
+  const original = await fixture("GNM_HALIGN_LEFT"), sheet = original.sheets[0]!, anchor = sheet.cells[0]!;
+  const book = {...original, sheets: [{...sheet, merges: [{startRow: 0, startColumn: 0, endRow: 2, endColumn: 2}],
+    rows: [{index: 0, hidden: true, sizePoints: 20}], cells: [anchor,
+      {...anchor, row: 1, column: 4, value: {kind: "string" as const, value: "marker"}},
+      {...anchor, row: 3, column: 0, value: {kind: "string" as const, value: "lower"}}]}]};
+  expect((await pdfText(await writePdf(book, [], context))).runs.map(run => run.text)).toEqual(["alpha", "marker", "lower"]);
+});

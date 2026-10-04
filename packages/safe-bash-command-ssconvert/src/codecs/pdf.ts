@@ -1,3 +1,4 @@
+import {createPrintMerges} from "@poe-code/spreadsheet-engine/rendering/print/merges";
 import {justifyPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/justify-line";
 import {wrapPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/wrap-lines";
 import { PDFDocument, PDFHexString, PDFName, PDFOperator, PDFOperatorNames, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, setGraphicsState, type PDFPage, type PDFFont } from "pdf-lib";
@@ -7,7 +8,7 @@ import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { createFormattingCapability } from "../formatting.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { foldSheetName } from "../workbook/case-fold.js";
-import { getCellsExtent, type Workbook, type Sheet, type AxisMetadata } from "../workbook.js";
+import { getCellsExtent, type Workbook, type Sheet, type AxisMetadata, type Range } from "../workbook.js";
 import { sheetObjects, type SheetObject } from "../objects/index.js";
 import { objectRectangle } from "../objects/layout.js";
 import { graphBackground } from "../rendering/images/scene.js";
@@ -562,6 +563,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       layout: ReturnType<typeof layoutPrintPages>;
       hiddenRows: ReadonlySet<number>;
       hiddenColumns: ReadonlySet<number>;
+      cells: readonly Sheet["cells"][number][];
+      mergedCells: ReadonlyMap<Sheet["cells"][number], Range>;
     }[] = [];
     let pageCount = 0, nextPageNumber = 1;
     for (const sheet of book.sheets) {
@@ -569,7 +572,16 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       if (chosen && !chosen.includes(sheet.id) || sheet.visibility && sheet.visibility !== "visible") continue;
       const print = sheetPrintSettings(sheet, context);
       if (!chosen && print.doNotPrint) continue;
-      if (sheet.merges?.length || sheet.cells.some(cell => cell.richText)) unsupported("styled or merged cells");
+      if (sheet.cells.some(cell => cell.richText)) unsupported("styled or merged cells");
+      const mergeRows = createPrintMerges(sheet.merges ?? [], tick);
+      const mergedCells = new Map<Sheet["cells"][number], Range>();
+      const cells = sheet.cells.filter(cell => {
+        const merge = mergeRows(cell.row).find(range => {tick(); return range.startColumn <= cell.column && range.endColumn >= cell.column;});
+        if (!merge) return true;
+        if (cell.row !== merge.startRow || cell.column !== merge.startColumn) return false;
+        mergedCells.set(cell, merge);
+        return true;
+      });
       const showFormulas = sheetViewFlag(sheet, "displayFormulas");
       const arrayGroups = new Map<string, string>();
       if (showFormulas) for (const group of sheet.formulaGroups ?? []) {
@@ -601,9 +613,14 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       for (const column of sheet.columns ?? []) { tick(); if (column.hidden) hiddenColumns.add(column.index); }
       // Native print areas exclude hidden and empty-valued allocated cells.
       // Empty strings still count; stored VALUE_EMPTY cells do not.
-      let area = getCellsExtent({...sheet, cells: sheet.cells.filter(cell => {
+      let area = getCellsExtent({...sheet, cells: cells.filter(cell => {
         tick(); return cell.value.kind !== "blank" && !hiddenRows.has(cell.row) && !hiddenColumns.has(cell.column);
       })});
+      for (const [cell, range] of mergedCells) {
+        tick();
+        if (cell.value.kind === "blank" || hiddenRows.has(cell.row) || hiddenColumns.has(cell.column)) continue;
+        area = {...area, endRow: Math.max(area.endRow, range.endRow), endColumn: Math.max(area.endColumn, range.endColumn)};
+      }
       for (const { rectangle } of objects) {
         tick();
         if (rectangle.width < 0 || rectangle.height < 0 || rectangle.x < 0 || rectangle.y < 0) unsupported("mirrored or negative workbook object placement");
@@ -619,7 +636,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const endRow = last("row", rectangle.y + rectangle.height), endColumn = last("column", rectangle.x + rectangle.width);
         area = { startRow: 0, startColumn: 0, endRow: Math.max(area.endRow, endRow), endColumn: Math.max(area.endColumn, endColumn) };
       }
-      if (area.endRow < area.startRow || area.endColumn < area.startColumn)
+      const emptyArea = area.endRow < area.startRow || area.endColumn < area.startColumn;
+      if (emptyArea)
         area = {startRow: 0, startColumn: 0, endRow: 0, endColumn: 0};
       const startPage = print.firstPageNumber ?? nextPageNumber;
       const layout = layoutPrintPages({ area, startPage, defaultRowPoints: typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75,
@@ -633,10 +651,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       nextPageNumber = startPage + layout.pages.length;
       pageCount += layout.pages.length;
       if (!Number.isSafeInteger(pageCount)) throw new SsconvertError("resource-limit", "ssconvert PDF page count limit exceeded");
-      printedSheets.push({ sheet, print, positions, objects, layout, hiddenRows, hiddenColumns });
+      printedSheets.push({ sheet, print, positions, objects, layout, hiddenRows, hiddenColumns, cells: emptyArea ? cells.filter(cell => {tick(); return !hiddenRows.has(cell.row);}) : cells, mergedCells });
     }
-    for (const { sheet, print, positions, objects, layout, hiddenRows, hiddenColumns } of printedSheets) {
-      const textSpan = createPrintSpans(sheet, positions.column, tick);
+    for (const { sheet, print, positions, objects, layout, hiddenRows, hiddenColumns, cells, mergedCells } of printedSheets) {
+      const textSpan = createPrintSpans({...sheet, cells}, positions.column, tick);
       const showFormulas = sheetViewFlag(sheet, "displayFormulas"), hideZero = sheetViewFlag(sheet, "hideZero");
       for (const geometry of layout.pages) {
         tick();
@@ -652,23 +670,39 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
         page.pushOperators(pushGraphicsState(), concatTransformationMatrix(layout.scaleX, 0, 0, layout.scaleY,
           geometry.originX * (1 - layout.scaleX), (page.getHeight() - geometry.originY) * (1 - layout.scaleY)));
-        // Paint all cell backgrounds before any spanning text.
-        for (const cell of sheet.cells) {
+        const pageColumn = positions.column(geometry.area.startColumn), pageLastColumn = positions.column(geometry.area.endColumn);
+        const pageRow = positions.row(geometry.area.startRow), pageLastRow = positions.row(geometry.area.endRow);
+        const mergedClip = [pushGraphicsState(), pdfRectangle(geometry.originX + 2,
+          page.getHeight() - geometry.originY - (pageLastRow.start + pageLastRow.size - pageRow.start),
+          pageLastColumn.start + pageLastColumn.size - pageColumn.start + 0.2,
+          pageLastRow.start + pageLastRow.size - pageRow.start + 0.2), clip(), endPath()];
+        const paintedCells = cells.flatMap(cell => {
           tick();
-          if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn) continue;
-          const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
-          if (!width || !height) continue;
-          const normalized = normalizePdfCellStyle(cell), style = normalized ? cellPrintStyle(normalized, tick) : undefined;
-          if (!style?.background) continue;
-          const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
-          const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
+          const merge = mergedCells.get(cell);
+          const range = merge ?? {startRow: cell.row, endRow: cell.row, startColumn: cell.column, endColumn: cell.column};
+          if (range.endRow < geometry.area.startRow || range.startRow > geometry.area.endRow || range.endColumn < geometry.area.startColumn || range.startColumn > geometry.area.endColumn || !merge && hiddenRows.has(cell.row) || hiddenColumns.has(cell.column)) return [];
+          const firstColumn = positions.column(range.startColumn), lastColumn = positions.column(range.endColumn);
+          const firstRow = positions.row(range.startRow), lastRow = positions.row(range.endRow);
+          const width = merge ? lastColumn.start + lastColumn.size - firstColumn.start : firstColumn.size;
+          const height = merge ? lastRow.start + lastRow.size - firstRow.start : firstRow.size;
+          if (!width || !height) return [];
+          const style = cellPrintStyle(normalizePdfCellStyle(cell), tick);
+          return [{cell, merge, width, height, style,
+            x: geometry.originX + firstColumn.start - pageColumn.start,
+            y: geometry.originY + firstRow.start - pageRow.start}];
+        });
+        // Paint all cell backgrounds before any spanning text.
+        for (const {merge, width, height, style, x, y} of paintedCells) {
+          tick();
+          if (!style.background) continue;
+          if (merge) page.pushOperators(...mergedClip);
           page.drawRectangle({ x: x + 2, y: page.getHeight() - y - height - 0.2,
             width: width + 0.2, height: height + 0.2, color: rgb(...style.background),
             ...(style.backgroundAlpha === 1 ? {} : {opacity: style.backgroundAlpha}) });
+          if (merge) page.pushOperators(popGraphicsState());
         }
-        for (const cell of sheet.cells) {
+        for (const {cell, merge, width, height, style, x, y} of paintedCells) {
           tick();
-          if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn || hiddenRows.has(cell.row) || hiddenColumns.has(cell.column)) continue;
           const formula = showFormulas ? printedFormulaText.get(cell) ?? cell.formula : undefined;
           // gnm_cell_is_zero includes booleans and a strict 64-epsilon numeric tolerance.
           if (!formula && hideZero && (cell.value.kind === "number" ? Math.abs(cell.value.value) < 64 * Number.EPSILON :
@@ -678,15 +712,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const value = generalNumber !== undefined ? String(generalNumber) : formula ?? (cell.displayedText !== undefined && !cell.style && !context.formatting ? cell.displayedText :
             await formatting.format(cell.value, cell.format ?? "General", context, {unicodeMinus: cell.value.kind === "number"}));
           tick();
-          const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
-          const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
-          const normalizedStyle = normalizePdfCellStyle(cell);
-          const style = cellPrintStyle(normalizedStyle, tick);
-          const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
           const alignment = style.alignment === "fill" || style.alignment === "justify" ? "left" : style.alignment === "distributed" ? "center" : style.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
             cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style.alignment;
           const wrap = style.alignment !== "fill" && Boolean(formula || cell.value.kind === "string") && (style.wrap === true || style.alignment === "justify" || style.verticalAlignment === "justify" || style.verticalAlignment === "distributed");
-          const overflow = style.alignment !== "fill" && !wrap && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
+          const overflow = !merge && style.alignment !== "fill" && !wrap && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
             const required = alignment === "center" ? width + Math.max(0, (displayWidth - width + 5 * printDisplayScale) / 2) : Infinity;
             return {
               left: alignment === "left" ? 0 : textSpan(cell, x - geometry.originX + width, "left", required) - width,
@@ -694,10 +723,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
                 Math.max(width, (layout.widthPoints - print.margins.right - geometry.originX) / layout.scaleX - (x - geometry.originX)), "right", required) - width
             };
           } : undefined;
+          if (merge) page.pushOperators(...mergedClip);
           await text(page, value, x, y, style.size * printDisplayScale, alignment,
             {width, height, style, wrap, fillString: !formula && cell.value.kind === "string",
               ...(generalNumber === undefined ? {} : {generalNumber, zoom: Number(sheet.view?.zoom ?? 1)}),
-              ...(overflow === undefined ? {} : {overflow})});
+              ...(merge ? {overflow: () => ({left: 0, right: 0})} : overflow === undefined ? {} : {overflow})});
+          if (merge) page.pushOperators(popGraphicsState());
         }
         for (const { object, rectangle } of objects) {
           tick();

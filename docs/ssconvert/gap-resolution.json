@@ -4579,7 +4579,7 @@
     {
       "id": "rendering-font-print-fidelity",
       "status": "open",
-      "currentFinding": "Qualified page geometry, explicit fonts, color/alpha, underline/strike, multiline text, formula spelling/reference views and nonempty visible print bounds are implemented. Native/profile evidence and remaining limitations are consolidated in currentQualification20261002.pdfTextLayout20261004. Automatic wrapping, full bidi, partial/overlapping styles, explicit print areas/spans, chart/merge/rich-text fidelity and wider qualification remain open."
+      "currentFinding": "Qualified page geometry, explicit fonts, color/alpha, underline/strike, multiline text, formula spelling/reference views, visible print bounds, Unicode wrapping, horizontal justification, Fill and merged-cell rectangles are implemented. Current scoped evidence is in pdfHorizontalJustification, pdfForcedLineJustification and pdfMergedCellRendering; earlier receipts remain in currentQualification20261002.pdfTextLayout20261004. Full bidi, borders/rotation/rich text, blank style-region painting, explicit print areas/spans, chart fidelity and broader profile qualification remain open."
     },
     {
       "id": "solver-analysis-accuracy",
@@ -5917,5 +5917,20 @@
       "checks": "Two original failing regressions repaired;selected build,engine/command lint/types and native/product screenshots pass. Word geometry compared in visual line order because PDF extractors can reorder separated runs."
     },
     "remaining": "Other rendering effects and the complete19-family acceptance remain open."
+  },
+  "pdfMergedCellRendering": {
+    "status": "Merged-cell rendering repair; all19 families remain open",
+    "implementation": "Corner values/styles render in the full merged rectangle; covered values remain unchanged but are not painted. Bounded interval indexing avoids expanding merge areas. Shared per-page geometry drives background and text. Visible merged rectangles clip across page boundaries. Hidden columns suppress their merge; hidden-row anchors print only when other visible content exposes the rectangle.",
+    "validation": {
+      "tests": 406,
+      "originalFailures": 7,
+      "nativeInputs": 33,
+      "publicOutputs": 132,
+      "automatedPDFComparisons": 64,
+      "visualOverflowComparisons": 2,
+      "checks": "Selected build,engine/command lint/types and native/product screenshots. Coverage includes five alignments,horizontal/vertical/offset ranges,hidden axes,covered values,backgrounds,blank neighbors,overflow and four-page rectangles."
+    },
+    "source": "Authenticated Gnumeric1.12.61 print-cell.c; source hash in print/NOTICE.md.",
+    "remaining": "Border/rich-text/rotation effects,blank style-region painting and broader rendering/profile acceptance remain open. Full logical PDF extraction can include clipped text that native Cairo omits from glyph emission."
   }
 }

@@ -1,9 +1,8 @@
-import {serializeCosDocument} from "../../pdf-ast/src/cos/writer.js";
 import {expect,it} from "vitest";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
-import {PdfDocument,cosArray,cosDict,cosStream,cosNumber,dictGet,dictSet} from "@poe-code/pdf-ast";
+import {PdfDocument,cosArray,cosDict,cosStream,cosNumber,dictGet,dictSet,serializeCosDocument} from "@poe-code/pdf-ast";
 import sharp,{decodeImage} from "./index.js";
 
 it.each([32,128])("renders PDF pixels with %i backed page, content and annotation references in Workerd",async count=>{

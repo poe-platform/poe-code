@@ -58,19 +58,19 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
   let releaseOrigins:(()=>void) | undefined;
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
-  const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
-    if (!Number.isFinite(context.limits.outputBytes)) return;
+  const preflight = async (chunks: () => AsyncIterable<Uint8Array>, eol?: ConversionOptions["eol"]) => {
+    if (!Number.isFinite(context.limits.outputBytes) && !(Number.isFinite(context.limits.references) && eol === "crlf")) return;
     if (Number.isFinite(context.limits.references)) {
       const text = async function* () {
         const decoder = new TextDecoder();
-        for await (const bytes of chunks) yield decoder.decode(bytes, {stream: true});
+        for await (const bytes of chunks()) yield decoder.decode(bytes, {stream: true});
         yield decoder.decode();
       };
-      await reserveRetainedOutput(text, context, undefined);
+      await reserveRetainedOutput(text, context, eol);
       return;
     }
     let length = 0;
-    for await (const bytes of chunks) {length += bytes.length; context.bound("outputBytes", length);}
+    for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}
   };
   try {
     if((target==="rtf" || target==="odt" || target==="html5" && options.embedResources) && (options.metadata !== undefined || options.filters?.some(request=>request.kind==="lua"))) {
@@ -113,7 +113,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     }
     for (const request of options.filters ?? []) {
       if (request.kind === "json") await checkImageOrigins(document.tree, context);
-      if (request.kind === "json") await preflight(document.chunks());
+      if (request.kind === "json") await preflight(() => document!.chunks());
       const signal = context.signal ?? new AbortController().signal;
       const response = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal}, (working.cacheBytes ?? 1024 * 1024) / 16384);
       const release = context.onClose(() => response.close());
@@ -166,7 +166,8 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     else if (target === "commonmark" || target === "gfm") await writeRetainedMarkdown(document.tree, context, working, options, createFormatRegistry().resolve(options.to, "write"));
     else {
       if (resourceCount) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent resources, language or direction document fields", "json", "$");
-      await preflight(document.chunks(options.eol));
+      if (Number.isFinite(context.limits.references)) await preflight(() => document!.chunks(), options.eol);
+      else await preflight(() => document!.chunks(options.eol));
       for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);
     }
   } catch (reason) {failure = {reason};}

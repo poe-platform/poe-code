@@ -1,4 +1,4 @@
-import { createEngine } from "@poe-code/spreadsheet-engine";
+import { createEngine, type Input, type Destination, type WorkingFiles } from "@poe-code/spreadsheet-engine";
 import { csvFormat } from "@poe-code/spreadsheet-format-csv";
 import { odsFormat } from "@poe-code/spreadsheet-format-ods";
 import { xlsxFormat } from "@poe-code/spreadsheet-format-xlsx";
@@ -20,23 +20,33 @@ export async function convertOds(
   filterOptions: string | undefined,
   signal: AbortSignal
 ): Promise<Uint8Array> {
-  const engine = createEngine({ formats: [odsFormat, target === "csv" ? csvFormat : xlsxFormat] });
+  const chunks: Uint8Array[] = [];
+  await convertOdsStream({ kind: "stream", filename: "input.ods", source: [bytes] },
+    { kind: "stream", sink: { async write(chunk) { chunks.push(chunk.slice()); } } }, target, filterOptions, signal);
+  const output = new Uint8Array(chunks.reduce((size, chunk) => size + chunk.byteLength, 0));
+  let offset = 0;
+  for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
+  return output;
+}
+
+/** Share import/export semantics while file callers supply ranges, sinks and backing storage. */
+export async function convertOdsStream(input: Input, destination: Destination, target: "csv" | "xlsx",
+  filterOptions: string | undefined, signal: AbortSignal, workingFiles?: WorkingFiles): Promise<void> {
+  const engine = createEngine({ formats: [odsFormat, target === "csv" ? csvFormat : xlsxFormat],
+    ...(workingFiles ? { workingFiles } : {}) });
   const operation = { signal };
+  let failed = true;
   try {
-    const book = await engine.readWorkbook({ kind: "stream", filename: "input.ods", source: [bytes] }, {}, operation);
-    const chunks: Uint8Array[] = [];
+    const book = await engine.readWorkbook(input, {}, operation);
     const csv = starCalcCsvOptions(filterOptions);
     const quotedOption = (value: string) => "'" + value.split("\\").join("\\\\").split("'").join("\\'") + "'";
-    await engine.writeWorkbook(book, { kind: "stream", sink: { async write(chunk) { chunks.push(chunk.slice()); } } }, {
+    await engine.writeWorkbook(book, destination, {
       exportType: target === "csv" ? "Gnumeric_stf:stf_assistant" : "Gnumeric_Excel:xlsx2",
       ...(target === "csv" ? { exportOptions: [
         "separator=" + quotedOption(csv.separator), "quote=" + quotedOption(csv.quote),
         "quoting-mode=" + (csv.quoteAll ? "always" : "auto"), "eol=unix", "format=raw", "quoting-on-whitespace=false", "active-sheet="
       ] } : {})
     }, operation);
-    const output = new Uint8Array(chunks.reduce((size, chunk) => size + chunk.byteLength, 0));
-    let offset = 0;
-    for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
-    return output;
-  } finally { await engine.dispose(); }
+    failed = false;
+  } finally { await engine.dispose().catch(error => { if (!failed) throw error; }); }
 }

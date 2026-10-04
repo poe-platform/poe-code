@@ -4,7 +4,7 @@ import { createEngine } from "@poe-code/spreadsheet-engine";
 import { xlsxFormat } from "@poe-code/spreadsheet-format-xlsx";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
-import { createSofficeCommand, createStoredZipArchive, runSofficeCli, runSofficeCliSync } from "./index.js";
+import { createSofficeCommand, createStoredZipArchive, runSofficeCli, runSofficeCliSync, runSofficeFileCli } from "./index.js";
 
 const encode = (text: string) => new TextEncoder().encode(text);
 const decode = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
@@ -103,4 +103,103 @@ it(`honors cancellation ${timing} an async ODS conversion without publishing`, a
   if (timing === "during") controller.abort(reason);
   await assert.rejects(conversion, error => error === reason);
   assert.equal(files.get("/source.xlsx"), saved);
+});
+
+for (const format of ["csv", "xlsx"]) it(`uses caller storage and streaming publication for ODS to ${format}`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/source.ods", odsFixture());
+  const filesystem = new Proxy(fs, { get(target, key) {
+    if (key === "readFile" || key === "writeFile") return () => { throw new Error("whole-file I/O forbidden"); };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+  const result = await createSofficeCommand().execute({
+    command: "soffice", cwd: "/", env: {}, fs: filesystem,
+    ...createCommandArguments(["--convert-to", format, "/source.ods"]),
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write(bytes) { stdout.push(bytes.slice()); } },
+    stderr: { async write(bytes) { stderr.push(bytes.slice()); } }
+  });
+  assert.equal(result.exitCode, 0, stderr.map(decode).join(""));
+  const output = await fs.readFile(`/source.${format}`);
+  if (format === "csv") assert.equal(decode(output), 'Name,Amount,Enabled\n"Łódź, ""office""\nsecond",42.5,TRUE\n');
+  else {
+    const engine = createEngine({ formats: [xlsxFormat] });
+    try {
+      const book = await engine.readWorkbook({ kind: "stream", filename: "result.xlsx", source: [output] }, {}, { signal: new AbortController().signal });
+      assert.deepEqual(book.sheets.map(sheet => sheet.name), ["Data", "Extras"]);
+      assert.equal(book.sheets[1]!.cells.find(cell => cell.value.kind === "string")?.column, 27);
+    } finally { await engine.dispose(); }
+  }
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["source.ods", `source.${format}`].sort());
+});
+
+for (const mode of ["malformed", "limit", "cancel", "publish"] as const) it(`retains ODS destination and cleans backing files on ${mode}`, async () => {
+  const fs = new MemoryFileSystem(), controller = new AbortController(), failure = new Error(mode);
+  await fs.writeFile("/source.ods", mode === "malformed" ? createStoredZipArchive({ "content.xml": encode("<broken>") }) : odsFixture());
+  await fs.writeFile("/source.csv", encode("saved"));
+  let stages = 0, removed = 0, closed = 0, diagnostic = "";
+  const filesystem = new Proxy(fs, { get(target, key) {
+    if (key === "readFile" || key === "writeFile") return () => { throw new Error("whole-file I/O forbidden"); };
+    if (key === "publishStagedFile" && mode === "publish") return async () => { throw failure; };
+    if (key === "createStagedFile") return async (...args: Parameters<typeof fs.createStagedFile>) => {
+      const stage = await fs.createStagedFile(...args); stages++;
+      return { ...stage, writer: {
+        async write(bytes: Uint8Array, options?: { signal?: AbortSignal }) {
+          await stage.writer!.write(bytes, options);
+          if (mode === "cancel") controller.abort(failure);
+        }, finish: stage.writer!.finish.bind(stage.writer)
+      }, cleanup: {
+        async remove() { removed++; await stage.cleanup!.remove(); },
+        async close() { closed++; await stage.cleanup!.close(); }
+      } };
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const execution = runSofficeFileCli(["--convert-to", "csv", "/source.ods"], { filesystem,
+    signal: controller.signal, limits: mode === "limit" ? { maxOutputBytes: 100 } : {},
+    stdout: { async write() {} }, stderr: { async write(bytes) { diagnostic += decode(bytes); } } });
+  if (mode === "malformed") {
+    assert.equal((await execution).exitCode, 1);
+    assert.match(diagnostic, /conversion failed/);
+  } else await assert.rejects(execution, error => mode === "limit" ? error instanceof RangeError : error === failure);
+  assert.equal(decode(await fs.readFile("/source.csv")), "saved");
+  assert.equal(removed, stages); assert.equal(closed, stages);
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["source.csv", "source.ods"]);
+});
+
+it("retains ODS input and CSV output larger than the adapter cache", async () => {
+  const fs = new MemoryFileSystem(), text = "abcdef".repeat(180000);
+  const source = createStoredZipArchive({ "content.xml": encode(`<office:document-content
+    xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+    xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+    xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"><office:body><office:spreadsheet>
+    <table:table table:name="Data"><table:table-row><table:table-cell office:value-type="string"><text:p>${text}</text:p>
+    </table:table-cell></table:table-row></table:table></office:spreadsheet></office:body></office:document-content>`) });
+  await fs.writeFile("/source.ods", source);
+  let reads = 0, writes = 0, opened = 0, closed = 0;
+  const filesystem = new Proxy(fs, { get(target, key) {
+    if (key === "readFile" || key === "writeFile") return () => { throw new Error("whole-file I/O forbidden"); };
+    if (key === "open") return async (...args: Parameters<typeof fs.open>) => {
+      const handle = await fs.open(...args); opened++;
+      return new Proxy(handle, { get(target, key) {
+        if (key === "read") return async (...args: Parameters<typeof handle.read>) => { reads = Math.max(reads, args[0].length); return handle.read(...args); };
+        if (key === "write") return async (...args: Parameters<typeof handle.write>) => { writes = Math.max(writes, args[0].length); return handle.write(...args); };
+        if (key === "close") return async () => { closed++; await handle.close(); };
+        const value = Reflect.get(target, key, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      } });
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const result = await runSofficeFileCli(["--convert-to", "csv", "/source.ods"], { filesystem,
+    stdout: { async write() {} }, stderr: { async write(bytes) { assert.fail(decode(bytes)); } } });
+  assert.equal(result.exitCode, 0);
+  assert.equal(decode(await fs.readFile("/source.csv")), text + "\n");
+  assert.ok(opened > 0); assert.equal(closed, opened);
+  assert.ok(reads > 0 && reads <= 16384); assert.ok(writes > 0 && writes <= 16384);
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["source.csv", "source.ods"]);
 });

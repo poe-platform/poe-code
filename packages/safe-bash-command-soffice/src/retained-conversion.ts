@@ -1,3 +1,4 @@
+import { convertOdsStream } from "./spreadsheet.js";
 import { retainTextPdf } from "./retained-pdf.js";
 import { RetainedPlainText } from "./retained-plain.js";
 import { retainTextDocx } from "./retained-docx.js";
@@ -25,7 +26,8 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   const format = (colon < 0 ? convertSpec : convertSpec.slice(0, colon)).toLowerCase();
   const filter = (colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon)) || (format === "csv" ? "Text - txt - csv (StarCalc)" : format === "pdf" ? "writer_pdf_Export" : `${format}_Export`);
   const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv"];
-  if (!inputs.every(input => input.toLowerCase().endsWith(".rtf") ? true :
+  if (!inputs.every(input => input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
+    input.toLowerCase().endsWith(".rtf") ? true :
     !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["xlsx", "csv"].includes(format))) return undefined;
   return withSofficeInputs(inputs, context, limits, async (storage, sources) => {
     const original = new Map(sources), pending = new Map<string, SofficeSnapshot>(), messages: string[] = [];
@@ -41,7 +43,32 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
       const stem = dot >= 0 && dot < basename.length - 1 ? basename.slice(0, dot) : basename;
       const path = resolvePath(cwd, outdir, `${stem}.${format}`);
       let output = source;
-      if (input.toLowerCase().endsWith(".rtf") || input.toLowerCase().endsWith(".md") || format === "html" || format === "docx" || format === "pdf") {
+      if (input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx")) {
+        const position = storage.allocate(0);
+        let size = 0;
+        try {
+          await convertOdsStream({ kind: "range", filename: input, source: {
+            size: source.size,
+            async read(offset, maximum) {
+              signal.throwIfAborted();
+              return new Uint8Array(await storage.read(source.position + offset, Math.min(16384, maximum, source.size - offset)));
+            }
+          } }, { kind: "stream", sink: { async write(chunk) {
+            for (let offset = 0; offset < chunk.length; offset += 16384) {
+              signal.throwIfAborted();
+              const part = chunk.subarray(offset, offset + 16384);
+              await storage.append(part); size += part.length;
+            }
+          } } }, format, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1), signal, { fs, directory: cwd });
+        } catch (error) {
+          signal.throwIfAborted();
+          stderr = `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n`;
+          // Earlier successful conversions remain publishable, as in the byte API.
+          messages.length = 0;
+          break;
+        }
+        output = { position, size };
+      } else if (input.toLowerCase().endsWith(".rtf") || input.toLowerCase().endsWith(".md") || format === "html" || format === "docx" || format === "pdf") {
         const rich = input.toLowerCase().endsWith(".rtf"), text = rich ? rtf : plain, parsed = rich ? parsedRtf : parsedPlain;
         let retained = parsed.get(source);
         if (!retained) { retained = await text.retain(source.position, source.size); parsed.set(source, retained); }

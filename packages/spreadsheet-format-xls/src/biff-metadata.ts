@@ -14,7 +14,7 @@ export const biffProtectionPermissions = ["objects", "scenarios", "formatCells",
 export const biffMetadataOpcodes = new Set([0x2a, 0x2b, 0x25, 0x225, 0x81, 0x83, 0x84, 0xa1, 0x55, 0x23e, 0x3e,
   0x1d, 0x1a, 0x1b, 0x41, 0xa0, 0x867, 0x1c, 0x1b6]);
 
-function header(text: string): Readonly<Record<string, string>> {
+export function biffHeaderParts(text: string): Readonly<Record<string, string>> {
   const values: Record<string, string> = { Left: "", Middle: "", Right: "" };
   const substitutions: Readonly<Record<string, string>> = { P: "&[PAGE]", N: "&[PAGES]", D: "&[DATE]", T: "&[TIME]", F: "&[FILE]", A: "&[TAB]", Z: "&[PATH]" };
   let side = "Left";
@@ -174,7 +174,7 @@ function* metadataSteps(length: number, revision: number, codepage: number, cont
   if (hasPrint) result.push({ source: "Gnumeric_XmlIO:sax", kind: "PrintInformation", disposition: "retained",
     data: biffNode("PrintInformation", {}, "", [biffNode("Margins", {}, "", Object.entries(margins).map(([name, Points]) => biffNode(name, { Points, PrefUnit: "mm" }))),
       biffNode("Scale", fitToPage ? { type: "fit", cols: fitColumns, rows: fitRows } : scale), ...Object.entries(print).map(([name, value]) => biffNode(name, { value })), biffNode("order", {}, order),
-      biffNode("orientation", {}, orientation), biffNode("Header", header(headerText)), biffNode("Footer", header(footerText)),
+      biffNode("orientation", {}, orientation), biffNode("Header", biffHeaderParts(headerText)), biffNode("Footer", biffHeaderParts(footerText)),
       biffNode("paper", {}, paper), biffNode("comments", { placement: commentPlacement }), biffNode("errors", { PrintErrorsAs: errorDisplay }), ...breaks]) });
   if (objects.length) result.push({ source: "Gnumeric_XmlIO:sax", kind: "Objects", disposition: "retained", data: biffNode("Objects", {}, "", objects) });
   return { records: result, view, active };

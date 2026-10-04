@@ -4,7 +4,7 @@ import { parseA1, type Sheet, type Workbook, type UnsupportedRecord } from "@poe
 import { metadataNode, type MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
 import { words } from "./biff-write-binary.js";
 import { biffString } from "./biff-write.js";
-import { biffProtectionPermissions } from "./biff-metadata.js";
+import { biffProtectionPermissions, biffHeaderParts } from "./biff-metadata.js";
 import { biffFontWidth } from "./biff-font-widths.js";
 import { writeBiffLabelRanges } from "./biff-label-ranges.js";
 
@@ -348,6 +348,14 @@ export class BiffMetadataWriter {
             if (end >= 0 && replacement) { text += "&" + replacement; at = end; continue; } }
           text += source[at] === "&" ? "&&" : source[at];
         }
+      }
+      const original = sheet.view?.[name === "Header" ? "printHeader" : "printFooter"];
+      if (node && typeof original === "string") {
+        this.charge(original.length);
+        const sections = biffHeaderParts(original);
+        // Keep the imported token spelling (including formatting controls)
+        // when the normalized sections are unchanged. Explicit edits win.
+        if (Object.entries(sections).every(([side, value]) => value === (node.attributes[side] ?? ""))) text = original;
       }
       await output.record(opcode, biffString(text, revision, this.context, revision === 8 ? 2 : 1));
     }

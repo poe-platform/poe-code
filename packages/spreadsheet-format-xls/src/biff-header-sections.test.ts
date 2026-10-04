@@ -56,3 +56,25 @@ it("keeps native centered defaults when header and footer records are absent", (
     expect(print.children.find(node => node.name === "Footer")!.attributes).toEqual({ Left: "", Middle: "Page &[PAGE]", Right: "" });
   }
 });
+
+it.each([7, 8] as const)("preserves imported header tokens without false loss warnings in BIFF%i", async revision => {
+  const {biffString} = await import("./biff-write.js");
+  for (const text of ["&A", "Page &P", "&Bbold&B", "&Lone&Ltwo"]) {
+    const raw = biffString(text, revision, context, revision === 8 ? 2 : 1);
+    const records = [0x14, 0x15].map(opcode => ({opcode, offset: 0, data: new Binary(raw)}));
+    const imported = readBiffMetadata(records, revision, 1252, context);
+    const retained = records.map(({opcode}) => ({source: "biff" as const, kind: opcode === 0x14 ? "HEADER" : "FOOTER",
+      disposition: "retained" as const, data: {opcode, bytes: Array.from(raw, byte => byte.toString(16).padStart(2, "0")).join("")}}));
+    const book: Workbook = {sheets: [{id: "s", name: "Data", cells: [], view: {printHeader: text, printFooter: text},
+      unsupportedRecords: [...retained, ...imported.records]}]};
+    const warnings: string[] = [];
+    const result = await readBiff(await createBiffWriter(revision)(book, [], {...context, async diagnostic(d) {warnings.push(d.message);}}), context);
+    expect(result.sheets[0]!.view?.printHeader).toBe(text);
+    expect(result.sheets[0]!.view?.printFooter).toBe(text);
+    expect(warnings).toEqual([]);
+    const edited: Workbook = {sheets: [{...book.sheets[0]!, unsupportedRecords: [...retained, {source: "Gnumeric_XmlIO:sax", kind: "PrintInformation", disposition: "retained",
+      data: biffNode("PrintInformation", {}, "", [biffNode("Header", {Left: "Changed", Middle: "", Right: ""})])}]}]};
+    const changed = await readBiff(await createBiffWriter(revision)(edited, [], context), context);
+    expect(changed.sheets[0]!.view?.printHeader).toBe("&LChanged");
+  }
+});

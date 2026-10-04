@@ -675,51 +675,98 @@ const PDF_DOC_ENCODING_REVERSE = new Map<number, number>(
   Array.from({ length: 256 }, (_, byte) => [PDF_DOC_ENCODING_MAP[byte] ?? byte, byte])
 );
 
-function decodeUtf16UnitsWithSurrogateCheck(units: readonly number[]): string {
-  let out = "";
-  for (let i = 0; i < units.length; i++) {
-    const u = units[i]!;
-    if (u >= 0xd800 && u <= 0xdbff) {
-      const next = units[i + 1];
-      if (next !== undefined && next >= 0xdc00 && next <= 0xdfff) {
-        out += String.fromCharCode(u, next);
-        i++;
-      } else {
-        out += "\ufffd";
-      }
-    } else if (u >= 0xdc00 && u <= 0xdfff) {
-      out += "\ufffd";
-    } else {
-      out += String.fromCharCode(u);
-    }
+/** Stateful PDF text-string decoding. Only a BOM, split code unit/surrogate,
+ * and one output chunk survive between input ranges. */
+class PdfStringDecoder {
+  private readonly prefix = new Uint8Array(3);
+  private prefixLength = 0;
+  private encoding: "doc" | "be" | "le" | "utf8" | undefined;
+  private utf8: TextDecoder | undefined;
+  private odd: number | undefined;
+  private high: number | undefined;
+
+  private *start(): Generator<string> {
+    const bytes = this.prefix.subarray(0, this.prefixLength);
+    let skip = 0;
+    if (bytes.length >= 2 && bytes[0] === 254 && bytes[1] === 255) { this.encoding = "be"; skip = 2; }
+    else if (bytes.length >= 2 && bytes[0] === 255 && bytes[1] === 254) { this.encoding = "le"; skip = 2; }
+    else if (bytes.length >= 3 && bytes[0] === 239 && bytes[1] === 187 && bytes[2] === 191) { this.encoding = "utf8"; this.utf8 = new TextDecoder("utf-8"); skip = 3; }
+    else this.encoding = "doc";
+    yield* this.decode(bytes.subarray(skip));
   }
-  return out;
+
+  *push(bytes: Uint8Array): Generator<string> {
+    let at = 0;
+    if (!this.encoding) {
+      while (this.prefixLength < 3 && at < bytes.length) this.prefix[this.prefixLength++] = bytes[at++]!;
+      if (this.prefixLength < 3) return;
+      yield* this.start();
+    }
+    yield* this.decode(bytes.subarray(at));
+  }
+
+  private *decode(bytes: Uint8Array): Generator<string> {
+    if (this.encoding === "utf8") {
+      for (let at = 0; at < bytes.length; at += 2048) {
+        const text = this.utf8!.decode(bytes.subarray(at, at + 2048), { stream: true });
+        if (text) yield text;
+      }
+      return;
+    }
+    let text = "";
+    for (const byte of bytes) {
+      if (this.encoding === "doc") text += String.fromCharCode(PDF_DOC_ENCODING_MAP[byte] ?? byte);
+      else {
+        if (this.odd === undefined) { this.odd = byte; continue; }
+        const unit = this.encoding === "be" ? (this.odd << 8) | byte : (byte << 8) | this.odd;
+        this.odd = undefined;
+        if (this.high !== undefined) {
+          if (unit >= 0xdc00 && unit <= 0xdfff) { text += String.fromCharCode(this.high, unit); this.high = undefined; }
+          else { text += "\ufffd"; this.high = undefined; text += this.unit(unit); }
+        } else text += this.unit(unit);
+      }
+      if (text.length >= 2048) { yield text; text = ""; }
+    }
+    if (text) yield text;
+  }
+
+  private unit(value: number): string {
+    if (value >= 0xd800 && value <= 0xdbff) { this.high = value; return ""; }
+    return value >= 0xdc00 && value <= 0xdfff ? "\ufffd" : String.fromCharCode(value);
+  }
+
+  *finish(): Generator<string> {
+    if (!this.encoding) yield* this.start();
+    if (this.utf8) { const text = this.utf8.decode(); if (text) yield text; }
+    if (this.high !== undefined) { this.high = undefined; yield "\ufffd"; }
+    // PDF recovery ignores a trailing incomplete UTF-16 byte.
+    this.odd = undefined;
+  }
 }
 
+/** Buffered convenience result with bounded decoder scratch. */
 export function decodePdfString(node: PdfCosString): string {
-  const bytes = node.bytes;
-  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
-    const units: number[] = [];
-    for (let i = 2; i + 1 < bytes.length; i += 2) {
-      units.push((bytes[i]! << 8) | bytes[i + 1]!);
-    }
-    return decodeUtf16UnitsWithSurrogateCheck(units);
+  const decoder = new PdfStringDecoder(); let text = "";
+  for (const part of decoder.push(node.bytes)) text += part;
+  for (const part of decoder.finish()) text += part;
+  return text;
+}
+
+/** Decode caller-owned string bytes without constructing a complete byte or
+ * character buffer. Keep backing alive until this iterator closes. */
+export async function* decodeStoredPdfString(value: PdfStoredBytes, signal?: AbortSignal): AsyncGenerator<string, void, void> {
+  if (!Number.isSafeInteger(value.position) || value.position < 0 || !Number.isSafeInteger(value.byteLength) || value.byteLength < 0 || !Number.isSafeInteger(value.position + value.byteLength)) throw new RangeError("Invalid stored PDF string range");
+  signal?.throwIfAborted();
+  const decoder = new PdfStringDecoder();
+  for (let offset = 0; offset < value.byteLength; offset += 4096) {
+    signal?.throwIfAborted();
+    const length = Math.min(4096, value.byteLength - offset);
+    const part = await value.storage.read(value.position + offset, length, signal ? { signal } : undefined);
+    signal?.throwIfAborted();
+    if (!(part instanceof Uint8Array) || part.length !== length) throw new Error("Incomplete stored PDF string");
+    // A consumer may perform another capability read while suspended at yield.
+    for (const text of decoder.push(new Uint8Array(part))) { signal?.throwIfAborted(); yield text; }
+    if ((offset + 4096) % 65536 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
   }
-  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
-    const units: number[] = [];
-    for (let i = 2; i + 1 < bytes.length; i += 2) {
-      units.push((bytes[i + 1]! << 8) | bytes[i]!);
-    }
-    return decodeUtf16UnitsWithSurrogateCheck(units);
-  }
-  if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
-    return new TextDecoder("utf-8").decode(bytes.subarray(3));
-  }
-  let out = "";
-  for (let i = 0; i < bytes.length; i++) {
-    const b = bytes[i]!;
-    const mapped = PDF_DOC_ENCODING_MAP[b];
-    out += String.fromCharCode(mapped !== undefined ? mapped : b);
-  }
-  return out;
+  for (const text of decoder.finish()) { signal?.throwIfAborted(); yield text; }
 }

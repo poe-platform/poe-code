@@ -84,6 +84,11 @@ the source after use; the lexer does not collect a document or own its handle.
 With `stringStorage`, decoded literal/hex strings use caller backing and bounded
 chunks; tokens expose `storedBytes` with empty `bytes`. Retained content parsing
 uses this backing for text and array elements when `pathStorage` is supplied.
+`decodeStoredPdfString(storedBytes, signal)` yields decoded text chunks directly
+from that backing, preserving PDFDocEncoding, UTF-8/UTF-16 BOMs and malformed
+surrogate recovery. Reads use at most 4 KiB and tolerate borrowed capability
+buffers. `decodePdfString` remains the buffered string convenience API with
+bounded decoder scratch.
 Arrays expose `storedItems` with empty `items`; iterate their elements with
 `readStoredItems<PdfCosNode>(array.storedItems, signal)`. Source COS parsing and
 retained `lookup` also accept `arrayStorage`, `storedArrayKeys`, `storedArrayPaths`, and

@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffPdfStyles": {
+      "finding": "BIFF7/8 cells with ordinary Sans styles failed PDF export because the renderer rejected their XF provenance and required Format/Indent/ShrinkToFit attributes absent from these format versions. Two original integration failures reproduced this without filesystem fixtures.",
+      "repair": "Admit only validated BIFF7/8 XF provenance plus normalized Gnumeric styles. Supply General format for BIFF (cell formatting is separate), and zero indent/shrink only for BIFF7. Unknown provenance, unsupported effects, foreign styles, duplicate attributes and work accounting remain guarded.",
+      "qualification": "22 targeted tests and296 focused PDF/print tests pass; selected build and owner checks pass.44 public SDK/command PDFs from independently generated wide-column XLSX/BIFF7/BIFF8 controls yield44 one-page files,36 expected headers and zero diagnostics.12 pinned native BIFF PDF conversions produce the expected body text on one page. Native/product renders inspected. A second44-export run uses the native DejaVuSans font;12 native comparisons have identical body text and x-origin58.75, while word segmentation and subpoint bounding-box differences remain recorded. No exact pixel/geometry parity is claimed.",
+      "remaining": "Original narrow-column page-control fixture advances to the separate default-style text-layout refusal; it is retained as a failure. Gnumeric headers ignore the manual-page setting. Wider style/overflow/format rendering and all19 families remain open."
+    },
     "firstPageEnable": {
       "scope": "Preserve stored first-page numbers independently of use_first_page_number. BIFF4 is implicitly manual; BIFF5+ uses SETUP bit0x80. Both XLSX editions preserve the disabled stored number. PDF honors enable state independent of metadata order and accepts native automatic sentinel -1, print copies without page duplication and no-comments metadata.",
       "verification": "14 initial format failures and eight initial PDF metadata failures, plus no-comments and automatic-sentinel regressions. 2847 combined tests and final focused print checks pass, selected build and three owner lint/types pass. 24 public BIFF exports verify48 encoded fields and24 Calc25.2.3.2 readbacks;72 XLSX exports verify144 OpenPyXL3.1.5 fields. All96 export diagnostic sequences match exactly.20 public PDFs independently verify one page each;12 page-number headers match. Rendered page65535 inspected.",

@@ -25,8 +25,8 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, t
     if (!value || typeof value !== "object" || Array.isArray(value)) fail();
     return value as Readonly<Record<string, ImportedValue>>;
   };
-  const attributes = (node: Readonly<Record<string, ImportedValue>>, expected: Readonly<Record<string, string | readonly string[]>>) => {
-    if (!Array.isArray(node.attributes) || node.attributes.length !== Object.keys(expected).length) fail();
+  const attributes = (node: Readonly<Record<string, ImportedValue>>, expected: Readonly<Record<string, string | readonly string[]>>, defaults: Readonly<Record<string, string>> = {}) => {
+    if (!Array.isArray(node.attributes) || node.attributes.length > Object.keys(expected).length) fail();
     const values: Record<string, string> = Object.create(null);
     for (const value of node.attributes as readonly ImportedValue[]) {
       const a = record(value);
@@ -37,15 +37,27 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, t
       if (!Object.hasOwn(expected, name) || (typeof accepted === "string" ? accepted !== text : !accepted?.includes(text)) || Object.hasOwn(values, name)) fail();
       values[name] = text;
     }
+    for (const name of Object.keys(expected)) {
+      tick();
+      if (!Object.hasOwn(values, name)) {
+        if (!Object.hasOwn(defaults, name)) fail();
+        values[name] = defaults[name]!;
+      }
+    }
     return values;
   };
   tick();
-  if (Object.keys(style).length !== 1 || !Object.hasOwn(style, "gnumeric")) fail();
+  const biff = Object.hasOwn(style, "biff") ? record(style.biff) : undefined;
+  if (Object.keys(style).length !== (biff ? 2 : 1) || !Object.hasOwn(style, "gnumeric")) fail();
+  if (biff && (Object.keys(biff).length !== 2 || ![7, 8].includes(biff.revision as number) ||
+    !Number.isInteger(biff.xf) || Number(biff.xf) < 0 || Number(biff.xf) > 65535)) fail();
   const node = record(style.gnumeric);
   if (node.name !== "Style" || node.namespace !== "http://www.gnumeric.org/v10.dtd" || typeof node.text !== "string") fail();
   tick((node.text as string).length);
   if ((node.text as string).trim() !== "" || !Array.isArray(node.children) || node.children.length !== 1) fail();
-  const effects = attributes(node, styleDefaults);
+  // BIFF stores number formats on the cell and has no indent/shrink fields before BIFF8.
+  const defaults: Record<string, string> = biff ? { Format: "General", ...(biff.revision === 7 ? { Indent: "0", ShrinkToFit: "0" } : {}) } : {};
+  const effects = attributes(node, styleDefaults, defaults);
   const font = record((node.children as readonly ImportedValue[])[0]);
   if (font.name !== "Font" || font.namespace !== "http://www.gnumeric.org/v10.dtd" || font.text !== "Sans" || !Array.isArray(font.children) || font.children.length) fail();
   const selected = attributes(font, fontDefaults);

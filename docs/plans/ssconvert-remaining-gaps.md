@@ -10,7 +10,12 @@ readiness: draft
 All 19 compatibility and qualification families remain open.
 This compact current plan replaces the removed historical gap plan. Detailed
 current findings and source receipts belong in [the case ledger](../ssconvert/gap-resolution.json).
-A delivered partial fix does not close its family.
+A delivered partial fix does not close its family. Each case now carries a
+`checkpoint20261004` separating qualified work, existing evidence, the next
+acceptance test, the family closure gate and qualification blockers. Use that
+checkpoint before expanding a cohort; historical receipts are not current registry
+or universal profile qualification. The next rendering gate is the retained RTL-tab
+placement/order cohort, not another sweep of already-qualified PDF controls.
 
 ## 1. What we're building
 

@@ -4479,84 +4479,238 @@
     {
       "id": "pwd-resource-identity",
       "status": "open",
-      "currentFinding": "SDK/Shell actual-cwd binding is delivered. Logical PWD aliases now require matching scoped directory identity through the public resolveVfsCwd helper, preserving exact exports and GETENV. Native GLib/GIO 2.90.0, memory-backed SDK/Shell, split/graph publication, cancellation and public-consumer checks cover the qualified POSIX behavior. Native Windows, broader real-adapter/installed-package qualification and containing publication remain open."
+      "currentFinding": "SDK/Shell actual-cwd binding is delivered. Logical PWD aliases now require matching scoped directory identity through the public resolveVfsCwd helper, preserving exact exports and GETENV. Native GLib/GIO 2.90.0, memory-backed SDK/Shell, split/graph publication, cancellation and public-consumer checks cover the qualified POSIX behavior. Native Windows, broader real-adapter/installed-package qualification and containing publication remain open.",
+      "checkpoint20261004": {
+        "qualified": "Scoped logical PWD aliases, actual cwd binding and POSIX identity checks are delivered.",
+        "evidence": [],
+        "nextAcceptance": "Run native Windows logical/physical PWD and real-adapter alias/error controls through installed SDK and Shell; compare exact output and diagnostic identity.",
+        "closureGate": "Qualify the remaining platform/adapter matrix and installed containing artifacts.",
+        "qualificationBlockers": []
+      }
     },
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values and direct cross-sheet range endpoints. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 327 tests in seventeen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flag packing, wider sheet-relative profiles, wider charsets/formatting/domains and native applications remain open. CSV now preserves NUL on import/export with documented native differences; raw-NUL XLSX formula refusal remains a distinct export gap. Containing publication is pending. Modern direct references now retain per-endpoint sheet relativity through standard OpenFormula storage and XML/XLSX annotations; 24,436 package checks and six compiled roundtrips pass. BIFF export and native copy-mode qualification remain open. Modern .123 indexed sheet names (0x23) now retain Windows-1252 spelling and late bindings; compiled SDK/command and explicit Calc Lotus:ANSI checks pass. See lotusModernSheetNames for qualified flags and failed automatic/default profiles. Single-byte national/exception mappings now match native ICU 76.1 for all 2307 valid sequences through current root and command-package public conversions; see lotusNationalSingleByteGroups. Native workbook application qualification remains open."
+      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values and direct cross-sheet range endpoints. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 327 tests in seventeen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flag packing, wider sheet-relative profiles, wider charsets/formatting/domains and native applications remain open. CSV now preserves NUL on import/export with documented native differences; raw-NUL XLSX formula refusal remains a distinct export gap. Containing publication is pending. Modern direct references now retain per-endpoint sheet relativity through standard OpenFormula storage and XML/XLSX annotations; 24,436 package checks and six compiled roundtrips pass. BIFF export and native copy-mode qualification remain open. Modern .123 indexed sheet names (0x23) now retain Windows-1252 spelling and late bindings; compiled SDK/command and explicit Calc Lotus:ANSI checks pass. See lotusModernSheetNames for qualified flags and failed automatic/default profiles. Single-byte national/exception mappings now match native ICU 76.1 for all 2307 valid sequences through current root and command-package public conversions; see lotusNationalSingleByteGroups. Native workbook application qualification remains open.",
+      "checkpoint20261004": {
+        "qualified": "Live-name edits, deletion, tab permutations, per-use copy modes, sheet identities and source-qualified LMBCS cohorts are delivered.",
+        "evidence": [
+          "#/reference/lotusLiveNameTabIdentity",
+          "#/reference/lotusNationalSingleByteGroups",
+          "#/reference/lotusModernSheetNames"
+        ],
+        "nextAcceptance": "Preserve a live Lotus name and both copy modes through XML/XLSX/BIFF export, then edit its definition and move/copy its formula; compare target identity and recalculation with independent application controls.",
+        "closureGate": "Resolve named-reference transport plus remaining version, offset, charset and application profiles.",
+        "qualificationBlockers": [
+          "Pinned Gnumeric reports Lotus named ranges unimplemented; source-qualified product identity checks are not native application parity."
+        ]
+      }
     },
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "RPN formula import now retains floating-point operation order, exponent grouping and unary precedence; see biffOperationOrder. BIFF7/8 imports and exports preserve external cell/range and global/scoped name identities, including defined expressions and arrays, with separate local/add-in/external namespaces. Import/export never fetch links or execute stored external name definitions; recalculation requires the explicit host. Original-record, namespace-order, codepage, path-length, index-limit, cancellation and budget controls pass; earlier name-index, relative-row, array and memory-area repairs remain. Compiled SDK/Shell profiles pass. Gnumeric 1.12.61 warns on external records; BIFF7 readback also misbinds external cells locally, so application qualification has not passed. Missing local targets now encode deleted references and recalculate as #REF! through cells, spans, names and array/shared formulas; both native BIFF7/8 reexports match with empty stderr. BIFF7 external multi-sheet ranges, wider token/version semantics, metadata preservation and other application/optional profiles remain open. Live row/column label subtypes 02/03/06/07 now preserve identity during import, recalculation and BIFF8 reexport, including edit dependency propagation. Native NAME export, radical/extra-data subtypes and other-format/native qualification remain open; see biffLiveLabelRangeAudit."
+      "currentFinding": "RPN formula import now retains floating-point operation order, exponent grouping and unary precedence; see biffOperationOrder. BIFF7/8 imports and exports preserve external cell/range and global/scoped name identities, including defined expressions and arrays, with separate local/add-in/external namespaces. Import/export never fetch links or execute stored external name definitions; recalculation requires the explicit host. Original-record, namespace-order, codepage, path-length, index-limit, cancellation and budget controls pass; earlier name-index, relative-row, array and memory-area repairs remain. Compiled SDK/Shell profiles pass. Gnumeric 1.12.61 warns on external records; BIFF7 readback also misbinds external cells locally, so application qualification has not passed. Missing local targets now encode deleted references and recalculate as #REF! through cells, spans, names and array/shared formulas; both native BIFF7/8 reexports match with empty stderr. BIFF7 external multi-sheet ranges, wider token/version semantics, metadata preservation and other application/optional profiles remain open. Live row/column label subtypes 02/03/06/07 now preserve identity during import, recalculation and BIFF8 reexport, including edit dependency propagation. Native NAME export, radical/extra-data subtypes and other-format/native qualification remain open; see biffLiveLabelRangeAudit.",
+      "checkpoint20261004": {
+        "qualified": "External/name namespaces, deleted targets, live label edits and qualified RPN operation order are delivered.",
+        "evidence": [
+          "#/reference/biffExternalIdentity",
+          "#/reference/biffLiveLabelRangeAudit",
+          "#/reference/biffOperationOrder",
+          "#/reference/biffUnionArguments"
+        ],
+        "nextAcceptance": "Exercise BIFF7 external multi-sheet ranges and live-label NAME export with edits/recalculation; require exact target identity and complete diagnostics after independent readback.",
+        "closureGate": "Qualify remaining token/version, label extra-data, metadata and external-link profiles without implicit link acquisition.",
+        "qualificationBlockers": [
+          "Pinned Gnumeric warns on external records and can misbind BIFF7 external cells; those readbacks are failures, not qualification."
+        ]
+      }
     },
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "Explicit host passwords support XOR, standard RC4 and CryptoAPI imports and exports. Independent XOR decryption matches 152 streams from 114 SDK exports; msoffcrypto reads all 76 BIFF8/DSF primary streams. Native Gnumeric now reads 12 XOR and four standard-RC4 exports exactly, including continued strings and formula recalculation, and rejects 13 wrong-password controls without output. Its tested 16+ UTF-16-unit RC4 passwords and all 12 CryptoAPI profiles are refused; these are native limits, not product support restrictions. Other applications, ancillary streams/properties, additional applicable profiles and containing publication remain open. LibreOffice 26.8 opens the plaintext control, three standard-RC4 and two 128-bit CryptoAPI profiles. Immutable source explains other refusals and native XLSX error loss; see biff-libreoffice-interop-proof.json. Wrong-password probes exceed its length limit; UI and current-head qualification remain open. CryptoAPI property-container import now passes independent OpenSSL vectors and public CLI/SheetJS readback; the verified password is reused and unknown ancillary bytes are retained. Explicit CryptoAPI property export now uses source-defined containers with independent OpenSSL ciphertext checks. Unknown ancillary reexport now preserves exact payload bytes with explicit property encryption; native application qualification remains open."
+      "currentFinding": "Explicit host passwords support XOR, standard RC4 and CryptoAPI imports and exports. Independent XOR decryption matches 152 streams from 114 SDK exports; msoffcrypto reads all 76 BIFF8/DSF primary streams. Native Gnumeric now reads 12 XOR and four standard-RC4 exports exactly, including continued strings and formula recalculation, and rejects 13 wrong-password controls without output. Its tested 16+ UTF-16-unit RC4 passwords and all 12 CryptoAPI profiles are refused; these are native limits, not product support restrictions. Other applications, ancillary streams/properties, additional applicable profiles and containing publication remain open. LibreOffice 26.8 opens the plaintext control, three standard-RC4 and two 128-bit CryptoAPI profiles. Immutable source explains other refusals and native XLSX error loss; see biff-libreoffice-interop-proof.json. Wrong-password probes exceed its length limit; UI and current-head qualification remain open. CryptoAPI property-container import now passes independent OpenSSL vectors and public CLI/SheetJS readback; the verified password is reused and unknown ancillary bytes are retained. Explicit CryptoAPI property export now uses source-defined containers with independent OpenSSL ciphertext checks. Unknown ancillary reexport now preserves exact payload bytes with explicit property encryption; native application qualification remains open.",
+      "checkpoint20261004": {
+        "qualified": "XOR/RC4/CryptoAPI import/export and encrypted properties pass scoped independent checks; POI reads all 54 retained files and rejects 52 wrong passwords.",
+        "evidence": [
+          "#/currentQualification20261002/encryptedBiffCalc252Poi541"
+        ],
+        "nextAcceptance": "Run command-export counterparts of the 27 retained BIFF profiles, including title/custom properties, then independently decrypt, edit SUM inputs and verify wrong-password zero-output behavior.",
+        "closureGate": "Complete version/password/ancillary-stream and public installed-artifact parity; classify native refusals separately.",
+        "qualificationBlockers": [
+          "Calc refuses 22 retained CryptoAPI variants and loses encrypted title/Note; POI success does not turn those Calc results into passes."
+        ]
+      }
     },
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "AES-CBC, Blowfish CFB8/CFB64 and LibreOffice Argon2id/AES-GCM imports and explicit encrypted exports are implemented. LibreOffice 26.8 opens qualified AES, CFB64 and modern ASCII/Unicode-password exports. Independent crypto and SDK checks also pass modern empty passwords, which the native loader refuses. Broader algorithm/application/platform qualification and containing publication remain open."
+      "currentFinding": "AES-CBC, Blowfish CFB8/CFB64 and LibreOffice Argon2id/AES-GCM imports and explicit encrypted exports are implemented. LibreOffice 26.8 opens qualified AES, CFB64 and modern ASCII/Unicode-password exports. Independent crypto and SDK checks also pass modern empty passwords, which the native loader refuses. Broader algorithm/application/platform qualification and containing publication remain open.",
+      "checkpoint20261004": {
+        "qualified": "Scoped AES-CBC, CFB64 and Argon2id/GCM native cross-read/edit controls pass, including Unicode and embedded-NUL passwords.",
+        "evidence": [
+          "#/currentQualification20261002/encryptedOdfCalc252"
+        ],
+        "nextAcceptance": "Run command-export parity for the six retained algorithm profiles and add manifest/KDF/tampering controls; assert independent values/formulas and no output on authentication failure.",
+        "closureGate": "Complete applicable algorithm/password/tampering, application and installed-artifact profiles.",
+        "qualificationBlockers": [
+          "Native CFB8 and empty-password reads refuse; empty-password native save did not complete."
+        ]
+      }
     },
     {
       "id": "encrypted-paradox",
       "status": "open",
-      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1\u2013256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
+      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained.",
+      "checkpoint20261004": {
+        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered.",
+        "evidence": [],
+        "nextAcceptance": "Qualify companion-file and wider version profiles through both public export routes, preserving records/schema and exact diagnostics after native reopen.",
+        "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
+        "qualificationBlockers": []
+      }
     },
     {
       "id": "perl-date",
       "status": "open",
-      "currentFinding": "Source-derived signed years, astronomical eras and clock-limit TimeClip repair are delivered. Authenticated activated Linux captures match final compiled and installed root/scoped SDK/Shell at d492e1ddd5 for all 92 cases across five zones, including BCE/year zero, rollover/leap day, DST and both clock extrema. The installed Node, Chrome page/Worker and workerd profiles also match. Broader signatures/coercion, locales, arrays/errors, other native runtime profiles and registry qualification remain open."
+      "currentFinding": "Source-derived signed years, astronomical eras and clock-limit TimeClip repair are delivered. Authenticated activated Linux captures match final compiled and installed root/scoped SDK/Shell at d492e1ddd5 for all 92 cases across five zones, including BCE/year zero, rollover/leap day, DST and both clock extrema. The installed Node, Chrome page/Worker and workerd profiles also match. Broader signatures/coercion, locales, arrays/errors, other native runtime profiles and registry qualification remain open.",
+      "checkpoint20261004": {
+        "qualified": "The 92-case five-zone activated cohort matches compiled and installed runtime profiles, including BCE, DST and clock extrema.",
+        "evidence": [
+          "#/reference/perlDateEra",
+          "#/reference/clockExtrema",
+          "#/reference/perlActivatedLinux"
+        ],
+        "nextAcceptance": "Qualify untested argument signatures, coercions, arrays/errors and locale-sensitive cases in the activated reference and installed SDK/Shell.",
+        "closureGate": "Complete remaining signature/locale/runtime and registry qualification; keep already-passing date cohorts as receipts.",
+        "qualificationBlockers": []
+      }
     },
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded grammar, captures, lookbehind, classes and raw-byte results are implemented for qualified cases. Capture/assertion conditionals, branch-reset numbering, numeric-condition bounds, alphabetic lookaround/atomic forms and explicit backreference spellings are delivered. All 4738 focused tests pass. Standalone Perl comparisons cover 81 outputs through the rebuilt root SDK/command and 19 later outputs through the command package (see perlPatternGrammar). Earlier compiled SDK/Shell match 625 PERL_SED rows within the 633-row activated Linux cohort, excluding 13 malformed UTF-8 outputs; that cohort does not qualify the new grammar. Wider grammar, Unicode, diagnostics, lifecycle, activated runtime, installed artifacts and publication remain open."
+      "currentFinding": "Bounded grammar, captures, lookbehind, classes and raw-byte results are implemented for qualified cases. Capture/assertion conditionals, branch-reset numbering, numeric-condition bounds, alphabetic lookaround/atomic forms and explicit backreference spellings are delivered. All 4738 focused tests pass. Standalone Perl comparisons cover 81 outputs through the rebuilt root SDK/command and 19 later outputs through the command package (see perlPatternGrammar). Earlier compiled SDK/Shell match 625 PERL_SED rows within the 633-row activated Linux cohort, excluding 13 malformed UTF-8 outputs; that cohort does not qualify the new grammar. Wider grammar, Unicode, diagnostics, lifecycle, activated runtime, installed artifacts and publication remain open.",
+      "checkpoint20261004": {
+        "qualified": "Bounded grammar, captures, assertions, branch reset and explicit backreferences have scoped implementation and comparison receipts.",
+        "evidence": [
+          "#/reference/perlPatternGrammar",
+          "#/reference/perlExperimentalWarnings",
+          "#/currentQualification20261002/perlReferenceStateDefect"
+        ],
+        "nextAcceptance": "Classify the retained 4150-case interpreter corpus differences using isolated and ordered native calls; resolve product semantic failures and preserve exact warnings before activated SDK/command requalification.",
+        "closureGate": "Close wider grammar/Unicode/diagnostics/lifecycle and installed-runtime profiles with the original reference retained.",
+        "qualificationBlockers": [
+          "Perl5.40.1 has a warning-sensitive atomic-lookbehind state defect; diagnostic patched-interpreter results are not replacement goldens."
+        ]
+      }
     },
     {
       "id": "python-printf",
       "status": "open",
-      "currentFinding": "Bounded formatting, arrays and precision-limited reference formats are implemented. The explicit Unicode 15.0/15.1/16.0 selector now controls printable-character rules for %r while preserving %s/%a semantics; current compiled SDK/Shell results match CPython reference cases. Address-bearing representations, raw reference/sheet APIs and wider language conversion remain open. Native array/range/axis controls pass; combined sheet/tuple probes crash and must not be counted as passes."
+      "currentFinding": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired. Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences. See checkpoint20261004 for the next acceptance test and qualification blockers.",
+      "checkpoint20261004": {
+        "qualified": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired.",
+        "evidence": [
+          "#/currentQualification20261002/pythonPrintfActivated"
+        ],
+        "nextAcceptance": "Qualify address-bearing RangeRef/sheet representations and remaining diagnostic/coercion cases without comparing unstable addresses as literal goldens.",
+        "closureGate": "Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences.",
+        "qualificationBlockers": [
+          "Combined native sheet/tuple probes crash; native control-character XLSX loss is not a formatting parity pass."
+        ]
+      }
     },
     {
       "id": "python-capwords-unicode",
       "status": "open",
-      "currentFinding": "Explicit frozen Unicode 15.0/15.1/16.0 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell profiles match independent CPython casing/context cases; Chrome page/module-worker evidence covers all three selected versions; typed split errors, NUL, malformed-host and resource boundaries remain covered. The activated Python 3.13.5/Unicode 15.1 sample profile now matches 11637 current compiled SDK/command observations with no diagnostics; custom-error XLSX quoting is repaired. See pythonCapwordsActivated. Other optional profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
+      "currentFinding": "Explicit frozen Unicode 15.0/15.1/16.0 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell profiles match independent CPython casing/context cases; Chrome page/module-worker evidence covers all three selected versions; typed split errors, NUL, malformed-host and resource boundaries remain covered. The activated Python 3.13.5/Unicode 15.1 sample profile now matches 11637 current compiled SDK/command observations with no diagnostics; custom-error XLSX quoting is repaired. See pythonCapwordsActivated. Other optional profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal.",
+      "checkpoint20261004": {
+        "qualified": "Frozen Unicode15.0/15.1/16.0 selection and 11637 activated observations are qualified with scoped browser and diagnostic controls.",
+        "evidence": [
+          "#/reference/pythonUnicodeProfiles",
+          "#/currentQualification20261002/pythonCapwordsActivated"
+        ],
+        "nextAcceptance": "Requalify the selected-version casing/context and typed-error contracts through current installed root/scoped SDK and command artifacts.",
+        "closureGate": "Complete other optional-runtime and wider diagnostic profiles with registry evidence.",
+        "qualificationBlockers": [
+          "Malformed native UTF-8 probes crash; retain the portable refusal and classify the native failure."
+        ]
+      }
     },
     {
       "id": "database-functions",
       "status": "open",
-      "currentFinding": "Explicit cooperative query ports and value-owned date/time formats are delivered. Supplemental Darwin native GDA/SQLite qualification covers the real GTK dialog, 13 typed columns, both epochs, errors/retry/reuse and connection deactivation. Public SDK live hosts match 84 native scalar/error observations plus four read-only controls. Compiled public Shell passes 88 scalar/error and 12 format comparisons through actual XLSX readback. All live connections close before settlement; cancellation preserves the destination and original reason. Native libgda mutates despite its read-only option, so explicit host enforcement remains required. Exact Linux profile, wider types/providers/lifecycle, installed artifacts and publication remain open."
+      "currentFinding": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup. Resolve wider providers/types, native CLI failure and installed/cross-runtime qualification. See checkpoint20261004 for the next acceptance test and qualification blockers.",
+      "checkpoint20261004": {
+        "qualified": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup.",
+        "evidence": [
+          "#/reference/databaseLive",
+          "#/currentQualification20261002/gdaIndexEmpty"
+        ],
+        "nextAcceptance": "Qualify real in-flight query cancellation and transaction/authentication lifecycle on an explicit provider; assert original cancellation reason, exactly-once close and no destination publication.",
+        "closureGate": "Resolve wider providers/types, native CLI failure and installed/cross-runtime qualification.",
+        "qualificationBlockers": [
+          "The unmodified native CLI crashes when its plugin opens GTK without initialization; API/dialog evidence does not qualify that CLI path.",
+          "Four large untyped native integers fail and one tiny numeric result differs from the explicit SQLite host."
+        ]
+      }
     },
     {
       "id": "atl-last",
       "status": "open",
-      "currentFinding": "Invocation-owned datasource sessions, partial records, recalculation, rebinding and cleanup are implemented. Qualified FIFO phases pass. Native scheduling/read splitting, late feeds, broader watch lifecycles and deployment qualification remain open."
+      "currentFinding": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Complete remaining scheduling/watch lifecycle and installed/deployment profiles. See checkpoint20261004 for the next acceptance test and qualification blockers.",
+      "checkpoint20261004": {
+        "qualified": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort.",
+        "evidence": [
+          "#/currentQualification20261002/datasourceRecalculationCleanup"
+        ],
+        "nextAcceptance": "Vary FIFO read splitting, watcher mutation and feed/close timing; compare values, dependent recalculation, diagnostics and exactly-once cleanup through SDK/command.",
+        "closureGate": "Complete remaining scheduling/watch lifecycle and installed/deployment profiles.",
+        "qualificationBlockers": []
+      }
     },
     {
       "id": "numeric-ln1p-log1p-acos",
       "status": "open",
-      "currentFinding": "Retained Linux log1p/acos/pow controls and public numeric cohorts match exact binary64 results. Wider domains and other runtime profiles remain open."
+      "currentFinding": "Retained Linux log1p/acos/pow controls and public numeric cohorts match exact binary64 results. Wider domains and other runtime profiles remain open.",
+      "checkpoint20261004": {
+        "qualified": "Retained Linux log1p/acos/pow and scoped public binary64 controls match.",
+        "evidence": [
+          "#/currentQualification20261002/publicAcos"
+        ],
+        "nextAcceptance": "Add independent boundary/holdout domains for each function on declared runtime profiles; compare exact binary64 values and diagnostics through both public routes.",
+        "closureGate": "Qualify remaining domains and runtime libraries, documenting profile-specific differences instead of inventing cross-libm equality.",
+        "qualificationBlockers": []
+      }
     },
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Algorithm A2 adds 82 exact native holdouts per public route; Algorithm A4 adds 142 native matches per route. The latest fractional-series repair matches all 912 original cases and all 264 boundary cases without work failures. Additional fractional/near-integer and baseline cohorts bring full native matches to 3296 per compiled SDK/command route. See besselFractionalSeries for current full-application evidence; broader profiles remain open. See currentQualification20261002.besselHighOrder."
+      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Algorithm A2 adds 82 exact native holdouts per public route; Algorithm A4 adds 142 native matches per route. The latest fractional-series repair matches all 912 original cases and all 264 boundary cases without work failures. Additional fractional/near-integer and baseline cohorts bring full native matches to 3296 per compiled SDK/command route. See besselFractionalSeries for current full-application evidence; broader profiles remain open. See currentQualification20261002.besselHighOrder.",
+      "checkpoint20261004": {
+        "qualified": "High-order, transition and fractional-series repairs eliminate prior work exhaustion; 3296 native matches per public route are retained.",
+        "evidence": [
+          "#/reference/besselPhaseBoundary",
+          "#/currentQualification20261002/besselFractionalSeries",
+          "#/currentQualification20261002/besselHighOrder"
+        ],
+        "nextAcceptance": "Qualify current installed artifacts against the retained native cohorts, then test independent uncovered fractional/near-integer and high-order boundaries.",
+        "closureGate": "Complete remaining domain/runtime and registry profiles while preserving source accuracy warnings.",
+        "qualificationBlockers": [
+          "Darwin libm/FMA profile differences are explained in retained receipts; they do not establish exact Linux or universal numerical parity."
+        ]
+      }
     },
     {
       "id": "format-record-roundtrip",
       "status": "open",
-      "glossaryTimestampFinding": "Glossary headers now use shared tzdb 2026c offsets and abbreviations across 485 captured zones and the full Date range, matching 99677 libc headers and 3880 compiled package SDK/command outputs. Native glossary plugin activation and installed-registry qualification remain open; see glossaryTimestampProfile.",
+      "glossaryTimestampFinding": "Timestamp and pathname cohorts are qualified independently. The exact48-plugin glossary activation succeeds, but actual native saving fails its legacy gsf import without output; see reference.glossaryFilenameAndSaver. Installed-registry and complete saver qualification remain open.",
       "currentFinding": "Qualified Calc XLSX cell/range links and imported external-name definitions now survive relationship reordering and live target edits; see xlsxExternalNameDefinitions. All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches encode/decode ST_Xstring and preserve empty cached results without forced recalculation; the 139-test cohort and 32 compiled SDK/command observations passed. Comment author/text escapes and VML type references are repaired; rich comment metadata and native rendering remain open. At 89dd9aa4ba, rich cell font names use rFont with XString decoding/encoding, rather than treating numeric family classification as a typeface. LibreOffice bce0998a stylesbuffer.cxx:605-617 establishes this correction; it intentionally replaces the old Gnumeric-family-handler expectation. Seven failing-before checks become 111 passing focused checks, with package and root lint passing. Current compiled/native font qualification and raw-NUL formula text remain open.",
       "richFontEvidence": {
         "source": "out/ssconvert-xlsx-metadata/rich-font-source.json",
         "red": "out/ssconvert-xlsx-metadata/rich-font-red.log",
         "green": "out/ssconvert-xlsx-metadata/rich-font-final.log",
         "packageLint": "out/ssconvert-xlsx-metadata/rich-font-lint.log",
-        "nativeCalc": "Both XLSX editions from the current source public codec preserve the used A2 font name Font _x0041_ and rich \u00e9 span typeface Noto _x0041_ & Serif through official Calc 26.8.0.3 read/export. Independent XML resolves A2 cell style/font indexes and rich shared-string properties; native wire escaping remains _x005F_x0041_. This does not qualify rendering, every font property, conditional fonts or compiled/installed native composition. Receipts: out/ssconvert-calc-current/font-comment-calc.json and font-comment-source-proof.json."
+        "nativeCalc": "Both XLSX editions from the current source public codec preserve the used A2 font name Font _x0041_ and rich é span typeface Noto _x0041_ & Serif through official Calc 26.8.0.3 read/export. Independent XML resolves A2 cell style/font indexes and rich shared-string properties; native wire escaping remains _x005F_x0041_. This does not qualify rendering, every font property, conditional fonts or compiled/installed native composition. Receipts: out/ssconvert-calc-current/font-comment-calc.json and font-comment-source-proof.json."
       },
       "commentRichText": {
         "implementation": "8aecc7f3aa shares the Gnumeric rich-text codec between cell values and comment TextFormat; XLSX import/export retains supported span attributes and UTF-8 offsets. b169158279 preserves unchanged original XLSX rich text when font delimiters cannot fit that markup codec, avoiding an import refusal introduced by the first change. Edited text is regenerated. Full comment properties, geometry, rendering and all-format transport remain open.",
@@ -4565,36 +4719,102 @@
         "nativeReadback": "Both XLSX editions produced from source at 8aecc7f3aa reopen in the rebuilt Gnumeric with exact Ada author, text and bold/italic byte ranges. Each emits Unhandled object of type Note: the pinned reader maps that VML type to G_TYPE_NONE. This verifies comment text formatting, not drawing fidelity, compiled public bundles, registry delivery or rendering.",
         "receipts": "out/ssconvert-native-current/comment-rich-native.json; native-identity.json; out/ssconvert-xlsx-metadata/comment-rich-red.log; comment-rich-first.log; comment-unrepresentable-red.log; comment-unrepresentable-final.log",
         "nativeCalcReadback": {
-          "preserved": "Both editions preserve Ada _x0041_ author and \u00e9\ud83d\ude00z text through signed Calc 26.8.0.3 native read/export.",
+          "preserved": "Both editions preserve Ada _x0041_ author and é😀z text through signed Calc 26.8.0.3 native read/export.",
           "source": "Pinned LibreOffice bce0998a commentsbuffer.cxx uses RichString::convert(XText). richstring.cxx:84-106 and 380-397 sets first/single portion properties on whole XText and appends later portions through getEnd. stylesbuffer.cxx initializes non-DXF Font flags to defaults; richstringcontext.cxx creates that Font for empty rPr. The exporter therefore prefixes an empty run and emits rPr for each visible comment segment, leaving cell serialization unchanged.",
           "controls": "Four independent XML variants retain first-run bold loss: explicit b/i resets, explicit font/size, both, and positive VML dimensions. Reset/font variants isolate the trailing plain z correctly. These controls do not establish a complete exporter repair; no production workaround was applied.",
           "remaining": "Current compiled/installed public composition and release, full comment metadata/geometry/rendering, unrepresentable-font retained markup and other rich properties remain open. Gnumeric escaped-author behavior is a native profile limitation, not a passing decoded-author check. All 19 families stay open.",
           "receipts": "out/ssconvert-calc-current/comment-final-native.json; comment-final-source.json; comment-defaults-native.json; comment-single-red.log; comment-final-green.log; comment-single-lint.log; native-identity.json",
-          "previousFailure": "Expected bold \u00e9 / italic \ud83d\ude00 / plain z returns plain \u00e9 / italic \ud83d\ude00z. Native comment formatting qualification fails, despite the passing Gnumeric span readbacks.",
+          "previousFailure": "Expected bold é / italic 😀 / plain z returns plain é / italic 😀z. Native comment formatting qualification fails, despite the passing Gnumeric span readbacks.",
           "implementation": "Comment-only rich serialization prefixes an empty run for both single and multiple segments and emits empty rPr on plain segments. No synthetic zero-valued attributes are added to canonical TextFormat. Four regression failures (two mixed-span defaults, two single-span cases) precede their fixes.",
           "currentNative": "Both XLSX editions from the current source codec pass independent Calc XML checks for mixed bold/italic/plain Unicode spans, an entirely bold comment, an interior bold span, strike/double-underline/superscript/red/plain spans and author escaping. Gnumeric preserves the four TextFormat cases, normalizing color hex to lowercase; it retains the escaped author wire spelling rather than decoding the literal _x0041_ author, and still warns on VML Note."
         }
+      },
+      "checkpoint20261004": {
+        "qualified": "Scoped record/style/protection/theme, formula/name identity and rich-text repairs are delivered; registration of 48 directional services is not full format closure.",
+        "evidence": [
+          "#/reference/xlsxAllocatedDefaultStyle",
+          "#/reference/xlsxSelfContainedThemes",
+          "#/reference/xlsxToBiffWorkbookProtection",
+          "#/reference/biffOperationOrder",
+          "#/reference/glossaryFilenameAndSaver"
+        ],
+        "nextAcceptance": "Use the existing directional-service matrix to identify unqualified version/record transports; start with retained rich-comment metadata/geometry and raw-NUL formula export, checking independent readback after edits.",
+        "closureGate": "Close applicable per-format/version/record semantics, diagnostics and installed public composition; require explicit loss outcomes for unsupported records.",
+        "qualificationBlockers": [
+          "Calc/Gnumeric lose selected original protection/comment fields; matching empty readbacks do not qualify preservation.",
+          "Glossary activation succeeds but native saving fails its legacy gsf import."
+        ]
       }
     },
     {
       "id": "rendering-font-print-fidelity",
       "status": "open",
-      "currentFinding": "Qualified page geometry, explicit fonts, color/alpha, underline/strike, multiline text, formula spelling/reference views, visible print bounds, Unicode wrapping, horizontal justification, Fill and merged-cell rectangles are implemented. Current scoped evidence is in pdfHorizontalJustification, pdfForcedLineJustification and pdfMergedCellRendering; earlier receipts remain in currentQualification20261002.pdfTextLayout20261004. Full bidi, borders/rotation/rich text, blank style-region painting, explicit print areas/spans, chart fidelity and broader profile qualification remain open."
+      "currentFinding": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted. See checkpoint20261004 for the next acceptance test and qualification blockers.",
+      "checkpoint20261004": {
+        "qualified": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered.",
+        "evidence": [
+          "#/pdfSharedBorders",
+          "#/pdfBlankStyleRegions",
+          "#/pdfRotatedText",
+          "#/pdfRotatedFill",
+          "#/pdfFillTabs",
+          "#/pdfFillCarriageReturns",
+          "#/pdfTransparentTextExtraction",
+          "#/pdfRotatedRtlFill",
+          "#/pdfRtlFillParagraphs"
+        ],
+        "nextAcceptance": "Match exact native tab stops and glyph order for the four retained RTL-tab controls through SDK/command before relaxing the bidirectional guard; require text/copy counts, placement and screenshots.",
+        "closureGate": "Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted.",
+        "qualificationBlockers": []
+      }
     },
     {
       "id": "solver-analysis-accuracy",
       "status": "open",
-      "currentFinding": "Qualified linear/nonlinear models and reports match native CSV effects. Report diagnostics, independent solver factories, wider sensitivity/nonlinear/analysis behavior and layout remain open."
+      "currentFinding": "Qualified linear/nonlinear models and reports match native CSV effects. Report diagnostics, independent solver factories, wider sensitivity/nonlinear/analysis behavior and layout remain open.",
+      "checkpoint20261004": {
+        "qualified": "Qualified linear/nonlinear models and report CSV effects have retained native comparisons.",
+        "evidence": [],
+        "nextAcceptance": "Compare report diagnostics and layout for independent solver factories, including sensitivity and nonlinear boundary models, through SDK/command.",
+        "closureGate": "Complete remaining solver/analysis numerical, report and layout profiles with independent native evidence.",
+        "qualificationBlockers": []
+      }
     },
     {
       "id": "optional-profiles",
       "status": "open",
-      "currentFinding": "Retained Linux ARM64 receipts authenticate all eight declared activation profiles. Six enumerate their exact plugin sets cleanly; GDA activates with a GLib cleanup diagnostic, and GNOME-DB activates only 46/47 plugins because ui.xml is missing. Functional qualification of all eight environments and fourteen capability obligations remains open. Registration is not parity; source/receipt hashes and distinct outcomes are recorded in optional-runtime-extension-coverage.json. Glossary headers now use shared tzdb 2026c offsets and abbreviations across 485 captured zones and the full Date range, matching 99677 libc headers and 3880 compiled package SDK/command outputs. The current exact48-plugin glossary activation succeeds, but actual saving fails on its legacy gsf import without publishing output; see glossaryFilenameAndSaver. Installed-registry and wider functional qualification remain open."
+      "currentFinding": "Retained Linux ARM64 receipts authenticate all eight declared activation profiles. Six enumerate their exact plugin sets cleanly; GDA activates with a GLib cleanup diagnostic, and GNOME-DB activates only 46/47 plugins because ui.xml is missing. Functional qualification of all eight environments and fourteen capability obligations remains open. Registration is not parity; source/receipt hashes and distinct outcomes are recorded in optional-runtime-extension-coverage.json. Glossary headers now use shared tzdb 2026c offsets and abbreviations across 485 captured zones and the full Date range, matching 99677 libc headers and 3880 compiled package SDK/command outputs. The current exact48-plugin glossary activation succeeds, but actual saving fails on its legacy gsf import without publishing output; see glossaryFilenameAndSaver. Installed-registry and wider functional qualification remain open.",
+      "checkpoint20261004": {
+        "qualified": "Eight activation profiles have authenticated receipts; scoped Python, Perl, datasource and GDA functionality is qualified separately from activation.",
+        "evidence": [
+          "#/reference/glossaryFilenameAndSaver",
+          "#/currentQualification20261002/gdaIndexEmpty",
+          "#/currentQualification20261002/pythonPrintfActivated",
+          "#/currentQualification20261002/pythonCapwordsActivated"
+        ],
+        "nextAcceptance": "Resolve the original glossary saver gsf dependency in its authenticated profile and compare actual output, or retain the precise unavailable-service result; do not count activation as saving.",
+        "closureGate": "Close all eight profile and fourteen capability obligations in optional-runtime-extension-coverage.json with exact plugin sets and functional outcomes.",
+        "qualificationBlockers": [
+          "Glossary actual save exits1 with missing gsf and no output.",
+          "GNOME-DB activation lacks ui.xml; GDA native CLI failure and Perl reference-state defect remain separately recorded."
+        ]
+      }
     },
     {
       "id": "public-packed-artifacts",
       "status": "open",
-      "currentFinding": "Final normal-build root/scoped tarballs at d492e1ddd5 pass strict NodeNext, Node SDK/Shell, Chrome page/module Worker and real workerd qualification, including budget/cancellation/cleanup/raw-byte contracts and 92 native date comparisons per SDK/Shell profile. Final browser bundle identity is verified against inspected Chrome execution. Oversized project source maps and stale root chunks are removed. Containing registry artifacts, later incoming runtime commits and wider native/service qualification remain open; see delivery.currentIntegration.repairedArtifacts."
+      "currentFinding": "Final normal-build root/scoped tarballs at d492e1ddd5 pass strict NodeNext, Node SDK/Shell, Chrome page/module Worker and real workerd qualification, including budget/cancellation/cleanup/raw-byte contracts and 92 native date comparisons per SDK/Shell profile. Final browser bundle identity is verified against inspected Chrome execution. Oversized project source maps and stale root chunks are removed. Containing registry artifacts, later incoming runtime commits and wider native/service qualification remain open; see delivery.currentIntegration.repairedArtifacts.",
+      "checkpoint20261004": {
+        "qualified": "Pinned d492e1ddd5 normal-build root/scoped tarballs passed Node/Chrome/Worker/workerd and declaration/contract checks.",
+        "evidence": [
+          "#/delivery/currentIntegration"
+        ],
+        "nextAcceptance": "Install containing registry root/scoped artifacts for the final selected revision and verify exports, canonical runtime identity, raw bytes, budgets, cancellation and cleanup in the maintained runtime matrix.",
+        "closureGate": "Require exact installed artifact/version hashes and consumer results after relevant incoming runtime changes; a successful push or release alone is insufficient.",
+        "qualificationBlockers": [
+          "Current containing registry qualification is unverified; historical tarball results do not establish current registry behavior."
+        ]
+      }
     }
   ],
   "delivery": {

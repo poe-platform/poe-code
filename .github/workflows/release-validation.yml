@@ -244,7 +244,8 @@ jobs:
         env:
           POE_CHECK_CACHE_DIR: .turbo/ci-cache/checks-v1
           TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
-        run: npm run test:ci:fresh
+        # Each stage has its own workers; avoid competing with native and replay checks.
+        run: npm run test:workspaces -- --ci-group=fresh --concurrency=1
       - name: Save eligible unit task cache
         if: always() && steps.unit-fresh-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6.1.0

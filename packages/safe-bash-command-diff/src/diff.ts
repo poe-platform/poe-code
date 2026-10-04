@@ -1,9 +1,12 @@
+import { closeDocumentResources } from "safe-bash-diff-engine/document";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { indexedDiff, type StdinDocument } from "./indexed.js";
 import { compareBrief } from "./brief.js";
 import { contextual,normal,type Edit } from "./diff-format.js";
 import { flags,type DiffFlags } from "./diff-options.js";
 import { expandTabs,ifdef,quoteDiffArgument,quoteDiffName,script,sideBySide } from "./diff-output.js";
 import { createPrCommand } from "safe-bash-command-pr";
-import { basename,createCommandArguments,isFsError,toByteSource,writeBytes,type CommandContext,type FileStat } from "safe-bash-contracts";
+import { basename,createCommandArguments,isFsError,writeBytes,type CommandContext,type FileStat } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { Budget,ToolError,definition,host,inspect,sameIdentity,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
@@ -152,11 +155,24 @@ function childPath(directory: string, name: string): string {
 }
 
 async function run(context: CommandContext, budget: Budget): Promise<number> {
+  const storage = new PagedStorage(context, 32);
+  const stdin: StdinDocument = {};
+  context.registerCleanup?.(() => storage.close());
+  try { return await runStored(context, budget, storage, stdin); }
+  finally { await closeDocumentResources([storage, ...(stdin.document ? [stdin.document] : [])]); }
+}
+
+async function runStored(context: CommandContext, budget: Budget, storage: PagedStorage, stdinDocument: StdinDocument): Promise<number> {
   const options = flags(context.args);
   const exclusions = await exclusionPatterns(options, budget);
-  const pieces: Uint8Array[] = [];
+  let outputSize = 0;
   let encoding: "utf8" | "latin1" = "utf8";
-  const append = (text: string) => { budget.output(text, encoding); pieces.push(encodeBytes(text, encoding)); };
+  const appendBytes = async (bytes: Uint8Array) => {
+    budget.outputLength(bytes.length);
+    for (let offset = 0; offset < bytes.length; offset += 16384) await storage.append(bytes.subarray(offset, offset + 16384));
+    outputSize += bytes.length;
+  };
+  const append = async (text: string) => { await appendBytes(encodeBytes(text, encoding)); };
   let different = false;
   let trouble = false;
   let stdin: string | undefined;
@@ -214,7 +230,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }
     if ((!leftStat || !rightStat) && !treatMissingAsEmpty) {
       const present = leftStat ? left : right;
-      append(`Only in ${present.slice(0, present.lastIndexOf("/")) || "/"}: ${basename(present)}\n`);
+      await append(`Only in ${present.slice(0, present.lastIndexOf("/")) || "/"}: ${basename(present)}\n`);
       different = true;
       continue;
     }
@@ -225,7 +241,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const typeName = (stat: { type: string; size?: number }) => stat.type === "symlink" ? "symbolic link"
         : stat.type === "file" ? stat.size === 0 ? "regular empty file" : "regular file"
         : stat.type === "character" ? "character special file" : stat.type;
-      append(`File ${left} is a ${typeName(leftStat)} while file ${right} is a ${typeName(rightStat)}\n`);
+      await append(`File ${left} is a ${typeName(leftStat)} while file ${right} is a ${typeName(rightStat)}\n`);
       different = true;
       continue;
     }
@@ -235,13 +251,13 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const oldTarget = await host(context, () => readlink(pathOf(context, left), { signal: context.signal }));
       const newTarget = await host(context, () => readlink(pathOf(context, right), { signal: context.signal }));
       if (!budget.equal(oldTarget, newTarget)) {
-        append(`Symbolic links ${left} and ${right} differ\n`);
+        await append(`Symbolic links ${left} and ${right} differ\n`);
         different = true;
-      } else if (options.reportSame) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+      } else if (options.reportSame) await append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
       continue;
     }
     if (leftStat?.type === "directory" || rightStat?.type === "directory") {
-      if (pair.nested && !options.recursive) { append(`Common subdirectories: ${left} and ${right}\n`); continue; }
+      if (pair.nested && !options.recursive) { await append(`Common subdirectories: ${left} and ${right}\n`); continue; }
       const leftIdentity = leftStat?.type !== "directory" ? undefined : sameIdentity(leftStat, leftStat) ? leftStat
         : await host(context, () => context.fs.realpath(pathOf(context, left), { signal: context.signal }));
       const rightIdentity = rightStat?.type !== "directory" ? undefined : sameIdentity(rightStat, rightStat) ? rightStat
@@ -317,8 +333,20 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const same = await compareBrief(budget, pathOf(context, left), pathOf(context, right), options.text);
       if (!same) {
         different = true;
-        append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
-      } else if (options.reportSame) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+        await append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
+      } else if (options.reportSame) await append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+      continue;
+    }
+    if (!options.brief && options.whitespace === "exact" && !options.ignoreCase
+      && !options.ignoreTabs && !options.ignoreTrailing && !options.stripTrailingCr
+      && !options.ignoreBlank && options.ignorePatterns.length === 0 && !options.functions.length
+      && !options.expand && !options.color && !options.initialTab
+      && (options.format === "normal" || options.format === "unified" || options.format === "context" || options.format === "rcs" || options.format === "ifdef")
+      && (!leftStat || leftStat.type === "file") && (!rightStat || rightStat.type === "file")) {
+      different = await indexedDiff(budget, options, left, right, pair.nested, appendBytes, {
+        left: !leftStat ? undefined : isStdin(left) ? "-" : pathOf(context, left),
+        right: !rightStat ? undefined : isStdin(right) ? "-" : pathOf(context, right),
+      }, stdinDocument) || different;
       continue;
     }
     const read = async (path: string, stat: { type: string } | undefined) => {
@@ -331,7 +359,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const newBytes = await read(right, rightStat);
     const label = (name: string) => encoding === "latin1" ? decodeBytes(encodeBytes(name), "latin1") : name;
     let incompleteEdLine = false;
-    const reportSame = () => { if (options.reportSame && !incompleteEdLine) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`); };
+    const reportSame = async () => { if (options.reportSame && !incompleteEdLine) await append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`); };
     if (options.format === "ed" && !options.brief && (options.text || !oldBytes.includes("\0") && !newBytes.includes("\0"))) {
       for (const [path, text] of [[left, oldBytes], [right, newBytes]] as const) {
         if (text && !text.endsWith("\n")) {
@@ -342,9 +370,9 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       }
     }
     // Detect binary data before decoding; invalid UTF-8 without NUL is byte text.
-    if (!options.text && oldBytes === newBytes && (options.format !== "side" && options.format !== "ifdef" || oldBytes.includes("\0"))) { reportSame(); continue; }
+    if (!options.text && oldBytes === newBytes && (options.format !== "side" && options.format !== "ifdef" || oldBytes.includes("\0"))) { await reportSame(); continue; }
     if (!options.text && (oldBytes.includes("\0") || newBytes.includes("\0"))) {
-      append(`${options.brief ? "Files" : "Binary files"} ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
+      await append(`${options.brief ? "Files" : "Binary files"} ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
       different = true;
       continue;
     }
@@ -367,29 +395,29 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       if (oldText && !oldText.endsWith("\n")) oldText += "\n";
       if (newText && !newText.endsWith("\n")) newText += "\n";
     }
-    if (oldText === newText && options.format !== "side" && options.format !== "ifdef") { reportSame(); continue; }
+    if (oldText === newText && options.format !== "side" && options.format !== "ifdef") { await reportSame(); continue; }
     const oldLines = budget.split(oldText);
     const newLines = budget.split(newText);
     const oldKeys = await comparisonLines(oldLines, options, budget);
     const newKeys = await comparisonLines(newLines, options, budget);
     const same = oldText === newText || await equivalent(oldKeys, newKeys, budget);
-    if (same && options.format !== "side" && options.format !== "ifdef") { reportSame(); continue; }
+    if (same && options.format !== "side" && options.format !== "ifdef") { await reportSame(); continue; }
     if (options.brief && !options.ignoreBlank && options.ignorePatterns.length === 0) {
       if (!same) {
         different = true;
-        append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`);
-      } else reportSame();
+        await append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`);
+      } else await reportSame();
       continue;
     }
     const changes = await edits(oldLines, newLines, oldKeys, newKeys, budget);
     if (!same) await ignoreChanges(changes, options, budget);
     const changed = changes.some(edit => edit.kind !== " " && !edit.ignored);
     different ||= changed;
-    if (!changed && pair.nested && options.suppressCommon) { reportSame(); continue; }
+    if (!changed && pair.nested && options.suppressCommon) { await reportSame(); continue; }
     if (pair.nested && !options.brief && (changed || options.format === "side")) {
-      append(label(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ")) + "\n");
+      await append(label(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ")) + "\n");
     }
-    if (options.brief) { if (changed) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`); }
+    if (options.brief) { if (changed) await append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`); }
     else if (options.format === "side") await sideBySide(changes, options, budget, append);
     else if (options.format === "ifdef") await ifdef(changes, label(options.symbol), budget, append);
     else if (changed) {
@@ -406,20 +434,24 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         return "";
       } : undefined);
     }
-    if (!changed) reportSame();
+    if (!changed) await reportSame();
   }
-  const output = concatBytes(pieces);
-  if (options.paginate && output.length) {
+  const output = (async function* () {
+    for (let position = 0; position < outputSize; position += 16384) {
+      yield await storage.read(8 + position, Math.min(16384, outputSize - position));
+    }
+  })();
+  if (options.paginate && outputSize) {
     const title = ["diff", ...context.args].join(" ");
     const argumentValues = createCommandArguments(["-f", "-h", title]);
     const pages: Uint8Array[] = [];
     const result = await createPrCommand({ limits: { maxInputBytes: budget.limits.maxOutputBytes, maxOutputBytes: budget.limits.maxOutputBytes, maxWork: Math.max(1, budget.remainingWork) } }).execute({
-      ...context, command: "pr", args: argumentValues.args, argumentValues, stdin: toByteSource(output),
+      ...context, command: "pr", args: argumentValues.args, argumentValues, stdin: output,
       stdout: { async write(chunk) { pages.push(chunk.slice()); } },
     });
     if (result.exitCode) return 2;
     await writeBytes(context.stdout, concatBytes(pages), context.signal);
-  } else await writeBytes(context.stdout, output, context.signal);
+  } else for await (const bytes of output) await writeBytes(context.stdout, bytes, context.signal);
   return trouble ? 2 : different ? 1 : 0;
 }
 

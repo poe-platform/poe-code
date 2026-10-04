@@ -18,6 +18,10 @@
     "./shared": {
       "types": "./dist/shared.d.ts",
       "import": "./dist/shared.js"
+    },
+    "./document": {
+      "types": "./dist/document.d.ts",
+      "import": "./dist/document.js"
     }
   },
   "files": [

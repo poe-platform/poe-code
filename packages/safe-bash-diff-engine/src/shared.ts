@@ -190,6 +190,17 @@ export class Budget {
     } finally { await handle.close(); }
   }
 
+  /** Sequential stdin admission with owned bounded blocks for safe-fs staging. */
+  async *stdinSource(): ByteSource {
+    for await (const chunk of this.chunks(this.context.stdin)) {
+      if (this.inputBytes > this.limits.maxInputBytes) throw new ToolError("input byte limit exceeded");
+      for (let offset = 0; offset < chunk.length; offset += 16384) {
+        this.context.signal.throwIfAborted();
+        yield new Uint8Array(chunk.subarray(offset, offset + 16384));
+      }
+    }
+  }
+
   private async *chunks(source: ByteSource): ByteSource {
     for await (const chunk of readBytes(source, this.context.signal)) {
       this.step();
@@ -206,7 +217,11 @@ export class Budget {
   }
 
   output(text: string, encoding: "utf8" | "latin1" = "utf8"): void {
-    this.outputBytes += byteLength(text, encoding);
+    this.outputLength(byteLength(text, encoding));
+  }
+
+  outputLength(bytes: number): void {
+    this.outputBytes += bytes;
     if (this.outputBytes > this.limits.maxOutputBytes) throw new ToolError("output byte limit exceeded");
   }
 

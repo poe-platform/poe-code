@@ -1,10 +1,12 @@
 # Bounded diff and patch Worker qualification
 
 This is a manual execution plan, not a qualification result. Current coverage is
-exact `diff --brief` regular-file payload comparison and the shared retained block
-source. Full diff formatting, stdin staging, patch, apply-patch, and diff3 still
-need bounded document/index/algorithm implementations. Do not infer qualification
-of those paths from the brief comparison tests.
+exact `diff --brief` regular-file payload comparison plus indexed normal, unified,
+context, RCS and conditional output (including stdin and missing-file operands).
+Indexed documents, line indexes, LCS cells, edit groups and output use caller-backed
+page caches. Normalization, ignored lines, ed/side output, display transformations,
+brief stdin, directory metadata, pagination, patch, apply-patch and diff3 still
+need migration. Do not infer qualification of those paths from migrated tests.
 
 ## Runtime and storage
 
@@ -42,9 +44,10 @@ of those paths from the brief comparison tests.
 
 ## Remaining paths before complete qualification
 
-1. Add caller-authorized safe-fs staging for stdin and a bounded line/block index
-   supporting arbitrarily long lines. Exercise reused source chunks and mutation
-   after iterator advancement. Measure spool bytes independently of resident bytes.
+1. Qualify the indexed document and stdin replay path with arbitrarily long lines,
+   reused source chunks and mutation after iterator advancement. Measure document,
+   index, LCS, edit-group and output spool bytes separately from resident bytes.
+   Exercise both mostly-equal inputs and dense changes that force LCS spill.
 2. Cover every diff output/normalization mode with bounded edit processing and
    output backpressure. Preserve ordering, contexts, binary handling and limits.
 3. Exercise patch and apply-patch context matching, rejects, moves, deletes,

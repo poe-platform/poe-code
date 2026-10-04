@@ -86,7 +86,7 @@ function padding(column: number, target: number, expand: boolean): string {
   return result + " ".repeat(Math.max(0, target - column));
 }
 
-export async function sideBySide(changes: readonly Edit[], options: DisplayOptions, budget: Budget, append: (text: string) => void): Promise<void> {
+export async function sideBySide(changes: readonly Edit[], options: DisplayOptions, budget: Budget, append: (text: string) => void | Promise<void>): Promise<void> {
   // GNU aligns the right column to an eight-column tab stop unless -t is used.
   let half = Math.max(0, Math.floor((options.width - 3) / 2));
   let rightStart = options.width - half;
@@ -96,13 +96,13 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
     if (half === 0) rightStart = options.width;
   }
   const markerColumn = Math.max(0, Math.floor((half + rightStart - 1) / 2));
-  const row = (left: string | undefined, right: string | undefined, marker: string) => {
+  const row = async (left: string | undefined, right: string | undefined, marker: string) => {
     if (marker === " " && options.suppressCommon) return;
     if (options.width > budget.limits.maxOutputBytes) throw new ToolError("output byte limit exceeded");
     const first = clipped(left ?? "", half, options.expand);
     let text = first.text;
     if (marker === " " && options.leftColumn) {
-      append(text + padding(first.column, markerColumn, options.expand) + "(" + (left?.endsWith("\n") ? "\n" : ""));
+      await append(text + padding(first.column, markerColumn, options.expand) + "(" + (left?.endsWith("\n") ? "\n" : ""));
       return;
     }
     if (marker !== " ") text += padding(first.column, markerColumn, options.expand) + marker;
@@ -112,7 +112,7 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
       text += padding(column, rightStart, options.expand) + second.text;
     }
     text += left?.endsWith("\n") || right?.endsWith("\n") ? "\n" : "";
-    append(options.color && (marker === "<" || marker === ">")
+    await append(options.color && (marker === "<" || marker === ">")
       ? `\u001b[${marker === "<" ? 31 : 32}m${text}\u001b[0m` : text);
   };
   let scan = 0;
@@ -130,7 +130,7 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
         { const c = budget.checkpoint(); if (c) await c; }
       }
       for (let index = 0; index < Math.max(old.length, next.length); index++) {
-        row(old[index], next[index], old[index] === undefined ? ")" : next[index] === undefined ? "(" : " ");
+        await row(old[index], next[index], old[index] === undefined ? ")" : next[index] === undefined ? "(" : " ");
         budget.step();
         { const c = budget.checkpoint(); if (c) await c; }
       }
@@ -146,14 +146,14 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
     }
     for (let index = 0; index < Math.max(old.length, next.length); index++) {
       const left = old[index], right = next[index];
-      row(left, right, left === undefined ? ">" : right === undefined ? "<" : !left.endsWith("\n") && right.endsWith("\n") ? "\\" : left.endsWith("\n") && !right.endsWith("\n") ? "/" : "|");
+      await row(left, right, left === undefined ? ">" : right === undefined ? "<" : !left.endsWith("\n") && right.endsWith("\n") ? "\\" : left.endsWith("\n") && !right.endsWith("\n") ? "/" : "|");
       budget.step(1 + (left?.length ?? 0) + (right?.length ?? 0));
       { const c = budget.checkpoint(); if (c) await c; }
     }
   }
 }
 
-export async function script(changes: readonly Edit[], format: "ed" | "rcs", budget: Budget, append: (text: string) => void): Promise<void> {
+export async function script(changes: readonly Edit[], format: "ed" | "rcs", budget: Budget, append: (text: string) => void | Promise<void>): Promise<void> {
   const groups: { position: number; old: string[]; next: string[] }[] = [];
   let scan = 0, position = 0;
   while (scan < changes.length) {
@@ -174,24 +174,24 @@ export async function script(changes: readonly Edit[], format: "ed" | "rcs", bud
   if (format === "ed") groups.reverse();
   for (const group of groups) {
     if (format === "rcs") {
-      if (group.old.length) append(`d${group.position + 1} ${group.old.length}\n`);
-      if (group.next.length) append(`a${group.position + group.old.length} ${group.next.length}\n${group.next.join("")}`);
+      if (group.old.length) await append(`d${group.position + 1} ${group.old.length}\n`);
+      if (group.next.length) await append(`a${group.position + group.old.length} ${group.next.length}\n${group.next.join("")}`);
     } else {
       const start = group.position + 1, end = group.position + group.old.length;
       const range = group.old.length > 1 ? `${start},${end}` : `${start}`;
-      append(`${group.old.length ? range : group.position}${group.old.length ? group.next.length ? "c" : "d" : "a"}\n`);
+      await append(`${group.old.length ? range : group.position}${group.old.length ? group.next.length ? "c" : "d" : "a"}\n`);
       if (group.next.length) {
         let inserted = 0;
         for (const line of group.next) {
           inserted++;
           if (line === ".\n") {
-            append("..\n.\ns/.//\n");
-            if (inserted < group.next.length) append("a\n");
-          } else append(line);
+            await append("..\n.\ns/.//\n");
+            if (inserted < group.next.length) await append("a\n");
+          } else await append(line);
           budget.step(1 + line.length);
           { const c = budget.checkpoint(); if (c) await c; }
         }
-        if (group.next.at(-1) !== ".\n") append(".\n");
+        if (group.next.at(-1) !== ".\n") await append(".\n");
       }
     }
     budget.step();
@@ -199,12 +199,12 @@ export async function script(changes: readonly Edit[], format: "ed" | "rcs", bud
   }
 }
 
-export async function ifdef(changes: readonly Edit[], symbol: string, budget: Budget, append: (text: string) => void): Promise<void> {
+export async function ifdef(changes: readonly Edit[], symbol: string, budget: Budget, append: (text: string) => void | Promise<void>): Promise<void> {
   let scan = 0;
   while (scan < changes.length) {
     budget.step();
     { const c = budget.checkpoint(); if (c) await c; }
-    if (changes[scan]!.kind === " ") { append(changes[scan++]!.line); continue; }
+    if (changes[scan]!.kind === " ") { await append(changes[scan++]!.line); continue; }
     const old: string[] = [], next: string[] = [];
     while (scan < changes.length && changes[scan]!.kind !== " ") {
       const edit = changes[scan++]!;
@@ -213,11 +213,11 @@ export async function ifdef(changes: readonly Edit[], symbol: string, budget: Bu
       { const c = budget.checkpoint(); if (c) await c; }
     }
     budget.hunk();
-    if (changes[scan - 1]!.ignored) { append(old.join("")); continue; }
-    append(`#if${old.length ? "n" : ""}def ${symbol}\n`);
-    if (old.length) append(old.join(""));
-    if (old.length && next.length) append(`#else /* ${symbol} */\n`);
-    if (next.length) append(next.join(""));
-    append(`#endif /* ${old.length && !next.length ? "! " : ""}${symbol} */\n`);
+    if (changes[scan - 1]!.ignored) { await append(old.join("")); continue; }
+    await append(`#if${old.length ? "n" : ""}def ${symbol}\n`);
+    if (old.length) await append(old.join(""));
+    if (old.length && next.length) await append(`#else /* ${symbol} */\n`);
+    if (next.length) await append(next.join(""));
+    await append(`#endif /* ${old.length && !next.length ? "! " : ""}${symbol} */\n`);
   }
 }

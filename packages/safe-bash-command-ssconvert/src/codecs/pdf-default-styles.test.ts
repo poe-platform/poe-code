@@ -137,3 +137,23 @@ it("prints left-aligned text that spans empty columns", async () => {
   const {runs} = await pdfText(await writePdf(await fixture("h", attributes, font, value), [], context));
   expect(runs.map(run => run.text)).toEqual([0, 1, 2, 3].map(index => value + index));
 });
+
+// Gnumeric v10 starts each StyleRegion from native defaults before applying fields.
+it.each([
+  ["", ""],
+  ['Shade="1" Back="FFFF:0:0"', ""],
+  ["", "<g:Font/>"],
+  ["", '<g:Font Unit="10">Sans</g:Font>'],
+  ['Fore="0:0:0"', '<g:Font Bold="0"></g:Font>']
+])("prints partial modern styles with native defaults: %s %s", async (style, child) => {
+  const partial = await fixture("h", style, child);
+  const projected = cellPrintStyle(partial.sheets[0]!.cells[0]!.style, () => {});
+  expect(projected).toEqual({...cellPrintStyle(undefined, () => {}),
+    ...(style.includes('Shade="1"') ? {background: [1, 0, 0], backgroundAlpha: 1} : {})});
+  const {runs} = await pdfText(await writePdf(partial, [], context));
+  const full = await pdfText(await writePdf(await fixture("h"), [], context));
+  expect(runs).toEqual(full.runs);
+});
+it.each(['<g:Font Unit="0"/>', '<g:Font Bold="2"/>', '<g:Font/><g:Font/>', '<g:Font>-legacy-x11-font</g:Font>'])("refuses unsupported partial font %s", async child => {
+  await expect(writePdf(await fixture("h", "", child), [], context)).rejects.toThrow("styled or merged cells");
+});

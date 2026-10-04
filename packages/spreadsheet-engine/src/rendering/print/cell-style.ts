@@ -78,17 +78,30 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>> | 
   const node = record(style.gnumeric);
   if (node.name !== "Style" || node.namespace !== "http://www.gnumeric.org/v10.dtd" || typeof node.text !== "string") fail();
   tick((node.text as string).length);
-  if ((node.text as string).trim() !== "" || !Array.isArray(node.children) || node.children.length !== 1) fail();
-  // BIFF stores number formats on the cell and has no indent/shrink fields before BIFF8.
-  const defaults: Record<string, string> = biff ? { Format: "General", ...(biff.revision === 7 ? { Indent: "0", ShrinkToFit: "0" } : {}) } : {};
+  if ((node.text as string).trim() !== "" || !Array.isArray(node.children) || node.children.length > 1) fail();
+  // Modern Gnumeric StyleRegions replace earlier regions using native defaults.
+  // Keep BIFF's materialized style validation, including its revision-specific omissions.
+  const defaults: Record<string, string> = biff
+    ? { Format: "General", ...(biff.revision === 7 ? { Indent: "0", ShrinkToFit: "0" } : {}) }
+    : {HAlign: "GNM_HALIGN_GENERAL", VAlign: "GNM_VALIGN_BOTTOM", WrapText: "0", ShrinkToFit: "0",
+      Rotation: "0", Shade: "0", Indent: "0", Locked: "1", Hidden: "0", Fore: "0:0:0",
+      Back: "FFFF:FFFF:FFFF", PatternColor: "0:0:0", Format: "General"};
   const effects = attributes(node, styleDefaults, defaults);
-  const font = record((node.children as readonly ImportedValue[])[0]);
-  if (font.name !== "Font" || font.namespace !== "http://www.gnumeric.org/v10.dtd" || typeof font.text !== "string" || !Array.isArray(font.children) || font.children.length) fail();
-  tick((font.text as string).length);
-  if ((font.text as string).trim() === "") fail();
-  const selected = attributes(font, fontDefaults);
+  const fontValues = {Unit: "10", Bold: "0", Italic: "0", Underline: "0", StrikeThrough: "0", Script: "0"};
+  let selected: Record<string, string> = fontValues, family = "Sans";
+  const child = (node.children as readonly ImportedValue[])[0];
+  if (child !== undefined) {
+    const font = record(child);
+    if (font.name !== "Font" || font.namespace !== "http://www.gnumeric.org/v10.dtd" || typeof font.text !== "string" || !Array.isArray(font.children) || font.children.length) fail();
+    const text = font.text as string;
+    tick(text.length);
+    // A leading dash invokes native legacy X11 font decoding, not a family name.
+    if (text.startsWith("-") || (text.length > 0 && text.trim() === "") || (biff && text.length === 0)) fail();
+    if (text.length > 0) family = text;
+    selected = attributes(font, fontDefaults, biff ? {} : fontValues);
+  } else if (biff) fail();
   const foreground = colorChannels(effects.Fore!), background = colorChannels(effects.Back!);
-  return {alignment: alignments[effects.HAlign as keyof typeof alignments], verticalAlignment: verticalAlignments[effects.VAlign as keyof typeof verticalAlignments], family: font.text as string, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit), underline: Number(selected.Underline), indent: Number(effects.Indent), strikeThrough: selected.StrikeThrough === "1",
+  return {alignment: alignments[effects.HAlign as keyof typeof alignments], verticalAlignment: verticalAlignments[effects.VAlign as keyof typeof verticalAlignments], family, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit), underline: Number(selected.Underline), indent: Number(effects.Indent), strikeThrough: selected.StrikeThrough === "1",
     foreground: [foreground[0], foreground[1], foreground[2]], foregroundAlpha: foreground[3],
     ...(effects.Shade === "1" ? {background: [background[0], background[1], background[2]] as const, backgroundAlpha: background[3]} : {})};
 }

@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { decodeJpxToRgba } from "./images.js";
 
-it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "precincts"])(
+it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "precincts", "tiles"])(
   "decodes growing JPEG 2000 %s state in Workerd using external storage",
   async (profile) => {
     const images = new Map<number, { bytes: Uint8Array; sum: number }>();
@@ -64,7 +64,7 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "p
       const part = header.length + length;
       const layers = height === 129 ? 1025 : 4097;
       const precincts = 2 * Math.ceil(height / 4);
-      const bytes = new Uint8Array(sod + (profile === "precincts" ? precincts * 6 + 2 : profile === "codeblocks" ? header.length * 3 + 2 : profile === "segments" ? layers * 6 + 2 : profile === "codeblock-input" ? part * 3 + 2 : profile === "wavelet" ? 2 : 5));
+      let bytes = new Uint8Array(sod + (profile === "precincts" ? precincts * 6 + 2 : profile === "codeblocks" ? header.length * 3 + 2 : profile === "segments" ? layers * 6 + 2 : profile === "codeblock-input" ? part * 3 + 2 : profile === "wavelet" ? 2 : 5));
       bytes.set(original.subarray(0, sod));
       bytes.set(profile === "wavelet" ? [255, 217] : [224, 224, 224, 255, 217], sod);
       const view = new DataView(bytes.buffer);
@@ -109,6 +109,21 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "p
         view.setUint32(sot + 4, 14 + precincts * 6);
         view.setUint16(cod + 4, 2);
         bytes[cod + 7] = 0; bytes[cod + 8] = 0; bytes[cod + 9] = 0;
+      }
+      if (profile === "tiles") {
+        const headerEnd = sot - 2, tiled = new Uint8Array(headerEnd + height * 17 + 2);
+        tiled.set(original.subarray(0, headerEnd));
+        const tiledView = new DataView(tiled.buffer);
+        tiledView.setUint32(siz + 4, 1); tiledView.setUint32(siz + 8, height);
+        tiledView.setUint32(siz + 20, 1); tiledView.setUint32(siz + 24, 1);
+        tiled[cod + 7] = 0; tiled[cod + 8] = 0; tiled[cod + 9] = 0;
+        for (let tile = 0; tile < height; tile++) {
+          const at = headerEnd + tile * 17;
+          tiled.set(original.subarray(sot - 2, sod), at);
+          tiledView.setUint16(at + 4, tile); tiledView.setUint32(at + 6, 17);
+          tiled.set([224,224,224], at + 14);
+        }
+        tiled.set([255,217], tiled.length - 2); bytes = tiled;
       }
       const expected = decodeJpxToRgba(bytes);
       images.set(height, {
@@ -197,7 +212,7 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "p
           nodeGlobals: boolean;
         };
         expect(result.sum).toBe(input.sum);
-        if (profile === "codeblocks" || profile === "precincts") expect(result.decoderBytes).toBeLessThanOrEqual(131072);
+        if (profile === "codeblocks" || profile === "precincts" || profile === "tiles") expect(result.decoderBytes).toBeLessThanOrEqual(131072);
         if (profile === "segments") {
           if (previousDecoderBytes !== undefined) expect(result.decoderBytes).toBe(previousDecoderBytes);
           previousDecoderBytes = result.decoderBytes;

@@ -113,3 +113,47 @@ it('preserves arbitrary containing-owner rejection during packet parsing',async(
  const input=await source(fixture('rgb-tiled.jp2')),failure={reason:'owner rejected codeblock'};let calls=0;
  try{await expect(PdfRetainedJpx.open(input,{onDecoderAllocation(){if(++calls===10)throw failure;}})).rejects.toBe(failure);expect(calls).toBe(10);}finally{await input.close();}
 });
+
+it("replays interleaved tile parts and lends no descriptor buffers across row reads", async () => {
+  const original = fixture("rgb-lossless.j2k");
+  let siz = -1, cod = -1, sot = -1, sod = -1;
+  for (let i = 0; i < original.length - 1; i++) if (original[i] === 255) {
+    if (original[i + 1] === 81) siz = i + 2;
+    if (original[i + 1] === 82) cod = i + 2;
+    if (original[i + 1] === 144) sot = i + 2;
+    if (original[i + 1] === 147) { sod = i + 2; break; }
+  }
+  const headerEnd = sot - 2, bytes = new Uint8Array(headerEnd + 4 * 20 + 2), view = new DataView(bytes.buffer);
+  bytes.set(original.subarray(0, headerEnd));
+  view.setUint32(siz + 4, 1); view.setUint32(siz + 8, 2);
+  view.setUint32(siz + 20, 1); view.setUint32(siz + 24, 1);
+  view.setUint16(cod + 4, 2); bytes[cod + 7] = 0; bytes[cod + 8] = 0; bytes[cod + 9] = 0;
+  for (let part = 0; part < 4; part++) {
+    const at = headerEnd + part * 20;
+    bytes.set(original.subarray(sot - 2, sod), at);
+    view.setUint16(at + 4, 1 - part % 2); view.setUint32(at + 6, 20);
+    bytes[at + 10] = Math.floor(part / 2); bytes[at + 11] = 2;
+    bytes.set(part < 2 ? [225,0,225,0,225,0] : [194,0,194,0,194,0], at + 14);
+  }
+  bytes.set([255,217], bytes.length - 2);
+  const expected = decodeJpxToRgba(bytes);
+  const { PagedStorage } = await import("@poe-code/safe-fs/storage");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", bytes);
+  const input = await PdfFileSource.open(fs, "/input"),
+    storage = new PagedStorage({fs, cwd: "/scratch", env: {}, signal: new AbortController().signal}, 2),
+    borrowed = new Uint8Array(4096);
+  try {
+    const image = await PdfRetainedJpx.open(input, {coefficientStorage: {
+      allocate: storage.allocate.bind(storage), write: storage.write.bind(storage),
+      async read(at, length) {
+        borrowed.fill(219); borrowed.set(await storage.read(at, length)); return borrowed.subarray(0, length);
+      }
+    }});
+    try {
+      const actual: number[] = [];
+      for await (const row of image.rows()) actual.push(...row);
+      expect(actual).toEqual([...expected]);
+    } finally { image.close(); }
+  } finally { await input.close(); await storage.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

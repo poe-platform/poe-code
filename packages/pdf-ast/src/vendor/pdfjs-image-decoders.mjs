@@ -5516,6 +5516,26 @@ function runJpxSteps(program, data) {
   try { while (!step.done) { const request=step.value; if (typeof request !== "number" && "kind" in request) throw new JpxError("Stored JPEG 2000 planes require a cooperative driver"); step=program.next(typeof request === "number" ? data[request] : data.subarray(request.start, request.end)); } }
   finally { program.return(); }
 }
+function* readJpxSize(position, length) {
+  const siz = {};
+  siz.Xsiz = (yield* jpxReadUint(position + 4,4));
+  siz.Ysiz = (yield* jpxReadUint(position + 8,4));
+  siz.XOsiz = (yield* jpxReadUint(position + 12,4));
+  siz.YOsiz = (yield* jpxReadUint(position + 16,4));
+  siz.XTsiz = (yield* jpxReadUint(position + 20,4));
+  siz.YTsiz = (yield* jpxReadUint(position + 24,4));
+  siz.XTOsiz = (yield* jpxReadUint(position + 28,4));
+  siz.YTOsiz = (yield* jpxReadUint(position + 32,4));
+  const componentsCount = (yield* jpxReadUint(position + 36,2));
+  siz.Csiz = componentsCount;
+  if (length !== 38 + 3 * componentsCount || componentsCount === 0 ||
+      siz.Xsiz <= siz.XOsiz || siz.Ysiz <= siz.YOsiz ||
+      siz.XTsiz === 0 || siz.YTsiz === 0 ||
+      siz.XTOsiz > siz.XOsiz || siz.YTOsiz > siz.YOsiz) {
+    throw new JpxError("Invalid SIZ dimensions");
+  }
+  return siz;
+}
 class JpxImage {
   constructor(onImageDimensions, onAllocation, options = {}) {
     this.storedPlanes = options.storedPlanes;
@@ -5625,17 +5645,73 @@ class JpxImage {
   }
   parseCodestream(data, start, end) { runJpxSteps(this.parseCodestreamSteps(data, start, end), data); }
   *parseCodestreamSteps(data, start, end) {
+    if (!this.storedPlanes) { yield* this.parseCodestreamTileSteps(data, start, end); return; }
+    // Index encoded tile parts once. A tile can span interleaved parts, but only
+    // one tile's packet iterator and component graph need to be resident.
+    this.onAllocation?.(2048);
+    let index, count, mainEnd = end, position = start;
+    while (position + 1 < end) {
+      const marker = yield* jpxReadUint(position, 2);
+      if (marker === 0xff4f) { position += 2; continue; }
+      if (marker === 0xffd9) break;
+      const length = yield* jpxReadUint(position + 2, 2);
+      if (length < 2 || position + 2 + length > end) throw new JpxError("Truncated marker segment");
+      if (marker === 0xff51) {
+        if (length < 38) throw new JpxError("Invalid SIZ marker length");
+        const siz = yield* readJpxSize(position + 2, length);
+        this.onImageDimensions?.(siz.Xsiz - siz.XOsiz, siz.Ysiz - siz.YOsiz);
+        count = Math.ceil((siz.Xsiz - siz.XTOsiz) / siz.XTsiz) * Math.ceil((siz.Ysiz - siz.YTOsiz) / siz.YTsiz);
+        index = yield* jpxVectorAllocate(count * 2, 8, true);
+      }
+      if (marker === 0xff90) {
+        if (!index || length !== 10) throw new JpxError("Invalid tile part");
+        mainEnd = Math.min(mainEnd, position);
+        const number = yield* jpxReadUint(position + 4, 2), size = yield* jpxReadUint(position + 6, 4);
+        if (number >= count || size < 14 || position + size > end) throw new JpxError("Truncated tile part");
+        const part = yield* jpxVectorAllocate(3, 8, true);
+        yield* jpxVectorWrite(part, 1, position);
+        yield* jpxVectorWrite(part, 2, position + size);
+        const previous = yield* jpxVectorRead(index, number * 2 + 1);
+        if (previous) yield* jpxVectorWrite({position: previous - 1, length: 3, bytesPerElement: 8}, 0, part.position + 1);
+        else yield* jpxVectorWrite(index, number * 2, part.position + 1);
+        yield* jpxVectorWrite(index, number * 2 + 1, part.position + 1);
+        position += size;
+      } else position += length + 2;
+    }
+    if (!index) throw new JpxError("No size marker found in JPX stream");
+    const records = yield* jpxVectorAllocate(count * 6, 8, true);
+    let peak = 0;
+    for (let number = 0; number < count; number++) {
+      let admitted = 0;
+      const selected = {number, mainEnd, next: yield* jpxVectorRead(index, number * 2), onAllocation: bytes => {
+        admitted += bytes;
+        if (admitted > peak) { this.onAllocation?.(admitted - peak); peak = admitted; }
+      }};
+      const tile = yield* this.parseCodestreamTileSteps(data, start, end, selected);
+      const values = [tile.left, tile.top, tile.width, tile.height, tile.items.position, tile.items.length];
+      for (let field = 0; field < 6; field++) yield* jpxVectorWrite(records, number * 6 + field, values[field]);
+    }
+    this.storedTiles = {length: count, records};
+  }
+  *parseCodestreamTileSteps(data, start, end, selected) {
     // Local bounds guards: truncated SIZ fields can otherwise yield an infinite
     // tile count before the upstream decoder detects the missing input.
     if (start < 0 || end > data.length || end - start < 4) {
       throw new JpxError("Truncated codestream");
     }
-    const context = { onAllocation: this.onAllocation, storedPlanes: this.storedPlanes };
+    const context = { onAllocation: selected?.onAllocation ?? this.onAllocation, storedPlanes: this.storedPlanes, selectedTile: selected?.number };
     context.onAllocation?.(1024);
     let doNotRecover = false;
     try {
-      let position = start;
+      let position = start, partEnd = selected?.mainEnd;
       while (position + 1 < end) {
+        if (selected && position >= partEnd) {
+          if (!selected.next) break;
+          const part = {position: selected.next - 1, length: 3, bytesPerElement: 8};
+          selected.next = yield* jpxVectorRead(part, 0);
+          position = yield* jpxVectorRead(part, 1);
+          partEnd = yield* jpxVectorRead(part, 2);
+        }
         const code = (yield* jpxReadUint(position,2));
         position += 2;
         let length = 0,
@@ -5663,22 +5739,8 @@ class JpxImage {
           case 0xff51:
             length = (yield* jpxReadUint(position,2));
             if (length < 38) throw new JpxError("Invalid SIZ marker length");
-            const siz = {};
-            siz.Xsiz = (yield* jpxReadUint(position + 4,4));
-            siz.Ysiz = (yield* jpxReadUint(position + 8,4));
-            siz.XOsiz = (yield* jpxReadUint(position + 12,4));
-            siz.YOsiz = (yield* jpxReadUint(position + 16,4));
-            siz.XTsiz = (yield* jpxReadUint(position + 20,4));
-            siz.YTsiz = (yield* jpxReadUint(position + 24,4));
-            siz.XTOsiz = (yield* jpxReadUint(position + 28,4));
-            siz.YTOsiz = (yield* jpxReadUint(position + 32,4));
-            const componentsCount = (yield* jpxReadUint(position + 36,2));
-            if (length !== 38 + 3 * componentsCount || componentsCount === 0 ||
-                siz.Xsiz <= siz.XOsiz || siz.Ysiz <= siz.YOsiz ||
-                siz.XTsiz === 0 || siz.YTsiz === 0 ||
-                siz.XTOsiz > siz.XOsiz || siz.YTOsiz > siz.YOsiz) {
-              throw new JpxError("Invalid SIZ dimensions");
-            }
+            const siz = yield* readJpxSize(position, length);
+            const componentsCount = siz.Csiz;
             this.onImageDimensions?.(siz.Xsiz - siz.XOsiz, siz.Ysiz - siz.YOsiz);
             context.onAllocation?.(componentsCount * 512);
             siz.Csiz = componentsCount;
@@ -5910,10 +5972,11 @@ class JpxImage {
       }
     }
     const tiles = (yield* transformComponents(context));
-    if (this.storedPlanes) this.storedTiles = tiles; else this.tiles = tiles;
+    if (!selected) this.tiles = tiles;
     this.width = context.SIZ.Xsiz - context.SIZ.XOsiz;
     this.height = context.SIZ.Ysiz - context.SIZ.YOsiz;
     this.componentsCount = context.SIZ.Csiz;
+    if (selected) return tiles[0];
   }
 }
 function calculateComponentDimensions(component, siz) {
@@ -5926,13 +5989,17 @@ function calculateComponentDimensions(component, siz) {
 }
 function calculateTileGrids(context, components) {
   const siz = context.SIZ;
-  const tiles = [];
+  const tiles = context.selectedTile === undefined ? [] : {length: context.selectedTile + 1};
   let tile;
   const numXtiles = Math.ceil((siz.Xsiz - siz.XTOsiz) / siz.XTsiz);
   const numYtiles = Math.ceil((siz.Ysiz - siz.YTOsiz) / siz.YTsiz);
-  context.onAllocation?.(numXtiles * numYtiles * (512 + siz.Csiz * 512));
-  for (let q = 0; q < numYtiles; q++) {
-    for (let p = 0; p < numXtiles; p++) {
+  context.onAllocation?.((context.selectedTile === undefined ? numXtiles * numYtiles : 1) * (512 + siz.Csiz * 512));
+  const firstRow = context.selectedTile === undefined ? 0 : Math.floor(context.selectedTile / numXtiles);
+  const lastRow = context.selectedTile === undefined ? numYtiles : firstRow + 1;
+  for (let q = firstRow; q < lastRow; q++) {
+    const firstColumn = context.selectedTile === undefined ? 0 : context.selectedTile % numXtiles;
+    const lastColumn = context.selectedTile === undefined ? numXtiles : firstColumn + 1;
+    for (let p = firstColumn; p < lastColumn; p++) {
       tile = { onAllocation: context.onAllocation };
       tile.tx0 = Math.max(siz.XTOsiz + p * siz.XTsiz, siz.XOsiz);
       tile.ty0 = Math.max(siz.YTOsiz + q * siz.YTsiz, siz.YOsiz);
@@ -5941,14 +6008,14 @@ function calculateTileGrids(context, components) {
       tile.width = tile.tx1 - tile.tx0;
       tile.height = tile.ty1 - tile.ty0;
       tile.components = [];
-      tiles.push(tile);
+      tiles[q * numXtiles + p] = tile;
     }
   }
   context.tiles = tiles;
   const componentsCount = siz.Csiz;
   for (let i = 0, ii = componentsCount; i < ii; i++) {
     const component = components[i];
-    for (let j = 0, jj = tiles.length; j < jj; j++) {
+    for (let j = context.selectedTile ?? 0, jj = tiles.length; j < jj; j++) {
       const tileComponent = {};
       tile = tiles[j];
       tileComponent.tcx0 = Math.ceil(tile.tx0 / component.XRsiz);
@@ -6969,7 +7036,7 @@ function* transformComponents(context) {
   const components = context.components;
   const componentsCount = siz.Csiz;
   const resultImages = [];
-  for (let i = 0, ii = context.tiles.length; i < ii; i++) {
+  for (let i = context.selectedTile ?? 0, ii = context.tiles.length; i < ii; i++) {
     const tile = context.tiles[i];
     context.onAllocation?.(componentsCount * 256 + 256);
     const transformedTiles = [];

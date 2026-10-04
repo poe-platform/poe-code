@@ -5,7 +5,7 @@ import { JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { decodeSamplesToRgbaAsync, type ResolvedColorSpace } from "./images.js";
 
 export interface PdfRetainedJpxOptions {
-  /** Caller-owned coefficient, wavelet scratch, sample, precinct-tree, codeblock and packet-record backing. */
+  /** Caller-owned coefficient, wavelet scratch, sample, tile-index, precinct-tree, codeblock and packet-record backing. */
   readonly coefficientStorage?: PdfPixelStorage;
   /** Conservative cumulative input-cache/decoder admission plus one sample and RGBA
    * row. Caller source caches and resolved color state are additional memory. */
@@ -17,6 +17,26 @@ export interface PdfRetainedJpxOptions {
   readonly color?: ResolvedColorSpace;
   readonly signal?: AbortSignal;
 }
+type JpxTile = {left: number; top: number; width: number; height: number; items: Uint8ClampedArray | {position: number; length: number}};
+type JpxTiles = JpxImage["tiles"] | JpxImage["storedTiles"];
+async function* tileDescriptors(tiles: JpxTiles, storage: PdfPixelStorage | undefined, signal?: AbortSignal): AsyncGenerator<JpxTile> {
+  if (Array.isArray(tiles)) { yield* tiles; return; }
+  for (let first = 0; first < tiles.length; first += 80) {
+    signal?.throwIfAborted();
+    const count = Math.min(80, tiles.length - first), length = count * 48;
+    const bytes = await storage!.read(tiles.records.position + first * 48, length, signal ? {signal} : undefined);
+    signal?.throwIfAborted();
+    if (bytes.length !== length) throw new PdfError("E_PARSE", "Incomplete JPEG 2000 tile records");
+    // Backends may lend buffers: row pixel reads must not mutate suspended records.
+    const owned = bytes.slice(), view = new DataView(owned.buffer);
+    for (let i = 0; i < count; i++) {
+      const at = i * 48;
+      yield {left: view.getFloat64(at, true), top: view.getFloat64(at + 8, true),
+        width: view.getFloat64(at + 16, true), height: view.getFloat64(at + 24, true),
+        items: {position: view.getFloat64(at + 32, true), length: view.getFloat64(at + 40, true)}};
+    }
+  }
+}
 function limit(value: number | undefined, name: string) {
   if (value === undefined || value === Infinity) return Number.MAX_SAFE_INTEGER;
   if (!Number.isSafeInteger(value) || value < 0) throw new RangeError(`Invalid ${name}`);
@@ -27,7 +47,7 @@ function limit(value: number | undefined, name: string) {
  * The source stays caller-owned and can close after open(). */
 export class PdfRetainedJpx {
   private constructor(
-    private tiles: (JpxImage["tiles"][number] | JpxImage["storedTiles"][number])[] | undefined,
+    private tiles: JpxTiles | undefined,
     readonly width: number,
     readonly height: number,
     readonly components: number,
@@ -248,6 +268,10 @@ export class PdfRetainedJpx {
     } finally {
       program.return();
     }
+    // Release parse caches before descriptor validation; row descriptors reuse
+    // that admitted staging space after open returns.
+    pages.length = 0;
+    cache = new Uint8Array();
     const { width, height, componentsCount: components } = decoder;
     const tiles = options.coefficientStorage ? decoder.storedTiles : decoder.tiles;
     dimensions(width, height);
@@ -261,7 +285,7 @@ export class PdfRetainedJpx {
     };
     if (color.components !== components)
       throw new PdfError("E_PARSE", "JPEG 2000 color component mismatch");
-    for (const tile of tiles) {
+    for await (const tile of tileDescriptors(tiles, options.coefficientStorage, options.signal)) {
       if (
         ![tile.left, tile.top, tile.width, tile.height].every(Number.isSafeInteger) ||
         tile.left < 0 ||
@@ -298,7 +322,7 @@ export class PdfRetainedJpx {
       if (!Number.isSafeInteger(scratch) || scratch > this.maximum - this.decoderBytes)
         throw new PdfError("E_LIMIT", "JPEG 2000 row working byte limit exceeded");
       const samples = new Uint8Array(this.width * this.components);
-      for (const tile of this.tiles) {
+      for await (const tile of tileDescriptors(this.tiles, this.storage, this.signal)) {
         if (y < tile.top || y >= tile.top + tile.height) continue;
         const start = (y - tile.top) * tile.width * this.components;
         if (tile.items instanceof Uint8ClampedArray) {

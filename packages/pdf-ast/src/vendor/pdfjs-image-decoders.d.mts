@@ -16,7 +16,7 @@ export class JpxImage {
   failOnCorruptedImage: boolean;
   tiles: Array<{ left: number; top: number; width: number; height: number; items: Uint8ClampedArray }>;
   parse(data: Uint8Array): void;
-  storedTiles: Array<{left:number;top:number;width:number;height:number;items:JpxStoredVector}>;
+  storedTiles: {length:number;records:JpxStoredVector};
   parseSteps(data: {readonly length:number}): Generator<JpxReadRequest, void, number | Uint8Array | undefined>;
 }
 

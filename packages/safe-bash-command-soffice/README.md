@@ -43,6 +43,14 @@ The workspace entrypoint exports `sofficeCommands()` for plugin registration,
 `createSofficeCommand()` for a single command. Each accepts an optional
 `SofficeCommandsOptions` object; existing factory names remain available.
 
+`runSofficeFileCli(args, { filesystem, stdout, stderr, cwd, signal, limits })`
+shares the command's file authority, budgets and output lifecycle. Plain-text `--cat`
+(including CSV and Markdown source text) snapshots inputs in caller-backed storage,
+then streams UTF-8 output with backpressure. It admits cumulative input/output limits
+before publishing stdout and cleans up backing on cancellation or sink failure.
+Large inputs require an external safe-fs backend; other conversion routes currently
+retain their buffered adapters.
+
 For direct TypeScript conversion, use `await runSofficeCli(args, files, cwd,
 { signal })`. Failed ODS conversion preserves an existing destination. The
 synchronous helper retains its synchronous routes and reports an error for

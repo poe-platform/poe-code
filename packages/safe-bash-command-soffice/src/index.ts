@@ -1,3 +1,6 @@
+import { catRetainedText } from "./retained-text.js";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import type { ByteSink } from "safe-bash-contracts/io";
 import { parseHtmlBlocks, type DocBlock } from "./html.js";
 import { parseMarkdownTableRows } from "./text-table.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -1267,7 +1270,21 @@ export async function runSofficeCli(
   } finally { steps.return({ exitCode: 1, stdout: "", stderr: "" }); }
 }
 
-export async function soffice(context: CommandContext, options: SofficeCommandOptions = {}): Promise<{ exitCode: number }> {
+export interface SofficeFileOptions {
+  readonly filesystem: FileSystem;
+  readonly cwd?: string;
+  readonly env?: Readonly<Record<string, string | undefined>>;
+  readonly signal?: AbortSignal;
+  readonly stdout: ByteSink;
+  readonly stderr: ByteSink;
+  readonly limits?: Partial<SofficeLimits>;
+  readonly inputBudget?: { check(bytes: number): void };
+  readonly registerCleanup?: NonNullable<CommandContext["registerCleanup"]>;
+}
+
+/** File SDK and shell entrypoint share the supplied filesystem and output lifetime. */
+export async function runSofficeFileCli(argv: readonly string[], options: SofficeFileOptions): Promise<{ exitCode: number }> {
+  const context = { ...options, fs: options.filesystem, cwd: options.cwd ?? "/", env: options.env ?? {}, signal: options.signal ?? new AbortController().signal };
   const limits = resolveLimits(options);
   let outputBytes = 0;
   const chargeOutput = (bytes: number) => {
@@ -1276,13 +1293,19 @@ export async function soffice(context: CommandContext, options: SofficeCommandOp
   };
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
-    const carrier = getCommandArguments(context);
-    const argv = [...carrier.args];
     const argumentBytes = argv.reduce((total, arg) => total + new TextEncoder().encode(arg).byteLength + 1, 0);
     if (argumentBytes > limits.maxArgumentBytes) throw new RangeError("Argument byte limit exceeded");
 
     const vfsFiles = new Map<string, Uint8Array>();
     const parsed = parseSofficeArguments(argv, context.cwd);
+    const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".rtf"];
+    if ((context.fs.readStream || context.fs.openReadFile) && !("exitCode" in parsed) && parsed.catMode && !parsed.convertSpec && parsed.inputs.length &&
+        parsed.inputs.every(path => !structured.some(extension => path.toLowerCase().endsWith(extension)))) {
+      const stdout = invocation.child(context.stdout);
+      const result = await catRetainedText(parsed.inputs, { ...context, signal: invocation.signal }, stdout.output, limits, chargeOutput);
+      if (result.stderr) await writeBytes(context.stderr, new TextEncoder().encode(result.stderr), invocation.signal);
+      return { exitCode: result.exitCode };
+    }
     let inputBytes = 0;
     for (const token of "exitCode" in parsed ? [] : parsed.inputs) {
       const abs = resolvePath(context.cwd, token);
@@ -1334,6 +1357,16 @@ export async function soffice(context: CommandContext, options: SofficeCommandOp
       try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional collection must not mask command results. */ }
     }
   }
+}
+
+export async function soffice(context: CommandContext, options: SofficeCommandOptions = {}): Promise<{ exitCode: number }> {
+  return runSofficeFileCli(getCommandArguments(context).args, {
+    filesystem: context.fs, cwd: context.cwd, env: context.env, signal: context.signal,
+    stdout: context.stdout, stderr: context.stderr,
+    ...(options.limits ? { limits: options.limits } : {}),
+    ...(context.inputBudget ? { inputBudget: context.inputBudget } : {}),
+    ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {})
+  });
 }
 
 export function createSofficeCommand(options: SofficeCommandOptions = {}): CommandDefinition {

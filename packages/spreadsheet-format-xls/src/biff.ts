@@ -28,7 +28,7 @@ import { writeCfbSource } from "./cfb-write-source.js";
 import { writeBiffStream } from "./biff-write.js";
 import { readBiffProperties, biffPropertyFormats } from "./biff-properties.js";
 import { writeBiffProperties } from "./biff-properties-write.js";
-import { appendBiffAncillaryStreams } from "./biff-encrypted-properties-write.js";
+import { appendBiffAncillaryStreams, type BiffPropertySource } from "./biff-encrypted-properties-write.js";
 import type { Codec } from "@poe-code/spreadsheet-engine/codecs/types";
 
 export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["write"]> {
@@ -54,10 +54,12 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
     const propertyStreams = new Map(properties.streams), handledMetadata = new Set(properties.handledMetadata);
     const streams = new Map<string, Uint8Array>();
     const staged = new Map<string, BiffStagedOutput>();
+    let propertySource: BiffPropertySource | undefined;
     let failed = false, failure: unknown;
     async function closeOutputs(): Promise<void> {
       const errors: unknown[] = [];
       for (const output of staged.values()) try { await output.close(); } catch (error) { errors.push(error); }
+      try { await propertySource?.close(); } catch (error) { errors.push(error); }
       if (encrypted) {
         for (const stream of streams.values()) stream.fill(0);
         for (const stream of propertyStreams.values()) stream.fill(0);
@@ -79,8 +81,7 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
           staged.set(revision === 7 ? "Book" : "Workbook", output);
           await writeBiffStream(source, revision, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted, revision) : undefined, output);
           if (revision === 8 && encrypted && encrypted.algorithm !== "xor") {
-            const container = await encryptBiffStream(output, context, encrypted, propertyStreams);
-            if (container) streams.set("encryption", container);
+            propertySource = await encryptBiffStream(output, context, encrypted, propertyStreams, true);
           }
         }
       } else {
@@ -96,7 +97,7 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
         }
       }
       if (encrypted?.algorithm === "xor") await encryptBiffXorStreams([...staged.values(), ...streams.values()], profile === 7 ? 7 : 8, context);
-      if (streams.has("encryption")) {
+      if (propertySource || streams.has("encryption")) {
         // POIDocument.writeProperties keeps only an empty document-summary set outside encryption.
         const placeholder = new Uint8Array(56), view = new DataView(placeholder.buffer);
         view.setUint16(0, 0xfffe, true); view.setUint32(24, 1, true); view.setUint32(44, 48, true); view.setUint32(48, 8, true);
@@ -104,6 +105,7 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
         streams.set("\u0005DocumentSummaryInformation", placeholder);
       } else for (const [name, bytes] of propertyStreams) streams.set(name, bytes);
       const ranges = new Map<string, RangeSource>(staged);
+      if (propertySource) ranges.set("encryption", propertySource);
       for (const [name, bytes] of streams) ranges.set(name, {
         size: bytes.length, async read(at, count) { return bytes.subarray(at, at + count); }
       });

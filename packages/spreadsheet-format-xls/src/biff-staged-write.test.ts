@@ -65,7 +65,7 @@ it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', t
   } finally { await engine.dispose(); }
 });
 
-it.each(['write', 'read', 'sink', 'cancel', 'password', 'entropy'])('cleans injected BIFF output storage after %s failure', async mode => {
+it.each(['write', 'read', 'sink', 'cancel', 'password', 'entropy'].flatMap(mode => [[mode, false], [mode, true]] as const))('cleans injected BIFF output storage after %s failure with properties=%s', async (mode, properties) => {
   const { createMemoryFileSystem } = await import('@poe-code/safe-fs/core');
   const { createEngine } = await import('@poe-code/spreadsheet-engine');
   const { xlsFormat } = await import('./index.js');
@@ -89,7 +89,7 @@ it.each(['write', 'read', 'sink', 'cancel', 'password', 'entropy'])('cleans inje
     const operation = engine.writeWorkbook(book, { kind: 'stream', sink: { async write() {
       if (mode === 'sink') throw reason;
       if (mode === 'cancel') controller.abort(reason);
-    } } }, { exportType: 'Gnumeric_Excel:excel_biff8', exportOptions: credentialFailure ? ['encryption=rc4'] : [] }, { signal: controller.signal });
+    } } }, { exportType: 'Gnumeric_Excel:excel_biff8', exportOptions: properties ? ['encryption=rc4-cryptoapi-128-properties'] : credentialFailure ? ['encryption=rc4'] : [] }, { signal: controller.signal });
     if (credentialFailure) await expect(operation).rejects.toThrow('acquisition failed');
     else await expect(operation).rejects.toBe(reason);
     expect(closed).toBeGreaterThan(0); expect(await fs.readdir('/')).toEqual([]);

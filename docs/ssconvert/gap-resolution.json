@@ -5993,5 +5993,12 @@
     },
     "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
     "remaining": "Full rendering qualification still includes rotation,rich text,other format style transports,Unicode/CJK/RTL,broader span/background interactions and all other plan families."
+  },
+  "pdfRotatedText": {
+    "status": "Focused rotation profile verified; rendering family remains open",
+    "implementation": "Port native integer Pango line extents and rounded origins to the engine. PDF renderer transforms shaped lines and decorations, preserves border-dependent placement/wrapping, avoids ordinary overflow clipping/spans, and uses unlimited General for rotated numbers. Supports integer angles -90 through90.",
+    "validation": "Four original style-rejection regressions reproduced.449 focused tests including12 independently decoded native-origin cases pass.132 native inputs produce528 compiled SDK/command XML/PDF outputs;264 line-origin comparisons pass.216 single-line text geometry comparisons pass;48 extended text character multisets match despite native extractor segmentation/order differences. Selected build,engine and command lint/types,public consumers and native/public screenshots checked.",
+    "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+    "remaining": "Rotated Fill/Justify, rich-text and broader fonts/Unicode/decorations/merged multipage qualification remain open. All19families remain open."
   }
 }

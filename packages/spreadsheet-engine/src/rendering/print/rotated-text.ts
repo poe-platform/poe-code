@@ -1,0 +1,40 @@
+/** Native rotated Pango line origins, in points after rounding to display pixels at paint time. */
+export function rotatedPrintOrigins(options: {
+  angle: number; layoutWidth?: number; widths: readonly number[]; ascent: number; lineHeight: number;
+  width: number; height: number; indent: number; bordered: boolean;
+  alignment: "left" | "center" | "right";
+  vertical: "top" | "bottom" | "center" | "justify" | "distributed";
+}, tick: () => void): {x: number; y: number}[] {
+  const units = (points: number) => Math.trunc(points / 0.75 * 1024);
+  const sin = Math.sin(options.angle * Math.PI / 180), cos = Math.cos(options.angle * Math.PI / 180);
+  let widest = 0;
+  const widths = options.widths.map(width => {tick(); const value = units(width); widest = Math.max(widest, value); return value;});
+  const alignmentWidth = options.layoutWidth === undefined ? widest : units(options.layoutWidth);
+  const ascent = units(options.ascent), lineHeight = units(options.lineHeight);
+  let x0 = 0, x1 = 0, naturalHeight = 0, shift = 0;
+  const origins = widths.map((width, index) => {
+    tick();
+    const top = index * lineHeight, bottom = top + lineHeight, baseline = top + ascent;
+    const center = (alignmentWidth - width) / 2;
+    const centered = alignmentWidth % 1024 ? Math.trunc(center) : Math.floor((center + 512) / 1024) * 1024;
+    const offset = options.alignment === "right" ? alignmentWidth - width : options.alignment === "center" ? centered : 0;
+    const indent = offset - (sin < 0 ? widest : 0);
+    if (!index && !options.bordered) shift = Math.trunc(baseline * sin - bottom / sin);
+    const x = shift + Math.trunc(bottom / sin + indent * cos);
+    const y = Math.trunc((baseline - bottom) * cos - indent * sin);
+    x0 = Math.min(x0, x - Math.trunc((baseline - top) * sin));
+    x1 = Math.max(x1, x + Math.trunc(width * cos + (bottom - baseline) * sin));
+    naturalHeight = Math.max(naturalHeight, Math.trunc(width * Math.abs(sin) + lineHeight * cos));
+    return {x, y};
+  });
+  const naturalWidth = x1 - x0, width = units(options.width - 5), height = units(options.height - 1), indent = units(options.indent);
+  let horizontal = options.alignment === "left" ? indent : 0;
+  if (options.bordered ? sin < 0 : options.alignment === "right") horizontal += width - indent - naturalWidth;
+  else if (!options.bordered && options.alignment === "center") horizontal += Math.trunc(width / 2) + Math.trunc((-indent - naturalWidth) / 2);
+  const spare = height - naturalHeight;
+  const vertical = options.vertical === "bottom" ? spare : options.vertical === "center" || options.vertical === "distributed" ? Math.trunc(spare / 2) : 0;
+  return origins.map(({x, y}) => ({
+    x: Math.floor((3 * 1024 + horizontal + x + (sin < 0 ? naturalWidth : 0) + 512) / 1024) * 0.75,
+    y: Math.floor((1024 + vertical + y + naturalHeight + 512) / 1024) * 0.75
+  }));
+}

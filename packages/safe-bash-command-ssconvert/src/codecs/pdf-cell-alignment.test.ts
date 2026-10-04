@@ -381,3 +381,16 @@ it.each(["Diagonal", "Rev-Diagonal"])("renders %s border strokes without changin
     }));
   }} finally {draw.mockRestore();}
 });
+it.each([-90, -45, 30, 90])("prints rotated text at %s degrees", async rotation => {
+  const book = await fixture("GNM_HALIGN_LEFT",10,72,"BOTTOM",60);
+  const cell = book.sheets[0]!.cells[0]!;
+  const style = cell.style!.gnumeric as {attributes:{name:string;value:string}[]};
+  for (const attribute of style.attributes) if (attribute.name === "Rotation") attribute.value = String(rotation);
+  const input = {...book,sheets:[{...book.sheets[0]!,cells:[cell]}]};
+  const {pdf,runs}=await pdfText(await writePdf(input,[],context));
+  expect(runs.map(run=>run.text)).toEqual(["alpha"]);
+  const contents=pdf.getPage(0).node.Contents() as PDFArray;
+  const operators=contents.asArray().map(ref=>new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
+  const matrices = operators.split("\n").filter(line => line.endsWith(" cm")).map(line => line.split(" ").slice(0, 6).map(Number));
+  expect(matrices.some(matrix => Math.abs(matrix[0]! - Math.cos(rotation * Math.PI / 180)) < 1e-12 && Math.abs(matrix[1]! - Math.sin(rotation * Math.PI / 180)) < 1e-12)).toBe(true);
+});

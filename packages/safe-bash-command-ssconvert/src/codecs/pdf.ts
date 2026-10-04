@@ -1,3 +1,4 @@
+import {rotatedPrintOrigins} from "@poe-code/spreadsheet-engine/rendering/print/rotated-text";
 import {printSharedBorders} from "@poe-code/spreadsheet-engine/rendering/print/shared-borders";
 import {printBorderStrokes} from "@poe-code/spreadsheet-engine/rendering/print/diagonal-borders";
 import {createPrintBlankStyles} from "@poe-code/spreadsheet-engine/rendering/print/blank-styles";
@@ -232,7 +233,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     const bold = cellBox?.style.bold ?? false, italic = cellBox?.style.italic ?? false, family = cellBox?.style.family ?? "Sans";
     const selected = await selectFont(family, bold, italic);
     const {font, metrics, shear, supported, ascentRatio, descentRatio} = selected;
-    if (cellBox?.generalNumber !== undefined) {
+    const rotation = cellBox?.style.rotation ?? 0;
+    const cellX = x, cellY = y;
+    if (cellBox?.generalNumber !== undefined && !rotation) {
       const defaultFont = await selectFont("Sans", false, false);
       // Screen row height is rounded ascent + descent, plus the one-pixel grid.
       const pixelScale = (Math.ceil(defaultFont.ascentRatio * 10 / printDisplayScale) +
@@ -315,6 +318,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         indent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((digitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
         displayIndent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((displayDigitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
       }
+      if (rotation && (cellBox.style.alignment === "fill" || cellBox.style.alignment === "justify" || cellBox.style.alignment === "distributed" || cellBox.style.verticalAlignment === "justify")) unsupported("rotated justification or fill");
+      const bordered = cellBox.style.borders?.some(border => ["Top", "Bottom", "Left", "Right"].includes(border.side)) ?? false;
       const fill = cellBox.style.alignment === "fill";
       if (fill) {
         if (shapedLines.length !== 1) unsupported("fill control-character layout");
@@ -327,8 +332,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           value = value.repeat(copies);
         }
       }
-      const wraps = cellBox.wrap === true;
-      const lines = (wraps ? paragraphs.flatMap(line => wrapPrintLine(line.text, Math.max(0, cellBox.width - 5 - indent),
+      const wraps = cellBox.wrap === true && (!rotation || bordered);
+      const wrapWidth = rotation ? Math.max(0, cellBox.width - 5 - indent) * Math.cos(rotation * Math.PI / 180) + (cellBox.height - 1) * Math.abs(Math.sin(rotation * Math.PI / 180)) : Math.max(0, cellBox.width - 5 - indent);
+      const lines = (wraps ? paragraphs.flatMap(line => wrapPrintLine(line.text, wrapWidth,
         candidate => shapeLine(normalizeFontText(candidate, supported, tick)).width, tick).map((part, index, parts) => ({...part, justify: line.forced || index < parts.length - 1}))) : shapedLines.map(text => ({text, hyphen: false, justify: false})))
         .map(line => {
           if (line.hyphen && !supported.has(0x2010)) unsupported("font coverage");
@@ -351,8 +357,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         displayWidth = Math.max(displayWidth, line.displayWidth);
       }
       const overflows = width + indent > cellBox.width - 5;
-      if (overflows && !fill && !wraps && cellBox.overflow === undefined && cellBox.generalNumber === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
-      const overflow = cellBox.overflow?.(displayWidth + displayIndent);
+      if (!rotation && overflows && !fill && !wraps && cellBox.overflow === undefined && cellBox.generalNumber === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
+      const overflow = rotation ? undefined : cellBox.overflow?.(displayWidth + displayIndent);
       const clipLeft = x + 4 - (overflow?.left ?? 0);
       const clipWidth = Math.max(0, cellBox.width + (overflow?.left ?? 0) + (overflow?.right ?? 0) - 4);
       // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
@@ -368,6 +374,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       x -= alignment === "left" ? -indent : alignment === "center" ? width / 2 : width + indent;
       const lineSpacing = cellBox.style.verticalAlignment === "justify" && lines.length > 1 ?
         Math.floor(verticalSpace / printDisplayScale * 1024 / (lines.length - 1)) / 1024 * printDisplayScale : 0;
+      const rotated = rotation ? rotatedPrintOrigins({angle: rotation, ...(wraps ? {layoutWidth: wrapWidth} : {}), widths: lines.map(line => line.width), ascent, lineHeight,
+        width: cellBox.width, height: cellBox.height, indent, bordered, alignment, vertical: cellBox.style.verticalAlignment}, tick) : undefined;
       const blockX = x, firstBaseline = baseline;
       const resource = page.node.newFontDictionary(font.name, font.ref);
       // Positioned marks can be reordered by text extractors; retain the logical cell string.
@@ -376,15 +384,13 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const alpha = page.node.newExtGState("CellAlpha", pdf.context.obj({Type: "ExtGState", ca: cellBox.style.foregroundAlpha}));
         page.pushOperators(setGraphicsState(alpha));
       }
-      if (overflows || height > cellBox.height - 1) page.pushOperators(
+      if (!rotation && (overflows || height > cellBox.height - 1)) page.pushOperators(
         pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height, clipWidth, cellBox.height), clip(), endPath());
-      if (!wraps) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+      if (!wraps && !rotation) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
         [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]));
       for (const [lineIndex, line] of lines.entries()) {
         const {run, glyphs, shapedValue} = line;
         if (!run) continue;
-        if (wraps && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
-          [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(line.logicalText)}).toString()]));
         // Pango hints centered lines to whole display pixels when layout and
         // line widths are integral; an implicit wrapping width need not be.
         const centeredOffset = (width - line.width) / 2;
@@ -392,6 +398,13 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           wraps && !Number.isInteger((cellBox.width - 5) / printDisplayScale) ? centeredOffset :
             Math.round(centeredOffset / printDisplayScale) * printDisplayScale);
         baseline = firstBaseline - lineIndex * (lineHeight + lineSpacing);
+        if (rotated) {
+          const angle = rotation * Math.PI / 180, origin = rotated[lineIndex]!;
+          page.pushOperators(pushGraphicsState(), concatTransformationMatrix(Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), cellX + 2.5 + origin.x, page.getHeight() - cellY - origin.y));
+          x = 0; baseline = 0;
+        }
+        if (wraps && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+          [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(line.logicalText)}).toString()]));
         // Encode the same shaped run that supplies the positioned glyphs.
         const layout = metrics.layout;
         let encoded: string;
@@ -423,7 +436,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           }
           const low = cellBox.style.underline === 3;
           const lineY = baseline + (low ? Math.min(0, inkBottom) - 2 * thickness : position - thickness);
-          if (low) page.pushOperators(pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height,
+          if (low && !rotation) page.pushOperators(pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height,
             clipWidth, cellBox.height), clip(), endPath());
           for (let decoration = 0; decoration < (cellBox.style.underline === 0 ? 0 : cellBox.style.underline === 2 || cellBox.style.underline === 4 ? 2 : 1); decoration++) {
             tick();
@@ -441,8 +454,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
               width: inkRight - inkLeft, height: strikeThickness, color: rgb(...cellBox.style.foreground)});
           }
         }
+        if (rotated) page.pushOperators(popGraphicsState());
       }
-      if (!wraps) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
+      if (!wraps && !rotation) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
       page.pushOperators(popGraphicsState());
       return;
     }

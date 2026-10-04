@@ -324,10 +324,23 @@ real spills capped at 16 KiB outstanding writes, cancellation and read/write
 failure cleanup. The focused slide suites passed 111 tests, scoped lint/typechecks
 and the maintained engine build. A native python-pptx chart deck confirmed the
 new label and visibility, unchanged text/chart/workbook and unrelated members,
-valid ZIP CRCs and clean storage. The default command is still buffered: next wire
-this view into `slides set` with staged output metadata, retained original identity,
-force/dry-run/in-place policy, output limits and cleanup. Slide ordering and other
-mutations, richer reads, extraction and embedded workbook migration remain.
+valid ZIP CRCs and clean storage.
+
+The default `slides set` now uses `stageRetainedSlideSettings`: immutable retained
+input, caller-backed archive and response staging, streamed target/effect metadata,
+exact no-op archive reuse, source-based publication and retained original comparison.
+Responses are admitted before publication; in-place, force, dry-run, stdout and
+publication error formatting preserve the command contract. Buffered SDK requests
+keep their existing publication types. All 1,169 command tests and seven new SDK
+staging tests passed. Generated large inputs and labels force caller spills,
+cap outstanding writes at 16 KiB, reuse input buffers, and cover replay, no-op,
+source/storage/sink errors, cancellation and cleanup. Maintained workspace build
+and scoped lint/typechecks passed. The shipped default adapter also changed a
+native python-pptx chart deck: label/visibility were correct, text/chart/workbook
+and all unrelated member bytes remained unchanged, ZIP CRC and scratch cleanup
+passed. No Worker runtime memory
+qualification is claimed. Slide ordering and other mutations, richer reads,
+extraction and embedded workbook migration remain.
 
 ## Remaining implementation
 

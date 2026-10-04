@@ -32,7 +32,11 @@ publishing partial output; dry-run does not consume the output source.
 The built-in `validate`, `inspect`, `text get`, `fields list`, `fields get` and `xml get`
 operations use retained input and caller-backed indexes. Inspection, text, field and XML
 extraction stage complete responses before writing
-stdout, so admission and output-limit failures expose no partial result. Other
+stdout, so admission and output-limit failures expose no partial result. `slides set`
+also stages label/visibility edits, archive bytes and response metadata in caller
+storage before streamed atomic publication. Unchanged edits reuse the exact input
+bytes. Streaming engine requests accept source-based publication; requests without
+streaming retain the buffered publication contract. Other
 operations still use buffered document models during their streaming migration.
 
 The command owns PowerPoint argument parsing, schemas, discovery and execution.

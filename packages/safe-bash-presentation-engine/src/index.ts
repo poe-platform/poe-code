@@ -125,6 +125,7 @@ export {
   addSlide,
   mutateSlides,
   openRetainedSlideSettings,
+  stageRetainedSlideSettings,
   type RetainedSlideSettings,
   type MutateSlidesOptions,
   type AddSlideOptions,

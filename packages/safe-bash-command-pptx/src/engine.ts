@@ -5,14 +5,16 @@ import type {
   PptxCommandEngineOptions,
   PptxCommandRequest,
   PptxCommandOutput,
-  PptxPublicationRequest
+  PptxPublicationRequest,
+  PptxStreamPublicationRequest
 } from "./command-engine.js";
 export type {
   PptxCommandEngine,
   PptxCommandEngineOptions,
   PptxCommandRequest,
   PptxCommandOutput,
-  PptxPublicationRequest
+  PptxPublicationRequest,
+  PptxStreamPublicationRequest
 };
 let cachedPptxEngineMod: Promise<typeof import("./command-engine.js")> | undefined;
 export function createPptxCommandEngine(settings: PptxCommandEngineOptions = {}): PptxCommandEngine {

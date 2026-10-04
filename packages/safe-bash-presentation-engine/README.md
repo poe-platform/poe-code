@@ -50,7 +50,10 @@ It borrows the archive and returns `changed`, `affected`, original target locati
 and streamed part access. Pass its `replacement` method to the archive rewrite
 API to preserve untouched compressed members. When `changed` is false, retain the
 original archive bytes. Close the view after rewriting; publication remains the
-caller's responsibility. The default slide mutation commands still use buffered
-APIs while their retained publication integration is completed.
+caller's responsibility. `stageRetainedSlideSettings` accepts an immutable retained
+input with `size`, range `read` and replayable `stream`, and stages the rewritten
+archive plus the command response. Its `bytes()` source feeds atomic publication;
+`output.write(sink)` emits the admitted response. Close the result after publication.
+The default `slides set` command uses this path, including in-place and dry-run modes.
 Other default operations and the synchronous presentation model still use buffered
 APIs.

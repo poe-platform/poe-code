@@ -709,3 +709,5 @@ export async function mutateSlides(
 }
 
 export { openRetainedSlideSettings, type RetainedSlideSettings } from './retained-slide-settings.js';
+
+export { stageRetainedSlideSettings } from "./retained-slide-publication.js";

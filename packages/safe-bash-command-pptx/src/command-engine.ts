@@ -182,6 +182,7 @@ import { createPresentation, type CreatePresentationOptions } from "safe-bash-pr
 import {
   addSlide,
   mutateSlides,
+  stageRetainedSlideSettings,
   type MutateSlidesOptions,
   type AddSlideOptions
 } from "safe-bash-presentation-engine/slides";
@@ -216,9 +217,11 @@ export interface AdmittedCommandEngineOptions {
 }
 import type { PptxPublicationRequest } from "safe-bash-presentation-engine/publication";
 export type { PptxPublicationRequest } from "safe-bash-presentation-engine/publication";
-export interface PptxCommandRequest {
-  readonly streaming?: import("./streaming-inputs.js").PptxStreamingIO;
-  readonly publishOutput?: (publication: PptxPublicationRequest) => Promise<void>;
+export type PptxStreamPublicationRequest = Omit<PptxPublicationRequest, "bytes" | "originalBytes"> & {
+  readonly bytes: import("safe-bash-contracts").ByteSource;
+  readonly originalBytes: import("./streaming-inputs.js").PptxRetainedInput;
+};
+interface PptxRequestBase {
   readonly preflightOutput?: (publication: PptxPublicationRequest) => Promise<void>;
   /** Trusted adapter transaction: either every requested file is published or none is. */
   readonly publishOutputs?: (publications: readonly PptxPublicationRequest[]) => Promise<void>;
@@ -226,6 +229,13 @@ export interface PptxCommandRequest {
   readonly signal: AbortSignal;
   readonly readInput: (path: string, maxBytes: number) => Promise<Uint8Array>;
 }
+export type PptxCommandRequest = PptxRequestBase & ({
+  readonly streaming?: undefined;
+  readonly publishOutput?: (publication: PptxPublicationRequest) => Promise<void>;
+} | {
+  readonly streaming: import("./streaming-inputs.js").PptxStreamingIO;
+  readonly publishOutput?: (publication: PptxPublicationRequest | PptxStreamPublicationRequest) => Promise<void>;
+});
 export interface PptxCommandOutput {
   readonly exitCode: number;
   readonly stdout: Uint8Array;
@@ -4033,9 +4043,10 @@ const declaredOperations = {
 };
 
 
-async function execute(
+async function executeRequest(
   request: PptxCommandRequest,
-  options: AdmittedCommandEngineOptions
+  options: AdmittedCommandEngineOptions,
+  owned: { close(): Promise<void> }[]
 ): Promise<PptxCommandOutput> {
   if (request.args?.[0] instanceof Uint8Array && request.args[0].length === 4 &&
     request.args[0].every((byte, index) => byte === [100, 105, 102, 102][index]))
@@ -4046,7 +4057,7 @@ async function execute(
   let stagedOutput: StagedInspection | undefined;
   let human: string | undefined;
   let binary: Uint8Array | undefined;
-  let publication: PptxPublicationRequest | undefined;
+  let publication: PptxPublicationRequest | PptxStreamPublicationRequest | undefined;
   let publications: readonly PptxPublicationRequest[] | undefined;
   let splitManifest: readonly {
     path: string;
@@ -4089,7 +4100,23 @@ async function execute(
     output.json = args.json;
     output.operation = args.operation;
     const operation = args.operation;
-    if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "xml.get") && request.streaming) {
+    if (args.operation === "slides.set" && request.streaming) {
+      if (args.token) decodeSelectionToken(args.token);
+      const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
+      const destination = args.inPlace ? args.input! : args.output;
+      const dryRun = args.dryRun ?? false;
+      const staged = await stageRetainedSlideSettings(input, {
+        ...args.mutation,
+        selection: args.selection ?? (args.token ? { token: args.token } : { kind: "slide", ...(args.slide === undefined ? {} : { position: { coordinateSystem: "one-based", value: args.slide } }), ...(args.all ? { all: true } : {}) }),
+        allowEmpty: args.allowEmpty ?? false
+      }, { ...options.context, signal: request.signal, workingStorage: request.streaming.workingStorage }, { json: args.json, dryRun, ...(destination === undefined ? {} : { destination }), maxOutputBytes: options.maxOutputBytes });
+      owned.push(staged); stagedOutput = staged.output;
+      if (destination && destination !== "-") {
+        if (!request.publishOutput) throw Object.assign(new Error("Output publication capability is unavailable."), { code: "publication-unsupported" });
+        publication = { inputPath: args.input!, outputPath: destination, bytes: staged.bytes(), originalBytes: input, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
+      }
+      result = success(operation, null);
+    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "xml.get") && request.streaming) {
       if (args.token) decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const hash = sha256.create();
@@ -6702,6 +6729,7 @@ async function execute(
     }
   } catch (error) {
     await stagedOutput?.close().catch(() => {}); stagedOutput = undefined;
+    if (error instanceof OfficeError && error.code === "resource-limit" && error.phase === "publish") return outputLimitFailure(output.operation, output.json);
     if (request.signal.aborted)
       return { exitCode: 130, stdout: new Uint8Array(), stderr: new Uint8Array() };
     const office = error instanceof OfficeError ? error : undefined;
@@ -6752,16 +6780,9 @@ async function execute(
     };
     human = `pptx: ${diagnostic.code}: ${diagnostic.message}\n`;
   }
-  if (stagedOutput) {
-    let failed = false;
-    try { await stagedOutput.write(request.streaming!.stdout); }
-    catch (error) { failed = true; throw error; }
-    finally { try { await stagedOutput.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
-    return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() };
-  }
   const { json, operation } = output;
   const encoded =
-    binary ??
+    (stagedOutput ? new Uint8Array() : binary) ??
     new TextEncoder().encode(
       json ? `${JSON.stringify(result)}\n` : (human ?? `${JSON.stringify(result.data, null, 2)}\n`)
     );
@@ -6863,7 +6884,8 @@ async function execute(
   if (publication && result.ok) {
     try {
       request.signal.throwIfAborted();
-      await request.publishOutput!(publication);
+      if (publication.bytes instanceof Uint8Array) await request.publishOutput!(publication as PptxPublicationRequest);
+      else if (request.streaming) await request.publishOutput!(publication);
     } catch (error) {
       if (request.signal.aborted)
         return { exitCode: 130, stdout: new Uint8Array(), stderr: new Uint8Array() };
@@ -6922,6 +6944,13 @@ async function execute(
       };
     }
   }
+  if (stagedOutput) {
+    let failed = false;
+    try { await stagedOutput.write(request.streaming!.stdout); }
+    catch (error) { failed = true; throw error; }
+    finally { try { await stagedOutput.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
+    return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() };
+  }
   if (operation === "validate" && request.streaming) {
     request.signal.throwIfAborted();
     await (json || result.ok ? request.streaming.stdout : request.streaming.stderr).write(encoded);
@@ -6933,6 +6962,16 @@ async function execute(
     stdout: json || result.ok ? encoded : new Uint8Array(),
     stderr: json || result.ok ? new Uint8Array() : encoded
   };
+}
+
+async function execute(request: PptxCommandRequest, options: AdmittedCommandEngineOptions): Promise<PptxCommandOutput> {
+  const owned: { close(): Promise<void> }[] = []; let failed = false;
+  try { const result = await executeRequest(request, options, owned); failed = result.exitCode !== 0; return result; }
+  catch (error) { failed = true; throw error; }
+  finally {
+    const results = await Promise.allSettled(owned.map(value => value.close()));
+    if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
+  }
 }
 
 export function createPptxCommandEngine(settings: PptxCommandEngineOptions = {}): PptxCommandEngine {

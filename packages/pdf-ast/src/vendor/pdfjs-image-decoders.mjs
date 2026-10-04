@@ -2675,14 +2675,22 @@ function* decodeBitmapTemplate0(width, height, decodingContext, onRow) {
 }
 function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, decodingContext, onRow) {
   decodingContext.onImageDimensions?.(width, height);
+  let retained;
+  if (decodingContext.storedBitmap && !onRow) {
+    decodingContext.onAllocation?.(512);
+    retained = yield* createStoredJbigBitmap(width, height);
+    onRow = storeJbigRow.bind(null, retained);
+  }
   if (!onRow) decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
   if (mmr) {
     const input = new Reader(decodingContext.data, decodingContext.start, decodingContext.end);
-    return (yield* decodeMMRBitmap(input, width, height, false, decodingContext.onAllocation, onRow));
+    const bitmap = yield* decodeMMRBitmap(input, width, height, false, decodingContext.onAllocation, onRow);
+    return retained ?? bitmap;
   }
   if (templateIndex === 0 && !skip && !prediction && at.length === 4 && at[0].x === 3 && at[0].y === -1 && at[1].x === -3 && at[1].y === -1 && at[2].x === 2 && at[2].y === -2 && at[3].x === -2 && at[3].y === -2) {
     if (onRow) decodingContext.onAllocation?.((width + 256) * 4 + 4096);
-    return (yield* decodeBitmapTemplate0(width, height, decodingContext, onRow));
+    const bitmap = yield* decodeBitmapTemplate0(width, height, decodingContext, onRow);
+    return retained ?? bitmap;
   }
   const useskip = !!skip;
   const template = CodingTemplates[templateIndex].concat(at);
@@ -2789,7 +2797,7 @@ function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, 
     }
     if (onRow) yield* onRow(row, i);
   }
-  return bitmap;
+  return retained ?? bitmap;
 }
 function* decodeRefinement(width, height, templateIndex, referenceBitmap, offsetX, offsetY, prediction, at, decodingContext) {
   decodingContext.onImageDimensions?.(width, height);
@@ -3004,7 +3012,7 @@ function* jbigBitmapPixel(bitmap, x, y) {
   const byte = yield {kind: "bitmap-read", bitmap, offset: y * bitmap.rowSize + (x >> 3)};
   return (byte >> (7 - (x & 7))) & 1;
 }
-function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput, stored) {
+function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput, stored = decodingContext.storedBitmap) {
   decodingContext.onImageDimensions?.(width, height);
   decodingContext.onAllocation?.(stored ? 512 : (width + 256) * (height + 1) + 4096);
   if (huffman && refinement) {

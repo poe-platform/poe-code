@@ -125,3 +125,17 @@ it("rejects a forward adaptive coding row after switching to a retained row wind
  try{await expect(PdfRetainedJbig2.open(source,64,32,{bitmapStorage:storage})).rejects.toThrow();}
  finally{await storage.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
 });
+
+it("renders retained arithmetic symbols within a 576 KiB working allowance",async()=>{
+ const bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-symbols.0000",import.meta.url))),
+  globals=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-symbols.sym",import.meta.url)));
+ const expected=new Jbig2Image().parseChunks([{data:globals,start:0,end:globals.length},{data:bytes,start:0,end:bytes.length}])!;
+ const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",bytes);await fs.writeFile("/globals",globals);
+ const source=await PdfFileSource.open(fs,"/input"),globalSource=await PdfFileSource.open(fs,"/globals"),storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal},2);
+ try{const image=await PdfRetainedJbig2.open(source,64,32,{globals:globalSource,bitmapStorage:storage,maxWorkingBytes:576*1024});
+  try{let y=0;for await(const row of image.rows()){
+   for(let x=0;x<64;x++)expect(row[x*4]).toBe(expected[y*8+(x>>3)]!>>(7-(x&7))&1?0:255);
+   y++;
+  }expect(y).toBe(32);}finally{image.close();}
+ }finally{await storage.close();await source.close();await globalSource.close();expect(await fs.readdir("/scratch")).toEqual([]);}
+});

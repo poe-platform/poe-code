@@ -5,7 +5,7 @@ import type { PdfFileSource } from "../source.js";
 import { Jbig2Image } from "../vendor/pdfjs-image-decoders.mjs";
 
 export interface PdfRetainedJbig2Options {
-  /** Caller-owned packed page and text-region backing. Symbol/pattern state is admitted separately. */
+  /** Caller-owned packed page, text/halftone region and pattern backing. Symbol state is admitted separately. */
   readonly bitmapStorage?: PdfPixelStorage;
   readonly globals?: PdfFileSource | undefined;
   /** Conservative fixed input-cache and cumulative decoder state, plus one RGBA

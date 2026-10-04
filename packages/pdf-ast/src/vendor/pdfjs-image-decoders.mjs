@@ -2979,15 +2979,29 @@ function* decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbol
   }
   return exportedSymbols;
 }
+function* createStoredJbigBitmap(width, height, fill = 0) {
+  const rowSize = Math.ceil(width / 8), length = rowSize * height;
+  return {width, height, rowSize, length,
+    position: yield {kind: "bitmap-allocate", length, fill: fill ? 255 : 0}};
+}
+function* storeJbigRow(bitmap, row, y) {
+  for (let x = 0; x < bitmap.width; x++) if (row[x])
+    yield {kind: "bitmap-update", bitmap, offset: y * bitmap.rowSize + (x >> 3), mask: 128 >> (x & 7), operator: "or"};
+}
+function* jbigBitmapPixel(bitmap, x, y) {
+  if (bitmap.position === undefined) return bitmap[y][x];
+  x += bitmap.xOffset ?? 0;
+  const byte = yield {kind: "bitmap-read", bitmap, offset: y * bitmap.rowSize + (x >> 3)};
+  return (byte >> (7 - (x & 7))) & 1;
+}
 function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput, stored) {
   decodingContext.onImageDimensions?.(width, height);
   decodingContext.onAllocation?.(stored ? 512 : (width + 256) * (height + 1) + 4096);
   if (huffman && refinement) {
     throw new Jbig2Error("refinement with Huffman is not supported");
   }
-  const rowSize = Math.ceil(width / 8), length = rowSize * height;
-  const bitmap = stored ? {width, height, rowSize, length,
-    position: yield {kind: "bitmap-allocate", length, fill: defaultPixelValue ? 255 : 0}} : [];
+  const rowSize = Math.ceil(width / 8);
+  const bitmap = stored ? yield* createStoredJbigBitmap(width, height, defaultPixelValue) : [];
   let i, row;
   for (i = 0; !stored && i < height; i++) {
     row = new Uint8Array(width);
@@ -3071,7 +3085,7 @@ function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue
   }
   return bitmap;
 }
-function* decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternIndex, template, decodingContext) {
+function* decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternIndex, template, decodingContext, stored) {
   const at = [];
   if (!mmr) {
     at.push({
@@ -3092,6 +3106,12 @@ function* decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternIn
     }
   }
   const collectiveWidth = (maxPatternIndex + 1) * patternWidth;
+  if (stored && patternHeight > 0) {
+    decodingContext.onAllocation?.(4096);
+    const bitmap = yield* createStoredJbigBitmap(collectiveWidth, patternHeight);
+    yield* decodeBitmap(mmr, collectiveWidth, patternHeight, template, false, null, at, decodingContext, storeJbigRow.bind(null, bitmap));
+    return {bitmap, width: patternWidth, height: patternHeight, length: maxPatternIndex + 1};
+  }
   const collectiveBitmap = (yield* decodeBitmap(mmr, collectiveWidth, patternHeight, template, false, null, at, decodingContext));
   decodingContext.onAllocation?.((maxPatternIndex + 1) * (patternHeight * 256 + 128));
   const patterns = [];
@@ -3106,9 +3126,9 @@ function* decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternIn
   }
   return patterns;
 }
-function* decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight, defaultPixelValue, enableSkip, combinationOperator, gridWidth, gridHeight, gridOffsetX, gridOffsetY, gridVectorX, gridVectorY, decodingContext) {
+function* decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight, defaultPixelValue, enableSkip, combinationOperator, gridWidth, gridHeight, gridOffsetX, gridOffsetY, gridVectorX, gridVectorY, decodingContext, stored) {
   decodingContext.onImageDimensions?.(regionWidth, regionHeight);
-  decodingContext.onAllocation?.((regionWidth + 256) * regionHeight + 4096);
+  decodingContext.onAllocation?.(stored ? 4096 : (regionWidth + 256) * regionHeight + 4096);
   const skip = null;
   if (enableSkip) {
     throw new Jbig2Error("skip is not supported");
@@ -3116,9 +3136,9 @@ function* decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeigh
   if (combinationOperator !== 0) {
     throw new Jbig2Error(`operator "${combinationOperator}" is not supported in halftone region`);
   }
-  const regionBitmap = [];
+  const regionBitmap = stored ? yield* createStoredJbigBitmap(regionWidth, regionHeight, defaultPixelValue) : [];
   let i, j, row;
-  for (i = 0; i < regionHeight; i++) {
+  for (i = 0; !stored && i < regionHeight; i++) {
     row = new Uint8Array(regionWidth);
     if (defaultPixelValue) {
       for (j = 0; j < regionWidth; j++) {
@@ -3128,9 +3148,8 @@ function* decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeigh
     regionBitmap.push(row);
   }
   const numberOfPatterns = patterns.length;
-  const pattern0 = patterns[0];
-  const patternWidth = pattern0[0].length,
-    patternHeight = pattern0.length;
+  const patternWidth = patterns.bitmap ? patterns.width : patterns[0][0].length,
+    patternHeight = patterns.bitmap ? patterns.height : patterns[0].length;
   const bitsPerValue = log2(numberOfPatterns);
   const at = [];
   if (!mmr) {
@@ -3157,48 +3176,39 @@ function* decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeigh
     mmrInput = new Reader(decodingContext.data, decodingContext.start, decodingContext.end);
   }
   for (i = bitsPerValue - 1; i >= 0; i--) {
+    const plane = stored ? yield* createStoredJbigBitmap(gridWidth, gridHeight) : undefined;
+    const onRow = plane ? storeJbigRow.bind(null, plane) : undefined;
     if (mmr) {
-      bitmap = (yield* decodeMMRBitmap(mmrInput, gridWidth, gridHeight, true, decodingContext.onAllocation));
+      bitmap = (yield* decodeMMRBitmap(mmrInput, gridWidth, gridHeight, true, decodingContext.onAllocation, onRow));
     } else {
-      bitmap = (yield* decodeBitmap(false, gridWidth, gridHeight, template, false, skip, at, decodingContext));
+      bitmap = (yield* decodeBitmap(false, gridWidth, gridHeight, template, false, skip, at, decodingContext, onRow));
     }
-    grayScaleBitPlanes[i] = bitmap;
+    grayScaleBitPlanes[i] = plane ?? bitmap;
   }
-  let mg, ng, bit, patternIndex, patternBitmap, x, y, patternRow, regionRow;
+  let mg, ng, bit, patternIndex, patternBitmap, x, y;
   for (mg = 0; mg < gridHeight; mg++) {
     for (ng = 0; ng < gridWidth; ng++) {
       bit = 0;
       patternIndex = 0;
       for (j = bitsPerValue - 1; j >= 0; j--) {
-        bit ^= grayScaleBitPlanes[j][mg][ng];
+        bit ^= yield* jbigBitmapPixel(grayScaleBitPlanes[j], ng, mg);
         patternIndex |= bit << j;
       }
-      patternBitmap = patterns[patternIndex];
+      patternBitmap = patterns.bitmap && patternIndex >= 0 && patternIndex < patterns.length
+        ? {...patterns.bitmap, width: patternWidth, height: patternHeight, xOffset: patternIndex * patternWidth}
+        : patterns[patternIndex];
       x = gridOffsetX + mg * gridVectorY + ng * gridVectorX >> 8;
       y = gridOffsetY + mg * gridVectorX - ng * gridVectorY >> 8;
-      if (x >= 0 && x + patternWidth <= regionWidth && y >= 0 && y + patternHeight <= regionHeight) {
-        for (i = 0; i < patternHeight; i++) {
-          regionRow = regionBitmap[y + i];
-          patternRow = patternBitmap[i];
-          for (j = 0; j < patternWidth; j++) {
-            regionRow[x + j] |= patternRow[j];
-          }
-        }
-      } else {
-        let regionX, regionY;
-        for (i = 0; i < patternHeight; i++) {
-          regionY = y + i;
-          if (regionY < 0 || regionY >= regionHeight) {
-            continue;
-          }
-          regionRow = regionBitmap[regionY];
-          patternRow = patternBitmap[i];
-          for (j = 0; j < patternWidth; j++) {
-            regionX = x + j;
-            if (regionX >= 0 && regionX < regionWidth) {
-              regionRow[regionX] |= patternRow[j];
-            }
-          }
+      for (i = 0; i < patternHeight; i++) {
+        const regionY = y + i;
+        if (regionY < 0 || regionY >= regionHeight) continue;
+        for (j = 0; j < patternWidth; j++) {
+          const regionX = x + j;
+          if (regionX < 0 || regionX >= regionWidth) continue;
+          const pixel = yield* jbigBitmapPixel(patternBitmap, j, i);
+          if (stored) {
+            if (pixel) yield {kind: "bitmap-update", bitmap: regionBitmap, offset: regionY * regionBitmap.rowSize + (regionX >> 3), mask: 128 >> (regionX & 7), operator: "or"};
+          } else regionBitmap[regionY][regionX] |= pixel;
         }
       }
     }
@@ -3632,6 +3642,20 @@ function* parseJbig2(data, onImageDimensions, onAllocation, packed, storedBitmap
 }
 class SimpleSegmentVisitor {
   constructor(onImageDimensions, onAllocation, storedBitmap) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; this.storedBitmap = storedBitmap; }
+  regionAllocation() {
+    if (!this.storedBitmap) return this.onAllocation;
+    // Region-local contexts, tables and row windows are released after painting.
+    // Persistent dictionaries and page state retain their separate admission.
+    let regionBytes = 0;
+    return bytes => {
+      regionBytes += bytes;
+      const peak = this.regionBytes ?? 0;
+      if (regionBytes > peak) {
+        this.onAllocation?.(regionBytes - peak);
+        this.regionBytes = regionBytes;
+      }
+    };
+  }
   *onPageInformation(info) {
     this.onImageDimensions?.(info.width, info.height);
     this.currentPageInfo = info;
@@ -3705,17 +3729,7 @@ class SimpleSegmentVisitor {
   }
   *onImmediateGenericRegion(region, data, start, end) {
     const regionInfo = region.info;
-    // Generic-region contexts and row windows are released after painting. Keep
-    // their peak admission separate from persistent dictionaries and page state.
-    let regionBytes = 0;
-    const admit = this.storedBitmap ? bytes => {
-      regionBytes += bytes;
-      const peak = this.genericRegionBytes ?? 0;
-      if (regionBytes > peak) {
-        this.onAllocation?.(regionBytes - peak);
-        this.genericRegionBytes = regionBytes;
-      }
-    } : this.onAllocation;
+    const admit = this.regionAllocation();
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit);
     if (this.storedBitmap) {
       const visitor = this;
@@ -3752,23 +3766,23 @@ class SimpleSegmentVisitor {
     symbols[currentSegment] = (yield* decodeSymbolDictionary(dictionary.huffman, dictionary.refinement, inputSymbols, dictionary.numberOfNewSymbols, dictionary.numberOfExportedSymbols, huffmanTables, dictionary.template, dictionary.at, dictionary.refinementTemplate, dictionary.refinementAt, decodingContext, huffmanInput));
   }
   *onImmediateTextRegion(region, referredSegments, data, start, end) {
-    const regionInfo = region.info;
+    const regionInfo = region.info, admit = this.regionAllocation();
     let huffmanTables, huffmanInput;
     const symbols = this.symbols;
     const inputSymbols = [];
     for (const referredSegment of referredSegments) {
       const referredSymbols = symbols[referredSegment];
       if (referredSymbols) {
-        this.onAllocation?.(referredSymbols.length * 16 + 128);
+        admit?.(referredSymbols.length * 16 + 128);
         for (const symbol of referredSymbols) inputSymbols.push(symbol);
       }
     }
     const symbolCodeLength = log2(inputSymbols.length);
     if (region.huffman) {
       huffmanInput = new Reader(data, start, end);
-      huffmanTables = (yield* getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, this.onAllocation));
+      huffmanTables = (yield* getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, admit));
     }
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit);
     const bitmap = (yield* decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput, this.storedBitmap));
     (yield* this.drawBitmap(regionInfo, bitmap));
   }
@@ -3781,13 +3795,13 @@ class SimpleSegmentVisitor {
       this.patterns = patterns = {};
     }
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    patterns[currentSegment] = (yield* decodePatternDictionary(dictionary.mmr, dictionary.patternWidth, dictionary.patternHeight, dictionary.maxPatternIndex, dictionary.template, decodingContext));
+    patterns[currentSegment] = (yield* decodePatternDictionary(dictionary.mmr, dictionary.patternWidth, dictionary.patternHeight, dictionary.maxPatternIndex, dictionary.template, decodingContext, this.storedBitmap));
   }
   *onImmediateHalftoneRegion(region, referredSegments, data, start, end) {
     const patterns = this.patterns[referredSegments[0]];
-    const regionInfo = region.info;
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    const bitmap = (yield* decodeHalftoneRegion(region.mmr, patterns, region.template, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.enableSkip, region.combinationOperator, region.gridWidth, region.gridHeight, region.gridOffsetX, region.gridOffsetY, region.gridVectorX, region.gridVectorY, decodingContext));
+    const regionInfo = region.info, admit = this.regionAllocation();
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit);
+    const bitmap = (yield* decodeHalftoneRegion(region.mmr, patterns, region.template, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.enableSkip, region.combinationOperator, region.gridWidth, region.gridHeight, region.gridOffsetX, region.gridOffsetY, region.gridVectorX, region.gridVectorY, decodingContext, this.storedBitmap));
     (yield* this.drawBitmap(regionInfo, bitmap));
   }
   *onImmediateLosslessHalftoneRegion() {

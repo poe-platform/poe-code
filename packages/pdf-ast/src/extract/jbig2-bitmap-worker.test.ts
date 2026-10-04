@@ -5,9 +5,9 @@ import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 import {decodeJbig2ToRgba} from "./images.js";
 
-it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
+it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region", "halftone", "patterns", "repeated text", "repeated halftone"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
  const inputs=new Map<number,{bytes:Uint8Array;sum:number}>();
- for(const height of profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile === "repeated regions") ? [17,129] : [8193,32769]){
+ for(const height of profile === "patterns" ? [129,255] : profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile.startsWith("repeated")) ? [17,129] : [8193,32769]){
   let bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
   if(profile === "region") {
    // One vertical-zero MMR code per all-white row, with a complete region
@@ -25,10 +25,26 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    view.setUint32(37,26+8192);view.setUint32(41,64);view.setUint32(45,height);
    region.set([3,255,253,255,2,254,254,254],59);region.set([255,172],region.length-2);bytes=region;
   }
-  if(profile === "text region") {
+  if(profile === "text region" || profile === "repeated text") {
    const region=new Uint8Array(30+11+23+16);region.set(bytes.subarray(0,30));
    const view=new DataView(region.buffer);view.setUint32(30,1);region[34]=6;region[36]=1;
    view.setUint32(37,39);view.setUint32(41,64);view.setUint32(45,height);view.setUint16(58,512);bytes=region;
+  }
+  if(profile === "halftone" || profile === "repeated halftone") {
+   const bits="1".repeat(height)+"000000000001000000000001",payload=new Uint8Array(Math.ceil(bits.length/8));
+   for(let i=0;i<bits.length;i++)if(bits[i]==="1")payload[i>>3]!|=128>>(i&7);
+   const input=new Uint8Array(99+payload.length);input.set(bytes.subarray(0,30));const view=new DataView(input.buffer);
+   view.setUint32(30,1);input[34]=16;input[36]=1;view.setUint32(37,8);input.set([1,1,1],41);view.setUint32(44,1);input[48]=128;
+   view.setUint32(49,2);input[53]=22;input[54]=32;input[55]=1;input[56]=1;view.setUint32(57,38+payload.length);
+   view.setUint32(61,64);view.setUint32(65,height);input[78]=129;view.setUint32(79,1);view.setUint32(83,height);view.setUint16(95,256);input.set(payload,99);bytes=input;
+  }
+  if(profile === "patterns") {
+   const input=new Uint8Array(48+128+12+38+4);input.set(bytes.subarray(0,30));const view=new DataView(input.buffer);
+   view.setUint32(30,1);input[34]=16;input[36]=1;view.setUint32(37,135);input.set([1,1,height],41);view.setUint32(44,1);input.fill(255,48,176);
+   view.setUint32(176,2);input[180]=22;input[181]=32;input[182]=1;input[183]=1;view.setUint32(184,42);
+   view.setUint32(188,64);view.setUint32(192,height);input[205]=129;view.setUint32(206,1);view.setUint32(210,1);view.setUint16(222,256);
+   // White single-row MMR gray plane followed by end-of-block.
+   input.set([128,8,0,128],226);bytes=input;
   }
   new DataView(bytes.buffer).setUint32(15,height);
   if(profile.includes("segments")) {
@@ -42,9 +58,9 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
     for(const record of records){input.set(record.subarray(11),at);at+=record.length-11;}bytes=input;
    }else{const input=new Uint8Array(records.reduce((sum,record)=>sum+record.length,0));let at=0;for(const record of records){input.set(record,at);at+=record.length;}bytes=input;}
   }
-  if(profile === "repeated regions") {
-   const region=bytes.subarray(30),input=new Uint8Array(30+height*region.length);input.set(bytes.subarray(0,30));
-   for(let n=0;n<height;n++){input.set(region,30+n*region.length);new DataView(input.buffer).setUint32(30+n*region.length,n+1);}bytes=input;
+  if(profile.startsWith("repeated")) {
+   const start=profile === "repeated halftone"?49:30,region=bytes.subarray(start),input=new Uint8Array(start+height*region.length);input.set(bytes.subarray(0,start));
+   for(let n=0;n<height;n++){input.set(region,start+n*region.length);new DataView(input.buffer).setUint32(start+n*region.length,n+2);}bytes=input;
   }
   const expected=decodeJbig2ToRgba(bytes,64,height);
   inputs.set(height,{bytes,sum:expected.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0)});

@@ -170,7 +170,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   pdf.setProducer("ssconvert JavaScript PDF writer");
   const fonts = new Map<boolean, {font: PDFFont; metrics: Font; bytes: Uint8Array; shaped: boolean; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
   let fontBytes = 0;
-  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; overflowWidth?: number }) => {
+  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; overflow?: (displayWidth: number) => {left: number; right: number} }) => {
     tick(value.length);
     if (!value) return;
     const bold = cellBox?.style.bold ?? false;
@@ -226,6 +226,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       const ascent = ascentRatio * size, height = ascent + descentRatio * size;
       const glyphs: {x: number; y: number}[] = [];
+      let displayWidth = 0;
       // Pango's unhinted print profile rounds advances and offsets in display pixels.
       const run = shaper.shape(metrics, shapedValue);
       for (const position of run.positions) {
@@ -236,13 +237,19 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           // Pango rounds its downward y offset before the PDF coordinate inversion.
           y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale});
         width += Math.round(advance) * printDisplayScale;
+        displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
       }
       const overflows = width > cellBox.width - 5;
-      if (overflows && cellBox.overflowWidth === undefined || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
-      const clipLeft = x + 4 - (alignment === "right" ? (cellBox.overflowWidth ?? cellBox.width) - cellBox.width : 0);
-      const clipWidth = Math.max(0, (cellBox.overflowWidth ?? cellBox.width) - 4);
+      if (overflows && cellBox.overflow === undefined || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
+      const overflow = cellBox.overflow?.(displayWidth);
+      const clipLeft = x + 4 - (overflow?.left ?? 0);
+      const clipWidth = Math.max(0, cellBox.width + (overflow?.left ?? 0) + (overflow?.right ?? 0) - 4);
       // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
       x += 2 + 0.5 + 3 * printDisplayScale + (alignment === "left" ? 0 : (cellBox.width - 5) / (alignment === "center" ? 2 : 1));
+      if (alignment === "center" && overflow && (overflow.left > 0 || overflow.right > 0)) {
+        // Native spanning centers are passed in points, then scaled by the painter.
+        x += 2.5 + (printDisplayScale - 1) * (cellBox.width / 2 + overflow.left);
+      }
       baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
       x -= alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1);
       // pdf-lib encodes through the public layout method synchronously. Give
@@ -478,12 +485,16 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
           const alignment = style?.alignment === "general" ? cell.value.kind === "number" ? "right" :
             cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style?.alignment ?? "left";
-          const overflowWidth = style && cell.value.kind === "string" && (alignment === "left" || alignment === "right")
-            ? textSpan(cell, alignment === "left"
-              ? Math.max(width, (layout.widthPoints - print.margins.right - geometry.originX) / layout.scaleX - (x - geometry.originX))
-              : x - geometry.originX + width, alignment === "left" ? "right" : "left") : undefined;
+          const overflow = style && cell.value.kind === "string" ? (displayWidth: number) => {
+            const required = alignment === "center" ? width + Math.max(0, (displayWidth - width + 5 * printDisplayScale) / 2) : Infinity;
+            return {
+              left: alignment === "left" ? 0 : textSpan(cell, x - geometry.originX + width, "left", required) - width,
+              right: alignment === "right" ? 0 : textSpan(cell,
+                Math.max(width, (layout.widthPoints - print.margins.right - geometry.originX) / layout.scaleX - (x - geometry.originX)), "right", required) - width
+            };
+          } : undefined;
           await text(page, value, x, y, style ? style.size * printDisplayScale : 10, alignment,
-            style ? {width, height, style, ...(overflowWidth === undefined ? {} : {overflowWidth})} : undefined);
+            style ? {width, height, style, ...(overflow === undefined ? {} : {overflow})} : undefined);
         }
         for (const { object, rectangle } of objects) {
           tick();

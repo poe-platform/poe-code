@@ -1,4 +1,5 @@
 import {expect, it, vi} from "vitest";
+import {PDFArray, PDFRawStream, decodePDFRawStream} from "pdf-lib";
 import * as fontShaping from "../rendering/print/font-shaping.js";
 import {suppliedDefaultFont} from "safe-bash-pdf-engine";
 import type {CapabilityContext} from "../contracts.js";
@@ -71,4 +72,22 @@ it("preserves configured columns instead of resizing them from a CSV filename", 
   ] }] };
   const { runs } = await pdfText(await writePdf(book, [], { ...context, inputFilename: "input.csv" }));
   expect(runs.find(run => run.text === "END")!.glyphs[0]!.x).toBe(120);
+});
+
+it.each([
+  [undefined, 76, 140, 83.5],
+  [0, 124, 92, 95.5],
+  [2, 76, 92, 83.5]
+] as const)("clips centered overflow independently at blocker column %s", async (blocker, left, right, x) => {
+  const book = await fixture("GNM_HALIGN_CENTER", 10, 48), sheet = book.sheets[0]!;
+  const value = "OVERFLOWTEXTCONTINUES";
+  const cells = [{ ...sheet.cells[0]!, column: 1, value: { kind: "string" as const, value } }];
+  if (blocker !== undefined) cells.push({ ...sheet.cells[0]!, column: blocker, value: { kind: "string", value: "END" } });
+  cells.push({...sheet.cells[0]!, row: 1, column: 0, value: {kind: "string", value: "anchor"}});
+  const {pdf, runs} = await pdfText(await writePdf({...book, sheets: [{...sheet, cells}]}, [], context));
+  expect(runs[0]!.text).toBe(value);
+  expect(runs[0]!.glyphs[0]!.x).toBe(x);
+  const contents = pdf.getPage(0).node.Contents() as PDFArray;
+  const operators = contents.asArray().map(ref => new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
+  expect(operators).toContain(`${left} 0 ${right} 792 re`);
 });

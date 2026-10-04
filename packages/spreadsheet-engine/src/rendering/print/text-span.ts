@@ -11,7 +11,7 @@ export function createPrintSpans(sheet: Sheet, column: (index: number) => { star
     occupied.push(cell.column);
   }
   for (const occupied of rows.values()) occupied.sort((a, b) => { tick(); return a - b; });
-  return (cell: Cell, available: number, direction: "left" | "right" = "right"): number => {
+  return (cell: Cell, available: number, direction: "left" | "right" = "right", required = Infinity): number => {
     const occupied = rows.get(cell.row) ?? [];
     let low = 0, high = occupied.length;
     while (low < high) {
@@ -21,9 +21,20 @@ export function createPrintSpans(sheet: Sheet, column: (index: number) => { star
       else high = middle;
     }
     const blocker = occupied[direction === "right" ? low : low - 1];
-    if (blocker === undefined) return available;
-    const origin = column(cell.column), edge = column(blocker);
-    return Math.min(available, direction === "right" ? edge.start - origin.start : origin.start + origin.size - edge.start - edge.size);
+    const origin = column(cell.column);
+    if (blocker !== undefined) {
+      const edge = column(blocker);
+      available = Math.min(available, direction === "right" ? edge.start - origin.start : origin.start + origin.size - edge.start - edge.size);
+    }
+    if (!Number.isFinite(required)) return available;
+    let extent = origin.size, index = cell.column;
+    while (extent < Math.min(required, available)) {
+      tick();
+      index += direction === "right" ? 1 : -1;
+      if (index < 0 || index === blocker) break;
+      extent += column(index).size;
+    }
+    return Math.min(available, extent);
   };
 }
 

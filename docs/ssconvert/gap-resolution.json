@@ -5145,6 +5145,14 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "pdfCenteredSpans": {
+      "finding": "Centered string overflow previously refused default-style text layout. Three original memory reproducers failed.",
+      "implementation": "Display-rounded advances choose whole-column extents independently on either side; occupied/formula cells and page bounds clip each direction. Native print-cell/cell-draw center scaling is preserved. Hidden-column traversal charges work and adjacent fractional boundaries cannot create phantom spans.",
+      "validation": "311 print/PDF tests then23 final focused tests including fractional regression; selected19-workspace build; engine and command lint/source/test and Node/browser consumer types. Eight independent OpenPyXL inputs,16 compiled SDK/command PDFs with empty diagnostics; eight native Gnumeric renders. Centered x origins differ by at most0.001458pt. PDF montage and CLI screenshot inspected.",
+      "profile": "Gnumeric1.12.61 optional-python-glossary, supplied identical DejaVuSans font. Blank/empty-string/formula/hidden/solid-fill/left/right/both-side blocker controls.",
+      "limits": "Subpoint/raster differences remain. Product default header/footer still differs from native on these original XLSX inputs. Wider styles, merges, rich text, rotated/wrapped text and rendering qualification remain open; this is not full pixel parity.",
+      "evidence": "out/ssconvert-continuation-1748/pdf-center-overflow (original inputs, native receipts, public exports, source excerpts, glyph origins and inspected screenshots)"
+    },
     "xlsxEmptyFormulaRecovery": {
       "status": "partial; all nineteen families remain open",
       "reference": "Unmodified Gnumeric 1.12.61 xlsx_cell_expr_begin and xlsx_parse_expr, with seven independent fixtures for missing shared IDs, unknown shared followers, empty/spaces-only expressions and array formulas without a range.",

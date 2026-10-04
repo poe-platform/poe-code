@@ -39,3 +39,27 @@ it("leftward spans ignore blanks and hidden cells but stop at blank formulas", (
   const hidden = createRightwardPrintSpans(book([end, start, { ...start, column: 3 }]), index => ({ start: index * 48, size: index === 3 ? 0 : 48 }), () => {});
   expect(hidden(end, 500, "left")).toBe(192);
 });
+
+it("limits centered spans to whole columns needed on each side", () => {
+  const center = {...start, column: 3};
+  const span = createRightwardPrintSpans(book([center, {...start, column: 5}]), column, () => {});
+  expect(span(center, 400, "left", 49)).toBe(96);
+  expect(span(center, 400, "left", 97)).toBe(144);
+  expect(span(center, 400, "right", 200)).toBe(96);
+  expect(span(center, 70, "left", 97)).toBe(70);
+});
+it("charges hidden-column traversal to caller work", () => {
+  let work = 0;
+  const span = createRightwardPrintSpans(book([]), index => ({start: 0, size: index === 0 ? 48 : 0}), () => {
+    if (++work > 10) throw new Error("cancelled");
+  });
+  expect(() => span(start, 400, "right", 97)).toThrow("cancelled");
+});
+
+it("does not create a phantom centered span from fractional adjacent boundaries", () => {
+  const center = {...start, column: 3}, size = 42.002524166666674;
+  const span = createRightwardPrintSpans(book([center, {...start, column: 2}, {...start, column: 4}]),
+    index => ({start: index * size, size}), () => {});
+  expect(span(center, 500, "left", 90)).toBe(size);
+  expect(span(center, 500, "right", 90)).toBe(size);
+});

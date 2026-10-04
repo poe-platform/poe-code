@@ -29,7 +29,7 @@ and cell resolution are injected. It does not discover ambient time, locale or
 filesystem state, and its English opcode support is not a translated opcode
 catalog or native collation implementation.
 
-Leftward and rightward text span eligibility and clipping follow Gnumeric 1.12.61
+Leftward, rightward and centered text span eligibility and clipping follow Gnumeric 1.12.61
 `src/cellspan.c` and `src/print-cell.c`, by Miguel de Icaza, Jody Goldberg
 and Andreas J. Guelzow; copyright 2007–2009 Morten Welinder, under
 GPL-2.0-or-later. Their SHA-256 values are respectively
@@ -37,3 +37,8 @@ GPL-2.0-or-later. Their SHA-256 values are respectively
 `6a057396fc6c920ca5cf239b24150e1e5e9e38f888096a4e7540775b4b98c8b4`.
 The implementation uses a bounded occupied-column index and preserves formula
 blockers and hidden-column behavior; the PDF adapter paints backgrounds first.
+
+Centered spanning placement also follows `src/cell-draw.c` (`cell_calc_layout`),
+SHA-256 `7e0e222ff559e3e90ef037a41c221cd5520c94b894582a64c97dede8c97841f6`,
+under the same GPL-2.0-or-later source attribution. Display advances select
+whole-column spans independently on each side; print advances position glyphs.

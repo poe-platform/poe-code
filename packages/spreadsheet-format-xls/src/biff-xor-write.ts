@@ -1,4 +1,4 @@
-import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 
 // MS-OFFCRYPTO 2.3.7.2, XOR Method 1. These public constants are not key material.
 const initialCode = [0xe1f0, 0x1d0f, 0xcc9c, 0x84c0, 0x110c, 0x0e10, 0xf1ce, 0x313e,
@@ -22,13 +22,24 @@ const xorMatrix = [
 ];
 const padding = [0xbb, 0xff, 0xff, 0xba, 0xff, 0xff, 0xb9, 0x80, 0x00, 0xbe, 0x0f, 0x00, 0xbf, 0x0f, 0x00];
 
+export interface BiffXorSource extends RangeSource {
+  patch(position: number, bytes: Uint8Array): Promise<void>;
+}
+const plaintextRecords = new Set([9, 0x209, 0x409, 0x809, 0x2f, 0x194, 0x195, 0xe1, 0x196, 0x138]);
+
 /** Obfuscate every owned stream, including a DSF file's BIFF7 fallback. XOR has
  * no security or authentication properties and needs no entropy capability. */
-export async function encryptBiffXorStreams(streams: readonly Uint8Array[], revision: 7 | 8,
+export async function encryptBiffXorStreams(streams: readonly (Uint8Array | BiffXorSource)[], revision: 7 | 8,
   context: CapabilityContext): Promise<void> {
   context.signal.throwIfAborted();
   if (!context.password) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XOR export requires a password capability");
-  const work = 256 + streams.reduce((sum, stream) => sum + stream.length, 0);
+  const sources = streams.map(source => {
+    if (source instanceof Uint8Array) return source;
+    const size = source.size;
+    if (!Number.isSafeInteger(size) || size < 0) throw new SsconvertError("invalid-request", "Invalid BIFF XOR output size");
+    return { size, read: source.read.bind(source), patch: source.patch.bind(source) };
+  });
+  const work = 256 + sources.reduce((sum, stream) => sum + (stream instanceof Uint8Array ? stream.length : stream.size), 0);
   if (work > (context.limits.workbookWork ?? context.limits.inputBytes * 8))
     throw new SsconvertError("resource-limit", "ssconvert BIFF encryption work limit exceeded");
   let secret: string | Uint8Array | undefined;
@@ -59,7 +70,11 @@ export async function encryptBiffXorStreams(streams: readonly Uint8Array[], revi
       const byte = (i < password.length ? password[i]! : padding[i - password.length]!) ^ (i % 2 ? key >> 8 : key & 255);
       array[i] = byte >> 1 | byte << 7;
     }
-    for (const bytes of streams) {
+    for (const bytes of sources) {
+      if (!(bytes instanceof Uint8Array)) {
+        await encryptSource(bytes, key, verifier, array, context);
+        continue;
+      }
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       const pass = 4 + view.getUint16(2, true), length = view.getUint16(pass + 2, true);
       if (view.getUint16(pass, true) !== 0x2f || length !== (view.getUint16(4, true) === 0x600 ? 6 : 4))
@@ -69,7 +84,7 @@ export async function encryptBiffXorStreams(streams: readonly Uint8Array[], revi
         context.signal.throwIfAborted();
         const opcode = view.getUint16(at, true), size = view.getUint16(at + 2, true), end = at + 4 + size;
         // MS-XLS 2.2.10: framing, BOF, FILEPASS and lbPlyPos remain plaintext.
-        if (![9, 0x209, 0x409, 0x809, 0x2f, 0x194, 0x195, 0xe1, 0x196, 0x138].includes(opcode)) {
+        if (!plaintextRecords.has(opcode)) {
           for (let index = opcode === 0x85 ? 4 : 0; index < size; index++) {
             if ((index & 1023) === 0) context.signal.throwIfAborted();
             const offset = at + 4 + index, byte = bytes[offset]!;
@@ -80,4 +95,52 @@ export async function encryptBiffXorStreams(streams: readonly Uint8Array[], revi
       }
     }
   } finally { password.fill(0); array.fill(0); }
+}
+
+/** Record-end-relative XOR indexes remain unchanged across bounded transfer windows. */
+async function encryptSource(source: BiffXorSource, key: number, verifier: number, array: Uint8Array,
+  context: CapabilityContext): Promise<void> {
+  const size = source.size;
+  async function read(position: number, length: number): Promise<Uint8Array> {
+    context.signal.throwIfAborted();
+    if (position < 0 || position > size - length) throw new SsconvertError("io", "Truncated BIFF XOR output");
+    const bytes = new Uint8Array(length);
+    try {
+      for (let at = 0; at < length;) {
+        const part = await source.read(position + at, length - at, { signal: context.signal });
+        context.signal.throwIfAborted();
+        if (!part.length || part.length > length - at) throw new SsconvertError("io", "Truncated BIFF XOR output");
+        bytes.set(part, at); at += part.length;
+      }
+      return bytes;
+    } catch (error) { bytes.fill(0); throw error; }
+  }
+  const bof = await read(0, 6), bofView = new DataView(bof.buffer);
+  const pass = 4 + bofView.getUint16(2, true), revision = bofView.getUint16(4, true);
+  const header = await read(pass, 4), view = new DataView(header.buffer), length = view.getUint16(2, true);
+  if (view.getUint16(0, true) !== 0x2f || length !== (revision === 0x600 ? 6 : 4))
+    throw new TypeError("Missing BIFF XOR encryption header slot");
+  if (pass + 4 + length > size) throw new SsconvertError("io", "Truncated BIFF XOR output");
+  const keys = new Uint8Array(4), keyView = new DataView(keys.buffer);
+  keyView.setUint16(0, key, true); keyView.setUint16(2, verifier, true);
+  try { await source.patch(pass + length, keys); context.signal.throwIfAborted(); }
+  finally { keys.fill(0); }
+  for (let at = 0; at < size;) {
+    const header = await read(at, 4), view = new DataView(header.buffer);
+    const opcode = view.getUint16(0, true), length = view.getUint16(2, true), end = at + 4 + length;
+    if (end > size) throw new SsconvertError("io", "Truncated BIFF XOR output");
+    if (!plaintextRecords.has(opcode)) {
+      for (let index = opcode === 0x85 ? 4 : 0; index < length;) {
+        const bytes = await read(at + 4 + index, Math.min(16384, length - index));
+        try {
+          for (let i = 0; i < bytes.length; i++) {
+            if ((i & 1023) === 0) context.signal.throwIfAborted();
+            const byte = bytes[i]!; bytes[i] = (byte << 5 | byte >> 3) ^ array[(end + index + i) % 16]!;
+          }
+          await source.patch(at + 4 + index, bytes); context.signal.throwIfAborted(); index += bytes.length;
+        } finally { bytes.fill(0); }
+      }
+    }
+    at = end;
+  }
 }

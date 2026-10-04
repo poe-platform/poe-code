@@ -73,11 +73,11 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
         appendBiffAncillaryStreams(book, propertyStreams, handledMetadata, context);
       const source = handledMetadata.size ? { ...book,
         unsupportedRecords: (book.unsupportedRecords ?? []).filter(record => !handledMetadata.has(record)) } : book;
-      if (!encrypted && context.createWorkingStorage) {
+      if ((!encrypted || encrypted.algorithm === "xor") && context.createWorkingStorage) {
         for (const revision of profile === "dsf" ? [7, 8] as const : [profile]) {
           const output = new BiffStagedOutput(context, revision === 8 ? 8224 : 2080);
           staged.set(revision === 7 ? "Book" : "Workbook", output);
-          await writeBiffStream(source, revision, profile === "dsf", context, undefined, output);
+          await writeBiffStream(source, revision, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted, revision) : undefined, output);
         }
       } else {
         if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(source, 7, profile === "dsf", context,
@@ -91,7 +91,7 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
           }
         }
       }
-      if (encrypted?.algorithm === "xor") await encryptBiffXorStreams([...streams.values()], profile === 7 ? 7 : 8, context);
+      if (encrypted?.algorithm === "xor") await encryptBiffXorStreams([...staged.values(), ...streams.values()], profile === 7 ? 7 : 8, context);
       if (streams.has("encryption")) {
         // POIDocument.writeProperties keeps only an empty document-summary set outside encryption.
         const placeholder = new Uint8Array(56), view = new DataView(placeholder.buffer);

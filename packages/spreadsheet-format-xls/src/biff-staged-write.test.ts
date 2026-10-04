@@ -5,12 +5,14 @@ import { BiffOutput } from './biff-write-binary.js';
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {}, environment: { env: {}, locale: 'C', timezone: 'UTC' },
   limits: { inputBytes: 2e6, outputBytes: 2e6, cells: 5000, sheets: 10, operations: 100 } };
-it.each([7, 8, 'dsf'] as const)('stages BIFF %s records without finishing a resident record array', async profile => {
+it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', true]] as const)('stages BIFF %s XOR=%s without finishing a resident record array', async (profile, xor) => {
   const book = { sheets: [{ id: 's', name: 'Data', cells: Array.from({ length: 2000 }, (_, row) => ({ row, column: 0,
     value: { kind: 'string' as const, value: `item ${row}` } })) }] };
-  const expected = await createBiffWriter(profile)(book, [], context);
+  const options = xor ? ['encryption=xor'] : [];
+  const encryptionContext = { ...context, password: { async read() { return new Uint8Array([112, 97, 115, 115]); } } };
+  const expected = await createBiffWriter(profile)(book, options, encryptionContext);
   const cleanup: (() => void | Promise<void>)[] = []; let writes = 0, acquired = 0, closed = 0, pending = 0;
-  const ctx: CapabilityContext = { ...context, own(fn) { cleanup.push(fn); }, createWorkingStorage() {
+  const ctx: CapabilityContext = { ...encryptionContext, own(fn) { cleanup.push(fn); }, createWorkingStorage() {
     acquired++; const storage = new Uint8Array(2e6), borrowed = new Uint8Array(16384); let end = 8;
     return { allocate(length) { const at = end; end += length; return at; },
       async write(at, bytes) { expect(bytes.length).toBeLessThanOrEqual(16384); expect(++pending).toBe(1); await Promise.resolve(); storage.set(bytes, at); writes++; pending--; },
@@ -20,7 +22,7 @@ it.each([7, 8, 'dsf'] as const)('stages BIFF %s records without finishing a resi
   const finish = vi.spyOn(BiffOutput.prototype, 'finish').mockImplementation(() => { throw new Error('resident BIFF finish'); });
   try {
     let at = 0;
-    for await (const bytes of createBiffStreamWriter(profile)(book, [], ctx)) {
+    for await (const bytes of createBiffStreamWriter(profile)(book, options, ctx)) {
       expect(bytes.every((value, i) => value === expected[at + i])).toBe(true); at += bytes.length;
     }
     expect(at).toBe(expected.length); expect(writes).toBeGreaterThan(1); expect(acquired).toBeGreaterThan(0);
@@ -29,7 +31,7 @@ it.each([7, 8, 'dsf'] as const)('stages BIFF %s records without finishing a resi
   expect(closed).toBe(acquired);
 });
 
-it.each([7, 8, 'dsf'] as const)('publishes BIFF %s through injected safe-fs with bounded transfers', async profile => {
+it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', true]] as const)('publishes BIFF %s XOR=%s through injected safe-fs with bounded transfers', async (profile, xor) => {
   const { createMemoryFileSystem } = await import('@poe-code/safe-fs/core');
   const { createEngine } = await import('@poe-code/spreadsheet-engine');
   const { xlsFormat } = await import('./index.js');
@@ -44,16 +46,18 @@ it.each([7, 8, 'dsf'] as const)('publishes BIFF %s through injected safe-fs with
     }); return handle;
   });
   const buffered = vi.fn(() => { throw new Error('buffered writer'); });
-  const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, formats: [{ ...xlsFormat,
+  const password = { async read() { return new Uint8Array([112, 97, 115, 115]); } };
+  const options = xor ? ['encryption=xor'] : [];
+  const engine = createEngine({ password, workingFiles: { fs, directory: '/', cacheBytes: 16384 }, formats: [{ ...xlsFormat,
     services: xlsFormat.services.map(codec => codec.direction === 'write' ? { ...codec, write: buffered } : codec) }] });
   const raw = { sheets: [{ id: 's', name: 'Data', cells: Array.from({ length: 2000 }, (_, row) => ({ row, column: 0, value: { kind: 'number' as const, value: row } })) }] };
-  const expected = await createBiffWriter(profile)(raw, [], context);
+  const expected = await createBiffWriter(profile)(raw, options, { ...context, password });
   try {
     const book = await engine.adoptWorkbook(raw, { signal: context.signal }); let at = 0;
     await engine.writeWorkbook(book, { kind: 'stream', sink: { async write(bytes) {
       expect(bytes.length).toBeLessThanOrEqual(16384); expect(bytes.every((byte, i) => byte === expected[at + i])).toBe(true);
       at += bytes.length; await Promise.resolve();
-    } } }, { exportType: `Gnumeric_Excel:excel_${profile === 'dsf' ? profile : `biff${profile}`}` }, { signal: context.signal });
+    } } }, { exportOptions: options, exportType: `Gnumeric_Excel:excel_${profile === 'dsf' ? profile : `biff${profile}`}` }, { signal: context.signal });
     expect(at).toBe(expected.length); expect(written).toBeGreaterThan(16384); expect(buffered).not.toHaveBeenCalled();
     expect(await fs.readdir('/')).toEqual([]);
   } finally { await engine.dispose(); }

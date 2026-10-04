@@ -490,3 +490,27 @@ for (const key of ["id TEXT PRIMARY KEY DESC", "id TEXT PRIMARY KEY COLLATE NOCA
     assert.deepEqual(reopened.exec("SELECT * FROM t")[0]!.rows, expected);
   });
 }
+
+for (const strict of [false, true]) {
+  for (const write of [
+    "INSERT INTO aff VALUES (1, '0006', '39', '6', 39)",
+    "INSERT INTO aff VALUES (1, NULL, NULL, NULL, NULL); UPDATE aff SET a = '0006', i = '39', r = '6', t = 39",
+    "INSERT INTO aff VALUES (1, NULL, NULL, NULL, NULL); INSERT INTO aff VALUES (1, NULL, NULL, NULL, NULL) ON CONFLICT(id) DO UPDATE SET a = '0006', i = '39', r = '6', t = 39",
+  ]) {
+    test(`column affinity respects STRICT ANY (${strict}): ${write}`, () => {
+      const db = new SqliteDatabase();
+      db.exec(`CREATE TABLE aff(id INT UNIQUE, a ANY, i INT, r REAL, t TEXT) ${strict ? "STRICT" : ""}`);
+      db.exec(write);
+      assert.deepEqual(db.exec("SELECT a, typeof(a), i, typeof(i), typeof(r), t, typeof(t) FROM aff")[0]!.rows,
+        [[strict ? "0006" : 6, strict ? "text" : "integer", 39, "integer", "real", "39", "text"]]);
+    });
+  }
+}
+
+test("integer affinity makes grouped extrema and ordering numeric", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE events(region TEXT, latency_ms INT); INSERT INTO events VALUES ('ap-south', '6'), ('ap-south', '39')");
+  assert.deepEqual(db.exec("SELECT region, typeof(latency_ms), MIN(latency_ms), MAX(latency_ms) FROM events GROUP BY region")[0]!.rows,
+    [["ap-south", "integer", 6, 39]]);
+  assert.deepEqual(db.exec("SELECT latency_ms FROM events ORDER BY latency_ms")[0]!.rows, [[6], [39]]);
+});

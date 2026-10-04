@@ -1107,10 +1107,12 @@ function arithmeticNumber(value: SqlValue): SqlValue {
 }
 
 // SQLite derives affinity from the declared type in this precedence order.
-function applyColumnAffinity(storedValue: SqlValue, declaredType: string): SqlValue {
+function applyColumnAffinity(storedValue: SqlValue, declaredType: string, strict: boolean): SqlValue {
   let value = storedValue instanceof String ? storedValue.valueOf() : storedValue;
   if (value === null || value instanceof Uint8Array) return value;
   const type = declaredType.toUpperCase();
+  // STRICT ANY preserves the storage class; ordinary ANY has NUMERIC affinity.
+  if (strict && type === "ANY") return value;
   const integer = type.includes("INT");
   if (!integer && ["CHAR", "CLOB", "TEXT"].some((part) => type.includes(part))) {
     return toSqlString(value);
@@ -1934,7 +1936,7 @@ export class SqliteDatabase {
       for (let cIdx = 0; cIdx < colCount; cIdx++) {
         const col = cols[cIdx]!;
         const raw = r[cIdx] ?? "";
-        const val = applyColumnAffinity(raw, col.type);
+        const val = applyColumnAffinity(raw, col.type, tbl.strict);
         if (col.notNull && (val === null || val === undefined)) {
           return false;
         }
@@ -2971,7 +2973,7 @@ export class SqliteDatabase {
         : null;
       for (const r of tbl.rows) {
         yield;
-        r.data[colDef.name] = applyColumnAffinity(defVal, colDef.type);
+        r.data[colDef.name] = applyColumnAffinity(defVal, colDef.type, tbl.strict);
       }
       const schemaTokens = tokenizeSql(tbl.sql);
       const closingIndex = schemaTokens.map((token) => token.value).lastIndexOf(")");
@@ -3089,7 +3091,7 @@ export class SqliteDatabase {
       yield;
       let val = candidate.data[col.name] ?? null;
       if (replaceNotNull && col.notNull && val === null && col.defaultExpr) {
-        val = applyColumnAffinity(yield* this.evalScalarSql(col.defaultExpr, {}, []), col.type);
+        val = applyColumnAffinity(yield* this.evalScalarSql(col.defaultExpr, {}, []), col.type, tbl.strict);
         candidate.data[col.name] = val;
       }
       if (col.notNull && val === null) {
@@ -3471,7 +3473,7 @@ export class SqliteDatabase {
 
       for (const col of tbl.columns) {
         yield;
-        data[col.name] = applyColumnAffinity(data[col.name] ?? null, col.type);
+        data[col.name] = applyColumnAffinity(data[col.name] ?? null, col.type, tbl.strict);
       }
 
       // Determine rowid
@@ -3501,7 +3503,8 @@ export class SqliteDatabase {
         if (col.generatedExpr) {
           data[col.name] = applyColumnAffinity(
             yield* this.evalScalarSql(col.generatedExpr, data, positionalParams),
-            col.type
+            col.type,
+            tbl.strict
           );
         }
       }
@@ -3541,7 +3544,8 @@ export class SqliteDatabase {
             const colKey = realCol ? realCol.name : assign.col;
             conflictRow.data[colKey] = applyColumnAffinity(
               yield* this.evalExprSteps(assign.expr, ctx, positionalParams),
-              realCol?.type ?? ""
+              realCol?.type ?? "",
+              tbl.strict
             );
           }
           insertedCount += 1;
@@ -3808,7 +3812,8 @@ export class SqliteDatabase {
         const colKey = realCol ? realCol.name : assign.col;
         newData[colKey] = applyColumnAffinity(
           yield* this.evalExprSteps(assign.expr, ctx, positionalParams, _cteScope),
-          realCol?.type ?? ""
+          realCol?.type ?? "",
+          tbl.strict
         );
       }
       for (const col of tbl.columns) {
@@ -3816,7 +3821,8 @@ export class SqliteDatabase {
         if (col.generatedExpr) {
           newData[col.name] = applyColumnAffinity(
             yield* this.evalScalarSql(col.generatedExpr, newData, positionalParams),
-            col.type
+            col.type,
+            tbl.strict
           );
         }
       }

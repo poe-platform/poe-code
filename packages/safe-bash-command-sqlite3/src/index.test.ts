@@ -973,3 +973,25 @@ test("sqlite3 sync persists comment and CTE mutations", () => {
   }
   assert.equal(evalSyncSqlite3(undefined, ["/db", "SELECT * FROM t ORDER BY x"], read, write), "1\n2\n");
 });
+
+for (const strict of [false, true]) {
+  for (const key of ["INT", "INTEGER PRIMARY KEY"]) {
+    test(`sqlite3 imports affinity with STRICT ANY (${strict}) and ${key}`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/aff.csv", new TextEncoder().encode("1,0006,6,6,6\n2,0039,39,39,39\n"));
+      const result = await runSqlite3(fs, ["/aff.db"], [
+        `CREATE TABLE aff(id ${key}, a ANY, i INT, r REAL, t TEXT) ${strict ? "STRICT" : ""};`,
+        ".import --csv /aff.csv aff",
+        "SELECT a,typeof(a),i,typeof(i),typeof(r),typeof(t) FROM aff ORDER BY i;",
+        "SELECT MIN(i),MAX(i) FROM aff;"
+      ].join("\n"));
+      assert.equal(result.code, 0, result.stderr);
+      assert.equal(result.stdout, strict
+        ? "0006|text|6|integer|real|text\n0039|text|39|integer|real|text\n6|39\n"
+        : "6|integer|6|integer|real|text\n39|integer|39|integer|real|text\n6|39\n");
+      const reopened = await runSqlite3(fs, ["/aff.db", "SELECT a,typeof(a) FROM aff ORDER BY i;"]);
+      assert.equal(reopened.code, 0, reopened.stderr);
+      assert.equal(reopened.stdout, strict ? "0006|text\n0039|text\n" : "6|integer\n39|integer\n");
+    });
+  }
+}

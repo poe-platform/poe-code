@@ -100,7 +100,7 @@ export class RetainedJsonOptions {
       if (ast && !parent) await reserveNode(position);
       if (ast && array && nodes + count > context.limits.nodes) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
       if (ast && array && Object.getOwnPropertySymbols(value).length) await fail(position);
-      if (ast && array && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text))) {
+      if (ast && array && (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text))) {
         // Normalization inspects every own array descriptor before recognizing
         // cell tuples, so accessors and sparse slots precede the budget charge.
         for (let i = 0; i < count; i++) {await property(value, i, position); await context.cooperate();}
@@ -121,6 +121,8 @@ export class RetainedJsonOptions {
           cells += span;
           if (!Number.isSafeInteger(cells) || cells > context.limits.tableCells) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
           context.charge("tableCells", span);
+          if (cells > context.limits.references) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
+          context.charge("references", span);
         }
       }
       const node = await tree.begin(array ? "array" : "object");
@@ -177,7 +179,7 @@ export class RetainedJsonOptions {
       if (ast && typeof key === "string") {await reserveNode(frame); await reserveText(key, frame); await unicode(key, frame);}
       const value = await property(current, key, frame);
       if (!array) {
-        context.charge("references", 1);
+        if (!ast) context.charge("references", 1);
         if (key === "__proto__" || key === "constructor" || key === "prototype") {if (ast) await fail(frame, key); context.fail("E_OPTION", "Unsafe metadata key");}
         await tree.key(key as string);
       }

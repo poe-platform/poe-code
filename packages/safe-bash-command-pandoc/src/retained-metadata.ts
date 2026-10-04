@@ -98,6 +98,7 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
       await cooperate();
     }
     const unsafe = async (key: number) => {
+      if (!("tree" in input && input.typed)) context.charge("references", 1);
       if (["__proto__", "constructor", "prototype"].includes(await overlay.smallText(key, 11) ?? "")) option("Unsafe metadata key");
     };
     const isNull = async (node: number) => (await overlay.describe(node)).kind === "literal" && await overlay.smallText(node, 4) === "null";

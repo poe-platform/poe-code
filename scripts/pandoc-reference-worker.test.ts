@@ -3,7 +3,7 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
-it.each(["sdk", "command"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from => ["json", "plain", "html5", "rst", "gfm", "latex", "rtf", "odt", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])].map(to => ({mode, from, to, transform: false})))) .concat(["sdk", "command"].flatMap(mode => ["json", "html5"].map(to => ({mode, from: "json", to, transform: true})))))("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform", async ({mode, from, to, transform}) => {
+it.each(["sdk", "command"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from => ["json", "plain", "html5", "rst", "gfm", "latex", "rtf", "odt", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])].map(to => ({mode, from, to, transform: false, metadata: false})))) .concat(["sdk", "command"].flatMap(mode => ["json", "html5"].map(to => ({mode, from: "json", to, transform: true, metadata: false})))).concat(["sdk", "command"].map(mode => ({mode, from: "json", to: "json", transform: false, metadata: true}))))("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata", async ({mode, from, to, transform, metadata}) => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -18,7 +18,7 @@ it.each(["sdk", "command"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap
       const {fs: backing, events} = api.createR2PagedFixture(namespace, env.PAGES);
       const value = 'x'.repeat(${mode === 'command' ? 600000 : 17000});
       const json = JSON.stringify({'pandoc-api-version': [1,23,1,2], meta: {}, blocks: [{t: 'Para', c: [{t: 'Str', c: value}]}]});
-      const transform = ${transform};
+      const transform = ${transform}, metadata = ${metadata};
       const inputJson = transform ? JSON.stringify({'pandoc-api-version': [1,23,1,2], meta: {}, blocks: [{t: 'Header', c: [1, ['', [], []], [{t: 'Str', c: value}]]}, {t: 'RawBlock', c: ['html', '<!--' + value + '-->']}]}) : json;
       const from = ${JSON.stringify(from)}, to = ${JSON.stringify(to)}, input = from === 'rtf' ? '{' + String.fromCharCode(92) + 'rtf1 ' + value + '}' : from === 'json' ? inputJson : value;
       await env.PAGES.put('/input.json', input);
@@ -29,15 +29,15 @@ it.each(["sdk", "command"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap
       }});
       let text = '', largest = 0, closed = 0;
       const output = {async write(bytes) {text += new TextDecoder().decode(bytes); largest = Math.max(largest, bytes.length);}, async close() {closed++;}, async abort() {}};
-      const limits = {references: (to === 'latex' || to === 'rtf') ? 2000000 : 10000, text: transform ? 4000000 : 2000000, nodes: 1000, depth: 64};
+      const limits = {references: (to === 'latex' || to === 'rtf') ? 2000000 : 10000, text: metadata ? 6000000 : transform ? 4000000 : 2000000, nodes: 1000, depth: 64};
       if (${JSON.stringify(mode)} === 'sdk') {
-        await api.convertToOutput([{chunks: fs.readStream('/input.json')}], {from, to, ...(transform ? {stripComments: true, shiftHeadingLevelBy: -1} : {})}, {limits, workingFiles: {fs, directory: '/spill', cacheBytes: 16384}, output});
+        await api.convertToOutput([{chunks: fs.readStream('/input.json')}], {from, to, ...(metadata ? {metadataJson: [{title: value}]} : {}), ...(transform ? {stripComments: true, shiftHeadingLevelBy: -1} : {})}, {limits, workingFiles: {fs, directory: '/spill', cacheBytes: 16384}, output});
       } else {
-        const result = await api.createPandocCommand({limits}).execute({command: 'pandoc', args: ['-f' + from, '-t' + to, ...(transform ? ['--strip-comments', '--shift-heading-level-by=-1'] : []), '/input.json'], cwd: '/', env: {TMPDIR: '/spill'}, fs, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: output, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+        const result = await api.createPandocCommand({limits}).execute({command: 'pandoc', args: ['-f' + from, '-t' + to, ...(metadata ? ['--metadata', 'title=' + value] : []), ...(transform ? ['--strip-comments', '--shift-heading-level-by=-1'] : []), '/input.json'], cwd: '/', env: {TMPDIR: '/spill'}, fs, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: output, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
         if (result.exitCode !== 0) throw new Error('Command failed'); closed++;
       }
       await env.PAGES.delete('/input.json');
-      const matches = to === 'odt' ? text.startsWith('PK') && text.includes(value) : to === 'rtf' ? text.startsWith('{\\\\rtf1') && text.includes(value) : to === 'latex' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('\\\\begin{longtable}') && text.includes(value)) : to === 'gfm' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text === '| ' + value + ' |\\n| --- |\\n') : to === 'commonmark' ? text === value + '\\n' : to === 'rst' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('.. list-table::') && text.includes(value)) : to === 'html5' ? (from === 'json' || from === 'rtf' ? text === '<p>' + value + '</p>\\n' : text.includes('>' + value + '</th>')) : to === 'plain' ? text === value + '\\n' : from === 'json' || from === 'rtf' ? text === json + '\\n' : JSON.parse(text).blocks[0].c[3][1][0][1][0][4][0].c[0].c === value;
+      const matches = to === 'odt' ? text.startsWith('PK') && text.includes(value) : to === 'rtf' ? text.startsWith('{\\\\rtf1') && text.includes(value) : to === 'latex' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('\\\\begin{longtable}') && text.includes(value)) : to === 'gfm' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text === '| ' + value + ' |\\n| --- |\\n') : to === 'commonmark' ? text === value + '\\n' : to === 'rst' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('.. list-table::') && text.includes(value)) : to === 'html5' ? (from === 'json' || from === 'rtf' ? text === '<p>' + value + '</p>\\n' : text.includes('>' + value + '</th>')) : to === 'plain' ? text === value + '\\n' : from === 'json' || from === 'rtf' ? text === (metadata ? JSON.stringify({...JSON.parse(json), meta: {title: {t: 'MetaString', c: value}}}) : json) + '\\n' : JSON.parse(text).blocks[0].c[3][1][0][1][0][4][0].c[0].c === value;
       return Response.json({matches, largest, closed, events, remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});
     }};
   `});

@@ -1,3 +1,4 @@
+import {formatQueryParts, type QueryOutputOptions} from "./query-output.js";
 import {encodeOutput, formatSqlQuote, publishSqliteOutput, sqlQuoteParts} from "./stream-output.js";
 import { CsvRows } from "./csv-rows.js";
 import { retainInput } from "./retained-input.js";
@@ -15,10 +16,9 @@ import {
   type VirtualShellPlugin
 } from "safe-bash-contracts";
 import {
-  SqliteDatabase, serializeSqlJson,
+  SqliteDatabase,
   matchGlob, matchLike,
   splitSqlStatements, tokenizeSql,
-  toSqlString,
   type QueryResultSet,
   type SqlValue
 } from "./engine.js";
@@ -87,33 +87,13 @@ export interface Sqlite3CommandsOptions {
 
 export type Sqlite3Options = Sqlite3CommandsOptions;
 
-type OutputMode =
-  | "list"
-  | "csv"
-  | "column"
-  | "line"
-  | "json"
-  | "tabs"
-  | "html"
-  | "markdown"
-  | "box"
-  | "table"
-  | "quote"
-  | "ascii"
-  | "insert";
+type OutputMode = QueryOutputOptions["mode"];
 
-interface CliSessionState {
-  mode: OutputMode;
-  insertTable: string;
-  showHeaders: boolean;
-  colSeparator: string;
-  rowSeparator: string;
-  nullValue: string;
+interface CliSessionState extends QueryOutputOptions {
   bail: boolean;
   echo: boolean;
   changes: boolean;
   readonly: boolean;
-  widths: number[];
   outputFile: string | null;
   onceFile: string | null;
   dbPath: string;
@@ -299,207 +279,6 @@ function normalizeInjectedEngine(raw: InjectableSqliteEngine): SqliteEngineInsta
     };
   }
   return candidate;
-}
-
-function formatCsvCell(s: string, sep: string): string {
-  if (s.includes('"') || s.includes(sep) || s.includes("\n") || s.includes("\r")) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function formatCellValue(v: SqlValue, nullValue: string): string {
-  if (v === null || v === undefined) {
-    return nullValue;
-  }
-  return toSqlString(v);
-}
-
-function formatQueryResult(res: QueryResultSet, state: CliSessionState): string {
-  const { columns, rows } = res;
-  if (columns.length === 0) {
-    return "";
-  }
-
-  switch (state.mode) {
-    case "tabs":
-    case "ascii":
-    case "list": {
-      if (!state.showHeaders && rows.length === 0) {
-        return "";
-      }
-      const lines: string[] = [];
-      if (state.showHeaders) {
-        lines.push(columns.join(state.colSeparator));
-      }
-      for (const r of rows) {
-        lines.push(r.map((v) => formatCellValue(v, state.nullValue)).join(state.colSeparator));
-      }
-      return lines.map((l) => `${l}${state.rowSeparator}`).join("");
-    }
-
-    case "csv": {
-      if (!state.showHeaders && rows.length === 0) {
-        return "";
-      }
-      const sep = state.colSeparator;
-      const lines: string[] = [];
-      if (state.showHeaders) {
-        lines.push(columns.map((c) => formatCsvCell(c, sep)).join(sep));
-      }
-      for (const r of rows) {
-        lines.push(r.map((v) => formatCsvCell(formatCellValue(v, state.nullValue), sep)).join(sep));
-      }
-      return lines.map(line => line + state.rowSeparator).join("");
-    }
-
-    case "json": {
-      const objects = rows.map(row => "{" + columns.map((column, index) => {
-        const value = row[index];
-        const encoded = value instanceof Number
-          ? Number.isFinite(value.valueOf()) ? toSqlString(value) : "null"
-          : serializeSqlJson(value instanceof Uint8Array ? toSqlString(value) : value ?? null);
-        return `${JSON.stringify(column)}:${encoded}`;
-      }).join(",") + "}");
-      return `[${objects.join(",\n")}]\n`;
-    }
-
-    case "line": {
-      if (rows.length === 0) {
-        return "";
-      }
-      const maxColLen = Math.max(5, ...columns.map((c) => c.length));
-      const blocks = rows.map((r) =>
-        columns
-          .map((c, i) => `${c.padStart(maxColLen, " ")} = ${formatCellValue(r[i] ?? null, state.nullValue)}`)
-          .join("\n")
-      );
-      return `${blocks.join("\n\n")}\n`;
-    }
-
-    case "html": {
-      if (!state.showHeaders && rows.length === 0) {
-        return "";
-      }
-      const lines: string[] = [];
-      if (state.showHeaders) {
-        lines.push(`<TR>${columns.map((c) => `<TH>${escapeHtml(c)}</TH>\n`).join("")}</TR>`);
-      }
-      for (const r of rows) {
-        lines.push(
-          `<TR>${r.map((v) => `<TD>${escapeHtml(formatCellValue(v, state.nullValue))}</TD>\n`).join("")}</TR>`
-        );
-      }
-      return `${lines.join("\n")}\n`;
-    }
-
-    case "quote": {
-      if (!state.showHeaders && rows.length === 0) {
-        return "";
-      }
-      const lines: string[] = [];
-      if (state.showHeaders) {
-        lines.push(columns.map((c) => formatSqlQuote(c)).join(","));
-      }
-      for (const r of rows) {
-        lines.push(r.map((v) => formatSqlQuote(v)).join(","));
-      }
-      return `${lines.join("\n")}\n`;
-    }
-
-    case "insert": {
-      if (rows.length === 0) {
-        return "";
-      }
-      const tbl = state.insertTable || "table";
-      const lines = rows.map((r) => `INSERT INTO ${tbl} VALUES(${r.map((v) => formatSqlQuote(v)).join(",")});`);
-      return `${lines.join("\n")}\n`;
-    }
-
-    case "column":
-    case "table":
-    case "markdown":
-    case "box": {
-      if (!state.showHeaders && rows.length === 0) {
-        return "";
-      }
-      const strRows = rows.map((r) => r.map((v) => formatCellValue(v, state.nullValue)));
-      const colWidths = columns.map((c, i) => {
-        const explicit = state.widths[i];
-        if (explicit && explicit > 0) {
-          return explicit;
-        }
-        const maxData = strRows.reduce((m, r) => Math.max(m, (r[i] ?? "").length), 0);
-        return Math.max(c.length, maxData, 1);
-      });
-
-      if (state.mode === "column") {
-        const lines: string[] = [];
-        if (state.showHeaders) {
-          lines.push(columns.map((c, i) => c.padEnd(colWidths[i]!, " ")).join("  "));
-          lines.push(colWidths.map((w) => "-".repeat(w)).join("  "));
-        }
-        for (const r of strRows) {
-          lines.push(r.map((cell, i) => cell.padEnd(colWidths[i]!, " ")).join("  "));
-        }
-        return `${lines.join("\n")}\n`;
-      }
-
-      const centerHeader = (s: string, w: number): string => {
-        const diff = w - s.length;
-        if (diff <= 0) return s;
-        const left = Math.floor(diff / 2);
-        return " ".repeat(left) + s + " ".repeat(diff - left);
-      };
-
-      if (state.mode === "markdown") {
-        const lines: string[] = [];
-        lines.push(`| ${columns.map((c, i) => centerHeader(c, colWidths[i]!)).join(" | ")} |`);
-        lines.push(`|-${colWidths.map((w) => "-".repeat(w)).join("-|-")}-|`);
-        for (const r of strRows) {
-          lines.push(`| ${r.map((cell, i) => cell.padEnd(colWidths[i]!, " ")).join(" | ")} |`);
-        }
-        return `${lines.join("\n")}\n`;
-      }
-
-      if (state.mode === "table") {
-        const border = `+${colWidths.map((w) => "-".repeat(w + 2)).join("+")}+`;
-        const lines: string[] = [border];
-        if (state.showHeaders) {
-          lines.push(`| ${columns.map((c, i) => centerHeader(c, colWidths[i]!)).join(" | ")} |`);
-          lines.push(border);
-        }
-        for (const r of strRows) {
-          lines.push(`| ${r.map((cell, i) => cell.padEnd(colWidths[i]!, " ")).join(" | ")} |`);
-        }
-        lines.push(border);
-        return `${lines.join("\n")}\n`;
-      }
-
-      // box mode
-      const top = `┌${colWidths.map((w) => "─".repeat(w + 2)).join("┬")}┐`;
-      const mid = `├${colWidths.map((w) => "─".repeat(w + 2)).join("┼")}┤`;
-      const bot = `└${colWidths.map((w) => "─".repeat(w + 2)).join("┴")}┘`;
-      const lines: string[] = [top];
-      if (state.showHeaders) {
-        lines.push(`│ ${columns.map((c, i) => c.padEnd(colWidths[i]!, " ")).join(" │ ")} │`);
-        lines.push(mid);
-      }
-      for (const r of strRows) {
-        lines.push(`│ ${r.map((cell, i) => cell.padEnd(colWidths[i]!, " ")).join(" │ ")} │`);
-      }
-      lines.push(bot);
-      return `${lines.join("\n")}\n`;
-    }
-  }
 }
 
 function parseCsvContent(content: string, separator: string): string[][] {
@@ -880,9 +659,9 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       return { exitCode: 1 };
     }
 
-    const emitOutput = async (text: string | AsyncIterable<string>) => {
+    const emitOutput = async (text: string | Iterable<string> | AsyncIterable<string>) => {
       if (text === "") return;
-      const retained = await retainInput(encodeOutput(typeof text === "string" ? [text] : text), context, countOutput);
+      const retained = await retainInput(encodeOutput(typeof text === "string" ? [text] : text, context.signal), context, countOutput);
       let failed = false;
       try {
         if (!retained.size) return;
@@ -1363,7 +1142,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         state.dirty = true;
       }
       if (res) {
-        const formatted = formatQueryResult(res, state);
+        const formatted = formatQueryParts(res, state);
         await emitOutput(formatted);
       }
       if (state.changes && isMutating) {
@@ -1882,7 +1661,7 @@ export function evalSyncSqlite3(
       const res = db.executeStatement(trimmed);
       if (isMutating) state.dirty = true;
       if (res) {
-        emitOutput(formatQueryResult(res, state));
+        emitOutput([...formatQueryParts(res, state)].join(""));
       }
       if (state.changes && isMutating) {
         emitOutput(`changes: ${db.lastChanges ?? 0}   total_changes: ${db.totalChanges ?? 0}\n`);

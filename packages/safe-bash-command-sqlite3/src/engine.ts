@@ -26,7 +26,7 @@ export function serializeSqlJson(value: unknown, preserveRealType = true): strin
 
 export type { SqlValue };
 
-class JsonText extends String {}
+export class JsonText extends String {}
 
 export interface QueryResultSet {
   columns: string[];

@@ -1,17 +1,22 @@
+import {yieldTurn} from "safe-bash-contracts/yield";
 import {resolvePath} from '@poe-code/safe-fs/core';
 import {FsError, type CommandContext, type FileStaging} from 'safe-bash-contracts';
 import {writeFileOutput} from 'safe-bash-contracts/filesystem-output-budget';
 import {openFileOutput} from 'safe-bash-contracts/filesystem-output';
 import type {SqlValue} from './engine.js';
 
-export async function* encodeOutput(parts: Iterable<string> | AsyncIterable<string>): AsyncGenerator<Uint8Array> {
+export async function* encodeOutput(parts: Iterable<string> | AsyncIterable<string>, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
   const encoder = new TextEncoder();
-  let high = '';
-  for await (const part of parts) for (let offset = 0; offset < part.length; offset += 4096) {
-    let value = high + part.slice(offset, offset + 4096); high = '';
-    const last = value.charCodeAt(value.length - 1);
-    if (last >= 0xd800 && last <= 0xdbff) { high = value.at(-1)!; value = value.slice(0, -1); }
-    if (value) yield encoder.encode(value);
+  let high = '', steps = 0;
+  for await (const part of parts) {
+    signal?.throwIfAborted();
+    if (signal && ++steps % 256 === 0) await yieldTurn(signal);
+    for (let offset = 0; offset < part.length; offset += 4096) {
+      let value = high + part.slice(offset, offset + 4096); high = '';
+      const last = value.charCodeAt(value.length - 1);
+      if (last >= 0xd800 && last <= 0xdbff) { high = value.at(-1)!; value = value.slice(0, -1); }
+      if (value) yield encoder.encode(value);
+    }
   }
   if (high) yield encoder.encode(high);
 }

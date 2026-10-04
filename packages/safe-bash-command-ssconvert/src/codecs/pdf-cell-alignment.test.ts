@@ -33,12 +33,12 @@ it.each([[8, 125], [14, 113.75]] as const)("aligns Unit%s cells using rounded sh
   const {runs} = await pdfText(await writePdf(await fixture("GNM_HALIGN_RIGHT", unit), [], context));
   expect(runs.find(run => run.text === "alpha")?.glyphs[0]?.x).toBe(x);
 });
-it("refuses text whose rounded display width exceeds the printable cell", async () => {
+it("clips text whose rounded display width exceeds the first printable cell", async () => {
   const book = await fixture("GNM_HALIGN_RIGHT", 8, 23.4);
   // Five600/1000em glyphs are18raw points, but round to5display pixels each:
   // 18.75pt must not fit in the18.4pt available width.
   const single = {...book, sheets: book.sheets.map(sheet => ({...sheet, cells: sheet.cells.slice(0, 1)}))};
-  await expect(writePdf(single, [], context)).rejects.toThrow("default-style text layout");
+  expect((await pdfText(await writePdf(single, [], context))).runs[0]!.text).toBe("alpha");
 });
 
 it("uses shaped advance positions instead of nominal glyph widths", async () => {
@@ -54,4 +54,21 @@ it("uses shaped advance positions instead of nominal glyph widths", async () => 
     const {runs} = await pdfText(await writePdf(await fixture("GNM_HALIGN_RIGHT"), [], context));
     expect(runs.find(run => run.text === "alpha")?.glyphs[0]?.x).toBe(125);
   } finally {create.mockRestore();}
+});
+
+it.each([false, true])("prints right-aligned strings across empty columns with XLSX metadata %s", async xlsx => {
+  const book = await fixture("GNM_HALIGN_RIGHT", 10, 48), sheet = book.sheets[0]!;
+  const value = "OVERFLOWTEXTCONTINUES";
+  const input = { ...book, sheets: [{ ...sheet, cells: [{ ...sheet.cells[0]!, column: 3, ...(xlsx ? { style: { ...sheet.cells[0]!.style!, xlsx: {} } } : {}), value: { kind: "string" as const, value } }] }] };
+  const { runs } = await pdfText(await writePdf(input, [], context));
+  expect(runs.map(run => run.text)).toEqual([value]);
+  expect(runs[0]!.glyphs[0]!.x).toBeLessThan(72 + 3 * 48);
+});
+it("preserves configured columns instead of resizing them from a CSV filename", async () => {
+  const book = { sheets: [{ id: "s", name: "Data", view: { defaultColumnWidth: 48 }, columns: [{ index: 0, sizePoints: 48 }], cells: [
+    { row: 0, column: 0, value: { kind: "string" as const, value: "OVERFLOWTEXTCONTINUES" } },
+    { row: 0, column: 1, value: { kind: "string" as const, value: "END" } }
+  ] }] };
+  const { runs } = await pdfText(await writePdf(book, [], { ...context, inputFilename: "input.csv" }));
+  expect(runs.find(run => run.text === "END")!.glyphs[0]!.x).toBe(120);
 });

@@ -29,7 +29,7 @@ and cell resolution are injected. It does not discover ambient time, locale or
 filesystem state, and its English opcode support is not a translated opcode
 catalog or native collation implementation.
 
-Rightward text span eligibility and clipping follow Gnumeric 1.12.61
+Leftward and rightward text span eligibility and clipping follow Gnumeric 1.12.61
 `src/cellspan.c` and `src/print-cell.c`, by Miguel de Icaza, Jody Goldberg
 and Andreas J. Guelzow; copyright 2007–2009 Morten Welinder, under
 GPL-2.0-or-later. Their SHA-256 values are respectively

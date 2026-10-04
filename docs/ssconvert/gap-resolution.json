@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "pdfRightwardAndLeftwardSpans": {
+      "finding": "Right-aligned overflowing strings were refused. Native controls also exposed XLSX column auto-expansion despite explicit dimensions, and hidden columns remaining nonzero-width in the print span index.",
+      "repair": "Share a directional occupied-column index with binary-search blockers, preserve explicit/default widths, and give hidden axes zero printed size. Right-aligned strings span leftward and clip at preceding occupied cells/page bounds. Existing rightward helper remains an export alias.",
+      "verification": "Original overflow failure and separate configured-width failure reproduced;306 print/PDF tests,selected build and both owner lint/types pass. Twelve compiled SDK/command PDFs succeed. Six independent Gnumeric controls cover empty cells, populated blockers, blank formulas, missing empty-string payloads, hidden columns and fills; native/product raster crops inspected.",
+      "limitations": "Native/product glyph origins differ by at most0.002285pt in this cohort and raster metrics remain nonzero; no exact pixel-parity claim. Neighboring unstyled XLSX cells still omit default fonts. Centered overflow and wider rendering remain open; all19 families stay open."
+    },
     "xlsxConditionalMetadataRetention": {
       "finding": "XLSX import kept raw conditionalFormatting rules but discarded their differential table; re-export then warned and dropped all rules.",
       "repair": "Retain the parsed differential table as workbook metadata and emit it before generated differential styles, preserving source indexes. Copy self-contained raw conditional rules in schema order before validations; reject dangling indexes and unsupported namespace/relationship metadata. Other loss warnings remain.",

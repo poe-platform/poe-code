@@ -25,3 +25,17 @@ it("charges index creation and span lookup to caller work", () => {
   cancel = true;
   expect(() => span(start, 500)).toThrow("cancelled");
 });
+it("spans leftward to the nearest occupied cell and respects page bounds", () => {
+  const end = { ...start, column: 4 };
+  const span = createRightwardPrintSpans(book([end, start, { ...start, column: 2 }]), column, () => {});
+  expect(span(end, 500, "left")).toBe(96);
+  expect(span(end, 60, "left")).toBe(60);
+});
+it("leftward spans ignore blanks and hidden cells but stop at blank formulas", () => {
+  const end = { ...start, column: 4 };
+  const span = createRightwardPrintSpans(book([end, start, { row: 0, column: 3, value: { kind: "blank" } },
+    { row: 0, column: 2, value: { kind: "blank" }, formula: '=IF(TRUE,"",1)' }]), column, () => {});
+  expect(span(end, 500, "left")).toBe(96);
+  const hidden = createRightwardPrintSpans(book([end, start, { ...start, column: 3 }]), index => ({ start: index * 48, size: index === 3 ? 0 : 48 }), () => {});
+  expect(hidden(end, 500, "left")).toBe(192);
+});

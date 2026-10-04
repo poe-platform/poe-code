@@ -11,7 +11,7 @@ import { objectRectangle } from "../objects/layout.js";
 import { graphBackground } from "../rendering/images/scene.js";
 import { layoutPrintPages } from "../rendering/print/layout.js";
 import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
-import { createRightwardPrintSpans } from "@poe-code/spreadsheet-engine/rendering/print/text-span";
+import { createPrintSpans } from "@poe-code/spreadsheet-engine/rendering/print/text-span";
 import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
 import { sheetPrintSettings } from "../rendering/print/settings.js";
 import { normalizeFontText } from "../rendering/print/font-normalization.js";
@@ -239,7 +239,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       const overflows = width > cellBox.width - 5;
       if (overflows && cellBox.overflowWidth === undefined || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
-      const clipLeft = x + 4;
+      const clipLeft = x + 4 - (alignment === "right" ? (cellBox.overflowWidth ?? cellBox.width) - cellBox.width : 0);
       const clipWidth = Math.max(0, (cellBox.overflowWidth ?? cellBox.width) - 4);
       // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
       x += 2 + 0.5 + 3 * printDisplayScale + (alignment === "left" ? 0 : (cellBox.width - 5) / (alignment === "center" ? 2 : 1));
@@ -271,7 +271,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font });
   };
   const effectiveColumns = (sheet: Sheet): readonly AxisMetadata[] | undefined => {
-    const isXlsx = sheet.cells.some(c => c.style !== undefined && typeof c.style === "object" && "xlsx" in c.style);
+    if (sheet.columns?.length || sheet.view?.defaultColumnWidth !== undefined) return sheet.columns;
     const isDelimited = /\.(?:csv|tsv)$/i.test(sheet.name) || /\.(?:csv|tsv)$/i.test(context.inputFilename ?? "");
     const hasUnconfiguredWideCells = (!sheet.columns || sheet.columns.length === 0) &&
       sheet.view?.defaultColumnWidth === undefined &&
@@ -280,7 +280,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const txt = c.displayedText ?? (c.value.kind === "blank" ? "" : String(c.value.value));
         return txt.length >= 9 && !txt.includes("\n");
       });
-    if (!isXlsx && !isDelimited && !hasUnconfiguredWideCells) return sheet.columns;
+    if (!isDelimited && !hasUnconfiguredWideCells) return sheet.columns;
     
     const existingByCol = new Map((sheet.columns ?? []).map(c => [c.index, c]));
     const fallback = typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48;
@@ -302,7 +302,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   const metrics = (sheet: Sheet) => {
     const axis = (entries: readonly AxisMetadata[] | undefined, fallback: number) => (index: number) => {
       let start = index * fallback, size = fallback;
-      for (const entry of entries ?? []) { tick(); if (entry.index < index) start += (entry.hidden ? 0 : entry.sizePoints ?? fallback) - fallback; if (entry.index === index) size = entry.sizePoints ?? fallback; }
+      for (const entry of entries ?? []) { tick(); if (entry.index < index) start += (entry.hidden ? 0 : entry.sizePoints ?? fallback) - fallback; if (entry.index === index) size = entry.hidden ? 0 : entry.sizePoints ?? fallback; }
       return { start, size };
     };
     return { column: axis(effectiveColumns(sheet), typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48), row: axis(sheet.rows, typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75) };
@@ -438,7 +438,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       printedSheets.push({ sheet, print, positions, objects, layout });
     }
     for (const { sheet, print, positions, objects, layout } of printedSheets) {
-      const rightwardSpan = createRightwardPrintSpans(sheet, positions.column, tick);
+      const textSpan = createPrintSpans(sheet, positions.column, tick);
       for (const geometry of layout.pages) {
         tick();
         const page = pdf.addPage([layout.widthPoints, layout.heightPoints]);
@@ -478,8 +478,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
           const alignment = style?.alignment === "general" ? cell.value.kind === "number" ? "right" :
             cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style?.alignment ?? "left";
-          const overflowWidth = style && cell.value.kind === "string" && alignment === "left"
-            ? rightwardSpan(cell, Math.max(width, (layout.widthPoints - print.margins.right - geometry.originX) / layout.scaleX - (x - geometry.originX))) : undefined;
+          const overflowWidth = style && cell.value.kind === "string" && (alignment === "left" || alignment === "right")
+            ? textSpan(cell, alignment === "left"
+              ? Math.max(width, (layout.widthPoints - print.margins.right - geometry.originX) / layout.scaleX - (x - geometry.originX))
+              : x - geometry.originX + width, alignment === "left" ? "right" : "left") : undefined;
           await text(page, value, x, y, style ? style.size * printDisplayScale : 10, alignment,
             style ? {width, height, style, ...(overflowWidth === undefined ? {} : {overflowWidth})} : undefined);
         }

@@ -45,7 +45,7 @@ it("evaluates growing group and mask captures in a Worker with external backing"
     logLevel: "silent"
   });
   expect(Object.values(bundle.metafile!.outputs).flatMap((output) => output.imports)).toEqual([]);
-  const backing = new Map<string, Uint8Array>();
+  const backing = new Map<string, { bytes: Uint8Array; size: number }>();
   const runtime = new Miniflare({
     modules: true,
     compatibilityDate: "2026-07-01",
@@ -61,16 +61,19 @@ it("evaluates growing group and mask captures in a Worker with external backing"
           return new Response();
         }
         if (request.method === "PUT") {
-          const chunk = new Uint8Array(await request.arrayBuffer()),
-            old = backing.get(key) ?? new Uint8Array(),
-            next = new Uint8Array(Math.max(old.length, position + chunk.length));
-          next.set(old);
-          next.set(chunk, position);
-          backing.set(key, next);
+          const chunk = new Uint8Array(await request.arrayBuffer());
+          let file = backing.get(key);
+          const end = position + chunk.length;
+          if (!file || end > file.bytes.length) {
+            const bytes = new Uint8Array(Math.max(end, (file?.bytes.length ?? 2048) * 2));
+            if (file) bytes.set(file.bytes);
+            file = { bytes, size: file?.size ?? 0 }; backing.set(key, file);
+          }
+          file.bytes.set(chunk, position); file.size = Math.max(file.size, end);
           return new Response();
         }
         return new Response(
-          backing.get(key)!.slice(position, position + Number(url.searchParams.get("length")))
+          backing.get(key)!.bytes.slice(position, Math.min(backing.get(key)!.size, position + Number(url.searchParams.get("length"))))
         );
       }
     }
@@ -109,7 +112,7 @@ it("evaluates growing group and mask captures in a Worker with external backing"
           )
         );
         const bytes = original.save();
-        backing.set("/input", bytes);
+        backing.set("/input", { bytes, size: bytes.length });
         const response = await runtime.dispatchFetch("https://verify/", {
           method: "POST",
           body: JSON.stringify({ size: bytes.length })

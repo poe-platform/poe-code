@@ -23,13 +23,17 @@ const fixtures: Block[][] = [
   [{t: "Table", c: [attr, [null, []], [], [attr, [[attr, []]]], [[attr, 0, [], [[attr, []]]]], [attr, [[attr, []]]]]}],
   [para({t: "RawInline", c: ["html", ""]}), {t: "RawBlock", c: ["latex", "raw\n"]}]
 ];
-it.for(fixtures.flatMap((blocks, index) => ([{}, {standalone: true}, {eol: "crlf"}] as Partial<ConversionOptions>[]).map((options, profile) => ({blocks, index, options, profile}))))("retains LaTeX reference thresholds for fixture $index, profile $profile", ({blocks, options}, {signal, onTestFinished}) => {
+it.for(fixtures.flatMap((blocks, index) => ([{}, {standalone: true}, {eol: "crlf"}] as Partial<ConversionOptions>[])
+  .flatMap((options, profile) => [0, 1, 2, 3].map(group => ({blocks, index, options, profile, group})))))
+("retains LaTeX reference thresholds for fixture $index, profile $profile, budget group $group", ({blocks, options, group}, {signal, onTestFinished}) => {
   const pending = (async () => {
     const wire = await writeDocument({blocks, metadata: {}, resources: []}, {to: "json"}, {signal});
     if (wire.kind !== "text") throw new Error("Expected JSON");
     const conversion = {from: "json", to: "latex", lossy: true, ...options} as ConversionOptions;
     const input = {bytes: new TextEncoder().encode(wire.text), source: "/input.json"};
-    for (let references = 0; ; references++) {
+    // Interleave the exhaustive sweep so no single case owns every conversion.
+    let references = group;
+    for (; references < 4096; references += 4) {
       signal.throwIfAborted();
       expect(references).toBeLessThan(4096);
       const limits = {references};
@@ -50,6 +54,9 @@ it.for(fixtures.flatMap((blocks, index) => ([{}, {standalone: true}, {eol: "crlf
       expect(await fs.readdir("/")).toEqual([]);
       if (!(expected instanceof Error) || !expected.message.startsWith("references:")) break;
     }
+    // This group reaches 4095, so it must finish before the original sweep cap.
+    // Other groups may exhaust their quotas just below a valid 4095 threshold.
+    if (group === 3) expect(references).toBeLessThan(4096);
   })();
   // A timed-out conversion must retire its prototype spies before the next case.
   onTestFinished(async () => {await pending.catch(() => {});});

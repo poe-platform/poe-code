@@ -4283,7 +4283,70 @@ type MagickPixelOperation = { end: number; apply(image: RgbaImage): Generator<vo
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"];
-    if (token === "-opaque" || token === "+opaque") {
+    if (token === "-alpha") {
+        const mode = (tokens[++i] ?? "on").toLowerCase();
+        if (mode === "remove") {
+            apply = function* (im) {
+                return (yield* removeAlphaImageSteps((yield* flattenImageSteps(im, state.background))));
+            };
+        }
+        else if (mode === "off" || mode === "deactivate" || mode === "opaque") {
+            apply = function* (im) {
+                let pixelWork = 0;
+                const out = new Uint8Array(im.data);
+                for (let idx = 3; idx < out.length; idx += 4) {
+                    if (++pixelWork % 16384 === 0)
+                        yield;
+                    out[idx] = 255;
+                }
+                return { ...im, data: out, hasAlpha: mode === "opaque" };
+            };
+        }
+        else if (mode === "transparent") {
+            apply = function* (im) {
+                let pixelWork = 0;
+                const out = new Uint8Array(im.data);
+                for (let idx = 3; idx < out.length; idx += 4) {
+                    if (++pixelWork % 16384 === 0)
+                        yield;
+                    out[idx] = 0;
+                }
+                return { ...im, data: out, hasAlpha: true };
+            };
+        }
+        else if (mode === "copy" || mode === "shape") {
+            apply = function* (im) {
+                let pixelWork = 0;
+                const out = new Uint8Array(im.data);
+                for (let idx = 0; idx < out.length; idx += 4) {
+                    if (++pixelWork % 16384 === 0)
+                        yield;
+                    const inten = clampByteVal(0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!);
+                    if (mode === "shape") {
+                        out[idx] = state.background.r;
+                        out[idx + 1] = state.background.g;
+                        out[idx + 2] = state.background.b;
+                    }
+                    out[idx + 3] = inten;
+                }
+                return { ...im, data: out, hasAlpha: true };
+            };
+        }
+        else if (mode === "on" || mode === "set" || mode === "activate") {
+            apply = function* (im) {
+                return (yield* ensureAlphaImageSteps(im, 1));
+            };
+        }
+        else if (mode === "extract") {
+            apply = function* (im) {
+                return (yield* extractChannelImageSteps((yield* ensureAlphaImageSteps(im, 1)), 3));
+            };
+        }
+        else { apply = function* (im) { yield; return im; }; }
+    } else if (token === "-color-matrix" || token === "-recolor") {
+        const matrix = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
+        apply = image => applyMagickColorMatrixSteps(image, matrix, signal);
+    } else if (token === "-opaque" || token === "+opaque") {
         const target = parseColor(tokens[++i] ?? "#000000");
         apply = image => applyMagickOpaqueSteps(image, target, state.fill, state.fuzz, token === "+opaque", signal);
     } else if (token === "-transparent" || token === "+transparent") {
@@ -4680,12 +4743,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickCustomConvolveSteps(im, kSpec, signal));
             });
         }
-        else if (t === "-color-matrix" || t === "-recolor") {
-            const mSpec = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickColorMatrixSteps(im, mSpec, signal));
-            });
-        }
         else if (t === "-remap") {
             const palSpec = tokens[++i] ?? "";
             const palImg = (yield* parseInputOperandSteps(palSpec, files, state, stdinBytes));
@@ -4977,66 +5034,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapSteps(stack, function* (im) {
                 return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal));
             });
-        }
-        else if (t === "-alpha") {
-            const mode = (tokens[++i] ?? "on").toLowerCase();
-            if (mode === "remove") {
-                stack = (yield* mapSteps(stack, function* (im) {
-                    return (yield* removeAlphaImageSteps((yield* flattenImageSteps(im, state.background))));
-                }));
-            }
-            else if (mode === "off" || mode === "deactivate" || mode === "opaque") {
-                stack = (yield* mapSteps(stack, function* (im) {
-                    let pixelWork = 0;
-                    const out = new Uint8Array(im.data);
-                    for (let idx = 3; idx < out.length; idx += 4) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        out[idx] = 255;
-                    }
-                    return { ...im, data: out, hasAlpha: mode === "opaque" };
-                }));
-            }
-            else if (mode === "transparent") {
-                stack = (yield* mapSteps(stack, function* (im) {
-                    let pixelWork = 0;
-                    const out = new Uint8Array(im.data);
-                    for (let idx = 3; idx < out.length; idx += 4) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        out[idx] = 0;
-                    }
-                    return { ...im, data: out, hasAlpha: true };
-                }));
-            }
-            else if (mode === "copy" || mode === "shape") {
-                stack = (yield* mapSteps(stack, function* (im) {
-                    let pixelWork = 0;
-                    const out = new Uint8Array(im.data);
-                    for (let idx = 0; idx < out.length; idx += 4) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        const inten = clampByteVal(0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!);
-                        if (mode === "shape") {
-                            out[idx] = state.background.r;
-                            out[idx + 1] = state.background.g;
-                            out[idx + 2] = state.background.b;
-                        }
-                        out[idx + 3] = inten;
-                    }
-                    return { ...im, data: out, hasAlpha: true };
-                }));
-            }
-            else if (mode === "on" || mode === "set" || mode === "activate") {
-                stack = (yield* mapSteps(stack, function* (im) {
-                    return (yield* ensureAlphaImageSteps(im, 1));
-                }));
-            }
-            else if (mode === "extract") {
-                stack = (yield* mapSteps(stack, function* (im) {
-                    return (yield* extractChannelImageSteps((yield* ensureAlphaImageSteps(im, 1)), 3));
-                }));
-            }
         }
         else if (t === "-separate") {
             const nextStack: RgbaImage[] = [];

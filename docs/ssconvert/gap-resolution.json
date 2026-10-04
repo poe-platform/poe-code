@@ -3,6 +3,13 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxSheetProtectionPermissions": {
+      "scope": "Both XLSX editions map canonical view.protectedAllow booleans to inverse OOXML deny flags. Imports use OOXML defaults; exports validate fields and preserve original-value edits in either direction. Partial maps use selection-only allow defaults.",
+      "qualification": "30 original memory regressions repaired.2615 affected cohort tests plus one added boundary test pass; selected ssconvert build and owner lint/source/test types pass.33 compiled SDK/command/edited exports:990 encoded permission comparisons,495 comparisons against independent Calc conversions and33 actual Calc readbacks pass.16 independent Calc imports add240 permission comparisons. Screenshot inspected.",
+      "diagnostics": "All33 public exports retain the exact25-warning sequence, including original BIFF record warnings. Those record-level warning refinements and password transport remain open. Calc exact javaldx startup warning retained.",
+      "nativeDifference": "Pinned Gnumeric1.12.61 xlsx-read.c:2623-2695 assigns OOXML deny flags directly to allow properties. Three actual outputs read back with all15 bits reversed in both sheets (six masks); exit0 with empty diagnostics. Independent Calc preserves original BIFF permissions. This retained native incompatibility is not counted as a parity pass.",
+      "remaining": "Password verification, other-format permissions, GUI enforcement, native polarity mismatch and broader19-family qualification remain open; no release or family closure."
+    },
     "biffSheetProtectionPermissions": {
       "scope": "BIFF8 preserves all fifteen canonical view.protectedAllow booleans, including edits. Partial maps use native selection defaults 0x4400; BIFF7 warns for nondefault permissions. Unknown fields and nonboolean values are rejected.",
       "qualification": "18 failing regressions repaired; 2414 tests across95 files, owner lint/types and selected ssconvert workspace build pass.33 compiled SDK/command exports:66 encoded masks,66 native readback masks,32 native source controls and66 Calc protection comparisons pass. Final outputs byte-identical after diagnostic repair. Screenshot inspected.",

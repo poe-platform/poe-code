@@ -1,4 +1,4 @@
-import type { CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, Sheet, UnsupportedRecord } from "@poe-code/spreadsheet-ast";
 import { readXlsxMetadata } from "./xlsx-metadata.js";
 import { xlsxNamespaces } from "./xlsx-schema.js";
@@ -7,6 +7,13 @@ import { escapeXlsx, metadataNode, type Attributes, type ElementWriter, type Met
 
 // The existing XLSX column-width convention, shared by explicit and default widths.
 export const xlsxColumnWidthPoints = (130 / 18.5703125) * (72 / 96);
+
+// OOXML flags deny operations; the workbook model describes allowed operations.
+export const xlsxProtectionDefaults = {
+  objects: false, scenarios: false, formatCells: true, formatColumns: true, formatRows: true,
+  insertColumns: true, insertRows: true, insertHyperlinks: true, deleteColumns: true, deleteRows: true,
+  selectLockedCells: false, sort: true, autoFilter: true, pivotTables: true, selectUnlockedCells: false
+} as const;
 
 const fields: Readonly<Record<string, readonly string[]>> = {
   sheetPr: ["syncHorizontal", "syncVertical", "syncRef", "transitionEvaluation", "transitionEntry", "published", "codeName", "filterMode", "enableFormatConditionsCalculation"],
@@ -150,8 +157,33 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
   const originalProtection = protectedValue === "1" || protectedValue === "true" ? 1 : undefined;
   const protection = { formatCells: 0, formatColumns: 0, formatRows: 0, insertColumns: 0, insertRows: 0, insertHyperlinks: 0,
     deleteColumns: 0, deleteRows: 0, selectLockedCells: 1, sort: 0, autoFilter: 0, pivotTables: 0, selectUnlockedCells: 1 };
-  baseline.push(node("sheetProtection", { sheet: originalProtection, ...protection }));
-  current.push(node("sheetProtection", { sheet: view.Protected === undefined ? originalProtection : Number(view.Protected) ? 1 : undefined, ...protection }));
+  const allowed = sheet.view?.protectedAllow;
+  const permissions: Record<string, number> = { ...protection };
+  if (allowed !== undefined) {
+    if (!allowed || typeof allowed !== "object" || Array.isArray(allowed))
+      throw new SsconvertError("unsupported-feature", "Invalid XLSX sheet protection permission settings");
+    const values = allowed as Readonly<Record<string, ImportedValue>>;
+    for (const name of Object.keys(values)) {
+      charge();
+      if (!Object.hasOwn(xlsxProtectionDefaults, name) || typeof values[name] !== "boolean")
+        throw new SsconvertError("unsupported-feature", "Invalid XLSX sheet protection permission: " + name);
+    }
+    for (const name of Object.keys(xlsxProtectionDefaults)) {
+      charge();
+      const value = Object.hasOwn(values, name) ? values[name] : name === "selectLockedCells" || name === "selectUnlockedCells";
+      permissions[name] = value ? 0 : 1;
+    }
+  }
+  const originalPermissions: Record<string, number> = { ...protection };
+  if (allowed !== undefined && raw.has("sheetProtection")) {
+    for (const [name, fallback] of Object.entries(xlsxProtectionDefaults)) {
+      charge();
+      const value = raw.get("sheetProtection")!.attributes[name];
+      originalPermissions[name] = Number(value === undefined ? fallback : value === "1" || value === "true");
+    }
+  }
+  baseline.push(node("sheetProtection", { sheet: originalProtection, ...originalPermissions }));
+  current.push(node("sheetProtection", { sheet: view.Protected === undefined ? originalProtection : Number(view.Protected) ? 1 : undefined, ...permissions }));
 
   function merge(original: MetadataNode | undefined, before: MetadataNode | undefined, after: MetadataNode): MetadataNode {
     charge(); if (!original) return after;

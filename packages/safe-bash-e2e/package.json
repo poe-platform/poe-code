@@ -17,5 +17,12 @@
     "@poe-platform/safe-bash": "*",
     "@poe-code/safe-fs": "*",
     "@poe-platform/safe-fs": "file:../safe-fs"
+  },
+  "exports": {
+    ".": {
+      "workerd": null,
+      "browser": null,
+      "node": "./src/index.ts"
+    }
   }
 }

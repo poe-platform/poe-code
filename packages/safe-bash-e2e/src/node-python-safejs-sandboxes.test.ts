@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import vm from "node:vm";
 import { sb, withE2EHarness } from "./harness.js";
-import { safeJsCommands, type SafeJsHostFunction, type SafeJsModule, type SafeJsRunOptions, type SafeJsRuntime } from "@poe-platform/safe-bash/commands/safejs";
+import { nodeCommands, NODE_PROFILE, type NodeSafeJsCommandOptions, type NodeRuntimeProvider, type NodeHostRequest } from "@poe-platform/safe-bash/commands/node";
 import {
   createPythonExecutorPool,
   inspectPythonCapabilities,
@@ -10,6 +10,11 @@ import {
   type PythonExecutorStart,
 } from "@poe-platform/safe-bash/commands/python";
 import { createPlaywrightCli, type PlaywrightAdapter, type PlaywrightPage } from "@poe-platform/safe-bash/commands/playwright";
+
+type SafeJsRuntime<Budget> = NodeSafeJsCommandOptions<Budget>["runtime"];
+type SafeJsHostFunction = Parameters<SafeJsRuntime<unknown>["declareHostOperation"]>[0];
+type SafeJsModule = ReturnType<SafeJsRuntime<unknown>["makeFsModule"]>;
+type SafeJsRunOptions<Budget> = Parameters<SafeJsRuntime<Budget>["run"]>[1];
 
 interface MockBudget {
   readonly maxSteps?: number;
@@ -397,14 +402,14 @@ describe("safe-bash E2E: node, safejs, python, and playwright-cli sandboxed exec
     );
   });
 
-  it("9. safeJsCommands registers node with --version and --completion-bash support", async () => {
+  it("9. nodeCommands registers an injected SafeJS runtime with --version and --completion-bash support", async () => {
     const runtime = createInMemorySafeJsRuntime({
       version: "v22.9.0-custom",
       options: { "--inspect-brk": "boolean" },
     });
     await withE2EHarness(
       {
-        plugins: [safeJsCommands({ runtime, replace: true })],
+        plugins: [nodeCommands({ runtime, replace: true })],
       },
       async (h) => {
         const r = await h.exec(
@@ -420,20 +425,20 @@ describe("safe-bash E2E: node, safejs, python, and playwright-cli sandboxed exec
   });
 
   it("10. node with NodeRuntimeProvider (NODE_PROFILE) enforces granular VFS grants (dataRead, dataWrite, jsonModules, stdoutWrite)", async () => {
-    const provider: sb.NodeRuntimeProvider = {
-      profile: sb.NODE_PROFILE,
+    const provider: NodeRuntimeProvider = {
+      profile: NODE_PROFILE,
       identity: "e2e-sync-provider",
       prepare(request, services) {
         return {
           async start() {
             let seq = 0;
             const callHost = async (
-              op: sb.NodeHostRequest["op"],
-              authority: sb.NodeHostRequest["authority"],
+              op: NodeHostRequest["op"],
+              authority: NodeHostRequest["authority"],
               path: string | null,
-              flag: sb.NodeHostRequest["flag"],
+              flag: NodeHostRequest["flag"],
               text: string | null,
-              moduleKey: sb.NodeHostRequest["moduleKey"],
+              moduleKey: NodeHostRequest["moduleKey"],
             ) => {
               const s = ++seq;
               const res = await services.request({ sequence: s, op, authority, path, flag, text, moduleKey });
@@ -467,7 +472,7 @@ describe("safe-bash E2E: node, safejs, python, and playwright-cli sandboxed exec
       {
         files: { "/workspace/in.txt": "hello provider\n" },
         plugins: [
-          sb.nodeCommands({
+          nodeCommands({
             provider,
             grants: { dataRead: true, dataWrite: true, stdoutWrite: true },
             replace: true,
@@ -489,7 +494,7 @@ describe("safe-bash E2E: node, safejs, python, and playwright-cli sandboxed exec
     await withE2EHarness(
       {
         plugins: [
-          sb.nodeCommands({
+          nodeCommands({
             provider,
             grants: { dataRead: true, dataWrite: false, stdoutWrite: true },
             replace: true,
@@ -686,7 +691,7 @@ describe("safe-bash E2E: node, safejs, python, and playwright-cli sandboxed exec
               phases.push(`${ev.command}:${ev.phase}`);
             },
             onDiagnostic(ev) {
-              diagnostics.push(ev.category);
+              diagnostics.push(ev.failure.category);
             },
             createExecutor: () => ({
               async run(start: PythonExecutorStart) {
@@ -730,7 +735,7 @@ describe("safe-bash E2E: node, safejs, python, and playwright-cli sandboxed exec
     let created = 0;
     let disposed = 0;
     const pool = createPythonExecutorPool({
-      maxExecutors: 2,
+      maxConcurrentExecutors: 2,
       createExecutor: () => {
         created++;
         return {
@@ -751,6 +756,7 @@ describe("safe-bash E2E: node, safejs, python, and playwright-cli sandboxed exec
 
     const report = inspectPythonCapabilities({ createExecutor: pool.createExecutor });
     assert.equal(report.configurationValid, true);
+    assert.equal(pool.inspect().capacity, 2);
 
     try {
       await withE2EHarness(

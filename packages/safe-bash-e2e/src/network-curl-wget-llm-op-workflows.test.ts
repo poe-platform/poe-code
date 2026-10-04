@@ -503,9 +503,10 @@ describe("safe-bash E2E: network (curl, wget), llm, and op (1Password) workflows
           r.stdout,
           [
             '{"model":"mock-fast","prompt":"Summarize the architecture"}',
-            '{"model":"mock-pro","system":"You are a debugger","prompt":"stack trace line 1\\n\\nFix this","temp":"0.2"}',
-            "mock/mock-fast\taliases: fast\tattachments: -\toutput: text/plain",
-            "mock/mock-pro\taliases: pro\tattachments: -\toutput: text/plain",
+            '{"model":"mock-pro","system":"You are a debugger","prompt":"stack trace line 1 Fix this","temp":"0.2"}',
+            "mock: mock-fast (aliases: fast)",
+            "mock: mock-pro (aliases: pro)",
+            "Default: mock-fast",
             ""
           ].join("\n")
         );
@@ -536,10 +537,10 @@ describe("safe-bash E2E: network (curl, wget), llm, and op (1Password) workflows
                 async *complete(req) {
                   yield JSON.stringify({
                     prompt: req.prompt,
-                    attachments: req.attachments.map((a) => ({
-                      mimeType: a.mimeType,
-                      size: a.bytes.byteLength,
-                    })),
+                    attachments: req.attachments.map((a) => {
+                      assert.ok(a.bytes, "Expected an inline attachment");
+                      return { mimeType: a.mimeType, size: a.bytes.byteLength };
+                    }),
                   });
                 },
               },

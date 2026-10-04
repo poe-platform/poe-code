@@ -1062,7 +1062,7 @@ test("createDeviceFileSystem provides /dev/null, /dev/zero, /dev/random, and /de
 });
 
 // 14. createDeviceFileSystem write/create/mutation invariants
-test("createDeviceFileSystem rejects writes to /dev/urandom, set -C noclobber on devices, and file creation or deletion inside /dev", async () => {
+test("createDeviceFileSystem permits noclobber writes to /dev/null and rejects read-only writes and device mutations", async () => {
   const devFs = createDeviceFileSystem();
   const rootFs = new sb.MemoryFileSystem();
   const mounted = new sb.MountFileSystem({
@@ -1085,7 +1085,7 @@ test("createDeviceFileSystem rejects writes to /dev/urandom, set -C noclobber on
       res.stdout,
       [
         "urandom_write:denied",
-        "noclobber_dev:denied",
+        "noclobber_dev:ok",
         "dev_mkdir:denied",
         "dev_rm:denied",
         "dev_create:denied",
@@ -1340,7 +1340,7 @@ test("df reports filesystem usage, types, inodes, and totals across multi-mount 
 
 // 18. apply_patch and diff/patch atomic capability enforcement on remote mounts vs staged local publication
 test("apply_patch and patch refuse direct non-atomic remote S3/WebDAV mutations while supporting local staging and remote publication", async () => {
-  let patchedBytes = new Uint8Array(0);
+  let patchedBytes: Uint8Array = new Uint8Array(0);
   await withE2EHarness({ cwd: "/workspace" }, async (localH) => {
     const localRes = await localH.exec(
       [

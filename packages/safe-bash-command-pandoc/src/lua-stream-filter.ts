@@ -33,15 +33,18 @@ export async function applyLuaStream(load:LuaScriptLoader | LuaFilterOptions | L
       yield decoder.decode();
     })();
     await parseBackedJson(text,input,scratch,cooperate,(offset,message)=>{throw new PandocError("E_AST","convert",message,"json",`$@${offset}`);});
+    const streamed=typeof load!=="function" && Boolean(load.readStream);
+    let supplied:Uint8Array | undefined;
+    if(!streamed){
+      supplied=await (typeof load==="function"?load:load.readFile!)(request.path,signal);
+      if(!(supplied instanceof Uint8Array))throw new PandocError("E_IO","convert","Lua filter source must be bytes");
+      context.charge("inputBytes",supplied.length);context.charge("retainedBytes",supplied.length);
+    }
     const source=(async function*(){
-      if(typeof load!=="function" && load.readStream)yield* load.readStream(request.path,signal);
-      else {
-        const bytes=await (typeof load==="function"?load:load.readFile!)(request.path,signal);
-        if(!(bytes instanceof Uint8Array))throw new PandocError("E_IO","convert","Lua filter source must be bytes");
-        yield bytes;
-      }
+      if(streamed)yield* (load as LuaStreamFilterOptions).readStream(request.path,signal);
+      else yield supplied!;
     })();
-    try {await applyRetainedLuaFilter(input,output,source,scratch,context,context.to,request.path,typeof load==="function");}
+    try {await applyRetainedLuaFilter(input,output,source,scratch,context,context.to,request.path,typeof load==="function",!streamed);}
     catch(error) {
       if(!(error instanceof LuaError))throw error;
       const heap=new LuaStorage(scratch,cooperate),value=error.value;

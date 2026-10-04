@@ -3,7 +3,7 @@ import type {ConversionOptions} from "./types.js";
 
 /** Replay native text finalization without retaining the output. Source chunks
  * preserve Unicode scalar boundaries and can be replayed from caller storage. */
-export async function reserveRetainedOutput(source: () => AsyncIterable<string>, context: ExecutionContext, eol: ConversionOptions["eol"]): Promise<void> {
+export async function reserveRetainedOutput(source: () => AsyncIterable<string>, context: ExecutionContext, eol: ConversionOptions["eol"], encodeSlices = true): Promise<void> {
   const retained = Number.isFinite(context.limits.retainedBytes);
   if (!Number.isFinite(context.limits.references) && !retained) return;
   if (retained) {let units = 0; for await (const chunk of source()) units += chunk.length; context.charge("retainedBytes", units * 2);}
@@ -27,6 +27,7 @@ export async function reserveRetainedOutput(source: () => AsyncIterable<string>,
     }
     if (retained) {
       context.charge("retainedBytes", length);
+      if (!encodeSlices) return;
       let units = 0;
       for await (const chunk of source()) for (const char of chunk) {
         const next = eol === "crlf" && char === "\n" ? 2 : char.length;

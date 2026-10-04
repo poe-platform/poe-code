@@ -23,7 +23,7 @@ import {pandocLibrary} from "./lua-pandoc.generated.js";
 
 /** The caller owns all three stores and their lifetime, including retained
  * error payloads. The public stream adapter renders errors before closing them. */
-export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,source:AsyncIterable<Uint8Array> | Iterable<Uint8Array>,storage:PagedStorage,context:AdapterContext,to:string,path:string,legacyErrors=false):Promise<void> {
+export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,source:AsyncIterable<Uint8Array> | Iterable<Uint8Array>,storage:PagedStorage,context:AdapterContext,to:string,path:string,legacyErrors=false,sourceAdmitted=false):Promise<void> {
   const cooperate=(units?:number)=>context.cooperate(units),heap=new LuaStorage(storage,cooperate),program=new LuaProgram(storage,heap,cooperate);
   const base=new LuaBase(heap),math=new LuaMath(heap),utf8=new LuaUtf8(heap),table=new LuaTable(heap),strings=new LuaStringLibrary(heap,cooperate),numbers=new LuaNumbers(heap);
   const environment=await heap.table(),key=(text:string)=>heap.string([new TextEncoder().encode(text)]);
@@ -38,7 +38,14 @@ export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,
     }
   };
   const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,async(prototype,args,native)=>{
-    if(prototype===-1004){context.charge("references",1);return [];}
+    if(prototype===-1004){context.charge("references",1);context.charge("retainedBytes",16);return [];}
+    if(prototype===-1005){
+      const value=await args.get(0) as LuaReference;
+      context.charge("retainedBytes",(await heap.byteLength(value))*2);
+      const decoder=new TextDecoder();let units=0;
+      for await(const bytes of heap.bytes(value))units+=decoder.decode(bytes,{stream:true}).length;
+      units+=decoder.decode().length;context.charge("text",units);return [];
+    }
     if(prototype===-1000){context.bound("depth",await numbers.coerce(await args.get(0)));return [];}
     if(prototype===-1001)throw callbackError??=new PandocError("E_AST","convert","Lua callback must return an element, list or nil");
     if(prototype===-1002 || prototype===-1003)throw new LuaError(await args.get(0),0,prototype===-1002?"E_UNSUPPORTED_FEATURE":"E_AST");
@@ -57,14 +64,17 @@ export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,
         if(first && bytes[0]===27)throw new PandocError("E_UNSUPPORTED_FEATURE","convert","Lua bytecode filters are unsupported");
         first=false;
       }
-      context.charge("inputBytes",bytes.length);yield bytes;
+      if(!sourceAdmitted)context.charge("inputBytes",bytes.length);
+      for(let offset=0;offset<bytes.length;offset+=65536){
+        const chunk=bytes.subarray(offset,offset+65536);if(!sourceAdmitted)context.charge("retainedBytes",chunk.length);yield chunk;
+      }
     }
   })(),heap,cooperate);
   let failure:{reason:unknown} | undefined;
   try {
     await base.install(environment);await math.install(environment);await utf8.install(environment);
     await strings.install(environment,program,machine);await table.install(environment,program,machine);
-    for(const [name,id] of [["__pandoc_depth",-1000],["__pandoc_ast_error",-1001],["__pandoc_unsupported",-1002],["__pandoc_invalid",-1003],["__pandoc_reference",-1004]] as const)
+    for(const [name,id] of [["__pandoc_depth",-1000],["__pandoc_ast_error",-1001],["__pandoc_unsupported",-1002],["__pandoc_invalid",-1003],["__pandoc_reference",-1004],["__pandoc_string",-1005]] as const)
       await heap.set(environment,await key(name),await heap.closure(id,[]));
     await heap.set(environment,await key("FORMAT"),await key(to.split("+")[0]!.split("-")[0]!));
     const bootstrap=await loadLuaLibrary(pandocLibrary,heap,program,await key("@pandoc constructors"));

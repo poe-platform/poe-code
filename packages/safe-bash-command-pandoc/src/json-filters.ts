@@ -4,6 +4,10 @@ import {jsonReader, jsonWriter} from "./json.js";
 import type {FilterCapability} from "./types.js";
 import type {Inline} from "./ast-types.js";
 
+/** Internal handshake: retain producer write boundaries while forwarding bounded slices. */
+export const jsonFilterWrite = Symbol("jsonFilterWrite");
+export type JsonFilterOutput = {write(bytes: Uint8Array): Promise<void>; [jsonFilterWrite]?(length: number): Promise<void>};
+
 /** Explicit trusted runtime. Await every stdout write and honor cancellation.
  * Return the filter's exit status only after its output and cleanup finish.
  * Runtime execution and its filesystem authority remain the caller's responsibility. */
@@ -62,7 +66,10 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime | JsonStre
           } catch (reason) {return Promise.reject(fail(reason));}
           const operation = (async () => {
             try {
+              context.charge("inputBytes", bytes.length);
+              context.charge("retainedBytes", bytes.length);
               if (bytes.length) context.charge("references", 1);
+              if (bytes.length) await (streams.stdout as JsonFilterOutput)[jsonFilterWrite]?.(bytes.length);
               for (let offset = 0; offset < bytes.length; offset += 16384) {
                 context.checkpoint(); signal.throwIfAborted();
                 await streams.stdout.write(bytes.slice(offset, offset + 16384));

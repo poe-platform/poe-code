@@ -3,7 +3,7 @@ import {luaAst} from "./lua-ast.js";
 /** Freeze trusted entrypoints before filter source can mutate globals. */
 export const luaPandocSource=luaAst+`
 local runner, globals = __pandoc_run, _G
-local reference = __pandoc_reference
+local reference, string_value = __pandoc_reference, __pandoc_string
 local unsupported, invalid = __pandoc_unsupported, __pandoc_invalid
 local type, next, rawlen, rawget = type, next, rawlen, rawget
 -- The public protocol uses tagged enum objects; the established Lua API uses
@@ -35,6 +35,7 @@ local function rows(value)
 end
 local function to_wire(value, depth)
   check_depth(depth)
+  if type(value) == 'string' then string_value(value) end
   if type(value) ~= 'table' then return value end
   if value.__pandoc_null then return value end
   for key,child in next,value do reference(); value[key]=to_wire(child,depth+1) end

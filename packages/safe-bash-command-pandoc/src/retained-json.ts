@@ -13,7 +13,7 @@ import type {ExecutionContext} from "./execution.js";
 import type {InputSource, WorkingStorageOptions} from "./types.js";
 
 /** Own a validated, replayable Pandoc wire document in caller storage. */
-export async function readRetainedJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, chargeInput = true, chargeAst = true, onInputDecoded?: () => void, decodeInput = chargeInput) {
+export async function readRetainedJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, chargeInput = true, chargeAst = true, onInputDecoded?: () => void, decodeInput = chargeInput, decoderInputReserved = false) {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384)
     context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
@@ -80,7 +80,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         yield part.value;
       }
     };
-    const parsedText = decodeInput && (Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references) || retained) ? retainedUtf8(references ? retainInput(bytes(), context, scratch, ["inputBytes"], retained) : bytes(), context, scratch, chargeInput && !references ? ["inputBytes"] : [], onInputDecoded, retained) : text;
+    const parsedText = decodeInput && (Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references) || retained) ? retainedUtf8(references ? retainInput(bytes(), context, scratch, ["inputBytes"], retained) : bytes(), context, scratch, chargeInput && !references ? ["inputBytes"] : [], onInputDecoded, retained, !retained || !chargeInput && !decoderInputReserved) : text;
     await parseBackedJson(parsedText, tree, scratch, units => context.cooperate(units), (offset, message) => {
       throw new PandocError("E_AST", "read", message, "json", `$@${offset}`);
     }, async (node, offset) => {

@@ -1,3 +1,4 @@
+import {jsonFilterWrite, type JsonFilterOutput} from "./json-filters.js";
 import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import {reserveRetainedAstBudgets} from "./retained-ast-budgets.js";
 import type {readRetainedRtfDocument} from "./retained-rtf-document.js";
@@ -58,7 +59,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
   let releaseOrigins:(()=>void) | undefined;
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
-  const preflight = async (chunks: () => AsyncIterable<Uint8Array>, eol?: ConversionOptions["eol"]) => {
+  const preflight = async (chunks: () => AsyncIterable<Uint8Array>, eol?: ConversionOptions["eol"], encodeSlices = true) => {
     if (!Number.isFinite(context.limits.retainedBytes) && !Number.isFinite(context.limits.outputBytes) && !(Number.isFinite(context.limits.references) && eol === "crlf")) return;
     if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) {
       const text = async function* () {
@@ -66,7 +67,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
         for await (const bytes of chunks()) yield decoder.decode(bytes, {stream: true});
         yield decoder.decode();
       };
-      await reserveRetainedOutput(text, context, eol);
+      await reserveRetainedOutput(text, context, eol, encodeSlices);
       return;
     }
     let length = 0;
@@ -117,24 +118,44 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     }
     for (const request of options.filters ?? []) {
       if (request.kind === "json") await checkImageOrigins(document.tree, context);
-      if (request.kind === "json") await preflight(() => document!.chunks());
+      if (request.kind === "json") await preflight(() => document!.chunks(), undefined, false);
       const signal = context.signal ?? new AbortController().signal;
       const response = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal}, (working.cacheBytes ?? 1024 * 1024) / 16384);
       const release = context.onClose(() => response.close());
       const start = response.allocate(0);
-      let length = 0, filterFailure: {reason: unknown} | undefined;
+      let length = 0, pendingWrite = 0, filterFailure: {reason: unknown} | undefined;
       try {
-        await context.call(() => context.context.filters!.applyJsonStream!({
-          stdin: document!.chunks(), signal,
-          stdout: {async write(bytes) {
-            if (request.kind === "json") context.charge("inputBytes", bytes.length);
-            await response.append(bytes);
-            length += bytes.length;
-          }}
-        }, {...request}, Object.assign(context, {to: options.to})));
+        const beginWrite = async (size: number) => {
+          const header = new Uint8Array(8); new DataView(header.buffer).setFloat64(0, size, true);
+          await response.append(header); length += 8; pendingWrite = size;
+        };
+        const stdout: JsonFilterOutput = {
+          [jsonFilterWrite]: beginWrite,
+          async write(bytes) {
+            if (request.kind === "json" && bytes.length) {
+              if (!pendingWrite) {
+                context.charge("inputBytes", bytes.length); context.charge("retainedBytes", bytes.length);
+                await beginWrite(bytes.length);
+              }
+              pendingWrite -= bytes.length;
+            }
+            await response.append(bytes); length += bytes.length;
+          }
+        };
+        await context.call(() => context.context.filters!.applyJsonStream!({stdin: document!.chunks(), signal, stdout}, {...request}, Object.assign(context, {to: options.to})));
         const next = await readRetainedJson({chunks: (async function* () {
-          for (let offset = 0; offset < length; offset += 16384) yield await response.read(start + offset, Math.min(16384, length - offset));
-        })()}, context, working, false, true, undefined, request.kind === "json");
+          for (let offset = 0; offset < length;) {
+            let size = length - offset;
+            if (request.kind === "json") {
+              const header = await response.read(start + offset, 8);
+              size = new DataView(header.buffer, header.byteOffset, 8).getFloat64(0, true); offset += 8;
+              context.charge("retainedBytes", size);
+            }
+            for (let consumed = 0; consumed < size; consumed += 16384)
+              yield await response.read(start + offset + consumed, Math.min(16384, size - consumed));
+            offset += size;
+          }
+        })()}, context, working, false, true, undefined, request.kind === "json", request.kind === "json");
         await inputResources?.reserve(next.normalizedUsage);
         if(origins){if(request.kind==="lua")await origins.transfer(document.tree,next.tree);else origins.clear();}
         await document.close();

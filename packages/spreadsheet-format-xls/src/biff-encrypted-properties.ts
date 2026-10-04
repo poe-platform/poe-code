@@ -1,4 +1,5 @@
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
+import type { BiffRc4Cipher } from "./biff-encryption.js";
 import { Binary, invalidBiff } from "./biff-binary.js";
 import { biffPropertyFormats } from "./biff-properties.js";
 import { propertyRange, readPropertySectionRanges, readPropertyValueRanges } from "./biff-property-range.js";
@@ -40,7 +41,7 @@ export async function encryptedBiffPropertyStream(streams: ReadonlyMap<string, U
 /** MS-OFFCRYPTO 2.3.5.4: header/table restart block 0; each payload restarts its
  * descriptor block. These are not Workbook's absolute-position 1024-byte chunks. */
 export function decryptBiffPropertyContainer(encrypted: Uint8Array, keyStream: (block: number, length: number) => Uint8Array,
-  context: CapabilityContext, charge: (amount: number) => void): ReadonlyMap<string, Uint8Array> {
+  context: CapabilityContext, charge: (amount: number) => void, createCipher?: (block: number) => BiffRc4Cipher): ReadonlyMap<string, Uint8Array> {
   const owned: Uint8Array[] = [], result = new Map<string, Uint8Array>();
   let closed = false;
   const cleanup = () => { closed = true; for (const bytes of owned) bytes.fill(0); result.clear(); };
@@ -53,9 +54,19 @@ export function decryptBiffPropertyContainer(encrypted: Uint8Array, keyStream: (
     check();
     charge(bytes.length * 2 + 320);
     const output = bytes.slice(); owned.push(output);
-    const stream = keyStream(block, bytes.length);
-    try { check(); for (let i = 0; i < output.length; i++) { if (!(i % 1024)) check(); output[i] = output[i]! ^ stream[i]!; } }
-    finally { stream.fill(0); }
+    if (createCipher) {
+      const cipher = createCipher(block);
+      try {
+        check();
+        for (let at = 0; at < output.length; at += 16384) {
+          cipher.xor(output.subarray(at, Math.min(output.length, at + 16384))); check();
+        }
+      } finally { cipher.close(); }
+    } else {
+      const stream = keyStream(block, bytes.length);
+      try { check(); for (let i = 0; i < output.length; i++) { if (!(i % 1024)) check(); output[i] = output[i]! ^ stream[i]!; } }
+      finally { stream.fill(0); }
+    }
     return output;
   };
   try {

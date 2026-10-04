@@ -250,7 +250,10 @@ export async function decryptBiffRecords(records: BiffRecords, revision: number,
         else records[at] = { ...record, data: new Binary(decoded) };
       } finally { if ("set" in records) decoded.fill(0); }
     }
-    return properties ? decryptBiffPropertyContainer(properties, keyStream, context, admit) : undefined;
+    return properties ? decryptBiffPropertyContainer(properties, keyStream, context, admit, number => {
+      const key = blockKey(number);
+      try { return createRc4Cipher(key, context); } finally { key.fill(0); }
+    }) : undefined;
   } catch (error) { for (const bytes of decodedBuffers) bytes.fill(0); throw error; }
   finally { array?.fill(0); base?.fill(0); stream?.fill(0); }
 }

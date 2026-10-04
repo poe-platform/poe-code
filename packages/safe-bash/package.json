@@ -547,7 +547,8 @@
             "@poe-code/spreadsheet-format-xlsx": "*",
             "@poe-code/spreadsheet-ast": "*",
             "@noble/hashes": "2.4.0",
-            "safe-bash-io-engine": "*"
+            "safe-bash-io-engine": "*",
+            "@poe-code/json-ast": "*"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",

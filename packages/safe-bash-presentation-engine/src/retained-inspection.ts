@@ -1,5 +1,5 @@
 import { PagedStorage } from '@poe-code/safe-fs/storage';
-import type { ByteSource, ByteSink, Scope } from './contracts.js';
+import type { ByteSource, Scope } from './contracts.js';
 import { OfficeError } from './errors.js';
 import type { RetainedPackageArchive, RetainedPackageContext } from './retained-package.js';
 import { openRetainedSelectionRecords } from './retained-selection.js';
@@ -13,6 +13,7 @@ import { equationOpaqueElements } from './equations-compatibility.js';
 import { RetainedValues, equal, folded, literal } from './retained-values.js';
 import { dialects } from './validation-schema.js';
 import { resourceContext } from './resource-limits.js';
+import { streamJson as json, rawJson, boundedOutput, stageRetainedOutput, type StagedOutput } from './retained-output.js';
 
 export interface RetainedInspectionSelection {
   readonly token?: string;
@@ -22,65 +23,28 @@ export interface RetainedInspectionSelection {
   readonly scope?: Scope;
   readonly all?: boolean;
 }
-export interface StagedInspection { write(sink: ByteSink): Promise<void>; close(): Promise<void> }
-const rawJson = Symbol('admitted-json');
-// This serializer only visits the fixed inventory schema. Collections are async
-// iterables; factories produce streamed strings. Raw JSON is internally staged.
-async function* json(value: unknown): ByteSource {
-  if (typeof value === 'function') {
-    yield* literal('"'); const decoder = new TextDecoder('utf-8', { fatal: true });
-    for await (const bytes of value() as ByteSource) for (let offset = 0; offset < bytes.length; offset += 8192) {
-      const text = decoder.decode(bytes.subarray(offset, offset + 8192), { stream: true }); yield* literal(JSON.stringify(text).slice(1, -1));
-    }
-    yield* literal(JSON.stringify(decoder.decode()).slice(1, -1)); yield* literal('"');
-  } else if (value && typeof value === 'object') {
-    if (rawJson in value) { yield* (value as { [rawJson]: () => ByteSource })[rawJson](); return; }
-    if (Array.isArray(value) || Symbol.asyncIterator in value) {
-      yield* literal('['); let first = true;
-      for await (const item of value as AsyncIterable<unknown>) { if (!first) yield* literal(','); first = false; yield* json(item); }
-      yield* literal(']');
-    } else {
-      yield* literal('{'); let first = true;
-      for (const [key, item] of Object.entries(value)) if (item !== undefined) { if (!first) yield* literal(','); first = false; yield* literal(JSON.stringify(key) + ':'); yield* json(item); }
-      yield* literal('}');
-    }
-  } else yield* literal(JSON.stringify(value ?? null));
-}
+export type StagedInspection = StagedOutput;
 async function* strings(source: AsyncIterable<ByteSource>) { for await (const value of source) yield () => value; }
 
-/** Stages the complete result before exposing output. The archive is borrowed;
- * all admission stores are retired before return, leaving only owned output. */
-export async function stageRetainedInspection(
+/** Complete immutable presentation admission shared by retained consumers.
+ * The archive is borrowed; close the index to retire all owned state. */
+export async function openRetainedPresentationIndex(
   archive: Pick<RetainedPackageArchive, 'parts' | 'has' | 'read' | 'byteLength'>,
   fingerprint: string,
-  selection: RetainedInspectionSelection,
-  settings: RetainedPackageContext,
-  output: { readonly json: boolean; readonly maxOutputBytes: number }
-): Promise<StagedInspection> {
+  settings: RetainedPackageContext
+) {
   const context = resourceContext(settings), working = { ...settings.workingStorage }, cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!working.fs || typeof working.directory !== 'string' || !working.directory.startsWith('/') || !Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384)
     throw new OfficeError('invalid-value', 'Explicit inspection storage and a valid cache budget are required.', 'usage');
-  const options = { ...selection }, format = { ...output }, signal = context.signal ?? new AbortController().signal;
-  if (!(format.maxOutputBytes > 0 && (format.maxOutputBytes === Infinity || Number.isSafeInteger(format.maxOutputBytes)))) throw new OfficeError('invalid-value', 'Invalid output byte limit.', 'usage');
+  const signal = context.signal ?? new AbortController().signal;
   const pages = new PagedStorage({ fs: working.fs, cwd: working.directory, env: {}, signal }, cacheBytes / 16384);
   const stagedPages = new PagedStorage({ fs: working.fs, cwd: working.directory, env: {}, signal }, cacheBytes / 16384);
   let closed = false, closing: Promise<void> | undefined;
   const check = () => { if (closed) throw new OfficeError('invalid-handle', 'Inspection output is closed.', 'index'); if (signal.aborted) throw new OfficeError('cancelled', 'Operation cancelled.', 'index'); };
   const failure = (error: unknown) => error instanceof OfficeError ? error : new OfficeError(signal.aborted ? 'cancelled' : 'io-failure', 'Inspection storage operation failed.', 'index');
-  const close = () => { closed = true; return closing ??= (async () => { const results = await Promise.allSettled([pages.close(), stagedPages.close()]); for (const result of results) if (result.status === 'rejected') throw result.reason; })(); };
+  const close = () => { closed = true; return closing ??= (async () => { const results = await Promise.allSettled([retire(), pages.close(), stagedPages.close()]); for (const result of results) if (result.status === 'rejected') throw result.reason; })(); };
   const values = new RetainedValues(pages, check, signal), stagedValues = new RetainedValues(stagedPages, check, signal), resources: { close(): Promise<void> }[] = [pages];
   async function retire() { const outcomes = await Promise.allSettled(resources.splice(0).map(value => value.close())); for (const outcome of outcomes) if (outcome.status === 'rejected') await Promise.reject(outcome.reason); }
-  async function* bounded(source: ByteSource, limit = Infinity): ByteSource {
-    let count = 0, used = 0; let buffer = new Uint8Array(16384);
-    for await (const bytes of source) {
-      check(); count += bytes.length; if (count > limit) throw new OfficeError('resource-limit', 'Output limit exceeded.', 'publish');
-      for (let offset = 0; offset < bytes.length;) {
-        const size = Math.min(buffer.length - used, bytes.length - offset); buffer.set(bytes.subarray(offset, offset + size), used); used += size; offset += size;
-        if (used === buffer.length) { yield buffer; buffer = new Uint8Array(16384); used = 0; }
-      }
-    }
-    check(); if (used) yield buffer.subarray(0, used);
-  }
   try {
     const records = await openRetainedSelectionRecords(archive, fingerprint, { ...context, workingStorage: working }); resources.push(records);
     const slides = await openRetainedSlideInventory(archive, records, { ...context, workingStorage: working }); resources.push(slides);
@@ -124,7 +88,7 @@ export async function stageRetainedInspection(
       }
     }
     // Match eager style admission even for human output and before selection.
-    const styleRows = await stagedValues.store(bounded(json(textStyles())));
+    const styleRows = await stagedValues.store(boundedOutput(json(textStyles()), signal));
     const metadata = await openRetainedPackageInventory(archive, { ...context, workingStorage: working }); resources.push(metadata);
     async function* parts(media: boolean) { for await (const part of media ? metadata.media() : metadata.parts()) yield { part: part.part, contentType: part.contentType, bytes: part.bytes, sha256: part.sha256 }; }
     async function* diagrams() { for await (const diagram of metadata.diagrams()) yield { part: diagram.part, kind: diagram.kind, owners: strings(diagram.owners()), dependencies: strings(diagram.dependencies()), missing: strings(diagram.missing()), semanticEditing: false }; }
@@ -136,6 +100,24 @@ export async function stageRetainedInspection(
       features: { structure: true, slideVisibility: true, effectiveFormatting: false, mediaMetadata: false, editing: false },
       counts: { slides: slides.counts.slides, masters: metadata.counts.masters, layouts: metadata.counts.layouts, themes: metadata.counts.themes, slideShapes: slides.counts.slideShapes, parts: metadata.counts.parts, media: metadata.counts.media }
     };
+    check(); return Object.freeze({ records, graph, inventory, close });
+  } catch (error) { await close().catch(() => {}); throw failure(error); }
+}
+
+/** Stages the complete result before exposing output. */
+export async function stageRetainedInspection(
+  archive: Pick<RetainedPackageArchive, 'parts' | 'has' | 'read' | 'byteLength'>,
+  fingerprint: string,
+  selection: RetainedInspectionSelection,
+  settings: RetainedPackageContext,
+  output: { readonly json: boolean; readonly maxOutputBytes: number }
+): Promise<StagedInspection> {
+  const options = { ...selection }, format = { ...output };
+  if (!(format.maxOutputBytes > 0 && (format.maxOutputBytes === Infinity || Number.isSafeInteger(format.maxOutputBytes)))) throw new OfficeError('invalid-value', 'Invalid output byte limit.', 'usage');
+  const index = await openRetainedPresentationIndex(archive, fingerprint, settings);
+  let staged: StagedOutput | undefined;
+  try {
+    const { records, inventory } = index;
     async function* selected() {
       if (options.token) { yield* records.select({ token: options.token }); return; }
       const scope = options.scope ?? 'slides', all = options.all ?? false;
@@ -153,8 +135,7 @@ export async function stageRetainedInspection(
         yield* json({ version: 1, operation: 'inspect', ok: true, data: { fingerprint, records: selected(), inventory }, warnings: [], errors: [], affected: 0, locations: locations() }); yield* literal('\n');
       } else for await (const record of selected()) { yield* literal(`${record.kind} ${record.position} `); yield* json(record.name); yield* literal(` id=${JSON.stringify(record.id)} owner=${JSON.stringify(record.part)}\n`); }
     }
-    const result = await stagedValues.store(bounded(render(), format.maxOutputBytes));
-    await retire(); check();
-    return Object.freeze({ close, async write(sink: ByteSink) { check(); for await (const bytes of stagedValues.read(result)) { check(); await sink.write(bytes); check(); } } });
-  } catch (error) { await Promise.allSettled([retire(), close()]); throw failure(error); }
+    staged = await stageRetainedOutput(render(), settings, format.maxOutputBytes);
+    await index.close(); return staged;
+  } catch (error) { await Promise.allSettled([index.close(), staged?.close()]); throw error; }
 }

@@ -120,7 +120,7 @@ state and the remaining shipped-engine wiring are still required before they
 replace the buffered paths.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
-Except for semantic validation and inspection, the built-in command engine still collects input,
+Except for semantic validation, inspection and structural text extraction, the built-in command engine still collects input,
 returns complete stdout/stderr, and publishes complete output arrays. `safe-bash-presentation-engine` still collects the archive,
 retains decompressed members in `readPackage`, copies members in
 `writePackageArchive`, and builds embedded chart workbooks in memory.
@@ -233,6 +233,25 @@ typechecks. A native python-pptx 1.0.2 deck produced byte-identical buffered and
 retained inspection, including explicit Arial/21pt text style and clean storage.
 Extraction, mutations and
 workbooks remain buffered; no runtime Worker qualification is claimed.
+
+The shipped `text get` operation now reuses complete retained presentation
+admission and stages human/JSON responses before stdout. Its SDK counterpart
+`openRetainedText` stores ordered owners, selection membership, text bodies,
+paragraphs, inline values/field attributes and traversal stacks in caller pages.
+It preserves grouped-shape inheritance, row-major table cells, structural order,
+Strict/Transitional namespaces, compatibility branches, field caches, breaks and
+empty paragraphs. No unbounded text/name/field scalar is collected. The shared
+serializer emits strings incrementally and coalesces writes to at most 16 KiB.
+Inspection and text extraction share the same admission and output-staging code.
+Tests verify exact bytes, selection errors/candidates, real spill writes, reused
+source buffers, cancellation, storage/sink failures, closed handles and retained,
+stream-only, buffered-only convenience and stdin adapter inputs. The richer text
+run/paragraph/frame/field inspection commands, other extraction, mutations and
+embedded workbook paths still require migration. Verification passed 6,383 engine
+tests and 1,103 command tests, scoped lint/typechecking and maintained builds. A
+native python-pptx 1.0.2 deck matched complete buffered/retained human and JSON
+bytes and native text across two slides, nested groups, table cells, paragraphs,
+soft breaks and Unicode. This is not Worker qualification.
 
 ## Remaining implementation
 

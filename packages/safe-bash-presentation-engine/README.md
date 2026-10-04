@@ -31,5 +31,10 @@ The default `pptx inspect` command also uses retained input and caller-backed
 selection, inventory and text-style indexes. `stageRetainedInspection` (from the
 `retained-inspection` entry point) stages JSON or human output before exposing it;
 write it to a sink and close the result when finished. The archive remains
-caller-owned. Other default operations and the synchronous presentation model
-still use buffered APIs.
+caller-owned. `pptx text get` uses the same admission and stores text bodies,
+paragraphs, inlines and traversal state in caller storage. `openRetainedText`
+(from `retained-text`) exposes replayable text streams and segment/paragraph/inline
+iterators; consume each nested iterator before advancing its parent. Close the
+result after reading. `stageRetainedText` provides the staged command formats.
+Other default operations and the synchronous presentation model still use buffered
+APIs.

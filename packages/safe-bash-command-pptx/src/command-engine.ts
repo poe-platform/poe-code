@@ -1,3 +1,4 @@
+import { stageRetainedText } from "safe-bash-presentation-engine/retained-text";
 import { stageRetainedInspection, type StagedInspection } from "safe-bash-presentation-engine/retained-inspection";
 import { openPackageArchive } from "safe-bash-presentation-engine/retained-package";
 import {
@@ -4042,7 +4043,7 @@ async function execute(
   const output = { json: false, operation: "help" };
   let result: OfficeResult<unknown>;
   let exitCode = 0;
-  let stagedInspection: StagedInspection | undefined;
+  let stagedOutput: StagedInspection | undefined;
   let human: string | undefined;
   let binary: Uint8Array | undefined;
   let publication: PptxPublicationRequest | undefined;
@@ -4088,7 +4089,7 @@ async function execute(
     output.json = args.json;
     output.operation = args.operation;
     const operation = args.operation;
-    if (args.operation === "inspect" && request.streaming) {
+    if ((args.operation === "inspect" || args.operation === "text.get") && request.streaming) {
       if (args.token) decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const hash = sha256.create();
@@ -4097,7 +4098,14 @@ async function execute(
       const context = { ...options.context, signal: request.signal, workingStorage: request.streaming.workingStorage };
       const archive = await openPackageArchive(input, context); let failed = false;
       try {
-        stagedInspection = await stageRetainedInspection(archive, fingerprint, {
+        const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
+        stagedOutput = args.operation === "text.get"
+          ? await stageRetainedText(archive, fingerprint, {
+            ...(scope === undefined ? {} : { scope: scope as TextScope }),
+            ...(args.token ? { select: { token: args.token } } : args.slide === undefined ? {} : { select: { kind: "slide", position: { coordinateSystem: "one-based", value: args.slide } } }),
+            ...(args.shape === undefined ? {} : { shape: args.shape })
+          }, context, { json: args.json, maxOutputBytes: options.maxOutputBytes })
+          : await stageRetainedInspection(archive, fingerprint, {
           ...(args.token === undefined ? {} : { token: args.token }), ...(args.slide === undefined ? {} : { slide: args.slide }),
           ...(args.shape === undefined ? {} : { shape: args.shape }), ...(args.part === undefined ? {} : { part: args.part }),
           ...(args.scope === undefined ? {} : { scope: args.scope }), ...(args.all === undefined ? {} : { all: args.all })
@@ -6687,7 +6695,7 @@ async function execute(
       }
     }
   } catch (error) {
-    await stagedInspection?.close().catch(() => {}); stagedInspection = undefined;
+    await stagedOutput?.close().catch(() => {}); stagedOutput = undefined;
     if (request.signal.aborted)
       return { exitCode: 130, stdout: new Uint8Array(), stderr: new Uint8Array() };
     const office = error instanceof OfficeError ? error : undefined;
@@ -6738,11 +6746,11 @@ async function execute(
     };
     human = `pptx: ${diagnostic.code}: ${diagnostic.message}\n`;
   }
-  if (stagedInspection) {
+  if (stagedOutput) {
     let failed = false;
-    try { await stagedInspection.write(request.streaming!.stdout); }
+    try { await stagedOutput.write(request.streaming!.stdout); }
     catch (error) { failed = true; throw error; }
-    finally { try { await stagedInspection.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
+    finally { try { await stagedOutput.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
     return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() };
   }
   const { json, operation } = output;

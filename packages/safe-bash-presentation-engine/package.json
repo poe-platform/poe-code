@@ -370,6 +370,10 @@
     "./retained-inspection": {
       "types": "./dist/retained-inspection.d.ts",
       "import": "./dist/retained-inspection.js"
+    },
+    "./retained-text": {
+      "types": "./dist/retained-text.d.ts",
+      "import": "./dist/retained-text.js"
     }
   },
   "files": [

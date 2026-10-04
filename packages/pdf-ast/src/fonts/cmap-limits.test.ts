@@ -41,3 +41,10 @@ it.each([NaN, undefined, null, 0, ""])("preserves arbitrary owner rejection valu
   } catch (error) { caught = true; expect(Object.is(error, failure)).toBe(true); }
   expect(refused).toBe(true); expect(caught).toBe(true);
 });
+
+it("admits retained destination-array slots before collecting empty strings",async()=>{
+ const {parseCharacterCMapSteps}=await import("./cmap.js"),{CosByteLexer}=await import("../cos/lexer.js");
+ const lexer=new CosByteLexer(bytes('1 beginbfrange <00> <1f> ['+'<> '.repeat(32)+'] endbfrange'));
+ const push=Array.prototype.push;Array.prototype.push=function<T>(this:T[],...items:T[]):number{if(this.length+items.length>8&&items.some(item=>item===""))throw Error('unadmitted CMap array');return Reflect.apply(push,this,items) as number;};
+ try{expect(()=>{const work=parseCharacterCMapSteps({maxWorkingBytes:1090});let step=work.next();while(!step.done)step=work.next(lexer.nextToken());}).toThrow(expect.objectContaining({code:"E_LIMIT"}));}finally{Array.prototype.push=push;}
+});

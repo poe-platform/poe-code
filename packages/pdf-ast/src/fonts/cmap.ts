@@ -37,18 +37,30 @@ export function parseCharacterCMap(cmapBytes: Uint8Array, options: PdfFontAlloca
   return parseCMap(cmapBytes, new PdfFontAllocation(options));
 }
 
-function parseCMap(cmapBytes: Uint8Array, allocation: PdfFontAllocation): CMap {
-  // Cover lexer number-array growth, token copies, byte strings and destination
-  // arrays conservatively; expanded ranges are admitted separately below.
-  allocation.admit(1024 + cmapBytes.length * 32);
-  const lexer = new CosByteLexer(cmapBytes);
+function parseCMap(cmapBytes:Uint8Array,allocation:PdfFontAllocation):CMap {
+  allocation.admit(1024+cmapBytes.length*32);
+  const lexer=new CosByteLexer(cmapBytes),work=parseCMapTokens(allocation);let step=work.next();
+  while(!step.done)step=work.next(lexer.nextToken());return step.value;
+}
+
+export function* parseCharacterCMapSteps(options:PdfFontAllocationOptions={}):Generator<void,CMap,CosToken|undefined>{
+  const allocation=new PdfFontAllocation(options);allocation.admit(1024);
+  return yield* parseCMapTokens(allocation);
+}
+
+export function* parseToUnicodeCMapSteps(options:PdfFontAllocationOptions={}):Generator<void,ParsedToUnicodeCMap,CosToken|undefined>{
+  const allocation=new PdfFontAllocation(options);allocation.admit(1024);
+  return unicodeMap(yield* parseCMapTokens(allocation),allocation);
+}
+
+function* parseCMapTokens(allocation:PdfFontAllocation):Generator<void,CMap,CosToken|undefined>{
   const cmap = new CMap(false, bytes => allocation.admit(bytes));
   let inferredLength = 1;
   let section = "";
   // The block grammar follows PDF.js parseBfChar/parseBfRange/parseCidChar/
   // parseCidRange/parseCodespaceRange, adapted to our synchronous lexer.
   while (true) {
-    const source = lexer.nextToken();
+    const source = (yield);
     if (!source) break;
     if (source.kind === "keyword") {
       if (source.value === "endcmap") break;
@@ -58,7 +70,7 @@ function parseCMap(cmapBytes: Uint8Array, allocation: PdfFontAllocation): CMap {
     if (!isString(source) || source.bytes.length < 1 || source.bytes.length > 4) continue;
     if (!["begincodespacerange", "beginbfchar", "begincidchar", "beginbfrange", "begincidrange"].includes(section)) continue;
     const low = bytesToBigEndianUint(source.bytes);
-    const next = lexer.nextToken();
+    const next = (yield);
     if (section === "begincodespacerange") {
       if (isString(next) && next.bytes.length === source.bytes.length) cmap.addCodespaceRange(source.bytes.length, low, bytesToBigEndianUint(next.bytes));
     } else if (section === "beginbfchar" || section === "begincidchar") {
@@ -67,16 +79,16 @@ function parseCMap(cmapBytes: Uint8Array, allocation: PdfFontAllocation): CMap {
       else if (next?.kind === "number" && next.isInteger) cmap.mapOne(low, next.value);
     } else if (section === "beginbfrange" || section === "begincidrange") {
       inferredLength = Math.max(inferredLength, source.bytes.length);
-      const destination = lexer.nextToken();
+      const destination = (yield);
       if (!isString(next) || !destination) continue;
       const high = bytesToBigEndianUint(next.bytes);
       if (destination.kind === "array-start") {
         const array: Array<number | string> = [];
         while (true) {
-          const item = lexer.nextToken();
+          const item = (yield);
           if (!item || item.kind === "array-end") break;
-          if (isString(item)) array.push(bytesToString(item.bytes));
-          else if (item.kind === "number" && item.isInteger) array.push(item.value);
+          if (isString(item)) { allocation.admit(8); array.push(bytesToString(item.bytes)); }
+          else if (item.kind === "number" && item.isInteger) { allocation.admit(8); array.push(item.value); }
         }
         try { cmap.mapBfRangeToArray(low, high, array); } catch (error) { allocation.rethrowAllocationFailure(error); /* PDF.js skips oversized ranges. */ }
       } else {
@@ -114,7 +126,10 @@ export function readCMapCharacters(cmap: CMap, bytes: Uint8Array): Array<{ charC
 
 export function parseToUnicodeCMap(cmapBytes: Uint8Array, options: PdfFontAllocationOptions = {}): ParsedToUnicodeCMap {
   const allocation = new PdfFontAllocation(options);
-  const cmap = parseCMap(cmapBytes, allocation);
+  return unicodeMap(parseCMap(cmapBytes,allocation),allocation);
+}
+
+function unicodeMap(cmap:CMap,allocation:PdfFontAllocation):ParsedToUnicodeCMap{
   const map = new Map<number, string>();
   cmap.forEach((code, value) => {
     allocation.admit(68 + (typeof value === "string" ? value.length * 2 : 0));

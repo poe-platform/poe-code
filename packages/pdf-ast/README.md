@@ -156,7 +156,10 @@ resource allocations across the traversal. The font cache retains at most
 `maxCachedFonts` entries (16 by default). With `imageStorage`, paths, captures,
 and CID-to-glyph tables use the caller-owned backing. CID lookup reads only the
 selected byte pair, including odd trailing bytes. Font programs and individual
-resource metadata still have separate resident ownership.
+resource metadata still have separate resident ownership. Unicode and encoding
+CMap sources parse incrementally from retained tokens; skipped comments do not
+become resident source buffers. Mapping tables and individual tokens remain
+separately admitted state.
 
 `renderRetainedShading(document, node, settings, storage, options)` renders a
 selected shading through retained reads. It shares the buffered renderer for

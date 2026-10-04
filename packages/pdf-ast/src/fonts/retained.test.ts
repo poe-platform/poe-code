@@ -97,3 +97,34 @@ it("supplies a retained font to evaluation without a buffered document", async (
     expect(f.readFile).not.toHaveBeenCalled();
   } finally { work.return(); await f.close(); }
 });
+
+it.each(["unicode","encoding"])("parses growing %s CMap sources without admitting the complete stream",async mode=>{
+ const f=await fixture(),lookup=f.doc.lookup.bind(f.doc);
+ if(mode==="encoding")vi.spyOn(f.doc,"lookup").mockImplementation(async node=>{
+  const value=await lookup(node);
+  if(value?.value.kind==="dict"&&value.value.entries.some(entry=>entry.key.decoded==="BaseFont"))return {value:cosDict({Subtype:cosName("Type0"),BaseFont:cosName("Helvetica"),Encoding:f.mapping})};
+  return value;
+ });
+ const tail=new TextEncoder().encode(mode==="unicode"?'1 beginbfchar <41> <03A9> endbfchar':'1 begincidchar <41> 123 endcidchar');
+ vi.spyOn(f.doc.objects,"decodeStream").mockImplementation(async function*(){const chunk=new TextEncoder().encode('%'+'x'.repeat(4094)+'\n');for(let i=0;i<32;i++)yield chunk;yield tail;});
+ try{
+  const font=await resolveRetainedFont(f.doc,{fs:f.fs,directory:"/scratch"},f.resources,"Good",{chunkBytes:4096,onAllocation(bytes){if(bytes===32*4096+tail.length)throw Error("whole CMap source allocation "+bytes);}});
+  if(mode==="unicode")expect(font?.cmap?.map.get(65)).toBe("Ω");else expect(font?.encodingCMap?.lookup(65)).toBe(123);
+ }finally{await f.close();}
+});
+
+
+it("preserves malformed optional CMap token recovery",async()=>{
+ const f=await fixture();vi.spyOn(f.doc.objects,"decodeStream").mockImplementation(async function*(){yield new TextEncoder().encode(')');});
+ try{const font=await resolveRetainedFont(f.doc,{fs:f.fs,directory:"/scratch"},f.resources,"Good",{chunkBytes:64});expect(font?.cmap).toBeUndefined();expect(font?.baseFont).toBe("Helvetica");}finally{await f.close();}
+});
+
+it("does not recover retained CMap storage failures as optional syntax errors",async()=>{
+ const f=await fixture(),failure=new PdfError("E_PARSE","backend read failed"),original=f.fs.openReadFile!.bind(f.fs);
+ const fs=new Proxy(f.fs,{get(target,property){if(property==="openReadFile")return async(...args:Parameters<typeof original>)=>{const handle=await original(...args);return new Proxy(handle,{get(object,key){if(key==="read")return async()=>{throw failure;};const value=Reflect.get(object,key);return typeof value==="function"?value.bind(object):value;}});};const value=Reflect.get(target,property);return typeof value==="function"?value.bind(target):value;}});
+ try{await expect(resolveRetainedFont(f.doc,{fs,directory:"/scratch"},f.resources,"Good",{chunkBytes:64})).rejects.toBe(failure);}finally{await f.close();}
+});
+it("does not recover retained CMap token admission rejection",async()=>{
+ const f=await fixture(),failure={tokenOwner:true};
+ try{await expect(resolveRetainedFont(f.doc,{fs:f.fs,directory:"/scratch"},f.resources,"Good",{chunkBytes:64,onAllocation(bytes){if(bytes===32)throw failure;}})).rejects.toBe(failure);}finally{await f.close();}
+});

@@ -12,8 +12,8 @@ import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; purpose?: "cid-map" };
-export type FontResolutionResult = PdfCosNode | Uint8Array | StoredCidMap | undefined;
+export type FontResolutionRequest = { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; purpose?: "cid-map" | "unicode-cmap" | "encoding-cmap" };
+export type FontResolutionResult = PdfCosNode | Uint8Array | StoredCidMap | ParsedToUnicodeCMap | CMap | undefined;
 function* resolve(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
   const value = yield { kind: "resolve", node };
   if (value && !("kind" in value)) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
@@ -80,7 +80,10 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         const toUniNode = (yield* resolve(dictGet(fObj, "ToUnicode")));
         if (toUniNode?.kind === "stream") {
             try {
-                cmap = parseToUnicodeCMap((yield* decodeStream(toUniNode)), allocationOptions);
+                const value=yield {kind:"decode",stream:toUniNode,purpose:"unicode-cmap"};
+                if(value instanceof Uint8Array)cmap=parseToUnicodeCMap(value,allocationOptions);
+                else if(value&&"iterateBytes" in value)cmap=value;
+                else throw new TypeError("Font decoder did not return a Unicode CMap");
             }
             catch (error) {
                 allocation.rethrowAllocationFailure(error);
@@ -268,13 +271,20 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             if (!differences.has(code))
                 differences.set(code, unicode);
         }
+        let encodingCMap:CMap|undefined;
+        if(subtype==="Type0"&&encNode?.kind==="stream"){
+          const value=yield {kind:"decode",stream:encNode,purpose:"encoding-cmap"};
+          if(value instanceof Uint8Array)encodingCMap=parseCharacterCMap(value,allocationOptions);
+          else if(value&&"lookup" in value)encodingCMap=value;
+          else throw new TypeError("Font decoder did not return an encoding CMap");
+        }
         fonts.set(fName, {
             name: fName,
             baseFont,
             subtype,
             isTwoByteCid,
             cmap,
-            encodingCMap: subtype === "Type0" && encNode?.kind === "stream" ? parseCharacterCMap((yield* decodeStream(encNode)), allocationOptions) : undefined,
+            encodingCMap,
             differences,
             glyphNames,
             widths,

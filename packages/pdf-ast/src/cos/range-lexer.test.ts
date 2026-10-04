@@ -164,3 +164,13 @@ describe("retained range COS lexer", () => {
   });
 
 });
+
+it.each(["/abcdef", "<aabbcc>", "(abcdef)", "123456", "keyword"])("admits retained token growth before returning %s",async text=>{
+ const bytes=new TextEncoder().encode('% comment\n'+text),file=backend(bytes.length,i=>bytes[i]!),source=await PdfFileSource.open(file.fs,'/input',{chunkBytes:7,cacheBytes:14}),failure=new Error('token owner rejected');
+ let admitted=0;
+ try{const lexer=new CosRangeLexer(source,{onTokenAllocation(size){admitted+=size;if(admitted>64)throw failure;}});await expect(lexer.nextToken()).rejects.toBe(failure);expect(admitted).toBeLessThanOrEqual(96);}finally{await source.close();}
+});
+it("does not admit skipped comments as resident token storage",async()=>{
+ const file=backend(131072,i=>i%4096===0?37:i%4096===4095?10:120,4096),source=await PdfFileSource.open(file.fs,'/input',{chunkBytes:4096,cacheBytes:4096}),admit=vi.fn();
+ try{expect(await new CosRangeLexer(source,{onTokenAllocation:admit}).nextToken()).toBeUndefined();expect(admit).not.toHaveBeenCalled();}finally{await source.close();}
+});

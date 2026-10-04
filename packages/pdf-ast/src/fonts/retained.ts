@@ -1,3 +1,5 @@
+import {CosRangeLexer} from "../cos/lexer.js";
+import {parseCharacterCMapSteps,parseToUnicodeCMapSteps} from "./cmap.js";
 import type { PdfCosDict, PdfCosRef, PdfCosStream, PdfPixelStorage } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
@@ -64,6 +66,17 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
             const storage=options.resourceStorage,position=storage.allocate(staged.size);let offset=0;
             for await(const bytes of staged.stream(0,staged.size,signal)){await storage.write(position+offset,bytes,signal?{signal}:undefined);offset+=bytes.length;}
             value={storage,position,byteLength:staged.size};
+          }else if(step.value.purpose==="unicode-cmap"||step.value.purpose==="encoding-cmap"){
+            const input=staged;let readFailure:{reason:unknown}|undefined;
+            const lexer=new CosRangeLexer({size:input.size,chunkBytes:input.chunkBytes,async read(position,length,selected){try{return await input.read(position,length,selected);}catch(reason){readFailure={reason};throw reason;}}},{onTokenAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
+            const program=step.value.purpose==="unicode-cmap"?parseToUnicodeCMapSteps({onAllocation:bytes=>allocation.admit(bytes)}):parseCharacterCMapSteps({onAllocation:bytes=>allocation.admit(bytes)});
+            try{let parsed=program.next(),tokens=0;while(!parsed.done){signal?.throwIfAborted();if(++tokens%256===0){await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}parsed=program.next(await lexer.nextToken());}value=parsed.value;}
+            catch(error){
+              signal?.throwIfAborted();allocation.rethrowAllocationFailure(error);
+              if(readFailure&&Object.is(readFailure.reason,error))throw error;
+              step=steps.throw(error);continue;
+            }
+            finally{program.return(undefined as never);}
           }else{
             allocation.admit(staged.size);
             value = new Uint8Array(staged.size);

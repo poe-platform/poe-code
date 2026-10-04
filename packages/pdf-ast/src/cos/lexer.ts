@@ -57,7 +57,8 @@ class CosLexerState {
   readonly maxTokenBytes: number;
 
   constructor(bytes: Uint8Array, start = 0, end = bytes.length, maxTokenBytes = Infinity,
-    readonly knownCommands?: ReadonlySet<string>
+    readonly knownCommands?: ReadonlySet<string>,
+    private readonly onTokenAllocation?: (bytes:number)=>void
   ) {
     this.window = bytes;
     this.pos = start;
@@ -161,6 +162,7 @@ class CosLexerState {
     while (this.pos < this.end) {
       const cur = (yield* this.byte(this.pos))!;
       if (isPdfWhitespace(cur) || isPdfDelimiter(cur)) break;
+      this.onTokenAllocation?.(32);
       const next = raw + String.fromCharCode(cur);
       if (this.knownCommands?.has(raw) && !this.knownCommands.has(next)) break;
       raw = next;
@@ -181,7 +183,9 @@ class CosLexerState {
 
   private *readNumber(): LexWork<CosToken> {
     const start = this.pos;
-    const advance = () => {
+    const advance = (character?:number) => {
+      this.onTokenAllocation?.(32);
+      if(character!==undefined)normalized+=String.fromCharCode(character);
       this.pos++;
       if (this.pos - start > this.maxTokenBytes) {
         throw new PdfError("E_LIMIT", "PDF token exceeds maximum byte length");
@@ -192,15 +196,13 @@ class CosLexerState {
     let exponent = false;
     const first = (yield* this.byte(this.pos));
     if (first === 0x2d || first === 0x2b) {
-      normalized = String.fromCharCode(first);
-      advance();
+      advance(first);
       if (first === 0x2d && this.pos < this.end && (yield* this.byte(this.pos)) === 0x2d) advance();
     }
     while (this.pos < this.end && ((yield* this.byte(this.pos)) === 0x0a || (yield* this.byte(this.pos)) === 0x0d)) advance();
     if (this.pos < this.end && (yield* this.byte(this.pos)) === 0x2e) {
-      normalized += ".";
       decimal = true;
-      advance();
+      advance(0x2e);
     }
     const digit = this.pos < this.end ? (yield* this.byte(this.pos))! : -1;
     if (digit < 0x30 || digit > 0x39) {
@@ -212,12 +214,10 @@ class CosLexerState {
     while (this.pos < this.end) {
       const b = (yield* this.byte(this.pos))!;
       if (b >= 0x30 && b <= 0x39) {
-        normalized += String.fromCharCode(b);
-        advance();
+        advance(b);
       } else if (b === 0x2e && !decimal) {
-        normalized += ".";
         decimal = true;
-        advance();
+        advance(0x2e);
       } else if (b === 0x2d) {
         advance();
       } else {
@@ -231,12 +231,10 @@ class CosLexerState {
       if (next < this.end && (yield* this.byte(next))! >= 0x30 && (yield* this.byte(next))! <= 0x39) {
         exponent = true;
         while (this.pos < next) {
-          normalized += String.fromCharCode((yield* this.byte(this.pos))!);
-          advance();
+          advance((yield* this.byte(this.pos))!);
         }
         while (this.pos < this.end && (yield* this.byte(this.pos))! >= 0x30 && (yield* this.byte(this.pos))! <= 0x39) {
-          normalized += String.fromCharCode((yield* this.byte(this.pos))!);
-          advance();
+          advance((yield* this.byte(this.pos))!);
         }
       }
     }
@@ -265,12 +263,14 @@ class CosLexerState {
         const h2 = hexValue((yield* this.byte(this.pos + 2))!);
         if (h1 >= 0 && h2 >= 0) {
           if (this.pos - start + 3 > this.maxTokenBytes) throw new PdfError("E_LIMIT", "PDF name token exceeds maximum byte length");
+          this.onTokenAllocation?.(96);
           decodedBytes.push((h1 << 4) | h2);
           this.pos += 3;
           continue;
         }
       }
       if (this.pos - start + 1 > this.maxTokenBytes) throw new PdfError("E_LIMIT", "PDF name token exceeds maximum byte length");
+      this.onTokenAllocation?.(32);
       decodedBytes.push(b);
       this.pos++;
     }
@@ -297,11 +297,13 @@ class CosLexerState {
       const h = hexValue(b);
       if (h >= 0) {
         if (nibbles.length >= this.maxTokenBytes * 2) throw new PdfError("E_LIMIT", "PDF hex string exceeds maximum byte length");
+        this.onTokenAllocation?.(16);
         nibbles.push(h);
       }
     }
 
     if (nibbles.length % 2 === 1) {
+      this.onTokenAllocation?.(16);
       nibbles.push(0);
     }
     const out = new Uint8Array(nibbles.length / 2);
@@ -319,6 +321,7 @@ class CosLexerState {
     const out: number[] = [];
     const append = (value: number) => {
       if (out.length >= this.maxTokenBytes) throw new PdfError("E_LIMIT", "PDF literal string exceeds maximum byte length");
+      this.onTokenAllocation?.(32);
       out.push(value);
     };
 
@@ -411,6 +414,8 @@ export class CosByteLexer extends CosLexerState {
 }
 
 export interface CosRangeLexerOptions {
+  /** Admit incremental token scratch and returned byte/string storage before growth. */
+  readonly onTokenAllocation?: (bytes:number)=>void;
   readonly start?: number;
   readonly end?: number;
   /** Decoded string / encoded name and number budget; independent of the input range cache. */
@@ -435,7 +440,7 @@ export class CosRangeLexer {
       throw new RangeError("Invalid PDF lexer range");
     }
     if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid PDF token byte budget");
-    this.state = new CosLexerState(new Uint8Array(0), start, end, maximum, options.knownCommands);
+    this.state = new CosLexerState(new Uint8Array(0), start, end, maximum, options.knownCommands, options.onTokenAllocation);
     this.signal = options.signal;
   }
 

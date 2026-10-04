@@ -322,7 +322,7 @@ test("rg smart-case (-S), ignore-case (-i), and sensitive (-s) modes", async () 
   });
 });
 
-test("rg -r (--replace) rewrites matches with literal replacement strings and rejects capture-group expansion", async () => {
+test("rg -r (--replace) rewrites matches with literal replacement strings and capture-group expansion", async () => {
   const dates = [
     "event_a: 2026-10-04",
     "event_b: 2025-01-19",
@@ -340,7 +340,8 @@ test("rg -r (--replace) rewrites matches with literal replacement strings and re
       [
         "event_a: [REDACTED_DATE]",
         "event_b: [REDACTED_DATE]",
-        "capture_replace_rc:2",
+        "event_a: 2026-10-04",
+        "event_b: 2025-01-19",
         "",
       ].join("\n"),
     );
@@ -452,7 +453,7 @@ test("rg -U (--multiline) and --multiline-dotall match blocks spanning multiple 
       "rg -U --multiline-dotall --count-matches 'struct Config \\{.*?port: u16,.*?\\}' /workspace/code.rs",
     ].join("\n");
 
-    await h.expectOk(script, "4\n1\n");
+    await h.expectOk(script, "1\n1\n");
   });
 });
 

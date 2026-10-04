@@ -265,7 +265,7 @@ describe("safe-bash E2E: jq, yq, and xq complex queries and polyglot pipelines",
             .service.replicas += 3 |
             del(.service.deprecated)
           ' /workspace/deploy.yaml > /workspace/deploy.updated.yaml
-          yq -o json -c '.' /workspace/deploy.updated.yaml
+          yq -o json -I 0 '.' /workspace/deploy.updated.yaml
         `);
         assert.equal(r.exitCode, 0, r.stderr);
         assert.equal(
@@ -292,7 +292,7 @@ describe("safe-bash E2E: jq, yq, and xq complex queries and polyglot pipelines",
       async (h) => {
         const r = await h.exec(String.raw`
           yq -p toml -o yaml '.package' /workspace/Cargo.toml > /workspace/package.yaml
-          yq -o json -c '.' /workspace/package.yaml
+          yq -o json -I 0 '.' /workspace/package.yaml
         `);
         assert.equal(r.exitCode, 0, r.stderr);
         assert.equal(
@@ -321,7 +321,7 @@ describe("safe-bash E2E: jq, yq, and xq complex queries and polyglot pipelines",
       },
       async (h) => {
         const r = await h.exec(String.raw`
-          yq -p toml -o json -c '.package.version = "1.3.0" | .dependencies.anyhow = "1.0" | {ver: .package.version, deps: .dependencies}' /workspace/Cargo.toml
+          yq -p toml -o json -I 0 '.package.version = "1.3.0" | .dependencies.anyhow = "1.0" | {ver: .package.version, deps: .dependencies}' /workspace/Cargo.toml
         `);
         assert.equal(r.exitCode, 0, r.stderr);
         assert.equal(
@@ -470,8 +470,8 @@ describe("safe-bash E2E: jq, yq, and xq complex queries and polyglot pipelines",
         const r = await h.exec(String.raw`
           yq '
             .metadata.labels.managedBy = "safe-bash" |
-            if .kind == "Deployment" then .spec.replicas = 5 else . end
-          ' /workspace/k8s.yaml | yq -o json -c '[.kind, .metadata.labels.managedBy, (.spec.replicas // .spec.port)]'
+            (select(.kind == "Deployment") | .spec.replicas) = 5
+          ' /workspace/k8s.yaml | yq -o json -I 0 '[.kind, .metadata.labels.managedBy, (.spec.replicas // .spec.port)]'
         `);
         assert.equal(r.exitCode, 0, r.stderr);
         assert.equal(
@@ -509,7 +509,7 @@ SQL
             | jq '{routes: ., total_rpm: (map(.rpm) | add)}' \
             | yq -o yaml '.' > /workspace/gateway.yaml
 
-          yq -o json -c '{total_rpm: .total_rpm, top_route: .routes[0].id}' /workspace/gateway.yaml
+          yq -o json -I 0 '{total_rpm: .total_rpm, top_route: .routes[0].id}' /workspace/gateway.yaml
         `);
         assert.equal(r.exitCode, 0, r.stderr);
         assert.equal(r.stdout, '{"total_rpm":1800,"top_route":"r2"}\n');

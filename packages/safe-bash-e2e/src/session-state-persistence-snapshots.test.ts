@@ -346,8 +346,8 @@ test("transactional agent checkpoint: coordinated ShellSessionState + OverlayFil
     new TextEncoder().encode("CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO items VALUES (1, 'stable');\n"),
   );
 
-  let upperFs = new sb.MemoryFileSystem();
-  let overlay = sb.createOverlayFileSystem({ lower: lowerFs, upper: upperFs });
+  const upperFs = new sb.MemoryFileSystem();
+  const overlay = sb.createOverlayFileSystem({ lower: lowerFs, upper: upperFs });
   const h = await SafeBashE2EHarness.create({ fs: overlay });
   try {
     const session = h.shell.createSession();

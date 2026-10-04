@@ -388,7 +388,7 @@ test("iconv converts between UTF-8, UTF-16LE, and ISO-8859-1 and handles -c unco
       "wc -c < /workspace/latin1.bin | tr -d ' '",
       "iconv -f ISO-8859-1 -t UTF-8 /workspace/latin1.bin",
       "iconv -f UTF-8 -t UTF-16LE /workspace/utf8.txt | iconv -f UTF-16LE -t UTF-8",
-      "printf 'hello \\xc3\\xa9 world\\n' | iconv -c -f UTF-8 -t ASCII",
+      "printf 'hello \\xc3\\xa9 world\\n' | iconv -c -f UTF-8 -t ASCII; echo discard_status:$?",
     ].join("\n");
 
     await h.expectOk(
@@ -398,6 +398,7 @@ test("iconv converts between UTF-8, UTF-16LE, and ISO-8859-1 and handles -c unco
         "café",
         "café",
         "hello  world",
+        "discard_status:1",
         "",
       ].join("\n"),
     );

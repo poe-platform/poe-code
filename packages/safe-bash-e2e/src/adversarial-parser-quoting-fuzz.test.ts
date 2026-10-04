@@ -6,7 +6,7 @@ describe("adversarial parser, quoting & expansion torture e2e suite", () => {
   test("1. 4-level nested $() command substitutions with independent inner double and single quotes", async () => {
     await withE2EHarness(async (h) => {
       const res = await h.exec(
-        'echo "L0:$(echo "L1:$(echo "L2:$(echo \'L3:literal $HOME \"quotes\"\' | tr \'a-z\' \'A-Z\')")")"',
+        'echo "L0:$(echo "L1:$(echo "L2:$(echo \'L3:literal $HOME "quotes"\' | tr \'a-z\' \'A-Z\')")")"',
       );
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(res.stdout, 'L0:L1:L2:L3:LITERAL $HOME "QUOTES"\n');

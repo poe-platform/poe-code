@@ -86,9 +86,9 @@ test("yq YAML and TOML querying and YAML-to-JSON conversion (-o json, -p toml)",
     },
     async (h) => {
       const script = [
-        "yq -o json -r '.service.name + \":\" + (.service.replicas | tostring)' /workspace/config/service.yaml",
-        "yq -o json -c '.service | {name, replicas, compression: .features.compression}' /workspace/config/service.yaml",
-        "yq -p toml -o json -r '.workspace.members | join(\",\")' /workspace/Cargo.toml",
+        "yq -o json /workspace/config/service.yaml | jq -r '.service.name + \":\" + (.service.replicas | tostring)'",
+        "yq -o json -I 0 '.service | {name, replicas, compression: .features.compression}' /workspace/config/service.yaml",
+        "yq -p toml -o json /workspace/Cargo.toml | jq -r '.workspace.members | join(\",\")'",
       ].join("\n");
 
       await h.expectOk(

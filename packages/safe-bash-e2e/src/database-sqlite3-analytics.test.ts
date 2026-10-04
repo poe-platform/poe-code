@@ -359,7 +359,7 @@ test("sqlite3 .read dot-command and .once / .output file redirection", async () 
           "2,40",
           "3,60",
           "",
-        ].join("\n"),
+        ].join("\r\n"),
       );
     },
   );

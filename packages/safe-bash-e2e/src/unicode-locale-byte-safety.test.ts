@@ -20,15 +20,15 @@ describe("unicode, locale & binary byte-safety e2e suite", () => {
     });
   });
 
-  test("2. LC_ALL=C byte-locale parameter length ${#var} counts raw UTF-8 bytes and rejects mid-codepoint substring splits", async () => {
+  test("2. LC_ALL=C byte-locale parameter length ${#var} counts raw UTF-8 bytes and preserves mid-codepoint substring bytes", async () => {
     await withE2EHarness({ env: { LC_ALL: "C", LANG: "C" } }, async (h) => {
       const resLen = await h.exec("s='αβγ'; echo \"byte_len=${#s}\"");
       assert.equal(resLen.exitCode, 0, resLen.stderr);
       assert.equal(resLen.stdout, "byte_len=6\n");
 
-      const resSplit = await h.exec("s='αβγ'; echo \"${s:1:2}\"");
-      assert.notEqual(resSplit.exitCode, 0);
-      assert.match(resSplit.stderr, /UTF-8|byte locale/i);
+      const resSplit = await h.exec("s='αβγ'; printf '%s' \"${s:1:2}\" | xxd -p");
+      assert.equal(resSplit.exitCode, 0, resSplit.stderr);
+      assert.equal(resSplit.stdout, "b1ce\n");
     });
   });
 

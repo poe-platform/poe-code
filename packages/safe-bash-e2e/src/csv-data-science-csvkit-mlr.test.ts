@@ -120,7 +120,7 @@ test("in2csv converts JSON array and NDJSON streams into normalized CSV tables",
   await withE2EHarness(async (h) => {
     const script = [
       "cat <<'JSON' > /workspace/items.json",
-      '[{\"sku\":\"A1\",\"price\":10,\"in_stock\":true},{\"sku\":\"B2\",\"price\":25,\"in_stock\":false}]',
+      '[{"sku":"A1","price":10,"in_stock":true},{"sku":"B2","price":25,"in_stock":false}]',
       "JSON",
       "in2csv /workspace/items.json",
     ].join("\n");

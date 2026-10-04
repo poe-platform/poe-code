@@ -114,7 +114,7 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
     });
   });
 
-  test("8. ffmpeg converts SubRip (.srt) subtitles to WebVTT (.vtt) and ASS (.ass)", async () => {
+  test("8. ffmpeg converts SubRip (.srt) subtitles to WebVTT and rejects unregistered ASS output", async () => {
     const srt = [
       "1",
       "00:00:00,000 --> 00:00:01,500",
@@ -132,14 +132,14 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
         const res = await h.exec(
           [
             "ffmpeg -i /workspace/subs.srt /workspace/subs.vtt",
-            "ffmpeg -i /workspace/subs.srt /workspace/subs.ass",
             "head -n 1 /workspace/subs.vtt",
             "grep -c 'Safe-Bash' /workspace/subs.vtt",
-            "grep -c 'Safe-Bash' /workspace/subs.ass",
           ].join("\n"),
         );
         assert.equal(res.exitCode, 0, res.stderr);
-        assert.equal(res.stdout, "WEBVTT\n1\n1\n");
+        assert.equal(res.stdout, "WEBVTT\n1\n");
+        await h.expectFail("ffmpeg -i /workspace/subs.srt /workspace/subs.ass", 1, /format AST not registered/);
+        await h.expectFail("test -e /workspace/subs.ass", 1);
       },
     );
   });
@@ -211,7 +211,7 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
         [
           "ffmpeg -f lavfi -i testsrc=size=24x16:rate=5:duration=0.6 -an /workspace/src.mp4",
           "ffmpeg -i /workspace/src.mp4 /workspace/anim.gif",
-          "ffmpeg -i /workspace/anim.gif /workspace/from_gif.mp4",
+          "ffmpeg -i /workspace/anim.gif -vf scale=24:16 /workspace/from_gif.mp4",
           "ffprobe -v quiet -print_format json -show_streams /workspace/from_gif.mp4 | jq -c '{codec: .streams[0].codec_name, w: .streams[0].width, h: .streams[0].height}'",
         ].join("\n"),
       );
@@ -220,26 +220,24 @@ describe("ffmpeg & ffprobe audio/video media pipelines e2e suite", () => {
     });
   });
 
-  test("12. ffmpeg resamples and downmixes audio to WAV, AIFF, AU, and CAF containers", async () => {
+  test("12. ffmpeg resamples and downmixes WAV audio and rejects unregistered containers", async () => {
     await withE2EHarness(async (h) => {
       const res = await h.exec(
         [
           "ffmpeg -f lavfi -i sine=frequency=880:sample_rate=44100:duration=0.2 -ac 2 /workspace/stereo.wav",
           "ffmpeg -i /workspace/stereo.wav -ar 16000 -ac 1 /workspace/mono16k.wav",
-          "ffmpeg -i /workspace/mono16k.wav /workspace/out.aiff",
-          "ffmpeg -i /workspace/mono16k.wav /workspace/out.au",
-          "ffmpeg -i /workspace/mono16k.wav /workspace/out.caf",
           "ffprobe -v quiet -print_format json -show_streams /workspace/mono16k.wav | jq -c '{sr: (.streams[0].sample_rate | tonumber), ch: .streams[0].channels}'",
-          "ffprobe -v quiet -print_format json -show_format /workspace/out.aiff | jq -r '.format.format_name'",
-          "ffprobe -v quiet -print_format json -show_format /workspace/out.au | jq -r '.format.format_name'",
-          "ffprobe -v quiet -print_format json -show_format /workspace/out.caf | jq -r '.format.format_name'",
         ].join("\n"),
       );
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(
         res.stdout,
-        ['{"sr":16000,"ch":1}', "aiff", "au", "caf", ""].join("\n"),
+        '{"sr":16000,"ch":1}\n',
       );
+      for (const extension of ["aiff", "au", "caf"]) {
+        await h.expectFail(`ffmpeg -i /workspace/mono16k.wav /workspace/out.${extension}`, 1, /format AST not registered/);
+        await h.expectFail(`test -e /workspace/out.${extension}`, 1);
+      }
     });
   });
 

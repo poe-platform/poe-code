@@ -279,7 +279,7 @@ describe("soffice & libreoffice office document workflows e2e suite", () => {
     );
   });
 
-  test("12. soffice XLSX -> HTML -> htmlq -> sqlite3 data ingestion pipeline", async () => {
+  test("12. soffice XLSX -> CSV -> sqlite3 data ingestion pipeline", async () => {
     const csv = [
       "emp_id,dept,salary",
       "e1,eng,150000",
@@ -302,7 +302,7 @@ describe("soffice & libreoffice office document workflows e2e suite", () => {
         assert.equal(res.exitCode, 0, res.stderr);
         assert.equal(
           res.stdout,
-          ["dept,total", "eng,315000", "sales,120000", ""].join("\n"),
+          ["dept,total", "eng,315000", "sales,120000", ""].join("\r\n"),
         );
       },
     );

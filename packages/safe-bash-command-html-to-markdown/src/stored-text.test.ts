@@ -91,3 +91,14 @@ test("a rejected writer prevents further output", () => fixture(async text => {
   await assert.rejects(text.write(root, { write() { writes++; throw reason; } }), error => error === reason);
   assert.equal(writes, 1);
 }));
+
+test("stored text preserves BOM characters at every leaf boundary", async () => fixture(async text => {
+  const value = "\ufeffx" + "a".repeat(2046) + "\ufeffy";
+  const root = await text.from(value);
+  let actual = "";
+  for await (const chunk of text.chunks(root)) actual += chunk;
+  assert.equal(actual.length, value.length);
+  assert.equal(actual, value);
+  assert.equal(await text.at(root, 0), "\ufeff");
+  assert.equal(await text.at(root, 2048), "\ufeff");
+}));

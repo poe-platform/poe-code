@@ -15,7 +15,7 @@ for (const [name, html, expected] of renderCases) test(`stored rendering: ${name
   const storage = new PagedStorage(context, 2), text = new TextStore(storage), tree = new StoredTree(storage, text);
   try {
     const root = await tree.create("root"), parser = new Parser(budget, tree.sink(root));
-    await parser.feed(html); await parser.finish();
+    await parser.feed(new TextDecoder().decode(new TextEncoder().encode(html))); await parser.finish();
     const output = await new StoredRenderer(tree, budget).document(root);
     let actual = "";
     for await (const chunk of text.chunks(output)) actual += chunk;

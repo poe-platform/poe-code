@@ -16,7 +16,7 @@ const empty: TextNode = { left: 0, right: 0, data: 0, bytes: 0, length: 0, heigh
  * references are offsets, and traversal needs only a logarithmic stack. */
 export class TextStore {
   private readonly encoder = new TextEncoder();
-  private readonly decoder = new TextDecoder();
+  private readonly decoder = new TextDecoder("utf-8", { ignoreBOM: true });
   constructor(private readonly storage: Pick<PagedStorage, "append" | "read">, private readonly cooperate?: (characters: number) => void | Promise<void>) {}
 
   async info(root: number): Promise<TextNode> {

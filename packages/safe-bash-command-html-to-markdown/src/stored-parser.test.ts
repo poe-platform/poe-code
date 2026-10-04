@@ -15,7 +15,7 @@ for (const [name, html, expected] of renderCases) test(`stored parser: ${name}`,
   const storage = new PagedStorage(context, 2), text = new TextStore(storage), tree = new StoredTree(storage, text);
   try {
     const root = await tree.create("root"), parser = new StoredParser(budget, storage, tree, root);
-    for (const character of html) await parser.feed(character);
+    for (const character of new TextDecoder().decode(new TextEncoder().encode(html))) await parser.feed(character);
     await parser.finish();
     const output = await new StoredRenderer(tree, budget).document(root);
     let actual = "";
@@ -94,4 +94,10 @@ test("Unicode duplicate attribute names keep whole-name lowercase semantics", as
     await parser.feed('<p ΟΣ=x ος="this duplicate value must be ignored">ok</p>');
     await parser.finish();
   } finally { await storage.close(); }
+});
+
+test("input consumes only the transport BOM and preserves embedded BOM text", async () => {
+  const result = await convert("\ufeff<p>\ufeffx\ufeff</p>");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "\ufeffx\ufeff\n");
 });

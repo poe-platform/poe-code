@@ -32,7 +32,7 @@ export class RetainedRtfSyntax {
     this.source = new PagedStorage(owner, pages); this.tape = new PagedStorage(owner, pages);
     this.release = context.onClose(() => this.close());
   }
-  static async acquire(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions): Promise<RetainedRtfSyntax> {
+  static async acquire(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, onInputAcquired?: () => void): Promise<RetainedRtfSyntax> {
     const bytes = working.cacheBytes ?? 1048576;
     if (!Number.isSafeInteger(bytes) || bytes < 16384 || bytes % 16384) context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
     if (typeof working.directory !== "string" || !working.directory.startsWith("/")) context.fail("E_OPTION", "Working storage requires an absolute caller filesystem directory");
@@ -41,8 +41,13 @@ export class RetainedRtfSyntax {
       await context.call(async () => {
         result.start = result.source.allocate(0);
         await context.consume("bytes" in input ? [input.bytes] : input.chunks, async chunk => {
+          if (Number.isFinite(context.limits.references)) {
+            const blocks = Math.ceil((result.length + chunk.length) / 4096) - Math.ceil(result.length / 4096);
+            for (let index = 0; index < blocks; index++) context.charge("references", 1);
+          }
           await result.source.append(chunk); result.length += chunk.length;
         }, ["inputBytes"]);
+        onInputAcquired?.();
         await result.parse();
       });
       return result;

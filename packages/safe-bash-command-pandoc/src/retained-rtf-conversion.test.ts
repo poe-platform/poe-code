@@ -201,3 +201,26 @@ it("preserves JSON-filter rejection of relative RTF image targets before invocat
   expect(filters.applyJsonStream).not.toHaveBeenCalled(); expect(filters.apply).not.toHaveBeenCalled();
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it.each([...syntaxCases,
+  String.raw`{\rtf1{\fonttbl{\f0  First  Second; trailing words}}\f0 body}`,
+  String.raw`{\rtf1{\fonttbl{\f0 Unterminated name}}\f0 body}`,
+  String.raw`{\rtf1{\fonttbl{\f0\cpg65001 Font; invalid \'ff}}\f0 body}`
+])("retains RTF reference limits and source diagnostics: %s", async source => {
+  const bytes = encoder.encode(source), input = {chunks: [bytes.subarray(0, 3), bytes.subarray(3)], source: "/input.rtf"};
+  const options = {from: "rtf", to: "json"};
+  for (const references of [...Array.from({length: 129}, (_, index) => index), 256]) {
+    const expected = await convert([input], options, {limits: {references}}).catch(error => error);
+    const fs = new MemoryFileSystem(); let text = "";
+    const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
+    try {
+      const actual = await convertToOutput([input], options, {limits: {references}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+        async write(bytes) {text += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}
+      }}).catch(error => error);
+      expect(acquire.mock.calls.length, `references=${references}`).toBe(0);
+      if (expected instanceof Error) expect(actual, `references=${references}`).toMatchObject({code: (expected as Error & {code: string}).code, message: expected.message, location: (expected as Error & {location?: string}).location});
+      else {expect(actual, `references=${references}`).not.toBeInstanceOf(Error); expect(text).toBe(expected.text);}
+    } finally {acquire.mockRestore();}
+    expect(await fs.readdir("/")).toEqual([]);
+  }
+});

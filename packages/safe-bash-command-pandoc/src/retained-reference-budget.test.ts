@@ -29,9 +29,9 @@ it.each(["empty", "text", "metadata", "long", "unicode", "table"])("retains JSON
   }
 });
 
-it.each(["success", "producer", "storage", "cancel", "sink"])("bounds reference-limited input transfers and cleans up on %s", async mode => {
+it.each(["success", "producer", "storage", "cancel", "sink"].flatMap(mode => ["json", "rtf"].map(from => ({mode, from}))))("bounds $from reference-limited input transfers and cleans up on $mode", async ({mode, from}) => {
   const fs = new MemoryFileSystem(), controller = new AbortController();
-  const bytes = new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "x".repeat(100000)}]}]}));
+  const bytes = new TextEncoder().encode(from === "rtf" ? String.raw`{\rtf1 ` + "x".repeat(100000) + "}" : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "x".repeat(100000)}]}]}));
   const closed = vi.fn(), close = vi.fn(async () => {}), abort = vi.fn(async () => {});
   let live = 0, writes = 0;
   const open = fs.open.bind(fs);
@@ -54,11 +54,23 @@ it.each(["success", "producer", "storage", "cancel", "sink"])("bounds reference-
       yield bytes.subarray(17);
     } finally {closed();}
   })();
-  const result = convertToOutput([{chunks}], {from: "json", to: "json"}, {signal: controller.signal, limits: {references: 1000}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+  const result = convertToOutput([{chunks}], {from, to: "json"}, {signal: controller.signal, limits: {references: 1000}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
     async write(chunk) {expect(chunk.length).toBeLessThanOrEqual(16384); if (mode === "sink") throw new Error("Sink failed");}, close, abort
   }});
   if (mode === "success") {await result; expect(close).toHaveBeenCalledOnce();}
   else {await expect(result).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"}); expect(close).not.toHaveBeenCalled();}
   expect(closed).toHaveBeenCalledOnce(); expect(live).toBe(0); expect(await fs.readdir("/")).toEqual([]);
   expect(abort).toHaveBeenCalledTimes(mode === "sink" ? 1 : 0);
+});
+
+it.each([0, 1, 4096])("preserves RTF acquisition error locations with inputBytes=%i", async inputBytes => {
+  const bytes = new TextEncoder().encode(String.raw`{\rtf1 ` + "x".repeat(5000) + "}");
+  const input = {chunks: [bytes.subarray(0, 4096), bytes.subarray(4096)], source: "/input.rtf"};
+  const options = {from: "rtf", to: "json"}, limits = {inputBytes, references: 100};
+  const expected = await convert([input], options, {limits}).catch(error => error);
+  const fs = new MemoryFileSystem();
+  await expect(convertToOutput([input], options, {limits, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+    async write() {throw new Error("Output forbidden");}, async close() {}, async abort() {}
+  }})).rejects.toMatchObject({code: expected.code, message: expected.message, location: expected.location});
+  expect(await fs.readdir("/")).toEqual([]);
 });

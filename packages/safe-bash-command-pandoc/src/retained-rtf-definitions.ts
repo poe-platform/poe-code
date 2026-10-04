@@ -132,9 +132,14 @@ export class RetainedRtfDefinitions {
   }
   private async fontName(first: number, end: number, page: number): Promise<TextRange> {
     const source = this.fontText(first, end, page);
-    let terminated = false;
+    let terminated = false, references = 0, word = false;
+    const countReferences = Number.isFinite(this.context.limits.references);
     const value = await this.text.from((async function* () {
       for await (const chunk of source) {
+        if (countReferences) for (const char of chunk) {
+          if (char === " " || char === "\t") {references++; word = false;}
+          else if (!word) {references++; word = true;}
+        }
         if (terminated) continue; // Still validate every decoded byte after the terminator.
         const end = chunk.indexOf(";");
         const name = end < 0 ? chunk : chunk.slice(0, end);
@@ -142,6 +147,12 @@ export class RetainedRtfDefinitions {
         if (end >= 0) terminated = true;
       }
     })());
+    // The native literal reader appends words/spaces after decoding the full
+    // run, including text following the first font-name terminator.
+    for (let index = 0; index < references; index++) {
+      this.context.charge("references", 1);
+      if (index % 256 === 0) await this.context.cooperate(0);
+    }
     if (!terminated) rtfError(this.context, "Unterminated RTF font name");
     let start = -1, stop = 0, offset = 0;
     for await (const chunk of this.text.chunks(value)) for (const char of chunk) {

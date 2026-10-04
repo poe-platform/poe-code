@@ -8,8 +8,8 @@ import type {InputSource, WorkingStorageOptions} from "./types.js";
 
 /** Own reader resources independently of replaceable filter document generations.
  * Source syntax and the temporary wire tape retire before returning. */
-export async function readRetainedRtfDocument(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions) {
-  const syntax = await RetainedRtfSyntax.acquire(input, context, working);
+export async function readRetainedRtfDocument(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, onInputAcquired?: () => void) {
+  const syntax = await RetainedRtfSyntax.acquire(input, context, working, onInputAcquired);
   const owner = {fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal};
   const pages = (working.cacheBytes ?? 1048576) / 16384;
   const storage = new PagedStorage(owner, pages), wire = new PagedStorage(owner, pages);

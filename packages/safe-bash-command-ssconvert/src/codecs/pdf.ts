@@ -11,6 +11,7 @@ import { objectRectangle } from "../objects/layout.js";
 import { graphBackground } from "../rendering/images/scene.js";
 import { layoutPrintPages } from "../rendering/print/layout.js";
 import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
+import { createRightwardPrintSpans } from "@poe-code/spreadsheet-engine/rendering/print/text-span";
 import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
 import { sheetPrintSettings } from "../rendering/print/settings.js";
 import { normalizeFontText } from "../rendering/print/font-normalization.js";
@@ -169,7 +170,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   pdf.setProducer("ssconvert JavaScript PDF writer");
   const fonts = new Map<boolean, {font: PDFFont; metrics: Font; bytes: Uint8Array; shaped: boolean; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
   let fontBytes = 0;
-  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle }) => {
+  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; overflowWidth?: number }) => {
     tick(value.length);
     if (!value) return;
     const bold = cellBox?.style.bold ?? false;
@@ -236,7 +237,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale});
         width += Math.round(advance) * printDisplayScale;
       }
-      if (width > cellBox.width - 5 || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
+      const overflows = width > cellBox.width - 5;
+      if (overflows && cellBox.overflowWidth === undefined || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
+      const clipLeft = x + 4;
+      const clipWidth = Math.max(0, (cellBox.overflowWidth ?? cellBox.width) - 4);
       // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
       x += 2 + 0.5 + 3 * printDisplayScale + (alignment === "left" ? 0 : (cellBox.width - 5) / (alignment === "center" ? 2 : 1));
       baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
@@ -252,7 +256,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       if (encoded.length !== glyphs.length * 4) unsupported("supplied font glyph mapping");
       const resource = page.node.newFontDictionary(font.name, font.ref);
       // Positioned marks can be reordered by text extractors; retain the logical cell string.
-      page.pushOperators(pushGraphicsState(), PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+      page.pushOperators(pushGraphicsState());
+      if (overflows) page.pushOperators(pdfRectangle(clipLeft, 0, clipWidth, page.getHeight()), clip(), endPath());
+      page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
         [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]),
       beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));
       for (const [index, glyph] of glyphs.entries()) {
@@ -432,6 +438,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       printedSheets.push({ sheet, print, positions, objects, layout });
     }
     for (const { sheet, print, positions, objects, layout } of printedSheets) {
+      const rightwardSpan = createRightwardPrintSpans(sheet, positions.column, tick);
       for (const geometry of layout.pages) {
         tick();
         const page = pdf.addPage([layout.widthPoints, layout.heightPoints]);
@@ -446,6 +453,19 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
         page.pushOperators(pushGraphicsState(), concatTransformationMatrix(layout.scaleX, 0, 0, layout.scaleY,
           geometry.originX * (1 - layout.scaleX), (page.getHeight() - geometry.originY) * (1 - layout.scaleY)));
+        // Paint all cell backgrounds before any spanning text.
+        for (const cell of sheet.cells) {
+          tick();
+          if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn) continue;
+          const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
+          if (!width || !height) continue;
+          const normalized = normalizePdfCellStyle(cell), style = normalized ? cellPrintStyle(normalized, tick) : undefined;
+          if (!style?.background) continue;
+          const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
+          const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
+          page.drawRectangle({ x: x + 2, y: page.getHeight() - y - height - 0.2,
+            width: width + 0.2, height: height + 0.2, color: rgb(...style.background) });
+        }
         for (const cell of sheet.cells) {
           tick();
           if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn || sheet.rows?.some(row => row.index === cell.row && row.hidden) || sheet.columns?.some(column => column.index === cell.column && column.hidden)) continue;
@@ -456,12 +476,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const normalizedStyle = normalizePdfCellStyle(cell);
           const style = normalizedStyle ? cellPrintStyle(normalizedStyle, tick) : undefined;
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
-          if (style?.background) page.drawRectangle({x: x + 2, y: page.getHeight() - y - height - 0.2,
-            width: width + 0.2, height: height + 0.2, color: rgb(...style.background)});
           const alignment = style?.alignment === "general" ? cell.value.kind === "number" ? "right" :
             cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style?.alignment ?? "left";
+          const overflowWidth = style && cell.value.kind === "string" && alignment === "left"
+            ? rightwardSpan(cell, Math.max(width, (layout.widthPoints - print.margins.right - geometry.originX) / layout.scaleX - (x - geometry.originX))) : undefined;
           await text(page, value, x, y, style ? style.size * printDisplayScale : 10, alignment,
-            style ? {width, height, style} : undefined);
+            style ? {width, height, style, ...(overflowWidth === undefined ? {} : {overflowWidth})} : undefined);
         }
         for (const { object, rectangle } of objects) {
           tick();

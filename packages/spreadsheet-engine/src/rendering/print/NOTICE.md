@@ -28,3 +28,12 @@ The helper takes explicit filename/path/sheet/title/page metadata; date formatti
 and cell resolution are injected. It does not discover ambient time, locale or
 filesystem state, and its English opcode support is not a translated opcode
 catalog or native collation implementation.
+
+Rightward text span eligibility and clipping follow Gnumeric 1.12.61
+`src/cellspan.c` and `src/print-cell.c`, by Miguel de Icaza, Jody Goldberg
+and Andreas J. Guelzow; copyright 2007–2009 Morten Welinder, under
+GPL-2.0-or-later. Their SHA-256 values are respectively
+`410195ebf5f523e486ed9111a1e1b81ce1fcded4a35ee570e91a40d585ece62b` and
+`6a057396fc6c920ca5cf239b24150e1e5e9e38f888096a4e7540775b4b98c8b4`.
+The implementation uses a bounded occupied-column index and preserves formula
+blockers and hidden-column behavior; the PDF adapter paints backgrounds first.

@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "pdfLeftTextSpans": {
+      "finding": "The original narrow-column BIFF page-control fixture advanced from style refusal to text-layout refusal. A memory-only long-text test reproduced the remaining failure. Native cellspan.c/print-cell.c permit left-aligned text to span empty columns and clip at occupied columns.",
+      "repair": "Index occupied visible cells per row, including blank formula results, and locate the next blocker by binary search with caller work accounting. Left-aligned strings can overflow to the available print edge; clip the text at the blocker. Paint cell backgrounds before spanning text. Other alignment/number overflow and multiline height limitations remain explicit.",
+      "verification": "One original regression repaired;301 PDF/print tests,selected build,engine lint/types and command lint plus browser/Node consumers pass. The original44-output cohort now exports every PDF, preserving36 expected page headers. A separate44-output overflow cohort has one-page output and no diagnostics.12 native BIFF7/8 PDFs independently render six controls; five cases per edition visually match overflow/blocking: empty neighbors, populated neighbors, missing inline payload, blank formulas and hidden populated columns. Native/product comparison and command screenshots inspected.",
+      "remaining": "Solid-fill control is yellow in product and black in native BIFF PDF, retained as an unresolved format/style mismatch rather than a pass. Exact glyph bounds, RTL/right/center/numeric overflow, multiline/merged/rich text and all broader families remain open."
+    },
     "biffPdfStyles": {
       "finding": "BIFF7/8 cells with ordinary Sans styles failed PDF export because the renderer rejected their XF provenance and required Format/Indent/ShrinkToFit attributes absent from these format versions. Two original integration failures reproduced this without filesystem fixtures.",
       "repair": "Admit only validated BIFF7/8 XF provenance plus normalized Gnumeric styles. Supply General format for BIFF (cell formatting is separate), and zero indent/shrink only for BIFF7. Unknown provenance, unsupported effects, foreign styles, duplicate attributes and work accounting remain guarded.",

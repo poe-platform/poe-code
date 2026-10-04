@@ -34,8 +34,8 @@ it("refuses unknown font effects and borders without publishing a style approxim
   for (const child of [font+'<g:StyleBorder/>', font.replace('>Sans<', '>Serif<')])
     await expect(writePdf(await fixture("h", attributes, child), [], context)).rejects.toThrow("styled or merged cells");
 });
-it("refuses styled multiline text and horizontal overflow", async () => {
-  for (const value of ["line&#10;next", "an original long text exceeding one cell"])
+it("refuses styled multiline text", async () => {
+  for (const value of ["line&#10;next"])
     await expect(writePdf(await fixture("h", attributes, font, value), [], context)).rejects.toThrow("PDF default-style text layout");
 });
 
@@ -129,4 +129,10 @@ it("exports workbooks roundtripped through Gnumeric XML with Format-only StyleRe
   );
   expect(res.exitCode).toBe(0);
   expect(pdfChunks.reduce((n, c) => n + c.byteLength, 0)).toBeGreaterThan(100);
+});
+
+it("prints left-aligned text that spans empty columns", async () => {
+  const value = "an original long text exceeding one cell";
+  const {runs} = await pdfText(await writePdf(await fixture("h", attributes, font, value), [], context));
+  expect(runs.map(run => run.text)).toEqual([0, 1, 2, 3].map(index => value + index));
 });

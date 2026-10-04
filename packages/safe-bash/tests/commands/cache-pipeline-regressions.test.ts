@@ -9,6 +9,56 @@ import { createNodeRegexProvider } from '../../src/commands/regex-execution/clie
 
 const enc = new TextEncoder();
 
+test('alternating shells retain their own large-file pipeline output and negation', async context => {
+  const shells = await Promise.all(['first', 'second'].map(async name => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile('/data.txt', enc.encode(`foo_${name}\n` + 'pad_1234567890\n'.repeat(80)));
+    const shell = new Shell({ fs }).use(standardCommands());
+    context.after(() => shell.dispose());
+    // Warm shell initialization before exercising synchronous pipeline dispatch.
+    await shell.exec('');
+    return { shell, output: `foo_${name}\n` };
+  }));
+  for (const prefix of ['', '! ']) {
+    const command = `${prefix}grep foo /data.txt | sort | head -n 1`;
+    for (const index of [0, 1, 0, 1, 0]) {
+      const { shell, output } = shells[index]!;
+      const result = await shell.exec(command);
+      assert.equal(result.stdout, output);
+      assert.deepEqual(result.stdoutBytes, enc.encode(output));
+      assert.equal(result.stderr, '');
+      assert.equal(result.exitCode, prefix ? 1 : 0);
+    }
+  }
+});
+
+test('find pipelines observe replacement directories and retain negation on repeated runs', async context => {
+  const fs = new MemoryFileSystem();
+  for (const directory of ['/original', '/replacement']) {
+    await fs.mkdir(directory);
+    for (let i = 1; i <= 32; i++) {
+      const suffix = directory === '/original' || i === 1 || i === 32 ? 'txt' : 'log';
+      await fs.writeFile(`${directory}/f_${String(i).padStart(2, '0')}.${suffix}`, enc.encode(''));
+    }
+  }
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (const count of [32, 2]) {
+    for (const prefix of ['', '! ']) {
+      for (let run = 0; run < 3; run++) {
+        const result = await shell.exec(`${prefix}find /original -name '*.txt' | wc -l`);
+        assert.equal(result.stdout, `${count}\n`);
+        assert.equal(result.stderr, '');
+        assert.equal(result.exitCode, prefix ? 1 : 0);
+      }
+    }
+    if (count === 32) {
+      await fs.rename('/original', '/previous');
+      await fs.rename('/replacement', '/original');
+    }
+  }
+});
+
 test('pure pipelines count byte output across stages and repeated invocations', async context => {
   const fs = new MemoryFileSystem();
   await fs.writeFile('/data.txt', enc.encode('alpha:1\nbeta:2\nalpha:3\n'));

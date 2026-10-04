@@ -1015,7 +1015,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   return parts.join("");
 }
 
-class FxPixelDemand { constructor(readonly position:number){} }
+class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
 function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,signal?:AbortSignal):Generator<IdentifyStep,string,void>{
  const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<number,Uint8Array>();
  const context:FxEvalContext={stack:[image],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
@@ -1619,9 +1619,12 @@ function sampleFxImage(
   const cx = Math.max(0, Math.min(img.width - 1, Math.round(px)));
   const cy = Math.max(0, Math.min(img.height - 1, Math.round(py)));
   const idx = (cy * img.width + cx) * 4;
-  const r = img.data![idx]! / 255;
-  const g = img.data![idx + 1]! / 255;
-  const b = img.data![idx + 2]! / 255;
+  return sampleFxPixel(img.data!, idx, ch);
+}
+function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number): number {
+  const r = data[offset]! / 255;
+  const g = data[offset + 1]! / 255;
+  const b = data[offset + 2]! / 255;
   if (ch === 4) {
     // Rec.709 intensity / luma
     return 0.212656 * r + 0.715158 * g + 0.072186 * b;
@@ -1642,7 +1645,7 @@ function sampleFxImage(
     else h = (r - g) / d + 4;
     return h / 6;
   }
-  return img.data![idx + (ch & 3)]! / 255;
+  return data[offset + (ch & 3)]! / 255;
 }
 
 function propToChannel(prop: string, defaultCh: number): number {
@@ -2037,45 +2040,45 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
   return parseTernary();
 }
 
-function* applyMagickFxSteps(stack: readonly RgbaImage[], exprStr: string, channels: {
-    r: boolean;
-    g: boolean;
-    b: boolean;
-    a: boolean;
-}, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const base = stack[0]!;
-    const out = new Uint8Array(base.data);
-    const evalFn = compileFxExpression(exprStr);
-    const mask = [channels.r, channels.g, channels.b, channels.a];
-    const vars = new Map<string, number>();
-    for (let y = 0; y < base.height; y++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let x = 0; x < base.width; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            const idx = (y * base.width + x) * 4;
-            for (let c = 0; c < 4; c++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                if (!mask[c])
-                    continue;
-                vars.clear();
-                const val = evalFn({
-                    stack,
-                    x,
-                    y,
-                    w: base.width,
-                    h: base.height,
-                    ch: c,
-                    vars
-                });
-                out[idx + c] = clampByteVal(val * 255);
+function* magickFxPixelSteps(stack: readonly FxImage[], expression: string, channels: MagickState["channels"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const base = stack[0]!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a];
+    const samples = new Map<string, number>(), sample = new Uint8Array(4), vars = new Map<string, number>();
+    const samplePixel: typeof sampleFxImage = (target, x, y, channel) => {
+        if (!target) return 0;
+        const px = Math.max(0, Math.min(target.width - 1, Math.round(x))), py = Math.max(0, Math.min(target.height - 1, Math.round(y))), position = (py * target.width + px) * 4;
+        if (!Number.isFinite(position)) return NaN;
+        const image = stack.indexOf(target), packed = samples.get(image + ":" + position);
+        if (packed === undefined) throw new FxPixelDemand(position, image);
+        for (let c = 0; c < 4; c++) sample[c] = packed >>> (c * 8) & 255;
+        return sampleFxPixel(sample, 0, channel);
+    };
+    for (let start = 0; start < base.width * base.height; start += 1024) {
+        yield;
+        const count = Math.min(1024, base.width * base.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated expression pixels");
+        const data = new Uint8Array(bytes);
+        for (let i = 0; i < count; i++) {
+            const position = (start + i) * 4, offset = i * 4;
+            samples.clear();
+            samples.set("0:" + position, data[offset]! | data[offset + 1]! << 8 | data[offset + 2]! << 16 | data[offset + 3]! << 24);
+            for (let ch = 0; ch < 4; ch++) {
+                if (!mask[ch]) continue;
+                const context: FxEvalContext = { stack, x: (start + i) % base.width, y: Math.floor((start + i) / base.width), w: base.width, h: base.height, ch, vars, sample: samplePixel };
+                // Replaying local assignments is deterministic; retain only this pixel's demanded samples.
+                while (true) {
+                    vars.clear();
+                    try { data[offset + ch] = clampByteVal(evaluate(context) * 255); break; }
+                    catch (error) {
+                        if (!(error instanceof FxPixelDemand)) throw error;
+                        const value = yield { kind: "read", image: error.image, position: error.position, length: 4 };
+                        if (!value || value.length !== 4) throw new Error("Truncated expression pixels");
+                        samples.set(error.image + ":" + error.position, value[0]! | value[1]! << 8 | value[2]! << 16 | value[3]! << 24);
+                    }
+                }
             }
         }
+        yield { kind: "write", position: start * 4, data };
     }
-    return { ...base, data: out };
 }
 
 function solveLinearSystem(A: number[][], b: number[]): number[] {
@@ -2250,14 +2253,14 @@ function* applyMagickPosterizeSteps(img: RgbaImage, levelsRaw: number, signal?: 
     return { ...img, data: out };
 }
 
-function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img): Generator<void, RgbaImage, void> {
+function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img, sources: readonly RgbaImage[] = [img]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(dimensions.width * dimensions.height * 4);
     let next = steps.next();
     while (!next.done) {
         signal?.throwIfAborted();
         const request = next.value;
         if (!request) { yield; next = steps.next(); }
-        else if (request.kind === "read") next = steps.next(img.data.subarray(request.position, request.position + request.length));
+        else if (request.kind === "read") next = steps.next(sources[request.image ?? 0]!.data.subarray(request.position, request.position + request.length));
         else { data.set(request.data, request.position); next = steps.next(); }
     }
     return { ...img, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data };
@@ -4362,7 +4365,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-fx") {
             const expr = tokens[++i] ?? "u";
             if (stack.length > 0) {
-                stack = [(yield* applyMagickFxSteps(stack, expr, state.channels, signal))];
+                const base = stack[0]!;
+                stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, state.channels), signal, base, stack)];
             }
         }
         else if (t === "-shadow") {
@@ -5096,7 +5100,10 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && token === "-vignette") {
+        if (!operandsOnly && token === "-fx") {
+            const expression = tokens[++i] ?? "u", channels = state.channels;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, magickFxPixelSteps([image], expression, channels), signal) : undefined);
+        } else if (!operandsOnly && token === "-vignette") {
             i++;
             const background = state.background;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, vignettePixelSteps(image, background), signal) : undefined);

@@ -1,4 +1,4 @@
-export type ConvolveRequest = { readonly kind: "read"; readonly position: number; readonly length: number }
+export type ConvolveRequest = { readonly kind: "read"; readonly image?: number; readonly position: number; readonly length: number }
     | { readonly kind: "write"; readonly position: number; readonly data: Uint8Array };
 /** RGB convolution with unchanged alpha, bounded row spans, and owned output chunks. */
 export function* convolvePixelSteps(image: { width: number; height: number }, kernel: readonly number[], bias: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {

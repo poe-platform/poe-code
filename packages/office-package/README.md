@@ -90,3 +90,8 @@ Office relationships or document semantics.
 
 Run `npm test --workspace=@poe-code/office-package` and
 `npm run lint --workspace=@poe-code/office-package` from the repository root.
+
+A staged writer can also `seal(comment?)` an archive without consuming output. The
+result reports its exact `size`; each `read()` returns independent bounded chunks.
+Sealing prevents further members or another finish, captures the comment, and retains
+no archive-sized byte buffer. Keep caller backing open until all readers finish.

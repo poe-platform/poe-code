@@ -10,6 +10,7 @@ export {
   type ZipEntryOptions,
   type ZipStreamEntry,
   type ZipStreamArchive,
+  type ZipSealedArchive,
   type ZipSource,
   type ZipLimits,
   type ZipProfile,

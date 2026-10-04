@@ -207,3 +207,24 @@ it.each(["store", "deflate", "auto"] as const)("preserves empty source encoding 
   for await (const bytes of writer.finish()) output.push(bytes);
   expect(Buffer.concat(output)).toEqual(Buffer.from(await zip.writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal)));
 });
+
+it("seals an exact-size replayable archive without rereading members or borrowing emitted bytes", async () => {
+  const zip = createZipCodec(), backing = storage(), writer = zip.createStagedWriter(backing.api, limits, signal);
+  const payload = new TextEncoder().encode("retained member".repeat(3000));
+  const entry = await zip.makeZipEntry("document.xml", payload, { modified: new Date("2000-01-01Z"), mode: 0o644, directory: false, symlink: false, compression: "store" }, limits, signal);
+  await writer.add(entry);
+  const comment = Uint8Array.of(97, 98), archive = writer.seal(comment);
+  const expected = await zip.writeZipArchive({ entries: [entry], comment: comment.slice() }, limits, signal);
+  comment.fill(255);
+  expect(archive.size).toBe(expected.length);
+  const allocated = backing.allocated();
+  const first: Uint8Array[] = [];
+  for await (const chunk of archive.read()) { first.push(chunk.slice()); chunk.fill(255); }
+  const second: Uint8Array[] = [];
+  for await (const chunk of archive.read()) second.push(chunk);
+  expect(Buffer.concat(first)).toEqual(Buffer.from(expected));
+  expect(Buffer.concat(second)).toEqual(Buffer.from(expected));
+  expect(backing.allocated()).toBe(allocated);
+  expect(() => writer.seal()).toThrow("ZIP writer is not open");
+  await expect(writer.add(entry)).rejects.toThrow("ZIP writer is not open");
+});

@@ -81,6 +81,12 @@ export interface ZipStreamEntry extends Omit<ZipEntry, "data"> {
   readonly dataOffset?: number;
 }
 
+/** Replayable archive bytes whose backing storage remains owned by the caller. */
+export interface ZipSealedArchive {
+  readonly size: number;
+  read(): AsyncGenerator<Uint8Array>;
+}
+
 export interface ZipStreamArchive {
   entries: readonly ZipStreamEntry[];
   comment: Uint8Array;
@@ -1074,6 +1080,24 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       signal.throwIfAborted();
       members++; total += entry.size; state = "open";
     }
+    function seal(comment = new Uint8Array()): ZipSealedArchive {
+      signal.throwIfAborted();
+      if (state !== "open") fail("ZIP writer is not open");
+      state = "finished";
+      number(comment.length, Math.min(limits.maxTextBytes, 65535), "archive comment");
+      number(local.length + central.length + 22 + comment.length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
+      const end = new Uint8Array(22 + comment.length), view = new DataView(end.buffer);
+      view.setUint32(0, 0x06054b50, true);
+      view.setUint16(8, members, true); view.setUint16(10, members, true);
+      view.setUint32(12, central.length, true); view.setUint32(16, local.length, true);
+      view.setUint16(20, comment.length, true); end.set(comment, 22);
+      return { size: local.length + central.length + end.length, async *read() {
+        yield* local.read(); yield* central.read();
+        for (let offset = 0; offset < end.length; offset += chunkSize) {
+          signal.throwIfAborted(); yield new Uint8Array(end.subarray(offset, offset + chunkSize)); await yieldTurn(signal);
+        }
+      } };
+    }
     return {
       async add(entry: ZipEntry | ZipStreamEntry): Promise<void> {
         signal.throwIfAborted();
@@ -1146,21 +1170,10 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
           await commit(finished, payload, headers);
         } catch (error) { state = "failed"; throw error; }
       },
+      seal,
+      // Keep the existing finish iterator lazy: sealing begins on its first pull.
       async *finish(comment = new Uint8Array()): AsyncGenerator<Uint8Array> {
-        signal.throwIfAborted();
-        if (state !== "open") fail("ZIP writer is not open");
-        state = "finished";
-        number(comment.length, Math.min(limits.maxTextBytes, 65535), "archive comment");
-        number(local.length + central.length + 22 + comment.length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
-        const end = new Uint8Array(22 + comment.length), view = new DataView(end.buffer);
-        view.setUint32(0, 0x06054b50, true);
-        view.setUint16(8, members, true); view.setUint16(10, members, true);
-        view.setUint32(12, central.length, true); view.setUint32(16, local.length, true);
-        view.setUint16(20, comment.length, true); end.set(comment, 22);
-        yield* local.read(); yield* central.read();
-        for (let offset = 0; offset < end.length; offset += chunkSize) {
-          signal.throwIfAborted(); yield end.subarray(offset, offset + chunkSize); await yieldTurn(signal);
-        }
+        yield* seal(comment).read();
       }
     };
   }

@@ -1,3 +1,4 @@
+import { retainRtfDocx } from "./retained-docx.js";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { FsError, type FileStaging } from "@poe-code/safe-fs/contracts";
 import { writeBytes, type ByteSink } from "safe-bash-contracts/io";
@@ -21,7 +22,7 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   const format = (colon < 0 ? convertSpec : convertSpec.slice(0, colon)).toLowerCase();
   const filter = (colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon)) || (format === "csv" ? "Text - txt - csv (StarCalc)" : `${format}_Export`);
   const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv", ".md"];
-  if (!inputs.every(input => input.toLowerCase().endsWith(".rtf") ? !["pdf", "docx"].includes(format) :
+  if (!inputs.every(input => input.toLowerCase().endsWith(".rtf") ? format !== "pdf" :
     !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["pdf", "docx", "html", "xlsx", "csv"].includes(format))) return undefined;
   return withSofficeInputs(inputs, context, limits, async (storage, sources) => {
     const original = new Map(sources), pending = new Map<string, SofficeSnapshot>(), messages: string[] = [];
@@ -53,13 +54,15 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
         }
         // Metadata reads may allocate in the same backing store. Reserve the
         // complete encoded range first so publication and later inputs are contiguous.
-        let size = 0;
-        for await (const bytes of chunks()) {
+        const archive = format === "docx" ? await retainRtfDocx(storage, rtf, snapshot, signal) : undefined;
+        const outputChunks = archive ? () => archive.read() : chunks;
+        let size = archive?.size ?? 0;
+        if (!archive) for await (const bytes of outputChunks()) {
           signal.throwIfAborted(); size += bytes.length;
           if (!Number.isSafeInteger(size)) throw new FsError("EFBIG");
         }
         const position = storage.allocate(size); let written = 0;
-        for await (const bytes of chunks()) {
+        for await (const bytes of outputChunks()) {
           if (bytes.length > size - written) throw new FsError("EIO", { message: "Text encoder exceeded its measured size" });
           for (let offset = 0; offset < bytes.length; offset += 16384) {
             signal.throwIfAborted(); await storage.write(position + written + offset, bytes.subarray(offset, offset + 16384));

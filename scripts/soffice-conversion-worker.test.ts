@@ -2,8 +2,9 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { expect, it } from "vitest";
+import { unzipSync } from "fflate";
 
-it.each(["copy", "rtf-sdk", "rtf-command", "cancel"])("publishes Soffice conversion through external Worker staging (%s)", async mode => {
+it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command", "docx-cancel"])("publishes Soffice conversion through external Worker staging (%s)", async mode => {
   const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export * as soffice from "safe-bash-command-soffice";
     export { createCommandArguments } from "safe-bash-contracts/command";
@@ -14,7 +15,7 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel"])("publishes Soffice convers
   const runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request,env){
-      const mode=new URL(request.url).pathname.slice(1),copy=mode==='copy',namespace=new api.MemoryFileSystem();
+      const mode=new URL(request.url).pathname.slice(1),copy=mode==='copy',docx=mode.startsWith('docx'),cancel=mode.endsWith('cancel'),namespace=new api.MemoryFileSystem();
       await namespace.mkdir('/spill');await namespace.mkdir('/out');
       const {fs:backing,events}=api.createR2PagedFixture(namespace,env.PAGES);
       const controller=new AbortController(),reason=new Error('cancelled'),stages=new WeakMap();
@@ -35,7 +36,7 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel"])("publishes Soffice convers
           return {...receipt,cleanup,writer:{async write(bytes,options){
             options?.signal?.throwIfAborted();if(bytes.length>16384)throw new Error('Oversized publication write');largestWrite=Math.max(largestWrite,bytes.length);
             await env.PAGES.put(info.prefix+info.count++,bytes);info.size+=bytes.length;
-            if(mode==='cancel')controller.abort(reason);
+            if(cancel)controller.abort(reason);
           },async finish(options){info.sealed=await receipt.writer.finish(options);return {...info.sealed,size:info.size};}}};
         };
         if(key==='publishStagedFile')return async(staging,path,options)=>{
@@ -48,20 +49,20 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel"])("publishes Soffice convers
       }});
       const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;largestAllocation=Math.max(largestAllocation,length);if(length>65536)throw new Error('Unbounded allocation');return Reflect.construct(target,args);}});
       const stdout={async write(bytes){if(bytes.length>65536)throw new Error('Oversized status');}},stderr={async write(bytes){throw new Error(new TextDecoder().decode(bytes));}};
-      const args=['--convert-to',copy?'txt':'html','--outdir','/out',copy?'/input.txt':'/input.rtf'];let result,cancelled=false;
+      const args=['--convert-to',copy?'txt':docx?'docx':'html','--outdir','/out',copy?'/input.txt':'/input.rtf'];let result,cancelled=false;
       try{
-        if(mode==='rtf-command')result=await api.soffice.createSofficeCommand().execute({command:'soffice',...api.createCommandArguments(args),cwd:'/spill',env:{},fs,signal:controller.signal,stdout,stderr,stdin:(async function*(){})()});
+        if(mode.endsWith('command'))result=await api.soffice.createSofficeCommand().execute({command:'soffice',...api.createCommandArguments(args),cwd:'/spill',env:{},fs,signal:controller.signal,stdout,stderr,stdin:(async function*(){})()});
         else result=await api.soffice.runSofficeFileCli(args,{filesystem:fs,cwd:'/spill',signal:controller.signal,stdout,stderr});
-      }catch(error){if(mode!=='cancel'||error!==reason)throw error;cancelled=true;}finally{globalThis.Uint8Array=Native;}
+      }catch(error){if(!cancel||error!==reason)throw error;cancelled=true;}finally{globalThis.Uint8Array=Native;}
       let length=0,hash=2166136261;
       if(published)for(let index=0;index<published.count;index++){
         const object=await env.PAGES.get(published.prefix+index),bytes=new Uint8Array(await object.arrayBuffer());
-        for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;length+=bytes.length;await env.PAGES.delete(published.prefix+index);
+        for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;length+=bytes.length;if(!docx)await env.PAGES.delete(published.prefix+index);
       }
       const outputs=await namespace.readdir('/out');
       for(const entry of outputs)if((await namespace.stat('/out/'+entry.name)).size!==0)throw new Error('Resident output payload');
       await env.PAGES.delete('input');
-      return Response.json({result,cancelled,length,hash,created,removed,closed,largestWrite,inputClosed,largestAllocation,events,
+      return Response.json({publication:docx?published:undefined,result,cancelled,length,hash,created,removed,closed,largestWrite,inputClosed,largestAllocation,events,
         remaining:(await env.PAGES.list({limit:1})).objects.length,scratch:await namespace.readdir('/spill'),outputs,hostGlobals:[typeof process,typeof Buffer,typeof require]});
     }};
   ` });
@@ -69,9 +70,25 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel"])("publishes Soffice convers
     const payload = "a".repeat(1100000), source = mode === "copy" ? payload : "{\\rtf1 " + payload + "\\par }";
     const bucket = await runtime.getR2Bucket("PAGES"); await bucket.put("input", new TextEncoder().encode(source));
     const response = await runtime.dispatchFetch("https://soffice.test/" + mode); expect(response.status).toBe(200);
-    const result = await response.json() as { result?: { exitCode: number }; cancelled: boolean; length: number; hash: number; created: number; removed: number; closed: number; largestWrite: number; inputClosed: number; largestAllocation: number; events: { opened: number; closed: number; reads: number; writes: number; largestTransfer: number }; remaining: number; scratch: unknown[]; outputs: { name: string }[]; hostGlobals: string[] };
-    expect(result.cancelled).toBe(mode === "cancel");
-    if (mode === "cancel") { expect(result.outputs).toEqual([]); expect(result.length).toBe(0); }
+    const result = await response.json() as { publication?: { prefix: string; count: number }; result?: { exitCode: number }; cancelled: boolean; length: number; hash: number; created: number; removed: number; closed: number; largestWrite: number; inputClosed: number; largestAllocation: number; events: { opened: number; closed: number; reads: number; writes: number; largestTransfer: number }; remaining: number; scratch: unknown[]; outputs: { name: string }[]; hostGlobals: string[] };
+    expect(result.cancelled).toBe(mode.endsWith("cancel"));
+    if (mode.endsWith("cancel")) { expect(result.outputs).toEqual([]); expect(result.length).toBe(0); }
+    else if (mode.startsWith("docx")) {
+      expect(result.result?.exitCode).toBe(0);
+      expect(result.outputs.map(entry => entry.name)).toEqual(["input.docx"]);
+      const parts: Uint8Array[] = [];
+      for (let index = 0; index < result.publication!.count; index++) {
+        const key = result.publication!.prefix + index;
+        parts.push(new Uint8Array(await (await bucket.get(key))!.arrayBuffer()));
+        await bucket.delete(key);
+      }
+      const archive = new Uint8Array(result.length); let offset = 0;
+      for (const part of parts) { archive.set(part, offset); offset += part.length; }
+      const entries = unzipSync(archive);
+      expect(Object.keys(entries).sort()).toEqual(["[Content_Types].xml", "_rels/.rels", "word/document.xml"].sort());
+      expect(new TextDecoder().decode(entries["word/document.xml"])).toContain("<w:t>" + payload + "</w:t>");
+      expect((await bucket.list()).objects).toEqual([]);
+    }
     else {
       const expected = mode === "copy" ? payload : '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>input</title></head><body>\n<h1>' + payload + '</h1>\n</body></html>\n';
       const bytes = new TextEncoder().encode(expected); let hash = 2166136261;
@@ -82,7 +99,7 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel"])("publishes Soffice convers
     expect(result.created).toBe(1); expect(result.removed).toBe(1); expect(result.closed).toBe(1);
     expect(result.inputClosed).toBe(1); expect(result.largestWrite).toBeLessThanOrEqual(16384); expect(result.largestAllocation).toBeLessThanOrEqual(65536);
     expect(result.events.opened).toBe(1); expect(result.events.closed).toBe(1); expect(result.events.reads).toBeGreaterThan(0); expect(result.events.writes).toBeGreaterThan(0);
-    expect(result.events.largestTransfer).toBeLessThanOrEqual(16384); expect(result.remaining).toBe(0); expect(result.scratch).toEqual([]);
+    expect(result.events.largestTransfer).toBeLessThanOrEqual(16384); expect(result.remaining).toBe(result.publication ? 1 : 0); expect(result.scratch).toEqual([]);
     expect(result.hostGlobals).toEqual(["undefined", "undefined", "undefined"]);
   } finally { await runtime.dispose(); }
 }, 20000);

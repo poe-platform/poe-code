@@ -746,6 +746,16 @@ and atomic publication. `maxIndexBytes`, `maxObjects` and `maxOutputBytes` admit
 backing slots and output before use. Object-stream generation and linearization
 remain available through the existing serializer.
 
+`retainedCosObjects(document, storage, options)` supplies every live indirect
+object, including unreachable objects, in identity order for rewriting or editing.
+Pass it to `serializeRetainedCosDocumentChunks` with the document's root, info,
+ID and version fields. Encoded payloads stream directly; decrypted payloads use
+caller backing to establish their output length. Consume each object's stream
+before advancing and keep the source/document open until iteration ends.
+`maxObjects`, `maxStreamBytes` and `signal` govern admission and cancellation.
+This low-level COS path preserves the graph; it does not flatten page trees or
+encrypt output.
+
 `PdfMutableObjectStore` holds edited objects and encoded stream chunks on the
 caller filesystem. Reserve references with `allocate()`, replace values with
 `set()`, resolve owned snapshots with `get()`, and pass ordered `outputObjects()`

@@ -54,7 +54,7 @@ it.each(["success", "producer", "storage", "cancel", "sink"].flatMap(mode => ["j
       yield bytes.subarray(17);
     } finally {closed();}
   })();
-  const result = convertToOutput([{chunks}], {from, to}, {signal: controller.signal, limits: {references: (to === "latex" || to === "rtf") ? 2000000 : 1000}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+  const result = convertToOutput([{chunks}], {from, to}, {signal: controller.signal, limits: {...(from === "json" && to === "json" ? {retainedBytes: 4000000} : {}), references: (to === "latex" || to === "rtf") ? 2000000 : 1000}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
     async write(chunk) {expect(chunk.length).toBeLessThanOrEqual(16384); if (mode === "sink") throw new Error("Sink failed");}, close, abort
   }});
   if (mode === "success") {await result; expect(close).toHaveBeenCalledOnce();}

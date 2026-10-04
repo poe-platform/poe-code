@@ -71,7 +71,8 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
   let nodes = 0;
   let normalizedUsage: RetainedAstUsage = {nodes: 0, text: 0};
   try {
-    const references = chargeInput && Number.isFinite(context.limits.references);
+    const retained = Number.isFinite(context.limits.retainedBytes);
+    const references = chargeInput && (Number.isFinite(context.limits.references) || retained);
     const bytes = async function* () {
       while (true) {
         const part = await context.call(async () => source.next());
@@ -79,7 +80,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         yield part.value;
       }
     };
-    const parsedText = decodeInput && (Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references)) ? retainedUtf8(references ? retainInput(bytes(), context, scratch, ["inputBytes"]) : bytes(), context, scratch, chargeInput && !references ? ["inputBytes"] : [], onInputDecoded) : text;
+    const parsedText = decodeInput && (Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references) || retained) ? retainedUtf8(references ? retainInput(bytes(), context, scratch, ["inputBytes"], retained) : bytes(), context, scratch, chargeInput && !references ? ["inputBytes"] : [], onInputDecoded, retained) : text;
     await parseBackedJson(parsedText, tree, scratch, units => context.cooperate(units), (offset, message) => {
       throw new PandocError("E_AST", "read", message, "json", `$@${offset}`);
     }, async (node, offset) => {
@@ -88,11 +89,11 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         if (!(error instanceof JsonNumberError)) throw error;
         throw new PandocError("E_AST", "read", error.message, "json", `$@${offset}`);
       }
-    }, false, decodeInput && Number.isFinite(context.limits.depth) ? (depth, container) => {if (!container) context.bound("depth", depth);} : undefined, decodeInput ? (_kind, complete) => {if (!complete) context.bound("nodes", ++nodes);} : undefined, decodeInput && Number.isFinite(context.limits.references) ? () => context.charge("references", 1) : undefined);
+    }, false, decodeInput && Number.isFinite(context.limits.depth) ? (depth, container) => {if (!container) context.bound("depth", depth);} : undefined, decodeInput ? (_kind, complete) => {if (!complete) {context.bound("nodes", ++nodes); if (retained) context.charge("retainedBytes", 16);}} : undefined, decodeInput && Number.isFinite(context.limits.references) ? () => context.charge("references", 1) : undefined, decodeInput && retained ? bytes => context.charge("retainedBytes", bytes) : undefined);
     const order = await backedJsonOrder(tree, scratch, units => context.cooperate(units));
     if (chargeAst) {
       try {
-        const enums = (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references)) ? await validateRetainedWire(tree, order, scratch, context) : undefined;
+        const enums = (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references) || retained) ? await validateRetainedWire(tree, order, scratch, context) : undefined;
         normalizedUsage = await reserveRetainedAstBudgets(tree, order, context, enums);
       }
       catch (error) {
@@ -101,7 +102,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         throw error;
       }
     }
-    await validateBackedPandoc(tree, scratch, context, undefined, chargeAst && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references)));
+    await validateBackedPandoc(tree, scratch, context, undefined, chargeAst && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references) || retained));
     const meta = (await tree.property(tree.rootPosition, "meta"))!, blocks = (await tree.property(tree.rootPosition, "blocks"))!;
     const encoder = new TextEncoder();
     const output = async function* (eol?: "lf" | "crlf" | "native") {

@@ -169,20 +169,17 @@ finite output budgets. Retained JSON conversions support finite `inputBytes`, `o
 `tableColumns`, `tableFieldText`, `tableCells`, `attributes`, `depth`, `nodes`, and `text`,
 line endings, and the same non-transforming options as the table path. It uses
 two page caches of at most `cacheBytes` each, plus fixed small index caches.
-JSON/RTF/CSV/TSV → JSON without filters, metadata overrides or writer transformations also
-retains finite `references` limits through both SDK and command, including input-block, decoded-fragment, parser-edge and table-span
-accounting with the same limit diagnostics. RTF syntax and font-literal references
-are counted in native decoding order. CSV/TSV table replays charge references
-once, preserving ragged-row padding and input aggregation order. Unfiltered
-plain-text output also retains finite reference limits, including wrapping,
-indentation, captions, tables and CRLF conversion, with matching output-limit
-errors. Unfiltered HTML output supports the same reference limits, including
-escaped fragments, attributes, math, notes, numbered sections, contents and
-standalone output. RST also retains reference limits with native generated-name,
-source-projection and output checks. CommonMark without pipe tables retains
-reference limits for repeated links and wrapping, including worst-case text
-expansion checks. GFM/pipe-table and other reference-limited combinations
-still use the compatibility path.
+JSON/RTF/CSV/TSV → JSON, plain, HTML, RST, CommonMark/GFM, LaTeX, RTF and ODT
+retain finite `references` limits through SDK and command. This includes supported
+writer options, metadata, streamed JSON/Lua filters, templates/includes and image
+resource search/embedding. Input acquisition, decoding, parser edges, table spans,
+resource deduplication and output checks preserve native budget diagnostics.
+Single-input JSON → JSON also supports finite `retainedBytes` with LF/native/CRLF
+line endings and non-transforming options. Acquisition, decoding, parsing, AST
+normalization and output encoding keep their existing cumulative quota charges
+while document data lives in caller storage. Output sink writes preserve native
+4096-byte accounting and failures. Other retained-byte-limited combinations still
+use the compatibility path.
 JSON `metadataFiles` merge into retained generations before filters. File contents,
 merge keys, duplicate-key indexes and recursive map/list work stay in caller
 storage; null deletion, last-key-wins JSON parsing and native number conversion
@@ -227,7 +224,7 @@ document validation precedes package-budget admission.
 HTML image embedding (`embedResources: true` or `--embed-resources`) streams
 image bytes and base64 text through caller storage, including local VFS images
 and pictures retained from RTF. Templates and Lua image origins are preserved.
-Other finite structural budgets still use the compatibility path.
+Finite retained-byte budgets on these image paths still use the compatibility path.
 Single-input JSON → plain text uses the same retained document and streaming
 JSON filters. Its writer jobs, diagnostic paths, intermediate text, wrapping and
 indentation use caller storage, including long words and nested lists. It preserves
@@ -259,8 +256,7 @@ name searches keep their pattern and failure links in caller pages.
 JSON and CSV/TSV → LaTeX retain labels, deferred notes, table columns/span
 occupancy, repeated headers, writer jobs and output in caller storage. The fixed
 standalone preamble, document metadata, math allowlist and URL/image-path checks
-keep their existing behavior. Legacy filters, embedded resources, other transformations
-and other finite document budgets continue through the compatibility converter.
+keep their existing behavior. Legacy filters and finite retained-byte budgets continue through the compatibility converter.
 
 JSON and CSV/TSV → RTF retain writer continuations, sorted font/color indexes,
 list definitions, table columns and output in caller storage. Local pictures use

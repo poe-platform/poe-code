@@ -14,7 +14,7 @@ export const wireEnums = new Set(["AlignDefault", "AlignLeft", "AlignRight", "Al
  * When translation positions are supplied, also perform the scalar checks that
  * precede schema validation in the buffered normalizer. */
 export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, enums?: IntegerTable, aggregate = false): Promise<RetainedAstUsage> {
-  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes) && !Number.isFinite(context.limits.depth) && !Number.isFinite(context.limits.nodes) && !Number.isFinite(context.limits.text) && !Number.isFinite(context.limits.references)) return {nodes: 0, text: 0};
+  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes) && !Number.isFinite(context.limits.depth) && !Number.isFinite(context.limits.nodes) && !Number.isFinite(context.limits.text) && !Number.isFinite(context.limits.references) && !Number.isFinite(context.limits.retainedBytes)) return {nodes: 0, text: 0};
   let cells = 0, references = 0, attributes = 0, nodes = 0, text = 0;
   const fail = async (position: number, message: string, code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
     const path = await retainedPath(tree, position);
@@ -32,6 +32,7 @@ export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited
     text += units;
     if (!Number.isSafeInteger(text) || text > context.limits.text) await fail(position, "AST budget exceeded", "E_LIMIT");
     if (!aggregate) context.charge("text", units);
+    if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", units * 2);
   };
   const string = async (position: number, location = position): Promise<void> => {
     let high = false;

@@ -4,16 +4,16 @@ import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
 const modes = ["sdk", "command"];
-const ordinary = {transform: false, metadata: false, filter: false, lua: false, template: false, crlf: false, writerOptions: false};
+const ordinary = {transform: false, metadata: false, filter: false, lua: false, template: false, crlf: false, writerOptions: false, byteQuota: false};
 const cases = modes.flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from =>
   ["json", "plain", "html5", "rst", "gfm", "latex", "rtf", "odt", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])]
     .map(to => ({mode, from, to, ...ordinary}))));
 cases.push(...modes.flatMap(mode => ["json", "html5"].map(to => ({mode, from: "json", to, ...ordinary, transform: true}))));
-for (const option of ["metadata", "filter", "lua", "crlf"] as const)
+for (const option of ["metadata", "filter", "lua", "crlf", "byteQuota"] as const)
   cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, [option]: true})));
 cases.push(...modes.map(mode => ({mode, from: "json", to: "html5", ...ordinary, template: true})));
 cases.push(...modes.flatMap(mode => ["gfm", "rtf"].map(to => ({mode, from: "json", to, ...ordinary, writerOptions: true}))));
-it.each(cases)("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata filter=$filter lua=$lua template=$template crlf=$crlf writerOptions=$writerOptions", async ({mode, from, to, transform, metadata, filter, lua, template, crlf, writerOptions}) => {
+it.each(cases)("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata filter=$filter lua=$lua template=$template crlf=$crlf writerOptions=$writerOptions byteQuota=$byteQuota", async ({mode, from, to, transform, metadata, filter, lua, template, crlf, writerOptions, byteQuota}) => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput, createJsonFilterCapability, createLuaFilterCapability} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -42,7 +42,7 @@ it.each(cases)("retains finite $from-to-$to reference budgets through the public
       }});
       let text = '', largest = 0, closed = 0;
       const output = {async write(bytes) {text += new TextDecoder().decode(bytes); largest = Math.max(largest, bytes.length);}, async close() {closed++;}, async abort() {}};
-      const limits = {references: (crlf || to === 'latex' || to === 'rtf') ? 2000000 : 10000, text: (metadata || filter || lua) ? 6000000 : transform ? 4000000 : 2000000, nodes: 1000, depth: 64};
+      const limits = {...(${byteQuota} ? {retainedBytes: 32000000} : {}), references: (crlf || to === 'latex' || to === 'rtf') ? 2000000 : 10000, text: (metadata || filter || lua) ? 6000000 : transform ? 4000000 : 2000000, nodes: 1000, depth: 64};
       if (${JSON.stringify(mode)} === 'sdk') {
         await api.convertToOutput([{chunks: fs.readStream('/input.json')}], {from, to, ...(writerOptions ? {standalone: true, ...(to === "gfm" ? {toc: true, ascii: true, wrap: "auto", columns: 12, rawContent: "retain"} : {})} : {}), ...(crlf ? {eol: "crlf", standalone: false} : {}), ...(template ? {template: {chunks: fs.readStream("/template")}, variables: {show: "yes"}, includeInHeader: [{chunks: fs.readStream("/header")}], includeBeforeBody: [{chunks: fs.readStream("/before")}], includeAfterBody: [{chunks: fs.readStream("/after")}]} : {}), ...(filter || lua ? {filters: [{kind: lua ? "lua" : "json", path: lua ? "/filter.lua" : "/filter"}]} : {}), ...(metadata ? {metadataJson: [{title: value}]} : {}), ...(transform ? {stripComments: true, shiftHeadingLevelBy: -1} : {})}, {limits, ...(lua ? {filters: api.createLuaFilterCapability({readStream: () => fs.readStream("/filter.lua")})} : {}), ...(filter ? {filters: api.createJsonFilterCapability({async runStream({stdin, stdout}) {for await (const bytes of stdin) await stdout.write(bytes); return 0;}})} : {}), workingFiles: {fs, directory: '/spill', cacheBytes: lua ? 1048576 : 16384}, output});
       } else {

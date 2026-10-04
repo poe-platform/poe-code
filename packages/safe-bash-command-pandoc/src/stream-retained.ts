@@ -59,8 +59,8 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
   const preflight = async (chunks: () => AsyncIterable<Uint8Array>, eol?: ConversionOptions["eol"]) => {
-    if (!Number.isFinite(context.limits.outputBytes) && !(Number.isFinite(context.limits.references) && eol === "crlf")) return;
-    if (Number.isFinite(context.limits.references)) {
+    if (!Number.isFinite(context.limits.retainedBytes) && !Number.isFinite(context.limits.outputBytes) && !(Number.isFinite(context.limits.references) && eol === "crlf")) return;
+    if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) {
       const text = async function* () {
         const decoder = new TextDecoder();
         for await (const bytes of chunks()) yield decoder.decode(bytes, {stream: true});
@@ -88,6 +88,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       context.charge("references", (await document.tree.describe(blocks)).children + resourceCount);
       for (let index = 0, count = (await document.tree.describe(metadata)).children / 2; index < count; index++) context.charge("references", 1);
     }
+    if (Number.isFinite(context.limits.retainedBytes)) await reserveRetainedAstBudgets(document.tree, document.order, context, undefined, true);
     let metadataChanged = false;
     for (const file of options.metadataFiles ?? []) {
       const next = await mergeRetainedMetadata(document, {source: file}, context, working);
@@ -166,9 +167,17 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     else if (target === "commonmark" || target === "gfm") await writeRetainedMarkdown(document.tree, context, working, options, createFormatRegistry().resolve(options.to, "write"));
     else {
       if (resourceCount) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent resources, language or direction document fields", "json", "$");
-      if (Number.isFinite(context.limits.references)) await preflight(() => document!.chunks(), options.eol);
+      if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) await preflight(() => document!.chunks(), options.eol);
       else await preflight(() => document!.chunks(options.eol));
-      for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);
+      if (Number.isFinite(context.limits.retainedBytes)) {
+        let buffer = new Uint8Array(4096), used = 0;
+        for await (const bytes of document.chunks(options.eol)) for (let offset = 0; offset < bytes.length;) {
+          const count = Math.min(buffer.length - used, bytes.length - offset);
+          buffer.set(bytes.subarray(offset, offset + count), used); used += count; offset += count;
+          if (used === buffer.length) {await context.emit(buffer); buffer = new Uint8Array(4096); used = 0;}
+        }
+        if (used) await context.emit(buffer.subarray(0, used));
+      } else for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);
     }
   } catch (reason) {failure = {reason};}
   try {await document?.close();} catch (reason) {failure ??= {reason};}

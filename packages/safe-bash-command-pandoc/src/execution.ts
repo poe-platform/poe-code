@@ -342,7 +342,8 @@ export class ExecutionContext implements AdapterContext {
   async consume(
     chunks: Chunks,
     accept: (bytes: Uint8Array) => Promise<void>,
-    budgets: readonly (keyof Limits)[] = []
+    budgets: readonly (keyof Limits)[] = [],
+    retain = true
   ): Promise<void> {
     this.checkpoint(0);
     const iterator =
@@ -364,7 +365,7 @@ export class ExecutionContext implements AdapterContext {
         }
         if (!(part.value instanceof Uint8Array)) this.fail("E_IO", "Producer must yield bytes");
         for (const key of budgets) this.charge(key, part.value.byteLength);
-        this.charge("retainedBytes", part.value.byteLength);
+        if (retain) this.charge("retainedBytes", part.value.byteLength);
         this.checkpoint(Math.max(1, Math.ceil(part.value.byteLength / 4096)));
         // A producer may supply a whole file as one borrowed chunk. Keep our
         // owned working copy bounded, without advancing the producer until all
@@ -436,7 +437,7 @@ export class ExecutionContext implements AdapterContext {
     return parts.join("");
   }
 
-  async decodeUtf8To(chunks: Chunks, accept: (text: string) => Promise<void>, budgets: readonly (keyof Limits)[] = []): Promise<void> {
+  async decodeUtf8To(chunks: Chunks, accept: (text: string) => Promise<void>, budgets: readonly (keyof Limits)[] = [], retainInput = true): Promise<void> {
     let ready: string | undefined;
     let fragment = "";
     let cr = false;
@@ -498,7 +499,7 @@ export class ExecutionContext implements AdapterContext {
         if ((offset + 1) % 256 === 0) await this.cooperate(0);
       }
       await this.cooperate(0);
-    }, budgets);
+    }, budgets, retainInput);
     if (remaining) this.fail("E_ENCODING", "Incomplete trailing UTF-8 sequence");
     if (cr) append("\n");
     if (ready !== undefined) await accept(ready);

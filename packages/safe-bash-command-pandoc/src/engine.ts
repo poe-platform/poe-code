@@ -630,7 +630,8 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text",
     // These format-specific budgets have no consumers in the retained format pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
-  ].includes(key) || value === Infinity || key === "references" && ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
+  ].includes(key) || value === Infinity || key === "references" && ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name) || key === "retainedBytes" && reader.descriptor.name === "json" && writer.descriptor.name === "json"
+    && Object.keys(options).every(option => ["from", "to", "eol", "lossy", "yes", "sandbox", "fileScope", "failIfWarnings"].includes(option) || option === "standalone" && options.standalone === false));
   const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && ["json", "rtf"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" && (["rtf", "odt"].includes(writer.descriptor.name) || writer.descriptor.name === "html5" && options.embedResources) || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
@@ -651,7 +652,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
           reading = false; return {...retained.document, resources: retained.resources, closeResources: retained.close};
         }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
       } catch (error) {
-        if (reading && reader.descriptor.name === "json" && error instanceof PandocError && error.code === "E_LIMIT" && (["tableCells:", "attributes:", "depth:", "nodes:"].some(prefix => error.message.startsWith(prefix)) || readerStarted && ["text:", "references:"].some(prefix => error.message.startsWith(prefix))) && inputs[0]!.source)
+        if (reading && reader.descriptor.name === "json" && error instanceof PandocError && error.code === "E_LIMIT" && (["tableCells:", "attributes:", "depth:", "nodes:"].some(prefix => error.message.startsWith(prefix)) || readerStarted && ["text:", "references:", "retainedBytes:"].some(prefix => error.message.startsWith(prefix))) && inputs[0]!.source)
           throw new PandocError(error.code, "convert", error.message, error.format, `${inputs[0]!.source}:${error.location ?? "1:1"}`);
         if (reading && readerStarted && reader.descriptor.name === "rtf" && error instanceof PandocError && error.code !== "E_IO" && error.code !== "E_CANCELLED") {
           const name = inputs[0]!.source ?? (error.code === "E_PARSE" ? inputs[0]!.base : undefined);

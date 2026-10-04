@@ -7,6 +7,9 @@ import type { CosToken } from "./lexer.js";
 export interface ValueArrayStorage {
   readonly arrayStorage?: PdfPixelStorage;
   readonly storedArrayKeys?: readonly string[];
+  /** Match a suffix of enclosing dictionary keys; '*' matches one key.
+   * Array boundaries do not match dictionary path segments. */
+  readonly storedArrayPaths?: readonly (readonly string[])[];
   readonly storeRootArray?: boolean;
 }
 export type ValueWork<T> = Generator<void | "token" | PdfCosDict | {kind: "array-append"; node: PdfCosNode; previous: number}, T, CosToken | PdfCosNode | number | undefined>;
@@ -24,6 +27,16 @@ export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, re
     | { kind: "array"; start: number; items: PdfCosNode[]; storedItems?: PdfStoredItems; tail: number }
     | { kind: "dict"; start: number; entries: PdfDictEntry[]; key?: PdfDictEntry["key"] };
   const stack: Container[] = [];
+  function matchesStoredPath(): boolean {
+    return options.storedArrayPaths?.some(path => {
+      if (!path.length || path.length > stack.length) return false;
+      for (let i = 0; i < path.length; i++) {
+        const parent = stack[stack.length - path.length + i]!;
+        if (parent.kind !== "dict" || !parent.key || (path[i] !== "*" && path[i] !== parent.key.decoded)) return false;
+      }
+      return true;
+    }) ?? false;
+  }
   while (true) {
     if (++work % 16 === 0) yield;
 
@@ -64,7 +77,7 @@ export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, re
       charge();
       if (stack.length > maxDepth) throw new PdfError("E_LIMIT", "PDF syntax nesting limit exceeded");
       if (tok.kind === "array-start") {
-        const backed = options.arrayStorage && (parent?.kind === "array" && parent.storedItems || parent?.kind === "dict" && options.storedArrayKeys?.includes(parent.key!.decoded) || !parent && options.storeRootArray);
+        const backed = options.arrayStorage && (parent?.kind === "array" && parent.storedItems || parent?.kind === "dict" && (options.storedArrayKeys?.includes(parent.key!.decoded) || matchesStoredPath()) || !parent && options.storeRootArray);
         stack.push({ kind: "array", start: tok.span.start, items: [], tail: -1,
           ...(backed ? {storedItems: {storage: options.arrayStorage!, position: -1, length: 0}} : {}) });
         continue;

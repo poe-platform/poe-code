@@ -86,10 +86,13 @@ chunks; tokens expose `storedBytes` with empty `bytes`. Retained content parsing
 uses this backing for text and array elements when `pathStorage` is supplied.
 Arrays expose `storedItems` with empty `items`; iterate their elements with
 `readStoredItems<PdfCosNode>(array.storedItems, signal)`. Source COS parsing and
-retained `lookup` also accept `arrayStorage`, `storedArrayKeys`, and
+retained `lookup` also accept `arrayStorage`, `storedArrayKeys`, `storedArrayPaths`, and
 `storeRootArray` to back selected arrays without collecting their elements. Set
 `valueArrays` when opening a retained document to apply these options to page
-lookups too, including inline font resources.
+lookups too, including inline font resources. `storedArrayPaths` matches a suffix
+of enclosing dictionary keys, with `"*"` matching one key. For example,
+`[["ExtGState", "*", "D"]]` backs inline graphics-state dash declarations while
+leaving unrelated annotation and action `/D` arrays unchanged.
 Retained font resolution uses these options for direct and indirect width tables
 when `resourceStorage` is supplied, including encrypted objects. `/Differences`
 uses caller-backed declaration maps as well: retained fonts expose asynchronous

@@ -67,3 +67,23 @@ it("does not discard repaired objects when backing reports a syntax-shaped error
   const scan = scanCosRangeObjects(source as import("../source.js").PdfFileSource,{arrayStorage:storage,storeRootArray:true});
   await expect(scan.next()).rejects.toBe(failure);
 });
+
+
+it("backs graphics-state dash paths without changing unrelated D arrays", async () => {
+  const input = new TextEncoder().encode("<< /Resources << /ExtGState << /Dashes << /D [[" + "2 3 ".repeat(2048) + "] 0] >> >> >> /BS << /D [9 8] >> /D [7 6] /Other << /Dashes << /D [5 4] >> >> >>");
+  const data = new Uint8Array(4_000_000); let end = 0;
+  const storage = { allocate(n: number) { const at = end; end += n; return at; },
+    async read(at: number, n: number) { return data.subarray(at, at + n); },
+    async write(at: number, bytes: Uint8Array) { expect(bytes.length).toBeLessThanOrEqual(4096); data.set(bytes, at); } };
+  const source = { size: input.length, chunkBytes: 64, async read(at: number, n: number) { return input.subarray(at, at + n); } };
+  const { value } = await parseCosRangeValue(source, 0, { arrayStorage: storage, storedArrayPaths: [["ExtGState", "*", "D"]] });
+  function get(node: PdfCosNode | undefined, key: string) { if (node?.kind !== "dict") throw Error("Expected dictionary"); return dictGet(node, key); }
+  const dash = get(get(get(get(value, "Resources"), "ExtGState"), "Dashes"), "D");
+  if (dash?.kind !== "array") throw Error("Expected dash array");
+  expect(dash.items).toHaveLength(0); expect(dash.storedItems?.length).toBe(2);
+  const pair = []; for await (const node of readStoredItems<PdfCosNode>(dash.storedItems!)) pair.push(node);
+  expect(pair[0]).toMatchObject({ kind: "array", items: [], storedItems: { length: 4096 } });
+  expect(get(get(value, "BS"), "D")).toMatchObject({ kind: "array", items: [{ value: 9 }, { value: 8 }] });
+  expect(get(value, "D")).toMatchObject({ kind: "array", items: [{ value: 7 }, { value: 6 }] });
+  expect(get(get(get(value, "Other"), "Dashes"), "D")).toMatchObject({ kind: "array", items: [{ value: 5 }, { value: 4 }] });
+});

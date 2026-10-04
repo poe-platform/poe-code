@@ -130,6 +130,47 @@ function number(value: string | undefined, fallback = 0): number {
 function integer(value: string | undefined, fallback = 0): number {
   const result = number(value, fallback); if (!Number.isSafeInteger(result) || result < 0) invalid("invalid nonnegative integer"); return result;
 }
+/** Later column declarations override earlier ones, including missing style IDs.
+ * Resolve each XLSX column at most once with a fixed-size successor index.
+ * The original XML remains available for axis metadata and diagnostics. */
+function columnStyleIndex(source: XmlElement, charge: (amount: number) => void): Float64Array | undefined {
+  const declarations = child(source, "cols")?.children ?? [];
+  let styled = false;
+  // Preserve declaration-order validation before traversing overrides backwards.
+  for (const node of declarations) {
+    if (node.localName !== "col" || attr(node, "style") === undefined) continue;
+    charge(1);
+    integer(attr(node, "min")); integer(attr(node, "max")); integer(attr(node, "style"));
+    styled = true;
+  }
+  if (!styled) return undefined;
+  const columns = 16384;
+  charge(columns + 1);
+  const styles = new Float64Array(columns).fill(-1);
+  const next = new Uint16Array(columns + 1);
+  for (let column = 0; column <= columns; column++) next[column] = column;
+  function unresolved(column: number): number {
+    while (next[column] !== column) {
+      next[column] = next[next[column]!]!;
+      column = next[column]!;
+    }
+    return column;
+  }
+  for (let ordinal = declarations.length - 1; ordinal >= 0; ordinal--) {
+    const node = declarations[ordinal]!;
+    if (node.localName !== "col" || attr(node, "style") === undefined) continue;
+    charge(1);
+    const start = Math.min(columns, Math.max(0, integer(attr(node, "min")) - 1));
+    const end = Math.min(columns, integer(attr(node, "max")));
+    const style = integer(attr(node, "style"));
+    for (let column = unresolved(start); column < end; column = next[column]!) {
+      charge(1); styles[column] = style;
+      next[column] = unresolved(column + 1);
+    }
+  }
+  return styles;
+}
+
 function boolean(value: string | undefined): boolean { return value === "1" || value === "true"; }
 function sharedStringIndex(source: string): number | undefined {
   // xlsx_relaxed_strtol accepts decimal digits with surrounding ASCII whitespace.
@@ -438,8 +479,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       const cellIndexes = indexes?.cells ?? new Map<number, number>();
       const arrayGroups = new Map<string, FormulaGroup>();
       const shared = indexes?.shared ?? new Map<string, XlsxSharedFormula>();
-      const columnStyles = children(child(source, "cols"), "col").filter(node => attr(node, "style") !== undefined)
-        .map(node => ({ min: integer(attr(node, "min")) - 1, max: integer(attr(node, "max")) - 1, style: cellStyles[integer(attr(node, "style"))] }));
+      const columnStyles = columnStyleIndex(source, opc.charge);
       const rowState = indexes?.rows ?? new Map<number, AxisMetadata>();
       const allocatedRowHeights = indexes?.heights ?? new Map<number, number>();
       const dimensions: Record<string, ImportedValue> = {};
@@ -525,9 +565,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                 value = { kind: "number", value: Number.isNaN(parsed) ? 0 : parsed };
               }
             }
-            opc.charge(columnStyles.length);
-            let inheritedStyle;
-            for (const column of columnStyles) if (position.column >= column.min && position.column <= column.max) inheritedStyle = column.style;
+            opc.charge(columnStyles ? 1 : 0);
+            let inheritedStyle = cellStyles[columnStyles?.[position.column] ?? -1];
             if (boolean(attr(row, "customFormat")) && attr(row, "s") !== undefined) inheritedStyle = cellStyles[integer(attr(row, "s"))];
             const styleId = attr(node, "s"), style = styleId === undefined ? inheritedStyle : cellStyles[integer(styleId)];
             const f = child(node, "f"); let expression: string | undefined, groupId: string | undefined, arrayRange: Range | undefined;

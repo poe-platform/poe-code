@@ -9,6 +9,38 @@ import { createNodeRegexProvider } from '../../src/commands/regex-execution/clie
 
 const enc = new TextEncoder();
 
+test('pure pipelines count byte output across stages and repeated invocations', async context => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/data.txt', enc.encode('alpha:1\nbeta:2\nalpha:3\n'));
+  await fs.writeFile('/partial.txt', enc.encode('first\nlast'));
+  await fs.mkdir('/work');
+  await fs.writeFile('/work/a.txt', enc.encode('one\n'));
+  await fs.writeFile('/work/b.txt', enc.encode('two\n'));
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const cases = [
+    ['grep alpha /data.txt | wc -l', '2\n'],
+    ['grep alpha /data.txt | sort | wc -l', '2\n'],
+    ["find /work -name '*.txt' | sort | wc -l", '2\n'],
+    ["find /work -name '*.txt' | wc -l", '2\n'],
+    ['sort /data.txt | wc -l', '3\n'],
+    ['cut -d: -f2 /data.txt | wc -l', '3\n'],
+    ['grep alpha /data.txt | tr a A | wc -l', '2\n'],
+    ['head -n 2 /data.txt | wc -l', '2\n'],
+    ['wc -l /data.txt | wc -l', '1\n'],
+    ['head -c 10 /partial.txt | wc -l', '1\n'],
+    ['grep absent /data.txt | wc -l', '0\n'],
+  ] as const;
+  for (let iteration = 0; iteration < 3; iteration++) {
+    for (const [command, expected] of cases) {
+      const result = await shell.exec(command);
+      assert.equal(result.stdout, expected, command);
+      assert.equal(result.stderr, '', command);
+      assert.equal(result.exitCode, 0, command);
+    }
+  }
+});
+
 test('pipeline byte quotas cover every edge and descriptor writes on every invocation', async context => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
   context.after(() => shell.dispose());

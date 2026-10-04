@@ -13,8 +13,12 @@ list items and table cells. The cache is 256 KiB and spills via the
 injected safe-fs retained descriptor in `TMPDIR`, falling back to the command
 working directory. A memory backend still retains backing bytes in RAM.
 
-Before qualification, finish URL attribute validation. The existing URL
-policy still materializes a destination attribute before validation. Do not
+Destination security checks and escaping now stream over stored text. Paths,
+credentials, arbitrarily long ASCII labels and zero-padded ports do not enter
+native URL parsing as full payloads. Percent-decoded host bytes use a bounded
+UTF-8 window and caller storage. Before qualification, finish the remaining
+Unicode/punycode hostname validation: its native IDNA path still materializes
+the hostname. Do not
 characterize the current command as fully bounded. Preserve output/error ordering,
 retained file identity, cleanup and cancellation while migrating these paths;
 exercise adversarial depth and attribute size without lowering accepted limits.

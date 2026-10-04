@@ -1,4 +1,4 @@
-import { destination } from "./entities.js";
+import { storedDestination } from "./stored-destination.js";
 import type { Budget } from "./budget.js";
 import { blockTags } from "./parser.js";
 import { htmlSpace } from "./text.js";
@@ -18,8 +18,7 @@ export class StoredRenderer {
   private builder(maximum?: number): StoredBuilder { return new StoredBuilder(this.text, this.budget, maximum); }
   private async work(): Promise<void> { this.budget.work(1); await this.budget.checkpoint(); }
 
-  // URL validation still uses the existing URL policy while its streaming
-  // attribute validator is migrated. Body text never passes through this path.
+  // Ordered-list start values use this only after their length is bounded.
   private async attribute(root: number): Promise<string> {
     let result = "";
     for await (const chunk of this.text.chunks(root)) result += chunk;
@@ -29,8 +28,7 @@ export class StoredRenderer {
   private async url(node: StoredNode): Promise<number> {
     if (node.destination !== -1) return node.destination;
     const value = node.tag === "img" ? node.src : node.href;
-    const url = value ? await destination(await this.attribute(value), node.tag === "img", this.budget) : undefined;
-    const root = url ? await this.text.from(url) : 0;
+    const root = await storedDestination(this.text, value, node.tag === "img", this.budget);
     await this.tree.patch(node.id, { destination: root });
     return root;
   }

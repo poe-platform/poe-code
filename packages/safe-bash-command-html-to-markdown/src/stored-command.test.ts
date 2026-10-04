@@ -102,3 +102,31 @@ for (const outcome of ["failure", "abort"] as const) test(`renderer continuation
   }
   assert.equal(parsed, true); assert.equal(closed, 1); assert.deepEqual(await fs.readdir("/"), []);
 });
+
+for (const [name, prefix, repeated, suffix] of [
+  ["path", "https://example.test/", "x", ""],
+  ["credentials", "https://", "x", "@example.test/"],
+  ["ASCII hostname", "https://", "a", "/"],
+  ["percent-encoded ASCII hostname", "https://", "%61", "/"],
+  ["zero-padded port", "https://example.test:", "0", "80/"],
+] as const) test(`large URL ${name} never enters native parsing as a whole payload`, async t => {
+  const NativeURL = globalThis.URL;
+  let nativeMaximum = 0, outputBytes = 0;
+  globalThis.URL = class extends NativeURL {
+    constructor(input: string | URL, base?: string | URL) {
+      nativeMaximum = Math.max(nativeMaximum, String(input).length);
+      super(input, base);
+    }
+  };
+  t.after(() => { globalThis.URL = NativeURL; });
+  const encoder = new TextEncoder(), chunk = encoder.encode(repeated.repeat(2048));
+  const source = { async *[Symbol.asyncIterator]() {
+    yield encoder.encode(`<a href="${prefix}`);
+    for (let index = 0; index < 8; index++) yield chunk;
+    yield encoder.encode(`${suffix}">x</a>`);
+  } };
+  const result = await convert(source, {}, { stdout: { async write(bytes) { outputBytes += bytes.length; assert.ok(bytes.length <= 8192); } } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(outputBytes, 8 + prefix.length + repeated.length * 16384 + suffix.length);
+  assert.ok(nativeMaximum <= 128, `native URL parser retained ${nativeMaximum} characters`);
+});

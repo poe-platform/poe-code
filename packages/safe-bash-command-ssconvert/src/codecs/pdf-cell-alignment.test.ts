@@ -195,3 +195,36 @@ it("prints each R1C1 array member relative to the array corner", async () => {
     formulaGroups: [{id: "array", kind: "array" as const, expression: "=A1", range: {startRow: 1, startColumn: 1, endRow: 2, endColumn: 2}}]}]};
   expect((await pdfText(await writePdf(book, [], context))).runs.map(run => run.text)).toEqual(Array(4).fill("{=R[-1]C[-1]}"));
 });
+
+
+it.each([
+  ["=SUM(A1:IV2)", "=sum(1:2)", "=sum(R:R[1])"],
+  ["=SUM(A1:B65536)", "=sum(A:B)", "=sum(C:C[1])"],
+  ["=SUM(A1:IV65536)", "=sum(1:65536)", "=sum(R:R[65535])"],
+  ["=SUM($A$1:$IV$2)", "=sum($1:$2)", "=sum(R1:R2)"],
+  ["=SUM($A1:IV$2)", "=sum(1:$2)", "=sum(R:R2)"],
+  ["=SUM(IV2:A1)", "=sum(1:2)", "=sum(R[1]:R)"],
+  ["=SUM(A1:IU2)", "=sum(A1:IU2)", "=sum(RC:R[1]C[254])"],
+  ["=SUM(A1:B65535)", "=sum(A1:B65535)", "=sum(RC:R[65534]C[1])"]
+])("prints native full-axis range boundaries for %s", async (formula, a1, r1c1) => {
+  const original = await fixture("GNM_HALIGN_GENERAL"), sheet = original.sheets[0]!;
+  for (const [convention, expected] of [["A1", a1], ["R1C1", r1c1]]) {
+    const book = {...original, sheets: [{...sheet, view: {...sheet.view, displayFormulas: true,
+      gnumeric: {ExprConvention: "gnumeric:" + convention}}, cells: [{...sheet.cells[0]!, formula}]}]};
+    expect((await pdfText(await writePdf(book, [], context))).runs[0]!.text).toBe(expected);
+  }
+});
+
+
+it.each([
+  ["=SUM(A1:IV2)", "=sum(A1:IV2)"],
+  ["=SUM(A1:SR2)", "=sum(1:2)"],
+  ["=SUM(T!A1:IV2)", "=sum(T!1:2)"],
+  ["=SUM(T!A1:B65536)", "=sum(T!A:B)"]
+])("uses the referenced sheet dimensions for %s", async (formula, expected) => {
+  const original = await fixture("GNM_HALIGN_GENERAL"), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, size: {rows: 131072, columns: 512},
+    view: {...sheet.view, displayFormulas: true}, cells: [{...sheet.cells[0]!, formula}]},
+    {...sheet, id: "t", name: "T", cells: []}]};
+  expect((await pdfText(await writePdf(book, [], context))).runs[0]!.text).toBe(expected);
+});

@@ -115,6 +115,8 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
     /** Target-specific numeric constant and function spellings. */
     readonly numberLiteral?: (value: number) => string;
     readonly functionName?: (name: string, spelling: string) => string;
+    /** Optional plain-reference spelling for workbook-aware display output. */
+    readonly reference?: (node: Extract<FormulaNode, { kind: "reference" }>) => string;
     /** Package-specific external-link spellings, after link identity registration. */
     readonly externalReference?: (node: Extract<FormulaNode, { kind: "reference" }>) => string;
     readonly externalName?: (node: Extract<FormulaNode, { kind: "name" }>) => string;
@@ -143,7 +145,7 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         value.value.kind === "boolean" ? (value.value.value ? "TRUE" : "FALSE") + (grammar.booleanFunctions ? "()" : "") : value.value.kind === "number" && options.numberLiteral ? options.numberLiteral(value.value.value) : String(value.value.value);
       case "omitted": return "";
       case "reference": return value.first.workbook !== undefined && value.first.workbook !== "" && !value.label && options.externalReference ? options.externalReference(value) : value.label ? grammar.quotedLabels === "openformula" && options.quotedLabel
-        ? quoteFormulaString(options.quotedLabel(value), "'", grammar) : serializeLabelReference(value, grammar, position) : serializeReference(
+        ? quoteFormulaString(options.quotedLabel(value), "'", grammar) : serializeLabelReference(value, grammar, position) : options.reference ? options.reference(value) : serializeReference(
         options.relativeSheets === "fixed" ? { ...value.first, sheetRelative: false } : value.first,
         options.relativeSheets === "fixed" && value.last ? { ...value.last, sheetRelative: false } : value.last, grammar, position);
       case "name": {

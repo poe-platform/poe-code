@@ -1,9 +1,10 @@
-import type {Cell, Sheet, Workbook} from "@poe-code/spreadsheet-ast";
+import {DEFAULT_SHEET_SIZE, type Cell, type Sheet, type Workbook} from "@poe-code/spreadsheet-ast";
 import {SsconvertError, type CapabilityContext} from "../../contracts.js";
 import {parseExpression} from "../../formulas/parser.js";
-import {serializeExpression, quoteNativeSheet} from "../../formulas/serialization.js";
+import {serializeExpression, serializeReference, quoteNativeSheet} from "../../formulas/serialization.js";
 import {gnumericGrammar} from "../../formulas/conventions.js";
 import {functionDescriptors} from "../../formulas/function-descriptors.js";
+import {localReferenceRange} from "../../formulas/local-references.js";
 import {rendered} from "../../formulas/values.js";
 
 // These core evaluator special forms do not use the plugin descriptor tables.
@@ -21,7 +22,34 @@ export function renderPrintFormula(book: Workbook, sheet: Sheet, cell: Pick<Cell
   const native = sheet.view?.gnumeric;
   const r1c1 = native && typeof native === "object" && !Array.isArray(native) &&
     (native as Readonly<Record<string, unknown>>).ExprConvention === "gnumeric:R1C1";
-  const text = serializeExpression(parsed.document, {...gnumericGrammar, address: r1c1 ? "r1c1" : "a1", quoteSheetName: quoteNativeSheet}, false, true, {
+  const grammar = {...gnumericGrammar, address: r1c1 ? "r1c1" as const : "a1" as const, quoteSheetName: quoteNativeSheet};
+  const position = parsed.document.position;
+  const text = serializeExpression(parsed.document, grammar, false, true, {
+    reference: node => {
+      let first = {...node.first}, last = node.last ? {...node.last} : undefined;
+      if (first.row && first.column && last?.row && last.column) {
+        tick(4 * (book.sheets.length + (book.detachedSheets?.length ?? 0)));
+        const range = localReferenceRange(book, node, position);
+        if (range) {
+          const size = range.sheets[range.sheets.length - 1]!.size ?? DEFAULT_SHEET_SIZE;
+          // A1 uses normalized coordinates with the original relativity flags;
+          // R1C1 displays the original offsets even when endpoints are reversed.
+          if (!r1c1) {
+            first = {...first, row: {...first.row, value: range.firstRow - (first.row.relative ? position.row : 0)},
+              column: {...first.column, value: range.firstColumn - (first.column.relative ? position.column : 0)}};
+            last = {...last, row: {...last.row, value: range.lastRow - (last.row.relative ? position.row : 0)},
+              column: {...last.column, value: range.lastColumn - (last.column.relative ? position.column : 0)}};
+          }
+          // Native prefers whole rows when both axes cover the sheet.
+          if (range.firstColumn === 0 && range.lastColumn === size.columns - 1) {
+            delete first.column; delete last.column;
+          } else if (range.firstRow === 0 && range.lastRow === size.rows - 1) {
+            delete first.row; delete last.row;
+          }
+        }
+      }
+      return serializeReference(first, last, grammar, position);
+    },
     numberLiteral: value => rendered({kind: "number", value}),
     functionName: (name, spelling) => (coreFunctions.has(name) || Object.hasOwn(functionDescriptors, name)) ? name.toLowerCase() : spelling
   });

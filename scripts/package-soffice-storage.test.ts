@@ -95,7 +95,7 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     copy(directory, "/installed/" + name);
     pending.push(...Object.keys(manifest.dependencies ?? {}));
   }
-  write("/consumer.js", 'export {runSofficeFileCli, readZipArchiveEntries} from "@poe-platform/safe-bash/commands/soffice"; export {MemoryFileSystem} from "@poe-platform/safe-fs/core";');
+  write("/consumer.js", 'export {runSofficeFileCli, createStoredZipArchive, readZipArchiveEntries} from "@poe-platform/safe-bash/commands/soffice"; export {MemoryFileSystem} from "@poe-platform/safe-fs/core";');
   const select = (value: unknown): string => {
     if (typeof value === "string") return value;
     for (const condition of ["workerd", "browser", "import", "default"]) {
@@ -129,9 +129,9 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
       builder.onLoad({filter: /.*/, namespace: "packed"}, args => ({contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path)}));
     }}]});
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
-  const module = {exports: {} as {runSofficeFileCli: typeof import("../packages/safe-bash-command-soffice/src/index.js").runSofficeFileCli; readZipArchiveEntries: typeof import("../packages/safe-bash-command-soffice/src/index.js").readZipArchiveEntries; MemoryFileSystem: typeof import("../packages/safe-fs/src/core.js").MemoryFileSystem}};
+  const module = {exports: {} as {createStoredZipArchive: typeof import("../packages/safe-bash-command-soffice/src/index.js").createStoredZipArchive; runSofficeFileCli: typeof import("../packages/safe-bash-command-soffice/src/index.js").runSofficeFileCli; readZipArchiveEntries: typeof import("../packages/safe-bash-command-soffice/src/index.js").readZipArchiveEntries; MemoryFileSystem: typeof import("../packages/safe-fs/src/core.js").MemoryFileSystem}};
   runInContext(result.outputFiles[0]!.text, createContext({module, exports: module.exports, Uint8Array, ArrayBuffer, TextEncoder, TextDecoder, AbortSignal, AbortController, structuredClone, ReadableStream, WritableStream, TransformStream, queueMicrotask, setTimeout, clearTimeout, crypto: globalThis.crypto}));
-  const {runSofficeFileCli, readZipArchiveEntries, MemoryFileSystem} = module.exports;
+  const {runSofficeFileCli, createStoredZipArchive, readZipArchiveEntries, MemoryFileSystem} = module.exports;
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input.md", new TextEncoder().encode("# Packed document\nCaller-backed text"));
   const filesystem = new Proxy(fs, {get(target, key) {
@@ -145,5 +145,11 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     const text = new TextDecoder().decode(format === "docx" ? readZipArchiveEntries(bytes).get("word/document.xml") : bytes);
     expect(text).toContain(format === "pdf" ? "%PDF-1.7" : "Packed document");
   }
-  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.docx", "input.html", "input.md", "input.pdf"]);
+  await fs.writeFile("/office.odt", createStoredZipArchive({"content.xml": new TextEncoder().encode("<office><text:p>Packed &amp; retained</text:p></office>")}));
+  let output = "";
+  const extracted = await runSofficeFileCli(["--cat", "/office.odt"], {filesystem,
+    stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
+    stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+  expect(extracted.exitCode).toBe(0); expect(output).toBe("Packed & retained\n");
+  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.docx", "input.html", "input.md", "input.pdf", "office.odt"]);
 });

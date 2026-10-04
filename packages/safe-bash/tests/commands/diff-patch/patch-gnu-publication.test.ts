@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { isFsError, type FileSystem } from "../../../src/contracts/index.js";
+import { standardCommands } from "../../../src/commands/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { diffPatchCommands } from "../../../src/commands/diff-patch/index.js";
 import { contents, filesystem, replacement, run } from "./helpers.js";
@@ -77,10 +78,8 @@ for (const pathSpecific of [false, true]) {
         if (property === "capabilities") return { ...target.capabilities, permissions: pathSpecific };
         if (property === "capabilitiesFor") return async () => ({ ...target.capabilities, permissions: false });
         if (property === "createStagedFile") return async (...args: Parameters<NonNullable<FileSystem["createStagedFile"]>>) => {
-          if (Buffer.from(args[2].type === "file" ? args[2].data : []).toString() === "prefix\nold\ntail\n") {
-            backups++;
-            assert.equal(args[3]?.mode, undefined);
-          }
+          backups++;
+          assert.equal(args[3]?.mode, undefined);
           return target.createStagedFile(...args);
         };
         if (property === "chmod") return async () => { throw new Error("permissionless backup must not chmod"); };
@@ -90,7 +89,7 @@ for (const pathSpecific of [false, true]) {
     });
     const result = await new Shell({ fs, cwd: "/work" }).use(diffPatchCommands()).exec("patch", { stdin: replacement });
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(backups, 1);
+    assert.equal(backups, 2);
     assert.equal(await contents(backing, "target.orig"), "prefix\nold\ntail\n");
   });
 }
@@ -138,3 +137,19 @@ for (const atomic of [false, true]) for (const suffix of [".orig", ".rej"]) for 
     assert.equal(await contents(fs, "target"), "old\nkeep\nwrong\n");
   });
 }
+
+test("patch command substitution retains streamed conditional publication", async t => {
+  const fs = await filesystem({ target: "old\n", "change.patch": replacement });
+  let publications = 0;
+  const publish = fs.publishStagedFile!.bind(fs);
+  t.mock.method(fs, "publishStagedFile", async (...args: Parameters<typeof publish>) => {
+    publications++;
+    return publish(...args);
+  });
+  const result = await new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(diffPatchCommands())
+    .exec('result=$(patch target change.patch); printf "%s\\n" "$result"');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "patching file target\n");
+  assert.equal(await contents(fs, "target"), "new\n");
+  assert.equal(publications, 1);
+});

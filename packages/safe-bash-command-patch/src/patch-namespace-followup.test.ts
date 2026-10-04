@@ -119,8 +119,7 @@ test("followup namespace preview observes cancellation during a pending target r
   let reads = 0;
   const fs = new Proxy(backing, {
     get(target, key) {
-      if (key === "readStream") return undefined;
-      if (key === "readFile") return (path: string, options: { signal?: AbortSignal }) => {
+      if (key === "openReadFile") return (path: string, options: { signal?: AbortSignal }) => {
         assert.equal(path, "/work/a");
         assert.equal(options.signal, controller.signal);
         reads++;
@@ -142,6 +141,6 @@ test("followup namespace preview shares the invocation input budget", async () =
   const input = replace("a") + replace("a", "unused-long-name");
   const result = await run("patch", ["-p0"], { fs, input, options: { maxInputBytes: Buffer.byteLength(input) + 1 } });
   assert.equal(result.exitCode, 2, result.stderr);
-  assert.match(result.stderr, /EFBIG.*maxBytes/u);
+  assert.match(result.stderr, /input byte limit exceeded/u);
   assert.deepEqual(await snapshot(fs), before);
 });

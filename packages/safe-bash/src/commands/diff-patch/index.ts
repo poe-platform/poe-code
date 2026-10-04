@@ -1,6 +1,4 @@
 import { syncCommandEvaluators } from "../internal.js";
-import { evalSyncPatch } from "safe-bash-command-patch";
-syncCommandEvaluators.evalSyncPatch = evalSyncPatch;
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { registerDefaultExecutors } from "../internal.js";
 import { diffCommand, type DiffPatchOptions } from "safe-bash-command-diff";

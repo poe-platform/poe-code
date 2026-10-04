@@ -3,13 +3,12 @@ import test from "node:test";
 import { FsError, type FileSystem } from "safe-bash-contracts";
 import { contents, filesystem, replacement, run } from "./helpers.test.js";
 
-for (const method of ["stat", "lstat", "readFile"] as const) {
+for (const method of ["stat", "lstat", "openReadFile"] as const) {
   test(`followup ${method} failure between publications reports the committed prefix`, async () => {
     const backing = await filesystem({ first: "old\n", second: "old\n", third: "old\n" });
     const writes: string[] = [];
     const fs = new Proxy(backing, {
       get(target, key) {
-        if (method === "readFile" && key === "readStream") return undefined;
         if (key === method) return async (path: string, ...args: unknown[]) => {
           if (writes.length && path === "/work/second") throw new FsError("EIO", { path });
           return Reflect.apply(target[method], target, [path, ...args]);

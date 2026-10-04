@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError, type FileSystem } from "../../../src/contracts/index.js";
+import { FsError } from "../../../src/contracts/index.js";
 import { contents, filesystem, replacement, run } from "./helpers.js";
 
 for (const path of ["../target", "dir/../../target", "/work/target", "a/../target", "C:/target", "a\\target", "target\rname", "./..", "target\u007f"]) {
@@ -145,21 +145,23 @@ test("commit failures stop later files and disclose the committed prefix", async
 
 test("--atomic late mutation in precommit validation prevents all command writes", async () => {
   const fs = await filesystem({ target: "old\n" });
-  const originalRead = fs.readFile.bind(fs);
   let reads = 0;
   const wrapper = new Proxy(fs, {
     get(target, key) {
-      if (key === "readStream") return undefined;
-      if (key === "readFile") return async (path: string, options: Parameters<FileSystem["readFile"]>[1]) => {
-        if (path === "/work/target" && ++reads === 2) await fs.writeFile(path, Buffer.from("concurrent\n"));
-        return originalRead(path, options);
+      if (key === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+        const handle = await target.openReadFile(...args);
+        const ordinal = ++reads;
+        return { ...handle, async close() {
+          await handle.close();
+          if (args[0] === "/work/target" && ordinal === 1) await fs.writeFile(args[0], Buffer.from("concurrent\n"));
+        } };
       };
       const value = Reflect.get(target, key);
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
   const result = await run("patch", ["--atomic"], { fs: wrapper, input: replacement });
-  assert.equal(result.exitCode, 1);
+  assert.equal(result.exitCode, 1, result.stderr);
   assert.match(result.stderr, /changed during preflight/u);
   assert.equal(await contents(fs, "target"), "concurrent\n");
 });

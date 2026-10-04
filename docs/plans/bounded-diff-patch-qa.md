@@ -7,7 +7,12 @@ missing-file operands, normalization, display transformations and brief stdin).
 Indexed documents, line indexes, LCS cells, edit groups and output use caller-backed
 page caches. Streaming FIFO and character operands use the same staged indexes;
 non-streaming backends retain a buffered compatibility path. Ignored lines,
-function headings, directory metadata, patch and diff3 still need migration.
+function headings, directory metadata and diff3 still need migration. GNU patch
+target payloads, hunk application and publication now use caller-backed documents
+and retained staging writers, including merge/ifdef, backups, rejects and output
+concatenation. Patch input parsing, hunk metadata, file maps and aggregate caches
+still need migration; the buffered patch convenience evaluator is no longer
+registered for automatic shell execution.
 Apply-patch payload parsing, target snapshots, matching and replacements use
 caller-backed indexes and retained staged publication. Patch lines remain byte
 ranges during grammar parsing and normalized matching. Line, anchor and hunk

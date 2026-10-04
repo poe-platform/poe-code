@@ -1,8 +1,9 @@
 import { compareCopyIdentity } from "safe-bash-contracts/filesystem-identity";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
-import { dirname,FsError,isFsError,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat,type FileSystem } from "safe-bash-contracts";
+import { dirname,FsError,isFsError,type ByteSource,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat,type FileSystem } from "safe-bash-contracts";
 import { host,ToolError } from "safe-bash-diff-engine/shared";
-import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
+import { targetBytes } from "./stored-target.js";
+import { readBytes } from "safe-bash-contracts";
 
 /** Retains admission receipts; trusted host staging requires external tree isolation. */
 export class PatchPublication {
@@ -61,7 +62,7 @@ export class PatchPublication {
     this.directories.set(path, stat);
   }
 
-  async write(path: string, text: string, destination: FileStat | undefined, mode?: number, mtimeMs?: number): Promise<void> {
+  async write(path: string, source: ByteSource | string, destination: FileStat | undefined, mode?: number, mtimeMs?: number): Promise<void> {
     await this.capture(path);
     const ancestors: FileStagingEntry[] = [];
     for (let parent = dirname(path);; parent = dirname(parent)) {
@@ -77,7 +78,8 @@ export class PatchPublication {
     let closed = false;
     const release = retainFileSystemCleanup(context.fs, async view => {
       await operation?.catch(() => {});
-      if (staging) await view.removeStagedFile!(staging);
+      if (staging?.cleanup) await staging.cleanup.remove();
+      else if (staging) await view.removeStagedFile!(staging);
     }, { maxOperations: 1 });
     const cleanup = () => { closed = true; return release(); };
     context.registerCleanup?.(cleanup);
@@ -88,13 +90,19 @@ export class PatchPublication {
         if (closed) throw new ToolError("patch publication is closed");
         if (this.trusted) await this.validate(path);
         staging = await context.fs.createStagedFile!(`${dirname(path) === "/" ? "" : dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
-          type: "file", data: encodeBytes(text),
-        }, { parent, signal: context.signal, ...(mode === undefined ? {} : { mode }),
+          type: "file", data: new Uint8Array(),
+        }, { parent, retainCleanup: true, signal: context.signal, ...(mode === undefined ? {} : { mode }),
           ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }) });
+        if (!staging.writer || !staging.cleanup) throw new ToolError("filesystem does not support retained staging writes");
+        for await (const bytes of readBytes(typeof source === "string" ? targetBytes(source) : source, context.signal)) {
+          if (closed) throw new ToolError("patch publication is closed");
+          await staging.writer.write(bytes, { signal: context.signal });
+        }
+        const stat = await staging.writer.finish({ signal: context.signal });
         context.signal.throwIfAborted();
         if (closed) throw new ToolError("patch publication is closed");
         if (this.trusted) await this.validate(path);
-        await context.fs.publishStagedFile!(staging, path, {
+        await context.fs.publishStagedFile!({ ...staging, file: { ...staging.file, stat } }, path, {
           parent, destination: destination ?? null, ...(this.trusted ? {} : { ancestors }), signal: context.signal,
         });
       });

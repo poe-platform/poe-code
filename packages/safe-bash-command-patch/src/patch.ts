@@ -1,10 +1,13 @@
+import { IndexedDocument } from "safe-bash-diff-engine/document";
+import { TargetDocuments, equalTargetLines, targetBytes } from "./stored-target.js";
+import { applyStoredHunks } from "./stored-hunks.js";
 import { unwrapPatch } from "./patch-envelope.js";
 import { parsePatch,type ParseProgress,type PatchFormat } from "./patch-formats.js";
 import { authorizeOutputs,authorizePaths,backupName,candidateStat,ensureParents,pruneDirectories,pruneParents,regular,rejectName,selectTarget,type AuthorizedPatch,type BackupOptions,type PathOptions } from "./patch-gnu-paths.js";
 import { rejectText } from "./patch-gnu-reject.js";
 import { safeTarget } from "./patch-path.js";
 import { PatchPublication } from "./patch-publication.js";
-import { applyHunks,reversePatch,type FilePatch,type HunkOutcome } from "./unified.js";
+import { reversePatch,type FilePatch,type HunkOutcome } from "./unified.js";
 import { FsError,dirname,resolvePath,writeBytes,type CommandContext } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { Budget,ToolError,definition,host,inspect,integer,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
@@ -130,12 +133,12 @@ function flags(args: readonly string[]): PatchFlags {
 
 interface Prepared {
   readonly path: string;
-  readonly original: string | undefined;
+  readonly original: IndexedDocument | undefined;
   readonly sourcePath?: string;
-  readonly sourceOriginal?: string;
-  readonly result: string;
+  readonly sourceOriginal?: IndexedDocument;
+  readonly result: IndexedDocument;
   readonly remove: boolean;
-  readonly backup?: string;
+  readonly backup?: IndexedDocument;
   readonly backupPath?: string;
   readonly backupMode?: number;
   readonly rejectPath?: string;
@@ -145,7 +148,7 @@ interface Prepared {
   readonly parents: readonly string[];
 }
 
-async function applyContent(sourcePatch: FilePatch, current: string, exists: boolean, options: PatchFlags, budget: Budget) {
+async function applyContent(sourcePatch: FilePatch, current: IndexedDocument, exists: boolean, options: PatchFlags, budget: Budget, documents: TargetDocuments) {
   let reversed = options.reverse;
   let patch = reversed ? reversePatch(sourcePatch) : sourcePatch;
   const emptyOld = () => patch.hunks.every(hunk => hunk.oldCount === 0 && hunk.oldStart === 0);
@@ -154,47 +157,52 @@ async function applyContent(sourcePatch: FilePatch, current: string, exists: boo
   let reverseMismatch = false;
   const declaredCreation = patch.oldPath === "/dev/null" || (patch.oldEpoch && emptyOld());
   const declaredDeletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0));
-  if (!options.force && ((declaredCreation && current !== "") || (declaredDeletion && !exists))) {
+  if (!options.force && ((declaredCreation && current.size !== 0) || (declaredDeletion && !exists))) {
     patch = reversePatch(patch);
     reversed = !reversed;
     autoReversed = true;
   }
   if (!creation() && !exists) return undefined;
   let outcomes: HunkOutcome[] = [];
-  let result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
-    partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: creation() && current !== "",
-  });
+  let result = await applyStoredHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
+    partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: creation() && current.size !== 0,
+  }, documents);
   if (!options.merge && !options.force && !autoReversed && (outcomes[0]?.failed || outcomes[0]?.fuzz)) {
     const opposite = reversePatch(patch);
     const probe: HunkOutcome[] = [];
     const reverseFuzz = outcomes[0]!.failed ? options.fuzz : outcomes[0]!.fuzz - 1;
-    await applyHunks(current, { ...opposite, hunks: opposite.hunks.slice(0, 1) }, reverseFuzz, budget, options.ignoreWhitespace, { partial: true, outcomes: probe });
+    const probeResult = await applyStoredHunks(current, { ...opposite, hunks: opposite.hunks.slice(0, 1) }, reverseFuzz, budget, options.ignoreWhitespace, { partial: true, outcomes: probe }, documents);
+    await documents.release(probeResult);
     if (!probe[0]?.failed) {
       patch = opposite;
       reversed = !reversed;
       autoReversed = true;
       reverseMismatch = true;
       outcomes = [];
-      result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
-        partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: creation() && current !== "",
-      });
+      await documents.release(result);
+      result = await applyStoredHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
+        partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: creation() && current.size !== 0,
+      }, documents);
     }
   }
   const deletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0 && hunk.newStart === 0));
-  if (autoReversed && options.forward) return { result: current, outcomes: [], reversed, autoReversed, reverseMismatch, deletion: false, skipped: true };
+  if (autoReversed && options.forward) {
+    await documents.release(result);
+    return { result: current, outcomes: [], reversed, autoReversed, reverseMismatch, deletion: false, skipped: true };
+  }
   return { result, outcomes, reversed, autoReversed, reverseMismatch, deletion };
 }
 
-async function unchanged(item: Prepared, budget: Budget): Promise<void> {
+async function unchanged(item: Prepared, budget: Budget, documents: TargetDocuments): Promise<void> {
   if (item.sourcePath !== undefined) {
     const source = await inspect(budget, item.sourcePath);
     regular(source, item.sourcePath);
-    if ((source === undefined) !== (item.sourceOriginal === undefined) || (source && await budget.read(item.sourcePath) !== item.sourceOriginal)) throw new ToolError(`target changed during preflight: ${item.sourcePath}`, 1);
+    if ((source === undefined) !== (item.sourceOriginal === undefined) || (source && !await sameTarget(item.sourcePath, item.sourceOriginal!, documents))) throw new ToolError(`target changed during preflight: ${item.sourcePath}`, 1);
   }
   const stat = await inspect(budget, item.path);
   regular(stat, item.path);
   if ((stat === undefined) !== (item.original === undefined)
-    || (item.original !== undefined && await budget.read(item.path) !== item.original)) {
+    || (item.original !== undefined && !await sameTarget(item.path, item.original, documents))) {
     throw new ToolError(`target changed during preflight: ${item.path}`, 1);
   }
   for (const path of [item.backupPath, item.rejectPath]) {
@@ -203,10 +211,10 @@ async function unchanged(item: Prepared, budget: Budget): Promise<void> {
   for (const parent of item.parents) await inspect(budget, parent);
 }
 
-async function publish(item: Prepared, budget: Budget, rejects: Set<string>, publication: PatchPublication): Promise<void> {
+async function publish(item: Prepared, budget: Budget, rejects: Set<string>, publication: PatchPublication, documents: TargetDocuments): Promise<void> {
   const context = budget.context;
-  await unchanged(item, budget);
-  const write = async (path: string, text: string, append = false, createParents = true, mode?: number, mtimeMs?: number) => {
+  await unchanged(item, budget, documents);
+  const write = async (path: string, text: string | IndexedDocument, append = false, createParents = true, mode?: number, mtimeMs?: number) => {
     if (createParents) await ensureParents(path, budget);
     else if ((await inspect(budget, dirname(path)))?.type !== "directory") throw new ToolError(`reject parent does not exist: ${dirname(path)}`);
     const stat = await inspect(budget, path);
@@ -215,8 +223,9 @@ async function publish(item: Prepared, budget: Budget, rejects: Set<string>, pub
       await context.fs.capabilitiesFor?.(path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
     if (capabilities?.atomicStagingAncestry !== true && !(publication.trusted && capabilities?.trustedOwnedStaging === true)) throw new ToolError("filesystem does not support race-safe patch publication");
     const publicationMode = capabilities?.permissions === false ? undefined : mode ?? (stat ? stat.mode & 0o7777 : undefined);
-    if (append && stat) text = await budget.read(path) + text;
-    await publication.write(path, text, stat, publicationMode, mtimeMs);
+    if (typeof text === "string") text = await documents.load(targetBytes(text));
+    if (append && stat) text = await documents.concat(await documents.read(path), text);
+    await publication.write(path, text.range(0, text.size), stat, publicationMode, mtimeMs);
   };
   if (item.backup !== undefined && item.backupPath !== undefined) await write(item.backupPath, item.backup, false, true, item.backupMode);
   if (item.remove) {
@@ -267,229 +276,236 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }) };
     budget = new Budget(context, Object.fromEntries(Object.entries(budget.limits).filter(([, value]) => Number.isFinite(value))));
   }
-  const output = options.output === undefined ? undefined : safeTarget(options.output, 0, true);
-  if (options.output !== undefined && output === undefined) throw new ToolError("/dev/null is not an output file");
-  const outputPath = output === undefined ? undefined : resolvePath(context.cwd, output);
-  const explicit = options.target === undefined ? undefined : safeTarget(options.target, 0, true);
-  if (options.target !== undefined && explicit === undefined) throw new ToolError("/dev/null is not an explicit target");
-  if (options.input !== "-") {
-    const stat = await inspect(budget, options.input);
-    if (stat?.type !== "file") throw new ToolError("patch input must be a regular file");
-  }
-  const input = await budget.read(options.input === "-" ? "-" : resolvePath(context.cwd, options.input));
-  const progress: ParseProgress | undefined = options.atomic ? undefined : {};
-  const sections = await parsePatch(await unwrapPatch(input, budget), budget, options.format, explicit, progress);
-  const parsed = options.format === "normal" ? sections : sections.filter(patch => !patch.unlocated);
-  if (sections.length && !parsed.length) throw new ToolError("no identifiable patch; normal input requires a target, Index header, or -n");
-  const reject = options.reject === undefined || options.reject === "-" ? options.reject : safeTarget(options.reject, 0, true);
-  if (options.reject !== undefined && reject === undefined) throw new ToolError("/dev/null is not a reject file; use -r -");
-  const paths: PathOptions = { strip: options.strip, explicit, reject,
-    posix: options.posix, input: options.input === "-" ? undefined : resolvePath(context.cwd, options.input) };
-  const preview = new Map<string, string | undefined>();
-  const previewParents = new Set<string>();
-  const authorized = await authorizePaths(parsed, paths, budget, !options.dryRun || options.atomic ? {
-    reverse: options.atomic && options.reverse,
-    exists: async path => preview.has(path) ? preview.get(path) !== undefined
-      : previewParents.has(path) || await candidateStat(path, budget) !== undefined,
-    advance: async item => {
-      const path = resolvePath(context.cwd, item.selected!);
-      const current = preview.has(path) ? preview.get(path) : await inspect(budget, path) ? await budget.read(path) : undefined;
-      const applied = await applyContent(item.patch, current ?? "", current !== undefined, options, budget);
-      if (!applied) return;
-      const remove = options.ifdef === undefined && applied.result === "" && ((!options.posix && applied.deletion) || options.removeEmpty);
-      preview.set(path, remove ? undefined : applied.result);
-      if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) previewParents.add(parent);
-    },
-  } : undefined);
-  const targets = new Set(authorized.flatMap(item => item.selected === undefined ? [] : [resolvePath(context.cwd, item.selected)]));
-  if (outputPath !== undefined) await authorizeOutputs([outputPath], targets, paths.input, budget);
-  const staged = new Map<string, Prepared>();
-  const stagedParents = new Set<string>();
-  const touched = new Set<string>();
-  const rejects = new Set<string>();
-  const backupPaths = new Set<string>();
-  const rejectPaths = new Set<string>();
-  const parents = new Set<string>();
-  const messages: string[] = [];
-  let exitCode = 0;
-  let committed = 0;
-  let publishing = false;
-  let activePath: string | undefined;
-  let outputContents = "";
-  const status = async (text: string) => {
-    if (!text) return;
-    budget.output(text);
-    if (options.atomic) messages.push(text);
-    else await writeBytes(context.stdout, encodeBytes(text), context.signal);
-  };
-  const applySection = async (authorizedPatch: AuthorizedPatch) => {
-    const sourcePatch = authorizedPatch.patch;
-    if (sourcePatch.unlocated) {
-      if (options.atomic) throw new ToolError("no file to patch; provide a target or Index header", 1);
-      await status(`No file to patch.  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
-      exitCode = 1;
-      return;
+  const documents = new TargetDocuments(budget);
+  try {
+    const empty = await documents.load({ async *[Symbol.asyncIterator]() {} });
+    const output = options.output === undefined ? undefined : safeTarget(options.output, 0, true);
+    if (options.output !== undefined && output === undefined) throw new ToolError("/dev/null is not an output file");
+    const outputPath = output === undefined ? undefined : resolvePath(context.cwd, output);
+    const explicit = options.target === undefined ? undefined : safeTarget(options.target, 0, true);
+    if (options.target !== undefined && explicit === undefined) throw new ToolError("/dev/null is not an explicit target");
+    if (options.input !== "-") {
+      const stat = await inspect(budget, options.input);
+      if (stat?.type !== "file") throw new ToolError("patch input must be a regular file");
     }
-    const name = await selectTarget(authorizedPatch, async path => options.atomic && staged.has(path)
-      ? !staged.get(path)!.remove : (options.atomic && stagedParents.has(path)) || await candidateStat(path, budget) !== undefined, budget);
-    const path = resolvePath(context.cwd, name);
-    activePath = path;
-    const pruning = pruneParents(name, context.cwd).filter(parent => parent !== context.cwd);
-    if (!options.dryRun) await publication.capture(path, pruning);
-    if (path === paths.input || backupPaths.has(path) || rejectPaths.has(path)) throw new ToolError(`patch target aliases input or an earlier output: ${path}`);
-    targets.add(path);
-    const prior = options.atomic ? staged.get(path) : undefined;
-    const stat = await inspect(budget, path);
-    regular(stat, path);
-    if (stat && options.readOnly !== "ignore") {
-      const capabilities = await host(context, async () => await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
-      if (capabilities?.permissions !== false && !(stat.mode & 0o222)) {
-        const refuse = options.readOnly === "fail";
-        await status(`File ${name} is read-only; ${refuse ? "refusing to patch" : "trying to patch anyway"}\n`);
-        if (refuse) {
-          if (options.atomic) throw new ToolError(`read-only target: ${name}`, 1);
-          const destination = rejectName(name, paths);
-          const rejectPath = options.dryRun || destination === undefined ? undefined : resolvePath(context.cwd, destination);
-          if (rejectPath !== undefined) {
-            await authorizeOutputs([rejectPath], targets, paths.input, budget);
-            if (backupPaths.has(rejectPath)) throw new ToolError("reject path aliases another section's backup");
-            const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;
-            const outcomes = patch.hunks.map((hunk, index) => ({ hunk, index: index + 1, failed: true, misordered: false,
-              line: hunk.oldStart, outputOffset: 0, offset: 0, fuzz: 0 }));
-            const reject = await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, options.reverse, budget, options.rejectFormat);
-            const original = await budget.read(path);
-            publishing = true;
-            await publish({ path, original, result: original, remove: false, skipWrite: true, rejectPath, reject, parents: [] }, budget, rejects, publication);
-            committed++;
-            publishing = false;
-            rejectPaths.add(rejectPath);
+    const input = await budget.read(options.input === "-" ? "-" : resolvePath(context.cwd, options.input));
+    const progress: ParseProgress | undefined = options.atomic ? undefined : {};
+    const sections = await parsePatch(await unwrapPatch(input, budget), budget, options.format, explicit, progress);
+    const parsed = options.format === "normal" ? sections : sections.filter(patch => !patch.unlocated);
+    if (sections.length && !parsed.length) throw new ToolError("no identifiable patch; normal input requires a target, Index header, or -n");
+    const reject = options.reject === undefined || options.reject === "-" ? options.reject : safeTarget(options.reject, 0, true);
+    if (options.reject !== undefined && reject === undefined) throw new ToolError("/dev/null is not a reject file; use -r -");
+    const paths: PathOptions = { strip: options.strip, explicit, reject,
+      posix: options.posix, input: options.input === "-" ? undefined : resolvePath(context.cwd, options.input) };
+    const preview = new Map<string, IndexedDocument | undefined>();
+    const previewParents = new Set<string>();
+    const authorized = await authorizePaths(parsed, paths, budget, !options.dryRun || options.atomic ? {
+      reverse: options.atomic && options.reverse,
+      exists: async path => preview.has(path) ? preview.get(path) !== undefined
+        : previewParents.has(path) || await candidateStat(path, budget) !== undefined,
+      advance: async item => {
+        const path = resolvePath(context.cwd, item.selected!);
+        const current = preview.has(path) ? preview.get(path) : await inspect(budget, path) ? await documents.read(path) : undefined;
+        const applied = await applyContent(item.patch, current ?? empty, current !== undefined, options, budget, documents);
+        if (current && current !== applied?.result) await documents.release(current);
+        if (!applied) return;
+        const remove = options.ifdef === undefined && applied.result.size === 0 && ((!options.posix && applied.deletion) || options.removeEmpty);
+        preview.set(path, remove ? undefined : applied.result);
+        if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) previewParents.add(parent);
+      },
+    } : undefined);
+    for (const document of preview.values()) if (document) await documents.release(document);
+    preview.clear();
+    const targets = new Set(authorized.flatMap(item => item.selected === undefined ? [] : [resolvePath(context.cwd, item.selected)]));
+    if (outputPath !== undefined) await authorizeOutputs([outputPath], targets, paths.input, budget);
+    const staged = new Map<string, Prepared>();
+    const stagedParents = new Set<string>();
+    const touched = new Set<string>();
+    const rejects = new Set<string>();
+    const backupPaths = new Set<string>();
+    const rejectPaths = new Set<string>();
+    const parents = new Set<string>();
+    const messages: string[] = [];
+    let exitCode = 0;
+    let committed = 0;
+    let publishing = false;
+    let activePath: string | undefined;
+    let outputContents = empty;
+    const status = async (text: string) => {
+      if (!text) return;
+      budget.output(text);
+      if (options.atomic) messages.push(text);
+      else await writeBytes(context.stdout, encodeBytes(text), context.signal);
+    };
+    const applySection = async (authorizedPatch: AuthorizedPatch) => {
+      const sourcePatch = authorizedPatch.patch;
+      if (sourcePatch.unlocated) {
+        if (options.atomic) throw new ToolError("no file to patch; provide a target or Index header", 1);
+        await status(`No file to patch.  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
+        exitCode = 1;
+        return;
+      }
+      const name = await selectTarget(authorizedPatch, async path => options.atomic && staged.has(path)
+        ? !staged.get(path)!.remove : (options.atomic && stagedParents.has(path)) || await candidateStat(path, budget) !== undefined, budget);
+      const path = resolvePath(context.cwd, name);
+      activePath = path;
+      const pruning = pruneParents(name, context.cwd).filter(parent => parent !== context.cwd);
+      if (!options.dryRun) await publication.capture(path, pruning);
+      if (path === paths.input || backupPaths.has(path) || rejectPaths.has(path)) throw new ToolError(`patch target aliases input or an earlier output: ${path}`);
+      targets.add(path);
+      const prior = options.atomic ? staged.get(path) : undefined;
+      const stat = await inspect(budget, path);
+      regular(stat, path);
+      if (stat && options.readOnly !== "ignore") {
+        const capabilities = await host(context, async () => await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
+        if (capabilities?.permissions !== false && !(stat.mode & 0o222)) {
+          const refuse = options.readOnly === "fail";
+          await status(`File ${name} is read-only; ${refuse ? "refusing to patch" : "trying to patch anyway"}\n`);
+          if (refuse) {
+            if (options.atomic) throw new ToolError(`read-only target: ${name}`, 1);
+            const destination = rejectName(name, paths);
+            const rejectPath = options.dryRun || destination === undefined ? undefined : resolvePath(context.cwd, destination);
+            if (rejectPath !== undefined) {
+              await authorizeOutputs([rejectPath], targets, paths.input, budget);
+              if (backupPaths.has(rejectPath)) throw new ToolError("reject path aliases another section's backup");
+              const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;
+              const outcomes = patch.hunks.map((hunk, index) => ({ hunk, index: index + 1, failed: true, misordered: false,
+                line: hunk.oldStart, outputOffset: 0, offset: 0, fuzz: 0 }));
+              const reject = await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, options.reverse, budget, options.rejectFormat);
+              const original = await documents.read(path);
+              publishing = true;
+              await publish({ path, original, result: original, remove: false, skipWrite: true, rejectPath, reject, parents: [] }, budget, rejects, publication, documents);
+              committed++;
+              publishing = false;
+              rejectPaths.add(rejectPath);
+            }
+            await status(`${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} ${sourcePatch.hunks.length === 1 ? "hunk" : "hunks"} ignored${rejectPath === undefined ? "" : ` -- saving rejects to file ${destination}`}\n`);
+            exitCode = 1; return;
           }
-          await status(`${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} ${sourcePatch.hunks.length === 1 ? "hunk" : "hunks"} ignored${rejectPath === undefined ? "" : ` -- saving rejects to file ${destination}`}\n`);
-          exitCode = 1; return;
         }
       }
-    }
-    const exists = prior ? !prior.remove : stat !== undefined;
-    const original = prior ? prior.original : stat ? await budget.read(path) : undefined;
-    const current = prior ? prior.remove ? "" : prior.result : original ?? "";
-    if (options.posix && !exists) {
-      await status(`No file to patch.  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
-      exitCode = 1;
-      return;
-    }
-    const applied = await applyContent(sourcePatch, current, exists, options, budget);
-    if (!applied) {
-      if (options.atomic) throw new ToolError(`patch target does not exist: ${path}`, 1);
-      await status(`No file to patch.  Skipping patch ${name}.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
-      exitCode = 1;
-      return;
-    }
-    const { result, outcomes, reversed, autoReversed, reverseMismatch, deletion } = applied;
-    if (applied.skipped) {
-      await status(`Reversed (or previously applied) patch detected!  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
-      exitCode = 1;
-      return;
-    }
-    const failed = outcomes.filter(outcome => outcome.failed);
-    const conflict = failed.length > 0 || (deletion && result !== "");
-    if (options.atomic && conflict) throw new ToolError(failed.length ? `hunk ${failed[0]!.index} does not match ${name}` : `deletion patch leaves content: ${name}`, 1);
-    if (conflict) exitCode = 1;
-    const mismatch = reverseMismatch || outcomes.some(outcome => outcome.failed || outcome.offset !== 0 || outcome.fuzz !== 0);
-    const backup = !options.dryRun && (options.alwaysBackup || options.backup && mismatch) && !touched.has(path) ? original ?? "" : undefined;
-    const backupPath = backup === undefined ? prior?.backupPath : await backupName(path, budget, options);
-    const rejectDestination = rejectName(name, paths);
-    const rejectPath = !options.dryRun && !options.merge && failed.length && rejectDestination !== undefined ? resolvePath(context.cwd, rejectDestination) : undefined;
-    const rejected = rejectPath === undefined ? undefined : await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, reversed, budget, options.rejectFormat);
-    await authorizeOutputs([outputPath, backupPath, rejectPath], targets, paths.input, budget);
-    if ((backupPath !== undefined && rejectPaths.has(backupPath)) || (rejectPath !== undefined && backupPaths.has(rejectPath))) {
-      throw new ToolError("reject path aliases another section's backup");
-    }
-    if (backupPath !== undefined) backupPaths.add(backupPath);
-    if (rejectPath !== undefined) rejectPaths.add(rejectPath);
-    const remove = options.ifdef === undefined && outputPath === undefined && result === "" && ((!options.posix && deletion) || options.removeEmpty);
-    const outputPrior = outputPath === undefined ? undefined : staged.get(outputPath);
-    const outputOriginal = outputPath === undefined ? original : outputPrior ? outputPrior.original : await inspect(budget, outputPath) ? await budget.read(outputPath) : undefined;
-    if (outputPath !== undefined) outputContents += result;
-    let mtimeMs: number | undefined;
-    let timeMessage = "";
-    if (options.setTime) {
-      const oldTime = patchTimestamp(reversed ? sourcePatch.newHeader : sourcePatch.oldHeader, options.setTime);
-      const newTime = patchTimestamp(reversed ? sourcePatch.oldHeader : sourcePatch.newHeader, options.setTime);
-      if (newTime !== undefined) {
-        if (!options.force && stat && oldTime !== undefined && oldTime !== stat.mtimeMs) timeMessage = `Not setting time of file ${name} (time mismatch)\n`;
-        else if (!options.force && mismatch) timeMessage = `Not setting time of file ${name} (contents mismatch)\n`;
-        else {
-          if (!options.dryRun && !context.fs.utimes) throw new ToolError("filesystem does not support setting timestamps");
-          mtimeMs = newTime;
+      const exists = prior ? !prior.remove : stat !== undefined;
+      const original = prior ? prior.original : stat ? await documents.read(path) : undefined;
+      const current = prior ? prior.remove ? empty : prior.result : original ?? empty;
+      if (options.posix && !exists) {
+        await status(`No file to patch.  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
+        exitCode = 1;
+        return;
+      }
+      const applied = await applyContent(sourcePatch, current, exists, options, budget, documents);
+      if (!applied) {
+        if (options.atomic) throw new ToolError(`patch target does not exist: ${path}`, 1);
+        await status(`No file to patch.  Skipping patch ${name}.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
+        exitCode = 1;
+        return;
+      }
+      const { result, outcomes, reversed, autoReversed, reverseMismatch, deletion } = applied;
+      if (applied.skipped) {
+        await status(`Reversed (or previously applied) patch detected!  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
+        exitCode = 1;
+        return;
+      }
+      const failed = outcomes.filter(outcome => outcome.failed);
+      const conflict = failed.length > 0 || (deletion && result.size !== 0);
+      if (options.atomic && conflict) throw new ToolError(failed.length ? `hunk ${failed[0]!.index} does not match ${name}` : `deletion patch leaves content: ${name}`, 1);
+      if (conflict) exitCode = 1;
+      const mismatch = reverseMismatch || outcomes.some(outcome => outcome.failed || outcome.offset !== 0 || outcome.fuzz !== 0);
+      const backup = !options.dryRun && (options.alwaysBackup || options.backup && mismatch) && !touched.has(path) ? original ?? empty : undefined;
+      const backupPath = backup === undefined ? prior?.backupPath : await backupName(path, budget, options);
+      const rejectDestination = rejectName(name, paths);
+      const rejectPath = !options.dryRun && !options.merge && failed.length && rejectDestination !== undefined ? resolvePath(context.cwd, rejectDestination) : undefined;
+      const rejected = rejectPath === undefined ? undefined : await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, reversed, budget, options.rejectFormat);
+      await authorizeOutputs([outputPath, backupPath, rejectPath], targets, paths.input, budget);
+      if ((backupPath !== undefined && rejectPaths.has(backupPath)) || (rejectPath !== undefined && backupPaths.has(rejectPath))) {
+        throw new ToolError("reject path aliases another section's backup");
+      }
+      if (backupPath !== undefined) backupPaths.add(backupPath);
+      if (rejectPath !== undefined) rejectPaths.add(rejectPath);
+      const remove = options.ifdef === undefined && outputPath === undefined && result.size === 0 && ((!options.posix && deletion) || options.removeEmpty);
+      const outputPrior = outputPath === undefined ? undefined : staged.get(outputPath);
+      const outputOriginal = outputPath === undefined ? original : outputPrior ? outputPrior.original : await inspect(budget, outputPath) ? await documents.read(outputPath) : undefined;
+      if (outputPath !== undefined) outputContents = await documents.concat(outputContents, result);
+      let mtimeMs: number | undefined;
+      let timeMessage = "";
+      if (options.setTime) {
+        const oldTime = patchTimestamp(reversed ? sourcePatch.newHeader : sourcePatch.oldHeader, options.setTime);
+        const newTime = patchTimestamp(reversed ? sourcePatch.oldHeader : sourcePatch.newHeader, options.setTime);
+        if (newTime !== undefined) {
+          if (!options.force && stat && oldTime !== undefined && oldTime !== stat.mtimeMs) timeMessage = `Not setting time of file ${name} (time mismatch)\n`;
+          else if (!options.force && mismatch) timeMessage = `Not setting time of file ${name} (contents mismatch)\n`;
+          else {
+            if (!options.dryRun && !context.fs.utimes) throw new ToolError("filesystem does not support setting timestamps");
+            mtimeMs = newTime;
+          }
         }
       }
-    }
-    const item: Prepared = { path: outputPath ?? path, original: outputOriginal, result: outputPath === undefined ? result : outputContents, remove,
-      ...(outputPath === undefined ? {} : { sourcePath: path, ...(original === undefined ? {} : { sourceOriginal: original }) }),
-      ...(backup === undefined ? prior?.backup === undefined ? {} : { backup: prior.backup } : { backup }),
-      ...(backupPath === undefined ? {} : { backupPath }),
-      ...(prior?.backupMode !== undefined ? { backupMode: prior.backupMode } : backup !== undefined && stat ? { backupMode: stat.mode & 0o7777 } : {}),
-      ...(mtimeMs === undefined ? {} : { mtimeMs }),
-      ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruning : [] };
-    const displayName = quotePatchName(name, options.quotingStyle);
-    let message = options.quiet ? "" : `${options.dryRun ? "checking" : "patching"} file ${output === undefined ? displayName : `${quotePatchName(output, options.quotingStyle)} (read from ${displayName})`}\n`;
-    if (options.verbose) {
-      const format = sourcePatch.format ?? "unified";
-      const headers = sourcePatch.oldHeader === undefined ? "" : `|${format === "context" ? "***" : "---"} ${sourcePatch.oldHeader}\n|${format === "context" ? "---" : "+++"} ${sourcePatch.newHeader}\n`;
-      message = `Hmm...  Looks like a ${format} diff to me...\nThe text leading up to this was:\n--------------------------\n${headers}--------------------------\n` + message;
-    }
-    if (autoReversed) message += "Reversed (or previously applied) patch detected!  Assuming -R.\n";
-    for (const outcome of outcomes) {
-      if (outcome.misordered) message += "misordered hunks! output would be garbled\n";
-      if (options.quiet) continue;
-      if (outcome.failed && options.merge) message += `Hunk #${outcome.index} NOT MERGED at ${outcome.mergeRange?.[0] ?? outcome.line}-${outcome.mergeRange?.[1] ?? outcome.line}.\n`;
-      else if (outcome.failed) message += `Hunk #${outcome.index} FAILED at ${outcome.line}.\n`;
-      else if (options.verbose || outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${outcome.offset === 1 ? "line" : "lines"})` : ""}.\n`;
-    }
-    if (failed.length && !options.merge) message += `${failed.length} out of ${outcomes.length} ${outcomes.length === 1 ? "hunk" : "hunks"} FAILED${options.dryRun || rejectPath === undefined ? "" : ` -- saving rejects to file ${rejectDestination}`}\n`;
-    if (deletion && result !== "") message += `Not deleting file ${name} as content differs from patch\n`;
-    message += timeMessage;
-    budget.output(result);
-    if (backup !== undefined) budget.output(backup);
-    await status(message);
-    touched.add(path);
-    if (options.atomic) {
-      staged.set(item.path, item);
-      if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) stagedParents.add(parent);
-    } else if (!options.dryRun) {
-      publishing = true;
-      await publish(item, budget, rejects, publication);
-      committed++;
-      publishing = false;
-      for (const parent of item.parents) parents.add(parent);
-    }
-  };
-  for (const authorizedPatch of options.atomic && options.reverse ? authorized.slice().reverse() : authorized) {
-    activePath = authorizedPatch.selected === undefined ? undefined : resolvePath(context.cwd, authorizedPatch.selected);
-    try { await applySection(authorizedPatch); }
-    catch (error) {
-      context.signal.throwIfAborted();
-      if (committed === 0 && !publishing) throw error;
-      throw new ToolError(`commit stopped; ${committed}/${authorized.length} files committed; failing operation may have side effects; path ${activePath}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
-    }
-  }
-  if (options.atomic && !options.dryRun) {
-    const prepared = [...staged.values()].filter(item => !(item.remove && item.original === undefined));
-    for (const item of prepared) await unchanged(item, budget);
-    for (const item of prepared) {
-      try { await publish(item, budget, rejects, publication); committed++; }
+      const item: Prepared = { path: outputPath ?? path, original: outputOriginal, result: outputPath === undefined ? result : outputContents, remove,
+        ...(outputPath === undefined ? {} : { sourcePath: path, ...(original === undefined ? {} : { sourceOriginal: original }) }),
+        ...(backup === undefined ? prior?.backup === undefined ? {} : { backup: prior.backup } : { backup }),
+        ...(backupPath === undefined ? {} : { backupPath }),
+        ...(prior?.backupMode !== undefined ? { backupMode: prior.backupMode } : backup !== undefined && stat ? { backupMode: stat.mode & 0o7777 } : {}),
+        ...(mtimeMs === undefined ? {} : { mtimeMs }),
+        ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruning : [] };
+      const displayName = quotePatchName(name, options.quotingStyle);
+      let message = options.quiet ? "" : `${options.dryRun ? "checking" : "patching"} file ${output === undefined ? displayName : `${quotePatchName(output, options.quotingStyle)} (read from ${displayName})`}\n`;
+      if (options.verbose) {
+        const format = sourcePatch.format ?? "unified";
+        const headers = sourcePatch.oldHeader === undefined ? "" : `|${format === "context" ? "***" : "---"} ${sourcePatch.oldHeader}\n|${format === "context" ? "---" : "+++"} ${sourcePatch.newHeader}\n`;
+        message = `Hmm...  Looks like a ${format} diff to me...\nThe text leading up to this was:\n--------------------------\n${headers}--------------------------\n` + message;
+      }
+      if (autoReversed) message += "Reversed (or previously applied) patch detected!  Assuming -R.\n";
+      for (const outcome of outcomes) {
+        if (outcome.misordered) message += "misordered hunks! output would be garbled\n";
+        if (options.quiet) continue;
+        if (outcome.failed && options.merge) message += `Hunk #${outcome.index} NOT MERGED at ${outcome.mergeRange?.[0] ?? outcome.line}-${outcome.mergeRange?.[1] ?? outcome.line}.\n`;
+        else if (outcome.failed) message += `Hunk #${outcome.index} FAILED at ${outcome.line}.\n`;
+        else if (options.verbose || outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${outcome.offset === 1 ? "line" : "lines"})` : ""}.\n`;
+      }
+      if (failed.length && !options.merge) message += `${failed.length} out of ${outcomes.length} ${outcomes.length === 1 ? "hunk" : "hunks"} FAILED${options.dryRun || rejectPath === undefined ? "" : ` -- saving rejects to file ${rejectDestination}`}\n`;
+      if (deletion && result.size !== 0) message += `Not deleting file ${name} as content differs from patch\n`;
+      message += timeMessage;
+      budget.outputLength(result.size);
+      if (backup !== undefined) budget.outputLength(backup.size);
+      await status(message);
+      touched.add(path);
+      if (options.atomic) {
+        staged.set(item.path, item);
+        if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) stagedParents.add(parent);
+      } else if (!options.dryRun) {
+        publishing = true;
+        await publish(item, budget, rejects, publication, documents);
+        committed++;
+        publishing = false;
+        for (const parent of item.parents) parents.add(parent);
+      }
+    };
+    for (const authorizedPatch of options.atomic && options.reverse ? authorized.slice().reverse() : authorized) {
+      activePath = authorizedPatch.selected === undefined ? undefined : resolvePath(context.cwd, authorizedPatch.selected);
+      try { await applySection(authorizedPatch); }
       catch (error) {
         context.signal.throwIfAborted();
-        throw new ToolError(`commit stopped; ${committed}/${prepared.length} files committed; failing operation may have side effects; path ${item.path}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
+        if (committed === 0 && !publishing) throw error;
+        throw new ToolError(`commit stopped; ${committed}/${authorized.length} files committed; failing operation may have side effects; path ${activePath}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
       }
-      for (const parent of item.parents) parents.add(parent);
     }
-  }
-  if (!options.dryRun) await pruneDirectories(parents, budget);
-  if (options.verbose) await status("done\n");
-  if (options.atomic && (!options.quiet || messages.length)) await writeBytes(context.stdout, encodeBytes(messages.join("")), context.signal);
-  if (progress?.error) throw progress.error;
-  return exitCode;
+    if (options.atomic && !options.dryRun) {
+      const prepared = [...staged.values()].filter(item => !(item.remove && item.original === undefined));
+      for (const item of prepared) await unchanged(item, budget, documents);
+      for (const item of prepared) {
+        try { await publish(item, budget, rejects, publication, documents); committed++; }
+        catch (error) {
+          context.signal.throwIfAborted();
+          throw new ToolError(`commit stopped; ${committed}/${prepared.length} files committed; failing operation may have side effects; path ${item.path}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
+        }
+        for (const parent of item.parents) parents.add(parent);
+      }
+    }
+    if (!options.dryRun) await pruneDirectories(parents, budget);
+    if (options.verbose) await status("done\n");
+    if (options.atomic && (!options.quiet || messages.length)) await writeBytes(context.stdout, encodeBytes(messages.join("")), context.signal);
+    if (progress?.error) throw progress.error;
+    return exitCode;
+  } finally { await documents.close(); }
 }
 
 export function patchCommand(options: DiffPatchOptions = {}) { return definition("patch", options, run); }
@@ -511,4 +527,15 @@ function quotePatchName(name: string, style = "shell"): string {
   if (style === "locale") return `‘${name}’`;
   if (style === "escape") return JSON.stringify(name).slice(1, -1);
   return `'${name.replaceAll("'", "'\\''")}'`;
+}
+
+async function sameTarget(path: string, right: IndexedDocument, documents: TargetDocuments): Promise<boolean> {
+  const left = await documents.read(path);
+  try {
+    if (left.size !== right.size || left.length !== right.length) return false;
+    for (let index = 0; index < left.length; index++) {
+      if (!await equalTargetLines({ document: left, index }, { document: right, index }, documents.budget)) return false;
+    }
+    return true;
+  } finally { await documents.release(left); }
 }

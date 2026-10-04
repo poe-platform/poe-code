@@ -1,3 +1,4 @@
+import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { docxDocumentPrefix, docxDocumentSuffix } from "./docx-parts.js";
 import { createZipCodec } from "@poe-code/office-package/zip";
 import { openRetainedXml, resolveOfficeResources, type RetainedXml, type XmlLexicalToken } from "@poe-code/office-xml";
@@ -6,7 +7,7 @@ import { escapeHtmlText } from "./html.js";
 import { retainXmlText } from "./retained-xml-text.js";
 import type { RetainedSofficeContext, SofficeSnapshot } from "./retained-input.js";
 
-interface OdtOutput { readonly paragraphSeparator?: string; readonly htmlTitle?: string; readonly docx?: boolean }
+interface OdtOutput { readonly paragraphSeparator?: string; readonly htmlTitle?: string; readonly docx?: boolean; readonly blocks?: RetainedOfficeBlocks }
 
 /** ODT/ODS/ODP text, HTML and WordprocessingML: values and output spans stay in caller storage. */
 export async function retainOdtText(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext, options: OdtOutput = {}): Promise<SofficeSnapshot> {
@@ -48,6 +49,7 @@ async function extract(xml: RetainedXml, storage: PagedStorage, signal: AbortSig
   const separator = { position: await storage.append(separatorBytes), size: separatorBytes.length };
   const tab = { position: await storage.append(Uint8Array.of(9)), size: 1 };
   const add = async (span: SofficeSnapshot) => {
+    if (options.blocks) return;
     await spans.set(BigInt(count * 2), BigInt(span.position));
     await spans.set(BigInt(count * 2 + 1), BigInt(span.size));
     count++; size += span.size;
@@ -98,6 +100,7 @@ async function extract(xml: RetainedXml, storage: PagedStorage, signal: AbortSig
     }
   }
   const table = async () => {
+    options.blocks?.beginTable();
     let rows = 0;
     for (;;) {
       const next = await tokens.next();
@@ -113,6 +116,7 @@ async function extract(xml: RetainedXml, storage: PagedStorage, signal: AbortSig
         if (token.kind === "end-name" && tag === "table:table-row") break;
         if (token.kind !== "start-name" || tag !== "table:table-cell" || !await opening()) continue;
         const cell = await retainXmlText(storage, textUntil(tag), signal);
+        await options.blocks?.cell(cell);
         if (!cells) {
           if (!rows) {
             if (structured) await markup(html ? "<table>\n" : "<w:tbl>"); else if (blocks) await add(separator);
@@ -125,8 +129,10 @@ async function extract(xml: RetainedXml, storage: PagedStorage, signal: AbortSig
         else await add(cell);
         cells++;
       }
+      await options.blocks?.endRow();
       if (structured && cells) await markup(html ? "</tr>\n" : "</w:tr>");
     }
+    await options.blocks?.endTable();
     if (structured && rows) await markup(html ? "</table>\n" : "</w:tbl>");
   };
   try {
@@ -140,6 +146,7 @@ async function extract(xml: RetainedXml, storage: PagedStorage, signal: AbortSig
       if (tag === "table:table") { await table(); continue; }
       const block = await retainXmlText(storage, textUntil(tag), signal);
       if (block.size) {
+        await options.blocks?.paragraph(block, tag === "text:h");
         if (html) {
           const element = tag === "text:h" ? "h1" : "p";
           await markup(`<${element}>`); await add(await escaped(block)); await markup(`</${element}>\n`);
@@ -155,6 +162,7 @@ async function extract(xml: RetainedXml, storage: PagedStorage, signal: AbortSig
     const fallback = await retainXmlText(storage, (async function* () {
       for await (const token of xml.tokens()) if (token.kind === "text") yield* xml.read(token.range);
     })(), signal);
+    await options.blocks?.paragraph(fallback, false);
     if (!structured) return fallback;
     await markup(html ? "<p>" : "<w:p><w:r><w:t>"); await add(await escaped(fallback)); await markup(html ? "</p>\n" : "</w:t></w:r></w:p>");
   }

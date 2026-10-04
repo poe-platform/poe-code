@@ -159,5 +159,9 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
   expect(docx.exitCode).toBe(0);
   expect(new TextDecoder().decode(readZipArchiveEntries(await fs.readFile("/office.docx")).get("word/document.xml"))).toContain("<w:t>Packed &amp; retained</w:t>");
-  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.docx", "input.html", "input.md", "input.pdf", "office.docx", "office.html", "office.odt"]);
+  const pdf = await runSofficeFileCli(["--convert-to", "pdf", "/office.odt"], {filesystem,
+    stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+  expect(pdf.exitCode).toBe(0);
+  expect(new TextDecoder().decode((await fs.readFile("/office.pdf")).subarray(0, 8))).toBe("%PDF-1.7");
+  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.docx", "input.html", "input.md", "input.pdf", "office.docx", "office.html", "office.odt", "office.pdf"]);
 });

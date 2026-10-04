@@ -1,3 +1,4 @@
+import { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { retainOdtText } from "./retained-odt.js";
 import { convertOdsStream } from "./spreadsheet.js";
 import { retainTextPdf } from "./retained-pdf.js";
@@ -28,7 +29,7 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   const filter = (colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon)) || (format === "csv" ? "Text - txt - csv (StarCalc)" : format === "pdf" ? "writer_pdf_Export" : `${format}_Export`);
   const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv"];
   const openDocumentConversion = (input: string) => [".odt", ".ods", ".odp"].some(extension => input.toLowerCase().endsWith(extension)) &&
-    format !== "pdf" && !(input.toLowerCase().endsWith(".ods") && ["csv", "xlsx"].includes(format));
+    !(input.toLowerCase().endsWith(".ods") && ["csv", "xlsx"].includes(format));
   if (!inputs.every(input => openDocumentConversion(input) ? true : input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
     input.toLowerCase().endsWith(".rtf") ? true :
     !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["xlsx", "csv"].includes(format))) return undefined;
@@ -47,15 +48,16 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
       const path = resolvePath(cwd, outdir, `${stem}.${format}`);
       let output = source;
       if (openDocumentConversion(input)) {
+        const document = format === "pdf" ? new RetainedOfficeBlocks(storage, signal) : undefined;
         let text: SofficeSnapshot;
-        try { text = await retainOdtText(storage, source, context, format === "docx" ? { docx: true } : format === "html" ? { htmlTitle: stem } : { paragraphSeparator: "\n\n" }); }
+        try { text = await retainOdtText(storage, source, context, document ? { blocks: document } : format === "docx" ? { docx: true } : format === "html" ? { htmlTitle: stem } : { paragraphSeparator: "\n\n" }); }
         catch (error) {
           signal.throwIfAborted();
           stderr = `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n`;
           messages.length = 0; break;
         }
-        if (format === "docx") {
-          const archive = await retainDocxXml(storage, (async function* () {
+        if (format === "docx" || document) {
+          const archive = document ? await retainTextPdf(storage, document, document.snapshot(), stem, context, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1)) : await retainDocxXml(storage, (async function* () {
             for (let offset = 0; offset < text.size; offset += 16384) {
               signal.throwIfAborted();
               yield new Uint8Array(await storage.read(text.position + offset, Math.min(16384, text.size - offset)));

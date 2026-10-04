@@ -43,6 +43,32 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
   };
   for (let block = 0; block < snapshot.count; block++) {
     signal.throwIfAborted();
+    const table = await text.table?.(snapshot, block);
+    if (table) {
+      const width = 504 / table.columns;
+      for (let row = 0; row < table.rows; row++) {
+        signal.throwIfAborted();
+        if (y - 28 < 54) await finishPage();
+        const bottom = y - 22;
+        await append(row === 0 ? `q\n0.92 0.94 0.97 rg\n0.5 0.55 0.62 RG\n0.75 w\n54 ${bottom} 504 22 re\nB\nQ\n` : `q\n0.7 0.72 0.75 RG\n0.5 w\n54 ${bottom} 504 22 re\nS\nQ\n`);
+        const cells = await table.cells(row);
+        for (let cell = 0; cell < cells; cell++) {
+          const x = 54 + cell * width;
+          if (cell) await append(`q\n0.7 0.72 0.75 RG\n0.5 w\n${x} ${bottom} m\n${x} ${y} l\nS\nQ\n`);
+          await append(`q\n0 0 0 rg\nBT\n/${row === 0 ? "Heading" : "Body"} 10 Tf\n1 0 0 1 ${x + 6} ${bottom + 6} Tm\n`);
+          const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+          for await (const bytes of table.streamCell(row, cell)) {
+            const value = decoder.decode(bytes, { stream: true });
+            if (value) { await page.append(serializeCosNodeBytes(cosString(encodeWinAnsiBytes(value)))); await append(" Tj\n"); }
+          }
+          const tail = decoder.decode();
+          if (tail) { await page.append(serializeCosNodeBytes(cosString(encodeWinAnsiBytes(tail)))); await append(" Tj\n"); }
+          await append("ET\nQ\n");
+        }
+        y = bottom; await yieldTurn(signal);
+      }
+      y -= 14; continue;
+    }
     const heading = await text.isHeading(snapshot, block), maximum = heading ? 48 : 84, decoder = new TextDecoder("utf-8", { ignoreBOM: true });
     let position = 0, start = 0, wordBytes = 0, wordUnits = 0, count = 0;
     const finishWord = async () => {

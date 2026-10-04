@@ -14,9 +14,10 @@ A delivered partial fix does not close its family. Each case now carries a
 `checkpoint20261004` separating qualified work, existing evidence, the next
 acceptance test, the family closure gate and qualification blockers. Use that
 checkpoint before expanding a cohort; historical receipts are not current registry
-or universal profile qualification. Pure RTL tabs and combined paragraph/control-marker boundaries are qualified.
-The next rendering gate is mixed Hebrew/Latin tab runs in both base directions;
-preserve the mixed-direction guard until native order and tab stops agree.
+or universal profile qualification. Each family now has a finite `remainingAcceptance`
+list; completed cohorts remain evidence, not new work. Native limitations stay
+separate from product passes. The next execution gate is encrypted Paradox
+companion-file/version export and native reopen through both public routes.
 
 ## 1. What we're building
 
@@ -136,27 +137,27 @@ the two spelling repairs were pushed afterward. Publication and
 installed artifact qualification remain unverified. Preserve the independently
 delivered root/scoped fixture separation `61baed7701`.
 
-| Family | Required completion scope |
+| Family | Remaining acceptance (existing scope) |
 | --- | --- |
-| PWD/resource identity | Actual cwd and logical aliases, symlink identity, GETENV preservation, paths, input/export/write diagnostics, staging/split/graph outputs, cancellation, supported platforms and public consumers. |
-| Lotus names/formulas | WK1/WK3 and applicable modern records; global/local names, duplicate/case/scope rules, relative/absolute/sheet references, encodings, invalid records, edits, recalculation and XML/XLSX/BIFF/native transport. Native absence does not cancel requested functionality. |
-| BIFF formulas | Every applicable token/version; external and detached bindings, missing/deleted targets, namespaces, shared/array/name contexts, indexes/spans, metadata and native roundtrips. Live labels retain ordered pairs, orientation, cell identity, reference class, quoting/relativity, copy/move and dependency effects; qualify scalar/SUM/intersection, boundaries, single cells, overlapping declarations, radical/extra-data/deleted/pivot forms and XML/XLSX/ODF/BIFF7 transports. |
-| Encrypted BIFF | Applicable XOR, RC4/CryptoAPI and property-container profiles, passwords/encoding, ancillary streams, independent vectors, supported native cross-read and publication. |
-| Encrypted ODF | Applicable AES, Blowfish and modern package profiles, algorithms/KDFs/manifest/paths, password variants, independent crypto and native cross-read. |
-| Encrypted Paradox | Applicable header/body algorithms, block/record/version profiles, passwords and companion files, original vectors and native cross-read. |
-| PERL_DATE | Sample signatures/coercion, injected clock, locale/timezone/DST/date boundaries, errors, arrays and activated runtime parity. |
-| PERL_SED | Required bounded pattern grammar, classes/captures/replacements, Unicode and raw bytes, malformed inputs, diagnostics and activated runtime parity. |
-| PY_PRINTF | Required conversion/formatting grammar, flags/width/precision, arrays/references/sheets, errors, Unicode/version rules and activated runtime parity. |
-| PY_CAPWORDS | Pinned Unicode casing/whitespace/context/expansion and explicit version selection, surrogates/NUL/malformed values, typed splitting, diagnostics and exact activated runtime parity. |
-| Database functions | EXECSQL/READDBTABLE signatures, typed scalar/array results, providers, errors/retry, actual effects, explicit authority, transactions, cancellation and connection retirement. |
-| ATL_LAST | Datasource/FIFO lifecycle, ordering/read boundaries, partial and late records, recalculation/rebinding, errors and bounded watcher cleanup. |
-| LN1P/log1p/acos | Reproduce current public/primitive discrepancies; exact binary64 profiles, signed zero, subnormal/overflow, poles/NaN/infinity, rounding versus accuracy and independent holdouts. |
-| Higher-q Bessel | Current direct/shared routes, source operation order/FMA/reflection/phase, integer order and larger arguments/domains, exact reference values, warning/error/budget behavior and other supported runtime profiles. |
-| Format records | Every applicable importer/exporter version/subformat/record effect: formulas, names, styles, encodings, metadata, merges, comments, charts/objects and external links. Prove independent parse/edit/export/readback; distinguish opaque preservation from implemented semantics. |
-| Rendering | Chart/print/PDF text, geometry/fonts/page breaks/ranges/headers/footers, style/merge/rich-text/overflow/object fidelity and claimed Unicode/CJK/RTL support; independent visual evidence for each supported profile. |
-| Solver/analysis | Goal seek, linear/nonlinear models, sensitivity/analysis reports and layout, errors and lifecycle; known solutions plus authenticated native optional profiles, not installed-program evidence. |
-| Optional profiles | All eight activation environments and fourteen capability obligations in the optional runtime register, actual plugin activation/results/effects/lifecycle, exact source-disabled and GUI-only distinctions. |
-| Public artifacts | Actual root/scoped registry artifacts installed outside the repo without private workspace resolution or native PATH; strict NodeNext, SDK/Shell XLSX-to-CSV and edited CSV-to-XLSX, browser/worker where advertised, authority/cancellation/cleanup and replay. |
+| PWD/resource identity | 1. Native Windows logical/physical PWD, symlink and logical-alias identity, with exact GETENV and diagnostic paths through installed SDK/Shell. 2. Real-adapter input/export/write, staging/split/graph, cancellation and cleanup controls; containing installed artifacts. |
+| Lotus names/formulas | 1. Live-name XML/XLSX/BIFF transport: edit/delete definitions and copy/move formulas in both copy modes; preserve target identity and recalculation. 2. DOS Works ambiguity, modern range flags, sheet-relative references, remaining offsets/charsets/formatting and native application profiles. |
+| BIFF formulas | 1. BIFF7 external multi-sheet ranges and live-label NAME export: independent readback, edit/recalculation and exact diagnostics. 2. Remaining token/version/context and label radical/extra-data/deleted/pivot profiles, metadata and XML/XLSX/ODF/BIFF7 transport; never acquire external links implicitly. |
+| Encrypted BIFF | 1. Remaining version/password/encoding and ancillary-stream profiles, including truncation, resource ceilings and cleanup; classify Calc CryptoAPI refusals/property loss separately. 2. Containing installed root/scoped artifacts through SDK/command; retain the completed 27-profile command cohort and POI metadata/edit evidence. |
+| Encrypted ODF | 1. Remaining password/encoding, package/path, truncation/tampering and application profiles with bounded KDF/work, cleanup and no invalid plaintext publication. 2. Containing installed artifacts; retain six-algorithm command evidence and classify Calc CFB8/empty-password limitations separately. Legacy prefix checksums are not full authentication. |
+| Encrypted Paradox | 1. Companion-file and wider block/record/version profiles through SDK and command export; native reopen must preserve schema/records and exact diagnostics. 2. Remaining password, truncation, work/cleanup and installed-artifact controls; do not claim authenticated encryption. |
+| PERL_DATE | 1. Untested signatures/coercions, arrays/errors and locale-sensitive cases using injected-clock and activated reference controls. 2. Current installed SDK/Shell and remaining runtime profiles; reuse the qualified 92-case five-zone date cohort. |
+| PERL_SED | 1. Classify the retained 4150-case corpus using isolated and ordered native calls; repair product differences and preserve exact warnings. 2. Remaining bounded grammar, Unicode/raw bytes, malformed inputs and lifecycle through activated and installed routes; keep original interpreter goldens. |
+| PY_PRINTF | 1. Address-bearing RangeRef/sheet representation semantics, remaining coercion and diagnostic cases; compare structure rather than unstable addresses. 2. Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting. |
+| PY_CAPWORDS | 1. Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts. 2. Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash. |
+| Database functions | 1. Real in-flight query cancellation, transactions/authentication and connection retirement on an explicit provider; original cancellation reason, exactly-once close and zero publication. 2. Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and integer/tiny-number discrepancies as unresolved outcomes. |
+| ATL_LAST | 1. FIFO split reads, watcher mutation, feed/close ordering and rebinding: values, dependent recalculation, diagnostics and exactly-once cleanup through SDK/command. 2. Remaining installed/deployment profiles; reuse the qualified eight-value normal/late/partial/completed record cohort. |
+| LN1P/log1p/acos | 1. Independent binary64 boundary/holdout inputs for LN1P/log1p/acos on declared runtimes, including signed zero, subnormals, poles, NaN/infinity and overflow; exact values and diagnostics through both routes. 2. Remaining runtime-library and installed profiles; distinguish rounding/profile differences from algorithm accuracy. |
+| Higher-q Bessel | 1. Current installed artifacts against retained native Bessel cohorts; independent uncovered fractional/near-integer and high-order boundaries. 2. Remaining domain/runtime profiles, warnings/errors and work ceilings; retain explained Darwin libm/FMA differences and all 3296 qualified matches per route. |
+| Format records | 1. Existing directional-service matrix: unqualified version/record transports, starting with rich-comment metadata/geometry and raw-NUL formula export, followed by independent edit/readback. 2. Remaining formula/name/style/encoding/metadata/merge/chart/object/link semantics and installed composition; explicit loss diagnostics for unsupported records, not opaque-preservation claims. |
+| Rendering | 1. Remaining weak/neutral/explicit bidi and shaping-direction overrides, rich text/fonts, decorations/merged multipage, print spans and chart profiles with independent visual evidence. 2. Current installed/public rendering composition; reuse completed Fill/tab/control cohorts rather than generating new permutations of them. |
+| Solver/analysis | 1. Independent solver factories: report diagnostics/layout, sensitivity and nonlinear boundary models through SDK/command against known solutions and native results. 2. Remaining solver/analysis numerical/error/lifecycle and installed profiles; program installation alone is not qualification. |
+| Optional profiles | 1. Original glossary saver gsf dependency and actual output in its authenticated profile; retain exact unavailable-service outcome if still unavailable. 2. All eight activation environments and fourteen existing capability obligations: exact plugin sets, results/effects and lifecycle; resolve or explicitly retain GNOME-DB ui.xml, GDA CLI and Perl reference limitations. |
+| Public artifacts | 1. Containing registry root/scoped artifacts installed outside the repo without private workspace or native PATH: strict NodeNext and SDK/Shell conversion/edit/readback. 2. Maintained Node/browser/worker/workerd matrix: canonical runtime identity, raw bytes, budgets, authority, cancellation and cleanup with exact artifact/version hashes after relevant incoming changes. |
 
 Encryption qualification includes correct/wrong/empty/binary passwords, encoding,
 tampering, truncation, unsupported versions, KDF/work ceilings, chunks, cleanup and
@@ -164,7 +165,17 @@ no invalid plaintext publication. Describe unauthenticated legacy formats honest
 All functions preserve namespace replacement and absent-plugin behavior. Never
 remove difficult numeric inputs or relax exact comparisons to obtain a pass.
 
-Mixed Hebrew/Latin tabbed Fill now matches the bounded native cohort in both base directions, with repetition and ±45° rotation (ledger `pdfMixedFillTabs`). Mixed U+2028 tab markers also match (`pdfMixedFillLineSeparators`). The retained mixed RTL paragraph/CR failures now match native across the same 18-control cohort (`pdfMixedFillControlOrder`); this checkpoint is complete. The encrypted-BIFF command-export gate now passes all 27 retained profiles with/without metadata (`encryptedBiffCommandParity`), including independent decrypt/readback/edit and wrong-password zero-output checks. The encrypted-ODF six-algorithm command-export gate also passes independent decryption and 36 manifest/KDF/ciphertext/password controls (`encryptedOdfCommandParity`); existing Calc refusals remain limitations. Next use the encrypted-Paradox companion-file/version export-route gate. Do not restart or expand the completed rendering cohort; all 19 family gates remain open.
+Three retained checkpoints are complete: mixed Fill control order
+(`pdfMixedFillControlOrder`), the 27-profile BIFF command cohort
+(`encryptedBiffCommandParity`) and the six-algorithm ODF command cohort
+(`encryptedOdfCommandParity`). Their receipts include independent readback and
+failure controls; the encryption receipts retain native application limitations.
+The table above mirrors each ledger case's `remainingAcceptance` list. It replaces
+stale routing from rendering to BIFF to ODF: proceed to the Paradox gate next.
+Do not repeat completed cohorts unless a relevant runtime change or regression
+invalidates their evidence. Family closure still requires the listed acceptance
+and its independent evidence; this reconciliation does not qualify new profiles.
+Publication/installed-artifact gates remain separate from remote-main delivery.
 
 ## 4. Interfaces and test plan
 

@@ -4485,7 +4485,11 @@
         "evidence": [],
         "nextAcceptance": "Run native Windows logical/physical PWD and real-adapter alias/error controls through installed SDK and Shell; compare exact output and diagnostic identity.",
         "closureGate": "Qualify the remaining platform/adapter matrix and installed containing artifacts.",
-        "qualificationBlockers": []
+        "qualificationBlockers": [],
+        "remainingAcceptance": [
+          "Native Windows logical/physical PWD, symlink and logical-alias identity, with exact GETENV and diagnostic paths through installed SDK/Shell.",
+          "Real-adapter input/export/write, staging/split/graph, cancellation and cleanup controls; containing installed artifacts."
+        ]
       }
     },
     {
@@ -4503,6 +4507,10 @@
         "closureGate": "Resolve named-reference transport plus remaining version, offset, charset and application profiles.",
         "qualificationBlockers": [
           "Pinned Gnumeric reports Lotus named ranges unimplemented; source-qualified product identity checks are not native application parity."
+        ],
+        "remainingAcceptance": [
+          "Live-name XML/XLSX/BIFF transport: edit/delete definitions and copy/move formulas in both copy modes; preserve target identity and recalculation.",
+          "DOS Works ambiguity, modern range flags, sheet-relative references, remaining offsets/charsets/formatting and native application profiles."
         ]
       }
     },
@@ -4522,6 +4530,10 @@
         "closureGate": "Qualify remaining token/version, label extra-data, metadata and external-link profiles without implicit link acquisition.",
         "qualificationBlockers": [
           "Pinned Gnumeric warns on external records and can misbind BIFF7 external cells; those readbacks are failures, not qualification."
+        ],
+        "remainingAcceptance": [
+          "BIFF7 external multi-sheet ranges and live-label NAME export: independent readback, edit/recalculation and exact diagnostics.",
+          "Remaining token/version/context and label radical/extra-data/deleted/pivot profiles, metadata and XML/XLSX/ODF/BIFF7 transport; never acquire external links implicitly."
         ]
       }
     },
@@ -4535,10 +4547,14 @@
           "#/currentQualification20261002/encryptedBiffCalc252Poi541",
           "#/encryptedBiffCommandParity"
         ],
-        "nextAcceptance": "The27-profile command-export checkpoint is complete. Continue the existing encrypted-odf command-export parity gate for six retained algorithm profiles with manifest/KDF/tampering and zero-output checks. BIFF version/password/ancillary-stream and installed-artifact closure gates remain open.",
+        "nextAcceptance": "Remaining version/password/encoding and ancillary-stream profiles, including truncation, resource ceilings and cleanup; classify Calc CryptoAPI refusals/property loss separately.",
         "closureGate": "Complete version/password/ancillary-stream and public installed-artifact parity; classify native refusals separately.",
         "qualificationBlockers": [
           "Calc refuses 22 retained CryptoAPI variants and loses encrypted title/Note; POI success does not turn those Calc results into passes."
+        ],
+        "remainingAcceptance": [
+          "Remaining version/password/encoding and ancillary-stream profiles, including truncation, resource ceilings and cleanup; classify Calc CryptoAPI refusals/property loss separately.",
+          "Containing installed root/scoped artifacts through SDK/command; retain the completed 27-profile command cohort and POI metadata/edit evidence."
         ]
       }
     },
@@ -4552,10 +4568,14 @@
           "#/currentQualification20261002/encryptedOdfCalc252",
           "#/encryptedOdfCommandParity"
         ],
-        "nextAcceptance": "The six-profile command-export checkpoint is complete. Continue the existing encrypted-paradox companion-file/version export-route gate. ODF broader password/tampering/application and installed-artifact closure remains open; do not reclassify known Calc CFB8/empty-password limitations as passes.",
+        "nextAcceptance": "Remaining password/encoding, package/path, truncation/tampering and application profiles with bounded KDF/work, cleanup and no invalid plaintext publication.",
         "closureGate": "Complete applicable algorithm/password/tampering, application and installed-artifact profiles.",
         "qualificationBlockers": [
           "Native CFB8 and empty-password reads refuse; empty-password native save did not complete."
+        ],
+        "remainingAcceptance": [
+          "Remaining password/encoding, package/path, truncation/tampering and application profiles with bounded KDF/work, cleanup and no invalid plaintext publication.",
+          "Containing installed artifacts; retain six-algorithm command evidence and classify Calc CFB8/empty-password limitations separately. Legacy prefix checksums are not full authentication."
         ]
       }
     },
@@ -4568,7 +4588,11 @@
         "evidence": [],
         "nextAcceptance": "Qualify companion-file and wider version profiles through both public export routes, preserving records/schema and exact diagnostics after native reopen.",
         "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
-        "qualificationBlockers": []
+        "qualificationBlockers": [],
+        "remainingAcceptance": [
+          "Companion-file and wider block/record/version profiles through SDK and command export; native reopen must preserve schema/records and exact diagnostics.",
+          "Remaining password, truncation, work/cleanup and installed-artifact controls; do not claim authenticated encryption."
+        ]
       }
     },
     {
@@ -4584,7 +4608,11 @@
         ],
         "nextAcceptance": "Qualify untested argument signatures, coercions, arrays/errors and locale-sensitive cases in the activated reference and installed SDK/Shell.",
         "closureGate": "Complete remaining signature/locale/runtime and registry qualification; keep already-passing date cohorts as receipts.",
-        "qualificationBlockers": []
+        "qualificationBlockers": [],
+        "remainingAcceptance": [
+          "Untested signatures/coercions, arrays/errors and locale-sensitive cases using injected-clock and activated reference controls.",
+          "Current installed SDK/Shell and remaining runtime profiles; reuse the qualified 92-case five-zone date cohort."
+        ]
       }
     },
     {
@@ -4602,6 +4630,10 @@
         "closureGate": "Close wider grammar/Unicode/diagnostics/lifecycle and installed-runtime profiles with the original reference retained.",
         "qualificationBlockers": [
           "Perl5.40.1 has a warning-sensitive atomic-lookbehind state defect; diagnostic patched-interpreter results are not replacement goldens."
+        ],
+        "remainingAcceptance": [
+          "Classify the retained 4150-case corpus using isolated and ordered native calls; repair product differences and preserve exact warnings.",
+          "Remaining bounded grammar, Unicode/raw bytes, malformed inputs and lifecycle through activated and installed routes; keep original interpreter goldens."
         ]
       }
     },
@@ -4618,6 +4650,10 @@
         "closureGate": "Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences.",
         "qualificationBlockers": [
           "Combined native sheet/tuple probes crash; native control-character XLSX loss is not a formatting parity pass."
+        ],
+        "remainingAcceptance": [
+          "Address-bearing RangeRef/sheet representation semantics, remaining coercion and diagnostic cases; compare structure rather than unstable addresses.",
+          "Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting."
         ]
       }
     },
@@ -4635,6 +4671,10 @@
         "closureGate": "Complete other optional-runtime and wider diagnostic profiles with registry evidence.",
         "qualificationBlockers": [
           "Malformed native UTF-8 probes crash; retain the portable refusal and classify the native failure."
+        ],
+        "remainingAcceptance": [
+          "Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts.",
+          "Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash."
         ]
       }
     },
@@ -4653,6 +4693,10 @@
         "qualificationBlockers": [
           "The unmodified native CLI crashes when its plugin opens GTK without initialization; API/dialog evidence does not qualify that CLI path.",
           "Four large untyped native integers fail and one tiny numeric result differs from the explicit SQLite host."
+        ],
+        "remainingAcceptance": [
+          "Real in-flight query cancellation, transactions/authentication and connection retirement on an explicit provider; original cancellation reason, exactly-once close and zero publication.",
+          "Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and integer/tiny-number discrepancies as unresolved outcomes."
         ]
       }
     },
@@ -4667,7 +4711,11 @@
         ],
         "nextAcceptance": "Vary FIFO read splitting, watcher mutation and feed/close timing; compare values, dependent recalculation, diagnostics and exactly-once cleanup through SDK/command.",
         "closureGate": "Complete remaining scheduling/watch lifecycle and installed/deployment profiles.",
-        "qualificationBlockers": []
+        "qualificationBlockers": [],
+        "remainingAcceptance": [
+          "FIFO split reads, watcher mutation, feed/close ordering and rebinding: values, dependent recalculation, diagnostics and exactly-once cleanup through SDK/command.",
+          "Remaining installed/deployment profiles; reuse the qualified eight-value normal/late/partial/completed record cohort."
+        ]
       }
     },
     {
@@ -4681,7 +4729,11 @@
         ],
         "nextAcceptance": "Add independent boundary/holdout domains for each function on declared runtime profiles; compare exact binary64 values and diagnostics through both public routes.",
         "closureGate": "Qualify remaining domains and runtime libraries, documenting profile-specific differences instead of inventing cross-libm equality.",
-        "qualificationBlockers": []
+        "qualificationBlockers": [],
+        "remainingAcceptance": [
+          "Independent binary64 boundary/holdout inputs for LN1P/log1p/acos on declared runtimes, including signed zero, subnormals, poles, NaN/infinity and overflow; exact values and diagnostics through both routes.",
+          "Remaining runtime-library and installed profiles; distinguish rounding/profile differences from algorithm accuracy."
+        ]
       }
     },
     {
@@ -4699,6 +4751,10 @@
         "closureGate": "Complete remaining domain/runtime and registry profiles while preserving source accuracy warnings.",
         "qualificationBlockers": [
           "Darwin libm/FMA profile differences are explained in retained receipts; they do not establish exact Linux or universal numerical parity."
+        ],
+        "remainingAcceptance": [
+          "Current installed artifacts against retained native Bessel cohorts; independent uncovered fractional/near-integer and high-order boundaries.",
+          "Remaining domain/runtime profiles, warnings/errors and work ceilings; retain explained Darwin libm/FMA differences and all 3296 qualified matches per route."
         ]
       }
     },
@@ -4745,13 +4801,17 @@
         "qualificationBlockers": [
           "Calc/Gnumeric lose selected original protection/comment fields; matching empty readbacks do not qualify preservation.",
           "Glossary activation succeeds but native saving fails its legacy gsf import."
+        ],
+        "remainingAcceptance": [
+          "Existing directional-service matrix: unqualified version/record transports, starting with rich-comment metadata/geometry and raw-NUL formula export, followed by independent edit/readback.",
+          "Remaining formula/name/style/encoding/metadata/merge/chart/object/link semantics and installed composition; explicit loss diagnostics for unsupported records, not opaque-preservation claims."
         ]
       }
     },
     {
       "id": "rendering-font-print-fidelity",
       "status": "open",
-      "currentFinding": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Pure RTL combined paragraph/tab/CR/U+2028 itemization is now qualified. Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted. See checkpoint20261004 for next acceptance and blockers. Mixed Hebrew/Latin tabbed Fill in both base directions, repetition and rotation is now qualified. Mixed Hebrew/Latin tabs with U+2028 markers also match the native six-control cohort. The retained18-control mixed paragraph/CR/line-separator tab cohort now matches native, including the previously mismatched RTL rotations.",
+      "currentFinding": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Pure RTL combined paragraph/tab/CR/U+2028 itemization is now qualified. Mixed Hebrew/Latin tabbed Fill in both base directions, repetition and rotation is now qualified. Mixed Hebrew/Latin tabs with U+2028 markers also match the native six-control cohort. The retained18-control mixed paragraph/CR/line-separator tab cohort now matches native, including the previously mismatched RTL rotations. Remaining acceptance is limited to the listed unqualified rendering profiles and installed composition.",
       "checkpoint20261004": {
         "qualified": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Pure RTL combined paragraph/tab/CR/U+2028 itemization is now qualified. Mixed Hebrew/Latin tabbed Fill in both base directions, repetition and rotation is now qualified. Mixed Hebrew/Latin tabs with U+2028 markers also match the native six-control cohort. The retained18-control mixed paragraph/CR/line-separator tab cohort now matches native, including the previously mismatched RTL rotations.",
         "evidence": [
@@ -4770,9 +4830,13 @@
           "#/pdfMixedFillLineSeparators",
           "#/pdfMixedFillControlOrder"
         ],
-        "nextAcceptance": "The retained mixed-control18-case checkpoint is complete. Broader weak/neutral/explicit bidi and shaping-direction override profiles remain unsupported; do not expand this completed checkpoint into a new permutation audit. Continue the existing encrypted-biff command-export acceptance gate next.",
-        "closureGate": "Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted.",
-        "qualificationBlockers": []
+        "nextAcceptance": "Remaining weak/neutral/explicit bidi and shaping-direction overrides, rich text/fonts, decorations/merged multipage, print spans and chart profiles with independent visual evidence.",
+        "closureGate": "Complete the remainingAcceptance list; the retained mixed Fill control checkpoint is complete and must not be reopened without a new regression.",
+        "qualificationBlockers": [],
+        "remainingAcceptance": [
+          "Remaining weak/neutral/explicit bidi and shaping-direction overrides, rich text/fonts, decorations/merged multipage, print spans and chart profiles with independent visual evidence.",
+          "Current installed/public rendering composition; reuse completed Fill/tab/control cohorts rather than generating new permutations of them."
+        ]
       }
     },
     {
@@ -4784,7 +4848,11 @@
         "evidence": [],
         "nextAcceptance": "Compare report diagnostics and layout for independent solver factories, including sensitivity and nonlinear boundary models, through SDK/command.",
         "closureGate": "Complete remaining solver/analysis numerical, report and layout profiles with independent native evidence.",
-        "qualificationBlockers": []
+        "qualificationBlockers": [],
+        "remainingAcceptance": [
+          "Independent solver factories: report diagnostics/layout, sensitivity and nonlinear boundary models through SDK/command against known solutions and native results.",
+          "Remaining solver/analysis numerical/error/lifecycle and installed profiles; program installation alone is not qualification."
+        ]
       }
     },
     {
@@ -4804,6 +4872,10 @@
         "qualificationBlockers": [
           "Glossary actual save exits1 with missing gsf and no output.",
           "GNOME-DB activation lacks ui.xml; GDA native CLI failure and Perl reference-state defect remain separately recorded."
+        ],
+        "remainingAcceptance": [
+          "Original glossary saver gsf dependency and actual output in its authenticated profile; retain exact unavailable-service outcome if still unavailable.",
+          "All eight activation environments and fourteen existing capability obligations: exact plugin sets, results/effects and lifecycle; resolve or explicitly retain GNOME-DB ui.xml, GDA CLI and Perl reference limitations."
         ]
       }
     },
@@ -4820,6 +4892,10 @@
         "closureGate": "Require exact installed artifact/version hashes and consumer results after relevant incoming runtime changes; a successful push or release alone is insufficient.",
         "qualificationBlockers": [
           "Current containing registry qualification is unverified; historical tarball results do not establish current registry behavior."
+        ],
+        "remainingAcceptance": [
+          "Containing registry root/scoped artifacts installed outside the repo without private workspace or native PATH: strict NodeNext and SDK/Shell conversion/edit/readback.",
+          "Maintained Node/browser/worker/workerd matrix: canonical runtime identity, raw bytes, budgets, authority, cancellation and cleanup with exact artifact/version hashes after relevant incoming changes."
         ]
       }
     }

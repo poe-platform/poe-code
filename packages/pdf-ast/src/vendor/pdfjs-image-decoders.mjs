@@ -6047,7 +6047,9 @@ class JpxImage {
           if (position + 2 > end) throw new JpxError("Truncated marker length");
           const markerLength = (yield* jpxReadUint(position,2));
           // Marker-derived objects, array slots, and tile-part copies.
-          context.onAllocation?.(context.storedPlanes && code === 0xff51 ? 2048 : 512 + markerLength * 128);
+          if (context.storedPlanes) {
+            if (!context.markerAdmission) {context.onAllocation?.(4096); context.markerAdmission = true;}
+          } else context.onAllocation?.(512 + markerLength * 128);
           if (markerLength < 2 || position + markerLength > end) {
             throw new JpxError("Truncated marker segment");
           }
@@ -6085,7 +6087,7 @@ class JpxImage {
             context.SIZ = siz;
             context.components = context.storedPlanes ? {length: componentsCount, start: position + 38, cache: []} : components;
             yield* calculateTileGrids(context, context.components);
-            context.QCC = [];
+            context.QCC = context.storedPlanes ? {length: componentsCount, records: yield* jpxVectorAllocate(componentsCount * 3, 8, true)} : [];
             context.COC = [];
             break;
           case 0xff5c:
@@ -6112,8 +6114,8 @@ class JpxImage {
             qcd.noQuantization = spqcdSize === 8;
             qcd.scalarExpounded = scalarExpounded;
             qcd.guardBits = sqcd >> 5;
-            spqcds = [];
-            while (j < length + position) {
+            spqcds = context.storedPlanes ? {start: j, length: Math.ceil((length + position - j) / (spqcdSize / 8)), width: spqcdSize / 8} : [];
+            while (!context.storedPlanes && j < length + position) {
               const spqcd = {};
               if (spqcdSize === 8) {
                 spqcd.epsilon = (yield j++) >> 3;
@@ -6130,7 +6132,7 @@ class JpxImage {
               context.QCD = qcd;
             } else {
               context.currentTile.QCD = qcd;
-              context.currentTile.QCC = [];
+              context.currentTile.QCC = context.storedPlanes ? {length: context.SIZ.Csiz, records: yield* jpxVectorAllocate(context.SIZ.Csiz * 3, 8, true)} : [];
             }
             break;
           case 0xff5d:
@@ -6164,8 +6166,8 @@ class JpxImage {
             qcc.noQuantization = spqcdSize === 8;
             qcc.scalarExpounded = scalarExpounded;
             qcc.guardBits = sqcd >> 5;
-            spqcds = [];
-            while (j < length + position) {
+            spqcds = context.storedPlanes ? {start: j, length: Math.ceil((length + position - j) / (spqcdSize / 8)), width: spqcdSize / 8} : [];
+            while (!context.storedPlanes && j < length + position) {
               const spqcd = {};
               if (spqcdSize === 8) {
                 spqcd.epsilon = (yield j++) >> 3;
@@ -6178,11 +6180,14 @@ class JpxImage {
               spqcds.push(spqcd);
             }
             qcc.SPqcds = spqcds;
-            if (context.mainHeader) {
-              context.QCC[cqcc] = qcc;
-            } else {
-              context.currentTile.QCC[cqcc] = qcc;
-            }
+            const overrides = context.mainHeader ? context.QCC : context.currentTile.QCC;
+            if (context.storedPlanes) {
+              if (cqcc < overrides.length) {
+                yield* jpxVectorWrite(overrides.records, cqcc * 3, sqcd + 1);
+                yield* jpxVectorWrite(overrides.records, cqcc * 3 + 1, spqcds.start);
+                yield* jpxVectorWrite(overrides.records, cqcc * 3 + 2, spqcds.length);
+              }
+            } else overrides[cqcc] = qcc;
             break;
           case 0xff52:
             length = (yield* jpxReadUint(position,2));
@@ -6208,8 +6213,8 @@ class JpxImage {
             cod.segmentationSymbolUsed = !!(blockStyle & 32);
             cod.reversibleTransformation = (yield j++);
             if (cod.entropyCoderWithCustomPrecincts) {
-              const precinctsSizes = [];
-              while (j < length + position) {
+              const precinctsSizes = context.storedPlanes ? {start: j, length: length + position - j} : [];
+              while (!context.storedPlanes && j < length + position) {
                 const precinctsSize = (yield j++);
                 precinctsSizes.push({
                   PPx: precinctsSize & 0xf,
@@ -6256,10 +6261,13 @@ class JpxImage {
             context.mainHeader = false;
             if (tile.partIndex === 0) {
               tile.COD = context.COD;
-              context.onAllocation?.((context.COC.length + context.QCC.length) * 16 + 256);
+              context.onAllocation?.(context.storedPlanes ? 512 : (context.COC.length + context.QCC.length) * 16 + 256);
               tile.COC = context.COC.slice(0);
               tile.QCD = context.QCD;
-              tile.QCC = context.QCC.slice(0);
+              if (context.storedPlanes) {
+                tile.QCC = {length: context.QCC.length, records: yield* jpxVectorAllocate(context.QCC.records.length, 8, true)};
+                yield* jpxVectorCopy(tile.QCC.records, 0, context.QCC.records, 0, context.QCC.records.length);
+              } else tile.QCC = context.QCC.slice(0);
             }
             context.currentTile = tile;
             break;
@@ -6373,19 +6381,37 @@ function* readJpxTileComponent(tile, index) {
   const value = {tcx0: Math.ceil(tile.tx0 / base.XRsiz), tcy0: Math.ceil(tile.ty0 / base.YRsiz),
     tcx1: Math.ceil(tile.tx1 / base.XRsiz), tcy1: Math.ceil(tile.ty1 / base.YRsiz),
     codingStyleParameters: tile.initialCOC[index] ?? tile.initialCOD,
-    quantizationParameters: tile.initialQCC[index] ?? tile.initialQCD};
+    quantizationParameters: (yield* readJpxQuantizationOverride(tile.initialQCC, index)) ?? tile.initialQCD};
   value.width = value.tcx1 - value.tcx0; value.height = value.tcy1 - value.tcy0;
   const length = yield* jpxVectorRead(tile.components.records, index * 2 + 1);
   if (length) value.resolutions = {context, length, records: {position: yield* jpxVectorRead(tile.components.records, index * 2), length: length * 55, bytesPerElement: 8, integer: false}};
   if (cache.length === 4) cache.shift();
   cache.push({tile, index, value}); return value;
 }
-function getBlocksDimensions(context, component, r) {
+function* readJpxQuantizationOverride(overrides, index) {
+  if (!overrides.records) return overrides[index];
+  const encoded = yield* jpxVectorRead(overrides.records, index * 3);
+  if (!encoded) return undefined;
+  const flags = encoded - 1, mode = flags & 31;
+  return {noQuantization: mode === 0, scalarExpounded: mode !== 1, guardBits: flags >> 5,
+    SPqcds: {start: yield* jpxVectorRead(overrides.records, index * 3 + 1), length: yield* jpxVectorRead(overrides.records, index * 3 + 2), width: mode === 0 ? 1 : 2}};
+}
+function* readJpxQuantizationEntry(entries, index) {
+  if (entries.start === undefined) return entries[index];
+  if (index < 0 || index >= entries.length) return undefined;
+  const at = entries.start + index * entries.width, first = yield at;
+  return {epsilon: first >> 3, mu: entries.width === 1 ? 0 : ((first & 7) << 8) | (yield at + 1)};
+}
+function* getBlocksDimensions(context, component, r) {
   const codOrCoc = component.codingStyleParameters;
   const result = {};
   if (!codOrCoc.entropyCoderWithCustomPrecincts) {
     result.PPx = 15;
     result.PPy = 15;
+  } else if (codOrCoc.precinctsSizes.start !== undefined) {
+    if (r >= codOrCoc.precinctsSizes.length) throw new JpxError("Missing precinct size");
+    const value = yield codOrCoc.precinctsSizes.start + r;
+    result.PPx = value & 15; result.PPy = value >> 4;
   } else {
     result.PPx = codOrCoc.precinctsSizes[r].PPx;
     result.PPy = codOrCoc.precinctsSizes[r].PPy;
@@ -6911,7 +6937,7 @@ function* buildPackets(context) {
       records: yield* jpxVectorAllocate((decompositionLevelsCount + 1) * 55, 8, true)} : [];
     const subbands = [];
     for (let r = 0; r <= decompositionLevelsCount; r++) {
-      const blocksDimensions = getBlocksDimensions(context, component, r);
+      const blocksDimensions = yield* getBlocksDimensions(context, component, r);
       const resolution = { onAllocation: context.onAllocation };
       const scale = 1 << decompositionLevelsCount - r;
       resolution.trx0 = Math.ceil(component.tcx0 / scale);
@@ -7408,15 +7434,8 @@ function* transformTile(context, tile, c) {
     admit?.(context.storedPlanes ? 256 : width * height * 4 + 256);
     const coefficients = (yield* jpxVectorAllocate(width * height,4,context.storedPlanes));
     for (let j = 0, jj = resolution.subbands.length; j < jj; j++) {
-      let mu, epsilon;
-      if (!scalarExpounded) {
-        mu = spqcds[0].mu;
-        epsilon = spqcds[0].epsilon + (i > 0 ? 1 - i : 0);
-      } else {
-        mu = spqcds[b].mu;
-        epsilon = spqcds[b].epsilon;
-        b++;
-      }
+      const quantization = yield* readJpxQuantizationEntry(spqcds, scalarExpounded ? b++ : 0);
+      const mu = quantization.mu, epsilon = quantization.epsilon + (!scalarExpounded && i > 0 ? 1 - i : 0);
       const subband = resolution.subbands[j];
       const gainLog2 = SubbandsGainLog2[subband.type];
       const delta = reversible ? 1 : 2 ** (precision + gainLog2 - epsilon) * (1 + mu / 2048);

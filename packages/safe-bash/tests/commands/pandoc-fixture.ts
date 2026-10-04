@@ -4,7 +4,6 @@ import {MemoryFileSystem} from "../../src/fs/memory/index.js";
 import {FsError, type FileSystem} from "../../src/contracts/index.js";
 import {agentCommands} from "../../src/plugins/index.js";
 
-import {pandocCommands} from "../../src/commands/pandoc/index.js";
 export function fixture() {
   const volume = Volume.fromJSON({"/work/a b.md": "Alpha", "/work/b.md": "Beta", "/work/-name.md": "Dash", "/work/out": "Keep"});
   const base = new MemoryFileSystem();
@@ -39,6 +38,6 @@ export function fixture() {
     const value: unknown = Reflect.get(target, key, target);
     return typeof value === "function" ? value.bind(target) : value;
   }});
-  const shell = new Shell({fs, cwd: "/work"}).use(agentCommands()).use(pandocCommands({replace: true}));
+  const shell = new Shell({fs, cwd: "/work"}).use(agentCommands());
   return {volume, fs, shell};
 }

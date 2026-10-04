@@ -20,11 +20,13 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
 
 export function agentCommands(options: AgentCommandsOptions = {}): VirtualShellPlugin {
   const regex = Object.freeze({ ...options.regex });
-  const base = createAgentCommandPlugin({ ...options, regex }, createRegexExecutors({ ...options, regex }), createGhCommands(options.gh), createPortableAgentCommands());
+  let hasCommand: ((name: string) => boolean) | undefined;
+  const base = createAgentCommandPlugin({ ...options, regex }, createRegexExecutors({ ...options, regex }), createGhCommands(options.gh), createPortableAgentCommands(name => hasCommand?.(name) ?? false));
   const recipe = captureAgentWorkerRecipe(options);
   const plugin: VirtualShellPlugin = {
     name: "agent-commands",
     setup(host) {
+      hasCommand = name => host.commands.has(name);
       const previous = new Map(host.commands.list().map(command => [command.name, command.execute]));
       base.setup(host);
       if (recipe) for (const definition of host.commands.list()) {

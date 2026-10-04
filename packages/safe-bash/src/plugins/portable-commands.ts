@@ -1,5 +1,5 @@
 import { CommandRegistry, type CommandDefinition } from "../contracts/index.js";
-import { createOptionalCommands } from "../lazy-optional.js";
+import { createOptionalCommands, createPandocCommand } from "../lazy-optional.js";
 import { createMmdcCommands } from "../lazy-mmdc.js";
 import { createYqCommands } from "../commands/yq/index.js";
 import { createHtmlqCommands } from "../commands/htmlq/index.js";
@@ -10,7 +10,7 @@ import { createCsvcutCommands } from "../commands/csvcut/index.js";
 import { createCsvgrepCommands } from "../commands/csvgrep/index.js";
 import { createOpCommands } from "../commands/op/index.js";
 
-export function createPortableAgentCommands(): readonly CommandDefinition[] {
+export function createPortableAgentCommands(hasCommand?: (name: string) => boolean): readonly CommandDefinition[] {
   return new CommandRegistry([
     ...createYqCommands(),
     ...createHtmlqCommands(),
@@ -19,8 +19,9 @@ export function createPortableAgentCommands(): readonly CommandDefinition[] {
     ...createUnrtfCommands(),
     ...createMmdcCommands(),
     ...createOpCommands(),
+    createPandocCommand({}, hasCommand),
     ...createOptionalCommands({ families: [
-      "ffmpeg", "soffice", "pandoc", "ssconvert", "pdfinfo", "pdftotext",
+      "ffmpeg", "soffice", "ssconvert", "pdfinfo", "pdftotext",
       "pdfimages", "pdftoppm", "pdftk", "qpdf", "sips", "imagemagick",
       "wkhtmltopdf", "csvkit",
     ] }),

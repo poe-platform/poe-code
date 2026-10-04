@@ -367,8 +367,10 @@ test("pandoc resolves table-of-contents aliases before defaults and CLI override
   } finally {await shell.dispose();}
 });
 
-test("pandoc default plugin profile executes local Lua filters, citeproc flags, and registered interpreter JSON filters", async () => {
+for (const profile of ["aggregate", "explicit"] as const) {
+test(`pandoc ${profile} plugin profile executes local Lua filters, citeproc flags, and registered interpreter JSON filters`, async () => {
   const {shell, volume} = fixture();
+  if (profile === "explicit") shell.use(pandocCommands({replace: true}));
   volume.writeFileSync("/work/sample.md", "Hello\n");
   volume.writeFileSync("/work/uppercase.lua", "function Str(el) el.text = string.upper(el.text); return el end\n");
   volume.writeFileSync("/work/identity.py", "#!/usr/bin/python3\nimport json, sys\njson.dump(json.load(sys.stdin),sys.stdout)\n");
@@ -389,6 +391,9 @@ test("pandoc default plugin profile executes local Lua filters, citeproc flags, 
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stdout, "<p>Hello</p>\n");
     }
+    const denied = await shell.exec("pandoc -f commonmark -t html -F ./identity.py sample.md");
+    assert.notEqual(denied.exitCode, 0);
+    assert.ok(denied.stderr.includes("E_CAPABILITY"), denied.stderr);
     shell.commands.register({
       name: "python3",
       async execute(ctx) {
@@ -405,10 +410,18 @@ test("pandoc default plugin profile executes local Lua filters, citeproc flags, 
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stdout, "<p>Hello</p>\n");
     }
+    const substitution = await shell.exec('rendered=$(pandoc -f commonmark -t html -F ./identity.py sample.md); printf "%s" "$rendered"');
+    assert.equal(substitution.exitCode, 0, substitution.stderr);
+    assert.equal(substitution.stdout, "<p>Hello</p>");
+    shell.commands.unregister("python3");
+    const revoked = await shell.exec("pandoc -f commonmark -t html -F ./identity.py sample.md");
+    assert.notEqual(revoked.exitCode, 0);
+    assert.ok(revoked.stderr.includes("E_CAPABILITY"), revoked.stderr);
   } finally {
     await shell.dispose();
   }
 });
+}
 
 test("pandoc omits disabled filesystem read budgets and preserves finite ones", async () => {
   for (const inputBytes of [Infinity, 100]) {

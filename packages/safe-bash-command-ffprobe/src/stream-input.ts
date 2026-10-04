@@ -15,7 +15,7 @@ export async function openProbeStream(context: CommandContext, path?: string): P
 }
 
 /** Retain only the signature and the current borrowed chunk; replay every byte once. */
-export async function sniffWavStream(source: AsyncIterable<Uint8Array>, signal: AbortSignal, account: (total: number) => void) {
+export async function sniffMediaStream(source: AsyncIterable<Uint8Array>, signal: AbortSignal, account: (total: number) => void) {
   const iterator = source[Symbol.asyncIterator](), prefix = new Uint8Array(12);
   let size = 0, total = 0, ended = false;
   let remainder: Uint8Array = new Uint8Array(0);
@@ -57,8 +57,7 @@ export async function sniffWavStream(source: AsyncIterable<Uint8Array>, signal: 
       }
     }
   }
-  const text = new TextDecoder().decode(prefix);
-  return { wav: size === 12 && text.slice(0, 4) === "RIFF" && text.slice(8) === "WAVE", stream: replay() };
+  return { prefix: prefix.subarray(0, size), stream: replay() };
 }
 
 /** Replay through the caller's backing, so strict and fallback probes see one admitted input. */

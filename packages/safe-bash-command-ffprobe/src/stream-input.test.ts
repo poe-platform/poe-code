@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { sniffWavStream } from "./stream-input.js";
+import { sniffMediaStream } from "./stream-input.js";
 
 for (const length of [0, 2, 12, 100]) it(`replays all ${length} bytes of an unknown stream with borrowed chunks`, async () => {
   const expected = Uint8Array.from({ length }, (_, i) => i + 1), borrowed = new Uint8Array(7), admitted: number[] = [];
@@ -9,8 +9,8 @@ for (const length of [0, 2, 12, 100]) it(`replays all ${length} bytes of an unkn
       borrowed.fill(255); const part = expected.subarray(offset, offset + borrowed.length); borrowed.set(part); yield borrowed.subarray(0, part.length);
     }
   } finally { closed = true; } }
-  const result = await sniffWavStream(source(), new AbortController().signal, total => admitted.push(total));
-  expect(result.wav).toBe(false);
+  const result = await sniffMediaStream(source(), new AbortController().signal, total => admitted.push(total));
+  expect([...result.prefix]).toEqual([...expected.subarray(0, 12)]);
   const actual: number[] = [];
   for await (const chunk of result.stream) actual.push(...chunk);
   expect(actual).toEqual([...expected]); expect(closed).toBe(true);
@@ -20,7 +20,7 @@ for (const length of [0, 2, 12, 100]) it(`replays all ${length} bytes of an unkn
 it("closes the borrowed source if cancellation arrives between sniffing and replay", async () => {
   const controller = new AbortController(); let closed = false;
   async function* source() { try { yield new TextEncoder().encode("RIFF1234WAVEtail"); yield new Uint8Array(3); } finally { closed = true; } }
-  const result = await sniffWavStream(source(), controller.signal, () => {});
+  const result = await sniffMediaStream(source(), controller.signal, () => {});
   controller.abort(new Error("cancelled between phases"));
   await expect(result.stream.next()).rejects.toThrow("cancelled between phases"); expect(closed).toBe(true);
 });
@@ -28,7 +28,7 @@ it("closes the borrowed source if cancellation arrives between sniffing and repl
 it("does not request another chunk until the replay consumer resumes", async () => {
   let calls = 0;
   async function* source() { calls++; yield new Uint8Array(100); calls++; yield new Uint8Array(100); }
-  const { stream } = await sniffWavStream(source(), new AbortController().signal, () => {});
+  const { stream } = await sniffMediaStream(source(), new AbortController().signal, () => {});
   expect(calls).toBe(1); expect((await stream.next()).value?.length).toBe(12); expect(calls).toBe(1);
   expect((await stream.next()).value?.length).toBe(88); expect(calls).toBe(1);
   await stream.next(); expect(calls).toBe(2); await stream.return();

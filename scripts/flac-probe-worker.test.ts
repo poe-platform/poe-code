@@ -23,7 +23,7 @@ beforeAll(async () => {
   runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, script: `
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request){
-      const [route,mode]=new URL(request.url).pathname.slice(1).split('/'),base=new api.MemoryFileSystem(),controller=new AbortController();
+      const [selection,route,mode]=new URL(request.url).pathname.slice(1).split('/'),base=new api.MemoryFileSystem(),controller=new AbortController();
       const header=new Uint8Array(${JSON.stringify([...header])});await base.writeFile('/input.flac',header);
       let closed=0,read=0,output='',diagnostic='',thrown,largestAllocation=0,admitted=0;
       async function* source(){const chunk=new Uint8Array(16384);try{yield header;
@@ -39,7 +39,7 @@ beforeAll(async () => {
         const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
       }});
       const Native=globalThis.Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=Reflect.construct(target,args);largestAllocation=Math.max(largestAllocation,value.length);if(value.length>65536)throw new Error('Unbounded allocation');return value;}});
-      let result;try{result=await api.createFfprobeCommand({limits:{maxInputBytes:mode==='limit'?100000:${size},maxOutputBytes:mode==='output-limit'?30:1000000}}).execute({command:'ffprobe',...api.createCommandArguments(['-f','flac','-of','json','-show_packets','-show_frames','-show_streams','-show_format',route==='stdin'?'-':'/input.flac']),cwd:'/',env:{},fs,signal:controller.signal,inputBudget:{maxBytes:${size},check(total){admitted=total;}},stdin:route==='stdin'?source():{async *[Symbol.asyncIterator](){}},
+      let result;try{result=await api.createFfprobeCommand({limits:{maxInputBytes:mode==='limit'?100000:${size},maxOutputBytes:mode==='output-limit'?30:1000000}}).execute({command:'ffprobe',...api.createCommandArguments([...(selection==='explicit'?['-f','flac']:[]),'-of','json','-show_packets','-show_frames','-show_streams','-show_format',route==='stdin'?'-':'/input.flac']),cwd:'/',env:{},fs,signal:controller.signal,inputBudget:{maxBytes:${size},check(total){admitted=total;}},stdin:route==='stdin'?source():{async *[Symbol.asyncIterator](){}},
         stdout:{async write(chunk){if(closed!==1)throw new Error('Input open');if(mode==='sink')throw Object.assign(new Error('pipe failed'),{code:'EPIPE'});output+=new TextDecoder().decode(chunk);}},stderr:{async write(chunk){diagnostic+=new TextDecoder().decode(chunk);}}
       });}catch(error){thrown={message:error.message,code:error.code};}finally{globalThis.Uint8Array=Native;}
       return Response.json({code:result?.exitCode,thrown,output,diagnostic,read,closed,admitted,largestAllocation,nodeFree:typeof process==='undefined'&&typeof Buffer==='undefined'});
@@ -47,12 +47,12 @@ beforeAll(async () => {
   });
 });
 afterAll(async () => { await runtime?.dispose(); });
-for (const route of ["retained", "stream", "stdin"]) for (const mode of ["success", "limit", "output-limit", "cancel", "source", "sink"]) {
-  it(`probes FLAC in a Node-free Worker via ${route}: ${mode}`, async () => {
-    const response = await runtime.dispatchFetch(`http://worker/${route}/${mode}`); expect(response.status).toBe(200);
+for (const selection of ["explicit", "automatic"]) for (const route of ["retained", "stream", "stdin"]) for (const mode of ["success", "limit", "output-limit", "cancel", "source", "sink"]) {
+  it(`probes ${selection} FLAC in a Node-free Worker via ${route}: ${mode}`, async () => {
+    const response = await runtime.dispatchFetch(`http://worker/${selection}/${route}/${mode}`); expect(response.status).toBe(200);
     const r = await response.json() as { code?: number; thrown?: { message: string; code?: string }; output: string; diagnostic: string; read: number; closed: number; admitted: number; largestAllocation: number; nodeFree: boolean };
     expect(r.nodeFree).toBe(true); expect(r.closed).toBe(1); expect(r.largestAllocation).toBeLessThanOrEqual(65536);
-    if (mode === "success") { expect(r.code, r.diagnostic).toBe(0); expect(r.output).toBe(golden(route === "stdin" ? "-" : "/input.flac")); expect(r.admitted).toBe(size); if (route === "retained") expect(r.read).toBe(1); }
+    if (mode === "success") { expect(r.code, r.diagnostic).toBe(0); expect(r.output).toBe(golden(route === "stdin" ? "-" : "/input.flac")); expect(r.admitted).toBe(size); if (route === "retained") expect(r.read).toBe(selection === "explicit" ? 1 : 2); }
     else {
       expect(r.output).toBe("");
       if (mode === "cancel") expect(r.thrown?.message).toBe("cancelled input");

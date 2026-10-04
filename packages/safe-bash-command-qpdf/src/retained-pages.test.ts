@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, dictSet, serializeCosDocument } from "@poe-code/pdf-ast";
+import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, dictDelete, dictGet, dictSet, serializeCosDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["plain", "encrypted", "empty", "repaired", "inline", "forms", "deep", "wide"]) for (const flags of [["--show-pages"], ["--show-pages", "--with-images"], ["--show-pages", "--show-npages", "--show-object=1"], ["--check", "--show-pages"]]) {
+for (const mode of ["plain", "encrypted", "empty", "repaired", "inline", "forms", "deep", "wide", "inherited-duplicate", "inherited-resource-stream", "inherited-xobject-stream", "page-resource-stream", "form-resource-stream", "xobject-stream"]) for (const flags of [["--show-pages"], ["--show-pages", "--with-images"], ["--show-pages", "--show-npages", "--show-object=1"], ["--check", "--show-pages"]]) {
   it(`inspects ${mode} retained input with exact diagnostics: ${flags.join(" ")}`, async () => {
     const doc = PdfDocument.create(); if (mode !== "empty") doc.addPage().drawText("Inspect", { x: 10, y: 20 });
-    if (["forms", "deep", "wide"].includes(mode)) {
+    if (["forms", "deep", "wide", "inherited-duplicate", "inherited-resource-stream", "inherited-xobject-stream", "page-resource-stream", "form-resource-stream", "xobject-stream"].includes(mode)) {
       const image = doc.cos.allocateObject(cosStream(new Uint8Array([0]), { dict: cosDict({ Subtype: cosName("Image"), Width: cosNumber(1), Height: cosNumber(1) }) }));
       const resource = cosDict({ XObject: cosDict({ First: image }) });
       const form = doc.cos.allocateObject(cosStream(new Uint8Array(), { dict: cosDict({ Subtype: cosName("Form"), Resources: resource }) }));
@@ -22,8 +22,21 @@ for (const mode of ["plain", "encrypted", "empty", "repaired", "inline", "forms"
       }
       if (mode === "deep") dictSet(entries, "Root", last);
       dictSet(doc.getPage(0).dict, "Resources", cosDict({ XObject: entries }));
+      const resourceDictionary = doc.cos.resolveDict(dictGet(doc.getPage(0).dict, "Resources"))!;
+      if (mode === "inherited-duplicate") entries.entries.unshift({ key: cosName("Direct"), value: form });
+      if (mode === "form-resource-stream") {
+        const value = doc.cos.objects.get(form.objectNumber)!.value;
+        if (value.kind !== "stream") throw new Error("Expected form stream");
+        dictSet(value.dict, "Resources", doc.cos.allocateObject(cosStream(new Uint8Array(), { dict: resource })));
+      }
+      if (mode === "xobject-stream" || mode === "inherited-xobject-stream") dictSet(resourceDictionary, "XObject", doc.cos.allocateObject(cosStream(new Uint8Array(), { dict: entries })));
+      if (mode === "page-resource-stream" || mode === "inherited-resource-stream") dictSet(doc.getPage(0).dict, "Resources", doc.cos.allocateObject(cosStream(new Uint8Array(), { dict: resourceDictionary })));
+      if (mode.startsWith("inherited-")) {
+        const parent = doc.cos.resolveDict(dictGet(doc.getPage(0).dict, "Parent"))!;
+        dictSet(parent, "Resources", dictGet(doc.getPage(0).dict, "Resources")!); dictDelete(doc.getPage(0).dict, "Resources");
+      }
     }
-    let input = doc.save(mode === "encrypted" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : {});
+    let input = mode.includes("stream") || mode.startsWith("inherited-") ? serializeCosDocument({ objects: [...doc.cos.objects.values()], rootRef: doc.cos.rootRef }) : doc.save(mode === "encrypted" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : {});
     if (mode === "inline") {
       const root = doc.cos.resolveDict(dictGet(doc.cos.resolveDict(doc.cos.rootRef)!, "Pages"))!;
       dictSet(root, "Kids", cosArray([cosDict({ Type: cosName("Page"), Contents: cosArray([]) }), cosDict({ Type: cosName("Page") })]));

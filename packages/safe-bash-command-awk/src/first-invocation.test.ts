@@ -12,6 +12,7 @@ for (const [name, input, program, expected, redirected] of [
   ["buffered print", largeInput, '{ print $0 }', largeInput, undefined],
   ["async BEGIN", "a:b\nc:d\n", 'BEGIN { print "HDR" } { print $1 }', "HDR\na\nc\n", undefined],
   ["append redirect", "a:b\nc:d\n", '{ print $1 >> "/out" }', "", "seed\na\nc\n"],
+  ["END append redirect", "item:10\n".repeat(50), '{ s += $2 } END { print s >> "/out" }', "", "seed\n500\n"],
   ["overwrite redirect", "a:b\nc:d\n", '{ print $1 > "/out" }', "", "a\nc\n"],
 ] as const) {
   test(`first memory awk invocation executes ${name} exactly once`, async () => {

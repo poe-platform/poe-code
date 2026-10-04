@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
+import { setImmediate as nextTurn } from "node:timers/promises";
 import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { type ByteSource, type CommandContext, toByteSource } from "safe-bash-contracts";
 import { createSortCommand } from "./index.js";
@@ -266,6 +267,43 @@ test("registered cleanup retires a cooperative pending input before settling", a
   assert.equal(closed, 1);
   assert.equal(ctx.output.length, 0);
 });
+
+for (const args of [[], ["-m"], ["-c"]]) for (const heldReturn of [false, true]) {
+  test(`blocked input cancels ${JSON.stringify(args)} and ${heldReturn ? "drains" : "finishes"} retirement before a late rejection`, async () => {
+    const ctx = await context(args), controller = new AbortController();
+    let started!: () => void, rejectNext!: (reason: unknown) => void, releaseReturn!: () => void;
+    const reading = new Promise<void>(resolve => { started = resolve; });
+    const next = new Promise<IteratorResult<Uint8Array>>((_resolve, reject) => { rejectNext = reject; });
+    const returning = new Promise<void>(resolve => { releaseReturn = resolve; });
+    const cleanups: (() => void | Promise<void>)[] = [];
+    let returned = 0, settled = false;
+    const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
+      next() { started(); return next; },
+      async return() { returned++; if (heldReturn) await returning; return { done: true, value: undefined }; },
+    }; } };
+    const reason = heldReturn ? false : new Error("cancel blocked input");
+    const pending = Promise.resolve(createSortCommand().execute({ ...ctx, stdin, signal: controller.signal,
+      registerCleanup(cleanup) { cleanups.push(cleanup); } }));
+    const observed = pending.then(result => { settled = true; return { result }; }, error => { settled = true; return { error }; });
+    await reading;
+    controller.abort(reason);
+    await nextTurn();
+    const retiredBeforeLateRejection = returned;
+    const settledBeforeLateRejection = settled;
+    const closing = Promise.all(cleanups.map(cleanup => cleanup()));
+    rejectNext(new Error("late producer rejection"));
+    releaseReturn();
+    const outcome = await observed;
+    await closing;
+    await nextTurn();
+    assert.deepEqual(outcome, { error: reason });
+    assert.equal(retiredBeforeLateRejection, 1);
+    assert.equal(settledBeforeLateRejection, !heldReturn);
+    assert.equal(returned, 1);
+    assert.equal(ctx.output.length, 0);
+    assert.equal(ctx.errors.length, 0);
+  });
+}
 
 test("spooled records have no implicit legacy payload cap", async () => {
   const storage = new SortStorage(await context(), defaultSortLimits);

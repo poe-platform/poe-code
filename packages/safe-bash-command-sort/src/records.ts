@@ -1,5 +1,5 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { FsError, type ByteSource, type CommandContext } from "safe-bash-contracts";
+import { FsError, readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
 import { SortRecordBudget } from "./sort-admission.js";
 import { SortWork } from "./work.js";
 
@@ -52,7 +52,12 @@ export class SortStorage {
       finally { this.readers.delete(close); }
     });
     this.readers.add(close);
-    return { iterator, close };
+    // Cancel borrowed reads promptly; keep cooperative retirement owned here.
+    const chunks = readBytes({ [Symbol.asyncIterator]() { return {
+      next: iterator.next.bind(iterator),
+      async return() { await close(); return { done: true, value: undefined }; },
+    }; } }, this.context.signal);
+    return { iterator: chunks, close };
   }
 
   admitInput(bytes: number): void {

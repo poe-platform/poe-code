@@ -241,3 +241,23 @@ it.each([
     cells: [{...sheet.cells[0]!, row: 1, column: 1, formula: "=A1"}]}]};
   expect((await pdfText(await writePdf(book, [], context))).runs[0]!.text).toBe(expected);
 });
+
+
+it.each([false, true])("excludes stored blank boundary cells from print extent (styled=%s)", async styled => {
+  const original = await fixture("GNM_HALIGN_LEFT"), sheet = original.sheets[0]!;
+  const visible = {...sheet.cells[0]!, row: 1, column: 1};
+  const baseline = {...original, sheets: [{...sheet, cells: [visible]}]};
+  const blank = {row: 0, column: 0, value: {kind: "blank" as const}, ...(styled ? {style: visible.style} : {})};
+  const input = {...original, sheets: [{...sheet, cells: [blank, visible, {...blank, row: 2, column: 2}]}]};
+  const expected = await pdfText(await writePdf(baseline, [], context));
+  const actual = await pdfText(await writePdf(input, [], context));
+  expect(actual.runs).toEqual(expected.runs);
+  expect(actual.pdf.getPageCount()).toBe(expected.pdf.getPageCount());
+});
+it("keeps empty strings as print-extent anchors", async () => {
+  const original = await fixture("GNM_HALIGN_LEFT"), sheet = original.sheets[0]!;
+  const visible = {...sheet.cells[0]!, row: 1, column: 1};
+  const anchor = {...sheet.cells[0]!, value: {kind: "string" as const, value: ""}};
+  const input = {...original, sheets: [{...sheet, cells: [anchor, visible]}]};
+  expect((await pdfText(await writePdf(input, [], context))).runs.find(r => r.text === "alpha")!.glyphs[0]!.x).toBe(148.75);
+});

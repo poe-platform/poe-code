@@ -529,7 +529,11 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       if (settings.paper === undefined && print.paper !== undefined && storedPaper === undefined) unsupported("persisted paper size");
       const positions = metrics(sheet), paper = settings.paper ?? storedPaper ?? papers.iso_a4!;
       const objects = sheetObjects(sheet, context).map(object => ({ object, rectangle: rectangleFor(sheet, object) }));
-      let area = getCellsExtent(sheet);
+      // Native print areas exclude empty-valued allocated cells.
+      // Empty strings still count; stored VALUE_EMPTY cells do not.
+      let area = getCellsExtent({...sheet, cells: sheet.cells.filter(cell => {
+        tick(); return cell.value.kind !== "blank";
+      })});
       for (const { rectangle } of objects) {
         tick();
         if (rectangle.width < 0 || rectangle.height < 0 || rectangle.x < 0 || rectangle.y < 0) unsupported("mirrored or negative workbook object placement");
@@ -545,7 +549,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const endRow = last("row", rectangle.y + rectangle.height), endColumn = last("column", rectangle.x + rectangle.width);
         area = { startRow: 0, startColumn: 0, endRow: Math.max(area.endRow, endRow), endColumn: Math.max(area.endColumn, endColumn) };
       }
-      if (area.endRow < area.startRow || area.endColumn < area.startColumn) continue;
+      if (area.endRow < area.startRow || area.endColumn < area.startColumn)
+        area = {startRow: 0, startColumn: 0, endRow: 0, endColumn: 0};
       const startPage = print.firstPageNumber ?? nextPageNumber;
       const layout = layoutPrintPages({ area, startPage, defaultRowPoints: typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75,
         defaultColumnPoints: typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48,

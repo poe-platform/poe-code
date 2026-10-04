@@ -15,7 +15,7 @@ function context(): CapabilityContext {
 
 it("does not propagate the first row override into unspecified printed rows", async () => {
   const book: Workbook = { sheets: [{ id: "one", name: "One", rows: [{ index: 0, sizePoints: 100 }],
-    cells: [{ row: 0, column: 0, value: { kind: "blank" } }, { row: 34, column: 0, value: { kind: "blank" } }] }] };
+    cells: [{ row: 0, column: 0, value: { kind: "string", value: "" } }, { row: 34, column: 0, value: { kind: "string", value: "" } }] }] };
   // 100 + 34 * 12.75 = 533.5 points, below the measured default printable height.
   const pdf = await PDFDocument.load(await writePdf(book, [], context()));
   expect(pdf.getPageCount()).toBe(1);
@@ -38,14 +38,14 @@ it("clips a tall workbook graph on both native page boundaries", async () => {
 
 it("does not propagate the first column override into unspecified printed columns", async () => {
   const book: Workbook = { sheets: [{ id: "one", name: "One", columns: [{ index: 0, sizePoints: 100 }],
-    cells: [{ row: 0, column: 0, value: { kind: "blank" } }, { row: 0, column: 7, value: { kind: "blank" } }] }] };
+    cells: [{ row: 0, column: 0, value: { kind: "string", value: "" } }, { row: 0, column: 7, value: { kind: "string", value: "" } }] }] };
   // 100 + 7 * 48 = 436 points, below the measured default printable width.
   const pdf = await PDFDocument.load(await writePdf(book, [], context()));
   expect(pdf.getPageCount()).toBe(1);
 });
 
 it("uses measured Gnumeric workbook default margins for pagination", async () => {
-  const book: Workbook = { sheets: [{ id: "one", name: "One", cells: [{ row: 0, column: 0, value: { kind: "blank" } }, { row: 49, column: 0, value: { kind: "blank" } }] }] };
+  const book: Workbook = { sheets: [{ id: "one", name: "One", cells: [{ row: 0, column: 0, value: { kind: "string", value: "" } }, { row: 49, column: 0, value: { kind: "string", value: "" } }] }] };
   expect((await PDFDocument.load(await writePdf(book, [], context()))).getPageCount()).toBe(2);
 });
 

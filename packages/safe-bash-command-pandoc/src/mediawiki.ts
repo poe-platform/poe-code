@@ -144,6 +144,7 @@ export const readMediawiki: ReaderCapability["read"] = async (input, context) =>
       paraLines.push(cur);
       i++;
     }
+    if (!paraLines.length) { paraLines.push(trimmed); i++; }
     blocks.push({ t: "Para", c: parseMediawikiInlines(paraLines.join(" ")) });
   }
   return { blocks, metadata: {}, resources: [] };

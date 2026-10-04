@@ -135,3 +135,18 @@ it("bounds queued subtrees even when a producer supplies one large chunk", async
   } });
   expect(consumed).toBe(10000); expect(maximum).toBeLessThanOrEqual(128); expect(root.children).toEqual([]);
 });
+
+it('captures preceding sibling content at selection time within one parser window', async () => {
+  const seen: [string, string][] = [];
+  const root = await parseXmlStream(['<root>before<a/>between<![CDATA[mid]]><!--note--><b/>after</root>'], { streamElements: {
+    captureBefore: true,
+    matches: (_node, _parent, depth) => depth === 2,
+    async consume(node, _parent, before = []) {
+      await Promise.resolve();
+      seen.push([node.localName, before.map(item => item.kind === 'element' ? item.name : item.text).join('|')]);
+    }
+  } });
+  expect(seen).toEqual([['a', 'before'], ['b', 'between|mid|note']]);
+  expect(root.children).toEqual([]); expect(root.text).toBe('after');
+  expect(root.content).toEqual([{ kind: 'text', text: 'after' }]);
+});

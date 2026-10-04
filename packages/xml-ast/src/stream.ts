@@ -8,8 +8,11 @@ export interface XmlStreamLimits extends XmlLimits {
   /** Detach selected non-root subtrees and await their consumer before parsing
    * the next 512-unit window. Nested matches belong to the selected ancestor. */
   readonly streamElements?: {
+    /** Also detach preceding sibling content when selecting a subtree, before
+     * the parser advances. The final trailing content remains in the parent. */
+    readonly captureBefore?: boolean;
     readonly matches: (element: XmlName, parent: XmlName | undefined, depth: number) => boolean;
-    readonly consume: (element: XmlElement, parent: XmlElement) => void | Promise<void>;
+    readonly consume: (element: XmlElement, parent: XmlElement, before?: readonly XmlContent[]) => void | Promise<void>;
   };
 }
 
@@ -34,8 +37,8 @@ export async function parseXmlStream(
   const streaming = limits.streamElements;
   if (streaming && !retain) throw new TypeError("XML subtree streaming requires retained content and tree mode");
   let selectedDepth = 0;
-  const completed: { element: XmlElement; parent: XmlElement }[] = [];
-  const stack: { element: XmlElement; namespaces: Map<string, string>; selected: boolean }[] = [];
+  const completed: { element: XmlElement; parent: XmlElement; before: readonly XmlContent[] }[] = [];
+  const stack: { element: XmlElement; namespaces: Map<string, string>; selected: boolean; before: readonly XmlContent[] }[] = [];
   const prolog: XmlContent[] = [], epilog: XmlContent[] = [];
   const emptyNamespaces = new Map<string, string>();
   let root: XmlElement | undefined, declaration: string | undefined;
@@ -70,7 +73,15 @@ export async function parseXmlStream(
     limits.onElement?.(name, parent?.element, stack.length + 1);
     const selected = !selectedDepth && !!streaming?.matches(name, parent?.element, stack.length + 1);
     if (selected && !parent) throw new TypeError("XML subtree streaming cannot select the root");
-    if (selected) selectedDepth = stack.length + 1;
+    let before: readonly XmlContent[] = [];
+    if (selected) {
+      selectedDepth = stack.length + 1;
+      if (streaming?.captureBefore) {
+        before = (parent!.element.content as XmlContent[]).splice(0);
+        parent!.element.children.length = 0;
+        parent!.element.text = '';
+      }
+    }
     charge("maxContentNodes", 1 + (retainContent ? attrs.length : 0));
     const element: XmlElement = { kind: "element", ...name, children: [], content: [], text: "",
       attributes: retain ? attrs.map(attr => ({ name: attr.name, localName: attr.local, namespace: attr.uri, value: attr.value })) : [],
@@ -80,14 +91,14 @@ export async function parseXmlStream(
       parent.element.children.push(element);
       if (retain) (parent.element.content as XmlContent[]).push(element);
     } else if (!parent) root = element;
-    stack.push({ element, namespaces, selected });
+    stack.push({ element, namespaces, selected, before });
   });
   parser.on("closetag", () => {
     const frame = stack.pop()!;
-    if (frame.selected) { completed.push({ element: frame.element, parent: stack.at(-1)!.element }); selectedDepth = 0; }
+    if (frame.selected) { completed.push({ element: frame.element, parent: stack.at(-1)!.element, before: frame.before }); selectedDepth = 0; }
   });
   async function drain() {
-    for (const entry of completed) { await checkpoint?.(0); await streaming!.consume(entry.element, entry.parent); }
+    for (const entry of completed) { await checkpoint?.(0); await streaming!.consume(entry.element, entry.parent, entry.before); }
     completed.length = 0;
   }
   function append(content: Exclude<XmlContent, XmlElement>) {

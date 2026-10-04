@@ -304,3 +304,24 @@ it("wraps cell words while preserving the stored string", async () => {
   expect(runs.map(run => run.text)).toEqual(["alpha", "beta", "gamma", "delta"]);
   expect(book).toEqual(before);
 });
+
+it.each(["ab", "12"])("fills a cell by repeating %s without mutating its value", async text => {
+  const original = await fixture([{text, type: text === "12" ? "40" : "60", attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
+  const book = {...original, sheets: original.sheets.map(sheet => ({...sheet, columns: [], view: {...sheet.view, defaultColumnWidth: 36}}))};
+  const before = structuredClone(book);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  expect(runs[0]!.text.split("​").join("")).toBe(text.repeat(3));
+  expect(book).toEqual(before);
+});
+
+it("ignores wrapping and indentation for filled cells", async () => {
+  const plain = attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"');
+  const ctx = {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}};
+  const expected = await pdfText(await writePdf(await fixture([{text: "ab", attributes: plain}]), [], ctx));
+  const actual = await pdfText(await writePdf(await fixture([{text: "ab", attributes: plain.replace('WrapText="0"', 'WrapText="1"').replace('Indent="0"', 'Indent="8"')}]), [], ctx));
+  expect(actual.runs).toEqual(expected.runs);
+});
+it("refuses unqualified single-paragraph control glyphs in filled cells", async () => {
+  const book = await fixture([{text: "ab\ncd", attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
+  await expect(writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}})).rejects.toThrow("fill control-character layout");
+});

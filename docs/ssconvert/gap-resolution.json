@@ -5867,6 +5867,20 @@
     "source": "Authenticated Gnumeric1.12.61 cell_calc_layout,Pango1.56.3 break.c and Unicode16 Scripts.txt; attribution and hashes in print/NOTICE.md. Unicode line opportunities use MIT linebreak1.1.0; host Intl supplies word/grapheme segmentation.",
     "remaining": "Wider scripts,bidi,rotated/merged/rich cells,format effects and complete rendering/profile acceptance remain open."
   },
+  "pdfSingleLineFill": {
+    "status": "Single-line Fill repair; wider rendering and all19 families remain open",
+    "source": "Gnumeric1.12.61 cell-draw.c cell_calc_layout uses floor(availableWidth/naturalWidth) copies separated by zero-width spaces; rendered-value.c disables wrapping and indentation for Fill. Existing authenticated source hashes in print/NOTICE.md.",
+    "implementation": "Fill now repeats single-line strings,numbers and formatted values within the invocation work budget. It preserves stored values,avoids cross-copy kerning,ignores wrapping/indentation and clips oversized content.",
+    "validation": {
+      "tests": 384,
+      "nativeInputs": 15,
+      "publicPDFComparisons": 30,
+      "publicOutputs": 60,
+      "checks": "selected build,engine/command lint/types,PDF screenshots",
+      "originalFailures": 2
+    },
+    "remaining": "Two retained native multiline Fill controls draw return-arrow glyphs. They remain explicitly unsupported and are excluded from passing comparisons. Bidi and other horizontal modes remain open."
+  },
   "history": {
     "commit": "27b9a96cbea652668a98d9af6502717c86cbfa1d",
     "note": "Bulky historical evidence and journals were removed at the user's request. Required fixture/provenance files remain. Historical results do not establish current-candidate completion."

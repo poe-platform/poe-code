@@ -281,7 +281,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         return {shapedValue, run, glyphs, width, displayWidth};
       };
       let indent = 0, displayIndent = 0;
-      if (cellBox.style.indent && alignment !== "center") {
+      if (cellBox.style.indent && alignment !== "center" && cellBox.style.alignment !== "fill") {
         // GOFont averages the individually measured digits, with a one-pixel minimum.
         let digitWidth = 0, displayDigitWidth = 0;
         for (const digit of "0123456789") {
@@ -302,6 +302,18 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         indent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((digitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
         displayIndent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((displayDigitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
       }
+      const fill = cellBox.style.alignment === "fill";
+      if (fill) {
+        if (shapedLines.length !== 1) unsupported("fill control-character layout");
+        const naturalWidth = shapeLine(shapedLines[0]!).width;
+        const copies = naturalWidth > 0 ? Math.floor((cellBox.width - 5) / naturalWidth) : 1;
+        if (copies >= 2) {
+          tick(copies * (value.length + 1));
+          if (!supported.has(0x200b)) unsupported("font coverage");
+          shapedLines[0] = Array.from({length: copies}, () => shapedLines[0]!).join("​");
+          value = value.repeat(copies);
+        }
+      }
       const wraps = cellBox.wrap === true;
       const lines = (wraps ? paragraphs.flatMap(line => wrapPrintLine(line, Math.max(0, cellBox.width - 5 - indent),
         candidate => shapeLine(normalizeFontText(candidate, supported, tick)).width, tick)) : shapedLines.map(text => ({text, hyphen: false})))
@@ -320,7 +332,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         displayWidth = Math.max(displayWidth, line.displayWidth);
       }
       const overflows = width + indent > cellBox.width - 5;
-      if (overflows && !wraps && cellBox.overflow === undefined && cellBox.generalNumber === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
+      if (overflows && !fill && !wraps && cellBox.overflow === undefined && cellBox.generalNumber === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
       const overflow = cellBox.overflow?.(displayWidth + displayIndent);
       const clipLeft = x + 4 - (overflow?.left ?? 0);
       const clipWidth = Math.max(0, cellBox.width + (overflow?.left ?? 0) + (overflow?.right ?? 0) - 4);
@@ -657,10 +669,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const normalizedStyle = normalizePdfCellStyle(cell);
           const style = cellPrintStyle(normalizedStyle, tick);
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
-          const alignment = style.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
+          const alignment = style.alignment === "fill" ? "left" : style.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
             cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style.alignment;
-          const wrap = Boolean(formula || cell.value.kind === "string") && (style.wrap === true || style.verticalAlignment === "justify" || style.verticalAlignment === "distributed");
-          const overflow = !wrap && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
+          const wrap = style.alignment !== "fill" && Boolean(formula || cell.value.kind === "string") && (style.wrap === true || style.verticalAlignment === "justify" || style.verticalAlignment === "distributed");
+          const overflow = style.alignment !== "fill" && !wrap && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
             const required = alignment === "center" ? width + Math.max(0, (displayWidth - width + 5 * printDisplayScale) / 2) : Infinity;
             return {
               left: alignment === "left" ? 0 : textSpan(cell, x - geometry.originX + width, "left", required) - width,

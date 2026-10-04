@@ -1,3 +1,4 @@
+import { withImageInputs } from "./image-input.js";
 import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext } from "./stored-stack.js";
 import { remapStoredImage } from "./remap.js";
@@ -26,7 +27,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -2419,9 +2420,15 @@ function parseCompose(raw: string): BlendMode {
   }
 }
 
+function magickCompositeMode(mode: string): { name: string; delegated: boolean } {
+    let name = "";
+    for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
+    return { name, delegated: ["over", "srcover", "dstover", "destover", "plus", "add", "lineardodge", "colordodge", "colorburn", "hardlight", "softlight", "saturate"].includes(name) };
+}
+
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
-    const norm = modeRaw.toLowerCase().replace(/[-_\s]/g, "");
+    const { name: norm, delegated } = magickCompositeMode(modeRaw);
     const out = new Uint8Array(dst.data);
     const dw = dst.width;
     const dh = dst.height;
@@ -2620,18 +2627,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             }
         }
     }
-    if (norm === "over" ||
-        norm === "srcover" ||
-        norm === "dstover" ||
-        norm === "destover" ||
-        norm === "plus" ||
-        norm === "add" ||
-        norm === "lineardodge" ||
-        norm === "colordodge" ||
-        norm === "colorburn" ||
-        norm === "hardlight" ||
-        norm === "softlight" ||
-        norm === "saturate") {
+    if (delegated) {
         const ox = Math.round(left);
         const oy = Math.round(top);
         if (ox >= 0 && oy >= 0 && ox + src.width <= dst.width && oy + src.height <= dst.height) {
@@ -5027,6 +5023,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
 }
 
 async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false): Promise<StoredRgbaImage> {
+    let hasAlpha = base.hasAlpha || (!generic && !magickCompositeMode(mode).delegated);
     const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
     for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
         await yieldTurn(signal); await backend.storage.write(position + start, await backend.storage.read(base.position + start, Math.min(16384, base.width * base.height * 4 - start)));
@@ -5041,10 +5038,11 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
             if (generic) result = await drainSteps(compositeImageSteps(dst, [rgbaToCompositeLayer(src, 0, 0, mode as MagickState["compose"])]), signal);
             else if (mode.toLowerCase() === "over") await drainSteps(blitOverRgbaInPlaceSteps(dst, src, 0, 0), signal);
             else result = await drainSteps(applyMagickCompositeLayerSteps(dst, src, mode, 0, 0, args, signal), signal);
+            hasAlpha ||= result.hasAlpha;
             await backend.storage.write(position + destination, result.data);
         }
     }
-    return { ...base, position };
+    return { ...base, position, hasAlpha };
 }
 
 async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
@@ -5629,7 +5627,7 @@ export function runMogrifyCliSync(argv: readonly string[], files: Map<string, Ui
     return next.value;
 }
 
-function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void, string[] | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     const options: string[] = [];
     const operands: string[] = [];
@@ -5663,10 +5661,38 @@ function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8
     const overlay = operands[0]!;
     const base = operands[1]!;
     const out = operands[operands.length - 1]!;
-    return (yield* runConvertCliSteps([base, overlay, ...options, "-composite", out], files, stdinBytes, signal));
+    return [base, overlay, ...options, "-composite", out];
 }
-export async function runCompositeCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
-    return drainSteps(runCompositeCliSteps(argv, files, stdinBytes, signal), signal);
+function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    const parsed = yield* parseCompositeArgumentsSteps(argv);
+    return Array.isArray(parsed) ? yield* runConvertCliSteps(parsed, files, stdinBytes, signal) : parsed;
+}
+export async function runCompositeCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    if (files instanceof Map) return drainSteps(runCompositeCliSteps(argv, files, stdinBytes, signal), signal);
+    const active = signal ?? new AbortController().signal, parsed = await drainSteps(parseCompositeArgumentsSteps(argv), active);
+    if (Array.isArray(parsed)) return runConvertCli(parsed, files, stdinBytes, active);
+    // Preserve input admission and read failures before the legacy missing-operand diagnostic.
+    await withImageInputs(files, stdinBytes, active, async read => {
+        const inspect = async (source: ImageByteSource) => {
+            for (let position = 0; position < source.size; position += 16384) {
+                await yieldTurn(active);
+                await source.read(position, Math.min(16384, source.size - position), { signal: active });
+            }
+        };
+        let operandsOnly = false;
+        for (let index = 0; index < argv.length; index++) {
+            await yieldTurn(active);
+            const token = argv[index]!;
+            if (!operandsOnly && token === "--") { operandsOnly = true; continue; }
+            if (token === "-" || token.endsWith(":-")) { if (index < argv.length - 1) await read("-", inspect); continue; }
+            if (!operandsOnly && (token.startsWith("-") || token.startsWith("+") || token === "(" || token === ")")) continue;
+            let path = parseInputToken(token.toLowerCase().startsWith("tile:") ? token.slice(5) : token).baseToken;
+            const colon = path.indexOf(":"); if (colon > 0 && extToImageFormat(path.slice(0, colon))) path = path.slice(colon + 1);
+            await read(path, inspect);
+        }
+    });
+    if (files.stderr && parsed.stderr) { await writeIdentifyText(files.stderr, parsed.stderr, active); return { ...parsed, stderr: "" }; }
+    return parsed;
 }
 export function runCompositeCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runCompositeCliSteps(argv, files, stdinBytes, signal);
@@ -6218,7 +6244,8 @@ export async function runMagickCli(argv: readonly string[], files: Map<string, U
     if (argv[0] === "identify") return runIdentifyCli(argv.slice(1), files, stdinBytes, signal);
     if (argv[0] === "compare") return runCompareCli(argv.slice(1), files, stdinBytes, signal);
     if (argv[0] === "mogrify") return runMogrifyCli(argv.slice(1), files, stdinBytes, signal);
-    if (["composite", "montage"].includes(argv[0] ?? "")) return runBufferedImageFiles(argv, files, runMagickCli, stdinBytes, signal ?? new AbortController().signal);
+    if (argv[0] === "composite") return runCompositeCli(argv.slice(1), files, stdinBytes, signal);
+    if (argv[0] === "montage") return runBufferedImageFiles(argv, files, runMagickCli, stdinBytes, signal ?? new AbortController().signal);
     return runConvertCli(argv[0] === "convert" ? argv.slice(1) : argv, files, stdinBytes, signal);
 }
 export function runMagickCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
@@ -6347,8 +6374,10 @@ async function executeVfsMagickTool(
     }
     const fileInput: ConvertFileInput = { filesystem: context.fs, cwd: context.cwd, stdin: context.stdin, stderr: context.stderr, stdout: invocation.child(context.stdout).output, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}), inputBudget: { check(total) { chargeInput(total - accountedBytes); } } };
     const isConvert = runner === runConvertCli || (runner === runMagickCli && !["mogrify", "composite", "montage"].includes(argv[0] ?? ""));
+    const isComposite = runner === runCompositeCli || (runner === runMagickCli && argv[0] === "composite");
     const isMogrify = runner === runMogrifyCli || (runner === runMagickCli && argv[0] === "mogrify");
     const res = isConvert ? await runConvertCli(runner === runMagickCli && argv[0] === "convert" ? argv.slice(1) : argv, fileInput, undefined, invocation.signal)
+        : isComposite ? await runCompositeCli(runner === runMagickCli ? argv.slice(1) : argv, fileInput, undefined, invocation.signal)
         : isMogrify ? await runMogrifyCli(runner === runMagickCli ? argv.slice(1) : argv, fileInput, undefined, invocation.signal)
         : await runBufferedImageFiles(argv, fileInput, runner, undefined, invocation.signal);
 

@@ -642,8 +642,87 @@ export function isMp3Signature(bytes: Uint8Array): boolean {
   return bytes[0] === 0xff && (bytes[1]! & 0xe0) === 0xe0 && (bytes[1]! & 0x06) !== 0x00;
 }
 
+/** The legacy MP3 media model uses fixed 417-byte frames; keep byte and source probes aligned. */
+function mp3Document(byteLength: number, samples: MediaSample[]): MediaDocument {
+  const sampleRate = 44100, channels = 2, count = Math.max(1, Math.floor(byteLength / 417));
+  return {
+    containerFormat: "mp3",
+    timescale: sampleRate,
+    duration: count * 1152,
+    durationSeconds: (count * 1152) / sampleRate,
+    tracks: [
+      {
+        id: 1,
+        type: "audio",
+        handlerType: "soun",
+        timescale: sampleRate,
+        duration: count * 1152,
+        language: "und",
+        enabled: true,
+        codecDescriptions: [
+          {
+            formatFourCC: ".mp3",
+            codecName: "mp3",
+            sampleRate,
+            channels,
+            bitsPerSample: 16
+          }
+        ],
+        samples
+      }
+    ],
+    metadata: {},
+    byteLength
+  };
+}
+
+function mp3Records(size: number, options: MediaSourceProbeOptions): MediaProbeRecords {
+  options.signal?.throwIfAborted();
+  if (!Number.isSafeInteger(size) || size < 0) throw new RangeError("Invalid MP3 source size");
+  const count = Math.max(1, Math.floor(size / 417)), doc = mp3Document(size, []);
+  const metadata = buildProbeResultFromDoc(doc, size, options.filename ?? "input.mp3", {
+    formatName: "mp3", formatLongName: "MP2/3 (MPEG audio layer 2/3)"
+  });
+  const stream = { ...metadata.streams[0]!, nb_frames: String(count),
+    bit_rate: String(Math.round(Math.min(size, count * 417) * 8 / doc.durationSeconds)) };
+  function* spans() {
+    for (let index = 0; index < count; index++) {
+      options.signal?.throwIfAborted();
+      const pts = index * 1152;
+      yield { pts, time: (pts / 44100).toFixed(6), size: String(Math.min(417, size - index * 417)), pos: String(index * 417) };
+    }
+    options.signal?.throwIfAborted();
+  }
+  return { ...metadata, streams: [stream],
+    packets: options.showPackets ? { *[Symbol.iterator]() {
+      for (const s of spans()) yield { codec_type: "audio" as const, stream_index: 0, pts: s.pts, pts_time: s.time,
+        dts: s.pts, dts_time: s.time, duration: 1152, duration_time: (1152 / 44100).toFixed(6), size: s.size, pos: s.pos, flags: "K_" };
+    } } : undefined,
+    frames: options.showFrames ? { *[Symbol.iterator]() {
+      for (const s of spans()) yield { media_type: "audio" as const, stream_index: 0, key_frame: 1,
+        pts: s.pts, pts_time: s.time, pkt_dts: s.pts, pkt_dts_time: s.time,
+        best_effort_timestamp: s.pts, best_effort_timestamp_time: s.time, pkt_duration: 1152,
+        pkt_duration_time: (1152 / 44100).toFixed(6), pkt_size: s.size, width: undefined, height: undefined,
+        pix_fmt: undefined, pict_type: undefined, sample_fmt: stream.sample_fmt, nb_samples: 1152, channels: 2 };
+    } } : undefined
+  };
+}
+
 export function mp3Ast(): MediaAstPlugin {
   return {
+    async probeMetadata(source, options = {}) {
+      return mp3Records(source.size, options);
+    },
+    async probeMetadataStream(source, options = {}) {
+      options.signal?.throwIfAborted();
+      let size = 0;
+      for await (const chunk of source) {
+        options.signal?.throwIfAborted();
+        size += chunk.byteLength;
+        if (!Number.isSafeInteger(size)) throw new RangeError("Invalid MP3 source size");
+      }
+      return mp3Records(size, options);
+    },
     id: "mp3",
     formatName: "mp3",
     formatLongName: "MP2/3 (MPEG audio layer 2/3)",
@@ -659,8 +738,6 @@ export function mp3Ast(): MediaAstPlugin {
       return false;
     },
     parse(bytes) {
-      const sampleRate = 44100;
-      const channels = 2;
       const numFrames = Math.max(1, Math.floor(bytes.byteLength / 417));
       const samples: MediaSample[] = [];
       for (let i = 0; i < numFrames; i++) {
@@ -677,35 +754,7 @@ export function mp3Ast(): MediaAstPlugin {
           sampleDescriptionIndex: 1
         });
       }
-      return {
-        containerFormat: "mp3",
-        timescale: sampleRate,
-        duration: numFrames * 1152,
-        durationSeconds: (numFrames * 1152) / sampleRate,
-        tracks: [
-          {
-            id: 1,
-            type: "audio",
-            handlerType: "soun",
-            timescale: sampleRate,
-            duration: numFrames * 1152,
-            language: "und",
-            enabled: true,
-            codecDescriptions: [
-              {
-                formatFourCC: ".mp3",
-                codecName: "mp3",
-                sampleRate,
-                channels,
-                bitsPerSample: 16
-              }
-            ],
-            samples
-          }
-        ],
-        metadata: {},
-        byteLength: bytes.byteLength
-      };
+      return mp3Document(bytes.byteLength, samples);
     },
     serialize(doc) {
       const numFrames = Math.max(1, Math.ceil(((doc.durationSeconds || 1) * 44100) / 1152));

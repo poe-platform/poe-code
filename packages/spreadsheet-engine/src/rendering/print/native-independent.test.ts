@@ -24,9 +24,9 @@ it("centers oversized items with the native negative shift", () => {
     centerHorizontally: true, centerVertically: true }, context).pages[0])
     .toMatchObject({ originX: 0, originY: 5 });
 });
-it("uses original column distances when centering formula-display pages", () => {
+it("uses native doubled column distances when centering formula-display pages", () => {
   expect(layoutPrintPages({ ...request, displayFormulas: true, centerHorizontally: true }, context).pages[0])
-    .toMatchObject({ originX: 15 });
+    .toMatchObject({ originX: 10 });
 });
 it("rejects nonfinite and negative work admission without poisoning the budget", () => {
   const tick = printWork(context);
@@ -48,4 +48,14 @@ it("treats native data-slice page breaks as explicit boundaries", () => {
   expect(paginateAxis({ start: 0, end: 3, defaultSizePoints: 10, usablePoints: 100,
     breaks: [{ position: 2, type: "data-slice" }, { position: 3, type: "none" }] }, context)
     .map(page => [page.start, page.end])).toEqual([[0, 1], [2, 3]]);
+});
+
+it("fits formula-display columns using native doubled distances and the two-point allowance", () => {
+  const layout = layoutPrintPages({...request, area: {startRow: 0, endRow: 2, startColumn: 0, endColumn: 3},
+    defaultRowPoints: 24, defaultColumnPoints: 100, paper: {widthPoints: 612, heightPoints: 792},
+    margins: {left: 54, right: 54, top: 54, bottom: 54}, displayFormulas: true,
+    scale: {kind: "fit", rows: 1, columns: 1}}, context);
+  expect(layout.scaleX).toBeCloseTo(504 / 802, 12);
+  expect(layout.scaleY).toBe(layout.scaleX);
+  expect(layout.pages).toHaveLength(1);
 });

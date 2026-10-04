@@ -225,3 +225,16 @@ it.each([["0", "0"], ["0", "1"], ["1", "1"]])("prints cell protection flags Lock
   expect(runs[0]!.text).toBe("visible");
   expect(book).toEqual(before);
 });
+
+it.each(["gnumeric", "normalized"])("prints formulas with general-left alignment and doubled columns from %s view metadata", async kind => {
+  const original = await fixture([{text: "3", type: "40"}, {text: "anchor"}]), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, view: {...sheet.view, defaultColumnWidth: 60,
+    ...(kind === "gnumeric" ? {gnumeric: {...sheet.view?.gnumeric as object, DisplayFormulas: "1"}} : {displayFormulas: true})},
+    columns: [{index: 0, sizePoints: 60}, {index: 1, sizePoints: 60}],
+    cells: sheet.cells.map((cell, index) => index === 0 ? {...cell, column: 1, formula: "=1+2"} : cell)}]};
+  const before = structuredClone(book);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+  expect(runs.map(run => run.text)).toEqual(["=1+2", "anchor"]);
+  expect(runs[0]!.glyphs[0]!.x).toBe(196.75);
+  expect(book).toEqual(before);
+});

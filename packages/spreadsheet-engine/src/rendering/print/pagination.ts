@@ -38,8 +38,9 @@ export function printWork(context: CapabilityContext): (amount?: number) => void
 export function paginateAxis(request: AxisPrintRequest, context: CapabilityContext): readonly AxisPrintPage[] {
   return axisPaginator(request, printWork(context)).paginate(request.usablePoints);
 }
-export function axisPaginator(request: AxisPrintRequest, tick: (amount?: number) => void) {
+export function axisPaginator(request: AxisPrintRequest, tick: (amount?: number) => void, distanceScale = 1) {
   tick();
+  if (!Number.isFinite(distanceScale) || distanceScale <= 0) throw new SsconvertError("invalid-request", "Invalid ssconvert print distance scale");
   function index(value: number) {
     if (!Number.isSafeInteger(value) || value < 0)
       throw new SsconvertError("invalid-request", "Invalid ssconvert print axis index");
@@ -73,6 +74,7 @@ export function axisPaginator(request: AxisPrintRequest, tick: (amount?: number)
   function distance(start: number, end: number) {
     let points = 0;
     for (let i = start; i <= end; i++) { tick(); points += sizes.get(i) ?? request.defaultSizePoints; }
+    points *= distanceScale;
     if (!Number.isFinite(points)) throw new SsconvertError("invalid-request", "Invalid ssconvert print axis extent");
     return points;
   }

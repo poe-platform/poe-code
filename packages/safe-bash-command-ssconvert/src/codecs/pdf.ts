@@ -19,6 +19,11 @@ import { createFontShaper } from "../rendering/print/font-shaping.js";
 
 // Native default display DPI for the admitted materialized Gnumeric style profile.
 const printDisplayScale = 72 / 96;
+function displaysFormulas(sheet: Sheet): boolean {
+  const retained = sheet.view?.gnumeric;
+  return Boolean(Number(sheet.view?.displayFormulas ?? (retained && typeof retained === "object" && !Array.isArray(retained)
+    ? (retained as Readonly<Record<string, unknown>>).DisplayFormulas ?? 0 : 0)));
+}
 function normalizePdfCellStyle(cell: Workbook["sheets"][number]["cells"][number]): NonNullable<Workbook["sheets"][number]["cells"][number]["style"]> | undefined {
   const style = cell.style;
   if (!style) return undefined;
@@ -359,7 +364,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     const fallback = typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48;
     const maxWidthByCol = new Map<number, number>();
     for (const cell of sheet.cells) {
-      const raw = cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? (cell.value.value ? "TRUE" : "FALSE") : String(cell.value.value));
+      const raw = displaysFormulas(sheet) && cell.formula ? cell.formula : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? (cell.value.value ? "TRUE" : "FALSE") : String(cell.value.value));
       if (!raw || raw.includes("\n") || raw.includes("\r")) continue;
       const needed = Math.max(fallback, raw.length * 6 + 14);
       const prev = maxWidthByCol.get(cell.column) ?? fallback;
@@ -373,12 +378,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     return cols.length ? cols : sheet.columns;
   };
   const metrics = (sheet: Sheet) => {
-    const axis = (entries: readonly AxisMetadata[] | undefined, fallback: number) => (index: number) => {
+    const axis = (entries: readonly AxisMetadata[] | undefined, fallback: number, scale = 1) => (index: number) => {
       let start = index * fallback, size = fallback;
       for (const entry of entries ?? []) { tick(); if (entry.index < index) start += (entry.hidden ? 0 : entry.sizePoints ?? fallback) - fallback; if (entry.index === index) size = entry.hidden ? 0 : entry.sizePoints ?? fallback; }
-      return { start, size };
+      return { start: start * scale, size: size * scale };
     };
-    return { column: axis(effectiveColumns(sheet), typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48), row: axis(sheet.rows, typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75) };
+    return { column: axis(effectiveColumns(sheet), typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48, displaysFormulas(sheet) ? 2 : 1), row: axis(sheet.rows, typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75) };
   };
   const drawObject = async (page: PDFPage, object: SheetObject, x: number, y: number, width: number, height: number) => {
     tick();
@@ -500,7 +505,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const layout = layoutPrintPages({ area, startPage, defaultRowPoints: typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75,
         defaultColumnPoints: typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48,
         ...(sheet.rows ? { rows: sheet.rows } : {}), ...(effectiveColumns(sheet) ? { columns: effectiveColumns(sheet)! } : {}),
-        paper: { widthPoints: paper[0], heightPoints: paper[1] }, margins: print.margins,
+        paper: { widthPoints: paper[0], heightPoints: paper[1] }, margins: print.margins, displayFormulas: displaysFormulas(sheet),
         rowBreaks: print.rowBreaks, columnBreaks: print.columnBreaks,
         orientation: settings.orientation ?? print.orientation, scale: settings.scale ?? print.scale, centerHorizontally: print.centerHorizontally,
         centerVertically: print.centerVertically, acrossThenDown: print.acrossThenDown }, context);
@@ -512,6 +517,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     }
     for (const { sheet, print, positions, objects, layout } of printedSheets) {
       const textSpan = createPrintSpans(sheet, positions.column, tick);
+      const showFormulas = displaysFormulas(sheet);
       for (const geometry of layout.pages) {
         tick();
         const page = pdf.addPage([layout.widthPoints, layout.heightPoints]);
@@ -543,16 +549,17 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         for (const cell of sheet.cells) {
           tick();
           if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn || sheet.rows?.some(row => row.index === cell.row && row.hidden) || sheet.columns?.some(column => column.index === cell.column && column.hidden)) continue;
-          const value = cell.style || context.formatting ? await formatting.format(cell.value, cell.format ?? "General", context, {unicodeMinus: cell.value.kind === "number"}) : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? cell.value.value ? "TRUE" : "FALSE" : String(cell.value.value));
+          const formula = showFormulas ? cell.formula : undefined;
+          const value = formula ?? (cell.style || context.formatting ? await formatting.format(cell.value, cell.format ?? "General", context, {unicodeMinus: cell.value.kind === "number"}) : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? cell.value.value ? "TRUE" : "FALSE" : String(cell.value.value)));
           tick();
           const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
           const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
           const normalizedStyle = normalizePdfCellStyle(cell);
           const style = normalizedStyle ? cellPrintStyle(normalizedStyle, tick) : undefined;
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
-          const alignment = style?.alignment === "general" ? cell.value.kind === "number" ? "right" :
+          const alignment = style?.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
             cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style?.alignment ?? "left";
-          const overflow = style && cell.value.kind === "string" ? (displayWidth: number) => {
+          const overflow = style && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
             const required = alignment === "center" ? width + Math.max(0, (displayWidth - width + 5 * printDisplayScale) / 2) : Infinity;
             return {
               left: alignment === "left" ? 0 : textSpan(cell, x - geometry.originX + width, "left", required) - width,

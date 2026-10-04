@@ -64,11 +64,12 @@ export function layoutPrintPages(request: PrintLayoutRequest, context: Capabilit
     ...(request.rows ? { items: request.rows } : {}),
     ...(request.repeatRows ? { repeat: request.repeatRows } : {}),
     ...(request.rowBreaks ? { breaks: request.rowBreaks } : {}) }, tick);
+  const formulaScale = request.displayFormulas ? 2 : 1;
   const columnAxis = axisPaginator({ start: request.area.startColumn, end: request.area.endColumn,
     usablePoints: usableX, defaultSizePoints: request.defaultColumnPoints,
     ...(request.columns ? { items: request.columns } : {}),
     ...(request.repeatColumns ? { repeat: request.repeatColumns } : {}),
-    ...(request.columnBreaks ? { breaks: request.columnBreaks } : {}) }, tick);
+    ...(request.columnBreaks ? { breaks: request.columnBreaks } : {}) }, tick, formulaScale);
   let scaleX = 1, scaleY = 1;
   if (request.scale?.kind === "fit") {
     scaleY = rowAxis.fit(request.scale.rows, usableY, columnHeader);
@@ -83,8 +84,10 @@ export function layoutPrintPages(request: PrintLayoutRequest, context: Capabilit
     throw new SsconvertError("invalid-request", "Invalid ssconvert print scale type");
   if (scaleX <= 0) scaleX = 1;
   if (scaleY <= 0) scaleY = 1;
-  const formulaScale = request.displayFormulas ? 2 : 1;
-  const columns = columnAxis.paginate((usableX / scaleX - rowHeader) / formulaScale);
+  const columnCapacity = (usableX / scaleX - rowHeader) / formulaScale;
+  // Fit's allowance can land one ulp below the intended boundary after division.
+  const columns = columnAxis.paginate(request.scale?.kind === "fit"
+    ? columnCapacity + Number.EPSILON * Math.abs(columnCapacity) : columnCapacity);
   const rows = rowAxis.paginate(usableY / scaleY - columnHeader);
   const count = columns.length * rows.length;
   tick(count); // Admit the Cartesian product before its allocation.
@@ -99,7 +102,7 @@ export function layoutPrintPages(request: PrintLayoutRequest, context: Capabilit
     const rowIndex = request.acrossThenDown ? Math.floor(index / columns.length) : index % rows.length;
     const columnIndex = request.acrossThenDown ? index % columns.length : Math.floor(index / rows.length);
     const row = rows[rowIndex]!, column = columns[columnIndex]!;
-    const occupiedX = (column.sizePoints + column.repeatPoints + rowHeader) * scaleX;
+    const occupiedX = (column.sizePoints * formulaScale + column.repeatPoints + rowHeader) * scaleX;
     const occupiedY = (row.sizePoints + row.repeatPoints + columnHeader) * scaleY;
     pages.push({ number: startPage + index,
       area: { startRow: row.start, endRow: row.end, startColumn: column.start, endColumn: column.end },

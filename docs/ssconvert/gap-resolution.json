@@ -3,6 +3,15 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffSheetProtectionState": {
+      "status": "Editable sheet-protection enabled state preserved; permission/password scope remains open",
+      "source": "Gnumeric 1.12.61 ms-excel-read.c:4986-5000 and6767-6768 maps PROTECT/OBJPROTECT to sheet.is_protected. Payloads shorter than two bytes imply true; otherwise only word1 enables protection. SCENPROTECT does not change the sheet enabled state.",
+      "inputSha256": "a60e66c9d73c1b33a8a40754d74d94d5767c59abbf34e8bd400a46e062be87fe",
+      "implementation": "Import writes the canonical view.gnumeric.Protected field consumed by existing exporters instead of unused view.protected. BIFF export emits PROTECT for enabled sheets; canonical edits can clear protection. Raw protection records and loss diagnostics remain retained.",
+      "verification": "Nine original memory regressions repaired;2396 affected tests, owner lint/types and maintained selected ssconvert workspace build pass. Compiled scoped SDK/command preserve true/false sheet controls in XLSX/BIFF8. SDK adoption/write flips both flags and independently reopens them. Six encoded XLSX values,12 Gnumeric readback flags and12 Calc readback flags match. Screenshot inspected.",
+      "diagnostics": "All six complete diagnostic sequences asserted:25 for XLSX;15 for unchanged BIFF8;16 for edited BIFF8. Gnumeric reference runs have zero diagnostics. Calc retains its exact javaldx startup warning.",
+      "limits": "Only protection enabled state qualified. Password hashes, individual permission bits, workbook protection, GUI editing enforcement and broader protection semantics remain open. No fresh root/registry or family closure claim."
+    },
     "biffMissingHeaderDefaults": {
       "status": "Centered defaults restored for absent HEADER/FOOTER records; broader scope remains open",
       "source": "Gnumeric 1.12.61 src/print-info.c:395-408 supplies centered tab-name and page-number defaults. Explicit unprefixed BIFF text remains left-aligned; missing records are a separate case.",

@@ -64,7 +64,10 @@ function* metadataSteps(length: number, revision: number, codepage: number, cont
   for (let index = 0; index < length; index++) {
     context.signal.throwIfAborted();
     const record = (yield index)!, data = record.data, opcode = record.opcode;
-    if (opcode === 0x5d) {
+    if (opcode === 0x12 || opcode === 0x63) {
+      view.gnumeric = { ...(view.gnumeric as Record<string, ImportedValue> | undefined),
+        Protected: data.bytes.length < 2 || data.u16(0) === 1 ? "1" : "0" };
+    } else if (opcode === 0x5d) {
       lastObject = undefined;
       for (let at = 0; at + 4 <= data.bytes.length;) {
         const type = data.u16(at), length = data.u16(at + 2); data.check(at + 4, length);

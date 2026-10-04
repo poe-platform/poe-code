@@ -136,6 +136,7 @@ export class BiffMetadataWriter {
     if (!Number.isFinite(defaultWidth) || defaultWidth < 0 || defaultCharacters > 65535)
       throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF default column width");
     output.record(0x55, words(defaultCharacters));
+    if (viewFlag(sheet, "Protected")) output.record(0x12, words(1));
     const depth = (records: Sheet["rows"], maximum: number): number => {
       let level = 0;
       for (const record of records ?? []) {

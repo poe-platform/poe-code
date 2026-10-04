@@ -604,7 +604,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       for (let column = first; column <= Math.min(last, 255); column++) sheet.columns.push({ index: column,
         sizePoints: width <= 0 ? Number(sheet.view.defaultColumnWidth ?? 48) : Math.max(4, width), hidden: width <= 0 || !!(flags & 1), outlineLevel: flags >> 8 & 7, collapsed: !!(flags & 0x1000) }); continue;
     }
-    if (opcode === 0x12 || opcode === 0x63 || opcode === 0xdd) { sheet.view.protected = !!data.u16(0); await retain(record, sheet.unsupportedRecords, false); continue; }
+    if (opcode === 0x12 || opcode === 0x63 || opcode === 0xdd) { await retain(record, sheet.unsupportedRecords, false); continue; }
     if (opcode === 0x13) { data.check(0, 2); await retain(record, sheet.unsupportedRecords, false); continue; }
     if (opcode === 0x14 || opcode === 0x15) {
       if (!data.bytes.length) continue;

@@ -761,6 +761,10 @@ To combine sources, pass a synchronous or asynchronous iterable of
 Each source is fully copied before the iterable resumes, so a source generator
 can close that document and its input before opening the next. Metadata comes
 from the first source; forms accumulate with the ordinary page-copy behavior.
+With `includePageLabels: true`, full-document selections retain source page labels
+offset by the preceding copied pages. Label records and the final number tree use
+caller storage and streamed output.
+
 With `includeAttachments: true`, all source embedded files are merged; the first
 occurrence of each filename wins. Attachment payloads are recompressed in bounded
 chunks and staged before their source closes; the destination name tree streams

@@ -1,3 +1,4 @@
+import { PdfMergeLabels } from "./retained-merge-labels.js";
 import { PdfMergeAttachments } from "./retained-merge-attachments.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, dictSet, type PdfCosNode, type PdfCosDict } from "../ast.js";
@@ -13,6 +14,8 @@ import type { PdfRetainedDocument } from "../retained-document.js";
 export interface CopyRetainedPageOptions {
   /** Merge all source embedded files; the first occurrence of each name wins. */
   readonly includeAttachments?: boolean;
+  /** Merge source page labels, offset by preceding copied pages; use with full-document selections. */
+  readonly includePageLabels?: boolean;
   readonly maxObjects?: number;
   readonly maxPages?: number;
   readonly maxOutputBytes?: number;
@@ -44,6 +47,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   if (maximumDepth !== Infinity && (!Number.isSafeInteger(maximumDepth) || maximumDepth < 1)) throw new RangeError("Invalid PDF copy depth");
   const store = new PdfMutableObjectStore(storage, options), lists = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const attachments = options.includeAttachments ? new PdfMergeAttachments(storage, signal) : undefined;
+  const labels = options.includePageLabels ? new PdfMergeLabels(storage, signal, maximumDepth) : undefined;
   const catalog = cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) });
   type ReferenceList = { first: number; last: number; count: number };
   const pages: ReferenceList = { first: 0, last: 0, count: 0 }, formFields: ReferenceList = { first: 0, last: 0, count: 0 };
@@ -240,12 +244,14 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   try {
     await store.allocate(catalog); await store.allocate(cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }));
     await store.allocate(cosDict({ Producer: cosString("@poe-code/pdf-ast") }));
-    for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await append(source.document, source.indices); }
+    for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await labels?.append(source.document, pageCount); await append(source.document, source.indices); }
     const attachmentNames = await attachments?.finish(store, catalog);
+    const pageLabels = await labels?.finish(store, catalog);
     await store.set({ objectNumber: 1, generationNumber: 0, value: catalog });
     const pageTree = cosDict({ Type: cosName("Pages"), Count: cosNumber(pageCount), Kids: cosArray([]) });
     async function* objects() {
       for await (const object of store.outputObjects()) {
+        if (object.objectNumber === pageLabels?.objectNumber) { yield pageLabels; continue; }
         if (object.objectNumber === attachmentNames?.objectNumber) { yield attachmentNames; continue; }
         if (object.objectNumber !== 2 && object.objectNumber !== formRef?.objectNumber) { yield object; continue; }
         const dict = object.objectNumber === 2 ? pageTree : (await store.get(object.objectNumber))!.value as PdfCosDict;
@@ -256,7 +262,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
     }
     yield* serializeRetainedCosDocumentChunks({ ...options, objects: objects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage);
   } catch (error) { failed = true; throw error; }
-  finally { const results = await Promise.allSettled([store.close(), lists.close(), attachments?.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+  finally { const results = await Promise.allSettled([store.close(), lists.close(), attachments?.close(), labels?.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }
 
 export { copyRetainedPagesChunks as copyRetainedPageChunks };

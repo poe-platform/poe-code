@@ -131,7 +131,16 @@ const transport = new HttpTransport({
 You can also call `discoverOAuthMetadata(resourceUrl, options)` directly, or instantiate `OAuthMetadataDiscovery` with a custom `fetch` implementation and shared cache. An explicit `resourceMetadataUrl` requires fresh network discovery without reading either cache; validated results still populate both caches. Lookup options accept `signal`; cancellation stops metadata fetches and body reads without trying another discovery candidate. It also settles while shared-cache reads, writes or eviction wait. Host cache work may finish afterward; its late rejection remains observed, and canceled discovery does not start another candidate.
 Resource/issuer binding mismatches and exhausted authorization-server discovery
 expose `OAuthMetadataError.phase` while retaining complete SDK messages.
-Protected-resource metadata HTTP failures also expose their numeric `status`.
+Metadata HTTP failures also expose their numeric `status`. `category` distinguishes
+`validation`, `json`, `http` and `network`; `reason` provides stable codes:
+`issuer-mismatch`, `pkce-unsupported`, `response-type-unsupported`,
+`invalid-endpoint`, `invalid-metadata`, `invalid-json`, `http-error`, `network-error`.
+Exhausted fallback exposes ordered `failures` containing only phase, category,
+reason and optional status. The first validation defect takes precedence over
+transport failures; otherwise the first failure supplies the top-level fields.
+Successful fallback still wins. Caller cancellation throws the original signal
+reason; discovery deadlines are network failures. These fields contain no provider
+response contents or URLs; SDK error messages remain private diagnostics.
 Advertised resource identities reject named and empty fragments before issuer
 discovery; malformed shared-cache identities are evicted. Resource queries and
 percent-escaped hash data remain part of the exact resource identity.

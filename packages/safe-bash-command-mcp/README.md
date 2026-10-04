@@ -689,6 +689,19 @@ expire abandoned records. The default transaction lifetime is ten minutes and
 `ttlMs` may shorten it. A failed or interrupted exchange consumes the transaction;
 start consent again instead of retrying the code.
 
+`discoverOAuthMetadata` and `OAuthMetadataError` are exported from
+`@poe-platform/safe-bash/mcp` on Node, browsers and Workers. Use
+`OAuthMetadataError.is(error)` and `error.category === "validation"` to identify
+provider configuration defects without parsing messages. Stable `reason` codes
+include `issuer-mismatch`, `pkce-unsupported`, `response-type-unsupported` and
+`invalid-endpoint` (other document defects use `invalid-metadata`). Discovery
+failures use `json`/`invalid-json`, `http`/`http-error` (with numeric `status`), or
+`network`/`network-error`. Ordered `failures` preserve each failed fallback attempt;
+the first validation defect takes precedence, otherwise the first failure wins.
+A successful fallback returns normally. Caller cancellation preserves the original
+signal reason. Only phase/category/reason/status/failures are safe diagnostic
+fields; messages can contain private provider details.
+
 Discovery is required and must enforce host issuer trust and network policy.
 The API additionally checks resource/issuer binding, HTTPS endpoints, authorization
 code support and S256 PKCE. Completion uses the required injected fetch policy and

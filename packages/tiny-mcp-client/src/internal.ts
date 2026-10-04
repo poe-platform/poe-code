@@ -4599,3 +4599,5 @@ function parseJsonRpcPayload(parsed: unknown): ParsedJsonRpcMessage {
     },
   };
 }
+
+export type { OAuthMetadataFailure, OAuthMetadataFailureCategory, OAuthMetadataFailureReason } from "./oauth-discovery.js";

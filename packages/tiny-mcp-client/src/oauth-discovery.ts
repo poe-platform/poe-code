@@ -36,17 +36,45 @@ export interface OAuthMetadataLookupOptions {
 
 const metadataErrorBrand = Symbol.for("poe-platform.tiny-mcp-client.OAuthMetadataError");
 
-/** Native metadata failure with complete SDK diagnostics and a safe phase. */
+export type OAuthMetadataFailureReason = "invalid-metadata" | "issuer-mismatch" | "pkce-unsupported"
+  | "response-type-unsupported" | "invalid-endpoint" | "invalid-json" | "http-error" | "network-error";
+export type OAuthMetadataFailureCategory = "validation" | "json" | "http" | "network";
+export interface OAuthMetadataFailure {
+  readonly phase: "protected-resource" | "authorization-server";
+  readonly category: OAuthMetadataFailureCategory;
+  readonly reason: OAuthMetadataFailureReason;
+  readonly status?: number;
+}
+
+/** Typed metadata failure. Only phase/category/reason/status/failures are safe diagnostics. */
 export class OAuthMetadataError extends Error {
   static is(value: unknown): value is OAuthMetadataError {
     return value instanceof Error && Object.getOwnPropertyDescriptor(value, metadataErrorBrand)?.value === true;
   }
 
-  constructor(readonly phase: "protected-resource" | "authorization-server", message: string, readonly status?: number) {
+  readonly category: OAuthMetadataFailureCategory;
+
+  constructor(readonly phase: "protected-resource" | "authorization-server", message: string, readonly status?: number,
+    readonly reason: OAuthMetadataFailureReason = status === undefined ? "invalid-metadata" : "http-error",
+    readonly failures: readonly OAuthMetadataFailure[] = []) {
     super(message);
     this.name = "OAuthMetadataError";
+    this.category = reason === "invalid-json" ? "json" : reason === "http-error" ? "http"
+      : reason === "network-error" ? "network" : "validation";
     Object.defineProperty(this, metadataErrorBrand, { value: true });
   }
+}
+
+function metadataFailure(error: unknown, phase: OAuthMetadataError["phase"], reason: OAuthMetadataFailureReason): OAuthMetadataError {
+  return OAuthMetadataError.is(error) ? error : new OAuthMetadataError(phase,
+    error instanceof Error ? error.message : String(error), undefined, reason);
+}
+
+function aggregateMetadataFailures(phase: OAuthMetadataError["phase"], errors: OAuthMetadataError[], message: string): OAuthMetadataError {
+  // A validated defect must survive later discovery-location misses. A successful fallback still wins.
+  const primary = errors.find(error => error.category === "validation") ?? errors[0]!;
+  const failures = errors.map(({ phase, category, reason, status }) => Object.freeze({ phase, category, reason, status }));
+  return new OAuthMetadataError(phase, message, primary.status, primary.reason, Object.freeze(failures));
 }
 
 function defaultOAuthMetadataFetch(input: string | URL, init?: RequestInit): Promise<Response> {
@@ -139,7 +167,7 @@ function validateAuthorizationServerMetadata(
 
   if (value.issuer !== issuer) {
     throw new OAuthMetadataError("authorization-server",
-      `Authorization server metadata issuer mismatch: expected ${issuer}, received ${value.issuer}`
+      `Authorization server metadata issuer mismatch: expected ${issuer}, received ${value.issuer}`, undefined, "issuer-mismatch"
     );
   }
 
@@ -147,11 +175,11 @@ function validateAuthorizationServerMetadata(
     typeof value.authorization_endpoint !== "string" ||
     value.authorization_endpoint.length === 0
   ) {
-    throw new Error("Authorization server metadata must include authorization_endpoint");
+    throw new OAuthMetadataError("authorization-server", "Authorization server metadata must include authorization_endpoint", undefined, "invalid-endpoint");
   }
 
   if (typeof value.token_endpoint !== "string" || value.token_endpoint.length === 0) {
-    throw new Error("Authorization server metadata must include token_endpoint");
+    throw new OAuthMetadataError("authorization-server", "Authorization server metadata must include token_endpoint", undefined, "invalid-endpoint");
   }
 
   for (const field of ["authorization_endpoint", "token_endpoint", "registration_endpoint"]) {
@@ -164,18 +192,18 @@ function validateAuthorizationServerMetadata(
         throw new Error();
       }
       endpoint = new URL(value[field]);
-    } catch {
-      throw new Error(`Authorization server metadata ${field} must be an absolute URL`);
+      assertSecureUrl(endpoint, `Authorization server metadata ${field}`);
+    } catch (error) {
+      throw new OAuthMetadataError("authorization-server", `Authorization server metadata ${field} must be an absolute URL: ${error instanceof Error ? error.message : "invalid URL"}`, undefined, "invalid-endpoint");
     }
-    assertSecureUrl(endpoint, `Authorization server metadata ${field}`);
   }
 
   if (
     !isStringArray(value.response_types_supported) ||
     !value.response_types_supported.includes("code")
   ) {
-    throw new Error(
-      "Authorization server metadata must include response_types_supported containing code"
+    throw new OAuthMetadataError("authorization-server",
+      "Authorization server metadata must include response_types_supported containing code", undefined, "response-type-unsupported"
     );
   }
 
@@ -183,8 +211,8 @@ function validateAuthorizationServerMetadata(
     !isStringArray(value.code_challenge_methods_supported) ||
     !value.code_challenge_methods_supported.includes("S256")
   ) {
-    throw new Error(
-      "Authorization server metadata must include code_challenge_methods_supported containing S256"
+    throw new OAuthMetadataError("authorization-server",
+      "Authorization server metadata must include code_challenge_methods_supported containing S256", undefined, "pkce-unsupported"
     );
   }
 
@@ -203,7 +231,7 @@ async function readJsonResponse(response: Response, phase: OAuthMetadataError["p
   try {
     return JSON.parse(text);
   } catch {
-    throw new Error(`${label} response must be valid JSON`);
+    throw new OAuthMetadataError(phase, `${label} response must be valid JSON`, undefined, "invalid-json");
   }
 }
 
@@ -211,10 +239,15 @@ async function fetchMetadata(fetch: OAuthMetadataFetch, location: string, phase:
   parentSignal?.throwIfAborted();
   const deadline = AbortSignal.timeout(10_000);
   const signal = parentSignal === undefined ? deadline : AbortSignal.any([deadline, parentSignal]);
-  const response = await fetchMcpResponse(fetch, location, {
-    method: "GET", headers: { Accept: "application/json" }, signal
-  });
-  return readJsonResponse(response, phase, signal);
+  try {
+    const response = await fetchMcpResponse(fetch, location, {
+      method: "GET", headers: { Accept: "application/json" }, signal
+    });
+    return await readJsonResponse(response, phase, signal);
+  } catch (error) {
+    parentSignal?.throwIfAborted();
+    throw metadataFailure(error, phase, "network-error");
+  }
 }
 
 function resolveWellKnownMetadataUrl(inputUrl: string | URL, suffix: string): string {
@@ -354,7 +387,7 @@ export class OAuthMetadataDiscovery {
       locations.add(new URL("/.well-known/oauth-protected-resource", resource).toString());
     }
 
-    let lastError: unknown;
+    const errors: OAuthMetadataError[] = [];
     for (const location of locations) {
       try {
         const metadata = validateProtectedResourceMetadata(
@@ -364,10 +397,10 @@ export class OAuthMetadataDiscovery {
         return { location, metadata };
       } catch (error) {
         signal?.throwIfAborted();
-        lastError = error;
+        errors.push(metadataFailure(error, "protected-resource", "invalid-metadata"));
       }
     }
-    throw lastError;
+    throw aggregateMetadataFailures("protected-resource", errors, errors.at(-1)!.message);
   }
 
   async discover(
@@ -402,42 +435,51 @@ export class OAuthMetadataDiscovery {
       await this.discoverProtectedResource(cacheKey, resourceMetadataUrl, signal);
 
     const authorizationServerErrors: string[] = [];
+    const failures: OAuthMetadataError[] = [];
 
     for (const authorizationServer of resourceMetadata.authorization_servers) {
-      const normalizedAuthorizationServer = validateAuthorizationServerIssuer(authorizationServer);
+      let normalizedAuthorizationServer: string;
+      try { normalizedAuthorizationServer = validateAuthorizationServerIssuer(authorizationServer); }
+      catch (error) {
+        const failure = metadataFailure(error, "authorization-server", "invalid-metadata");
+        failures.push(failure);
+        authorizationServerErrors.push(failure.message);
+        continue;
+      }
       const metadataLocations = authorizationServerMetadataLocations(normalizedAuthorizationServer);
 
       for (const authorizationServerMetadataUrl of metadataLocations) {
+        let authorizationServerMetadata: OAuthAuthorizationServerMetadata;
         try {
-          const authorizationServerMetadata = validateAuthorizationServerMetadata(
+          authorizationServerMetadata = validateAuthorizationServerMetadata(
             await fetchMetadata(this.fetchImpl, authorizationServerMetadataUrl, "authorization-server", signal),
             normalizedAuthorizationServer
           );
-
-          const result: OAuthDiscoveryResult = {
-            resource: resourceMetadata.resource,
-            resourceMetadataUrl: resourceMetadataLocation,
-            resourceMetadata,
-            authorizationServer: normalizedAuthorizationServer,
-            authorizationServerMetadataUrl,
-            authorizationServerMetadata
-          };
-
-          this.memoryCache.set(cacheKey, structuredClone(result));
-          await waitForCache(this.cache?.set(cacheKey, structuredClone(result)), signal);
-          return result;
         } catch (error) {
           signal?.throwIfAborted();
+          failures.push(metadataFailure(error, "authorization-server", "invalid-metadata"));
           authorizationServerErrors.push(
-            `${authorizationServerMetadataUrl}: ${
-              error instanceof Error ? error.message : String(error)
-            }`
+            `${authorizationServerMetadataUrl}: ${error instanceof Error ? error.message : String(error)}`
           );
+          continue;
         }
+
+        const result: OAuthDiscoveryResult = {
+          resource: resourceMetadata.resource,
+          resourceMetadataUrl: resourceMetadataLocation,
+          resourceMetadata,
+          authorizationServer: normalizedAuthorizationServer,
+          authorizationServerMetadataUrl,
+          authorizationServerMetadata
+        };
+
+        await waitForCache(this.cache?.set(cacheKey, structuredClone(result)), signal);
+        this.memoryCache.set(cacheKey, structuredClone(result));
+        return result;
       }
     }
 
-    throw new OAuthMetadataError("authorization-server",
+    throw aggregateMetadataFailures("authorization-server", failures,
       `Unable to load authorization server metadata for ${cacheKey}: ${authorizationServerErrors.join(
         "; "
       )}`

@@ -32,4 +32,6 @@ export { createMcpCommand, createMcpCommands, mcpCommands, type McpCommandsOptio
 
 export { exchangeAuthorizationCode, refreshAccessToken, revokeOAuthToken, registerOAuthClient, OAuthError } from "mcp-oauth";
 export type { StoredOAuthTokens, OAuthDiscoveryResult, OAuthTokenEndpointAuthMethod, RegisterOAuthClientOptions } from "mcp-oauth";
-export { discoverOAuthMetadata } from "tiny-mcp-client";
+export { discoverOAuthMetadata, OAuthMetadataError } from "tiny-mcp-client";
+
+export type { OAuthMetadataFailure, OAuthMetadataFailureCategory, OAuthMetadataFailureReason } from "tiny-mcp-client";

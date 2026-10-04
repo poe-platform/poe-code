@@ -17,7 +17,7 @@ it("cancels stalled OAuth metadata bodies when the candidate deadline aborts", a
     await entered.promise;
     await setImmediate();
     deadline.abort(reason);
-    expect(await Promise.race([observed, setImmediate().then(() => "still pending")])).toBe(reason);
+    expect(await Promise.race([observed, setImmediate().then(() => "still pending")])).toMatchObject({ name: "OAuthMetadataError", category: "network", reason: "network-error", message: reason.message });
     expect(cancel).toHaveBeenCalledOnce();
     expect(response.body?.locked).toBe(false);
   } finally {

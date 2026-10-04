@@ -3,6 +3,13 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffFillPatternMapping": {
+      "finding": "BIFF wire pattern indexes were treated as shared Gnumeric Shade indexes even though16 of19 entries differ. Independent import/export tests initially reproduced115 failures. A native control additionally proved shade25 is invalid in the workbook model despite an unreachable export-table entry.",
+      "repair": "Map BIFF3/4/7/8 patterns0–18 to the shared model, derive the inverse for BIFF7/8 output, and use the six native fallbacks for shades19–24. Select solid-fill color polarity from the emitted pattern, including shade24 fallback. Refuse invalid/nonintegral/nonfinite output shades;retain the rejected native shade25 fixture.",
+      "verification": "2602 BIFF tests,selected build andowner lint/source/test types pass. Four compiled SDK/command exports and two independent native exports match150 wire fields. Both native-input imports match50 shared shades; native readback ofall four public exports matches100 shared shades. Valid native and public exports have zero diagnostics. Command screenshot inspected.",
+      "source": "Gnumeric1.12.61 ms-excel-read.c excel_map_pattern_index_from_excel and ms-excel-write.c map_pattern_to_xl;read SHA256 fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216;write SHA256 771526dcbc11e619594b2174603887b0557f849e6154e7905177bd25432d276a.",
+      "remaining": "Non-solid color transport through XLSX, invalid wire patterns, patterned PDF rendering and all broader families remain open."
+    },
     "biffSolidFillColors": {
       "finding": "The overflow filled-cell control exposed a matching reader/writer mistake: BIFF solid fills reverse foreground/background roles, but both product paths omitted the swap. Native read.c excel_get_style_from_xf and write.c style mapping explicitly swap for fill pattern1.",
       "repair": "Normalize BIFF3/4/7/8 solid fills to the shared Back/PatternColor attributes and reverse them only for BIFF7/8 wire output. Non-solid color ordering remains unchanged.",

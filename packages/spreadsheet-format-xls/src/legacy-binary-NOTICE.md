@@ -52,3 +52,9 @@ captured libgsf byte-mapping facts, whose provenance is recorded separately.
   Width conversion follows `ms-excel-read.c` Normal-XF font selection and
   COLINFO/DEFCOLWIDTH arithmetic. These are portable captured measurements;
   native fonts and Gnumeric are not runtime dependencies.
+
+BIFF fill-pattern indexes and solid-fill color roles follow Gnumeric 1.12.61
+`plugins/excel/ms-excel-read.c` (`excel_map_pattern_index_from_excel`,
+`excel_get_style_from_xf`) and `ms-excel-write.c` (`map_pattern_to_xl`),
+under GPL-2.0-or-later. The pinned source hashes and native qualification are
+recorded in `docs/ssconvert/gap-resolution.json`.

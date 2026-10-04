@@ -1,3 +1,4 @@
+import { gnumericFillPatterns } from "./biff-fill-patterns.js";
 import { SsconvertError, type CapabilityContext, type Diagnostic } from "@poe-code/spreadsheet-engine/contracts";
 import type { Cell, ImportedValue } from "@poe-code/spreadsheet-ast";
 import { cellValueFormat } from "@poe-code/spreadsheet-engine/workbook/value-format";
@@ -82,8 +83,11 @@ export class BiffStyles {
       const horizontal = ["GENERAL", "LEFT", "CENTER", "RIGHT", "FILL", "JUSTIFY", "CENTER_ACROSS_SELECTION", "DISTRIBUTED"].indexOf((attrs.HAlign ?? "GNM_HALIGN_GENERAL").slice(11));
       const vertical = ["TOP", "CENTER", "BOTTOM", "JUSTIFY", "DISTRIBUTED"].indexOf((attrs.VAlign ?? "GNM_VALIGN_BOTTOM").slice(11));
       xf[6] = Math.max(0, horizontal) | (Number(attrs.WrapText) ? 8 : 0) | Math.max(0, vertical) << 4;
+      const shade = Number(attrs.Shade ?? 0), fillPattern = gnumericFillPatterns[shade];
+      if (!Number.isInteger(shade) || fillPattern === undefined)
+        throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF fill pattern");
       const rotation = Number(attrs.Rotation ?? 0), pattern = color(attrs.PatternColor, 64), background = color(attrs.Back, 65);
-      const fill = Number(attrs.Shade) === 1 ? background | pattern << 7 : pattern | background << 7;
+      const fill = fillPattern === 1 ? background | pattern << 7 : pattern | background << 7;
       const edges = style.node?.children.find(n => n.name === "StyleBorder")?.children ?? [];
       const edge = (name: string) => { const n = edges.find(e => e.name === name); return { style: Number(n?.attributes.Style ?? 0), color: color(n?.attributes.Color, 64) }; };
       const left = edge("Left"), right = edge("Right"), top = edge("Top"), bottom = edge("Bottom");
@@ -94,11 +98,11 @@ export class BiffStyles {
         view.setUint16(10, left.style | right.style << 4 | top.style << 8 | bottom.style << 12, true);
         const diagonal = edge("Diagonal"), reverse = edge("RevDiagonal"), diag = diagonal.style ? diagonal : reverse;
         view.setUint16(12, left.color | right.color << 7 | (diagonal.style ? 0x4000 : 0) | (reverse.style ? 0x8000 : 0), true);
-        view.setUint32(14, top.color | bottom.color << 7 | diag.color << 14 | diag.style << 21 | Number(attrs.Shade ?? 0) << 26, true);
+        view.setUint32(14, top.color | bottom.color << 7 | diag.color << 14 | diag.style << 21 | fillPattern << 26, true);
         view.setUint16(18, fill, true);
       } else {
         xf[7] = 0xfc | (rotation < 0 ? 1 : rotation > 45 && rotation <= 135 ? 2 : rotation > 225 && rotation <= 315 ? 3 : 0);
-        view.setUint16(8, fill, true); view.setUint16(10, Number(attrs.Shade ?? 0) | (bottom.style & 7) << 6 | bottom.color << 9, true);
+        view.setUint16(8, fill, true); view.setUint16(10, fillPattern | (bottom.style & 7) << 6 | bottom.color << 9, true);
         view.setUint16(12, (top.style & 7) | (left.style & 7) << 3 | (right.style & 7) << 6 | top.color << 9, true);
         view.setUint16(14, left.color | right.color << 7, true);
       }

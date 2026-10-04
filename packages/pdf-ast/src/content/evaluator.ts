@@ -1,3 +1,4 @@
+import { StoredOperationsWriter } from "./stored-operations.js";
 import { StoredPathWriter } from "./stored-path.js";
 import { annotationPageNumberSteps, extractPageAnnotationSteps } from "./annotations.js";
 import { resolvePageFonts, type ResolvedPageFont } from "../fonts/resolve.js";
@@ -990,7 +991,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
   return transformedSegments;
 }
 
-export type PdfEvaluationRequest = PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
+export type PdfEvaluationRequest = {readonly kind:"capture-append";readonly writer:StoredOperationsWriter;readonly operation:PdfPaintOperation} | PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "append-clip"; readonly storage: PdfPixelStorage; readonly previous: PdfStoredClipPaths | undefined; readonly clip: PdfClipPath }
   | { readonly kind: "path-append"; readonly writer: StoredPathWriter; readonly segments: readonly PdfPathSegment[] }
   | { readonly kind: "path-finish"; readonly writer: StoredPathWriter }
@@ -1021,7 +1022,7 @@ function closeEvaluationIterators(iterators: ReadonlyArray<Pick<Iterator<unknown
 }
 
 /** Pull evaluated operations while the driver supplies content and resources.
- * Composite captures remain in memory; retained geometry can use caller backing.
+ * Retained geometry and composite captures can use caller backing.
  * The driver owns
  * resource admission and cursor cleanup, including on early return or failure. */
 export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes"> & { readonly geometryStorage?: PdfPixelStorage | undefined; readonly geometrySignal?: AbortSignal | undefined }): EvaluationWork {
@@ -1034,14 +1035,15 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     }
     return undefined;
   }
-  let capturedOperations: PdfPaintOperation[] | undefined;
+  let capturedOperations: PdfPaintOperation[] | StoredOperationsWriter | undefined;
   let insideSoftMask = false;
   function* emit(operation: PdfPaintOperation): EvaluationWork {
     const { clipPaths, storedClipPaths, clipImages, softMask } = curState();
     if (clipPaths || storedClipPaths || clipImages || softMask) operation = { ...operation, value: { ...operation.value,
       ...(clipPaths ? { clipPaths } : {}), ...(storedClipPaths ? { storedClipPaths } : {}), ...(clipImages ? { clipImages } : {}), ...(softMask ? { softMask } : {}),
     } } as PdfPaintOperation;
-    capturedOperations?.push(operation);
+    if (capturedOperations instanceof StoredOperationsWriter) yield {kind:"capture-append",writer:capturedOperations,operation};
+    else capturedOperations?.push(operation);
     yield { kind: "paint", operation, captured: capturedOperations !== undefined, insideSoftMask };
   };
 
@@ -1239,7 +1241,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             const parentOperations = capturedOperations;
             const parentInsideSoftMask = insideSoftMask;
             const savedTextState = { pendingTextClip, pendingStoredTextClip, hasTextClip, activeTm, activeTlm };
-            const captured: PdfPaintOperation[] = [];
+            const captured = params.geometryStorage ? new StoredOperationsWriter(params.geometryStorage, params.geometrySignal) : [] as PdfPaintOperation[];
             capturedOperations = captured;
             insideSoftMask = true;
             // PDF.js beginGroup resets these three transparency parameters.
@@ -1261,7 +1263,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             }
             const parameters = yield { kind: "mask-parameters", mask, form, resources: activeResources };
             if (!parameters || !("kind" in parameters) || parameters.kind !== "mask-parameters") throw new TypeError("Expected PDF soft-mask parameters");
-            st.softMask = { subtype: subtype.decoded, operations: captured, ...parameters.value };
+            st.softMask = { subtype: subtype.decoded, operations: captured instanceof StoredOperationsWriter ? [] : captured, ...(captured instanceof StoredOperationsWriter ? {storedOperations:captured.snapshot()} : {}), ...parameters.value };
           }
         }
         const bmNode = yield* resolveEvaluationNode(dictGet(gsDict, "BM"));
@@ -1534,7 +1536,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       }
     }
     const parentOperations = capturedOperations;
-    const children: PdfPaintOperation[] = [];
+    const children = params.geometryStorage ? new StoredOperationsWriter(params.geometryStorage, params.geometrySignal) : [] as PdfPaintOperation[];
     const nextState = { ...st, ctm: nextCtm, initialCtm: nextCtm };
     if (compositeGroup) {
       capturedOperations = children;
@@ -1555,7 +1557,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       stateStack.pop();
       capturedOperations = parentOperations;
     }
-    if (compositeGroup) yield* emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, isolated, bboxClip: formClip, blendMode: st.blendMode, clipRect: st.clipRect } });
+    if (compositeGroup) yield* emit({ kind: "group", value: { operations: children instanceof StoredOperationsWriter ? [] : children, ...(children instanceof StoredOperationsWriter ? {storedOperations:children.snapshot()} : {}), alpha: st.fillAlpha, isolated, bboxClip: formClip, blendMode: st.blendMode, clipRect: st.clipRect } });
   };
 
   function* markedContext(node: Extract<PdfContentNode, { kind: "marked-content" }>,
@@ -2072,7 +2074,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

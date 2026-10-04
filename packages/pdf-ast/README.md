@@ -31,8 +31,10 @@ backing, preserving the buffered sampling math. Keep the backing alive until
 painting finishes, then close it. Parsed stroke point lists and dash runs spill
 to that backing with fixed caches for forward and reverse joins. Clip lists use
 persistent fixed-size pages, preserving graphics-state snapshots and clip order;
-text clipping streams glyph outlines into the same backing. Codec/color
-state and nested captures retain their own memory requirements. Stored geometry is
+text clipping streams glyph outlines into the same backing. Transparency-group
+and soft-mask captures replay caller-backed operation records, retaining one
+operation’s metadata at a time. Individual codec/color/font metadata and nested
+graphics state retain their own memory requirements. Stored geometry is
 for the asynchronous raster driver; buffered display-list/SVG APIs retain their
 existing synchronous representation.
 
@@ -44,7 +46,7 @@ full-page pixel allocation. Consume `pixels` directly or pass it to
 `encodeRetainedPng`; stopping consumption cleans the temporary pixels. Use an
 external backend for large pages. `tileSize` defaults to 128 and `chunkBytes` to
 65536. `maxPixelWorkingBytes` admits driver scratch, excluding rasterizer window
-surfaces and evaluator resources; nested captures and individual decoded
+surfaces and evaluator resources; nested graphics state and individual decoded
 resources still need bounded ownership. Rendering repeats page evaluation per
 tile and uses seekable staging before yielding the first output chunk.
 
@@ -584,7 +586,7 @@ driver caches selected fonts, while retained callers control their own cache.
 operators and inline-image bytes and emitting content events. Group boundaries
 and incremental text fragments feed the evaluator without building a group tree;
 individual path geometry, operands and inline-image bytes still need admission. It avoids a page-wide output list;
-composite captures still require separate backing in retained execution.
+composite captures use caller backing when `imageStorage` is supplied.
 Retained mesh shading streams free-form triangles and stores lattice vertices
 and patch control points in the caller's filesystem. Fixed caches and one-patch
 tessellation preserve global subdivision density without retaining a whole mesh.
@@ -592,7 +594,7 @@ Fill and clip rasterization replay projected edges and cubic points with
 row-sized crossing scratch; scratch is local to each render. Stroke outlines
 and their projected raster edges also stream. Retained parser paths, stroke
 points, dash expansion and geometric clip lists use caller backing; color-function
-snapshots and composite captures still have separate memory ownership.
+snapshots and individual operation metadata still have separate memory ownership.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in
 bitmap and SVG output, including uncolored tiles and transformed Forms.

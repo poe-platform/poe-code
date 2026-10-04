@@ -33,7 +33,7 @@ export type PdfRetainedEvaluationParameters = Omit<PdfContentEvaluationOptions, 
 
 /** Drive shared evaluation using retained input and caller-backed staging.
  * Paint operations are pulled on demand. With imageStorage, paths and images
- * use caller backing. Composite captures retain their in-memory representation. */
+ * use caller backing. Composite captures store replayable operation records there. */
 export async function* evaluateRetainedContentSteps(document: PdfRetainedDocument, content: AsyncIterable<Uint8Array> | Iterable<Uint8Array> | PdfRetainedContentEvents,
   params: PdfRetainedEvaluationParameters, storage: PdfIndexStorage, options: PdfRetainedEvaluationOptions = {}): AsyncGenerator<PdfEvaluationOperation, void, void> {
   const maximum = options.maxResourceBytes ?? Infinity, chunkBytes = options.chunkBytes ?? 4096, maxCachedFonts = options.maxCachedFonts ?? 16;
@@ -114,6 +114,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
       signal?.throwIfAborted();
       const request = step.value; let reply: PdfEvaluationResult;
       switch (request.kind) {
+        case "capture-append": await request.writer.append(request.operation); break;
         case "append-clip": reply = await appendStoredClip(request.storage,request.previous,request.clip,signal); break;
         case "path-append": for (const segment of request.segments) { signal?.throwIfAborted(); await request.writer.append(segment); } break;
         case "path-finish": reply = await request.writer.finish(); break;

@@ -213,10 +213,20 @@ export interface PdfRgbColor {
   readonly b: number;
 }
 
+/** Replayable capture records in caller backing, with cached compositing flags. */
+export interface PdfStoredOperations {
+  readonly kind: "stored-operations";
+  readonly storage: PdfPixelStorage;
+  readonly position: number;
+  readonly count: number;
+  readonly effects: number;
+}
+
 /** A transparency-group mask evaluated in page coordinates at the gs operator. */
 export interface PdfSoftMask {
   readonly subtype: "Alpha" | "Luminosity";
   readonly operations: readonly PdfPaintOperation[];
+  readonly storedOperations?: PdfStoredOperations | undefined;
   readonly backdrop: PdfRgbColor;
   readonly transferMap?: Uint8Array | undefined;
 }
@@ -310,6 +320,7 @@ export type PdfPaintOperation =
 /** A transparency Form, composited after painting its children. */
 export interface PdfPaintGroup {
   readonly operations: readonly PdfPaintOperation[];
+  readonly storedOperations?: PdfStoredOperations | undefined;
   readonly alpha: number;
   readonly isolated?: boolean | undefined;
   /** Transformed Form BBox, used to bound a copied backdrop. */

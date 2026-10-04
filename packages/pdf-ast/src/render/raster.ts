@@ -1,3 +1,4 @@
+import { operationEffects, readStoredOperations } from "../content/stored-operations.js";
 import { readStoredClips } from "../content/stored-clips.js";
 import { StoredStrokePoints } from "./stored-stroke-points.js";
 import { readStoredPath } from "../content/stored-path.js";
@@ -11,7 +12,7 @@ import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
-import type { PdfStoredClipPaths, PdfStoredPath, PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
+import type { PdfStoredOperations, PdfStoredClipPaths, PdfStoredPath, PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate, encodeLzw } from "../cos/filters.js";
 import { flattenCubicPoints } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
@@ -994,7 +995,7 @@ function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, sc
   let work = 0;
   const bitmap = (yield* renderDisplayListLayerSteps({
     ...displayList, rotation: 0, glyphs: [], paths: [], images: [], operations: mask.operations,
-  }, { scale, transparent: true }, scale, undefined, window, undefined, images));
+  }, { scale, transparent: true }, scale, undefined, window, undefined, images, mask.storedOperations));
   const { data } = bitmap;
   for (let i = 0; i < data.length; i += 4) {
     if (++work % 16384 === 0) yield;
@@ -1026,21 +1027,17 @@ export function getDisplayListCropBox(list: Pick<PdfDisplayList, "width" | "heig
 }
 
 function hasCompositingEffects(operations: readonly PdfPaintOperation[], includeSoftMasks = false): boolean {
-  return operations.some(operation =>
-    (includeSoftMasks && !!operation.value.softMask) ||
-    (!!operation.value.blendMode && operation.value.blendMode !== "Normal" && operation.value.blendMode !== "Compatible") ||
-    (operation.kind === "group" && hasCompositingEffects(operation.value.operations, includeSoftMasks)));
+  return operations.some(operation => !!(operationEffects(operation) & (includeSoftMasks ? 3 : 1)));
 }
 
 // PDFBox PageDrawer: inner blends in a non-isolated group see its parent.
 // Normal-only groups can use transparent intermediates without a backdrop.
 function needsGroupBackdrop(group: PdfPaintGroup): boolean {
-  return group.isolated === false && hasCompositingEffects(group.operations, true);
+  return group.isolated === false && (!!(group.storedOperations && (group.storedOperations.effects & 3)) || hasCompositingEffects(group.operations, true));
 }
 
 function containsBackdropGroup(operations: readonly PdfPaintOperation[]): boolean {
-  return operations.some(operation => operation.kind === "group" &&
-    (needsGroupBackdrop(operation.value) || containsBackdropGroup(operation.value.operations)));
+  return operations.some(operation => !!(operationEffects(operation) & 4));
 }
 
 type RetainedImageSampler = Awaited<ReturnType<typeof prepareRetainedImageSampler>>;
@@ -1063,7 +1060,8 @@ function *renderDisplayListLayerSteps(
   backdrop?: Uint8Array,
   window?: PdfCropRect,
   input?: RasterOperationInput,
-  images?: RasterImageInput
+  images?: RasterImageInput,
+  storedOperations?: PdfStoredOperations
 ): Generator<void, RgbaBitmap, void> {
   let work = 0;
   const [originX, originY] = displayList.origin ?? [0, 0];
@@ -1086,7 +1084,7 @@ function *renderDisplayListLayerSteps(
 
   // PDF.js beginDrawing: blend modes see the page's transparent backdrop,
   // never the viewer's white/custom background. Composite that background last.
-  const deferBackground = !options.transparent && (input ? input.compositing : hasCompositingEffects(paintOperations(displayList)));
+  const deferBackground = !options.transparent && (input ? input.compositing : !!(storedOperations && (storedOperations.effects & 1)) || hasCompositingEffects(paintOperations(displayList)));
   const transparent = options.transparent || deferBackground;
   const bg = options.background ?? { r: 1, g: 1, b: 1 };
   const bgR = transparent ? 0 : Math.round(bg.r * 255);
@@ -1114,6 +1112,8 @@ function *renderDisplayListLayerSteps(
   let opIdx = 0;
   const operations = input ? undefined : paintOperations(displayList);
   let operationIndex = 0;
+  if (storedOperations && !images) throw new Error("Stored captures require the asynchronous raster driver");
+  const storedSource = storedOperations ? readStoredOperations(storedOperations, images?.signal) : undefined;
   while (true) {
     let original: PdfPaintOperation;
     if (input) {
@@ -1124,6 +1124,13 @@ function *renderDisplayListLayerSteps(
       const next = input.next!; input.next = undefined;
       if (next.done) break;
       original = next.value;
+    } else if (storedSource) {
+      cachedClips = undefined; cachedStoredClips = undefined; cachedSoftMask = undefined; imageClipMasks.clear();
+      let next: IteratorResult<PdfPaintOperation> | undefined;
+      images!.pathRequest = async () => { next = await storedSource.next(); };
+      yield;
+      if (next!.done) break;
+      original = next!.value;
     } else {
       if (operationIndex === operations!.length) break;
       original = operations![operationIndex++]!;
@@ -1138,7 +1145,7 @@ function *renderDisplayListLayerSteps(
       const group = operation.value;
       const bitmap = (yield* renderDisplayListLayerSteps(
         { ...displayList, operations: group.operations },
-        { ...options, transparent: true }, scale, needsGroupBackdrop(group) ? rgba : undefined, window, undefined, images
+        { ...options, transparent: true }, scale, needsGroupBackdrop(group) ? rgba : undefined, window, undefined, images, group.storedOperations
       ));
       for (let i = 3; i < bitmap.data.length; i += 4) { if (++work % 16384 === 0) yield; bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha); }
       operation = { kind: "image", value: {
@@ -1606,6 +1613,7 @@ export function *renderDisplayListToSvgSteps(
     for (const original of operations) {
       if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
       const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
+      if ((original.kind === "group" && original.value.storedOperations) || original.value.softMask?.storedOperations) throw new Error("Stored captures require the asynchronous raster driver");
       if (original.value.storedClipPaths?.count) throw new Error("Stored clips require the asynchronous raster driver");
       const clips = original.value.clipPaths ?? [];
       const imageClips = original.value.clipImages ?? [];

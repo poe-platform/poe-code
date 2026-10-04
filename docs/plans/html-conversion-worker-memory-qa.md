@@ -28,10 +28,13 @@ exercise adversarial depth and attribute size without lowering accepted limits.
 
 The separate htmlq owner is `packages/safe-bash-command-htmlq`: `command.ts`
 passes injected filesystem streams to `projectHtmlq` in `behavior.ts`, which
-calls `parseHtml` in `tree.ts`. That function concatenates the entire decoded
-source before `parseHtmlSync`; tree ownership also retains the original source.
-`selectors.ts` traverses this tree, and removal operations snapshot selections
-before mutation. Migration must preserve HTML5 recovery, selector behavior and
+calls the incremental projection parser in `tree.ts`. Projection decodes in
+4096-byte windows and frames complete tokens before requesting later input; it
+no longer concatenates or retains the original source. The public `parseHtml`
+convenience API still retains original source for serialization. Both paths use
+the same tree recovery state machine as `parseHtmlSync`. Token framing still
+materializes individual tokens, and the tree remains in memory. `selectors.ts`
+traverses this tree, and removal operations snapshot selections before mutation. Migration must preserve HTML5 recovery, selector behavior and
 original-source serialization. It cannot reuse the Markdown subset parser.
 
 ## Deterministic prerequisites

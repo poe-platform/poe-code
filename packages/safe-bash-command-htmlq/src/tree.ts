@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import {
   HtmlBudget,
   HtmlError,
@@ -7,13 +8,14 @@ import {
   type HtmlNamespace
 } from "./contracts.js";
 import { HtmlTokenizer, rawElements, voidElements, type HtmlToken } from "./tokenizer.js";
+import { StreamingHtmlTokenizer } from "./streaming-tokenizer.js";
 import { htmlSpace } from "./entities.js";
 function allSpace(data: string): boolean {
   for (const c of data) if (!htmlSpace(c)) return false;
   return true;
 }
 interface Owner {
-  source: string;
+  source: string | undefined;
   mutated: boolean;
 }
 const kNode = Symbol("node");
@@ -123,6 +125,7 @@ export function originalSource(node: PublicHtmlNode): string {
     );
   if (owner.mutated)
     throw new HtmlError("E_MUTATED", "Original source does not represent the mutated tree");
+  if (owner.source === undefined) throw new HtmlError("E_UNSUPPORTED", "Original source was not retained");
   return owner.source;
 }
 function unlink(node: HtmlNode): void {
@@ -362,23 +365,71 @@ const svgAttributes: Readonly<Record<string, string>> = Object.fromEntries(
   ].map((name) => [name.toLowerCase(), name])
 );
 
+/** Original-source retention is optional for projections and normalized output. */
 export async function parseHtml(
   source: AsyncIterable<Uint8Array>,
-  options: HtmlOptions
+  options: HtmlOptions,
+  originalSource: "retain" | "discard" = "retain"
 ): Promise<PublicHtmlNode> {
   const budget = new HtmlBudget(options);
+  const owner: Owner = { source: originalSource === "retain" ? "" : undefined, mutated: false };
+  async function* normalized(): AsyncGenerator<string> {
+    let first = true, carriage = false;
+    for await (const original of decodedHtml(source, options)) {
+      if (owner.source !== undefined) {
+        budget.charge("retainedBytes", original.length * 2);
+        owner.source += original;
+      }
+      let text = "";
+      for (const character of original) {
+        budget.charge("work", 1);
+        if (first) { first = false; if (character === "\ufeff") continue; }
+        if (carriage && character === "\n") { carriage = false; continue; }
+        carriage = character === "\r";
+        text += carriage ? "\n" : character;
+      }
+      yield text;
+    }
+  }
+  const tokenizer = new StreamingHtmlTokenizer(normalized(), budget);
+  const tree = buildTree(owner, budget);
+  let step = tree.next();
+  let failure: { error: unknown } | undefined;
+  try {
+    while (!step.done) step = tree.next(await tokenizer.next(step.value.raw, step.value.foreign));
+  } catch (error) { failure = { error }; }
+  try { await tokenizer.close(); }
+  catch (error) {
+    if (failure) throw new AggregateError([failure.error, error], "HTML input and cleanup failed");
+    throw error;
+  }
+  if (failure) throw failure.error;
+  return step.value as PublicHtmlNode;
+}
+
+async function* decodedHtml(source: AsyncIterable<Uint8Array>, options: HtmlOptions): AsyncGenerator<string> {
+  const budget = new HtmlBudget(options);
   const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
-  let original = "";
   const iterator = source[Symbol.asyncIterator]();
-  let complete = false;
+  let complete = false, sinceYield = 0;
   let failed = false;
   let failure: unknown;
+  const closeInput = async (): Promise<void> => {
+    if (!complete && iterator.return) {
+      try { await iterator.return(); }
+      catch (cleanup) {
+        if (failed) throw new AggregateError([failure, cleanup], "HTML input and cleanup failed");
+        throw cleanup;
+      }
+    }
+  };
   const abort = (): never => {
     throw new HtmlError("E_CANCELLED", "HTML invocation cancelled");
   };
   try {
     while (true) {
       budget.charge("work", 1);
+      if (++sinceYield >= 4096) { await yieldTurn(); budget.check(); sinceYield = 0; }
       let listener: () => void = () => {};
       const cancellation = new Promise<never>((_, reject) => {
         listener = () => reject(new HtmlError("E_CANCELLED", "HTML invocation cancelled"));
@@ -408,29 +459,23 @@ export async function parseHtml(
       budget.charge("inputBytes", byteLength);
       budget.charge("retainedBytes", byteLength * 2);
       budget.charge("work", byteLength);
-      const text = decoder.decode(chunk, { stream: true });
-      budget.charge("decodedBytes", text.length * 2);
-      original += text;
+      for (let offset = 0; offset < byteLength; offset += 4096) {
+        if (sinceYield >= 4096) { await yieldTurn(); budget.check(); sinceYield = 0; }
+        sinceYield += Math.min(4096, byteLength - offset);
+        const text = decoder.decode(Uint8Array.prototype.subarray.call(chunk, offset, Math.min(byteLength, offset + 4096)), { stream: true });
+        budget.charge("decodedBytes", text.length * 2);
+        yield text;
+      }
     }
   } catch (error) {
     failed = true;
     failure = error;
-  }
-  if (!complete && iterator.return) {
-    try {
-      await iterator.return();
-    } catch (cleanup) {
-      if (failed)
-        throw new AggregateError([failure, cleanup], "HTML input and cleanup failed");
-      throw cleanup;
-    }
-  }
+  } finally { await closeInput(); }
   if (failed) throw failure;
   const tail = decoder.decode();
   budget.charge("decodedBytes", tail.length * 2);
   budget.charge("retainedBytes", tail.length * 2);
-  original += tail;
-  return parseHtmlSync(original, options, budget);
+  yield tail;
 }
 export function parseHtmlSync(
   original: string,
@@ -454,7 +499,14 @@ export function parseHtmlSync(
     }
   }
 
-  const owner: Owner = { source: original, mutated: false };
+  const tree = buildTree({ source: original, mutated: false }, budget);
+  const tokenizer = new HtmlTokenizer(normalized, budget);
+  let step = tree.next();
+  while (!step.done) step = tree.next(tokenizer.next(step.value.raw, step.value.foreign));
+  return step.value;
+}
+
+function* buildTree(owner: Owner, budget: HtmlBudget): Generator<{ raw: string | undefined; foreign: boolean }, PublicHtmlNode, HtmlToken | undefined> {
   const make = (
     kind: HtmlNode["kind"],
     name = "",
@@ -678,19 +730,13 @@ export function parseHtmlSync(
       last.data += data;
     } else append(parent, make("text", "", data), before);
   };
-  const tokenizer = new HtmlTokenizer(normalized, budget);
   let token: HtmlToken | undefined;
-  while (
-    (token = tokenizer.next(
-      current().namespace === "html" &&
-        (rawElements.has(current().name) ||
-          current().name === "title" ||
-          current().name === "textarea")
-        ? current().name
-        : undefined,
-      current().namespace !== "html"
-    ))
-  ) {
+  while ((token = yield {
+    raw: current().namespace === "html" &&
+      (rawElements.has(current().name) || current().name === "title" || current().name === "textarea")
+      ? current().name : undefined,
+    foreign: current().namespace !== "html"
+  })) {
     budget.charge("work", stack.length + active.length + 1);
     if (token.kind === "doctype") {
       if (mode === "beforeHead") append(document, make("doctype", "", token.data), html);

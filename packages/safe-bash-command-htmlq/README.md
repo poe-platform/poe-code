@@ -32,7 +32,7 @@ await shell.dispose();
 | `htmlqBytes(source, argv, options)` | Source-only SDK producing bounded UTF-8 chunks; paths require command context |
 | `selectHtml(node, selector, options)` | Compile selectors and lazily visit matching engine-owned elements |
 | `parseHtmlqArguments(argv, options)` | Shared CLI/SDK argument validation |
-| `parseHtml(source, options)` | Lossy UTF-8 decoding, tokenization and bounded document construction |
+| `parseHtml(source, options, originalSource?)` | Incremental lossy UTF-8 decoding and tokenization; retains the document and original source |
 | `serializeHtml(node, options, mode)` | Normalized HTML, or original decoded source for an unchanged document |
 | `serializeHtmlBytes(node, options, mode)` | Bounded UTF-8 output with consumer backpressure |
 | `htmlText(node, options)` | Concatenate descendant text, including inert scripts/styles |
@@ -59,7 +59,12 @@ DOM properties and ordered attribute/child arrays are read-only at runtime.
 Template contents are separate fragments and excluded from ordinary traversal,
 text and serialization, matching the pinned native engine.
 
-The bounded parser supports tested HTML recovery, entities, raw text, tables,
+Projection parses input incrementally without retaining the original source.
+`parseHtml` defaults to original-source retention; pass `"discard"` as its third
+argument to omit that copy. Original serialization then fails with `E_UNSUPPORTED`.
+Individual tokens and the document tree still occupy memory proportional to input;
+streamed output does not establish a bounded-memory parser.
+The parser supports tested HTML recovery, entities, raw text, tables,
 formatting reconstruction and foreign integration points.
 `htmlqBaseline.fullHtml5Parity` is **false**: complete HTML5 parsing/recovery
 has not been qualified against html5ever. This engine is not a browser DOM.

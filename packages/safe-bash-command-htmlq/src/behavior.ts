@@ -42,7 +42,7 @@ export async function* projectHtmlq(
     budget.check();
     return;
   }
-  const document = await parseHtml(source, invocation);
+  const document = await parseHtml(source, invocation, "discard");
   let base = baseUrl(args.base);
   if (args.detectBase) {
     const first = selectHtml(document, "base", invocation).next().value;

@@ -22330,12 +22330,16 @@ var MeshShading = class _MeshShading extends BaseShading {
       verticesPerRow
     });
   }
-  _decodeType6Shading(reader) {
+  _decodeType6Shading(reader, single = false) {
     const coords = this.coords;
     const colors = this.colors;
     this.onAllocation?.(80);
     const ps = new Int32Array(16);
     const cs = new Int32Array(4);
+    if (single && coords.length) {
+      for (let i = 0; i < 16; i++) ps[i] = i;
+      for (let i = 0; i < 4; i++) cs[i] = i;
+    }
     while (reader.hasData) {
       this.onAllocation?.(128);
       const f = reader.readFlag();
@@ -22466,14 +22470,19 @@ var MeshShading = class _MeshShading extends BaseShading {
         // making copies of ps and cs
         colors: new Int32Array(cs)
       });
+      if (single) break;
     }
   }
-  _decodeType7Shading(reader) {
+  _decodeType7Shading(reader, single = false) {
     const coords = this.coords;
     const colors = this.colors;
     this.onAllocation?.(80);
     const ps = new Int32Array(16);
     const cs = new Int32Array(4);
+    if (single && coords.length) {
+      for (let i = 0; i < 16; i++) ps[i] = i;
+      for (let i = 0; i < 4; i++) cs[i] = i;
+    }
     while (reader.hasData) {
       this.onAllocation?.(128);
       const f = reader.readFlag();
@@ -22599,6 +22608,7 @@ var MeshShading = class _MeshShading extends BaseShading {
         // making copies of ps and cs
         colors: new Int32Array(cs)
       });
+      if (single) break;
     }
   }
   _buildFigureFromPatch(index) {
@@ -22729,7 +22739,40 @@ var MeshShading = class _MeshShading extends BaseShading {
     ];
   }
 };
+/** Incremental patch decoder and bounded tessellator using the same native
+ * patch math as MeshShading. The owner supplies complete record bits and stages
+ * patches when global bounds are needed for subdivision density. */
+var MeshPatchDecoder = class {
+  constructor() {
+    this.mesh = Object.create(MeshShading.prototype);
+    this.mesh.coords = []; this.mesh.colors = []; this.mesh.figures = [];
+  }
+  decode(type, reader, flag) {
+    const mesh = this.mesh;
+    const record = {hasData: true, readFlag: () => flag,
+      readCoordinate: () => reader.readCoordinate(), readComponents: () => reader.readComponents()};
+    mesh.figures.length = 0;
+    if (type === 6) mesh._decodeType6Shading(record, true);
+    else mesh._decodeType7Shading(record, true);
+    const figure = mesh.figures[0];
+    mesh.coords = Array.from(figure.coords, i => mesh.coords[i]);
+    mesh.colors = Array.from(figure.colors, i => mesh.colors[i]);
+    return {coordinates: new Float64Array(mesh.coords.flat()), colors: new Uint8Array(mesh.colors.flatMap(c => Array.from(c)))};
+  }
+  static vertices(patch, bounds) {
+    const mesh = Object.create(MeshShading.prototype);
+    mesh.coords = Array.from({length: 16}, (_, i) => [patch.coordinates[i * 2], patch.coordinates[i * 2 + 1]]);
+    mesh.colors = Array.from({length: 4}, (_, i) => patch.colors.subarray(i * 3, i * 3 + 3));
+    mesh.figures = [{type: MeshFigureType.PATCH, coords: Int32Array.from({length: 16}, (_, i) => i), colors: new Int32Array([0, 1, 2, 3])}];
+    mesh.bounds = bounds;
+    mesh._buildFigureFromPatch(0); mesh._packData();
+    const {posData, colData, vertexCount} = buildMeshVertexData(mesh.coords, mesh.colors, mesh.figures);
+    return {positions: posData, colors: colData, vertexCount};
+  }
+};
 export {
+  MeshPatchDecoder,
+  MeshStreamReader,
   CFFCompiler,
   CFFParser,
   CFFStrings,

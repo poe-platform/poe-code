@@ -467,6 +467,17 @@ function renderMeshShadingToImage(
 ): PdfEvaluatedImage | undefined {
   const bytes = doc.decodeStream(shStream);
   if (bytes.length === 0) return undefined;
+  const parameters = meshShadingParameters(doc, shDict);
+  if (!parameters) return undefined;
+  const mesh = new MeshShading(shType, new Stream(bytes), {...parameters.context, onAllocation}, parameters.verticesPerRow);
+  const [, , positions, colors, vertexCount] = mesh.getIR();
+  if (vertexCount === 0) return undefined;
+  const raster = createMeshRaster(effectiveCtm, targetBox, fillAlpha, name, clipRect, blendMode, onAllocation);
+  for (let vertex = 0; vertex < vertexCount; vertex += 3) raster.paint(positions, colors, vertex);
+  return raster.image;
+}
+
+export function meshShadingParameters(doc: ParsedCosDocument, shDict: PdfCosDict) {
   const bpcCoordNode = doc.resolve(dictGet(shDict, "BitsPerCoordinate"));
   const bpcCompNode = doc.resolve(dictGet(shDict, "BitsPerComponent"));
   const bpcFlagNode = doc.resolve(dictGet(shDict, "BitsPerFlag"));
@@ -485,22 +496,25 @@ function renderMeshShadingToImage(
   const csNode = doc.resolve(dictGet(shDict, "ColorSpace"));
   const csName = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
   const numComps = fnNode ? 1 : runColorProgram(doc, colorComponentCountSteps(Boolean(doc), csNode));
-  const mesh = new MeshShading(shType, new Stream(bytes), {
-    onAllocation,
+  return { verticesPerRow: vPerRow, context: {
     bitsPerCoordinate: bpcCoord, bitsPerComponent: bpcComp, bitsPerFlag: bpcFlag,
     decode: decodeNums, numComps, colorFn: null,
     colorSpace: {
       numComps,
-      getRgb(components) {
+      getRgb(components: Float32Array) {
         const params = Array.from(components);
         const values = fnNode ? evalShadingFunctionToComponents(doc, fnNode, params) : params;
         return new Uint8Array(runColorProgram(doc, convertContentColorSteps(Boolean(doc), csNode, csName, values))
           .map(value => Math.round(Math.max(0, Math.min(1, value)) * 255)));
       },
     },
-  }, vPerRow);
-  const [, , positions, colors, vertexCount] = mesh.getIR();
-  if (vertexCount === 0) return undefined;
+  } };
+
+}
+
+/** Fixed shading surface; both retained and buffered meshes share triangle rasterization. */
+export function createMeshRaster(effectiveCtm: Matrix6, targetBox: [number, number, number, number], fillAlpha: number,
+  name: string, clipRect?: [number, number, number, number], blendMode?: string, onAllocation?: (bytes: number) => void) {
   const [bx0, by0, bx1, by1] = targetBox;
   const boxW = Math.max(1, bx1 - bx0);
   const boxH = Math.max(1, by1 - by0);
@@ -515,12 +529,12 @@ function renderMeshShadingToImage(
     return [((px - bx0) / boxW) * imgW, ((by1 - py) / boxH) * imgH];
   };
 
-  for (let vertex = 0; vertex < vertexCount; vertex += 3) {
+  function paint(positions: Float32Array, colors: Uint8Array, vertex = 0) {
     const [x0, y0] = toImgCoords(positions[vertex * 2]!, positions[vertex * 2 + 1]!);
     const [x1, y1] = toImgCoords(positions[vertex * 2 + 2]!, positions[vertex * 2 + 3]!);
     const [x2, y2] = toImgCoords(positions[vertex * 2 + 4]!, positions[vertex * 2 + 5]!);
     const denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2);
-    if (Math.abs(denom) < 1e-6) continue;
+    if (Math.abs(denom) < 1e-6) return;
     const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2)));
     const maxX = Math.min(imgW - 1, Math.ceil(Math.max(x0, x1, x2)));
     const minY = Math.max(0, Math.floor(Math.min(y0, y1, y2)));
@@ -547,7 +561,7 @@ function renderMeshShadingToImage(
     }
   }
 
-  return {
+  const image: PdfEvaluatedImage = {
     name,
     matrix: [boxW, 0, 0, boxH, bx0, by0],
     width: imgW,
@@ -558,6 +572,7 @@ function renderMeshShadingToImage(
     ...(blendMode && blendMode !== "Normal" ? { blendMode } : {}),
     ...(clipRect ? { clipRect: [...clipRect] as [number, number, number, number] } : {}),
   };
+  return {image, paint};
 }
 
 export function renderShadingDictToImage(

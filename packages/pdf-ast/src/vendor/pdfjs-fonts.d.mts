@@ -163,3 +163,19 @@ export class CipherTransformFactory {
     };
   };
 }
+
+export class MeshStreamReader {
+  constructor(stream: Stream, context: ConstructorParameters<typeof MeshShading>[2]);
+  stream: Stream;
+  bufferLength: number;
+  readFlag(): number;
+  readCoordinate(): [number, number];
+  readComponents(): Uint8Array;
+  align(): void;
+}
+
+export interface MeshPatch {coordinates: Float64Array; colors: Uint8Array}
+export class MeshPatchDecoder {
+  decode(type: 6 | 7, reader: MeshStreamReader, flag: number): MeshPatch;
+  static vertices(patch: MeshPatch, bounds: number[]): {positions: Float32Array; colors: Uint8Array; vertexCount: number};
+}

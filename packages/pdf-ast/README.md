@@ -565,8 +565,12 @@ driver caches selected fonts, while retained callers control their own cache.
 operators and inline-image bytes and emitting content events. Group boundaries
 and incremental text fragments feed the evaluator without building a group tree;
 individual path geometry, operands and inline-image bytes still need admission. It avoids a page-wide output list;
-resource decoding and composite captures still use the buffered evaluator
-and require separate admission/backing in retained execution.
+composite captures still require separate backing in retained execution.
+Retained mesh shading streams free-form triangles and stores lattice vertices
+and patch control points in the caller's filesystem. Fixed caches and one-patch
+tessellation preserve global subdivision density without retaining a whole mesh.
+Color-function snapshots and individual path geometry still have separate memory
+ownership.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in
 bitmap and SVG output, including uncolored tiles and transformed Forms.

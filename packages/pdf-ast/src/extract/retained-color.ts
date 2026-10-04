@@ -1,3 +1,4 @@
+import { renderRetainedMesh } from "./retained-mesh.js";
 import { readBytes } from "@poe-code/safe-fs/contracts";
 import { cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream, type PdfEvaluatedImage } from "../ast.js";
 import { colorComponentCountSteps, renderShadingDictToImage, type PdfEvaluationShadingRequest, convertContentColorSteps, evalShadingFunctionToComponents, evaluateMaskTransfer, resolveMaskParameterSteps, type PdfMaskParameterRequest } from "../content/evaluator.js";
@@ -58,10 +59,13 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
     if (resolved.value.kind === "name") charge(resolved.value.decoded.length * 2);
     return resolved.value;
   }
-  async function decode(stream: PdfCosStream, prefix = Infinity, start = 0): Promise<Uint8Array> {
+  function contents(stream: PdfCosStream) {
     const reference = streams.get(stream);
-    const input = reference ? document.objects.decodeStream(reference.objectNumber, reference.generationNumber)
+    return reference ? document.objects.decodeStream(reference.objectNumber, reference.generationNumber)
       : decodePdfStreamChunks(stream.dict, async function* () { yield stream.rawBytes; }, { chunkBytes, ...(options.signal ? { signal: options.signal } : {}) });
+  }
+  async function decode(stream: PdfCosStream, prefix = Infinity, start = 0): Promise<Uint8Array> {
+    const input = contents(stream);
     async function* selected() {
       let remaining = prefix, skip = Number.isSafeInteger(start) && start >= 0 ? start : Infinity;
       for await (const chunk of readBytes(input, options.signal)) {
@@ -210,7 +214,7 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
   const context = new ParsedCosDocument({ version: "1.7", bytes: new Uint8Array(), objects: new Map(), revisions: [],
     rootRef: { kind: "ref", objectNumber: 0, generationNumber: 0 }, maxDecompressedBytes: maximum, maxRecursionDepth: maxDepth });
   options.signal?.throwIfAborted();
-  return { resolve, decode, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth };
+  return { resolve, decode, contents, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth };
 }
 
 export async function resolveRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
@@ -289,7 +293,7 @@ export type PdfRetainedShadingSettings = Omit<PdfEvaluationShadingRequest, "kind
  * snapshots, mesh geometry and the result surface are admitted to one owner. */
 export async function renderRetainedShading(document: PdfRetainedDocument, node: PdfCosNode,
   settings: PdfRetainedShadingSettings, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}): Promise<PdfEvaluatedImage | undefined> {
-  const { resolve, decode, snapshot, snapshotColor, snapshotFunction, charge, context } = createRetainedColorAccess(document, storage, options);
+  const { resolve, contents, snapshot, snapshotColor, snapshotFunction, charge, context } = createRetainedColorAccess(document, storage, options);
   const value = await resolve(node);
   const dict = value?.kind === "stream" ? value.dict : value?.kind === "dict" ? value : undefined;
   if (!dict) return undefined;
@@ -307,10 +311,12 @@ export async function renderRetainedShading(document: PdfRetainedDocument, node:
     const resolved = key === "ColorSpace" ? await snapshotColor(item) : key === "Function" ? await snapshotFunction(item) : await snapshot(item);
     selected.entries.push({ key: cosName(key), value: resolved ?? { kind: "null" } });
   }
-  const stream = mesh && value?.kind === "stream" ? cosStream(selected, await decode(value)) : undefined;
+  if (value?.kind === "stream" && type?.kind === "number" && (type.value === 4 || type.value === 5 || type.value === 6 || type.value === 7)) {
+    return renderRetainedMesh(context, selected, type.value, contents(value), settings, storage, options, charge);
+  }
   options.signal?.throwIfAborted();
   const image = renderShadingDictToImage(context, selected, settings.matrix, settings.bounds, settings.alpha,
-    settings.name, settings.clipRect, stream, settings.blendMode, charge);
+    settings.name, settings.clipRect, undefined, settings.blendMode, charge);
   options.signal?.throwIfAborted();
   return image;
 }

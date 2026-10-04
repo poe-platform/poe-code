@@ -37,4 +37,4 @@ Compressed formats support inspection and metadata editing; decoding and encodin
 
 `parseAudio(bytes, { maxAtomDepth })` and `probeAudio(bytes, { maxAtomDepth })` optionally bound MP4 atom nesting. The default is `Infinity`.
 
-`probeWavSource` preserves RIFF bounds, extensible PCM validation, multiple data chunks and normalized INFO tags. Reads are at most 16 KiB; the caller owns source identity and lifetime. Tag strings remain materialized metadata, so their total size still affects memory.
+`probeWavSource` preserves RIFF bounds, extensible PCM validation, multiple data chunks and normalized INFO tags. Reads are at most 16 KiB; the caller owns source identity and lifetime. `onTag({ key, offset, length })` can consume INFO source spans without reading or materializing tag values. Without this callback, tag strings remain materialized metadata and their total size affects memory.

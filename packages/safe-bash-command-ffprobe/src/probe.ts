@@ -68,8 +68,8 @@ export function probe(data: Uint8Array, args: readonly string[]): string {
   return formatAudioProbe(parseAudio(data, { maxAtomDepth: 64 }), data.length, parsed);
 }
 
-export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>): string {
-  const { sections, format, settings } = parsed;
+export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>, retainedTags = false) {
+  const { sections } = parsed;
   const serials = [
     ...new Set(
       audio.nodes.filter((node) => node.type === "OggS").map((node) => node.fields?.serial)
@@ -151,11 +151,17 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
       duration: formatDuration.toFixed(6),
       size: String(size),
       bit_rate: String(formatDuration ? Math.floor((size * 8) / formatDuration) : 0),
-      ...(Object.keys(formatTags).length ? { tags: formatTags } : {})
+      ...(retainedTags || Object.keys(formatTags).length ? { tags: formatTags } : {})
     });
     if (sections.has("format_tags")) row.tags = tags;
     rows.push({ section: "format", row });
   }
+  return rows;
+}
+
+export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>): string {
+  const { sections, format, settings } = parsed;
+  const rows = audioProbeRows(audio, size, parsed);
   if (format === "json") {
     const result: Record<string, unknown> = {};
     if (sections.has("stream") || sections.has("stream_tags"))

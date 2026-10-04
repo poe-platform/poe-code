@@ -62,8 +62,9 @@ export async function sniffWavStream(source: AsyncIterable<Uint8Array>, signal: 
 }
 
 /** Replay through the caller's backing, so strict and fallback probes see one admitted input. */
-export async function withStagedProbeSource<T>(context: PagedStorageContext, input: AsyncIterable<Uint8Array>, probe: (source: MediaProbeSource) => Promise<T>): Promise<T> {
+export async function withStagedProbeSource<T>(context: PagedStorageContext, input: AsyncIterable<Uint8Array>, probe: (source: MediaProbeSource) => Promise<T>, retain?: (close: () => Promise<void>) => void): Promise<T> {
   const storage = new PagedStorage(context, 4);
+  retain?.(storage.close.bind(storage));
   let start: number | undefined;
   let size = 0, steps = 0, failed = true;
   try {
@@ -82,7 +83,9 @@ export async function withStagedProbeSource<T>(context: PagedStorageContext, inp
     failed = false;
     return result;
   } finally {
-    if (failed) { try { await storage.close(); } catch { /* Preserve the primary failure. */ } }
-    else await storage.close();
+    if (!retain) {
+      if (failed) { try { await storage.close(); } catch { /* Preserve the primary failure. */ } }
+      else await storage.close();
+    }
   }
 }

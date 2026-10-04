@@ -8,8 +8,10 @@ export interface AudioProbeSource {
   read(offset: number, length: number): Promise<Uint8Array>;
 }
 
-/** Skip sample/unknown payloads and AST nodes. Tag strings remain an explicit metadata model. */
-export async function probeWavSource(source: AudioProbeSource, options: { signal?: AbortSignal } = {}): Promise<Omit<AudioAst, "data" | "nodes" | "pictures">> {
+export interface WavTagSpan { readonly key: string; readonly offset: number; readonly length: number; }
+
+/** Skip sample/unknown payloads and AST nodes. onTag exposes spans instead of materialized tag strings. */
+export async function probeWavSource(source: AudioProbeSource, options: { signal?: AbortSignal; onTag?: (span: WavTagSpan) => Promise<void> } = {}): Promise<Omit<AudioAst, "data" | "nodes" | "pictures">> {
   const read = async (offset: number, size: number): Promise<Reader> => {
     options.signal?.throwIfAborted();
     if (!Number.isSafeInteger(source.size) || !Number.isSafeInteger(offset) || !Number.isSafeInteger(size) || offset < 0 || size < 0 || size > source.size - offset)
@@ -50,6 +52,12 @@ export async function probeWavSource(source: AudioProbeSource, options: { signal
       for (let pos = start + 4; pos < start + size;) {
         const info = await read(pos, 8), id = info.text(0, 4), length = info.u32(4, true);
         if (length > start + size - pos - 8) throw new Error("WAV INFO exceeds LIST bounds");
+        if (options.onTag) {
+          await options.onTag({ key: infoNames[id] ?? id, offset: pos + 8, length });
+          options.signal?.throwIfAborted();
+          pos += 8 + length + length % 2;
+          continue;
+        }
         const decoder = new TextDecoder(); let text = "", ended = false;
         for (let index = 0; index < length; index += 16384) {
           const part = decoder.decode((await read(pos + 8 + index, Math.min(16384, length - index))).bytes, { stream: true });

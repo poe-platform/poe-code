@@ -63,3 +63,14 @@ it("preserves extensible precision and rejects invalid GUIDs", async () => {
   bytes[20 + 30] = 0;
   await expect(probeWavSource(source(bytes))).rejects.toThrow("Unsupported WAV subformat GUID");
 });
+
+it("reports INFO spans without reading or materializing their values", async () => {
+  const bytes = wav(), expected = parseAudio(bytes), spans: { key: string; offset: number; length: number }[] = [];
+  const values = expected.nodes.flatMap(n => n.type === "LIST" ? n.children ?? [] : []);
+  const result = await probeWavSource({ size: bytes.length, async read(offset, length) {
+    for (const value of values) expect(offset + length <= value.offset + 8 || offset >= value.offset + value.size).toBe(true);
+    return bytes.slice(offset, offset + length);
+  } }, { onTag: async span => { spans.push(span); } });
+  expect(result.tags).toEqual({});
+  expect(spans.map(span => [span.key, new TextDecoder().decode(bytes.subarray(span.offset, span.offset + span.length)).split("\0")[0]])).toEqual(Object.entries(expected.tags));
+});

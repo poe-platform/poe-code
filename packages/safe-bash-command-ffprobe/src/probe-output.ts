@@ -3,10 +3,10 @@ import { writeBytes } from "safe-bash-contracts/io";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { CommandContext } from "safe-bash-contracts/command";
 
-async function* encodeParts(parts: Iterable<string>, signal: AbortSignal): AsyncGenerator<Uint8Array> {
+async function* encodeParts(parts: Iterable<string> | AsyncIterable<string>, signal: AbortSignal): AsyncGenerator<Uint8Array> {
   const encoder = new TextEncoder();
   let high = "", steps = 0;
-  for (const part of parts) {
+  for await (const part of parts) {
     signal.throwIfAborted();
     for (let offset = 0; offset < part.length; offset += 4096) {
       signal.throwIfAborted();
@@ -21,7 +21,7 @@ async function* encodeParts(parts: Iterable<string>, signal: AbortSignal): Async
 }
 
 /** Preserve admission-before-publication with a bounded cache in caller backing. */
-export async function writeProbeOutput(context: CommandContext, parts: Iterable<string>, check: (total: number) => void): Promise<void> {
+export async function writeProbeOutput(context: CommandContext, parts: Iterable<string> | AsyncIterable<string>, check: (total: number) => void, beforePublish?: () => Promise<void>): Promise<void> {
   const storage = new PagedStorage(context, 4), start = storage.allocate(0);
   let size = 0, failed = true;
   try {
@@ -29,6 +29,8 @@ export async function writeProbeOutput(context: CommandContext, parts: Iterable<
       size += bytes.length; check(size);
       await storage.append(bytes);
     }
+    context.signal.throwIfAborted();
+    await beforePublish?.();
     context.signal.throwIfAborted();
     if (size === 0) await writeBytes(context.stdout, new Uint8Array(0), context.signal);
     for (let offset = 0; offset < size; offset += 16384)

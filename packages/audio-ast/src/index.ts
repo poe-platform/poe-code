@@ -1,4 +1,4 @@
-export { probeWavSource, type AudioProbeSource } from "./wav-source.js";
+export { probeWavSource, type AudioProbeSource, type WavTagSpan } from "./wav-source.js";
 export * from "./types.js";
 export { decodePcm, encodeWav } from "./wav.js";
 export * from "./dsp.js";

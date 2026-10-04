@@ -1,3 +1,5 @@
+import { WavTags } from "./wav-tags.js";
+import { formatTaggedAudio } from "./tag-format.js";
 import { writeProbeOutput } from "./probe-output.js";
 import { openProbeStream, sniffWavStream, withStagedProbeSource } from "./stream-input.js";
 import { probe as probeAudio, parseArguments as parseAudioArguments, formatAudioProbe } from "./probe.js";
@@ -224,6 +226,8 @@ export function formatIntrospectionOutput(
     ""
   ].join("\n");
 }
+
+type AudioProbeReady = (audio: Awaited<ReturnType<typeof probeWavSource>>, size: number, tags: WavTags) => void;
 
 type AudioProbeInput = { bytes: Uint8Array; args: readonly string[] } | { audio: Omit<AudioAst, "data" | "nodes" | "pictures">; size: number; args: readonly string[] };
 
@@ -605,7 +609,7 @@ function parseProbeArguments(args: readonly string[]) {
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget };
 }
 
-async function probeSourceMetadata(context: CommandContext, plugin: MediaAstPlugin, input: MediaProbeSource, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio?: (audio: Awaited<ReturnType<typeof probeWavSource>>, size: number) => void): Promise<MediaProbeRecords | undefined> {
+async function probeSourceMetadata(context: CommandContext, plugin: MediaAstPlugin, input: MediaProbeSource, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void): Promise<MediaProbeRecords | undefined> {
   let sourceFailed = false;
   const source: MediaProbeSource = { size: input.size, async read(offset, length) {
     try {
@@ -624,7 +628,11 @@ async function probeSourceMetadata(context: CommandContext, plugin: MediaAstPlug
   }
   const result = await plugin.probeMetadata!(source, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
   if (onAudio) {
-    try { onAudio(await probeWavSource(source, { signal: context.signal }), input.size); }
+    const tags = new WavTags(source, context);
+    retain(tags.close);
+    try { onAudio(await probeWavSource(source, { signal: context.signal, onTag: async span => {
+      try { await tags.add(span); } catch (error) { sourceFailed = true; throw error; }
+    } }), input.size, tags); }
     catch (error) {
       context.signal.throwIfAborted();
       if (sourceFailed) throw error;
@@ -634,13 +642,14 @@ async function probeSourceMetadata(context: CommandContext, plugin: MediaAstPlug
   return result;
 }
 
-async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPlugin, path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio?: (audio: Awaited<ReturnType<typeof probeWavSource>>, size: number) => void): Promise<MediaProbeRecords | undefined> {
+async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPlugin, path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void): Promise<MediaProbeRecords | undefined> {
   if (!plugin.canDemux || !plugin.probeMetadata || !context.fs.openReadFile) return undefined;
   context.signal.throwIfAborted();
   const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
   context.signal.throwIfAborted();
   if (capabilities.retainedRead !== true) return undefined;
   const handle = await context.fs.openReadFile(path, { signal: context.signal });
+  if (onAudio) retain(handle.close.bind(handle));
   let failed = true;
   try {
     context.signal.throwIfAborted();
@@ -651,13 +660,15 @@ async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPl
     budget.checkInputBytes(stat.size);
     const result = await probeSourceMetadata(context, plugin, { size: stat.size,
       read: (offset, length) => handle.read(offset, length, { signal: context.signal })
-    }, filename, budget, records, onAudio);
+    }, filename, budget, records, onAudio, retain);
     context.signal.throwIfAborted();
     failed = false;
     return result;
   } finally {
-    if (failed) { try { await handle.close(); } catch { /* Preserve the primary failure. */ } }
-    else await handle.close();
+    if (!onAudio) {
+      if (failed) { try { await handle.close(); } catch { /* Preserve the primary failure. */ } }
+      else await handle.close();
+    }
   }
 }
 
@@ -736,6 +747,14 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         }
       }
 
+      const retained: (() => Promise<void>)[] = [];
+      const retain = (close: () => Promise<void>) => { retained.push(close); };
+      const closeInputs = async () => {
+        let failure: unknown, failed = false;
+        while (retained.length) { try { await retained.pop()!(); } catch (error) { if (!failed) { failed = true; failure = error; } } }
+        if (failed) throw failure;
+      };
+      let storedTags: WavTags | undefined;
       try {
         const { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
@@ -746,7 +765,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         const explicitPlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : undefined;
         const retainedPlugin = explicitPlugin ?? automaticPlugin;
         let probeResult = retainedPlugin && !isStdin(inputTarget)
-          ? await probeRetainedMetadata(context, retainedPlugin, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames }, automaticAudio ? (audio, size) => { audioInput = { audio, size, args }; } : undefined)
+          ? await probeRetainedMetadata(context, retainedPlugin, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain)
           : undefined;
         if (!probeResult && explicitPlugin)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames });
@@ -758,7 +777,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               context.inputBudget?.check(total); budget.checkInputBytes(total);
             });
             if (sniffed.wav) {
-              probeResult = await withStagedProbeSource(context, sniffed.stream, source => probeSourceMetadata(context, automaticPlugin, source, inputTarget, budget, { showPackets, showFrames }, (audio, size) => { audioInput = { audio, size, args }; }));
+              probeResult = await withStagedProbeSource(context, sniffed.stream, source => probeSourceMetadata(context, automaticPlugin, source, inputTarget, budget, { showPackets, showFrames }, (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; }, retain), retain);
             } else replay = sniffed.stream;
           }
         }
@@ -770,6 +789,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
             const msg = explicitFormat
               ? `ffprobe: Unknown input format: '${explicitFormat}' (AST not registered)\n`
               : `ffprobe: ${inputTarget}: Invalid data found when processing input or format AST not registered\n`;
+            await closeInputs();
             if (!quiet) await writeBytes(context.stderr, encodeUtf8(msg), context.signal);
             return { exitCode: 1 };
           }
@@ -786,7 +806,9 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           if (!options.asts && !explicitFormat) audioInput = { bytes, args };
         }
 
-        const formatted = formatFfprobeResultChunks(probeResult, {
+        const formatted = storedTags && audioInput && "audio" in audioInput
+          ? formatTaggedAudio(audioInput.audio, audioInput.size, audioInput.args, storedTags)
+          : formatFfprobeResultChunks(probeResult, {
           printFormat,
           showFormat,
           showStreams,
@@ -800,10 +822,11 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           countPackets
         }, audioInput);
 
-        await writeProbeOutput(context, formatted, total => budget.checkOutputBytes(total));
+        await writeProbeOutput(context, formatted, total => budget.checkOutputBytes(total), closeInputs);
         options.onMetrics?.(budget.getStats());
         return { exitCode: 0 };
       } catch (err) {
+        try { await closeInputs(); } catch { /* Preserve the primary failure. */ }
         rethrowRuntimeError(context, err);
         const msg = err instanceof Error ? err.message : String(err);
         if (!quiet)

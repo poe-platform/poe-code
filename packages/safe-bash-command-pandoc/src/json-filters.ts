@@ -57,6 +57,7 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime | JsonStre
           } catch (reason) {return Promise.reject(fail(reason));}
           const operation = (async () => {
             try {
+              if (bytes.length) context.charge("references", 1);
               for (let offset = 0; offset < bytes.length; offset += 16384) {
                 context.checkpoint(); signal.throwIfAborted();
                 await streams.stdout.write(bytes.slice(offset, offset + 16384));

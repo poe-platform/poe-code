@@ -172,16 +172,31 @@ export class PdfMutableObjectStore {
     const parsed = await parseCosRangeValue(source, 0, { ...this.options, signal });
     if (!parsed.value) throw new PdfError("E_PARSE", "Missing mutable PDF value");
     const object = { objectNumber: number, generationNumber: generation, value: restoreStringFormats(parsed.value) };
-    if (!hasStream) return object;
+    const stream = hasStream ? this.streamSnapshot(at, streamAt, length, hasStream) : undefined;
+    return stream ? { ...object, stream } : object;
+  }
+  /** Borrow encoded stream bytes without parsing the object's dictionary. */
+  getStream(number: number): Promise<PdfRetainedOutputObject["stream"]> {
+    return this.operation(async () => {
+      if (!Number.isSafeInteger(number) || number < 1) throw new RangeError("Invalid PDF object number");
+      const at = await this.index.get(BigInt(number));
+      if (at === undefined || at === DELETED_OBJECT) return undefined;
+      const bytes = await this.backing.read(Number(at), 64), record = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      const flag = record.getFloat64(40);
+      return flag ? this.streamSnapshot(Number(at), record.getFloat64(24), record.getFloat64(32), flag) : undefined;
+    });
+  }
+  private streamSnapshot(at: number, streamAt: number, length: number, flag: number): NonNullable<PdfRetainedOutputObject["stream"]> {
+    const backing = this.backing, signal = this.signal;
     async function* chunks() {
       for (let offset = 0; offset < length; offset += 16384) {
         if (offset > 0 && offset % (16384 * 64) === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         signal.throwIfAborted(); yield await backing.read(streamAt + offset, Math.min(16384, length - offset));
       }
     }
-    const stream = { length, chunks: { [Symbol.asyncIterator]: chunks }, decoded: hasStream === 2 };
+    const stream = { length, chunks: { [Symbol.asyncIterator]: chunks }, decoded: flag === 2 };
     this.receipts.set(stream, at);
-    return { ...object, stream };
+    return stream;
   }
   /** Remember successful decoding only while this stream snapshot is current. */
   markDecoded(object: PdfRetainedOutputObject): Promise<void> {

@@ -162,7 +162,7 @@ export class QpdfJsonValues {
   // JSON.parse removes duplicate JSON names before conversion, but decoded PDF
   // name collisions happen after each value is converted. Validate the former
   // view before emitting the latter so overwritten invalid numbers still fail.
-  private async validate(root: number): Promise<void> {
+  async validate(root: number): Promise<void> {
     let position = root;
     for (;;) {
       await this.cooperate();
@@ -183,6 +183,58 @@ export class QpdfJsonValues {
         position = header.parent; header = parent;
       }
     }
+  }
+  /** Look up a converted PDF dictionary name, after prefix decoding/collisions. */
+  async property(root: number, name: string): Promise<number | undefined> {
+    if ((await this.tree.describe(root)).kind !== "object") return undefined;
+    for (let key = Number(await this.first.get(BigInt(root)) ?? 0n); key;) {
+      await this.cooperate(); const value = (await this.tree.describe(key)).end;
+      if (await this.keyEquals(key, name)) return value;
+      key = Number(await this.next.get(BigInt(value)) ?? 0n);
+    }
+    return undefined;
+  }
+  private async keyEquals(key: number, name: string): Promise<boolean> {
+    const text = await this.tree.smallText(key, name.length + 3);
+    return text !== undefined && text.slice(text.startsWith("n:/") ? 3 : text.startsWith("/") ? 1 : 0) === name;
+  }
+  /** Stream an imported stream dictionary with legacy filter/length handling. */
+  async *streamDictionary(root: number | undefined, length: number): AsyncGenerator<Uint8Array> {
+    if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("Invalid PDF stream length");
+    if (root !== undefined) await this.validate(root);
+    const encoder = new TextEncoder();
+    const object = root !== undefined && (await this.tree.describe(root)).kind === "object";
+    let strip = false;
+    if (object) {
+      const filter = await this.property(root!, "Filter");
+      const recognized = async (position: number) => {
+        if ((await this.tree.describe(position)).kind !== "string") return false;
+        const text = await this.tree.smallText(position, 32);
+        if (text === undefined) return false;
+        const skip = text.startsWith("n:/") ? 3 : text.startsWith("n:") ? 2 : text.startsWith("/") ? 1 : 0;
+        return skip > 0 && ["FlateDecode", "ASCIIHexDecode", "ASCII85Decode", "LZWDecode", "RunLengthDecode"].includes(text.slice(skip));
+      };
+      if (filter !== undefined) {
+        strip = await recognized(filter);
+        if ((await this.tree.describe(filter)).kind === "array") {
+          strip = true;
+          for await (const child of this.tree.children(filter)) if (!await recognized(child)) { strip = false; break; }
+        }
+      }
+    }
+    yield encoder.encode("<<\n"); let hasLength = false;
+    for (let key = object ? Number(await this.first.get(BigInt(root!)) ?? 0n) : 0; key;) {
+      await this.cooperate(); const value = (await this.tree.describe(key)).end;
+      if (!strip || !await this.keyEquals(key, "Filter") && !await this.keyEquals(key, "DecodeParms")) {
+        yield* this.scalar(key, true); yield encoder.encode(" ");
+        if (await this.keyEquals(key, "Length")) { hasLength = true; yield serializeCosNodeBytes(cosNumber(length)); }
+        else yield* this.chunks(value);
+        yield encoder.encode("\n");
+      }
+      key = Number(await this.next.get(BigInt(value)) ?? 0n);
+    }
+    if (!hasLength) yield encoder.encode(`/Length ${length}\n`);
+    yield encoder.encode(">>");
   }
   async *chunks(root: number): AsyncGenerator<Uint8Array> {
     await this.validate(root);

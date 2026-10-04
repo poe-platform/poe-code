@@ -116,3 +116,12 @@ it("limits validation to the selected JSON subtree and ignores replaced JSON dup
     await expect(collect(values.chunks(root))).rejects.toThrow("Invalid non-finite PDF number");
   });
 });
+
+it("rewrites stream dictionaries after conversion while preserving key positions and unknown filters", async () => {
+  for (const [input, expected] of [
+    ['{"/Length":99,"/Filter":["/FlateDecode","n:ASCIIHexDecode"],"/DecodeParms":{},"/Label":"u:x"}', '<<\n/Length 3\n/Label (x)\n>>'],
+    ['{"/Filter":[],"/DecodeParms":{},"/Label":"u:x"}', '<<\n/Label (x)\n/Length 3\n>>'],
+    ['{"/Filter":"/Unknown","/DecodeParms":{}}', '<<\n/Filter /Unknown\n/DecodeParms <<\n>>\n/Length 3\n>>'],
+    ['[1,2]', '<<\n/Length 3\n>>']
+  ]) await fixture(input!, async(values,root)=>{expect(new TextDecoder().decode(await collect(values.streamDictionary(root,3)))).toBe(expected);});
+});

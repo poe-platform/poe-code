@@ -164,3 +164,17 @@ it("keeps the previous identity after a backing write fails and closes the strea
   } finally { await store.close(); }
   expect(opened).toBeGreaterThan(0); expect(closed).toBe(opened); expect(await base.readdir("/")).toEqual([]);
 });
+
+it("borrows raw streams without parsing wide dictionaries and retains deleted snapshots", async () => {
+  const fs = createMemoryFileSystem(), store = new PdfMutableObjectStore({fs,directory:"/"},{maxNodes:1});
+  const body=encoder.encode("<< /Length 3 /Values [1 2 3] >>");
+  try {
+    await store.setSerializedValue({objectNumber:1,generationNumber:0,body:{length:body.length,chunks:[body]},stream:{length:3,chunks:[Uint8Array.of(1,2,3)]}});
+    await expect(store.get(1)).rejects.toThrow();
+    const snapshot=(await store.getStream(1))!; await store.delete(1);
+    expect(await store.getStream(1)).toBeUndefined(); expect(await collect(snapshot.chunks)).toEqual(Buffer.from([1,2,3]));
+    await store.setSerializedValue({objectNumber:2,generationNumber:0,body:{length:1,chunks:[encoder.encode("1")]}});
+    expect(await store.getStream(2)).toBeUndefined(); expect(await store.getStream(999)).toBeUndefined();
+  }finally{await store.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});

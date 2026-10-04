@@ -104,3 +104,5 @@ export { encryptRetainedPdfChunks } from "./cos/retained-encryption.js";
 export { replaceRetainedPdfName } from "./edit/retained-name-replacement.js";
 
 export { QpdfJsonValues } from "./cos/qpdf-json-values.js";
+
+export { QpdfJsonDocument, type ApplyQpdfJsonOptions } from "./cos/qpdf-json-document.js";

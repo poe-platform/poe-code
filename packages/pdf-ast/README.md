@@ -914,6 +914,19 @@ string encodings follow QPDF JSON import semantics. Its indexes use caller
 storage; strings and containers stream without a resident value tree. Keep the
 source tree open while reading, and close the view to release its indexes.
 
+`QpdfJsonDocument` imports UTF-8 QPDF JSON chunks with `apply(chunks, options)`
+and emits reconstructed PDF bytes with `chunks()`. Repeated `apply` calls update
+the same caller-backed object store, including deletion, generation changes,
+inline base64 streams and borrowed `dataFile(path)` sources. Catalog fallback
+preserves insertion order across updates. Start from an existing retained PDF
+with `QpdfJsonDocument.fromDocument(document, source, storage)`. The caller owns
+input/datafile handles; close the JSON owner on every outcome and discard it
+after a failed update. Use `maxInputBytes` on each update and `maxOutputBytes`
+on output, and stage completed output before publishing. `syntaxError` can
+provide caller-specific JSON diagnostics without collecting the source.
+`PdfMutableObjectStore.getStream(number)` borrows encoded bytes independently
+of dictionary parsing; existing snapshots survive deletion and replacement.
+
 `saveRetainedDocumentChunks(document, storage, options)` saves the complete
 object graph with the ordinary document-save page-tree behavior: inherited page
 attributes become explicit, page parents point to the root, and the root's

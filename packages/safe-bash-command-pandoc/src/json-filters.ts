@@ -54,22 +54,24 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime | JsonStre
             if (used) yield chunk.slice(0, used);
           } finally {await reader.return(undefined);}
         })();
-        let open = true, active: Promise<void> | undefined;
+        let open = true, writing = false, active: Promise<void> | undefined;
         let failure: {reason: unknown} | undefined;
         const fail = (reason: unknown) => {failure ??= {reason}; controller.abort(failure.reason); return failure.reason;};
         const stdout = {write(bytes: Uint8Array): Promise<void> {
           try {
             context.checkpoint(); signal.throwIfAborted();
             if (failure) throw failure.reason;
-            if (!open || active) throw new PandocError("E_IO", "convert", "Filter output is closed or a write is pending");
+            if (!open || writing) throw new PandocError("E_IO", "convert", "Filter output is closed or a write is pending");
             if (!(bytes instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Filter output must be bytes");
           } catch (reason) {return Promise.reject(fail(reason));}
+          writing = true;
           const operation = (async () => {
             try {
               context.charge("inputBytes", bytes.length);
               context.charge("retainedBytes", bytes.length);
               if (bytes.length) context.charge("references", 1);
-              if (bytes.length) await (streams.stdout as JsonFilterOutput)[jsonFilterWrite]?.(bytes.length);
+              const boundary = (streams.stdout as JsonFilterOutput)[jsonFilterWrite];
+              if (bytes.length && boundary) await boundary.call(streams.stdout, bytes.length);
               for (let offset = 0; offset < bytes.length; offset += 16384) {
                 context.checkpoint(); signal.throwIfAborted();
                 await streams.stdout.write(bytes.slice(offset, offset + 16384));
@@ -77,7 +79,7 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime | JsonStre
             } catch (reason) {throw fail(reason);}
           })();
           active = operation;
-          void operation.finally(() => {if (active === operation) active = undefined;}).catch(() => {});
+          void operation.finally(() => {if (active === operation) {active = undefined; writing = false;}}).catch(() => {});
           return operation;
         }};
         try {

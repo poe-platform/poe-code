@@ -99,6 +99,25 @@ it("rejects concurrent output writes and drains the outstanding operation", asyn
   } finally {release(); await context.close();}
 });
 
+it("rejects a sink that reenters the active output write", async () => {
+  const context = Object.assign(new ExecutionContext("convert", {}), {to: "json"});
+  let output!: {write(bytes: Uint8Array): Promise<void>}, entered = false;
+  const written = vi.fn(async () => {
+    if (entered) return;
+    entered = true;
+    await expect(output.write(new Uint8Array(1))).rejects.toMatchObject({code: "E_IO"});
+  });
+  const filters = createJsonFilterCapability({async runStream({stdout}) {
+    output = stdout;
+    await stdout.write(new Uint8Array(1));
+    return 0;
+  }});
+  try {
+    await expect(filters.applyJsonStream!({stdin: (async function* () {})(), stdout: {write: written}, signal: new AbortController().signal}, {kind: "json", path: "filter"}, context)).rejects.toMatchObject({code: "E_IO"});
+    expect(written).toHaveBeenCalledOnce();
+  } finally {await context.close();}
+});
+
 it("chains real streaming filters through retained conversion without document collectors", async () => {
   const {MemoryFileSystem} = await import("@poe-code/safe-fs/fs/memory");
   const {convertToOutput} = await import("./engine.js");

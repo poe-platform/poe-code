@@ -6069,27 +6069,15 @@ function createPacket(resolution, precinctNumber, layerNumber) {
     resolution.onAllocation?.(128);
     resolution.packetAdmission = 128;
   }
-  const precinctCodeblocks = [];
-  const subbands = resolution.subbands;
-  for (let i = 0, ii = subbands.length; i < ii; i++) {
-    const subband = subbands[i];
-    const codeblocks = subband.codeblocks;
-    for (let j = 0, jj = codeblocks.length; j < jj; j++) {
-      const codeblock = codeblocks[j];
-      if (codeblock.precinctNumber !== precinctNumber) {
-        continue;
-      }
-      const admission = 128 + (precinctCodeblocks.length + 1) * 16;
-      if (admission > resolution.packetAdmission) {
-        resolution.onAllocation?.(admission - resolution.packetAdmission);
-        resolution.packetAdmission = admission;
-      }
-      precinctCodeblocks.push(codeblock);
-    }
-  }
   return {
     layerNumber,
-    codeblocks: precinctCodeblocks
+    *codeblocks() {
+      for (const subband of resolution.subbands) {
+        for (const codeblock of subband.codeblocks) {
+          if (codeblock.precinctNumber === precinctNumber) yield codeblock;
+        }
+      }
+    }
   };
 }
 function LayerResolutionComponentPositionIterator(context) {
@@ -6538,11 +6526,21 @@ function* parseTilePackets(context, data, offset, dataLength) {
     if (!(yield* readBits(1))) {
       continue;
     }
-    const layerNumber = packet.layerNumber,
-      queue = [];
-    let codeblock;
-    for (let i = 0, ii = packet.codeblocks.length; i < ii; i++) {
-      codeblock = packet.codeblocks[i];
+    const layerNumber = packet.layerNumber;
+    let queue;
+    if (context.storedPlanes) {
+      queue = context.packetQueue;
+      if (!queue) {
+        context.onAllocation?.(256);
+        context.packetQueue = queue = createJpxRecords(3);
+      }
+      queue.tail = queue.head;
+      queue.used = queue.length = 0;
+    } else queue = [];
+    let codeblock, codeblockIndex = 0;
+    for (const current of packet.codeblocks()) {
+      codeblock = current;
+      const index = codeblockIndex++;
       let precinct = codeblock.precinct;
       const codeblockColumn = codeblock.cbx - precinct.cbxMin;
       const codeblockRow = codeblock.cby - precinct.cbyMin;
@@ -6612,33 +6610,76 @@ function* parseTilePackets(context, data, offset, dataLength) {
       const codingpassesLog2 = log2(codingpasses);
       const bits = (codingpasses < 1 << codingpassesLog2 ? codingpassesLog2 - 1 : codingpassesLog2) + codeblock.Lblock;
       const codedDataLength = (yield* readBits(bits));
-      if (queue.length >= (context.packetQueueAdmission ?? 0)) {
-        context.onAllocation?.(256);
-        context.packetQueueAdmission = queue.length + 1;
+      if (context.storedPlanes) {
+        yield* appendJpxRecord(queue, [index, codingpasses, codedDataLength]);
+      } else {
+        if (queue.length >= (context.packetQueueAdmission ?? 0)) {
+          context.onAllocation?.(256);
+          context.packetQueueAdmission = queue.length + 1;
+        }
+        queue.push([index, codingpasses, codedDataLength]);
       }
-      queue.push({
-        codeblock,
-        codingpasses,
-        dataLength: codedDataLength
-      });
     }
     alignToByte();
     if (ephMarkerUsed) {
       (yield* skipMarkerIfEqual(0x92));
     }
-    while (queue.length > 0) {
-      const packetItem = queue.shift();
-      codeblock = packetItem.codeblock;
+    const queueCursor = {}, codeblocks = packet.codeblocks();
+    let ordinal = -1;
+    for (let i = 0; i < queue.length; i++) {
+      const [index, codingpasses, dataLength] = context.storedPlanes
+        ? yield* readJpxRecord(queue, i, queueCursor) : queue[i];
+      while (ordinal < index) { codeblock = codeblocks.next().value; ordinal++; }
       yield* appendJpxSegment(codeblock, data, offset + position,
-        offset + position + packetItem.dataLength, packetItem.codingpasses, context);
-      position += packetItem.dataLength;
+        offset + position + dataLength, codingpasses, context);
+      position += dataLength;
     }
   }
   return position;
 }
-// One segment block fits in a single fixed vector-cache page. Keep only the
-// head and tail descriptors on each codeblock; older blocks replay from storage.
-const jpxSegmentsPerBlock = 255;
+// Fixed numeric record blocks share the bounded vector cache. Queues reset
+// their tail and reuse existing blocks; codeblock segments append persistently.
+function createJpxRecords(stride) {
+  const capacity = Math.floor(511 / stride);
+  return {head: undefined, tail: undefined, used: 0, length: 0, stride, capacity};
+}
+function* appendJpxRecord(list, values) {
+  if (!list.head) list.head = list.tail = yield* jpxVectorAllocate(1 + list.capacity * list.stride, 8, true);
+  if (list.used === list.capacity) {
+    const next = yield* jpxVectorRead(list.tail, 0);
+    let block;
+    if (next) block = {...list.head, position: next - 1};
+    else {
+      block = yield* jpxVectorAllocate(list.head.length, 8, true);
+      yield* jpxVectorWrite(list.tail, 0, block.position + 1);
+    }
+    list.tail = block;
+    list.used = 0;
+  }
+  for (let i = 0; i < list.stride; i++) {
+    yield* jpxVectorWrite(list.tail, 1 + list.used * list.stride + i, values[i]);
+  }
+  list.used++;
+  list.length++;
+}
+function* readJpxRecord(list, index, cursor) {
+  const blockIndex = Math.floor(index / list.capacity);
+  if (!cursor.block || cursor.index > blockIndex) {
+    cursor.block = list.head;
+    cursor.index = 0;
+  }
+  while (cursor.index < blockIndex) {
+    const position = (yield* jpxVectorRead(cursor.block, 0)) - 1;
+    if (position < 0) throw new JpxError("Missing packet record backing");
+    cursor.block = {...list.head, position};
+    cursor.index++;
+  }
+  const values = [], slot = index % list.capacity;
+  for (let i = 0; i < list.stride; i++) {
+    values.push(yield* jpxVectorRead(cursor.block, 1 + slot * list.stride + i));
+  }
+  return values;
+}
 function* appendJpxSegment(codeblock, data, start, end, codingpasses, context) {
   if (!context.storedPlanes) {
     context.onAllocation?.(256);
@@ -6648,40 +6689,19 @@ function* appendJpxSegment(codeblock, data, start, end, codingpasses, context) {
   let list = codeblock.data;
   if (!list) {
     context.onAllocation?.(256);
-    const block = yield* jpxVectorAllocate(1 + jpxSegmentsPerBlock * 2, 8, true);
-    codeblock.data = list = {head: block, tail: block, used: 0, length: 0,
-      sourceLength: data.length, totalLength: 0, codingpasses: 0};
+    codeblock.data = list = createJpxRecords(2);
+    list.sourceLength = data.length;
+    list.totalLength = list.codingpasses = 0;
   }
-  if (list.used === jpxSegmentsPerBlock) {
-    const block = yield* jpxVectorAllocate(1 + jpxSegmentsPerBlock * 2, 8, true);
-    yield* jpxVectorWrite(list.tail, 0, block.position + 1);
-    list.tail = block;
-    list.used = 0;
-  }
-  yield* jpxVectorWrite(list.tail, 1 + list.used * 2, start);
-  yield* jpxVectorWrite(list.tail, 2 + list.used * 2, end);
-  list.used++;
-  list.length++;
+  // Empty segments contribute coding passes but no concatenated input bytes.
+  if (end !== start) yield* appendJpxRecord(list, [start, end]);
   list.totalLength += end - start;
   list.codingpasses += codingpasses;
 }
 function* readJpxSegment(list, index, cursor) {
   if (Array.isArray(list)) return list[index];
-  const blockIndex = Math.floor(index / jpxSegmentsPerBlock);
-  if (!cursor.block || cursor.index > blockIndex) {
-    cursor.block = list.head;
-    cursor.index = 0;
-  }
-  while (cursor.index < blockIndex) {
-    const position = (yield* jpxVectorRead(cursor.block, 0)) - 1;
-    if (position < 0) throw new JpxError("Missing codeblock segment backing");
-    cursor.block = {...list.head, position};
-    cursor.index++;
-  }
-  const slot = index % jpxSegmentsPerBlock;
-  return {data: {length: list.sourceLength},
-    start: yield* jpxVectorRead(cursor.block, 1 + slot * 2),
-    end: yield* jpxVectorRead(cursor.block, 2 + slot * 2)};
+  const [start, end] = yield* readJpxRecord(list, index, cursor);
+  return {data: {length: list.sourceLength}, start, end};
 }
 function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation, stored) {
   const x0 = subband.tbx0;

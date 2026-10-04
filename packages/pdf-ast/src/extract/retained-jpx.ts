@@ -5,7 +5,7 @@ import { JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { decodeSamplesToRgbaAsync, type ResolvedColorSpace } from "./images.js";
 
 export interface PdfRetainedJpxOptions {
-  /** Caller-owned coefficient, wavelet scratch, sample, precinct-tree and segment backing. */
+  /** Caller-owned coefficient, wavelet scratch, sample, precinct-tree and packet-record backing. */
   readonly coefficientStorage?: PdfPixelStorage;
   /** Conservative cumulative input-cache/decoder admission plus one sample and RGBA
    * row. Caller source caches and resolved color state are additional memory. */

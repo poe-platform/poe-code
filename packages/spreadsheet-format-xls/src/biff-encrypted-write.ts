@@ -1,7 +1,7 @@
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { createRc4Cipher } from "./biff-encryption.js";
-import { prepareBiffPropertyContainer, prepareBiffPropertySource, type BiffPropertySource } from "./biff-encrypted-properties-write.js";
+import { prepareBiffPropertyContainer, prepareBiffPropertySource, type BiffPropertySource, type BiffPropertyInput } from "./biff-encrypted-properties-write.js";
 
 export type BiffEncryptionProfile = { readonly algorithm: "xor" } | { readonly algorithm: "rc4" } |
   { readonly algorithm: "rc4-cryptoapi"; readonly keyBits: number; readonly encryptedProperties?: boolean };
@@ -46,13 +46,13 @@ const plaintextRecords = new Set([0x809, 0x2f, 0x194, 0x195, 0xe1, 0x196, 0x138]
  * offsets. MS-OFFCRYPTO 2.3.5/2.3.6 and MS-XLS 2.2.10: unauthenticated RC4. */
 export function encryptBiffStream(bytes: Uint8Array | BiffRc4Source, context: CapabilityContext,
   profile: Exclude<BiffEncryptionProfile, { readonly algorithm: "xor" }>,
-  properties: ReadonlyMap<string, Uint8Array>, stageProperties: true): Promise<BiffPropertySource | undefined>;
+  properties: ReadonlyMap<string, BiffPropertyInput>, stageProperties: true): Promise<BiffPropertySource | undefined>;
 export function encryptBiffStream(bytes: Uint8Array | BiffRc4Source, context: CapabilityContext,
   profile?: Exclude<BiffEncryptionProfile, { readonly algorithm: "xor" }>,
   properties?: ReadonlyMap<string, Uint8Array>, stageProperties?: false): Promise<Uint8Array | undefined>;
 export async function encryptBiffStream(bytes: Uint8Array | BiffRc4Source, context: CapabilityContext,
   profile: Exclude<BiffEncryptionProfile, { readonly algorithm: "xor" }> = { algorithm: "rc4" },
-  properties: ReadonlyMap<string, Uint8Array> = new Map(), stageProperties = false): Promise<Uint8Array | BiffPropertySource | undefined> {
+  properties: ReadonlyMap<string, BiffPropertyInput> = new Map(), stageProperties = false): Promise<Uint8Array | BiffPropertySource | undefined> {
   context.signal.throwIfAborted();
   if (!context.password || !context.entropy) unsupported("export requires password and cryptographic entropy capabilities");
   const size = bytes instanceof Uint8Array ? bytes.length : bytes.size;
@@ -70,7 +70,11 @@ export async function encryptBiffStream(bytes: Uint8Array | BiffRc4Source, conte
   };
   charge(1280 + 16 + hashLength + size + Math.ceil(size / 1024) * (64 + 256 + 1024));
   const hasProperties = profile.algorithm === "rc4-cryptoapi" && profile.encryptedProperties;
-  const encryptProperties = hasProperties && !stageProperties ? prepareBiffPropertyContainer(properties, context, charge) : undefined;
+  if (hasProperties && !stageProperties) for (const input of properties.values()) {
+    if (!(input instanceof Uint8Array)) throw new SsconvertError("invalid-request", "BIFF property ranges require staged output");
+  }
+  const encryptProperties = hasProperties && !stageProperties
+    ? prepareBiffPropertyContainer(properties as ReadonlyMap<string, Uint8Array>, context, charge) : undefined;
   const stagePropertySource = hasProperties && stageProperties ? prepareBiffPropertySource(properties, context, charge) : undefined;
   let secret: string | Uint8Array | undefined;
   try {

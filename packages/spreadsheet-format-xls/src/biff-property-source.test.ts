@@ -92,10 +92,14 @@ it.each([40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128])('publishes CryptoA
   delete bufferedContext.createWorkingStorage;
   const expected = await createBiffWriter(8)(book, options, bufferedContext);
   const spy = vi.spyOn(properties, 'prepareBiffPropertyContainer').mockImplementation(() => { throw new Error('buffered property writer'); });
+  const original = properties.prepareBiffPropertySource;
+  const ranges = vi.spyOn(properties, 'prepareBiffPropertySource').mockImplementation((streams, ...args) => {
+    expect(streams.get('Opaque')).not.toBeInstanceOf(Uint8Array); return original(streams, ...args);
+  });
   try {
     expect(await createBiffWriter(8)(book, options, ctx)).toEqual(expected);
     expect(spy).not.toHaveBeenCalled(); expect(state.acquired).toBe(2); expect(state.closed).toBe(2);
-  } finally { spy.mockRestore(); }
+  } finally { spy.mockRestore(); ranges.mockRestore(); }
 });
 
 it('preserves staging and cleanup failures together', async () => {
@@ -127,4 +131,49 @@ it.each([false, true])('preserves empty property payloads, with an empty directo
   await expect(source.read(source.size + 1, 1)).rejects.toThrow('Invalid');
   const controller = new AbortController(), reason = new Error('reader cancelled'); controller.abort(reason);
   await expect(source.read(0, 1, { signal: controller.signal })).rejects.toBe(reason); await source.close();
+});
+
+it('stages generated borrowed property ranges without collecting a complete plaintext stream', async () => {
+  const { context, state, cipher, key } = fixture(), borrowed = new Uint8Array(257);
+  const plain = Uint8Array.from({ length: 100003 }, (_, i) => i % 251);
+  const expected = prepareBiffPropertyContainer(new Map([['Generated', plain]]), context, () => {})(
+    (block, size) => rc4Stream(key(block), size, context));
+  let reads = 0;
+  const input = { size: plain.length, async read(at: number, count: number) {
+    expect(count).toBeLessThanOrEqual(16384); reads++;
+    const size = Math.min(count, borrowed.length); for (let i = 0; i < size; i++) borrowed[i] = (at + i) % 251;
+    return borrowed.subarray(0, size);
+  } };
+  const prepared = prepareBiffPropertySource(new Map([['Generated', input]]), context, () => {});
+  input.size = 0; input.read = async () => { throw new Error('replaced'); };
+  const source = await prepared(cipher); expect(reads).toBeGreaterThan(380);
+  for (let at = 0; at < expected.length;) { const bytes = await source.read(at, expected.length); expect(bytes).toEqual(expected.subarray(at, at + bytes.length)); at += bytes.length; }
+  await source.close(); expect(state.closed).toBe(1);
+});
+
+it.each(['read', 'empty', 'oversized', 'abort'])('retires staged storage after %s property input failure', async mode => {
+  const { context, state, cipher, failure, controller } = fixture();
+  const borrowed = new Uint8Array(16385).fill(7);
+  const input = { size: 20000, async read() {
+    if (mode === 'read') throw failure;
+    if (mode === 'abort') controller.abort(failure);
+    return mode === 'empty' ? new Uint8Array() : borrowed;
+  } };
+  const result = prepareBiffPropertySource(new Map([['Input', input]]), context, () => {})(cipher);
+  if (mode === 'empty' || mode === 'oversized') await expect(result).rejects.toThrow('Truncated');
+  else await expect(result).rejects.toBe(failure);
+  expect(state.closed).toBe(1); expect(borrowed.every(byte => byte === 7)).toBe(true);
+  expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
+});
+it.each([-1, Infinity, NaN, 1.5])('rejects invalid property range size %s before acquiring storage', size => {
+  const { context, state } = fixture();
+  expect(() => prepareBiffPropertySource(new Map([['Input', { size, async read() { return new Uint8Array(); } }]]), context, () => {})).toThrow('Invalid');
+  expect(state.acquired).toBe(0);
+});
+
+it('checks node admission before capturing any input capabilities', () => {
+  const { context } = fixture();
+  const input = { size: 1, get read(): (position: number, count: number) => Promise<Uint8Array> { throw new Error('input inspected'); } };
+  expect(() => prepareBiffPropertySource(new Map([['Input', input]]),
+    { ...context, limits: { ...context.limits, workbookNodes: 0 } }, () => {})).toThrow('node limit');
 });

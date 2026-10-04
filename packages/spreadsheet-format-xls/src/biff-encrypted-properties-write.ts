@@ -2,9 +2,15 @@ import type { BiffRc4Cipher } from "./biff-encryption.js";
 import { SsconvertError, type CapabilityContext, type RangeSource, type WorkingStorage } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, UnsupportedRecord, Workbook } from "@poe-code/spreadsheet-ast";
 
+export type BiffPropertyInput = Uint8Array | RangeSource;
+
 /** Retained ancillary payloads stay opaque; never reinterpret them as property sets. */
+export function appendBiffAncillaryStreams(book: Workbook, streams: Map<string, BiffPropertyInput>,
+  handled: Set<UnsupportedRecord>, context: CapabilityContext, ranges: true): void;
 export function appendBiffAncillaryStreams(book: Workbook, streams: Map<string, Uint8Array>,
-  handled: Set<UnsupportedRecord>, context: CapabilityContext): void {
+  handled: Set<UnsupportedRecord>, context: CapabilityContext, ranges?: false): void;
+export function appendBiffAncillaryStreams(book: Workbook, streams: Map<string, BiffPropertyInput>,
+  handled: Set<UnsupportedRecord>, context: CapabilityContext, ranges = false): void {
   let work = 0, nodes = 0, text = 0, size = 0, closed = false;
   const owned: Uint8Array[] = [];
   const cleanup = () => { closed = true; for (const bytes of owned) bytes.fill(0); };
@@ -18,7 +24,7 @@ export function appendBiffAncillaryStreams(book: Workbook, streams: Map<string, 
   };
   const names = new Set(["\u0005SUMMARYINFORMATION", "\u0005DOCUMENTSUMMARYINFORMATION"]);
   try {
-    for (const [name, bytes] of streams) { charge(1); names.add(name.toUpperCase()); size += bytes.length; }
+    for (const [name, bytes] of streams) { charge(1); names.add(name.toUpperCase()); size += bytes instanceof Uint8Array ? bytes.length : bytes.size; }
     for (const record of book.unsupportedRecords ?? []) {
       charge(1);
       if (++nodes > (context.limits.workbookNodes ?? context.limits.outputBytes))
@@ -41,15 +47,32 @@ export function appendBiffAncillaryStreams(book: Workbook, streams: Map<string, 
       size += object.bytes.length / 2;
       if (size > context.limits.outputBytes || size > 0xffffffff)
         throw new SsconvertError("resource-limit", "ssconvert BIFF ancillary output bytes limit exceeded");
-      const bytes = new Uint8Array(object.bytes.length / 2); owned.push(bytes);
-      for (let i = 0; i < bytes.length; i++) {
-        if (!(i % 1024)) charge(1);
-        const high = "0123456789abcdef".indexOf(object.bytes[i * 2]!.toLowerCase());
-        const low = "0123456789abcdef".indexOf(object.bytes[i * 2 + 1]!.toLowerCase());
+      const hex = object.bytes, length = hex.length / 2;
+      const byte = (at: number) => {
+        const high = "0123456789abcdef".indexOf(hex[at * 2]!.toLowerCase());
+        const low = "0123456789abcdef".indexOf(hex[at * 2 + 1]!.toLowerCase());
         if (high < 0 || low < 0) throw new SsconvertError("invalid-request", "Invalid retained BIFF ancillary bytes");
-        bytes[i] = high * 16 + low;
+        return high * 16 + low;
+      };
+      const bytes = ranges ? undefined : new Uint8Array(length);
+      if (bytes) owned.push(bytes);
+      // Validate the entire retained value before requesting any export secret.
+      for (let i = 0; i < length; i++) {
+        if (!(i % 1024)) charge(1);
+        const value = byte(i); if (bytes) bytes[i] = value;
       }
-      streams.set(object.stream, bytes); handled.add(record);
+      streams.set(object.stream, bytes ?? { size: length, async read(position, count, options) {
+        charge(0); options?.signal?.throwIfAborted();
+        if (!Number.isSafeInteger(position) || position < 0 || position > length || !Number.isSafeInteger(count) || count < 0)
+          throw new SsconvertError("invalid-request", "Invalid BIFF ancillary range");
+        const size = Math.min(16384, count, length - position); charge(size);
+        const result = new Uint8Array(size);
+        try {
+          for (let i = 0; i < size; i++) { if (!(i % 1024)) { charge(0); options?.signal?.throwIfAborted(); } result[i] = byte(position + i); }
+          return result;
+        } catch (error) { result.fill(0); throw error; }
+      } });
+      handled.add(record);
     }
   } catch (error) { cleanup(); throw error; }
 }
@@ -107,7 +130,7 @@ export function prepareBiffPropertyContainer(streams: ReadonlyMap<string, Uint8A
   };
 }
 
-function propertyLayout(streams: ReadonlyMap<string, Uint8Array>, context: CapabilityContext,
+function propertyLayout<T extends BiffPropertyInput>(streams: ReadonlyMap<string, T>, context: CapabilityContext,
   charge: (amount: number) => void) {
   context.signal.throwIfAborted();
   if (streams.size > 65536 || streams.size > (context.limits.workbookNodes ?? context.limits.outputBytes))
@@ -121,7 +144,9 @@ function propertyLayout(streams: ReadonlyMap<string, Uint8Array>, context: Capab
       names.has(name.toUpperCase()))
       throw new SsconvertError("unsupported-feature", "Invalid encrypted BIFF property stream name");
     names.add(name.toUpperCase()); textSize += name.length * 3;
-    payloadSize += bytes.length; tableSize += 18 + name.length * 2;
+    const length = bytes instanceof Uint8Array ? bytes.length : bytes.size;
+    if (!Number.isSafeInteger(length) || length < 0) throw new SsconvertError("invalid-request", "Invalid BIFF property input size");
+    payloadSize += length; tableSize += 18 + name.length * 2;
   }
   if (textSize > (context.limits.workbookTextBytes ?? context.limits.outputBytes))
     throw new SsconvertError("resource-limit", "ssconvert encrypted BIFF property text limit exceeded");
@@ -137,9 +162,15 @@ export interface BiffPropertySource extends RangeSource {
 }
 
 /** Prepare before acquiring secrets; fully await staging before erasing the export key. */
-export function prepareBiffPropertySource(streams: ReadonlyMap<string, Uint8Array>, context: CapabilityContext,
+export function prepareBiffPropertySource(streams: ReadonlyMap<string, BiffPropertyInput>, context: CapabilityContext,
   charge: (amount: number) => void): (createCipher: (block: number) => BiffRc4Cipher) => Promise<BiffPropertySource> {
-  const { entries, offset, size, tableSize } = propertyLayout(streams, context, charge);
+  context.signal.throwIfAborted();
+  if (streams.size > 65536 || streams.size > (context.limits.workbookNodes ?? context.limits.outputBytes))
+    throw new SsconvertError("resource-limit", "ssconvert encrypted BIFF property node limit exceeded");
+  const captured = new Map([...streams].map(([name, value]) => [name, value instanceof Uint8Array ? value : {
+    size: value.size, read: value.read.bind(value)
+  }] as const));
+  const { entries, offset, size, tableSize } = propertyLayout(captured, context, charge); captured.clear();
   const acquire = context.createWorkingStorage?.bind(context);
   if (!acquire) throw new SsconvertError("capability-denied", "BIFF properties require caller working storage");
   let store: WorkingStorage | undefined, start = 0, closed = false, started = false;
@@ -200,7 +231,16 @@ export function prepareBiffPropertySource(streams: ReadonlyMap<string, Uint8Arra
         let block = 0;
         for (const [, bytes] of entries) {
           check(); cipher = createCipher(block++);
-          try { await emit(bytes, cipher); } finally { cipher.close(); }
+          try {
+            if (bytes instanceof Uint8Array) await emit(bytes, cipher);
+            else for (let at = 0; at < bytes.size;) {
+              const count = Math.min(16384, bytes.size - at);
+              const borrowed = await bytes.read(at, count, { signal: context.signal }); check();
+              if (!borrowed.length || borrowed.length > count) throw new SsconvertError("io", "Truncated BIFF property input");
+              const owned = new Uint8Array(borrowed);
+              try { await emit(owned, cipher); at += owned.length; } finally { owned.fill(0); }
+            }
+          } finally { cipher.close(); }
         }
         cipher = createCipher(0);
         try {
@@ -209,11 +249,11 @@ export function prepareBiffPropertySource(streams: ReadonlyMap<string, Uint8Arra
           let payload = 8; block = 0;
           for (const [name, bytes] of entries) {
             const descriptor = new Uint8Array(18 + name.length * 2), view = new DataView(descriptor.buffer);
-            view.setUint32(0, payload, true); view.setUint32(4, bytes.length, true); view.setUint16(8, block++, true);
+            view.setUint32(0, payload, true); view.setUint32(4, bytes instanceof Uint8Array ? bytes.length : bytes.size, true); view.setUint16(8, block++, true);
             descriptor[10] = name.length; descriptor[11] = 1;
             for (let i = 0; i < name.length; i++) view.setUint16(16 + i * 2, name.charCodeAt(i), true);
             try { await emit(descriptor, cipher); } finally { descriptor.fill(0); }
-            payload += bytes.length;
+            payload += bytes instanceof Uint8Array ? bytes.length : bytes.size;
           }
         } finally { cipher.close(); }
         await flush(); return source;

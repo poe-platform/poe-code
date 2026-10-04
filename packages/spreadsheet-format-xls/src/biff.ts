@@ -28,7 +28,7 @@ import { writeCfbSource } from "./cfb-write-source.js";
 import { writeBiffStream } from "./biff-write.js";
 import { readBiffProperties, biffPropertyFormats } from "./biff-properties.js";
 import { writeBiffProperties } from "./biff-properties-write.js";
-import { appendBiffAncillaryStreams, type BiffPropertySource } from "./biff-encrypted-properties-write.js";
+import { appendBiffAncillaryStreams, type BiffPropertySource, type BiffPropertyInput } from "./biff-encrypted-properties-write.js";
 import type { Codec } from "@poe-code/spreadsheet-engine/codecs/types";
 
 export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["write"]> {
@@ -52,6 +52,7 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
     }
     const properties = await writeBiffProperties(book, context);
     const propertyStreams = new Map(properties.streams), handledMetadata = new Set(properties.handledMetadata);
+    const propertyInputs = new Map<string, BiffPropertyInput>(propertyStreams);
     const streams = new Map<string, Uint8Array>();
     const staged = new Map<string, BiffStagedOutput>();
     let propertySource: BiffPropertySource | undefined;
@@ -71,8 +72,10 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
       }
     }
     try {
-      if (encrypted?.algorithm === "rc4-cryptoapi" && encrypted.encryptedProperties)
-        appendBiffAncillaryStreams(book, propertyStreams, handledMetadata, context);
+      if (encrypted?.algorithm === "rc4-cryptoapi" && encrypted.encryptedProperties) {
+        if (context.createWorkingStorage) appendBiffAncillaryStreams(book, propertyInputs, handledMetadata, context, true);
+        else appendBiffAncillaryStreams(book, propertyStreams, handledMetadata, context);
+      }
       const source = handledMetadata.size ? { ...book,
         unsupportedRecords: (book.unsupportedRecords ?? []).filter(record => !handledMetadata.has(record)) } : book;
       if (context.createWorkingStorage) {
@@ -81,7 +84,7 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
           staged.set(revision === 7 ? "Book" : "Workbook", output);
           await writeBiffStream(source, revision, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted, revision) : undefined, output);
           if (revision === 8 && encrypted && encrypted.algorithm !== "xor") {
-            propertySource = await encryptBiffStream(output, context, encrypted, propertyStreams, true);
+            propertySource = await encryptBiffStream(output, context, encrypted, propertyInputs, true);
           }
         }
       } else {

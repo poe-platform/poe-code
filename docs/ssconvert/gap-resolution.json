@@ -5199,6 +5199,13 @@
       "validation": "13 failing regressions fixed;424 Gnumeric tests and selected workspace build pass.16 native controls cover three UTF8 casings and canonical UTF-8,with/without BOM and gzip;32 compiled SDK/command outputs match native bytes exactly.Three original border reproducers now import as workbooks instead of text. Command lint/source/test/public consumer types verified.",
       "remaining": "Other encoding aliases and malformed declaration/native diagnostic parity remain unqualified. All19 families remain open."
     },
+    "pdfSyntheticItalic20261004": {
+      "finding": "Requested italic faces could resolve to upright host font bytes; PDF cells painted upright instead of applying the native synthetic oblique transform.",
+      "implementation": "Apply a 0.2 horizontal shear to requested italic fonts without head italic or OS/2 italic/oblique flags. Preserve logical advances and transform decoration ink bounds. Genuine italic faces retain their existing shape.",
+      "validation": "One failing memory regression fixed;374 PDF tests,selected workspace build and command lint/source/test/Node/browser consumer types pass.21 native inputs and42 compiled SDK/command PDFs match text origins within0.01pt,including all six prior failures. Plain and double-underlined/struck synthetic italic screenshots inspected. Five decoration inputs were corrected to set actual attributes before final qualification.",
+      "remaining": "Full wrapping,bidi,rich text,rotation,borders,merges,chart/object fidelity and broader rendering qualification remain open. All19 families remain open.",
+      "evidence": "out/ssconvert-continuation-1748/pdf-synthetic-italic"
+    },
     "xmlX11Fonts20261004": {
       "implementation": "Gnumeric X11 font strings are interpreted as native weight/slant hints rather than literal families. Component2 bold-prefix and component3 i/o-prefix rules remain case-sensitive,including native consecutive-hyphen handling. Hints override explicit false attributes only when set and never replace family. Each region is normalized once with charged component scanning; legacy merging and modern default replacement then use the existing paths.",
       "validation": "16 failing import/modern-XML-roundtrip controls fixed.466 Gnumeric/PDF tests plus31 final controls,selected workspace build,command lint/source/test/public consumer types pass.16 independent native inputs and32 native readbacks of public XML exports match family,size,bold,italic fields.64 compiled SDK/command XML/PDF outputs complete.26 of32 PDF geometry comparisons pass; screenshots inspected.",

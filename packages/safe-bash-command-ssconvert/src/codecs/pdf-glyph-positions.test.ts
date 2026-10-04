@@ -10,8 +10,8 @@ import {pdfText} from "./pdf-text.test-support.js";
 const context: CapabilityContext = {signal: new AbortController().signal, own() {},
   environment: {env: {}, locale: "C", timezone: "UTC"}, fonts: {async resolve() {return suppliedDefaultFont().bytes;}},
   limits: {inputBytes: 1000000, outputBytes: 4000000, workbookWork: 6000000, cells: 100, sheets: 4, operations: 100}};
-async function fixture(value: string, size: number, width = 72) {
-  return readGnumeric(new TextEncoder().encode(`<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Cols DefaultSizePts="${width}"/><g:Rows DefaultSizePts="20"/><g:PrintInformation><g:paper>na_letter</g:paper><g:Margins><g:top Points="72"/><g:bottom Points="72"/><g:left Points="72"/><g:right Points="72"/></g:Margins><g:Header Left="" Middle="" Right=""/><g:Footer Left="" Middle="" Right=""/></g:PrintInformation><g:Styles><g:StyleRegion startRow="0" endRow="0" startCol="0" endCol="0"><g:Style HAlign="GNM_HALIGN_LEFT" VAlign="GNM_VALIGN_BOTTOM" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General"><g:Font Unit="${size}" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</g:Font></g:Style></g:StyleRegion></g:Styles><g:Cells><g:Cell Row="0" Col="0" ValueType="60">${value}</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>`), context);
+async function fixture(value: string, size: number, width = 72, italic = false) {
+  return readGnumeric(new TextEncoder().encode(`<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Cols DefaultSizePts="${width}"/><g:Rows DefaultSizePts="20"/><g:PrintInformation><g:paper>na_letter</g:paper><g:Margins><g:top Points="72"/><g:bottom Points="72"/><g:left Points="72"/><g:right Points="72"/></g:Margins><g:Header Left="" Middle="" Right=""/><g:Footer Left="" Middle="" Right=""/></g:PrintInformation><g:Styles><g:StyleRegion startRow="0" endRow="0" startCol="0" endCol="0"><g:Style HAlign="GNM_HALIGN_LEFT" VAlign="GNM_VALIGN_BOTTOM" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General"><g:Font Unit="${size}" Bold="0" Italic="${italic ? 1 : 0}" Underline="0" StrikeThrough="0" Script="0">Sans</g:Font></g:Style></g:StyleRegion></g:Styles><g:Cells><g:Cell Row="0" Col="0" ValueType="60">${value}</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>`), context);
 }
 it.each([[8, [76.75, 80.5, 84.25]], [14, [76.75, 82.75, 88.75]]] as const)("paints Unit%s glyphs at rounded display advances", async (size, xs) => {
   const book = await fixture("AAA", size), original = structuredClone(book);
@@ -78,4 +78,36 @@ it.each([
   const {runs} = await pdfText(await writePdf(book, [], context));
   expect(runs[0]!.text).toBe(painted);
   expect(book).toEqual(original);
+});
+
+it.each([false, true])("uses synthetic italic only when requested (%s)", async italic => {
+  const {pdf} = await pdfText(await writePdf(await fixture("AAA", 10, 72, italic), [], context));
+  const contents = (pdf.getPage(0).node.Contents() as PDFArray).asArray().map(ref => {
+    const stream = pdf.context.lookup(ref);
+    if (!(stream instanceof PDFRawStream)) throw new Error("Missing fixture content stream");
+    return new TextDecoder().decode(decodePDFRawStream(stream).decode());
+  }).join("\n");
+  expect(contents).toContain(`1 0 ${italic ? 0.2 : 0} 1 76.75 `);
+});
+
+it.each(["head", "OS/2"])("does not synthesize oblique for a face marked italic in %s", async table => {
+  const bytes = new Uint8Array(suppliedDefaultFont().bytes);
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let found = false;
+  for (let offset = 12; offset < 12 + view.getUint16(4) * 16; offset += 16) {
+    if (new TextDecoder().decode(bytes.subarray(offset, offset + 4)) !== table) continue;
+    const flagOffset = view.getUint32(offset + 8) + (table === "head" ? 44 : 62);
+    view.setUint16(flagOffset, view.getUint16(flagOffset) | (table === "head" ? 2 : 1));
+    found = true;
+  }
+  expect(found).toBe(true);
+  const {pdf} = await pdfText(await writePdf(await fixture("AAA", 10, 72, true), [],
+    {...context, fonts: {async resolve() {return bytes;}}}));
+  const contents = (pdf.getPage(0).node.Contents() as PDFArray).asArray().map(ref => {
+    const stream = pdf.context.lookup(ref);
+    if (!(stream instanceof PDFRawStream)) throw new Error("Missing fixture content stream");
+    return new TextDecoder().decode(decodePDFRawStream(stream).decode());
+  }).join("\n");
+  expect(contents).toContain("1 0 0 1 76.75 ");
+  expect(contents).not.toContain("1 0 0.2 1");
 });

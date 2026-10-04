@@ -43,7 +43,7 @@ export async function pdfText(bytes: Uint8Array) {
       else if (operator === "BT") run = {page: pageIndex + 1, text: "", size: 0, color: [], glyphs: []};
       else if (operator === "Tf") {fontKey = parts[0]!;size = Number(parts[1]);}
       else if (operator === "Tm") {
-        if (parts.slice(0, 4).join(" ") !== "1 0 0 1") throw new Error("Unqualified fixture text matrix");
+        if (!["1 0 0 1", "1 0 0.2 1"].includes(parts.slice(0, 4).join(" "))) throw new Error("Unqualified fixture text matrix");
         x = Number(parts[4]);y = Number(parts[5]);
       } else if (operator === "Tj") {
         const codes = parts[0]!.slice(1, -1).match(/.{4}/g) ?? [], font = fonts.get(fontKey)!;

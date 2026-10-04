@@ -175,7 +175,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   try {
   const pdf = await PDFDocument.create({ updateMetadata: false });
   pdf.setProducer("ssconvert JavaScript PDF writer");
-  const fonts = new Map<string, {font: PDFFont; metrics: Font; bytes: Uint8Array; shaped: boolean; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
+  const fonts = new Map<string, {font: PDFFont; metrics: Font; shear: number; bytes: Uint8Array; shaped: boolean; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
   let fontBytes = 0;
   const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; overflow?: (displayWidth: number) => {left: number; right: number} }) => {
     tick(value.length);
@@ -204,7 +204,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         await shaper.addFont(bytes, parsed);
         pdf.registerFontkit({ create: () => parsed });
         const embeddedFont = await pdf.embedFont(bytes, { subset: true });
-        selected = {font: embeddedFont, metrics: parsed, bytes, shaped: true, supported: new Set(embeddedFont.getCharacterSet()),
+        // A resolver can supply an upright fallback for an italic request.
+        // Match Cairo's synthetic oblique matrix without slanting italic faces twice.
+        const head = parsed.head as {macStyle?: {italic?: boolean}} | undefined;
+        const os2 = parsed["OS/2"] as {fsSelection?: {italic?: boolean; oblique?: boolean}} | undefined;
+        const shear = italic && !head?.macStyle?.italic && !os2?.fsSelection?.italic && !os2?.fsSelection?.oblique ? 0.2 : 0;
+        selected = {font: embeddedFont, metrics: parsed, shear, bytes, shaped: true, supported: new Set(embeddedFont.getCharacterSet()),
           ascentRatio: parsed.ascent / parsed.unitsPerEm, descentRatio: -parsed.descent / parsed.unitsPerEm};
         fonts.set(fontKey, selected);
       }
@@ -215,7 +220,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       tick();
     }
-    const {font, metrics, supported, ascentRatio, descentRatio} = selected;
+    const {font, metrics, shear, supported, ascentRatio, descentRatio} = selected;
     const paragraphs = cellBox ? splitPrintLines(value, tick) : [value];
     const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line, supported, tick) : line);
     for (const line of shapedLines) for (const scalar of line) {
@@ -335,7 +340,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         page.pushOperators(beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));
         for (const [index, glyph] of glyphs.entries()) {
           tick();
-          page.pushOperators(setTextMatrix(1, 0, 0, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
+          page.pushOperators(setTextMatrix(1, 0, shear, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
         }
         page.pushOperators(endText());
         if (cellBox.style.underline || cellBox.style.strikeThrough) {
@@ -348,8 +353,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             tick();
             const box = glyph.bbox, origin = glyphs[index]!;
             if (!Number.isFinite(box.minX)) continue; // Spaces have no ink.
-            inkLeft = Math.min(inkLeft, origin.x + box.minX * scale);
-            inkRight = Math.max(inkRight, origin.x + box.maxX * scale);
+            inkLeft = Math.min(inkLeft, origin.x + (box.minX + shear * box.minY) * scale);
+            inkRight = Math.max(inkRight, origin.x + (box.maxX + shear * box.maxY) * scale);
             inkBottom = Math.min(inkBottom, origin.y + box.minY * scale);
           }
           const low = cellBox.style.underline === 3;

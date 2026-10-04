@@ -88,6 +88,7 @@ interface GraphicsState {
   softMask?: PdfSoftMask | undefined;
   clipRect?: [number, number, number, number] | undefined;
   dashArray?: readonly number[] | undefined;
+  storedDash?: import("../ast.js").PdfStoredDash | undefined;
   dashPhase?: number | undefined;
   fillPatternName?: string | undefined;
   blendMode?: string | undefined;
@@ -828,9 +829,9 @@ export function isOptionalContentVisible(doc: ParsedCosDocument | undefined, ocN
   return step.value;
 }
 
-function* resolveEvaluationNode(node: PdfCosNode | undefined): EvaluationWork<PdfCosNode | undefined> {
+function* resolveEvaluationNode(node: PdfCosNode | undefined, storeRootArray = false): EvaluationWork<PdfCosNode | undefined> {
   if (!node) return undefined;
-  const result = yield { kind: "resolve", node };
+  const result = yield { kind: "resolve", node, ...(storeRootArray ? { storeRootArray } : {}) };
   if (!result || !("kind" in result) || result.kind !== "resolved") throw new TypeError("Expected a resolved PDF object");
   return result.node;
 }
@@ -838,8 +839,8 @@ function* resolveEvaluationDict(node: PdfCosNode | undefined): EvaluationWork<Pd
   const resolved = yield* resolveEvaluationNode(node);
   return resolved?.kind === "dict" ? resolved : resolved?.kind === "stream" ? resolved.dict : undefined;
 }
-function* resolveEvaluationArray(node: PdfCosNode | undefined): EvaluationWork<import("../ast.js").PdfCosArray | undefined> {
-  const resolved = yield* resolveEvaluationNode(node);
+function* resolveEvaluationArray(node: PdfCosNode | undefined, storeRootArray = false): EvaluationWork<import("../ast.js").PdfCosArray | undefined> {
+  const resolved = yield* resolveEvaluationNode(node, storeRootArray);
   return resolved?.kind === "array" ? resolved : undefined;
 }
 
@@ -1029,7 +1030,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
+export type PdfEvaluationRequest = { readonly kind: "dash-array"; readonly array: import("../ast.js").PdfCosArray; readonly storage: PdfPixelStorage; readonly resolveReferences?: boolean } | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
   | {readonly kind:"font-unicode";readonly lookup:(code:number)=>Promise<string|undefined>;readonly code:number}
   | {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
   | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>;storedSegments?(code:number,storage:PdfPixelStorage,signal?:AbortSignal):AsyncIterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
@@ -1040,14 +1041,14 @@ export type PdfEvaluationRequest = { readonly kind: "array-item"; readonly items
   | { readonly kind: "path-finish"; readonly writer: StoredPathWriter }
   | { readonly kind: "transform-path"; readonly path: PdfStoredPath; readonly matrix: Matrix6; readonly close: boolean }
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
-  | { readonly kind: "resolve"; readonly node: PdfCosNode }
+  | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly storeRootArray?: boolean }
   | { readonly kind: "catalog" }
   | { readonly kind: "close-content"; readonly source: PdfEvaluationContentSource }
   | { readonly kind: "mask-parameters"; readonly mask: PdfCosDict; readonly form: PdfCosStream; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "color"; readonly name: string; readonly components: readonly number[]; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: Uint8Array | PdfContentRange; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeInlineImageNodeToRgba>[4] }
   | { readonly kind: "image"; readonly stream: PdfCosStream; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeXObjectImageToRgba>[3] };
-export type PdfEvaluationResult = {readonly kind:"frame";readonly value:EvaluationFrame|undefined} | PdfStoredClipPaths | PdfStoredPath | PdfContentEvent | ResolvedPageFont
+export type PdfEvaluationResult = { readonly kind: "dash-array"; readonly value: import("../ast.js").PdfStoredDash | undefined } | {readonly kind:"frame";readonly value:EvaluationFrame|undefined} | PdfStoredClipPaths | PdfStoredPath | PdfContentEvent | ResolvedPageFont
   | { readonly kind: "shading"; readonly image: PdfEvaluatedImage | undefined }
   | { readonly kind: "color"; readonly value: readonly [number, number, number] }
   | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined }
@@ -1312,7 +1313,14 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       if (ml > 0) st.miterLimit = ml;
     } else if (operator === "d") {
       const arrNode = ops[0]?.kind === "array" ? ops[0] : undefined;
-      if (arrNode) {
+      st.storedDash = undefined;
+      if (arrNode && params.geometryStorage) {
+        const reply = yield { kind: "dash-array", array: arrNode, storage: params.geometryStorage };
+        if (!reply || !("kind" in reply) || reply.kind !== "dash-array") throw new TypeError("Expected stored dash pattern");
+        st.storedDash = reply.value;
+        st.dashArray = undefined;
+        st.dashPhase = num(1, 0);
+      } else if (arrNode) {
         const nums = arrNode.items
           .map((it) => (it.kind === "number" ? it.value : 0))
           .filter((v) => v >= 0);
@@ -1433,11 +1441,30 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         if (mlNode?.kind === "number" && mlNode.value > 0) {
           st.miterLimit = mlNode.value;
         }
-        const dArr = yield* resolveEvaluationArray(dictGet(gsDict, "D"));
-        if (dArr && dArr.items.length >= 2) {
-          const patArr = yield* resolveEvaluationArray(dArr.items[0]);
-          const phaseNode = yield* resolveEvaluationNode(dArr.items[1]);
-          if (patArr) {
+        const dArr = yield* resolveEvaluationArray(dictGet(gsDict, "D"), true);
+        if (dArr && (dArr.storedItems?.length ?? dArr.items.length) >= 2) {
+          let pair = dArr.items;
+          if (dArr.storedItems) {
+            pair = [];
+            let position = dArr.storedItems.position;
+            for (let i = 0; i < 2; i++) {
+              const reply = yield { kind: "array-item", items: dArr.storedItems, position };
+              if (!reply || !("kind" in reply) || reply.kind !== "resolved" || reply.node?.kind !== "array") throw new TypeError("Expected dash state record");
+              const [next, value] = reply.node.items;
+              if (next?.kind !== "number" || !value) throw new TypeError("Expected dash state value");
+              position = next.value; pair.push(value);
+            }
+          }
+          const patArr = yield* resolveEvaluationArray(pair[0], true);
+          const phaseNode = yield* resolveEvaluationNode(pair[1]);
+          if (patArr && params.geometryStorage) {
+            const reply = yield { kind: "dash-array", array: patArr, storage: params.geometryStorage, resolveReferences: true };
+            if (!reply || !("kind" in reply) || reply.kind !== "dash-array") throw new TypeError("Expected stored dash pattern");
+            st.storedDash = reply.value;
+            st.dashArray = undefined;
+            st.dashPhase = phaseNode?.kind === "number" ? phaseNode.value : 0;
+          } else if (patArr) {
+            st.storedDash = undefined;
             const dashArray: number[] = [];
             for (const item of patArr.items) {
               const resolved = yield* resolveEvaluationNode(item);
@@ -1765,7 +1792,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       const node = initialNode ?? (next ? (next.done ? undefined : next.value) : yield { kind: "node", ...(source ? { source } : {}) });
       initialNode = undefined;
       if (!node) break;
-      if (!("kind" in node) || (node.kind === "frame" || node.kind === "stored-path" || node.kind === "stored-clips")) throw new TypeError("Expected a PDF content event");
+      if (!("kind" in node) || (node.kind === "dash-array" || node.kind === "frame" || node.kind === "stored-path" || node.kind === "stored-clips")) throw new TypeError("Expected a PDF content event");
       if (node.kind === "end-group") {
         const parent = yield* popGroup();
         if (parent) {
@@ -1892,6 +1919,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             fillRule,
             ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
             ...(st.dashArray ? { dashArray: [...st.dashArray] } : {}),
+            ...(st.storedDash ? { storedDash: st.storedDash } : {}),
             ...(st.dashPhase !== undefined ? { dashPhase: st.dashPhase } : {}),
             ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
           } });
@@ -1999,7 +2027,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
                   const source = { stream: procNode };
                   const firstOp = yield { kind: "node", source };
-                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "frame" || firstOp.kind === "stored-clips" || firstOp.kind === "stored-path" || firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color" || firstOp.kind === "shading"))) throw new TypeError("Expected Type3 content event");
+                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "dash-array" || firstOp.kind === "frame" || firstOp.kind === "stored-clips" || firstOp.kind === "stored-path" || firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color" || firstOp.kind === "shading"))) throw new TypeError("Expected Type3 content event");
                   if ((yield* fontWidth(font,item.charCode)) === undefined) {
                     if (
                       firstOp?.kind === "state-op" &&
@@ -2284,7 +2312,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "array-item" || step.value.kind === "string-bytes" || step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "dash-array" || step.value.kind === "array-item" || step.value.kind === "string-bytes" || step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

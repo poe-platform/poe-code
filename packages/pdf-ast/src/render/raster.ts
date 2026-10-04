@@ -1,5 +1,6 @@
 import { operationEffects, readStoredOperations } from "../content/stored-operations.js";
 import { readStoredClips } from "../content/stored-clips.js";
+import { storedStrokeDash } from "./stored-dash.js";
 import { StoredStrokePoints } from "./stored-stroke-points.js";
 import { readStoredPath } from "../content/stored-path.js";
 import { prepareRetainedImageSampler } from "./retained-image-sampling.js";
@@ -751,7 +752,7 @@ function prepareStroke(path: PdfEvaluatedPath, scale: number) {
   let width = path.strokeWidth || 1;
   const scaleX = path.strokeWidth === 0 ? normY / area : Math.max(1, normY / (width * area));
   const scaleY = path.strokeWidth === 0 ? normX / area : Math.max(1, normX / (width * area));
-  let dashArray = path.dashArray, dashPhase = path.dashPhase ?? 0;
+  let dashArray = path.dashArray, dashPhase = path.dashPhase ?? 0, storedDashScale = 1;
   if (scaleX === scaleY) {
     width *= scaleX;
   } else {
@@ -759,15 +760,16 @@ function prepareStroke(path: PdfEvaluatedPath, scale: number) {
     matrix[1] *= scaleX;
     matrix[2] *= scaleY;
     matrix[3] *= scaleY;
-    if (dashArray?.length) {
+    if (dashArray?.length || path.storedDash?.length) {
       // PDF.js uses the larger correction when minimum thickness changes the
       // two axes differently. This also covers transformed zero-width lines.
       const dashScale = Math.max(scaleX, scaleY);
-      dashArray = dashArray.map(value => value / dashScale);
+      dashArray = dashArray?.map(value => value / dashScale);
+      storedDashScale /= dashScale;
       dashPhase /= dashScale;
     }
   }
-  return { matrix, width, dashArray, dashPhase };
+  return { matrix, width, dashArray, dashPhase, storedDashScale };
 }
 
 function strokeContourPoints(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0, offsetX = 0, offsetY = 0, images?: RasterImageInput): Iterable<StrokePoint | undefined | null> {
@@ -788,7 +790,10 @@ function strokeContourPoints(path: PdfEvaluatedPath, pageHeight: number, scale: 
     (pageHeight + originY - b * x / strokeScale - d * y / strokeScale - f) * scale - offsetY,
   ];
   const paths = { [Symbol.iterator]: () => projectStrokeSubpaths(path.segments, pageHeight, scale, project, path.storedSegments, images) };
-  const dash = stroke.dashArray?.map(value => Math.max(0, value * strokeScale));
+  if (path.storedDash && !images) throw new TypeError("Stored dash patterns require the asynchronous renderer");
+  const dash = path.storedDash ? storedStrokeDash(path.storedDash, stroke.storedDashScale * strokeScale,
+    function* (action) { images!.pathRequest = action; yield null; }, images?.signal)
+    : stroke.dashArray?.map(value => Math.max(0, value * strokeScale));
   return { *[Symbol.iterator]() {
     for (const point of strokeOutlinePoints(paths, stroke.width * strokeScale, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10, dash, stroke.dashPhase * strokeScale)) {
       yield point ? toScreen(point) : point;
@@ -1660,7 +1665,7 @@ export function *renderDisplayListToSvgSteps(
         const matrix = prepared && (prepared.matrix[0] !== 1 || prepared.matrix[1] !== 0 || prepared.matrix[2] !== 0 || prepared.matrix[3] !== 1)
           ? prepared.matrix : undefined;
         const inverse = matrix ? inverseStrokeMatrix(matrix) : undefined;
-        if (p.storedSegments) throw new Error("Stored PDF paths require the asynchronous raster driver");
+        if (p.storedSegments || p.storedDash) throw new Error("Stored PDF paths require the asynchronous raster driver");
         const pathData = svgPathData(p.segments, inverse ? 0 : displayList.height, inverse);
         const transformAttr = inverse && matrix
           ? ` transform="matrix(${matrix[0]} ${-matrix[1]} ${-matrix[2]} ${matrix[3]} ${matrix[4]} ${displayList.height - matrix[5]})"` : "";

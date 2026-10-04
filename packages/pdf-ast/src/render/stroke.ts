@@ -12,6 +12,11 @@
  */
 import { PdfError } from "../errors.js";
 
+export interface StrokeDashPattern {
+  readonly length: number;
+  readonly total: number;
+  get(index: number): Generator<null, number, void>;
+}
 export type StrokePoint = readonly [number, number];
 export interface StrokePointStore {
   readonly length: number;
@@ -44,15 +49,16 @@ const MAX_STROKE_VERTICES = 1_000_000;
 
 /** Yield runs as they finish. Closed paths replay once to put the wrapped run
  * first, retaining only first/last run descriptors instead of every dash. */
-function* dashRuns(path: StrokeSubpath, pattern: readonly number[], phase: number): Generator<StrokeSubpath | null> {
-  const cycle = pattern.reduce((sum, value) => sum + value, 0);
+function* dashRuns(path: StrokeSubpath, pattern: StrokeDashPattern, phase: number): Generator<StrokeSubpath | null> {
+  const cycle = pattern.total;
   if (!(cycle > 0)) { yield path; return; }
   let offset = ((phase % cycle) + cycle) % cycle, index = 0;
   while (offset > 0) {
-    if (offset < pattern[index]!) break;
-    offset -= pattern[index]!; index = (index + 1) % pattern.length;
+    const value = yield* pattern.get(index);
+    if (offset < value) break;
+    offset -= value; index = (index + 1) % pattern.length;
   }
-  let remaining = pattern[index]! - offset, steps = 0;
+  let remaining = (yield* pattern.get(index)) - offset, steps = 0;
   let current = createStrokePoints(path.points);
   function* flush(): Generator<StrokeSubpath | null> {
     if (current.length) yield { points: current, closed: false };
@@ -62,14 +68,14 @@ function* dashRuns(path: StrokeSubpath, pattern: readonly number[], phase: numbe
     while (remaining <= 0) {
       if (++steps > MAX_STROKE_VERTICES) throw new PdfError("E_LIMIT", "Stroke dash expansion exceeds the vertex limit");
       if (index % 2 === 0) {
-        if (pattern[index] === 0) {
+        if ((yield* pattern.get(index)) === 0) {
           const dot = createStrokePoints(path.points);
           yield* appendStrokePoint(dot, point); yield* appendStrokePoint(dot, point);
           yield {points:dot,closed:false,zeroLengthDash:true};
         }
         yield* flush();
       }
-      index = (index + 1) % pattern.length; remaining = pattern[index]!;
+      index = (index + 1) % pattern.length; remaining = yield* pattern.get(index);
     }
   }
   const length = path.points.length;
@@ -92,8 +98,8 @@ function* dashRuns(path: StrokeSubpath, pattern: readonly number[], phase: numbe
   }
   yield* flush();
 }
-function* dashSubpath(path: StrokeSubpath, pattern: readonly number[], phase: number): Generator<StrokeSubpath | null> {
-  if (!path.closed || !(pattern.reduce((sum, value) => sum + value, 0) > 0)) { yield* dashRuns(path, pattern, phase); return; }
+function* dashSubpath(path: StrokeSubpath, pattern: StrokeDashPattern, phase: number): Generator<StrokeSubpath | null> {
+  if (!path.closed || !(pattern.total > 0)) { yield* dashRuns(path, pattern, phase); return; }
   let first: StrokeSubpath | undefined, last: StrokeSubpath | undefined, count = 0;
   for (const run of dashRuns(path, pattern, phase)) {
     if (run === null) { yield null; continue; }
@@ -124,10 +130,19 @@ function* dashSubpath(path: StrokeSubpath, pattern: readonly number[], phase: nu
  * store's backing policy. Existing vertex admission applies to both routes. */
 export function* strokeOutlinePoints(
   paths: Iterable<StrokeSubpath | null>, width: number, cap: 0 | 1 | 2,
-  join: 0 | 1 | 2, miterLimit: number, dashArray: readonly number[] = [], dashPhase = 0
+  join: 0 | 1 | 2, miterLimit: number, dashArray: readonly number[] | StrokeDashPattern = [], dashPhase = 0
 ): Generator<StrokePoint | undefined | null, void, void> {
   const half = width / 2;
-  const pattern = dashArray.length % 2 ? [...dashArray, ...dashArray] : dashArray;
+  const source: StrokeDashPattern = "get" in dashArray ? dashArray : {
+    length: dashArray.length, total: dashArray.reduce((sum, value) => sum + value, 0),
+    // The buffered adapter completes without an I/O suspension.
+    // eslint-disable-next-line require-yield
+    *get(index) { return dashArray[index]!; }
+  };
+  let pattern: StrokeDashPattern = source.length % 2 ? {
+    length: source.length * 2, total: source.total * 2,
+    *get(index) { return yield* source.get(index % source.length); }
+  } : source;
   let count = 0;
   function* add(x: number, y: number): Generator<StrokePoint, void, void> {
     if (++count > MAX_STROKE_VERTICES) throw new PdfError("E_LIMIT", "Stroke outline exceeds the vertex limit");
@@ -201,8 +216,16 @@ export function* strokeOutlinePoints(
     yield* add(point[0] + dx1, point[1] - dy1);
     yield* add(point[0] + dx2, point[1] - dy2);
   };
+  let summed = false;
   for (const path of paths) {
     if (path === null) { yield null; continue; }
+    if (!summed) {
+      // Keep the original left-to-right addition order after scaling and odd
+      // pattern repetition, including floating-point phase boundaries.
+      let total = 0;
+      for (let i = 0; i < pattern.length; i++) total += yield* pattern.get(i);
+      pattern = { ...pattern, total }; summed = true;
+    }
     for (const subpath of pattern.length ? dashSubpath(path, pattern, dashPhase) : [path]) {
       if (subpath === null) { yield null; continue; }
       const points = createStrokePoints(subpath.points);

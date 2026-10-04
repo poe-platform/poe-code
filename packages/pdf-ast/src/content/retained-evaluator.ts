@@ -1,3 +1,4 @@
+import { storeDashArray } from "./stored-dash.js";
 import { readStoredRecord } from "./stored-record.js";
 import { readStoredCidGlyph } from "../fonts/stored-cid-map.js";
 import { appendStoredClip } from "./stored-clips.js";
@@ -51,9 +52,9 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
     options.onAllocation?.(bytes); admitted += bytes;
   }
   const identities = new WeakMap<PdfCosStream, PdfCosRef>();
-  async function resolve(node: PdfCosNode | undefined): Promise<PdfCosNode | undefined> {
+  async function resolve(node: PdfCosNode | undefined, storeRootArray = false): Promise<PdfCosNode | undefined> {
     charge(64);
-    const value = await document.lookup(node);
+    const value = await document.lookup(node, storeRootArray && options.imageStorage ? { arrayStorage: options.imageStorage, storeRootArray: true } : undefined);
     signal?.throwIfAborted();
     if (value?.stream && value.reference && value.value.kind === "dict") {
       charge(128);
@@ -144,7 +145,10 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
           const selected = nested.get(request.source); nested.delete(request.source);
           await selected?.return(); break;
         }
-        case "resolve": case "catalog": reply = { kind: "resolved", node: await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node) }; break;
+        case "resolve": case "catalog": reply = { kind: "resolved", node: await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node, request.kind === "resolve" && request.storeRootArray) }; break;
+        case "dash-array": {
+          reply = { kind: "dash-array", value: await storeDashArray(request.array, request.storage, request.resolveReferences ? resolve : async node => node, signal) }; break;
+        }
         case "array-item": {
           const record = await readStoredRecord<PdfCosNode>(request.items.storage, request.position, signal);
           reply = { kind: "resolved", node: cosArray([cosNumber(record.next), record.value]) }; break;

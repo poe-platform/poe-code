@@ -91,7 +91,7 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
         case "pop": result = await operands.pop(); break;
         case "operator": {
           const value = request.value;
-          if (options.pathStorage && !["Tj", "TJ", "'", '"'].includes(value.operator)) {
+          if (options.pathStorage && !["Tj", "TJ", "'", '"', "d"].includes(value.operator)) {
             const operands: PdfCosNode[] = [];
             for (const node of value.operands) operands.push(await materialize(node));
             const inlineImage = value.inlineImage ? { ...value.inlineImage, dict: await materialize(value.inlineImage.dict) as typeof value.inlineImage.dict } : undefined;

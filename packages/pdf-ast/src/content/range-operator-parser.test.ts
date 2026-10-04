@@ -218,3 +218,21 @@ it.each(["abort", "failure"])("preserves array-link write %s", async mode => {
     await expect(work.next()).rejects.toBe(failure);
   }finally{await f.close();}
 });
+
+
+it("keeps dash operands in caller backing instead of expanding them", async () => {
+  const f = await fixture("[" + "1 2 ".repeat(4096) + "] 3 d");
+  const data = new Uint8Array(4 * 1024 * 1024); let end = 0;
+  const backing = { allocate(n: number) { const at = end; end += n; return at; },
+    async read(at: number, n: number) { return data.subarray(at, at + n); },
+    async write(at: number, bytes: Uint8Array) { data.set(bytes, at); } };
+  try {
+    for await (const op of parseContentRangeOperators(f.source, f.storage, { pathStorage: backing })) {
+      const array = op.operands[0];
+      expect(array?.kind).toBe("array");
+      if (array?.kind !== "array") throw Error("Expected dash array");
+      expect(array.items).toHaveLength(0);
+      expect(array.storedItems?.length).toBe(8192);
+    }
+  } finally { await f.close(); }
+});

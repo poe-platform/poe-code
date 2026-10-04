@@ -28,7 +28,9 @@ fixed-size blocks in that backing; fill, clipping and pattern bounds replay
 without collecting segment arrays. `renderOperationStreamWindow` reads these
 pixels with a fixed range cache and stages downsampling levels in that same
 backing, preserving the buffered sampling math. Keep the backing alive until
-painting finishes, then close it. Parsed stroke point lists and dash runs spill
+painting finishes, then close it. Content-stream dash declarations remain in caller backing through parsing, graphics-state
+save/restore and rasterization, with one read page and no duplication of odd
+patterns. Parsed stroke point lists and dash runs spill
 to that backing with fixed caches for forward and reverse joins. Clip lists use
 persistent fixed-size pages, preserving graphics-state snapshots and clip order;
 text clipping streams glyph outlines into the same backing. Transparency-group

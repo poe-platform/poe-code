@@ -258,6 +258,14 @@ export interface PdfPlacedGlyph {
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
+/** Normalized dash distances in caller-owned Float64 backing. */
+export interface PdfStoredDash {
+  readonly storage: PdfPixelStorage;
+  readonly position: number;
+  readonly length: number;
+  readonly total: number;
+}
+
 export interface PdfEvaluatedPath {
   readonly segments: readonly PdfPathSegment[];
   readonly storedSegments?: PdfStoredPath | undefined;
@@ -273,6 +281,7 @@ export interface PdfEvaluatedPath {
   readonly miterLimit?: number | undefined;
   readonly fillRule?: "nonzero" | "evenodd" | undefined;
   readonly dashArray?: readonly number[] | undefined;
+  readonly storedDash?: PdfStoredDash | undefined;
   readonly dashPhase?: number | undefined;
   readonly blendMode?: string | undefined;
   readonly isClip?: boolean | undefined;

@@ -125,7 +125,7 @@ it.each(["odt", "rtf", "html5"].flatMap(to => [1, 3000].map(repeats => ({to, rep
   const output = expected.kind === "text" ? new TextEncoder().encode(expected.text) : expected.bytes;
   let expectedHash = 2166136261;
   for (const byte of output) expectedHash = Math.imul(expectedHash ^ byte, 16777619) >>> 0;
-  const paths = vi.spyOn(resourcePaths, "localResourceTarget");
+  const paths = vi.spyOn(resourcePaths.LocalResourcePath.prototype, "append");
   const actualHost = host(), backing = new MemoryFileSystem();
   let hash = 2166136261, length = 0;
   try {

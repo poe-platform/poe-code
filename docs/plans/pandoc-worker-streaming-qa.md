@@ -652,7 +652,12 @@ Remaining ownership and exit gates (proposed coordination split):
   selection and extraction URL encoding must likewise avoid component arrays.
   Verify root-first inspection, immediate rejection of symlink/non-directory
   ancestors, literal percent signs in media keys and no writes after rejection.
-  The required final filesystem path string remains resident.
+  Stream repeated `folder/../` components across scalar chunk boundaries and
+  verify normalization/checkpoints occur before the next backing read. Reject
+  invalid initial components without reading the remaining path. Cover escapes
+  and surrogate pairs split across chunks, and derive suffix lengths from raw
+  UTF-16 units even when normalization shortens the path. The required normalized
+  filesystem path and unfinished component strings remain resident.
 - Final exits: run the composed public SDK/command workerd matrix without Node
   compatibility, then the increasing-size and concurrent deployed Cloudflare
   cohorts above. Record actual memory, CPU and first-byte measurements. Local

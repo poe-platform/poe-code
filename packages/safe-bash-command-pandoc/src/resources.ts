@@ -53,23 +53,53 @@ export function localResourceTarget(url: string, context: ExecutionContext): {na
   const split = [url.indexOf("?"), url.indexOf("#")].filter(n => n >= 0);
   const end = split.length ? Math.min(...split) : url.length;
   const raw = url.slice(0, end);
-  if (!raw || raw.startsWith("/") || raw.startsWith("~") || raw.includes(":") || raw.includes("\\"))
-    context.fail("E_CAPABILITY", "Only relative local image resources are supported");
-  let name = "";
-  for (const component of pathComponents(raw)) {
+  const path = new LocalResourcePath(context);
+  path.append(raw);
+  return {name: path.finish(), suffix: url.slice(end)};
+}
+
+/** Retain only the normalized name and the component crossing a chunk boundary. */
+export class LocalResourcePath {
+  private name = "";
+  private pending = "";
+  units = 0;
+  constructor(private readonly context: ExecutionContext) {}
+
+  append(chunk: string): void {
+    if ((!this.units && (chunk.startsWith("/") || chunk.startsWith("~"))) || chunk.includes(":") || chunk.includes("\\"))
+      this.context.fail("E_CAPABILITY", "Only relative local image resources are supported");
+    this.units += chunk.length;
+    let start = 0;
+    for (;;) {
+      const end = chunk.indexOf("/", start);
+      if (end < 0) {this.pending += chunk.slice(start); return;}
+      this.component(this.pending + chunk.slice(start, end));
+      this.pending = "";
+      start = end + 1;
+    }
+  }
+
+  private component(component: string): void {
+    const context = this.context;
     context.checkpoint();
     let decoded: string;
     try {decoded = decodeURIComponent(component);} catch {return context.fail("E_CAPABILITY", "Invalid image URI escape");}
     if (decoded.includes("/") || decoded.includes("\\") || decoded.includes(":") || hasControlCharacter(decoded))
       context.fail("E_CAPABILITY", "Invalid image resource component");
-    if (!decoded || decoded === ".") continue;
+    if (!decoded || decoded === ".") return;
     if (decoded === "..") {
-      if (!name) context.fail("E_CAPABILITY", "Image resource escapes its search directory");
-      name = name.slice(0, Math.max(0, name.lastIndexOf("/")));
-    } else name += (name ? "/" : "") + decoded;
+      if (!this.name) context.fail("E_CAPABILITY", "Image resource escapes its search directory");
+      this.name = this.name.slice(0, Math.max(0, this.name.lastIndexOf("/")));
+    } else this.name += (this.name ? "/" : "") + decoded;
   }
-  if (!name || name.startsWith("~")) context.fail("E_CAPABILITY", "Invalid image resource name");
-  return {name, suffix: url.slice(end)};
+
+  finish(): string {
+    if (!this.units) this.context.fail("E_CAPABILITY", "Only relative local image resources are supported");
+    this.component(this.pending);
+    this.pending = "";
+    if (!this.name || this.name.startsWith("~")) this.context.fail("E_CAPABILITY", "Invalid image resource name");
+    return this.name;
+  }
 }
 
 function mediaKeyBasename(key: string, context: ExecutionContext): string {

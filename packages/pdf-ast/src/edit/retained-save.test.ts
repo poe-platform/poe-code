@@ -104,10 +104,12 @@ it.each(["page", "write"])("preserves %s failures and cleans save backing", asyn
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
 
-it.each(["plain", "inherited", "aliased", "invalid-inherited", "indirect", "root-page"])("applies ordered retained rotations with %s pages", async mode => {
+it.each(["plain", "inherited", "aliased", "invalid-inherited", "indirect", "root-page", "inherited-resources"])("applies ordered retained rotations with %s pages", async mode => {
   const original = PdfDocument.create(); original.addPage([100, 200]); original.addPage([200, 300]);
   const root = original.cos.resolveDict(dictGet(original.cos.resolveDict(original.cos.rootRef)!, "Pages"))!;
   if (mode === "inherited" || mode === "invalid-inherited") dictSet(root, "Rotate", cosNumber(mode === "inherited" ? -90 : 45));
+  if (mode === "inherited-resources") for (let i = 0; i < 2; i++) { dictDelete(original.getPage(i).dict, "Resources"); dictDelete(original.getPage(i).dict, "MediaBox"); }
+  if (mode === "inherited-resources") { dictSet(root, "Resources", cosDict({})); dictSet(root, "MediaBox", cosArray([0, 0, 200, 300].map(value => cosNumber(value)))); }
   if (mode === "indirect") dictSet(original.getPage(0).dict, "Rotate", original.cos.allocateObject(cosNumber(450)));
   if (mode === "root-page") dictSet(original.cos.resolveDict(original.cos.rootRef)!, "Pages", original.getPage(0).ref);
   if (mode === "aliased") dictSet(root, "Kids", cosArray([original.getPage(0).ref, original.getPage(0).ref]));

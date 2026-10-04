@@ -83,7 +83,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
       if (!Number.isSafeInteger(edit.degrees) || edit.degrees % 90 !== 0) throw new RangeError("Page rotation must be a multiple of 90 degrees");
       const bytes = await pages.read(pageBase + edit.pageIndex * 16, 16), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       const object = (await objects.get(view.getFloat64(0)))!, dict = object.value as PdfCosDict;
-      const original = await resolve(dictGet(dict, "Rotate")), normalized = original?.kind === "number" ? ((original.value % 360) + 360) % 360 : 0;
+      const original = await inherited(dict, cosRef(object.objectNumber, object.generationNumber), "Rotate"), normalized = original?.kind === "number" ? ((original.value % 360) + 360) % 360 : 0;
       const current = edit.relative && (normalized === 90 || normalized === 180 || normalized === 270) ? normalized : 0;
       const degrees = (current + ((edit.degrees % 360) + 360) % 360) % 360;
       dictSet(dict, "Rotate", cosNumber(degrees)); await objects.set({ ...object, value: dict });
@@ -133,7 +133,13 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
       if (node?.kind === "ref" && value?.kind === "dict") { pagesRef = node; pagesDict = value; }
       for await (const page of document.pages()) {
         await checkpoint(); if (pageCount >= maxPages) throw new PdfError("E_LIMIT", "PDF save page limit exceeded");
-        const ref = page.reference ?? await objects.allocate(page.dict), dict = page.reference ? (await objects.get(ref.objectNumber))!.value as PdfCosDict : page.dict;
+        const ref = page.reference ?? await objects.allocate(page.dict);
+        const bytes = new Uint8Array(16), view = new DataView(bytes.buffer); view.setFloat64(0, ref.objectNumber); view.setFloat64(8, ref.generationNumber);
+        await pages.write(pages.allocate(16), bytes); pageCount++;
+      }
+      await applyRotations();
+      for await (const ref of references()) {
+        const dict = (await objects.get(ref.objectNumber))!.value as PdfCosDict;
         const resources = await resolve(dictGet(dict, "Resources"));
         if (resources?.kind !== "dict") {
           const source = await inherited(dict, ref, "Resources"), entries = [];
@@ -145,10 +151,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
         }
         for (const key of ["MediaBox", "CropBox", "Rotate"]) if (!dictGet(dict, key)) { const value = await inherited(dict, ref, key); if (value) dictSet(dict, key, value); }
         await objects.set({ ...(await objects.get(ref.objectNumber))!, value: dict });
-        const bytes = new Uint8Array(16), view = new DataView(bytes.buffer); view.setFloat64(0, ref.objectNumber); view.setFloat64(8, ref.generationNumber);
-        await pages.write(pages.allocate(16), bytes); pageCount++;
       }
-      await applyRotations();
       if (!pagesRef) { pagesDict = cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }); pagesRef = await objects.allocate(pagesDict); dictSet(catalog, "Pages", pagesRef); }
       for await (const ref of references()) {
         const object = (await objects.get(ref.objectNumber))!, dict = object.value as PdfCosDict;

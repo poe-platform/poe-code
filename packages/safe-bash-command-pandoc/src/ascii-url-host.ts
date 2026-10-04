@@ -1,7 +1,8 @@
 /** Bounded admission for ASCII domains and WHATWG IPv4 numbers. IDNA labels and
- * percent-encoded input explicitly defer to the native host parser. */
+ * non-ASCII decoded bytes explicitly defer to the native host parser. */
 export class AsciiUrlHost {
   private native = false;
+  private escape = "";
   private invalid = false;
   private pipe = false;
   private size = 0;
@@ -33,7 +34,17 @@ export class AsciiUrlHost {
     if (!this.size) this.first = char;
     this.size = Math.min(3, this.size + 1);
     this.pipe = this.size === 2 && char === "|";
-    if (char === "%") {this.native = true; return;}
+    if (this.escape) {
+      if (!(char >= "0" && char <= "9" || char >= "a" && char <= "f")) {this.invalid = true; return;}
+      this.escape += char;
+      if (this.escape.length < 3) return;
+      char = String.fromCharCode(Number.parseInt(this.escape.slice(1), 16)).toLowerCase();
+      this.escape = "";
+      // Non-ASCII bytes need UTF-8/IDNA validation together with the original
+      // hostname. Never interpret an individual byte as a Unicode character.
+      if (char.charCodeAt(0) > 127) {this.native = true; return;}
+      if (char === "%") {this.invalid = true; return;}
+    } else if (char === "%") {this.escape = "%"; return;}
     if (char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127 || "#/:<>?@[\\]^|".includes(char)) {this.invalid = true; return;}
     if (char === ".") {this.label(); return;}
     const digit = char >= "0" && char <= "9";
@@ -62,7 +73,7 @@ export class AsciiUrlHost {
   }
   /** Consume the final label, ignoring exactly one trailing dot. */
   finish(): boolean | undefined {
-    if (this.invalid) return false;
+    if (this.invalid || this.escape) return false;
     if (this.native) return undefined;
     if (this.length) this.label();
     if (!this.lastDigits && !this.lastValid) return true;

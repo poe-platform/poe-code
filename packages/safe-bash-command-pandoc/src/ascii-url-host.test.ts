@@ -11,8 +11,8 @@ it("matches native DNS and IPv4 admission with bounded label state", () => {
   }
 });
 
-it("defers IDNA labels and escapes to native validation", () => {
-  for (const host of ["xn--bcher-kva", "x.XN--a.y", "%30", "bücher", "K", "İ"]) {
+it("defers IDNA labels and encoded Unicode to native validation", () => {
+  for (const host of ["xn--bcher-kva", "x.XN--a.y", "%c3%a9", "bücher", "K", "İ"]) {
     const state = new AsciiUrlHost(); for (const char of host) state.write(char);
     expect(state.finish(), host).toBeUndefined();
   }

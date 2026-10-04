@@ -131,3 +131,34 @@ it("validates long ASCII domains and IPv4 numbers without resident host strings"
     }
   } finally {parse.mockRestore(); await context.close();}
 });
+
+
+it("admits percent-encoded ASCII hosts without materializing them", async () => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {}), native = URL.canParse.bind(URL);
+  const parse = vi.spyOn(URL, "canParse").mockImplementation((value, base) => {
+    if (String(value).length > 128) throw new Error("Whole encoded host forbidden");
+    return native(value, base);
+  });
+  try {
+    for (const scheme of ["https", "file"]) for (const host of ["%61".repeat(10000), "%30".repeat(10000) + "1", "%61".repeat(10000) + "%25", "%61".repeat(10000) + "%zz"]) {
+      const value = `${scheme}://${host}/image`;
+      expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += 127) yield value.slice(i, i + 127);}, context)).toBe(native(value));
+    }
+  } finally {parse.mockRestore(); await context.close();}
+});
+
+it("preserves native encoded-host admission and raw file-drive rules", async () => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {});
+  const hosts = ["%43:", "%43|", "C%7c", "%31%32%37%2e1", "%30%78ff", "%78n--bcher-kva", "%c3%a9", "é%61", "%ff", "%e0%80%80", "%", "%0", "%zz", "%25", "%252e", "%ef%bb%bf", "%00", "%2f", "%3a", "%5b::1%5d"];
+  for (let byte = 0; byte < 256; byte++) hosts.push("a%" + byte.toString(16).padStart(2, "0") + "b");
+  try {
+    for (const scheme of ["http", "file", "custom"]) for (const host of hosts) for (const size of [1, 2, 7]) {
+      const value = `${scheme}://${host}/image`;
+      expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += size) yield value.slice(i, i + size);}, context), value).toBe(URL.canParse(value));
+    }
+  } finally {await context.close();}
+});

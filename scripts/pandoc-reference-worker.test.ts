@@ -4,7 +4,7 @@ import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
 const modes = ["sdk", "command"];
-const ordinary = {transform: false, metadata: false, filter: false, lua: false, template: false, crlf: false, writerOptions: false, byteQuota: false, joined: false, fileScope: false, imageUri: false, authorityUri: false, portUri: false, opaqueHostUri: false, asciiHostUri: false};
+const ordinary = {transform: false, metadata: false, filter: false, lua: false, template: false, crlf: false, writerOptions: false, byteQuota: false, joined: false, fileScope: false, imageUri: false, authorityUri: false, portUri: false, opaqueHostUri: false, asciiHostUri: false, encodedHostUri: false};
 const cases = modes.flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from =>
   ["json", "plain", "html5", "rst", "gfm", "latex", "rtf", "odt", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])]
     .map(to => ({mode, from, to, ...ordinary}))));
@@ -29,8 +29,8 @@ cases.push(...modes.map(mode => ({mode, from: "mediawiki", to: "plain", ...ordin
 cases.push(...modes.flatMap(mode => ["none", "lua", "json"].map(filter => ({mode, from: "mediawiki", to: "plain", ...ordinary, byteQuota: true, joined: true, fileScope: true, lua: filter === "lua", filter: filter === "json"}))));
 cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, filter: true, byteQuota: true, imageUri: true})));
 cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, filter: true, byteQuota: true, imageUri: true, authorityUri: true})));
-for (const option of ["portUri", "opaqueHostUri", "asciiHostUri"] as const) cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, filter: true, byteQuota: true, imageUri: true, [option]: true})));
-it.each(cases)("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata filter=$filter lua=$lua template=$template crlf=$crlf writerOptions=$writerOptions byteQuota=$byteQuota joined=$joined fileScope=$fileScope imageUri=$imageUri authorityUri=$authorityUri portUri=$portUri opaqueHostUri=$opaqueHostUri asciiHostUri=$asciiHostUri", async ({mode, from, to, transform, metadata, filter, lua, template, crlf, writerOptions, byteQuota, joined, fileScope, imageUri, authorityUri, portUri, opaqueHostUri, asciiHostUri}) => {
+for (const option of ["portUri", "opaqueHostUri", "asciiHostUri", "encodedHostUri"] as const) cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, filter: true, byteQuota: true, imageUri: true, [option]: true})));
+it.each(cases)("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata filter=$filter lua=$lua template=$template crlf=$crlf writerOptions=$writerOptions byteQuota=$byteQuota joined=$joined fileScope=$fileScope imageUri=$imageUri authorityUri=$authorityUri portUri=$portUri opaqueHostUri=$opaqueHostUri asciiHostUri=$asciiHostUri encodedHostUri=$encodedHostUri", async ({mode, from, to, transform, metadata, filter, lua, template, crlf, writerOptions, byteQuota, joined, fileScope, imageUri, authorityUri, portUri, opaqueHostUri, asciiHostUri, encodedHostUri}) => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput, createJsonFilterCapability, createLuaFilterCapability} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -44,7 +44,7 @@ it.each(cases)("retains finite $from-to-$to reference budgets through the public
       await namespace.writeFile('/input.json', new Uint8Array());
       const {fs: backing, events} = api.createR2PagedFixture(namespace, env.PAGES);
       const value = 'x'.repeat(${mode === 'command' || lua ? 600000 : 17000});
-      const json = JSON.stringify({'pandoc-api-version': [1,23,1,2], meta: {}, blocks: [{t: 'Para', c: [${imageUri} ? {t: 'Image', c: [['', [], []], [], [${asciiHostUri} ? 'https://' + value + '/' : ${portUri} ? 'https://example.test:' + '0'.repeat(value.length) + '80/' : ${opaqueHostUri} ? 'custom://' + value : ${authorityUri} ? 'https://' + value.slice(0,10000) + '@example.test/' + value : 'data:' + value, '']]} : {t: 'Str', c: value}]}]});
+      const json = JSON.stringify({'pandoc-api-version': [1,23,1,2], meta: {}, blocks: [{t: 'Para', c: [${imageUri} ? {t: 'Image', c: [['', [], []], [], [${encodedHostUri} ? 'https://' + '%61'.repeat(Math.floor(value.length / 3)) + '/' : ${asciiHostUri} ? 'https://' + value + '/' : ${portUri} ? 'https://example.test:' + '0'.repeat(value.length) + '80/' : ${opaqueHostUri} ? 'custom://' + value : ${authorityUri} ? 'https://' + value.slice(0,10000) + '@example.test/' + value : 'data:' + value, '']]} : {t: 'Str', c: value}]}]});
       if (${imageUri}) {const native = URL.canParse.bind(URL); URL.canParse = (value, base) => {if (String(value).length > 4096) throw new Error('Whole URI forbidden'); return native(value, base);};}
       const transform = ${transform}, metadata = ${metadata}, filter = ${filter}, lua = ${lua}, template = ${template}, crlf = ${crlf}, writerOptions = ${writerOptions};
       const templateFiles = {"/template": "$if(show)$$header-includes$$body$$endif$", "/header": "header", "/before": "before", "/after": "after"};

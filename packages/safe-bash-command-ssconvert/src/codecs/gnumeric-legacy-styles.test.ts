@@ -70,3 +70,18 @@ it("charges work while decoding long X11 font components", async () => {
   const bytes = fixture(4, `<gnm:Style><gnm:Font>-${"a".repeat(512)}-bold-i</gnm:Font></gnm:Style>`);
   await expect(readGnumeric(bytes, {...context, limits: {...context.limits, workbookWork: 100}})).rejects.toThrow("XML relationship work");
 });
+
+it.each([4,10].flatMap(version => [
+  ['Fit="0"', "0"], ['Fit="1"', "1"], ['Fit="1" WrapText="0"', "0"],
+  ['WrapText="0" Fit="1"', "1"], ['Fit="-1"', "1"], ['Fit="2"', "1"],
+  ['Fit=""', "0"], ['Fit="+1"', "1"], ['Fit=" 1"', "1"],
+  ['Fit="4294967296"', "0"], ['Fit="9223372036854775807"', "1"], ['Fit="-9223372036854775808"', "0"]
+].map(([attrs, expected]) => ({version, attrs, expected}))))("normalizes ordered wrap aliases for XML $version: $attrs", async ({version,attrs,expected}) => {
+  const book = await readGnumeric(fixture(version, `<gnm:Style ${attrs}/>`), context);
+  const reopened = await readGnumeric(await writeGnumeric(book, [], context), context);
+  for (const workbook of [book, reopened]) {
+    const attributes = metadataNode(workbook.sheets[0]!.cells[0]!.style!.gnumeric)!.attributes;
+    expect(attributes.WrapText).toBe(expected);
+    expect(attributes).not.toHaveProperty("Fit");
+  }
+});

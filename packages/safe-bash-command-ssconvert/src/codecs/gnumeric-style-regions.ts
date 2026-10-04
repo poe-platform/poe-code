@@ -31,8 +31,33 @@ export function applyGnumericStyle(previous: XmlElement, patch: XmlElement, tick
     content: [...(text ? [{kind: "text" as const, text}] : []), ...children.values()]};
 }
 
-/** Native X11 names set weight/slant hints, never the font family. */
+/** Normalize legacy aliases before applying native style replacement or merging. */
 export function normalizeGnumericStyle(style: XmlElement, tick: () => void): XmlElement {
+  const attributes = new Map<string, XmlAttribute>();
+  for (const original of style.attributes) {
+    tick();
+    let attribute = original;
+    if (attribute.namespace === "" && (attribute.localName === "Fit" || attribute.localName === "WrapText")) {
+      // Native strtol accepts leading ASCII whitespace and signed decimal integers.
+      // It reads a long, then assigns to int before treating the result as boolean.
+      const value = attribute.value;
+      let at = 0, amount = 0n;
+      while (at < value.length && " \t\n\r\v\f".includes(value[at]!)) {tick(); at++;}
+      const negative = value[at] === "-";
+      if (negative || value[at] === "+") at++;
+      const start = at, limit = negative ? 9223372036854775808n : 9223372036854775807n;
+      while (at < value.length && value[at]! >= "0" && value[at]! <= "9") {
+        tick();
+        amount = amount * 10n + BigInt(value.charCodeAt(at++) - 48);
+        if (amount > limit) break;
+      }
+      if (at === value.length && amount <= limit && (at > start || value === "")) {
+        attribute = {...attribute, name: "WrapText", localName: "WrapText",
+          value: BigInt.asIntN(32, negative ? -amount : amount) === 0n ? "0" : "1"};
+      }
+    }
+    attributes.set(JSON.stringify([attribute.namespace, attribute.localName]), attribute);
+  }
   const children = style.children.map(font => {
     tick();
     if (font.localName !== "Font" || font.namespace !== style.namespace || !font.text.startsWith("-")) return font;
@@ -56,5 +81,5 @@ export function normalizeGnumericStyle(style: XmlElement, tick: () => void): Xml
     for (const name of hints) attributes.push({name, localName: name, namespace: "", value: "1"});
     return {...font, text: "", attributes, content: font.children};
   });
-  return {...style, children, content: [...(style.text ? [{kind: "text" as const, text: style.text}] : []), ...children]};
+  return {...style, attributes: [...attributes.values()], children, content: [...(style.text ? [{kind: "text" as const, text: style.text}] : []), ...children]};
 }

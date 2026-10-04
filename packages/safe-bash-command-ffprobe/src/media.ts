@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { probe as probeAudio } from "./probe.js";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
@@ -603,6 +604,34 @@ async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPl
   }
 }
 
+async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlugin, filename: string, budget: MediaBudgetTracker): Promise<MediaProbeResult | undefined> {
+  if (!plugin.canDemux || !plugin.probeMetadataStream) return undefined;
+  context.signal.throwIfAborted();
+  let source: AsyncIterable<Uint8Array>;
+  if (isStdin(filename)) source = readBytes(context.stdin, context.signal);
+  else {
+    const path = resolvePath(context.cwd, filename);
+    const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
+    context.signal.throwIfAborted();
+    if (!context.fs.readStream || capabilities.streamingRead === false || context.fs.capabilities.streamingRead === false) return undefined;
+    source = readFileStream(context.fs, path, { signal: context.signal, chunkSize: 16384 });
+  }
+  async function* admitted() {
+    let total = 0;
+    for await (const chunk of source) {
+      context.signal.throwIfAborted();
+      total += chunk.byteLength;
+      context.inputBudget?.check(total);
+      budget.checkInputBytes(total);
+      yield chunk;
+    }
+    context.signal.throwIfAborted();
+  }
+  const result = await plugin.probeMetadataStream(admitted(), { filename, signal: context.signal, budget, limits: budget.limits });
+  context.signal.throwIfAborted();
+  return result;
+}
+
 export function createFfprobeCommand(options: MediaCommandsOptions = {}): CommandDefinition {
   const limits = { maxInputBytes: 32 * 1024 * 1024, maxOutputBytes: 1024 * 1024, ...options.limits };
   for (const value of [limits.maxInputBytes, limits.maxOutputBytes]) {
@@ -664,6 +693,8 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         let probeResult = explicitPlugin && !showPackets && !showFrames && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, explicitPlugin, resolvePath(context.cwd, inputTarget), inputTarget, budget)
           : undefined;
+        if (!probeResult && explicitPlugin && !showPackets && !showFrames)
+          probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget);
         let audioInput: { bytes: Uint8Array; args: readonly string[] } | undefined;
         if (!probeResult) {
           const bytes = await readInput(inputTarget);

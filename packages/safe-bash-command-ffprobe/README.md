@@ -23,4 +23,4 @@ Writer options include `nk`, `nw`, `p` and `s` where applicable.
 
 Inspection uses the supplied virtual filesystem and never spawns native tools.
 
-For WAV metadata, `ffprobe -f wav -show_streams recording.wav` uses bounded header reads when the injected filesystem supports retained reads. Input limits still apply to the full logical file size. Packet/frame enumeration, stdin, and automatic audio probing still use the buffered path.
+For WAV metadata, `ffprobe -f wav -show_streams recording.wav` uses bounded header reads when the injected filesystem supports retained reads. Input limits still apply to the full logical file size. For stdin (`-`) and streaming filesystems without retained reads, the command scans headers incrementally and discards sample payloads without temporary storage. Packet/frame enumeration and automatic audio probing still use the buffered path.

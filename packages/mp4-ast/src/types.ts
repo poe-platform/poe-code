@@ -600,6 +600,8 @@ export interface MediaAstPlugin {
   probe(bytes: Uint8Array, options?: ParseMediaOptions & { showPackets?: boolean; showFrames?: boolean }): MediaProbeResult;
   /** Optional bounded metadata path; packet/frame enumeration uses probe. */
   probeMetadata?(source: MediaProbeSource, options?: ParseMediaOptions & { signal?: AbortSignal }): Promise<MediaProbeResult>;
+  /** Optional bounded sequential metadata path; consumes input through EOF. */
+  probeMetadataStream?(source: AsyncIterable<Uint8Array>, options?: ParseMediaOptions & { signal?: AbortSignal }): Promise<MediaProbeResult>;
   concat?(docs: readonly MediaDocument[], options?: ConcatMediaOptions): MediaDocument;
   slice?(doc: MediaDocument, options?: SliceMediaOptions): MediaDocument;
 }

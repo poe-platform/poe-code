@@ -1,4 +1,4 @@
-import { readWavHeader, readWavSourceHeader, type WavHeader } from "./wav-header.js";
+import { readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
 import { parseAudio } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { encodeFlacPackets } from "./flac.js";
@@ -549,9 +549,15 @@ export async function probeWavSource(source: MediaProbeSource, options: { filena
   return wavMetadata(await readWavSourceHeader(source, options.signal), options.filename);
 }
 
+/** Metadata from a sequential borrowed source; consumes through EOF without retaining sample payloads. */
+export async function probeWavStream(source: AsyncIterable<Uint8Array>, options: { filename?: string; signal?: AbortSignal } = {}): Promise<MediaProbeResult> {
+  return wavMetadata(await readWavStreamHeader(source, options.signal), options.filename);
+}
+
 export function wavAst(): MediaAstPlugin {
   return {
     probeMetadata: probeWavSource,
+    probeMetadataStream: probeWavStream,
     id: "wav",
     formatName: "wav",
     formatLongName: "WAV / WAVE (Waveform Audio)",

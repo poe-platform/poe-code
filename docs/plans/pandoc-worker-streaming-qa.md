@@ -124,6 +124,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   quota precedence and the invalid-mimetype diagnostic. Unit parity covers valid,
   truncated and trailing-content spellings. Fixture archive construction is
   buffered test setup, not evidence of a bounded EPUB writer or a memory plateau.
+  Long EPUB chapter/media URIs must normalize and encode one component at a
+  time without path-wide component or character arrays. Preserve one-pass percent
+  decoding, root traversal rejection, fragment identity and exact output. The
+  Worker fixture covers a 2048-pair redundant path through SDK and command;
+  unit cases also reject encoded separators/controls and malformed escapes.
+  Normalized archive-key strings and the EPUB DOM/AST remain resident boundaries.
 - Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
   independently of input bytes and document nesting. JSON and CSV/TSV to plain

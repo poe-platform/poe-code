@@ -92,3 +92,60 @@ it.each([16385, 262145])("rejects a %i-byte EPUB mimetype without a whole-member
     expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
   } finally {await runtime.dispose();}
 }, 60000);
+
+it.each(["sdk", "command"])("resolves long EPUB chapter URIs without component arrays through the public %s in workerd", async mode => {
+  const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
+    export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
+    export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
+    export {createZipCodec} from "@poe-code/office-package/zip";
+    export {createCompressionCodec} from "@poe-code/compression";
+    export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
+    export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
+  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "cjs", write: false, logLevel: "silent"});
+  const runtime = new Miniflare({modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
+    const api = (() => {const module = {exports: {}}; ${bundle.outputFiles[0]!.text}; return module.exports;})();
+    export default {async fetch(request, env) {
+      const signal = new AbortController().signal;
+      const limits = {maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity, maxMembers: Infinity, maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity, chunkSize: 4096};
+      const zip = api.createZipCodec({compression: api.createCompressionCodec(), yieldTurn: async () => {}, fail(message) {throw new Error(message);}});
+      const files = {
+        mimetype: 'application/epub+zip',
+        'META-INF/container.xml': '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>',
+        'package.opf': '<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Book</dc:title></metadata><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="chapter"/></spine></package>',
+        'chapter.xhtml': '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Book</title></head><body><p id="book"><a href="' + 'unused/../'.repeat(2048) + 'chapter.xhtml#book">Book.</a></p></body></html>',
+        'unused.bin': 'x'.repeat(32768)
+      };
+      const entries = [];
+      for (const [name, value] of Object.entries(files)) entries.push(await zip.makeZipEntry(name, new TextEncoder().encode(value), {modified: new Date('1980-01-01T00:00:00Z'), mode: 0o100644, directory: false, symlink: false, compression: 'store'}, limits, signal));
+      await env.PAGES.put('/input.epub', await zip.writeZipArchive({entries, comment: new Uint8Array()}, limits, signal));
+      const namespace = new api.MemoryFileSystem(); await namespace.mkdir('/spill'); await namespace.writeFile('/input.epub', new Uint8Array());
+      const {fs: backing, events} = api.createR2PagedFixture(namespace, env.PAGES);
+      const fs = new Proxy(backing, {get(target, key) {
+        if (key === 'readFile') return async () => {throw new Error('Whole file forbidden');};
+        if (key === 'readStream') return async function* (path) {const object = await env.PAGES.get(path); yield* object.body;};
+        const value = Reflect.get(target, key); return typeof value === 'function' ? value.bind(target) : value;
+      }});
+      const originalSplit = String.prototype.split;
+      String.prototype.split = function(...args) {if (String(this).includes('unused/../')) throw new Error('Whole URI component array forbidden'); return originalSplit.apply(this, args);};
+      let output = '', errors = '', result;
+      const stdout = {async write(bytes) {await Promise.resolve(); output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}};
+      try {
+        if (${JSON.stringify(mode)} === 'sdk') await api.convertToOutput([{chunks: fs.readStream('/input.epub')}], {from: 'epub', to: 'plain'}, {workingFiles: {fs, directory: '/spill', cacheBytes: 16384}, output: stdout});
+        else {
+          result = await api.createPandocCommand().execute({command: 'pandoc', args: ['-f', 'epub', '-t', 'plain', '/input.epub'], cwd: '/', env: {TMPDIR: '/spill'}, fs, signal, stdin: (async function* () {})(), stdout, stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}});
+        }
+      } finally {String.prototype.split = originalSplit;}
+      await env.PAGES.delete('/input.epub');
+      return Response.json({output, errors, exitCode: result?.exitCode ?? 0, events,
+        remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});
+    }};
+  `});
+  try {
+    const response = await runtime.dispatchFetch("https://epub.test/");
+    expect(response.status, response.status === 200 ? undefined : await response.text()).toBe(200);
+    const result = await response.json() as {events: {opened: number; closed: number; largestTransfer: number}};
+    expect(result).toMatchObject({output: "Book.\n", errors: "", exitCode: 0, remaining: 0, namespace: []});
+    if (mode === "sdk") expect(result.events.opened).toBeGreaterThan(0);
+    expect(result.events.closed).toBe(result.events.opened); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
+  } finally {await runtime.dispose();}
+}, 60000);

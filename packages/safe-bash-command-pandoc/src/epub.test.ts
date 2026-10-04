@@ -288,3 +288,25 @@ it("reads ZIP member paths above the former hardcoded path limit", async () => {
   expect(document.blocks.length).toBeGreaterThan(0);
   await expect(readDocument({ bytes }, { from: "epub" }, { limits: { text: 4096 } })).rejects.toThrow("path byte limit");
 });
+
+it.each([32, 512])("resolves EPUB resource URIs with %i redundant components without a path-wide split", async count => {
+  const parts = entries(), prefix = "unused/../".repeat(count);
+  parts["Book/Text/one.xhtml"] = xhtml(`<h1 id="same">First</h1><p><a href="${prefix}two.xhtml#same">next</a><img src="${prefix}../Images/cover%20art.png" alt="cover"/></p>`);
+  const expected = await read(parts), bytes = await archive(parts);
+  const split = String.prototype.split;
+  const spy = vi.spyOn(String.prototype, "split").mockImplementation(function (this: string, ...args: Parameters<typeof split>) {
+    if (String(this).includes("unused/../")) throw new Error("Whole URI component array forbidden");
+    return split.apply(this, args);
+  });
+  try {
+    const actual = await readDocument({bytes, source: "original.epub"}, {from: "epub"}, {yield: async () => {}});
+    expect(actual).toEqual(expected);
+  } finally {spy.mockRestore();}
+});
+
+it.each(["%2f", "%5c", "%00", "%7f", "%3a", "%zz", "%2e%2e/%2e%2e/%2e%2e/secret"])
+("preserves EPUB URI rejection after redundant components: %s", async suffix => {
+  const parts = entries();
+  parts["Book/Text/one.xhtml"] = xhtml(`<p><a href="${"unused/../".repeat(64)}${suffix}">bad</a></p>`);
+  await expect(read(parts)).rejects.toMatchObject({code: "E_PARSE", format: "epub"});
+});

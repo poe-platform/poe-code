@@ -17,7 +17,21 @@ interface ManifestItem {
 }
 interface Chapter {item: ManifestItem; linear: string; xml: XmlElement; blocks: readonly Block[]; language: string}
 const tokens = (s: string) => s.split(" ").filter(Boolean);
-const uriPart = (part: string) => part.split("/").map(encodeURIComponent).join("/");
+function* uriComponents(path: string): Generator<string> {
+  for (let start = 0;;) {
+    const end = path.indexOf("/", start);
+    if (end < 0) {yield path.slice(start); return;}
+    yield path.slice(start, end); start = end + 1;
+  }
+}
+function uriPart(part: string): string {
+  let encoded = "", first = true;
+  for (const component of uriComponents(part)) {
+    if (!first) encoded += "/";
+    encoded += encodeURIComponent(component); first = false;
+  }
+  return encoded;
+}
 const identity = (part: string, fragment = "") => uriPart(part) + (fragment ? `#${encodeURIComponent(fragment)}` : "");
 
 /** Decode each URI component once, preserving literal archive member identity. */
@@ -32,16 +46,23 @@ function resolve(target: string, base: string, ctx: AdapterContext): {part: stri
   };
   if (split >= 0) fragment = decode(target.slice(split + 1));
   if (!path) return {part: base, fragment};
-  const parts = base.split("/").slice(0, -1);
-  for (const raw of path.split("/")) {
+  const directoryEnd = base.lastIndexOf("/");
+  let part = directoryEnd < 0 ? "" : base.slice(0, directoryEnd);
+  for (const raw of uriComponents(path)) {
     ctx.checkpoint();
     const p = decode(raw);
-    if (p.includes("/") || p.includes("\\") || p.includes(":") || [...p].some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)) epubFailure(ctx, base, "Unsafe EPUB URI component");
+    if (p.includes("/") || p.includes("\\") || p.includes(":")) epubFailure(ctx, base, "Unsafe EPUB URI component");
+    for (let index = 0; index < p.length; index++) {
+      const unit = p.charCodeAt(index);
+      if (unit < 32 || unit === 127) epubFailure(ctx, base, "Unsafe EPUB URI component");
+    }
     if (!p || p === ".") continue;
-    if (p === "..") {if (!parts.length) epubFailure(ctx, base, "EPUB URI traversal"); parts.pop();}
-    else parts.push(p);
+    if (p === "..") {
+      if (!part) epubFailure(ctx, base, "EPUB URI traversal");
+      const end = part.lastIndexOf("/"); part = end < 0 ? "" : part.slice(0, end);
+    } else part += (part ? "/" : "") + p;
   }
-  return {part: parts.join("/"), fragment};
+  return {part, fragment};
 }
 
 export const epubReader: ReaderCapability = {

@@ -1,3 +1,4 @@
+import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
 import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
@@ -2076,71 +2077,6 @@ function* applyMagickFxSteps(stack: readonly RgbaImage[], exprStr: string, chann
     return { ...base, data: out };
 }
 
-function sampleBilinear(
-  img: RgbaImage,
-  sx: number,
-  sy: number,
-  bg: RgbaColor,
-  out: Uint8Array,
-  outOff: number
-): void {
-  if (sx < -0.5 || sy < -0.5 || sx > img.width - 0.5 || sy > img.height - 0.5) {
-    out[outOff] = bg.r;
-    out[outOff + 1] = bg.g;
-    out[outOff + 2] = bg.b;
-    out[outOff + 3] = bg.a;
-    return;
-  }
-  const x0 = Math.max(0, Math.min(img.width - 1, Math.floor(sx)));
-  const y0 = Math.max(0, Math.min(img.height - 1, Math.floor(sy)));
-  const x1 = Math.max(0, Math.min(img.width - 1, x0 + 1));
-  const y1 = Math.max(0, Math.min(img.height - 1, y0 + 1));
-  const fx = Math.max(0, Math.min(1, sx - x0));
-  const fy = Math.max(0, Math.min(1, sy - y0));
-
-  const i00 = (y0 * img.width + x0) * 4;
-  const i10 = (y0 * img.width + x1) * 4;
-  const i01 = (y1 * img.width + x0) * 4;
-  const i11 = (y1 * img.width + x1) * 4;
-
-  for (let c = 0; c < 4; c++) {
-    const v0 = img.data[i00 + c]! * (1 - fx) + img.data[i10 + c]! * fx;
-    const v1 = img.data[i01 + c]! * (1 - fx) + img.data[i11 + c]! * fx;
-    out[outOff + c] = clampByteVal(v0 * (1 - fy) + v1 * fy);
-  }
-}
-
-function* applyMagickShearSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const g = parseMagickGeometry(geomStr);
-    const degX = g.width ?? 0;
-    const degY = g.height ?? 0;
-    const tanX = Math.tan((degX * Math.PI) / 180);
-    const tanY = Math.tan((degY * Math.PI) / 180);
-    const outW = Math.max(1, Math.round(img.width + Math.abs(tanX) * img.height));
-    const outH = Math.max(1, Math.round(img.height + Math.abs(tanY) * img.width));
-    const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
-    const cxSrc = (img.width - 1) / 2;
-    const cySrc = (img.height - 1) / 2;
-    const cxDst = (outW - 1) / 2;
-    const cyDst = (outH - 1) / 2;
-    const det = 1 - tanX * tanY || 1;
-    for (let y = 0; y < outH; y++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let x = 0; x < outW; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            const dx = x - cxDst;
-            const dy = y - cyDst;
-            const sx = cxSrc + (dx - tanX * dy) / det;
-            const sy = cySrc + (dy - tanY * dx) / det;
-            sampleBilinear(img, sx, sy, bg, out, (y * outW + x) * 4);
-        }
-    }
-    return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
-}
-
 function solveLinearSystem(A: number[][], b: number[]): number[] {
   const n = b.length;
   const M = A.map((row, idx) => [...row, b[idx]!]);
@@ -2166,281 +2102,86 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
   return M.map((row) => row[n]!);
 }
 
-function* applyMagickDistortSteps(img: RgbaImage, methodRaw: string, argsRaw: string, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const method = methodRaw.toLowerCase().replace(/[-_]/g, "");
-    const nums = argsRaw
-        .trim()
-        .split(/[\s,]+/)
-        .filter((s) => s.length > 0)
-        .map(Number);
-    const w = img.width;
-    const h = img.height;
-    const out = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
+function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, token: string, spec: string, args = "0"): WarpPlan | undefined {
+    const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
+    const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
+    if (token === "-shear") {
+        const g = parseMagickGeometry(spec), tx = Math.tan(((g.width ?? 0) * Math.PI) / 180), ty = Math.tan(((g.height ?? 0) * Math.PI) / 180);
+        const width = Math.max(1, Math.round(w + Math.abs(tx) * h)), height = Math.max(1, Math.round(h + Math.abs(ty) * w)), det = 1 - tx * ty || 1;
+        return result((x, y) => { const dx = x - (width - 1) / 2, dy = y - (height - 1) / 2; return [cx + (dx - tx * dy) / det, cy + (dy - ty * dx) / det]; }, width, height);
+    }
+    if (token === "-swirl") {
+        const maxR = Math.max(cx, cy, 1), radians = (Number(spec) * Math.PI) / 180;
+        return result((x, y) => {
+            const dx = x - cx, dy = y - cy, r = Math.hypot(dx, dy);
+            if (r >= maxR) return [x, y];
+            const factor = 1 - r / maxR, angle = factor * factor * radians, cos = Math.cos(angle), sin = Math.sin(angle);
+            return [cx + dx * cos - dy * sin, cy + dx * sin + dy * cos];
+        }, w, h, img.hasAlpha);
+    }
+    if (token === "-implode") {
+        const maxR = Math.min(cx, cy, 1), exponent = 1 / (1 - Math.max(-0.95, Math.min(0.95, Number(spec))));
+        return result((x, y) => {
+            const dx = x - cx, dy = y - cy, r = Math.hypot(dx, dy);
+            if (!(r < maxR && r > 0)) return [x, y];
+            const scale = maxR * Math.pow(r / maxR, exponent) / r;
+            return [cx + dx * scale, cy + dy * scale];
+        }, w, h, img.hasAlpha);
+    }
+    if (token === "-wave") {
+        const g = parseMagickGeometry(spec), amplitude = g.width ?? 5, length = Math.max(1, g.height ?? 50), padding = Math.abs(amplitude);
+        return result((x, y) => [x, y - padding - amplitude * Math.sin((2 * Math.PI * x) / length)], w, h + Math.round(padding * 2));
+    }
+    const method = spec.toLowerCase().replace(/[-_]/g, ""), nums = args.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number);
     if (method === "srt" || method === "scalerotatetranslate") {
-        let cx = (w - 1) / 2;
-        let cy = (h - 1) / 2;
-        let scaleX = 1;
-        let scaleY = 1;
-        let angleDeg = 0;
-        let nx = cx;
-        let ny = cy;
-        if (nums.length === 1) {
-            angleDeg = nums[0]!;
+        let ox = cx, oy = cy, scaleX = 1, scaleY = 1, angle = 0, nx = cx, ny = cy;
+        if (nums.length === 1) angle = nums[0]!;
+        else if (nums.length === 2) { scaleX = scaleY = nums[0] || 1; angle = nums[1]!; }
+        else if (nums.length >= 3) {
+            ox = nx = nums[0]!; oy = ny = nums[1]!;
+            if (nums.length === 3) angle = nums[2]!;
+            else if (nums.length === 4 || nums.length === 6) { scaleX = scaleY = nums[2] || 1; angle = nums[3]!; }
+            else { scaleX = nums[2] || 1; scaleY = nums[3] || 1; angle = nums[4]!; }
+            if (nums.length === 6) { nx = nums[4]!; ny = nums[5]!; }
+            else if (nums.length >= 7) { nx = nums[5]!; ny = nums[6]!; }
         }
-        else if (nums.length === 2) {
-            scaleX = scaleY = nums[0] || 1;
-            angleDeg = nums[1]!;
-        }
-        else if (nums.length === 3) {
-            cx = nx = nums[0]!;
-            cy = ny = nums[1]!;
-            angleDeg = nums[2]!;
-        }
-        else if (nums.length === 4) {
-            cx = nx = nums[0]!;
-            cy = ny = nums[1]!;
-            scaleX = scaleY = nums[2] || 1;
-            angleDeg = nums[3]!;
-        }
-        else if (nums.length === 5) {
-            cx = nx = nums[0]!;
-            cy = ny = nums[1]!;
-            scaleX = nums[2] || 1;
-            scaleY = nums[3] || 1;
-            angleDeg = nums[4]!;
-        }
-        else if (nums.length === 6) {
-            cx = nums[0]!;
-            cy = nums[1]!;
-            scaleX = scaleY = nums[2] || 1;
-            angleDeg = nums[3]!;
-            nx = nums[4]!;
-            ny = nums[5]!;
-        }
-        else if (nums.length >= 7) {
-            cx = nums[0]!;
-            cy = nums[1]!;
-            scaleX = nums[2] || 1;
-            scaleY = nums[3] || 1;
-            angleDeg = nums[4]!;
-            nx = nums[5]!;
-            ny = nums[6]!;
-        }
-        const rad = (angleDeg * Math.PI) / 180;
-        const cosA = Math.cos(rad);
-        const sinA = Math.sin(rad);
-        for (let y = 0; y < h; y++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            for (let x = 0; x < w; x++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                const dx = x - nx;
-                const dy = y - ny;
-                const sx = cx + (dx * cosA + dy * sinA) / scaleX;
-                const sy = cy + (-dx * sinA + dy * cosA) / scaleY;
-                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-            }
-        }
-        return { ...img, data: out, hasAlpha: true };
+        const radians = (angle * Math.PI) / 180, cos = Math.cos(radians), sin = Math.sin(radians);
+        return result((x, y) => { const dx = x - nx, dy = y - ny; return [ox + (dx * cos + dy * sin) / scaleX, oy + (-dx * sin + dy * cos) / scaleY]; });
     }
     if ((method === "perspective" && nums.length >= 16) || (method === "perspectiveprojection" && nums.length >= 8)) {
-        let hCoeff: number[];
-        if (method === "perspectiveprojection") {
-            hCoeff = nums.slice(0, 8);
-        }
+        let coefficients: number[];
+        if (method === "perspectiveprojection") coefficients = nums.slice(0, 8);
         else {
-            // Solve inverse homography mapping dst (dx, dy) -> src (sx, sy)
-            const A: number[][] = [];
-            const bVec: number[] = [];
+            const matrix: number[][] = [], values: number[] = [];
             for (let p = 0; p < 4; p++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                const sx = nums[p * 4]!;
-                const sy = nums[p * 4 + 1]!;
-                const dx = nums[p * 4 + 2]!;
-                const dy = nums[p * 4 + 3]!;
-                A.push([dx, dy, 1, 0, 0, 0, -dx * sx, -dy * sx]);
-                bVec.push(sx);
-                A.push([0, 0, 0, dx, dy, 1, -dx * sy, -dy * sy]);
-                bVec.push(sy);
+                const sx = nums[p * 4]!, sy = nums[p * 4 + 1]!, dx = nums[p * 4 + 2]!, dy = nums[p * 4 + 3]!;
+                matrix.push([dx, dy, 1, 0, 0, 0, -dx * sx, -dy * sx], [0, 0, 0, dx, dy, 1, -dx * sy, -dy * sy]); values.push(sx, sy);
             }
-            hCoeff = solveLinearSystem(A, bVec);
+            coefficients = solveLinearSystem(matrix, values);
         }
-        if (hCoeff.every((c) => Math.abs(c) < 1e-12)) {
-            return img;
-        }
-        const [c0, c1, c2, c3, c4, c5, c6, c7] = hCoeff as [
-            number,
-            number,
-            number,
-            number,
-            number,
-            number,
-            number,
-            number
-        ];
-        for (let y = 0; y < h; y++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            for (let x = 0; x < w; x++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                const denom = c6 * x + c7 * y + 1 || 1e-9;
-                const sx = (c0 * x + c1 * y + c2) / denom;
-                const sy = (c3 * x + c4 * y + c5) / denom;
-                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-            }
-        }
-        return { ...img, data: out, hasAlpha: true };
+        if (coefficients.every(c => Math.abs(c) < 1e-12)) return;
+        const [a, b, c, d, e, f, g, i] = coefficients as [number, number, number, number, number, number, number, number];
+        return result((x, y) => { const denominator = g * x + i * y + 1 || 1e-9; return [(a * x + b * y + c) / denominator, (d * x + e * y + f) / denominator]; });
     }
     if (method === "affine" && nums.length >= 12) {
-        const A: number[][] = [];
-        const bx: number[] = [];
-        const by: number[] = [];
-        for (let p = 0; p < 3; p++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            const sx = nums[p * 4]!;
-            const sy = nums[p * 4 + 1]!;
-            const dx = nums[p * 4 + 2]!;
-            const dy = nums[p * 4 + 3]!;
-            A.push([dx, dy, 1]);
-            bx.push(sx);
-            by.push(sy);
-        }
-        const rx = solveLinearSystem(A, bx);
-        const ry = solveLinearSystem(A, by);
-        for (let y = 0; y < h; y++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            for (let x = 0; x < w; x++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                const sx = rx[0]! * x + rx[1]! * y + rx[2]!;
-                const sy = ry[0]! * x + ry[1]! * y + ry[2]!;
-                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-            }
-        }
-        return { ...img, data: out, hasAlpha: true };
+        const matrix: number[][] = [], xs: number[] = [], ys: number[] = [];
+        for (let p = 0; p < 3; p++) { matrix.push([nums[p * 4 + 2]!, nums[p * 4 + 3]!, 1]); xs.push(nums[p * 4]!); ys.push(nums[p * 4 + 1]!); }
+        const rx = solveLinearSystem(matrix, xs), ry = solveLinearSystem(matrix, ys);
+        return result((x, y) => [rx[0]! * x + rx[1]! * y + rx[2]!, ry[0]! * x + ry[1]! * y + ry[2]!]);
     }
     if (method === "barrel" && nums.length >= 3) {
-        const A = nums[0] ?? 0;
-        const B = nums[1] ?? 0;
-        const C = nums[2] ?? 0;
-        const D = nums[3] ?? 1 - A - B - C;
-        const cx = nums[4] ?? (w - 1) / 2;
-        const cy = nums[5] ?? (h - 1) / 2;
-        const rNorm = Math.min(w, h) / 2;
-        for (let y = 0; y < h; y++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            for (let x = 0; x < w; x++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                const dx = (x - cx) / rNorm;
-                const dy = (y - cy) / rNorm;
-                const r = Math.hypot(dx, dy);
-                const factor = A * r * r * r + B * r * r + C * r + D;
-                const sx = cx + dx * factor * rNorm;
-                const sy = cy + dy * factor * rNorm;
-                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-            }
-        }
-        return { ...img, data: out, hasAlpha: true };
+        const a = nums[0] ?? 0, b = nums[1] ?? 0, c = nums[2] ?? 0, d = nums[3] ?? 1 - a - b - c, ox = nums[4] ?? cx, oy = nums[5] ?? cy, radius = Math.min(w, h) / 2;
+        return result((x, y) => { const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy), factor = a * r * r * r + b * r * r + c * r + d; return [ox + dx * factor * radius, oy + dy * factor * radius]; });
     }
-    return img;
+    return;
 }
-
-function* applyMagickSwirlSteps(img: RgbaImage, degrees: number, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const w = img.width;
-    const h = img.height;
-    const out = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
-    const cx = (w - 1) / 2;
-    const cy = (h - 1) / 2;
-    const maxR = Math.max(cx, cy, 1);
-    const radTotal = (degrees * Math.PI) / 180;
-    for (let y = 0; y < h; y++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let x = 0; x < w; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            const dx = x - cx;
-            const dy = y - cy;
-            const r = Math.hypot(dx, dy);
-            if (r < maxR) {
-                const factor = 1 - r / maxR;
-                const angle = factor * factor * radTotal;
-                const cosA = Math.cos(angle);
-                const sinA = Math.sin(angle);
-                const sx = cx + dx * cosA - dy * sinA;
-                const sy = cy + dx * sinA + dy * cosA;
-                sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
-            }
-            else {
-                sampleBilinear(img, x, y, bg, out, (y * w + x) * 4);
-            }
-        }
-    }
-    return { ...img, data: out };
-}
-
-function* applyMagickImplodeSteps(img: RgbaImage, amount: number, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const w = img.width;
-    const h = img.height;
-    const out = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
-    const cx = (w - 1) / 2;
-    const cy = (h - 1) / 2;
-    const maxR = Math.min(cx, cy, 1);
-    const clamped = Math.max(-0.95, Math.min(0.95, amount));
-    const exp = 1 / (1 - clamped);
-    for (let y = 0; y < h; y++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let x = 0; x < w; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            const dx = x - cx;
-            const dy = y - cy;
-            const r = Math.hypot(dx, dy);
-            if (r < maxR && r > 0) {
-                const newR = maxR * Math.pow(r / maxR, exp);
-                const scale = newR / r;
-                sampleBilinear(img, cx + dx * scale, cy + dy * scale, bg, out, (y * w + x) * 4);
-            }
-            else {
-                sampleBilinear(img, x, y, bg, out, (y * w + x) * 4);
-            }
-        }
-    }
-    return { ...img, data: out };
-}
-
-function* applyMagickWaveSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const g = parseMagickGeometry(geomStr);
-    const amp = g.width ?? 5;
-    const waveLen = Math.max(1, g.height ?? 50);
-    const extraH = Math.round(Math.abs(amp) * 2);
-    const outW = img.width;
-    const outH = img.height + extraH;
-    const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
-    const yPad = Math.abs(amp);
-    for (let y = 0; y < outH; y++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let x = 0; x < outW; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            const sy = y - yPad - amp * Math.sin((2 * Math.PI * x) / waveLen);
-            sampleBilinear(img, x, sy, bg, out, (y * outW + x) * 4);
-        }
-    }
-    return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
+function parseMagickWarpOperation(tokens: readonly string[], state: MagickState, start: number) {
+    const token = tokens[start]!;
+    if (!["-shear", "-swirl", "-implode", "-wave", "-distort", "+distort"].includes(token)) return;
+    let i = start;
+    const distort = token === "-distort" || token === "+distort";
+    const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
+    return { end: i, background: state.background, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => magickWarpPlan(image, token, spec, args) };
 }
 
 function* applyMagickShadowSteps(img: RgbaImage, geomStr: string, shadowColor: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -2562,8 +2303,8 @@ function* applyMagickPosterizeSteps(img: RgbaImage, levelsRaw: number, signal?: 
     return { ...img, data: out };
 }
 
-function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    const data = new Uint8Array(img.data.length);
+function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img): Generator<void, RgbaImage, void> {
+    const data = new Uint8Array(dimensions.width * dimensions.height * 4);
     let next = steps.next();
     while (!next.done) {
         signal?.throwIfAborted();
@@ -2572,7 +2313,7 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
         else if (request.kind === "read") next = steps.next(img.data.subarray(request.position, request.position + request.length));
         else { data.set(request.data, request.position); next = steps.next(); }
     }
-    return { ...img, data };
+    return { ...img, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data };
 }
 
 function resolveGravityOffset(
@@ -4539,6 +4280,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         const setting = applyMagickReadSetting(tokens, state, i);
         const pixelOperation = setting === undefined ? parseMagickPixelOperation(tokens, state, i, signal) : undefined;
+        const warpOperation = setting === undefined ? parseMagickWarpOperation(tokens, state, i) : undefined;
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) { i = setting; }
         else if (analysisOperation) {
@@ -4550,6 +4292,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (pixelOperation) { i = pixelOperation.end; stack = yield* mapSteps(stack, pixelOperation.apply); }
+        else if (warpOperation) {
+            i = warpOperation.end;
+            stack = yield* mapSteps(stack, function* (image) {
+                const plan = warpOperation.plan(image);
+                return plan ? yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, warpOperation.background), signal, plan) : image;
+            });
+        }
         else if (t === "-write" || t === "+write") {
             const writePath = tokens[++i] ?? "";
             if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
@@ -4668,37 +4417,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length > 0) {
                 stack = [(yield* applyMagickFxSteps(stack, expr, state.channels, signal))];
             }
-        }
-        else if (t === "-shear") {
-            const geom = tokens[++i] ?? "0x0";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickShearSteps(im, geom, state.background, signal));
-            });
-        }
-        else if (t === "-distort" || t === "+distort") {
-            const method = tokens[++i] ?? "SRT";
-            const args = tokens[++i] ?? "0";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickDistortSteps(im, method, args, state.background, signal));
-            });
-        }
-        else if (t === "-swirl") {
-            const deg = Number(tokens[++i] ?? 0);
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickSwirlSteps(im, deg, state.background, signal));
-            });
-        }
-        else if (t === "-implode") {
-            const amt = Number(tokens[++i] ?? 0);
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickImplodeSteps(im, amt, state.background, signal));
-            });
-        }
-        else if (t === "-wave") {
-            const geom = tokens[++i] ?? "5x50";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickWaveSteps(im, geom, state.background, signal));
-            });
         }
         else if (t === "-shadow") {
             const geom = tokens[++i] ?? "80x3+5+5";
@@ -5284,25 +5002,34 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         };
     }
 }
-async function convolveStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, kernel: readonly number[], bias: number, signal: AbortSignal): Promise<StoredRgbaImage> {
-    if (!kernel.length) return image;
-    const position = backend.storage.allocate(image.width * image.height * 4), steps = convolvePixelSteps(image, kernel, bias);
+async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image): Promise<StoredRgbaImage> {
+    const position = backend.storage.allocate(dimensions.width * dimensions.height * 4), sourceSize = image.width * image.height * 4, cache = new Map<number, Uint8Array>();
     let next = steps.next();
     while (!next.done) {
         signal.throwIfAborted();
         const request = next.value;
         if (!request) { await yieldTurn(signal); next = steps.next(); }
-        else if (request.kind === "read") next = steps.next(await backend.storage.read(image.position + request.position, request.length));
-        else { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
+        else if (request.kind === "write") { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
+        else if (request.length !== 4) next = steps.next(await backend.storage.read(image.position + request.position, request.length));
+        else {
+            const page = Math.floor(request.position / 4096) * 4096;
+            let bytes = cache.get(page);
+            if (!bytes) {
+                bytes = new Uint8Array(await backend.storage.read(image.position + page, Math.min(4096, sourceSize - page)));
+                if (cache.size === 32) cache.delete(cache.keys().next().value!);
+                cache.set(page, bytes);
+            }
+            next = steps.next(bytes.subarray(request.position - page, request.position - page + request.length));
+        }
     }
-    return { ...image, position };
+    return { ...image, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position };
 }
 
 async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal): Promise<StoredRgbaImage> {
     const images = [image], size = image.width * image.height * 4;
     for (const step of plan.steps) {
-        const position = backend.storage.allocate(size);
         if (step.mode === "diff") {
+            const position = backend.storage.allocate(size);
             const a = images[step.a]!, b = images[step.b]!;
             for (let offset = 0; offset < size; offset += 16384) {
                 await yieldTurn(signal);
@@ -5311,28 +5038,11 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
                 const bytes = await drainSteps(subtractMagickPixelSteps(left, await backend.storage.read(b.position + offset, length)), signal);
                 await backend.storage.write(position + offset, bytes);
             }
+            images.push({ ...image, position });
         } else {
-            const source = images[step.source]!, cache = new Map<number, Uint8Array>();
-            const steps = morphologyPixelSteps(source, plan.rx, plan.ry, step.mode);
-            let next = steps.next();
-            while (!next.done) {
-                signal.throwIfAborted();
-                const request = next.value;
-                if (!request) { await yieldTurn(signal); next = steps.next(); }
-                else if (request.kind === "write") { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
-                else {
-                    const page = Math.floor(request.position / 4096) * 4096;
-                    let bytes = cache.get(page);
-                    if (!bytes) {
-                        bytes = new Uint8Array(await backend.storage.read(source.position + page, Math.min(4096, size - page)));
-                        if (cache.size === 32) cache.delete(cache.keys().next().value!);
-                        cache.set(page, bytes);
-                    }
-                    next = steps.next(bytes.subarray(request.position - page, request.position - page + request.length));
-                }
-            }
+            const source = images[step.source]!;
+            images.push(await transformStoredMagickRaster(source, backend, morphologyPixelSteps(source, plan.rx, plan.ry, step.mode), signal));
         }
-        images.push({ ...image, position });
     }
     return images.at(-1)!;
 }
@@ -5404,6 +5114,16 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "--") { operandsOnly = true; continue; }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) { i = setting; continue; }
+        const warpOperation = operandsOnly ? undefined : parseMagickWarpOperation(tokens, state, i);
+        if (warpOperation) {
+            i = warpOperation.end;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const plan = warpOperation.plan(image);
+                return plan ? transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, warpOperation.background), signal, plan) : image;
+            });
+            continue;
+        }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);
         if (pixelOperation) {
             i = pixelOperation.end;
@@ -5436,7 +5156,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             else if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
             if (token === "-morphology" && (method.includes("convolve") || method.includes("correlate"))) {
                 const kernel = parseMagickConvolveKernel(spec);
-                steps.push(async (image, backend) => image ? convolveStoredMagickImage(image, backend, kernel, 0, signal) : undefined);
+                steps.push(async (image, backend) => image && kernel.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
             } else {
                 const plan = magickMorphologyPlan(method, spec);
                 steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal) : undefined);
@@ -5445,7 +5165,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             const spec = tokens[++i] ?? "1", charcoal = token === "-charcoal" || token === "-sketch";
             const kernel = token === "-convolve" ? parseMagickConvolveKernel(spec) : token === "-emboss" ? [-2, -1, 0, -1, 1, 1, 0, 1, 2] : [-1, -1, -1, -1, 8, -1, -1, -1, -1];
             if (charcoal) transform(() => ({ kind: "blur", sigma: 1 }));
-            steps.push(async (image, backend) => image ? convolveStoredMagickImage(image, backend, kernel, token === "-emboss" ? 128 : 0, signal) : undefined);
+            steps.push(async (image, backend) => image && kernel.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, token === "-emboss" ? 128 : 0), signal) : image);
             if (charcoal) {
                 steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, { end: i, apply: pixels => negateImageSteps(pixels, { alpha: false }) }, signal) : undefined);
                 transform(() => ({ kind: "grayscale" }));

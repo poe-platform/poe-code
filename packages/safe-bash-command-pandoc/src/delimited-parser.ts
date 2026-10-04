@@ -19,14 +19,14 @@ export class DelimitedParser {
   private line = 1;
   private column = 1;
   private work = 0;
-  constructor(readonly format: "csv" | "tsv", private readonly context: AdapterContext, private readonly events: DelimitedEvents = {}, private readonly accountReferences = true) {}
+  constructor(readonly format: "csv" | "tsv", private readonly context: AdapterContext, private readonly events: DelimitedEvents = {}, private readonly accountBudgets = true) {}
 
   private fail(message: string): never {
     throw new PandocError("E_PARSE", "read", message, this.format, `${this.line}:${this.column}`);
   }
   private append(char: string): void {
     this.context.bound("tableFieldText", this.fieldLength + char.length);
-    this.context.charge("retainedBytes", char.length * 2);
+    if (this.accountBudgets) this.context.charge("retainedBytes", char.length * 2);
     this.fieldLength += char.length;
     if (this.events.text) this.pending += char;
   }
@@ -38,7 +38,7 @@ export class DelimitedParser {
   }
   private async endField(): Promise<void> {
     this.context.bound("tableColumns", this.fields + 1);
-    if (this.accountReferences) this.context.charge("references", 1);
+    if (this.accountBudgets) this.context.charge("references", 1);
     await this.flush();
     await this.events.field?.();
     this.fields++;
@@ -50,7 +50,7 @@ export class DelimitedParser {
     await this.endField();
     this.width = Math.max(this.width, this.fields);
     this.context.bound("tableCells", (this.rows + 1) * this.width);
-    if (this.accountReferences) this.context.charge("references", 1);
+    if (this.accountBudgets) this.context.charge("references", 1);
     await this.events.record?.();
     this.rows++;
     this.fields = 0;

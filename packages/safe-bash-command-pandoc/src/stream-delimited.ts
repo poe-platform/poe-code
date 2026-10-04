@@ -40,7 +40,8 @@ export async function streamDelimited(
   inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", context: ExecutionContext,
   working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions, readingInput?: (source?: string) => void
 ): Promise<void> {
-  const references = Number.isFinite(context.limits.references);
+  const retained = Number.isFinite(context.limits.retainedBytes);
+  const references = Number.isFinite(context.limits.references) || retained;
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384 !== 0)
     context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
@@ -53,7 +54,7 @@ export async function streamDelimited(
     // Headers are fixed-size records followed immediately by the original bytes.
     // Keep per-document dimensions on the tape too, not in an in-memory index.
     const first = storage.allocate(0);
-    if (!inputs.length) {
+    if (!inputs.length && !retained) {
       const tree = new BackedJson(storage, units => context.cooperate(units));
       await tree.value({blocks: [], meta: {}});
       await reserveRetainedAstBudgets(tree, await backedJsonOrder(tree, storage, units => context.cooperate(units)), context, undefined, true);
@@ -66,7 +67,10 @@ export async function streamDelimited(
       await context.consume("bytes" in input ? [input.bytes] : input.chunks, async bytes => {
         if (references) {
           const blocks = Math.ceil((length + bytes.length) / 4096) - Math.ceil(length / 4096);
-          for (let index = 0; index < blocks; index++) context.charge("references", 1);
+          for (let index = 0; index < blocks; index++) {
+            if (retained) context.charge("retainedBytes", Math.min(4096, context.limits.inputBytes - (Math.ceil(length / 4096) + index) * 4096));
+            context.charge("references", 1);
+          }
         }
         for (let offset = 0; offset < bytes.length; offset += 16384) {
           const chunk = bytes.subarray(offset, offset + 16384);
@@ -76,10 +80,14 @@ export async function streamDelimited(
           await context.cooperate();
         }
       }, ["inputBytes"]);
+      // Native acquisition flattens the input, then the decoder owns one copy.
+      if (retained) {context.charge("retainedBytes", length); context.charge("retainedBytes", length);}
+      let decodedUnits = 0;
       if (decoder) await decoder.push();
       else await context.decodeUtf8To((async function* () {
         for (let offset = 0; offset < length; offset += 16384) yield await storage.read(header + 24 + offset, Math.min(16384, length - offset));
-      })(), async () => {});
+      })(), async text => {decodedUnits += text.length;}, [], !retained);
+      if (retained) context.charge("retainedBytes", decodedUnits * 2);
       const bytes = new Uint8Array(24);
       new DataView(bytes.buffer).setFloat64(0, length, true);
       await storage.write(header, bytes);
@@ -108,31 +116,31 @@ export async function streamDelimited(
         throw error;
       }
       if (Number.isFinite(context.limits.nodes) || references) {
-        let nodes = 1, word = false, nonempty = false, cell = false, fields = 0;
-        const beginCell = () => {if (!cell) {if (references) context.charge("references", 1); cell = true;}};
-        const node = () => {context.bound("nodes", ++nodes); if (references) context.charge("references", 1);};
+        let nodes = 1, word = 0, nonempty = false, cell = false, fields = 0;
+        const beginCell = () => {if (!cell) {if (references) context.charge("references", 1); if (retained) context.charge("retainedBytes", 128); cell = true;}};
+        const node = (units: number) => {context.bound("nodes", ++nodes); if (references) context.charge("references", 1); if (retained) context.charge("retainedBytes", units * 2 + 32);};
         await replay(position + 24, length, new DelimitedParser(format, context, {
           async text(text) {
             beginCell();
             for (const char of text) {
-              if (char === " " || char === "\n") {if (word) node(); node(); word = false;}
-              else word = true;
+              if (char === " " || char === "\n") {if (word) node(word); node(0); word = 0;}
+              else word += char.length;
               nonempty = true;
             }
           },
           async field() {
-            beginCell(); if (word) node(); if (nonempty) context.bound("nodes", ++nodes);
-            word = false; nonempty = false; cell = false; fields++;
+            beginCell(); if (word) node(word); if (nonempty) context.bound("nodes", ++nodes);
+            word = 0; nonempty = false; cell = false; fields++;
           },
           async record() {
             if (references) {
-              for (let column = fields; column < parser.width; column++) context.charge("references", 1);
+              for (let column = fields; column < parser.width; column++) {context.charge("references", 1); if (retained) context.charge("retainedBytes", 128);}
               context.charge("references", 1);
             }
             fields = 0;
           }
         }, false));
-        if (references && parser.rows) context.charge("references", parser.width);
+        if (references && parser.rows) {context.charge("references", parser.width); if (retained) context.charge("retainedBytes", parser.width * 64);}
       }
       if (Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text) || references) {
         // Depth can fail inside the generated cell structure before later

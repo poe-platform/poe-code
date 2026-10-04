@@ -630,7 +630,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text",
     // These format-specific budgets have no consumers in the retained format pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
-  ].includes(key) || value === Infinity || key === "references" && ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name) || key === "retainedBytes" && reader.descriptor.name === "json" && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name)
+  ].includes(key) || value === Infinity || key === "references" && ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name) || key === "retainedBytes" && ["json", "csv", "tsv"].includes(reader.descriptor.name) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name)
     && Object.keys(options).every(option => ["from", "to", "eol", "lossy", "yes", "sandbox", "fileScope", "failIfWarnings"].includes(option) || option === "standalone" && options.standalone === false || ["plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name) && ["rawContent", "wrap", "columns"].includes(option) || (writer.descriptor.name === "html5" && ["standalone", "ascii", "toc", "numberSections"].includes(option) || ["latex", "rtf", "odt"].includes(writer.descriptor.name) && option === "standalone" || ["rtf", "odt"].includes(writer.descriptor.name) && option === "resourcePath")));
   const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && ["json", "rtf"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
@@ -684,7 +684,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
         throw new PandocError(error.code, "convert", error.message, error.format, `${readingSource}:${error.location ?? "1:1"}`);
       throw error;
     }
-    return {kind: "output", diagnostics: session.snapshotDiagnostics()};
+    return {kind: "output", diagnostics: session.snapshotDiagnostics(!(writer.descriptor.name !== "json" && Number.isFinite(session.limits.retainedBytes)))};
   } finally {await session.close();}
 }
 

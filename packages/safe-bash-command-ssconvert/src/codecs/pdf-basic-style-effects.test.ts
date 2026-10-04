@@ -264,3 +264,15 @@ it("displays a zero-valued formula when both formula display and zero hiding are
   const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
   expect(runs.map(run => run.text)).toEqual(["=0"]);
 });
+
+it.each(["short", "a long string that exceeds its cell", "12.5"])("prints retained ShrinkToFit without scaling, as native does: %s", async text => {
+  const normal = await fixture([{text}]);
+  const flagged = await fixture([{text, attributes: attributes.replace('ShrinkToFit="0"', 'ShrinkToFit="1"')}]);
+  const before = structuredClone(flagged);
+  const ctx = {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}};
+  const expected = await pdfText(await writePdf(normal, [], ctx));
+  const actual = await pdfText(await writePdf(flagged, [], ctx));
+  expect(actual.runs).toEqual(expected.runs);
+  expect(actual.runs[0]!.size).toBe(7.5);
+  expect(flagged).toEqual(before);
+});

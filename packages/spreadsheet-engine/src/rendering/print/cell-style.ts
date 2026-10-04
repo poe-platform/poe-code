@@ -13,8 +13,9 @@ function colorChannels(value: string): readonly [number, number, number, number]
   const parts = value.split(":").map(part => (Number.parseInt(part, 16) >>> 8) / 255);
   return [parts[0]!, parts[1]!, parts[2]!, parts[3] ?? 1];
 }
+// Native transports ShrinkToFit but does not apply it when rendering cells.
 const styleDefaults: Readonly<Record<string, AttributeRule>> = {
-  HAlign: Object.keys(alignments), VAlign: Object.keys(verticalAlignments), WrapText: "0", ShrinkToFit: "0",
+  HAlign: Object.keys(alignments), VAlign: Object.keys(verticalAlignments), WrapText: "0", ShrinkToFit: ["0", "1"],
   Rotation: "0", Shade: ["0", "1"], Indent: value => value.trim() !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 2147483647, Locked: ["0", "1"], Hidden: ["0", "1"], Fore: validColor,
   Back: validColor, PatternColor: validColor, Format: "General"
 };

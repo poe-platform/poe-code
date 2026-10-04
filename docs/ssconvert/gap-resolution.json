@@ -5199,6 +5199,13 @@
       "validation": "13 failing regressions fixed;424 Gnumeric tests and selected workspace build pass.16 native controls cover three UTF8 casings and canonical UTF-8,with/without BOM and gzip;32 compiled SDK/command outputs match native bytes exactly.Three original border reproducers now import as workbooks instead of text. Command lint/source/test/public consumer types verified.",
       "remaining": "Other encoding aliases and malformed declaration/native diagnostic parity remain unqualified. All19 families remain open."
     },
+    "pdfShrinkFlag20261004": {
+      "finding": "ShrinkToFit=1 was refused before printing even though native Gnumeric preserves this field without applying it to rendering. Authenticated1.12.61 source consumers only transport/diff it; six native on/off pairs have identical extracted words and bounds.",
+      "implementation": "Accept canonical0/1 values in shared print-style validation without scaling glyphs or mutating retained metadata.",
+      "validation": "Three corrected font-authorized regressions fail before/pass after.377 PDF cases validated across the cohort and final72-case corrected style rerun;selected build,engine/command lint/source/test and Node/browser types pass.24 compiled XML outputs and16 public PDFs complete;all16 string geometry comparisons and inspected screenshots match native.",
+      "remaining": "Eight numeric PDF operations refuse default-style layout in both flag states and both widths;original numeric controls and explicit SDK/command failures are retained,not counted as passes. Wider numeric layout,wrapping,rotation and all19 families remain open.",
+      "evidence": "out/ssconvert-continuation-1748/pdf-shrink"
+    },
     "legacyEmptyStyleRanges20261004": {
       "finding": "Legacy XML merges overlapping style patches, but only populated cells had materialized styles. Exporting empty ranges as modern replacement regions lost inherited font,fill and alignment effects.",
       "implementation": "Resolve legacy overlays into disjoint rectangles using charged boundary intersections and four-way subtraction; merge only overlapping style effects. Normalize modern region aliases before retaining them as well. No cell enumeration,including full-sheet ranges.",

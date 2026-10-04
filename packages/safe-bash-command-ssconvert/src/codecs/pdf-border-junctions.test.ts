@@ -22,3 +22,14 @@ it.each([1,2,3,4,5,7,8,9,10,11,12,13])("keeps native junction clearances for bor
     [96+offset,21+end,96+offset,40-begin]
   ]);
 });
+
+it("retains native recycled terminal margins on the final double-grid row", async () => {
+  const {printSharedBorders} = await import("@poe-code/spreadsheet-engine/rendering/print/shared-borders");
+  const border = red(6);
+  const lines = printSharedBorders({startRow:0,endRow:3,startColumn:0,endColumn:3}, {
+    borders: () => (["Top","Bottom","Left","Right"] as const).map(side => ({...border,side})),
+    column: index => ({start:index*48,size:48}), row: index => ({start:index*20,size:20}),
+    hiddenRows:new Set(),hiddenColumns:new Set(),merges:[],spans:new Map()
+  }, () => {});
+  expect(lines.at(-1)).toMatchObject({x1:143,y1:81.5,x2:192,y2:81.5});
+});

@@ -10,7 +10,7 @@ export const printBorderStrokes = [
 ] as const;
 
 export function printDiagonalBorders(borders: readonly CellPrintBorder[], width: number, height: number, tick: () => void) {
-  return [...borders].sort((a, b) => a.side === b.side ? 0 : a.side === "Rev-Diagonal" ? -1 : 1).flatMap(border => {
+  return borders.filter(border => {tick(); return border.side === "Diagonal" || border.side === "Rev-Diagonal";}).sort((a, b) => a.side === b.side ? 0 : a.side === "Rev-Diagonal" ? -1 : 1).flatMap(border => {
     tick();
     const stroke = printBorderStrokes[border.style]!;
     const reverse = border.side === "Rev-Diagonal";

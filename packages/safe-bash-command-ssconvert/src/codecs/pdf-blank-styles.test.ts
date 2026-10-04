@@ -68,3 +68,22 @@ it("skips hidden blank axes while retaining the visible painted area", async () 
     expect(rectangles).toHaveBeenCalledTimes(9);
   } finally {rectangles.mockRestore();}
 });
+it.each(["Top", "Bottom", "Left", "Right"])("prints retained %s edges on blank cells", async side => {
+  const styles = region('', 1, 1).replace('<g:Style />', `<g:Style><g:StyleBorder><g:${side} Style="1" Color="FFFF:0:0"/></g:StyleBorder></g:Style>`);
+  const lines = vi.spyOn(PDFPage.prototype, "drawLine");
+  try {
+    await writePdf(await fixture(styles), [], context);
+    expect(lines).toHaveBeenCalledTimes(1);
+    expect(lines.mock.calls[0]![0]).toMatchObject({thickness: 1});
+  } finally {lines.mockRestore();}
+});
+it("keeps the earlier bottom edge when the next cell requests a thicker top edge", async () => {
+  const styles = region('', 1, 1).replace('<g:Style />','<g:Style><g:StyleBorder><g:Bottom Style="1" Color="FFFF:0:0"/></g:StyleBorder></g:Style>') +
+    '<g:StyleRegion startRow="2" endRow="2" startCol="1" endCol="1"><g:Style><g:StyleBorder><g:Top Style="5" Color="0:0:FFFF"/></g:StyleBorder></g:Style></g:StyleRegion>';
+  const lines = vi.spyOn(PDFPage.prototype, "drawLine");
+  try {
+    await writePdf(await fixture(styles), [], context);
+    expect(lines).toHaveBeenCalledTimes(1);
+    expect(lines.mock.calls[0]![0]).toMatchObject({thickness:1,color:{red:1,green:0,blue:0}});
+  } finally {lines.mockRestore();}
+});

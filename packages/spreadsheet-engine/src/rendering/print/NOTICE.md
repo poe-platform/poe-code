@@ -105,3 +105,10 @@ Diagonal and shared-edge border geometry, widths and dash patterns follow Gnumer
 `style_border_vmargins` and `gnm_style_borders_row_print_gtk`), copyright 1999–2001 Jody Goldberg,
 under GPL-2.0-or-later. Authenticated source SHA-256:
 `6dd6bd5c851510561511f2b2407cb8719b522059656b9f234c488c446abdc1bd`.
+
+Shared-edge ownership and row/merge/span suppression follow Gnumeric 1.12.61
+`src/sheet-style.c` (`sheet_style_get_row`, SHA-256
+`320727f09a5f54f94f2ffde7fc8340ae408749ddb3d321038776fd206e341f17`)
+and `src/print-cell.c` (`gnm_gtk_print_cell_range`, source hash above), under
+the Gnumeric license above. The final row retains the native rotating-buffer
+fencepost behavior used by double-border junctions.

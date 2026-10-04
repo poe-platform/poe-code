@@ -44,7 +44,7 @@ export function createPrintBlankStyles(sheet: Sheet, mergeRows: (row: number) =>
     }
   }
   const intersects = (a: Range, b: Range) => a.startRow <= b.endRow && b.startRow <= a.endRow && a.startColumn <= b.endColumn && b.startColumn <= a.endColumn;
-  return (area: Range): {cell: Cell; merge: Range | undefined}[] => {
+  const blankCells = (area: Range): {cell: Cell; merge: Range | undefined}[] => {
     const candidates = new Map<string, {row: number; column: number; style: Readonly<Record<string, ImportedValue>>}>();
     for (const {range, style} of regions) {
       tick();
@@ -77,4 +77,12 @@ export function createPrintBlankStyles(sheet: Sheet, mergeRows: (row: number) =>
     }
     return result;
   };
+  return {blankCells, styleAt(row: number, column: number) {
+    for (let index = regions.length - 1; index >= 0; index--) {
+      tick();
+      const {range, style} = regions[index]!;
+      if (row >= range.startRow && row <= range.endRow && column >= range.startColumn && column <= range.endColumn) return style;
+    }
+    return undefined;
+  }};
 }

@@ -22,7 +22,7 @@ const styleDefaults: Readonly<Record<string, AttributeRule>> = {
 const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => value.trim() !== "" && Number.isFinite(Number(value)) && Number(value) > 0, Bold: ["0", "1"], Italic: ["0", "1"], Underline: ["0", "1", "2", "3", "4"], StrikeThrough: ["0", "1"], Script: "0"};
 
 export interface CellPrintBorder {
-  readonly side: "Diagonal" | "Rev-Diagonal";
+  readonly side: "Top" | "Bottom" | "Left" | "Right" | "Diagonal" | "Rev-Diagonal";
   readonly style: number;
   readonly color: readonly [number, number, number];
   readonly alpha: number;
@@ -121,7 +121,6 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>> | 
       const values = attributes(side, {Style: value => value.trim() !== "" && Array.from(value.trim()).every(char => "0123456789".includes(char)) && Number(value) <= 13, Color: validColor}, {Style: "0", Color: "0:0:0"});
       const kind = Number(values.Style);
       if (!kind) continue;
-      if (side.name !== "Diagonal" && side.name !== "Rev-Diagonal") fail();
       const color = colorChannels(values.Color!);
       borders.push({side: side.name as CellPrintBorder["side"], style: kind, color: [color[0], color[1], color[2]], alpha: color[3]});
     }

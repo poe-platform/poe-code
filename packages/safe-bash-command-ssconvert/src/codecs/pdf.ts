@@ -1,3 +1,5 @@
+import {printSharedBorders} from "@poe-code/spreadsheet-engine/rendering/print/shared-borders";
+import {printBorderStrokes} from "@poe-code/spreadsheet-engine/rendering/print/diagonal-borders";
 import {createPrintBlankStyles} from "@poe-code/spreadsheet-engine/rendering/print/blank-styles";
 import {printDiagonalBorders} from "@poe-code/spreadsheet-engine/rendering/print/diagonal-borders";
 import {createPrintMerges} from "@poe-code/spreadsheet-engine/rendering/print/merges";
@@ -658,6 +660,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       printedSheets.push({ sheet, print, positions, objects, layout, hiddenRows, hiddenColumns, cells: emptyArea ? cells.filter(cell => {tick(); return !hiddenRows.has(cell.row);}) : cells, mergedCells, blankCells });
     }
     for (const { sheet, print, positions, objects, layout, hiddenRows, hiddenColumns, cells, mergedCells, blankCells } of printedSheets) {
+      const indexedCells = new Map<string, Sheet["cells"][number]>();
+      for (const cell of sheet.cells) {tick(); indexedCells.set(`${cell.row}:${cell.column}`, cell);}
       const textSpan = createPrintSpans({...sheet, cells}, positions.column, tick);
       const showFormulas = sheetViewFlag(sheet, "displayFormulas"), hideZero = sheetViewFlag(sheet, "hideZero");
       for (const geometry of layout.pages) {
@@ -680,7 +684,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           page.getHeight() - geometry.originY - (pageLastRow.start + pageLastRow.size - pageRow.start),
           pageLastColumn.start + pageLastColumn.size - pageColumn.start + 0.2,
           pageLastRow.start + pageLastRow.size - pageRow.start + 0.2), clip(), endPath()];
-        const paintedCells = [...cells.map(cell => ({cell, merge: mergedCells.get(cell)})), ...blankCells(geometry.area)].flatMap(({cell, merge}) => {
+        const spans = new Map<number, {left: number; right: number}[]>();
+        const paintedCells = [...cells.map(cell => ({cell, merge: mergedCells.get(cell)})), ...blankCells.blankCells(geometry.area)].flatMap(({cell, merge}) => {
           tick();
           const range = merge ?? {startRow: cell.row, endRow: cell.row, startColumn: cell.column, endColumn: cell.column};
           if (range.endRow < geometry.area.startRow || range.startRow > geometry.area.endRow || range.endColumn < geometry.area.startColumn || range.startColumn > geometry.area.endColumn || !merge && hiddenRows.has(cell.row) || hiddenColumns.has(cell.column)) return [];
@@ -731,11 +736,20 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const wrap = style.alignment !== "fill" && Boolean(formula || cell.value.kind === "string") && (style.wrap === true || style.alignment === "justify" || style.verticalAlignment === "justify" || style.verticalAlignment === "distributed");
           const overflow = !merge && style.alignment !== "fill" && !wrap && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
             const required = alignment === "center" ? width + Math.max(0, (displayWidth - width + 5 * printDisplayScale) / 2) : Infinity;
-            return {
+            const extent = {
               left: alignment === "left" ? 0 : textSpan(cell, x - geometry.originX + width, "left", required) - width,
               right: alignment === "right" ? 0 : textSpan(cell,
                 Math.max(width, (layout.widthPoints - print.margins.right - geometry.originX) / layout.scaleX - (x - geometry.originX)), "right", required) - width
             };
+            const needed = width + Math.max(0, displayWidth - width + 5 * printDisplayScale) / (alignment === "center" ? 2 : 1);
+            const left = alignment === "left" ? 0 : textSpan(cell, width + extent.left, "left", needed) - width;
+            const right = alignment === "right" ? 0 : textSpan(cell, width + extent.right, "right", needed) - width;
+            if (left > 0 || right > 0) {
+              const start = positions.column(cell.column).start;
+              const row = spans.get(cell.row) ?? [];
+              row.push({left: start - left, right: start + width + right}); spans.set(cell.row, row);
+            }
+            return extent;
           } : undefined;
           if (merge) page.pushOperators(...mergedClip);
           await text(page, value, x, y, style.size * printDisplayScale, alignment,
@@ -749,6 +763,19 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           page.pushOperators(...mergedClip);
           drawDiagonals(painted);
           page.pushOperators(popGraphicsState());
+        }
+        for (const line of printSharedBorders(geometry.area, {
+          borders(row, column) {
+            tick(); const cell = indexedCells.get(`${row}:${column}`);
+            return cellPrintStyle(cell ? normalizePdfCellStyle(cell) : blankCells.styleAt(row, column), tick).borders ?? [];
+          }, column: positions.column, row: positions.row, hiddenRows, hiddenColumns,
+          merges: sheet.merges ?? [], spans
+        }, tick)) {
+          tick(); const stroke = printBorderStrokes[line.border.style]!;
+          page.drawLine({start: {x: geometry.originX + 2 + line.x1, y: page.getHeight() - geometry.originY - line.y1},
+            end: {x: geometry.originX + 2 + line.x2, y: page.getHeight() - geometry.originY - line.y2},
+            thickness: stroke.width, color: rgb(...line.border.color), opacity: line.border.alpha,
+            ...("dash" in stroke ? {dashArray: [...stroke.dash]} : {}), ...("phase" in stroke ? {dashPhase: stroke.phase} : {})});
         }
         for (const { object, rectangle } of objects) {
           tick();

@@ -5977,5 +5977,21 @@
       "checks": "Native decoded stroke coordinates and colors match exactly across all13styles on4sides,4box styles with/without merges and8neighbor conflicts. Public SDK/command still refuse shared borders; primitive qualification is not exporter support."
     },
     "remaining": "Connect style-region/actual-cell ownership resolution,visible-row handling,merge/span suppression and PDF paint order;qualify public SDK/command,screenshots and wider profiles."
+  },
+  "pdfSharedBorders": {
+    "status": "Public shared-border rendering qualified for retained Gnumeric cell styles;all19 families remain open",
+    "implementation": "PDF SDK/command resolve bottom/top and right/left ownership,retain native line junctions,dashes,RGBA,hidden-axis behavior and original merged boundary styles,clear merged/spanning-text internal edges,and preserve page-boundary row-buffer behavior. Retained blank-style lookup includes covered merged cells. Displayed spans extend border ranges without adding workbook cells.",
+    "validation": {
+      "originalPublicRefusals": 136,
+      "originalMemoryFailures": 4,
+      "tests": 433,
+      "nativeInputs": 102,
+      "publicOutputs": 408,
+      "nativePublicTextComparisons": 204,
+      "nativePublicStrokePageComparisons": 216,
+      "checks": "Selected maintained build,engine/command lint source/test/public-consumer types,all13border styles in4directions,conflicting neighbors,full/merged grids,hidden axes,transparent colors,spanning text,terminal row counts and horizontal/vertical multipage merges. Independently decoded stroke coordinates,widths,dashes,phases andcolors match;native/public screenshots inspected."
+    },
+    "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+    "remaining": "Full rendering qualification still includes rotation,rich text,other format style transports,Unicode/CJK/RTL,broader span/background interactions and all other plan families."
   }
 }

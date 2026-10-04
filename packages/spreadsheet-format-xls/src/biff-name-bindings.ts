@@ -15,7 +15,7 @@ interface CapturedReference { target: Reference; functionName: string | undefine
 export class BiffNameBindings {
   private readonly slots = new Map<number, Binding>();
   private readonly scopes = new Map<string | undefined, Map<string, Binding>>();
-  private readonly definitions = new Map<number, { translate: (resolve: Resolver) => string;
+  private readonly definitions = new Map<number, { translate: (resolve: Resolver) => string | Promise<string>;
     references: readonly CapturedReference[]; placeholder: boolean }>();
   private work = 0;
 
@@ -54,11 +54,25 @@ export class BiffNameBindings {
   };
 
   define(index: number, name: string, sheet: string | undefined, translate: (resolve: Resolver) => string): void {
+    const steps = this.defineSteps(index, name, sheet, translate), next = steps.next();
+    if (!next.done) {
+      if (typeof next.value !== "string") throw new TypeError("Synchronous BIFF name translation returned a promise");
+      steps.next(next.value);
+    }
+  }
+
+  async defineAsync(index: number, name: string, sheet: string | undefined, translate: (resolve: Resolver) => Promise<string>): Promise<void> {
+    const steps = this.defineSteps(index, name, sheet, translate), next = steps.next();
+    if (!next.done) steps.next(await next.value);
+  }
+
+  private *defineSteps(index: number, name: string, sheet: string | undefined,
+    translate: (resolve: Resolver) => string | Promise<string>): Generator<string | Promise<string>, void, string> {
     this.tick();
     // Native captures the old stub before parsing. A self reference created
     // during parsing therefore remains unlinked when this slot is replaced.
     const stub = this.slots.get(index), references: CapturedReference[] = [];
-    const expression = translate((target, qualified) => {
+    const expression = yield translate((target, qualified) => {
       const reference = this.reference(target, qualified);
       // A custom function is selected immediately, before a forward stub may
       // acquire its eventual declared name. Preserve that original spelling.
@@ -66,6 +80,7 @@ export class BiffNameBindings {
       references.push({ target: reference, functionName });
       return { value: typeof reference === "string" ? reference : target, functionName };
     });
+    this.context.signal.throwIfAborted();
     const dependencies = references.map(reference => reference.target);
     const pending = [...dependencies], seen = new Set<Binding>();
     while (pending.length) {
@@ -126,6 +141,18 @@ export class BiffNameBindings {
   }
 
   expression(index: number): string {
+    const value = this.expressionResult(index);
+    if (typeof value !== "string") throw new TypeError("Synchronous BIFF name translation returned a promise");
+    return value;
+  }
+
+  async expressionAsync(index: number): Promise<string> {
+    const value = await this.expressionResult(index);
+    this.context.signal.throwIfAborted();
+    return value;
+  }
+
+  private expressionResult(index: number): string | Promise<string> {
     this.tick();
     const definition = this.definitions.get(index)!;
     let at = 0;

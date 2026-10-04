@@ -41,10 +41,10 @@ export function biffDecode(bytes: Uint8Array, codepage: number): string {
 }
 
 type StringValue = { text: string; richText?: readonly RichTextRun[] };
-type StringSteps<T> = Generator<void, T, Binary | undefined>;
+export type StringSteps<T> = Generator<void, T, Binary | undefined>;
 
 /** One active payload; yield only when the next CONTINUE record is needed. */
-class StringDecoder {
+export class StringDecoder {
   private data: Binary | undefined;
   private offset = 0;
   private previousBytes = 0;
@@ -109,31 +109,31 @@ class StringDecoder {
 
 /** Buffered convenience shares the decoder with retained record ingestion. */
 export class BiffStrings {
-  private readonly decoder: StringDecoder;
+  readonly decoder: StringDecoder;
   private part = 0;
   constructor(private readonly parts: readonly Binary[], context: BiffReadContext, codepage: number) {
     this.decoder = new StringDecoder(context, codepage);
   }
   get consumedBytes(): number { return this.decoder.consumedBytes; }
-  private run<T>(steps: StringSteps<T>): T {
+  decode<T>(steps: StringSteps<T>): T {
     let next = steps.next();
     while (!next.done) next = steps.next(this.parts[this.part++]);
     return next.value;
   }
-  byte(): number { return this.run(this.decoder.byte()); }
-  word(): number { return this.run(this.decoder.word()); }
-  dword(): number { return this.run(this.decoder.dword()); }
-  legacy(length: number): string { return this.run(this.decoder.legacy(length)); }
-  unicode(length: number): StringValue { return this.run(this.decoder.unicode(length)); }
+  byte(): number { return this.decode(this.decoder.byte()); }
+  word(): number { return this.decode(this.decoder.word()); }
+  dword(): number { return this.decode(this.decoder.dword()); }
+  legacy(length: number): string { return this.decode(this.decoder.legacy(length)); }
+  unicode(length: number): StringValue { return this.decode(this.decoder.unicode(length)); }
 }
 
 /** Borrowed record lookup is lazy; the caller retains ownership of its backing store. */
 export class BiffStringSource {
-  private readonly decoder: StringDecoder;
+  readonly decoder: StringDecoder;
   constructor(private readonly nextPart: () => Promise<Binary | undefined>, private readonly context: BiffReadContext, codepage: number) {
     this.decoder = new StringDecoder(context, codepage);
   }
-  private async run<T>(steps: StringSteps<T>): Promise<T> {
+  async decode<T>(steps: StringSteps<T>): Promise<T> {
     this.context.signal.throwIfAborted();
     let next = steps.next();
     while (!next.done) {
@@ -144,9 +144,9 @@ export class BiffStringSource {
     }
     return next.value;
   }
-  word(): Promise<number> { return this.run(this.decoder.word()); }
-  legacy(length: number): Promise<string> { return this.run(this.decoder.legacy(length)); }
-  unicode(length: number): Promise<StringValue> { return this.run(this.decoder.unicode(length)); }
+  word(): Promise<number> { return this.decode(this.decoder.word()); }
+  legacy(length: number): Promise<string> { return this.decode(this.decoder.legacy(length)); }
+  unicode(length: number): Promise<StringValue> { return this.decode(this.decoder.unicode(length)); }
 }
 
 /** Shared strings can span many records, but need only one input payload at a time. */

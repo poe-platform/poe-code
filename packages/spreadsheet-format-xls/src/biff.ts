@@ -14,9 +14,9 @@ import { encryptBiffXorStreams } from "./biff-xor-write.js";
 import { exportOptionPairs } from "@poe-code/spreadsheet-engine/cli/export-options";
 import { biffFontWidth } from "./biff-font-widths.js";
 import { readBiffStrings, BiffStrings, BiffStringSource, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
-import { translateBiffFormula, biffErrors, type BiffFormulaContext, type BiffExternalName } from "./biff-formulas.js";
+import { translateBiffFormulaSource, biffErrors, type BiffFormulaContext, type BiffExternalName } from "./biff-formulas.js";
 import { biffExternalPath, biffLegacyExternalPath } from "./biff-external-path.js";
-import { biffFormulaExtras } from "./biff-formula-extras.js";
+import { biffFormulaExtrasSource } from "./biff-formula-extras.js";
 import { readBiffDataTable } from "./biff-data-tables.js";
 import { readBiffLabelRanges } from "./biff-label-ranges.js";
 import { BiffNameBindings } from "./biff-name-bindings.js";
@@ -91,8 +91,11 @@ const defaultPalette = ["000000", "FFFFFF", "FF0000", "00FF00", "0000FF", "FFFF0
 const ignoredOpcodes = new Set([0xb, 0x20b, 0xd7, 0xff, 0x16, 0x1f, 0x5b, 0x5c, 0xc0, 0xc1, 0xe1, 0xe2,
   0x40, 0x8c, 0x9c, 0xbf, 0xda, 0x160, 0x161, 0x13d, 0x1c0, 0x1c1, 0x1c2, 0x86, 0x87, 0x9b,
   0x80, 0x82, 0x8d, 0x5f, 0x8b, 0x8e, 0x42e, 0x1af, 0xe, 0x293, 0x1b7, 0x1bc]);
-interface PendingCell { cell: Cell; xf: number; tokens?: Uint8Array; arrays?: readonly Binary[]; revision: number; codepage: number; }
-interface PendingExternalName { name: string; sheetIndex: number; tokens: Uint8Array; arrays?: readonly Binary[]; revision: number; codepage: number; supported: boolean; record: BiffRecord; }
+type FormulaTokens = Uint8Array | { readonly first: number; readonly offset: number; readonly length: number; readonly opcode: number | undefined };
+interface FormulaRecord { readonly index: number; readonly offset: number; }
+interface FormulaTail { readonly first: number; readonly offset: number; readonly last: number; }
+interface PendingCell { cell: Cell; xf: number; tokens?: FormulaTokens; arrays?: FormulaTail | undefined; revision: number; codepage: number; }
+interface PendingExternalName { name: string; sheetIndex: number; tokens: FormulaTokens; arrays?: FormulaTail | undefined; revision: number; codepage: number; supported: boolean; record: FormulaRecord; }
 interface LegacyExternalLink { workbook?: string; sheet?: string; addin: boolean; names: PendingExternalName[]; }
 interface PendingSheet {
   ordinal: number; id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
@@ -101,7 +104,7 @@ interface PendingSheet {
   records: BiffRecord[] | BiffRecordSelection; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
   legacyExternalLinks: Map<number, LegacyExternalLink>;
-  groups: { id: string; kind: "shared" | "array" | "table"; range: Range; tokens: Uint8Array; arrays: readonly Binary[];
+  groups: { id: string; kind: "shared" | "array" | "table"; range: Range; tokens: FormulaTokens; arrays: FormulaTail | undefined;
     expression?: string; keyRow: number; keyColumn: number }[];
 }
 interface BoundSheet { offset: number; name: string; visibility: PendingSheet["visibility"]; type: number; }
@@ -207,7 +210,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
   let automaticLabelLookup = false;
   let cellCount = 0, textBytes = 0, metadataBytes = 0, formulaWork = 0;
   const boundSheets: BoundSheet[] = [], sheets: PendingSheet[] = [], unsupported: UnsupportedRecord[] = [];
-  const names: { name: string; flags: number; tokens: Uint8Array; arrays: readonly Binary[]; sheetIndex: number; scopeIsWorksheet: boolean; revision: number; codepage: number; record: BiffRecord; owner?: PendingSheet }[] = [];
+  const names: { name: string; flags: number; tokens: FormulaTokens; arrays: FormulaTail | undefined; sheetIndex: number; scopeIsWorksheet: boolean; revision: number; codepage: number; record: FormulaRecord; owner?: PendingSheet }[] = [];
   const legacyExternalSheets: (string | null | undefined)[] = [];
   const legacyExternalLinks = new Map<number, LegacyExternalLink>();
   const supbooks: { kind: "local" | "addin" | "external"; names: PendingExternalName[]; workbook?: string; sheets: string[] }[] = [], externalReferences: { book: number; first: number; last: number }[] = [];
@@ -276,30 +279,48 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     return { cursor, next };
   };
   const formulaParts = async (index: number, offset: number, length: number) => {
+    const tokenFirst = index, tokenOffset = offset;
+    let remaining = length, opcode: number | undefined;
     const first = (await biffRecord(records, index))!.data;
-    let tokens: Uint8Array;
-    if (offset + length <= first.bytes.length) {
-      tokens = first.slice(offset, length); offset += length;
-    } else {
-      accountFormulaWork(length);
-      tokens = new Uint8Array(length);
-      let written = 0;
-      while (written < length) {
-        context.signal.throwIfAborted();
-        const part = (await biffRecord(records, index))!.data;
-        const count = Math.min(length - written, part.bytes.length - offset);
-        tokens.set(part.slice(offset, count), written); written += count; offset += count;
-        if (written < length) {
-          if ((await biffRecord(records, index + 1))?.opcode !== 0x3c) invalidBiff("truncated formula tokens/CONTINUE");
-          index++; offset = 0;
-        }
+    if (length > first.bytes.length - offset) accountFormulaWork(length);
+    do {
+      context.signal.throwIfAborted();
+      const data = index === tokenFirst ? first : (await biffRecord(records, index))!.data;
+      data.check(offset, 0);
+      const count = Math.min(remaining, data.bytes.length - offset);
+      if (opcode === undefined && count) opcode = data.u8(offset);
+      remaining -= count; offset += count;
+      if (remaining) {
+        if (("opcode" in records ? await records.opcode(index + 1) : records[index + 1]?.opcode) !== 0x3c)
+          invalidBiff("truncated formula tokens/CONTINUE");
+        index++; offset = 0;
       }
+    } while (remaining);
+    const tailFirst = index;
+    while (("opcode" in records ? await records.opcode(index + 1) : records[index + 1]?.opcode) === 0x3c) {
+      context.signal.throwIfAborted(); index++;
     }
-    const extra = await stringParts(index, offset);
-    return { tokens, arrays: extra.parts, next: extra.next };
+    return { tokens: { first: tokenFirst, offset: tokenOffset, length, opcode },
+      arrays: { first: tailFirst, offset, last: index }, next: index };
+  };
+  const tokenOpcode = (tokens: FormulaTokens) => tokens instanceof Uint8Array ? tokens[0] : tokens.opcode;
+  const tokenBytes = async (tokens: FormulaTokens): Promise<Uint8Array> => {
+    if (tokens instanceof Uint8Array) return tokens;
+    const bytes = new Uint8Array(tokens.length);
+    let at = tokens.first, offset = tokens.offset, written = 0;
+    while (written < bytes.length) {
+      context.signal.throwIfAborted();
+      const record = await biffRecord(records, at++);
+      if (!record || at > tokens.first + 1 && record.opcode !== 0x3c) invalidBiff("truncated formula tokens/CONTINUE");
+      record.data.check(offset, 0);
+      const count = Math.min(bytes.length - written, record.data.bytes.length - offset);
+      bytes.set(record.data.slice(offset, count), written); written += count; offset = 0;
+    }
+    return bytes;
   };
   for (let index = 0; index < records.length; index++) {
     context.signal.throwIfAborted();
+    const recordIndex = index;
     const record = (await biffRecord(records, index))!, data = record.data, opcode = record.opcode;
     if (bofOpcodes.has(opcode)) {
       ver = revision(record); const type = data.u16(2);
@@ -429,25 +450,26 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       const name = accountText(ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length));
       const end = 7 + cursor.consumedBytes;
       const tokenLength = end + 2 <= data.bytes.length ? data.u16(end) : 0;
-      const formula = tokenLength ? await formulaParts(index, end + 2, tokenLength) : { tokens: new Uint8Array(), arrays: [], next: index };
+      const formula = tokenLength ? await formulaParts(index, end + 2, tokenLength) : { tokens: new Uint8Array(), arrays: undefined, next: index };
       const legacyLink = (sheet?.legacyExternalLinks ?? legacyExternalLinks).get((sheet?.legacyExternalSheets ?? legacyExternalSheets).length - 1);
       const table = ver >= 8 ? supbooks.at(-1)?.names : legacyLink?.names;
       if (!table) invalidBiff("EXTERNNAME without workbook link");
       index = formula.next;
-      table.push({ name, sheetIndex: data.u16(2), tokens: formula.tokens, arrays: formula.arrays, revision: ver, codepage, supported: flags === 0, record });
+      table.push({ name, sheetIndex: data.u16(2), tokens: formula.tokens, arrays: formula.arrays, revision: ver, codepage, supported: flags === 0, record: { index: recordIndex, offset: record.offset } });
       const addin = ver >= 8 ? supbooks.at(-1)?.kind === "addin" : legacyLink?.addin;
       const externalIdentity = (ver >= 8 ? supbooks.at(-1)?.workbook : legacyLink?.workbook) !== undefined && flags === 0;
       const externalBook = ver >= 8 ? supbooks.at(-1) : undefined, tokens = formula.tokens;
       let definition: ImportedValue | undefined, portableDefinitions: ImportedValue | undefined;
       if (externalBook?.workbook !== undefined && flags === 0 && data.u16(4) === 0 &&
-        (tokens[0] === 0x1c && tokens.length === 2 || tokens[0] === 0x3a && tokens.length === 9 || tokens[0] === 0x3b && tokens.length === 13)) {
+        (tokenOpcode(tokens) === 0x1c && tokens.length === 2 || tokenOpcode(tokens) === 0x3a && tokens.length === 9 || tokenOpcode(tokens) === 0x3b && tokens.length === 13)) {
+        const bytes = await tokenBytes(tokens);
         accountFormulaWork(tokens.length + externalBook.sheets.length);
         const scope = data.u16(2) ? externalBook.sheets[data.u16(2) - 1] : undefined;
         if (!data.u16(2) || scope !== undefined) definition = {
           workbook: accountText(externalBook.workbook), name: accountText(name),
           sheets: externalBook.sheets.map(accountText), ...(scope === undefined ? {} : { scope: accountText(scope) }),
-          tokens: accountText(Array.from(tokens, byte => byte.toString(16).padStart(2, "0")).join("")) };
-        const expression = definition === undefined ? undefined : biffExternalNameExpression(tokens, externalBook.workbook, externalBook.sheets);
+          tokens: accountText(Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("")) };
+        const expression = definition === undefined ? undefined : biffExternalNameExpression(bytes, externalBook.workbook, externalBook.sheets);
         if (expression !== undefined) {
           portableDefinitions = { workbook: accountText(externalBook.workbook), sheets: externalBook.sheets.map(accountText),
             names: [{ name: accountText(name), expression: accountText(expression), ...(scope === undefined ? {} : { sheet: accountText(scope) }) }] };
@@ -497,7 +519,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       } else name = ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length);
       const formula = await formulaParts(index, start + cursor.consumedBytes, tokenLength); index = formula.next;
       names.push({ name: accountText(name), flags, tokens: formula.tokens, arrays: formula.arrays,
-        sheetIndex, scopeIsWorksheet, revision: ver, codepage, record, ...(sheet ? { owner: sheet } : {}) }); continue;
+        sheetIndex, scopeIsWorksheet, revision: ver, codepage, record: { index: recordIndex, offset: record.offset }, ...(sheet ? { owner: sheet } : {}) }); continue;
     }
     if (ignoredOpcodes.has(opcode)) continue;
     if (opcode === 0xf) { if (sheet) sheet.view.referenceMode = data.u16(0) ? "A1" : "R1C1"; continue; }
@@ -581,7 +603,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
         const expression = readBiffDataTable(data, ver, opcode);
         if (expression === undefined) await retain(record, sheet.unsupportedRecords);
         sheet.groups.push({ id: `biff-${sheet.offset}-${record.offset}`, kind: "table", range,
-          tokens: Uint8Array.of(2), arrays: [], ...(expression === undefined ? {} : { expression }),
+          tokens: Uint8Array.of(2), arrays: undefined, ...(expression === undefined ? {} : { expression }),
           keyRow: range.startRow, keyColumn: range.startColumn }); continue;
       }
       const kind = opcode === 0x4bc ? "shared" : "array";
@@ -693,16 +715,21 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
   const nameBindings = new BiffNameBindings(context, sheets);
   // Trailing bytes also hold labels and caches; only decoded PtgArray operands
   // require literal array-string semantics on the resulting expressions.
-  const arrayFormulas = new WeakSet<Uint8Array>();
-  const formula = (tokens: Uint8Array, arrays: readonly Binary[] | undefined, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false,
+  const arrayFormulas = new WeakSet<FormulaTokens>();
+  const formula = async (tokens: FormulaTokens, arrays: FormulaTail | undefined, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false,
     resolveName = nameBindings.resolve, globalNameDefinition = false) => {
-    const extras = biffFormulaExtras(arrays ?? [], revision, cp, { ...context,
+    let at = arrays?.first ?? 0;
+    const extras = biffFormulaExtrasSource(async () => {
+      if (!arrays || at > arrays.last) return undefined;
+      const first = at === arrays.first, data = (await biffRecord(records, at++))!.data;
+      return first ? new Binary(data.slice(arrays.offset, data.bytes.length - arrays.offset)) : data;
+    }, revision, cp, { ...context,
       limits: { ...context.limits, workbookTextBytes: (context.limits.workbookTextBytes ?? context.limits.inputBytes) - textBytes }
     }, accountFormulaWork);
-    return translateBiffFormula(tokens, {
+    return translateBiffFormulaSource(await tokenBytes(tokens), {
     revision, codepage: cp, row, column, accountWork: accountFormulaWork, ...extras,
-    readArray() {
-      const value = extras.readArray();
+    async readArray() {
+      const value = await extras.readArray();
       arrayFormulas.add(tokens);
       return value;
     }, names: formulaNames, resolveName, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
@@ -731,11 +758,11 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       }
       const global = globals.get(name.name);
       if (global && global.record.offset < name.record.offset) {
-        const placeholder = global.tokens.length === 0 || global.tokens.length === 2 && global.tokens[0] === 0x1c && global.tokens[1] === 29;
+        const placeholder = global.tokens.length === 0 || global.tokens.length === 2 && tokenOpcode(global.tokens) === 0x1c && (await tokenBytes(global.tokens))[1] === 29;
         if (!placeholder) { entries.push(undefined); continue; }
         // Native EXTERNNAME reuses an existing linked #NAME placeholder. Its
         // expression changes, while all indexed references keep the same object.
-        global.tokens = name.tokens; global.arrays = name.arrays ?? []; global.revision = name.revision; global.codepage = name.codepage;
+        global.tokens = name.tokens; global.arrays = name.arrays; global.revision = name.revision; global.codepage = name.codepage;
         entries.push({ name: name.name, expression: "=[]" + name.name });
       } else {
         // An unlinked expression is inactive (expr_name_is_active). The symbol
@@ -774,12 +801,12 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
   for (const [at, name] of names.entries()) {
     if (name.sheetIndex && nameSheets[at] === undefined) invalidBiff("invalid name sheet scope");
     try {
-      nameBindings.define(at + 1, name.name, nameSheets[at], resolve => name.tokens.length ?
+      await nameBindings.defineAsync(at + 1, name.name, nameSheets[at], async resolve => name.tokens.length ?
         formula(name.tokens, name.arrays, name.revision, name.codepage, 0, 0, name.owner, false, resolve, !name.sheetIndex) : "=#NAME?");
     }
     catch (error) {
       if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
-      await retain(name.record, unsupported, false);
+      await retain((await biffRecord(records, name.record.index))!, unsupported, false);
       unsupported.push({ source: "biff", kind: "untranslated-name", disposition: "retained", data: { name: name.name } });
       await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: error.message });
     }
@@ -793,7 +820,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
   for (const index of finalizedNames.indices) {
     const at = index - 1;
     const name = names[at]!;
-    materializedNames.push({ name: name.name, expression: accountText(nameBindings.expression(at + 1)),
+    materializedNames.push({ name: name.name, expression: accountText(await nameBindings.expressionAsync(at + 1)),
       ...(arrayFormulas.has(name.tokens) ? { arrayStringLiterals: true } : {}),
       ...(name.sheetIndex ? { sheet: nameSheets[at] ?? invalidBiff("invalid name sheet scope") } : {}) });
   }
@@ -865,7 +892,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     const formulaGroups: FormulaGroup[] = [];
     for (const group of sheet.groups) {
       try { formulaGroups.push({ id: group.id, kind: group.kind === "table" ? "array" : group.kind, range: group.range,
-        expression: accountText(group.expression ?? formula(group.tokens, group.arrays, sheet.revision, sheet.codepage, group.range.startRow, group.range.startColumn, sheet, group.kind === "shared")),
+        expression: accountText(group.expression ?? await formula(group.tokens, group.arrays, sheet.revision, sheet.codepage, group.range.startRow, group.range.startColumn, sheet, group.kind === "shared")),
         ...(arrayFormulas.has(group.tokens) ? { arrayStringLiterals: true } : {}) }); }
       catch (error) { if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
         await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: error.message }); }
@@ -878,12 +905,13 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
           try {
             let tokens = pending.tokens, arrays = pending.arrays;
             let formulaRow = cell.row, formulaColumn = cell.column, shared = false, expression: string | undefined;
-            if (tokens[0] === 1 || tokens[0] === 2) {
-              if (tokens.length !== (pending.revision >= 3 ? 5 : 4)) invalidBiff(tokens[0] === 2 ? "invalid ptgTbl length" : "invalid ptgExp length");
-              const exp = new Binary(tokens), row = exp.u16(1), column = pending.revision >= 3 ? exp.u16(3) : exp.u8(3);
+            const opcode = tokenOpcode(tokens);
+            if (opcode === 1 || opcode === 2) {
+              if (tokens.length !== (pending.revision >= 3 ? 5 : 4)) invalidBiff(opcode === 2 ? "invalid ptgTbl length" : "invalid ptgExp length");
+              const exp = new Binary(await tokenBytes(tokens)), row = exp.u16(1), column = pending.revision >= 3 ? exp.u16(3) : exp.u8(3);
               const group = sheet.groups.find(group => group.keyRow === row && group.keyColumn === column &&
-                (group.kind === "table") === (tokens[0] === 2));
-              if (!group) invalidBiff(tokens[0] === 2 ? "unresolved data-table formula" : "unresolved shared/array formula");
+                (group.kind === "table") === (opcode === 2));
+              if (!group) invalidBiff(opcode === 2 ? "unresolved data-table formula" : "unresolved shared/array formula");
               if (cell.row < group.range.startRow || cell.row > group.range.endRow || cell.column < group.range.startColumn || cell.column > group.range.endColumn)
                 invalidBiff("formula outside group range");
               tokens = group.tokens; arrays = group.arrays;
@@ -892,13 +920,13 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
               if (formulaGroups.some(materialized => materialized.id === group.id)) cell = { ...cell, formulaGroup: group.id };
               if (group.kind !== "shared") { formulaRow = group.range.startRow; formulaColumn = group.range.startColumn; }
             }
-            cell = { ...cell, formula: accountText(expression ?? formula(tokens, arrays, pending.revision, pending.codepage, formulaRow, formulaColumn, sheet, shared)),
+            cell = { ...cell, formula: accountText(expression ?? await formula(tokens, arrays, pending.revision, pending.codepage, formulaRow, formulaColumn, sheet, shared)),
               ...(arrayFormulas.has(tokens) ? { arrayStringLiterals: true } : {}) };
           }
           catch (error) {
             if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
             sheet.unsupportedRecords.push({ source: "biff", kind: "untranslated-formula", disposition: "retained", data: {
-              row: cell.row, column: cell.column, tokens: Array.from(pending.tokens, byte => byte.toString(16).padStart(2, "0")).join("") } });
+              row: cell.row, column: cell.column, tokens: Array.from(await tokenBytes(pending.tokens), byte => byte.toString(16).padStart(2, "0")).join("") } });
             await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: error.message });
           }
         }

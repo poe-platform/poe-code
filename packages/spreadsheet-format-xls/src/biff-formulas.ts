@@ -71,7 +71,28 @@ export function isBiffRadicalArea(row: number, column: number, [r1, r2, c1, c2]:
   return r1 <= r2 && c1 <= c2 && c2 < 256 && rowLabel !== columnLabel;
 }
 
+type ExtraKind = "readArray" | "readMemory" | "readLabels";
+type ExtraValue = string | void | ReturnType<NonNullable<BiffFormulaContext["readLabels"]>>;
+export type AsyncBiffFormulaContext = Omit<BiffFormulaContext, ExtraKind> & {
+  readonly [K in ExtraKind]?: () => ReturnType<NonNullable<BiffFormulaContext[K]>> | Promise<ReturnType<NonNullable<BiffFormulaContext[K]>>>;
+};
+
 export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaContext): string {
+  const steps = formulaSteps(bytes, context, context);
+  let next = steps.next();
+  while (!next.done) next = steps.next(context[next.value]?.());
+  return next.value;
+}
+
+export async function translateBiffFormulaSource(bytes: Uint8Array, context: AsyncBiffFormulaContext): Promise<string> {
+  const steps = formulaSteps(bytes, context, context);
+  let next = steps.next();
+  while (!next.done) next = steps.next(await context[next.value]?.());
+  return next.value;
+}
+
+function* formulaSteps(bytes: Uint8Array, context: Omit<BiffFormulaContext, ExtraKind>,
+  extras: Partial<Record<ExtraKind, unknown>>): Generator<ExtraKind, string, ExtraValue> {
   const data = new Binary(bytes), stack: Expression[] = [];
   let offset = 0, work = 0;
   const push = (text: string, precedence = 99, functionName?: string, union = false) => {
@@ -158,7 +179,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       data.check(offset, 5); offset += 5; push("#NAME?");
     } else if (token === 0x18 && context.revision === 8 && [2, 3, 6, 7, 10, 11].includes(data.u8(offset))) {
       data.check(offset, 5);
-      const subtype = data.u8(offset), labels = subtype === 11 ? context.readLabels?.() : undefined;
+      const subtype = data.u8(offset), labels = subtype === 11 && extras.readLabels ? (yield "readLabels") as ReturnType<NonNullable<BiffFormulaContext["readLabels"]>> : undefined;
       if (subtype === 11 && !labels?.cells.length) invalidBiff("missing multiple label references");
       const terminal = labels?.cells[labels.cells.length - 1];
       const row = terminal?.row ?? data.u16(offset + 1), columnBits = terminal ? terminal.column | (labels!.relative ? 0x8000 : 0) : data.u16(offset + 3), column = columnBits & 0x3fff;
@@ -197,9 +218,9 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     else if (token === 0x1d) push(data.u8(offset++) ? "TRUE" : "FALSE");
     else if (token === 0x1e) { push(String(data.u16(offset))); offset += 2; }
     else if (token === 0x1f) { const value = data.f64(offset); if (!Number.isFinite(value)) invalidBiff("invalid formula number"); push(String(value)); offset += 8; }
-    else if (token === 0x20 && context.readArray) {
+    else if (token === 0x20 && extras.readArray) {
       const size = context.revision === 2 ? 6 : 7;
-      data.check(offset, size); offset += size; push(context.readArray());
+      data.check(offset, size); offset += size; push((yield "readArray") as string);
     }
     else if (token === 0x21 || token === 0x22) {
       const argc = token === 0x22 ? data.u8(offset++) & 0x7f : undefined;
@@ -329,7 +350,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     } else if (token === 0x26 || token === 0x27 || token === 0x28) {
       const size = context.revision === 2 ? 4 : 6;
       data.check(offset, size); offset += size;
-      if (token === 0x26) context.readMemory?.();
+      if (token === 0x26 && extras.readMemory) yield "readMemory";
     }
     else if (token === 0x29 || token === 0x2e || token === 0x2f) {
       const size = context.revision === 2 ? 1 : 2;

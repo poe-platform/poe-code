@@ -4,21 +4,35 @@ import { quoteFormulaString } from "@poe-code/spreadsheet-engine/formulas/serial
 import { Binary, invalidBiff } from "./biff-binary.js";
 import { biffErrors } from "./biff-formulas.js";
 import type { BiffFormulaContext } from "./biff-formulas.js";
-import { BiffStrings } from "./biff-strings.js";
+import { BiffStrings, BiffStringSource, type StringDecoder, type StringSteps } from "./biff-strings.js";
 
 /** Auxiliary payloads follow the token stream in token encounter order.
  * Arrays: Gnumeric 1.12.61 plugins/excel/ms-formula-read.c; cached areas: MS-XLS 2.5.198.61. */
 export function biffFormulaExtras(parts: readonly Binary[], revision: number, codepage: number, context: CapabilityContext,
   accountWork?: (amount: number) => void): Required<Pick<BiffFormulaContext, "readArray" | "readMemory" | "readLabels">> {
-  const cursor = new BiffStrings(parts, context, codepage);
+  const cursor = new BiffStrings(parts, context, codepage), steps = formulaExtraSteps(cursor.decoder, revision, context, accountWork);
+  return { readArray: () => cursor.decode(steps.readArray()), readMemory: () => cursor.decode(steps.readMemory()),
+    readLabels: () => cursor.decode(steps.readLabels()) };
+}
+
+/** Auxiliary records are borrowed from the caller's retained record index. */
+export function biffFormulaExtrasSource(nextPart: () => Promise<Binary | undefined>, revision: number, codepage: number,
+  context: CapabilityContext, accountWork?: (amount: number) => void) {
+  const cursor = new BiffStringSource(nextPart, context, codepage), steps = formulaExtraSteps(cursor.decoder, revision, context, accountWork);
+  return { readArray: () => cursor.decode(steps.readArray()), readMemory: () => cursor.decode(steps.readMemory()),
+    readLabels: () => cursor.decode(steps.readLabels()) };
+}
+
+function formulaExtraSteps(cursor: StringDecoder, revision: number, context: CapabilityContext,
+  accountWork?: (amount: number) => void) {
   const number = new Uint8Array(8), view = new DataView(number.buffer);
   const encoder = new TextEncoder();
   const workLimit = context.limits.workbookWork ?? context.limits.inputBytes * 8;
   const textLimit = context.limits.workbookTextBytes ?? context.limits.inputBytes;
   let work = 0, textBytes = 0;
-  const readArray = () => {
+  function* readArray(): StringSteps<string> {
     context.signal.throwIfAborted();
-    const width = cursor.byte(), height = cursor.word();
+    const width = (yield* cursor.byte()), height = (yield* cursor.word());
     const columns = revision >= 8 ? width + 1 : width || 256;
     const rows = revision >= 8 ? height + 1 : height || 1;
     work += columns * rows;
@@ -36,14 +50,14 @@ export function biffFormulaExtras(parts: readonly Binary[], revision: number, co
       for (let column = 0; column < columns; column++) {
         context.signal.throwIfAborted();
         if (column) append(",");
-        const kind = cursor.byte();
+        const kind = (yield* cursor.byte());
         if (kind === 2) {
-          const length = revision >= 8 ? cursor.word() : cursor.byte();
-          const value = revision >= 8 ? cursor.unicode(length).text : cursor.legacy(length);
+          const length = revision >= 8 ? (yield* cursor.word()) : (yield* cursor.byte());
+          const value = revision >= 8 ? (yield* cursor.unicode(length)).text : (yield* cursor.legacy(length));
           append(quoteFormulaString(value, '"', gnumericGrammar));
         } else {
           if (![0, 1, 4, 16].includes(kind)) invalidBiff("invalid array value type");
-          for (let i = 0; i < 8; i++) number[i] = cursor.byte();
+          for (let i = 0; i < 8; i++) number[i] = (yield* cursor.byte());
           if (kind === 1) {
             const value = view.getFloat64(0, true);
             if (!Number.isFinite(value)) invalidBiff("nonfinite array number");
@@ -54,10 +68,10 @@ export function biffFormulaExtras(parts: readonly Binary[], revision: number, co
     }
     append("}");
     return chunks.join("");
-  };
-  const readMemory = () => {
+  }
+  function* readMemory(): StringSteps<void> {
     context.signal.throwIfAborted();
-    const count = cursor.word();
+    const count = (yield* cursor.word());
     const rangeBytes = revision >= 8 ? 8 : 6;
     work += count * rangeBytes;
     if (work > workLimit) throw new SsconvertError("resource-limit", "ssconvert BIFF cached area work limit exceeded");
@@ -66,12 +80,12 @@ export function biffFormulaExtras(parts: readonly Binary[], revision: number, co
     // Consume them without allocating a second reference model.
     for (let area = 0; area < count; area++) {
       context.signal.throwIfAborted();
-      for (let byte = 0; byte < rangeBytes; byte++) cursor.byte();
+      for (let byte = 0; byte < rangeBytes; byte++) (yield* cursor.byte());
     }
-  };
-  const readLabels = () => {
+  }
+  function* readLabels(): StringSteps<ReturnType<NonNullable<BiffFormulaContext["readLabels"]>>> {
     context.signal.throwIfAborted();
-    const low = cursor.word(), high = cursor.word(), count = low + (high & 0x3fff) * 65536;
+    const low = (yield* cursor.word()), high = (yield* cursor.word()), count = low + (high & 0x3fff) * 65536;
     if (!count) invalidBiff("empty multiple label references");
     const cells: { row: number; column: number }[] = [];
     for (let index = 0; index < count; index++) {
@@ -79,12 +93,12 @@ export function biffFormulaExtras(parts: readonly Binary[], revision: number, co
       work += 4;
       if (work > workLimit) throw new SsconvertError("resource-limit", "ssconvert BIFF label work limit exceeded");
       accountWork?.(4);
-      const row = cursor.word(), column = cursor.word() & 0x3fff;
+      const row = (yield* cursor.word()), column = (yield* cursor.word()) & 0x3fff;
       if (column > 255) invalidBiff("invalid multiple label column");
       cells.push({ row, column });
     }
     // PtgExtraElf fRel overrides both ignored ColRelU coordinate flags.
     return { relative: !!(high & 0x8000), cells };
-  };
+  }
   return { readArray, readMemory, readLabels };
 }

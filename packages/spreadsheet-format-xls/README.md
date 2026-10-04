@@ -25,13 +25,18 @@ ignored streams are validated structurally without copying their payloads.
 The explicit byte-array API remains available. Retained imports index BIFF record
 headers and per-sheet selections in caller storage and load record payloads on
 demand. Decrypted replacements use fixed staging blocks, with transient plaintext
-erased after staging. Shared-string CONTINUE payloads decode one record at a time.
+erased after staging. String CONTINUE payloads decode one record at a time.
+Pending formulas and name records retain source coordinates rather than payload
+arrays. Translation loads one format-bounded token stream and replays auxiliary
+arrays, cached areas and label records on demand, including both name-binding passes.
 Decoded shared text and rich runs use caller storage with fixed descriptor and
 payload windows for lookup. Scalar imports can replay ordered cells from caller
 storage into streaming exporters, preserving cell styles and metadata. Formula
 workbooks and global transformations keep the workbook path. Scalar row lookup
-and insertion order also use caller storage. Final nondefault row metadata arrays,
-formula/style state, stream names and interpreted property/encryption payloads still remain resident; this
+and insertion order also use caller storage, with rows and columns replayed to source
+exporters. Formula/name identity maps, decoded expressions and individual array/label
+values, workbook/style state, stream names and interpreted property/encryption
+payloads still remain resident; this
 does not yet provide bounded memory for the complete conversion.
 Worksheet password verifiers survive BIFF7/8 conversion and edits through
 `view.protectedPasswordHash`, an integer from 0 to 65535; zero clears the verifier.

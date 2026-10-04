@@ -318,7 +318,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         indent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((digitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
         displayIndent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((displayDigitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
       }
-      if (rotation && (cellBox.style.alignment === "fill" || cellBox.style.alignment === "justify" || cellBox.style.alignment === "distributed" || cellBox.style.verticalAlignment === "justify")) unsupported("rotated justification or fill");
+      if (rotation && (cellBox.style.alignment === "fill" || cellBox.style.alignment === "justify" || cellBox.style.alignment === "distributed")) unsupported("rotated justification or fill");
       const bordered = cellBox.style.borders?.some(border => ["Top", "Bottom", "Left", "Right"].includes(border.side)) ?? false;
       const fill = cellBox.style.alignment === "fill";
       if (fill) {

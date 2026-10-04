@@ -81,3 +81,13 @@ it.each([
   expect(origin!.x).toBeCloseTo(x, 5);
   expect(origin!.y).toBeCloseTo(y, 5);
 });
+
+it.each([
+  [-45, false, [[12.75, 4.5], [-0.75, 7.5]]],
+  [-45, true, [[15.75, 11.25], [2.25, 14.25]]],
+  [45, false, [[7.5, 54], [24, 53.25]]]
+] as const)("retains native horizontal placement before vertical justification at %s with borders %s", (angle, bordered, expected) => {
+  const origins = rotatedPrintOrigins({angle, bordered, ...(bordered ? {layoutWidth: 126 * Math.SQRT1_2} : {}), widths: [69.75, 65.25], ascent: 1901 / 2048 * 7.5,
+    lineHeight: 2384 / 2048 * 7.5, width: 72, height: 60, indent: 0, alignment: "center", vertical: "justify"}, () => {});
+  expect(origins.map(({x, y}) => [x, y])).toEqual(expected);
+});

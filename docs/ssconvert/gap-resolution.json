@@ -6000,5 +6000,11 @@
     "validation": "Four original style-rejection regressions reproduced.449 focused tests including12 independently decoded native-origin cases pass.132 native inputs produce528 compiled SDK/command XML/PDF outputs;264 line-origin comparisons pass.216 single-line text geometry comparisons pass;48 extended text character multisets match despite native extractor segmentation/order differences. Selected build,engine and command lint/types,public consumers and native/public screenshots checked.",
     "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
     "remaining": "Rotated Fill/Justify, rich-text and broader fonts/Unicode/decorations/merged multipage qualification remain open. All19families remain open."
+  },
+  "pdfRotatedVerticalJustification": {
+    "status": "Focused vertical justification profile verified; broader rendering remains open",
+    "implementation": "Measure native line ranges with half-spacing and preserve horizontal placement computed before vertical remeasurement. Top/center/bottom behavior is unchanged.",
+    "validation": "Two original refusal regressions reproduced;454 affected cases verified across453 passing cohort cases and15 corrected native-fixture cases. Selected build,engine/command lints/types and public consumers pass.24 independent native inputs produce96 SDK/command outputs;48 PDF-origin and48 character comparisons pass. Screenshots inspected for three-line tall-cell overflow.",
+    "remaining": "Rotated Fill/horizontal Justify/Distributed and broader rich-text/font/Unicode/merged page profiles;all19families open."
   }
 }

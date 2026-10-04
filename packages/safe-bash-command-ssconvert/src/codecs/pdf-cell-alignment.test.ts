@@ -394,3 +394,12 @@ it.each([-90, -45, 30, 90])("prints rotated text at %s degrees", async rotation 
   const matrices = operators.split("\n").filter(line => line.endsWith(" cm")).map(line => line.split(" ").slice(0, 6).map(Number));
   expect(matrices.some(matrix => Math.abs(matrix[0]! - Math.cos(rotation * Math.PI / 180)) < 1e-12 && Math.abs(matrix[1]! - Math.sin(rotation * Math.PI / 180)) < 1e-12)).toBe(true);
 });
+it.each([-45, 45])("prints vertically justified rotated paragraphs at %s degrees", async rotation => {
+  const book = await fixture("GNM_HALIGN_CENTER", 10, 72, "JUSTIFY", 60);
+  const cell = book.sheets[0]!.cells[0]!;
+  const style = cell.style!.gnumeric as {attributes: {name: string; value: string}[]};
+  for (const attribute of style.attributes) if (attribute.name === "Rotation") attribute.value = String(rotation);
+  const input = {...book, sheets: [{...book.sheets[0]!, cells: [{...cell, value: {kind: "string" as const, value: "alpha\nbeta"}}]}]};
+  const {runs} = await pdfText(await writePdf(input, [], context));
+  expect(runs.map(run => run.text).join("")).toBe("alphabeta");
+});

@@ -3,6 +3,19 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxWorkbookProtectionMetadata": {
+      "scope": "Both XLSX editions recognize and retain workbookProtection records and emit their15 declared attributes in schema order. Retained metadata supports edits. Password algorithm fields remain opaque; unknown attributes/children/namespaces and duplicate records retain loss warnings. This does not implement password enforcement or cross-format workbook protection.",
+      "qualification": "Three original failures repaired;219 owner tests, selected ssconvert workspace build and owner lint/types pass.17 compiled SDK/command/edited exports preserve85 explicit attributes and schema ordering, with exactly one unrelated theme warning each. Independently pinned OpenPyXL reads all17 exports and matches255 protection attribute values against nine controls. Screenshot inspected.",
+      "independentReader": {
+        "openpyxlVersion": "3.1.5",
+        "wheelSha256": "5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2",
+        "protectionSourceSha256": "2e18b2ba839c85daee9fdc4cc2afe9c46cdb932b3389385f2a2be4d1d1c738bc",
+        "etXmlfileVersion": "2.0.0",
+        "dependencyWheelSha256": "7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa"
+      },
+      "nativeFailure": "LibreOffice25.2.3.2 discards all45 attributes in all nine original controls;17 matching empty readbacks are NOT counted as semantic preservation passes. Release-matched sc/source/filter/oox/workbookfragment.cxx contains no protection handler (SHA2566e8a2c0494097baf092a290b94c57dadebd1fcab7afe385655c457870d6803e7). Calc startup javaldx warning retained. Recognizing the standard record deliberately differs from the pinned Gnumeric unknown-element warning.",
+      "remaining": "Native workbook-protection behavior, enforcement, cross-format transport and broader compatibility/qualification remain open. No family or release closure."
+    },
     "xlsxWorksheetPasswordVerifier": {
       "scope": "Both XLSX editions import1-4hex legacy password values and transport view.protectedPasswordHash to/from BIFF. Zero clears the verifier; edits replace it. Invalid canonical values reject. Modern algorithm/hash/salt/spin metadata remains opaque and conflicts with an explicit legacy verifier edit. Malformed legacy values remain opaque; represented BIFF PASSWORD records avoid false warnings.",
       "qualification": "Twelve original memory failures repaired;2642 affected tests across116 files, selected ssconvert build and owner lint/types pass.24 compiled SDK/command/edited exports cover BIFF-to-XLSX,XLSX-to-BIFF and edits clearing/replacing4660 in each format. All24 independent Calc readbacks match complete protected-sheet attributes from five original controls; screenshot inspected.",

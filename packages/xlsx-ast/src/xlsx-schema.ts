@@ -250,6 +250,7 @@ export const xlsxSchemas: Readonly<Record<string, readonly XlsxSchemaNode[]>> = 
     ["EXTLST", "EXTITEM", "XL_NS_SS", "ext"],
     ["WORKBOOK", "VERSION", "XL_NS_SS", "fileVersion"],
     ["WORKBOOK", "PROPERTIES", "XL_NS_SS", "workbookPr"],
+    ["WORKBOOK", "PROTECTION", "XL_NS_SS", "workbookProtection"],
     ["WORKBOOK", "CALC_PROPS", "XL_NS_SS", "calcPr"],
     ["WORKBOOK", "VIEWS", "XL_NS_SS", "bookViews"],
     ["VIEWS", "VIEW", "XL_NS_SS", "workbookView"],

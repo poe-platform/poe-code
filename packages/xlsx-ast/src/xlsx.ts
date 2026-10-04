@@ -1,3 +1,4 @@
+import { writeXlsxWorkbookProtection } from "./xlsx-workbook-protection.js";
 import type { Codec, WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
 import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
@@ -330,7 +331,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
     let styleRoot = await related("styles"); if (styleRoot) styleRoot = await recognize(styleRoot, "xlsx_styles_dtd", context);
     const strings = children(stringRoot, "si").map(node => readXlsxString(node, context)), cellStyles = await readXlsxStyles(styleRoot, theme, context);
     workbook = await recognize(workbook, "xlsx_workbook_dtd", context);
-    const workbookRecords: UnsupportedRecord[] = [];
+    const workbookRecords: UnsupportedRecord[] = children(workbook, "workbookProtection").map(node => record(node, workbookPath));
     for (const type of ["theme", "externalLink", "pivotCacheDefinition"]) {
       for (const relation of workbookRelations.filter(r => r.type === relationships + "/" + type && !r.external))
         workbookRecords.push(record(await opc.document(relation.target), relation.target));
@@ -1169,6 +1170,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
     await add("xl/styles.xml", styles.serialize(), "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml");
     workbookRelations.push({ id: `rId${workbookRelations.length + 1}`, type: relationships + "/styles", target: "styles.xml" });
     const properties = writeXlsxProperties(book, xml);
+    const protection = writeXlsxWorkbookProtection(book, xml, charge);
     await add("docProps/app.xml", properties.app, "application/vnd.openxmlformats-officedocument.extended-properties+xml");
     await add("docProps/core.xml", properties.core, "application/vnd.openxmlformats-package.core-properties+xml");
     await add("docProps/custom.xml", properties.custom, "application/vnd.openxmlformats-officedocument.custom-properties+xml");
@@ -1213,7 +1215,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
     }
     await add("xl/workbook.xml", xml("workbook", { xmlns: namespace, "xmlns:r": relationships },
       xml("fileVersion", { lastEdited: 4, lowestEdited: 4, rupBuild: 3820 }) + xml("workbookPr", { date1904: book.dateSystem === "1904" ? 1 : 0 }) +
-      xml("bookViews", {}, xml("workbookView", { activeTab: active })) + xml("sheets", {}, sheetNodes.join("")) + (externalReferences ? xml("externalReferences", {}, externalReferences) : "") + xml("definedNames", {}, names) +
+      protection.content + xml("bookViews", {}, xml("workbookView", { activeTab: active })) + xml("sheets", {}, sheetNodes.join("")) + (externalReferences ? xml("externalReferences", {}, externalReferences) : "") + xml("definedNames", {}, names) +
       xml("calcPr", { calcMode: book.calculationMode === "manual" ? "manual" : "auto", iterate: book.iteration?.enabled === false ? 0 : 1,
         iterateCount: book.iteration?.maximum ?? 100, iterateDelta: book.iteration?.tolerance ?? 0.001 }) +
       xml("webPublishing", { allowPng: 1, css: 0, ...(edition === "2006" ? { codePage: 1252 } : { characterSet: "UTF-8" }) })));
@@ -1247,6 +1249,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
       { id: "rId4", type: relationships + "/custom-properties", target: "docProps/custom.xml" }
     ]));
     for (const record of book.unsupportedRecords ?? []) {
+      if (protection.handled.has(record)) continue;
       const node = metadataNode(record.data, charge);
       const office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0", meta = "urn:oasis:names:tc:opendocument:xmlns:meta:1.0";
       if (record.kind === "document-meta" && node?.namespace === office && node.children.length === 1 &&

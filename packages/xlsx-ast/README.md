@@ -37,6 +37,10 @@ Legacy worksheet password verifiers use `view.protectedPasswordHash`, an integer
 from 0 to 65535; zero clears the verifier. These values survive XLSX and BIFF
 conversion and edits. Modern protection metadata remains opaque; combining it
 with a legacy verifier edit is rejected. This metadata is separate from file encryption.
+Workbook structure, window and revision protection attributes also survive XLSX
+roundtrips and edits through the retained `workbookProtection` metadata record.
+Password algorithm fields are preserved opaquely; unknown attributes, children and
+duplicate records still report loss warnings.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";

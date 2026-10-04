@@ -713,8 +713,9 @@ also report admission; skipped comments use constant lexer scratch. `doc.embedFo
 preserves full OpenType CFF programs with their matching PDF font metadata,
 including widths for every embedded glyph.
 Word spacing follows encoded one-byte spaces, including remapped characters.
-CID width ranges remain compact and preserve later array/range overrides; they
-do not allocate one entry per CID. Explicit font width tables honor MissingWidth (zero when absent), preserving
+Retained font width records use caller-backed indexes and a bounded lookup cache;
+ordered records use binary search and overlapping declarations preserve their
+last-match behavior. CID width ranges remain compact without one entry per CID. Explicit font width tables honor MissingWidth (zero when absent), preserving
 Type 3 spacing and advances for codes outside the declared table.
 ToUnicode maps decode mixed one- through four-byte character codes, including
 ligatures and supplementary Unicode characters.

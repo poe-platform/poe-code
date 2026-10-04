@@ -35,7 +35,7 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
   signal?.throwIfAborted();
   allocation.admit(1024);
   const identities = new WeakMap<PdfCosStream, PdfCosRef>();
-  const steps = resolvePageFontsSteps(document.crossReference.rootRef, resources, name, { onAllocation: bytes => allocation.admit(bytes) });
+  const steps = resolvePageFontsSteps(document.crossReference.rootRef, resources, name, { onAllocation: bytes => allocation.admit(bytes), ...(options.resourceStorage?{resourceStorage:options.resourceStorage}:{}), ...(signal?{signal}:{}) });
   let step = steps.next(); let requests = 0;
   try {
     while (!step.done) {
@@ -51,6 +51,9 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
           const stream: PdfCosStream = { kind: "stream", dict: retained.value, rawBytes: new Uint8Array() };
           identities.set(stream, retained.reference); value = stream;
         }
+      } else if(step.value.kind==="font-width-set") {
+        await step.value.widths.set(step.value.first,step.value.width,step.value.last);
+        value=undefined;
       } else if(step.value.kind==="truetype-map") {
         value=cosNumber(step.value.name!==undefined?await step.value.font.findGlyphName(step.value.name):await step.value.font.getGlyphId(step.value.code!));
       } else {

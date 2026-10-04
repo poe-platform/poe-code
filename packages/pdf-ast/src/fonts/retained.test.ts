@@ -90,7 +90,7 @@ it("supplies a retained font to evaluation without a buffered document", async (
       if (step.value.kind === "node") { const next = nodes.next(); step = work.next(next.done ? undefined : next.value); }
       else if (step.value.kind === "font") step = work.next(await resolveRetainedFont(f.doc, { fs: f.fs, directory: "/scratch" }, step.value.resources, step.value.name, { maxWorkingBytes: 8 * 1024 * 1024, chunkBytes: 64 }));
       else if (step.value.kind === "resolve" || step.value.kind === "catalog") step = work.next({ kind: "resolved", node: (await f.doc.lookup(step.value.kind === "catalog" ? f.doc.crossReference.rootRef : step.value.node))?.value });
-      else if ((step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish" || step.value.kind === "transform-path" || step.value.kind === "close-content" || step.value.kind === "image" || step.value.kind === "mask-parameters" || step.value.kind === "color" || step.value.kind === "inline-image" || step.value.kind === "shading")) throw new Error("Unexpected nested content");
+      else if ((step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish" || step.value.kind === "transform-path" || step.value.kind === "close-content" || step.value.kind === "image" || step.value.kind === "mask-parameters" || step.value.kind === "color" || step.value.kind === "inline-image" || step.value.kind === "shading")) throw new Error("Unexpected nested content");
       else { if (step.value.operation.kind === "glyph") glyphs.push(step.value.operation.value); step = work.next(); }
     }
     expect(glyphs).toHaveLength(1); expect(glyphs[0]).toMatchObject({ unicode: "Ω", fontName: "Helvetica" });
@@ -133,4 +133,19 @@ it.each([new Error('backend'),new PdfError('E_PARSE','backend parse'),new RangeE
  const f=await fixture();
  try{await expect(resolveRetainedFont(f.doc,{fs:f.fs,directory:'/scratch'},f.resources,'Good',{chunkBytes:64,resourceStorage:{allocate(){return 0;},async read(){throw failure;},async write(){throw failure;}}})).rejects.toBe(failure);}
  finally{await f.close();}
+});
+
+it("keeps retained font widths in caller storage without building resident width records", async () => {
+  const { FontWidths } = await import("./widths.js");
+  const f = await fixture(), data = new Uint8Array(1024 * 1024);
+  let end = 0;
+  const storage = {allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return data.slice(at,at+n);},async write(at:number,bytes:Uint8Array){data.set(bytes,at);}};
+  const resident = vi.spyOn(FontWidths.prototype, "set").mockImplementation(() => {throw new Error("resident width record");});
+  try {
+    const font = await resolveRetainedFont(f.doc, {fs:f.fs,directory:"/scratch"}, f.resources, "Good", {resourceStorage:storage,chunkBytes:64});
+    expect(await font!.widths.get(65)).toBe(667);
+    expect(await font!.widths.has(65)).toBe(true);
+    expect(await font!.widths.get(999)).toBeUndefined();
+    expect(resident).not.toHaveBeenCalled();
+  } finally {resident.mockRestore();await f.close();}
 });

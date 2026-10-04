@@ -1,3 +1,4 @@
+import { StoredFontWidths } from "./stored-widths.js";
 import type { StoredCffFont } from "./stored-cff.js";
 import type { StoredTrueTypeFont } from "./stored-truetype.js";
 import type {StoredCMap} from "./stored-cmap.js";
@@ -8,14 +9,14 @@ import { getEncoding, type Type1Properties, type CMap } from "../vendor/pdfjs-fo
 import { parseEmbeddedType1Font } from "./type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "./cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "./standard-outlines.js";
-import { dictGet, dictSet, type PdfCosNode, type PdfCosDict, type PdfCosArray, type PdfCosRef, type PdfCosStream } from "../ast.js";
+import { dictGet, dictSet, type PdfCosNode, type PdfCosDict, type PdfCosArray, type PdfCosRef, type PdfCosStream, type PdfPixelStorage } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "./cmap.js";
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
+export type FontResolutionRequest = {kind:"font-width-set";widths:StoredFontWidths;first:number;width:number;last?:number} | {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
 export type FontResolutionResult = StoredCffFont | StoredTrueTypeFont | PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
 function* resolve(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
   const value = yield { kind: "resolve", node };
@@ -40,7 +41,7 @@ export interface ResolvedPageFont {
   readonly encodingCMap?: CMap | undefined;
   readonly differences: ReadonlyMap<number, string>;
   readonly glyphNames: ReadonlyMap<number, string>;
-  readonly widths: Pick<ReadonlyMap<number, number>, "get" | "has">;
+  readonly widths: Pick<ReadonlyMap<number, number>, "get" | "has"> | StoredFontWidths;
   readonly defaultWidth: number;
   readonly fontMatrix?: Matrix6 | undefined;
   readonly charProcs?: PdfCosDict | undefined;
@@ -54,7 +55,7 @@ export interface ResolvedPageFont {
   readonly standardOutlines?: StandardFontOutlines | undefined;
 }
 
-export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resourcesDict: PdfCosDict | undefined, selectedName?: string, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): Generator<FontResolutionRequest, Map<string, ResolvedPageFont>, FontResolutionResult> {
+export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resourcesDict: PdfCosDict | undefined, selectedName?: string, options: Pick<PdfFontAllocationOptions, "onAllocation"> & {resourceStorage?:PdfPixelStorage;signal?:AbortSignal} = {}): Generator<FontResolutionRequest, Map<string, ResolvedPageFont>, FontResolutionResult> {
     const allocation = new PdfFontAllocation(options);
     const allocationOptions = { onAllocation: (bytes: number) => allocation.admit(bytes) };
     const fonts = new Map<string, ResolvedPageFont>();
@@ -111,7 +112,11 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         allocation.admit(32768 + (differenceArray?.kind === "array" ? differenceArray.items.length * 128 : 0));
         const differences = buildFontEncodingDifferencesMap(encNode);
         const glyphNames = buildFontEncodingGlyphNamesMap(encNode);
-        const widths = new FontWidths(allocation);
+        const widths = options.resourceStorage ? new StoredFontWidths(options.resourceStorage,{...allocationOptions,...(options.signal?{signal:options.signal}:{})}) : new FontWidths(allocation);
+        function* setWidth(first:number,width:number,last=first):Generator<FontResolutionRequest,void,FontResolutionResult>{
+            if(widths instanceof StoredFontWidths)yield {kind:"font-width-set",widths,first,width,last};
+            else widths.set(first,width,last);
+        }
         let defaultWidth = 556;
         // ToUnicode labels codes; only the font's encoding determines their width.
         const isTwoByteCid = subtype === "Type0";
@@ -153,7 +158,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                             for (let k = 0; k < second.items.length; k++) {
                                 const wItem = (yield* resolve(second.items[k]));
                                 if (wItem?.kind === "number") {
-                                    widths.set(first.value + k, wItem.value);
+                                    yield* setWidth(first.value + k, wItem.value);
                                 }
                             }
                         }
@@ -162,7 +167,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                             if (third?.kind === "number") {
                                 if (!Number.isSafeInteger(first.value) || !Number.isSafeInteger(second.value))
                                     throw new PdfError("E_LIMIT", "Unsafe PDF font width range");
-                                widths.set(first.value, third.value, second.value);
+                                yield* setWidth(first.value, third.value, second.value);
                             }
                         }
                     }
@@ -182,15 +187,16 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 for (let k = 0; k < widthsArr.items.length; k++) {
                     const wItem = (yield* resolve(widthsArr.items[k]));
                     if (wItem?.kind === "number") {
-                        widths.set(firstChar + k, wItem.value * type3Scale1000);
+                        yield* setWidth(firstChar + k, wItem.value * type3Scale1000);
                     }
                 }
             }
             else {
                 const stdMetrics = STANDARD_14_FONTS[normalizeStandard14FontName(baseFont)];
                 defaultWidth = stdMetrics.defaultWidth;
-                for (const [codeStr, wVal] of Object.entries(stdMetrics.widthsByCode)) {
-                    widths.set(Number(codeStr), wVal);
+                if(widths instanceof StoredFontWidths) widths.setDefaults(stdMetrics.widthsByCode);
+                else for (const [codeStr, wVal] of Object.entries(stdMetrics.widthsByCode)) {
+                    yield* setWidth(Number(codeStr), wVal);
                 }
             }
         }
@@ -233,7 +239,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                         flags: flags?.kind === "number" ? flags.value : 0,
                         fontMatrix: [0.001, 0, 0, 0.001, 0, 0], bbox: [0, 0, 0, 0],
                         baseEncodingName: baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined,
-                        differences: glyphNames, overridableEncoding: true, widths: widths.createType1View(),
+                        differences: glyphNames, overridableEncoding: true, widths: widths instanceof FontWidths ? widths.createType1View() : {},
                         composite: subtype === "Type0", cMap: { charCodeOf: (cid: number) => cid },
                     };
                     const decoded=yield {kind:"decode",stream:program,purpose:"type1",type1Properties};
@@ -346,7 +352,7 @@ export function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDi
   let step = steps.next();
   while (!step.done) {
     let value: FontResolutionResult;
-    try { if(step.value.kind==="truetype-map")throw new TypeError("Stored font requires asynchronous evaluation"); value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
+    try { if(step.value.kind==="truetype-map" || step.value.kind==="font-width-set")throw new TypeError("Stored font requires asynchronous evaluation"); value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
     catch (error) { step = steps.throw(error); continue; }
     step = steps.next(value);
   }

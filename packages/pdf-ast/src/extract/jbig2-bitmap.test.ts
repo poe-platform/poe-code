@@ -64,3 +64,29 @@ it.each([0,2])("streams MMR regions with destination offset and operator %s",asy
   }expect(y).toBe(40);}finally{image.close();}
  }finally{await storage.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
 });
+
+it.each([0,1,2,3].flatMap(template=>[false,true].map(prediction=>({template,prediction}))).concat([
+ {template:4,prediction:false},{template:4,prediction:true}
+]))("streams arithmetic template $template with prediction=$prediction",async ({template,prediction})=>{
+ const width=64,height=513,adaptive=template===0?[3,255,253,255,2,254,254,254]:template===4?[3,255,253,255,2,128,254,254]:[3,255];
+ const bytes=new Uint8Array(59+adaptive.length+8192);
+ bytes.set(new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url))).subarray(0,30));
+ const view=new DataView(bytes.buffer);view.setUint32(11,80);view.setUint32(15,520);bytes[27]=prediction?20:0;
+ view.setUint32(30,1);bytes[34]=38;bytes[36]=1;view.setUint32(37,18+adaptive.length+8192);
+ view.setUint32(41,width);view.setUint32(45,height);view.setUint32(49,3);view.setUint32(53,4);
+ bytes[58]=(template===4?0:template<<1)|(prediction?8:0);bytes.set(adaptive,59);
+ for(let i=59+adaptive.length;i<bytes.length;i++)bytes[i]=(i*37+81)%255;
+ const expected=new Jbig2Image().parseChunks([{data:bytes,start:0,end:bytes.length}])!;
+ const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",bytes);
+ const source=await PdfFileSource.open(fs,"/input"),storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal},2);
+ try{
+  const image=await PdfRetainedJbig2.open(source,80,520,{bitmapStorage:storage,maxWorkingBytes:262144});
+  try{let y=0;for await(const row of image.rows()){
+   for(let x=0;x<80;x++){
+    const value=expected[y*10+(x>>3)]!>>(7-(x&7))&1?0:255;
+    if(row[x*4]!==value)throw Error(`arithmetic mismatch at ${x},${y}`);
+   }
+   y++;
+  }expect(y).toBe(520);}finally{image.close();}
+ }finally{await storage.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
+});

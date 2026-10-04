@@ -2653,33 +2653,35 @@ const RefinementTemplates = [{
 }];
 const ReusedContexts = [0x9b25, 0x0795, 0x00e5, 0x0195];
 const RefinementReusedContexts = [0x0020, 0x0008];
-function* decodeBitmapTemplate0(width, height, decodingContext) {
+function* decodeBitmapTemplate0(width, height, decodingContext, onRow) {
   const decoder = (yield* decodingContext.getDecoder());
   const contexts = decodingContext.contextCache.getContexts("GB");
   const bitmap = [];
   let contextLabel, i, j, pixel, row, row1, row2;
   const OLD_PIXEL_MASK = 0x7bf7;
   for (i = 0; i < height; i++) {
-    row = bitmap[i] = new Uint8Array(width);
-    row1 = i < 1 ? row : bitmap[i - 1];
-    row2 = i < 2 ? row : bitmap[i - 2];
+    row = bitmap[onRow ? i % 3 : i] = new Uint8Array(width);
+    row1 = i < 1 ? row : bitmap[onRow ? (i - 1) % 3 : i - 1];
+    row2 = i < 2 ? row : bitmap[onRow ? (i - 2) % 3 : i - 2];
     contextLabel = row2[0] << 13 | row2[1] << 12 | row2[2] << 11 | row1[0] << 7 | row1[1] << 6 | row1[2] << 5 | row1[3] << 4;
     for (j = 0; j < width; j++) {
       row[j] = pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
       contextLabel = (contextLabel & OLD_PIXEL_MASK) << 1 | (j + 3 < width ? row2[j + 3] << 11 : 0) | (j + 4 < width ? row1[j + 4] << 4 : 0) | pixel;
     }
+    if (onRow) yield* onRow(row, i);
   }
   return bitmap;
 }
-function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, decodingContext) {
+function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, decodingContext, onRow) {
   decodingContext.onImageDimensions?.(width, height);
-  decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
+  if (!onRow) decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
   if (mmr) {
     const input = new Reader(decodingContext.data, decodingContext.start, decodingContext.end);
-    return (yield* decodeMMRBitmap(input, width, height, false, decodingContext.onAllocation));
+    return (yield* decodeMMRBitmap(input, width, height, false, decodingContext.onAllocation, onRow));
   }
   if (templateIndex === 0 && !skip && !prediction && at.length === 4 && at[0].x === 3 && at[0].y === -1 && at[1].x === -3 && at[1].y === -1 && at[2].x === 2 && at[2].y === -2 && at[3].x === -2 && at[3].y === -2) {
-    return (yield* decodeBitmapTemplate0(width, height, decodingContext));
+    if (onRow) decodingContext.onAllocation?.((width + 256) * 4 + 4096);
+    return (yield* decodeBitmapTemplate0(width, height, decodingContext, onRow));
   }
   const useskip = !!skip;
   const template = CodingTemplates[templateIndex].concat(at);
@@ -2720,6 +2722,10 @@ function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, 
   const sbb_left = -minX;
   const sbb_top = -minY;
   const sbb_right = width - maxX;
+  // The adaptive coordinates are signed bytes. Keep only the template's
+  // preceding rows plus the current row; prediction can alias the prior row.
+  const rowCount = Math.max(sbb_top, 1) + 1;
+  if (onRow) decodingContext.onAllocation?.((width + 256) * (rowCount + 1) + 4096);
   const pseudoPixelContext = ReusedContexts[templateIndex];
   let row = new Uint8Array(width);
   const bitmap = [];
@@ -2737,12 +2743,14 @@ function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, 
       const sltp = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, pseudoPixelContext)));
       ltp ^= sltp;
       if (ltp) {
-        bitmap.push(row);
+        if (onRow) { bitmap[i % rowCount] = row; yield* onRow(row, i); }
+        else bitmap.push(row);
         continue;
       }
     }
     row = new Uint8Array(row);
-    bitmap.push(row);
+    if (onRow) bitmap[i % rowCount] = row;
+    else bitmap.push(row);
     for (j = 0; j < width; j++) {
       if (useskip && skip[i][j]) {
         row[j] = 0;
@@ -2753,7 +2761,7 @@ function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, 
         for (k = 0; k < changingEntriesLength; k++) {
           i0 = i + changingTemplateY[k];
           j0 = j + changingTemplateX[k];
-          bit = bitmap[i0][j0];
+          bit = bitmap[onRow ? i0 % rowCount : i0][j0];
           if (bit) {
             bit = changingTemplateBit[k];
             contextLabel |= bit;
@@ -2767,7 +2775,7 @@ function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, 
           if (j0 >= 0 && j0 < width) {
             i0 = i + templateY[k];
             if (i0 >= 0) {
-              bit = bitmap[i0][j0];
+              bit = bitmap[onRow ? i0 % rowCount : i0][j0];
               if (bit) {
                 contextLabel |= bit << shift;
               }
@@ -2778,6 +2786,7 @@ function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, 
       const pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
       row[j] = pixel;
     }
+    if (onRow) yield* onRow(row, i);
   }
   return bitmap;
 }
@@ -3680,11 +3689,9 @@ class SimpleSegmentVisitor {
   *onImmediateGenericRegion(region, data, start, end) {
     const regionInfo = region.info;
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    if (this.storedBitmap && region.mmr) {
-      this.onImageDimensions?.(regionInfo.width, regionInfo.height);
-      const input = new Reader(data, start, end);
+    if (this.storedBitmap) {
       const visitor = this;
-      yield* decodeMMRBitmap(input, regionInfo.width, regionInfo.height, false, this.onAllocation, function* (row, y) {
+      yield* decodeBitmap(region.mmr, regionInfo.width, regionInfo.height, region.template, region.prediction, null, region.at, decodingContext, function* (row, y) {
         yield* visitor.drawBitmap({...regionInfo, y: regionInfo.y + y, height: 1}, [row]);
       });
       return;

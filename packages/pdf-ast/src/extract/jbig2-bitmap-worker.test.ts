@@ -5,9 +5,9 @@ import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 import {decodeJbig2ToRgba} from "./images.js";
 
-it.each(["page", "region"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
+it.each(["page", "region", "arithmetic"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
  const inputs=new Map<number,{bytes:Uint8Array;sum:number}>();
- for(const height of [8193,32769]){
+ for(const height of profile === "arithmetic" ? [129,513] : [8193,32769]){
   let bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
   if(profile === "region") {
    // One vertical-zero MMR code per all-white row, with a complete region
@@ -18,6 +18,12 @@ it.each(["page", "region"])("keeps growing JBIG2 %s state in external caller sto
    view.setUint32(30,1); region[34]=38; region[36]=1; view.setUint32(37,18+payload);
    view.setUint32(41,64); view.setUint32(45,height); region[58]=1; region.fill(255,59);
    bytes=region;
+  }
+  if(profile === "arithmetic") {
+   const region=new Uint8Array(30+11+26+8192);region.set(bytes.subarray(0,30));
+   const view=new DataView(region.buffer);view.setUint32(30,1);region[34]=38;region[36]=1;
+   view.setUint32(37,26+8192);view.setUint32(41,64);view.setUint32(45,height);
+   region.set([3,255,253,255,2,254,254,254],59);region.set([255,172],region.length-2);bytes=region;
   }
   new DataView(bytes.buffer).setUint32(15,height);
   const expected=decodeJbig2ToRgba(bytes,64,height);

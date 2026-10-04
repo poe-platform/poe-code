@@ -9,7 +9,7 @@ import { encryptCosDocument } from "../cos/security.js";
 import { cosArray, cosDict, cosName, cosNumber, cosStream, dictDelete, dictGet, dictSet } from "../ast.js";
 import { saveRetainedDocumentChunks } from "./retained-save.js";
 
-it.each(["nested", "duplicate-kids", "encrypted", "decrypted-trailer", "inline", "missing", "stream-page", "stream-root", "stream-catalog"])("preserves %s document-save page-tree semantics and exact bytes", async mode => {
+it.each(["nested", "duplicate-kids", "encrypted", "decrypted-trailer", "inline", "missing", "stream-page", "stream-root", "stream-catalog", "linearized", "linearized-encrypted", "force-linearized"])("preserves %s document-save page-tree semantics and exact bytes", async mode => {
   const original = PdfDocument.create(); original.addPage([100, 200]).drawText("First", { x: 10, y: 20 }); original.addPage([200, 300]).drawText("Second", { x: 10, y: 20 });
   const catalog = original.cos.resolveDict(original.cos.rootRef)!, rootRef = dictGet(catalog, "Pages")!, root = original.cos.resolveDict(rootRef)!;
   if (mode === "missing") dictDelete(catalog, "Pages");
@@ -27,13 +27,13 @@ it.each(["nested", "duplicate-kids", "encrypted", "decrypted-trailer", "inline",
     const object = original.cos.objects.get(ref.objectNumber)!;
     original.cos.objects.set(ref.objectNumber, { ...object, value: cosStream(new TextEncoder().encode("retained structural payload"), { dict: object.value as ReturnType<typeof cosDict>, compress: false }) });
   }
-  let input = serializeCosDocument({ objects: [...original.cos.objects.values()], rootRef: original.cos.rootRef, infoRef: original.cos.infoRef, version: mode === "decrypted-trailer" ? "1.4" : "1.7" });
-  if (mode === "encrypted" || mode === "decrypted-trailer") input = encryptCosDocument(parseCosDocument(input), { userPassword: "reader", ownerPassword: "owner" });
-  const buffered = PdfDocument.load(input, { password: "reader" }); let expected = buffered.save();
+  let input = serializeCosDocument({ objects: [...original.cos.objects.values()], rootRef: original.cos.rootRef, infoRef: original.cos.infoRef, version: mode === "decrypted-trailer" ? "1.4" : "1.7", linearize: mode.startsWith("linearized") });
+  if (mode === "encrypted" || mode === "decrypted-trailer" || mode === "linearized-encrypted") input = encryptCosDocument(parseCosDocument(input), { userPassword: "reader", ownerPassword: "owner" });
+  const buffered = PdfDocument.load(input, { password: "reader" }); let expected = buffered.save({ linearize: mode === "force-linearized" });
   if (mode === "decrypted-trailer") expected = serializeCosDocument({ objects: [...buffered.cos.objects.values()], rootRef: buffered.cos.rootRef, infoRef: buffered.cos.infoRef });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", input); const storage = { fs, directory: "/scratch" };
   const source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage, { password: "reader" });
-  try { const chunks = []; for await (const bytes of saveRetainedDocumentChunks(document, storage, { chunkBytes: 4096, ...(mode === "decrypted-trailer" ? { version: "1.7", omitId: true } : {}) })) { expect(bytes.length).toBeLessThanOrEqual(4096); chunks.push(bytes); } expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected); }
+  try { const chunks = []; for await (const bytes of saveRetainedDocumentChunks(document, storage, { chunkBytes: 4096, linearize: mode === "force-linearized", ...(mode === "decrypted-trailer" ? { version: "1.7", omitId: true } : {}) })) { expect(bytes.length).toBeLessThanOrEqual(4096); chunks.push(bytes); } expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected); }
   finally { await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
@@ -48,7 +48,7 @@ function generatedDocument(count: number): PdfRetainedDocument {
     async *pages() { for (let i = 0; i < count; i++) yield { index: i, reference: { kind: "ref", objectNumber: i + 3, generationNumber: 0 }, dict: page() }; },
   } as unknown as PdfRetainedDocument;
 }
-it.each([256, 1024])("saves %i generated pages through bounded caller-backed writes", async count => {
+it.each([256, 1024].flatMap(count => [false, true].map(linearize => ({ count, linearize }))))("saves $count generated pages through bounded caller-backed writes (linearize=$linearize)", async ({ count, linearize }) => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); let outstanding = 0, peak = 0, writes = 0;
   const guarded = new Proxy(fs, { get(owner, key) {
     if (key === "readFile" || key === "writeFile") return () => { throw new Error("whole file operation forbidden"); };
@@ -65,12 +65,12 @@ it.each([256, 1024])("saves %i generated pages through bounded caller-backed wri
     const value = Reflect.get(owner, key); return typeof value === "function" ? value.bind(owner) : value;
   } });
   let total = 0;
-  for await (const bytes of saveRetainedDocumentChunks(generatedDocument(count), { fs: guarded, directory: "/scratch" }, { chunkBytes: 4096 })) { expect(bytes.buffer.byteLength).toBeLessThanOrEqual(4096); total += bytes.length; await Promise.resolve(); }
+  for await (const bytes of saveRetainedDocumentChunks(generatedDocument(count), { fs: guarded, directory: "/scratch" }, { chunkBytes: 4096, linearize })) { expect(bytes.buffer.byteLength).toBeLessThanOrEqual(4096); total += bytes.length; await Promise.resolve(); }
   expect(total).toBeGreaterThan(count * 100); expect(peak).toBeLessThanOrEqual(16384); expect(writes).toBeGreaterThan(0); expect(await fs.readdir("/scratch")).toEqual([]);
 });
-it.each(["cancel", "objects", "pages", "output", "return"])("cleans retained save backing after %s", async mode => {
+it.each(["cancel", "objects", "pages", "output", "return"].flatMap(mode => [false, true].map(linearize => ({ mode, linearize }))))("cleans retained save backing after $mode (linearize=$linearize)", async ({ mode, linearize }) => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const controller = new AbortController(), reason = new Error("cancel save");
-  const producer = saveRetainedDocumentChunks(generatedDocument(200), { fs, directory: "/scratch" }, { signal: controller.signal,
+  const producer = saveRetainedDocumentChunks(generatedDocument(200), { fs, directory: "/scratch" }, { signal: controller.signal, linearize,
     ...(mode === "objects" ? { maxObjects: 1 } : mode === "pages" ? { maxPages: 1 } : mode === "output" ? { maxOutputBytes: 1 } : {}) });
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {

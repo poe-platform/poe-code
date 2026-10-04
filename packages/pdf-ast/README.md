@@ -810,7 +810,10 @@ output encryption. Use `maxPages`, `maxObjects`, `maxOutputBytes`,
 `maxRecursionDepth`, `chunkBytes` and `signal` to control the operation; keep the
 source/document open while consuming it and stage bytes before publication.
 Use `version` to override the output PDF version and `omitId: true` to omit the
-original trailer identifier; both are preserved by default. `removeInfo` keeps an
+original trailer identifier; both are preserved by default. Existing linearization
+dictionaries retain the ordinary writer layout; `linearize: true` also enables
+that layout for ordinary inputs. Linearized output stages on caller storage so
+its fixed-width offsets can be patched before any output is yielded. `removeInfo` keeps an
 existing modification date and removes the catalog metadata link;
 `removeMetadata`, `removeStructure`, `removeAcroform` and `removePageLabels`
 remove the corresponding document entries while preserving other objects.

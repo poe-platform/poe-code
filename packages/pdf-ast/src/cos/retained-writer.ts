@@ -29,7 +29,12 @@ export function pdfOutputStreamDictionary(value: PdfCosNode, length: number) {
   return dict;
 }
 export interface SerializeRetainedCosOptions extends Pick<SerializeCosOptions, "rootRef" | "infoRef" | "encryptRef" | "idArray" | "version" | "maxObjects" | "maxOutputBytes" | "maxRecursionDepth"> {
-  /** Strictly increasing object numbers, with each body released before the next. */
+  /** Object numbers are ascending unless objectOrder is provided. */
+  readonly objectOrder?: "ascending" | "provided";
+  /** Layout hooks run while caller staging remains writable. */
+  readonly onObjectWritten?: (number: number, start: number, end: number) => void | Promise<void>;
+  readonly onComplete?: (length: number, xrefOffset: number) => void | Promise<void>;
+  /** Each body is released before requesting the next. */
   readonly objects: AsyncIterable<PdfRetainedOutputObject | PdfSerializedOutputObject> | Iterable<PdfRetainedOutputObject | PdfSerializedOutputObject>;
   readonly chunkBytes?: number;
   /** Cross-reference address space admitted before reserving backing slots. */
@@ -68,11 +73,17 @@ export async function* serializeRetainedCosDocumentChunks(options: SerializeReta
     for await (const object of options.objects) {
       signal.throwIfAborted(); if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
       const number = object.objectNumber, generation = object.generationNumber;
-      if (!Number.isSafeInteger(number) || number <= lastObject || !Number.isSafeInteger(generation) || generation < 0 || generation > 65535) throw new PdfError("E_PARSE", "Invalid or unordered PDF output identity");
+      if (!Number.isSafeInteger(number) || (number < 1 || (options.objectOrder !== "provided" && number <= lastObject)) || !Number.isSafeInteger(generation) || generation < 0 || generation > 65535) throw new PdfError("E_PARSE", "Invalid or unordered PDF output identity");
       if (number > maxObjects) throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
       const required = (number + 1) * 16;
       if (!Number.isSafeInteger(required) || required > maxIndex) throw new PdfError("E_LIMIT", "PDF cross-reference storage limit exceeded");
-      offsets.allocate(required - reserved); reserved = required; lastObject = number;
+      if (required > reserved) { offsets.allocate(required - reserved); reserved = required; }
+      if (options.objectOrder === "provided") {
+        const previous = await offsets.read(base + number * 16, 8);
+        if (new DataView(previous.buffer, previous.byteOffset, previous.length).getFloat64(0)) throw new PdfError("E_PARSE", "Duplicate PDF output identity");
+      }
+      lastObject = Math.max(lastObject, number);
+      const objectStart = offset;
       const record = new Uint8Array(16), view = new DataView(record.buffer); view.setFloat64(0, offset); view.setFloat64(8, generation);
       await offsets.write(base + number * 16, record);
       yield* emit(encoder.encode(`${number} ${generation} obj\n`));
@@ -111,6 +122,7 @@ export async function* serializeRetainedCosDocumentChunks(options: SerializeReta
         yield* emit(encoder.encode("\nendstream"));
       } else yield* node(object.value);
       yield* emit(encoder.encode("\nendobj\n\n"));
+      await options.onObjectWritten?.(number, objectStart, offset);
     }
     const xrefOffset = offset, size = lastObject + 1;
     yield* emit(encoder.encode(`xref\n0 ${size}\n0000000000 65535 f \n`));
@@ -123,6 +135,7 @@ export async function* serializeRetainedCosDocumentChunks(options: SerializeReta
     yield* emit(encoder.encode("trailer\n"));
     yield* node(cosDict({ Size: cosNumber(size), Root: options.rootRef, Info: options.infoRef, Encrypt: options.encryptRef, ID: options.idArray }));
     yield* emit(encoder.encode(`\n\nstartxref\n${xrefOffset}\n%%EOF`));
+    await options.onComplete?.(offset, xrefOffset);
   } catch (error) { failed = true; throw error; }
   finally { await offsets.close().catch(error => { if (!failed) throw error; }); }
 }

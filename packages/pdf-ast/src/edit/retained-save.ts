@@ -1,3 +1,4 @@
+import { serializeLinearizedRetainedChunks } from "../cos/retained-linearization.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosArray, cosDict, cosName, cosNumber, cosRef, dictDelete, dictGet, dictSet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
@@ -18,6 +19,7 @@ export interface RetainedPageRotation {
 }
 
 export interface SaveRetainedDocumentOptions {
+  readonly linearize?: boolean;
   /** Ordered edits; duplicate page selections apply cumulatively. */
   readonly rotations?: Iterable<RetainedPageRotation> | AsyncIterable<RetainedPageRotation>;
   /** Defaults to the retained input version. */
@@ -46,7 +48,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
   if (depthLimit !== Infinity && (!Number.isSafeInteger(depthLimit) || depthLimit < 1)) throw new RangeError("Invalid save depth");
   const objects = new PdfMutableObjectStore(storage, { ...options, signal }), pages = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   let infoRef = document.crossReference.infoRef;
-  const pageBase = pages.allocate(0); let pageCount = 0, work = 0, failed = false;
+  const pageBase = pages.allocate(0); let pageCount = 0, work = 0, failed = false, mayLinearize = options.linearize === true;
   const resolve = async (node: PdfCosNode | undefined) => {
     const found = await document.lookup(node);
     return found?.reference ? (await objects.get(found.reference.objectNumber))?.value : found?.value;
@@ -105,7 +107,10 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
     if (object.stream) { yield encoder.encode("\nstream\n"); yield* object.stream.chunks; yield encoder.encode("\nendstream"); }
   }
   try {
-    for await (const object of retainedCosObjects(document, storage, { ...(options.maxObjects === undefined ? {} : { maxObjects: options.maxObjects }), ...(options.maxOutputBytes === undefined ? {} : { maxStreamBytes: options.maxOutputBytes }), signal })) await objects.set(object);
+    for await (const object of retainedCosObjects(document, storage, { ...(options.maxObjects === undefined ? {} : { maxObjects: options.maxObjects }), ...(options.maxOutputBytes === undefined ? {} : { maxStreamBytes: options.maxOutputBytes }), signal })) {
+      if (!object.stream && object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined) mayLinearize = true;
+      await objects.set(object);
+    }
     if (options.removeInfo && infoRef) {
       const found = await document.lookup(infoRef), object = found?.reference ? await objects.get(found.reference.objectNumber) : undefined;
       if (object?.value.kind === "dict" && !object.stream) {
@@ -162,7 +167,14 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
       }
     }
     const ref = document.crossReference;
-    yield* serializeRetainedCosDocumentChunks({ ...options, objects: output(), rootRef: ref.rootRef, infoRef, idArray: options.omitId ? undefined : ref.idArray, version: options.version ?? ref.version, signal }, storage);
+    const configured = { ...options, rootRef: ref.rootRef, infoRef, idArray: options.omitId ? undefined : ref.idArray, version: options.version ?? ref.version, signal };
+    if (mayLinearize) yield* serializeLinearizedRetainedChunks(objects, storage, configured, output, async number => {
+      const object = await objects.get(number);
+      if (!object || number !== pagesRef?.objectNumber) return object;
+      let length = 0; for await (const bytes of pageTree(pagesDict!, pagesRef!)) length += bytes.length;
+      return { objectNumber: number, generationNumber: object.generationNumber, body: { length, chunks: pageTree(pagesDict!, pagesRef!) } };
+    });
+    else yield* serializeRetainedCosDocumentChunks({ ...configured, objects: output() }, storage);
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([objects.close(), pages.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

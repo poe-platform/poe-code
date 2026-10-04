@@ -1,3 +1,4 @@
+import { serializeLinearizedRetainedChunks } from "../cos/retained-linearization.js";
 import { PdfMergeOutlines } from "./retained-merge-outlines.js";
 import { PdfMergeLabels } from "./retained-merge-labels.js";
 import { PdfMergeAttachments } from "./retained-merge-attachments.js";
@@ -74,6 +75,7 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
   const catalog = cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) });
   type ReferenceList = { first: number; last: number; count: number };
   const pages: ReferenceList = { first: 0, last: 0, count: 0 }, formFields: ReferenceList = { first: 0, last: 0, count: 0 };
+  let mayLinearize = false;
   let work = 0, pageCount = 0, copiedMetadata = options.metadata !== undefined, formRef: ReturnType<typeof cosRef> | undefined;
   let opened: Promise<PdfRetainedDocument> | undefined, closing: Promise<void> | undefined;
   function close(): Promise<void> {
@@ -132,6 +134,7 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
         const entry = await document.crossReference.index.get(node.objectNumber, signal);
         const original = entry && entry.type !== "free" ? await document.objects.get(node.objectNumber, entry.generationNumber ?? 0) : undefined;
         if (!original) return cosRef(0);
+        if (!original.stream && original.value.kind === "dict" && dictGet(original.value, "Linearized") !== undefined) mayLinearize = true;
         const reference = await store.allocate(); await memo.set(BigInt(node.objectNumber), BigInt(reference.objectNumber));
         const value = await clone(original.value, depth + 1);
         if (original.stream) {
@@ -188,6 +191,7 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
           dictSet(selected.dict, "Rotate", cosNumber(((rotation % 360) + 360) % 360));
         }
         const page = await clone(selected.dict) as PdfCosDict;
+        if (dictGet(page, "Linearized") !== undefined) mayLinearize = true;
         async function inherited(key: string): Promise<PdfCosNode | undefined> {
           let current: PdfCosDict | undefined = selected!.dict, depth = 0; const visited = new Set<number>();
           while (current) {
@@ -313,7 +317,11 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
         if (closing) return Promise.reject(new PdfError("E_CAPABILITY", "Retained page copy is closed"));
         return opened ??= PdfRetainedDocument.openStore(store, storage, { rootRef: cosRef(1), infoRef: cosRef(3), pageReferences: () => references(pages), maxPages, maxRecursionDepth: maximumDepth, signal });
       },
-      chunks() { return serializeRetainedCosDocumentChunks({ ...options, objects: store.outputObjects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage); },
+      chunks() {
+        const configured = { ...options, rootRef: cosRef(1), infoRef: cosRef(3), signal };
+        return mayLinearize ? serializeLinearizedRetainedChunks(store, storage, configured, () => store.outputObjects(), number => store.get(number), [2, formRef?.objectNumber, attachmentNames?.objectNumber, pageLabels?.objectNumber].filter((number): number is number => number !== undefined))
+          : serializeRetainedCosDocumentChunks({ ...configured, objects: store.outputObjects() }, storage);
+      },
       close,
     };
   } catch (error) { await close().catch(() => {}); throw error; }

@@ -197,3 +197,20 @@ it("composes page copies through an unsaved retained graph", async () => {
   } finally { await copy.close(); await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("preserves linearized copied-object layout without mutating the copy graph", async () => {
+  const { serializeRetainedCosDocumentChunks } = await import("../cos/retained-writer.js");
+  const { createRetainedPageCopy } = await import("./retained-page-copy.js");
+  const input = PdfDocument.create(); input.addPage([100, 200]); dictSet(input.getPage(0).dict, "Linearized", cosNumber(1));
+  const expected = PdfDocument.create(); expected.copyPagesFrom(input, [0]);
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const storage = { fs, directory: "/scratch" };
+  const chunks = []; for await (const chunk of serializeRetainedCosDocumentChunks({ objects: input.cos.objects.values(), rootRef: input.cos.rootRef, infoRef: input.cos.infoRef }, storage)) chunks.push(chunk);
+  await fs.writeFile("/input", new Uint8Array(Buffer.concat(chunks)));
+  const source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage), copy = await createRetainedPageCopy(document, [0], storage, { metadata: {} });
+  try {
+    const graph = await copy.openDocument();
+    for (let attempt = 0; attempt < 2; attempt++) { const output = []; for await (const chunk of copy.chunks()) output.push(chunk); expect(new Uint8Array(Buffer.concat(output))).toEqual(expected.save()); }
+    const pages = []; for await (const page of graph.pages()) pages.push(page); expect(pages).toHaveLength(1); expect(dictGet(pages[0]!.dict, "Type")).toMatchObject({ kind: "name", decoded: "Page" });
+  } finally { await copy.close(); await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

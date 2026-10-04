@@ -112,3 +112,16 @@ it("yields to timer cancellation while splitting one large serialized body chunk
   } finally { clearTimeout(timer); }
   expect(closed).toBe(true); expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("indexes provided physical order and rejects duplicate identities", async () => {
+  const { parseCosDocument } = await import("./parser.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const storage = { fs, directory: "/scratch" };
+  const objects = [3, 1, 2].map(objectNumber => ({ objectNumber, generationNumber: 0, value: cosDict({ Number: cosNumber(objectNumber) }) }));
+  const locations: { number: number; start: number; end: number }[] = [], chunks = []; let length = 0;
+  for await (const bytes of serializeRetainedCosDocumentChunks({ objects, objectOrder: "provided", rootRef: cosRef(1), onObjectWritten(number, start, end) { locations.push({ number, start, end }); }, onComplete(size) { length = size; } }, storage)) chunks.push(bytes);
+  const bytes = new Uint8Array(Buffer.concat(chunks)), parsed = parseCosDocument(bytes);
+  expect(length).toBe(bytes.length); expect(locations.map(item => item.number)).toEqual([3, 1, 2]);
+  for (const location of locations) { expect(parsed.revisions[0]!.entries.get(location.number)?.offset).toBe(location.start); expect(location.end).toBeGreaterThan(location.start); }
+  await expect((async () => { for await (const ignored of serializeRetainedCosDocumentChunks({ objects: [objects[0]!, objects[0]!], rootRef: cosRef(3), objectOrder: "provided" }, storage)) void ignored; })()).rejects.toThrow("Duplicate");
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

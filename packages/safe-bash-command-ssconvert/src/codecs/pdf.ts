@@ -241,7 +241,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
       }
       const overflows = width > cellBox.width - 5;
-      if (overflows && cellBox.overflow === undefined || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
+      if (overflows && cellBox.overflow === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
       const overflow = cellBox.overflow?.(displayWidth);
       const clipLeft = x + 4 - (overflow?.left ?? 0);
       const clipWidth = Math.max(0, cellBox.width + (overflow?.left ?? 0) + (overflow?.right ?? 0) - 4);
@@ -272,7 +272,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const alpha = page.node.newExtGState("CellAlpha", pdf.context.obj({Type: "ExtGState", ca: cellBox.style.foregroundAlpha}));
         page.pushOperators(setGraphicsState(alpha));
       }
-      if (overflows) page.pushOperators(pdfRectangle(clipLeft, 0, clipWidth, page.getHeight()), clip(), endPath());
+      if (overflows || height > cellBox.height - 1) page.pushOperators(
+        pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height, clipWidth, cellBox.height), clip(), endPath());
       page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
         [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]),
       beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));

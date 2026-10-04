@@ -55,9 +55,10 @@ it("charges retained style text and propagates work cancellation", async () => {
   const style = (await fixture()).sheets[0]!.cells[0]!.style!;
   expect(() => cellPrintStyle(style, amount => {if ((amount ?? 1) > 1) throw new Error("style work refused");})).toThrow("style work refused");
 });
-it("refuses a cell shorter than the selected font metrics", async () => {
+it("clips a cell shorter than the selected font metrics", async () => {
   const book = await fixture(), sheet = book.sheets[0]!;
-  await expect(writePdf({...book, sheets: [{...sheet, view: {...sheet.view, defaultRowHeight: 5}}]}, [], context)).rejects.toThrow("PDF default-style text layout");
+  const {runs} = await pdfText(await writePdf({...book, sheets: [{...sheet, view: {...sheet.view, defaultRowHeight: 5}}]}, [], context));
+  expect(runs.length).toBeGreaterThan(0);
 });
 
 it("applies the native default96dpi scale to materialized cell fonts", async () => {

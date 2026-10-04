@@ -185,3 +185,14 @@ it.each(["TOP", "CENTER", "BOTTOM"])("clamps negative vertical spacing for %s", 
   const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
   expect(runs[0]!.glyphs[0]!.y).toBeCloseTo(720 - 0.75 - 19.5 * 0.75 * 1.02, 8);
 });
+
+it.each(["TOP", "CENTER", "BOTTOM"])("clips oversized text to its own row with %s alignment", async alignment => {
+  const book = await fixture([{text: "x", attributes: attributes.replace('GNM_VALIGN_BOTTOM', `GNM_VALIGN_${alignment}`), font: font.replace('Unit="10"', 'Unit="48"')}, {text: "Neighbor"}]);
+  const {pdf, runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+  expect(runs.map(run => run.text)).toEqual(["x", "Neighbor"]);
+  expect(runs[0]!.glyphs[0]!.y).toBeCloseTo(720 - 0.75 - 48 * 0.75 * 1.02, 8);
+  const contents = pdf.getPage(0).node.Contents() as PDFArray;
+  const operations = contents.asArray().map(ref => new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
+  expect(operations).toContain("76 700 464 20 re\nW\nn");
+  expect(operations).toContain("EMC\nQ\nq");
+});

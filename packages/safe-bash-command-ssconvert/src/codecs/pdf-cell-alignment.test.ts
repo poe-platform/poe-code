@@ -89,5 +89,5 @@ it.each([
   expect(runs[0]!.glyphs[0]!.x).toBe(x);
   const contents = pdf.getPage(0).node.Contents() as PDFArray;
   const operators = contents.asArray().map(ref => new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
-  expect(operators).toContain(`${left} 0 ${right} 792 re`);
+  expect(operators).toContain(`${left} 700 ${right} 20 re`);
 });

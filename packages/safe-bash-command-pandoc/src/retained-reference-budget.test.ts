@@ -29,7 +29,7 @@ it.each(["empty", "text", "metadata", "long", "unicode", "table"])("retains JSON
   }
 });
 
-it.each(["success", "producer", "storage", "cancel", "sink"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from => ["json", "plain", "html5", "rst", "gfm", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])].map(to => ({mode, from, to})))))("bounds $from-to-$to reference-limited input transfers and cleans up on $mode", async ({mode, from, to}) => {
+it.each(["success", "producer", "storage", "cancel", "sink"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from => ["json", "plain", "html5", "rst", "gfm", "latex", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])].map(to => ({mode, from, to})))))("bounds $from-to-$to reference-limited input transfers and cleans up on $mode", async ({mode, from, to}) => {
   const fs = new MemoryFileSystem(), controller = new AbortController();
   const bytes = new TextEncoder().encode(from === "rtf" ? String.raw`{\rtf1 ` + "x".repeat(100000) + "}" : from === "csv" || from === "tsv" ? "x".repeat(100000) : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "x".repeat(100000)}]}]}));
   const closed = vi.fn(), close = vi.fn(async () => {}), abort = vi.fn(async () => {});
@@ -54,7 +54,7 @@ it.each(["success", "producer", "storage", "cancel", "sink"].flatMap(mode => ["j
       yield bytes.subarray(17);
     } finally {closed();}
   })();
-  const result = convertToOutput([{chunks}], {from, to}, {signal: controller.signal, limits: {references: 1000}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+  const result = convertToOutput([{chunks}], {from, to}, {signal: controller.signal, limits: {references: to === "latex" ? 2000000 : 1000}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
     async write(chunk) {expect(chunk.length).toBeLessThanOrEqual(16384); if (mode === "sink") throw new Error("Sink failed");}, close, abort
   }});
   if (mode === "success") {await result; expect(close).toHaveBeenCalledOnce();}

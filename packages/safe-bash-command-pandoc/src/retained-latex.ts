@@ -1,3 +1,4 @@
+import {reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {backedJsonOrder} from "./backed-json-order.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -79,7 +80,11 @@ class LatexTape {
   private async put(position: number, value: number): Promise<void> {
     const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, value, true); await this.storage.write(position, bytes);
   }
-  private async add(value: string | TextRange, label = false): Promise<void> {
+  private async add(value: string | TextRange, label = false, account = true): Promise<void> {
+    if (account && Number.isFinite(this.context.limits.references)) {
+      this.context.bound("outputBytes", this.output.units + (typeof value === "string" ? value.length : value.units));
+      this.context.charge("references", 1);
+    }
     await this.text.append(this.output, await this.text.from(typeof value === "string" ? [value] : this.text.chunks(value)));
     if (this.replay && !label) await this.text.append(this.replay, await this.text.from(typeof value === "string" ? [value] : this.text.chunks(value)));
   }
@@ -107,9 +112,12 @@ class LatexTape {
       if (code && "\\{}#$%&_~^".includes(char)) buffer += `\\char"${char.codePointAt(0)!.toString(16).toUpperCase()}{}`;
       else if (code && (char === " " || char === "\t")) buffer += char === " " ? "\\ " : "\\ \\ \\ \\ ";
       else buffer += ({"#": "\\#", "$": "\\$", "%": "\\%", "&": "\\&", "_": "\\_", "{": "\\{", "}": "\\}", "~": "\\textasciitilde{}", "^": "\\textasciicircum{}", "\\": "\\textbackslash{}", "\r": " ", "\n": " ", "\t": " "} as Record<string, string>)[char] ?? char;
-      if (buffer.length >= 4096) {await this.add(buffer); buffer = "";}
+      if (Number.isFinite(this.context.limits.references)) {
+        this.context.bound("outputBytes", this.output.units + buffer.length); this.context.charge("references", 1);
+      }
+      if (buffer.length >= 4096) {await this.add(buffer, false, false); buffer = "";}
     }
-    if (buffer) await this.add(buffer);
+    if (buffer) await this.add(buffer, false, false);
   }
   private async raw(node: number, path: number): Promise<void> {
     if (this.options.rawContent === "reject") await this.fail("Raw content rejected by explicit policy", path);
@@ -136,9 +144,12 @@ class LatexTape {
     let buffer = "";
     for await (const chunk of this.text.unicodeChunks(value)) for (const char of chunk) {
       buffer += ({"%": "\\%", "#": "\\#", "&": "\\&", "_": "\\_"} as Record<string, string>)[char] ?? (" ~^\"<>`".includes(char) ? encodeURIComponent(char).split("%").join("\\%") : char);
-      if (buffer.length >= 4096) {await this.add(buffer); buffer = "";}
+      if (Number.isFinite(this.context.limits.references)) {
+        this.context.bound("outputBytes", this.output.units + buffer.length); this.context.charge("references", 1);
+      }
+      if (buffer.length >= 4096) {await this.add(buffer, false, false); buffer = "";}
     }
-    if (buffer) await this.add(buffer);
+    if (buffer) await this.add(buffer, false, false);
   }
   private async image(node: number, path: number): Promise<void> {
     const value = await this.scalar(node), edges = await this.edges(value);
@@ -235,6 +246,7 @@ class LatexTape {
           }
           if (buffer) await this.text.append(label, await this.text.from([buffer]));
           if (count > 1) await this.text.append(label, await this.text.from(["-dup-" + count]));
+          if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
           const record = BigInt(await this.record(label)); await this.labels.set(BigInt(job.node), record);
           if (count === 1) await this.targets.set(identity, record);
         }
@@ -244,6 +256,7 @@ class LatexTape {
     }
   }
   private async note(node: number, path: number): Promise<void> {
+    if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
     const pos = this.storage.allocate(24); await this.put(pos, 0); await this.put(pos + 8, node); await this.put(pos + 16, path);
     if (this.noteLast) await this.put(this.noteLast, pos); else this.noteFirst = pos;
     this.noteLast = pos;
@@ -258,7 +271,7 @@ class LatexTape {
   }
   private async metadata(meta: number, key: string): Promise<Job> {
     const node = await this.tree.property(meta, key), path = await this.path(0, "$.metadata." + key);
-    if (node === undefined) return this.literal("");
+    if (node === undefined) return {op: "empty", node: 0, path};
     const tag = await this.tag(node), content = (await this.tree.property(node, "c"))!;
     if (tag === "MetaString") return {op: "escape", node: content, path};
     if (tag === "MetaInlines") return this.list(content, path, "inline");
@@ -273,7 +286,9 @@ class LatexTape {
     if (!language || !languages[language]) await this.fail("Unsupported LaTeX language", langPath, "E_OPTION");
     if (dir !== undefined && (await this.tag(dir) !== "MetaString" || await this.tree.smallText((await this.tree.property(dir, "c"))!, 3) !== "ltr")) await this.fail("Unsupported LaTeX direction", await this.path(0, "$.metadata.dir"), "E_OPTION");
     if (this.options.standalone) {
-      await this.add("\\documentclass{article}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n\\usepackage[" + languages[language!] + "]{babel}\n\\usepackage{amsmath,amssymb}\n\\usepackage{graphicx}\n\\usepackage{array,longtable,multirow}\n\\usepackage{enumitem}\n\\usepackage[normalem]{ulem}\n\\usepackage{hyperref}\n");
+      await this.add("\\documentclass{article}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n");
+      await this.add("\\usepackage[" + languages[language!] + "]{babel}\n");
+      await this.add("\\usepackage{amsmath,amssymb}\n\\usepackage{graphicx}\n\\usepackage{array,longtable,multirow}\n\\usepackage{enumitem}\n\\usepackage[normalem]{ulem}\n\\usepackage{hyperref}\n");
       await this.push(this.literal("\\end{document}\n"));
     } else if (lang !== undefined) {
       await this.add("\\begin{otherlanguage}{" + languages[language!] + "}\n"); await this.push(this.literal("\\end{otherlanguage}\n"));
@@ -281,13 +296,15 @@ class LatexTape {
     await this.push({op: "flushNotes", node: 0, path: 0});
     await this.push(this.list(blocks, await this.path(0, "$.blocks"), "block", {value: "root"}));
     if (this.options.standalone) {
-      await this.push(this.literal("\\begin{document}\n" + (await this.tree.property(meta, "title") !== undefined ? "\\maketitle\n" : "")));
+      if (await this.tree.property(meta, "title") !== undefined) await this.push(this.literal("\\maketitle\n"));
+      await this.push(this.literal("\\begin{document}\n"));
       for (const key of ["date", "author", "title"]) await this.sequence(this.literal("\\" + key + "{"), {op: "metadata", node: meta, path: 0, value: key}, this.literal("}\n"));
     }
     while (this.top) {
       await this.context.cooperate();
       const frame = await this.read<{parent: number; job: Job}>(this.top); this.top = frame.parent; const job = frame.job;
       const part = async (index: number): Promise<{node: number; path: number}> => ({node: await this.at(job.node, index), path: await this.path(job.path, "[" + index + "]")});
+      if (job.op === "empty") continue;
       if (job.op === "literal") {await this.add(job.value!); continue;}
       if (job.op === "metadata") {await this.push(await this.metadata(job.node, job.value!)); continue;}
       if (job.op === "escape") {await this.escape(await this.scalar(job.node)); continue;}
@@ -367,7 +384,9 @@ class LatexTape {
           const source = this.text.chunks(value), key = await this.text.from((async function* () {let first = true; for await (const chunk of source) {yield first ? chunk.slice(1) : chunk; first = false;}})());
           const label = Number(await this.targets.get(BigInt(await this.keys.add(key))) ?? 0n);
           if (!label) {await this.loss("Unresolved internal reference projected to text", job.path); await this.push(await child(1, "inline")); continue;}
-          await this.add("\\hyperref["); await this.add(await this.read<TextRange>(label)); await this.add("]{");
+          const target = await this.text.from(["\\hyperref["]);
+          await this.text.append(target, await this.text.from(this.text.chunks(await this.read<TextRange>(label))));
+          await this.text.append(target, await this.text.from(["]{"])); await this.add(target);
         } else {await this.add("\\href{"); await this.url(value, job.path); await this.add("}{");}
         await this.sequence(await child(1, "inline"), this.literal("}")); continue;
       }
@@ -378,16 +397,16 @@ class LatexTape {
         await this.sequence(await child(2, "inline"), {op: "headingEnd", node: await this.at(content!, 1), path: await this.path(cp, "[1]")}); continue;
       }
       if (tag === "CodeBlock") {
-        await attr(0, true); await this.add("\\begin{flushleft}\\ttfamily\n\\mbox{");
+        await attr(0, true); await this.add("\\begin{flushleft}\\ttfamily\n"); await this.add("\\mbox{");
         const source = await this.scalar(await this.at(content!, 1)); let line = emptyText();
         for await (const chunk of this.text.chunks(source)) {
           const parts = chunk.split("\n");
           for (let i = 0; i < parts.length; i++) {
             await this.text.append(line, await this.text.from([parts[i]!]));
-            if (i < parts.length - 1) {await this.escape(line, true); line = emptyText(); await this.add("}\\\\\n\\mbox{");}
+            if (i < parts.length - 1) {await this.escape(line, true); line = emptyText(); await this.add("}\\\\\n"); await this.add("\\mbox{");}
           }
         }
-        await this.escape(line, true); await this.add("}\\\\\n\\end{flushleft}\n\n"); continue;
+        await this.escape(line, true); await this.add("}\\\\\n"); await this.add("\\end{flushleft}\n\n"); continue;
       }
       if (tag === "HorizontalRule") {await this.add("\\par\\noindent\\rule{\\linewidth}{0.4pt}\\par\n"); continue;}
       if (tag === "BlockQuote") {await this.sequence(this.literal("\\begin{quote}\n"), this.list(content!, cp, "block"), this.literal("\\end{quote}\n\n")); continue;}
@@ -415,7 +434,7 @@ class LatexTape {
       throw new Error("Unknown LaTeX constructor " + tag);
     }
     const source = this.text.chunks(this.output);
-    return this.text.from((async function* () {
+    const result = await this.text.from((async function* () {
       let newlines = 0;
       for await (const chunk of source) {
         let output = "";
@@ -428,6 +447,8 @@ class LatexTape {
       }
       yield "\n";
     })());
+    if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", result.units);
+    return result;
   }
   private column(align: string, fraction: number): string {
     const command = ({AlignDefault: "raggedright", AlignLeft: "raggedright", AlignRight: "raggedleft", AlignCenter: "centering"} as Record<string, string>)[align];
@@ -468,7 +489,7 @@ class LatexTape {
     }
     if (job.op === "repeatHead") {
       const replay = this.replay!; this.replay = undefined;
-      await this.add("\\endfirsthead\n"); await this.add(replay); await this.add("\\endhead\n\\endfoot\n");
+      await this.add("\\endfirsthead\n"); await this.add(replay); await this.add("\\endhead\n"); await this.add("\\endfoot\n");
       const foot = await this.at(job.node, 5), cp = await this.path(job.path, ".c");
       if (await this.present(foot + 32)) await this.loss("Dropped unsupported table foot attributes", await this.path(cp, "[5][0]"));
       await this.sequence({...job, op: "rows", node: await this.at(foot, 1), path: await this.path(cp, "[5][1]")},
@@ -514,7 +535,7 @@ class LatexTape {
       const path = await this.path(job.path, "[" + job.index + "]");
       await this.attrs(cell + 32, path);
       await this.sequence(this.list(await this.at(cell, 4), await this.path(path, "[4]"), "block"),
-        this.literal((rows > 1 ? "}" : "") + (spanning ? "}" : "")),
+        ...(rows > 1 ? [this.literal("}")] : []), ...(spanning ? [this.literal("}")] : []),
         {...job, cursor: (await this.tree.describe(cell)).end, column: col + span, index: job.index! + 1}); return;
     }
     if (job.op === "flatBody") {
@@ -537,11 +558,12 @@ export async function writeRetainedLatex(tree: BackedJson, context: ExecutionCon
     const writer = new LatexTape(tree, storage, context, options, order), result = await writer.render();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {const first = diagnostics[0]!; throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);}
+    await reserveRetainedOutput(() => writer.text.unicodeChunks(result), context, options.eol);
     const chunks = async function* () {
       const encoder = new TextEncoder();
       for await (const part of writer.text.unicodeChunks(result)) yield encoder.encode(options.eol === "crlf" ? part.split("\n").join("\r\n") : part);
     };
-    if (Number.isFinite(context.limits.outputBytes)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
     for await (const bytes of chunks()) await context.emit(bytes);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};} finally {release();}

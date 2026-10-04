@@ -12,7 +12,7 @@ import type {ExecutionContext} from "./execution.js";
 import type {InputSource, WorkingStorageOptions} from "./types.js";
 
 /** Own a validated, replayable Pandoc wire document in caller storage. */
-export async function readRetainedJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, chargeInput = true, chargeAst = true, onInputDecoded?: () => void) {
+export async function readRetainedJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, chargeInput = true, chargeAst = true, onInputDecoded?: () => void, decodeInput = chargeInput) {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384)
     context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
@@ -90,7 +90,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
       for (let offset = 0; offset < length; offset += 16384)
         yield await scratch.read(start + offset, Math.min(16384, length - offset));
     };
-    const parsedText = chargeInput && (Number.isFinite(context.limits.text) || references) ? retainedUtf8(references ? acquired() : bytes(), context, scratch, references ? [] : ["inputBytes"], onInputDecoded) : text;
+    const parsedText = decodeInput && (Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references)) ? retainedUtf8(references ? acquired() : bytes(), context, scratch, chargeInput && !references ? ["inputBytes"] : [], onInputDecoded) : text;
     await parseBackedJson(parsedText, tree, scratch, units => context.cooperate(units), (offset, message) => {
       throw new PandocError("E_AST", "read", message, "json", `$@${offset}`);
     }, async (node, offset) => {
@@ -99,7 +99,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         if (!(error instanceof JsonNumberError)) throw error;
         throw new PandocError("E_AST", "read", error.message, "json", `$@${offset}`);
       }
-    }, false, chargeInput && Number.isFinite(context.limits.depth) ? (depth, container) => {if (!container) context.bound("depth", depth);} : undefined, chargeInput ? (_kind, complete) => {if (!complete) context.bound("nodes", ++nodes);} : undefined, references ? () => context.charge("references", 1) : undefined);
+    }, false, decodeInput && Number.isFinite(context.limits.depth) ? (depth, container) => {if (!container) context.bound("depth", depth);} : undefined, decodeInput ? (_kind, complete) => {if (!complete) context.bound("nodes", ++nodes);} : undefined, decodeInput && Number.isFinite(context.limits.references) ? () => context.charge("references", 1) : undefined);
     const order = await backedJsonOrder(tree, scratch, units => context.cooperate(units));
     if (chargeAst) {
       try {

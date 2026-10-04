@@ -5,11 +5,12 @@ import {ExecutionContext} from "./execution.js";
 import {createJsonFilterCapability} from "./json-filters.js";
 
 it.each(["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"])("retains JSON filter reference budgets to %s", async to => {
-  const input = {bytes: new TextEncoder().encode('{"pandoc-api-version":[1,23,1],"meta":{},"blocks":[{"t":"Para","c":[{"t":"Str","c":"body"}]}]}')};
-  for (const outputBytes of [undefined, 0, 30, 300]) for (let references = 0; references < 65; references++) {
+  const input = {bytes: new TextEncoder().encode('{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"Para","c":[{"t":"Str","c":"body"}]}]}')};
+  for (const outputBytes of [undefined, 0, 30, 300]) for (let references = 0; references < 85; references++) {
     const filters = createJsonFilterCapability({async runStream({stdin, stdout}) {for await (const bytes of stdin) await stdout.write(bytes); return 0;}});
     const options = {from: "json", to, filters: [{kind: "json" as const, path: "/filter"}]}, limits = {references, ...(outputBytes === undefined ? {} : {outputBytes})};
     const expected = await convert([input], options, {limits, filters}).catch(error => error);
+    if (references === 84 && outputBytes === undefined) expect(expected).not.toBeInstanceOf(Error);
     const fs = new MemoryFileSystem(), bytes: number[] = [];
     const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
     try {

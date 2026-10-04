@@ -3,6 +3,7 @@ import {luaAst} from "./lua-ast.js";
 /** Freeze trusted entrypoints before filter source can mutate globals. */
 export const luaPandocSource=luaAst+`
 local runner, globals = __pandoc_run, _G
+local reference = __pandoc_reference
 local unsupported, invalid = __pandoc_unsupported, __pandoc_invalid
 local type, next, rawlen, rawget = type, next, rawlen, rawget
 -- The public protocol uses tagged enum objects; the established Lua API uses
@@ -19,7 +20,8 @@ local function from_wire(value, depth)
   check_depth(depth)
   if type(value) ~= 'table' then return value end
   if enums[value.t] then return value.t end
-  for key,child in next,value do value[key]=from_wire(child,depth+1) end
+  if value.__pandoc_null then return value end
+  for key,child in next,value do reference(); value[key]=from_wire(child,depth+1) end
   return value
 end
 local function enum(value)
@@ -34,7 +36,8 @@ end
 local function to_wire(value, depth)
   check_depth(depth)
   if type(value) ~= 'table' then return value end
-  for key,child in next,value do value[key]=to_wire(child,depth+1) end
+  if value.__pandoc_null then return value end
+  for key,child in next,value do reference(); value[key]=to_wire(child,depth+1) end
   local tag,c=value.t,value.c
   if tag=='Quoted' or tag=='Math' then c[1]=enum(c[1])
   elseif tag=='OrderedList' then c[1][2]=enum(c[1][2]); c[1][3]=enum(c[1][3])
@@ -48,7 +51,7 @@ local function to_wire(value, depth)
   return value
 end
 local callbacks={}
-for name in next,__pandoc_callbacks do callbacks[name]=true end
+for name in next,__pandoc_callbacks do reference(); callbacks[name]=true end
 return function(result)
   local filters={}
   local function capture(value,global)

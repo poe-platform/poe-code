@@ -12,10 +12,11 @@ const layers: Pick<ConversionOptions, "metadata" | "metadataJson" | "metadataFil
   {metadataFiles: [{bytes: new TextEncoder().encode('{"title":"Title","nested":{"list":[true,"text"]}}')}]}
 ];
 it.each(["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].flatMap(to => layers.map(layer => ({to, layer}))))("retains metadata reference limits for $to $layer", async ({to, layer}) => {
-  const input = {bytes: new TextEncoder().encode('{"pandoc-api-version":[1,23,1],"meta":{"nested":{"t":"MetaMap","c":{"old":{"t":"MetaString","c":"kept"}}}},"blocks":[{"t":"Para","c":[{"t":"Str","c":"body"}]}]}')};
+  const input = {bytes: new TextEncoder().encode('{"pandoc-api-version":[1,23,1,2],"meta":{"nested":{"t":"MetaMap","c":{"old":{"t":"MetaString","c":"kept"}}}},"blocks":[{"t":"Para","c":[{"t":"Str","c":"body"}]}]}')};
   for (const outputBytes of [undefined, 0, 50]) for (const references of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20, 40, 80]) {
     const options = {from: "json", to, ...layer}, limits = {references, ...(outputBytes === undefined ? {} : {outputBytes})};
     const expected = await convert([input], options, {limits}).catch(error => error);
+    if (references === 80 && outputBytes === undefined) expect(expected).not.toBeInstanceOf(Error);
     const fs = new MemoryFileSystem(), bytes: number[] = [];
     const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
     try {

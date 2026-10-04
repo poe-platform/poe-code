@@ -38,6 +38,7 @@ export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,
     }
   };
   const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,async(prototype,args,native)=>{
+    if(prototype===-1004){context.charge("references",1);return [];}
     if(prototype===-1000){context.bound("depth",await numbers.coerce(await args.get(0)));return [];}
     if(prototype===-1001)throw callbackError??=new PandocError("E_AST","convert","Lua callback must return an element, list or nil");
     if(prototype===-1002 || prototype===-1003)throw new LuaError(await args.get(0),0,prototype===-1002?"E_UNSUPPORTED_FEATURE":"E_AST");
@@ -63,7 +64,7 @@ export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,
   try {
     await base.install(environment);await math.install(environment);await utf8.install(environment);
     await strings.install(environment,program,machine);await table.install(environment,program,machine);
-    for(const [name,id] of [["__pandoc_depth",-1000],["__pandoc_ast_error",-1001],["__pandoc_unsupported",-1002],["__pandoc_invalid",-1003]] as const)
+    for(const [name,id] of [["__pandoc_depth",-1000],["__pandoc_ast_error",-1001],["__pandoc_unsupported",-1002],["__pandoc_invalid",-1003],["__pandoc_reference",-1004]] as const)
       await heap.set(environment,await key(name),await heap.closure(id,[]));
     await heap.set(environment,await key("FORMAT"),await key(to.split("+")[0]!.split("-")[0]!));
     const bootstrap=await loadLuaLibrary(pandocLibrary,heap,program,await key("@pandoc constructors"));

@@ -36,13 +36,18 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime | JsonStre
         const reader = readBytes(streams.stdin, signal);
         const stdin = (async function* () {
           try {
+            let chunk = new Uint8Array(16384), used = 0;
             for await (const bytes of reader) {
               if (!(bytes instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Filter input must be bytes");
-              for (let offset = 0; offset < bytes.length; offset += 16384) {
+              for (let offset = 0; offset < bytes.length;) {
                 context.checkpoint(); signal.throwIfAborted();
-                yield bytes.slice(offset, offset + 16384);
+                const count = Math.min(bytes.length - offset, chunk.length - used);
+                chunk.set(bytes.subarray(offset, offset + count), used);
+                offset += count; used += count;
+                if (used === chunk.length) {yield chunk; chunk = new Uint8Array(16384); used = 0;}
               }
             }
+            if (used) yield chunk.slice(0, used);
           } finally {await reader.return(undefined);}
         })();
         let open = true, active: Promise<void> | undefined;

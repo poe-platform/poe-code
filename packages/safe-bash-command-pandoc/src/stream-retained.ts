@@ -113,7 +113,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     }
     for (const request of options.filters ?? []) {
       if (request.kind === "json") await checkImageOrigins(document.tree, context);
-      await preflight(document.chunks());
+      if (request.kind === "json") await preflight(document.chunks());
       const signal = context.signal ?? new AbortController().signal;
       const response = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal}, (working.cacheBytes ?? 1024 * 1024) / 16384);
       const release = context.onClose(() => response.close());
@@ -123,14 +123,14 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
         await context.call(() => context.context.filters!.applyJsonStream!({
           stdin: document!.chunks(), signal,
           stdout: {async write(bytes) {
-            context.charge("inputBytes", bytes.length);
+            if (request.kind === "json") context.charge("inputBytes", bytes.length);
             await response.append(bytes);
             length += bytes.length;
           }}
         }, {...request}, Object.assign(context, {to: options.to})));
         const next = await readRetainedJson({chunks: (async function* () {
           for (let offset = 0; offset < length; offset += 16384) yield await response.read(start + offset, Math.min(16384, length - offset));
-        })()}, context, working, false);
+        })()}, context, working, false, true, undefined, request.kind === "json");
         await inputResources?.reserve(next.normalizedUsage);
         if(origins){if(request.kind==="lua")await origins.transfer(document.tree,next.tree);else origins.clear();}
         await document.close();

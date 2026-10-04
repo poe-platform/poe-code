@@ -1,9 +1,12 @@
+import type { PdfPixelStorage } from "../ast.js";
 import { PdfError } from "../errors.js";
 import type { PdfFileSource } from "../source.js";
 import { JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { decodeSamplesToRgbaAsync, type ResolvedColorSpace } from "./images.js";
 
 export interface PdfRetainedJpxOptions {
+  /** Caller-owned coefficient, wavelet scratch and sample backing. */
+  readonly coefficientStorage?: PdfPixelStorage;
   /** Conservative cumulative input-cache/decoder admission plus one sample and RGBA
    * row. Caller source caches and resolved color state are additional memory. */
   readonly maxWorkingBytes?: number;
@@ -24,7 +27,7 @@ function limit(value: number | undefined, name: string) {
  * The source stays caller-owned and can close after open(). */
 export class PdfRetainedJpx {
   private constructor(
-    private tiles: JpxImage["tiles"] | undefined,
+    private tiles: (JpxImage["tiles"][number] | JpxImage["storedTiles"][number])[] | undefined,
     readonly width: number,
     readonly height: number,
     readonly components: number,
@@ -32,13 +35,22 @@ export class PdfRetainedJpx {
     readonly decoderBytes: number,
     private readonly maximum: number,
     private readonly color: ResolvedColorSpace,
-    private readonly signal?: AbortSignal
+    private readonly controller: AbortController,
+    private readonly signal?: AbortSignal,
+    private readonly storage?: PdfPixelStorage
   ) {}
 
   static async open(
     source: PdfFileSource,
     options: PdfRetainedJpxOptions = {}
   ): Promise<PdfRetainedJpx> {
+    const controller = new AbortController();
+    options = {
+      ...options,
+      signal: options.signal
+        ? AbortSignal.any([options.signal, controller.signal])
+        : controller.signal
+    };
     const maximum = limit(options.maxWorkingBytes, "maxWorkingBytes");
     const outputMaximum = limit(options.maxOutputBytes, "maxOutputBytes");
     let allocated = 0;
@@ -88,7 +100,35 @@ export class PdfRetainedJpx {
       cache = bytes.slice();
       cacheStart = position;
     }
-    const decoder = new JpxImage(dimensions, charge);
+    if (options.coefficientStorage) charge(4096 * 10 + 2048);
+    const clamped = new Uint8ClampedArray(1);
+    const pages: {
+      position: number;
+      bytes: Uint8Array;
+      view: DataView;
+      dirty: boolean;
+      used: number;
+    }[] = [];
+    const selected = options.signal ? { signal: options.signal } : undefined;
+    async function loadPage(position: number, length: number, used: number) {
+      const storage = options.coefficientStorage!;
+      if (pages.length === 8) {
+        let oldest = 0;
+        for (let i = 1; i < pages.length; i++) if (pages[i]!.used < pages[oldest]!.used) oldest = i;
+        const page = pages.splice(oldest, 1)[0]!;
+        if (page.dirty) await storage.write(page.position, page.bytes, selected);
+      }
+      const borrowed = await storage.read(position, length, selected);
+      if (borrowed.length !== length)
+        throw new PdfError("E_PARSE", "Incomplete JPEG 2000 plane read");
+      const bytes = borrowed.slice(),
+        page = { position, bytes, view: new DataView(bytes.buffer), dirty: false, used };
+      pages.push(page);
+      return page;
+    }
+    const decoder = new JpxImage(dimensions, charge, {
+      storedPlanes: options.coefficientStorage !== undefined
+    });
     decoder.failOnCorruptedImage = true;
     const program = decoder.parseSteps({ length: source.size });
     let step = program.next(),
@@ -106,6 +146,59 @@ export class PdfRetainedJpx {
           else {
             if (request < cacheStart || request >= cacheStart + cache.length) await refill(request);
             step = program.next(cache[request - cacheStart]);
+          }
+        } else if ("kind" in request) {
+          const storage = options.coefficientStorage;
+          if (!storage) throw new PdfError("E_CAPABILITY", "JPEG 2000 plane storage is required");
+          const selected = options.signal ? { signal: options.signal } : undefined;
+          if (request.kind === "vector-allocate") {
+            if (!Number.isSafeInteger(request.length) || request.length < 0)
+              throw new PdfError("E_LIMIT", "Invalid JPEG 2000 plane size");
+            const position = storage.allocate(request.length),
+              zeros = new Uint8Array(Math.min(4096, request.length));
+            if (
+              !Number.isSafeInteger(position) ||
+              position < 0 ||
+              !Number.isSafeInteger(position + request.length)
+            )
+              throw new PdfError("E_LIMIT", "Invalid JPEG 2000 plane allocation");
+            for (let at = 0; at < request.length; at += zeros.length) {
+              options.signal?.throwIfAborted();
+              await storage.write(
+                position + at,
+                zeros.subarray(0, Math.min(zeros.length, request.length - at)),
+                selected
+              );
+              if (at % 65536 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
+            }
+            step = program.next(position);
+          } else {
+            const { vector, index } = request,
+              offset = index * vector.bytesPerElement,
+              pageOffset = Math.floor(offset / 4096) * 4096,
+              position = vector.position + pageOffset;
+            const page =
+              pages.find((page) => page.position === position) ??
+              (await loadPage(
+                position,
+                Math.min(4096, vector.length * vector.bytesPerElement - pageOffset),
+                requests
+              ));
+            page.used = requests;
+            const at = offset - pageOffset;
+            if (request.kind === "vector-read")
+              step = program.next(
+                vector.bytesPerElement === 4 ? page.view.getFloat32(at, true) : page.bytes[at]
+              );
+            else {
+              if (vector.bytesPerElement === 4) page.view.setFloat32(at, request.value, true);
+              else {
+                clamped[0] = request.value;
+                page.bytes[at] = clamped[0]!;
+              }
+              page.dirty = true;
+              step = program.next();
+            }
           }
         } else {
           const length = request.end - request.start;
@@ -130,13 +223,18 @@ export class PdfRetainedJpx {
           step = program.next(bytes);
         }
       }
+      for (const page of pages)
+        if (page.dirty)
+          await options.coefficientStorage!.write(page.position, page.bytes, selected);
+      options.signal?.throwIfAborted();
     } catch (error) {
       if (allocationFailure) throw allocationFailure.reason;
       throw error;
     } finally {
       program.return();
     }
-    const { width, height, componentsCount: components, tiles } = decoder;
+    const { width, height, componentsCount: components } = decoder;
+    const tiles = options.coefficientStorage ? decoder.storedTiles : decoder.tiles;
     dimensions(width, height);
     if (!Number.isSafeInteger(components) || components <= 0 || !tiles?.length)
       throw new PdfError("E_PARSE", "JPEG 2000 stream has no valid image");
@@ -169,7 +267,9 @@ export class PdfRetainedJpx {
       allocated,
       maximum,
       color,
-      options.signal
+      controller,
+      options.signal,
+      options.coefficientStorage
     );
   }
 
@@ -186,15 +286,38 @@ export class PdfRetainedJpx {
       for (const tile of this.tiles) {
         if (y < tile.top || y >= tile.top + tile.height) continue;
         const start = (y - tile.top) * tile.width * this.components;
-        samples.set(
-          tile.items.subarray(start, start + tile.width * this.components),
-          tile.left * this.components
-        );
+        if (tile.items instanceof Uint8ClampedArray) {
+          samples.set(
+            tile.items.subarray(start, start + tile.width * this.components),
+            tile.left * this.components
+          );
+        } else {
+          const length = tile.width * this.components;
+          for (let at = 0; at < length; at += 4096) {
+            this.signal?.throwIfAborted();
+            const size = Math.min(4096, length - at),
+              bytes = await this.storage!.read(
+                tile.items.position + start + at,
+                size,
+                this.signal ? { signal: this.signal } : undefined
+              );
+            this.signal?.throwIfAborted();
+            if (bytes.length !== size)
+              throw new PdfError("E_PARSE", "Incomplete JPEG 2000 sample row");
+            samples.set(bytes, tile.left * this.components + at);
+          }
+        }
       }
-      yield await decodeSamplesToRgbaAsync([samples, this.width, 1, 8, this.color], this.signal);
+      const row = await decodeSamplesToRgbaAsync(
+        [samples, this.width, 1, 8, this.color],
+        this.signal
+      );
+      this.signal?.throwIfAborted();
+      yield row;
     }
   }
   close(): void {
     this.tiles = undefined;
+    this.controller.abort(new PdfError("E_CAPABILITY", "Retained JPEG 2000 decoder is closed"));
   }
 }

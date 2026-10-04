@@ -262,8 +262,12 @@ to release the packed bitmap. Intrinsic input and codec state remain resident.
 fixed cache and skips unused container boxes without copying their payloads.
 It admits tile grids, codeblocks, tag trees and wavelet buffers before allocation.
 Its `rows()` iterator assembles owned RGBA rows with tile overlap precedence,
-avoiding additional full sample/RGBA planes. Decoded tiles and intrinsic
-codeblock/wavelet state remain resident. `maxWorkingBytes` uses conservative cumulative
+avoiding additional full sample/RGBA planes. With `coefficientStorage`, coefficient
+planes, wavelet row/column scratch and converted tile samples use caller backing
+and a fixed eight-page cache. The retained PDF image adapter supplies this backing
+through the caller's safe-fs and includes it in shared staging and cleanup budgets.
+Packet metadata and native arithmetic codeblock state still remain resident;
+without backing, the convenience decoder also retains its sample/wavelet planes. `maxWorkingBytes` uses conservative cumulative
 allocation charges (not measured heap); caller source caches and resolved color
 state are additional. Set `maxOutputBytes` to bound output, supply `color` for
 resolved PDF color spaces, and call `close()` to release tiles. The source stays

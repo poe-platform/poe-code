@@ -6,15 +6,18 @@ export class Jbig2Image {
   parse(data: Uint8Array, options?: { packed?: boolean }): Uint8ClampedArray;
   parseChunks(chunks: Array<{ data: Uint8Array; start: number; end: number }>): Uint8Array | undefined;
 }
+export interface JpxStoredVector { readonly position:number; readonly length:number; readonly bytesPerElement:number }
+export type JpxReadRequest = number | {start:number;end:number} | {kind:"vector-allocate";length:number} | {kind:"vector-read";vector:JpxStoredVector;index:number} | {kind:"vector-write";vector:JpxStoredVector;index:number;value:number};
 export class JpxImage {
-  constructor(onImageDimensions?: (width: number, height: number) => void, onAllocation?: (bytes: number) => void);
+  constructor(onImageDimensions?: (width: number, height: number) => void, onAllocation?: (bytes: number) => void, options?: {storedPlanes?:boolean});
   width: number;
   height: number;
   componentsCount: number;
   failOnCorruptedImage: boolean;
   tiles: Array<{ left: number; top: number; width: number; height: number; items: Uint8ClampedArray }>;
   parse(data: Uint8Array): void;
-  parseSteps(data: {readonly length:number}): Generator<number | {start:number;end:number}, void, number | Uint8Array | undefined>;
+  storedTiles: Array<{left:number;top:number;width:number;height:number;items:JpxStoredVector}>;
+  parseSteps(data: {readonly length:number}): Generator<JpxReadRequest, void, number | Uint8Array | undefined>;
 }
 
 export type JpegReadRequest = number | {start:number;end:number} | {kind:"block-allocate";length:number} | {kind:"block-read";position:number} | {kind:"block-write";position:number;values:Int16Array} | {kind:"sample";position:number;index:number};

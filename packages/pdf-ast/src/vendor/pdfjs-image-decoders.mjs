@@ -5464,6 +5464,32 @@ const SubbandsGainLog2 = {
   HL: 1,
   HH: 2
 };
+function* jpxVectorAllocate(length, bytesPerElement, stored) {
+  if (!stored) return bytesPerElement === 4 ? new Float32Array(length) : new Uint8ClampedArray(length);
+  return {length, bytesPerElement, position: yield {kind: "vector-allocate", length: length * bytesPerElement}};
+}
+function* jpxVectorRead(vector, index) {
+  if (!Number.isInteger(index) || index < 0 || index >= vector.length) return undefined;
+  if (vector.position === undefined) return vector[index];
+  return yield {kind: "vector-read", vector, index};
+}
+function* jpxVectorWrite(vector, index, value) {
+  if (!Number.isInteger(index) || index < 0 || index >= vector.length) return value;
+  if (vector.position === undefined) vector[index] = value;
+  else yield {kind: "vector-write", vector, index, value};
+  return value;
+}
+function* jpxVectorUpdate(vector, index, operator, value) {
+  const previous = yield* jpxVectorRead(vector, index);
+  if (operator === "+") value = previous + value;
+  else if (operator === "-") value = previous - value;
+  else if (operator === "*") value = previous * value;
+  else throw new Error("Unknown JPEG 2000 vector operation");
+  return yield* jpxVectorWrite(vector, index, value);
+}
+function* jpxVectorCopy(target, targetStart, source, start, end) {
+  for (let index = start; index < end; index++) yield* jpxVectorWrite(target, targetStart++, yield* jpxVectorRead(source, index));
+}
 function* jpxReadUint(position, count) {
   let value = 0;
   for (let i = 0; i < count; i++) value = (value << 8) | (yield position + i);
@@ -5471,11 +5497,12 @@ function* jpxReadUint(position, count) {
 }
 function runJpxSteps(program, data) {
   let step = program.next();
-  try { while (!step.done) { const request=step.value; step=program.next(typeof request === "number" ? data[request] : data.subarray(request.start, request.end)); } }
+  try { while (!step.done) { const request=step.value; if (typeof request !== "number" && "kind" in request) throw new JpxError("Stored JPEG 2000 planes require a cooperative driver"); step=program.next(typeof request === "number" ? data[request] : data.subarray(request.start, request.end)); } }
   finally { program.return(); }
 }
 class JpxImage {
-  constructor(onImageDimensions, onAllocation) {
+  constructor(onImageDimensions, onAllocation, options = {}) {
+    this.storedPlanes = options.storedPlanes;
     this.onAllocation = onAllocation;
     this.onImageDimensions = onImageDimensions;
     this.failOnCorruptedImage = false;
@@ -5587,7 +5614,7 @@ class JpxImage {
     if (start < 0 || end > data.length || end - start < 4) {
       throw new JpxError("Truncated codestream");
     }
-    const context = { onAllocation: this.onAllocation };
+    const context = { onAllocation: this.onAllocation, storedPlanes: this.storedPlanes };
     context.onAllocation?.(1024);
     let doNotRecover = false;
     try {
@@ -5866,7 +5893,8 @@ class JpxImage {
         util_warn(`JPX: Trying to recover from: "${e.message}".`);
       }
     }
-    this.tiles = (yield* transformComponents(context));
+    const tiles = (yield* transformComponents(context));
+    if (this.storedPlanes) this.storedTiles = tiles; else this.tiles = tiles;
     this.width = context.SIZ.Xsiz - context.SIZ.XOsiz;
     this.height = context.SIZ.Ysiz - context.SIZ.YOsiz;
     this.componentsCount = context.SIZ.Csiz;
@@ -6672,7 +6700,7 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
           }
           nb = bitsDecoded[position];
           const pos = interleave ? levelOffset + (offset << 1) : offset;
-          coefficients[pos] = reversible && nb >= mb ? n : n * (1 << mb - nb);
+          (yield* jpxVectorWrite(coefficients,pos,reversible && nb >= mb ? n : n * (1 << mb - nb)));
         }
         offset++;
         position++;
@@ -6693,15 +6721,15 @@ function* transformTile(context, tile, c) {
   const resetContextProbabilities = codingStyleParameters.resetContextProbabilities;
   const precision = context.components[c].precision;
   const reversible = codingStyleParameters.reversibleTransformation;
-  const transform = reversible ? new ReversibleTransform(context.onAllocation) : new IrreversibleTransform(context.onAllocation);
+  const transform = reversible ? new ReversibleTransform(context.onAllocation, context.storedPlanes) : new IrreversibleTransform(context.onAllocation, context.storedPlanes);
   const subbandCoefficients = [];
   let b = 0;
   for (let i = 0; i <= decompositionLevelsCount; i++) {
     const resolution = component.resolutions[i];
     const width = resolution.trx1 - resolution.trx0;
     const height = resolution.try1 - resolution.try0;
-    context.onAllocation?.(width * height * 4 + 256);
-    const coefficients = new Float32Array(width * height);
+    context.onAllocation?.(context.storedPlanes ? 256 : width * height * 4 + 256);
+    const coefficients = (yield* jpxVectorAllocate(width * height,4,context.storedPlanes));
     for (let j = 0, jj = resolution.subbands.length; j < jj; j++) {
       let mu, epsilon;
       if (!scalarExpounded) {
@@ -6724,7 +6752,7 @@ function* transformTile(context, tile, c) {
       items: coefficients
     });
   }
-  const result = transform.calculate(subbandCoefficients, component.tcx0, component.tcy0);
+  const result = (yield* transform.calculate(subbandCoefficients,component.tcx0,component.tcy0));
   return {
     left: component.tcx0,
     top: component.tcy0,
@@ -6746,8 +6774,8 @@ function* transformComponents(context) {
       transformedTiles[c] = (yield* transformTile(context, tile, c));
     }
     const tile0 = transformedTiles[0];
-    context.onAllocation?.(tile0.items.length * componentsCount + 256);
-    const out = new Uint8ClampedArray(tile0.items.length * componentsCount);
+    context.onAllocation?.(context.storedPlanes ? 256 : tile0.items.length * componentsCount + 256);
+    const out = (yield* jpxVectorAllocate(tile0.items.length * componentsCount,1,context.storedPlanes));
     const result = {
       left: tile0.left,
       top: tile0.top,
@@ -6775,27 +6803,27 @@ function* transformComponents(context) {
       jj = y0items.length;
       if (!component0.codingStyleParameters.reversibleTransformation) {
         for (j = 0; j < jj; j++, pos += alpha01) {
-          y0 = y0items[j] + offset;
-          y1 = y1items[j];
-          y2 = y2items[j];
-          out[pos++] = y0 + 1.402 * y2 >> shift;
-          out[pos++] = y0 - 0.34413 * y1 - 0.71414 * y2 >> shift;
-          out[pos++] = y0 + 1.772 * y1 >> shift;
+          y0 = (yield* jpxVectorRead(y0items,j)) + offset;
+          y1 = (yield* jpxVectorRead(y1items,j));
+          y2 = (yield* jpxVectorRead(y2items,j));
+          (yield* jpxVectorWrite(out,pos++,y0 + 1.402 * y2 >> shift));
+          (yield* jpxVectorWrite(out,pos++,y0 - 0.34413 * y1 - 0.71414 * y2 >> shift));
+          (yield* jpxVectorWrite(out,pos++,y0 + 1.772 * y1 >> shift));
         }
       } else {
         for (j = 0; j < jj; j++, pos += alpha01) {
-          y0 = y0items[j] + offset;
-          y1 = y1items[j];
-          y2 = y2items[j];
+          y0 = (yield* jpxVectorRead(y0items,j)) + offset;
+          y1 = (yield* jpxVectorRead(y1items,j));
+          y2 = (yield* jpxVectorRead(y2items,j));
           const g = y0 - (y2 + y1 >> 2);
-          out[pos++] = g + y2 >> shift;
-          out[pos++] = g >> shift;
-          out[pos++] = g + y1 >> shift;
+          (yield* jpxVectorWrite(out,pos++,g + y2 >> shift));
+          (yield* jpxVectorWrite(out,pos++,g >> shift));
+          (yield* jpxVectorWrite(out,pos++,g + y1 >> shift));
         }
       }
       if (fourComponents) {
         for (j = 0, pos = 3; j < jj; j++, pos += 4) {
-          out[pos] = y3items[j] + offset >> shift;
+          (yield* jpxVectorWrite(out,pos,(yield* jpxVectorRead(y3items,j)) + offset >> shift));
         }
       }
     } else {
@@ -6804,7 +6832,7 @@ function* transformComponents(context) {
         shift = components[c].precision - 8;
         offset = (128 << shift) + 0.5;
         for (pos = c, j = 0, jj = items.length; j < jj; j++) {
-          out[pos] = items[j] + offset >> shift;
+          (yield* jpxVectorWrite(out,pos,(yield* jpxVectorRead(items,j)) + offset >> shift));
           pos += componentsCount;
         }
       }
@@ -7245,37 +7273,38 @@ class BitModel {
   }
 }
 class Transform {
-  constructor(onAllocation) {
+  constructor(onAllocation, storedPlanes) {
+    this.storedPlanes = storedPlanes;
     this.onAllocation = onAllocation;
     if (this.constructor === Transform) {
       util_unreachable("Cannot initialize Transform.");
     }
   }
-  calculate(subbands, u0, v0) {
+  *calculate(subbands, u0, v0) {
     let ll = subbands[0];
     for (let i = 1, ii = subbands.length; i < ii; i++) {
-      ll = this.iterate(ll, subbands[i], u0, v0);
+      ll = (yield* this.iterate(ll,subbands[i],u0,v0));
     }
     return ll;
   }
-  extend(buffer, offset, size) {
+  *extend(buffer, offset, size) {
     let i1 = offset - 1,
       j1 = offset + 1;
     let i2 = offset + size - 2,
       j2 = offset + size;
-    buffer[i1--] = buffer[j1++];
-    buffer[j2++] = buffer[i2--];
-    buffer[i1--] = buffer[j1++];
-    buffer[j2++] = buffer[i2--];
-    buffer[i1--] = buffer[j1++];
-    buffer[j2++] = buffer[i2--];
-    buffer[i1] = buffer[j1];
-    buffer[j2] = buffer[i2];
+    (yield* jpxVectorWrite(buffer,i1--,(yield* jpxVectorRead(buffer,j1++))));
+    (yield* jpxVectorWrite(buffer,j2++,(yield* jpxVectorRead(buffer,i2--))));
+    (yield* jpxVectorWrite(buffer,i1--,(yield* jpxVectorRead(buffer,j1++))));
+    (yield* jpxVectorWrite(buffer,j2++,(yield* jpxVectorRead(buffer,i2--))));
+    (yield* jpxVectorWrite(buffer,i1--,(yield* jpxVectorRead(buffer,j1++))));
+    (yield* jpxVectorWrite(buffer,j2++,(yield* jpxVectorRead(buffer,i2--))));
+    (yield* jpxVectorWrite(buffer,i1,(yield* jpxVectorRead(buffer,j1))));
+    (yield* jpxVectorWrite(buffer,j2,(yield* jpxVectorRead(buffer,i2))));
   }
-  filter(x, offset, length) {
+  *filter(x, offset, length) {
     util_unreachable("Abstract method `filter` called");
   }
-  iterate(ll, hl_lh_hh, u0, v0) {
+  *iterate(ll, hl_lh_hh, u0, v0) {
     const llWidth = ll.width,
       llHeight = ll.height;
     let llItems = ll.items;
@@ -7286,32 +7315,33 @@ class Transform {
     for (k = 0, i = 0; i < llHeight; i++) {
       l = i * 2 * width;
       for (j = 0; j < llWidth; j++, k++, l += 2) {
-        items[l] = llItems[k];
+        (yield* jpxVectorWrite(items,l,(yield* jpxVectorRead(llItems,k))));
       }
     }
     llItems = ll.items = null;
     const bufferPadding = 4;
-    this.onAllocation?.((width + 2 * bufferPadding) * 4 + 128);
-    const rowBuffer = new Float32Array(width + 2 * bufferPadding);
+    this.onAllocation?.(this.storedPlanes ? 128 : (width + 2 * bufferPadding) * 4 + 128);
+    const rowBuffer = (yield* jpxVectorAllocate(width + 2 * bufferPadding,4,this.storedPlanes));
     if (width === 1) {
       if ((u0 & 1) !== 0) {
         for (v = 0, k = 0; v < height; v++, k += width) {
-          items[k] *= 0.5;
+          (yield* jpxVectorUpdate(items,k,"*",0.5));
         }
       }
     } else {
       for (v = 0, k = 0; v < height; v++, k += width) {
-        rowBuffer.set(items.subarray(k, k + width), bufferPadding);
-        this.extend(rowBuffer, bufferPadding, width);
-        this.filter(rowBuffer, bufferPadding, width);
-        items.set(rowBuffer.subarray(bufferPadding, bufferPadding + width), k);
+        (yield* jpxVectorCopy(rowBuffer,bufferPadding,items,k,k + width));
+        (yield* this.extend(rowBuffer,bufferPadding,width));
+        (yield* this.filter(rowBuffer,bufferPadding,width));
+        (yield* jpxVectorCopy(items,k,rowBuffer,bufferPadding,bufferPadding + width));
       }
     }
-    let numBuffers = 16;
+    // Four active columns fit the retained decoder's bounded page cache.
+    let numBuffers = this.storedPlanes ? 4 : 16;
     const colBuffers = [];
     for (i = 0; i < numBuffers; i++) {
-      this.onAllocation?.((height + 2 * bufferPadding) * 4 + 128);
-      colBuffers.push(new Float32Array(height + 2 * bufferPadding));
+      this.onAllocation?.(this.storedPlanes ? 128 : (height + 2 * bufferPadding) * 4 + 128);
+      colBuffers.push((yield* jpxVectorAllocate(height + 2 * bufferPadding,4,this.storedPlanes)));
     }
     let b,
       currentBuffer = 0;
@@ -7319,7 +7349,7 @@ class Transform {
     if (height === 1) {
       if ((v0 & 1) !== 0) {
         for (u = 0; u < width; u++) {
-          items[u] *= 0.5;
+          (yield* jpxVectorUpdate(items,u,"*",0.5));
         }
       }
     } else {
@@ -7328,20 +7358,20 @@ class Transform {
           numBuffers = Math.min(width - u, numBuffers);
           for (k = u, l = bufferPadding; l < ll; k += width, l++) {
             for (b = 0; b < numBuffers; b++) {
-              colBuffers[b][l] = items[k + b];
+              (yield* jpxVectorWrite(colBuffers[b],l,(yield* jpxVectorRead(items,k + b))));
             }
           }
           currentBuffer = numBuffers;
         }
         currentBuffer--;
         const buffer = colBuffers[currentBuffer];
-        this.extend(buffer, bufferPadding, height);
-        this.filter(buffer, bufferPadding, height);
+        (yield* this.extend(buffer,bufferPadding,height));
+        (yield* this.filter(buffer,bufferPadding,height));
         if (currentBuffer === 0) {
           k = u - numBuffers + 1;
           for (l = bufferPadding; l < ll; k += width, l++) {
             for (b = 0; b < numBuffers; b++) {
-              items[k + b] = colBuffers[b][l];
+              (yield* jpxVectorWrite(items,k + b,(yield* jpxVectorRead(colBuffers[b],l))));
             }
           }
         }
@@ -7355,7 +7385,7 @@ class Transform {
   }
 }
 class IrreversibleTransform extends Transform {
-  filter(x, offset, length) {
+  *filter(x, offset, length) {
     const len = length >> 1;
     offset |= 0;
     let j, n, current, next;
@@ -7367,57 +7397,57 @@ class IrreversibleTransform extends Transform {
     const K_ = 1 / K;
     j = offset - 3;
     for (n = len + 4; n--; j += 2) {
-      x[j] *= K_;
+      (yield* jpxVectorUpdate(x,j,"*",K_));
     }
     j = offset - 2;
-    current = delta * x[j - 1];
+    current = delta * (yield* jpxVectorRead(x,j - 1));
     for (n = len + 3; n--; j += 2) {
-      next = delta * x[j + 1];
-      x[j] = K * x[j] - current - next;
+      next = delta * (yield* jpxVectorRead(x,j + 1));
+      (yield* jpxVectorWrite(x,j,K * (yield* jpxVectorRead(x,j)) - current - next));
       if (n--) {
         j += 2;
-        current = delta * x[j + 1];
-        x[j] = K * x[j] - current - next;
+        current = delta * (yield* jpxVectorRead(x,j + 1));
+        (yield* jpxVectorWrite(x,j,K * (yield* jpxVectorRead(x,j)) - current - next));
       } else {
         break;
       }
     }
     j = offset - 1;
-    current = gamma * x[j - 1];
+    current = gamma * (yield* jpxVectorRead(x,j - 1));
     for (n = len + 2; n--; j += 2) {
-      next = gamma * x[j + 1];
-      x[j] -= current + next;
+      next = gamma * (yield* jpxVectorRead(x,j + 1));
+      (yield* jpxVectorUpdate(x,j,"-",current + next));
       if (n--) {
         j += 2;
-        current = gamma * x[j + 1];
-        x[j] -= current + next;
+        current = gamma * (yield* jpxVectorRead(x,j + 1));
+        (yield* jpxVectorUpdate(x,j,"-",current + next));
       } else {
         break;
       }
     }
     j = offset;
-    current = beta * x[j - 1];
+    current = beta * (yield* jpxVectorRead(x,j - 1));
     for (n = len + 1; n--; j += 2) {
-      next = beta * x[j + 1];
-      x[j] -= current + next;
+      next = beta * (yield* jpxVectorRead(x,j + 1));
+      (yield* jpxVectorUpdate(x,j,"-",current + next));
       if (n--) {
         j += 2;
-        current = beta * x[j + 1];
-        x[j] -= current + next;
+        current = beta * (yield* jpxVectorRead(x,j + 1));
+        (yield* jpxVectorUpdate(x,j,"-",current + next));
       } else {
         break;
       }
     }
     if (len !== 0) {
       j = offset + 1;
-      current = alpha * x[j - 1];
+      current = alpha * (yield* jpxVectorRead(x,j - 1));
       for (n = len; n--; j += 2) {
-        next = alpha * x[j + 1];
-        x[j] -= current + next;
+        next = alpha * (yield* jpxVectorRead(x,j + 1));
+        (yield* jpxVectorUpdate(x,j,"-",current + next));
         if (n--) {
           j += 2;
-          current = alpha * x[j + 1];
-          x[j] -= current + next;
+          current = alpha * (yield* jpxVectorRead(x,j + 1));
+          (yield* jpxVectorUpdate(x,j,"-",current + next));
         } else {
           break;
         }
@@ -7426,15 +7456,15 @@ class IrreversibleTransform extends Transform {
   }
 }
 class ReversibleTransform extends Transform {
-  filter(x, offset, length) {
+  *filter(x, offset, length) {
     const len = length >> 1;
     offset |= 0;
     let j, n;
     for (j = offset, n = len + 1; n--; j += 2) {
-      x[j] -= x[j - 1] + x[j + 1] + 2 >> 2;
+      (yield* jpxVectorUpdate(x,j,"-",(yield* jpxVectorRead(x,j - 1)) + (yield* jpxVectorRead(x,j + 1)) + 2 >> 2));
     }
     for (j = offset + 1, n = len; n--; j += 2) {
-      x[j] += x[j - 1] + x[j + 1] >> 1;
+      (yield* jpxVectorUpdate(x,j,"+",(yield* jpxVectorRead(x,j - 1)) + (yield* jpxVectorRead(x,j + 1)) >> 1));
     }
   }
 }

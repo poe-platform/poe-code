@@ -5,9 +5,9 @@ import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 import {decodeJbig2ToRgba} from "./images.js";
 
-it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region", "halftone", "patterns", "repeated text", "repeated halftone", "symbols", "MMR symbols", "refinement symbols", "adaptive refinement symbols", "dictionary tables", "dictionary index", "pattern index"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
+it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region", "halftone", "patterns", "repeated text", "repeated halftone", "symbols", "MMR symbols", "refinement symbols", "adaptive refinement symbols", "dictionary tables", "dictionary index", "pattern index", "Huffman tables", "Huffman lower", "Huffman upper", "Huffman OOB", "Huffman index", "symbol ID tables", "symbol ID runs"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
  const inputs=new Map<number,{bytes:Uint8Array;sum:number}>();
- for(const height of profile.endsWith("index") ? [17,129] : profile === "dictionary tables" ? [1024,4096] : profile === "adaptive refinement symbols" ? [129,520] : profile === "patterns" ? [129,255] : profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile.startsWith("repeated")) ? [17,129] : [8193,32769]){
+ for(const height of profile.endsWith("index") ? [17,129] : profile.startsWith("Huffman") ? [128,512] : profile.startsWith("symbol ID") ? [512,1024] : profile === "dictionary tables" ? [1024,4096] : profile === "adaptive refinement symbols" ? [129,520] : profile === "patterns" ? [129,255] : profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile.startsWith("repeated")) ? [17,129] : [8193,32769]){
   let bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
   if(profile === "region") {
    // One vertical-zero MMR code per all-white row, with a complete region
@@ -71,17 +71,25 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    }
   }
 
-  if(profile === "dictionary tables") {
+  if(profile === "dictionary tables" || profile.startsWith("symbol ID")) {
    const pack=(bits:string)=>{const bytes=new Uint8Array(Math.ceil(bits.length/8));for(let i=0;i<bits.length;i++)if(bits[i]==="1")bytes[i>>3]!|=128>>(i&7);return bytes;};
    const parts:Uint8Array[]=[];
    // Sixty-four narrow glyphs per height class keep every decoded row at 64 pixels.
    for(let h=1;h<=height/64;h++)parts.push(pack("0"+"10"+"0".repeat(63)+"111111"+"00000"),new Uint8Array(h*8).fill(85));
-   parts.push(pack("110"+(height-1-272).toString(2).padStart(16,"0")+"00001"));
+   parts.push(pack(profile.startsWith("symbol ID") ? "00000"+"110"+(height-272).toString(2).padStart(16,"0") : "110"+(height-1-272).toString(2).padStart(16,"0")+"00001"));
    const length=10+parts.reduce((sum,part)=>sum+part.length,0),start=41+length,input=new Uint8Array(start+51);input.set(bytes.subarray(0,30));const view=new DataView(input.buffer);
-   view.setUint32(30,1);input[36]=1;view.setUint32(37,length);view.setUint16(41,1);view.setUint32(43,1);view.setUint32(47,height);
+   view.setUint32(30,1);input[36]=1;view.setUint32(37,length);view.setUint16(41,1);view.setUint32(43,profile.startsWith("symbol ID")?height:1);view.setUint32(47,height);
    let at=51;for(const part of parts){input.set(part,at);at+=part.length;}
    view.setUint32(start,2);input[start+4]=6;input[start+5]=32;input[start+6]=1;input[start+7]=1;view.setUint32(start+8,39);
    view.setUint32(start+12,64);view.setUint32(start+16,height);view.setUint16(start+29,16);view.setUint32(start+31,1);bytes=input;
+   if(profile.startsWith("symbol ID")) {
+    const length=Math.log2(height),runs=profile === "symbol ID runs";
+    let encoded="0".repeat(height);
+    if(runs){encoded="10"+"000"+"11"+"0000000"+"00";let remaining=height-15;while(remaining>=3){const count=Math.min(6,remaining);encoded+="01"+(count-3).toString(2).padStart(2,"0");remaining-=count;}encoded+="00".repeat(remaining);}
+    const table=pack(Array.from({length:35},(_,i)=>runs?(i===length||i>=32?"0010":"0000"):i===length?"0001":"0000").join("")+encoded);
+    const codes=pack("00"+"000000000"+(height-(runs?15:1)).toString(2).padStart(length,"0")+"01"),output=new Uint8Array(start+37+table.length+codes.length);output.set(input.subarray(0,start+37));
+    const view=new DataView(output.buffer);view.setUint32(start+8,25+table.length+codes.length);view.setUint16(start+29,17);view.setUint16(start+31,0);view.setUint32(start+33,1);output.set(table,start+37);output.set(codes,start+37+table.length);bytes=output;
+   }
   }
   if(profile === "dictionary index") {
    const pack=(bits:string)=>{const result=new Uint8Array(Math.ceil(bits.length/8));for(let i=0;i<bits.length;i++)if(bits[i]==="1")result[i>>3]!|=128>>(i&7);return result;};
@@ -102,6 +110,22 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    for(let i=0;i<height;i++){input.set(bytes.subarray(30,49),30+i*19);view.setUint32(30+i*19,i*0x01010101+1);}
    const at=30+height*19;input.set(bytes.subarray(49,55),at);view.setUint32(at,0xfffffffe);view.setUint32(at+6,(height-1)*0x01010101+1);input.set(bytes.subarray(56),at+10);bytes=input;
   }
+  if(profile.startsWith("Huffman")) {
+   const pack=(bits:string)=>{const result=new Uint8Array(Math.ceil(bits.length/8));for(let i=0;i<bits.length;i++)if(bits[i]==="1")result[i>>3]!|=128>>(i&7);return result;};
+   const count=profile === "Huffman index"?2:height,oob=profile === "Huffman OOB",low=oob?1:2;
+   const codeLength=Math.ceil(Math.log2(count+3)),prefix=codeLength.toString(2).padStart(4,"0");
+   const lines=pack((prefix+"0").repeat(count)+prefix+prefix+(oob?prefix:"")),table=new Uint8Array(9+lines.length);table[0]=6+(oob?1:0);new DataView(table.buffer).setUint32(1,low);new DataView(table.buffer).setUint32(5,count+low);table.set(lines,9);
+   const special=profile === "Huffman lower" || profile === "Huffman upper",selected=profile === "Huffman lower"?count:count+1;
+   const dh=special?selected.toString(2).padStart(codeLength,"0")+"0".repeat(32):"0".repeat(codeLength);
+   const coded=pack(oob?"0"+"0".repeat(codeLength)+(count+2).toString(2).padStart(codeLength,"0")+"00000":dh+"10"+"111111"+"00000");
+   const rows=profile === "Huffman lower" || oob?1:profile === "Huffman upper"?count+low:low,dictionary=new Uint8Array(10+coded.length+rows+2),dv=new DataView(dictionary.buffer);
+   dv.setUint16(0,oob?49:13);dv.setUint32(2,1);dv.setUint32(6,1);dictionary.set(coded,10);dictionary.fill(128,10+coded.length,10+coded.length+rows);dictionary.set(pack("00000"+"00001"),10+coded.length+rows);
+   const region=new Uint8Array(39),rv=new DataView(region.buffer);rv.setUint32(0,64);rv.setUint32(4,1);rv.setUint16(17,16);rv.setUint32(19,1);
+   const records=[bytes.subarray(0,30)];
+   const tables=profile === "Huffman index"?height:1;
+   for(let i=0;i<tables+2;i++) {const isTable=i<tables,payload=isTable?table:i===tables?dictionary:region,head=new Uint8Array(isTable?11:12),hv=new DataView(head.buffer);hv.setUint32(0,i+1);head[4]=isTable?53:i===tables?0:6;if(!isTable){head[5]=32;head[6]=i;}head[head.length-5]=1;hv.setUint32(head.length-4,payload.length);records.push(head,payload);}
+   const input=new Uint8Array(records.reduce((n,record)=>n+record.length,0));let at=0;for(const record of records){input.set(record,at);at+=record.length;}bytes=input;
+  }
   new DataView(bytes.buffer).setUint32(15,height);
   if(profile.includes("segments")) {
    const records:Uint8Array[]=[];
@@ -119,7 +143,7 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    for(let n=0;n<height;n++){input.set(region,start+n*region.length);new DataView(input.buffer).setUint32(start+n*region.length,n+2);}bytes=input;
   }
   const expected=decodeJbig2ToRgba(bytes,64,height);
-  if(profile.includes("symbols") || profile.startsWith("dictionary"))expect(expected.some(value=>value!==255)).toBe(true);
+  if(profile.includes("symbols") || profile.startsWith("dictionary") || profile.startsWith("Huffman") || profile.startsWith("symbol ID"))expect(expected.some(value=>value!==255)).toBe(true);
   inputs.set(height,{bytes,sum:expected.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0)});
  }
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../../",import.meta.url)),contents:`
@@ -130,7 +154,7 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
  const storage=new PagedStorage({fs,cwd:'/',env:{},signal:new AbortController().signal},2);
  for(const name of ['Int8Array','Uint8Array','Uint8ClampedArray','Uint16Array','Uint32Array']){const Native=globalThis[name];originals.set(name,Native);globalThis[name]=new Proxy(Native,{construct(target,args){const bytes=typeof args[0]==='number'?args[0]*target.BYTES_PER_ELEMENT:args[0]?.byteLength??(args[0]?.length??0)*target.BYTES_PER_ELEMENT;peak=Math.max(peak,bytes);if(bytes>65536)throw Error('resident bitmap '+bytes);return Reflect.construct(target,args);}});}
  try{const source={size:length,chunkBytes:128,async read(at,length){if(length>128)throw Error('whole input');return new Uint8Array(await(await env.INPUT.fetch('https://input/?height='+height+'&at='+at+'&length='+length)).arrayBuffer());}};
- const image=await PdfRetainedJbig2.open(source,64,height,{bitmapStorage:storage,maxWorkingBytes:${profile.includes("refinement") ? 1048576 : (profile.includes("symbols") || profile.startsWith("dictionary")) ? 524288 : 262144}});let sum=0,index=0;try{for await(const row of image.rows())for(const value of row)sum=(sum+value*(index++%65521+1))%1000000007;}finally{image.close();await storage.close();}
+ const image=await PdfRetainedJbig2.open(source,64,height,{bitmapStorage:storage,maxWorkingBytes:${profile.includes("refinement") ? 1048576 : (profile.includes("symbols") || profile.startsWith("dictionary") || profile.startsWith("Huffman") || profile.startsWith("symbol ID")) ? 524288 : 262144}});let sum=0,index=0;try{for await(const row of image.rows())for(const value of row)sum=(sum+value*(index++%65521+1))%1000000007;}finally{image.close();await storage.close();}
  return Response.json({sum,peak,opened,closed,decoderBytes:image.decoderBytes,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }finally{await storage.close();for(const [name,Native]of originals)globalThis[name]=Native;}}};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);

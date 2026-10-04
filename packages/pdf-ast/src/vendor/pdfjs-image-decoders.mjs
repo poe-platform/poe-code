@@ -2941,7 +2941,14 @@ class StoredJbigIndex {
     if (!position) return;
     const record = new StoredJbigList(9, undefined, {length: 72, position: position - 1});
     record.length = 9;
-    if ((yield* record.get(0)) === 0) {
+    const kind = yield* record.get(0);
+    if (kind === 2) {
+      const nodes = new StoredJbigList(yield* record.get(2), JbigHuffmanNodeFields,
+        {position: yield* record.get(3), length: yield* record.get(4)});
+      nodes.length = yield* record.get(1);
+      return new StoredJbigHuffman(nodes);
+    }
+    if (kind === 0) {
       const list = new StoredJbigList(yield* record.get(2), JbigSymbolFields,
         {position: yield* record.get(3), length: yield* record.get(4)});
       list.length = yield* record.get(1);
@@ -2953,7 +2960,8 @@ class StoredJbigIndex {
   }
   *set(key, value) {
     const record = yield* StoredJbigList.create(9);
-    const fields = value instanceof StoredJbigList ? [0, value.length, value.capacity, value.buffer.position, value.buffer.length]
+    const fields = value instanceof StoredJbigHuffman ? [2, value.nodes.length, value.nodes.capacity, value.nodes.buffer.position, value.nodes.buffer.length]
+      : value instanceof StoredJbigList ? [0, value.length, value.capacity, value.buffer.position, value.buffer.length]
       : [1, value.width, value.height, value.length, value.bitmap.position, value.bitmap.length, value.bitmap.rowSize, value.bitmap.width, value.bitmap.height];
     for (const field of fields) yield* record.push(field);
     const slot = yield* this.find(key, true);
@@ -3893,7 +3901,7 @@ class SimpleSegmentVisitor {
   *onSymbolDictionary(dictionary, currentSegment, referredSegments, data, start, end) {
     let huffmanTables, huffmanInput;
     if (dictionary.huffman) {
-      huffmanTables = getSymbolDictionaryHuffmanTables(dictionary, referredSegments, this.customTables);
+      huffmanTables = yield* getSymbolDictionaryHuffmanTables(dictionary, referredSegments, this.customTables);
       huffmanInput = new Reader(data, start, end);
     }
     let symbols = this.symbols;
@@ -3932,7 +3940,7 @@ class SimpleSegmentVisitor {
     const symbolCodeLength = log2(inputSymbols.length);
     if (region.huffman) {
       huffmanInput = new Reader(data, start, end);
-      huffmanTables = (yield* getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, admit));
+      huffmanTables = (yield* getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, admit, this.storedBitmap));
     }
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit, this.storedBitmap);
     const bitmap = (yield* decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput, this.storedBitmap));
@@ -3964,9 +3972,11 @@ class SimpleSegmentVisitor {
   *onTables(currentSegment, data, start, end) {
     let customTables = this.customTables;
     if (!customTables) {
-      this.customTables = customTables = {};
+      this.customTables = customTables = this.storedBitmap ? new StoredJbigIndex() : {};
     }
-    customTables[currentSegment] = (yield* decodeTablesSegment(data, start, end, this.onAllocation));
+    const table = yield* decodeTablesSegment(data, start, end, this.regionAllocation(), this.storedBitmap);
+    if (this.storedBitmap) yield* customTables.set(currentSegment, table);
+    else customTables[currentSegment] = table;
   }
 }
 class HuffmanLine {
@@ -4081,34 +4091,84 @@ class HuffmanTable {
     }
   }
 }
-function* decodeTablesSegment(data, start, end, onAllocation) {
-  onAllocation?.(1024);
+const JbigHuffmanLineFields = ["rangeLow", "prefixLength", "rangeLength", "isLowerRange", "isOOB"];
+const JbigHuffmanNodeFields = ["zero", "one", "leaf", "rangeLow", "rangeLength", "isLowerRange", "isOOB"];
+class StoredJbigHuffman {
+  constructor(nodes) { this.nodes = nodes; }
+  static *create(lines) {
+    // Prefix lengths in a custom table are at most 255. Canonical code assignment
+    // needs only these fixed histograms; line records and trie nodes use backing.
+    const histogram = new Uint32Array(256), codes = new Int32Array(256);
+    let maximum = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = yield* lines.get(i);
+      histogram[line.prefixLength]++; maximum = Math.max(maximum, line.prefixLength);
+    }
+    histogram[0] = 0;
+    for (let i = 1; i <= maximum; i++) codes[i] = (codes[i - 1] + histogram[i - 1]) << 1;
+    const nodes = yield* StoredJbigList.create(lines.length * 2 + 1, JbigHuffmanNodeFields);
+    yield* nodes.push({});
+    for (let i = 0; i < lines.length; i++) {
+      const line = yield* lines.get(i);
+      if (!line.prefixLength) continue;
+      const code = codes[line.prefixLength]++;
+      let index = 0;
+      for (let shift = line.prefixLength - 1; shift >= 0; shift--) {
+        const bit = (code >> shift) & 1;
+        let child = yield {kind: "number-read", buffer: nodes.buffer, offset: index * nodes.stride + bit * 8};
+        if (shift === 0 || !child) {
+          child = nodes.length + 1;
+          yield* nodes.push(shift === 0 ? {...line, leaf: 1} : {});
+          yield {kind: "number-write", buffer: nodes.buffer, offset: index * nodes.stride + bit * 8, value: child};
+        }
+        index = child - 1;
+      }
+    }
+    return new StoredJbigHuffman(nodes);
+  }
+  *decode(reader) {
+    let index = 0;
+    for (;;) {
+      const node = yield* this.nodes.get(index);
+      if (node.leaf) {
+        if (node.isOOB) return null;
+        const offset = yield* reader.readBits(node.rangeLength);
+        return node.rangeLow + (node.isLowerRange ? -offset : offset);
+      }
+      const child = (yield* reader.readBit()) ? node.one : node.zero;
+      if (!child) throw new Jbig2Error("invalid Huffman data");
+      index = child - 1;
+    }
+  }
+}
+function* decodeTablesSegment(data, start, end, onAllocation, stored) {
+  onAllocation?.(stored ? 8192 : 1024);
   const flags = (yield {source: data, position: start});
   const lowestValue = (yield* jbigReadUint(data, start + 1, 4)) & 0xffffffff;
   const highestValue = (yield* jbigReadUint(data, start + 5, 4)) & 0xffffffff;
   const reader = new Reader(data, start + 9, end);
   const prefixSizeBits = (flags >> 1 & 7) + 1;
   const rangeSizeBits = (flags >> 4 & 7) + 1;
-  const lines = [];
+  const lines = stored ? yield* StoredJbigList.create(16, JbigHuffmanLineFields) : [];
   let prefixLength,
     rangeLength,
     currentRangeLow = lowestValue;
   do {
     prefixLength = (yield* reader.readBits(prefixSizeBits));
     rangeLength = (yield* reader.readBits(rangeSizeBits));
-    onAllocation?.(256);
-    lines.push(new HuffmanLine([currentRangeLow, prefixLength, rangeLength, 0]));
+    if (!stored) onAllocation?.(256);
+    yield* jbigListPush(lines, new HuffmanLine([currentRangeLow, prefixLength, rangeLength, 0]));
     currentRangeLow += 1 << rangeLength;
   } while (currentRangeLow < highestValue);
   prefixLength = (yield* reader.readBits(prefixSizeBits));
-  lines.push(new HuffmanLine([lowestValue - 1, prefixLength, 32, 0, "lower"]));
+  yield* jbigListPush(lines, new HuffmanLine([lowestValue - 1, prefixLength, 32, 0, "lower"]));
   prefixLength = (yield* reader.readBits(prefixSizeBits));
-  lines.push(new HuffmanLine([highestValue, prefixLength, 32, 0]));
+  yield* jbigListPush(lines, new HuffmanLine([highestValue, prefixLength, 32, 0]));
   if (flags & 1) {
     prefixLength = (yield* reader.readBits(prefixSizeBits));
-    lines.push(new HuffmanLine([prefixLength, 0]));
+    yield* jbigListPush(lines, new HuffmanLine([prefixLength, 0]));
   }
-  return new HuffmanTable(lines, false, onAllocation);
+  return stored ? yield* StoredJbigHuffman.create(lines) : new HuffmanTable(lines, false, onAllocation);
 }
 const standardTablesCache = {};
 function getStandardTable(number) {
@@ -4212,10 +4272,10 @@ class Reader {
     return (yield {source: this.data, position: this.position++});
   }
 }
-function getCustomHuffmanTable(index, referredTo, customTables) {
+function* getCustomHuffmanTable(index, referredTo, customTables) {
   let currentIndex = 0;
   for (let i = 0, ii = referredTo.length; i < ii; i++) {
-    const table = customTables[referredTo[i]];
+    const table = yield* jbigDictionaryGet(customTables, referredTo[i]);
     if (table) {
       if (index === currentIndex) {
         return table;
@@ -4225,8 +4285,8 @@ function getCustomHuffmanTable(index, referredTo, customTables) {
   }
   throw new Jbig2Error("can't find custom Huffman table");
 }
-function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numberOfSymbols, reader, onAllocation) {
-  onAllocation?.((numberOfSymbols + 173) * 256);
+function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numberOfSymbols, reader, onAllocation, stored) {
+  onAllocation?.(((stored ? 0 : numberOfSymbols) + 173) * 256);
   const codes = [];
   for (let i = 0; i <= 34; i++) {
     const codeLength = (yield* reader.readBits(4));
@@ -4234,6 +4294,7 @@ function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numbe
   }
   const runCodesTable = new HuffmanTable(codes, false, onAllocation);
   codes.length = 0;
+  const symbolCodes = stored ? yield* StoredJbigList.create(numberOfSymbols, JbigHuffmanLineFields) : codes;
   for (let i = 0; i < numberOfSymbols;) {
     const codeLength = (yield* runCodesTable.decode(reader));
     if (codeLength >= 32) {
@@ -4244,7 +4305,7 @@ function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numbe
             throw new Jbig2Error("no previous value in symbol ID table");
           }
           numberOfRepeats = (yield* reader.readBits(2)) + 3;
-          repeatedLength = codes[i - 1].prefixLength;
+          repeatedLength = (yield* jbigListGet(symbolCodes, i - 1)).prefixLength;
           break;
         case 33:
           numberOfRepeats = (yield* reader.readBits(3)) + 3;
@@ -4258,16 +4319,16 @@ function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numbe
           throw new Jbig2Error("invalid code length in symbol ID table");
       }
       for (j = 0; j < numberOfRepeats; j++) {
-        codes.push(new HuffmanLine([i, repeatedLength, 0, 0]));
+        yield* jbigListPush(symbolCodes, new HuffmanLine([i, repeatedLength, 0, 0]));
         i++;
       }
     } else {
-      codes.push(new HuffmanLine([i, codeLength, 0, 0]));
+      yield* jbigListPush(symbolCodes, new HuffmanLine([i, codeLength, 0, 0]));
       i++;
     }
   }
   reader.byteAlign();
-  const symbolIDTable = new HuffmanTable(codes, false, onAllocation);
+  const symbolIDTable = stored ? yield* StoredJbigHuffman.create(symbolCodes) : new HuffmanTable(codes, false, onAllocation);
   let customIndex = 0,
     tableFirstS,
     tableDeltaS,
@@ -4278,7 +4339,7 @@ function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numbe
       tableFirstS = getStandardTable(textRegion.huffmanFS + 6);
       break;
     case 3:
-      tableFirstS = getCustomHuffmanTable(customIndex, referredTo, customTables);
+      tableFirstS = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
       customIndex++;
       break;
     default:
@@ -4291,7 +4352,7 @@ function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numbe
       tableDeltaS = getStandardTable(textRegion.huffmanDS + 8);
       break;
     case 3:
-      tableDeltaS = getCustomHuffmanTable(customIndex, referredTo, customTables);
+      tableDeltaS = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
       customIndex++;
       break;
     default:
@@ -4304,7 +4365,7 @@ function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numbe
       tableDeltaT = getStandardTable(textRegion.huffmanDT + 11);
       break;
     case 3:
-      tableDeltaT = getCustomHuffmanTable(customIndex, referredTo, customTables);
+      tableDeltaT = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
       customIndex++;
       break;
     default:
@@ -4320,7 +4381,7 @@ function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numbe
     tableDeltaT
   };
 }
-function getSymbolDictionaryHuffmanTables(dictionary, referredTo, customTables) {
+function* getSymbolDictionaryHuffmanTables(dictionary, referredTo, customTables) {
   let customIndex = 0,
     tableDeltaHeight,
     tableDeltaWidth;
@@ -4330,7 +4391,7 @@ function getSymbolDictionaryHuffmanTables(dictionary, referredTo, customTables) 
       tableDeltaHeight = getStandardTable(dictionary.huffmanDHSelector + 4);
       break;
     case 3:
-      tableDeltaHeight = getCustomHuffmanTable(customIndex, referredTo, customTables);
+      tableDeltaHeight = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
       customIndex++;
       break;
     default:
@@ -4342,7 +4403,7 @@ function getSymbolDictionaryHuffmanTables(dictionary, referredTo, customTables) 
       tableDeltaWidth = getStandardTable(dictionary.huffmanDWSelector + 2);
       break;
     case 3:
-      tableDeltaWidth = getCustomHuffmanTable(customIndex, referredTo, customTables);
+      tableDeltaWidth = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
       customIndex++;
       break;
     default:
@@ -4350,13 +4411,13 @@ function getSymbolDictionaryHuffmanTables(dictionary, referredTo, customTables) 
   }
   let tableBitmapSize, tableAggregateInstances;
   if (dictionary.bitmapSizeSelector) {
-    tableBitmapSize = getCustomHuffmanTable(customIndex, referredTo, customTables);
+    tableBitmapSize = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
     customIndex++;
   } else {
     tableBitmapSize = getStandardTable(1);
   }
   if (dictionary.aggregationInstancesSelector) {
-    tableAggregateInstances = getCustomHuffmanTable(customIndex, referredTo, customTables);
+    tableAggregateInstances = yield* getCustomHuffmanTable(customIndex, referredTo, customTables);
   } else {
     tableAggregateInstances = getStandardTable(1);
   }

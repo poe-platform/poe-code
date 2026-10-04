@@ -1,7 +1,8 @@
+import { createAxisStorage } from "@poe-code/spreadsheet-engine/workbook/axis-storage";
 import { snapshotRecords } from "@poe-code/spreadsheet-ast/model";
 import { createOdfXmlTape } from "./odf-xml-tape.js";
 import type { WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
-import { ownWorkbookSource, materializeSourceAxes } from "@poe-code/spreadsheet-engine/workbook/source";
+import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
@@ -861,13 +862,14 @@ export function createOdfWriter(profile: "strict" | "extended") {
 export function createOdfStreamWriter(profile: "strict" | "extended") {
   return async function* (input: Workbook | WorkbookSource, options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
     let storage: import("@poe-code/spreadsheet-engine/contracts").WorkingStorage | undefined;
+    let axes: ReturnType<typeof createAxisStorage> | undefined;
     const metadataTapes: ReturnType<typeof createOdfXmlTape>[] = [];
     let cellStyles: Awaited<ReturnType<typeof createOdfStyles>> | undefined;
     let closed = false, closing: Promise<void> | undefined, failure: { error: unknown } | undefined;
     const bufferedTables: Uint8Array[] = [], tableBuffer = new Uint8Array(16384);
     const close = () => {
       closed = true;
-      return closing ??= Promise.resolve().then(async () => { await storage?.close(); });
+      return closing ??= Promise.resolve().then(async () => { await axes?.close(); await storage?.close(); });
     };
     context.own(close);
     try {
@@ -879,7 +881,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     }
     const wrapped = encryptionProfile?.cipher === "aes-gcm";
     const extended = profile === "extended", xml = createOdfXml(context, extended), e = xml.element;
-    const source = "metadata" in input ? await materializeSourceAxes(await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted(), context.createWorkingStorage?.bind(context)), context.limits, () => context.signal.throwIfAborted()) : undefined;
+    const source = "metadata" in input ? await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted(), context.createWorkingStorage?.bind(context)) : undefined;
     const preparedLabels = prepareOdfFormulaLabels(source?.metadata ?? input as Workbook, context, xml.charge);
     let book = preparedLabels.book;
     if (book.sheets.some(sheet => !Object.isFrozen(sheet.cells))) {
@@ -905,6 +907,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     if (closed) throw new SsconvertError("invalid-request", "ODF writer is closed");
     storage = context.createWorkingStorage?.();
     if (closed) throw new SsconvertError("invalid-request", "ODF writer is closed");
+    axes = createAxisStorage(storage, context.signal);
     let stagedContentBytes = 0;
     function admitContentBytes(bytes: number) {
       if (bytes > context.limits.outputBytes - stagedContentBytes) limit("output bytes");
@@ -1162,18 +1165,27 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         await addEvent(r.startRow); await addEvent(r.startRow + 1); await addEvent(r.endRow); await addEvent(r.endRow + 1);
       }
       for (const { range: r } of cellMetadata) { await addEvent(r.startRow); await addEvent(r.endRow + 1); }
-      for (const axis of sheet.rows ?? []) { coordinate(axis.index, MAX_SHEET_SIZE.rows); await addEvent(axis.index); await addEvent(axis.index + 1); }
+      const rowAxes = axes!.axis(), columnAxes = axes!.axis();
+      for await (const axis of source?.axes ? source.axes(sheet.id, "rows") : sheet.rows ?? []) {
+        coordinate(axis.index, MAX_SHEET_SIZE.rows);
+        // Direct workbook exports have always used the first row record.
+        if (await rowAxes.get(axis.index) === undefined) await rowAxes.add({ index: axis.index, ...(axis.sizePoints === undefined ? {} : { sizePoints: axis.sizePoints }), ...(axis.hidden === undefined ? {} : { hidden: axis.hidden }) });
+        await addEvent(axis.index); await addEvent(axis.index + 1);
+      }
+      for await (const axis of source?.axes ? source.axes(sheet.id, "columns") : sheet.columns ?? []) {
+        coordinate(axis.index, MAX_SHEET_SIZE.columns);
+        if (await columnAxes.get(axis.index) !== undefined) throw new SsconvertError("invalid-request", "Duplicate OpenDocument column metadata");
+        await columnAxes.add({ index: axis.index, ...(axis.sizePoints === undefined ? {} : { sizePoints: axis.sizePoints }), ...(axis.hidden === undefined ? {} : { hidden: axis.hidden }) });
+      }
       let rowCount = sheet.size?.rows ?? DEFAULT_SHEET_SIZE.rows;
       coordinate(rowCount - 1, MAX_SHEET_SIZE.rows);
       rowCount = Math.max(rowCount, maximumEvent);
       await addEvent(rowCount);
       async function* tableContent(): AsyncGenerator<string | Uint8Array> {
-      let position = 0;
-      for (const [i, axis] of [...(sheet.columns ?? [])].sort((a,b) => a.index - b.index).entries()) {
-        coordinate(axis.index, MAX_SHEET_SIZE.columns);
-        if (axis.index < position) throw new SsconvertError("invalid-request", "Duplicate OpenDocument column metadata");
+      let position = 0, columnOrdinal = 0;
+      for await (const axis of columnAxes.values()) {
         if (axis.index > position) yield e("table:table-column", { "table:number-columns-repeated": axis.index - position });
-        const name = `co${index}_${i}`;
+        const name = `co${index}_${columnOrdinal++}`;
         await automatic.append(e("style:style", { "style:name": name, "style:family": "table-column" }, e("style:table-column-properties", {
           "style:column-width": axis.sizePoints === undefined ? undefined : axis.sizePoints + "pt" })));
         yield e("table:table-column", { "table:style-name": name, "table:visibility": axis.hidden ? "collapse" : "visible" }); position = axis.index + 1;
@@ -1184,9 +1196,9 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       for (const { range: r } of cellMetadata) columnCount = Math.max(columnCount,r.endColumn + 1);
       for (const r of sheet.merges ?? []) columnCount = Math.max(columnCount,r.endColumn + 1);
       if (columnCount > position) yield e("table:table-column", { "table:number-columns-repeated": columnCount - position > 1 ? columnCount - position : undefined });
-      const cursor = indexedCells();
+      const cursor = indexedCells(), axisCursor = rowAxes.values();
       try {
-      let nextCell = await cursor.next();
+      let nextCell = await cursor.next(), nextAxis = await axisCursor.next();
       let event = 0;
       for await (const [row, repeat] of rowIntervals()) {
         if (row >= MAX_SHEET_SIZE.rows) break;
@@ -1203,7 +1215,9 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         for (const c of cells.keys()) { columns.add(c); columns.add(c + 1); }
         for (const m of merges) { columns.add(m.startColumn); columns.add(m.startColumn + 1); columns.add(m.endColumn + 1); }
         for (const m of metadata) { columns.add(m.range.startColumn); columns.add(m.range.endColumn + 1); }
-        const axis = sheet.rows?.find(a => a.index === row); const rowAttributes: Record<string, string | number | undefined> = {
+        const axis = !nextAxis.done && nextAxis.value.index === row ? nextAxis.value : undefined;
+        if (axis) nextAxis = await axisCursor.next();
+        const rowAttributes: Record<string, string | number | undefined> = {
           "table:number-rows-repeated": repeat > 1 ? repeat : undefined, "table:visibility": axis?.hidden ? "collapse" : undefined };
         if (axis?.sizePoints !== undefined) {
           const name = `ro${index}_${row}`; await automatic.append(e("style:style", { "style:name": name, "style:family": "table-row" },
@@ -1304,7 +1318,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         yield* xml.stream("table:table-row", rowAttributes, rowContent());
       }
       yield* names(sheet.id);
-      } finally { await cursor.return(undefined); }
+      } finally { await Promise.all([cursor.return(undefined), axisCursor.return(undefined)]); }
       }
       yield* xml.stream("table:table", { "table:name": sheet.name, "table:style-name": sheetStyle }, tableContent());
     }

@@ -3,6 +3,7 @@ import type { Workbook } from "@poe-code/spreadsheet-ast";
 import { createEngine, defaultSsconvertLimits, type CapabilityContext } from "@poe-code/spreadsheet-engine";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import { xlsxFormat } from "@poe-code/spreadsheet-format-xlsx";
+import { odsFormat } from "@poe-code/spreadsheet-format-ods";
 import xmlFormat from "./providers/xml.js";
 import { createXlsxStreamWriter } from "./xlsx.js";
 import { createOdfStreamWriter } from "./odf.js";
@@ -47,9 +48,9 @@ it.each([writeGnumericStream, writeCompressedGnumericStream])("exports Gnumeric 
 });
 
 
-it.each(["Gnumeric_XmlIO:sax", "Gnumeric_XmlIO:sax:0", "Gnumeric_Excel:xlsx", "Gnumeric_Excel:xlsx2"])("streams axes through the registered %s exporter with caller storage", async id => {
+it.each(["Gnumeric_XmlIO:sax", "Gnumeric_XmlIO:sax:0", "Gnumeric_Excel:xlsx", "Gnumeric_Excel:xlsx2", "Gnumeric_OpenCalc:openoffice", "Gnumeric_OpenCalc:odf"])("streams axes through the registered %s exporter with caller storage", async id => {
   const fs = createMemoryFileSystem();
-  const engine = createEngine({ workingFiles: { fs, directory: "/", cacheBytes: 16384 }, formats: [xmlFormat, xlsxFormat], codecs: [{
+  const engine = createEngine({ workingFiles: { fs, directory: "/", cacheBytes: 16384 }, formats: [xmlFormat, xlsxFormat, odsFormat], codecs: [{
     id: "fixture", description: "fixture", extensions: [], async readSource() { throw new Error("buffered reader"); },
     async readWorkbookSource() { return source; }
   }] });

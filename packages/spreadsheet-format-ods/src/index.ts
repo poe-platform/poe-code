@@ -38,6 +38,7 @@ export const odsFormat: FormatProvider = {
     {
       "id": "openoffice",
       "direction": "write",
+      sourceAxes: true,
       write: async (book, options, context) => (await import("./odf.js")).createOdfWriter("strict")(book, options, context),
       writeStream: async function* (book, options, context) { yield* (await import("./odf.js")).createOdfStreamWriter("strict")(book, options, context); },
       writeWorkbookSource: async function* (source, options, context) { yield* (await import("./odf.js")).createOdfStreamWriter("strict")(source, options, context); },
@@ -55,6 +56,7 @@ export const odsFormat: FormatProvider = {
     {
       "id": "odf",
       "direction": "write",
+      sourceAxes: true,
       write: async (book, options, context) => (await import("./odf.js")).createOdfWriter("extended")(book, options, context),
       writeStream: async function* (book, options, context) { yield* (await import("./odf.js")).createOdfStreamWriter("extended")(book, options, context); },
       writeWorkbookSource: async function* (source, options, context) { yield* (await import("./odf.js")).createOdfStreamWriter("extended")(source, options, context); },

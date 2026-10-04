@@ -131,3 +131,29 @@ it("enforces the aggregate cell limit while reserving source styles", async () =
   }))).rejects.toMatchObject({ code: "resource-limit" });
   expect(runtime.closed()).toBe(1);
 });
+
+
+it.each(["failure", "cancel"])("closes axis producers and backing after late axis %s", async mode => {
+  const controller = new AbortController(), reason = new Error("axis replay failed"), runtime = context(controller.signal);
+  let passes = 0, opened = 0, closed = 0, acquired = 0;
+  const source = { metadata: { sheets: [{ id: "s", name: "Data", cells: [], rows: [], columns: [] }] },
+    async *cells() {}, async *axes(_id: string, kind: "rows" | "columns") {
+      opened++;
+      try {
+        if (kind !== "rows") return;
+        const pass = ++passes;
+        yield { index: 0, sizePoints: 17 };
+        if (pass === 2) {
+          if (mode === "failure") throw reason;
+          controller.abort(reason);
+        }
+        yield { index: 1, sizePoints: 22 };
+      } finally { closed++; }
+    }
+  };
+  const acquire = runtime.context.createWorkingStorage!;
+  await expect(collect(createOdfStreamWriter("extended")(source, [], { ...runtime.context,
+    createWorkingStorage() { acquired++; return acquire(); }
+  }))).rejects.toBe(reason);
+  expect(passes).toBe(2); expect(opened).toBe(closed); expect(runtime.closed()).toBe(acquired);
+});

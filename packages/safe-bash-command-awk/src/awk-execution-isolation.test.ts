@@ -39,14 +39,20 @@ async function fixture(input = "a:10:1\nb:20:2\nc:30:3\n".repeat(16)) {
   return { fs, run, input };
 }
 
-test("repeated fast awk executions preserve direct stdout", async () => {
-  const { run } = await fixture();
-  for (let i = 0; i < 3; i++) {
-    const result = await run('{ s += $3; n++ } END { print s, n }');
-    assert.equal(result.exitCode, 0);
-    assert.equal(result.stdout, "96 48\n");
-  }
-});
+for (const [input, expected] of [
+  ["a:10:1\nb:20:2\nc:30:3\n".repeat(16), "96 48\n"],
+  ["a:b:10\n".repeat(39) + "x:y:20\n", "410 40\n"],
+] as const) {
+  test(`repeated fast awk executions preserve direct stdout (${expected.trim()})`, async () => {
+    const { run } = await fixture(input);
+    for (let i = 0; i < 3; i++) {
+      const result = await run('{ s += $3; c++ } END { print s, c }');
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected);
+    }
+  });
+}
 
 test("repeated awk executions preserve output across flush boundaries", async () => {
   const { run, input } = await fixture("a:10:1\n".repeat(3000));

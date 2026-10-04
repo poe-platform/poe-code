@@ -13,6 +13,13 @@ Large and deeply nested patterns use the caller's compilation budget. Parsing
 and compilation avoid recursive traversal, and cancelled compilation can be
 retried without exposing a partial program.
 
+`Pattern.supportsStreamTest(budget)` identifies sed/awk patterns that can answer
+match existence without retaining input or captures. For those patterns,
+`testStream(chunks, budget)` consumes asynchronous text chunks with working memory
+proportional to the compiled pattern. UTF-16 chunk boundaries, word boundaries,
+anchors and cancellation are preserved. Patterns requiring capture replay, such
+as backreferences, continue to use the existing buffered matching APIs.
+
 Use commands through `@poe-platform/safe-bash` and its existing command exports. This
 private workspace is bundled into Safe Bash and is not independently published.
 

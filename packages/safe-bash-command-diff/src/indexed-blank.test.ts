@@ -14,7 +14,7 @@ for (const format of [[], ["-u"], ["-c"], ["-e"], ["-n"], ["-D", "FLAG"], ["-y"]
       const args = ["-B", ...(sample % 2 ? ["-b"] : []), ...format, "left", "right"];
       const indexed = await run("diff", args, { files });
       // A pattern that cannot match this fixture keeps the buffered oracle path.
-      const buffered = await run("diff", ["-I", "^__unused_ignore_pattern__$", ...args], { files });
+      const buffered = await run("diff", ["-I", "^\\(__unused_ignore_pattern__\\)\\1$", ...args], { files });
       assert.deepEqual([indexed.exitCode, indexed.stdout, indexed.stderr], [buffered.exitCode, buffered.stdout, buffered.stderr], JSON.stringify({ args, files }));
     }
   });
@@ -31,6 +31,7 @@ for (const failure of ["none", "cancel", "storage"] as const) test(`blank filter
   } });
   await fs.writeFile("/work/right", new TextEncoder().encode(`${common}new\n`));
   t.mock.method(Budget.prototype, "read", async () => assert.fail("whole-file collector"));
+  t.mock.method(Budget.prototype, "readDiff", async () => assert.fail("whole-file collector"));
   let opened = 0, closed = 0;
   const open = fs.open.bind(fs);
   t.mock.method(fs, "open", async (...args: Parameters<typeof fs.open>) => {

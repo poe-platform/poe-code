@@ -1,6 +1,7 @@
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { renderEd, renderSideBySide, type IndexedGroup as Group } from "./indexed-output.js";
-import { comparisonSource, expandedSource, stripTrailingCr, terminatedSource } from "./indexed-normalization.js";
+import { comparisonSource, documentText, expandedSource, stripTrailingCr, terminatedSource } from "./indexed-normalization.js";
+import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { IndexedDocument, closeDocumentResources } from "safe-bash-diff-engine/document";
 import { Budget, ToolError } from "safe-bash-diff-engine/shared";
@@ -178,7 +179,7 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
       await oldKeys.load(comparisonSource(old, options, utf8));
       await nextKeys.load(comparisonSource(next, options, utf8));
     }
-    if (options.brief && !options.ignoreBlank) {
+    if (options.brief && !options.ignoreBlank && !options.ignorePatterns.length) {
       let same = oldKeys.size === nextKeys.size && oldKeys.length === nextKeys.length;
       for (let index = 0; same && index < oldKeys.length; index++) same = await oldKeys.equal(index, nextKeys, index);
       if (!same) {
@@ -190,13 +191,18 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
     const render = { append, options, utf8: old.validUtf8 && next.validUtf8 };
     const count = sameRaw ? 0 : await buildGroups(oldKeys, nextKeys, matrix, groups, budget, !counted);
     let visible = count;
-    if (options.ignoreBlank) for (let index = 0; index < count; index++) {
+    if (options.ignoreBlank || options.ignorePatterns.length) for (let index = 0; index < count; index++) {
       const change = await group(index);
       let ignored = true;
       for (const [document, start, length] of [[old, change.oldStart, change.oldCount], [next, change.newStart, change.newCount]] as const) {
         for (let row = 0; row < length; row++) {
           budget.step();
-          const matches = await blank(document, start + row, options.whitespace !== "exact");
+          let matches = options.ignoreBlank && await blank(document, start + row, options.whitespace !== "exact");
+          const bounds = await document.line(start + row);
+          const bodyEnd = bounds.end - Number((await document.data.read(8 + bounds.end - 1, 1))[0] === 10);
+          for (const pattern of options.ignorePatterns) {
+            if (await pattern.testStream(documentText(document, bounds.start, bodyEnd, render.utf8), budget)) { matches = true; break; }
+          }
           ignored &&= matches;
           const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint;
         }
@@ -291,8 +297,27 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
       const oldStart = first.oldStart - lead, newStart = first.newStart - lead;
       const oldEnd = last.oldStart + last.oldCount + trail, newEnd = last.newStart + last.newCount + trail;
       budget.hunk();
+      let heading = "";
+      for (let position = oldStart - 1; options.functions.length && position >= 0; position--) {
+        const bounds = await old.line(position);
+        let matches = false;
+        for (const pattern of options.functions) {
+          if (await pattern.testStream(documentText(old, bounds.start, bounds.end, render.utf8), budget)) { matches = true; break; }
+        }
+        if (matches) {
+          const bodyEnd = bounds.end - Number((await old.data.read(8 + bounds.end - 1, 1))[0] === 10);
+          for await (const block of documentText(old, bounds.start, bodyEnd, render.utf8)) {
+            heading += block.slice(0, 40 - heading.length);
+            if (heading.length === 40) break;
+          }
+          break;
+        }
+        budget.step();
+        const pause = budget.checkpoint(); if (pause) await pause;
+      }
       if (unified) {
         await text(`@@ -${range(oldStart, oldEnd - oldStart, true)} +${range(newStart, newEnd - newStart, true)} @@`, 36);
+        if (heading) await append(encodeBytes(` ${heading}`, render.utf8 ? "utf8" : "latin1"));
         await text("\n");
         let position = oldStart;
         for (let at = index; at < end; at++) {
@@ -303,7 +328,9 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
         }
         while (position < oldEnd) await line(old, position++, " ", render);
       } else {
-        await text("***************\n");
+        await text("***************");
+        if (heading) await append(encodeBytes(` ${heading}`, render.utf8 ? "utf8" : "latin1"));
+        await text("\n");
         await text(`*** ${range(oldStart, oldEnd - oldStart)} ****\n`, 36);
         for (const side of ["old", "new"] as const) {
           if (side === "new") await text(`--- ${range(newStart, newEnd - newStart)} ----\n`, 36);

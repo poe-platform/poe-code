@@ -1231,6 +1231,111 @@ export class Pattern {
     return { start: found, end: matchEnd, groups };
   }
 
+  /** Existence-only streaming does not retain captures or the input text. */
+  async supportsStreamTest(budget: PatternBudget): Promise<boolean> {
+    await this.prepare(budget);
+    return (this.dialect === "sed" || this.dialect === "awk") && this.code.every(instruction =>
+      instruction.kind === "character" || instruction.kind === "boundary" || instruction.kind === "match"
+      || instruction.kind === "save" || instruction.kind === "jump" || instruction.kind === "split"
+      || (instruction.kind === "begin" || instruction.kind === "end") && !instruction.multiline && !instruction.trailingNewlines);
+  }
+
+  /** Working state is proportional to the compiled pattern, independent of input size. */
+  async testStream(source: AsyncIterable<string>, budget: PatternBudget): Promise<boolean> {
+    if (!await this.supportsStreamTest(budget)) throw new ProgramError("pattern requires non-streaming matching");
+    const initial = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint(); if (initial) await initial;
+    // Literal matching has UTF-16 indexOf semantics, including lone surrogates.
+    if (this.literalMatch) {
+      const { value, anchoredStart, anchoredEnd } = this.literalMatch;
+      if (value.length * 4 > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      const prefix = new Uint32Array(value.length);
+      let units = 0;
+      const work = () => {
+        budget.step();
+        if (++units < 64) return;
+        units = 0;
+        return budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint();
+      };
+      for (let index = 1, length = 0; index < value.length; index++) {
+        while (length && value[index] !== value[length]) { length = prefix[length - 1]!; const pause = work(); if (pause) await pause; }
+        if (value[index] === value[length]) length++;
+        prefix[index] = length;
+        const pause = work(); if (pause) await pause;
+      }
+      let matched = 0, position = 0, lastEnd = value.length ? -1 : 0;
+      for await (const chunk of source) {
+        const pause = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint(); if (pause) await pause;
+        if (!value.length && !anchoredEnd) return true;
+        for (let index = 0; index < chunk.length; index++) {
+          while (matched && chunk[index] !== value[matched]) { matched = prefix[matched - 1]!; const pause = work(); if (pause) await pause; }
+          if (chunk[index] === value[matched]) matched++;
+          position++;
+          const pause = work(); if (pause) await pause;
+          if (matched === value.length) {
+            if (!anchoredStart || position === value.length) { lastEnd = position; if (!anchoredEnd) return true; }
+            matched = matched ? prefix[matched - 1]! : 0;
+          }
+        }
+      }
+      const final = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint(); if (final) await final;
+      return anchoredEnd ? lastEnd === position : lastEnd >= 0;
+    }
+    if (this.code.length * 7 > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    let current = new Uint8Array(this.code.length), next = new Uint8Array(this.code.length);
+    const visited = new Uint8Array(this.code.length), pending = new Uint32Array(this.code.length);
+    let previous: string | undefined, beginning = true, units = 0;
+    const advance = async (character: string | undefined): Promise<boolean> => {
+      visited.fill(0); next.fill(0);
+      let count = 0;
+      const push = (pc: number) => { if (!visited[pc]) { visited[pc] = 1; pending[count++] = pc; } };
+      push(0);
+      budget.step(current.length);
+      for (let pc = 0; pc < current.length; pc++) if (current[pc]) push(pc);
+      while (count) {
+        budget.step();
+        if (++units === 64) { units = 0; const pause = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint(); if (pause) await pause; }
+        const pc = pending[--count]!, instruction = this.code[pc]!;
+        if (instruction.kind === "match") return true;
+        if (instruction.kind === "character") {
+          if (character !== undefined && instruction.accepts(character)) next[pc + 1] = 1;
+        } else if (instruction.kind === "split") { push(instruction.first); push(instruction.second); }
+        else if (instruction.kind === "jump") push(instruction.target);
+        else if (instruction.kind === "save") push(pc + 1);
+        else if (instruction.kind === "begin") { if (beginning) push(pc + 1); }
+        else if (instruction.kind === "end") { if (character === undefined) push(pc + 1); }
+        else if (instruction.kind === "boundary") {
+          const before = previous !== undefined && instruction.accepts(previous);
+          const after = character !== undefined && instruction.accepts(character[0]!);
+          const boundary = instruction.edge === "start" ? !before && after : instruction.edge === "end" ? before && !after : before !== after;
+          if (boundary === instruction.positive) push(pc + 1);
+        }
+      }
+      [current, next] = [next, current];
+      previous = character?.slice(-1); beginning = false;
+      return false;
+    };
+    let high = "";
+    for await (const chunk of source) {
+      const pause = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint(); if (pause) await pause;
+      let offset = 0;
+      if (high && chunk.length) {
+        const low = chunk.charCodeAt(0);
+        const character = low >= 0xdc00 && low <= 0xdfff ? high + chunk[offset++] : high;
+        high = "";
+        if (await advance(character)) return true;
+      }
+      while (offset < chunk.length) {
+        const character = String.fromCodePoint(chunk.codePointAt(offset)!);
+        offset += character.length;
+        if (offset === chunk.length && character.length === 1 && character.charCodeAt(0) >= 0xd800 && character.charCodeAt(0) <= 0xdbff) high = character;
+        else if (await advance(character)) return true;
+      }
+    }
+    const final = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint(); if (final) await final;
+    if (high && await advance(high)) return true;
+    return advance(undefined);
+  }
+
   async find(text: string, budget: PatternBudget, from = 0, continuation = from): Promise<Match | undefined> {
     this.assertInstructionLimit(budget);
     if (!this.code.length) await this.prepare(budget);
@@ -2371,6 +2476,11 @@ export class BytePattern extends Pattern {
   override async prepare(budget: Parameters<Pattern["prepare"]>[0]): Promise<void> {
     if (this.usesUnicode(budget)) await this.unicode.prepare(budget);
     else await super.prepare(budget);
+  }
+
+  override async supportsStreamTest(budget: PatternBudget): Promise<boolean> {
+    // Unicode byte subjects require byte-preserving decoding before matching.
+    return !this.usesUnicode(budget) && await super.supportsStreamTest(budget);
   }
 
   override canFindSync(): boolean {

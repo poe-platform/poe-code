@@ -309,3 +309,15 @@ export class StoredMetadataStack<T> {
     return record.value;
   }
 }
+
+/** Traverse one caller-backed array element at a time. */
+export async function* readStoredItems<T>(items: import("../ast.js").PdfStoredItems, signal?: AbortSignal): AsyncGenerator<T, void> {
+  if (!Number.isSafeInteger(items.length) || items.length < 0) throw new RangeError("Invalid stored array length");
+  let position = items.position;
+  for (let i = 0; i < items.length; i++) {
+    const record = await readStoredRecord<T>(items.storage, position, signal);
+    yield record.value;
+    position = record.next;
+  }
+  if (position !== -1) throw new Error("Invalid stored array terminator");
+}

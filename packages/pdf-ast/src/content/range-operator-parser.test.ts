@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { FileStat, FileSystem } from "@poe-code/safe-fs/contracts";
 import { PdfFileSource } from "../source.js";
+import { readStoredItems } from "./stored-record.js";
+import type { PdfCosNode } from "../ast.js";
 import { parseContentOperators } from "./operator-parser.js";
 import { parseContentRangeOperators } from "./range-operator-parser.js";
 
@@ -178,4 +180,41 @@ it("keeps text bytes in caller backing through operand recovery", async () => {
     count++;
   }
   expect(count).toBe(40);await f.close();
+});
+
+it("keeps growing text-array elements in caller backing", async () => {
+  const f=await fixture("["+"(A) -12 ".repeat(4096)+"] TJ");
+  const data=new Uint8Array(4*1024*1024);let end=0;
+  const backing={allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return data.subarray(at,at+n);},async write(at:number,bytes:Uint8Array){data.set(bytes,at);}};
+  try{
+    const work=parseContentRangeOperators(f.source,f.storage,{pathStorage:backing});
+    const op=(await work.next()).value!;
+    expect(op.operator).toBe("TJ");
+    const array=op.operands[0];if(array?.kind!=="array")throw Error("Expected array");
+    expect(array.items).toHaveLength(0);
+    expect(array.storedItems?.length).toBe(8192);
+    let count = 0;
+    for await (const item of readStoredItems<PdfCosNode>(array.storedItems!)) {
+      expect(item.kind).toBe(count % 2 ? "number" : "string");
+      if (item.kind === "number") expect(item.value).toBe(-12);
+      else if (item.kind === "string") {
+        expect(item.bytes).toHaveLength(0);
+        expect(item.storedBytes?.storage).toBe(backing);
+        expect(data[item.storedBytes!.position]).toBe(65);
+      }
+      count++;
+    }
+    expect(count).toBe(8192);
+    await work.return();
+  }finally{await f.close();}
+});
+
+it.each(["abort", "failure"])("preserves array-link write %s", async mode => {
+  const f=await fixture("[(A) (B)] TJ"),controller=new AbortController(),failure={reason:"array backing"};
+  const data=new Uint8Array(8192);let end=0;
+  const backing={allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return data.subarray(at,at+n);},async write(at:number,bytes:Uint8Array){data.set(bytes,at);if(bytes.length===8){if(mode==="abort")controller.abort(failure);else throw failure;}}};
+  try{
+    const work=parseContentRangeOperators(f.source,f.storage,{pathStorage:backing,signal:controller.signal});
+    await expect(work.next()).rejects.toBe(failure);
+  }finally{await f.close();}
 });

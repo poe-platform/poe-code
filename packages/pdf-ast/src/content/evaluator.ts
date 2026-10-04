@@ -1029,7 +1029,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
+export type PdfEvaluationRequest = { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
   | {readonly kind:"font-unicode";readonly lookup:(code:number)=>Promise<string|undefined>;readonly code:number}
   | {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
   | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>;storedSegments?(code:number,storage:PdfPixelStorage,signal?:AbortSignal):AsyncIterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
@@ -1244,6 +1244,21 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       if (!consumed) throw new PdfError("E_PARSE", "Stored text decoder made no progress");
       offset += consumed;
     }
+  }
+
+  function* textArrayItems(command: Extract<import("../ast.js").PdfTextCommand, { kind: "show-text-array" }>): Generator<PdfCosNode | PdfEvaluationRequest, void, PdfEvaluationResult> {
+    if (!command.storedItems) { yield* command.items; return; }
+    if (!Number.isSafeInteger(command.storedItems.length) || command.storedItems.length < 0) throw new RangeError("Invalid stored array length");
+    let position = command.storedItems.position;
+    for (let i = 0; i < command.storedItems.length; i++) {
+      const reply = yield { kind: "array-item", items: command.storedItems, position };
+      if (!reply || !("kind" in reply) || reply.kind !== "resolved" || reply.node?.kind !== "array") throw new TypeError("Expected stored text array item");
+      const [next, value] = reply.node.items;
+      if (next?.kind !== "number" || !value) throw new TypeError("Expected stored text array record");
+      position = next.value;
+      if (value.kind === "string" || value.kind === "number") yield value;
+    }
+    if (position !== -1) throw new PdfError("E_PARSE", "Invalid stored text array terminator");
   }
 
   function* resolveScColorOperands(
@@ -2188,16 +2203,23 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
               case "show-text":
                 yield* emitTokenBytes(cmd.token);
                 break;
-              case "show-text-array":
-                for (const part of cmd.items) {
+              case "show-text-array": {
+                const items = textArrayItems(cmd);
+                let item = items.next();
+                while (!item.done) {
+                  const part = item.value;
+                  if (part.kind === "array-item") { item = items.next(yield part); continue; }
+                  if (part.kind !== "string" && part.kind !== "number") throw new TypeError("Expected text array item");
                   if (part.kind === "string") {
                     yield* emitTokenBytes(part);
                   } else if (part.kind === "number") {
                     const shiftUser = ((-part.value * st.fontSize) / 1000) * (st.horizScale / 100);
                     tm = multiplyMatrices([1, 0, 0, 1, shiftUser, 0], tm);
                   }
+                  item = items.next();
                 }
                 break;
+              }
             }
           }
           if (node.end !== false && hasTextClip) {
@@ -2251,7 +2273,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "string-bytes" || step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "array-item" || step.value.kind === "string-bytes" || step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

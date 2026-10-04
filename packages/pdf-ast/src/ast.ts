@@ -48,6 +48,8 @@ export interface PdfCosString {
 }
 
 export interface PdfCosArray {
+  /** Retained elements; items is empty when this descriptor is present. */
+  readonly storedItems?: PdfStoredItems;
   readonly kind: "array";
   readonly items: PdfCosNode[];
   readonly span?: ByteSpan | undefined;
@@ -152,7 +154,7 @@ export type PdfTextCommand =
   | { readonly kind: "render-mode"; readonly mode: number }
   | { readonly kind: "rise"; readonly rise: number }
   | { readonly kind: "show-text"; readonly token: PdfCosString }
-  | { readonly kind: "show-text-array"; readonly items: readonly (PdfCosString | PdfCosNumber)[] }
+  | { readonly kind: "show-text-array"; readonly storedItems?: PdfStoredItems; readonly items: readonly (PdfCosString | PdfCosNumber)[] }
   | { readonly kind: "state-op"; readonly operator: string; readonly operands: readonly PdfCosNode[] };
 
 export type PdfPathSegment =
@@ -289,6 +291,7 @@ export interface PdfPixelStorage {
 }
 export interface PdfStoredPixels { readonly storage: PdfPixelStorage; readonly position: number }
 export interface PdfStoredBytes extends PdfStoredPixels { readonly byteLength: number }
+export interface PdfStoredItems extends PdfStoredPixels { readonly length: number }
 
 export interface PdfEvaluatedImage {
   readonly name: string;

@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import type { PdfPixelStorage } from "../ast.js";
-import { readStoredRecord, writeStoredRecord } from "./stored-record.js";
+import { readStoredItems, readStoredRecord, writeStoredRecord } from "./stored-record.js";
 
 function backing(capacity: number) {
   const data = new Uint8Array(capacity);
@@ -115,4 +115,9 @@ it("rejects cycles and truncated backing records", async () => {
   const read = storage.read;
   storage.read = async (...args) => (await read(...args)).subarray(1);
   await expect(readStoredRecord(storage, position)).rejects.toThrow("Incomplete capture header");
+});
+
+it.each([-1, NaN, 0.5])("rejects an invalid array element count before reading: %s", async length => {
+  const storage: PdfPixelStorage = { allocate() { throw new Error("unexpected allocation"); }, async read() { throw new Error("unexpected read"); }, async write() { throw new Error("unexpected write"); } };
+  await expect(readStoredItems({ storage, position: -1, length }).next()).rejects.toThrow("Invalid stored array length");
 });

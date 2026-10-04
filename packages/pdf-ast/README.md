@@ -79,6 +79,13 @@ source cache. Returned tokens own their bytes. The active token is additional
 memory: set `maxTokenBytes` to bound decoded strings and encoded names/numbers.
 `start`, `end`, `knownCommands`, and `signal` control scanning. The caller closes
 the source after use; the lexer does not collect a document or own its handle.
+With `stringStorage`, decoded literal/hex strings use caller backing and bounded
+chunks; tokens expose `storedBytes` with empty `bytes`. Retained content parsing
+uses this backing for text and array elements when `pathStorage` is supplied.
+Arrays expose `storedItems` with empty `items`; iterate their elements with
+`readStoredItems<PdfCosNode>(array.storedItems, signal)`. Retained evaluation reads
+text and TJ elements incrementally, including multibyte character boundaries.
+Keep the backing alive while using these tokens, arrays or events.
 
 `iterateCMapCharacters(cmap, bytes)` and
 `parseToUnicodeCMap(mapping).iterateBytes(bytes)` decode text characters lazily.

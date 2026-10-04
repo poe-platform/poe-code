@@ -24,6 +24,7 @@ export * from "./content/parser.js";
 export { parseContentOperators, type PdfContentOperator } from "./content/operator-parser.js";
 export * from "./content/range-operator-parser.js";
 export * from "./content/range-events.js";
+export { readStoredItems } from "./content/stored-record.js";
 export * from "./content/serializer.js";
 export * from "./content/evaluator.js";
 export * from "./content/retained-evaluator.js";

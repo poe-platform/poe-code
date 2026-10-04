@@ -1,4 +1,4 @@
-import { StoredMetadataStack } from "./stored-record.js";
+import { StoredMetadataStack, readStoredItems, writeStoredRecord } from "./stored-record.js";
 import type { PdfCosNode } from "../ast.js";
 import { CosRangeLexer, type CosToken } from "../cos/lexer.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -50,8 +50,9 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
     }
     if (node.kind === "array") {
       const items: PdfCosNode[] = [];
-      for (const item of node.items) items.push(await materialize(item));
-      return { ...node, items };
+      for await (const item of node.storedItems ? readStoredItems<PdfCosNode>(node.storedItems, signal) : node.items) items.push(await materialize(item));
+      const { storedItems: ignoredItems, ...value } = node;
+      return { ...value, items };
     }
     if (node.kind === "dict") {
       const entries = [];
@@ -60,7 +61,7 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
     }
     return node;
   }
-  const work = contentOperatorSteps(lexer, source.size, limits);
+  const work = contentOperatorSteps(lexer, source.size, { ...limits, ...(options.pathStorage ? { arrayStorage: options.pathStorage } : {}) });
   let cache: Uint8Array = new Uint8Array(0); let cacheStart = 0; let turns = 0;
   let failed = false;
   try {
@@ -72,6 +73,17 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
       const request = step.value;
       let result: CosToken | PdfCosNode | number | undefined;
       switch (request.kind) {
+        case "array-append": {
+          const backing = options.pathStorage!;
+          const position = await writeStoredRecord(backing, request.node, -1, signal);
+          if (request.previous !== -1) {
+            const next = new Uint8Array(8);
+            new DataView(next.buffer).setFloat64(0, position, true);
+            await backing.write(request.previous, next, signal ? { signal } : undefined);
+            signal?.throwIfAborted();
+          }
+          result = position; break;
+        }
         case "token": result = await lexer.nextToken(); break;
         case "byte": {
           const at = request.position;

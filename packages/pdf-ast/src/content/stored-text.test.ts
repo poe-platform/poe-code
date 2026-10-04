@@ -8,7 +8,7 @@ import { evaluateContentStreamSteps } from "./evaluator.js";
 import { evaluateRetainedContentSteps } from "./retained-evaluator.js";
 import { parseContentEvents } from "./parser.js";
 
-it.each(["simple", "cid-even", "cid-odd", "cmap", "unicode"])(
+it.each(["simple", "cid-even", "cid-odd", "cmap", "unicode", "array"])(
   "preserves growing %s text across backed read boundaries",
   async (mode) => {
     const original = PdfDocument.create(),
@@ -17,7 +17,7 @@ it.each(["simple", "cid-even", "cid-odd", "cmap", "unicode"])(
       "4 begincodespacerange <20> <7f> <8000> <80ff> <810000> <81ffff> <82000000> <82ffffff> endcodespacerange 4 beginbfchar <41> <0041> <8001> <00660069> <810002> <0042> <82000003> <0043> endbfchar"
     );
     const cmap = original.cos.allocateObject(cosStream(mapping));
-    const simple = mode === "simple";
+    const simple = mode === "simple" || mode === "array";
     const font = cosDict({
       Type: cosName("Font"),
       Subtype: cosName(simple ? "Type1" : "Type0"),
@@ -38,8 +38,12 @@ it.each(["simple", "cid-even", "cid-odd", "cmap", "unicode"])(
         : simple
           ? "41".repeat(9001)
           : "0041".repeat(4200) + (mode === "cid-odd" ? "41" : "");
+    const text =
+      mode === "array"
+        ? "[" + "(A) -12 <4243> 2 null [99] ".repeat(1024) + "] TJ"
+        : `<${token}> Tj`;
     const bytes = new TextEncoder().encode(
-      `BT /F 10 Tf <${token}> Tj [<4142> -20 (C)] TJ (D) ' 0 0 (E) " ET /Span << /ActualText (replacement) >> BDC BT /F 10 Tf (F) Tj ET EMC`
+      `BT /F 10 Tf ${text} [<4142> -20 (C)] TJ (D) ' 0 0 (E) " ET /Span << /ActualText (replacement) >> BDC BT /F 10 Tf (F) Tj ET EMC`
     );
     dictSet(page.pageDict, "Resources", resources);
     dictSet(page.pageDict, "Contents", original.cos.allocateObject(cosStream(bytes)));
@@ -62,7 +66,7 @@ it.each(["simple", "cid-even", "cid-odd", "cmap", "unicode"])(
     let end = 13,
       peakRead = 0;
     const loan = new Uint8Array(4096);
-  const backing = {
+    const backing = {
       allocate(n: number) {
         const at = end;
         end += n;
@@ -71,8 +75,8 @@ it.each(["simple", "cid-even", "cid-odd", "cmap", "unicode"])(
       async read(at: number, n: number) {
         peakRead = Math.max(peakRead, n);
         loan.fill(0);
-      loan.set(data.subarray(at, at + n));
-      return loan.subarray(0, n);
+        loan.set(data.subarray(at, at + n));
+        return loan.subarray(0, n);
       },
       async write(at: number, part: Uint8Array) {
         data.set(part, at);

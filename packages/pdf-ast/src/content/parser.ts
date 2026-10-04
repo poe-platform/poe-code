@@ -243,7 +243,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean; read
                 items.push(item);
               }
             }
-            currentTextCommands.push({ kind: "show-text-array", items });
+            currentTextCommands.push({ kind: "show-text-array", items, ...(args[0].storedItems ? { storedItems: args[0].storedItems } : {}) });
           }
           break;
         }

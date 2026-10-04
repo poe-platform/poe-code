@@ -1,3 +1,4 @@
+import { readStoredRecord } from "./stored-record.js";
 import { readStoredCidGlyph } from "../fonts/stored-cid-map.js";
 import { appendStoredClip } from "./stored-clips.js";
 import { cosNumber, cosName, cosArray, cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
@@ -144,6 +145,10 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
           await selected?.return(); break;
         }
         case "resolve": case "catalog": reply = { kind: "resolved", node: await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node) }; break;
+        case "array-item": {
+          const record = await readStoredRecord<PdfCosNode>(request.items.storage, request.position, signal);
+          reply = { kind: "resolved", node: cosArray([cosNumber(record.next), record.value]) }; break;
+        }
         case "string-bytes": {
           const bytes = await request.value.storage.read(request.value.position + request.offset, request.length, signal ? { signal } : undefined);
           signal?.throwIfAborted();

@@ -16,11 +16,12 @@ export interface PdfContentOperator {
 type Work<T> = Generator<OperatorRequest, T, CosToken | PdfCosNode | number | undefined>;
 export type OperatorRequest =
   | { kind: "token" }
+  | { kind: "array-append"; previous: number; node: PdfCosNode }
   | { kind: "byte"; position: number }
   | { kind: "push"; node: PdfCosNode }
   | { kind: "pop" }
   | { kind: "operator"; value: PdfContentOperator };
-export interface ContentOperandLimits { maxNodes: number; maxDepth: number }
+export interface ContentOperandLimits { maxNodes: number; maxDepth: number; arrayStorage?: import("../ast.js").PdfPixelStorage }
 function* token(): Work<CosToken | undefined> { return (yield { kind: "token" }) as CosToken | undefined; }
 function* byte(position: number): Work<number | undefined> { return (yield { kind: "byte", position }) as number | undefined; }
 function* parseOperandToken(tok: CosToken, limits: ContentOperandLimits, depth = 0, state = { nodes: 0 }): Work<PdfCosNode> {
@@ -46,12 +47,19 @@ function* parseOperandToken(tok: CosToken, limits: ContentOperandLimits, depth =
       return { kind: "string", encoding: "hex", bytes: tok.bytes, ...(tok.storedBytes ? { storedBytes: tok.storedBytes } : {}), span: tok.span };
     case "array-start": {
       const items: PdfCosNode[] = [];
+      let position = -1, previous = -1, length = 0;
       while (true) {
         const next = (yield* token());
         if (!next || next.kind === "array-end") {
-          return { kind: "array", items };
+          return { kind: "array", items, ...(limits.arrayStorage ? { storedItems: { storage: limits.arrayStorage, position, length } } : {}) };
         }
-        items.push((yield* parseOperandToken(next, limits, depth + 1, state)));
+        const node = yield* parseOperandToken(next, limits, depth + 1, state);
+        if (limits.arrayStorage) {
+          const at = yield { kind: "array-append", previous, node };
+          if (typeof at !== "number") throw new TypeError("Expected stored array record");
+          if (!length) position = at;
+          previous = at; length++;
+        } else items.push(node);
       }
     }
     case "dict-start": {
@@ -81,7 +89,7 @@ function computeInlineImageMinBytes(entries: readonly PdfDictEntry[]): number {
 
   const filterNode = getEntry("F", "Filter");
   if (filterNode) {
-    if (filterNode.kind === "array" && filterNode.items.length === 0) {
+    if (filterNode.kind === "array" && (filterNode.storedItems?.length ?? filterNode.items.length) === 0) {
       // Empty filter array means uncompressed (pypdf #4026)
     } else {
       return 0;
@@ -219,6 +227,7 @@ export function* parseContentOperators(bytes: Uint8Array): Generator<PdfContentO
       const request = step.value;
       let result: CosToken | PdfCosNode | number | undefined;
       switch (request.kind) {
+        case "array-append": throw new Error("Buffered content cannot request stored array records");
         case "token": result = lexer.nextToken(); break;
         case "byte": result = bytes[request.position]; break;
         case "push": stack.push(request.node); break;

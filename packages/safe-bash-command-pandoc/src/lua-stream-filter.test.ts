@@ -124,3 +124,23 @@ it.each([["1.0","1.0"],["1/3","0.33333333333333"]])("preserves numeric Lua error
     await expect(filters.applyJsonStream!({stdin:(async function*(){yield encoder.encode(JSON.stringify(document));})(),stdout:{write:vi.fn()},signal:new AbortController().signal},{kind:"lua",path:"/filter.lua"},Object.assign(context,{to:"json"}))).rejects.toMatchObject({message});
   } finally {await context.close();expect(await fs.readdir("/")).toEqual([]);}
 });
+
+
+it.each([false,true].flatMap(asynchronous=>[false,true].map(cleanupFails=>({asynchronous,cleanupFails}))))("closes a retained reader cancelled by its factory without pulling ($asynchronous, cleanup failure $cleanupFails)",async({asynchronous,cleanupFails})=>{
+  const {convertToOutput}=await import("./index.js");
+  const fs=new MemoryFileSystem(),controller=new AbortController();
+  const next=vi.fn(()=>({done:false as const,value:encoder.encode("return {}")}));
+  const close=vi.fn(()=>{if(cleanupFails)throw new Error("cleanup failed");return {done:true as const,value:undefined};});
+  const filters=createLuaFilterCapability({readStream(){
+    controller.abort();
+    return asynchronous
+      ? {[Symbol.asyncIterator](){return {async next(){return next();},async return(){return close();}};}}
+      : {[Symbol.iterator](){return {next,return:close};}};
+  }});
+  const write=vi.fn();
+  await expect(convertToOutput([{bytes:encoder.encode(JSON.stringify(document))}],{from:"json",to:"plain",filters:[{kind:"lua",path:"/filter.lua"}]},{signal:controller.signal,workingFiles:{fs,directory:"/",cacheBytes:16384},filters,output:{write,async close(){},async abort(){}}})).rejects.toMatchObject({code:"E_CANCELLED"});
+  expect(next).not.toHaveBeenCalled();
+  expect(close).toHaveBeenCalledOnce();
+  expect(write).not.toHaveBeenCalled();
+  expect(await fs.readdir("/")).toEqual([]);
+});

@@ -42,8 +42,26 @@ export async function applyLuaStream(load:LuaScriptLoader | LuaFilterOptions | L
       supplied=new Uint8Array(supplied);
     }
     const source=(async function*(){
-      if(streamed)yield* (load as LuaStreamFilterOptions).readStream(request.path,signal);
-      else yield supplied!;
+      if(!streamed){yield supplied!;return;}
+      const iterable=(load as LuaStreamFilterOptions).readStream(request.path,signal);
+      const iterator=Symbol.asyncIterator in iterable?iterable[Symbol.asyncIterator]():iterable[Symbol.iterator]();
+      let exhausted=false,failure:{reason:unknown} | undefined;
+      try {
+        for(;;) {
+          context.checkpoint(0);
+          const next=await iterator.next();
+          exhausted=next.done===true;
+          context.checkpoint(0);
+          if(next.done)return;
+          yield next.value;
+        }
+      } catch(reason){failure={reason};throw reason;}
+      finally {
+        if(!exhausted) {
+          if(failure)try{await iterator.return?.();}catch{/* Preserve the source failure. */}
+          else await iterator.return?.();
+        }
+      }
     })();
     try {await applyRetainedLuaFilter(input,output,source,scratch,context,context.to,request.path,typeof load==="function",!streamed);}
     catch(error) {

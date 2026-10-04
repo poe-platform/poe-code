@@ -17,7 +17,7 @@ checkpoint before expanding a cohort; historical receipts are not current regist
 or universal profile qualification. Each family now has a finite `remainingAcceptance`
 list; completed cohorts remain evidence, not new work. Native limitations stay
 separate from product passes. The next execution gate is encrypted Paradox
-companion-file/version export and native reopen through both public routes.
+companion absence/authority and diagnostics through both public routes.
 
 ## 1. What we're building
 
@@ -171,18 +171,23 @@ Three retained checkpoints are complete: mixed Fill control order
 (`encryptedOdfCommandParity`). Their receipts include independent readback and
 failure controls; the encryption receipts retain native application limitations.
 The table above mirrors each ledger case's `remainingAcceptance` list. It replaces
-stale routing from rendering to BIFF to ODF: proceed to the Paradox gate next.
+stale routing from rendering to BIFF to ODF: proceed to Paradox companion checks next.
 Do not repeat completed cohorts unless a relevant runtime change or regression
 invalidates their evidence. Family closure still requires the listed acceptance
 and its independent evidence; this reconciliation does not qualify new profiles.
 Publication/installed-artifact gates remain separate from remote-main delivery.
 Paradox inline memo UTF-8 corruption is repaired (`paradoxInlineMemoUtf8`):
 plaintext/encrypted SDK and command routes preserve Unicode and do not access
-companions. The companion/version gate remains next; native unterminated memo
+companions. The companion gate remains next; native unterminated memo
 allocation remains a reference limitation, not a parity pass.
 Memo M/F export also honors the native NUL boundary before testing inline
 capacity (`paradoxMemoNulCapacity`), removing false companion-loss warnings
 while retaining true overflow diagnostics. This does not qualify external blobs.
+The bounded encrypted type-2 version-ID 3–15 cohort is complete
+(`paradoxVersionRoutes`): 13 native direct-file inputs and 52 public exports
+pass pxlib reopen. Current Gnumeric/GSF header refusal remains a separate
+reference limitation. Next check companion absence/authority and diagnostics;
+do not restart the completed single-short-record version cohort.
 
 ## 4. Interfaces and test plan
 

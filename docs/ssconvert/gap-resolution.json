@@ -4584,14 +4584,17 @@
       "status": "open",
       "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained.",
       "checkpoint20261004": {
-        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings.",
+        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3–15 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen.",
         "evidence": [
           "#/paradoxInlineMemoUtf8",
-          "#/paradoxMemoNulCapacity"
+          "#/paradoxMemoNulCapacity",
+          "#/paradoxVersionRoutes"
         ],
-        "nextAcceptance": "Qualify companion-file and wider version profiles through both public export routes, preserving records/schema and exact diagnostics after native reopen.",
+        "nextAcceptance": "Qualify external memo/index companion absence and explicit authority through both public routes, preserving exact loss diagnostics and unaffected records. The retained 13-version single-short-record cohort is complete; do not repeat it as a new version audit.",
         "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
-        "qualificationBlockers": [],
+        "qualificationBlockers": [
+          "Current Gnumeric/GSF path refuses all 13 retained version controls at header loading; direct pxlib file API opens them. Direct-file qualification is not a GSF application pass."
+        ],
         "remainingAcceptance": [
           "Companion-file and wider block/record/version profiles through SDK and command export; native reopen must preserve schema/records and exact diagnostics.",
           "Remaining password, truncation, work/cleanup and installed-artifact controls; do not claim authenticated encryption."
@@ -6453,5 +6456,29 @@
     "implementation": "Truncate at the first NUL before UTF-8 encoding and inline byte-capacity admission. Truly oversized prefixes retain both existing diagnostics.",
     "verification": "95 focused tests pass after four initial regression failures. Changed-file ESLint, test type-check and maintained ssconvert workspace build pass. Sixteen compiled exports across SDK/command, plaintext/encrypted and M/F produce eight byte-exact prefix/suffix pairs; no companion reads/writes or warnings. All M outputs read back café.",
     "remaining": "External companion capability, wider version/native reopen and installed-artifact gates remain open. Formatted-memo import remains the existing unsupported-field behavior; byte-exact export does not claim F import support. Native inline-memo allocation limitation remains unchanged."
+  },
+  "paradoxVersionRoutes": {
+    "status": "Bounded 13-version route checkpoint complete; family remains open",
+    "candidate": "ee54034dfa33914b71edd5c56a09542c7b755b81",
+    "runtimeChanges": false,
+    "inputs": "For each version ID 3–15, replace only header byte57 in retained independent ciphertext vectors. IDs3–4/13–15 use v4-type2-primary-size1-block1; IDs5–11 use v11-type2-primary-size1-block1; ID12 uses v12-type2-secondary-size1-block2. Original bytes and cipher provenance are in paradox-encryption-gap-proof.json. All contain one short field and value42.",
+    "nativeReference": {
+      "library": "Debian arm64 libpx.so.0.6.9",
+      "sha256": "3c36ce0d9a847b10bff2d0018f2c24c7e26daa6f4250801fecb7f054a10fd3d7",
+      "api": "PX_open_file, PX_get_num_records, PX_get_num_fields, PX_get_record, PX_get_data_short",
+      "result": "All13 inputs and52 public exports reopen with one record, one field and value42; no stderr."
+    },
+    "public": "13 versions x2 SDK/command routes x2 plaintext/encrypted output modes =52 exported v12 tables. All product imports/readbacks preserve value42. Only IDs3–4/13–15 emit Target encoding could not be set. No additional diagnostics. Native independent readback checks every exported table. This does not claim writing every historical output version.",
+    "verification": "Maintained selected ssconvert workspace build and95 focused Paradox/database tests pass. No product defect reproduced in this version cohort.",
+    "nativeLimitation": "Pinned Gnumeric binary d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82 with the exact optional-python-glossary environment refuses all13 controls at header loading through GSF. Record this separately from the passing direct-file API, consistent with retained GSF adapter limitations.",
+    "remaining": "Next: companion absence/authority and exact diagnostics. Wider field/content/index/key profiles, native GSF application route and installed artifacts remain open; the completed version-byte cohort is not universal format support.",
+    "evidenceHashes": {
+      "inputs.json": "939269d7a6c94976bb8fd951959e19ab235ca9b90a7580d01cd986bc7f5c6806",
+      "read.c": "dbc39179418835937b79aca8fffd58f9f8a0e324eb5387e600755d499b831d19",
+      "pxlib-results.json": "c3f5fa402868045119290440af548c3720f95f7d07d689bb4d35afbcf4ac359e",
+      "public-results.json": "7184d8f04dd193406534b1db350d5814d87431d00879b1c5d8438451d0093bc1",
+      "native-export-results.json": "2b15870cf7bb06fd8bc884414e40b8367db1ae618ce2df72afb20d78c8404ce8",
+      "native-results.json": "50395f3132ba868fd8ed4f0b53d3689cfc55b38748aa270f83328ff6fbae3f9d"
+    }
   }
 }

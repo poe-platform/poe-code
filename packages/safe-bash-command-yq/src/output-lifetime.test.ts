@@ -3,6 +3,31 @@ import test from 'node:test';
 import {createMemoryFileSystem} from '@poe-code/safe-fs';
 import {createCommandArguments} from 'safe-bash-contracts';
 import {createMikeYqCommand} from './mike.js';
+import {NativeWork, limitsFor} from './native-work.js';
+
+for (const mode of ['complete', 'sink-limit', 'cancel'] as const) test(`exhausted work budget keeps diagnostic output bounded and respects ${mode}`, async () => {
+ const controller = new AbortController(), failure = new Error(mode), chunks: Uint8Array[] = [];
+ const work = new NativeWork({command:'yq', ...createCommandArguments([]), cwd:'/', env:{}, fs:createMemoryFileSystem(), signal:controller.signal,
+  stdin:{async *[Symbol.asyncIterator](){}}, stdout:{async write(){assert.fail();}}, stderr:{async write(bytes){
+   assert.ok(bytes.length <= 12288, 'diagnostics must use bounded UTF-8 chunks');
+   chunks.push(new Uint8Array(bytes));
+   if (chunks.length === 2 && mode === 'sink-limit') throw failure;
+   if (chunks.length === 2 && mode === 'cancel') controller.abort(failure);
+  }}}, limitsFor({maxSteps:1}));
+ work.tick();
+ assert.throws(() => work.tick(), /maxSteps/u);
+ const message = `${'a'.repeat(4095)}🌊${'é'.repeat(9000)}`;
+ try {
+  const writing = work.write(message, true);
+  if (mode === 'complete') {
+   await writing;
+   assert.equal(chunks.map(chunk => new TextDecoder().decode(chunk)).join(''), message);
+  } else {
+   await assert.rejects(writing, error => error === failure);
+   assert.equal(chunks.length, 2);
+  }
+ } finally { await work.close(); }
+});
 
 test('split output cleanup ownership stays bounded across completed files', async () => {
  const fs = createMemoryFileSystem();

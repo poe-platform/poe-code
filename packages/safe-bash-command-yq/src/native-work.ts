@@ -244,7 +244,7 @@ export class NativeWork {
     if (failure) throw failure.reason;
   }
 
-  async *encode(text: string): AsyncGenerator<Uint8Array> {
+  async *encode(text: string, diagnostic = false): AsyncGenerator<Uint8Array> {
     const encoder = new TextEncoder();
     for (let offset = 0; offset < text.length;) {
       this.assertOpen();
@@ -253,7 +253,9 @@ export class NativeWork {
       if (end < text.length && last >= 0xd800 && last <= 0xdbff) end--;
       yield encoder.encode(text.slice(offset, end));
       offset = end;
-      const checkpoint = this.tick(); if (checkpoint) await checkpoint;
+      // Reporting an exhausted work budget must not debit that budget again.
+      const checkpoint = diagnostic ? yieldTurn(this.signal) : this.tick();
+      if (checkpoint) await checkpoint;
     }
   }
 
@@ -264,7 +266,7 @@ export class NativeWork {
       operation = createOutputOperation({ signal: this.signal, registerCleanup: cleanup => this.register(cleanup) }, stderr ? this.context.stderr : this.context.stdout);
       this.#outputs.set(stderr, operation);
     }
-    const source = typeof bytes === "string" ? this.encode(bytes) : [bytes];
+    const source = typeof bytes === "string" ? this.encode(bytes, stderr) : [bytes];
     for await (const chunk of source) {
       await this.track(operation.output.write(chunk));
       this.assertOpen();

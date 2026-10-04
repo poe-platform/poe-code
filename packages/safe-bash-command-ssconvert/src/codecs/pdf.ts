@@ -257,11 +257,13 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       value = value.split("\n").join("↩");
       tick(value.length);
     }
-    const paragraphs = cellBox ? splitPrintLines(value, tick) : [{text: value, forced: false}];
+    const singleParagraph = cellBox?.style.alignment === "fill";
+    if (singleParagraph && (value.includes("\r") || value.includes("\u2028"))) unsupported("fill control-character layout");
+    const paragraphs = cellBox && !singleParagraph ? splitPrintLines(value, tick) : [{text: value, forced: false}];
     const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line.text, supported, tick) : line.text);
     for (const line of shapedLines) for (const scalar of line) {
       tick();
-      if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
+      if (!(singleParagraph && scalar === "\u2029") && !supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
     }
     let baseline = page.getHeight() - y - size;
     let width = cellBox ? 0 : font.widthOfTextAtSize(value, size);
@@ -282,7 +284,14 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         let width = 0, displayWidth = 0;
         const advances: number[] = [];
         // Pango's unhinted print profile rounds advances and offsets in display pixels.
-        const run = shapedValue ? shaper.shape(metrics, shapedValue) : undefined;
+        // Native single-paragraph itemization separates U+2029 runs. Shape each
+        // run independently so kerning and ligatures cannot cross the separator.
+        const parts = singleParagraph ? shapedValue.split("\u2029") : [shapedValue];
+        const runs = parts.filter(Boolean).map(part => {tick(); return shaper.shape(metrics, part);});
+        if (runs.length > 1 && runs.some(run => run.direction === "rtl")) unsupported("bidirectional fill layout");
+        const run = runs.length < 2 ? runs[0] : Object.create(runs[0]!, {
+          glyphs: {value: runs.flatMap(run => run.glyphs)}, positions: {value: runs.flatMap(run => run.positions)}
+        }) as NonNullable<typeof runs[0]>;
         for (const position of run?.positions ?? []) {
           tick();
           const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;

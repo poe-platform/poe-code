@@ -6018,5 +6018,11 @@
     "implementation": "Use shared rotated natural width for bounded borderless Fill repetition while retaining original line placement. Bordered cells retain one copy and honor explicit wrapping. Marked logical text excludes zero-width kerning separators from extraction.",
     "validation": "Four original refusal regressions and one native-discovered wrapping failure reproduced.461 PDF/rotation tests,selected workspace build,engine/command lint and source/test/public-consumer types pass.28 independent native inputs produce112 compiled SDK/command outputs;56 line-origin and56 character/copy-count comparisons pass. Repeated and wrapped native/public screenshots inspected.",
     "remaining": "Fill control-character/rich-text profiles and broader rotation font/Unicode/decoration/merged multipage qualification;all19families remain open."
+  },
+  "pdfFillParagraphSeparators": {
+    "status": "Focused Fill paragraph-separator profile verified; broader rendering remains open",
+    "implementation": "Treat U+2029 as a zero-width itemization boundary in single-paragraph Fill. Shape neighboring segments independently so cross-boundary ligatures and kerning do not change repetition counts; preserve workbook text.",
+    "validation": "Original memory fixture failed with unsupported Fill control-character layout.447 PDF tests plus82 final focused tests,selected build and command lint/source/test/public-consumer types pass.10 native inputs produce40 compiled SDK/command outputs;20 character/copy-count comparisons match.10 unrotated first-word origins agree within0.0017pt;10 rotated transformation origins agree within0.01pt. Rotated AV screenshot inspected.",
+    "remaining": "U+2028 native vector control glyph,CR control boxes,tabs,and broader rich-text/font/Unicode/decorations/merged multipage qualification;all19families open."
   }
 }

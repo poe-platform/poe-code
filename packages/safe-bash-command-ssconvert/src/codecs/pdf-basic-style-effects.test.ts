@@ -333,3 +333,11 @@ it("prints LF as a return arrow in filled strings", async () => {
   expect(runs[0]!.text.split("\u200b").join("")).toBe("ab↩cdab↩cd");
   expect(book).toEqual(before);
 });
+it("keeps paragraph separators inside one Fill line without joining glyph clusters", async () => {
+  const book = await fixture([{text: "a\u2029b", attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
+  const before = structuredClone(book);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  expect(runs).toHaveLength(1);
+  expect(runs[0]!.text.split("\u200b").join("")).toBe("ab".repeat(7));
+  expect(book).toEqual(before);
+});

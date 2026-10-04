@@ -22,6 +22,13 @@ async function run(args: string[], input: string | Uint8Array, right = '', limit
   return { ...result, bytes, stdout: new TextDecoder().decode(bytes), stderr };
 }
 
+for (const flag of ['-L', '--last']) test(`slice ${flag} reads the last rows from a file under default limits`, async () => {
+  const result = await run(['slice', flag, '2', '/right.csv'], '', 'id,val\n1,a\n2,b\n3,c\n4,d\n');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, '');
+  assert.equal(result.stdout, 'id,val\n3,c\n4,d\n');
+});
+
 test('search combines selected columns, case folding, inversion and exact matching', async () => {
   const input = 'a,b\nALPHA,alpha\nalpha,beta\nbeta,beta\n';
   const result = await run(['search', '-i', '--every-column', '-e', 'alpha'], input);

@@ -39,5 +39,10 @@ result after reading. Its `fields()` iterator streams field IDs, types and cache
 text; `fieldCount` supports exact-selection checks. `stageRetainedText` provides
 the staged `text.get`, `fields.list` and `fields.get` command formats, preserving
 original field caches independently of compatibility-projected text.
+`pptx xml get` also stages raw, JSON and pretty responses through caller storage.
+`openRetainedXmlPart` (from `xml-parts`) exposes replayable original bytes and
+UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves
+mixed content and keeps its traversal spans in caller storage. Close the result
+after reading. `stageRetainedXmlPart` supplies the staged command formats.
 Other default operations and the synchronous presentation model still use buffered
 APIs.

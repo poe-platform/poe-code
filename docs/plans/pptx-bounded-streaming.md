@@ -120,7 +120,7 @@ state and the remaining shipped-engine wiring are still required before they
 replace the buffered paths.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
-Except for semantic validation, inspection, structural text and field extraction, the built-in command engine still collects input,
+Except for semantic validation, inspection, structural text, field and XML extraction, the built-in command engine still collects input,
 returns complete stdout/stderr, and publishes complete output arrays. `safe-bash-presentation-engine` still collects the archive,
 retains decompressed members in `readPackage`, copies members in
 `writePackageArchive`, and builds embedded chart workbooks in memory.
@@ -268,6 +268,23 @@ A native python-pptx/lxml fixture independently confirmed field metadata and
 inline coordinates, with exact retained/buffered response parity and clean storage.
 Richer text views, other extraction, mutations and embedded workbooks remain
 buffered. No runtime Worker memory qualification is claimed.
+
+The shipped `xml get` operation now uses retained archive/presentation admission
+and stages raw, JSON and pretty responses in caller storage before stdout. The
+SDK `openRetainedXmlPart` borrows the archive and owns decoded XML plus a stored
+tree of pretty-print spans. It preserves original bytes, UTF-8/UTF-16 decoding,
+mixed content, comments, CDATA, processing instructions and explicit XML-operation
+limit precedence. Traversal uses stored parent/sibling links without a JS stack;
+long attributes, text and namespace values remain streamed. Part and metadata
+selection diagnostics match the buffered command.
+Verification passed 146 focused XML SDK/command tests, scoped lint/typechecks
+and the maintained command workspace build. Tests cover deep trees, reused input
+buffers, real caller-storage spills with writes capped at 16 KiB, slow sinks,
+output limits, cancellation and storage/sink cleanup. Native python-pptx/lxml
+independently confirmed unchanged XML semantics and byte-exact command parity in
+all four raw/pretty/JSON formats. Interrupted full package suites were not counted
+as completed verification. Other extraction, richer text views, mutations and
+embedded workbooks remain buffered; no runtime Worker qualification is claimed.
 
 ## Remaining implementation
 

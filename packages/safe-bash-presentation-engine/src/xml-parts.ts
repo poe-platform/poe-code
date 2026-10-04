@@ -401,3 +401,5 @@ export function validateXmlPartReplacement(
     );
   return candidate;
 }
+
+export { openRetainedXmlPart, stageRetainedXmlPart, type RetainedXmlPart, type RetainedXmlPartContext } from './retained-xml-parts.js';

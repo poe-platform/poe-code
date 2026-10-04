@@ -197,7 +197,7 @@ import {
   mutatePresentationSettings,
   type MutatePresentationSettingsOptions
 } from "safe-bash-presentation-engine/presentation-settings";
-import { getXmlPart, replaceXmlPart } from "safe-bash-presentation-engine/xml-parts";
+import { getXmlPart, stageRetainedXmlPart, replaceXmlPart } from "safe-bash-presentation-engine/xml-parts";
 import { validatePresentation, openRetainedPresentationValidation, type ValidationLimits } from "safe-bash-presentation-engine/validation";
 import { readPackage } from "safe-bash-presentation-engine/package-reader";
 import { resourceContext, type ResourceContext } from "safe-bash-presentation-engine/resource-limits";
@@ -4089,7 +4089,7 @@ async function execute(
     output.json = args.json;
     output.operation = args.operation;
     const operation = args.operation;
-    if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get") && request.streaming) {
+    if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "xml.get") && request.streaming) {
       if (args.token) decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const hash = sha256.create();
@@ -4099,7 +4099,13 @@ async function execute(
       const archive = await openPackageArchive(input, context); let failed = false;
       try {
         const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
-        stagedOutput = args.operation !== "inspect"
+        stagedOutput = args.operation === "xml.get"
+          ? await stageRetainedXmlPart(archive, fingerprint, {
+            ...(args.token === undefined ? {} : { token: args.token }), ...(args.slide === undefined ? {} : { slide: args.slide }),
+            ...(args.shape === undefined ? {} : { shape: args.shape }), ...(args.part === undefined ? {} : { part: args.part }),
+            ...(args.scope === undefined ? {} : { scope: args.scope }), ...(args.all === undefined ? {} : { all: args.all })
+          }, context, { json: args.json, pretty: args.pretty ?? false, maxOutputBytes: options.maxOutputBytes })
+          : args.operation !== "inspect"
           ? await stageRetainedText(archive, fingerprint, {
             ...(scope === undefined ? {} : { scope: scope as TextScope }),
             ...(args.token ? { select: { token: args.token } } : args.slide === undefined ? {} : { select: { kind: "slide", position: { coordinateSystem: "one-based", value: args.slide } } }),

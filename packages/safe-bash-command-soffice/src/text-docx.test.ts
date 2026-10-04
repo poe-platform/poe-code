@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { readZipArchiveEntries, runSofficeCli, runSofficeCliSync } from "./index.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { readZipArchiveEntries, runSofficeCli, runSofficeCliSync, runSofficeFileCli } from "./index.js";
 
 for (const mode of ["sync", "async"]) test(`plain text DOCX conversion emits an OOXML archive (${mode})`, async () => {
   const files = new Map([["/note.txt", new TextEncoder().encode("Hello LibreOffice\nLine Two\n")]]);
@@ -62,3 +63,26 @@ for (const run of [runSofficeCliSync, runSofficeCli]) {
     assert.equal(new TextDecoder().decode(files.get("/restored/page.txt")), "Document title\n\nDocument paragraph\n");
   });
 }
+
+for (const extension of ["txt", "md"]) test(`${extension} exports readable DOCX through the filesystem CLI`, async () => {
+  const filesystem = new MemoryFileSystem();
+  await filesystem.mkdir("/workspace", { recursive: true });
+  const input = `/workspace/note.${extension}`;
+  const output = "/workspace/note.docx";
+  await filesystem.writeFile(input, new TextEncoder().encode("# Heading\nHello <world> & café\n"));
+  let stderr = "";
+  const result = await runSofficeFileCli(["--headless", "--convert-to", "docx", "--outdir", "/workspace", input], {
+    filesystem,
+    stdout: { async write() {} },
+    stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
+  });
+  assert.equal(result.exitCode, 0, stderr);
+  const bytes = await filesystem.readFile(output);
+  const entries = readZipArchiveEntries(bytes);
+  for (const part of ["[Content_Types].xml", "_rels/.rels", "word/document.xml"]) {
+    assert.ok(entries.has(part), `Missing OOXML part: ${part}`);
+  }
+  const cat = await runSofficeCli(["--headless", "--cat", output], new Map([[output, bytes]]));
+  assert.equal(cat.exitCode, 0, cat.stderr);
+  assert.equal(cat.stdout, "Heading\nHello <world> & café\n");
+});

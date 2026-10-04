@@ -13,20 +13,53 @@ import { pptxCommands } from "../../src/commands/pptx/index.js";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+const patchInput = "*** Begin Patch\n*** Update File: /patch.txt\n@@\n-old\n+new\n*** Add File: /added.txt\n+added\n*** End Patch\n";
+
+test("apply_patch updates retained-staging memory files without global Buffer", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/patch.txt", encoder.encode("old\n"));
+  const shell = new Shell({ fs, cwd: "/", commands: new CommandRegistry(createApplyPatchCommands()) });
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
+  try {
+    Reflect.deleteProperty(globalThis, "Buffer");
+    const result = await shell.exec("apply_patch", { stdin: patchInput });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(decoder.decode(await fs.readFile("/patch.txt")), "new\n");
+    assert.equal(decoder.decode(await fs.readFile("/added.txt")), "added\n");
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["added.txt", "patch.txt"]);
+    assert.equal(globalThis.Buffer, undefined);
+  } finally {
+    Object.defineProperty(globalThis, "Buffer", descriptor);
+    await shell.dispose();
+  }
+});
 
 for (const keepDate of [false, true]) test(`file commands preserve lower files on an overlay without global Buffer (keepDate=${keepDate})`, async () => {
   const lower = new MemoryFileSystem();
   const originals = { "/patch.txt": "old\n", "/lines.txt": "one\n---\ntwo\n", "/dos.txt": "one\r\ntwo\r\n", "/unix.txt": "one\ntwo\n" };
   for (const [path, text] of Object.entries(originals)) await lower.writeFile(path, encoder.encode(text));
-  const fs = new OverlayFileSystem({ lower, upper: new MemoryFileSystem() });
+  const upper = new MemoryFileSystem();
+  const fs = new OverlayFileSystem({ lower, upper });
+  const originalEntries = await lower.readdir("/");
   const shell = new Shell({ fs, cwd: "/", commands: new CommandRegistry([
     ...createApplyPatchCommands(), ...createSplitCommands(), ...createCsplitCommands(), ...createDos2unixCommands(),
   ]) });
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
   try {
     Reflect.deleteProperty(globalThis, "Buffer");
+    // Overlay publication cannot preserve existing identity through staged writes.
+    const patch = await shell.exec("apply_patch", { stdin: patchInput });
+    assert.equal(patch.exitCode, 1);
+    assert.equal(patch.stdout, "");
+    assert.equal(patch.stderr, "apply_patch: filesystem does not support atomic conditional patch mutations\n");
+    assert.deepEqual(await fs.readdir("/"), originalEntries);
+    assert.deepEqual(await lower.readdir("/"), originalEntries);
+    assert.deepEqual(await upper.readdir("/"), []);
+    for (const [path, text] of Object.entries(originals)) {
+      assert.deepEqual(await fs.readFile(path), encoder.encode(text), path);
+      assert.deepEqual(await lower.readFile(path), encoder.encode(text), path);
+    }
     for (const [script, stdin] of [
-      ["apply_patch", "*** Begin Patch\n*** Update File: /patch.txt\n@@\n-old\n+new\n*** Add File: /added.txt\n+added\n*** End Patch\n"],
       ["split -l 1 /lines.txt /split_", ""],
       ["csplit /lines.txt '/---/'", ""],
       [`dos2unix ${keepDate ? "-k " : ""}/dos.txt`, ""],
@@ -36,7 +69,7 @@ for (const keepDate of [false, true]) test(`file commands preserve lower files o
       assert.equal(result.exitCode, 0, `${script}: ${result.stderr}`);
     }
     for (const [path, text] of Object.entries({
-      "/patch.txt": "new\n", "/added.txt": "added\n", "/split_aa": "one\n", "/split_ab": "---\n", "/split_ac": "two\n",
+      "/patch.txt": "old\n", "/split_aa": "one\n", "/split_ab": "---\n", "/split_ac": "two\n",
       "/xx00": "one\n", "/xx01": "---\ntwo\n", "/dos.txt": "one\ntwo\n", "/unix.txt": "one\r\ntwo\r\n",
     })) assert.equal(decoder.decode(await fs.readFile(path)), text, path);
     for (const [path, text] of Object.entries(originals)) assert.equal(decoder.decode(await lower.readFile(path)), text, path);

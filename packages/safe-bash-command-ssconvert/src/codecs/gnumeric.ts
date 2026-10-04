@@ -266,7 +266,8 @@ function axisDefaultSize(node: XmlElement | undefined, fallback: number): number
   const size = number(node, "DefaultSizePts", fallback);
   return size > 0 ? size : fallback;
 }
-async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void, context: CapabilityContext, nodes: GnumericChildren): Promise<{ entries: AxisMetadata[]; defaultSize?: number }> {
+async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void, context: CapabilityContext, nodes: GnumericChildren, values?: ReturnType<typeof createGnumericValueStorage>): Promise<{ entries: AxisMetadata[]; defaultSize?: number }> {
+  const stored = values?.axis();
   const result = new Map<number, AxisMetadata>();
   let defaultSize: number | undefined;
   const fallback = axis === "RowInfo" ? 12.75 : 48;
@@ -279,10 +280,11 @@ async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: num
         if (cell.localName !== "Cell" || !namespaces.has(cell.namespace)) continue;
         const index = number(cell, axis === "RowInfo" ? "Row" : "Col", -1);
         if (!Number.isSafeInteger(index) || index < 0 || index >= maximum) invalid("invalid cell position");
-        if (!result.has(index)) {
+        if (stored ? await stored.get(index) === undefined : !result.has(index)) {
           admit(1);
-          result.set(index, { index, sizePoints: defaultSize ?? fallback });
-          implicit.add(index);
+          const metadata = { index, sizePoints: defaultSize ?? fallback };
+          if (stored) await stored.set(metadata, true);
+          else { result.set(index, metadata); implicit.add(index); }
         }
       }
       continue;
@@ -302,15 +304,22 @@ async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: num
       // Native import updates flags first, rejects nonpositive sizes, then copies
       // the first axis (including its retained size) across the complete interval.
       const sizePoints = attribute(item, "Unit") !== undefined && unit > -1 && unit <= 0
-        ? result.get(start)?.sizePoints ?? defaultSize ?? fallback
+        ? (stored ? (await stored.get(start))?.metadata : result.get(start))?.sizePoints ?? defaultSize ?? fallback
         : unit;
       for (let i = 0; i < count; i++) {
-        implicit.delete(start + i);
-        result.set(start + i, { index: start + i, sizePoints,
+        const metadata = { index: start + i, sizePoints,
         hidden: number(item, "Hidden", 0) !== 0, collapsed: number(item, "Collapsed", 0) !== 0, outlineLevel: number(item, "OutlineLevel", 0),
-        style: { gnumeric: record(item) } });
+        style: { gnumeric: record(item) } };
+        if (stored) await stored.set(metadata, false);
+        else { implicit.delete(start + i); result.set(start + i, metadata); }
       }
     }
+  }
+  if (stored) {
+    const entries: AxisMetadata[] = [];
+    for await (const { metadata, implicit } of stored.values())
+      if (!implicit || metadata.sizePoints !== (defaultSize ?? fallback)) entries.push(metadata);
+    return { entries, ...(defaultSize === undefined ? {} : { defaultSize }) };
   }
   // Native writers omit allocated axes which still match the final default.
   for (const index of implicit) if (result.get(index)?.sizePoints === (defaultSize ?? fallback)) result.delete(index);
@@ -457,8 +466,8 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
         if (previous === undefined) { addresses.set(address, cells.length); cells.push(cell); } else cells[previous] = cell;
       }
     }
-    const rows = await axes(node, "RowInfo", size.rows, admitAxes, context, nodes);
-    const columns = await axes(node, "ColInfo", size.columns, admitAxes, context, nodes);
+    const rows = await axes(node, "RowInfo", size.rows, admitAxes, context, nodes, values);
+    const columns = await axes(node, "ColInfo", size.columns, admitAxes, context, nodes, values);
     const visibility = attribute(node, "Visibility")?.toLowerCase();
     sheets.push({ id: `s${i + 1}`, name, size, cells,
       visibility: visibility?.includes("very_hidden") || visibility === "very-hidden" ? "very-hidden" : visibility?.includes("hidden") ? "hidden" : "visible",

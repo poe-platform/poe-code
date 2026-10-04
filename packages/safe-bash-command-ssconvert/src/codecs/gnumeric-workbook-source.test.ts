@@ -18,13 +18,17 @@ it.each([false, true])('replays scalar Gnumeric cells without a resident cell ar
   let captured: WorkbookSource | undefined;
   const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: 'fixture', extensions: [],
     async readSource(source, ctx) {
-      const push = Array.prototype.push;
+      const push = Array.prototype.push, set = Map.prototype.set;
+      Map.prototype.set = function(key: unknown, value: unknown) {
+        if (value && typeof value === 'object' && 'index' in value && 'sizePoints' in value) throw new Error('resident Gnumeric axes');
+        return set.call(this, key, value);
+      };
       Array.prototype.push = function(this: unknown[], ...items: unknown[]) {
         if (items.some(item => item && typeof item === 'object' && 'row' in item && 'column' in item && 'value' in item)) throw new Error('resident workbook cells');
         return push.apply(this, items);
       };
       try { captured = await gnumeric.readGnumericWorkbookSource(source, ctx); }
-      finally { Array.prototype.push = push; }
+      finally { Array.prototype.push = push; Map.prototype.set = set; }
       expect(captured).toBeDefined();
       expect(captured!.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [] })) });
       const sorted = [...expected.sheets[0]!.cells].sort((a, b) => a.row - b.row || a.column - b.column);
@@ -154,5 +158,24 @@ it('serializes concurrent replays through borrowed storage responses and erases 
   // Cell payload/header views share the fixed scratch; index writes own their
   // short buffers and do not contain the payload text.
   expect([...outputs].filter(bytes => bytes.length > 8).every(bytes => bytes.every(byte => byte === 0))).toBe(true);
+  expect(await fs.readdir('/')).toEqual([]);
+});
+
+it.each([
+  '<g:Rows DefaultSizePts="20"/><g:Cells><g:Cell Row="2" Col="1" ValueType="40">1</g:Cell></g:Cells><g:Rows DefaultSizePts="25"><g:RowInfo No="2" Count="2" Unit="0" Hidden="1"/></g:Rows><g:Cells><g:Cell Row="9" Col="1" ValueType="40">2</g:Cell></g:Cells><g:Rows DefaultSizePts="30"/>',
+  '<g:Cells><g:Cell Row="2" Col="1" ValueType="40">1</g:Cell></g:Cells><g:Rows DefaultSizePts="20"><g:RowInfo No="2" Unit="-1"/><g:RowInfo No="2" Count="2" Unit="0"/></g:Rows><g:Cols DefaultSizePts="55"><g:ColInfo No="1" Count="2" Unit="0" Collapsed="1"/></g:Cols>',
+  '<g:Rows DefaultSizePts="20"><g:RowInfo No="2" Unit="35"/><g:RowInfo No="1" Count="3" Unit="0" OutlineLevel="2"/></g:Rows><g:Cells><g:Cell Row="2" Col="1" ValueType="40">1</g:Cell></g:Cells><g:Rows DefaultSizePts="22"><g:RowInfo No="3" Unit="40"/></g:Rows>'
+])('preserves stored axis timing, range recovery and diagnostics for %s', async sections => {
+  const bytes = new TextEncoder().encode('<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>Data</g:Name>' + sections + '</g:Sheet></g:Sheets></g:Workbook>');
+  const expectedDiagnostics: unknown[] = [], actualDiagnostics: unknown[] = [];
+  const expected = await gnumeric.readGnumeric(bytes, { ...context, async diagnostic(event) { expectedDiagnostics.push(event); } });
+  const fs = createMemoryFileSystem(), engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: 'fixture', extensions: [], async readSource(source, ctx) {
+    const replay = await gnumeric.readGnumericWorkbookSource(source, { ...ctx, async diagnostic(event) { actualDiagnostics.push(event); } });
+    expect(replay!.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [] })) });
+    return replay!.metadata;
+  } }] });
+  try { await engine.readWorkbook({ kind: 'range', source: { size: bytes.length, async read(position, count) { return bytes.subarray(position, position + count); } } }, { importType: 'fixture' }, { signal: context.signal }); }
+  finally { await engine.dispose(); }
+  expect(actualDiagnostics).toEqual(expectedDiagnostics);
   expect(await fs.readdir('/')).toEqual([]);
 });

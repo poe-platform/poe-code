@@ -118,24 +118,25 @@ export const safeBashProfileBaselines = {
   "core": 1715877,
   "rootCore": 1717280,
   "pythonLlm": 1954948,
-  "pdf": 2757392,
-  "multiplePdf": 2845674,
-  // One canonical spreadsheet engine, including pinned timezone/Bessel support.
-  "csv": 3494546,
-  "csvXlsx": 3742758,
+  // Canonical PDF graph includes caller-backed parsing, fonts, editing and output.
+  "pdf": 3170868,
+  "multiplePdf": 3368599,
+  // One spreadsheet engine with streamed formats and caller-backed workbook storage.
+  "csv": 3570816,
+  "csvXlsx": 3878506,
   "git": 7045654,
-  // Registry profiles retain the expanded portable OpenSSL command graph.
-  "baseRegistry": 6253466,
-  "registryWithRegex": 6253503,
-  // Full yq is selected by enabledConsumer; full also retains the CSV Python worker.
-  "enabledConsumer": 6638155,
-  // Full additionally selects the portable media codecs and spreadsheet engine.
-  "full": 71202380,
+  // Registries include retained archive, copy, XML, diff and line-ending commands.
+  "baseRegistry": 6437743,
+  "registryWithRegex": 6437780,
+  // Full yq includes streamed input/output and caller-backed in-place output.
+  "enabledConsumer": 6925045,
+  // Full also selects document/media engines, Pandoc and the CSV Python worker.
+  "full": 73465105,
   "rootPythonLlm": 1956498,
   "splitCore": 1711634,
   "splitPythonLlm": 1950980,
-  "splitEnabledConsumer": 6550905,
-  "splitFull": 70809403
+  "splitEnabledConsumer": 6836666,
+  "splitFull": 73026105
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

@@ -16,7 +16,7 @@ Run `npm run verify:safe-bash-profiles -- <installed-consumer-directory>` agains
 
 Default ESM profiles use esbuild's normal unsplit output. Additional shell, Python/LLM and full profiles enable code splitting and count every generated chunk. Esbuild emits orphan dynamic-import chunks from unused aggregate exports when splitting is enabled; use `/shell` and explicit command paths for that configuration. Root named shell/Python/LLM/default-registry/regex bindings also get separate facade ownership.
 
-Budgets are derived from the measured installed tarballs below: 2% total growth, plus 5% growth of each incremental delta with a 16 KiB minimum allowance. They are regression budgets, separate from Cloudflare's deployment limit.
+Budgets are derived from measured installed tarballs: 2% total growth, plus 5% growth of each incremental delta with a 16 KiB minimum allowance. They are regression budgets, separate from Cloudflare's deployment limit. The initial qualification measurements below are historical; later reviewed measurements are recorded separately.
 
 | Profile | Static bytes | Delta from core |
 | --- | ---: | ---: |
@@ -41,6 +41,31 @@ Budgets are derived from the measured installed tarballs below: 2% total growth,
 The Python/LLM baselines additionally include the integrated template store, template YAML handling, extraction ranges, key aliases, and Python LLM capability/module changes since `c7d1b86e90`. These profiles grew by 30,386–30,900 bytes in total (25,823 bytes incremental for Python/LLM after core growth). The installed graph retains the selected Python and LLM modules; unrelated profiles remain within their previous budgets. The root facade regression was fixed independently: command bootstrap declarations no longer force every command chunk into root imports, reducing measured root overhead from 92,347 to 6,708 bytes without changing its budget. Only the three Python/LLM baselines were updated; growth tolerances and runtime/engine assertions remain unchanged.
 
 The Worker checks pipeline streaming, canonical filesystem writes, abort-reason identity, selected PDF inspection, CSV/XLSX conversion and Git initialization/status. Python execution and LLM responses use injected test hosts, without model requests. Installed type fixtures verify shell/full identity and selected command contracts; existing Node/Bun publication fixtures cover normal import behavior.
+
+### October 4 installed qualification
+
+A clean build of `0f945f4c80` was packaged and installed in an isolated consumer. The following profiles exceed the previous reviewed budgets and use these measured baselines. The PDF comparison starts at `04f444c87f`; the remaining comparison starts at `31a469c382`.
+
+| Profile | Static bytes | Delta from core |
+| --- | ---: | ---: |
+| pdf | 3,170,868 | 1,457,450 |
+| multiplePdf | 3,368,599 | 1,655,181 |
+| csv | 3,570,816 | 1,857,398 |
+| csvXlsx | 3,878,506 | 2,165,088 |
+| baseRegistry | 6,437,743 | 4,724,325 |
+| registryWithRegex | 6,437,780 | 4,724,362 |
+| enabledConsumer | 6,925,045 | 5,211,627 |
+| full | 73,465,105 | 71,751,687 |
+| splitEnabledConsumer | 6,836,666 | 5,123,248 |
+| splitFull | 73,026,105 | 71,312,687 |
+
+Core measured 1,713,418 bytes. The stricter previous baselines remain for core, rootCore, pythonLlm, rootPythonLlm, git, splitCore and splitPythonLlm because their total and incremental checks still pass. The 2% total and 5% incremental tolerances, 16 KiB minimum allowance, exact enabled-command inventory, engine exclusions, shared PDF decoder check and Worker assertions are unchanged.
+
+The source audit identifies supported additions: caller-backed PDF parsing, retained font/CMap/Type1 data, editing and staged output; streamed CSV/XLSX input/output and retained workbook, worksheet and ZIP storage; retained archive/copy/XML/diff command data; and streamed yq JSON, stdout, split-file and in-place output. Full also includes expanded Pandoc retained document conversion, image resources and Lua execution. These features remain selected by the profiles that expose them.
+
+Source moves are not counted as added functionality. In particular, the HarfBuzz and font-normalization data moved from the ssconvert command to the spreadsheet engine with identical contents. The installed graph contains one copy of those modules and one canonical PDF AST owner. The identical shuf/dd descriptor implementations and four nested Pako 1.0.11 dependency lock entries already existed at the previous baseline; this refresh does not claim to eliminate that historical duplication. Individual new-path byte contributions include refactors and therefore are not treated as a net growth decomposition.
+
+The PDF help-path correction reduces a source command bundle but does not reduce these installed profile totals; no installed saving is claimed. Two independent runs of the ordinary installed verifier passed all 17 Worker profiles and both portable network/SafeJS conditions, without budget bypasses, bundler exclusions, aliases or consumer rewrites.
 
 ## Git asset audit
 

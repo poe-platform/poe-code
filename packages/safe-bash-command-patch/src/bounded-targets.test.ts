@@ -1,7 +1,32 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Budget } from "safe-bash-diff-engine/shared";
+import { Budget, ToolError } from "safe-bash-diff-engine/shared";
+import { toByteSource, type CommandContext } from "safe-bash-contracts";
+import { TargetDocuments } from "./stored-target.js";
+import { applyStoredHunks } from "./stored-hunks.js";
+import { parsePatch } from "./patch-formats.js";
 import { filesystem, run } from "./helpers.test.js";
+
+test("asymmetric patch matching rejects at the GNU boundary within 10,000 work units", async () => {
+  const fs = await filesystem();
+  const context: CommandContext = {
+    command: "patch", args: [], cwd: "/work", env: {}, fs,
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write() {} },
+  };
+  const budget = new Budget(context, { maxWork: 10_000 });
+  const documents = new TargetDocuments(budget);
+  try {
+    const original = await documents.load(toByteSource("same\n".repeat(1500)));
+    const input = `--- target\n+++ target\n@@ -1,81 +1,81 @@\n${" same\n".repeat(80)}-absent\n+present\n`;
+    const [patch] = await parsePatch(input, budget, undefined, undefined);
+    assert(patch);
+    // Strict matching stops at the rejected hunk, before copying unchanged output.
+    await assert.rejects(applyStoredHunks(original, patch, 0, budget, false, { partial: false }, documents), error =>
+      error instanceof ToolError && error.exitCode === 1 && error.message === "hunk 1 does not match target");
+  } finally { await documents.close(); }
+  assert.deepEqual(await fs.readdir("/work"), []);
+});
 
 for (const args of [[], ["--atomic"], ["--dry-run"], ["-D", "FEATURE"], ["--merge=diff3"], ["-b"]]) {
   test(`patch stages long targets with bounded reads and writes: ${args}`, async t => {

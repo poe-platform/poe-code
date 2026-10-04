@@ -49,11 +49,23 @@ test("adversarial repetitive patch anchors terminate within an explicit work bud
   assert.equal(await contents(filesystem), before);
 });
 
-test("legacy asymmetric budget input is a GNU boundary rejection, not an expensive search", { timeout: 5000 }, async () => {
+test("legacy asymmetric input charges retained copies and preserves GNU rejection effects", { timeout: 5000 }, async () => {
   const before = "same\n".repeat(1500);
   const input = `--- target\n+++ target\n@@ -1,81 +1,81 @@\n${" same\n".repeat(80)}-absent\n+present\n`;
   const filesystem = await memory({ target: before });
-  const result = await run("patch", ["-F0"], filesystem, input, { maxWork: 10_000 });
-  assert.equal(result.exitCode, 1, result.stderr);
+  // Indexing and required backup/publication copies share the work budget.
+  const bounded = await run("patch", ["-F0"], filesystem, input, { maxWork: 10_000 });
+  assert.equal(bounded.exitCode, 2);
+  assert.equal(bounded.stderr, "patch: work limit exceeded\n");
+  assert.equal(bounded.stdout, "");
   assert.equal(await contents(filesystem), before);
+  assert.deepEqual((await filesystem.readdir("/work")).map(entry => entry.name), ["target"]);
+  const result = await run("patch", ["-F0"], filesystem, input);
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "patching file target\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file target.rej\n");
+  assert.equal(await contents(filesystem), before);
+  assert.equal(await contents(filesystem, "target.orig"), before);
+  assert.equal(await contents(filesystem, "target.rej"), input);
+  assert.deepEqual((await filesystem.readdir("/work")).map(entry => entry.name), ["target", "target.orig", "target.rej"]);
 });

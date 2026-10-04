@@ -1,3 +1,4 @@
+import {reserveRetainedOutput} from "./retained-output-budgets.js";
 import {reserveRetainedAstBudgets} from "./retained-ast-budgets.js";
 import type {readRetainedRtfDocument} from "./retained-rtf-document.js";
 import type {RetainedOptions} from "./retained-options.js";
@@ -59,6 +60,15 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
   let failure: {reason: unknown} | undefined;
   const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
     if (!Number.isFinite(context.limits.outputBytes)) return;
+    if (Number.isFinite(context.limits.references)) {
+      const text = async function* () {
+        const decoder = new TextDecoder();
+        for await (const bytes of chunks) yield decoder.decode(bytes, {stream: true});
+        yield decoder.decode();
+      };
+      await reserveRetainedOutput(text, context, undefined);
+      return;
+    }
     let length = 0;
     for await (const bytes of chunks) {length += bytes.length; context.bound("outputBytes", length);}
   };

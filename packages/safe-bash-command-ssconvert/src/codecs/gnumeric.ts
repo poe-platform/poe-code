@@ -1,7 +1,7 @@
 import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/xml";
 import { createGnumericCellStorage, type GnumericChildren, type GnumericNode } from "./gnumeric-cell-storage.js";
 import { readGnumericDocument, GnumericSourceFailure } from "./gnumeric-input.js";
-import { createGnumericValueStorage } from "./gnumeric-value-storage.js";
+import { createGnumericValueStorage, type GnumericSharedExpression } from "./gnumeric-value-storage.js";
 import type { WorkbookSource } from "./types.js";
 import { orderedCells } from "@poe-code/spreadsheet-engine/workbook/ordered-cells";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
@@ -181,11 +181,13 @@ function names(node: XmlElement | undefined, sheet: string, local = false, sheet
 }
 
 /** Native XML cell expressions bind before delayed name definitions are parsed. */
-async function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () => void, nodes: GnumericChildren): Promise<{
-  formulas: ReadonlyMap<GnumericNode["key"], string>; placeholders: readonly NamedExpression[]; rejections: ReadonlyMap<GnumericNode["key"], string>;
+async function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () => void, nodes: GnumericChildren, values?: ReturnType<typeof createGnumericValueStorage>): Promise<{
+  formulas: { get(key: GnumericNode["key"]): string | undefined | Promise<string | undefined> };
+  placeholders: readonly NamedExpression[];
+  rejections: { get(key: GnumericNode["key"]): string | undefined | Promise<string | undefined> };
 }> {
-  const bound = new Map<GnumericNode["key"], string>();
-  const rejections = new Map<GnumericNode["key"], string>();
+  const bound = values?.formulas ?? new Map<GnumericNode["key"], string>();
+  const rejections = values?.rejections ?? new Map<GnumericNode["key"], string>();
   const placeholders: NamedExpression[] = [];
   const globals = new Set<string>(), locals = new Map<string, Set<string>>();
   const futureGlobals = new Set(children(root, "Names").flatMap(group => names(group, "").map(entry => entry.name)));
@@ -252,10 +254,10 @@ async function bindCellNames(root: XmlElement, context: CapabilityContext, tick:
             }
             if (futureLocals.get(scope)?.has(node.name)) changes.set(node.start, { end: node.end, text: "[]" + node.name });
           });
-          if (rejection !== undefined) { rejections.set(key, rejection); continue; }
+          if (rejection !== undefined) { await rejections.set(key, rejection); continue; }
           let result = formula;
           for (const [start, change] of [...changes].sort(([a], [b]) => b - a)) result = result.slice(0, start) + change.text + result.slice(change.end);
-          if (result !== formula) bound.set(key, result);
+          if (result !== formula) await bound.set(key, result);
         }
       }
     }
@@ -354,7 +356,7 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
         (attribute(node, "ValueType") === undefined || attribute(node, "Value") !== undefined)) return undefined;
     }
   }
-  const values = sourceMode ? createGnumericValueStorage(context) : undefined;
+  const values = context.createWorkingStorage ? createGnumericValueStorage(context) : undefined;
   await warnUnknown(root, context, nodes);
   const index = children(child(root, "SheetNameIndex"), "SheetName");
   const dataSheets = children(child(root, "Sheets"), "Sheet");
@@ -397,7 +399,7 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
   const sheetNodes = index.length ? [...index.map(n => byName.get(n.text) ?? { ...n, localName: "Sheet", children: [] }),
     ...dataSheets.filter(n => !indexedNames.has(sheetName(n) ?? ""))] : dataSheets;
   if (sheetNodes.length > context.limits.sheets) limit("sheets");
-  let count = 0, work = 0; const shared = new Map<string, { formula: string; row: number; column: number; sheet: string; arrayStringLiterals?: boolean }>();
+  let count = 0, work = 0; const shared = values?.shared ?? new Map<string, GnumericSharedExpression>();
   let expandedAxes = 0;
   const admitAxes = (count: number) => {
     context.signal.throwIfAborted();
@@ -405,7 +407,7 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
     expandedAxes += count;
   };
   const tick = () => { context.signal.throwIfAborted(); if (++work > (context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32)) limit("XML relationship work"); };
-  const boundNames = await bindCellNames(root, context, tick, nodes);
+  const boundNames = await bindCellNames(root, context, tick, nodes, values);
   const sheets: Sheet[] = [];
   for (const [i, node] of sheetNodes.entries()) {
     context.signal.throwIfAborted();
@@ -424,9 +426,9 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       const text = child(item, "Content")?.text ?? item.text;
       const type = attribute(item, "ValueType"), cached = attribute(item, "Value"), id = attribute(item, "ExprID");
       let semantics = readFormulaSemantics(item);
-      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? readOpenFormula(item)?.source ?? boundNames.formulas.get(key) ?? text : undefined;
-      if (!text && id && shared.has(id)) {
-        const original = shared.get(id)!;
+      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? readOpenFormula(item)?.source ?? await boundNames.formulas.get(key) ?? text : undefined;
+      const original = id ? await shared.get(id) : undefined;
+      if (!text && original) {
         semantics = original.arrayStringLiterals ? { arrayStringLiterals: true } : {};
         const parsed = parseExpression(original.formula, { maximumDepth: context.limits.formulaDepth, position: original, ...semantics, signal: context.signal });
         if (!parsed.ok) invalid("invalid shared expression");
@@ -436,14 +438,14 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       // as a constant expression. Array corners use a separate native path.
       const rows = number(item, "Rows", 1), cols = number(item, "Cols", 1);
       const array = attribute(item, "Rows") !== undefined && attribute(item, "Cols") !== undefined && rows > 0 && cols > 0;
-      const rejection = boundNames.rejections.get(key);
+      const rejection = await boundNames.rejections.get(key);
       if (formula && !array && rejection !== undefined) {
         const message = `Unparsable expression for ${formatA1(row, column)}: ${text} (${rejection})\n`;
         await context.diagnostic?.({ code: "gnumeric-xml", severity: "warning", message, bytes: new TextEncoder().encode(message) });
         context.signal.throwIfAborted();
         formula = "=" + quoteFormulaString(text.slice(1), '"', gnumericGrammar);
       }
-      if (id && formula && !shared.has(id)) shared.set(id, { formula, row, column, sheet: name, ...semantics });
+      if (id && formula && !original) await shared.set(id, { formula, row, column, sheet: name, ...semantics });
       const stored = formula ? cached === undefined ? { kind: "blank" } as const : value(type, cached) : value(type, text);
       const valueFormat = attribute(item, "ValueFormat"); const runs = readGnumericRichText(valueFormat);
       let style: ImportedValue | undefined; let format = runs ? undefined : valueFormat;
@@ -460,7 +462,7 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       const cell: Cell = { row, column, value: stored, ...(formula ? { formula, ...semantics, formulaDirty: true, ...(cached !== undefined ? { cachedResult: stored } : {}) } : {}),
         ...(group ? { formulaGroup: group } : {}), ...(format ? { format } : {}), ...(runs ? { richText: runs } : {}),
         ...(style || valueFormat ? { style: { ...(style ? { gnumeric: style } : {}), ...(valueFormat ? { gnumericValueFormat: valueFormat } : {}) } } : {}) };
-      if (values) await values.append(i, cell);
+      if (sourceMode && values) await values.append(i, cell);
       else {
         const address = `${row}:${column}`, previous = addresses.get(address);
         if (previous === undefined) { addresses.set(address, cells.length); cells.push(cell); } else cells[previous] = cell;
@@ -515,7 +517,7 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
     calculationMode: manualRecalc ? "manual" : "automatic", iteration,
     unsupportedRecords: root.children.filter(n => namespaces.has(n.namespace) && ["Attributes", "Geometry"].includes(n.localName) ||
       n.localName === "document-meta" && n.namespace === "urn:oasis:names:tc:opendocument:xmlns:office:1.0" || n.localName === "GODoc" && !n.namespace).map(retained) };
-  if (!values) return book;
+  if (!sourceMode || !values) return book;
   return { metadata: book, cells(sheet: string) {
     const index = sheets.findIndex(value => value.id === sheet);
     if (index < 0) throw new SsconvertError("invalid-request", "Unknown Gnumeric sheet");

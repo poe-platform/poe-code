@@ -1,28 +1,32 @@
+import { ZipDirectoryIndex } from "@poe-code/office-package";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import type { AxisMetadata, Cell } from "../workbook.js";
 import { SsconvertError, type CapabilityContext, type WorkingStorage } from "../contracts.js";
 
+export interface GnumericSharedExpression { formula: string; row: number; column: number; sheet: string; arrayStringLiterals?: boolean; }
+
 export interface GnumericAxisState { metadata: AxisMetadata; implicit: boolean; }
 
-/** Shared bounded coordinate indexes and length-prefixed UTF-16 records. Cell
- * and axis payload transfers share one 16 KiB scratch window across all sheets. */
+/** Shared bounded workbook indexes and length-prefixed UTF-16 records. Cell,
+ * axis and formula payloads share one 16 KiB scratch window across all sheets. */
 export function createGnumericValueStorage(context: CapabilityContext) {
-  let storage: WorkingStorage | undefined = undefined, cells: IntegerTable | undefined, axes: IntegerTable | undefined;
+  let storage: WorkingStorage | undefined = undefined, cells: IntegerTable | undefined, axes: IntegerTable | undefined, bindings: IntegerTable | undefined, shared: ZipDirectoryIndex | undefined;
   let closed = false, closing: Promise<void> | undefined, pending: Promise<unknown> = Promise.resolve(), axisGroup = 0;
   const scratch = new Uint8Array(16384), view = new DataView(scratch.buffer);
   const check = () => { context.signal.throwIfAborted(); if (closed) throw new SsconvertError("invalid-request", "Gnumeric values are closed"); };
   context.own(() => {
     closed = true;
-    return closing ??= pending.then(async () => { scratch.fill(0); cells = undefined; axes = undefined; await storage?.close(); });
+    return closing ??= pending.then(async () => { scratch.fill(0); cells = undefined; axes = undefined; bindings = undefined; shared = undefined; await storage?.close(); });
   });
   check();
   if (!context.createWorkingStorage) throw new SsconvertError("capability-denied", "Gnumeric values require caller storage");
-  storage = context.createWorkingStorage(); check(); cells = new IntegerTable(storage, 128); axes = new IntegerTable(storage, 128);
+  storage = context.createWorkingStorage(); check(); cells = new IntegerTable(storage, 128); axes = new IntegerTable(storage, 128); bindings = new IntegerTable(storage, 128);
+  shared = new ZipDirectoryIndex(storage, { maximumKeyLength: Infinity, signal: context.signal });
   function serial<T>(operation: () => Promise<T>): Promise<T> {
     const result = pending.then(() => { check(); return operation(); });
     pending = result.then(() => undefined, () => undefined); return result;
   }
-  async function appendRecord(value: Cell | AxisMetadata, flag: boolean): Promise<bigint> {
+  async function appendRecord(value: Cell | AxisMetadata | GnumericSharedExpression | string, flag: boolean): Promise<bigint> {
     const text = JSON.stringify([value, flag]), address = storage!.allocate(8 + text.length * 2);
     view.setFloat64(0, text.length, true); await storage!.write(address, scratch.subarray(0, 8)); check();
     for (let at = 0; at < text.length; at += 8192) {
@@ -61,8 +65,35 @@ export function createGnumericValueStorage(context: CapabilityContext) {
       }
     } finally { await entries.return(undefined); }
   }
+  function binding(rejection: boolean) {
+    const key = (node: unknown) => {
+      if (typeof node !== "number" || !Number.isSafeInteger(node) || node < 0) throw new SsconvertError("io", "Invalid staged Gnumeric formula key");
+      return BigInt(node) << 1n | (rejection ? 1n : 0n);
+    };
+    return {
+      get(node: unknown): Promise<string | undefined> { return serial(async () => {
+        const pointer = await bindings!.get(key(node)); check();
+        return pointer === undefined ? undefined : (await readRecord<string>(pointer))[0];
+      }); },
+      set(node: unknown, value: string) { return serial(async () => {
+        const pointer = await appendRecord(value, false);
+        await bindings!.set(key(node), pointer); check();
+      }); }
+    };
+  }
   const base = (sheet: number) => BigInt(sheet) << 38n;
   return {
+    formulas: binding(false), rejections: binding(true),
+    shared: {
+      get(id: string): Promise<GnumericSharedExpression | undefined> { return serial(async () => {
+        const pointer = await shared!.get(id); check();
+        return pointer === undefined ? undefined : (await readRecord<GnumericSharedExpression>(BigInt(pointer)))[0];
+      }); },
+      set(id: string, value: GnumericSharedExpression) { return serial(async () => {
+        const pointer = await appendRecord(value, false);
+        await shared!.set(id, Number(pointer)); check();
+      }); }
+    },
     append(sheet: number, cell: Cell) { return serial(async () => {
       const negativeZero = cell.value?.kind === "number" && Object.is(cell.value.value, -0);
       const address = await appendRecord(cell, negativeZero);

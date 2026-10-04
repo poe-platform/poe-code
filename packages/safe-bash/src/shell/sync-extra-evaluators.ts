@@ -1,7 +1,7 @@
 import { bytesToHex } from "../byte-encoding.js";
 import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
-import { writeDiagnostic } from "../escaping.js";
+import { escapeText, writeDiagnostic } from "../escaping.js";
 import { validateExitCode } from "../contracts/index.js";
 import { cloneGetoptsState } from "./getopts.js";
 import { nextCodePointOffset } from "./string-operations.js";
@@ -16004,6 +16004,14 @@ const syncExtraRuntimeMethods = {
     monitor.epoch = restEpoch;
     if (store) store.epoch = restEpoch;
     return loopStatus;
+    } catch (error) {
+      if (!(error instanceof ExpansionFailure)) throw error;
+      this.signal.throwIfAborted();
+      // Loop cleanup has published completed effects. Terminate without replaying
+      // the loop or executing commands after the failed expansion.
+      const diagnostic = `${io.scriptName ?? "shell"}: line ${error.line ?? diagnosticLine}: ${error.message}\n`;
+      syncSinks.get(io.stderr)!(fastSharedTextEncoder.encode(escapeText(diagnostic, "diagnostic")));
+      throw completedExit(1);
     } finally {
       this._syncLoopInvariantSubMap = prevInvMap;
     }

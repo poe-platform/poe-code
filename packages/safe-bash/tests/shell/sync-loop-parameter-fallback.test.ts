@@ -5,6 +5,43 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
+for (const header of ["for i in {1..3}", "for ((i=0;i<3;i++))"]) {
+  for (const value of ["08", "1 +"]) {
+    test(`loop arithmetic expansion failure: ${header}, ${value}`, async () => {
+      const shell = new Shell({ fs: new MemoryFileSystem() });
+      for (const command of basicCommands()) shell.commands.register(command);
+      try {
+        const result = await shell.exec(`s='${value}'; ${header}; do s=$((s + i)); done`);
+        assert.equal(result.exitCode, 1);
+        assert.equal(result.stdout, "");
+        assert.match(result.stderr, /^shell: line 1: .*arithmetic.*\n$/);
+      } finally { await shell.dispose(); }
+    });
+  }
+  test(`loop expansion failure preserves completed effects: ${header}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() });
+    for (const command of basicCommands()) shell.commands.register(command);
+    const session = shell.createSession();
+    try {
+      const result = await session.exec(`s=08; count=0
+${header}; do
+  count=$((count + 1))
+  echo "before:$count"
+  s=$((s + i))
+  echo unreachable
+done
+echo after`);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, "before:1\n");
+      assert.match(result.stderr, /^shell: line 5: .*arithmetic.*\n$/);
+      const subsequent = await session.exec('echo "$count:$s"; for j in 1 2; do count=$((count + j)); done; echo "$count"');
+      assert.equal(subsequent.exitCode, 0);
+      assert.equal(subsequent.stdout, "1:08\n4\n");
+      assert.equal(subsequent.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
 // Replacement expectations use Bash 5.2's default patsub_replacement behavior.
 // Division by zero in an assignment expansion terminates the script, preserving
 // output from completed commands; it does not continue to the next iteration.

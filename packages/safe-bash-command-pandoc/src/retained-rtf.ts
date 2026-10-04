@@ -1,3 +1,4 @@
+import {reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {backedJsonOrder} from "./backed-json-order.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -15,7 +16,7 @@ type ListSpec = {id: number; level: number; nfc: number; start: number; delim: s
 type Paragraph = {indent: number; marker?: string | undefined; style?: number; cell?: string; list?: ListSpec};
 type Job = {op: string; node: number; path: number; cursor?: number; end?: number; index?: number; mode?: string; value?: string;
   depth?: number; state?: Paragraph; columns?: number; width?: number; start?: number; style?: string; delim?: string};
-export type RetainedRtfImage = {width: number; height: number; encoding: "png" | "jpeg"; chunks: AsyncIterable<Uint8Array>};
+export type RetainedRtfImage = {size: number; width: number; height: number; encoding: "png" | "jpeg"; chunks: AsyncIterable<Uint8Array>};
 const formatting: Readonly<Record<string, string>> = {Emph: "i", Strong: "b", Underline: "ul", Strikeout: "strike", Superscript: "super", Subscript: "sub", SmallCaps: "scaps"};
 const alignments: Readonly<Record<string, string>> = {AlignDefault: "ql", AlignLeft: "ql", AlignRight: "qr", AlignCenter: "qc"};
 
@@ -87,7 +88,11 @@ class RtfTape {
   private async present(node: number): Promise<boolean> {
     return (await this.tree.describe(node + 32)).end > node + 64 || !!await this.count(await this.at(node, 1)) || !!await this.count(await this.at(node, 2));
   }
-  private async add(value: string | TextRange): Promise<void> {
+  private async add(value: string | TextRange, account = true): Promise<void> {
+    if (account && Number.isFinite(this.context.limits.references)) {
+      this.context.bound("outputBytes", this.output.units + (typeof value === "string" ? value.length : value.units));
+      this.context.charge("references", 1);
+    }
     await this.text.append(this.output, await this.text.from(typeof value === "string" ? [value] : this.text.chunks(value)));
   }
   private async put(position: number, value: number): Promise<void> {
@@ -98,20 +103,27 @@ class RtfTape {
   }
   private async escaped(value: TextRange): Promise<void> {
     let buffer = "", cr = false;
+    const append = (text: string): void => {
+      if (Number.isFinite(this.context.limits.references)) {
+        this.context.bound("outputBytes", this.output.units + buffer.length + text.length);
+        this.context.charge("references", 1);
+      }
+      buffer += text;
+    };
     for await (const chunk of this.text.chunks(value)) for (let i = 0; i < chunk.length; i++) {
       const char = chunk[i]!, unit = chunk.charCodeAt(i);
-      if (cr) {if (char !== "\n") buffer += "\\line "; cr = false;}
-      if ("{}\\".includes(char)) buffer += "\\" + char;
-      else if (char === "\t") buffer += "\\tab ";
-      else if (char === "\n") buffer += "\\line ";
+      if (cr) {if (char !== "\n") append("\\line "); cr = false;}
+      if ("{}\\".includes(char)) append("\\" + char);
+      else if (char === "\t") append("\\tab ");
+      else if (char === "\n") append("\\line ");
       else if (char === "\r") cr = true;
       else if (unit < 32 || unit === 127) this.fail("Unsupported RTF text control");
-      else if (unit >= 128) buffer += "\\u" + (unit > 32767 ? unit - 65536 : unit) + " ?";
-      else buffer += char;
-      if (buffer.length >= 4096) {await this.add(buffer); buffer = "";}
+      else if (unit >= 128) append("\\u" + (unit > 32767 ? unit - 65536 : unit) + " ?");
+      else append(char);
+      if (buffer.length >= 4096) {await this.add(buffer, false); buffer = "";}
     }
-    if (cr) buffer += "\\line ";
-    if (buffer) await this.add(buffer);
+    if (cr) append("\\line ");
+    if (buffer) await this.add(buffer, false);
   }
   private async attrs(node: number, paragraph = false): Promise<void> {
     if ((await this.tree.describe(node + 32)).end > node + 64 || await this.count(await this.at(node, 1))) this.loss("Unsupported RTF identifiers or classes");
@@ -159,6 +171,7 @@ class RtfTape {
           const content = (await this.tree.property(job.node, "c"))!, spec = content + 32, ordered = tag === "OrderedList";
           const start = ordered ? await this.number(spec + 32) : 1, style = ordered ? await this.tag(await this.at(spec, 1)) : "DefaultStyle";
           this.marker(start, style);
+          if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
           const list: ListSpec = {id: ++this.listCount, level: job.depth!++, start,
             nfc: ordered ? ({UpperRoman: 1, LowerRoman: 2, UpperAlpha: 3, LowerAlpha: 4} as Record<string, number>)[style] ?? 0 : 23,
             delim: ordered ? await this.tag(await this.at(spec, 2)) : "Period"};
@@ -169,7 +182,11 @@ class RtfTape {
         if (header.children === 2 && (await this.tree.describe(job.node + 32)).kind === "string" && await this.tree.smallText(job.node + 32, 5) === "color") {
           const value = await this.tree.smallText(await this.at(job.node, 1), 7);
           if (value?.length !== 7 || value[0] !== "#" || [...value.slice(1)].some(char => !"0123456789abcdefABCDEF".includes(char))) this.fail("Invalid RTF RGB color");
-          await this.colors.add(await this.text.from([value.toLowerCase()]));
+          const color = await this.text.from([value.toLowerCase()]);
+          if (!await this.colors.find(color)) {
+            if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
+            await this.colors.add(color);
+          }
         }
         await this.push({...job, op: "array", node: job.node + 32, end: header.end});
       }
@@ -215,7 +232,9 @@ class RtfTape {
     let index = 0;
     for await (const font of this.fonts.entries()) {
       await this.fontRanks.set(BigInt(font.identity), BigInt(++index));
-      await this.add("{\\f" + index + "\\fnil "); await this.add(font.value); await this.add(";}");
+      const value = await this.text.from(["{\\f" + index + "\\fnil "]);
+      await this.text.append(value, await this.text.from(this.text.chunks(font.value)));
+      await this.text.append(value, await this.text.from([";}"])); await this.add(value);
     }
     await this.add("}\n{\\colortbl;"); index = 0;
     for await (const color of this.colors.entries()) {
@@ -308,13 +327,18 @@ class RtfTape {
           const target = await this.at(content!, 2);
           if (await this.present(content! + 32) || (await this.tree.describe(await this.at(target, 1))).end > await this.at(target, 1) + 32) this.fail("RTF picture attributes/titles unsupported");
           const picture = await this.image(target + 32);
-          await this.add("{\\pict\\" + picture.encoding + "blip\\picw" + picture.width + "\\pich" + picture.height + "\\picwgoal" + picture.width * 15 + "\\pichgoal" + picture.height * 15 + " ");
+          const header = "{\\pict\\" + picture.encoding + "blip\\picw" + picture.width + "\\pich" + picture.height + "\\picwgoal" + picture.width * 15 + "\\pichgoal" + picture.height * 15 + " ";
+          if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", this.output.units + picture.size * 2 + header.length + 1);
+          await this.add(header);
           let buffer = "";
           for await (const bytes of picture.chunks) for (const byte of bytes) {
+            if (Number.isFinite(this.context.limits.references)) {
+              this.context.bound("outputBytes", this.output.units + buffer.length + 2); this.context.charge("references", 1);
+            }
             buffer += byte.toString(16).padStart(2, "0");
-            if (buffer.length >= 4096) {await this.add(buffer); buffer = "";}
+            if (buffer.length >= 4096) {await this.add(buffer, false); buffer = "";}
           }
-          if (buffer) await this.add(buffer); await this.add("}"); continue;
+          if (buffer) await this.add(buffer, false); await this.add("}"); continue;
         }
         this.fail("Unsupported RTF inline: " + tag);
       }
@@ -327,7 +351,7 @@ class RtfTape {
       if (tag === "CodeBlock") {
         await this.paragraph(current); await this.add("{"); await this.attrs(content! + 32);
         if (await this.count(await this.at(content! + 32, 2))) await this.add(" ");
-        await this.escaped(await this.scalar(await this.at(content!, 1))); await this.add("}\\par}\n"); continue;
+        await this.escaped(await this.scalar(await this.at(content!, 1))); await this.add("}"); await this.add("\\par}\n"); continue;
       }
       if (tag === "LineBlock") {await this.push(this.list(content!, 0, "paragraph", {state: current})); continue;}
       if (tag === "BlockQuote") {await this.push(this.list(content!, 0, "block", {state: {...current, indent: state.indent + 720}})); continue;}
@@ -411,11 +435,12 @@ export async function writeRetainedRtf(tree: BackedJson, context: ExecutionConte
     const writer = new RtfTape(tree, storage, context, options, order, image, validateResources), result = await writer.render();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {const first = diagnostics[0]!; throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);}
+    await reserveRetainedOutput(() => writer.text.unicodeChunks(result), context, options.eol);
     const chunks = async function* () {
       const encoder = new TextEncoder();
       for await (const part of writer.text.unicodeChunks(result)) yield encoder.encode(options.eol === "crlf" ? part.split("\n").join("\r\n") : part);
     };
-    if (Number.isFinite(context.limits.outputBytes)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
     for await (const bytes of chunks()) await context.emit(bytes);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};} finally {release();}

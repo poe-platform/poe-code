@@ -3,7 +3,7 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
-it.each(["sdk", "command"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from => ["json", "plain", "html5", "rst", "gfm", "latex", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])].map(to => ({mode, from, to})))))("retains finite $from-to-$to reference budgets through the public $mode in workerd", async ({mode, from, to}) => {
+it.each(["sdk", "command"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from => ["json", "plain", "html5", "rst", "gfm", "latex", "rtf", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])].map(to => ({mode, from, to})))))("retains finite $from-to-$to reference budgets through the public $mode in workerd", async ({mode, from, to}) => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -27,7 +27,7 @@ it.each(["sdk", "command"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap
       }});
       let text = '', largest = 0, closed = 0;
       const output = {async write(bytes) {text += new TextDecoder().decode(bytes); largest = Math.max(largest, bytes.length);}, async close() {closed++;}, async abort() {}};
-      const limits = {references: to === 'latex' ? 2000000 : 10000, text: 2000000, nodes: 1000, depth: 64};
+      const limits = {references: (to === 'latex' || to === 'rtf') ? 2000000 : 10000, text: 2000000, nodes: 1000, depth: 64};
       if (${JSON.stringify(mode)} === 'sdk') {
         await api.convertToOutput([{chunks: fs.readStream('/input.json')}], {from, to}, {limits, workingFiles: {fs, directory: '/spill', cacheBytes: 16384}, output});
       } else {
@@ -35,7 +35,7 @@ it.each(["sdk", "command"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap
         if (result.exitCode !== 0) throw new Error('Command failed'); closed++;
       }
       await env.PAGES.delete('/input.json');
-      const matches = to === 'latex' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('\\\\begin{longtable}') && text.includes(value)) : to === 'gfm' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text === '| ' + value + ' |\\n| --- |\\n') : to === 'commonmark' ? text === value + '\\n' : to === 'rst' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('.. list-table::') && text.includes(value)) : to === 'html5' ? (from === 'json' || from === 'rtf' ? text === '<p>' + value + '</p>\\n' : text.includes('>' + value + '</th>')) : to === 'plain' ? text === value + '\\n' : from === 'json' || from === 'rtf' ? text === json + '\\n' : JSON.parse(text).blocks[0].c[3][1][0][1][0][4][0].c[0].c === value;
+      const matches = to === 'rtf' ? text.startsWith('{\\\\rtf1') && text.includes(value) : to === 'latex' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('\\\\begin{longtable}') && text.includes(value)) : to === 'gfm' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text === '| ' + value + ' |\\n| --- |\\n') : to === 'commonmark' ? text === value + '\\n' : to === 'rst' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('.. list-table::') && text.includes(value)) : to === 'html5' ? (from === 'json' || from === 'rtf' ? text === '<p>' + value + '</p>\\n' : text.includes('>' + value + '</th>')) : to === 'plain' ? text === value + '\\n' : from === 'json' || from === 'rtf' ? text === json + '\\n' : JSON.parse(text).blocks[0].c[3][1][0][1][0][4][0].c[0].c === value;
       return Response.json({matches, largest, closed, events, remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});
     }};
   `});

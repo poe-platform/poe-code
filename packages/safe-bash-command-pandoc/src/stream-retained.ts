@@ -143,7 +143,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       else if (target === "odt") await writeRetainedOdt(document.tree, context, working, options, resources);
       else await writeRetainedRtf(document.tree, context, working, options, document.order, async node => {
         const image = await resources.image(node);
-        return {...await inspectRetainedRtfPicture(image.source, image.storage, context), chunks: image.chunks};
+        return {...await inspectRetainedRtfPicture(image.source, image.storage, context), size: image.source.size, chunks: image.chunks};
       }, resources.assertReferenced);}
       catch (reason) {writerFailure = {reason};}
       try {await resources.close();} catch (reason) {writerFailure ??= {reason};}

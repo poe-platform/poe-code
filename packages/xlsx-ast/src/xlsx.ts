@@ -20,7 +20,7 @@ import { rewriteReferences, visitFormula } from "@poe-code/spreadsheet-engine/fo
 import { xlsxSchemas, xlsxNamespaces, xlsxNamespaceScanElements, type XlsxSchemaNode } from "./xlsx-schema.js";
 import { converterLocale } from "@poe-code/spreadsheet-engine/locale/runtime";
 import { readXlsxMetadata, readXlsxComments, gnode } from "./xlsx-metadata.js";
-import { xlsxColumnWidthPoints, xlsxProtectionDefaults } from "./xlsx-sheet-settings.js";
+import { xlsxColumnWidthPoints, xlsxProtectionDefaults, xlsxPasswordAlgorithmFields } from "./xlsx-sheet-settings.js";
 import { readXlsxStyles, readXlsxString } from "./xlsx-styles.js";
 import { decodeXlsxString, encodeXlsxString } from "@poe-code/spreadsheet-engine/codecs/xlsx-strings";
 import { createXlsxXml, escapeXlsx, writeRichString, metadataNode, type Attributes } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
@@ -734,11 +734,16 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       const protection = child(source, "sheetProtection");
       const protectedAllow = protection ? Object.fromEntries(Object.entries(xlsxProtectionDefaults).map(([name, fallback]) =>
         [name, !(attr(protection, name) === undefined ? fallback : boolean(attr(protection, name)))])) : undefined;
+      const password = attr(protection, "password");
+      const protectedPasswordHash = protection && !xlsxPasswordAlgorithmFields.some(name => attr(protection, name) !== undefined)
+        ? password === undefined ? 0 : password.length > 0 && password.length <= 4 &&
+          [...password].every(character => "0123456789abcdefABCDEF".includes(character)) ? Number.parseInt(password, 16) : undefined
+        : undefined;
       if (protection) viewAttributes.Protected = boolean(attr(child(source, "sheetProtection"), "sheet")) ? "1" : "0";
       sheets.push({ id, name, cells, size: { rows: 1048576, columns: 16384 },
         visibility: visibility === "hidden" ? "hidden" : visibility === "veryHidden" ? "very-hidden" : "visible", rows, columns,
         merges: children(child(source, "mergeCells"), "mergeCell").map(node => range(attr(node, "ref"))), formulaGroups: [...completeSharedGroups, ...arrayGroups.values()],
-        view: { ...dimensions, ...(protectedAllow ? { protectedAllow } : {}), ...(child(source, "sheetViews") ? { xlsx: data(child(source, "sheetViews")!) } : {}),
+        view: { ...dimensions, ...(protectedPasswordHash === undefined ? {} : { protectedPasswordHash }), ...(protectedAllow ? { protectedAllow } : {}), ...(child(source, "sheetViews") ? { xlsx: data(child(source, "sheetViews")!) } : {}),
           gnumeric: viewAttributes, ...(attr(sheetView, "zoomScale") === undefined ? {} : { zoom: number(attr(sheetView, "zoomScale")) / 100 }) },
         ...(records.length ? { unsupportedRecords: records } : {}) });
     }

@@ -36,7 +36,8 @@ does not yet provide bounded memory for the complete conversion.
 Worksheet password verifiers survive BIFF7/8 conversion and edits through
 `view.protectedPasswordHash`, an integer from 0 to 65535; zero clears the verifier.
 This retains the legacy protection hash, without verifying passwords or encrypting
-workbook contents. Other-format password transport remains unsupported.
+workbook contents. XLSX uses the same canonical verifier for cross-format transport;
+other-format password transport remains unsupported.
 BIFF editing preserves the workbook Normal style and font-aware column widths,
 including sheet defaults. Change `sheet.view.defaultColumnWidth` in points and
 adopt the edited workbook before export; BIFF stores defaults in whole font

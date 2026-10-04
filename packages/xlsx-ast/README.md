@@ -33,6 +33,10 @@ Sheet permissions use `view.protectedAllow`: boolean `objects`, `scenarios`,
 translate these allow flags to OOXML protection flags and preserve edits.
 Partial maps allow selection and deny other operations; imports use the document's
 OOXML defaults. This does not add password verification or enforce editing restrictions.
+Legacy worksheet password verifiers use `view.protectedPasswordHash`, an integer
+from 0 to 65535; zero clears the verifier. These values survive XLSX and BIFF
+conversion and edits. Modern protection metadata remains opaque; combining it
+with a legacy verifier edit is rejected. This metadata is separate from file encryption.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";

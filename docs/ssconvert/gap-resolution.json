@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxWorksheetPasswordVerifier": {
+      "scope": "Both XLSX editions import1-4hex legacy password values and transport view.protectedPasswordHash to/from BIFF. Zero clears the verifier; edits replace it. Invalid canonical values reject. Modern algorithm/hash/salt/spin metadata remains opaque and conflicts with an explicit legacy verifier edit. Malformed legacy values remain opaque; represented BIFF PASSWORD records avoid false warnings.",
+      "qualification": "Twelve original memory failures repaired;2642 affected tests across116 files, selected ssconvert build and owner lint/types pass.24 compiled SDK/command/edited exports cover BIFF-to-XLSX,XLSX-to-BIFF and edits clearing/replacing4660 in each format. All24 independent Calc readbacks match complete protected-sheet attributes from five original controls; screenshot inspected.",
+      "diagnostics": "All24 complete sequences asserted:21 warnings for BIFF-to-XLSX,15 for XLSX-to-BIFF,1 for edited XLSX and14 for edited BIFF. Original workbookProtection import warning and unrelated metadata warnings retained; Calc exact javaldx warning retained.",
+      "remaining": "Password verification/enforcement, modern algorithm semantics, other-format transport, native Gnumeric hash-discard behavior and broader19-family qualification remain open. No family or release closure."
+    },
     "biffWorksheetPasswordVerifier": {
       "scope": "BIFF7/8 imports and exports the16-bit worksheet PASSWORD verifier through view.protectedPasswordHash. Canonical edits replace it; zero clears it. Invalid numbers/types reject, malformed records remain unrepresented, and represented PASSWORD records avoid false loss warnings. No password verification or file encryption is added.",
       "qualification": "Six original failures repaired;2425 affected tests plus one additional diagnostic regression, selected ssconvert build and owner lint/types pass. Five independently mutated native fixture words0,1,4660,32768,65535 survive Calc source conversion.12 compiled SDK/command/edited BIFF8 exports match complete protected-sheet attributes from those controls after Calc readback, including clearing and replacing4660. Exact12 warnings per output; screenshot inspected. BIFF7 is covered by memory roundtrips, not claimed as native qualification.",

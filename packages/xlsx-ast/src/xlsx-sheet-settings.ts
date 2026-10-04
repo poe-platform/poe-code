@@ -15,6 +15,8 @@ export const xlsxProtectionDefaults = {
   selectLockedCells: false, sort: true, autoFilter: true, pivotTables: true, selectUnlockedCells: false
 } as const;
 
+export const xlsxPasswordAlgorithmFields = ["algorithmName", "hashValue", "saltValue", "spinCount"] as const;
+
 const fields: Readonly<Record<string, readonly string[]>> = {
   sheetPr: ["syncHorizontal", "syncVertical", "syncRef", "transitionEvaluation", "transitionEntry", "published", "codeName", "filterMode", "enableFormatConditionsCalculation"],
   tabColor: ["auto", "indexed", "rgb", "theme", "tint"],
@@ -117,12 +119,18 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
     outlineLevelCol: sheet.columns?.reduce((maximum, column) => { charge(); return Math.max(maximum, column.outlineLevel ?? 0); }, 0) || undefined }));
   const view = sheet.view?.gnumeric && typeof sheet.view.gnumeric === "object" && !Array.isArray(sheet.view.gnumeric) ? sheet.view.gnumeric as Readonly<Record<string, ImportedValue>> : {};
   const allowed = sheet.view?.protectedAllow;
+  const passwordHash = sheet.view?.protectedPasswordHash;
   // Recognize BIFF records fully represented by editable portable settings.
   // Unknown flag values, zero heights and malformed payloads still need warnings.
   for (const { record } of records) {
     charge();
     if (record.source !== "biff" || !record.data || typeof record.data !== "object" || Array.isArray(record.data)) continue;
     const data = record.data as Readonly<Record<string, ImportedValue>>;
+    if (record.kind === "PASSWORD") {
+      if (passwordHash !== undefined && data.opcode === 0x13 && typeof data.bytes === "string" && data.bytes.length === 4 &&
+        [...data.bytes].every(character => "0123456789abcdefABCDEF".includes(character))) handled.add(record);
+      continue;
+    }
     if (record.kind === "PROTECT") {
       if (data.opcode === 0x12 && (data.bytes === "0000" || data.bytes === "0100") &&
         (view.Protected === "0" || view.Protected === "1")) handled.add(record);
@@ -196,8 +204,17 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
       originalPermissions[name] = Number(value === undefined ? fallback : value === "1" || value === "true");
     }
   }
-  baseline.push(node("sheetProtection", { sheet: originalProtection, ...originalPermissions }));
-  current.push(node("sheetProtection", { sheet: view.Protected === undefined ? originalProtection : Number(view.Protected) ? 1 : undefined, ...permissions }));
+  const originalPassword = raw.get("sheetProtection")?.attributes.password;
+  let password = originalPassword;
+  if (passwordHash !== undefined) {
+    if (typeof passwordHash !== "number" || !Number.isInteger(passwordHash) || passwordHash < 0 || passwordHash > 0xffff)
+      throw new SsconvertError("unsupported-feature", "Invalid XLSX sheet password hash");
+    if (xlsxPasswordAlgorithmFields.some(name => raw.get("sheetProtection")?.attributes[name] !== undefined))
+      throw new SsconvertError("unsupported-feature", "XLSX legacy sheet password hash conflicts with modern protection metadata");
+    password = passwordHash === 0 ? undefined : passwordHash.toString(16).toUpperCase().padStart(4, "0");
+  }
+  baseline.push(node("sheetProtection", { sheet: originalProtection, password: originalPassword, ...originalPermissions }));
+  current.push(node("sheetProtection", { sheet: view.Protected === undefined ? originalProtection : Number(view.Protected) ? 1 : undefined, password, ...permissions }));
 
   function merge(original: MetadataNode | undefined, before: MetadataNode | undefined, after: MetadataNode): MetadataNode {
     charge(); if (!original) return after;

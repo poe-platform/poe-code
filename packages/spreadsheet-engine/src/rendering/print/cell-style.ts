@@ -2,12 +2,22 @@ import {SsconvertError} from "../../contracts.js";
 import type {ImportedValue} from "@poe-code/spreadsheet-ast";
 
 const alignments = {GNM_HALIGN_GENERAL: "general", GNM_HALIGN_LEFT: "left", GNM_HALIGN_RIGHT: "right", GNM_HALIGN_CENTER: "center"} as const;
-const styleDefaults: Readonly<Record<string, string | readonly string[]>> = {
-  HAlign: Object.keys(alignments), VAlign: "GNM_VALIGN_BOTTOM", WrapText: "0", ShrinkToFit: "0",
-  Rotation: "0", Shade: ["0", "1"], Indent: "0", Locked: "1", Hidden: "0", Fore: ["0:0:0", "FFFF:0:0"],
-  Back: ["FFFF:FFFF:FFFF", "FFFF:FFFF:0"], PatternColor: "0:0:0", Format: "General"
-};
 type AttributeRule = string | readonly string[] | ((value: string) => boolean);
+function opaqueColor(value: string): boolean {
+  const parts = value.split(":");
+  return (parts.length === 3 || parts.length === 4) && parts.every(part => part.length > 0 && part.length <= 4 &&
+    Array.from(part).every(char => "0123456789abcdefABCDEF".includes(char))) &&
+    (parts.length === 3 || Number.parseInt(parts[3]!, 16) >>> 8 === 255);
+}
+function colorChannels(value: string): readonly [number, number, number] {
+  const parts = value.split(":").map(part => (Number.parseInt(part, 16) >>> 8) / 255);
+  return [parts[0]!, parts[1]!, parts[2]!];
+}
+const styleDefaults: Readonly<Record<string, AttributeRule>> = {
+  HAlign: Object.keys(alignments), VAlign: "GNM_VALIGN_BOTTOM", WrapText: "0", ShrinkToFit: "0",
+  Rotation: "0", Shade: ["0", "1"], Indent: "0", Locked: "1", Hidden: "0", Fore: opaqueColor,
+  Back: opaqueColor, PatternColor: opaqueColor, Format: "General"
+};
 const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => value.trim() !== "" && Number.isFinite(Number(value)) && Number(value) > 0, Bold: ["0", "1"], Italic: ["0", "1"], Underline: "0", StrikeThrough: "0", Script: "0"};
 
 export interface CellPrintStyle {
@@ -67,6 +77,6 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, t
   if ((font.text as string).trim() === "") fail();
   const selected = attributes(font, fontDefaults);
   return {alignment: alignments[effects.HAlign as keyof typeof alignments], family: font.text as string, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit),
-    foreground: effects.Fore === "FFFF:0:0" ? [1, 0, 0] : [0, 0, 0],
-    ...(effects.Shade === "1" ? {background: effects.Back === "FFFF:FFFF:0" ? [1, 1, 0] as const : [1, 1, 1] as const} : {})};
+    foreground: colorChannels(effects.Fore!),
+    ...(effects.Shade === "1" ? {background: colorChannels(effects.Back!)} : {})};
 }

@@ -5145,6 +5145,13 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "pdfOpaqueColors": {
+      "finding": "Opaque colors outside black/red foreground and white/yellow fill were refused. Five original valid-color regressions failed.",
+      "implementation": "Admit bounded hexadecimal RGB and opaque RGBA fields; convert each16-bit channel using its high byte, matching gnm_color_new_rgba16. Solid/no-fill styles accept inactive pattern colors. Malformed and translucent colors retain explicit refusal before font resolution.",
+      "validation": "336 print/PDF tests;selected19-workspace build;engine/command lint/source/test and Node/browser consumer types. Five independent XML controls,10 compiled SDK/command PDFs,5 native renders.15 RGB operator comparisons match within native decimal serialization precision;10 sampled fill pixels match exact8-bit channels. Empty public diagnostics and inspected CLI/PDF screenshots.",
+      "limits": "Native control geometry remains smaller than product geometry for these XML defaults; retained for separate investigation. Alpha blending, patterned fills and other style effects remain open. Color evidence is not full rendering parity.",
+      "evidence": "out/ssconvert-continuation-1748/pdf-colors"
+    },
     "pdfHostFontSelection": {
       "finding": "Style admission restricted font families to Sans, sizes to8/10/14 and italic tofalse although the explicit host font contract already supports family/bold/italic. A combined selection regression failed before the repair.",
       "implementation": "Pass exact family/bold/italic choices to the host and cache by the whole selection. Positive finite font sizes share selected font bytes; reject malformed sizes before host calls. Existing explicit-font requirement, byte/work accounting, cancellation and unsupported-decoration checks remain.",

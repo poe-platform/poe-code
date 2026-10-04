@@ -82,3 +82,23 @@ it.each(["0", "-1", "NaN", "Infinity", "1e309", ""])("rejects invalid font size 
   await expect(writePdf(await fixture([{text: "text", font: font.replace('Unit="10"', `Unit="${unit}"`)}]), [], {...context, fonts: {resolve}})).rejects.toThrow("styled or merged cells");
   expect(resolve).not.toHaveBeenCalled();
 });
+it.each([
+  ["0:FFFF:0", [0, 1, 0]],
+  ["0:0:FFFF", [0, 0, 1]],
+  ["1234:5678:9ABC", [18 / 255, 86 / 255, 154 / 255]],
+  ["ff:100:1ff", [0, 1 / 255, 1 / 255]],
+  ["abcd:ef01:2345:FFFF", [171 / 255, 239 / 255, 35 / 255]]
+] as const)("prints foreground and solid background %s with native channel quantization", async (color, channels) => {
+  const resolve = async () => suppliedDefaultFont().bytes, rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
+  try {
+    const book = await fixture([{text: "color", attributes: attributes.replace('Fore="0:0:0"', `Fore="${color}"`).replace('Back="FFFF:FFFF:FFFF"', `Back="${color}"`).replace('PatternColor="0:0:0"', 'PatternColor="FFFF:0:FFFF"').replace('Shade="0"', 'Shade="1"')}]);
+    const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve}}));
+    expect(runs[0]!.color).toEqual(channels);
+    expect(rectangle).toHaveBeenCalledWith(expect.objectContaining({color: rgb(channels[0], channels[1], channels[2])}));
+  } finally {rectangle.mockRestore();}
+});
+it.each(["", "0:0", "0:0:0:0", "0:0:10000", "0:0:-1", "0:0:GG", "0:0:ffjunk", "0:0:0:FFFF:0"])("refuses malformed or translucent color %s before font selection", async color => {
+  const resolve = vi.fn<FontCapability["resolve"]>(async () => suppliedDefaultFont().bytes);
+  await expect(writePdf(await fixture([{text: "color", attributes: attributes.replace('Fore="0:0:0"', `Fore="${color}"`)}]), [], {...context, fonts: {resolve}})).rejects.toThrow("styled or merged cells");
+  expect(resolve).not.toHaveBeenCalled();
+});

@@ -261,3 +261,18 @@ it("keeps empty strings as print-extent anchors", async () => {
   const input = {...original, sheets: [{...sheet, cells: [anchor, visible]}]};
   expect((await pdfText(await writePdf(input, [], context))).runs.find(r => r.text === "alpha")!.glyphs[0]!.x).toBe(148.75);
 });
+
+
+it.each(["row", "column", "both"])("excludes hidden %s contents from print bounds", async axis => {
+  const original = await fixture("GNM_HALIGN_LEFT"), sheet = original.sheets[0]!;
+  const visible = {...sheet.cells[0]!, row: 1, column: 1};
+  const rows = sheet.rows!.map(row => ({...row, hidden: row.index === 2 && axis !== "column"}));
+  const columns = [...sheet.columns!, {index: 2, sizePoints: 72, hidden: axis !== "row"}];
+  const baseline = {...original, sheets: [{...sheet, rows, columns, cells: [visible]}]};
+  const cells = [visible, ...(axis !== "column" ? [{...visible, row: 2, column: 0}] : []),
+    ...(axis !== "row" ? [{...visible, row: 0, column: 2}] : [])];
+  const actual = await pdfText(await writePdf({...original, sheets: [{...sheet, rows, columns, cells}]}, [], context));
+  const expected = await pdfText(await writePdf(baseline, [], context));
+  expect(actual.runs).toEqual(expected.runs);
+  expect(actual.pdf.getPageCount()).toBe(expected.pdf.getPageCount());
+});

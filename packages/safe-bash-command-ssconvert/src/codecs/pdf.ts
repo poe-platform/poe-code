@@ -495,6 +495,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       positions: ReturnType<typeof metrics>;
       objects: { object: SheetObject; rectangle: ReturnType<typeof rectangleFor> }[];
       layout: ReturnType<typeof layoutPrintPages>;
+      hiddenRows: ReadonlySet<number>;
+      hiddenColumns: ReadonlySet<number>;
     }[] = [];
     let pageCount = 0, nextPageNumber = 1;
     for (const sheet of book.sheets) {
@@ -529,10 +531,13 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       if (settings.paper === undefined && print.paper !== undefined && storedPaper === undefined) unsupported("persisted paper size");
       const positions = metrics(sheet), paper = settings.paper ?? storedPaper ?? papers.iso_a4!;
       const objects = sheetObjects(sheet, context).map(object => ({ object, rectangle: rectangleFor(sheet, object) }));
-      // Native print areas exclude empty-valued allocated cells.
+      const hiddenRows = new Set<number>(), hiddenColumns = new Set<number>();
+      for (const row of sheet.rows ?? []) { tick(); if (row.hidden) hiddenRows.add(row.index); }
+      for (const column of sheet.columns ?? []) { tick(); if (column.hidden) hiddenColumns.add(column.index); }
+      // Native print areas exclude hidden and empty-valued allocated cells.
       // Empty strings still count; stored VALUE_EMPTY cells do not.
       let area = getCellsExtent({...sheet, cells: sheet.cells.filter(cell => {
-        tick(); return cell.value.kind !== "blank";
+        tick(); return cell.value.kind !== "blank" && !hiddenRows.has(cell.row) && !hiddenColumns.has(cell.column);
       })});
       for (const { rectangle } of objects) {
         tick();
@@ -563,9 +568,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       nextPageNumber = startPage + layout.pages.length;
       pageCount += layout.pages.length;
       if (!Number.isSafeInteger(pageCount)) throw new SsconvertError("resource-limit", "ssconvert PDF page count limit exceeded");
-      printedSheets.push({ sheet, print, positions, objects, layout });
+      printedSheets.push({ sheet, print, positions, objects, layout, hiddenRows, hiddenColumns });
     }
-    for (const { sheet, print, positions, objects, layout } of printedSheets) {
+    for (const { sheet, print, positions, objects, layout, hiddenRows, hiddenColumns } of printedSheets) {
       const textSpan = createPrintSpans(sheet, positions.column, tick);
       const showFormulas = sheetViewFlag(sheet, "displayFormulas"), hideZero = sheetViewFlag(sheet, "hideZero");
       for (const geometry of layout.pages) {
@@ -598,7 +603,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
         for (const cell of sheet.cells) {
           tick();
-          if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn || sheet.rows?.some(row => row.index === cell.row && row.hidden) || sheet.columns?.some(column => column.index === cell.column && column.hidden)) continue;
+          if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn || hiddenRows.has(cell.row) || hiddenColumns.has(cell.column)) continue;
           const formula = showFormulas ? printedFormulaText.get(cell) ?? cell.formula : undefined;
           // gnm_cell_is_zero includes booleans and a strict 64-epsilon numeric tolerance.
           if (!formula && hideZero && (cell.value.kind === "number" ? Math.abs(cell.value.value) < 64 * Number.EPSILON :

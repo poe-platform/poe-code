@@ -1,7 +1,7 @@
-import { expect, it, vi } from "vitest";
+import { expect, it } from "vitest";
 import { createZipCodec } from "@poe-code/office-package";
 import { suppliedDefaultFont } from "safe-bash-pdf-engine";
-import { PDFDocument, PDFPage } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import type { CapabilityContext } from "../contracts.js";
 import type { ImportedValue, Workbook } from "../workbook.js";
 import { readXlsx, createXlsxWriter } from "./xlsx.js";
@@ -9,6 +9,7 @@ import { readGnumeric, writeGnumeric } from "./gnumeric.js";
 import { readBiff } from "./biff.js";
 import { writeBiffStream } from "./biff-write.js";
 import { writePdf } from "./pdf.js";
+import { pdfText } from "./pdf-text.test-support.js";
 import { sheetPrintSettings } from "../rendering/print/settings.js";
 import { metadataNode, type MetadataNode } from "./xlsx-write-support.js";
 
@@ -62,16 +63,10 @@ it.each(["row", "col"] as const)("preserves original XLSX %s axes through XML/XL
   // XLSX/BIFF writers materialize styles outside this axis qualification. The
   // independent original package and its XML transport exercise PDF directly.
   for (const book of variants.slice(0, 2)) {
-    const draw = vi.spyOn(PDFPage.prototype, "drawText");
-    try {
-      const pdf = await PDFDocument.load(await writePdf(book, [], context));
-      expect(pdf.getPages().map(p => [p.getWidth(), p.getHeight()])).toEqual([[612, 792], [612, 792]]);
-      const pages = new Map<object, string[]>();
-      draw.mock.calls.forEach(([text], i) => {
-        if (text.startsWith("cell")) { const page = draw.mock.contexts[i]!; pages.set(page, [...pages.get(page) ?? [], text]); }
-      });
-      expect([...pages.values()]).toEqual([["cell0", "cell1"], ["cell2", "cell3"]]);
-    } finally { draw.mockRestore(); }
+    const { pdf, runs } = await pdfText(await writePdf(book, [], context));
+    expect(pdf.getPages().map(p => [p.getWidth(), p.getHeight()])).toEqual([[612, 792], [612, 792]]);
+    expect([1, 2].map(page => runs.filter(run => run.page === page && run.text.startsWith("cell")).map(run => run.text)))
+      .toEqual([["cell0", "cell1"], ["cell2", "cell3"]]);
   }
 });
 it.each(["row", "col"] as const)("preserves untouched %s break bounds and manual flags while allowing explicit edits", async axis => {

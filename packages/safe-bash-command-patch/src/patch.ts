@@ -8,7 +8,7 @@ import { rejectText } from "./patch-gnu-reject.js";
 import { safeTarget } from "./patch-path.js";
 import { PatchPublication } from "./patch-publication.js";
 import { reversePatch,type FilePatch,type HunkOutcome } from "./unified.js";
-import { FsError,dirname,resolvePath,writeBytes,type CommandContext } from "safe-bash-contracts";
+import { FsError,dirname,pipeBytes,resolvePath,writeBytes,type CommandContext } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { Budget,ToolError,definition,host,inspect,integer,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
 import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
@@ -246,6 +246,7 @@ async function publish(item: Prepared, budget: Budget, rejects: Set<string>, pub
 
 async function run(context: CommandContext, budget: Budget): Promise<number> {
   const options = flags(context.args);
+  const outputToStdout = options.output === "-";
   if (options.directory !== undefined) {
     const cwd = resolvePath(context.cwd, options.directory);
     if ((await inspect(budget, cwd))?.type !== "directory") throw new ToolError(`not a directory: ${options.directory}`);
@@ -281,7 +282,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const empty = await documents.load({ async *[Symbol.asyncIterator]() {} });
     const output = options.output === undefined ? undefined : safeTarget(options.output, 0, true);
     if (options.output !== undefined && output === undefined) throw new ToolError("/dev/null is not an output file");
-    const outputPath = output === undefined ? undefined : resolvePath(context.cwd, output);
+    const outputPath = output === undefined || outputToStdout ? undefined : resolvePath(context.cwd, output);
     const explicit = options.target === undefined ? undefined : safeTarget(options.target, 0, true);
     if (options.target !== undefined && explicit === undefined) throw new ToolError("/dev/null is not an explicit target");
     if (options.input !== "-") {
@@ -304,6 +305,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       exists: async path => preview.has(path) ? preview.get(path) !== undefined
         : previewParents.has(path) || await candidateStat(path, budget) !== undefined,
       advance: async item => {
+        if (outputToStdout) return;
         const path = resolvePath(context.cwd, item.selected!);
         const current = preview.has(path) ? preview.get(path) : await inspect(budget, path) ? await documents.read(path) : undefined;
         const applied = await applyContent(item.patch, current ?? empty, current !== undefined, options, budget, documents);
@@ -319,6 +321,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const targets = new Set(authorized.flatMap(item => item.selected === undefined ? [] : [resolvePath(context.cwd, item.selected)]));
     if (outputPath !== undefined) await authorizeOutputs([outputPath], targets, paths.input, budget);
     const staged = new Map<string, Prepared>();
+    const stdoutItems: Prepared[] = [];
     const stagedParents = new Set<string>();
     const touched = new Set<string>();
     const rejects = new Set<string>();
@@ -331,11 +334,12 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     let publishing = false;
     let activePath: string | undefined;
     let outputContents = empty;
+    const statusSink = outputToStdout ? context.stderr : context.stdout;
     const status = async (text: string) => {
       if (!text) return;
       budget.output(text);
       if (options.atomic) messages.push(text);
-      else await writeBytes(context.stdout, encodeBytes(text), context.signal);
+      else await writeBytes(statusSink, encodeBytes(text), context.signal);
     };
     const applySection = async (authorizedPatch: AuthorizedPatch) => {
       const sourcePatch = authorizedPatch.patch;
@@ -363,7 +367,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
           await status(`File ${name} is read-only; ${refuse ? "refusing to patch" : "trying to patch anyway"}\n`);
           if (refuse) {
             if (options.atomic) throw new ToolError(`read-only target: ${name}`, 1);
-            const destination = rejectName(name, paths);
+            const destination = rejectName(outputToStdout ? "-" : name, paths);
             const rejectPath = options.dryRun || destination === undefined ? undefined : resolvePath(context.cwd, destination);
             if (rejectPath !== undefined) {
               await authorizeOutputs([rejectPath], targets, paths.input, budget);
@@ -410,9 +414,9 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       if (options.atomic && conflict) throw new ToolError(failed.length ? `hunk ${failed[0]!.index} does not match ${name}` : `deletion patch leaves content: ${name}`, 1);
       if (conflict) exitCode = 1;
       const mismatch = reverseMismatch || outcomes.some(outcome => outcome.failed || outcome.offset !== 0 || outcome.fuzz !== 0);
-      const backup = !options.dryRun && (options.alwaysBackup || options.backup && mismatch) && !touched.has(path) ? original ?? empty : undefined;
+      const backup = !options.dryRun && !outputToStdout && (options.alwaysBackup || options.backup && mismatch) && !touched.has(path) ? original ?? empty : undefined;
       const backupPath = backup === undefined ? prior?.backupPath : await backupName(path, budget, options);
-      const rejectDestination = rejectName(name, paths);
+      const rejectDestination = rejectName(outputToStdout ? "-" : name, paths);
       const rejectPath = !options.dryRun && !options.merge && failed.length && rejectDestination !== undefined ? resolvePath(context.cwd, rejectDestination) : undefined;
       const rejected = rejectPath === undefined ? undefined : await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, reversed, budget, options.rejectFormat);
       await authorizeOutputs([outputPath, backupPath, rejectPath], targets, paths.input, budget);
@@ -421,7 +425,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       }
       if (backupPath !== undefined) backupPaths.add(backupPath);
       if (rejectPath !== undefined) rejectPaths.add(rejectPath);
-      const remove = options.ifdef === undefined && outputPath === undefined && result.size === 0 && ((!options.posix && deletion) || options.removeEmpty);
+      const remove = options.ifdef === undefined && output === undefined && result.size === 0 && ((!options.posix && deletion) || options.removeEmpty);
       const outputPrior = outputPath === undefined ? undefined : staged.get(outputPath);
       const outputOriginal = outputPath === undefined ? original : outputPrior ? outputPrior.original : await inspect(budget, outputPath) ? await documents.read(outputPath) : undefined;
       if (outputPath !== undefined) outputContents = await documents.concat(outputContents, result);
@@ -440,6 +444,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         }
       }
       const item: Prepared = { path: outputPath ?? path, original: outputOriginal, result: outputPath === undefined ? result : outputContents, remove,
+        ...(outputToStdout ? { skipWrite: true } : {}),
         ...(outputPath === undefined ? {} : { sourcePath: path, ...(original === undefined ? {} : { sourceOriginal: original }) }),
         ...(backup === undefined ? prior?.backup === undefined ? {} : { backup: prior.backup } : { backup }),
         ...(backupPath === undefined ? {} : { backupPath }),
@@ -469,11 +474,15 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       await status(message);
       touched.add(path);
       if (options.atomic) {
-        staged.set(item.path, item);
-        if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) stagedParents.add(parent);
-      } else if (!options.dryRun) {
+        if (outputToStdout) stdoutItems.push(item);
+        else {
+          staged.set(item.path, item);
+          if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) stagedParents.add(parent);
+        }
+      } else if (!options.dryRun || outputToStdout) {
         publishing = true;
-        await publish(item, budget, rejects, publication, documents);
+        if (!options.dryRun) await publish(item, budget, rejects, publication, documents);
+        if (outputToStdout) await pipeBytes(result.range(0, result.size), context.stdout, context.signal);
         committed++;
         publishing = false;
         for (const parent of item.parents) parents.add(parent);
@@ -488,11 +497,15 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         throw new ToolError(`commit stopped; ${committed}/${authorized.length} files committed; failing operation may have side effects; path ${activePath}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
       }
     }
-    if (options.atomic && !options.dryRun) {
-      const prepared = [...staged.values()].filter(item => !(item.remove && item.original === undefined));
+    if (options.atomic && (!options.dryRun || outputToStdout)) {
+      const prepared = outputToStdout ? stdoutItems : [...staged.values()].filter(item => !(item.remove && item.original === undefined));
       for (const item of prepared) await unchanged(item, budget, documents);
       for (const item of prepared) {
-        try { await publish(item, budget, rejects, publication, documents); committed++; }
+        try {
+          if (!options.dryRun) await publish(item, budget, rejects, publication, documents);
+          if (outputToStdout) await pipeBytes(item.result.range(0, item.result.size), context.stdout, context.signal);
+          committed++;
+        }
         catch (error) {
           context.signal.throwIfAborted();
           throw new ToolError(`commit stopped; ${committed}/${prepared.length} files committed; failing operation may have side effects; path ${item.path}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
@@ -502,7 +515,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }
     if (!options.dryRun) await pruneDirectories(parents, budget);
     if (options.verbose) await status("done\n");
-    if (options.atomic && (!options.quiet || messages.length)) await writeBytes(context.stdout, encodeBytes(messages.join("")), context.signal);
+    if (options.atomic && (!options.quiet || messages.length)) await writeBytes(statusSink, encodeBytes(messages.join("")), context.signal);
     if (progress?.error) throw progress.error;
     return exitCode;
   } finally { await documents.close(); }

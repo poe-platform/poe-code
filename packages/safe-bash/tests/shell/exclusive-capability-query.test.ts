@@ -4,6 +4,8 @@ import { createMemoryFileSystem, createDeviceFileSystem, createMountFileSystem, 
 import { Shell } from "../../src/shell/index.js";
 import { creationFileSystem } from "../../src/shell/umask.js";
 import { bindFileOutputBudget, openFileOutput } from "../../src/contracts/filesystem-output.js";
+import { createDeviceFileSystem as createDevices } from "../../src/fs/devices/index.js";
+import { standardCommands } from "../../src/commands/index.js";
 
 function profile(fs: FileSystem, capabilities: FileSystemCapabilities): FileSystem {
   return new Proxy(fs, { get(target, key) {
@@ -11,6 +13,53 @@ function profile(fs: FileSystem, capabilities: FileSystemCapabilities): FileSyst
     const member: unknown = Reflect.get(target, key, target);
     return typeof member === "function" ? member.bind(target) : member;
   } });
+}
+
+test("default shell permits noclobber output to /dev/null", async t => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(standardCommands());
+  t.after(() => shell.dispose());
+  const result = await shell.exec("set -C\necho hello > /dev/null\n");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "");
+});
+
+for (const canonical of [false, true]) for (const mounted of [false, true]) {
+  test(`noclobber permits character devices and protects regular files: mounted=${mounted}/canonical=${canonical}`, async t => {
+    const backing = createMemoryFileSystem();
+    await backing.writeFile("/ordinary", new TextEncoder().encode("preserved"));
+    await backing.symlink("/ordinary", "/file-link");
+    await backing.symlink("/dev/null", "/null-link");
+    const devices = mounted
+      ? createMountFileSystem({ root: backing, mounts: { "/dev": createDevices() } })
+      : createDeviceFileSystem(backing);
+    const fs = canonical ? devices : profile(devices, { preferStreamingRedirection: true });
+    // Override per-path capabilities too, so this exercises streaming acquisition.
+    if (!canonical) {
+      const capabilitiesFor = devices.capabilitiesFor?.bind(devices);
+      Object.defineProperty(fs, "capabilitiesFor", { configurable: true, value: async (path: string, options: Parameters<NonNullable<FileSystem["capabilitiesFor"]>>[1]) => ({
+        ...await capabilitiesFor?.(path, options) ?? devices.capabilities, preferStreamingRedirection: true,
+      }) });
+    }
+    const shell = new Shell({ fs, deviceView: "provided" }).use(standardCommands());
+    t.after(() => shell.dispose());
+    for (const option of ["-C", "-o noclobber"]) {
+      // Mounts intentionally prevent symlinks from crossing backend boundaries.
+      for (const path of mounted ? ["/dev/null", "/dev/zero"] : ["/dev/null", "/null-link"]) {
+        const result = await shell.exec(`set ${option}\necho hello > ${path}\n`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, "");
+        assert.equal((await fs.stat(path)).type, "character");
+      }
+      for (const path of ["/ordinary", "/file-link"]) {
+        const result = await shell.exec(`set ${option}\necho replaced > ${path}\n`);
+        assert.equal(result.exitCode, 1);
+        assert.equal(result.stderr, `shell: line 2: ${path}: cannot overwrite existing file\n`);
+        assert.equal(new TextDecoder().decode(await backing.readFile("/ordinary")), "preserved");
+      }
+    }
+  });
 }
 
 for (const canonical of [false, true]) for (const composition of ["plain", "mount", "nested mount", "overlay", "quota"] as const) {

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test, { after, before, mock } from "node:test";
-import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
 import { createPptxCommandEngine, duplicateSlides, mutateSlides, removeSlides } from "safe-bash-pptx-engine";
 import { storedArchive } from "../../../../safe-bash-presentation-engine/tests/fixtures/archive.js";
@@ -28,7 +27,7 @@ before(() => {
 });
 after(() => mock.restoreAll());
 
-function fixture(opaque = false, svg = false) {
+async function fixture(opaque = false, svg = false) {
   const p = "http://schemas.openxmlformats.org/presentationml/2006/main";
   const a = "http://schemas.openxmlformats.org/drawingml/2006/main";
   const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
@@ -62,14 +61,11 @@ function fixture(opaque = false, svg = false) {
     files["[Content_Types].xml"] = String(files["[Content_Types].xml"]).replace('Extension="gif" ContentType="image/gif"', 'Extension="svg" ContentType="image/svg+xml"');
   }
   const bytes = storedArchive(Object.entries(files).map(([name, value]) => ({ name, bytes: typeof value === "string" ? new TextEncoder().encode(value) : value })));
-  const volume = Volume.fromJSON({ "/work/deck.pptx": Buffer.from(bytes) });
   const fs = new MemoryFileSystem();
-  fs.readStream = async function* (path, options) {
-    options?.signal?.throwIfAborted();
-    yield new Uint8Array(volume.readFileSync(path) as Buffer);
-  };
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/deck.pptx", bytes);
   const shell = new Shell({ fs, cwd: "/work" }).use(pptxCommands({ engine: createPptxCommandEngine({ context, maxOutputBytes: 262144, maxArgumentBytes: 65536 }) }));
-  return { bytes, volume, shell, extension };
+  return { bytes, fs, shell, extension };
 }
 
 function parts(bytes: Uint8Array) {
@@ -94,7 +90,7 @@ function unchanged(beforeBytes: Uint8Array, afterBytes: Uint8Array, edited: stri
 }
 
 test("slide no-op updates return exact archive bytes through SDK and CLI", async () => {
-  const f = fixture(true);
+  const f = await fixture(true);
   try {
     for (const [options, command] of [
       [{ name: "East" }, "set --name East"], [{ position: 1 }, "move --position 1"]
@@ -109,7 +105,7 @@ test("slide no-op updates return exact archive bytes through SDK and CLI", async
 });
 
 test("slide rename and move preserve identities, opaque XML and untouched part hashes", async () => {
-  const f = fixture(true);
+  const f = await fixture(true);
   try {
     const renamed = await mutateSlides(f.bytes, { selection, name: "Dawn & dusk" }, context);
     const cli = await f.shell.exec("pptx slides set deck.pptx --slide 1 --name 'Dawn & dusk' --output -");
@@ -118,7 +114,7 @@ test("slide rename and move preserve identities, opaque XML and untouched part h
     unchanged(f.bytes, renamed, ["ppt/slides/east.xml"]);
     assert.deepEqual(attrs(parts(renamed).get("ppt/slides/east.xml")!, "cSld"), [{ name: "Dawn & dusk" }]);
     assert.ok(new TextDecoder().decode(parts(renamed).get("ppt/slides/east.xml")).includes(f.extension));
-    f.volume.writeFileSync("/work/deck.pptx", renamed);
+    await f.fs.writeFile("/work/deck.pptx", renamed);
     const moved = await mutateSlides(renamed, { selection, position: 2 }, context);
     const movedCli = await f.shell.exec("pptx slides move deck.pptx --slide 1 --position 2 --output -");
     assert.equal(movedCli.exitCode, 0, movedCli.stderr);
@@ -130,7 +126,7 @@ test("slide rename and move preserve identities, opaque XML and untouched part h
 });
 
 test("slide duplicate then delete restores the graph while retaining shared media", async () => {
-  const f = fixture();
+  const f = await fixture();
   try {
     const duplicated = await duplicateSlides(f.bytes, { selection, position: 2 }, context);
     const cli = await f.shell.exec("pptx slides duplicate deck.pptx --slide 1 --position 2 --output -");
@@ -140,7 +136,7 @@ test("slide duplicate then delete restores the graph while retaining shared medi
     unchanged(f.bytes, duplicated, ["[Content_Types].xml", "ppt/presentation.xml", "ppt/_rels/presentation.xml.rels"]);
     assert.deepEqual(attrs(parts(duplicated).get("ppt/presentation.xml")!, "sldId").map(node => node.id), ["401", "710", "709"]);
     assert.deepEqual([...parts(duplicated).keys()].filter(name => name.startsWith("ppt/media/")), ["ppt/media/shared.gif"]);
-    f.volume.writeFileSync("/work/deck.pptx", duplicated);
+    await f.fs.writeFile("/work/deck.pptx", duplicated);
     const second = { ...selection, position: { coordinateSystem: "one-based" as const, value: 2 } };
     const removed = await removeSlides(duplicated, { selection: second }, context);
     const removedCli = await f.shell.exec("pptx slides remove deck.pptx --slide 2 --output -");
@@ -154,18 +150,18 @@ test("slide duplicate then delete restores the graph while retaining shared medi
 });
 
 test("slide copying rejects opaque extension remapping without publishing bytes", async () => {
-  const f = fixture(true);
+  const f = await fixture(true);
   try {
     await assert.rejects(duplicateSlides(f.bytes, { selection, position: 2 }, context), { code: "unsupported-edit" });
     const result = await f.shell.exec("pptx slides duplicate deck.pptx --slide 1 --position 2 --output -");
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdoutBytes.length, 0);
-    assert.deepEqual(new Uint8Array(f.volume.readFileSync("/work/deck.pptx") as Buffer), f.bytes);
+    assert.deepEqual(await f.fs.readFile("/work/deck.pptx"), f.bytes);
   } finally { await f.shell.dispose(); }
 });
 
 test("isolated slide copies retain inert SVG bytes after copied slide deletion", async () => {
-  const f = fixture(false, true);
+  const f = await fixture(false, true);
   try {
     const duplicated = await duplicateSlides(f.bytes, { selection, position: 2, mediaPolicy: "isolated-instance" }, context);
     const cli = await f.shell.exec("pptx slides duplicate deck.pptx --slide 1 --position 2 --media-policy isolated-instance --output -");
@@ -175,7 +171,7 @@ test("isolated slide copies retain inert SVG bytes after copied slide deletion",
     assert.equal(media.length, 2);
     for (const [, bytes] of media) assert.deepEqual(bytes, parts(f.bytes).get("ppt/media/shared.svg"));
     unchanged(f.bytes, duplicated, ["[Content_Types].xml", "ppt/presentation.xml", "ppt/_rels/presentation.xml.rels"]);
-    f.volume.writeFileSync("/work/deck.pptx", duplicated);
+    await f.fs.writeFile("/work/deck.pptx", duplicated);
     const removed = await removeSlides(duplicated, { selection: { ...selection, position: { coordinateSystem: "one-based", value: 2 } } }, context);
     const removedCli = await f.shell.exec("pptx slides remove deck.pptx --slide 2 --output -");
     assert.equal(removedCli.exitCode, 0, removedCli.stderr);

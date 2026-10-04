@@ -6,6 +6,8 @@ import type { ByteSink, ByteSource } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { asciiKey, partName } from "./package-uri.js";
 import { resourceContext, type ResourceContext } from "./resource-limits.js";
+import { RetainedOrder } from "./retained-order.js";
+import { RetainedValues, literal } from "./retained-values.js";
 
 export interface PackageWorkingStorage {
   /** Explicit caller-authorized backing filesystem and directory. */
@@ -21,6 +23,8 @@ export interface RetainedPackageContext extends ResourceContext {
 
 export interface PackageRewriteOptions {
   readonly compression?: "store" | "auto";
+  /** Order existing members by JavaScript name comparison; additions follow them. */
+  readonly sourceOrder?: "name";
   /** Undefined retains compressed bytes and ZIP metadata; null removes a part.
    * Replacement sources are borrowed until rewrite settles. */
   readonly replace?: (part: string, original: ByteSource) => Promise<ByteSource | null | undefined>;
@@ -218,7 +222,7 @@ export async function openPackageArchive(input: ZipSource, settings: RetainedPac
             if (directory) await outputParents.set(key, 1);
             else await outputNames.set(key, 1);
           };
-          await codec.readZipArchive(source, limits, signal, { storage, async onEntry(entry) {
+          const writeEntry = async (entry: ZipStreamEntry) => {
             check();
             const part = partName(entry.directory && entry.name.endsWith("/") ? entry.name.slice(0, -1) : entry.name, true);
             if (entry.directory) { await reserve(part, true); await writer.add(entry); return; }
@@ -228,7 +232,40 @@ export async function openPackageArchive(input: ZipSource, settings: RetainedPac
             await reserve(part);
             if (replacement === undefined) await writer.add(entry);
             else await writer.addSource(entry.name, replacement, { modified: new Date(Date.UTC(1980, 0, 1)), mode: 0o100644, directory: false, symlink: false, compression });
-          } });
+          };
+          if (options.sourceOrder === "name") {
+            const values = new RetainedValues(pages, check, signal);
+            const order = new RetainedOrder(pages, values, check);
+            // Only one format-bounded metadata record is resident. Payloads stay
+            // in the retained input; the sort keys and links live in caller pages.
+            const binaryFields = ["rawName", "localName", "comment", "localExtra", "centralExtra"];
+            await codec.readZipArchive(source, limits, signal, { storage, async onEntry(entry) {
+              const metadata = JSON.stringify(entry, (key, value) => key === "data" ? undefined
+                : value instanceof Uint8Array ? Array.from(value) : value);
+              try { await order.add(literal(entry.name), await values.store(literal(metadata))); }
+              catch (error) { throw new ZipStorageFailure(error); }
+            } });
+            try { await order.seal(); } catch (error) { throw new ZipStorageFailure(error); }
+            const rows = order.entries();
+            for (;;) {
+              let metadata = "";
+              try {
+                const row = await rows.next();
+                if (row.done) break;
+                const decoder = new TextDecoder();
+                for await (const bytes of values.read(row.value)) metadata += decoder.decode(bytes, { stream: true });
+                metadata += decoder.decode();
+              } catch (error) { throw new ZipStorageFailure(error); }
+              const entry = JSON.parse(metadata, (key, value) => binaryFields.includes(key)
+                ? new Uint8Array(value) : key === "modified" ? new Date(value) : value) as ZipStreamEntry;
+              await writeEntry({ ...entry, async *data() {
+                for (let offset = 0; offset < entry.compressedSize;) {
+                  const bytes = await source.read(entry.dataOffset! + offset, Math.min(16384, entry.compressedSize - offset), { signal });
+                  offset += bytes.length; yield bytes;
+                }
+              } });
+            }
+          } else await codec.readZipArchive(source, limits, signal, { storage, onEntry: writeEntry });
           if (options.additions) for await (const item of options.additions) {
             check(); const part = partName(item.part, false);
             if (part !== item.part) throw new OfficeError("unsafe-path", "A canonical package part is required.", "serialize");

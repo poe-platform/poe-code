@@ -41,7 +41,7 @@ export async function stageRetainedSlideSettings(input: RetainedSlideSource, opt
           check(); const owned = new Uint8Array(bytes.subarray(offset, offset + 16384));
           await pages!.append(owned); digest.update(owned); size += owned.length;
         }
-      } }, { replace: mutation.replacement });
+      } }, { replace: mutation.replacement, sourceOrder: 'name' });
       fingerprint = hex(digest.digest());
     }
     async function* bytes(): ByteSource {

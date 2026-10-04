@@ -83,6 +83,32 @@ function generated(size: number): ZipSource {
 }
 
 describe("caller-backed package archive", () => {
+  it.each([undefined, "name"] as const)("preserves complete ZIP metadata with source order %s", async sourceOrder => {
+    const backing = working(), signal = new AbortController().signal;
+    const entries = [];
+    for (const name of ["z.bin", "\uff00.bin", "😀.bin", "a.bin"].map(encodeURI)) {
+      const entry = await zip.makeZipEntry(name, encode("retained payload ".repeat(100)), {
+        modified: new Date(Date.UTC(2001, 2, 4, 5, 6, 8)), mode: 0o100640, directory: false, symlink: false
+      }, context.archiveLimits, signal);
+      entries.push({ ...entry, comment: encode("member comment ".repeat(100)),
+        localExtra: new Uint8Array([0xef, 0xbe, 1, 0, 42]), centralExtra: new Uint8Array([0xef, 0xbe, 1, 0, 43]),
+        versionMadeBy: 0x31e, internalAttributes: 1 });
+    }
+    const comment = encode("archive comment"), original = await zip.writeZipArchive({ entries, comment }, context.archiveLimits, signal);
+    const expected = await zip.writeZipArchive({ entries: sourceOrder ? [...entries].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0) : entries, comment }, context.archiveLimits, signal);
+    const archive = await openPackageArchive(borrowed(original), { ...context, workingStorage: backing });
+    const output: Uint8Array[] = [];
+    try {
+      await archive.rewrite({ async write(bytes) { output.push(new Uint8Array(bytes)); } }, sourceOrder ? { sourceOrder } : {});
+      expect(Buffer.concat(output)).toEqual(Buffer.from(expected));
+      expect(backing.metrics.maximum).toBeLessThanOrEqual(16384);
+      expect(backing.metrics.peakOutstanding).toBeLessThanOrEqual(16384);
+      if (sourceOrder) expect(backing.metrics.written).toBeGreaterThan(backing.cacheBytes);
+    } finally { await archive.close(); }
+    expect(backing.metrics.closed).toBe(backing.metrics.opened);
+    expect(await backing.fs.readdir("/")).toEqual([]);
+  });
+
   it("indexes names in caller storage and streams members with case-insensitive lookup", async () => {
     const backing = working();
     const members = Array.from({ length: 300 }, (_, index) => ({ name: `ppt/part-${index}.xml`, bytes: encode(`<p n="${index}"/>`) }));
@@ -244,7 +270,8 @@ it("removes and adds members without buffering and rejects directory aliases bef
   } finally { await archive.close(); }
 });
 
-it.each(["read", "write", "sink", "cancel"] as const)("retires spilled storage after injected %s failure", async mode => {
+it.each((["read", "write", "sink", "cancel"] as const).flatMap(mode =>
+  [undefined, "name" as const].map(sourceOrder => ({ mode, sourceOrder }))))("retires spilled storage after injected $mode failure with source order $sourceOrder", async ({ mode, sourceOrder }) => {
   const backing = working();
   const controller = new AbortController();
   const source = generated(128 * 1024 + 1);
@@ -271,7 +298,7 @@ it.each(["read", "write", "sink", "cancel"] as const)("retires spilled storage a
       written += chunk.length;
       if (mode === "cancel") controller.abort(new Error("stop output"));
       if (mode === "sink") throw new Error("private sink failure");
-    } })).rejects.toMatchObject({ code: mode === "cancel" ? "cancelled" : "io-failure" });
+    } }, sourceOrder ? { sourceOrder } : {})).rejects.toMatchObject({ code: mode === "cancel" ? "cancelled" : "io-failure" });
     if (mode === "read" || mode === "write") expect(written).toBe(0);
   } finally { await archive.close(); }
   expect(backing.metrics.closed).toBe(backing.metrics.opened);

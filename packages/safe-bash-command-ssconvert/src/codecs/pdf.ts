@@ -348,7 +348,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         // Tabs use shared stops across the entire repeated line.
         const rtlFill = singleParagraph && shaper.shape(metrics, shapedValue).direction === "rtl";
         const rtlTabs = rtlFill && tabbedFill;
-        const bidiTabs = tabbedFill && !["\r", "\u2028", "\u2029"].some(control => shapedValue.includes(control));
+        // Line-separator markers already share the tab run visual origin.
+        // Mixed paragraph and CR placement still requires separate qualification.
+        const bidiTabs = tabbedFill && !["\r", "\u2029"].some(control => shapedValue.includes(control));
         const tabPositions: {x: number}[] = [];
         const tabRuns: {start: number; end: number; first: number; last: number}[] = [];
         const chunks = singleParagraph ? shapedValue.split("\t") : [shapedValue];

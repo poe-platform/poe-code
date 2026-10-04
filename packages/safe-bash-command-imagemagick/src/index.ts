@@ -1,3 +1,4 @@
+import { convolvePixelSteps } from "./convolve-kernel.js";
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
 export type {CompareFileInput} from "./compare-file.js";
 export interface ConvertFileInput extends CompareFileInput { readonly stderr?: ByteSink; }
@@ -764,49 +765,13 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
     return { ...base, data: out };
 }
 
-function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
+function parseMagickConvolveKernel(spec: string): number[] {
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
-    const coeffs = afterColon
-        .trim()
-        .split(/[\s,]+/)
-        .filter((s) => s.length > 0)
-        .map(Number)
-        .filter((n) => Number.isFinite(n));
-    if (coeffs.length === 0)
-        return img;
-    const side = Math.max(1, Math.round(Math.sqrt(coeffs.length)));
-    const half = Math.floor(side / 2);
-    const w = img.width;
-    const h = img.height;
-    const out = new Uint8Array(img.data);
-    for (let y = 0; y < h; y++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let x = 0; x < w; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            for (let c = 0; c < 3; c++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                let sum = 0;
-                for (let ky = 0; ky < side; ky++) {
-                    if (++cooperativeWork % 65536 === 0)
-                        yield;
-                    const sy = Math.max(0, Math.min(h - 1, y + ky - half));
-                    for (let kx = 0; kx < side; kx++) {
-                        if (++cooperativeWork % 65536 === 0)
-                            yield;
-                        const sx = Math.max(0, Math.min(w - 1, x + kx - half));
-                        const weight = coeffs[ky * side + kx] ?? 0;
-                        sum += img.data[(sy * w + sx) * 4 + c]! * weight;
-                    }
-                }
-                out[(y * w + x) * 4 + c] = clampByteVal(sum);
-            }
-        }
-    }
-    return { ...img, data: out };
+    return afterColon.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number).filter(Number.isFinite);
+}
+function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const kernel = parseMagickConvolveKernel(spec);
+    return kernel.length ? yield* applyMagickConvolveSteps(img, kernel, 0, signal) : img;
 }
 
 function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -2639,38 +2604,17 @@ function* applyMagickPosterizeSteps(img: RgbaImage, levelsRaw: number, signal?: 
     return { ...img, data: out };
 }
 
-function* applyMagickConvolve3x3Steps(img: RgbaImage, kernel: readonly number[], bias = 0, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const w = img.width;
-    const h = img.height;
-    const out = new Uint8Array(img.data);
-    for (let y = 0; y < h; y++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let x = 0; x < w; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            for (let c = 0; c < 3; c++) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                let sum = bias;
-                let kIdx = 0;
-                for (let ky = -1; ky <= 1; ky++) {
-                    if (++cooperativeWork % 65536 === 0)
-                        yield;
-                    const sy = Math.max(0, Math.min(h - 1, y + ky));
-                    for (let kx = -1; kx <= 1; kx++) {
-                        if (++cooperativeWork % 65536 === 0)
-                            yield;
-                        const sx = Math.max(0, Math.min(w - 1, x + kx));
-                        sum += img.data[(sy * w + sx) * 4 + c]! * kernel[kIdx++]!;
-                    }
-                }
-                out[(y * w + x) * 4 + c] = clampByteVal(sum);
-            }
-        }
+function* applyMagickConvolveSteps(img: RgbaImage, kernel: readonly number[], bias = 0, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const data = new Uint8Array(img.data.length), steps = convolvePixelSteps(img, kernel, bias);
+    let next = steps.next();
+    while (!next.done) {
+        signal?.throwIfAborted();
+        const request = next.value;
+        if (!request) { yield; next = steps.next(); }
+        else if (request.kind === "read") next = steps.next(img.data.subarray(request.position, request.position + request.length));
+        else { data.set(request.data, request.position); next = steps.next(); }
     }
-    return { ...img, data: out };
+    return { ...img, data };
 }
 
 function resolveGravityOffset(
@@ -4822,19 +4766,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-edge" || t === "-canny") {
             i++;
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickConvolve3x3Steps(im, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0, signal));
+                return (yield* applyMagickConvolveSteps(im, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0, signal));
             });
         }
         else if (t === "-emboss") {
             i++;
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickConvolve3x3Steps(im, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 128, signal));
+                return (yield* applyMagickConvolveSteps(im, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 128, signal));
             });
         }
         else if (t === "-charcoal" || t === "-sketch") {
             i++;
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* grayscaleImageSteps((yield* negateImageSteps((yield* applyMagickConvolve3x3Steps((yield* blurImageSteps(im, 1)), [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0, signal)), { alpha: false }))));
+                return (yield* grayscaleImageSteps((yield* negateImageSteps((yield* applyMagickConvolveSteps((yield* blurImageSteps(im, 1)), [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0, signal)), { alpha: false }))));
             });
         }
         else if (t === "+repage" || t === "-repage") {
@@ -5381,6 +5325,20 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         };
     }
 }
+async function convolveStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, kernel: readonly number[], bias: number, signal: AbortSignal): Promise<StoredRgbaImage> {
+    if (!kernel.length) return image;
+    const position = backend.storage.allocate(image.width * image.height * 4), steps = convolvePixelSteps(image, kernel, bias);
+    let next = steps.next();
+    while (!next.done) {
+        signal.throwIfAborted();
+        const request = next.value;
+        if (!request) { await yieldTurn(signal); next = steps.next(); }
+        else if (request.kind === "read") next = steps.next(await backend.storage.read(image.position + request.position, request.length));
+        else { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
+    }
+    return { ...image, position };
+}
+
 async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend: CompareFileSession, token: string, geometry: string, state: MagickState, signal: AbortSignal): Promise<StoredRgbaImage> {
     const g = parseMagickGeometry(geometry), w = image.width, h = image.height;
     type Span = { source: number; target: number; length: number };
@@ -5472,7 +5430,16 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
+        if (!operandsOnly && ["-convolve", "-edge", "-canny", "-emboss", "-charcoal", "-sketch"].includes(token)) {
+            const spec = tokens[++i] ?? "1", charcoal = token === "-charcoal" || token === "-sketch";
+            const kernel = token === "-convolve" ? parseMagickConvolveKernel(spec) : token === "-emboss" ? [-2, -1, 0, -1, 1, 1, 0, 1, 2] : [-1, -1, -1, -1, 8, -1, -1, -1, -1];
+            if (charcoal) transform(() => ({ kind: "blur", sigma: 1 }));
+            steps.push(async (image, backend) => image ? convolveStoredMagickImage(image, backend, kernel, token === "-emboss" ? 128 : 0, signal) : undefined);
+            if (charcoal) {
+                steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, { end: i, apply: pixels => negateImageSteps(pixels, { alpha: false }) }, signal) : undefined);
+                transform(() => ({ kind: "grayscale" }));
+            }
+        } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {

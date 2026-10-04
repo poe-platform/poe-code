@@ -101,35 +101,38 @@ it.each(fixtures.map((blocks, index) => ({blocks, index})))("preserves ODT expan
   }
 });
 
-it.each(fixtures.map((blocks, index) => ({blocks, index})))("retains ODT byte thresholds for fixture $index", async ({blocks}) => {
+it.each(fixtures.flatMap((blocks, index) => [undefined, 0, 256].flatMap(outputBytes => [
+  {writer: "default", writerOptions: {}},
+  {writer: "standalone", writerOptions: {standalone: true}},
+  {writer: "crlf", writerOptions: {eol: "crlf"}}
+].map(({writer, writerOptions}) => ({blocks, index, outputBytes, writer, writerOptions: writerOptions as Partial<ConversionOptions>})))))
+("retains ODT byte thresholds for fixture $index ($writer, outputBytes=$outputBytes)", async ({blocks, outputBytes, writerOptions}) => {
   const wire = await writeDocument({blocks, metadata: {...metadata(blocks), title: {t: "MetaString", c: "Title & 😀"}}, resources: []}, {to: "json"}, {});
   if (wire.kind !== "text") throw new Error("Expected JSON");
-  for (const outputBytes of [undefined, 0, 256]) for (const writerOptions of [{}, {standalone: true}, {eol: "crlf"}] as Partial<ConversionOptions>[]) {
-    const resourceFiles = new MemoryFileSystem();
-    const options = {from: "json", to: "odt", lossy: true, ...writerOptions} as ConversionOptions;
-    const input = {bytes: new TextEncoder().encode(wire.text), source: "/input.json"};
-    const boundaries = new Set<number>([0, 1, 1000000]), original = ExecutionContext.prototype.charge;
-    const trace = vi.spyOn(ExecutionContext.prototype, "charge").mockImplementation(function(this: ExecutionContext, ...args) {
-      const result = original.apply(this, args);
-      if (args[0] === "retainedBytes") {const used = 1000000 - this.remaining("retainedBytes"); if (Number.isFinite(used)) {boundaries.add(used); boundaries.add(used - 1);}}
-      return result;
-    });
-    try {await convert([input], options, {resourceFiles, limits: {retainedBytes: 1000000, ...(outputBytes === undefined ? {} : {outputBytes})}, output: {async write() {}, async close() {}, async abort() {}}}).catch(error => {expect(["E_LIMIT", "E_UNSUPPORTED_FEATURE", "E_CAPABILITY", "E_RESOURCE"]).toContain(error.code);});}
-    finally {trace.mockRestore();}
-    const values = [...boundaries].filter(value => value >= 0).sort((a,b) => a-b);
-    for (const retainedBytes of values.filter((_, index) => index % Math.ceil(values.length / 24) === 0 || index >= values.length - 32)) {
-      const expectedBytes: number[] = [], actualBytes: number[] = [], fs = new MemoryFileSystem();
-      const sink = (bytes: number[]) => ({async write(chunk: Uint8Array) {bytes.push(...chunk);}, async close() {}, async abort() {}});
-      const expected = await convert([input], options, {resourceFiles, limits: {retainedBytes, ...(outputBytes === undefined ? {} : {outputBytes})}, output: sink(expectedBytes)}).catch(error => error);
-      const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
-      try {
-        const actual = await convertToOutput([input], options, {resourceFiles, limits: {retainedBytes, ...(outputBytes === undefined ? {} : {outputBytes})}, workingFiles: {fs, directory: "/"}, output: sink(actualBytes)}).catch(error => error);
-        expect(acquire.mock.calls.length).toBe(0);
-        if (expected instanceof Error) expect(actual, JSON.stringify({retainedBytes, writerOptions})).toMatchObject({code: (expected as {code?: string}).code, message: expected.message, location: (expected as {location?: string}).location});
-        else {expect(actual).not.toBeInstanceOf(Error); expect(actual.diagnostics).toEqual(expected.diagnostics);}
-        expect(actualBytes).toEqual(expectedBytes);
-      } finally {acquire.mockRestore();}
-      expect(await fs.readdir("/")).toEqual([]);
-    }
+  const resourceFiles = new MemoryFileSystem();
+  const options = {from: "json", to: "odt", lossy: true, ...writerOptions} as ConversionOptions;
+  const input = {bytes: new TextEncoder().encode(wire.text), source: "/input.json"};
+  const boundaries = new Set<number>([0, 1, 1000000]), original = ExecutionContext.prototype.charge;
+  const trace = vi.spyOn(ExecutionContext.prototype, "charge").mockImplementation(function(this: ExecutionContext, ...args) {
+    const result = original.apply(this, args);
+    if (args[0] === "retainedBytes") {const used = 1000000 - this.remaining("retainedBytes"); if (Number.isFinite(used)) {boundaries.add(used); boundaries.add(used - 1);}}
+    return result;
+  });
+  try {await convert([input], options, {resourceFiles, limits: {retainedBytes: 1000000, ...(outputBytes === undefined ? {} : {outputBytes})}, output: {async write() {}, async close() {}, async abort() {}}}).catch(error => {expect(["E_LIMIT", "E_UNSUPPORTED_FEATURE", "E_CAPABILITY", "E_RESOURCE"]).toContain(error.code);});}
+  finally {trace.mockRestore();}
+  const values = [...boundaries].filter(value => value >= 0).sort((a,b) => a-b);
+  for (const retainedBytes of values.filter((_, index) => index % Math.ceil(values.length / 24) === 0 || index >= values.length - 32)) {
+    const expectedBytes: number[] = [], actualBytes: number[] = [], fs = new MemoryFileSystem();
+    const sink = (bytes: number[]) => ({async write(chunk: Uint8Array) {bytes.push(...chunk);}, async close() {}, async abort() {}});
+    const expected = await convert([input], options, {resourceFiles, limits: {retainedBytes, ...(outputBytes === undefined ? {} : {outputBytes})}, output: sink(expectedBytes)}).catch(error => error);
+    const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
+    try {
+      const actual = await convertToOutput([input], options, {resourceFiles, limits: {retainedBytes, ...(outputBytes === undefined ? {} : {outputBytes})}, workingFiles: {fs, directory: "/"}, output: sink(actualBytes)}).catch(error => error);
+      expect(acquire.mock.calls.length).toBe(0);
+      if (expected instanceof Error) expect(actual, JSON.stringify({retainedBytes, writerOptions})).toMatchObject({code: (expected as {code?: string}).code, message: expected.message, location: (expected as {location?: string}).location});
+      else {expect(actual).not.toBeInstanceOf(Error); expect(actual.diagnostics).toEqual(expected.diagnostics);}
+      expect(actualBytes).toEqual(expectedBytes);
+    } finally {acquire.mockRestore();}
+    expect(await fs.readdir("/")).toEqual([]);
   }
 });

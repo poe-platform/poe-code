@@ -1,3 +1,4 @@
+import { createSharedStringStorage } from "./shared-string-storage.js";
 import { writeXlsxTheme } from "./xlsx-theme.js";
 import { writeXlsxWorkbookProtection } from "./xlsx-workbook-protection.js";
 import type { Codec, WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
@@ -11,7 +12,7 @@ import { createStoredZipEntries, ZipStorageFailure, ZipWriteChain, ZipDirectoryI
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { createZipCodec, CodecError, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
 import { expandIndexSheetAreas } from "@poe-code/spreadsheet-engine/formulas/index-sheet-areas";
-import { parseXmlStream, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
+import { parseXmlStream, XmlLimitError, type XmlElement, type XmlContent, type XmlStreamLimits } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { parseA1, formatA1, type Cell, type CellValue, type Workbook, type Sheet, type Range, type RichTextRun,
   type ImportedValue, type AxisMetadata, type FormulaGroup, type NamedExpression, type UnsupportedRecord } from "@poe-code/spreadsheet-ast";
@@ -54,7 +55,8 @@ const schemaEdges = Object.fromEntries(Object.entries(xlsxSchemas).map(([name, s
   for (const node of schema) { const key = node[0] + ":" + node[3]; const list = edges.get(key) ?? []; list.push(node); edges.set(key, list); }
   return [name, edges];
 }));
-async function recognize(root: XmlElement, schema: string, context: CapabilityContext): Promise<XmlElement> {
+async function recognize(root: XmlElement, schema: string, context: CapabilityContext,
+  streamed?: { children(root: XmlElement): AsyncIterable<XmlElement>; accept(node: XmlElement): Promise<void> }): Promise<XmlElement> {
   const edges = schemaEdges[schema]; if (!edges) return root;
   const prefixes = new Map<string, string>(), namespacePrefixes = new Map<string, string>(), unknownPrefixes = new Set<string>();
   async function visit(node: XmlElement, parent: string, ancestors: readonly string[], inheritedNamespace: string): Promise<XmlElement | undefined> {
@@ -85,11 +87,23 @@ async function recognize(root: XmlElement, schema: string, context: CapabilityCo
     }
     if (node.localName === "ext") return node;
     const accepted: XmlElement[] = [];
-    for (const item of node.children) {
+    // Streamed records serialize ordered content. Keep it aligned with the
+    // recognized children rather than retaining rejected raw descendants.
+    const content: XmlContent[] | undefined = streamed ? [] : undefined;
+    let contentAt = 0;
+    for await (const item of streamed && ancestors.length === 0 ? streamed.children(node) : node.children) {
+      if (content && ancestors.length) {
+        while (contentAt < node.content.length && node.content[contentAt] !== item) content.push(node.content[contentAt++]!);
+        contentAt++;
+      }
       const child = await visit(item, match[1], [...ancestors, node.localName], namespace);
-      if (child) accepted.push(child);
+      if (child) {
+        if (streamed && ancestors.length === 0) { if (child.localName === "si") await streamed.accept(child); }
+        else { accepted.push(child); content?.push(child); }
+      }
     }
-    return { ...node, namespace: xlsxNamespaces[match[2]]?.[0] ?? node.namespace, children: accepted,
+    if (content && ancestors.length) while (contentAt < node.content.length) content.push(node.content[contentAt++]!);
+    return { ...node, ...(content ? { content } : {}), namespace: xlsxNamespaces[match[2]]?.[0] ?? node.namespace, children: accepted,
       attributes: node.attributes.map(attribute => {
         const colon = attribute.name.indexOf(":");
         const key = colon < 0 ? undefined : prefixes.get(attribute.name.slice(0, colon));
@@ -197,11 +211,11 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
     if (amount > maximumWork - packageWork) limit("work"); packageWork += amount;
   }
   const documents = new Map<string, XmlElement>();
-  async function document(name: string): Promise<XmlElement> {
+  async function document(name: string, streamElements?: XmlStreamLimits["streamElements"]): Promise<XmlElement> {
     context.signal.throwIfAborted();
     const cached = documents.get(name); if (cached) return cached;
     const entry = await entries.get(name); if (!entry) return invalid(`missing part '${name}'`);
-    const xmlLimits = { expectedEncoding: "UTF-8" as "UTF-8" | "UTF-16LE" | "UTF-16BE",
+    const xmlLimits = { ...(streamElements ? { streamElements } : {}), expectedEncoding: "UTF-8" as "UTF-8" | "UTF-16LE" | "UTF-16BE",
       maxDepth: context.limits.xmlDepth ?? Infinity,
       maxNodes: (context.limits.workbookNodes ?? Infinity) - nodes,
       maxAttributes: context.limits.workbookNodes ?? Infinity, maxTextLength: bounds.maxTextBytes,
@@ -321,16 +335,24 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
     let workbook = await opc.document(workbookPath);
     if (workbook.localName !== "workbook" || !spreadsheetNamespaces.has(workbook.namespace)) return { sheets: [] };
     const workbookRelations = await opc.relations(workbookPath);
-    const related = async (type: string): Promise<XmlElement | undefined> => {
+    const related = async (type: string, streamElements?: XmlStreamLimits["streamElements"]): Promise<XmlElement | undefined> => {
       const relation = workbookRelations.find(r => r.type === relationships + "/" + type);
       if (!relation) return undefined; if (relation.external) invalid(`external ${type} part`);
-      return opc.document(relation.target);
+      return opc.document(relation.target, streamElements);
     };
-    let stringRoot = await related("sharedStrings"); if (stringRoot) rootIs(stringRoot, "sst");
-    if (stringRoot) stringRoot = await recognize(stringRoot, "xlsx_shared_strings_dtd", context);
+    const storedStrings = context.createWorkingStorage ? createSharedStringStorage(context, namespace => spreadsheetNamespaces.has(namespace)) : undefined;
+    const stringRelation = workbookRelations.find(relation => relation.type === relationships + "/sharedStrings");
+    // A part used in another role may also be retained as opaque workbook metadata.
+    // Keep that role's XML tree; its decoded shared-string values still use storage.
+    const sharedRole = (relation: Relationship) => relation.target === stringRelation?.target && relation.type !== stringRelation?.type;
+    const retainedStrings = workbookRelations.some(sharedRole) || rootRelations.some(sharedRole);
+    let stringRoot = await related("sharedStrings", retainedStrings ? undefined : storedStrings?.streamElements); if (stringRoot) rootIs(stringRoot, "sst");
+    if (stringRoot) stringRoot = await recognize(stringRoot, "xlsx_shared_strings_dtd", context, storedStrings);
     let theme = await related("theme"); if (theme) theme = await recognize(theme, "xlsx_theme_dtd", context);
     let styleRoot = await related("styles"); if (styleRoot) styleRoot = await recognize(styleRoot, "xlsx_styles_dtd", context);
-    const strings = children(stringRoot, "si").map(node => readXlsxString(node, context)), cellStyles = await readXlsxStyles(styleRoot, theme, context);
+    if (storedStrings) await storedStrings.decode();
+    const strings = storedStrings ?? children(stringRoot, "si").map(node => readXlsxString(node, context));
+    const cellStyles = await readXlsxStyles(styleRoot, theme, context);
     workbook = await recognize(workbook, "xlsx_workbook_dtd", context);
     const workbookRecords: UnsupportedRecord[] = children(workbook, "workbookProtection").map(node => record(node, workbookPath));
     for (const type of ["theme", "externalLink", "pivotCacheDefinition"]) {
@@ -470,7 +492,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             else if (type === "str" && raw !== undefined) value = { kind: "string", value: decodeXlsxString(raw) };
             else if (raw !== undefined && raw !== "") {
               if (type === "s") {
-                const index = sharedStringIndex(raw), string = index === undefined ? undefined : strings[index];
+                const index = sharedStringIndex(raw), string = index === undefined ? undefined : Array.isArray(strings) ? strings[index] : await strings.get(index);
                 if (string) { value = { kind: "string", value: string.value }; richText = string.richText; }
                 else {
                   const message = `${name}!${formatA1(position.row, position.column)} : Invalid sst ref '${raw}'`;

@@ -541,6 +541,7 @@ class FlowParser {
     readonly source: string,
     readonly composer: Composer,
     readonly line: number,
+    readonly propertyNode?: () => Promise<ParsedNode>,
   ) {}
 
   parse(): ParsedNode | Promise<ParsedNode> {
@@ -603,10 +604,13 @@ class FlowParser {
     else if (character === "{") parsed = await this.#mapping();
     else if (character === '"' || character === "'") { const q = this.#quoted(); parsed = q instanceof Promise ? await q : q; }
     else if (character === "*") parsed = await this.#alias();
-    else if (character === undefined && tag !== undefined) {
-      const s = this.composer.scalar("", null);
-      if (s) await s;
-      parsed = { value: null, style: "plain", raw: "" };
+    else if (character === undefined && (tag !== undefined || anchor !== undefined)) {
+      if (this.propertyNode) parsed = await this.propertyNode();
+      else {
+        const s = this.composer.scalar("", null);
+        if (s) await s;
+        parsed = { value: null, style: "plain", raw: "" };
+      }
     } else { const p = this.#plain(keyMode); parsed = p instanceof Promise ? await p : p; }
     parsed = this.composer.applyTag(parsed, tag);
     if (record) this.composer.completeAnchor(record, parsed.value);
@@ -949,7 +953,7 @@ class BlockParser {
     if (/^-(?:[ \t]|$)/u.test(content)) return this.#sequence(indent);
     if (content.startsWith("? ") || mappingColon(content) >= 0) return this.#mapping(indent);
     this.#index++;
-    return this.#inlineOrBlock(content, indent, line.number);
+    return this.#inlineOrBlock(content, indent, line.number, () => this.#nestedOrNull(indent - 1));
   }
 
   async #sequence(indent: number): Promise<ParsedNode> {
@@ -980,7 +984,7 @@ class BlockParser {
           item = await this.#sequence(childIndent);
         } else if (mappingColon(rest) >= 0) {
           item = await this.#inlineMappingItem(rest, childIndent, line.number);
-        } else item = await this.#inlineOrBlock(rest, indent, line.number);
+        } else item = await this.#inlineOrBlock(rest, indent, line.number, () => this.#nestedOrNull(indent, false));
         result.push(item.value);
       }
       return { value: result };
@@ -1031,7 +1035,7 @@ class BlockParser {
           if (!valueLine || indentation(valueLine.text) !== indent || !stripComment(valueLine.text.slice(indent)).startsWith(":")) throw syntax(line.number, 1);
           this.#index++;
           const valueText = stripComment(valueLine.text.slice(indent)).slice(1).trimStart();
-          const value = valueText.length > 0 ? await this.#inlineOrBlock(valueText, indent, valueLine.number) : await this.#nestedOrNull(indent);
+          const value = valueText.length > 0 ? await this.#inlineOrBlock(valueText, indent, valueLine.number, () => this.#nestedOrNull(indent)) : await this.#nestedOrNull(indent);
           this.composer.mappingEntry(result, key, value.value, false, true);
           continue;
         }
@@ -1053,12 +1057,12 @@ class BlockParser {
     const k0 = this.#inlineOrBlock(keyText, indent, lineNumber);
     if (k0 instanceof Promise) {
       return k0.then(async (key) => {
-        const v0 = valueText.length > 0 ? this.#inlineOrBlock(valueText, indent, lineNumber) : this.#nestedOrNull(indent);
+        const v0 = valueText.length > 0 ? this.#inlineOrBlock(valueText, indent, lineNumber, () => this.#nestedOrNull(indent)) : this.#nestedOrNull(indent);
         const value = v0 instanceof Promise ? await v0 : v0;
         this.composer.mappingEntry(target, key, value.value, true, memberAdmitted);
       });
     }
-    const v0 = valueText.length > 0 ? this.#inlineOrBlock(valueText, indent, lineNumber) : this.#nestedOrNull(indent);
+    const v0 = valueText.length > 0 ? this.#inlineOrBlock(valueText, indent, lineNumber, () => this.#nestedOrNull(indent)) : this.#nestedOrNull(indent);
     if (v0 instanceof Promise) {
       return v0.then((value) => {
         this.composer.mappingEntry(target, k0, value.value, true, memberAdmitted);
@@ -1068,18 +1072,18 @@ class BlockParser {
     return undefined;
   }
 
-  async #nestedOrNull(parentIndent: number): Promise<ParsedNode> {
+  async #nestedOrNull(parentIndent: number, indentlessSequence = true): Promise<ParsedNode> {
     this.#skip();
     const next = this.lines[this.#index];
     if (next && indentation(next.text) > parentIndent) return this.#node(indentation(next.text));
-    if (next && indentation(next.text) === parentIndent && /^-(?:[ \t]|$)/u.test(stripComment(next.text.slice(parentIndent)))) {
+    if (indentlessSequence && next && indentation(next.text) === parentIndent && /^-(?:[ \t]|$)/u.test(stripComment(next.text.slice(parentIndent)))) {
       return this.#node(parentIndent);
     }
     await this.composer.scalar("", null);
-    return { value: null, style: "plain" };
+    return { value: null, style: "plain", raw: "" };
   }
 
-  #inlineOrBlock(content: string, parentIndent: number, lineNumber: number): ParsedNode | Promise<ParsedNode> {
+  #inlineOrBlock(content: string, parentIndent: number, lineNumber: number, propertyNode?: () => Promise<ParsedNode>): ParsedNode | Promise<ParsedNode> {
     if (content.length > 0 && content.length <= 256 && this.composer.work.chargeSync) {
       const c0 = content.charCodeAt(0);
       if (c0 !== 0x7c && c0 !== 0x3e && c0 !== 0x21 && c0 !== 0x26 && c0 !== 0x2a && c0 !== 0x5b && c0 !== 0x7b && c0 !== 0x22 && c0 !== 0x27) {
@@ -1104,10 +1108,10 @@ class BlockParser {
         }
       }
     }
-    return this.#inlineOrBlockSlow(content, parentIndent, lineNumber);
+    return this.#inlineOrBlockSlow(content, parentIndent, lineNumber, propertyNode);
   }
 
-  async #inlineOrBlockSlow(content: string, parentIndent: number, lineNumber: number): Promise<ParsedNode> {
+  async #inlineOrBlockSlow(content: string, parentIndent: number, lineNumber: number, propertyNode?: () => Promise<ParsedNode>): Promise<ParsedNode> {
     const property = /^(?:(!![^\s]+|!<[^>]+>|!)\s+)?(?:&([^\s]+)\s+)?([|>])([1-9]?[+-]?|[+-]?[1-9]?)$/u.exec(content);
     if (property) return this.#blockScalar(property, parentIndent, lineNumber);
     if (/^[|>]/u.test(content)) throw syntax(lineNumber, 1);
@@ -1151,7 +1155,7 @@ class BlockParser {
       fragments.push(fragment);
     }
     if (!balanced) throw syntax(lineNumber, 1);
-    return new FlowParser(fragments.join(""), this.composer, lineNumber).parse();
+    return new FlowParser(fragments.join(""), this.composer, lineNumber, propertyNode).parse();
   }
 
   async #blockScalar(match: RegExpExecArray, parentIndent: number, lineNumber: number): Promise<ParsedNode> {

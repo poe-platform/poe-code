@@ -4,7 +4,7 @@ import { Jbig2Image } from "../vendor/pdfjs-image-decoders.mjs";
 
 export interface PdfRetainedJbig2Options {
   readonly globals?: PdfFileSource | undefined;
-  /** Conservative cumulative encoded input and decoder state, plus one RGBA
+  /** Conservative fixed input-cache and cumulative decoder state, plus one RGBA
    * row. Caller-owned source caches are additional memory. */
   readonly maxWorkingBytes?: number;
   /** Admit intrinsic encoded/decoder allocations to a containing owner before
@@ -18,7 +18,7 @@ function limit(value: number | undefined, name: string) {
   if (!Number.isSafeInteger(value) || value < 0) throw new RangeError(`Invalid ${name}`);
   return value;
 }
-/** JBIG2 retains admitted encoded input, symbol/region decoder state and packed
+/** JBIG2 reads encoded input through fixed caches and retains admitted symbol/region decoder state and packed
  * page pixels. Only one output row is expanded. Both sources stay caller-owned
  * and may close after open(); close() releases the owner's packed bitmap. */
 export class PdfRetainedJbig2 {
@@ -43,27 +43,47 @@ export class PdfRetainedJbig2 {
       if (!Number.isSafeInteger(width * height) || width * height > Math.floor(outputMaximum / 4)) throw new PdfError("E_LIMIT", "JBIG2 output byte limit exceeded");
     }
     options.signal?.throwIfAborted(); dimensions(fallbackWidth, fallbackHeight);
-    charge(source.size); charge(options.globals?.size ?? 0);
-    charge(Math.max(Math.min(source.size, source.chunkBytes), options.globals ? Math.min(options.globals.size, options.globals.chunkBytes) : 0));
-    async function read(input: PdfFileSource) {
-      const bytes = new Uint8Array(input.size); let offset = 0;
-      for await (const chunk of input.stream(0, input.size, options.signal)) { bytes.set(chunk, offset); offset += chunk.length; }
-      return bytes;
+    const inputs = [source, ...(options.globals ? [options.globals] : [])].map(input => {
+      if (!Number.isSafeInteger(input.size) || input.size < 0 || !Number.isSafeInteger(input.chunkBytes) || input.chunkBytes < 1)
+        throw new RangeError("Invalid JBIG2 source range");
+      const chunkBytes = Math.min(4096, input.chunkBytes, input.size);
+      charge(chunkBytes * 3 + 256);
+      return {input, chunkBytes, data: {length: input.size}, bytes: new Uint8Array(), start: -1};
+    });
+    async function read(index: number, position: number): Promise<number | undefined> {
+      options.signal?.throwIfAborted();
+      const cache = inputs[index]!;
+      if (position < 0 || position >= cache.input.size) return undefined;
+      if (position < cache.start || position >= cache.start + cache.bytes.length) {
+        const length = Math.min(cache.chunkBytes, cache.input.size - position);
+        const bytes = await cache.input.read(position, length, options.signal);
+        options.signal?.throwIfAborted();
+        if (bytes.length !== length) throw new PdfError("E_PARSE", "Incomplete JBIG2 source range");
+        cache.bytes = bytes.slice(); cache.start = position;
+      }
+      return cache.bytes[position - cache.start];
     }
-    const bytes = await read(source);
-    if (bytes.length < 11) throw new PdfError("E_PARSE", "Invalid JBIG2 stream");
+    if (source.size < 11) throw new PdfError("E_PARSE", "Invalid JBIG2 stream");
+    let standalone = true;
+    const signature = [0x97, 0x4a, 0x42, 0x32, 0x0d, 0x0a, 0x1a, 0x0a];
+    for (let i = 0; i < signature.length; i++) if (await read(0, i) !== signature[i]) {standalone = false; break;}
     const decoder = new Jbig2Image(dimensions, charge);
-    let pixels: Uint8Array | Uint8ClampedArray | undefined;
-    let width = fallbackWidth, height = fallbackHeight;
-    const standalone = [0x97, 0x4a, 0x42, 0x32, 0x0d, 0x0a, 0x1a, 0x0a].every((byte, i) => bytes[i] === byte);
-    if (standalone) {
-      options.signal?.throwIfAborted(); pixels = decoder.parse(bytes, { packed: true }); width = decoder.width; height = decoder.height;
-    } else {
-      const globals = options.globals ? await read(options.globals) : undefined;
-      const chunks = globals ? [{ data: globals, start: 0, end: globals.length }] : [];
-      chunks.push({ data: bytes, start: 0, end: bytes.length });
-      options.signal?.throwIfAborted(); pixels = decoder.parseChunks(chunks);
-    }
+    const chunks = options.globals ? [{data: inputs[1]!.data, start: 0, end: inputs[1]!.data.length}] : [];
+    chunks.push({data: inputs[0]!.data, start: 0, end: source.size});
+    const program = standalone ? decoder.parseSteps(inputs[0]!.data, {packed: true}) : decoder.parseChunksSteps(chunks);
+    let step = program.next(), requests = 0;
+    try {
+      while (!step.done) {
+        options.signal?.throwIfAborted();
+        if (++requests % 4096 === 0) {await new Promise<void>(resolve => setTimeout(resolve, 0)); options.signal?.throwIfAborted();}
+        const request = step.value;
+        const index = inputs.findIndex(input => input.data === request.source);
+        if (index < 0) throw new PdfError("E_PARSE", "Unknown JBIG2 source");
+        step = program.next(await read(index, request.position));
+      }
+    } finally {program.return(undefined as never);}
+    const pixels = step.value;
+    const width = standalone ? decoder.width : fallbackWidth, height = standalone ? decoder.height : fallbackHeight;
     dimensions(width, height);
     if (!pixels || width <= 0 || height <= 0 || pixels.length !== Math.ceil(width / 8) * height) throw new PdfError("E_PARSE", "JBIG2 bitmap dimensions do not match decoded data");
     return new PdfRetainedJbig2(pixels, width, height, allocated, maximum, options.signal);

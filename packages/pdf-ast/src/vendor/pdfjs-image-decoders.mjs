@@ -1904,19 +1904,21 @@ class CCITTFaxDecoder {
     this.inputBuf = 0;
     this.outputBits = 0;
     this.rowsDone = false;
+  }
+  *initialize() {
     let code1;
-    while ((code1 = this._lookBits(12)) === 0) {
+    while ((code1 = (yield* this._lookBits(12))) === 0) {
       this._eatBits(1);
     }
     if (code1 === 1) {
       this._eatBits(12);
     }
     if (this.encoding > 0) {
-      this.nextLine2D = !this._lookBits(1);
+      this.nextLine2D = !(yield* this._lookBits(1));
       this._eatBits(1);
     }
   }
-  readNextChar() {
+  *readNextChar() {
     if (this.eof) {
       return -1;
     }
@@ -1944,7 +1946,7 @@ class CCITTFaxDecoder {
         refPos = 0;
         blackPixels = 0;
         while (codingLine[this.codingPos] < columns) {
-          code1 = this._getTwoDimCode();
+          code1 = (yield* this._getTwoDimCode());
           switch (code1) {
             case twoDimPass:
               this._addPixels(refLine[refPos + 1], blackPixels);
@@ -1956,17 +1958,17 @@ class CCITTFaxDecoder {
               code1 = code2 = 0;
               if (blackPixels) {
                 do {
-                  code1 += code3 = this._getBlackCode();
+                  code1 += code3 = (yield* this._getBlackCode());
                 } while (code3 >= 64);
                 do {
-                  code2 += code3 = this._getWhiteCode();
+                  code2 += code3 = (yield* this._getWhiteCode());
                 } while (code3 >= 64);
               } else {
                 do {
-                  code1 += code3 = this._getWhiteCode();
+                  code1 += code3 = (yield* this._getWhiteCode());
                 } while (code3 >= 64);
                 do {
-                  code2 += code3 = this._getBlackCode();
+                  code2 += code3 = (yield* this._getBlackCode());
                 } while (code3 >= 64);
               }
               this._addPixels(codingLine[this.codingPos] + code1, blackPixels);
@@ -2077,11 +2079,11 @@ class CCITTFaxDecoder {
           code1 = 0;
           if (blackPixels) {
             do {
-              code1 += code3 = this._getBlackCode();
+              code1 += code3 = (yield* this._getBlackCode());
             } while (code3 >= 64);
           } else {
             do {
-              code1 += code3 = this._getWhiteCode();
+              code1 += code3 = (yield* this._getWhiteCode());
             } while (code3 >= 64);
           }
           this._addPixels(codingLine[this.codingPos] + code1, blackPixels);
@@ -2095,16 +2097,16 @@ class CCITTFaxDecoder {
       if (!this.eoblock && this.row === this.rows - 1) {
         this.rowsDone = true;
       } else {
-        code1 = this._lookBits(12);
+        code1 = (yield* this._lookBits(12));
         if (this.eoline) {
           while (code1 !== ccittEOF && code1 !== 1) {
             this._eatBits(1);
-            code1 = this._lookBits(12);
+            code1 = (yield* this._lookBits(12));
           }
         } else {
           while (code1 === 0) {
             this._eatBits(1);
-            code1 = this._lookBits(12);
+            code1 = (yield* this._lookBits(12));
           }
         }
         if (code1 === 1) {
@@ -2115,26 +2117,26 @@ class CCITTFaxDecoder {
         }
       }
       if (!this.eof && this.encoding > 0 && !this.rowsDone) {
-        this.nextLine2D = !this._lookBits(1);
+        this.nextLine2D = !(yield* this._lookBits(1));
         this._eatBits(1);
       }
       if (this.eoblock && gotEOL && this.byteAlign) {
-        code1 = this._lookBits(12);
+        code1 = (yield* this._lookBits(12));
         if (code1 === 1) {
           this._eatBits(12);
           if (this.encoding > 0) {
-            this._lookBits(1);
+            (yield* this._lookBits(1));
             this._eatBits(1);
           }
           if (this.encoding >= 0) {
             for (i = 0; i < 4; ++i) {
-              code1 = this._lookBits(12);
+              code1 = (yield* this._lookBits(12));
               if (code1 !== 1) {
                 info("bad rtc code: " + code1);
               }
               this._eatBits(12);
               if (this.encoding > 0) {
-                this._lookBits(1);
+                (yield* this._lookBits(1));
                 this._eatBits(1);
               }
             }
@@ -2143,7 +2145,7 @@ class CCITTFaxDecoder {
         }
       } else if (this.err && this.eoline) {
         while (true) {
-          code1 = this._lookBits(13);
+          code1 = (yield* this._lookBits(13));
           if (code1 === ccittEOF) {
             this.eof = true;
             return -1;
@@ -2248,10 +2250,10 @@ class CCITTFaxDecoder {
     }
     this.codingPos = codingPos;
   }
-  _findTableCode(start, end, table, limit) {
+  *_findTableCode(start, end, table, limit) {
     const limitValue = limit || 0;
     for (let i = start; i <= end; ++i) {
-      let code = this._lookBits(i);
+      let code = (yield* this._lookBits(i));
       if (code === ccittEOF) {
         return [true, 1, false];
       }
@@ -2268,18 +2270,18 @@ class CCITTFaxDecoder {
     }
     return [false, 0, false];
   }
-  _getTwoDimCode() {
+  *_getTwoDimCode() {
     let code = 0;
     let p;
     if (this.eoblock) {
-      code = this._lookBits(7);
+      code = (yield* this._lookBits(7));
       p = twoDimTable[code];
       if (p?.[0] > 0) {
         this._eatBits(p[0]);
         return p[1];
       }
     } else {
-      const result = this._findTableCode(1, 7, twoDimTable);
+      const result = (yield* this._findTableCode(1, 7, twoDimTable));
       if (result[0] && result[2]) {
         return result[1];
       }
@@ -2287,11 +2289,11 @@ class CCITTFaxDecoder {
     info("Bad two dim code");
     return ccittEOF;
   }
-  _getWhiteCode() {
+  *_getWhiteCode() {
     let code = 0;
     let p;
     if (this.eoblock) {
-      code = this._lookBits(12);
+      code = (yield* this._lookBits(12));
       if (code === ccittEOF) {
         return 1;
       }
@@ -2301,11 +2303,11 @@ class CCITTFaxDecoder {
         return p[1];
       }
     } else {
-      let result = this._findTableCode(1, 9, whiteTable2);
+      let result = (yield* this._findTableCode(1, 9, whiteTable2));
       if (result[0]) {
         return result[1];
       }
-      result = this._findTableCode(11, 12, whiteTable1);
+      result = (yield* this._findTableCode(11, 12, whiteTable1));
       if (result[0]) {
         return result[1];
       }
@@ -2314,10 +2316,10 @@ class CCITTFaxDecoder {
     this._eatBits(1);
     return 1;
   }
-  _getBlackCode() {
+  *_getBlackCode() {
     let code, p;
     if (this.eoblock) {
-      code = this._lookBits(13);
+      code = (yield* this._lookBits(13));
       if (code === ccittEOF) {
         return 1;
       }
@@ -2333,15 +2335,15 @@ class CCITTFaxDecoder {
         return p[1];
       }
     } else {
-      let result = this._findTableCode(2, 6, blackTable3);
+      let result = (yield* this._findTableCode(2, 6, blackTable3));
       if (result[0]) {
         return result[1];
       }
-      result = this._findTableCode(7, 12, blackTable2, 64);
+      result = (yield* this._findTableCode(7, 12, blackTable2, 64));
       if (result[0]) {
         return result[1];
       }
-      result = this._findTableCode(10, 13, blackTable1);
+      result = (yield* this._findTableCode(10, 13, blackTable1));
       if (result[0]) {
         return result[1];
       }
@@ -2350,10 +2352,10 @@ class CCITTFaxDecoder {
     this._eatBits(1);
     return 1;
   }
-  _lookBits(n) {
+  *_lookBits(n) {
     let c;
     while (this.inputBits < n) {
-      if ((c = this.source.next()) === -1) {
+      if ((c = (yield* this.source.next())) === -1) {
         if (this.inputBits === 0) {
           return ccittEOF;
         }
@@ -2400,9 +2402,12 @@ class DecodingContext {
     this.start = start;
     this.end = end;
   }
-  get decoder() {
-    const decoder = new ArithmeticDecoder(this.data, this.start, this.end);
-    return util_shadow(this, "decoder", decoder);
+  *getDecoder() {
+    if (this.cachedDecoder) return this.cachedDecoder;
+    const decoder = new ArithmeticDecoder();
+    decoder.jbigSource = this.data;
+    yield* jbigArithmetic(decoder, decoder.initializeSteps(this.start, this.end));
+    return this.cachedDecoder = decoder;
   }
   get contextCache() {
     const cache = new ContextCache(this.onAllocation);
@@ -2411,20 +2416,20 @@ class DecodingContext {
 }
 const MAX_INT_32 = 2 ** 31 - 1;
 const MIN_INT_32 = -(2 ** 31);
-function decodeInteger(contextCache, procedure, decoder) {
+function* decodeInteger(contextCache, procedure, decoder) {
   const contexts = contextCache.getContexts(procedure);
   let prev = 1;
-  function readBits(length) {
+  function* readBits(length) {
     let v = 0;
     for (let i = 0; i < length; i++) {
-      const bit = decoder.readBit(contexts, prev);
+      const bit = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, prev)));
       prev = prev < 256 ? prev << 1 | bit : (prev << 1 | bit) & 511 | 256;
       v = v << 1 | bit;
     }
     return v >>> 0;
   }
-  const sign = readBits(1);
-  const value = readBits(1) ? readBits(1) ? readBits(1) ? readBits(1) ? readBits(1) ? readBits(32) + 4436 : readBits(12) + 340 : readBits(8) + 84 : readBits(6) + 20 : readBits(4) + 4 : readBits(2);
+  const sign = (yield* readBits(1));
+  const value = (yield* readBits(1)) ? (yield* readBits(1)) ? (yield* readBits(1)) ? (yield* readBits(1)) ? (yield* readBits(1)) ? (yield* readBits(32)) + 4436 : (yield* readBits(12)) + 340 : (yield* readBits(8)) + 84 : (yield* readBits(6)) + 20 : (yield* readBits(4)) + 4 : (yield* readBits(2));
   let signedValue;
   if (sign === 0) {
     signedValue = value;
@@ -2436,11 +2441,11 @@ function decodeInteger(contextCache, procedure, decoder) {
   }
   return null;
 }
-function decodeIAID(contextCache, decoder, codeLength) {
+function* decodeIAID(contextCache, decoder, codeLength) {
   const contexts = contextCache.getContexts("IAID");
   let prev = 1;
   for (let i = 0; i < codeLength; i++) {
-    const bit = decoder.readBit(contexts, prev);
+    const bit = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, prev)));
     prev = prev << 1 | bit;
   }
   if (codeLength < 31) {
@@ -2648,8 +2653,8 @@ const RefinementTemplates = [{
 }];
 const ReusedContexts = [0x9b25, 0x0795, 0x00e5, 0x0195];
 const RefinementReusedContexts = [0x0020, 0x0008];
-function decodeBitmapTemplate0(width, height, decodingContext) {
-  const decoder = decodingContext.decoder;
+function* decodeBitmapTemplate0(width, height, decodingContext) {
+  const decoder = (yield* decodingContext.getDecoder());
   const contexts = decodingContext.contextCache.getContexts("GB");
   const bitmap = [];
   let contextLabel, i, j, pixel, row, row1, row2;
@@ -2660,21 +2665,21 @@ function decodeBitmapTemplate0(width, height, decodingContext) {
     row2 = i < 2 ? row : bitmap[i - 2];
     contextLabel = row2[0] << 13 | row2[1] << 12 | row2[2] << 11 | row1[0] << 7 | row1[1] << 6 | row1[2] << 5 | row1[3] << 4;
     for (j = 0; j < width; j++) {
-      row[j] = pixel = decoder.readBit(contexts, contextLabel);
+      row[j] = pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
       contextLabel = (contextLabel & OLD_PIXEL_MASK) << 1 | (j + 3 < width ? row2[j + 3] << 11 : 0) | (j + 4 < width ? row1[j + 4] << 4 : 0) | pixel;
     }
   }
   return bitmap;
 }
-function decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, decodingContext) {
+function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, decodingContext) {
   decodingContext.onImageDimensions?.(width, height);
   decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
   if (mmr) {
     const input = new Reader(decodingContext.data, decodingContext.start, decodingContext.end);
-    return decodeMMRBitmap(input, width, height, false, decodingContext.onAllocation);
+    return (yield* decodeMMRBitmap(input, width, height, false, decodingContext.onAllocation));
   }
   if (templateIndex === 0 && !skip && !prediction && at.length === 4 && at[0].x === 3 && at[0].y === -1 && at[1].x === -3 && at[1].y === -1 && at[2].x === 2 && at[2].y === -2 && at[3].x === -2 && at[3].y === -2) {
-    return decodeBitmapTemplate0(width, height, decodingContext);
+    return (yield* decodeBitmapTemplate0(width, height, decodingContext));
   }
   const useskip = !!skip;
   const template = CodingTemplates[templateIndex].concat(at);
@@ -2718,7 +2723,7 @@ function decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, d
   const pseudoPixelContext = ReusedContexts[templateIndex];
   let row = new Uint8Array(width);
   const bitmap = [];
-  const decoder = decodingContext.decoder;
+  const decoder = (yield* decodingContext.getDecoder());
   const contexts = decodingContext.contextCache.getContexts("GB");
   let ltp = 0,
     j,
@@ -2729,7 +2734,7 @@ function decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, d
     shift;
   for (let i = 0; i < height; i++) {
     if (prediction) {
-      const sltp = decoder.readBit(contexts, pseudoPixelContext);
+      const sltp = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, pseudoPixelContext)));
       ltp ^= sltp;
       if (ltp) {
         bitmap.push(row);
@@ -2770,13 +2775,13 @@ function decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, d
           }
         }
       }
-      const pixel = decoder.readBit(contexts, contextLabel);
+      const pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
       row[j] = pixel;
     }
   }
   return bitmap;
 }
-function decodeRefinement(width, height, templateIndex, referenceBitmap, offsetX, offsetY, prediction, at, decodingContext) {
+function* decodeRefinement(width, height, templateIndex, referenceBitmap, offsetX, offsetY, prediction, at, decodingContext) {
   decodingContext.onImageDimensions?.(width, height);
   decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
   let codingTemplate = RefinementTemplates[templateIndex].coding;
@@ -2806,12 +2811,12 @@ function decodeRefinement(width, height, templateIndex, referenceBitmap, offsetX
   const referenceHeight = referenceBitmap.length;
   const pseudoPixelContext = RefinementReusedContexts[templateIndex];
   const bitmap = [];
-  const decoder = decodingContext.decoder;
+  const decoder = (yield* decodingContext.getDecoder());
   const contexts = decodingContext.contextCache.getContexts("GR");
   let ltp = 0;
   for (let i = 0; i < height; i++) {
     if (prediction) {
-      const sltp = decoder.readBit(contexts, pseudoPixelContext);
+      const sltp = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, pseudoPixelContext)));
       ltp ^= sltp;
       if (ltp) {
         throw new Jbig2Error("prediction is not supported");
@@ -2840,13 +2845,13 @@ function decodeRefinement(width, height, templateIndex, referenceBitmap, offsetX
           contextLabel = contextLabel << 1 | referenceBitmap[i0][j0];
         }
       }
-      const pixel = decoder.readBit(contexts, contextLabel);
+      const pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
       row[j] = pixel;
     }
   }
   return bitmap;
 }
-function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols, numberOfExportedSymbols, huffmanTables, templateIndex, at, refinementTemplateIndex, refinementAt, decodingContext, huffmanInput) {
+function* decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols, numberOfExportedSymbols, huffmanTables, templateIndex, at, refinementTemplateIndex, refinementAt, decodingContext, huffmanInput) {
   if (huffman && refinement) {
     throw new Jbig2Error("symbol refinement with Huffman is not supported");
   }
@@ -2854,7 +2859,7 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
   const newSymbols = [];
   let currentHeight = 0;
   let symbolCodeLength = log2(symbols.length + numberOfNewSymbols);
-  const decoder = decodingContext.decoder;
+  const decoder = (yield* decodingContext.getDecoder());
   const contextCache = decodingContext.contextCache;
   let tableB1, symbolWidths;
   if (huffman) {
@@ -2863,13 +2868,13 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
     symbolCodeLength = Math.max(symbolCodeLength, 1);
   }
   while (newSymbols.length < numberOfNewSymbols) {
-    const deltaHeight = huffman ? huffmanTables.tableDeltaHeight.decode(huffmanInput) : decodeInteger(contextCache, "IADH", decoder);
+    const deltaHeight = huffman ? (yield* huffmanTables.tableDeltaHeight.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IADH", decoder));
     currentHeight += deltaHeight;
     let currentWidth = 0,
       totalWidth = 0;
     const firstSymbol = huffman ? symbolWidths.length : 0;
     while (true) {
-      const deltaWidth = huffman ? huffmanTables.tableDeltaWidth.decode(huffmanInput) : decodeInteger(contextCache, "IADW", decoder);
+      const deltaWidth = huffman ? (yield* huffmanTables.tableDeltaWidth.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IADW", decoder));
       if (deltaWidth === null) {
         break;
       }
@@ -2877,16 +2882,16 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
       totalWidth += currentWidth;
       let bitmap;
       if (refinement) {
-        const numberOfInstances = decodeInteger(contextCache, "IAAI", decoder);
+        const numberOfInstances = (yield* decodeInteger(contextCache, "IAAI", decoder));
         if (numberOfInstances > 1) {
           decodingContext.onAllocation?.((symbols.length + newSymbols.length) * 16 + 128);
-          bitmap = decodeTextRegion(huffman, refinement, currentWidth, currentHeight, 0, numberOfInstances, 1, symbols.concat(newSymbols), symbolCodeLength, 0, 0, 1, 0, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, 0, huffmanInput);
+          bitmap = (yield* decodeTextRegion(huffman, refinement, currentWidth, currentHeight, 0, numberOfInstances, 1, symbols.concat(newSymbols), symbolCodeLength, 0, 0, 1, 0, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, 0, huffmanInput));
         } else {
-          const symbolId = decodeIAID(contextCache, decoder, symbolCodeLength);
-          const rdx = decodeInteger(contextCache, "IARDX", decoder);
-          const rdy = decodeInteger(contextCache, "IARDY", decoder);
+          const symbolId = (yield* decodeIAID(contextCache, decoder, symbolCodeLength));
+          const rdx = (yield* decodeInteger(contextCache, "IARDX", decoder));
+          const rdy = (yield* decodeInteger(contextCache, "IARDY", decoder));
           const symbol = symbolId < symbols.length ? symbols[symbolId] : newSymbols[symbolId - symbols.length];
-          bitmap = decodeRefinement(currentWidth, currentHeight, refinementTemplateIndex, symbol, rdx, rdy, false, refinementAt, decodingContext);
+          bitmap = (yield* decodeRefinement(currentWidth, currentHeight, refinementTemplateIndex, symbol, rdx, rdy, false, refinementAt, decodingContext));
         }
         decodingContext.onAllocation?.(128);
         newSymbols.push(bitmap);
@@ -2894,22 +2899,22 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
         decodingContext.onAllocation?.(16);
         symbolWidths.push(currentWidth);
       } else {
-        bitmap = decodeBitmap(false, currentWidth, currentHeight, templateIndex, false, null, at, decodingContext);
+        bitmap = (yield* decodeBitmap(false, currentWidth, currentHeight, templateIndex, false, null, at, decodingContext));
         decodingContext.onAllocation?.(128);
         newSymbols.push(bitmap);
       }
     }
     if (huffman && !refinement) {
-      const bitmapSize = huffmanTables.tableBitmapSize.decode(huffmanInput);
+      const bitmapSize = (yield* huffmanTables.tableBitmapSize.decode(huffmanInput));
       huffmanInput.byteAlign();
       let collectiveBitmap;
       if (bitmapSize === 0) {
-        collectiveBitmap = readUncompressedBitmap(huffmanInput, totalWidth, currentHeight, decodingContext.onAllocation);
+        collectiveBitmap = (yield* readUncompressedBitmap(huffmanInput, totalWidth, currentHeight, decodingContext.onAllocation));
       } else {
         const originalEnd = huffmanInput.end;
         const bitmapEnd = huffmanInput.position + bitmapSize;
         huffmanInput.end = bitmapEnd;
-        collectiveBitmap = decodeMMRBitmap(huffmanInput, totalWidth, currentHeight, false, decodingContext.onAllocation);
+        collectiveBitmap = (yield* decodeMMRBitmap(huffmanInput, totalWidth, currentHeight, false, decodingContext.onAllocation));
         huffmanInput.end = originalEnd;
         huffmanInput.position = bitmapEnd;
       }
@@ -2946,7 +2951,7 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
     ii;
   const totalSymbolsLength = symbols.length + numberOfNewSymbols;
   while (flags.length < totalSymbolsLength) {
-    let runLength = huffman ? tableB1.decode(huffmanInput) : decodeInteger(contextCache, "IAEX", decoder);
+    let runLength = huffman ? (yield* tableB1.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IAEX", decoder));
     decodingContext.onAllocation?.(runLength * 16);
     while (runLength--) {
       flags.push(currentFlag);
@@ -2965,7 +2970,7 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
   }
   return exportedSymbols;
 }
-function decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput) {
+function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput) {
   decodingContext.onImageDimensions?.(width, height);
   decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
   if (huffman && refinement) {
@@ -2982,36 +2987,36 @@ function decodeTextRegion(huffman, refinement, width, height, defaultPixelValue,
     }
     bitmap.push(row);
   }
-  const decoder = decodingContext.decoder;
+  const decoder = (yield* decodingContext.getDecoder());
   const contextCache = decodingContext.contextCache;
-  let stripT = huffman ? -huffmanTables.tableDeltaT.decode(huffmanInput) : -decodeInteger(contextCache, "IADT", decoder);
+  let stripT = huffman ? -(yield* huffmanTables.tableDeltaT.decode(huffmanInput)) : -(yield* decodeInteger(contextCache, "IADT", decoder));
   let firstS = 0;
   i = 0;
   while (i < numberOfSymbolInstances) {
-    const deltaT = huffman ? huffmanTables.tableDeltaT.decode(huffmanInput) : decodeInteger(contextCache, "IADT", decoder);
+    const deltaT = huffman ? (yield* huffmanTables.tableDeltaT.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IADT", decoder));
     stripT += deltaT;
-    const deltaFirstS = huffman ? huffmanTables.tableFirstS.decode(huffmanInput) : decodeInteger(contextCache, "IAFS", decoder);
+    const deltaFirstS = huffman ? (yield* huffmanTables.tableFirstS.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IAFS", decoder));
     firstS += deltaFirstS;
     let currentS = firstS;
     do {
       let currentT = 0;
       if (stripSize > 1) {
-        currentT = huffman ? huffmanInput.readBits(logStripSize) : decodeInteger(contextCache, "IAIT", decoder);
+        currentT = huffman ? (yield* huffmanInput.readBits(logStripSize)) : (yield* decodeInteger(contextCache, "IAIT", decoder));
       }
       const t = stripSize * stripT + currentT;
-      const symbolId = huffman ? huffmanTables.symbolIDTable.decode(huffmanInput) : decodeIAID(contextCache, decoder, symbolCodeLength);
-      const applyRefinement = refinement && (huffman ? huffmanInput.readBit() : decodeInteger(contextCache, "IARI", decoder));
+      const symbolId = huffman ? (yield* huffmanTables.symbolIDTable.decode(huffmanInput)) : (yield* decodeIAID(contextCache, decoder, symbolCodeLength));
+      const applyRefinement = refinement && (huffman ? (yield* huffmanInput.readBit()) : (yield* decodeInteger(contextCache, "IARI", decoder)));
       let symbolBitmap = inputSymbols[symbolId];
       let symbolWidth = symbolBitmap[0].length;
       let symbolHeight = symbolBitmap.length;
       if (applyRefinement) {
-        const rdw = decodeInteger(contextCache, "IARDW", decoder);
-        const rdh = decodeInteger(contextCache, "IARDH", decoder);
-        const rdx = decodeInteger(contextCache, "IARDX", decoder);
-        const rdy = decodeInteger(contextCache, "IARDY", decoder);
+        const rdw = (yield* decodeInteger(contextCache, "IARDW", decoder));
+        const rdh = (yield* decodeInteger(contextCache, "IARDH", decoder));
+        const rdx = (yield* decodeInteger(contextCache, "IARDX", decoder));
+        const rdy = (yield* decodeInteger(contextCache, "IARDY", decoder));
         symbolWidth += rdw;
         symbolHeight += rdh;
-        symbolBitmap = decodeRefinement(symbolWidth, symbolHeight, refinementTemplateIndex, symbolBitmap, (rdw >> 1) + rdx, (rdh >> 1) + rdy, false, refinementAt, decodingContext);
+        symbolBitmap = (yield* decodeRefinement(symbolWidth, symbolHeight, refinementTemplateIndex, symbolBitmap, (rdw >> 1) + rdx, (rdh >> 1) + rdy, false, refinementAt, decodingContext));
       }
       let increment = 0;
       if (!transposed) {
@@ -3075,7 +3080,7 @@ function decodeTextRegion(huffman, refinement, width, height, defaultPixelValue,
         }
       }
       i++;
-      const deltaS = huffman ? huffmanTables.tableDeltaS.decode(huffmanInput) : decodeInteger(contextCache, "IADS", decoder);
+      const deltaS = huffman ? (yield* huffmanTables.tableDeltaS.decode(huffmanInput)) : (yield* decodeInteger(contextCache, "IADS", decoder));
       if (deltaS === null) {
         break;
       }
@@ -3084,7 +3089,7 @@ function decodeTextRegion(huffman, refinement, width, height, defaultPixelValue,
   }
   return bitmap;
 }
-function decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternIndex, template, decodingContext) {
+function* decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternIndex, template, decodingContext) {
   const at = [];
   if (!mmr) {
     at.push({
@@ -3105,7 +3110,7 @@ function decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternInd
     }
   }
   const collectiveWidth = (maxPatternIndex + 1) * patternWidth;
-  const collectiveBitmap = decodeBitmap(mmr, collectiveWidth, patternHeight, template, false, null, at, decodingContext);
+  const collectiveBitmap = (yield* decodeBitmap(mmr, collectiveWidth, patternHeight, template, false, null, at, decodingContext));
   decodingContext.onAllocation?.((maxPatternIndex + 1) * (patternHeight * 256 + 128));
   const patterns = [];
   for (let i = 0; i <= maxPatternIndex; i++) {
@@ -3119,7 +3124,7 @@ function decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternInd
   }
   return patterns;
 }
-function decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight, defaultPixelValue, enableSkip, combinationOperator, gridWidth, gridHeight, gridOffsetX, gridOffsetY, gridVectorX, gridVectorY, decodingContext) {
+function* decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight, defaultPixelValue, enableSkip, combinationOperator, gridWidth, gridHeight, gridOffsetX, gridOffsetY, gridVectorX, gridVectorY, decodingContext) {
   decodingContext.onImageDimensions?.(regionWidth, regionHeight);
   decodingContext.onAllocation?.((regionWidth + 256) * regionHeight + 4096);
   const skip = null;
@@ -3171,9 +3176,9 @@ function decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight
   }
   for (i = bitsPerValue - 1; i >= 0; i--) {
     if (mmr) {
-      bitmap = decodeMMRBitmap(mmrInput, gridWidth, gridHeight, true, decodingContext.onAllocation);
+      bitmap = (yield* decodeMMRBitmap(mmrInput, gridWidth, gridHeight, true, decodingContext.onAllocation));
     } else {
-      bitmap = decodeBitmap(false, gridWidth, gridHeight, template, false, skip, at, decodingContext);
+      bitmap = (yield* decodeBitmap(false, gridWidth, gridHeight, template, false, skip, at, decodingContext));
     }
     grayScaleBitPlanes[i] = bitmap;
   }
@@ -3218,11 +3223,11 @@ function decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight
   }
   return regionBitmap;
 }
-function readSegmentHeader(data, start, onAllocation) {
+function* readSegmentHeader(data, start, onAllocation) {
   onAllocation?.(4096);
   const segmentHeader = {};
-  segmentHeader.number = readUint32(data, start);
-  const flags = data[start + 4];
+  segmentHeader.number = (yield* jbigReadUint(data, start, 4));
+  const flags = (yield {source: data, position: start + 4});
   const segmentType = flags & 0x3f;
   if (!SegmentTypes[segmentType]) {
     throw new Jbig2Error("invalid segment type: " + segmentType);
@@ -3231,18 +3236,18 @@ function readSegmentHeader(data, start, onAllocation) {
   segmentHeader.typeName = SegmentTypes[segmentType];
   segmentHeader.deferredNonRetain = !!(flags & 0x80);
   const pageAssociationFieldSize = !!(flags & 0x40);
-  const referredFlags = data[start + 5];
+  const referredFlags = (yield {source: data, position: start + 5});
   let referredToCount = referredFlags >> 5 & 7;
   const retainBits = [referredFlags & 31];
   let position = start + 6;
   if (referredFlags === 7) {
-    referredToCount = readUint32(data, position - 1) & 0x1fffffff;
+    referredToCount = (yield* jbigReadUint(data, position - 1, 4)) & 0x1fffffff;
     position += 3;
     onAllocation?.(Math.ceil(referredToCount / 8) * 16);
     let bytes = referredToCount + 7 >> 3;
-    retainBits[0] = data[position++];
+    retainBits[0] = (yield {source: data, position: position++});
     while (--bytes > 0) {
-      retainBits.push(data[position++]);
+      retainBits.push((yield {source: data, position: position++}));
     }
   } else if (referredFlags === 5 || referredFlags === 6) {
     throw new Jbig2Error("invalid referred-to flags");
@@ -3260,28 +3265,28 @@ function readSegmentHeader(data, start, onAllocation) {
   for (i = 0; i < referredToCount; i++) {
     let number;
     if (referredToSegmentNumberSize === 1) {
-      number = data[position];
+      number = (yield {source: data, position: position});
     } else if (referredToSegmentNumberSize === 2) {
-      number = readUint16(data, position);
+      number = (yield* jbigReadUint(data, position, 2));
     } else {
-      number = readUint32(data, position);
+      number = (yield* jbigReadUint(data, position, 4));
     }
     referredTo.push(number);
     position += referredToSegmentNumberSize;
   }
   segmentHeader.referredTo = referredTo;
   if (!pageAssociationFieldSize) {
-    segmentHeader.pageAssociation = data[position++];
+    segmentHeader.pageAssociation = (yield {source: data, position: position++});
   } else {
-    segmentHeader.pageAssociation = readUint32(data, position);
+    segmentHeader.pageAssociation = (yield* jbigReadUint(data, position, 4));
     position += 4;
   }
-  segmentHeader.length = readUint32(data, position);
+  segmentHeader.length = (yield* jbigReadUint(data, position, 4));
   position += 4;
   if (segmentHeader.length === 0xffffffff) {
     if (segmentType === 38) {
-      const genericRegionInfo = readRegionSegmentInformation(data, position);
-      const genericRegionSegmentFlags = data[position + RegionSegmentInformationFieldLength];
+      const genericRegionInfo = (yield* readRegionSegmentInformation(data, position));
+      const genericRegionSegmentFlags = (yield {source: data, position: position + RegionSegmentInformationFieldLength});
       const genericRegionMmr = !!(genericRegionSegmentFlags & 1);
       const searchPatternLength = 6;
       const searchPattern = new Uint8Array(searchPatternLength);
@@ -3295,7 +3300,7 @@ function readSegmentHeader(data, start, onAllocation) {
       searchPattern[5] = genericRegionInfo.height & 0xff;
       for (i = position, ii = data.length; i < ii; i++) {
         let j = 0;
-        while (j < searchPatternLength && searchPattern[j] === data[i + j]) {
+        while (j < searchPatternLength && searchPattern[j] === (yield {source: data, position: i + j})) {
           j++;
         }
         if (j === searchPatternLength) {
@@ -3313,11 +3318,11 @@ function readSegmentHeader(data, start, onAllocation) {
   segmentHeader.headerEnd = position;
   return segmentHeader;
 }
-function readSegments(header, data, start, end, onAllocation) {
+function* readSegments(header, data, start, end, onAllocation) {
   const segments = [];
   let position = start;
   while (position < end) {
-    const segmentHeader = readSegmentHeader(data, position, onAllocation);
+    const segmentHeader = (yield* readSegmentHeader(data, position, onAllocation));
     position = segmentHeader.headerEnd;
     const segment = {
       header: segmentHeader,
@@ -3342,17 +3347,17 @@ function readSegments(header, data, start, end, onAllocation) {
   }
   return segments;
 }
-function readRegionSegmentInformation(data, start) {
+function* readRegionSegmentInformation(data, start) {
   return {
-    width: readUint32(data, start),
-    height: readUint32(data, start + 4),
-    x: readUint32(data, start + 8),
-    y: readUint32(data, start + 12),
-    combinationOperator: data[start + 16] & 7
+    width: (yield* jbigReadUint(data, start, 4)),
+    height: (yield* jbigReadUint(data, start + 4, 4)),
+    x: (yield* jbigReadUint(data, start + 8, 4)),
+    y: (yield* jbigReadUint(data, start + 12, 4)),
+    combinationOperator: (yield {source: data, position: start + 16}) & 7
   };
 }
 const RegionSegmentInformationFieldLength = 17;
-function processSegment(segment, visitor) {
+function* processSegment(segment, visitor) {
   const header = segment.header;
   const data = segment.data,
     end = segment.end;
@@ -3361,7 +3366,7 @@ function processSegment(segment, visitor) {
   switch (header.type) {
     case 0:
       const dictionary = {};
-      const dictionaryFlags = readUint16(data, position);
+      const dictionaryFlags = (yield* jbigReadUint(data, position, 2));
       dictionary.huffman = !!(dictionaryFlags & 1);
       dictionary.refinement = !!(dictionaryFlags & 2);
       dictionary.huffmanDHSelector = dictionaryFlags >> 2 & 3;
@@ -3378,8 +3383,8 @@ function processSegment(segment, visitor) {
         at = [];
         for (i = 0; i < atLength; i++) {
           at.push({
-            x: readInt8(data, position),
-            y: readInt8(data, position + 1)
+            x: (yield* jbigReadUint(data, position, 1, true)),
+            y: (yield* jbigReadUint(data, position + 1, 1, true))
           });
           position += 2;
         }
@@ -3389,25 +3394,25 @@ function processSegment(segment, visitor) {
         at = [];
         for (i = 0; i < 2; i++) {
           at.push({
-            x: readInt8(data, position),
-            y: readInt8(data, position + 1)
+            x: (yield* jbigReadUint(data, position, 1, true)),
+            y: (yield* jbigReadUint(data, position + 1, 1, true))
           });
           position += 2;
         }
         dictionary.refinementAt = at;
       }
-      dictionary.numberOfExportedSymbols = readUint32(data, position);
+      dictionary.numberOfExportedSymbols = (yield* jbigReadUint(data, position, 4));
       position += 4;
-      dictionary.numberOfNewSymbols = readUint32(data, position);
+      dictionary.numberOfNewSymbols = (yield* jbigReadUint(data, position, 4));
       position += 4;
       args = [dictionary, header.number, header.referredTo, data, position, end];
       break;
     case 6:
     case 7:
       const textRegion = {};
-      textRegion.info = readRegionSegmentInformation(data, position);
+      textRegion.info = (yield* readRegionSegmentInformation(data, position));
       position += RegionSegmentInformationFieldLength;
-      const textRegionSegmentFlags = readUint16(data, position);
+      const textRegionSegmentFlags = (yield* jbigReadUint(data, position, 2));
       position += 2;
       textRegion.huffman = !!(textRegionSegmentFlags & 1);
       textRegion.refinement = !!(textRegionSegmentFlags & 2);
@@ -3420,7 +3425,7 @@ function processSegment(segment, visitor) {
       textRegion.dsOffset = textRegionSegmentFlags << 17 >> 27;
       textRegion.refinementTemplate = textRegionSegmentFlags >> 15 & 1;
       if (textRegion.huffman) {
-        const textRegionHuffmanFlags = readUint16(data, position);
+        const textRegionHuffmanFlags = (yield* jbigReadUint(data, position, 2));
         position += 2;
         textRegion.huffmanFS = textRegionHuffmanFlags & 3;
         textRegion.huffmanDS = textRegionHuffmanFlags >> 2 & 3;
@@ -3435,59 +3440,59 @@ function processSegment(segment, visitor) {
         at = [];
         for (i = 0; i < 2; i++) {
           at.push({
-            x: readInt8(data, position),
-            y: readInt8(data, position + 1)
+            x: (yield* jbigReadUint(data, position, 1, true)),
+            y: (yield* jbigReadUint(data, position + 1, 1, true))
           });
           position += 2;
         }
         textRegion.refinementAt = at;
       }
-      textRegion.numberOfSymbolInstances = readUint32(data, position);
+      textRegion.numberOfSymbolInstances = (yield* jbigReadUint(data, position, 4));
       position += 4;
       args = [textRegion, header.referredTo, data, position, end];
       break;
     case 16:
       const patternDictionary = {};
-      const patternDictionaryFlags = data[position++];
+      const patternDictionaryFlags = (yield {source: data, position: position++});
       patternDictionary.mmr = !!(patternDictionaryFlags & 1);
       patternDictionary.template = patternDictionaryFlags >> 1 & 3;
-      patternDictionary.patternWidth = data[position++];
-      patternDictionary.patternHeight = data[position++];
-      patternDictionary.maxPatternIndex = readUint32(data, position);
+      patternDictionary.patternWidth = (yield {source: data, position: position++});
+      patternDictionary.patternHeight = (yield {source: data, position: position++});
+      patternDictionary.maxPatternIndex = (yield* jbigReadUint(data, position, 4));
       position += 4;
       args = [patternDictionary, header.number, data, position, end];
       break;
     case 22:
     case 23:
       const halftoneRegion = {};
-      halftoneRegion.info = readRegionSegmentInformation(data, position);
+      halftoneRegion.info = (yield* readRegionSegmentInformation(data, position));
       position += RegionSegmentInformationFieldLength;
-      const halftoneRegionFlags = data[position++];
+      const halftoneRegionFlags = (yield {source: data, position: position++});
       halftoneRegion.mmr = !!(halftoneRegionFlags & 1);
       halftoneRegion.template = halftoneRegionFlags >> 1 & 3;
       halftoneRegion.enableSkip = !!(halftoneRegionFlags & 8);
       halftoneRegion.combinationOperator = halftoneRegionFlags >> 4 & 7;
       halftoneRegion.defaultPixelValue = halftoneRegionFlags >> 7 & 1;
-      halftoneRegion.gridWidth = readUint32(data, position);
+      halftoneRegion.gridWidth = (yield* jbigReadUint(data, position, 4));
       position += 4;
-      halftoneRegion.gridHeight = readUint32(data, position);
+      halftoneRegion.gridHeight = (yield* jbigReadUint(data, position, 4));
       position += 4;
-      halftoneRegion.gridOffsetX = readUint32(data, position) & 0xffffffff;
+      halftoneRegion.gridOffsetX = (yield* jbigReadUint(data, position, 4)) & 0xffffffff;
       position += 4;
-      halftoneRegion.gridOffsetY = readUint32(data, position) & 0xffffffff;
+      halftoneRegion.gridOffsetY = (yield* jbigReadUint(data, position, 4)) & 0xffffffff;
       position += 4;
-      halftoneRegion.gridVectorX = readUint16(data, position);
+      halftoneRegion.gridVectorX = (yield* jbigReadUint(data, position, 2));
       position += 2;
-      halftoneRegion.gridVectorY = readUint16(data, position);
+      halftoneRegion.gridVectorY = (yield* jbigReadUint(data, position, 2));
       position += 2;
       args = [halftoneRegion, header.referredTo, data, position, end];
       break;
     case 38:
     case 39:
       const genericRegion = {};
-      genericRegion.info = readRegionSegmentInformation(data, position);
+      genericRegion.info = (yield* readRegionSegmentInformation(data, position));
       position += RegionSegmentInformationFieldLength;
-      const genericRegionSegmentFlags = data[position++];
+      const genericRegionSegmentFlags = (yield {source: data, position: position++});
       genericRegion.mmr = !!(genericRegionSegmentFlags & 1);
       genericRegion.template = genericRegionSegmentFlags >> 1 & 3;
       genericRegion.prediction = !!(genericRegionSegmentFlags & 8);
@@ -3496,8 +3501,8 @@ function processSegment(segment, visitor) {
         at = [];
         for (i = 0; i < atLength; i++) {
           at.push({
-            x: readInt8(data, position),
-            y: readInt8(data, position + 1)
+            x: (yield* jbigReadUint(data, position, 1, true)),
+            y: (yield* jbigReadUint(data, position + 1, 1, true))
           });
           position += 2;
         }
@@ -3507,16 +3512,16 @@ function processSegment(segment, visitor) {
       break;
     case 48:
       const pageInfo = {
-        width: readUint32(data, position),
-        height: readUint32(data, position + 4),
-        resolutionX: readUint32(data, position + 8),
-        resolutionY: readUint32(data, position + 12)
+        width: (yield* jbigReadUint(data, position, 4)),
+        height: (yield* jbigReadUint(data, position + 4, 4)),
+        resolutionX: (yield* jbigReadUint(data, position + 8, 4)),
+        resolutionY: (yield* jbigReadUint(data, position + 12, 4))
       };
       if (pageInfo.height === 0xffffffff) {
         delete pageInfo.height;
       }
-      const pageSegmentFlags = data[position + 16];
-      readUint16(data, position + 17);
+      const pageSegmentFlags = (yield {source: data, position: position + 16});
+      (yield* jbigReadUint(data, position + 17, 2));
       pageInfo.lossless = !!(pageSegmentFlags & 1);
       pageInfo.refinement = !!(pageSegmentFlags & 2);
       pageInfo.defaultPixelValue = pageSegmentFlags >> 2 & 1;
@@ -3541,40 +3546,40 @@ function processSegment(segment, visitor) {
   }
   const callbackName = "on" + header.typeName;
   if (callbackName in visitor) {
-    visitor[callbackName].apply(visitor, args);
+    (yield* visitor[callbackName].apply(visitor, args));
   }
 }
-function processSegments(segments, visitor) {
+function* processSegments(segments, visitor) {
   for (let i = 0, ii = segments.length; i < ii; i++) {
-    processSegment(segments[i], visitor);
+    (yield* processSegment(segments[i], visitor));
   }
 }
-function parseJbig2Chunks(chunks, onImageDimensions, onAllocation) {
+function* parseJbig2Chunks(chunks, onImageDimensions, onAllocation) {
   const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation);
   for (let i = 0, ii = chunks.length; i < ii; i++) {
     const chunk = chunks[i];
-    const segments = readSegments({}, chunk.data, chunk.start, chunk.end, onAllocation);
-    processSegments(segments, visitor);
+    const segments = (yield* readSegments({}, chunk.data, chunk.start, chunk.end, onAllocation));
+    (yield* processSegments(segments, visitor));
   }
   return visitor.buffer;
 }
-function parseJbig2(data, onImageDimensions, onAllocation, packed) {
+function* parseJbig2(data, onImageDimensions, onAllocation, packed) {
   const end = data.length;
   let position = 0;
-  if (data[position] !== 0x97 || data[position + 1] !== 0x4a || data[position + 2] !== 0x42 || data[position + 3] !== 0x32 || data[position + 4] !== 0x0d || data[position + 5] !== 0x0a || data[position + 6] !== 0x1a || data[position + 7] !== 0x0a) {
+  if ((yield {source: data, position: position}) !== 0x97 || (yield {source: data, position: position + 1}) !== 0x4a || (yield {source: data, position: position + 2}) !== 0x42 || (yield {source: data, position: position + 3}) !== 0x32 || (yield {source: data, position: position + 4}) !== 0x0d || (yield {source: data, position: position + 5}) !== 0x0a || (yield {source: data, position: position + 6}) !== 0x1a || (yield {source: data, position: position + 7}) !== 0x0a) {
     throw new Jbig2Error("parseJbig2 - invalid header.");
   }
   const header = Object.create(null);
   position += 8;
-  const flags = data[position++];
+  const flags = (yield {source: data, position: position++});
   header.randomAccess = !(flags & 1);
   if (!(flags & 2)) {
-    header.numberOfPages = readUint32(data, position);
+    header.numberOfPages = (yield* jbigReadUint(data, position, 4));
     position += 4;
   }
-  const segments = readSegments(header, data, position, end, onAllocation);
+  const segments = (yield* readSegments(header, data, position, end, onAllocation));
   const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation);
-  processSegments(segments, visitor);
+  (yield* processSegments(segments, visitor));
   const {
     width,
     height
@@ -3605,7 +3610,7 @@ function parseJbig2(data, onImageDimensions, onAllocation, packed) {
 }
 class SimpleSegmentVisitor {
   constructor(onImageDimensions, onAllocation) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; }
-  onPageInformation(info) {
+  *onPageInformation(info) {
     this.onImageDimensions?.(info.width, info.height);
     this.currentPageInfo = info;
     const rowSize = info.width + 7 >> 3;
@@ -3616,7 +3621,7 @@ class SimpleSegmentVisitor {
     }
     this.buffer = buffer;
   }
-  drawBitmap(regionInfo, bitmap) {
+  *drawBitmap(regionInfo, bitmap) {
     const pageInfo = this.currentPageInfo;
     const width = regionInfo.width,
       height = regionInfo.height;
@@ -3665,16 +3670,16 @@ class SimpleSegmentVisitor {
         throw new Jbig2Error(`operator ${combinationOperator} is not supported`);
     }
   }
-  onImmediateGenericRegion(region, data, start, end) {
+  *onImmediateGenericRegion(region, data, start, end) {
     const regionInfo = region.info;
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    const bitmap = decodeBitmap(region.mmr, regionInfo.width, regionInfo.height, region.template, region.prediction, null, region.at, decodingContext);
-    this.drawBitmap(regionInfo, bitmap);
+    const bitmap = (yield* decodeBitmap(region.mmr, regionInfo.width, regionInfo.height, region.template, region.prediction, null, region.at, decodingContext));
+    (yield* this.drawBitmap(regionInfo, bitmap));
   }
-  onImmediateLosslessGenericRegion() {
-    this.onImmediateGenericRegion(...arguments);
+  *onImmediateLosslessGenericRegion() {
+    (yield* this.onImmediateGenericRegion(...arguments));
   }
-  onSymbolDictionary(dictionary, currentSegment, referredSegments, data, start, end) {
+  *onSymbolDictionary(dictionary, currentSegment, referredSegments, data, start, end) {
     let huffmanTables, huffmanInput;
     if (dictionary.huffman) {
       huffmanTables = getSymbolDictionaryHuffmanTables(dictionary, referredSegments, this.customTables);
@@ -3693,9 +3698,9 @@ class SimpleSegmentVisitor {
       }
     }
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    symbols[currentSegment] = decodeSymbolDictionary(dictionary.huffman, dictionary.refinement, inputSymbols, dictionary.numberOfNewSymbols, dictionary.numberOfExportedSymbols, huffmanTables, dictionary.template, dictionary.at, dictionary.refinementTemplate, dictionary.refinementAt, decodingContext, huffmanInput);
+    symbols[currentSegment] = (yield* decodeSymbolDictionary(dictionary.huffman, dictionary.refinement, inputSymbols, dictionary.numberOfNewSymbols, dictionary.numberOfExportedSymbols, huffmanTables, dictionary.template, dictionary.at, dictionary.refinementTemplate, dictionary.refinementAt, decodingContext, huffmanInput));
   }
-  onImmediateTextRegion(region, referredSegments, data, start, end) {
+  *onImmediateTextRegion(region, referredSegments, data, start, end) {
     const regionInfo = region.info;
     let huffmanTables, huffmanInput;
     const symbols = this.symbols;
@@ -3710,39 +3715,39 @@ class SimpleSegmentVisitor {
     const symbolCodeLength = log2(inputSymbols.length);
     if (region.huffman) {
       huffmanInput = new Reader(data, start, end);
-      huffmanTables = getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, this.onAllocation);
+      huffmanTables = (yield* getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, this.onAllocation));
     }
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    const bitmap = decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput);
-    this.drawBitmap(regionInfo, bitmap);
+    const bitmap = (yield* decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput));
+    (yield* this.drawBitmap(regionInfo, bitmap));
   }
-  onImmediateLosslessTextRegion() {
-    this.onImmediateTextRegion(...arguments);
+  *onImmediateLosslessTextRegion() {
+    (yield* this.onImmediateTextRegion(...arguments));
   }
-  onPatternDictionary(dictionary, currentSegment, data, start, end) {
+  *onPatternDictionary(dictionary, currentSegment, data, start, end) {
     let patterns = this.patterns;
     if (!patterns) {
       this.patterns = patterns = {};
     }
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    patterns[currentSegment] = decodePatternDictionary(dictionary.mmr, dictionary.patternWidth, dictionary.patternHeight, dictionary.maxPatternIndex, dictionary.template, decodingContext);
+    patterns[currentSegment] = (yield* decodePatternDictionary(dictionary.mmr, dictionary.patternWidth, dictionary.patternHeight, dictionary.maxPatternIndex, dictionary.template, decodingContext));
   }
-  onImmediateHalftoneRegion(region, referredSegments, data, start, end) {
+  *onImmediateHalftoneRegion(region, referredSegments, data, start, end) {
     const patterns = this.patterns[referredSegments[0]];
     const regionInfo = region.info;
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    const bitmap = decodeHalftoneRegion(region.mmr, patterns, region.template, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.enableSkip, region.combinationOperator, region.gridWidth, region.gridHeight, region.gridOffsetX, region.gridOffsetY, region.gridVectorX, region.gridVectorY, decodingContext);
-    this.drawBitmap(regionInfo, bitmap);
+    const bitmap = (yield* decodeHalftoneRegion(region.mmr, patterns, region.template, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.enableSkip, region.combinationOperator, region.gridWidth, region.gridHeight, region.gridOffsetX, region.gridOffsetY, region.gridVectorX, region.gridVectorY, decodingContext));
+    (yield* this.drawBitmap(regionInfo, bitmap));
   }
-  onImmediateLosslessHalftoneRegion() {
-    this.onImmediateHalftoneRegion(...arguments);
+  *onImmediateLosslessHalftoneRegion() {
+    (yield* this.onImmediateHalftoneRegion(...arguments));
   }
-  onTables(currentSegment, data, start, end) {
+  *onTables(currentSegment, data, start, end) {
     let customTables = this.customTables;
     if (!customTables) {
       this.customTables = customTables = {};
     }
-    customTables[currentSegment] = decodeTablesSegment(data, start, end, this.onAllocation);
+    customTables[currentSegment] = (yield* decodeTablesSegment(data, start, end, this.onAllocation));
   }
 }
 class HuffmanLine {
@@ -3791,19 +3796,19 @@ class HuffmanTreeNode {
       node.buildTree(line, shift - 1);
     }
   }
-  decodeNode(reader) {
+  *decodeNode(reader) {
     if (this.isLeaf) {
       if (this.isOOB) {
         return null;
       }
-      const htOffset = reader.readBits(this.rangeLength);
+      const htOffset = (yield* reader.readBits(this.rangeLength));
       return this.rangeLow + (this.isLowerRange ? -htOffset : htOffset);
     }
-    const node = this.children[reader.readBit()];
+    const node = this.children[(yield* reader.readBit())];
     if (!node) {
       throw new Jbig2Error("invalid Huffman data");
     }
-    return node.decodeNode(reader);
+    return (yield* node.decodeNode(reader));
   }
 }
 class HuffmanTable {
@@ -3821,8 +3826,8 @@ class HuffmanTable {
       }
     }
   }
-  decode(reader) {
-    return this.rootNode.decodeNode(reader);
+  *decode(reader) {
+    return (yield* this.rootNode.decodeNode(reader));
   }
   assignPrefixCodes(lines) {
     const linesLength = lines.length;
@@ -3857,11 +3862,11 @@ class HuffmanTable {
     }
   }
 }
-function decodeTablesSegment(data, start, end, onAllocation) {
+function* decodeTablesSegment(data, start, end, onAllocation) {
   onAllocation?.(1024);
-  const flags = data[start];
-  const lowestValue = readUint32(data, start + 1) & 0xffffffff;
-  const highestValue = readUint32(data, start + 5) & 0xffffffff;
+  const flags = (yield {source: data, position: start});
+  const lowestValue = (yield* jbigReadUint(data, start + 1, 4)) & 0xffffffff;
+  const highestValue = (yield* jbigReadUint(data, start + 5, 4)) & 0xffffffff;
   const reader = new Reader(data, start + 9, end);
   const prefixSizeBits = (flags >> 1 & 7) + 1;
   const rangeSizeBits = (flags >> 4 & 7) + 1;
@@ -3870,18 +3875,18 @@ function decodeTablesSegment(data, start, end, onAllocation) {
     rangeLength,
     currentRangeLow = lowestValue;
   do {
-    prefixLength = reader.readBits(prefixSizeBits);
-    rangeLength = reader.readBits(rangeSizeBits);
+    prefixLength = (yield* reader.readBits(prefixSizeBits));
+    rangeLength = (yield* reader.readBits(rangeSizeBits));
     onAllocation?.(256);
     lines.push(new HuffmanLine([currentRangeLow, prefixLength, rangeLength, 0]));
     currentRangeLow += 1 << rangeLength;
   } while (currentRangeLow < highestValue);
-  prefixLength = reader.readBits(prefixSizeBits);
+  prefixLength = (yield* reader.readBits(prefixSizeBits));
   lines.push(new HuffmanLine([lowestValue - 1, prefixLength, 32, 0, "lower"]));
-  prefixLength = reader.readBits(prefixSizeBits);
+  prefixLength = (yield* reader.readBits(prefixSizeBits));
   lines.push(new HuffmanLine([highestValue, prefixLength, 32, 0]));
   if (flags & 1) {
-    prefixLength = reader.readBits(prefixSizeBits);
+    prefixLength = (yield* reader.readBits(prefixSizeBits));
     lines.push(new HuffmanLine([prefixLength, 0]));
   }
   return new HuffmanTable(lines, false, onAllocation);
@@ -3958,34 +3963,34 @@ class Reader {
     this.shift = -1;
     this.currentByte = 0;
   }
-  readBit() {
+  *readBit() {
     if (this.shift < 0) {
       if (this.position >= this.end) {
         throw new Jbig2Error("end of data while reading bit");
       }
-      this.currentByte = this.data[this.position++];
+      this.currentByte = (yield {source: this.data, position: this.position++});
       this.shift = 7;
     }
     const bit = this.currentByte >> this.shift & 1;
     this.shift--;
     return bit;
   }
-  readBits(numBits) {
+  *readBits(numBits) {
     let result = 0,
       i;
     for (i = numBits - 1; i >= 0; i--) {
-      result |= this.readBit() << i;
+      result |= (yield* this.readBit()) << i;
     }
     return result;
   }
   byteAlign() {
     this.shift = -1;
   }
-  next() {
+  *next() {
     if (this.position >= this.end) {
       return -1;
     }
-    return this.data[this.position++];
+    return (yield {source: this.data, position: this.position++});
   }
 }
 function getCustomHuffmanTable(index, referredTo, customTables) {
@@ -4001,17 +4006,17 @@ function getCustomHuffmanTable(index, referredTo, customTables) {
   }
   throw new Jbig2Error("can't find custom Huffman table");
 }
-function getTextRegionHuffmanTables(textRegion, referredTo, customTables, numberOfSymbols, reader, onAllocation) {
+function* getTextRegionHuffmanTables(textRegion, referredTo, customTables, numberOfSymbols, reader, onAllocation) {
   onAllocation?.((numberOfSymbols + 173) * 256);
   const codes = [];
   for (let i = 0; i <= 34; i++) {
-    const codeLength = reader.readBits(4);
+    const codeLength = (yield* reader.readBits(4));
     codes.push(new HuffmanLine([i, codeLength, 0, 0]));
   }
   const runCodesTable = new HuffmanTable(codes, false, onAllocation);
   codes.length = 0;
   for (let i = 0; i < numberOfSymbols;) {
-    const codeLength = runCodesTable.decode(reader);
+    const codeLength = (yield* runCodesTable.decode(reader));
     if (codeLength >= 32) {
       let repeatedLength, numberOfRepeats, j;
       switch (codeLength) {
@@ -4019,15 +4024,15 @@ function getTextRegionHuffmanTables(textRegion, referredTo, customTables, number
           if (i === 0) {
             throw new Jbig2Error("no previous value in symbol ID table");
           }
-          numberOfRepeats = reader.readBits(2) + 3;
+          numberOfRepeats = (yield* reader.readBits(2)) + 3;
           repeatedLength = codes[i - 1].prefixLength;
           break;
         case 33:
-          numberOfRepeats = reader.readBits(3) + 3;
+          numberOfRepeats = (yield* reader.readBits(3)) + 3;
           repeatedLength = 0;
           break;
         case 34:
-          numberOfRepeats = reader.readBits(7) + 11;
+          numberOfRepeats = (yield* reader.readBits(7)) + 11;
           repeatedLength = 0;
           break;
         default:
@@ -4143,20 +4148,20 @@ function getSymbolDictionaryHuffmanTables(dictionary, referredTo, customTables) 
     tableAggregateInstances
   };
 }
-function readUncompressedBitmap(reader, width, height, onAllocation) {
+function* readUncompressedBitmap(reader, width, height, onAllocation) {
   onAllocation?.((width + 256) * height + 128);
   const bitmap = [];
   for (let y = 0; y < height; y++) {
     const row = new Uint8Array(width);
     bitmap.push(row);
     for (let x = 0; x < width; x++) {
-      row[x] = reader.readBit();
+      row[x] = (yield* reader.readBit());
     }
     reader.byteAlign();
   }
   return bitmap;
 }
-function decodeMMRBitmap(input, width, height, endOfBlock, onAllocation) {
+function* decodeMMRBitmap(input, width, height, endOfBlock, onAllocation) {
   onAllocation?.((width + 256) * height + (width + 2) * 8 + 1024);
   const params = {
     K: -1,
@@ -4166,6 +4171,7 @@ function decodeMMRBitmap(input, width, height, endOfBlock, onAllocation) {
     EndOfBlock: endOfBlock
   };
   const decoder = new CCITTFaxDecoder(input, params);
+  yield* decoder.initialize();
   const bitmap = [];
   let currentByte,
     eof = false;
@@ -4175,7 +4181,7 @@ function decodeMMRBitmap(input, width, height, endOfBlock, onAllocation) {
     let shift = -1;
     for (let x = 0; x < width; x++) {
       if (shift < 0) {
-        currentByte = decoder.readNextChar();
+        currentByte = (yield* decoder.readNextChar());
         if (currentByte === -1) {
           currentByte = 0;
           eof = true;
@@ -4189,24 +4195,43 @@ function decodeMMRBitmap(input, width, height, endOfBlock, onAllocation) {
   if (endOfBlock && !eof) {
     const lookForEOFLimit = 5;
     for (let i = 0; i < lookForEOFLimit; i++) {
-      if (decoder.readNextChar() === -1) {
+      if ((yield* decoder.readNextChar()) === -1) {
         break;
       }
     }
   }
   return bitmap;
 }
+function* jbigReadUint(source, position, count, signed = false) {
+  let value = 0;
+  for (let i = 0; i < count; i++) value = (value << 8) | (yield {source, position: position + i});
+  return signed ? value << 24 >> 24 : value >>> 0;
+}
+function* jbigArithmetic(decoder, program) {
+  let step = program.next();
+  try { while (!step.done) step = program.next(yield {source: decoder.jbigSource, position: step.value}); return step.value; }
+  finally { program.return(); }
+}
+function runJbigSteps(program) {
+  let step = program.next();
+  try { while (!step.done) step = program.next(step.value.source[step.value.position]); return step.value; }
+  finally { program.return(); }
+}
 class Jbig2Image {
   constructor(onImageDimensions, onAllocation) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; }
   parseChunks(chunks) {
-    return parseJbig2Chunks(chunks, this.onImageDimensions, this.onAllocation);
+    return runJbigSteps(this.parseChunksSteps(chunks));
   }
-  parse(data, { packed = false } = {}) {
+  *parseChunksSteps(chunks) {
+    return yield* parseJbig2Chunks(chunks, this.onImageDimensions, this.onAllocation);
+  }
+  parse(data, options = {}) { return runJbigSteps(this.parseSteps(data, options)); }
+  *parseSteps(data, { packed = false } = {}) {
     const {
       imgData,
       width,
       height
-    } = parseJbig2(data, this.onImageDimensions, this.onAllocation, packed);
+    } = yield* parseJbig2(data, this.onImageDimensions, this.onAllocation, packed);
     this.width = width;
     this.height = height;
     return imgData;

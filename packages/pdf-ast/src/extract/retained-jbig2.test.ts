@@ -77,3 +77,38 @@ it("admits decoder allocations to the containing owner before reads and preserve
   }
   await input.close();
 });
+
+it.each(["jbig2-generic-stream.bin", "jbig2-mmr-stream.bin", "jbig2-symbols.0000"])("reads %s and globals through bounded ranges without whole-source staging", async name => {
+  const original = fixture(name), global = name.includes("symbols") ? fixture("jbig2-symbols.sym") : undefined;
+  function padded(bytes: Uint8Array) {
+    const result = new Uint8Array(262144 + 11 + bytes.length);
+    result[4] = 62; new DataView(result.buffer).setUint32(7, 262144);
+    result.set(bytes, 262144 + 11); return result;
+  }
+  let readBytes = 0;
+  function ranges(bytes: Uint8Array): PdfFileSource {
+    const borrowed = new Uint8Array(31);
+    return {size: bytes.length, chunkBytes: 31,
+      async read(at: number, length: number) {expect(length).toBeLessThanOrEqual(31); readBytes += length; borrowed.set(bytes.subarray(at, at + length)); return borrowed.subarray(0,length);},
+      stream() {throw Error("whole JBIG2 source requested");}
+    } as unknown as PdfFileSource;
+  }
+  const expected = decodeJbig2ToRgba(original, 64, 32, global);
+  const image = await PdfRetainedJbig2.open(ranges(padded(original)), 64, 32, {globals: global ? ranges(padded(global)) : undefined});
+  try {
+    const actual: number[] = [];
+    for await (const row of image.rows()) actual.push(...row);
+    expect(actual).toEqual([...expected]); expect(readBytes).toBeLessThan(65536);
+  } finally {image.close();}
+});
+
+it.each(["read", "cancel"])("preserves JBIG2 source %s failure identity during native decoding", async phase => {
+  const bytes = fixture("jbig2-generic-stream.bin"), failure = {reason: phase}, controller = new AbortController();
+  let calls = 0;
+  const input = {size: bytes.length, chunkBytes: 7, async read(at: number, length: number) {
+    if (++calls === 3) {if (phase === "cancel") controller.abort(failure); else throw failure;}
+    return bytes.subarray(at, at + length);
+  }} as unknown as PdfFileSource;
+  await expect(PdfRetainedJbig2.open(input, 64, 32, {signal: controller.signal})).rejects.toBe(failure);
+  expect(calls).toBe(3);
+});

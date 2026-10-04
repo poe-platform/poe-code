@@ -251,25 +251,26 @@ zero-filling truncated input. Set `chunkBytes`, `maxWorkingBytes`,
 cancellation. The caller's current input chunk and fixed codec tables are
 additional memory; upstream retained image rows provide bounded input chunks.
 
-`PdfRetainedJbig2.open(source, width, height, options)` admits encoded input,
-optional retained `globals`, arithmetic contexts, symbol/region bitmaps and
-custom Huffman state. It keeps page pixels packed and emits owned RGBA `rows()`;
+`PdfRetainedJbig2.open(source, width, height, options)` reads encoded input and
+optional retained `globals` through fixed range caches, skipping unused extension
+payloads. It admits arithmetic contexts, symbol/region bitmaps and custom Huffman state. It keeps page pixels packed and emits owned RGBA `rows()`;
 standalone files use their embedded dimensions. `maxWorkingBytes` conservatively
 counts cumulative decoder allocations plus one RGBA row; source caches and
 fixed shared codec tables are additional. `maxOutputBytes` bounds decoded
 output. Sources stay caller-owned and may close after opening; call `close()`
-to release the packed bitmap. Intrinsic input and codec state remain resident.
+to release the packed bitmap. Symbol/region bitmaps and intrinsic codec state remain resident.
 
 `PdfRetainedJpx.open(source, options)` reads encoded JPEG 2000 ranges through a
 fixed cache and skips unused container boxes without copying their payloads.
 It admits tile grids, codeblocks, tag trees and wavelet buffers before allocation.
 Its `rows()` iterator assembles owned RGBA rows with tile overlap precedence,
 avoiding additional full sample/RGBA planes. With `coefficientStorage`, coefficient
-planes, arithmetic bit-model arrays, wavelet scratch and converted tile samples use caller backing
-and a fixed page cache. The retained PDF image adapter supplies this backing
+planes, arithmetic bit-model arrays, wavelet scratch, converted tile samples,
+precinct trees and packet/codeblock records use caller backing and a fixed page
+cache. Tile-part indexes preserve interleaved input while decoding one tile at a time. The retained PDF image adapter supplies this backing
 through the caller's safe-fs and includes it in shared staging and cleanup budgets.
-Packet metadata and compressed codeblock bytes still remain resident;
-without backing, the convenience decoder also retains its sample/wavelet planes. `maxWorkingBytes` uses conservative cumulative
+Compressed codeblocks read their encoded segments without concatenation. Component
+and resolution metadata remains resident for the current tile; without backing, the convenience decoder also retains its sample/wavelet planes. `maxWorkingBytes` uses conservative cumulative
 allocation charges (not measured heap); caller source caches and resolved color
 state are additional. Set `maxOutputBytes` to bound output, supply `color` for
 resolved PDF color spaces, and call `close()` to release tiles. The source stays

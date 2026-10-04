@@ -1,9 +1,13 @@
 /** Public API of the vendored PDF.js 4.1.392 standalone decoder build. */
+export interface Jbig2Source { readonly length: number }
+export interface Jbig2ReadRequest {readonly source: Jbig2Source; readonly position: number}
 export class Jbig2Image {
   constructor(onImageDimensions?: (width: number, height: number) => void, onAllocation?: (bytes: number) => void);
   width: number;
   height: number;
   parse(data: Uint8Array, options?: { packed?: boolean }): Uint8ClampedArray;
+  parseSteps(data: Jbig2Source, options?: {packed?: boolean}): Generator<Jbig2ReadRequest, Uint8ClampedArray, number | undefined>;
+  parseChunksSteps(chunks: Array<{data: Jbig2Source; start: number; end: number}>): Generator<Jbig2ReadRequest, Uint8Array | undefined, number | undefined>;
   parseChunks(chunks: Array<{ data: Uint8Array; start: number; end: number }>): Uint8Array | undefined;
 }
 export interface JpxStoredVector { readonly position:number; readonly length:number; readonly bytesPerElement:number; readonly integer?:boolean }

@@ -1,3 +1,8 @@
+import { resolvePath } from 'safe-bash-contracts';
+import type { IndexedDocument } from 'safe-bash-diff-engine/document';
+import { Budget as ReadBudget, inspect, ToolError } from 'safe-bash-diff-engine/shared';
+import { StoredWork } from './stored.js';
+import { compareStoredDiff3 } from './stored-behavior.js';
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from 'safe-bash-contracts/command';
 import { FsError } from 'safe-bash-contracts/errors';
@@ -7,7 +12,7 @@ import type { VirtualShellPlugin } from 'safe-bash-contracts/plugin';
 import { shellValueByteLength } from 'safe-bash-contracts/value';
 import { Diff3Error } from './contracts.js';
 import { byteView } from './bytes.js';
-import { compareDiff3, diff3DefaultLimits, parseDiff3Arguments, validateDiff3Invocation, type Diff3BehaviorLimits, type Diff3Invocation } from './behavior.js';
+import { diff3DefaultLimits, parseDiff3Arguments, validateDiff3Invocation, type Diff3BehaviorLimits, type Diff3Invocation } from './behavior.js';
 
 export interface Diff3CommandOptions { readonly limits?: Partial<Diff3BehaviorLimits>; readonly replace?: boolean }
 export type Diff3RunOptions = Diff3Invocation & Diff3CommandOptions;
@@ -26,7 +31,8 @@ async function executeDiff3(context: CommandContext, configuration: Diff3Command
   let closing: Promise<void> | undefined;
   let accepting = true;
   let inputBytes = 0, decodedBytes = 0, outputBytes = 0, retained = 0, metadataRetained = 0, peakRetained = 0, peakGraphCells = 0, work = 0;
-  const chunks: Uint8Array[][] = [], inputs: Uint8Array[] = [];
+  const inputs: IndexedDocument[] = [];
+  let stored: StoredWork | undefined;
   const cleanup = (): Promise<void> => {
     if (closing) return closing;
     accepting = false;
@@ -35,9 +41,9 @@ async function executeDiff3(context: CommandContext, configuration: Diff3Command
     controller.abort(new Diff3Error('CLOSED', 'Diff3 invocation closed'));
     void (async () => {
       await Promise.allSettled([task]);
-      chunks.length = inputs.length = 0; retained = 0;
+      inputs.length = 0; retained = 0;
       context.signal.removeEventListener('abort', abort);
-      const results = await Promise.allSettled([stdout?.close(), stderr?.close()]);
+      const results = await Promise.allSettled([stdout?.close(), stderr?.close(), stored?.close()]);
       const errors = results.filter(result => result.status === 'rejected').map(result => result.reason);
       if (errors.length) throw new AggregateError(errors, 'Diff3 output cleanup failed');
     })().then(resolve, reject);
@@ -57,7 +63,7 @@ async function executeDiff3(context: CommandContext, configuration: Diff3Command
     if (!Number.isSafeInteger(amount) || amount < 0 || amount > limits.retainedBytes - retained) throw new Diff3Error('LIMIT', 'Invocation retention limit exceeded');
     retained += amount; peakRetained = Math.max(peakRetained, retained);
   };
-  const result = (exitCode: 0 | 1 | 2): Diff3CommandResult => ({ exitCode, accounting: { inputBytes, decodedBytes, outputBytes, retainedBytes: 0, peakRetainedBytes: peakRetained, graphCells: 0, peakGraphCells, tokens: 0, work } });
+  const result = (exitCode: 0 | 1 | 2): Diff3CommandResult => ({ exitCode, accounting: { inputBytes, decodedBytes, outputBytes, retainedBytes: 0, peakRetainedBytes: peakRetained, graphCells: 0, peakGraphCells: Math.max(peakGraphCells, stored?.peakGraphCells ?? 0), tokens: 0, work } });
   task = Promise.resolve().then(async () => {
     if (!accepting) throw new Diff3Error('CLOSED', 'Diff3 invocation closed');
     context.signal.addEventListener('abort', abort, { once: true }); if (context.signal.aborted) abort();
@@ -90,6 +96,8 @@ async function executeDiff3(context: CommandContext, configuration: Diff3Command
         hold(value.length * 3 + 8); charge(value.length * 4 + 1);
         metadataRetained = retained;
       }
+      const { registerCleanup: ignoredCleanup, ...storageContext } = context;
+      stored = new StoredWork({ ...storageContext, signal }, limits, charge, hold);
       if (!options.information) for (const file of options.files) {
         await yieldTurn(signal);
         signal.throwIfAborted();
@@ -97,8 +105,19 @@ async function executeDiff3(context: CommandContext, configuration: Diff3Command
         let source: ByteSource, borrowed = 0, acquiredInput: { bytes: Uint8Array | undefined } | undefined;
         if (file === '-') source = context.stdin;
         else {
-          const path = file.startsWith('/') ? file : `${context.cwd}/${file}`;
-          if (context.fs.readStream) source = context.fs.readStream(path, { signal });
+          const path = resolvePath(context.cwd, file);
+          const capabilities = await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities;
+          if (capabilities?.retainedRead && context.fs.openReadFile) {
+            const reader = new ReadBudget({ ...context, signal }, {});
+            const stat = await inspect(reader, path, 'follow');
+            if (stat?.type === 'file') {
+              if (stat.size > limits.inputBytes - inputBytes) throw new Diff3Error('LIMIT', 'Input byte limit exceeded');
+              context.inputBudget?.check(inputBytes + stat.size);
+              source = reader.diffSource(path);
+            }
+            else if (context.fs.readStream) source = context.fs.readStream(path, { signal });
+            else throw new FsError(stat ? 'EISDIR' : 'ENOENT', { path });
+          } else if (context.fs.readStream) source = context.fs.readStream(path, { signal });
           else {
             const maxBytes = Math.min(limits.inputBytes - inputBytes, limits.retainedBytes - retained);
             const resource = await stdout!.acquire(async readSignal => ({ bytes: await context.fs.readFile(path, { signal: readSignal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) }) as Uint8Array | undefined }), resource => { resource.bytes = undefined; });
@@ -115,26 +134,24 @@ async function executeDiff3(context: CommandContext, configuration: Diff3Command
         const reader = readBytes({ [Symbol.asyncIterator]() { return {
           async next() { const next = await producer.next(); signal.throwIfAborted(); return next.done ? next : { done: false as const, value: byteView(next.value) }; }, return: closeInput
         }; } }, signal)[Symbol.asyncIterator]();
-        const parts: Uint8Array[] = []; chunks.push(parts); let size = 0, complete = false;
+        let complete = false;
         let readFailure: { error: unknown } | undefined;
         try {
-          for (;;) {
-            charge(1); const next = await reader.next(); signal.throwIfAborted();
-            if (next.done) { complete = true; break; }
-            const bytes = next.value;
-            if (bytes.length === 0) continue;
-            if (bytes.length > limits.inputBytes - inputBytes) throw new Diff3Error('LIMIT', 'Input byte limit exceeded');
-            context.inputBudget?.check(inputBytes + bytes.length);
-            inputBytes += bytes.length; charge(bytes.length); hold(bytes.length + 8);
-            const cells = parts.length + inputs.length + chunks.length + 1;
-            if (cells > limits.graphCells) throw new Diff3Error('LIMIT', 'Spool fragment limit exceeded');
-            peakGraphCells = Math.max(peakGraphCells, cells);
-            parts.push(new Uint8Array(bytes)); size += bytes.length;
-          }
-          hold(size); charge(size);
-          const bytes = new Uint8Array(size); let index = 0;
-          for (const part of parts) { charge(1); bytes.set(part, index); index += part.length; }
-          retained -= size + parts.length * 8 + borrowed; parts.length = 0; inputs.push(bytes);
+          inputs.push(await stored.load({ async *[Symbol.asyncIterator]() {
+            for (;;) {
+              charge(1); const next = await reader.next(); signal.throwIfAborted();
+              if (next.done) { complete = true; break; }
+              const bytes = next.value;
+              if (bytes.length === 0) continue;
+              if (bytes.length > limits.inputBytes - inputBytes) throw new Diff3Error('LIMIT', 'Input byte limit exceeded');
+              context.inputBudget?.check(inputBytes + bytes.length);
+              inputBytes += bytes.length; charge(bytes.length);
+              // Ownership is transferred blockwise before asking the producer again.
+              stored!.reserve();
+              for (let offset = 0; offset < bytes.length; offset += 16384) yield new Uint8Array(bytes.subarray(offset, offset + 16384));
+            }
+          } }));
+          retained -= borrowed;
           if (acquiredInput) acquiredInput.bytes = undefined;
         } catch (error) { readFailure = { error }; }
         if (!complete) {
@@ -148,24 +165,22 @@ async function executeDiff3(context: CommandContext, configuration: Diff3Command
         if (readFailure) throw readFailure.error;
       }
       charge(0);
-      const spoolCells = inputs.length + chunks.length;
-      const rendered = compareDiff3(inputs, options, { ...limits, work: limits.work - work, retainedBytes: limits.retainedBytes - retained, graphCells: limits.graphCells - spoolCells, decodedBytes: limits.decodedBytes - decodedBytes }, signal);
-      work += rendered.accounting.work;
-      decodedBytes += rendered.accounting.decodedBytes;
-      peakGraphCells = Math.max(peakGraphCells, spoolCells + rendered.accounting.peakGraphCells);
-      peakRetained = Math.max(peakRetained, retained + rendered.accounting.peakRetainedBytes);
-      hold(rendered.stdout.length + rendered.stderr.length);
-      outputBytes = rendered.stdout.length + rendered.stderr.length;
+      const rendered = await compareStoredDiff3(inputs, options, stored);
+      peakGraphCells = Math.max(peakGraphCells, stored.peakGraphCells);
+      outputBytes = rendered.outputBytes;
       publishing = true;
-      if (rendered.stderr.length) await writeBytes(stderr!.output, rendered.stderr, signal);
-      if (rendered.stdout.length) await writeBytes(stdout!.output, rendered.stdout, signal);
+      for await (const bytes of rendered.stderr.bytes()) await writeBytes(stderr!.output, bytes, signal);
+      for await (const bytes of rendered.stdout.bytes()) await writeBytes(stdout!.output, bytes, signal);
       return result(rendered.exitCode);
-    } catch (error) {
+    } catch (caught) {
+      const error = caught instanceof ToolError ? new Diff3Error('STATE', 'VFS input validation failed') : caught;
       signal.throwIfAborted();
       if (publishing) throw error;
       if (!(error instanceof Diff3Error) && !(error instanceof FsError)) throw error;
       await stdout!.close(); // Release acquired fallback payloads before diagnostics.
-      chunks.length = inputs.length = 0; retained = metadataRetained;
+      peakGraphCells = Math.max(peakGraphCells, stored?.peakGraphCells ?? 0);
+      await stored?.close();
+      inputs.length = 0; retained = metadataRetained;
       const code = Object.getOwnPropertyDescriptor(error, 'code')?.value as unknown;
       const message = Object.getOwnPropertyDescriptor(error, 'message')?.value as unknown;
       const detail = error instanceof FsError ? 'VFS read failed' : code === 'LIMIT' ? 'resource limit exceeded' : typeof message === 'string' && message.length <= 1024 ? message : 'Command failed';

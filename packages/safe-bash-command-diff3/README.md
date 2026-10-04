@@ -98,7 +98,7 @@ diff3 -e -i /ours /base /theirs           # ed script only; never executes it
 diff3 -mE - /base /theirs                # one supplied stdin byte stream
 ```
 
-One stdin operand in any position is copied into bounded owned memory once;
+One stdin operand in any position is staged once through caller-backed storage;
 multiple stdin operands fail before consumption. This deliberately avoids GNU's
 stdin reopen/duplicate-input defects. Labels in merge may contain literal LF;
 ed labels (including inherited path labels in flagging modes) must contain no CR
@@ -136,9 +136,16 @@ bidirectional midpoint search instead of stopping at GNU's costly-search
 threshold. Explicit work and graph quotas still fail with `LIMIT`; no greedy
 fallback is used.
 
+The VFS command and SDK use bounded document caches, stored alignment vectors
+and streamed output. Large inputs require caller-provided scratch storage with
+retained read/write handles and conditional removal. Use an external storage
+backend when spilled data must stay outside the Worker heap. Read-file-only
+backends retain a buffered compatibility path; the pure byte APIs also buffer.
+
 Limits are nonnegative safe integers and conservative logical bounds, not
-heap/RSS guarantees. Copies, spool fragments, tokens, alignment and output are
-admitted before allocation. Accounting reports cumulative work/bytes, peak live
+heap/RSS guarantees. The VFS path reserves a fixed cache/working-buffer allowance
+before processing nonempty inputs or output; fallback payloads share that quota.
+Accounting reports cumulative work/bytes, peak live
 storage/graph slots and zero final live counters. Diagnostic quota exhaustion
 still returns 2 with an SDK `error`, possibly without stderr bytes.
 

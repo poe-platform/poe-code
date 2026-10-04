@@ -7,7 +7,7 @@ missing-file operands, normalization, display transformations and brief stdin).
 Indexed documents, line indexes, LCS cells, edit groups and output use caller-backed
 page caches. Streaming FIFO and character operands use the same staged indexes;
 non-streaming backends retain a buffered compatibility path. Ignored lines,
-function headings, directory metadata and diff3 still need migration. GNU patch
+function headings and directory metadata still need migration. GNU patch
 target payloads, hunk application and publication now use caller-backed documents
 and retained staging writers, including merge/ifdef, backups, rejects and output
 concatenation. Patch input parsing, hunk metadata, file maps and aggregate caches
@@ -20,6 +20,12 @@ descriptors share one caller-backed page cache and matching iterates stored
 patterns. File paths and per-file plan metadata remain buffered. Pagination uses caller-backed output pages, bounded sink writes and incremental single-column
 line rendering. Other pr layouts are outside this coverage. Do not infer
 qualification of unmigrated paths from these tests.
+
+The independent diff3 VFS command and SDK now use caller-backed documents,
+equivalence tables, alignment vectors, regions and output spools. Pure byte APIs
+remain buffered, as does compatibility with read-file-only backends. Its GNU
+fixtures, spill tests and failure/cancellation checks are local evidence; actual
+Worker measurements remain pending.
 
 ## Runtime and storage
 
@@ -67,8 +73,9 @@ qualification of unmigrated paths from these tests.
    multiple files and no-newline inputs against native/interoperability fixtures.
    Inject stale sources, ancestry swaps, cancellation and publication failures;
    verify conditional atomic publication and cleanup on every exit.
-4. Audit and qualify the independent safe-bash-command-diff3 owner. Its current
-   command collects chunks and merged inputs; shared diff source changes do not
-   migrate it.
+4. Qualify the independent safe-bash-command-diff3 owner with long lines, many
+   distinct lines, repeated lines and dense changes. Measure its stored numeric
+   vectors and output spools separately from resident cache memory, and verify
+   the retained-source path independently of its buffered convenience APIs.
 5. Publish measurements only for paths actually run. Node heap measurements and
    generated unit fixtures establish neither Worker memory nor CPU qualification.

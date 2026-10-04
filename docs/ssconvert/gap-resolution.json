@@ -6058,5 +6058,11 @@
     "implementation": "Omit cell text and control-marker paint at zero foreground alpha after layout calculations. Retain original workbook text,cell backgrounds and neighboring placement. Partial-alpha text remains extractable.",
     "validation": "Four memory regressions reproduced extraction of invisible ordinary,rotated,CR-box and U+2028 text.462 PDF tests,selected build and command lint/source/test/public-consumer types pass.16 independent native inputs produce64 compiled SDK/command XML/PDF outputs;32 zero-alpha extraction/nonwhitespace-character/common-word-position comparisons and32 XML preservation comparisons pass. Background and visible-neighbor screenshots match,including partial-alpha multiline control.",
     "remaining": "All19families remain open;full rich-text,font,Unicode,merged multipage and other rendering qualification remains incomplete."
+  },
+  "pdfRtlFillNewlines": {
+    "status": "Unrotated RTL Fill newline profile verified; broader rendering remains open",
+    "implementation": "Choose the LF return arrow from base direction and right-align unrotated RTL Fill. Preserve original workbook text. Rotated RTL Fill remains explicitly unsupported.",
+    "validation": "Five new helper tests first failed; 467 focused tests and selected workspace build pass. Four native Hebrew inputs at 10/14pt with single/repeated LF produce 16 public SDK/command XML/PDF outputs; eight character/copy-count and XML comparisons pass. Native/public raster extents agree within one pixel at 288dpi; screenshots inspected.",
+    "remaining": "Rotated RTL Fill native/public origins disagree in the retained 12-control profile. Next rendering acceptance test: match native rotated RTL line origins and copy counts before removing its refusal. Mixed-direction itemization and all 19 broad families remain open."
   }
 }

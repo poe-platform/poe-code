@@ -19,7 +19,7 @@ import { objectRectangle } from "../objects/layout.js";
 import { graphBackground } from "../rendering/images/scene.js";
 import { layoutPrintPages } from "../rendering/print/layout.js";
 import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
-import { splitPrintLines } from "@poe-code/spreadsheet-engine/rendering/print/text-lines";
+import { splitPrintLines, fillPrintNewlines } from "@poe-code/spreadsheet-engine/rendering/print/text-lines";
 import { renderPrintFormula } from "@poe-code/spreadsheet-engine/rendering/print/formula-text";
 import { createPrintSpans } from "@poe-code/spreadsheet-engine/rendering/print/text-span";
 import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
@@ -253,9 +253,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         {unicodeMinus: true, generalLayout: {width: available, measure}});
     }
     if (cellBox?.style.alignment === "fill" && cellBox.fillString && value.includes("\n")) {
-      if (shaper.shape(metrics, value).direction === "rtl") unsupported("bidirectional fill layout");
-      value = value.split("\n").join("↩");
-      tick(value.length);
+      value = fillPrintNewlines(value, shaper.shape(metrics, value).direction === "rtl", tick);
     }
     const singleParagraph = cellBox?.style.alignment === "fill";
     const tabbedFill = singleParagraph && value.includes("\t");
@@ -410,6 +408,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const fill = cellBox.style.alignment === "fill";
       let fillLayout: ReturnType<typeof rotatedPrintLayout> | undefined;
       if (fill) {
+        if (shaper.shape(metrics, value).direction === "rtl") {
+          if (rotation) unsupported("rotated bidirectional fill layout");
+          alignment = "right";
+        }
         if (shapedLines.length !== 1) unsupported("fill control-character layout");
         const naturalWidth = shapeLine(shapedLines[0]!).width;
         if (rotation && !bordered) fillLayout = rotatedPrintLayout({angle: rotation, widths: [naturalWidth], ascent, lineHeight,

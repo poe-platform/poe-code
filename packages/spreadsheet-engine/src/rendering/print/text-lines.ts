@@ -17,3 +17,9 @@ export function splitPrintLines(value: string, tick: (amount?: number) => void):
   if (!value.endsWith("\u2028")) lines.push({text: value.slice(start), forced: false});
   return lines;
 }
+
+/** Gnumeric displays LF inside Fill strings as a direction-aware return arrow. */
+export function fillPrintNewlines(value: string, rtl: boolean, tick: (amount?: number) => void): string {
+  tick(value.length);
+  return value.split("\n").join(rtl ? "↪" : "↩");
+}

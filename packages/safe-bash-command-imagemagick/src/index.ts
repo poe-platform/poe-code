@@ -1,3 +1,4 @@
+import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
 import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext } from "./stored-stack.js";
@@ -27,7 +28,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ImageByteSource, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -5022,7 +5023,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     return { ...image, position, width, height, ...(token === "-splice" ? { hasAlpha: true } : {}) };
 }
 
-async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false): Promise<StoredRgbaImage> {
+async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false): Promise<StoredRgbaImage> {
     let hasAlpha = base.hasAlpha || (!generic && !magickCompositeMode(mode).delegated);
     const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
     for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
@@ -5035,7 +5036,18 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
             const dst: RgbaImage = { ...base, width: count, height: 1, data: new Uint8Array(await backend.storage.read(position + destination, count * 4)) };
             const src: RgbaImage = { ...overlay, width: count, height: 1, data: new Uint8Array(await backend.storage.read(overlay.position + ((y - top) * overlay.width + x - left) * 4, count * 4)) };
             let result = dst;
-            if (generic) result = await drainSteps(compositeImageSteps(dst, [rgbaToCompositeLayer(src, 0, 0, mode as MagickState["compose"])]), signal);
+            if (montageRounding) {
+                for (let pixel = 0; pixel < count * 4; pixel += 4) {
+                    const alpha = src.data[pixel + 3]!;
+                    if (alpha === 255) dst.data.set(src.data.subarray(pixel, pixel + 4), pixel);
+                    else if (alpha > 0) {
+                        const sa = alpha / 255, da = dst.data[pixel + 3]! / 255, outA = sa + da * (1 - sa);
+                        for (let channel = 0; channel < 3; channel++) dst.data[pixel + channel] = Math.round((src.data[pixel + channel]! * sa + dst.data[pixel + channel]! * da * (1 - sa)) / outA);
+                        dst.data[pixel + 3] = Math.round(outA * 255);
+                    }
+                }
+            }
+            else if (generic) result = await drainSteps(compositeImageSteps(dst, [rgbaToCompositeLayer(src, 0, 0, mode as MagickState["compose"])]), signal);
             else if (mode.toLowerCase() === "over") await drainSteps(blitOverRgbaInPlaceSteps(dst, src, 0, 0), signal);
             else result = await drainSteps(applyMagickCompositeLayerSteps(dst, src, mode, 0, 0, args, signal), signal);
             hasAlpha ||= result.hasAlpha;
@@ -5667,10 +5679,7 @@ function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8
     const parsed = yield* parseCompositeArgumentsSteps(argv);
     return Array.isArray(parsed) ? yield* runConvertCliSteps(parsed, files, stdinBytes, signal) : parsed;
 }
-export async function runCompositeCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
-    if (files instanceof Map) return drainSteps(runCompositeCliSteps(argv, files, stdinBytes, signal), signal);
-    const active = signal ?? new AbortController().signal, parsed = await drainSteps(parseCompositeArgumentsSteps(argv), active);
-    if (Array.isArray(parsed)) return runConvertCli(parsed, files, stdinBytes, active);
+async function probeImageArguments(argv: readonly string[], files: ConvertFileInput, stdinBytes: Uint8Array | undefined, active: AbortSignal): Promise<void> {
     // Preserve input admission and read failures before the legacy missing-operand diagnostic.
     await withImageInputs(files, stdinBytes, active, async read => {
         const inspect = async (source: ImageByteSource) => {
@@ -5691,6 +5700,12 @@ export async function runCompositeCli(argv: readonly string[], files: Map<string
             await read(path, inspect);
         }
     });
+}
+export async function runCompositeCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    if (files instanceof Map) return drainSteps(runCompositeCliSteps(argv, files, stdinBytes, signal), signal);
+    const active = signal ?? new AbortController().signal, parsed = await drainSteps(parseCompositeArgumentsSteps(argv), active);
+    if (Array.isArray(parsed)) return runConvertCli(parsed, files, stdinBytes, active);
+    await probeImageArguments(argv, files, stdinBytes, active);
     if (files.stderr && parsed.stderr) { await writeIdentifyText(files.stderr, parsed.stderr, active); return { ...parsed, stderr: "" }; }
     return parsed;
 }
@@ -5704,14 +5719,14 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 }
 
 
-async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{lastPage?:boolean;maxDecodeDimension?:number;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
+async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if(lower.startsWith("tile:")){
   if(readOptions.visit){
-   await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
+   await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{source:readOptions.source,visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
    return image;
   }
-  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{lastPage:readOptions.lastPage===true});if(!pattern)return;
+  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
   image=await tile(pattern);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
@@ -5740,10 +5755,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   else{
    let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
    if(readOptions.visit){
-    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total))yield {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame,configured,metadata,byteLength)=>{image=await finish(Object.assign(frame,{[magickInput]:{filePath:path,byteLen:byteLength,originalWidth:metadata?.width??frame.width,originalHeight:metadata?.height??frame.height,sceneIdx:configured.page??0}}));await readOptions.visit!(image);});
+    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total))yield {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame,configured,metadata,byteLength)=>{image=await finish(Object.assign(frame,{[magickInput]:{filePath:path,byteLen:byteLength,originalWidth:metadata?.width??frame.width,originalHeight:metadata?.height??frame.height,sceneIdx:configured.page??0}}));await readOptions.visit!(image);},readOptions.source);
     return image;
    }
-   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};});
+   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);
   }
  }
  if(image){image=await finish(image);await readOptions.visit?.(image);}
@@ -5928,7 +5943,11 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
     return next.value;
 }
 
-function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+interface MontageArguments {
+    state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    padX: number; padY: number; borderW: number; operands: string[];
+}
+function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments, void> {
     let cooperativeWork = 63;
     const state = createDefaultState();
     let tileCols: number | undefined;
@@ -5979,6 +5998,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             operands.push(t);
         }
     }
+    return { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands };
+}
+function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    let cooperativeWork = 63;
+    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands } = yield* parseMontageArguments(argv);
     if (operands.length < 2) {
         return {
             exitCode: 1,
@@ -6203,8 +6227,128 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     files.set(outPath, encoded);
     return { exitCode: 0, stdout: "", stderr: "" };
 }
-export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
-    return drainSteps(runMontageCliSteps(argv, files, stdinBytes, signal), signal);
+async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
+    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands } = await drainSteps(parseMontageArguments(argv), signal);
+    if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
+    const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
+    return withCompareFiles(input, stdinBytes, signal, async backend => {
+        const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
+        let fast = cellW === undefined && cellH === undefined, maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
+            const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
+            if (size < 0) return null;
+            const position = Number(await sources.get(BigInt(index * 5))!);
+            return { size, async read(start, length) {
+                signal.throwIfAborted();
+                if (!Number.isSafeInteger(start) || !Number.isSafeInteger(length) || start < 0 || length < 0 || length > 16384 || start + length > size) throw new RangeError("Invalid montage input range");
+                return new Uint8Array(await backend.storage.read(position + start, length));
+            } };
+        };
+        // Snapshot each admitted input once, preserving its identity across layout and decoding.
+        for (let index = 0; index < paths.length; index++) {
+            await yieldTurn(signal);
+            const token = paths[index]!;
+            let path = parseInputToken(token.toLowerCase().startsWith("tile:") ? token.slice(5) : token).baseToken;
+            const colon = path.indexOf(":"); if (colon > 0 && extToImageFormat(path.slice(0, colon))) path = path.slice(colon + 1);
+            await backend.read(path, async source => {
+                const position = backend.storage.allocate(source.size);
+                for (let start = 0; start < source.size; start += 16384) {
+                    await yieldTurn(signal);
+                    await backend.storage.write(position + start, await source.read(start, Math.min(16384, source.size - start), { signal }));
+                }
+                await sources.set(BigInt(index * 5), BigInt(position)); await sources.set(BigInt(index * 5 + 1), BigInt(source.size));
+            });
+            if (!fast) continue;
+            const source = await sourceAt(index);
+            if (!source || token.includes("[") || token.includes(":")) { fast = false; continue; }
+            const prefix = await source.read(0, Math.min(26, source.size));
+            if (prefix[0] === 0x47) { fast = false; continue; }
+            try {
+                const metadata = await readImageMetadataFromSource(source, signal, undefined, backend.storage);
+                if (!metadata.width || !metadata.height) { fast = false; continue; }
+                const width = metadata.width + borderW * 2, height = metadata.height + borderW * 2;
+                maxThumbW = Math.max(maxThumbW, width); maxThumbH = Math.max(maxThumbH, height);
+                await sources.set(BigInt(index * 5 + 2), BigInt(width)); await sources.set(BigInt(index * 5 + 3), BigInt(height));
+                let directPng = metadata.format === "png" && !metadata.isProgressive && prefix[24] === 8 && (prefix[25] === 2 || prefix[25] === 6), idat = false;
+                if (directPng) for (let offset = 8; offset + 8 <= source.size;) {
+                    await yieldTurn(signal);
+                    const header = await source.read(offset, 8), size = new DataView(header.buffer, header.byteOffset, 4).getUint32(0, false);
+                    if (offset + 8 + size > source.size) break;
+                    const name = String.fromCharCode(...header.subarray(4));
+                    if (name === "tRNS") directPng = false;
+                    if (name === "IDAT") idat = true;
+                    if (name === "IEND") break;
+                    offset += 12 + size;
+                }
+                await sources.set(BigInt(index * 5 + 4), directPng && idat ? 1n : 0n);
+            } catch { signal.throwIfAborted(); fast = false; }
+        }
+        if (!fast) {
+            maxThumbW = cellW ?? 0; maxThumbH = cellH ?? 0;
+            for (let index = 0; index < paths.length; index++) {
+                const path = paths[index]!;
+                try {
+                    const loaded = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(index), visit: async image => {
+                        if (cellW !== undefined || cellH !== undefined) {
+                            const resize = magickResizeOptions(image, `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}`, state.kernel);
+                            if (resize) image = await transformStoredImage(image, backend.storage, { kind: "resize", ...resize }, signal);
+                        }
+                        if (borderW > 0) image = await transformStoredImage(image, backend.storage, { kind: "extend", top: borderW, bottom: borderW, left: borderW, right: borderW, background: state.borderColor, extendWith: "background" }, signal);
+                        maxThumbW = Math.max(maxThumbW, image.width); maxThumbH = Math.max(maxThumbH, image.height); await images.push(image);
+                    } });
+                    if (!loaded) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${path}': No such file or directory\n` };
+                } catch (error) {
+                    signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
+                    return { exitCode: 1, stdout: "", stderr: `montage: improper image header '${path}': ${(error as Error).message}\n` };
+                }
+            }
+        }
+        const n = fast ? paths.length : images.length, cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n))), rows = tileRows ?? Math.ceil(n / cols);
+        const slotW = maxThumbW + padX * 2, slotH = maxThumbH + padY * 2;
+        let canvas = await createStoredCanvas(Math.max(1, cols * slotW), Math.max(1, rows * slotH), state.background, backend, signal);
+        let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
+        for (let index = 0; index < n; index++) {
+            await yieldTurn(signal);
+            const col = index % cols, row = Math.floor(index / cols); if (row >= rows) break;
+            let image: StoredRgbaImage | undefined, directPng = false;
+            if (fast) {
+                const path = paths[index]!;
+                try { image = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(index) }); }
+                catch (error) {
+                    signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
+                    return { exitCode: 1, stdout: "", stderr: `montage: improper image header '${path}': ${(error as Error).message}\n` };
+                }
+                if (!image) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${path}': No such file or directory\n` };
+                directPng = await sources.get(BigInt(index * 5 + 4)) === 1n;
+            } else image = (await images.get(index))!;
+            const width = fast ? Number(await sources.get(BigInt(index * 5 + 2))) : image.width, height = fast ? Number(await sources.get(BigInt(index * 5 + 3))) : image.height;
+            const offset = resolveGravityOffset(maxThumbW - width, maxThumbH - height, state.gravity), x = col * slotW + padX + offset.left, y = row * slotH + padY + offset.top;
+            if (fast && borderW > 0 && state.borderColor.a > 0) {
+                const border = await createStoredCanvas(width, height, state.borderColor, backend, signal), empty = new Uint8Array(16384);
+                for (let row = borderW; row < height - borderW; row++) for (let start = borderW; start < width - borderW; start += 4096) {
+                    await yieldTurn(signal); await backend.storage.write(border.position + (row * width + start) * 4, empty.subarray(0, Math.min(4096, width - borderW - start) * 4));
+                }
+                canvas = await compositeStoredMagick(canvas, border, backend, signal, x, y, "over", undefined, false, true, true);
+            }
+            if (!anyTransparent) for (let start = 0; start < image.width * image.height * 4; start += 16384) {
+                await yieldTurn(signal);
+                const bytes = await backend.storage.read(image.position + start, Math.min(16384, image.width * image.height * 4 - start));
+                for (let k = 3; k < bytes.length; k += 4) if (bytes[k]! < 255) { anyTransparent = true; break; }
+                if (anyTransparent) break;
+            }
+            canvas = await compositeStoredMagick(canvas, image, backend, signal, x + (fast ? borderW : 0), y + (fast ? borderW : 0), "over", undefined, false, true, directPng);
+        }
+        if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
+        const { format, path } = inferOutputFormat(outSpec, "png"), stdoutBytes = await backend.publish(canvas, path, { format, quality: state.quality });
+        return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
+    });
+}
+export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    if (files instanceof Map) return drainSteps(runMontageCliSteps(argv, files, stdinBytes, signal), signal);
+    const active = signal ?? new AbortController().signal;
+    const result = await runMontageFiles(argv, files, stdinBytes, active);
+    if (files.stderr && result.stderr) { await writeIdentifyText(files.stderr, result.stderr, active); return { ...result, stderr: "" }; }
+    return result;
 }
 export function runMontageCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runMontageCliSteps(argv, files, stdinBytes, signal);
@@ -6245,7 +6389,7 @@ export async function runMagickCli(argv: readonly string[], files: Map<string, U
     if (argv[0] === "compare") return runCompareCli(argv.slice(1), files, stdinBytes, signal);
     if (argv[0] === "mogrify") return runMogrifyCli(argv.slice(1), files, stdinBytes, signal);
     if (argv[0] === "composite") return runCompositeCli(argv.slice(1), files, stdinBytes, signal);
-    if (argv[0] === "montage") return runBufferedImageFiles(argv, files, runMagickCli, stdinBytes, signal ?? new AbortController().signal);
+    if (argv[0] === "montage") return runMontageCli(argv.slice(1), files, stdinBytes, signal);
     return runConvertCli(argv[0] === "convert" ? argv.slice(1) : argv, files, stdinBytes, signal);
 }
 export function runMagickCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
@@ -6375,9 +6519,11 @@ async function executeVfsMagickTool(
     const fileInput: ConvertFileInput = { filesystem: context.fs, cwd: context.cwd, stdin: context.stdin, stderr: context.stderr, stdout: invocation.child(context.stdout).output, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}), inputBudget: { check(total) { chargeInput(total - accountedBytes); } } };
     const isConvert = runner === runConvertCli || (runner === runMagickCli && !["mogrify", "composite", "montage"].includes(argv[0] ?? ""));
     const isComposite = runner === runCompositeCli || (runner === runMagickCli && argv[0] === "composite");
+    const isMontage = runner === runMontageCli || (runner === runMagickCli && argv[0] === "montage");
     const isMogrify = runner === runMogrifyCli || (runner === runMagickCli && argv[0] === "mogrify");
     const res = isConvert ? await runConvertCli(runner === runMagickCli && argv[0] === "convert" ? argv.slice(1) : argv, fileInput, undefined, invocation.signal)
         : isComposite ? await runCompositeCli(runner === runMagickCli ? argv.slice(1) : argv, fileInput, undefined, invocation.signal)
+        : isMontage ? await runMontageCli(runner === runMagickCli ? argv.slice(1) : argv, fileInput, undefined, invocation.signal)
         : isMogrify ? await runMogrifyCli(runner === runMagickCli ? argv.slice(1) : argv, fileInput, undefined, invocation.signal)
         : await runBufferedImageFiles(argv, fileInput, runner, undefined, invocation.signal);
 

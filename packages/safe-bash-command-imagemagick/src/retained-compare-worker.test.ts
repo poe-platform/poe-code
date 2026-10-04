@@ -4,9 +4,9 @@ import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
-import { runCompareCli, runConvertCli, runMogrifyCli, runCompositeCli } from "./index.js";
-for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-stack", "convert-animation", "convert-text", "composite"] as const)
-for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation" || tool === "convert-text" || tool === "composite") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
+import { runCompareCli, runConvertCli, runMogrifyCli, runCompositeCli, runMontageCli } from "./index.js";
+for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-stack", "convert-animation", "convert-text", "composite", "montage"] as const)
+for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation" || tool === "convert-text" || tool === "composite" || tool === "montage") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
 for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation") ? [false] : [false, true])
     it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
@@ -32,9 +32,10 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
         if (tool === "convert-animation") args.splice(0, args.length, operand, "+clone", "-flop");
         if (tool === "convert-text") args.splice(0, args.length, operand, "-resize", "129x131!");
         if (tool === "composite") args.splice(0, args.length, "-compose", "multiply", "-geometry", "123x97+3+5", operand, operand);
-        const expectedFiles = new Map([["/input", bytes]]), expected = tool === "composite" ? await runCompositeCli([...args, "png:/out.bmp"], expectedFiles) : tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : tool === "mogrify" ? await runMogrifyCli(["-format", "png", ...args.slice(3), operand], expectedFiles) : await runConvertCli([...args, tool === "convert-text" ? "txt:/out.bmp" : tool === "convert-animation" ? "gif:/out.bmp" : "png:/out.bmp"], expectedFiles);
+        if (tool === "montage") args.splice(0, args.length, "-tile", "2x1", "-geometry", "307x311+2+3", "-border", "2", "-bordercolor", "#12345680", operand, operand);
+        const expectedFiles = new Map([["/input", bytes]]), expected = tool === "montage" ? await runMontageCli([...args, "png:/out.bmp"], expectedFiles) : tool === "composite" ? await runCompositeCli([...args, "png:/out.bmp"], expectedFiles) : tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : tool === "mogrify" ? await runMogrifyCli(["-format", "png", ...args.slice(3), operand], expectedFiles) : await runConvertCli([...args, tool === "convert-text" ? "txt:/out.bmp" : tool === "convert-animation" ? "gif:/out.bmp" : "png:/out.bmp"], expectedFiles);
         const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
- import {runCompareCli,runConvertCli,runMogrifyCli,runCompositeCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
+ import {runCompareCli,runConvertCli,runMogrifyCli,runCompositeCli,runMontageCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
  import {FsError} from '@poe-code/safe-fs/contracts';
  export default {async fetch(request,env){const {size,stdout,operand,tool,args}=await request.json();let outputSize=0;const output={async write(bytes){await env.BACKING.fetch('https://backing/result?position='+outputSize,{method:'PUT',body:bytes});outputSize+=bytes.length;}};let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
  const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
@@ -47,7 +48,7 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
  async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded compare allocation '+length);return Reflect.construct(target,args);}});
- try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='composite'?await runCompositeCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):tool==='mogrify'?await runMogrifyCli(["-format","png",...args.slice(3),operand],input):await runConvertCli([...args,tool==='convert-text'?(stdout?"txt:-":"txt:/out.bmp"):tool==='convert-animation'?"gif:/out.bmp":stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
+ try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='montage'?await runMontageCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='composite'?await runCompositeCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):tool==='mogrify'?await runMogrifyCli(["-format","png",...args.slice(3),operand],input):await runConvertCli([...args,tool==='convert-text'?(stdout?"txt:-":"txt:/out.bmp"):tool==='convert-animation'?"gif:/out.bmp":stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
  }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
         expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
         const runtime = new Miniflare({ cf: false, workers: [
@@ -95,7 +96,7 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
             expect(result.metadata).toEqual(expected);
             expect(result.opened).toBeGreaterThan(generated ? 0 : 1);
             expect(result.closed).toBe(result.opened);
-            expect(result.removed).toBe(result.opened - (generated ? 0 : (tool === "compare" || tool === "composite") ? 2 : 1));
+            expect(result.removed).toBe(result.opened - (generated ? 0 : (tool === "compare" || tool === "composite" || tool === "montage") ? 2 : 1));
             expect(result.files).toBe(tool === "convert-write" ? 3 : stdout ? 1 : 2);
             expect(result.reads).toBeGreaterThan(8);
             expect(result.maxAllocation).toBeLessThanOrEqual(65536);

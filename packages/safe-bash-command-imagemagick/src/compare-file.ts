@@ -8,14 +8,15 @@ import { writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { CommandContext } from "safe-bash-contracts/command";
-import { withImageInputs, type ImageFileInput } from "./image-input.js";
+import { withImageInputs, type ImageFileInput, type ImageInputReader } from "./image-input.js";
 export interface CompareFileInput extends ImageFileInput {
     readonly stdout?: ByteSink;
     readonly registerCleanup?: CommandContext["registerCleanup"];
 }
 export interface CompareFileSession {
     readonly storage: PagedStorage;
-    load(path: string, options: (metadata: ImageMetadata | undefined) => SharpInputOptions | Iterable<SharpInputOptions>, visit?: (image: StoredRgbaImage, options: SharpInputOptions, metadata: ImageMetadata | undefined, byteLength: number) => Promise<void>): Promise<StoredRgbaImage | undefined>;
+    readonly read: ImageInputReader;
+    load(path: string, options: (metadata: ImageMetadata | undefined) => SharpInputOptions | Iterable<SharpInputOptions>, visit?: (image: StoredRgbaImage, options: SharpInputOptions, metadata: ImageMetadata | undefined, byteLength: number) => Promise<void>, source?: ImageByteSource | null): Promise<StoredRgbaImage | undefined>;
     retain(image: RgbaImage): Promise<StoredRgbaImage>;
     stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<void>;
     publishPending(): Promise<void>;
@@ -97,8 +98,9 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             for await (const [path, snapshot] of snapshots) await publishImage(snapshot.image, path, snapshot.encoding, snapshot.encoded, ++index === snapshots.size);
             snapshots.clear();
         };
-        return run({ storage, retain,
-            async load(path, options, visit) {
+        return run({ storage, retain, read,
+            async load(path, options, visit, source) {
+                if (source === null) return;
                 let entered = false, completed = false;
                 try {
                     const consume = async (source: ImageByteSource) => {
@@ -155,7 +157,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
 
                     };
                     const snapshot = path === "-" ? undefined : await snapshots.get(path);
-                    return snapshot ? await consume(snapshot.encoded.source) : await read(path, consume);
+                    return source ? await consume(source) : snapshot ? await consume(snapshot.encoded.source) : await read(path, consume);
                 }
                 catch (error) {
                     signal.throwIfAborted();

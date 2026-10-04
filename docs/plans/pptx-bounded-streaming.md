@@ -374,6 +374,46 @@ and relationship guards, XML aggregate limits, candidate semantic validation,
 selection, retained replacement input and streamed publication must all remain.
 Default `xml set` is still buffered pending that complete integration.
 
+## Retained XML replacement admission
+
+`openRetainedXmlReplacement` is exported from the engine root and `xml-parts`.
+It borrows an admitted archive, accepts an exact part URI and replacement byte
+stream, and returns a caller-backed candidate view with `changed`, `replacement`,
+`read`, `parts`, `has`, `byteLength` and `close`. Replacement bytes, attribute maps,
+comparison stacks and duplicate-child occurrence queues live in caller storage.
+Hash indexes verify full keys; matching a repeated child consumes one occurrence.
+It preserves both existing admission paths: same-structure attribute/text edits
+and guarded child reorder/removal. Ancestor-shell equality preserves inherited
+namespace context during raw child comparisons. It shares child-sequence rules
+with the buffered validator.
+
+Guards include exact XML part selection, signatures/macros, protection, aggregate
+XML limits, namespaced attributes and declarations, dialect, opaque bytes,
+relationship references, authored slide dimensions, movable subtrees and candidate
+semantic validation. The replacement stream retains maxReads/maxBytes, invalid
+chunk and source-error diagnostics, cancellation, and primary-error precedence
+over iterator cleanup. Source bytes are copied in bounded chunks before advancing
+a reused source buffer. No-op callers retain original archive bytes.
+
+Verification: 39 retained replacement cases and 43 existing XML part/view cases
+passed, plus scoped lint/typechecks and the maintained engine build. Coverage
+includes Strict and UTF-16, protected/signature/macro decks, opaque extensions,
+duplicate opaque runs, required headers, forbidden insertion, byte-source errors,
+resource limits, cancellation, real caller spills capped at 16 KiB outstanding
+writes, unchanged member bytes and expired handles. Native python-pptx/lxml
+verified text replacement and shape removal on a chart deck, unchanged chart and
+embedded workbook, exact replacement part bytes, ZIP CRCs and scratch cleanup.
+No runtime Worker qualification is claimed.
+
+Next integrate this view into default `xml set`: reuse retained input snapshots
+for both presentation and replacement file; preserve selector/metadata behavior,
+original-fingerprint result locations and human/JSON/binary output; stage the
+archive and response before publication with retained identity and force/dry-run
+policy. Factor shared archive staging from `stageRetainedSlideSettings` so the
+publication path remains consistent. The command is still buffered until that
+wiring is complete. Other mutations, richer reads, extraction and workbook
+migration remain as well.
+
 ## Remaining implementation
 
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,

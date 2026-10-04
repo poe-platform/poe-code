@@ -1,3 +1,4 @@
+import { xmlReplacementSequences as sequences } from "./xml-replacement-rules.js";
 import { validateXmlViewReplacement } from "./xml-view-validation.js";
 import { SaxesParser } from "saxes";
 import { readBinary } from "./bytes.js";
@@ -28,31 +29,6 @@ const relationshipNamespaces = [
   "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
   "http://purl.oclc.org/ooxml/officeDocument/relationships"
 ];
-const sequences: Readonly<Record<string, readonly string[]>> = {
-  presentation: [
-    "sldMasterIdLst",
-    "notesMasterIdLst",
-    "handoutMasterIdLst",
-    "sldIdLst",
-    "sldSz",
-    "notesSz",
-    "smartTags",
-    "embeddedFontLst",
-    "custShowLst",
-    "photoAlbum",
-    "custDataLst",
-    "kinsoku",
-    "defaultTextStyle",
-    "modifyVerifier",
-    "extLst"
-  ],
-  sld: ["cSld", "clrMapOvr", "transition", "timing", "extLst"],
-  cSld: ["bg", "spTree", "custDataLst", "controls", "extLst"],
-  nvGrpSpPr: ["cNvPr", "cNvGrpSpPr", "nvPr"],
-  sp: ["nvSpPr", "spPr", "style", "txBody", "extLst"],
-  pic: ["nvPicPr", "blipFill", "spPr", "style", "extLst"],
-  graphicFrame: ["nvGraphicFramePr", "xfrm", "graphic", "extLst"]
-};
 function unsupported(message: string): never {
   throw new OfficeError("unsupported-edit", message, "validate-intent");
 }
@@ -403,3 +379,5 @@ export function validateXmlPartReplacement(
 }
 
 export { openRetainedXmlPart, stageRetainedXmlPart, type RetainedXmlPart, type RetainedXmlPartContext } from './retained-xml-parts.js';
+
+export { openRetainedXmlReplacement, type RetainedXmlReplacement } from "./retained-xml-replacement.js";

@@ -44,6 +44,14 @@ original field caches independently of compatibility-projected text.
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves
 mixed content and keeps its traversal spans in caller storage. Close the result
 after reading. `stageRetainedXmlPart` supplies the staged command formats.
+`openRetainedXmlReplacement` (from `xml-parts`) admits a replacement byte stream
+for an exact existing presentation or slide part, including guarded child reorder
+and removal. It retains replacement bytes and comparison state in caller storage,
+checks package-wide mutation guards, and validates the candidate presentation.
+Pass its `replacement` method to `archive.rewrite` to preserve unrelated members;
+when `changed` is false, reuse the exact original archive bytes. Close the returned
+view after rewriting. The archive remains owned by the caller. The default
+`xml set` command still uses its buffered publication path.
 `openRetainedSlideSettings` (from `slides`) applies label and visibility changes
 to a caller-backed part view, preserving mutation guards and validating the result.
 It borrows the archive and returns `changed`, `affected`, original target locations,

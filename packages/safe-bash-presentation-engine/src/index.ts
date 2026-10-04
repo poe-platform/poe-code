@@ -101,7 +101,7 @@ export {
   type SelectionIndex
 } from "./selectors.js";
 
-export { getXmlPart, openRetainedXmlPart, stageRetainedXmlPart, replaceXmlPart, type RetainedXmlPart, type RetainedXmlPartContext, type XmlPartContext, type XmlPartData } from "./xml-parts.js";
+export { getXmlPart, openRetainedXmlPart, stageRetainedXmlPart, replaceXmlPart, openRetainedXmlReplacement, type RetainedXmlReplacement, type RetainedXmlPart, type RetainedXmlPartContext, type XmlPartContext, type XmlPartData } from "./xml-parts.js";
 
 export type { PartView, PackageView, PartRelationship } from "./package-view.js";
 export type { XmlElementView } from "./xml-view.js";

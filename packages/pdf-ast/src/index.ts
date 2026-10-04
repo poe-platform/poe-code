@@ -32,6 +32,7 @@ export * from "./extract/text.js";
 export * from "./extract/tables.js";
 export * from "./extract/semantic-ast.js";
 export * from "./extract/images.js";
+export type { PdfRetainedFormFieldDetails } from "./extract/retained-form-field-details.js";
 export type { PdfRetainedFormField } from "./extract/retained-form-fields.js";
 export type { PdfRetainedAttachment } from "./extract/retained-attachments.js";
 export * from "./edit/redact.js";

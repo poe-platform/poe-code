@@ -255,7 +255,12 @@ evaluation. Selected resource metadata remains resident.
 `doc.formFields()` streams field summaries containing `name`, `type` and `value`.
 It preserves hierarchical names, inherited values, widget grouping and repeated
 fields while keeping traversal state on caller storage. Returning early or
-closing the document releases its field traversal.
+closing the document releases its field traversal. `doc.formFieldDetails()` adds
+flags, justification, length, alternate/default values and button state, with
+`values()` and `options()` iterators for selected values and deduplicated choices.
+Consume these borrowed iterators before advancing to the next field; advancing,
+returning or closing the document releases them. Option deduplication uses caller
+storage. Individual COS values and field strings still require resident memory.
 
 `replaceRetainedPdfName(chunks, oldName, newName, storage, options)` streams
 literal resource-name replacement with owned output chunks and caller-backed

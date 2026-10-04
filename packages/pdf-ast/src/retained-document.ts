@@ -1,3 +1,4 @@
+import { walkRetainedFormFieldDetails, type PdfRetainedFormFieldDetails } from "./extract/retained-form-field-details.js";
 import { PdfArrayCursor } from "./content/array-cursor.js";
 import { StoredMetadataStack, readStoredRecord } from "./content/stored-record.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
@@ -363,6 +364,19 @@ export class PdfRetainedDocument {
       doc.assertOpen(); doc.walks.add(work);
       try {
         yield* walkRetainedFormFields(doc, doc.storage, { maxDepth: doc.depthLimit,
+          ...(doc.options.maxTraversalStagingBytes === undefined ? {} : { maxStagingBytes: doc.options.maxTraversalStagingBytes }),
+          ...(doc.options.signal ? { signal: doc.options.signal } : {}),
+        });
+      } finally { doc.walks.delete(work); }
+    }
+    const work = visit(this); return work;
+  }
+
+  formFieldDetails(): AsyncGenerator<PdfRetainedFormFieldDetails, void, void> {
+    async function* visit(doc: PdfRetainedDocument): AsyncGenerator<PdfRetainedFormFieldDetails, void, void> {
+      doc.assertOpen(); doc.walks.add(work);
+      try {
+        yield* walkRetainedFormFieldDetails(doc, doc.storage, { maxDepth: doc.depthLimit,
           ...(doc.options.maxTraversalStagingBytes === undefined ? {} : { maxStagingBytes: doc.options.maxTraversalStagingBytes }),
           ...(doc.options.signal ? { signal: doc.options.signal } : {}),
         });

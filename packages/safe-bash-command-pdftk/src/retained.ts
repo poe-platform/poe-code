@@ -1,3 +1,4 @@
+import { retainedFieldReport } from "./retained-fields.js";
 import { PdfError, PdfFileSource, PdfRetainedDocument, retainedCosObjects } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
@@ -47,7 +48,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
     }
     const primary = options.inputs[0]!;
     document = await PdfRetainedDocument.open(inputs.get(primary.file)!, storage, { signal, recovery: "strict", ...(primary.password ? { password: primary.password } : {}) });
-    output = await PdfFileSource.fromStream(context.fs, storage.directory, retainedAnnotationReport(document, storage, options.operation.endsWith("_utf8"), signal), { signal });
+    output = await PdfFileSource.fromStream(context.fs, storage.directory, (options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedAnnotationReport(document, storage, options.operation.endsWith("_utf8"), signal)), { signal });
     const destination = options.outputTarget;
     if (!destination || destination === "-") for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
     else {

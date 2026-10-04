@@ -13,6 +13,9 @@ import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
 
 export interface CopyRetainedPageOptions {
+  /** Override a source page's rotation before cloning its indirect values.
+   * Return undefined to preserve the source; angles must be quarter turns. */
+  readonly pageRotation?: (document: PdfRetainedDocument, index: number) => number | undefined | Promise<number | undefined>;
   /** Override copied metadata; an empty object keeps only the default producer. */
   readonly metadata?: Readonly<Record<string, string>>;
   /** Merge all source embedded files; the first occurrence of each name wins. */
@@ -32,6 +35,12 @@ export type PdfRetainedPageIndices = number | Iterable<number> | AsyncIterable<n
 export interface PdfRetainedPageSelection {
   readonly document: PdfRetainedDocument;
   readonly indices: PdfRetainedPageIndices;
+  /** Caller-owned membership for resource materialization across batches of
+   * the same logical source. Keep the backing alive while copying. */
+  readonly resourceState?: {
+    has(index: number): boolean | Promise<boolean>;
+    add(index: number): void | Promise<void>;
+  };
 }
 /** Consume each source completely before requesting the next. Callers may close
  * a yielded source when their source iterator resumes. Page/form lists and
@@ -81,7 +90,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
       position = view.getFloat64(0); yield cosRef(view.getFloat64(8));
     }
   }
-  async function append(document: PdfRetainedDocument, pageIndices: PdfRetainedPageIndices) {
+  async function append(document: PdfRetainedDocument, pageIndices: PdfRetainedPageIndices, resourceState?: PdfRetainedPageSelection["resourceState"]) {
     const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
     const sourcePages = new PdfMutableObjectStore(storage, { maxRecursionDepth: maximumDepth, signal });
     const memo = new IntegerTable(backing, 64), wanted = new IntegerTable(backing, 64), sourceReferences = new IntegerTable(backing, 64);
@@ -157,6 +166,12 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
       }
       for await (const selection of selections()) {
         const selected = { dict: (await sourcePages.get(selection.index + 1))!.value as PdfCosDict }, pageRef = cosRef(selection.objectNumber);
+        if (!dictGet(selected.dict, "Resources") && await resourceState?.has(selection.index)) dictSet(selected.dict, "Resources", await sourceResources());
+        const rotation = await options.pageRotation?.(document, selection.index);
+        if (rotation !== undefined) {
+          if (!Number.isSafeInteger(rotation) || rotation % 90 !== 0) throw new RangeError("Page rotation must be a multiple of 90 degrees");
+          dictSet(selected.dict, "Rotate", cosNumber(((rotation % 360) + 360) % 360));
+        }
         const page = await clone(selected.dict) as PdfCosDict;
         async function inherited(key: string): Promise<PdfCosNode | undefined> {
           let current: PdfCosDict | undefined = selected!.dict, depth = 0; const visited = new Set<number>();
@@ -176,13 +191,22 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
         }
         const media = await box("MediaBox"), width = Math.abs(media[2]! - media[0]!), height = Math.abs(media[3]! - media[1]!);
         if (!dictGet(page, "MediaBox")) dictSet(page, "MediaBox", cosArray(media.map(value => cosNumber(value))));
-        if (!dictGet(page, "Resources")) {
+        async function sourceResources(): Promise<PdfCosDict> {
           const source = await inherited("Resources"), entries = [];
           if (source?.kind === "dict") for (const entry of source.entries) {
             const value = await sourceValue(entry.value);
             entries.push({ key: { ...entry.key }, value: value?.kind === "dict" ? cosDict(Object.fromEntries(value.entries.map(item => [item.key.decoded, item.value]))) : entry.value });
           }
-          dictSet(page, "Resources", await clone({ kind: "dict", entries }));
+          return { kind: "dict", entries };
+        }
+        if (!dictGet(page, "Resources")) {
+          const resources = await sourceResources();
+          // PdfPage.getResourcesDict materializes this on the source. Repeated
+          // selections then clone that dictionary in its updated entry order.
+          dictSet(selected.dict, "Resources", resources);
+          await sourcePages.set({ objectNumber: selection.index + 1, generationNumber: 0, value: selected.dict });
+          await resourceState?.add(selection.index);
+          dictSet(page, "Resources", await clone(resources));
         }
         if (!dictGet(page, "Rotate")) { const rotation = await inherited("Rotate"), value = rotation?.kind === "number" ? ((rotation.value % 360) + 360) % 360 : 0;
           if (value === 90 || value === 180 || value === 270) dictSet(page, "Rotate", cosNumber(value)); }
@@ -255,7 +279,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   try {
     await store.allocate(catalog); await store.allocate(cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }));
     await store.allocate(information(options.metadata));
-    for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await labels?.append(source.document, pageCount); await outlines?.append(source.document, pageCount); await append(source.document, source.indices); }
+    for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await labels?.append(source.document, pageCount); await outlines?.append(source.document, pageCount); await append(source.document, source.indices, source.resourceState); }
     await outlines?.finish(store, catalog, pageCount, async index => cosRef(Number(await pageReferences!.get(BigInt(index)))));
     const attachmentNames = await attachments?.finish(store, catalog);
     const pageLabels = await labels?.finish(store, catalog);

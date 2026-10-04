@@ -813,6 +813,9 @@ ordered relative edits accumulate without collecting the selection.
 
 `copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
 PDF for a synchronous or asynchronous iterable of zero-based page indices.
+Use `pageRotation(document, index)` to override a source rotation before
+indirect values are cloned. A selection can carry caller-backed `resourceState`
+membership to preserve resource materialization across repeated batches.
 Order and repeated pages are preserved, along with shared resources, forms,
 optional content and document metadata. The single-page spelling
 `copyRetainedPageChunks(document, pageIndex, storage, options)` remains available.

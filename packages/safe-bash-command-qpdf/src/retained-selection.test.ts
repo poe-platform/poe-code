@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { PdfDocument, cosStream, cosString, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, cosStream, cosString, dictDelete, dictGet, dictSet, serializeCosDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-stdin", "empty", "empty-no-pages", "none", "duplicate", "stdout", "replace", "remove", "remove-large", "decrypt", "collate", "collate-two", "collate-large", "collate-single", "collate-empty", "rotate-absolute", "rotate-relative", "rotate-duplicates", "rotate-collated", "rotate-plain"]) it(`copies ${mode} page selections through retained storage with exact bytes`, async () => {
+for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-stdin", "empty", "empty-no-pages", "none", "duplicate", "stdout", "replace", "remove", "remove-large", "decrypt", "collate", "collate-two", "collate-large", "collate-single", "collate-empty", "rotate-absolute", "rotate-relative", "rotate-duplicates", "rotate-collated", "rotate-plain", "collate-inherited"]) it(`copies ${mode} page selections through retained storage with exact bytes`, async () => {
   const base = PdfDocument.create(), other = PdfDocument.create();
   for (let i = 0; i < 3; i++) base.addPage([100 + i * 10, 200]).drawText(`Base ${i + 1}`, { x: 10, y: 20 });
   for (let i = 0; i < 2; i++) other.addPage([200 + i * 10, 300]).drawText(`Other ${i + 1}`, { x: 10, y: 20 });
@@ -13,14 +13,18 @@ for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-st
   dictSet(base.cos.resolveDict(base.cos.infoRef)!, "Subject", cosString("Not copied by qpdf"));
   dictSet(base.cos.resolveDict(base.cos.infoRef)!, "Producer", cosString("Source producer"));
   base.cos.allocateObject(cosStream(new Uint8Array(131072).fill(65), { compress: false }));
+  if (mode === "collate-inherited") {
+    const page = base.getPage(0).dict, parent = base.cos.resolveDict(dictGet(page, "Parent"))!;
+    for (const key of ["Resources", "MediaBox"]) { dictSet(parent, key, dictGet(page, key)!); dictDelete(page, key); }
+  }
   const encrypted = mode === "encrypted" || mode === "decrypt";
-  const input = base.save(encrypted ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : {});
+  const input = mode === "collate-inherited" ? serializeCosDocument({ objects: [...base.cos.objects.values()], rootRef: base.cos.rootRef, infoRef: base.cos.infoRef }) : base.save(encrypted ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : {});
   const extra = other.save(mode === "source-password" ? { encrypt: { userPassword: "other", ownerPassword: "owner" } } : {});
   const mainName = mode === "stdin" ? "-" : "in.pdf", otherName = mode === "source-stdin" ? "-" : "other.pdf";
   const target = mode === "stdout" ? "-" : mode === "replace" ? mainName : "out.pdf";
   const args = [...(mode.startsWith("rotate") ? [mode === "rotate-absolute" ? "--rotate=270:1-z" : mode === "rotate-duplicates" ? "--rotate=+90:1-z,1" : "--rotate=+90:1-z", "--rotate=-180:2-z"] : []), ...(mode.startsWith("collate") || mode === "rotate-collated" ? [`--collate=${mode === "collate-two" ? 2 : mode === "collate-large" ? 100000000 : 1}`] : []), ...(encrypted ? ["--password=reader"] : []), ...(mode.startsWith("empty") ? ["--empty"] : [mainName]),
     ...(mode === "replace" ? ["--replace-input"] : []), ...(mode.startsWith("remove") ? ["--remove-info", "--remove-metadata"] : []), ...(mode === "decrypt" ? ["--decrypt"] : []),
-    ...(mode === "empty-no-pages" || mode === "rotate-plain" ? [] : ["--pages", ...(mode === "empty" ? [] : [".", mode === "none" || mode === "collate-empty" ? "1-z,x1-z" : mode.startsWith("collate") ? "3-1,1" : "3-1,x2"]),
+    ...(mode === "empty-no-pages" || mode === "rotate-plain" ? [] : ["--pages", ...(mode === "empty" ? [] : [".", mode === "none" || mode === "collate-empty" ? "1-z,x1-z" : mode === "collate-inherited" ? "1,1,1" : mode.startsWith("collate") ? "3-1,1" : "3-1,x2"]),
       ...(mode === "none" || mode === "collate-single" ? [] : [otherName, ...(mode === "source-password" ? ["--password=other"] : []), "1-z"]), ...(mode === "duplicate" ? [".", "2,2"] : []), "--"]),
     ...(mode === "replace" ? [] : [target])];
   const files = new Map([[mainName, input], [otherName, extra]]), expected = await runQpdfCli(args, files);

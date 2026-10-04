@@ -164,3 +164,17 @@ it("serializes an empty source sequence like a newly created document", async ()
   for await (const bytes of copyRetainedPagesChunks([], { fs, directory: "/scratch" })) chunks.push(bytes);
   expect(new Uint8Array(Buffer.concat(chunks))).toEqual(PdfDocument.create().save()); expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["direct", "indirect", "inherited"])("overrides %s source rotation before copying indirect objects", async mode => {
+  let bytes = input(mode === "inherited", false);
+  if (mode === "indirect") { const doc = PdfDocument.load(bytes); dictSet(doc.getPage(0).dict, "Rotate", doc.cos.allocateObject(cosNumber(90))); bytes = serializeCosDocument({ objects: [...doc.cos.objects.values()], rootRef: doc.cos.rootRef, infoRef: doc.cos.infoRef }); }
+  const buffered = PdfDocument.load(bytes); buffered.getPage(0).setRotation(270);
+  const expected = PdfDocument.create(); expected.setTitle("Copied title"); expected.copyPagesFrom(buffered, [0, 1, 0]);
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", bytes);
+  const storage = { fs, directory: "/scratch" }, source = await PdfFileSource.open(fs, "/input"), retained = await PdfRetainedDocument.open(source, storage);
+  try {
+    const chunks = []; for await (const chunk of copyRetainedPagesChunks(retained, [0, 1, 0], storage, { pageRotation: async (document: PdfRetainedDocument, index: number) => { expect(document).toBe(retained); return index === 0 ? 270 : undefined; } })) chunks.push(chunk);
+    expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.save());
+  } finally { await retained.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

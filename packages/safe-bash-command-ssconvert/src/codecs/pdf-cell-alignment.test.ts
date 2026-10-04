@@ -141,3 +141,15 @@ it.each(["JUSTIFY", "DISTRIBUTED"])("refuses automatic wrapping implied by %s", 
   const book = await fixture("GNM_HALIGN_LEFT", 10, 12, vertical);
   await expect(writePdf(book, [], context)).rejects.toThrow("wrapped text layout");
 });
+
+it.each(["array", "shared"] as const)("marks only %s formula groups in formula-display mode", async kind => {
+  const original = await fixture("GNM_HALIGN_GENERAL"), sheet = original.sheets[0]!;
+  const cells = [0, 1].flatMap(row => [0, 1].map(column => ({...sheet.cells[0]!, row, column,
+    formula: "=1+2", formulaGroup: "group", value: {kind: "number" as const, value: 3}})));
+  const book = {...original, sheets: [{...sheet, cells, view: {...sheet.view, displayFormulas: true},
+    formulaGroups: [{id: "group", kind, expression: "=1+2", range: {startRow: 0, startColumn: 0, endRow: 1, endColumn: 1}}]}]};
+  const {runs} = await pdfText(await writePdf(book, [], context));
+  expect(runs.map(run => run.text)).toEqual(Array(4).fill(kind === "array" ? "{=1+2}" : "=1+2"));
+  const values = {...book, sheets: book.sheets.map(sheet => ({...sheet, view: {...sheet.view, displayFormulas: false}}))};
+  expect((await pdfText(await writePdf(values, [], context))).runs.map(run => run.text)).toEqual(["3", "3", "3", "3"]);
+});

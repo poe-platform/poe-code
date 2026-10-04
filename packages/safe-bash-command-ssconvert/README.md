@@ -106,7 +106,8 @@ font remains the default. Cells without explicit styles use native default sizes
 and alignment. PDF export uses JavaScript fontkit shaping when the runtime
 cannot compile WebAssembly (including Cloudflare Workers). Font bytes and character-map work are bounded before parsing.
 Formula-display mode prints formula text with doubled column widths, including
-those widths when centering and fitting pages. Zero hiding follows the native
+those widths when centering and fitting pages. Array formulas use `{=…}` in every
+member cell; shared formulas keep ordinary formula spelling. Zero hiding follows the native
 numeric tolerance and hides FALSE, while retaining cell fills, text zeros and
 displayed formulas.
 PDF export retains styled cells' logical text for copying and extraction,

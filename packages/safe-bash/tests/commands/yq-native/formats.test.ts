@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { run } from "./helpers.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { createMountFileSystem } from "../../../src/fs/mount/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { mikeYqCommands } from "safe-bash-command-yq/mike";
 import { MockS3Client, S3FileSystem } from "@poe-code/safe-fs";
@@ -70,18 +71,40 @@ test("TOML output round trips tables and rejects unrepresentable null entries", 
 for (const backend of ["memory", "s3"] as const) {
   test(`format conversion reads the configured ${backend} filesystem`, async () => {
     const fs = backend === "memory" ? createMemoryFileSystem() : new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
-    const shell = new Shell({ fs }).use(mikeYqCommands());
+    const output = createMemoryFileSystem();
+    const shell = new Shell({ fs: createMountFileSystem({ root: output, mounts: { "/input": fs } }) }).use(mikeYqCommands());
     try {
       for (const [format, , input, expected] of inputs) {
         await fs.writeFile("/data", Buffer.from(input));
-        const result = await shell.exec(`yq -p ${format} -o json -I 0 . /data`);
+        const result = await shell.exec(`yq -p ${format} -o json -I 0 . /input/data`);
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stdout, expected + "\n");
       }
       await fs.writeFile("/data", Buffer.from(mapping));
-      const result = await shell.exec(`yq -o csv --split-exp '"result"' '[.]' /data`);
+      const result = await shell.exec(`yq -o csv --split-exp '"result"' '[.]' /input/data`);
       assert.equal(result.exitCode, 0, result.stderr);
-      assert.equal(Buffer.from(await fs.readFile("/result.csv")).toString(), "name,count\nChangedOne,7\n");
+      assert.equal(Buffer.from(await output.readFile("/result.csv")).toString(), "name,count\nChangedOne,7\n");
+      assert.equal(Buffer.from(await fs.readFile("/data")).toString(), mapping);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const existing of [false, true]) {
+  test(`split output rejects an unsupported S3 descriptor without mutation (existing=${existing})`, async () => {
+    const fs = new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
+    await fs.writeFile("/data", Buffer.from(mapping));
+    if (existing) await fs.writeFile("/result.csv", Buffer.from("preserve destination\n"));
+    const entries = await fs.readdir("/");
+    const shell = new Shell({ fs }).use(mikeYqCommands());
+    try {
+      const result = await shell.exec(`yq -o csv --split-exp '"result"' '[.]' /data`);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "Error: ENOTSUP: operation not supported, open '/result.csv'\n");
+      assert.deepEqual(await fs.readdir("/"), entries);
+      assert.equal(Buffer.from(await fs.readFile("/data")).toString(), mapping);
+      if (existing) assert.equal(Buffer.from(await fs.readFile("/result.csv")).toString(), "preserve destination\n");
+      else await assert.rejects(fs.readFile("/result.csv"), { code: "ENOENT" });
     } finally { await shell.dispose(); }
   });
 }

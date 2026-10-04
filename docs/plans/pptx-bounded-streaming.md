@@ -162,7 +162,7 @@ long shared-prefix keys, reused source buffers, actual spill writes capped at
 16 KiB, slow consumers, cancellation and source/storage failure cleanup. Independent
 python-pptx verification matched sizes and SHA-256 hashes for all 25 parts in a
 two-slide deck with an embedded chart workbook. This is package metadata only:
-text styles still need retained inventory admission, followed by shipped-operation integration.
+text-style context admission and shipped-operation integration are described below.
 
 Diagram inventory now also uses caller pages for each traversal FIFO, visited
 and missing-target sets, owner deduplication, and sorted result lists. MIME
@@ -193,10 +193,30 @@ inheritance, nested shapes, handout list order/duplicates and invalid references
 Generated coverage observes actual caller spills capped at 16 KiB with 32 slides,
 a 32 KiB reused-buffer handout ID, slow consumers, and read/write/cancellation
 failure cleanup. Independent python-pptx verification matched two slides' IDs,
-nested shape counts, layout/master/theme parts and hidden-slide state. The
-remaining inventory prerequisite is retained text-style resolution, then complete
-inventory/selection integration into the shipped commands. No Worker runtime
+nested shape counts, layout/master/theme parts and hidden-slide state. Per-slide text-style resolution is described below; complete deck inventory and
+selection integration into the shipped commands remain. No Worker runtime
 qualification or end-to-end completion is claimed.
+
+`openRetainedTextStyles` now admits one slide's style inheritance context into
+caller-backed XML stores. Shape traversal frames and ordered shape lists spill
+through a separate caller page cache. The fixed set of run/paragraph/shape/layout/
+master/presentation/font-reference layers resolves all 14 existing properties,
+including theme fonts, color maps, theme overrides and unresolved reasons.
+Shape IDs, tokens, string values and provenance paths are replayable byte streams;
+long numeric tokens are parsed incrementally. It validates every record before
+returning a replayable read-only iterator, and owns no archive or source handles.
+At most eight inheritance documents are live, regardless of deck size.
+
+Fifty-six focused cases cover property/provenance parity, strict namespaces,
+placeholder ambiguity, grouped ordering, malformed structures, 32 KiB scalar
+values supplied through reused buffers, slow consumers, cancellation and source/
+read/write cleanup. A generated 1,024-shape case observes separate traversal and
+XML spills, with outstanding writes capped at 16 KiB. An independent python-pptx
+deck matched all three complete style records against buffered inventory; Python
+also confirmed explicit font, size, emphasis and RGB values. Complete-deck context
+wiring, theme-override relationship admission, compatibility checks for additional
+style parts, and streamed inventory serialization still need integration into
+the shipped engine. This is not end-to-end completion or Worker qualification.
 
 ## Remaining implementation
 

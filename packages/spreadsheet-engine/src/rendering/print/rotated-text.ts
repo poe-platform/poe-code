@@ -1,10 +1,10 @@
 /** Native rotated Pango line origins, in points after rounding to display pixels at paint time. */
-export function rotatedPrintOrigins(options: {
+export function rotatedPrintLayout(options: {
   angle: number; layoutWidth?: number; widths: readonly number[]; ascent: number; lineHeight: number;
   width: number; height: number; indent: number; bordered: boolean;
   alignment: "left" | "center" | "right";
   vertical: "top" | "bottom" | "center" | "justify" | "distributed";
-}, tick: () => void): {x: number; y: number}[] {
+}, tick: () => void): {width: number; origins: {x: number; y: number}[]} {
   const units = (points: number) => Math.trunc(points / 0.75 * 1024);
   const sin = Math.sin(options.angle * Math.PI / 180), cos = Math.cos(options.angle * Math.PI / 180);
   let widest = 0;
@@ -45,8 +45,8 @@ export function rotatedPrintOrigins(options: {
   else if (!options.bordered && options.alignment === "center") horizontal += Math.trunc(width / 2) + Math.trunc((-indent - horizontalWidth) / 2);
   const spare = height - naturalHeight;
   const vertical = options.vertical === "bottom" ? spare : options.vertical === "center" || options.vertical === "distributed" ? Math.trunc(spare / 2) : 0;
-  return origins.map(({x, y}) => ({
+  return {width: initial.naturalWidth / 1024 * 0.75, origins: origins.map(({x, y}) => ({
     x: Math.floor((3 * 1024 + horizontal + x + (sin < 0 ? naturalWidth : 0) + 512) / 1024) * 0.75,
     y: Math.floor((1024 + vertical + y + naturalHeight + 512) / 1024) * 0.75
-  }));
+  }))};
 }

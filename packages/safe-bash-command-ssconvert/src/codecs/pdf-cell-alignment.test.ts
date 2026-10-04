@@ -412,3 +412,29 @@ it.each(["JUSTIFY", "DISTRIBUTED"])("prints rotated horizontal %s paragraphs", a
   const {runs} = await pdfText(await writePdf(input, [], context));
   expect(runs.map(run => run.text).join("")).toBe("alpha beta gamma");
 });
+it.each([-90, -45, 30, 90])("prints rotated Fill at %s degrees", async rotation => {
+  const book = await fixture("GNM_HALIGN_FILL", 10, 72, "BOTTOM", 60);
+  const cell = book.sheets[0]!.cells[0]!;
+  const style = cell.style!.gnumeric as {attributes: {name: string; value: string}[]};
+  for (const attribute of style.attributes) if (attribute.name === "Rotation") attribute.value = String(rotation);
+  const input = {...book, sheets: [{...book.sheets[0]!, cells: [cell]}]};
+  const {runs} = await pdfText(await writePdf(input, [], context));
+  // The fixture reader reports raw glyphs; native/public extraction separately checks ActualText.
+  const value = runs.map(run => run.text).join("").split("\u200b").join("");
+  expect(value.startsWith("alpha")).toBe(true);
+  expect(value.split("alpha").join("")).toBe("");
+  if (rotation === -90) expect(value).toBe("alpha");
+});
+it("wraps bordered rotated Fill instead of painting one overflowing line", async () => {
+  const book = await fixture("GNM_HALIGN_FILL", 10, 36, "CENTER", 20, 1);
+  const cell = book.sheets[0]!.cells[0]!;
+  const style = cell.style!.gnumeric as {attributes: {name: string; value: string}[]; children: unknown[]};
+  for (const attribute of style.attributes) if (attribute.name === "Rotation") attribute.value = "-45";
+  const namespace = "http://www.gnumeric.org/v10.dtd";
+  style.children.push({name: "StyleBorder", namespace, attributes: [], text: "", children: [
+    {name: "Bottom", namespace, attributes: [{name: "Style", namespace: "", value: "1"}], text: "", children: []}
+  ]});
+  const input = {...book, sheets: [{...book.sheets[0]!, cells: [{...cell, value: {kind: "string" as const, value: "alpha beta gamma delta epsilon zeta"}}]}]};
+  const {runs} = await pdfText(await writePdf(input, [], context));
+  expect(runs.length).toBeGreaterThan(1);
+});

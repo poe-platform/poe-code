@@ -6012,5 +6012,11 @@
     "implementation": "Apply existing glyph justification to the projected rotated wrapping width; preserve native borderless nonwrapping behavior and paragraph endings.",
     "validation": "Two original refusal regressions reproduced.441 PDF tests,selected build,command lint/source/test/public-consumer types pass.32 native inputs produce128 SDK/command XML/PDF outputs;64 line-origin comparisons,64 character comparisons and1214 common-word positions match. Native/public forced-line screenshot inspected.",
     "remaining": "Rotated Fill and broader font/Unicode/decorations/rich-text/merged multipage qualification;all19families open."
+  },
+  "pdfRotatedFill": {
+    "status": "Focused rotated Fill profile verified; rendering family remains open",
+    "implementation": "Use shared rotated natural width for bounded borderless Fill repetition while retaining original line placement. Bordered cells retain one copy and honor explicit wrapping. Marked logical text excludes zero-width kerning separators from extraction.",
+    "validation": "Four original refusal regressions and one native-discovered wrapping failure reproduced.461 PDF/rotation tests,selected workspace build,engine/command lint and source/test/public-consumer types pass.28 independent native inputs produce112 compiled SDK/command outputs;56 line-origin and56 character/copy-count comparisons pass. Repeated and wrapped native/public screenshots inspected.",
+    "remaining": "Fill control-character/rich-text profiles and broader rotation font/Unicode/decoration/merged multipage qualification;all19families remain open."
   }
 }

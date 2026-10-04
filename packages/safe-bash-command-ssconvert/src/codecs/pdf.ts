@@ -1,4 +1,4 @@
-import {rotatedPrintOrigins} from "@poe-code/spreadsheet-engine/rendering/print/rotated-text";
+import {rotatedPrintLayout} from "@poe-code/spreadsheet-engine/rendering/print/rotated-text";
 import {printSharedBorders} from "@poe-code/spreadsheet-engine/rendering/print/shared-borders";
 import {printBorderStrokes} from "@poe-code/spreadsheet-engine/rendering/print/diagonal-borders";
 import {createPrintBlankStyles} from "@poe-code/spreadsheet-engine/rendering/print/blank-styles";
@@ -318,13 +318,16 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         indent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((digitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
         displayIndent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((displayDigitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
       }
-      if (rotation && cellBox.style.alignment === "fill") unsupported("rotated fill");
       const bordered = cellBox.style.borders?.some(border => ["Top", "Bottom", "Left", "Right"].includes(border.side)) ?? false;
       const fill = cellBox.style.alignment === "fill";
+      let fillLayout: ReturnType<typeof rotatedPrintLayout> | undefined;
       if (fill) {
         if (shapedLines.length !== 1) unsupported("fill control-character layout");
         const naturalWidth = shapeLine(shapedLines[0]!).width;
-        const copies = naturalWidth > 0 ? Math.floor((cellBox.width - 5) / naturalWidth) : 1;
+        if (rotation && !bordered) fillLayout = rotatedPrintLayout({angle: rotation, widths: [naturalWidth], ascent, lineHeight,
+          width: cellBox.width, height: cellBox.height, indent: 0, bordered, alignment, vertical: cellBox.style.verticalAlignment}, tick);
+        const repeatWidth = fillLayout?.width ?? naturalWidth;
+        const copies = rotation && bordered ? 1 : repeatWidth > 0 ? Math.floor((cellBox.width - 5) / repeatWidth) : 1;
         if (copies >= 2) {
           tick(copies * (value.length + 1));
           if (!supported.has(0x200b)) unsupported("font coverage");
@@ -374,8 +377,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       x -= alignment === "left" ? -indent : alignment === "center" ? width / 2 : width + indent;
       const lineSpacing = cellBox.style.verticalAlignment === "justify" && lines.length > 1 ?
         Math.floor(verticalSpace / printDisplayScale * 1024 / (lines.length - 1)) / 1024 * printDisplayScale : 0;
-      const rotated = rotation ? rotatedPrintOrigins({angle: rotation, ...(wraps ? {layoutWidth: wrapWidth} : {}), widths: lines.map(line => line.width), ascent, lineHeight,
-        width: cellBox.width, height: cellBox.height, indent, bordered, alignment, vertical: cellBox.style.verticalAlignment}, tick) : undefined;
+      const rotated = fillLayout?.origins ?? (rotation ? rotatedPrintLayout({angle: rotation, ...(wraps ? {layoutWidth: wrapWidth} : {}), widths: lines.map(line => line.width), ascent, lineHeight,
+        width: cellBox.width, height: cellBox.height, indent, bordered, alignment, vertical: cellBox.style.verticalAlignment}, tick).origins : undefined);
       const blockX = x, firstBaseline = baseline;
       const resource = page.node.newFontDictionary(font.name, font.ref);
       // Positioned marks can be reordered by text extractors; retain the logical cell string.
@@ -403,7 +406,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           page.pushOperators(pushGraphicsState(), concatTransformationMatrix(Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), cellX + 2.5 + origin.x, page.getHeight() - cellY - origin.y));
           x = 0; baseline = 0;
         }
-        if (wraps && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+        if ((wraps || rotation) && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
           [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(line.logicalText)}).toString()]));
         // Encode the same shaped run that supplies the positioned glyphs.
         const layout = metrics.layout;
@@ -419,7 +422,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           page.pushOperators(setTextMatrix(1, 0, shear, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
         }
         page.pushOperators(endText());
-        if (wraps && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
+        if ((wraps || rotation) && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
         if (cellBox.style.underline || cellBox.style.strikeThrough) {
           // Pango uses font underline metrics and the union of positioned ink bounds.
           const scale = size / metrics.unitsPerEm;
@@ -747,7 +750,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           tick();
           const alignment = style.alignment === "fill" || style.alignment === "justify" ? "left" : style.alignment === "distributed" ? "center" : style.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
             cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style.alignment;
-          const wrap = style.alignment !== "fill" && Boolean(formula || cell.value.kind === "string") && (style.wrap === true || style.alignment === "justify" || style.verticalAlignment === "justify" || style.verticalAlignment === "distributed");
+          const wrap = (style.alignment !== "fill" || Boolean(style.rotation)) && Boolean(formula || cell.value.kind === "string") && (style.wrap === true || style.alignment === "justify" || style.verticalAlignment === "justify" || style.verticalAlignment === "distributed");
           const overflow = !merge && style.alignment !== "fill" && !wrap && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
             const required = alignment === "center" ? width + Math.max(0, (displayWidth - width + 5 * printDisplayScale) / 2) : Infinity;
             const extent = {

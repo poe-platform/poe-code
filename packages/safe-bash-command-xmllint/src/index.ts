@@ -11,6 +11,7 @@ import {
   type CommandDefinition,
   type VirtualShellPlugin
 } from "safe-bash-contracts";
+import { StoredXPath } from "safe-bash-xml-engine/stored-evaluate";
 import { StoredXmlDocument } from "safe-bash-xml-engine/stored-document";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { prepareDocument, encodeOutput, outputEncoding } from "./output.js";
@@ -154,7 +155,7 @@ async function executeDocument(
   try {
     const recoveryMessages = new Set<string>();
     let parsedRoot: XmlElement;
-    if (!options.query && !options.noout && !options.recover && !options.nocdata) {
+    if (!options.recover && !options.nocdata && (options.query ? !options.noblanks : !options.noout)) {
       stored = await StoredXmlDocument.parse(readXmlChunks(context, file, budget, runtime), context, budget);
       parsedRoot = await stored.node(stored.root) as XmlElement;
     } else if (options.recover) {
@@ -277,16 +278,17 @@ async function executeDocument(
       return { exitCode: 0 };
     }
     if (options.query.expression) {
-      await write(await evaluateScalar(options.query, root, budget));
+      await write(stored ? await new StoredXPath(stored, budget).scalar(options.query) : await evaluateScalar(options.query, root, budget));
       await write("\n");
       await finish();
       completed = true;
       return { exitCode: 0 };
     }
-    const nodes = await evaluate(options.query, root, budget);
-    if (!nodes.length) throw new XmlQueryError("XPath set is empty", 11);
+    const selection = stored ? await new StoredXPath(stored, budget).select(options.query) : await evaluate(options.query, root, budget);
+    const nodes = Array.isArray(selection) ? selection : selection.nodes();
+    if ((Array.isArray(selection) ? selection.length : selection.size) === 0) throw new XmlQueryError("XPath set is empty", 11);
     let pendingText = "";
-    for (const node of nodes) {
+    for await (const node of nodes) {
       const simple = writesCount >= 2 ? serializeSimpleSync(node, budget) : undefined;
       if (simple !== undefined) {
         pendingText += simple + "\n";

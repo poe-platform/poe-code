@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createXmllintCommand, xmllintCommands } from "./index.js";
 for (const [args, input, expected] of [
@@ -15,7 +16,7 @@ for (const [args, input, expected] of [
     const carrier = createCommandArguments(args);
     const context = {
       args: carrier.args, arguments: carrier, command: "xmllint", cwd: "/", env: {},
-      signal: new AbortController().signal, stdin: toByteSource(input),
+      fs: createMemoryFileSystem(), signal: new AbortController().signal, stdin: toByteSource(input),
       stdout: { async write(bytes: Uint8Array) { output += new TextDecoder().decode(bytes); } },
       stderr: { async write(bytes: Uint8Array) { errors += new TextDecoder().decode(bytes); } },
     } as unknown as CommandContext;
@@ -39,7 +40,7 @@ test("retaining sinks preserve xmllint output across batch reuse", async () => {
   const chunks: Uint8Array[] = [];
   const context = {
     args: ["--xpath", "//item/text()"], command: "xmllint", cwd: "/", env: {},
-    signal: new AbortController().signal,
+    fs: createMemoryFileSystem(), signal: new AbortController().signal,
     stdin: toByteSource("<root>" + values.map(value => `<item>${value}</item>`).join("") + "</root>"),
     stdout: { async write(bytes: Uint8Array) { chunks.push(bytes); } },
     stderr: { async write() { assert.fail("unexpected diagnostic"); } },

@@ -33,7 +33,10 @@ is decoded and parsed incrementally. `--noout` without XPath discards the docume
 tree. Formatting and canonicalization, including `--noblanks` and `--encode`, keep document nodes in a 1 MiB
 page cache and spill through the supplied filesystem under `TMPDIR` or the working
 directory. Large workloads need an external filesystem backend; a memory filesystem
-still stores spilled bytes in RAM. XPath and `--nocdata` still retain a tree, and `--recover` buffers the source. Individual XML tokens and
+still stores spilled bytes in RAM. Ordinary XPath uses stored nodes and paged
+selection sets for predicates and unions. `--nocdata`, XPath with `--noblanks`, and
+`--recover` still retain a tree; recovery also buffers the source. XPath string
+functions still materialize individual string values. Individual XML tokens and
 active ancestry also remain resident, so this is not yet a bounded-memory guarantee
 for arbitrary documents or queries. Files are
 processed in order; malformed files report an error while later files continue.

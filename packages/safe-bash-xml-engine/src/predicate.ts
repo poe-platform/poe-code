@@ -2,8 +2,12 @@ import { XmlBudget, XmlQueryError } from "./limits.js";
 import type { Query } from "./query.js";
 import { stringValue, type Node } from "./evaluate.js";
 
-type Selected = { text: string; node: Node };
-export type Value = string | number | boolean | Selected[];
+export interface NodeSelection {
+  readonly size: number;
+  nodes(): AsyncIterable<Node> | Iterable<Node>;
+}
+export type Value = string | number | boolean | NodeSelection;
+type Selector = (query: Query, absolute: boolean) => Promise<Node[] | NodeSelection>;
 type Operator = "+" | "-" | "or" | "and" | "=" | "!=" | "<" | "<=" | ">" | ">=";
 type FunctionName = keyof typeof arity;
 export type Instruction =
@@ -142,12 +146,26 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
   if (stack.length) fail();
   return output;
 }
-const boolean = (value: Value): boolean => Array.isArray(value) ? value.length > 0 : typeof value === "number" ? value !== 0 && !Number.isNaN(value) : Boolean(value);
-const string = (value: Value): string => Array.isArray(value) ? value[0]?.text ?? "" : String(value);
-const number = (value: Value): number => {
+const isSelection = (value: Value): value is NodeSelection => typeof value === "object";
+const boolean = (value: Value): boolean => isSelection(value) ? value.size > 0 : typeof value === "number" ? value !== 0 && !Number.isNaN(value) : Boolean(value);
+
+export async function expressionString(value: Value, budget: XmlBudget): Promise<string> {
+  if (!isSelection(value)) return String(value);
+  for await (const node of value.nodes()) {
+    let text = "";
+    for await (const part of stringValue(node, budget)) {
+      const checkpoint = budget.tick(part.length); if (checkpoint) await checkpoint;
+      text += part;
+    }
+    return text;
+  }
+  return "";
+}
+
+const number = async (value: Value, budget: XmlBudget): Promise<number> => {
   if (typeof value === "number") return value;
   if (typeof value === "boolean") return value ? 1 : 0;
-  const source = string(value);
+  const source = await expressionString(value, budget);
   let start = 0, end = source.length;
   while (start < end && whitespace(source[start]!)) start++;
   while (end > start && whitespace(source[end - 1]!)) end--;
@@ -165,6 +183,11 @@ const number = (value: Value): number => {
   }
   return at === text.length ? Number(text) : NaN;
 };
+async function* comparisonValues(value: Value, budget: XmlBudget): AsyncGenerator<string | number | boolean> {
+  if (!isSelection(value)) { yield value; return; }
+  for await (const node of value.nodes())
+    yield await expressionString({ size: 1, nodes: () => [node] }, budget);
+}
 async function compare(left: Value, right: Value, operator: Operator, budget: XmlBudget): Promise<boolean> {
   if (operator === "or") return boolean(left) || boolean(right);
   if (operator === "and") return boolean(left) && boolean(right);
@@ -172,9 +195,9 @@ async function compare(left: Value, right: Value, operator: Operator, budget: Xm
   if (equality && (typeof left === "boolean" || typeof right === "boolean"))
     return operator === "=" ? boolean(left) === boolean(right) : boolean(left) !== boolean(right);
   const numeric = !equality || typeof left === "number" || typeof right === "number";
-  for (const a of Array.isArray(left) ? left.map(item => item.text) : [left]) for (const b of Array.isArray(right) ? right.map(item => item.text) : [right]) {
-    const p = budget.tick(string(a).length + string(b).length + 1); if (p) await p;
-    const x = numeric ? number(a) : string(a), y = numeric ? number(b) : string(b);
+  for await (const a of comparisonValues(left, budget)) for await (const b of comparisonValues(right, budget)) {
+    const p = budget.tick(String(a).length + String(b).length + 1); if (p) await p;
+    const x = numeric ? await number(a, budget) : String(a), y = numeric ? await number(b, budget) : String(b);
     if (operator === "=" ? x === y : operator === "!=" ? x !== y : operator === "<" ? x < y : operator === "<=" ? x <= y : operator === ">" ? x > y : x >= y) return true;
   }
   return false;
@@ -187,59 +210,32 @@ function normalize(text: string): string {
   }
   return result;
 }
-export async function evaluateExpression(program: readonly Instruction[], node: Node, position: number, last: number, budget: XmlBudget, select?: (query: Query, absolute: boolean) => Promise<Node[]>): Promise<Value> {
+export async function evaluateExpression(program: readonly Instruction[], node: Node, position: number, last: number, budget: XmlBudget, select?: Selector): Promise<Value> {
   const values: Value[] = [];
-  const text = async (selected: Node | undefined): Promise<string> => {
-    let value = "";
-    for await (const part of stringValue(selected, budget)) { const p = budget.tick(part.length); if (p) await p; value += part; }
-    return value;
-  };
-  const loaded = new WeakSet<Selected>();
-  const materialize = async (value: Value, all = false): Promise<void> => {
-    if (!Array.isArray(value)) return;
-    for (let index = 0; index < (all ? value.length : Math.min(1, value.length)); index++) {
-      const item = value[index]!;
-      if (!loaded.has(item)) { item.text = await text(item.node); loaded.add(item); }
-    }
-  };
   for (const instruction of program) {
     const p = budget.tick(); if (p) await p;
     if (instruction.kind === "literal") values.push(instruction.value);
     else if (instruction.kind === "path") {
       if (!select) throw new XmlQueryError("absolute paths are unavailable in this context", 10);
-      const selected: Selected[] = [];
-      for (const item of await select(instruction.query!, instruction.source.startsWith("/"))) selected.push({ text: "", node: item });
-      values.push(selected);
+      const selected = await select(instruction.query!, instruction.source.startsWith("/"));
+      values.push(Array.isArray(selected) ? { size: selected.length, nodes: () => selected } : selected);
     } else if (instruction.kind === "negate") {
-      const value = values.pop()!;
-      await materialize(value);
-      values.push(-number(value));
+      values.push(-await number(values.pop()!, budget));
     } else if (instruction.kind === "operator") {
       const right = values.pop()!, left = values.pop()!;
       if (instruction.name === "+" || instruction.name === "-") {
-        await materialize(left); await materialize(right);
-        values.push(instruction.name === "+" ? number(left) + number(right) : number(left) - number(right));
-        continue;
-      }
-      if (instruction.name !== "and" && instruction.name !== "or" &&
-          !(["=", "!="].includes(instruction.name) && (typeof left === "boolean" || typeof right === "boolean"))) {
-        await materialize(left, true); await materialize(right, true);
-      }
-      values.push(await compare(left, right, instruction.name, budget));
+        const a = await number(left, budget), b = await number(right, budget);
+        values.push(instruction.name === "+" ? a + b : a - b);
+      } else values.push(await compare(left, right, instruction.name, budget));
     } else {
       const args = values.splice(values.length - instruction.count);
-      const first = args[0] ?? [{ text: "", node }];
-      if (!["count", "boolean", "not", "name", "local-name", "namespace-uri", "position", "last", "true", "false"].includes(instruction.name)) {
-        await materialize(first, instruction.name === "sum");
-        for (const arg of args.slice(1)) await materialize(arg);
-      }
-      const a = string(first), b = instruction.count > 1 ? string(args[1]!) : "";
-      for (const arg of args) {
-        const p = budget.tick(Array.isArray(arg) ? arg.reduce((size, item) => size + item.text.length + 1, 0) : string(arg).length);
-        if (p) await p;
-      }
-      const nodes = (): Selected[] => {
-        if (!Array.isArray(first)) throw new XmlQueryError("XPath function requires a node-set", 10);
+      const first = args[0] ?? { size: 1, nodes: () => [node] };
+      const textNeeded = !["count", "boolean", "not", "name", "local-name", "namespace-uri", "position", "last", "true", "false", "sum"].includes(instruction.name);
+      const a = textNeeded ? await expressionString(first, budget) : "";
+      const b = instruction.count > 1 ? await expressionString(args[1]!, budget) : "";
+      { const p = budget.tick(a.length + b.length); if (p) await p; }
+      const nodes = (): NodeSelection => {
+        if (!isSelection(first)) throw new XmlQueryError("XPath function requires a node-set", 10);
         return first;
       };
       let result: Value;
@@ -251,44 +247,51 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
         case "true": result = true; break;
         case "false": result = false; break;
         case "string": result = a; break;
-        case "number": result = number(first); break;
-        case "count": result = nodes().length; break;
+        case "number": result = await number(first, budget); break;
+        case "count": result = nodes().size; break;
         case "sum": {
           let total = 0;
-          for (const item of nodes()) { const p = budget.tick(item.text.length + 1); if (p) await p; total += number(item.text); }
+          for await (const item of comparisonValues(nodes(), budget)) total += await number(item, budget);
           result = total; break;
         }
-        case "floor": result = Math.floor(number(first)); break;
-        case "ceiling": result = Math.ceil(number(first)); break;
-        case "round": result = Math.round(number(first)); break;
+        case "floor": result = Math.floor(await number(first, budget)); break;
+        case "ceiling": result = Math.ceil(await number(first, budget)); break;
+        case "round": result = Math.round(await number(first, budget)); break;
         case "contains": result = a.includes(b); break;
         case "starts-with": result = a.startsWith(b); break;
         case "normalize-space": result = normalize(a); break;
         case "concat": {
-          let size = 0;
+          let text = "", size = 0;
           for (const arg of args) {
-            size += new TextEncoder().encode(string(arg)).byteLength;
+            const part = await expressionString(arg, budget);
+            size += new TextEncoder().encode(part).byteLength;
             if (size > budget.limits.maxOutputBytes) throw new XmlQueryError("maxOutputBytes limit exceeded", 5);
+            text += part;
           }
-          result = args.map(string).join(""); break;
+          result = text; break;
         }
-        case "string-length": result = [...a].length; break;
+        case "string-length": { let size = 0; for (const ignored of a) size++; result = size; break; }
         case "substring": {
-          const start = Math.round(number(args[1]!));
-          const end = args.length === 3 ? start + Math.round(number(args[2]!)) : Infinity;
-          result = [...a].filter((_, index) => index + 1 >= start && index + 1 < end).join("");
+          const start = Math.round(await number(args[1]!, budget));
+          const end = args.length === 3 ? start + Math.round(await number(args[2]!, budget)) : Infinity;
+          let text = "", index = 0;
+          for (const character of a) { index++; if (index >= start && index < end) text += character; }
+          result = text;
           break;
         }
         case "substring-before": result = a.includes(b) ? a.slice(0, a.indexOf(b)) : ""; break;
         case "substring-after": result = a.includes(b) ? a.slice(a.indexOf(b) + b.length) : ""; break;
         case "translate": {
-          const replacements = [...string(args[2]!)], mapping = new Map<string, string>();
+          const replacements = [...await expressionString(args[2]!, budget)], mapping = new Map<string, string>();
           let index = 0;
           for (const character of b) { if (!mapping.has(character)) mapping.set(character, replacements[index] ?? ""); index++; }
-          result = [...a].map(character => mapping.get(character) ?? character).join(""); break;
+          let text = "";
+          for (const character of a) text += mapping.get(character) ?? character;
+          result = text; break;
         }
         case "name": case "local-name": case "namespace-uri": {
-          const selected = nodes()[0]?.node;
+          let selected: Node | undefined;
+          for await (const item of nodes().nodes()) { selected = item; break; }
           result = selected?.kind === "element" || selected?.kind === "attribute"
             ? instruction.name === "name" ? selected.value.name : instruction.name === "local-name" ? selected.value.localName : selected.value.namespace
             : selected?.kind === "processing-instruction" && instruction.name !== "namespace-uri" ? selected.value.kind === "processing-instruction" ? selected.value.target : "" : "";
@@ -304,7 +307,7 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
   }
   return values[0]!;
 }
-export async function testPredicate(program: readonly Instruction[], node: Node, position: number, last: number, budget: XmlBudget, select?: (query: Query, absolute: boolean) => Promise<Node[]>): Promise<boolean> {
+export async function testPredicate(program: readonly Instruction[], node: Node, position: number, last: number, budget: XmlBudget, select?: Selector): Promise<boolean> {
   const result = await evaluateExpression(program, node, position, last, budget, select);
   return typeof result === "number" ? result === position : boolean(result);
 }

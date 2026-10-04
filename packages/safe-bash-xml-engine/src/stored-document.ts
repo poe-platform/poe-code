@@ -1,13 +1,14 @@
-import { parseXmlStream, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
+import { parseXmlStream, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { XmlBudget } from "./limits.js";
 
 // Fixed-size links are separate from the variable-size node metadata. Pointers
 // are safe integer byte offsets; zero is the absent-link sentinel.
-const headerBytes = 40;
-const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32;
+const headerBytes = 56;
+const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32, firstAttributeField = 40, lastAttributeField = 48;
 
-type Metadata = Exclude<XmlContent, XmlElement> | {
+export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
+type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
   kind: "element"; name: string; localName: string; namespace: string;
   attributes: XmlElement["attributes"]; namespaces: [string, string][]; declaration?: string;
 };
@@ -17,7 +18,7 @@ type Metadata = Exclude<XmlContent, XmlElement> | {
 export class StoredXmlDocument {
   private rootReference = 0;
   private documentReference = 0;
-  private readonly storage: PagedStorage;
+  readonly storage: PagedStorage;
   private closing: Promise<void> | undefined;
 
   private constructor(context: PagedStorageContext, readonly budget: XmlBudget, pages: number) {
@@ -48,6 +49,10 @@ export class StoredXmlDocument {
           }
           const reference = await document.append(parent, metadata);
           if (event.type === "open") {
+            for (const attribute of event.element.attributes) {
+              if (attribute.namespace !== "http://www.w3.org/2000/xmlns/")
+                await document.append(reference, { kind: "attribute", value: attribute });
+            }
             if (!document.rootReference) document.rootReference = reference;
             parent = reference;
           }
@@ -97,14 +102,16 @@ export class StoredXmlDocument {
       at += bytes.length; offset = end;
       const checkpoint = this.budget.tick(bytes.length); if (checkpoint) await checkpoint;
     }
-    const last = await this.field(parent, lastField);
+    const firstLink = metadata.kind === "attribute" ? firstAttributeField : firstField;
+    const lastLink = metadata.kind === "attribute" ? lastAttributeField : lastField;
+    const last = await this.field(parent, lastLink);
     if (last) await this.set(last, nextField, reference);
-    else await this.set(parent, firstField, reference);
-    await this.set(parent, lastField, reference);
+    else await this.set(parent, firstLink, reference);
+    await this.set(parent, lastLink, reference);
     return reference;
   }
 
-  async node(reference: number): Promise<XmlContent> {
+  async node(reference: number): Promise<XmlContent | StoredXmlAttribute> {
     const size = await this.field(reference, sizeField);
     const decoder = new TextDecoder();
     const parts: string[] = [];
@@ -120,12 +127,36 @@ export class StoredXmlDocument {
       : metadata;
   }
 
-  async *children(reference: number): AsyncGenerator<number> {
-    let child = await this.field(reference, firstField);
+  async *children(reference: number, attributes = false): AsyncGenerator<number> {
+    let child = await this.field(reference, attributes ? firstAttributeField : firstField);
     while (child) {
       const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
       yield child;
       child = await this.field(child, nextField);
+    }
+  }
+
+  async parent(reference: number): Promise<number> {
+    return this.field(reference, parentField);
+  }
+
+  /** Traverse only the requested subtree, following stored links rather than a
+   * resident stack of siblings or ancestors. Attribute nodes are separate. */
+  async *walk(reference: number): AsyncGenerator<{ reference: number; closing: boolean }> {
+    let current = reference;
+    while (current) {
+      const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
+      yield { reference: current, closing: false };
+      const first = await this.field(current, firstField);
+      if (first) { current = first; continue; }
+      yield { reference: current, closing: true };
+      while (current !== reference) {
+        const next = await this.field(current, nextField);
+        if (next) { current = next; break; }
+        current = await this.field(current, parentField);
+        yield { reference: current, closing: true };
+      }
+      if (current === reference) break;
     }
   }
 

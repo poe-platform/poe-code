@@ -42,6 +42,10 @@
     "./stored-document": {
       "types": "./dist/stored-document.d.ts",
       "import": "./dist/stored-document.js"
+    },
+    "./stored-evaluate": {
+      "types": "./dist/stored-evaluate.d.ts",
+      "import": "./dist/stored-evaluate.js"
     }
   },
   "files": [

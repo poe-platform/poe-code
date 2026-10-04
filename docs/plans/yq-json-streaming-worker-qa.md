@@ -40,11 +40,23 @@ from the largest token and active ancestry: those costs still grow with token si
 and nesting depth. Also measure startup/first-byte latency; formatting validates
 the document before publishing output.
 
+## XML paged-query qualification
+
+Repeat the measurements with `--xpath 'count(//item)'`, `--xpath '//item[last()]'`,
+large unions, node-set comparisons and `sum` over many small values. Record query
+selection writes separately from parser writes, check document order and duplicate
+removal against native xmllint, and interrupt requests during selection replay.
+Use a slow sink for large node-set output and verify only bounded output chunks are
+outstanding. Distinguish node-count growth from individual string-value growth:
+string functions still materialize individual values, and XPath with transformation
+flags still uses the tree path.
+
 ## Remaining qualification scope
 
 Repeat with increasing *single-document* sizes, eval-all joins, YAML anchors/edits,
-jq slurp and XML XPath queries after safe-fs-backed document/value storage lands.
-Those paths are still memory-resident; the multi-document JSON result cannot qualify
-them. A Node heap measurement cannot replace workerd/Cloudflare results. Store raw
+jq slurp and large XPath string values after the remaining safe-fs-backed value
+storage lands. Those values are still memory-resident; the multi-document JSON and
+paged XML selection results cannot qualify them. A Node heap measurement cannot
+replace workerd/Cloudflare results. Store raw
 measurements temporarily in `/out`, summarize verified observations in the delivery
 record and remove temporary evidence after use.

@@ -93,8 +93,11 @@ export async function* serializeDocument(
   type Reference = XmlContent | number;
   const stored = source instanceof StoredXmlDocument ? source : undefined;
   const rootReference: Reference = stored ? stored.root : source as XmlElement;
-  const load = async (reference: Reference): Promise<XmlContent> =>
-    typeof reference === "number" ? stored!.node(reference) : reference;
+  const load = async (reference: Reference): Promise<XmlContent> => {
+    const node = typeof reference === "number" ? await stored!.node(reference) : reference;
+    if (node.kind === "attribute") throw new TypeError("Attribute used as XML content");
+    return node;
+  };
   async function* children(reference: Reference): AsyncGenerator<Reference> {
     if (typeof reference === "number") yield* stored!.children(reference);
     else if (reference.kind === "element") yield* reference.content;

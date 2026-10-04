@@ -1,5 +1,6 @@
-import { evaluateExpression, testPredicate } from "./predicate.js";
+import { evaluateExpression, expressionString, testPredicate } from "./predicate.js";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
+import type { StoredXmlDocument } from "./stored-document.js";
 import type { Query, QueryStep } from "./query.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
 
@@ -18,7 +19,7 @@ interface ContentNode {
   kind: Exclude<XmlContent["kind"], "element">;
   value: Exclude<XmlContent, XmlElement>;
 }
-export type Node = Container | AttributeNode | ContentNode;
+export type Node = (Container | AttributeNode | ContentNode) & { stored?: { document: StoredXmlDocument; reference: number } };
 const xmlns = "http://www.w3.org/2000/xmlns/";
 
 async function indexTree(
@@ -81,7 +82,11 @@ export async function evaluateScalar(query: Query, root: XmlElement, budget: Xml
   const tree = await indexTree(root, budget);
   const result = await evaluateExpression(query.expression!, tree.document, 1, 1, budget,
     async selected => evaluatePaths(selected, tree, budget, tree.document));
-  if (Array.isArray(result)) return result[0]?.text ?? "";
+  if (typeof result === "object") return expressionString(result, budget);
+  return formatScalar(result);
+}
+
+export function formatScalar(result: string | number | boolean): string {
   // xmllint prints scalar numbers using C %g (six significant digits).
   // Keep full precision during evaluation; rounding belongs only at output.
   if (typeof result === "number" && Number.isFinite(result)) {
@@ -205,6 +210,15 @@ export async function* stringValue(
     yield node.value.value;
     return;
   }
+  if (node.stored) {
+    const { document, reference } = node.stored;
+    for await (const event of document.walk(node.kind === "document" ? document.root : reference)) {
+      if (event.closing) continue;
+      const value = await document.node(event.reference);
+      if (value.kind === "text" || value.kind === "cdata") yield value.text;
+    }
+    return;
+  }
   const pending: Node[] = [node];
   while (pending.length) {
     { const _p = budget.tick(); if (_p) await _p; }
@@ -241,6 +255,30 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
     yield ` ${node.value.name}="`;
     yield* escape(node.value.value, true, budget);
     yield '"';
+    return;
+  }
+  if (node.stored) {
+    const { document, reference } = node.stored;
+    if (node.kind === "document") yield '<?xml version="1.0" encoding="UTF-8"?>\n';
+    for await (const event of document.walk(node.kind === "document" ? document.root : reference)) {
+      const value = await document.node(event.reference);
+      if (value.kind === "element") {
+        let hasChildren = false;
+        for await (const ignored of document.children(event.reference)) { hasChildren = true; break; }
+        if (event.closing) { if (hasChildren) yield `</${value.name}>`; continue; }
+        yield `<${value.name}`;
+        for (const attribute of value.attributes) {
+          const p = budget.tick(); if (p) await p;
+          yield ` ${attribute.name}="`;
+          yield* escape(attribute.value, true, budget);
+          yield '"';
+        }
+        yield hasChildren ? ">" : "/>";
+      } else if (!event.closing && value.kind !== "attribute") {
+        yield* serialize({ kind: value.kind, value }, budget);
+      }
+    }
+    if (node.kind === "document") yield "\n";
     return;
   }
   if (node.kind === "document") {

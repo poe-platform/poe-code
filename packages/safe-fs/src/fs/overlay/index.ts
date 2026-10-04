@@ -553,7 +553,13 @@ export class OverlayFileSystem implements FileSystem {
     return this.run(options, () => this.cleanGarbage(true));
   }
 
+  // Receipts describe overlay paths and identities, never backing-layer staging paths.
+  private stagingOptions({ signal }: FsOptions): FsOptions {
+    return signal === undefined ? {} : { signal };
+  }
+
   private async staged<Result>(options: FsOptions, operation: (path: string) => Promise<Result>): Promise<Result> {
+    options = this.stagingOptions(options);
     const root = `/.virtual-bash-overlay-${platform.randomUUID()}`;
     if (await this.maybeStat(this.#upper, root, options) || await this.maybeStat(this.#lower, root, options)) fail("EEXIST", root);
     this.activeStages.add(root);
@@ -568,6 +574,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   private async preserve(path: string, stat: FileStat, options: FsOptions): Promise<void> {
+    options = this.stagingOptions(options);
     if (this.#upper.chmod) await this.#upper.chmod(path, stat.mode & 0o7777, options);
     else if (((await this.#upper.lstat(path, options)).mode & 0o7777) !== (stat.mode & 0o7777)) fail("ENOTSUP", path, "upper cannot preserve modes");
     if (!this.#upper.utimes) fail("ENOTSUP", path, "upper cannot preserve timestamps during copy-up");
@@ -575,6 +582,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   private async clone(entry: Entry, destination: string, options: FsOptions): Promise<void> {
+    options = this.stagingOptions(options);
     if (entry.stat.type !== "directory" && ((entry.stat.nlink ?? 1) > 1
       || (entry.backend.capabilities.hardlinks === true && entry.stat.nlink === undefined))) {
       fail("ENOTSUP", entry.path, "copy-up cannot preserve hardlink identity");
@@ -603,6 +611,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   private async ensureDirectory(path: string, options: FsOptions): Promise<void> {
+    options = this.stagingOptions(options);
     const entry = await this.lookup(path, options);
     if (!entry) fail("ENOENT", path);
     if (entry.stat.type !== "directory") fail("ENOTDIR", path);
@@ -611,6 +620,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   private async copyUp(entry: Entry, options: FsOptions): Promise<void> {
+    options = this.stagingOptions(options);
     if (entry.backend === this.#upper) return;
     if (entry.path === "/") fail("ENOTSUP", entry.path, "upper must have a directory root");
     let origin: LinkOrigin | undefined;
@@ -630,6 +640,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   private async parent(path: string, options: FsOptions): Promise<void> {
+    options = this.stagingOptions(options);
     const parent = await this.lookup(dirname(path), options);
     if (!parent) fail("ENOENT", dirname(path));
     if (parent.stat.type !== "directory") fail("ENOTDIR", dirname(path));

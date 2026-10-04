@@ -68,3 +68,7 @@ it.each(["unsafe", "symbol", "cycle", "sparse", "accessor"])("preserves typed me
   if (kind === "accessor") Object.defineProperty(metadata, "value", {enumerable: true, get() {throw new Error("Getter must not execute");}});
   for (let nodes = 0; nodes < 32; nodes++) await compare([{bytes: encoder.encode(sources.json)}], {from: "json", to: "json", metadata: metadata as NonNullable<ConversionOptions["metadata"]>}, nodes);
 });
+
+it.each(["csv", "tsv"])("validates zero-input %s node budgets without charging the aggregate", async from => {
+  for (let nodes = 0; nodes < 16; nodes++) await compare([], {from, to: "json"}, nodes);
+});

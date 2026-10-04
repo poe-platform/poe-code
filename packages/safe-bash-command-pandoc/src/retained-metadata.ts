@@ -1,3 +1,4 @@
+import {retainedUtf8} from "./retained-utf8.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedJson} from "./backed-json.js";
 import {BackedText} from "./backed-text.js";
@@ -56,8 +57,11 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
         }
         if (cr) yield "\n";
       };
+      const parsedText = Number.isFinite(context.limits.text) ? retainedUtf8((async function* () {
+        for (let offset = 0; offset < length; offset += 16384) yield await raw!.read(start + offset, Math.min(16384, length - offset));
+      })(), context, scratch) : decoded();
       let parseError: {offset: number} | undefined;
-      try {await parseBackedJson(decoded(), overlay, scratch, cooperate, (offset, _message, tokenOffset) => {
+      try {await parseBackedJson(parsedText, overlay, scratch, cooperate, (offset, _message, tokenOffset) => {
         parseError = {offset: tokenOffset ?? offset}; throw new PandocError("E_PARSE", "convert", "Invalid JSON metadata", "json");
       }, undefined, true, Number.isFinite(context.limits.depth) ? (depth, container) => {if (container) context.bound("depth", depth);} : undefined, (kind, complete) => {if (kind === "object" || kind === "array" || complete) context.charge("nodes", 1);});} catch (error) {
         if (!parseError) throw error;

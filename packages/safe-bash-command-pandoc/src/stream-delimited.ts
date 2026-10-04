@@ -52,20 +52,28 @@ export async function streamDelimited(
     // Headers are fixed-size records followed immediately by the original bytes.
     // Keep per-document dimensions on the tape too, not in an in-memory index.
     const first = storage.allocate(0);
+    if (!inputs.length) {
+      const tree = new BackedJson(storage, units => context.cooperate(units));
+      await tree.value({blocks: [], meta: {}});
+      await reserveRetainedAstBudgets(tree, await backedJsonOrder(tree, storage, units => context.cooperate(units)), context, undefined, true);
+    }
     for (const input of inputs) {
       const header = storage.allocate(24);
       let length = 0;
-      const decoder = new DocumentDecoder(async () => {});
+      const decoder = Number.isFinite(context.limits.text) ? undefined : new DocumentDecoder(async () => {});
       await context.consume("bytes" in input ? [input.bytes] : input.chunks, async bytes => {
         for (let offset = 0; offset < bytes.length; offset += 16384) {
           const chunk = bytes.subarray(offset, offset + 16384);
           await storage.append(chunk);
-          await decoder.push(chunk);
+          await decoder?.push(chunk);
           length += chunk.length;
           await context.cooperate();
         }
       }, ["inputBytes"]);
-      await decoder.push();
+      if (decoder) await decoder.push();
+      else await context.decodeUtf8To((async function* () {
+        for (let offset = 0; offset < length; offset += 16384) yield await storage.read(header + 24 + offset, Math.min(16384, length - offset));
+      })(), async () => {});
       const bytes = new Uint8Array(24);
       new DataView(bytes.buffer).setFloat64(0, length, true);
       await storage.write(header, bytes);
@@ -107,7 +115,7 @@ export async function streamDelimited(
           async field() {if (word) node(); if (nonempty) node(); word = false; nonempty = false;}
         }));
       }
-      if (Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes)) {
+      if (Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text)) {
         // Depth can fail inside the generated cell structure before later
         // attribute/span charges. Replay that normalization in caller storage.
         const pages = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, cacheBytes / 16384);
@@ -171,7 +179,7 @@ export async function streamDelimited(
       }
       await tree.end(); await tree.end();
       await streamRetainedDocument(async () => ({
-        normalizedNodes: 0, tree,
+        normalizedUsage: {nodes: 0, text: 0}, tree,
         order: await backedJsonOrder(tree, storage, units => context.cooperate(units)),
         async *chunks(eol) {
           yield* tree.chunks();

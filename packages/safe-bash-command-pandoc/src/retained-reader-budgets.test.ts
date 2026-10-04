@@ -10,7 +10,7 @@ const filters: FilterCapability = {
   async applyJsonStream({stdin, stdout}) {for await (const bytes of stdin) await stdout.write(bytes);}
 };
 
-it.each(["csv", "tsv", "json", "rtf"].flatMap(from => ["tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes"].flatMap(key =>
+it.each(["csv", "tsv", "json", "rtf"].flatMap(from => ["tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text"].flatMap(key =>
   ["json", "plain", "html", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].map(to => ({from, key, to})))))
 ("retains $from to $to with filters, metadata and finite $key", async ({from, key, to}) => {
   const delimited = from === "csv" || from === "tsv";
@@ -18,7 +18,7 @@ it.each(["csv", "tsv", "json", "rtf"].flatMap(from => ["tableRows", "tableColumn
   if (table.kind !== "text") throw new Error("Expected JSON table");
   const source = from === "rtf" ? String.raw`{\rtf1\trowd\cellx100\cellx200 A\cell B\cell\row\trowd\cellx100\cellx200 C\cell D\cell\row}`
     : from === "json" ? table.text : from === "csv" ? "A,B\n😀,D" : "A\tB\n😀\tD";
-  for (const empty of [false, true]) for (const limit of key === "nodes" ? [0, 1, 4, 24, 48, 128, 512, 2048] : ["tableCells", "attributes", "depth"].includes(key) ? [0, 1, 2, 4, 8, 12, 24, 48] : [0, 1, 2, 4]) {
+  for (const empty of [false, true]) for (const limit of ["nodes", "text"].includes(key) ? [0, 1, 4, 24, 48, 128, 512, 2048] : ["tableCells", "attributes", "depth"].includes(key) ? [0, 1, 2, 4, 8, 12, 24, 48] : [0, 1, 2, 4]) {
     const text = empty ? from === "rtf" ? String.raw`{\rtf1}` : from === "json" ? '{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[]}' : "" : source;
     const inputs = Array.from({length: delimited ? 2 : 1}, (_, index) => ({bytes: encoder.encode(text), ...(key === "attributes" ? {source: `/input-${index}.${from}`} : {})}));
     const options: ConversionOptions = {from, to, lossy: true, metadata: {title: {t: "MetaString", c: "A title longer than the field limit"}}, filters: [{kind: "json", path: "identity"}]};

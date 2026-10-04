@@ -6,14 +6,16 @@ import {readJsonNumber, JsonNumberError} from "./json-number.js";
 import {PandocError} from "./errors.js";
 import {retainedPath, retainedValues} from "./retained-wire.js";
 
+export interface RetainedAstUsage {nodes: number; text: number}
+
 const wireEnums = new Set(["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter", "SingleQuote", "DoubleQuote", "InlineMath", "DisplayMath", "AuthorInText", "SuppressAuthor", "NormalCitation", "DefaultStyle", "Example", "Decimal", "LowerRoman", "UpperRoman", "LowerAlpha", "UpperAlpha", "DefaultDelim", "Period", "OneParen", "TwoParens"]);
 
 /** Reserve normalized nodes, attributes and cell spans without collecting the AST.
  * When translation positions are supplied, also perform the scalar checks that
  * precede schema validation in the buffered normalizer. */
-export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, enums?: IntegerTable): Promise<number> {
-  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes) && !Number.isFinite(context.limits.depth) && !Number.isFinite(context.limits.nodes)) return 0;
-  let cells = 0, attributes = 0, nodes = 0;
+export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, enums?: IntegerTable, aggregate = false): Promise<RetainedAstUsage> {
+  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes) && !Number.isFinite(context.limits.depth) && !Number.isFinite(context.limits.nodes) && !Number.isFinite(context.limits.text)) return {nodes: 0, text: 0};
+  let cells = 0, attributes = 0, nodes = 0, text = 0;
   const fail = async (position: number, message: string, code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
     const path = await retainedPath(tree, position);
     throw new PandocError(code, "convert", `${path}: ${message}`, undefined, path);
@@ -24,7 +26,12 @@ export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited
       const path = await retainedPath(tree, position) + suffix;
       throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
     }
-    if (reserve) {nodes = next; context.charge("nodes", count);}
+    if (reserve) {nodes = next; if (!aggregate) context.charge("nodes", count);}
+  };
+  const textBudget = async (position: number, units: number): Promise<void> => {
+    text += units;
+    if (!Number.isSafeInteger(text) || text > context.limits.text) await fail(position, "AST budget exceeded", "E_LIMIT");
+    if (!aggregate) context.charge("text", units);
   };
   const string = async (position: number, location = position): Promise<void> => {
     let high = false;
@@ -50,19 +57,27 @@ export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited
   await nodeBudget(tree.rootPosition);
   if (context.limits.depth < 1) await fail(tree.rootPosition, "AST budget exceeded", "E_LIMIT");
   const roots = [(await tree.property(tree.rootPosition, "blocks"))!, (await tree.property(tree.rootPosition, "meta"))!];
-  for (const root of roots) {
-    await nodeBudget(tree.rootPosition); // blocks/metadata property name
+  for (const [index, root] of roots.entries()) {
+    await nodeBudget(tree.rootPosition);
+    await textBudget(tree.rootPosition, index ? 8 : 6); // blocks/metadata property name
     for await (const {position: node, exit, key, depth} of retainedValues(tree, order, root, async position => !!await translated(position))) {
       if (exit) continue;
       await context.cooperate();
       const header = await tree.describe(node), enumPosition = await translated(node);
       if (depth + 1 > context.limits.depth) await fail(key ? header.parent : node, "AST budget exceeded", "E_LIMIT");
-      if (key) await nodeBudget(header.parent);
+      if (key) {
+        await nodeBudget(header.parent);
+        await textBudget(header.parent, ((await tree.describe(key)).end - key - 32) / 2);
+      }
       if (enums && key) {
         await string(key, header.parent);
         if (["__proto__", "constructor", "prototype"].includes(await tree.smallText(key, 11) ?? "")) await fail(node, "Invalid shape");
       }
       await nodeBudget(node);
+      if (enumPosition || header.kind === "string") {
+        const position = enumPosition || node;
+        await textBudget(node, ((await tree.describe(position)).end - position - 32) / 2);
+      }
       if (enums && (enumPosition || header.kind === "string")) await string(enumPosition || node, node);
       if (header.kind === "array" && !enumPosition) await nodeBudget(node, header.children, false);
       if (header.kind === "array" && header.children === 3 && Number.isFinite(context.limits.attributes)) {
@@ -71,7 +86,7 @@ export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited
           const count = 1 + second.children + third.children;
           attributes += count;
           if (!Number.isSafeInteger(attributes) || attributes > context.limits.attributes) await fail(node, "AST budget exceeded", "E_LIMIT");
-          context.charge("attributes", count);
+          if (!aggregate) context.charge("attributes", count);
         }
       }
       if (header.kind !== "array" || header.children !== 5) continue;
@@ -92,10 +107,11 @@ export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited
       const span = await spanNumber(row) * await spanNumber(column);
       cells += span;
       if (!Number.isSafeInteger(cells) || cells > context.limits.tableCells) await fail(node, "AST budget exceeded", "E_LIMIT");
-      context.charge("tableCells", span);
+      if (!aggregate) context.charge("tableCells", span);
     }
   }
   await nodeBudget(tree.rootPosition); // resources property name
+  await textBudget(tree.rootPosition, 9);
   await nodeBudget(tree.rootPosition, 1, true, ".resources"); // resource entries are reserved by their owner
-  return nodes;
+  return {nodes, text};
 }

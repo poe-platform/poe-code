@@ -1,5 +1,6 @@
 import {validateRetainedWire} from "./retained-wire.js";
-import {reserveRetainedAstBudgets} from "./retained-ast-budgets.js";
+import {reserveRetainedAstBudgets, type RetainedAstUsage} from "./retained-ast-budgets.js";
+import {retainedUtf8} from "./retained-utf8.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedJson} from "./backed-json.js";
 import {parseBackedJson} from "./backed-json-parser.js";
@@ -11,7 +12,7 @@ import type {ExecutionContext} from "./execution.js";
 import type {InputSource, WorkingStorageOptions} from "./types.js";
 
 /** Own a validated, replayable Pandoc wire document in caller storage. */
-export async function readRetainedJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, chargeInput = true, chargeAst = true) {
+export async function readRetainedJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, chargeInput = true, chargeAst = true, onInputDecoded?: () => void) {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384)
     context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
@@ -55,9 +56,10 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
     }
     try {const tail = normalize(decoder.decode(), true); if (tail) yield tail;}
     catch {throw new PandocError("E_ENCODING", "convert", "Invalid UTF-8 input");}
+    onInputDecoded?.();
   })();
   let failure: {reason: unknown} | undefined;
-  let result: {normalizedNodes?: number; tree: BackedJson; order: Awaited<ReturnType<typeof backedJsonOrder>>; chunks(eol?: "lf" | "crlf" | "native"): AsyncGenerator<Uint8Array>; close(): Promise<void>} | undefined;
+  let result: {normalizedUsage?: RetainedAstUsage; tree: BackedJson; order: Awaited<ReturnType<typeof backedJsonOrder>>; chunks(eol?: "lf" | "crlf" | "native"): AsyncGenerator<Uint8Array>; close(): Promise<void>} | undefined;
   const close = async () => {
     let failure: {reason: unknown} | undefined;
     try {await storage.close();} catch (reason) {failure = {reason};}
@@ -65,9 +67,20 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
     finally {cleanup();}
     if (failure) throw failure.reason;
   };
-  let nodes = 0, normalizedNodes = 0;
+  let nodes = 0;
+  let normalizedUsage: RetainedAstUsage = {nodes: 0, text: 0};
   try {
-    await parseBackedJson(text, tree, scratch, units => context.cooperate(units), (offset, message) => {
+    const parsedText = chargeInput && Number.isFinite(context.limits.text) ? (async function* () {
+      yield* retainedUtf8((async function* () {
+        while (true) {
+          const part = await context.call(async () => source.next());
+          if (part.done) {sourceDone = true; return;}
+          yield part.value;
+        }
+      })(), context, scratch, ["inputBytes"]);
+      onInputDecoded?.();
+    })() : text;
+    await parseBackedJson(parsedText, tree, scratch, units => context.cooperate(units), (offset, message) => {
       throw new PandocError("E_AST", "read", message, "json", `$@${offset}`);
     }, async (node, offset) => {
       try {await readJsonNumber(tree.scalarChunks(node), units => context.cooperate(units));}
@@ -79,8 +92,8 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
     const order = await backedJsonOrder(tree, scratch, units => context.cooperate(units));
     if (chargeAst) {
       try {
-        const enums = (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes)) ? await validateRetainedWire(tree, order, scratch, context) : undefined;
-        normalizedNodes = await reserveRetainedAstBudgets(tree, order, context, enums);
+        const enums = (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text)) ? await validateRetainedWire(tree, order, scratch, context) : undefined;
+        normalizedUsage = await reserveRetainedAstBudgets(tree, order, context, enums);
       }
       catch (error) {
         if (error instanceof PandocError && error.code === "E_LIMIT" && input.source)
@@ -88,7 +101,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         throw error;
       }
     }
-    await validateBackedPandoc(tree, scratch, context, undefined, chargeAst && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes)));
+    await validateBackedPandoc(tree, scratch, context, undefined, chargeAst && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text)));
     const meta = (await tree.property(tree.rootPosition, "meta"))!, blocks = (await tree.property(tree.rootPosition, "blocks"))!;
     const encoder = new TextEncoder();
     const output = async function* (eol?: "lf" | "crlf" | "native") {
@@ -98,7 +111,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
       yield* tree.chunks(blocks, order);
       yield encoder.encode(eol === "crlf" ? "}\r\n" : "}\n");
     };
-    result = {normalizedNodes, tree, order, chunks: output, close};
+    result = {normalizedUsage, tree, order, chunks: output, close};
   } catch (reason) {
     failure = {reason: reason instanceof PandocError && reason.code === "E_AST" && input.source
       ? new PandocError(reason.code, reason.operation, reason.message, reason.format, `${input.source}:${reason.location ?? "1:1"}`)

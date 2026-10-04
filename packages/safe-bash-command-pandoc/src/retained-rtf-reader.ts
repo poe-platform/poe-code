@@ -1,3 +1,4 @@
+import type {RetainedAstUsage} from "./retained-ast-budgets.js";
 import {PandocError} from "./errors.js";
 import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
 import {RetainedRtfAst, type RtfValue} from "./retained-rtf-ast.js";
@@ -302,17 +303,25 @@ class RetainedRtfReader {
     await this.flow.append(await this.ast.tag("Image", await this.ast.value([["", [], []], [], [id, ""]])));
   }
   /** Match document-normalization charges using backed lengths, without reading payloads. */
-  async reserveResources(nodes?: number): Promise<void> {
-    let total = 0;
+  async reserveResources(usage?: RetainedAstUsage): Promise<void> {
+    let total = 0, nodes = usage?.nodes, text = usage?.text;
     const node = (path: string, count = 1, reserve = true) => {
       if (nodes === undefined) return;
       if (nodes + count > this.context.limits.nodes) throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
       if (reserve) {nodes += count; this.context.charge("nodes", count);}
     };
+    const string = (path: string, length: number) => {
+      if (text === undefined) return;
+      text += length;
+      if (text > this.context.limits.text) throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
+      this.context.charge("text", length);
+    };
     node("$.resources", this.pictureCount, false);
     for (let index = 1; index <= this.pictureCount; index++) {
       const path = `$.resources[${index - 1}]`;
-      for (const suffix of ["", "", ".id", "", ".bytes"]) node(path + suffix);
+      node(path); node(path); string(path, 2);
+      node(path + ".id"); string(path + ".id", `rtf-picture-${index}.png`.length);
+      node(path); string(path, 5); node(path + ".bytes");
       const record = Number(await this.pictures.get(BigInt(index))!);
       const bytes = await this.storage.read(record + 8, 8);
       const length = new DataView(bytes.buffer, bytes.byteOffset, bytes.length).getFloat64(0, true);

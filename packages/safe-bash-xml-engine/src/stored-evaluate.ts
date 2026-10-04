@@ -2,7 +2,7 @@ import { IntegerTable } from "@poe-code/safe-fs/storage";
 import type { XmlElement } from "@poe-code/safe-fs/core";
 import { formatScalar, type Node } from "./evaluate.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
-import { evaluateExpression, expressionString, testPredicate, type NodeSelection } from "./predicate.js";
+import { evaluateExpression, expressionText, testPredicate, type NodeSelection } from "./predicate.js";
 import type { Query, QueryStep } from "./query.js";
 import { StoredXmlDocument } from "./stored-document.js";
 
@@ -129,9 +129,17 @@ export class StoredXPath {
     return union;
   }
 
+  /** Buffering convenience; command output consumes scalarChunks directly. */
   async scalar(query: Query): Promise<string> {
+    let result = "";
+    for await (const part of this.scalarChunks(query)) result += part;
+    return result;
+  }
+
+  async *scalarChunks(query: Query): AsyncGenerator<string> {
     const value = await evaluateExpression(query.expression!, await this.node(this.document.document), 1, 1, this.budget,
       selected => this.select(selected));
-    return typeof value === "object" ? expressionString(value, this.budget) : formatScalar(value);
+    if (typeof value === "object") yield* (await expressionText(value, this.budget, this.document.storage)).chunks();
+    else yield formatScalar(value);
   }
 }

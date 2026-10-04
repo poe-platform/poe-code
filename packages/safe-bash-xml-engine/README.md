@@ -22,8 +22,10 @@ Stored XPath uses ordered, paged node references for selections, predicates and 
 small selection caches hold at most 128 references. It reads node metadata on demand
 and walks subtrees through stored parent/sibling links. Whitespace removal and CDATA
 conversion update those links; coalesced text stays in replayable token fragments.
-String functions still
-materialize individual string values, so arbitrary XPath is not yet fully bounded.
+XPath string functions use a fixed small-value cache and paged code points for
+larger values. Searches and large translation maps also use caller-backed storage;
+scalar output replays bounded chunks. Individual parser tokens and parser ancestry
+still need bounded storage before arbitrary documents can be qualified.
 
 XML input also respects the shell execution input-byte limit for stdin and files.
 XPath scalar expressions and predicates support unary negation, addition, and subtraction.

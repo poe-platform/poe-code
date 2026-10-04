@@ -1,4 +1,4 @@
-import { evaluateExpression, expressionString, testPredicate } from "./predicate.js";
+import { evaluateExpression, expressionText, testPredicate } from "./predicate.js";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import type { StoredXmlDocument } from "./stored-document.js";
 import type { Query, QueryStep } from "./query.js";
@@ -82,7 +82,7 @@ export async function evaluateScalar(query: Query, root: XmlElement, budget: Xml
   const tree = await indexTree(root, budget);
   const result = await evaluateExpression(query.expression!, tree.document, 1, 1, budget,
     async selected => evaluatePaths(selected, tree, budget, tree.document));
-  if (typeof result === "object") return expressionString(result, budget);
+  if (typeof result === "object") return (await expressionText(result, budget)).string();
   return formatScalar(result);
 }
 

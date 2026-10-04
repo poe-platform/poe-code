@@ -37,7 +37,7 @@ still stores spilled bytes in RAM. Ordinary XPath uses stored nodes and paged
 selection sets for predicates and unions. `--nocdata` and `--noblanks` transform
 stored nodes for formatting and XPath; adjacent text fragments remain backed by
 the filesystem. `--recover` still retains a tree and buffers the source. XPath string
-functions still materialize individual string values. Individual XML tokens and
+functions use paged code-point values and replay scalar output in chunks. Individual XML tokens and
 active ancestry also remain resident, so this is not yet a bounded-memory guarantee
 for arbitrary documents or queries. Files are
 processed in order; malformed files report an error while later files continue.

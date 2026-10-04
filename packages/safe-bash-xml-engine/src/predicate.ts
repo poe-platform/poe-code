@@ -1,3 +1,5 @@
+import type { PagedStorage } from "@poe-code/safe-fs/storage";
+import { TextValue } from "./text-value.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
 import type { Query } from "./query.js";
 import { stringValue, type Node } from "./evaluate.js";
@@ -6,7 +8,7 @@ export interface NodeSelection {
   readonly size: number;
   nodes(): AsyncIterable<Node> | Iterable<Node>;
 }
-export type Value = string | number | boolean | NodeSelection;
+export type Value = string | number | boolean | NodeSelection | TextValue;
 type Selector = (query: Query, absolute: boolean) => Promise<Node[] | NodeSelection>;
 type Operator = "+" | "-" | "or" | "and" | "=" | "!=" | "<" | "<=" | ">" | ">=";
 type FunctionName = keyof typeof arity;
@@ -146,71 +148,48 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
   if (stack.length) fail();
   return output;
 }
-const isSelection = (value: Value): value is NodeSelection => typeof value === "object";
-const boolean = (value: Value): boolean => isSelection(value) ? value.size > 0 : typeof value === "number" ? value !== 0 && !Number.isNaN(value) : Boolean(value);
+const isSelection = (value: Value): value is NodeSelection => typeof value === "object" && !(value instanceof TextValue);
+const boolean = (value: Value): boolean => isSelection(value) || value instanceof TextValue ? value.size > 0 : typeof value === "number" ? value !== 0 && !Number.isNaN(value) : Boolean(value);
 
-export async function expressionString(value: Value, budget: XmlBudget): Promise<string> {
-  if (!isSelection(value)) return String(value);
-  for await (const node of value.nodes()) {
-    let text = "";
-    for await (const part of stringValue(node, budget)) {
-      const checkpoint = budget.tick(part.length); if (checkpoint) await checkpoint;
-      text += part;
-    }
-    return text;
-  }
-  return "";
+export async function expressionText(value: Value, budget: XmlBudget, storage?: PagedStorage): Promise<TextValue> {
+  if (value instanceof TextValue) return value;
+  if (!isSelection(value)) return TextValue.create([String(value)], budget, storage);
+  for await (const node of value.nodes()) return TextValue.create(stringValue(node, budget), budget, storage);
+  return TextValue.create([], budget, storage);
 }
 
-const number = async (value: Value, budget: XmlBudget): Promise<number> => {
+const number = async (value: Value, budget: XmlBudget, storage?: PagedStorage): Promise<number> => {
   if (typeof value === "number") return value;
   if (typeof value === "boolean") return value ? 1 : 0;
-  const source = await expressionString(value, budget);
-  let start = 0, end = source.length;
-  while (start < end && whitespace(source[start]!)) start++;
-  while (end > start && whitespace(source[end - 1]!)) end--;
-  const text = source.slice(start, end);
-  let at = text.startsWith("-") ? 1 : 0, digits = 0;
-  while (digit(text[at] ?? "")) { at++; digits++; }
-  if (text[at] === ".") { at++; while (digit(text[at] ?? "")) { at++; digits++; } }
-  if (!digits) return NaN;
-  if (text[at] === "e" || text[at] === "E") {
-    at++;
-    if (text[at] === "+" || text[at] === "-") at++;
-    const start = at;
-    while (digit(text[at] ?? "")) at++;
-    if (at === start) return NaN;
-  }
-  return at === text.length ? Number(text) : NaN;
+  return (await expressionText(value, budget, storage)).number();
 };
-async function* comparisonValues(value: Value, budget: XmlBudget): AsyncGenerator<string | number | boolean> {
+async function* comparisonValues(value: Value, budget: XmlBudget, storage?: PagedStorage): AsyncGenerator<string | number | boolean | TextValue> {
   if (!isSelection(value)) { yield value; return; }
-  for await (const node of value.nodes())
-    yield await expressionString({ size: 1, nodes: () => [node] }, budget);
+  for await (const node of value.nodes()) yield await TextValue.create(stringValue(node, budget), budget, storage);
 }
-async function compare(left: Value, right: Value, operator: Operator, budget: XmlBudget): Promise<boolean> {
+async function compare(left: Value, right: Value, operator: Operator, budget: XmlBudget, storage?: PagedStorage): Promise<boolean> {
   if (operator === "or") return boolean(left) || boolean(right);
   if (operator === "and") return boolean(left) && boolean(right);
   const equality = operator === "=" || operator === "!=";
   if (equality && (typeof left === "boolean" || typeof right === "boolean"))
     return operator === "=" ? boolean(left) === boolean(right) : boolean(left) !== boolean(right);
   const numeric = !equality || typeof left === "number" || typeof right === "number";
-  for await (const a of comparisonValues(left, budget)) for await (const b of comparisonValues(right, budget)) {
-    const p = budget.tick(String(a).length + String(b).length + 1); if (p) await p;
-    const x = numeric ? await number(a, budget) : String(a), y = numeric ? await number(b, budget) : String(b);
-    if (operator === "=" ? x === y : operator === "!=" ? x !== y : operator === "<" ? x < y : operator === "<=" ? x <= y : operator === ">" ? x > y : x >= y) return true;
+  for await (const a of comparisonValues(left, budget, storage)) for await (const b of comparisonValues(right, budget, storage)) {
+    if (!numeric) {
+      const x = await expressionText(a, budget, storage), y = await expressionText(b, budget, storage);
+      const same = await x.equals(y);
+      if (operator === "=" ? same : !same) return true;
+    } else {
+      const x = await number(a, budget, storage), y = await number(b, budget, storage);
+      if (operator === "=" ? x === y : operator === "!=" ? x !== y : operator === "<" ? x < y : operator === "<=" ? x <= y : operator === ">" ? x > y : x >= y) return true;
+    }
   }
   return false;
 }
-function normalize(text: string): string {
-  let result = "", pending = false;
-  for (const c of text) {
-    if (whitespace(c)) pending = result.length > 0;
-    else { if (pending) result += " "; result += c; pending = false; }
-  }
-  return result;
-}
 export async function evaluateExpression(program: readonly Instruction[], node: Node, position: number, last: number, budget: XmlBudget, select?: Selector): Promise<Value> {
+  const storage = node.stored?.document.storage;
+  const text = (value: Value): Promise<TextValue> => expressionText(value, budget, storage);
+  const numeric = (value: Value): Promise<number> => number(value, budget, storage);
   const values: Value[] = [];
   for (const instruction of program) {
     const p = budget.tick(); if (p) await p;
@@ -220,20 +199,16 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
       const selected = await select(instruction.query!, instruction.source.startsWith("/"));
       values.push(Array.isArray(selected) ? { size: selected.length, nodes: () => selected } : selected);
     } else if (instruction.kind === "negate") {
-      values.push(-await number(values.pop()!, budget));
+      values.push(-await numeric(values.pop()!));
     } else if (instruction.kind === "operator") {
       const right = values.pop()!, left = values.pop()!;
       if (instruction.name === "+" || instruction.name === "-") {
-        const a = await number(left, budget), b = await number(right, budget);
+        const a = await numeric(left), b = await numeric(right);
         values.push(instruction.name === "+" ? a + b : a - b);
-      } else values.push(await compare(left, right, instruction.name, budget));
+      } else values.push(await compare(left, right, instruction.name, budget, storage));
     } else {
       const args = values.splice(values.length - instruction.count);
       const first = args[0] ?? { size: 1, nodes: () => [node] };
-      const textNeeded = !["count", "boolean", "not", "name", "local-name", "namespace-uri", "position", "last", "true", "false", "sum"].includes(instruction.name);
-      const a = textNeeded ? await expressionString(first, budget) : "";
-      const b = instruction.count > 1 ? await expressionString(args[1]!, budget) : "";
-      { const p = budget.tick(a.length + b.length); if (p) await p; }
       const nodes = (): NodeSelection => {
         if (!isSelection(first)) throw new XmlQueryError("XPath function requires a node-set", 10);
         return first;
@@ -246,49 +221,47 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
         case "boolean": result = boolean(first); break;
         case "true": result = true; break;
         case "false": result = false; break;
-        case "string": result = a; break;
-        case "number": result = await number(first, budget); break;
+        case "string": result = await text(first); break;
+        case "number": result = await numeric(first); break;
         case "count": result = nodes().size; break;
         case "sum": {
           let total = 0;
-          for await (const item of comparisonValues(nodes(), budget)) total += await number(item, budget);
+          for await (const item of comparisonValues(nodes(), budget, storage)) total += await numeric(item);
           result = total; break;
         }
-        case "floor": result = Math.floor(await number(first, budget)); break;
-        case "ceiling": result = Math.ceil(await number(first, budget)); break;
-        case "round": result = Math.round(await number(first, budget)); break;
-        case "contains": result = a.includes(b); break;
-        case "starts-with": result = a.startsWith(b); break;
-        case "normalize-space": result = normalize(a); break;
-        case "concat": {
-          let text = "", size = 0;
-          for (const arg of args) {
-            const part = await expressionString(arg, budget);
-            size += new TextEncoder().encode(part).byteLength;
-            if (size > budget.limits.maxOutputBytes) throw new XmlQueryError("maxOutputBytes limit exceeded", 5);
-            text += part;
-          }
-          result = text; break;
+        case "floor": result = Math.floor(await numeric(first)); break;
+        case "ceiling": result = Math.ceil(await numeric(first)); break;
+        case "round": result = Math.round(await numeric(first)); break;
+        case "contains": result = await (await text(first)).find(await text(args[1]!)) >= 0; break;
+        case "starts-with": {
+          const a = await text(first), b = await text(args[1]!);
+          result = await (await a.slice(0, b.size)).equals(b); break;
         }
-        case "string-length": { let size = 0; for (const ignored of a) size++; result = size; break; }
-        case "substring": {
-          const start = Math.round(await number(args[1]!, budget));
-          const end = args.length === 3 ? start + Math.round(await number(args[2]!, budget)) : Infinity;
-          let text = "", index = 0;
-          for (const character of a) { index++; if (index >= start && index < end) text += character; }
-          result = text;
+        case "normalize-space": result = await (await text(first)).normalize(); break;
+        case "concat": {
+          const parts: TextValue[] = [];
+          let bytes = 0;
+          for (const arg of args) {
+            const part = await text(arg); bytes += part.byteLength;
+            if (bytes > budget.limits.maxOutputBytes) throw new XmlQueryError("maxOutputBytes limit exceeded", 5);
+            parts.push(part);
+          }
+          result = await TextValue.create((async function* () { for (const part of parts) yield* part.chunks(); })(), budget, storage);
           break;
         }
-        case "substring-before": result = a.includes(b) ? a.slice(0, a.indexOf(b)) : ""; break;
-        case "substring-after": result = a.includes(b) ? a.slice(a.indexOf(b) + b.length) : ""; break;
-        case "translate": {
-          const replacements = [...await expressionString(args[2]!, budget)], mapping = new Map<string, string>();
-          let index = 0;
-          for (const character of b) { if (!mapping.has(character)) mapping.set(character, replacements[index] ?? ""); index++; }
-          let text = "";
-          for (const character of a) text += mapping.get(character) ?? character;
-          result = text; break;
+        case "string-length": result = (await text(first)).size; break;
+        case "substring": {
+          const a = await text(first), start = Math.round(await numeric(args[1]!));
+          const end = args.length === 3 ? start + Math.round(await numeric(args[2]!)) : Infinity;
+          result = await a.slice(start - 1, end - 1); break;
         }
+        case "substring-before": case "substring-after": {
+          const a = await text(first), b = await text(args[1]!), at = await a.find(b);
+          result = await a.slice(instruction.name === "substring-after" && at >= 0 ? at + b.size : 0,
+            at < 0 ? 0 : instruction.name === "substring-before" ? at : a.size);
+          break;
+        }
+        case "translate": result = await (await text(first)).translate(await text(args[1]!), await text(args[2]!)); break;
         case "name": case "local-name": case "namespace-uri": {
           let selected: Node | undefined;
           for await (const item of nodes().nodes()) { selected = item; break; }
@@ -298,7 +271,9 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
           break;
         }
       }
-      if (typeof result === "string") {
+      if (result instanceof TextValue) {
+        if (result.byteLength > budget.limits.maxOutputBytes) throw new XmlQueryError("maxOutputBytes limit exceeded", 5);
+      } else if (typeof result === "string") {
         if (new TextEncoder().encode(result).byteLength > budget.limits.maxOutputBytes) throw new XmlQueryError("maxOutputBytes limit exceeded", 5);
         const p = budget.tick(result.length); if (p) await p;
       }

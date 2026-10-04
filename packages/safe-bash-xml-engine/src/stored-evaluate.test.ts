@@ -126,3 +126,45 @@ for (const cancellation of [false, true]) test(`stored XPath retires backing aft
   assert.equal(closed, 1);
   assert.deepEqual(await fs.readdir('/'), []);
 });
+
+test("stored scalar functions replay paged strings across expression operations", async () => {
+  const signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const document = await StoredXmlDocument.parse((function* () {
+    yield '<r><a>';
+    for (let index = 0; index < 50; index++) yield '<![CDATA[  ab😀  ]]>';
+    for (let index = 0; index < 50; index++) yield '<![CDATA[' + 'x'.repeat(100) + ']]>';
+    yield '</a><b>abab😀</b><n>1';
+    for (let index = 0; index < 50; index++) yield '<![CDATA[' + '0'.repeat(100) + ']]>';
+    yield 'e-5000</n></r>';
+  })(), { fs: createMemoryFileSystem(), cwd: '/', env: {}, signal }, budget, 1);
+  try {
+    const evaluator = new StoredXPath(document, budget);
+    const source = '  ab😀  '.repeat(50) + 'x'.repeat(5000);
+    for (const [query, expected] of [
+      ['string(/r/a)', source],
+      ['string-length(/r/a)', String([...source].length)],
+      ['concat(/r/a, ":", /r/b)', source + ':abab😀'],
+      ['substring(/r/a, 349, 6)', [...source].slice(348, 354).join('')],
+      ['substring-before(/r/a, "😀")', '  ab'],
+      ['substring-after(/r/a, "😀")', source.slice(source.indexOf('😀') + 2)],
+      ['normalize-space(/r/a)', 'ab😀 '.repeat(50) + 'x'.repeat(5000)],
+      ['translate(/r/a, "abx😀", "BA")', '  BA  '.repeat(50)],
+      ['contains(/r/a, /r/b)', 'false'],
+      ['starts-with(/r/a, "  ab😀")', 'true'],
+      ['number(/r/n)', '1'],
+      ['sum(/r/n)', '1'],
+      ['boolean(string(/r/a))', 'true'],
+      ['string(/r/a) = concat(/r/a, "")', 'true'],
+      ['string(/r/a) != concat(/r/a, "")', 'false'],
+    ]) {
+      let actual = '';
+      for await (const part of evaluator.scalarChunks(await parseQuery(query!, budget))) {
+        assert.ok(part.length <= 8192);
+        actual += part;
+        await Promise.resolve();
+      }
+      assert.equal(actual, expected, query);
+    }
+  } finally { await document.close(); }
+});

@@ -279,7 +279,8 @@ async function executeDocument(
       return { exitCode: 0 };
     }
     if (options.query.expression) {
-      await write(stored ? await new StoredXPath(stored, budget).scalar(options.query) : await evaluateScalar(options.query, root, budget));
+      if (stored) for await (const part of new StoredXPath(stored, budget).scalarChunks(options.query)) await write(part);
+      else await write(await evaluateScalar(options.query, root, budget));
       await write("\n");
       await finish();
       completed = true;

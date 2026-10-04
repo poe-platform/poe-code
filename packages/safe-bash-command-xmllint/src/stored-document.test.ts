@@ -4,7 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createXmllintCommand } from "./index.js";
 
-for (const args of [[], ["--nocdata"], ["--noblanks", "--xpath", "count(//x)"], ["--noblanks"], ["--encode", "UTF-16"], ["--xpath", "count(//x)"], ["--xpath", "//x[last()]"]])
+for (const args of [[], ["--xpath", "concat(/r, /r)"], ["--nocdata"], ["--noblanks", "--xpath", "count(//x)"], ["--noblanks"], ["--encode", "UTF-16"], ["--xpath", "count(//x)"], ["--xpath", "//x[last()]"]])
 for (const cancel of [false, true]) test(`XML formatting uses injected paged storage and retires it (${args.join(" ")}, cancel=${cancel})`, async () => {
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("sink stopped");
   let opened = 0, closed = 0, written = 0, output = 0, outstanding = 0;
@@ -33,12 +33,13 @@ for (const cancel of [false, true]) test(`XML formatting uses injected paged sto
     return typeof value === "function" ? value.bind(target) : value;
   } });
   const payload = "a".repeat(16384), encoder = new TextEncoder();
+  const records = args.includes("concat(/r, /r)") ? 20 : 80;
   const result = Promise.resolve(createXmllintCommand().execute({ command: "xmllint",
     ...createCommandArguments(args), cwd: "/", env: {}, fs: injected, signal: controller.signal,
     stdin: { async *[Symbol.asyncIterator]() {
       yield encoder.encode("<r>");
       const reused = encoder.encode(`<x>${payload}</x>`);
-      for (let index = 0; index < 80; index++) yield reused;
+      for (let index = 0; index < records; index++) yield reused;
       yield encoder.encode("</r>");
     } },
     stdout: { async write(bytes) {
@@ -51,8 +52,8 @@ for (const cancel of [false, true]) test(`XML formatting uses injected paged sto
   if (cancel) await assert.rejects(result, error => error === failure);
   else {
     assert.equal((await result).exitCode, 0);
-    const expected = encoder.encode('<?xml version="1.0"?>\n<r></r>\n').length + 80 * (payload.length + 7);
-    assert.equal(output, args.includes("count(//x)") ? 3 : args.includes("//x[last()]") ? payload.length + 8 : args.includes("UTF-16") ? (expected + ' encoding="UTF-16"'.length) * 2 + 2 : expected);
+    const expected = encoder.encode('<?xml version="1.0"?>\n<r></r>\n').length + records * (payload.length + 7);
+    assert.equal(output, args.includes("concat(/r, /r)") ? 2 * records * payload.length + 1 : args.includes("count(//x)") ? 3 : args.includes("//x[last()]") ? payload.length + 8 : args.includes("UTF-16") ? (expected + ' encoding="UTF-16"'.length) * 2 + 2 : expected);
   }
   assert.equal(opened, 1);
   assert.equal(closed, opened);

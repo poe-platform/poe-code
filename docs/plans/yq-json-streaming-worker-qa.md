@@ -48,7 +48,9 @@ selection writes separately from parser writes, check document order and duplica
 removal against native xmllint, and interrupt requests during selection replay.
 Use a slow sink for large node-set output and verify only bounded output chunks are
 outstanding. Distinguish node-count growth from individual string-value growth:
-string functions still materialize individual values. Repeat with `--nocdata` and
+run large `string`, `concat`, `substring`, `contains`, `translate`, comparison and
+numeric-coercion expressions. Include long search patterns and mapping strings to
+exercise backed algorithm state. Repeat with `--nocdata` and
 `--noblanks`, especially many adjacent small CDATA tokens forming one large logical
 text node. Verify `count(text())`, whitespace inheritance and byte output against
 native xmllint without a concatenated value in the formatting/selection path.
@@ -56,8 +58,8 @@ native xmllint without a concatenated value in the formatting/selection path.
 ## Remaining qualification scope
 
 Repeat with increasing *single-document* sizes, eval-all joins, YAML anchors/edits,
-jq slurp and large XPath string values after the remaining safe-fs-backed value
-storage lands. Those values are still memory-resident; the multi-document JSON and
+jq slurp, giant XML parser tokens and deep ancestry after the remaining
+safe-fs-backed value/parser storage lands. Those values are still memory-resident; the multi-document JSON and
 paged XML selection results cannot qualify them. A Node heap measurement cannot
 replace workerd/Cloudflare results. Store raw
 measurements temporarily in `/out`, summarize verified observations in the delivery

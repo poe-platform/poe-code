@@ -13,8 +13,27 @@
 import { PdfError } from "../errors.js";
 
 export type StrokePoint = readonly [number, number];
+export interface StrokePointStore {
+  readonly length: number;
+  get(index: number): Generator<null, StrokePoint, void>;
+  push(point: StrokePoint): Generator<null, void, void>;
+  trimLast(): void;
+  create(): StrokePointStore;
+}
+export type StrokePoints = readonly StrokePoint[] | StrokePointStore;
+type MutableStrokePoints = StrokePoint[] | StrokePointStore;
+export function* strokePointAt(points: StrokePoints, index: number): Generator<null, StrokePoint, void> {
+  return "get" in points ? yield* points.get(index) : points[index]!;
+}
+export function createStrokePoints(points: StrokePoints): MutableStrokePoints {
+  return "create" in points ? points.create() : [];
+}
+export function* appendStrokePoint(points: MutableStrokePoints, point: StrokePoint): Generator<null, void, void> {
+  if ("get" in points) yield* points.push(point);
+  else points.push(point);
+}
 export interface StrokeSubpath {
-  readonly points: readonly StrokePoint[];
+  readonly points: StrokePoints;
   readonly closed: boolean;
   /** Distinguishes a dash dot from an explicitly degenerate input path. */
   readonly zeroLengthDash?: boolean;
@@ -23,78 +42,86 @@ export interface StrokeSubpath {
 // Bounds both dash expansion and the generated outline for a single paint.
 const MAX_STROKE_VERTICES = 1_000_000;
 
-function dashSubpath(path: StrokeSubpath, pattern: readonly number[], phase: number): StrokeSubpath[] {
+/** Yield runs as they finish. Closed paths replay once to put the wrapped run
+ * first, retaining only first/last run descriptors instead of every dash. */
+function* dashRuns(path: StrokeSubpath, pattern: readonly number[], phase: number): Generator<StrokeSubpath | null> {
   const cycle = pattern.reduce((sum, value) => sum + value, 0);
-  if (!(cycle > 0)) return [path];
+  if (!(cycle > 0)) { yield path; return; }
   let offset = ((phase % cycle) + cycle) % cycle, index = 0;
   while (offset > 0) {
     if (offset < pattern[index]!) break;
-    offset -= pattern[index]!;
-    index = (index + 1) % pattern.length;
+    offset -= pattern[index]!; index = (index + 1) % pattern.length;
   }
-  let remaining = pattern[index]! - offset;
-  const points = path.closed ? [...path.points, path.points[0]!] : path.points;
-  const result: StrokeSubpath[] = [];
-  let current: StrokePoint[] = [];
-  let steps = 0;
-  const flush = () => {
-    if (current.length) result.push({ points: current, closed: false });
-    current = [];
-  };
-  const advance = (point: StrokePoint) => {
+  let remaining = pattern[index]! - offset, steps = 0;
+  let current = createStrokePoints(path.points);
+  function* flush(): Generator<StrokeSubpath | null> {
+    if (current.length) yield { points: current, closed: false };
+    current = createStrokePoints(path.points);
+  }
+  function* advance(point: StrokePoint): Generator<StrokeSubpath | null> {
     while (remaining <= 0) {
       if (++steps > MAX_STROKE_VERTICES) throw new PdfError("E_LIMIT", "Stroke dash expansion exceeds the vertex limit");
       if (index % 2 === 0) {
-        if (pattern[index] === 0) result.push({ points: [point, point], closed: false, zeroLengthDash: true });
-        flush();
+        if (pattern[index] === 0) {
+          const dot = createStrokePoints(path.points);
+          yield* appendStrokePoint(dot, point); yield* appendStrokePoint(dot, point);
+          yield {points:dot,closed:false,zeroLengthDash:true};
+        }
+        yield* flush();
       }
-      index = (index + 1) % pattern.length;
-      remaining = pattern[index]!;
+      index = (index + 1) % pattern.length; remaining = pattern[index]!;
     }
-  };
-  for (let i = 1; i < points.length; i++) {
-    const start = points[i - 1]!, end = points[i]!;
-    const dx = end[0] - start[0], dy = end[1] - start[1];
-    const length = Math.hypot(dx, dy);
-    if (!Number.isFinite(length) || length / cycle * pattern.length > MAX_STROKE_VERTICES) {
-      throw new PdfError("E_LIMIT", "Stroke dash expansion exceeds the vertex limit");
-    }
+  }
+  const length = path.points.length;
+  for (let i = 1; i < length + (path.closed ? 1 : 0); i++) {
+    const start = yield* strokePointAt(path.points, i - 1), end = yield* strokePointAt(path.points, i % length);
+    const dx = end[0] - start[0], dy = end[1] - start[1], distanceTotal = Math.hypot(dx, dy);
+    if (!Number.isFinite(distanceTotal) || distanceTotal / cycle * pattern.length > MAX_STROKE_VERTICES) throw new PdfError("E_LIMIT", "Stroke dash expansion exceeds the vertex limit");
     let distance = 0;
-    // A transformed length and a sum of dash steps can differ by a few ULPs.
-    // Do not interpret that rounding residue as another terminal dash.
-    while (length - distance > 8 * Number.EPSILON * Math.max(1, length)) {
-      const point: StrokePoint = [start[0] + dx * distance / length, start[1] + dy * distance / length];
-      advance(point);
-      const step = Math.min(remaining, length - distance);
+    while (distanceTotal - distance > 8 * Number.EPSILON * Math.max(1, distanceTotal)) {
+      const point: StrokePoint = [start[0] + dx * distance / distanceTotal, start[1] + dy * distance / distanceTotal];
+      yield* advance(point);
+      const step = Math.min(remaining, distanceTotal - distance);
       if (distance + step === distance || ++steps > MAX_STROKE_VERTICES) throw new PdfError("E_LIMIT", "Stroke dash expansion exceeds the vertex limit");
-      distance += step;
-      remaining -= step;
+      distance += step; remaining -= step;
       if (index % 2 === 0) {
-        if (!current.length) current.push(point);
-        current.push([start[0] + dx * distance / length, start[1] + dy * distance / length]);
+        if (!current.length) yield* appendStrokePoint(current, point);
+        yield* appendStrokePoint(current, [start[0] + dx * distance / distanceTotal, start[1] + dy * distance / distanceTotal]);
       }
     }
   }
-  flush();
-  if (path.closed && result.length) {
-    const first = result[0]!, last = result[result.length - 1]!;
-    const start = path.points[0]!;
-    const firstPoint = first.points[0]!, lastPoint = last.points[last.points.length - 1]!;
-    if (firstPoint[0] === start[0] && firstPoint[1] === start[1] && lastPoint[0] === start[0] && lastPoint[1] === start[1]) {
-      if (first === last) result[0] = { points: first.points, closed: true };
-      else {
-        result[0] = { points: [...last.points, ...first.points.slice(1)], closed: false };
-        result.pop();
-      }
-    }
+  yield* flush();
+}
+function* dashSubpath(path: StrokeSubpath, pattern: readonly number[], phase: number): Generator<StrokeSubpath | null> {
+  if (!path.closed || !(pattern.reduce((sum, value) => sum + value, 0) > 0)) { yield* dashRuns(path, pattern, phase); return; }
+  let first: StrokeSubpath | undefined, last: StrokeSubpath | undefined, count = 0;
+  for (const run of dashRuns(path, pattern, phase)) {
+    if (run === null) { yield null; continue; }
+    first ??= run; last = run; count++;
   }
-  return result;
+  if (!first || !last) return;
+  const start = yield* strokePointAt(path.points, 0), firstPoint = yield* strokePointAt(first.points, 0);
+  const lastPoint = yield* strokePointAt(last.points, last.points.length - 1);
+  const merge = firstPoint[0] === start[0] && firstPoint[1] === start[1] && lastPoint[0] === start[0] && lastPoint[1] === start[1];
+  if (merge) {
+    if (count === 1) { yield {points:first.points,closed:true}; return; }
+    const points = createStrokePoints(path.points);
+    for (let i = 0; i < last.points.length; i++) yield* appendStrokePoint(points, yield* strokePointAt(last.points, i));
+    for (let i = 1; i < first.points.length; i++) yield* appendStrokePoint(points, yield* strokePointAt(first.points, i));
+    yield {points,closed:false};
+  }
+  let index = 0;
+  for (const run of dashRuns(path, pattern, phase)) {
+    if (run === null) { yield null; continue; }
+    if (!merge || (index > 0 && index < count - 1)) yield run;
+    index++;
+  }
 }
 
 /** Generate AGG stroke points in device coordinates; undefined ends a contour.
  * Null suspends work while a replayable subpath source supplies caller-backed input.
- * Generated outlines are streamed. Dash expansion and input point normalization
- * retain their own ownership and vertex admission. */
+ * Generated outlines and dash runs stream; normalization uses the input point
+ * store's backing policy. Existing vertex admission applies to both routes. */
 export function* strokeOutlinePoints(
   paths: Iterable<StrokeSubpath | null>, width: number, cap: 0 | 1 | 2,
   join: 0 | 1 | 2, miterLimit: number, dashArray: readonly number[] = [], dashPhase = 0
@@ -177,37 +204,46 @@ export function* strokeOutlinePoints(
   for (const path of paths) {
     if (path === null) { yield null; continue; }
     for (const subpath of pattern.length ? dashSubpath(path, pattern, dashPhase) : [path]) {
-      const points: StrokePoint[] = [];
-      for (const point of subpath.points) {
-        const prev = points[points.length - 1];
-        if (!prev || Math.hypot(prev[0] - point[0], prev[1] - point[1]) > 1e-14) points.push(point);
+      if (subpath === null) { yield null; continue; }
+      const points = createStrokePoints(subpath.points);
+      let previous: StrokePoint | undefined;
+      for (let i = 0; i < subpath.points.length; i++) {
+        const point = yield* strokePointAt(subpath.points, i);
+        if (!previous || Math.hypot(previous[0] - point[0], previous[1] - point[1]) > 1e-14) {
+          yield* appendStrokePoint(points, point); previous = point;
+        }
       }
       let closed = subpath.closed;
-      if (closed && points.length > 1 && Math.hypot(points[0]![0] - points[points.length - 1]![0], points[0]![1] - points[points.length - 1]![1]) <= 1e-14) points.pop();
+      if (closed && points.length > 1) {
+        const first = yield* strokePointAt(points, 0), last = yield* strokePointAt(points, points.length - 1);
+        if (Math.hypot(first[0] - last[0], first[1] - last[1]) <= 1e-14) {
+          if ("trimLast" in points) points.trimLast(); else points.pop();
+        }
+      }
       if (points.length < 3) closed = false;
       if (points.length === 1 && cap === 2 && subpath.zeroLengthDash) {
         // Canvas/PDF.js uses a user-axis square for a zero-length dash.
-        const [x, y] = points[0]!;
+        const [x, y] = (yield* strokePointAt(points, 0));
         yield* add(x - half, y - half);
         yield* add(x + half, y - half);
         yield* add(x + half, y + half);
         yield* add(x - half, y + half);
         yield undefined;
       } else if (points.length === 1 && subpath.points.length > 1 && cap === 1) {
-        const [x, y] = points[0]!;
+        const [x, y] = (yield* strokePointAt(points, 0));
         yield* addCap([x, y], [x + 1, y]);
         yield* addCap([x, y], [x - 1, y]);
         yield undefined;
       } else if (points.length >= 2) {
-        if (!closed) yield* addCap(points[0]!, points[1]!);
+        if (!closed) yield* addCap((yield* strokePointAt(points, 0)), (yield* strokePointAt(points, 1)));
         for (let i = closed ? 0 : 1; i < points.length - (closed ? 0 : 1); i++) {
-          yield* addJoin(points[(i + points.length - 1) % points.length]!, points[i]!, points[(i + 1) % points.length]!);
+          yield* addJoin((yield* strokePointAt(points, (i + points.length - 1) % points.length)), (yield* strokePointAt(points, i)), (yield* strokePointAt(points, (i + 1) % points.length)));
         }
         if (closed) {
           yield undefined;
-        } else yield* addCap(points[points.length - 1]!, points[points.length - 2]!);
+        } else yield* addCap((yield* strokePointAt(points, points.length - 1)), (yield* strokePointAt(points, points.length - 2)));
         for (let i = points.length - (closed ? 1 : 2); i >= (closed ? 0 : 1); i--) {
-          yield* addJoin(points[(i + 1) % points.length]!, points[i]!, points[(i + points.length - 1) % points.length]!);
+          yield* addJoin((yield* strokePointAt(points, (i + 1) % points.length)), (yield* strokePointAt(points, i)), (yield* strokePointAt(points, (i + points.length - 1) % points.length)));
         }
         yield undefined;
       }
@@ -223,6 +259,7 @@ export function strokeOutlines(
   const contours: StrokePoint[][] = [];
   let contour: StrokePoint[] = [];
   for (const point of strokeOutlinePoints(paths, width, cap, join, miterLimit, dashArray, dashPhase)) {
+    if (point === null) throw new Error("Stored stroke points require an asynchronous driver");
     if (point) contour.push(point);
     else {contours.push(contour); contour = [];}
   }

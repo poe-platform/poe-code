@@ -28,8 +28,9 @@ fixed-size blocks in that backing; fill, clipping and pattern bounds replay
 without collecting segment arrays. `renderOperationStreamWindow` reads these
 pixels with a fixed range cache and stages downsampling levels in that same
 backing, preserving the buffered sampling math. Keep the backing alive until
-painting finishes, then close it. Stroke input/dash expansion, codec/color state
-and nested captures retain their own memory requirements. Stored geometry is
+painting finishes, then close it. Parsed stroke point lists and dash runs spill
+to that backing with fixed caches for forward and reverse joins. Codec/color
+state and nested captures retain their own memory requirements. Stored geometry is
 for the asynchronous raster driver; buffered display-list/SVG APIs retain their
 existing synchronous representation.
 

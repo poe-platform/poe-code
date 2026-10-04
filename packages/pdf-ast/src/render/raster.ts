@@ -1,3 +1,4 @@
+import { StoredStrokePoints } from "./stored-stroke-points.js";
 import { readStoredPath } from "../content/stored-path.js";
 import { prepareRetainedImageSampler } from "./retained-image-sampling.js";
 import { createTiffHeader, encodePackBitsRowSteps } from "./tiff-stream.js";
@@ -11,9 +12,9 @@ import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import type { PdfStoredPath, PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate, encodeLzw } from "../cos/filters.js";
-import { flattenCubic, flattenCubicPoints } from "./cubic.js";
+import { flattenCubicPoints } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
-import { strokeOutlinePoints, type StrokePoint, type StrokeSubpath } from "./stroke.js";
+import { appendStrokePoint, strokePointAt, strokeOutlinePoints, type StrokePoint, type StrokeSubpath } from "./stroke.js";
 
 export interface RgbaBitmap {
   readonly width: number;
@@ -632,7 +633,10 @@ function *projectStrokeSubpaths(segments: readonly PdfPathSegment[], pageHeight:
   stored?: PdfStoredPath, input?: RasterImageInput
 ): Generator<StrokeSubpath | null, void, void> {
   let work = 0;
-  let points: StrokePoint[] = [];
+  const fresh = (): StrokePoint[] | StoredStrokePoints => stored && input
+    ? new StoredStrokePoints(stored.storage, function* (action) { input.pathRequest = action; yield null; }, input.signal)
+    : [];
+  let points = fresh();
   let current: StrokePoint = [0, 0];
   for (const segment of pathSegments(segments, stored, input)) {
     if (!segment) { yield null; continue; }
@@ -640,23 +644,27 @@ function *projectStrokeSubpaths(segments: readonly PdfPathSegment[], pageHeight:
     if (segment.kind === "move") {
       if (points.length) yield { points, closed: false };
       current = toScreen(segment.x, segment.y);
-      points = [current];
+      points = fresh(); yield* appendStrokePoint(points, current);
     } else if (segment.kind === "line") {
-      if (!points.length) points = [current];
+      if (!points.length) yield* appendStrokePoint(points, current);
       current = toScreen(segment.x, segment.y);
-      points.push(current);
+      yield* appendStrokePoint(points, current);
     } else if (segment.kind === "cubic") {
-      if (!points.length) points = [current];
+      if (!points.length) yield* appendStrokePoint(points, current);
       const a = toScreen(segment.x1, segment.y1), b = toScreen(segment.x2, segment.y2);
       const end = toScreen(segment.x, segment.y);
-      const curve = flattenCubic(current[0], current[1], a[0], a[1], b[0], b[1], end[0], end[1]);
-      for (let i = 1; i < curve.length; i++) { if (++work % 16384 === 0) yield null; points.push(curve[i]!); }
+      let first = true;
+      for (const point of flattenCubicPoints(current[0], current[1], a[0], a[1], b[0], b[1], end[0], end[1])) {
+        if (first) { first = false; continue; }
+        if (++work % 16384 === 0) yield null;
+        yield* appendStrokePoint(points, point);
+      }
       current = end;
     } else if (segment.kind === "close") {
       if (points.length) {
         yield { points, closed: true };
-        current = points[0]!;
-        points = [];
+        current = yield* strokePointAt(points, 0);
+        points = fresh();
       }
     } else if (segment.kind === "rect") {
       if (points.length) yield { points, closed: false };
@@ -664,7 +672,7 @@ function *projectStrokeSubpaths(segments: readonly PdfPathSegment[], pageHeight:
       yield { points: [first, toScreen(segment.x + segment.width, segment.y),
         toScreen(segment.x + segment.width, segment.y + segment.height), toScreen(segment.x, segment.y + segment.height)], closed: true };
       current = first;
-      points = [];
+      points = fresh();
     }
   }
   if (points.length) yield { points, closed: false };

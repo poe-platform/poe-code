@@ -6,6 +6,15 @@ interface VerticalRule {
   readonly yMax: number;
 }
 
+function bounds(items: Iterable<{ readonly bbox: readonly number[] }>): [number, number, number, number] {
+  const result: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const { bbox } of items) {
+    result[0] = Math.min(result[0], bbox[0]!); result[1] = Math.min(result[1], bbox[1]!);
+    result[2] = Math.max(result[2], bbox[2]!); result[3] = Math.max(result[3], bbox[3]!);
+  }
+  return result;
+}
+
 function collectVerticalRules(displayList: PdfDisplayList): VerticalRule[] {
   const rules: VerticalRule[] = [];
   for (const path of displayList.paths) {
@@ -131,13 +140,9 @@ export function extractTablesFromDisplayList(displayList: PdfDisplayList): PdfEx
     flushCell();
 
     if (cells.length >= 2) {
-      const x0 = Math.min(...rGroup.map(g => g.bbox[0]));
-      const y0 = Math.min(...rGroup.map(g => g.bbox[1]));
-      const x1 = Math.max(...rGroup.map(g => g.bbox[2]));
-      const y1 = Math.max(...rGroup.map(g => g.bbox[3]));
       segmentedRows.push({
         baselineY: rGroup[0]!.baselineY,
-        bbox: [x0, y0, x1, y1],
+        bbox: bounds(rGroup),
         cells,
       });
     }
@@ -188,15 +193,9 @@ export function extractTablesFromDisplayList(displayList: PdfDisplayList): PdfEx
       return outRow;
     });
 
-    const bbox: [number, number, number, number] = [
-      Math.min(...currentCluster.map(r => r.bbox[0])),
-      Math.min(...currentCluster.map(r => r.bbox[1])),
-      Math.max(...currentCluster.map(r => r.bbox[2])),
-      Math.max(...currentCluster.map(r => r.bbox[3])),
-    ];
     tables.push({
       pageIndex: displayList.pageIndex,
-      bbox,
+      bbox: bounds(currentCluster),
       headers: matrix[0] ?? [],
       rows: matrix.slice(1),
     });

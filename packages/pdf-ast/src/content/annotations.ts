@@ -1,18 +1,22 @@
-import { PdfArrayCursor } from "./array-cursor.js";
+import { PdfArrayCursor, type PdfArrayCursorState } from "./array-cursor.js";
 import { PdfError } from "../errors.js";
 import { decodePdfString, dictGet, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfStoredItems, type PdfLinkAnnotation } from "../ast.js";
 
+export interface PdfAnnotationPageFrame { readonly kind: "annotation-page-frame"; readonly cursor: PdfArrayCursorState; readonly depth: number }
+
 export type PdfAnnotationRequest = { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayKey?: string }
   | { readonly kind: "array-item"; readonly items: PdfStoredItems; readonly position: number }
+  | { readonly kind: "push-page-frame"; readonly frame: PdfAnnotationPageFrame }
+  | { readonly kind: "pop-page-frame" }
   | { readonly kind: "visit-page"; readonly reference: PdfCosRef }
   | { readonly kind: "page-number"; readonly reference: PdfCosRef }
   | { readonly kind: "annotation"; readonly annotation: PdfLinkAnnotation };
-export type PdfAnnotationResult = PdfCosNode | number | boolean | undefined;
+export type PdfAnnotationResult = PdfCosNode | PdfAnnotationPageFrame | number | boolean | undefined;
 type AnnotationWork<T = void> = Generator<PdfAnnotationRequest, T, PdfAnnotationResult>;
 function* resolveNode(node: PdfCosNode | undefined, arrayKey?: string): AnnotationWork<PdfCosNode | undefined> {
   if (!node) return undefined;
   const result = yield { kind: "resolve", node, ...(arrayKey ? {arrayKey} : {}) };
-  if (typeof result === "number" || typeof result === "boolean") throw new TypeError("Expected a PDF annotation object");
+  if (typeof result === "number" || typeof result === "boolean" || result?.kind === "annotation-page-frame") throw new TypeError("Expected a PDF annotation object");
   return result;
 }
 function* resolveDict(node: PdfCosNode | undefined): AnnotationWork<PdfCosDict | undefined> {
@@ -140,24 +144,36 @@ export function* extractPageAnnotationSteps(pageDict: PdfCosDict, root: PdfCosRe
 /** Preserve annotation destination numbering, including malformed leaf dictionaries.
  * The driver owns exact duplicate tracking, which may live in caller storage. */
 export function* annotationPageNumberSteps(root: PdfCosRef | undefined, reference: PdfCosRef, maxDepth = Infinity): AnnotationWork<number | undefined> {
-  let index = 0;
-  function* walk(node: PdfCosNode | undefined, depth = 0): AnnotationWork<number | undefined> {
-    if (!node) return undefined;
+  let index = 0, depth = 0;
+  const catalog = yield* resolveDict(root);
+  let node = catalog ? dictGet(catalog, "Pages") : undefined;
+  let cursor: PdfArrayCursor | undefined, cursorDepth = 0;
+  while (true) {
+    if (!node) {
+      if (!cursor) {
+        const frame = yield {kind:"pop-page-frame"};
+        if (frame === undefined) return undefined;
+        if (typeof frame !== "object" || frame.kind !== "annotation-page-frame") throw new TypeError("Expected an annotation page frame");
+        cursor = new PdfArrayCursor(frame.cursor.array, frame.cursor); cursorDepth = frame.depth;
+      }
+      const step = yield* cursor.next();
+      if (step.done) { cursor = undefined; continue; }
+      node = step.value; depth = cursorDepth;
+      if (!node) continue;
+    }
+    const current = node; node = undefined;
     if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF annotation page-tree depth limit exceeded");
-    if (node.kind === "ref" && !(yield { kind: "visit-page", reference: node })) return undefined;
-    const dict = yield* resolveDict(node);
-    if (!dict) return undefined;
+    if (current.kind === "ref" && !(yield { kind: "visit-page", reference: current })) continue;
+    const dict = yield* resolveDict(current);
+    if (!dict) continue;
     const type = yield* resolveNode(dictGet(dict, "Type"));
     const kids = yield* resolveArray(dictGet(dict, "Kids"), "Kids");
     if (kids && (type?.kind !== "name" || type.decoded !== "Page")) {
-      const found = yield* visitChildren(kids, child => walk(child, depth + 1));
-      if (found !== undefined) return found;
+      if (cursor) yield {kind:"push-page-frame",frame:{kind:"annotation-page-frame",cursor:cursor.snapshot(),depth:cursorDepth}};
+      cursor = new PdfArrayCursor(kids); cursorDepth = depth + 1;
     } else {
       index++;
-      if (node.kind === "ref" && node.objectNumber === reference.objectNumber) return index;
+      if (current.kind === "ref" && current.objectNumber === reference.objectNumber) return index;
     }
-    return undefined;
   }
-  const catalog = yield* resolveDict(root);
-  return yield* walk(catalog ? dictGet(catalog, "Pages") : undefined);
 }

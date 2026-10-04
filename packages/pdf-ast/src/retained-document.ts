@@ -12,7 +12,7 @@ import { streamRawTextChunks, type PdfRawTextOptions } from "./extract/raw-text-
 import { prepareRetainedPageContent, type PdfRetainedPageEvaluationOptions } from "./content/retained-page.js";
 import { evaluateRetainedContentSteps } from "./content/retained-evaluator.js";
 import { PdfStagingStorage } from "./staging-budget.js";
-import { annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationResult } from "./content/annotations.js";
+import { annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationResult, type PdfAnnotationPageFrame } from "./content/annotations.js";
 import { walkRetainedStructure, type PdfRetainedStructureItem, type PdfStructureSelection } from "./extract/retained-structure.js";
 import { walkRetainedDestinations, walkRetainedUrls, type PdfRetainedDestination, type PdfRetainedUrl, type PdfUrlSelection } from "./extract/retained-links.js";
 import { walkRetainedJavaScripts, type PdfRetainedJavaScript } from "./extract/retained-javascript.js";
@@ -177,6 +177,8 @@ export class PdfRetainedDocument {
   async annotationPageNumber(reference: PdfCosRef): Promise<number | undefined> {
     this.assertOpen();
     const visited = new PdfReferenceSet(this.storage, this.options.maxTraversalStagingBytes, this.options.signal);
+    const backing = this.options.valueArrays?.storedArrayKeys?.includes("Kids") ? this.options.valueArrays.arrayStorage : undefined;
+    const frames = backing ? new StoredMetadataStack<PdfAnnotationPageFrame>(backing, this.options.signal) : [] as PdfAnnotationPageFrame[];
     const work = annotationPageNumberSteps(this.crossReference.rootRef, reference, this.depthLimit);
     let failed = false;
     try {
@@ -191,7 +193,9 @@ export class PdfRetainedDocument {
             ? { kind: "stream", dict: resolved.value, rawBytes: new Uint8Array() } : resolved?.value);
         } else if (request.kind === "array-item") {
           step = work.next(await this.readArrayItem(request.items, request.position));
-        } else if (request.kind === "visit-page") step = work.next(await visited.add(request.reference.objectNumber));
+        } else if (request.kind === "push-page-frame") { await frames.push(request.frame); step = work.next(); }
+        else if (request.kind === "pop-page-frame") step = work.next(await frames.pop());
+        else if (request.kind === "visit-page") step = work.next(await visited.add(request.reference.objectNumber));
         else throw new TypeError("Unexpected annotation page lookup request");
       }
       return step.value;

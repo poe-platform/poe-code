@@ -4,7 +4,7 @@ import { sampledVertices } from "./sampled-vertices.js";
 import { StoredMetadataStack } from "./stored-record.js";
 import { StoredOperationsWriter } from "./stored-operations.js";
 import { StoredPathWriter } from "./stored-path.js";
-import { annotationPageNumberSteps, extractPageAnnotationSteps } from "./annotations.js";
+import { annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationPageFrame } from "./annotations.js";
 import { resolvePageFonts, type ResolvedPageFont } from "../fonts/resolve.js";
 import { PSStackBasedInterpreter, buildPostScriptJsFunction, DeviceCmykCS, MeshShading, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { decodeInlineImageNodeToRgba, decodeXObjectImageToRgba } from "../extract/images.js";
@@ -2400,11 +2400,14 @@ export function evaluateContentStreamToDisplayList(params: PdfContentEvaluationO
 export function extractPageAnnotations(cosDoc: ParsedCosDocument, pageDict: PdfCosDict): PdfLinkAnnotation[] {
   function pageNumber(reference: import("../ast.js").PdfCosRef): number | undefined {
     const visited = new Set<number>();
+    const frames: PdfAnnotationPageFrame[] = [];
     const work = annotationPageNumberSteps(cosDoc.rootRef, reference);
     let step = work.next();
     while (!step.done) {
       const request = step.value;
       if (request.kind === "resolve") step = work.next(cosDoc.resolve(request.node));
+      else if (request.kind === "push-page-frame") { frames.push(request.frame); step = work.next(); }
+      else if (request.kind === "pop-page-frame") step = work.next(frames.pop());
       else if (request.kind === "visit-page") {
         const number = request.reference.objectNumber, added = !visited.has(number);
         visited.add(number); step = work.next(added);

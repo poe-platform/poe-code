@@ -193,7 +193,9 @@ individual strings yield to cancellation. Logical/layout ordering is not provide
 `page.annotations()` pulls link rectangles, contents, and external or internal
 URIs from a retained page. Named and legacy destinations share the buffered
 page API's interpretation. Destination page traversal uses caller-backed
-storage, closes before yielding a result, and stops when the target is found.
+storage, closes its membership index before yielding a result, and stops when
+the target is found. With caller-backed `Kids`, pending destination traversal
+cursors also stay in that backing instead of retaining recursive generators.
 Annotations are returned individually; callers own any results they collect.
 Individual COS arrays/dictionaries still use the object reader's admitted
 representation.

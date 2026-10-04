@@ -300,3 +300,18 @@ it("preserves reference cycle and depth errors with backed membership", async ()
   await expect(f.doc.lookup(cosRef(3))).rejects.toThrow("Circular PDF indirect reference");
   get.mockRestore(); await f.close();
 });
+
+it("bounds generator depth while resolving annotation page numbers", async () => {
+  const depth = 256, objects: PdfIndirectObject[] = [
+    {objectNumber:1,generationNumber:0,value:cosDict({Type:cosName("Catalog"),Pages:cosRef(2)})},
+  ];
+  for(let i=0;i<depth;i++) objects.push({objectNumber:i+2,generationNumber:0,value:cosDict({Type:cosName("Pages"),Kids:cosArray([cosRef(i+3),cosRef(depth+3)])})});
+  for(const n of [depth+2,depth+3]) objects.push({objectNumber:n,generationNumber:0,value:cosDict({Type:cosName("Page")})});
+  const f=await fixture(serializeCosDocument({rootRef:cosRef(1),objects}),{backedArrays:["Kids"],maxPageTreeDepth:1024,trackReads:false});
+  const prototype=Object.getPrototypeOf(Object.getPrototypeOf((function*(){})())),next=prototype.next;
+  const push=Array.prototype.push;let active=0,peak=0,peakArray=0;
+  prototype.next=function(...args:unknown[]){peak=Math.max(peak,++active);try{return next.apply(this,args);}finally{active--;}};
+  Array.prototype.push=function<T>(this:T[],...values:T[]){const result=push.apply(this,values);peakArray=Math.max(peakArray,this.length);return result;};
+  try{expect(await f.doc.annotationPageNumber(cosRef(depth+3))).toBe(2);expect(await f.doc.annotationPageNumber(cosRef(9999))).toBeUndefined();expect(peak).toBeLessThan(32);expect(peakArray).toBeLessThanOrEqual(128);}
+  finally{prototype.next=next;Array.prototype.push=push;await f.close();}
+});

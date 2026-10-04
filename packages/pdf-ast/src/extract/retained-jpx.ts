@@ -5,7 +5,7 @@ import { JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { decodeSamplesToRgbaAsync, type ResolvedColorSpace } from "./images.js";
 
 export interface PdfRetainedJpxOptions {
-  /** Caller-owned coefficient, wavelet scratch and sample backing. */
+  /** Caller-owned coefficient, wavelet scratch, sample and precinct-tree backing. */
   readonly coefficientStorage?: PdfPixelStorage;
   /** Conservative cumulative input-cache/decoder admission plus one sample and RGBA
    * row. Caller source caches and resolved color state are additional memory. */
@@ -190,16 +190,19 @@ export class PdfRetainedJpx {
             const at = offset - pageOffset;
             if (request.kind === "vector-read")
               step = program.next(
-                vector.bytesPerElement === 4
-                  ? vector.integer
-                    ? page.view.getUint32(at, true)
-                    : page.view.getFloat32(at, true)
-                  : vector.bytesPerElement === 2
-                    ? page.view.getUint16(at, true)
-                    : page.bytes[at]
+                vector.bytesPerElement === 8
+                  ? page.view.getFloat64(at, true)
+                  : vector.bytesPerElement === 4
+                    ? vector.integer
+                      ? page.view.getUint32(at, true)
+                      : page.view.getFloat32(at, true)
+                    : vector.bytesPerElement === 2
+                      ? page.view.getUint16(at, true)
+                      : page.bytes[at]
               );
             else {
-              if (vector.bytesPerElement === 4 && vector.integer)
+              if (vector.bytesPerElement === 8) page.view.setFloat64(at, request.value, true);
+              else if (vector.bytesPerElement === 4 && vector.integer)
                 page.view.setUint32(at, request.value, true);
               else if (vector.bytesPerElement === 2) page.view.setUint16(at, request.value, true);
               else if (vector.bytesPerElement === 4) page.view.setFloat32(at, request.value, true);

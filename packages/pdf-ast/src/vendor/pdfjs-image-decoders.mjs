@@ -5476,6 +5476,7 @@ const SubbandsGainLog2 = {
 };
 function* jpxVectorAllocate(length, bytesPerElement, stored, integer = false) {
   if (!stored && integer) return bytesPerElement === 4 ? new Uint32Array(length) : bytesPerElement === 2 ? new Uint16Array(length) : new Uint8Array(length);
+  if (!stored && bytesPerElement === 8) return new Float64Array(length);
   if (!stored) return bytesPerElement === 4 ? new Float32Array(length) : new Uint8ClampedArray(length);
   return {length, bytesPerElement, integer, position: yield {kind: "vector-allocate", length: length * bytesPerElement}};
 }
@@ -6551,8 +6552,10 @@ function* parseTilePackets(context, data, offset, dataLength) {
         } else {
           const width = precinct.cbxMax - precinct.cbxMin + 1;
           const height = precinct.cbyMax - precinct.cbyMin + 1;
-          inclusionTree = new InclusionTree(width, height, layerNumber, context.onAllocation);
-          zeroBitPlanesTree = new TagTree(width, height, context.onAllocation);
+          inclusionTree = new InclusionTree();
+          yield* inclusionTree.initialize(width, height, layerNumber, context.onAllocation, context.storedPlanes);
+          zeroBitPlanesTree = new TagTree();
+          yield* zeroBitPlanesTree.initialize(width, height, context.onAllocation, context.storedPlanes);
           precinct.inclusionTree = inclusionTree;
           precinct.zeroBitPlanesTree = zeroBitPlanesTree;
           for (let l = 0; l < layerNumber; l++) {
@@ -6561,17 +6564,17 @@ function* parseTilePackets(context, data, offset, dataLength) {
             }
           }
         }
-        if (inclusionTree.reset(codeblockColumn, codeblockRow, layerNumber)) {
+        if (yield* inclusionTree.reset(codeblockColumn, codeblockRow, layerNumber)) {
           while (true) {
             if ((yield* readBits(1))) {
-              valueReady = !inclusionTree.nextLevel();
+              valueReady = !(yield* inclusionTree.nextLevel());
               if (valueReady) {
                 codeblock.included = true;
                 codeblockIncluded = firstTimeInclusion = true;
                 break;
               }
             } else {
-              inclusionTree.incrementValue(layerNumber);
+              yield* inclusionTree.incrementValue(layerNumber);
               break;
             }
           }
@@ -6582,15 +6585,15 @@ function* parseTilePackets(context, data, offset, dataLength) {
       }
       if (firstTimeInclusion) {
         zeroBitPlanesTree = precinct.zeroBitPlanesTree;
-        zeroBitPlanesTree.reset(codeblockColumn, codeblockRow);
+        yield* zeroBitPlanesTree.reset(codeblockColumn, codeblockRow);
         while (true) {
           if ((yield* readBits(1))) {
-            valueReady = !zeroBitPlanesTree.nextLevel();
+            valueReady = !(yield* zeroBitPlanesTree.nextLevel());
             if (valueReady) {
               break;
             }
           } else {
-            zeroBitPlanesTree.incrementValue();
+            yield* zeroBitPlanesTree.incrementValue();
           }
         }
         codeblock.zeroBitPlanes = zeroBitPlanesTree.value;
@@ -6885,31 +6888,43 @@ function initializeTile(context, tileIndex) {
   }
   tile.codingStyleDefaultParameters = context.currentTile.COD;
 }
+function* jpxTagRead(level, index) {
+  if (!level.present) return level.items[index];
+  if (!(yield* jpxVectorRead(level.present, index))) return undefined;
+  return yield* jpxVectorRead(level.items, index);
+}
+function* jpxTagWrite(level, index, value) {
+  if (!level.present) { level.items[index] = value; return; }
+  yield* jpxVectorWrite(level.present, index, 1);
+  yield* jpxVectorWrite(level.items, index, value);
+}
 class TagTree {
-  constructor(width, height, onAllocation) {
+  *initialize(width, height, onAllocation, stored) {
     const levelsLength = log2(Math.max(width, height)) + 1;
     this.levels = [];
     for (let i = 0; i < levelsLength; i++) {
-      onAllocation?.(width * height * 16 + 256);
+      onAllocation?.((stored ? 0 : width * height * 16) + 256);
       const level = {
         width,
         height,
-        items: []
+        items: stored ? yield* jpxVectorAllocate(width * height, 8, true) : [],
+        present: stored ? yield* jpxVectorAllocate(width * height, 1, true, true) : undefined
       };
       this.levels.push(level);
       width = Math.ceil(width / 2);
       height = Math.ceil(height / 2);
     }
   }
-  reset(i, j) {
+  *reset(i, j) {
     let currentLevel = 0,
       value = 0,
       level;
     while (currentLevel < this.levels.length) {
       level = this.levels[currentLevel];
       const index = i + j * level.width;
-      if (level.items[index] !== undefined) {
-        value = level.items[index];
+      const item = yield* jpxTagRead(level, index);
+      if (item !== undefined) {
+        value = item;
         break;
       }
       level.index = index;
@@ -6919,18 +6934,18 @@ class TagTree {
     }
     currentLevel--;
     level = this.levels[currentLevel];
-    level.items[level.index] = value;
+    yield* jpxTagWrite(level, level.index, value);
     this.currentLevel = currentLevel;
     delete this.value;
   }
-  incrementValue() {
+  *incrementValue() {
     const level = this.levels[this.currentLevel];
-    level.items[level.index]++;
+    yield* jpxTagWrite(level, level.index, (yield* jpxTagRead(level, level.index)) + 1);
   }
-  nextLevel() {
+  *nextLevel() {
     let currentLevel = this.currentLevel;
     let level = this.levels[currentLevel];
-    const value = level.items[level.index];
+    const value = yield* jpxTagRead(level, level.index);
     currentLevel--;
     if (currentLevel < 0) {
       this.value = value;
@@ -6938,21 +6953,21 @@ class TagTree {
     }
     this.currentLevel = currentLevel;
     level = this.levels[currentLevel];
-    level.items[level.index] = value;
+    yield* jpxTagWrite(level, level.index, value);
     return true;
   }
 }
 class InclusionTree {
-  constructor(width, height, defaultValue, onAllocation) {
+  *initialize(width, height, defaultValue, onAllocation, stored) {
     const levelsLength = log2(Math.max(width, height)) + 1;
     this.levels = [];
     for (let i = 0; i < levelsLength; i++) {
-      onAllocation?.(width * height + 256);
-      const items = new Uint8Array(width * height);
-      for (let j = 0, jj = items.length; j < jj; j++) {
-        items[j] = defaultValue;
+      onAllocation?.((stored ? 0 : width * height) + 256);
+      const items = yield* jpxVectorAllocate(width * height, 1, stored, true);
+      if (defaultValue !== 0) for (let j = 0, jj = items.length; j < jj; j++) {
+        yield* jpxVectorWrite(items, j, defaultValue);
       }
-      onAllocation?.(width * height * 16 + 256);
+      onAllocation?.((stored ? 0 : width * height * 16) + 256);
       const level = {
         width,
         height,
@@ -6963,19 +6978,19 @@ class InclusionTree {
       height = Math.ceil(height / 2);
     }
   }
-  reset(i, j, stopValue) {
+  *reset(i, j, stopValue) {
     let currentLevel = 0;
     while (currentLevel < this.levels.length) {
       const level = this.levels[currentLevel];
       const index = i + j * level.width;
       level.index = index;
-      const value = level.items[index];
+      const value = yield* jpxVectorRead(level.items, index);
       if (value === 0xff) {
         break;
       }
       if (value > stopValue) {
         this.currentLevel = currentLevel;
-        this.propagateValues();
+        yield* this.propagateValues();
         return false;
       }
       i >>= 1;
@@ -6985,32 +7000,32 @@ class InclusionTree {
     this.currentLevel = currentLevel - 1;
     return true;
   }
-  incrementValue(stopValue) {
+  *incrementValue(stopValue) {
     const level = this.levels[this.currentLevel];
-    level.items[level.index] = stopValue + 1;
-    this.propagateValues();
+    yield* jpxVectorWrite(level.items, level.index, stopValue + 1);
+    yield* this.propagateValues();
   }
-  propagateValues() {
+  *propagateValues() {
     let levelIndex = this.currentLevel;
     let level = this.levels[levelIndex];
-    const currentValue = level.items[level.index];
+    const currentValue = yield* jpxVectorRead(level.items, level.index);
     while (--levelIndex >= 0) {
       level = this.levels[levelIndex];
-      level.items[level.index] = currentValue;
+      yield* jpxVectorWrite(level.items, level.index, currentValue);
     }
   }
-  nextLevel() {
+  *nextLevel() {
     let currentLevel = this.currentLevel;
     let level = this.levels[currentLevel];
-    const value = level.items[level.index];
-    level.items[level.index] = 0xff;
+    const value = yield* jpxVectorRead(level.items, level.index);
+    yield* jpxVectorWrite(level.items, level.index, 0xff);
     currentLevel--;
     if (currentLevel < 0) {
       return false;
     }
     this.currentLevel = currentLevel;
     level = this.levels[currentLevel];
-    level.items[level.index] = value;
+    yield* jpxVectorWrite(level.items, level.index, value);
     return true;
   }
 }

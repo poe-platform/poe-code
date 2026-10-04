@@ -286,7 +286,8 @@ precedes output commit, including cleanup failure and cancellation.
 
 The unfiltered backed CSV/TSV paths support line endings (and ASCII conversion for HTML) and finite
 `inputBytes`, `outputBytes`, `tableRows`, `tableColumns`, `tableCells`, and
-`tableFieldText` limits. With filters, finite input/output, work, diagnostics, font and include budgets are supported;
+`tableFieldText` limits. With filters, finite input/output, work, diagnostics, font, include, image, binary-byte,
+layout-work, archive-part, compressed-byte and expanded-byte budgets are supported;
 finite table budgets still use the compatibility converter. Additional transformations, other finite limits,
 and other format pairs
 currently use the existing buffered converter. The Safe Bash command uses the

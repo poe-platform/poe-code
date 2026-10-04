@@ -53,7 +53,8 @@ test("overlay supports command output publication and archive extraction", async
   })) await lower.writeFile(path, new TextEncoder().encode(text));
   await lower.mkdir("/nested");
   await lower.writeFile("/nested/file", new TextEncoder().encode("nested bytes"));
-  const fs = new OverlayFileSystem({ lower, upper: new MemoryFileSystem() });
+  const upper = new MemoryFileSystem();
+  const fs = new OverlayFileSystem({ lower, upper });
   await fs.mkdir("/out");
   const shell = new Shell({ fs }).use(archiveCommands()).use(csplitCommands()).use(applyPatchCommands())
     .use(mmdcCommands()).use(wkhtmltopdfCommands()).use(htmlqCommands()).use(pandocCommands())
@@ -77,9 +78,27 @@ test("overlay supports command output publication and archive extraction", async
       assert.ok((await fs.readFile(output!)).length > 0, output);
     }
     assert.equal(new TextDecoder().decode(await fs.readFile("/out/nested/file")), "nested bytes");
+    const snapshot = async (layer: MemoryFileSystem) => {
+      const entries = new Map<string, string | Uint8Array>();
+      const directories = ["/"];
+      for (const directory of directories) {
+        for (const entry of await layer.readdir(directory)) {
+          const path = `${directory}${entry.name}`;
+          entries.set(path, entry.type === "file" ? (await layer.readFile(path)).slice() : entry.type);
+          if (entry.type === "directory") directories.push(`${path}/`);
+        }
+      }
+      return entries;
+    };
+    const lowerBeforePatch = await snapshot(lower);
+    const upperBeforePatch = await snapshot(upper);
     const result = await shell.exec("apply_patch", { stdin: "*** Begin Patch\n*** Update File: /in.md\n@@\n-# Hello\n+# Updated\n*** End Patch\n" });
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(new TextDecoder().decode(await fs.readFile("/in.md")), "# Updated\nworld\nline3\n");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "apply_patch: filesystem does not support atomic conditional patch mutations\n");
+    assert.deepEqual(await snapshot(lower), lowerBeforePatch);
+    assert.deepEqual(await snapshot(upper), upperBeforePatch);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/in.md")), "# Hello\nworld\nline3\n");
     assert.equal(new TextDecoder().decode(await lower.readFile("/in.md")), "# Hello\nworld\nline3\n");
   } finally { await shell.dispose(); }
 });

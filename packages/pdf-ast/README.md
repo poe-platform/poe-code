@@ -853,7 +853,10 @@ ordered relative edits accumulate without collecting the selection.
 information/metadata/structure/form/label removals to a caller-backed editable
 graph. Use its `document` for subsequent copies and close the result when done.
 It preserves unsaved stream dictionaries, trailer identifiers and logical page
-identities across edits. Set `linearize: true` to append a linearization marker
+identities across edits. Set `flattenRotation: true` to bake page rotation into
+streamed content and transform explicit page boxes and annotation rectangles.
+Content sharing is preserved through caller-backed reference counts.
+Set `linearize: true` to append a linearization marker
 for subsequent saving; this preserves existing markers and is also the behavior
 of qpdf `--linearize`. Pass `pageLabels` as an iterable or async iterable of
 `{ index, style?, start?, prefix? }` entries to replace page labels. Indices are

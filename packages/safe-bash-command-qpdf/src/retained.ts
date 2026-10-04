@@ -18,6 +18,7 @@ import type { QpdfLimits } from "./index.js";
 
 export interface RetainedQpdfOptions extends QpdfJsonOptions {
   copyAttachmentsSpecs: readonly { file: string; prefix: string; password?: string }[];
+  flattenRotation: boolean;
   removeAttachmentKeys: readonly string[];
   addAttachmentSpecs: readonly { file: string; key: string; filename: string; description?: string; replace?: boolean }[];
   inputFile: string | undefined;
@@ -267,8 +268,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         yield { ...spec, length: input.size, chunks: input.stream(0, input.size, signal) };
       }
     }
-    if (options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
-      editedGraph = await editRetainedDocument(document, storage, { ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+    if (options.flattenRotation || options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
+      editedGraph = await editRetainedDocument(document, storage, { flattenRotation: options.flattenRotation, ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
     }
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
     if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");
@@ -316,7 +317,12 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
     }
     return { exitCode: 0 };
-  } catch (error) { failed = true; if (error instanceof PdfDuplicateAttachment) return await diagnostic(`qpdf: duplicate attachment key ${error.key}\n`); if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
+  } catch (error) {
+    failed = true;
+    if (error instanceof PdfError && error.message.startsWith("Unsupported streaming PDF filter: ")) {
+      throw new PdfError(error.code, `Unsupported PDF filter: ${error.message.slice("Unsupported streaming PDF filter: ".length)}`);
+    }
+    if (error instanceof PdfDuplicateAttachment) return await diagnostic(`qpdf: duplicate attachment key ${error.key}\n`); if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
   finally {
     const results = await Promise.allSettled([jsonOutput?.close(), splitOutputs?.close(), editedGraph?.close(), document?.close(), selectionGraph?.close(), ...[...new Set([...inputs.values(), source, output])].map(input => input?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);

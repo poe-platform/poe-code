@@ -1,5 +1,5 @@
 import { writeProbeOutput } from "./probe-output.js";
-import { readFileStream } from "safe-bash-contracts/filesystem";
+import { openProbeStream, sniffWavStream, withStagedProbeSource } from "./stream-input.js";
 import { probe as probeAudio, parseArguments as parseAudioArguments, formatAudioProbe } from "./probe.js";
 import { probeWavSource, type AudioAst } from "@poe-code/audio-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
@@ -48,14 +48,13 @@ export function rethrowRuntimeError(context: CommandContext, error: unknown): vo
 
 export function createInputReader(context: CommandContext, budget: MediaBudgetTracker) {
   let total = 0;
-  const account = (bytes: Uint8Array) => {
+  const account = (bytes: Uint8Array, validate = true) => {
     context.signal.throwIfAborted();
     total += bytes.byteLength;
-    context.inputBudget?.check(total);
-    budget.checkInputBytes(total);
+    if (validate) { context.inputBudget?.check(total); budget.checkInputBytes(total); }
   };
-  return async (path: string): Promise<Uint8Array> => {
-    if (isStdin(path)) return readStdinAll(context, account);
+  return async (path: string, source?: AsyncIterable<Uint8Array>, admitted = false): Promise<Uint8Array> => {
+    if (source || isStdin(path)) return readStdinAll(context, bytes => account(bytes, !admitted), source);
     const bytes = await context.fs.readFile(resolvePath(context.cwd, path), {
       signal: context.signal,
       ...(budget.limits.maxInputBytes === undefined ? {} : { maxBytes: Math.max(0, budget.limits.maxInputBytes - total) })
@@ -94,10 +93,10 @@ export async function loadManifestResources(
   };
 }
 
-async function readStdinAll(context: CommandContext, account: (bytes: Uint8Array) => void): Promise<Uint8Array> {
+async function readStdinAll(context: CommandContext, account: (bytes: Uint8Array) => void, source = context.stdin): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let total = 0;
-  for await (const chunk of readBytes(context.stdin, context.signal)) {
+  for await (const chunk of readBytes(source, context.signal)) {
     account(chunk);
     chunks.push(new Uint8Array(chunk));
     total += chunk.byteLength;
@@ -606,6 +605,35 @@ function parseProbeArguments(args: readonly string[]) {
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget };
 }
 
+async function probeSourceMetadata(context: CommandContext, plugin: MediaAstPlugin, input: MediaProbeSource, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio?: (audio: Awaited<ReturnType<typeof probeWavSource>>, size: number) => void): Promise<MediaProbeRecords | undefined> {
+  let sourceFailed = false;
+  const source: MediaProbeSource = { size: input.size, async read(offset, length) {
+    try {
+      const bytes = await input.read(offset, length);
+      if (bytes.length !== length) throw new Error("Truncated or invalid audio structure");
+      return bytes;
+    }
+    catch (error) { sourceFailed = true; throw error; }
+  } };
+  if (onAudio) {
+    if (input.size < 12) { return undefined; }
+    const header = await source.read(0, 12);
+    context.signal.throwIfAborted();
+    const text = new TextDecoder().decode(header);
+    if (text.slice(0, 4) !== "RIFF" || text.slice(8) !== "WAVE") { return undefined; }
+  }
+  const result = await plugin.probeMetadata!(source, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
+  if (onAudio) {
+    try { onAudio(await probeWavSource(source, { signal: context.signal }), input.size); }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (sourceFailed) throw error;
+      // Match the byte path: invalid strict audio structures retain the media schema.
+    }
+  }
+  return result;
+}
+
 async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPlugin, path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio?: (audio: Awaited<ReturnType<typeof probeWavSource>>, size: number) => void): Promise<MediaProbeRecords | undefined> {
   if (!plugin.canDemux || !plugin.probeMetadata || !context.fs.openReadFile) return undefined;
   context.signal.throwIfAborted();
@@ -621,32 +649,9 @@ async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPl
     if (!Number.isSafeInteger(stat.size) || stat.size < 0) throw new Error("Invalid media source size");
     context.inputBudget?.check(stat.size);
     budget.checkInputBytes(stat.size);
-    let sourceFailed = false;
-    const source: MediaProbeSource = { size: stat.size, async read(offset, length) {
-      try {
-        const bytes = await handle.read(offset, length, { signal: context.signal });
-        if (bytes.length !== length) throw new Error("Truncated or invalid audio structure");
-        return bytes;
-      }
-      catch (error) { sourceFailed = true; throw error; }
-    } };
-    if (onAudio) {
-      if (stat.size < 12) { failed = false; return undefined; }
-      const header = await source.read(0, 12);
-      context.signal.throwIfAborted();
-      if (header.length !== 12) throw new Error("Truncated or invalid audio structure");
-      const text = new TextDecoder().decode(header);
-      if (text.slice(0, 4) !== "RIFF" || text.slice(8) !== "WAVE") { failed = false; return undefined; }
-    }
-    const result = await plugin.probeMetadata(source, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
-    if (onAudio) {
-      try { onAudio(await probeWavSource(source, { signal: context.signal }), stat.size); }
-      catch (error) {
-        context.signal.throwIfAborted();
-        if (sourceFailed) throw error;
-        // Match the byte path: invalid strict audio structures retain the media schema.
-      }
-    }
+    const result = await probeSourceMetadata(context, plugin, { size: stat.size,
+      read: (offset, length) => handle.read(offset, length, { signal: context.signal })
+    }, filename, budget, records, onAudio);
     context.signal.throwIfAborted();
     failed = false;
     return result;
@@ -659,16 +664,9 @@ async function probeRetainedMetadata(context: CommandContext, plugin: MediaAstPl
 async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlugin, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }): Promise<MediaProbeRecords | undefined> {
   if (!plugin.canDemux || !plugin.probeMetadataStream) return undefined;
   context.signal.throwIfAborted();
-  let source: AsyncIterable<Uint8Array>;
-  if (isStdin(filename)) source = readBytes(context.stdin, context.signal);
-  else {
-    const path = resolvePath(context.cwd, filename);
-    const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
-    context.signal.throwIfAborted();
-    if (!context.fs.readStream || capabilities.streamingRead === false || context.fs.capabilities.streamingRead === false) return undefined;
-    source = readFileStream(context.fs, path, { signal: context.signal, chunkSize: 16384 });
-  }
-  async function* admitted() {
+  const source = await openProbeStream(context, isStdin(filename) ? undefined : resolvePath(context.cwd, filename));
+  if (!source) return undefined;
+  async function* admitted(source: AsyncIterable<Uint8Array>) {
     let total = 0;
     for await (const chunk of source) {
       context.signal.throwIfAborted();
@@ -679,7 +677,7 @@ async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlug
     }
     context.signal.throwIfAborted();
   }
-  const result = await plugin.probeMetadataStream(admitted(), { ...records, filename, signal: context.signal, budget, limits: budget.limits });
+  const result = await plugin.probeMetadataStream(admitted(source), { ...records, filename, signal: context.signal, budget, limits: budget.limits });
   context.signal.throwIfAborted();
   return result;
 }
@@ -752,8 +750,20 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           : undefined;
         if (!probeResult && explicitPlugin)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames });
+        let replay: AsyncIterable<Uint8Array> | undefined;
+        if (!probeResult && automaticPlugin?.probeMetadata) {
+          const source = await openProbeStream(context, isStdin(inputTarget) ? undefined : resolvePath(context.cwd, inputTarget));
+          if (source) {
+            const sniffed = await sniffWavStream(source, context.signal, total => {
+              context.inputBudget?.check(total); budget.checkInputBytes(total);
+            });
+            if (sniffed.wav) {
+              probeResult = await withStagedProbeSource(context, sniffed.stream, source => probeSourceMetadata(context, automaticPlugin, source, inputTarget, budget, { showPackets, showFrames }, (audio, size) => { audioInput = { audio, size, args }; }));
+            } else replay = sniffed.stream;
+          }
+        }
         if (!probeResult) {
-          const bytes = await readInput(inputTarget);
+          const bytes = await readInput(inputTarget, replay, replay !== undefined);
 
           const plugin = registry.detect(bytes, inputTarget, explicitFormat);
           if (!plugin || !plugin.canDemux) {

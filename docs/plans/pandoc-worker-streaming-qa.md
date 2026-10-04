@@ -108,7 +108,10 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   whole-file reads, exercise reused chunks and slow sinks, and inject filter,
   backing, cancellation, output and retirement errors. The external R2 workerd
   cohorts include CSV input to JSON, plain and HTML through three filter generations.
-  Finite table budgets with filters still select the compatibility converter.
+  Finite row, column and field-text limits remain retained with filters and typed
+  metadata. Differential checks cover exact and exhausted bounds, empty and
+  multiple inputs, all retained writers and retirement before output. Table-cell
+  budgets with filters still select the compatibility converter.
   CommonMark/GFM writers now retain continuations, intermediate text, escaping,
   long code fences, repeated-target indexes and table-span occupancy. Differential
   tests cover writer bytes, parse-back behavior, projections and diagnostics;

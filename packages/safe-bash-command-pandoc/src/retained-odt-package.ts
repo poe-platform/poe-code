@@ -1,4 +1,4 @@
-import {createZipCodec, type ZipLimits} from "@poe-code/office-package/zip";
+import {createZipCodec, type ZipLimits, type ZipSealedArchive} from "@poe-code/office-package/zip";
 import {createCompressionCodec} from "@poe-code/compression";
 import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
 import type {ExecutionContext} from "./execution.js";
@@ -27,7 +27,7 @@ export class RetainedOdtPackage {
     const position = await this.storage.append(header); await this.storage.append(metadata);
     await this.members.set(BigInt(this.count++), BigInt(position));
   }
-  async prepare(): Promise<AsyncIterable<Uint8Array>> {
+  async prepare(): Promise<ZipSealedArchive> {
     const context = this.context, storage = this.storage;
     const signal = context.signal ?? new AbortController().signal;
     const limits: ZipLimits = {maxArchiveBytes: context.limits.outputBytes, maxEntryBytes: context.limits.expandedBytes, maxTotalBytes: context.limits.expandedBytes, maxMembers: context.limits.parts, maxPathBytes: context.limits.text, maxDepth: context.limits.depth, maxPaxBytes: context.limits.binaryBytes, maxTextBytes: context.limits.text, chunkSize: 4096};
@@ -40,7 +40,8 @@ export class RetainedOdtPackage {
       const header = await storage.read(position, 8);
       const size = new DataView(header.buffer, header.byteOffset, header.byteLength).getFloat64(0, true);
       const {name, start, length} = JSON.parse(new TextDecoder().decode(await storage.read(position + 8, size))) as {name: string; start: number; length: number};
-      context.charge("parts", 1); context.charge("expandedBytes", length, false);
+      context.charge("parts", 1); context.charge("expandedBytes", length, Number.isFinite(context.limits.retainedBytes));
+      context.charge("retainedBytes", length);
       if (name === "mimetype") {
         const entry = await codec.makeZipEntry(name, await storage.read(start, length), attributes, limits, signal);
         entry.localExtra = new Uint8Array(); entry.centralExtra = new Uint8Array(); await archive.add(entry);
@@ -50,6 +51,6 @@ export class RetainedOdtPackage {
         })(), attributes);
       }
     }
-    return archive.finish();
+    return archive.seal();
   }
 }

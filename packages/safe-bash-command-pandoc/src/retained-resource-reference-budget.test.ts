@@ -55,14 +55,14 @@ it.each(["html5", "rtf", "odt"].flatMap(to => ["file", "data", "search", "intrin
   }
 });
 
-it.each(["file", "data", "png", "collision", "search", "resolver"])("retains RTF %s resource byte budgets", async kind => {
+it.each(["rtf", "odt"].flatMap(to => ["file", "data", "png", "collision", "search", "resolver"].map(kind => ({to, kind}))))("retains $to $kind resource byte budgets", async ({to, kind}) => {
   const fs = new MemoryFileSystem(); await fs.mkdir("/spill"); await fs.mkdir("/images"); await fs.mkdir("/other");
   const bytes = kind === "png" ? Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAADUlEQVR4AQECAP3/AIAAggCBw24l4AAAAABJRU5ErkJggg=="), c => c.charCodeAt(0)) : picture;
   await fs.writeFile("/images/p x.jpg", bytes); await fs.writeFile("/other/p x.jpg", bytes);
   const urls = kind === "data" ? Array<string>(2).fill("data:image/jpeg;base64," + btoa(String.fromCharCode(...bytes))) : kind === "collision" ? ["images/p%20x.jpg?one", "other/p%20x.jpg", "images/p%20x.jpg#two"] : ["p%20x.jpg?one", "p%20x.jpg#two", "p%20x.jpg?one"];
   const input = {base: kind === "collision" ? "/" : "/images", bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: urls.map(image)}]}))};
   const resources = kind === "resolver" ? {async resolve() {return bytes;}} : undefined;
-  const options = {from: "json", to: "rtf", ...(kind === "search" ? {resourcePath: ["/missing", "/images"]} : {})}, boundaries = new Set<number>([0, 1000000]), original = ExecutionContext.prototype.charge;
+  const options = {from: "json", to, ...(kind === "search" ? {resourcePath: ["/missing", "/images"]} : {})}, boundaries = new Set<number>([0, 1000000]), original = ExecutionContext.prototype.charge;
   const trace = vi.spyOn(ExecutionContext.prototype, "charge").mockImplementation(function(this: ExecutionContext, ...args) {
     const result = original.apply(this, args);
     if (["retainedBytes", "expandedBytes", "binaryBytes"].includes(args[0])) {const used = 1000000-this.remaining("retainedBytes"); boundaries.add(used); boundaries.add(used-1);}

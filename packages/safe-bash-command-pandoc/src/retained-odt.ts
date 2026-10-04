@@ -1,3 +1,4 @@
+import {emitRetainedOutput} from "./retained-output-budgets.js";
 import type {prepareRetainedImageResources} from "./retained-image-resources.js";
 import {retainedImageLength} from "./image-dimensions.js";
 import {encodeXML} from "entities";
@@ -34,20 +35,22 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
   const count = async (node: number) => (await tree.describe(node)).children;
   const tagOf = async (node: number) => (await tree.smallText((await tree.property(node, "t"))!, 32))!;
   const number = (node: number) => readJsonNumber(tree.scalarChunks(node), units => context.cooperate(units));
-  const escape = async (node: number, spaces = false) => {
-    const range = await text.from(tree.scalarChunks(node));
+  const escape = async (node: number | TextRange, spaces = false) => {
+    const range = typeof node === "number" ? await text.from(tree.scalarChunks(node)) : node;
+    let escapedUnits = 0;
     for await (const chunk of text.unicodeChunks(range)) {
       for (const char of chunk) {const code = char.codePointAt(0)!; if (code < 32 && ![9,10,13].includes(code) || code === 0xfffe || code === 0xffff) fail("Invalid XML character");}
-      let value = encodeXML(chunk);
+      let value = encodeXML(chunk); escapedUnits += value.length;
       if (spaces) value = value.split(" ").join("<text:s/>").split("\t").join("<text:tab/>").split("\n").join("<text:line-break/>");
       await add(value);
     }
+    context.charge("retainedBytes", escapedUnits * 2);
   };
   try {
     const archive = new RetainedOdtPackage(storage, context);
     const bytes = async function* (values: Iterable<string | TextRange>) {for (const value of values) {if (typeof value === "string") yield new TextEncoder().encode(value); else for await (const chunk of text.unicodeChunks(value)) yield new TextEncoder().encode(chunk);}};
     const putXml = async (name: string, values: (string | TextRange)[]) => {
-      if (Number.isFinite(context.limits.references)) context.bound("outputBytes", values.reduce((units, value) => units + (typeof value === "string" ? value.length : value.units), 0));
+      if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) context.bound("outputBytes", values.reduce((units, value) => units + (typeof value === "string" ? value.length : value.units), 0));
       await archive.addSource(name, bytes(values));
     };
     await archive.addSource("mimetype", bytes([odtMime]));
@@ -58,11 +61,11 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
       top = view.getFloat64(0, true);
       const job = JSON.parse(new TextDecoder().decode(await storage.read(position + 16, view.getFloat64(8, true)))) as Job;
       const node = job.node ?? 0, style = job.style ?? "", level = job.level ?? 1;
-      if (job.op === "blockBudget") {context.bound("outputBytes", content.units - job.begin!); continue;}
+      if (job.op === "blockBudget") {context.bound("outputBytes", content.units - job.begin!); context.charge("retainedBytes", (content.units - job.begin!) * 2); continue;}
       if (job.op === "literal") {await add(job.value!); continue;}
       if (job.op === "escape") {await escape(node, job.mode === "text"); continue;}
       if (job.op === "list") {
-        if (job.mode === "block" && Number.isFinite(context.limits.references)) await push({op: "blockBudget", begin: content.units});
+        if (job.mode === "block" && (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes))) await push({op: "blockBudget", begin: content.units});
         const header = await tree.describe(node);
         if (header.children) await push({op: "next", node: node + 32, end: header.end, mode: job.mode!, style, level});
         continue;
@@ -130,8 +133,13 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
           if(heightNode !== undefined && widthNode === undefined) width=height*image.width/image.height;
           await add(`<draw:frame draw:name="Image${++serial}" text:anchor-type="as-char" svg:width="${width/914400}in" svg:height="${height/914400}in"><draw:image xlink:href="${image.name}" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/><svg:title>`);
           await escape(await at(target,1)); await add("</svg:title><svg:desc>");
-          const alt = await at(c,1), altEnd=(await tree.describe(alt)).end;
-          for(let child=alt+32;child<altEnd;child=(await tree.describe(child)).end) {const tag=await tagOf(child); if(tag === "Str") await escape((await tree.property(child,"c"))!); else if(tag === "Space") await add(" ");}
+          const alt = await at(c,1), altEnd=(await tree.describe(alt)).end, description = emptyText();
+          for(let child=alt+32;child<altEnd;child=(await tree.describe(child)).end) {
+            const tag=await tagOf(child);
+            if(tag === "Str") await text.append(description, await text.from(tree.scalarChunks((await tree.property(child,"c"))!)));
+            else if(tag === "Space") await text.append(description, await text.from([" "]));
+          }
+          await escape(description);
           await add("</svg:desc></draw:frame>");
         }
         else fail("Unsupported ODT inline: " + tag, "E_UNSUPPORTED_FEATURE");
@@ -144,7 +152,7 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
       else if (tag === "HorizontalRule") await add('<text:p text:style-name="Rule"/>');
       else if (tag === "Div") {
         await add('<text:section text:name="'); const id = c + 64;
-        if (await tree.smallText(id, 0) !== "") await escape(id); else await add("Section" + ++serial);
+        if (await tree.smallText(id, 0) !== "") await escape(id); else {const name = "Section" + ++serial; context.charge("retainedBytes", name.length * 2); await add(name);}
         await sequence(literal('">'), list(await at(c, 1), "block", style, level), literal("</text:section>"));
       } else if (tag === "BulletList" || tag === "OrderedList") {
         const name = "List" + ++serial, ordered = tag === "OrderedList", spec = c + 32;
@@ -175,7 +183,9 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
     const output = await archive.prepare();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {const first=diagnostics[0]!; throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);}
-    for await (const chunk of output) await context.emit(chunk);
+    context.bound("outputBytes", output.size);
+    context.charge("retainedBytes", output.size);
+    await emitRetainedOutput(output.read(), context);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};} finally {release();}
   if (failure) throw failure.reason;

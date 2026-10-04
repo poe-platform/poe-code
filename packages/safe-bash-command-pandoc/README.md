@@ -174,13 +174,14 @@ retain finite `references` limits through SDK and command. This includes support
 writer options, metadata, streamed JSON/Lua filters, templates/includes and image
 resource search/embedding. Input acquisition, decoding, parser edges, table spans,
 resource deduplication and output checks preserve native budget diagnostics.
-Single-input JSON → JSON/plain/HTML/RST/CommonMark/GFM/LaTeX/RTF also supports finite `retainedBytes` with LF/native/CRLF
+Single-input JSON → JSON/plain/HTML/RST/CommonMark/GFM/LaTeX/RTF/ODT also supports finite `retainedBytes` with LF/native/CRLF
 line endings and non-transforming options. Plain output includes wrapping, indentation
 and explicit raw-source policies. HTML supports standalone output, contents,
 numbering, ASCII escaping and source metadata. CommonMark includes wrapping and
 reference links; GFM includes nested cell and caption projections. LaTeX includes
 standalone metadata, labels, notes and repeated table headers. RTF includes streamed
-PNG/JPEG resources, search paths and collision-safe resource names. Acquisition, decoding, parsing, AST
+PNG/JPEG resources, search paths and collision-safe resource names. ODT includes
+XML escaping, nested blocks, image resources and archive output. Acquisition, decoding, parsing, AST
 normalization and output encoding keep their existing cumulative quota charges
 while document data lives in caller storage. Output sink writes preserve native
 4096-byte accounting and failures. Other retained-byte-limited combinations still

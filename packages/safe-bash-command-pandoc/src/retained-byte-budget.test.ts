@@ -3,7 +3,7 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convert, convertToOutput} from "./engine.js";
 import {ExecutionContext} from "./execution.js";
 
-it.each(["empty", "text", "unicode", "long", "invalid"].flatMap(kind => ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf"].flatMap(to => ["lf", "crlf"].map(eol => ({kind, to, eol: eol as "lf" | "crlf"}))))) ("retains JSON-to-$to byte budgets for $kind with $eol", async ({kind, to, eol}) => {
+it.each(["empty", "text", "unicode", "long", "invalid"].flatMap(kind => ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].flatMap(to => ["lf", "crlf"].map(eol => ({kind, to, eol: eol as "lf" | "crlf"}))))) ("retains JSON-to-$to byte budgets for $kind with $eol", async ({kind, to, eol}) => {
   const text = JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: ["html5", "latex"].includes(to) ? {title: {t: "MetaInlines", c: [{t: "Strong", c: [{t: "Str", c: "Title 😀"}]}]}} : {}, blocks: kind === "empty" ? [] : [{t: "Para", c: [{t: "Str", c: kind === "long" ? "😀".repeat(5000) : kind === "unicode" ? "😀é" : "hello"}]}]});
   const bytes = new TextEncoder().encode(kind === "invalid" ? text.slice(0, -3) : text);
   const input = {source: "/input.json", chunks: [bytes.subarray(0, 17), bytes.subarray(17)]};

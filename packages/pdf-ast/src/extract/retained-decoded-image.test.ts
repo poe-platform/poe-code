@@ -175,11 +175,12 @@ it("reports image allocation to a containing owner before payload reads", async 
   expect(contents).not.toHaveBeenCalled(); expect(await f.storage.fs.readdir("/scratch")).toEqual(before); await f.close();
 });
 
-it.each(['jpeg','jpx'])('charges %s coefficient staging and cleans it on early return, cancellation and output failure',async kind=>{
+it.each(['jpeg','jpx','jbig2'])('charges %s codec staging and cleans it on early return, cancellation and output failure',async kind=>{
  const {encodeJpeg}=await import('../render/raster.js');let width=129,height=129;
- const bytes=kind==='jpeg'?encodeJpeg({width,height,data:new Uint8Array(width*height*4).fill(123)}):fixture('rgb-tiled.jp2');
+ const bytes=kind==='jpeg'?encodeJpeg({width,height,data:new Uint8Array(width*height*4).fill(123)}):fixture(kind==='jbig2'?'jbig2-generic-stream.bin':'rgb-tiled.jp2');
+ if(kind==='jbig2'){width=64;height=32;}
  if(kind==='jpx'){const {JpxImage}=await import('../vendor/pdfjs-image-decoders.mjs');const image=new JpxImage();image.parse(bytes);width=image.width;height=image.height;}
- const f=await open(bytes,cosDict({Filter:cosName(kind==='jpeg'?'DCTDecode':'JPXDecode'),Width:cosNumber(width),Height:cosNumber(height)}));const baseline=await f.storage.fs.readdir('/scratch');
+ const f=await open(bytes,cosDict({Filter:cosName(kind==='jpeg'?'DCTDecode':kind==='jpx'?'JPXDecode':'JBIG2Decode'),Width:cosNumber(width),Height:cosNumber(height),...(kind==='jbig2'?{ColorSpace:cosName('DeviceGray')}:{})}));const baseline=await f.storage.fs.readdir('/scratch');
  try{
   await expect(PdfRetainedDecodedImage.open(f.document,f.image,f.storage,{maxStagingBytes:bytes.length+1})).rejects.toThrow('staging');expect(await f.storage.fs.readdir('/scratch')).toEqual(baseline);
   const image=await PdfRetainedDecodedImage.open(f.document,f.image,f.storage),rows=image.rows();await rows.next();await rows.return();await image.close();expect(await f.storage.fs.readdir('/scratch')).toEqual(baseline);

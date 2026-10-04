@@ -1,13 +1,14 @@
 /** Public API of the vendored PDF.js 4.1.392 standalone decoder build. */
 export interface Jbig2Source { readonly length: number }
-export interface Jbig2ReadRequest {readonly source: Jbig2Source; readonly position: number}
+export interface Jbig2StoredBitmap {readonly position: number; readonly length: number}
+export type Jbig2ReadRequest = {readonly source: Jbig2Source; readonly position: number} | {kind: "bitmap-allocate"; length: number; fill: number} | {kind: "bitmap-update"; bitmap: Jbig2StoredBitmap; offset: number; mask: number; operator: "or" | "xor"};
 export class Jbig2Image {
-  constructor(onImageDimensions?: (width: number, height: number) => void, onAllocation?: (bytes: number) => void);
+  constructor(onImageDimensions?: (width: number, height: number) => void, onAllocation?: (bytes: number) => void, options?: {storedBitmap?: boolean});
   width: number;
   height: number;
   parse(data: Uint8Array, options?: { packed?: boolean }): Uint8ClampedArray;
-  parseSteps(data: Jbig2Source, options?: {packed?: boolean}): Generator<Jbig2ReadRequest, Uint8ClampedArray, number | undefined>;
-  parseChunksSteps(chunks: Array<{data: Jbig2Source; start: number; end: number}>): Generator<Jbig2ReadRequest, Uint8Array | undefined, number | undefined>;
+  parseSteps(data: Jbig2Source, options?: {packed?: boolean}): Generator<Jbig2ReadRequest, Uint8ClampedArray | Jbig2StoredBitmap, number | undefined>;
+  parseChunksSteps(chunks: Array<{data: Jbig2Source; start: number; end: number}>): Generator<Jbig2ReadRequest, Uint8Array | Jbig2StoredBitmap | undefined, number | undefined>;
   parseChunks(chunks: Array<{ data: Uint8Array; start: number; end: number }>): Uint8Array | undefined;
 }
 export interface JpxStoredVector { readonly position:number; readonly length:number; readonly bytesPerElement:number; readonly integer?:boolean }

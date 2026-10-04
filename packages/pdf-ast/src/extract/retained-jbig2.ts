@@ -1,8 +1,12 @@
+import type { PdfPixelStorage } from "../ast.js";
+import type { Jbig2StoredBitmap } from "../vendor/pdfjs-image-decoders.mjs";
 import { PdfError } from "../errors.js";
 import type { PdfFileSource } from "../source.js";
 import { Jbig2Image } from "../vendor/pdfjs-image-decoders.mjs";
 
 export interface PdfRetainedJbig2Options {
+  /** Caller-owned packed page backing. Symbol and region state is still admitted separately. */
+  readonly bitmapStorage?: PdfPixelStorage;
   readonly globals?: PdfFileSource | undefined;
   /** Conservative fixed input-cache and cumulative decoder state, plus one RGBA
    * row. Caller-owned source caches are additional memory. */
@@ -19,17 +23,19 @@ function limit(value: number | undefined, name: string) {
   return value;
 }
 /** JBIG2 reads encoded input through fixed caches and retains admitted symbol/region decoder state and packed
- * page pixels. Only one output row is expanded. Both sources stay caller-owned
- * and may close after open(); close() releases the owner's packed bitmap. */
+ * page pixels, optionally in caller backing with fixed scratch. Only one output row is expanded. Both sources stay caller-owned
+ * and may close after open(); close() releases decoder references and cancels pending row reads. */
 export class PdfRetainedJbig2 {
-  private constructor(private pixels: Uint8Array | Uint8ClampedArray | undefined,
+  private constructor(private pixels: Uint8Array | Uint8ClampedArray | Jbig2StoredBitmap | undefined,
     readonly width: number, readonly height: number,
     /** Conservative admitted parse allocation, not measured heap. */
     readonly decoderBytes: number, private readonly maximum: number,
-    private readonly signal?: AbortSignal) {}
+    private readonly controller: AbortController, private readonly signal?: AbortSignal, private readonly storage?: PdfPixelStorage) {}
 
   static async open(source: PdfFileSource, fallbackWidth: number, fallbackHeight: number,
     options: PdfRetainedJbig2Options = {}): Promise<PdfRetainedJbig2> {
+    const controller = new AbortController();
+    options = {...options, signal: options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal};
     const maximum = limit(options.maxWorkingBytes, "maxWorkingBytes");
     const outputMaximum = limit(options.maxOutputBytes, "maxOutputBytes");
     let allocated = 0;
@@ -67,7 +73,13 @@ export class PdfRetainedJbig2 {
     let standalone = true;
     const signature = [0x97, 0x4a, 0x42, 0x32, 0x0d, 0x0a, 0x1a, 0x0a];
     for (let i = 0; i < signature.length; i++) if (await read(0, i) !== signature[i]) {standalone = false; break;}
-    const decoder = new Jbig2Image(dimensions, charge);
+    if (options.bitmapStorage) charge(4096 * 4 + 1024);
+    const decoder = new Jbig2Image(dimensions, charge, {storedBitmap: options.bitmapStorage !== undefined});
+    let page: {position: number; bytes: Uint8Array; dirty: boolean} | undefined;
+    const selected = options.signal ? {signal: options.signal} : undefined;
+    async function flush() {
+      if (page?.dirty) {await options.bitmapStorage!.write(page.position, page.bytes, selected); page.dirty = false;}
+    }
     const chunks = options.globals ? [{data: inputs[1]!.data, start: 0, end: inputs[1]!.data.length}] : [];
     chunks.push({data: inputs[0]!.data, start: 0, end: source.size});
     const program = standalone ? decoder.parseSteps(inputs[0]!.data, {packed: true}) : decoder.parseChunksSteps(chunks);
@@ -77,30 +89,80 @@ export class PdfRetainedJbig2 {
         options.signal?.throwIfAborted();
         if (++requests % 4096 === 0) {await new Promise<void>(resolve => setTimeout(resolve, 0)); options.signal?.throwIfAborted();}
         const request = step.value;
+        if ("kind" in request) {
+          const storage = options.bitmapStorage!;
+          if (request.kind === "bitmap-allocate") {
+            await flush(); page = undefined;
+            const {length, fill} = request;
+            if (!Number.isSafeInteger(length) || length < 0) throw new PdfError("E_LIMIT", "Invalid JBIG2 bitmap size");
+            const position = storage.allocate(length);
+            if (!Number.isSafeInteger(position) || position < 0 || !Number.isSafeInteger(position + length)) throw new PdfError("E_LIMIT", "Invalid JBIG2 bitmap allocation");
+            const bytes = new Uint8Array(Math.min(4096, length)).fill(fill);
+            for (let at = 0; at < length; at += bytes.length) {
+              options.signal?.throwIfAborted();
+              await storage.write(position + at, bytes.subarray(0, Math.min(bytes.length, length - at)), selected);
+              if (at % 65536 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+            }
+            step = program.next(position);
+          } else {
+            const {bitmap, offset, mask, operator} = request;
+            if (Number.isInteger(offset) && offset >= 0 && offset < bitmap.length) {
+              const start = Math.floor(offset / 4096) * 4096, position = bitmap.position + start;
+              if (page?.position !== position) {
+                await flush();
+                const length = Math.min(4096, bitmap.length - start), bytes = await storage.read(position, length, selected);
+                options.signal?.throwIfAborted();
+                if (bytes.length !== length) throw new PdfError("E_PARSE", "Incomplete JBIG2 bitmap read");
+                page = {position, bytes: bytes.slice(), dirty: false};
+              }
+              const at = offset - start;
+              page.bytes[at] = operator === "or" ? page.bytes[at]! | mask : page.bytes[at]! ^ mask;
+              page.dirty = true;
+            }
+            step = program.next();
+          }
+          continue;
+        }
         const index = inputs.findIndex(input => input.data === request.source);
         if (index < 0) throw new PdfError("E_PARSE", "Unknown JBIG2 source");
         step = program.next(await read(index, request.position));
       }
+      await flush();
+      options.signal?.throwIfAborted();
     } finally {program.return(undefined as never);}
     const pixels = step.value;
     const width = standalone ? decoder.width : fallbackWidth, height = standalone ? decoder.height : fallbackHeight;
     dimensions(width, height);
     if (!pixels || width <= 0 || height <= 0 || pixels.length !== Math.ceil(width / 8) * height) throw new PdfError("E_PARSE", "JBIG2 bitmap dimensions do not match decoded data");
-    return new PdfRetainedJbig2(pixels, width, height, allocated, maximum, options.signal);
+    return new PdfRetainedJbig2(pixels, width, height, allocated, maximum, controller, options.signal, options.bitmapStorage);
   }
 
   async *rows(): AsyncGenerator<Uint8Array, void, void> {
+    let cached = new Uint8Array(), start = -1;
     for (let y = 0; y < this.height; y++) {
       this.signal?.throwIfAborted();
       if (!this.pixels) throw new PdfError("E_CAPABILITY", "Retained JBIG2 decoder is closed");
       if (this.width * 4 > this.maximum - this.decoderBytes) throw new PdfError("E_LIMIT", "JBIG2 row working byte limit exceeded");
       const row = new Uint8Array(this.width * 4);
       for (let x = 0; x < this.width; x++) {
-        const lum = (this.pixels[y * Math.ceil(this.width / 8) + (x >> 3)]! >> (7 - (x & 7))) & 1 ? 0 : 255;
+        const offset = y * Math.ceil(this.width / 8) + (x >> 3);
+        let byte: number;
+        if ("position" in this.pixels) {
+          if (offset < start || offset >= start + cached.length) {
+            const length = Math.min(4096, this.pixels.length - offset);
+            const bytes = await this.storage!.read(this.pixels.position + offset, length, this.signal ? {signal: this.signal} : undefined);
+            this.signal?.throwIfAborted();
+            if (!this.pixels) throw new PdfError("E_CAPABILITY", "Retained JBIG2 decoder is closed");
+            if (bytes.length !== length) throw new PdfError("E_PARSE", "Incomplete JBIG2 bitmap row");
+            cached = bytes.slice(); start = offset;
+          }
+          byte = cached[offset - start]!;
+        } else byte = this.pixels[offset]!;
+        const lum = (byte >> (7 - (x & 7))) & 1 ? 0 : 255;
         row[x * 4] = lum; row[x * 4 + 1] = lum; row[x * 4 + 2] = lum; row[x * 4 + 3] = 255;
       }
       yield row;
     }
   }
-  close(): void { this.pixels = undefined; }
+  close(): void { this.pixels = undefined; this.controller.abort(new PdfError("E_CAPABILITY", "Retained JBIG2 decoder is closed")); }
 }

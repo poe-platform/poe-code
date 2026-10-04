@@ -174,20 +174,19 @@ export class PdfRetainedDecodedImage {
       const decode = await pairs(dict);
       const colorTransform = parameter?.kind === "dict" ? await resolve(dictGet(parameter, "ColorTransform")) : undefined;
       const codecOptions = { onDecoderAllocation: charge, maxWorkingBytes: workingLimit - budget.working, maxOutputBytes: outputLimit, ...(signal ? { signal } : {}) };
-      if (encoding === "jpeg" || encoding === "jpx") {
+      if (encoding === "jpeg" || encoding === "jpx" || encoding === "jbig2") {
         charge(65536);
         codecBacking=new PagedStorage({fs:storage.fs,cwd:storage.directory,env:{},signal:signal??new AbortController().signal},2);
         const backing=codecBacking;
         const storedOptions={...codecOptions,maxWorkingBytes:workingLimit-budget.working,
           coefficientStorage:{allocate(length:number){if(length>stagingLimit-budget.staged)throw new PdfError("E_LIMIT","PDF image staging byte limit exceeded");const position=backing.allocate(length);budget.staged+=length;codecStaged+=length;return position;},read:backing.read.bind(backing),write:backing.write.bind(backing)}};
-        codec=encoding==="jpeg"
+        if (encoding === "jbig2") {
+          const globalsValue = parameter?.kind === "dict" ? await document.lookup(dictGet(parameter, "JBIG2Globals")) : undefined;
+          if (globalsValue?.stream && globalsValue.reference) globals = await stage(document.objects.decodeStream(globalsValue.reference.objectNumber, globalsValue.reference.generationNumber));
+          codec = await PdfRetainedJbig2.open(samples, width, height, { ...codecOptions, bitmapStorage: storedOptions.coefficientStorage, maxWorkingBytes: workingLimit - budget.working, ...(globals ? { globals } : {}) });
+        } else codec=encoding==="jpeg"
           ?await PdfRetainedJpeg.open(samples,{...storedOptions,isSourcePdf:true,decode,colorTransform:colorTransform?.kind==="number"?colorTransform.value:undefined})
           :await PdfRetainedJpx.open(samples,{...storedOptions,...(colorNode?{color}:{})});
-      }
-      else if (encoding === "jbig2") {
-        const globalsValue = parameter?.kind === "dict" ? await document.lookup(dictGet(parameter, "JBIG2Globals")) : undefined;
-        if (globalsValue?.stream && globalsValue.reference) globals = await stage(document.objects.decodeStream(globalsValue.reference.objectNumber, globalsValue.reference.generationNumber));
-        codec = await PdfRetainedJbig2.open(samples, width, height, { ...codecOptions, maxWorkingBytes: workingLimit - budget.working, ...(globals ? { globals } : {}) });
       }
       if (codec) { width = codec.width; height = codec.height; bitsPerComponent = encoding === "jbig2" ? bitsPerComponent : 8;
         if (encoding === "jpx" && !colorNode) { const components = (codec as PdfRetainedJpx).components; color = { colorSpace: components === 1 ? "gray" : components === 4 ? "cmyk" : "rgb", components }; } }

@@ -253,12 +253,16 @@ additional memory; upstream retained image rows provide bounded input chunks.
 
 `PdfRetainedJbig2.open(source, width, height, options)` reads encoded input and
 optional retained `globals` through fixed range caches, skipping unused extension
-payloads. It admits arithmetic contexts, symbol/region bitmaps and custom Huffman state. It keeps page pixels packed and emits owned RGBA `rows()`;
+payloads. It admits arithmetic contexts, symbol/region bitmaps and custom Huffman state. With `bitmapStorage`, packed page pixels use caller backing
+and fixed read/write caches; the retained PDF adapter supplies safe-fs backing
+and shares its staging/cleanup budgets. It emits owned RGBA `rows()`;
 standalone files use their embedded dimensions. `maxWorkingBytes` conservatively
 counts cumulative decoder allocations plus one RGBA row; source caches and
 fixed shared codec tables are additional. `maxOutputBytes` bounds decoded
 output. Sources stay caller-owned and may close after opening; call `close()`
-to release the packed bitmap. Symbol/region bitmaps and intrinsic codec state remain resident.
+to cancel pending row reads and release decoder references. Without backing,
+the convenience decoder retains its packed page bitmap. Symbol/region bitmaps
+and intrinsic codec state remain resident.
 
 `PdfRetainedJpx.open(source, options)` reads encoded JPEG 2000 ranges through a
 fixed cache and skips unused container boxes without copying their payloads.

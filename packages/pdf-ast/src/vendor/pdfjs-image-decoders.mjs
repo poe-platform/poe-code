@@ -3554,8 +3554,8 @@ function* processSegments(segments, visitor) {
     (yield* processSegment(segments[i], visitor));
   }
 }
-function* parseJbig2Chunks(chunks, onImageDimensions, onAllocation) {
-  const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation);
+function* parseJbig2Chunks(chunks, onImageDimensions, onAllocation, storedBitmap) {
+  const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation, storedBitmap);
   for (let i = 0, ii = chunks.length; i < ii; i++) {
     const chunk = chunks[i];
     const segments = (yield* readSegments({}, chunk.data, chunk.start, chunk.end, onAllocation));
@@ -3563,7 +3563,7 @@ function* parseJbig2Chunks(chunks, onImageDimensions, onAllocation) {
   }
   return visitor.buffer;
 }
-function* parseJbig2(data, onImageDimensions, onAllocation, packed) {
+function* parseJbig2(data, onImageDimensions, onAllocation, packed, storedBitmap) {
   const end = data.length;
   let position = 0;
   if ((yield {source: data, position: position}) !== 0x97 || (yield {source: data, position: position + 1}) !== 0x4a || (yield {source: data, position: position + 2}) !== 0x42 || (yield {source: data, position: position + 3}) !== 0x32 || (yield {source: data, position: position + 4}) !== 0x0d || (yield {source: data, position: position + 5}) !== 0x0a || (yield {source: data, position: position + 6}) !== 0x1a || (yield {source: data, position: position + 7}) !== 0x0a) {
@@ -3578,7 +3578,7 @@ function* parseJbig2(data, onImageDimensions, onAllocation, packed) {
     position += 4;
   }
   const segments = (yield* readSegments(header, data, position, end, onAllocation));
-  const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation);
+  const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation, storedBitmap);
   (yield* processSegments(segments, visitor));
   const {
     width,
@@ -3609,12 +3609,17 @@ function* parseJbig2(data, onImageDimensions, onAllocation, packed) {
   };
 }
 class SimpleSegmentVisitor {
-  constructor(onImageDimensions, onAllocation) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; }
+  constructor(onImageDimensions, onAllocation, storedBitmap) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; this.storedBitmap = storedBitmap; }
   *onPageInformation(info) {
     this.onImageDimensions?.(info.width, info.height);
     this.currentPageInfo = info;
     const rowSize = info.width + 7 >> 3;
-    this.onAllocation?.(rowSize * info.height + 256);
+    this.onAllocation?.(this.storedBitmap ? 512 : rowSize * info.height + 256);
+    if (this.storedBitmap) {
+      const length = rowSize * info.height;
+      this.buffer = {length, position: yield {kind: "bitmap-allocate", length, fill: info.defaultPixelValue ? 255 : 0}};
+      return;
+    }
     const buffer = new Uint8ClampedArray(rowSize * info.height);
     if (info.defaultPixelValue) {
       buffer.fill(0xff);
@@ -3638,7 +3643,8 @@ class SimpleSegmentVisitor {
           offset = offset0;
           for (j = 0; j < width; j++) {
             if (bitmap[i][j]) {
-              buffer[offset] |= mask;
+              if (this.storedBitmap) yield {kind: "bitmap-update", bitmap: buffer, offset, mask, operator: "or"};
+              else buffer[offset] |= mask;
             }
             mask >>= 1;
             if (!mask) {
@@ -3655,7 +3661,8 @@ class SimpleSegmentVisitor {
           offset = offset0;
           for (j = 0; j < width; j++) {
             if (bitmap[i][j]) {
-              buffer[offset] ^= mask;
+              if (this.storedBitmap) yield {kind: "bitmap-update", bitmap: buffer, offset, mask, operator: "xor"};
+              else buffer[offset] ^= mask;
             }
             mask >>= 1;
             if (!mask) {
@@ -4214,16 +4221,16 @@ function* jbigArithmetic(decoder, program) {
 }
 function runJbigSteps(program) {
   let step = program.next();
-  try { while (!step.done) step = program.next(step.value.source[step.value.position]); return step.value; }
+  try { while (!step.done) { if (step.value.kind) throw new Jbig2Error("Stored JBIG2 bitmaps require a cooperative driver"); step = program.next(step.value.source[step.value.position]); } return step.value; }
   finally { program.return(); }
 }
 class Jbig2Image {
-  constructor(onImageDimensions, onAllocation) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; }
+  constructor(onImageDimensions, onAllocation, options = {}) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; this.storedBitmap = options.storedBitmap; }
   parseChunks(chunks) {
     return runJbigSteps(this.parseChunksSteps(chunks));
   }
   *parseChunksSteps(chunks) {
-    return yield* parseJbig2Chunks(chunks, this.onImageDimensions, this.onAllocation);
+    return yield* parseJbig2Chunks(chunks, this.onImageDimensions, this.onAllocation, this.storedBitmap);
   }
   parse(data, options = {}) { return runJbigSteps(this.parseSteps(data, options)); }
   *parseSteps(data, { packed = false } = {}) {
@@ -4231,7 +4238,7 @@ class Jbig2Image {
       imgData,
       width,
       height
-    } = yield* parseJbig2(data, this.onImageDimensions, this.onAllocation, packed);
+    } = yield* parseJbig2(data, this.onImageDimensions, this.onAllocation, packed, this.storedBitmap);
     this.width = width;
     this.height = height;
     return imgData;

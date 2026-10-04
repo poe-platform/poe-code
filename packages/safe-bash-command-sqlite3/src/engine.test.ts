@@ -514,3 +514,16 @@ test("integer affinity makes grouped extrema and ordering numeric", () => {
     [["ap-south", "integer", 6, 39]]);
   assert.deepEqual(db.exec("SELECT latency_ms FROM events ORDER BY latency_ms")[0]!.rows, [[6], [39]]);
 });
+
+for (const expression of [
+  "COALESCE(SUM(score), 0)",
+  "IFNULL(SUM(score), 0)",
+  "IIF(COUNT(score) > 0, SUM(score), 0)"
+]) {
+  test(`conditional aggregate functions order result groups: ${expression}`, () => {
+    const db = new SqliteDatabase();
+    db.exec("CREATE TABLE t(g TEXT, score INT); INSERT INTO t VALUES ('a', 10), ('a', 20), ('b', NULL), ('c', 5)");
+    assert.deepEqual(db.exec(`SELECT g FROM t GROUP BY g ORDER BY ${expression}, g`)[0]!.rows,
+      [["b"], ["c"], ["a"]]);
+  });
+}

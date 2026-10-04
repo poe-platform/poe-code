@@ -991,3 +991,9 @@ for (const strict of [false, true]) {
     });
   }
 }
+
+test("sqlite3 conditional projection values reach command stdout", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+    "SELECT COALESCE(1, 2), COALESCE(NULL, 'fallback'), IFNULL(NULL, 9), IIF(10 > 5, 'yes', 'no');"]);
+  assert.deepEqual(result, { code: 0, stdout: "1|fallback|9|yes\n", stderr: "" });
+});

@@ -21,7 +21,14 @@ const styleDefaults: Readonly<Record<string, AttributeRule>> = {
 };
 const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => value.trim() !== "" && Number.isFinite(Number(value)) && Number(value) > 0, Bold: ["0", "1"], Italic: ["0", "1"], Underline: ["0", "1", "2", "3", "4"], StrikeThrough: ["0", "1"], Script: "0"};
 
+export interface CellPrintBorder {
+  readonly side: "Diagonal" | "Rev-Diagonal";
+  readonly style: number;
+  readonly color: readonly [number, number, number];
+  readonly alpha: number;
+}
 export interface CellPrintStyle {
+  readonly borders?: readonly CellPrintBorder[];
   readonly alignment: "general" | "left" | "right" | "center" | "fill" | "justify" | "distributed";
   readonly verticalAlignment: "top" | "bottom" | "center" | "justify" | "distributed";
   readonly family: string;
@@ -80,7 +87,7 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>> | 
   const node = record(style.gnumeric);
   if (node.name !== "Style" || node.namespace !== "http://www.gnumeric.org/v10.dtd" || typeof node.text !== "string") fail();
   tick((node.text as string).length);
-  if ((node.text as string).trim() !== "" || !Array.isArray(node.children) || node.children.length > 1) fail();
+  if ((node.text as string).trim() !== "" || !Array.isArray(node.children) || node.children.length > 2) fail();
   // Modern Gnumeric StyleRegions replace earlier regions using native defaults.
   // Keep BIFF's materialized style validation, including its revision-specific omissions.
   const defaults: Record<string, string> = biff
@@ -91,7 +98,34 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>> | 
   const effects = attributes(node, styleDefaults, defaults);
   const fontValues = {Unit: "10", Bold: "0", Italic: "0", Underline: "0", StrikeThrough: "0", Script: "0"};
   let selected: Record<string, string> = fontValues, family = "Sans";
-  const child = (node.children as readonly ImportedValue[])[0];
+  let child: ImportedValue | undefined;
+  const borders: CellPrintBorder[] = [];
+  let seenBorder = false;
+  for (const item of node.children as readonly ImportedValue[]) {
+    const entry = record(item);
+    if (entry.name === "Font") {
+      if (child !== undefined) fail();
+      child = item;
+      continue;
+    }
+    if (entry.name !== "StyleBorder" || seenBorder || entry.namespace !== node.namespace || typeof entry.text !== "string" || (entry.text as string).trim() !== "" || !Array.isArray(entry.children) || entry.children.length > 6) fail();
+    tick((entry.text as string).length);
+    attributes(entry, {});
+    seenBorder = true;
+    const seen = new Set<string>();
+    for (const item of entry.children as readonly ImportedValue[]) {
+      const side = record(item);
+      if (typeof side.name !== "string" || !["Top", "Bottom", "Left", "Right", "Diagonal", "Rev-Diagonal"].includes(side.name as string) || side.namespace !== node.namespace || typeof side.text !== "string" || (side.text as string).trim() !== "" || !Array.isArray(side.children) || side.children.length || seen.has(side.name as string)) fail();
+      tick((side.text as string).length);
+      seen.add(side.name as string);
+      const values = attributes(side, {Style: value => value.trim() !== "" && Array.from(value.trim()).every(char => "0123456789".includes(char)) && Number(value) <= 13, Color: validColor}, {Style: "0", Color: "0:0:0"});
+      const kind = Number(values.Style);
+      if (!kind) continue;
+      if (side.name !== "Diagonal" && side.name !== "Rev-Diagonal") fail();
+      const color = colorChannels(values.Color!);
+      borders.push({side: side.name as CellPrintBorder["side"], style: kind, color: [color[0], color[1], color[2]], alpha: color[3]});
+    }
+  }
   if (child !== undefined) {
     const font = record(child);
     if (font.name !== "Font" || font.namespace !== "http://www.gnumeric.org/v10.dtd" || typeof font.text !== "string" || !Array.isArray(font.children) || font.children.length) fail();
@@ -103,7 +137,7 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>> | 
     selected = attributes(font, fontDefaults, biff ? {} : fontValues);
   } else if (biff) fail();
   const foreground = colorChannels(effects.Fore!), background = colorChannels(effects.Back!);
-  return {...(effects.WrapText === "1" ? {wrap: true} : {}), alignment: alignments[effects.HAlign as keyof typeof alignments], verticalAlignment: verticalAlignments[effects.VAlign as keyof typeof verticalAlignments], family, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit), underline: Number(selected.Underline), indent: Number(effects.Indent), strikeThrough: selected.StrikeThrough === "1",
+  return {...(borders.length ? {borders} : {}), ...(effects.WrapText === "1" ? {wrap: true} : {}), alignment: alignments[effects.HAlign as keyof typeof alignments], verticalAlignment: verticalAlignments[effects.VAlign as keyof typeof verticalAlignments], family, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit), underline: Number(selected.Underline), indent: Number(effects.Indent), strikeThrough: selected.StrikeThrough === "1",
     foreground: [foreground[0], foreground[1], foreground[2]], foregroundAlpha: foreground[3],
     ...(effects.Shade === "1" ? {background: [background[0], background[1], background[2]] as const, backgroundAlpha: background[3]} : {})};
 }

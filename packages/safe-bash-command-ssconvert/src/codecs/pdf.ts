@@ -1,3 +1,4 @@
+import {printDiagonalBorders} from "@poe-code/spreadsheet-engine/rendering/print/diagonal-borders";
 import {createPrintMerges} from "@poe-code/spreadsheet-engine/rendering/print/merges";
 import {justifyPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/justify-line";
 import {wrapPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/wrap-lines";
@@ -701,6 +702,16 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             ...(style.backgroundAlpha === 1 ? {} : {opacity: style.backgroundAlpha}) });
           if (merge) page.pushOperators(popGraphicsState());
         }
+        const drawDiagonals = ({width, height, style, x, y}: typeof paintedCells[number]) => {
+          for (const line of printDiagonalBorders(style.borders ?? [], width, height, tick)) {
+            tick();
+            page.drawLine({start: {x: x + 2 + line.x1, y: page.getHeight() - y - line.y1},
+              end: {x: x + 2 + line.x2, y: page.getHeight() - y - line.y2}, thickness: line.width,
+              color: rgb(...line.border.color), opacity: line.border.alpha,
+              ...("dash" in line ? {dashArray: [...line.dash]} : {}), ...("phase" in line ? {dashPhase: line.phase} : {})});
+          }
+        };
+        for (const painted of paintedCells) if (!painted.merge) drawDiagonals(painted);
         for (const {cell, merge, width, height, style, x, y} of paintedCells) {
           tick();
           const formula = showFormulas ? printedFormulaText.get(cell) ?? cell.formula : undefined;
@@ -729,6 +740,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
               ...(generalNumber === undefined ? {} : {generalNumber, zoom: Number(sheet.view?.zoom ?? 1)}),
               ...(merge ? {overflow: () => ({left: 0, right: 0})} : overflow === undefined ? {} : {overflow})});
           if (merge) page.pushOperators(popGraphicsState());
+        }
+        // Native merged diagonals are painted after the corner text.
+        for (const painted of paintedCells) if (painted.merge) {
+          page.pushOperators(...mergedClip);
+          drawDiagonals(painted);
+          page.pushOperators(popGraphicsState());
         }
         for (const { object, rectangle } of objects) {
           tick();

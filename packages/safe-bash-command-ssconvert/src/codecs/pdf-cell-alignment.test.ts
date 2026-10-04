@@ -1,5 +1,5 @@
 import {expect, it, vi} from "vitest";
-import {PDFArray, PDFRawStream, decodePDFRawStream} from "pdf-lib";
+import {PDFPage, PDFArray, PDFRawStream, decodePDFRawStream} from "pdf-lib";
 import * as fontShaping from "../rendering/print/font-shaping.js";
 import {suppliedDefaultFont} from "safe-bash-pdf-engine";
 import type {CapabilityContext} from "../contracts.js";
@@ -362,4 +362,22 @@ it("prints a hidden-row merge anchor when other cells expose its visible rectang
       {...anchor, row: 1, column: 4, value: {kind: "string" as const, value: "marker"}},
       {...anchor, row: 3, column: 0, value: {kind: "string" as const, value: "lower"}}]}]};
   expect((await pdfText(await writePdf(book, [], context))).runs.map(run => run.text)).toEqual(["alpha", "marker", "lower"]);
+});
+
+it.each(["Diagonal", "Rev-Diagonal"])("renders %s border strokes without changing text geometry", async side => {
+  const original = await fixture("GNM_HALIGN_LEFT"), sheet = original.sheets[0]!, cell = sheet.cells[0]!;
+  const node = cell.style!.gnumeric as {children: readonly unknown[]};
+  const draw = vi.spyOn(PDFPage.prototype, "drawLine");
+  try {for (let style = 0; style <= 13; style++) {
+    draw.mockClear();
+    const border = {name: "StyleBorder", namespace: "http://www.gnumeric.org/v10.dtd", text: "", attributes: [], children: [{
+      name: side, namespace: "http://www.gnumeric.org/v10.dtd", text: "", attributes: [{name: "Style", namespace: "", value: String(style)}, {name: "Color", namespace: "", value: "FFFF:0:0"}], children: []}]};
+    const book = {...original, sheets: [{...sheet, cells: [{...cell, style: {gnumeric: {...node, children: [...node.children, border]}} as NonNullable<typeof cell.style>}]}]};
+    expect((await pdfText(await writePdf(book, [], context))).runs[0]!.text).toBe("alpha");
+    expect(draw).toHaveBeenCalledTimes(style === 0 ? 0 : style === 6 ? 2 : 1);
+    if (style === 1) expect(draw).toHaveBeenCalledWith(expect.objectContaining({
+      start: {x: 74.5, y: side === "Diagonal" ? 699.5 : 719.5},
+      end: {x: 146.5, y: side === "Diagonal" ? 719.5 : 699.5}, thickness: 1
+    }));
+  }} finally {draw.mockRestore();}
 });

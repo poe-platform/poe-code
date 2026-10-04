@@ -5932,5 +5932,23 @@
     },
     "source": "Authenticated Gnumeric1.12.61 print-cell.c; source hash in print/NOTICE.md.",
     "remaining": "Border/rich-text/rotation effects,blank style-region painting and broader rendering/profile acceptance remain open. Full logical PDF extraction can include clipped text that native Cairo omits from glyph emission."
+  },
+  "pdfDiagonalBorders": {
+    "status": "Diagonal stroke support qualified;shared edges and all19 families remain open",
+    "implementation": "Parses diagonal border styles and preserves native unscaled widths,dash arrays/phases,double-line endpoints,RGBA and reverse-before-forward paint order. Ordinary diagonals paint below text;merged diagonals paint above corner text and respect page clips. None/empty borders are no-ops. Shared nonzero horizontal/vertical borders retain explicit refusal.",
+    "validation": {
+      "tests": 406,
+      "nativeInputs": 38,
+      "publicOutputs": 152,
+      "nativePublicTextComparisons": 76,
+      "nativePublicStrokeComparisons": 76,
+      "checks": "Selected workspace build,engine/command lint/types,native/public screenshots. Every native stroke state0-13,both directions,crossing colors,transparency,backgrounds and merges. Paths,widths,dash arrays/phases match;one simple raster mask differs by1pixel due to native page-height rounding of0.000017pt."
+    },
+    "source": {
+      "archive": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+      "styleBorderC": "6dd6bd5c851510561511f2b2407cb8719b522059656b9f234c488c446abdc1bd",
+      "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82"
+    },
+    "remaining": "Shared-edge resolution and junction geometry,blank style regions,rotation,rich text and broader rendering/profile acceptance remain open."
   }
 }

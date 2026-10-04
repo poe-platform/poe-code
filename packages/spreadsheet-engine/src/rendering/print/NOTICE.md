@@ -98,3 +98,9 @@ Gnumeric license above. The authenticated source SHA-256 is
 `6a057396fc6c920ca5cf239b24150e1e5e9e38f888096a4e7540775b4b98c8b4`.
 Corner values and styles use full merged geometry, with page clipping and
 native visibility rules; range indexing does not expand merged cells.
+
+Diagonal border geometry, widths and dash patterns follow Gnumeric 1.12.61
+`src/style-border.c` (`gnm_style_border_set_dash` and
+`gnm_style_border_print_diag_gtk`), copyright 1999–2001 Jody Goldberg,
+under GPL-2.0-or-later. Authenticated source SHA-256:
+`6dd6bd5c851510561511f2b2407cb8719b522059656b9f234c488c446abdc1bd`.

@@ -19,7 +19,9 @@ support synchronous output. `@poe-code/image-ast/portable` exposes the same `sha
 pixel operations; `compositeImage` accepts an explicit `readFile` capability.
 Pixel operations also expose `...Steps` generators, such as `resizeImageSteps`,
 for hosts that schedule bounded work between event-loop turns. The synchronous
-functions return the same pixel results.
+functions return the same pixel results. Unknown file formats are discarded in bounded
+chunks and rejected without whole-file fallback, preserving read failures, cancellation
+and cleanup errors for primary inputs and secondary image resources.
 `decodeImageToStorage(source, storage, signal, options)` selects a retained raster
 decoder and supports raw or generated inputs. It shares the source and backing
 contracts of the format-specific codecs. `encodeStoredImage(image, storage, signal,

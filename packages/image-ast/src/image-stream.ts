@@ -1,3 +1,4 @@
+import {UnsupportedImageFormat} from "./codecs/unsupported-storage.js";
 import {imageOutputFormat} from "./output-format.js";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {dirname,type FileSystem} from "@poe-code/safe-fs/contracts";
@@ -30,6 +31,6 @@ export async function tryImageStream(input:ImageResourceInput,options:SharpInput
   return {stream:encodeStoredImage(image,storage,signal,{...encoding,format}),close:storage.close.bind(storage)};
  }catch(error){failure=error;}
  try{await storage.close();}catch(error){if(failure instanceof UnsupportedStoredResource)throw error;}
- if(failure instanceof UnsupportedStoredResource)return undefined;
+ if(failure instanceof UnsupportedStoredResource && !(failure instanceof UnsupportedImageFormat))return undefined;
  throw failure;
 }

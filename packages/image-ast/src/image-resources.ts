@@ -1,3 +1,4 @@
+import {UnsupportedImageFormat} from "./codecs/unsupported-storage.js";
 import {tryPdfDecode} from "./image-pdf.js";
 import {decodeSvgToStorage} from "./codecs/svg-storage.js";
 import {isSvgBytes} from "./codecs/svg-pdf.js";
@@ -37,6 +38,6 @@ export async function readImageResource(input:ImageResourceInput,options:SharpIn
  const directory=options?.workingDirectory??(typeof input==="string"?dirname(input):".");
  return withImageSource(input,fs,signal,async source=>{
   try{return await decodeImageToStorage(source,storage,signal,options);}
-  catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;const pdf=await tryPdfDecode(source,storage,fs,directory,signal,options);if(pdf)return pdf;throw error;}
+  catch(error){if(!(error instanceof UnsupportedStoredResource) || error instanceof UnsupportedImageFormat)throw error;const pdf=await tryPdfDecode(source,storage,fs,directory,signal,options);if(pdf)return pdf;throw error;}
  });
 }

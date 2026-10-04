@@ -1,6 +1,6 @@
-import { decodeFileImage, rejectUnknownImage } from "./image-raster.js";
+import { decodeFileImage } from "./image-raster.js";
 import { withImageInputs, type ImageFileInput } from "./image-input.js";
-import { readImageMetadataFromSource, tryPdfMetadata, computeStoredImageStats, readImageMetadata, decodeImage, computeImageStatsSteps, UnsupportedStoredResource, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, tryPdfMetadata, computeStoredImageStats, readImageMetadata, decodeImage, computeImageStatsSteps, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { FsError } from "@poe-code/safe-fs/contracts";
 import { drainCooperativeSteps } from "safe-bash-contracts/yield";
@@ -51,11 +51,11 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                     metadata = result;
                                 }
                                 catch (error) {
-                                    if (!(error instanceof UnsupportedStoredResource))
+                                    if (!(error instanceof UnsupportedStoredResource) || error instanceof UnsupportedImageFormat)
                                         throw error;
                                     const pdf = await tryPdfMetadata(checked, fs, cwd, signal, options);
                                     if (!pdf)
-                                        return await rejectUnknownImage(checked, signal);
+                                        throw error;
                                     metadata = pdf;
                                 }
                                 if (custom)
@@ -64,7 +64,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                 return { metadata, size: source.size, ...(stats ? { stats } : {}) };
                             }
                             catch (error) {
-                                if (!(error instanceof UnsupportedStoredResource))
+                                if (!(error instanceof UnsupportedStoredResource) || error instanceof UnsupportedImageFormat)
                                     throw error;
                             }
                         }

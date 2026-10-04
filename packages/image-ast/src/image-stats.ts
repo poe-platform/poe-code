@@ -1,3 +1,4 @@
+import {UnsupportedImageFormat} from "./codecs/unsupported-storage.js";
 import {dirname,type FileSystem} from "@poe-code/safe-fs/contracts";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import type {ImageAstNode,ImageStats,SharpInputOptions} from "./ast.js";
@@ -22,6 +23,6 @@ export async function tryImageStats(input:ImageResourceInput,options:SharpInputO
   result=await computeStoredImageStats(image,storage,signal);
  } catch(error){failure={error};}
  try {await storage.close();} catch(error){if(!failure || failure.error instanceof UnsupportedStoredResource) throw error;}
- if(failure && !(failure.error instanceof UnsupportedStoredResource)) throw failure.error;
+ if(failure && (failure.error instanceof UnsupportedImageFormat || !(failure.error instanceof UnsupportedStoredResource))) throw failure.error;
  return result;
 }

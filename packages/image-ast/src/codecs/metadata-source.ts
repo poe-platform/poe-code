@@ -1,4 +1,4 @@
-import {isSvgBytes} from "./svg-pdf.js";
+import {isSvgBytes,isPdfBytes} from "./svg-pdf.js";
 import {readSvgMetadataFromSource} from "./svg-metadata-source.js";
 import {detectHeifFormatFromSource} from "./heif-format.js";
 import {readHeifMetadataFromSource} from "./heif-storage.js";
@@ -17,7 +17,7 @@ import {isJpegBytes} from "./jpeg.js";
 import {isBmpBytes,isNetpbmBytes,isTiffBytes,readBmpMetadata} from "./netpbm.js";
 import {netpbmHeaderSteps} from "./netpbm-header.js";
 import {SourceBytes} from "./storage-source.js";
-import {UnsupportedStoredResource} from "./unsupported-storage.js";
+import {UnsupportedStoredResource,rejectUnknownImage} from "./unsupported-storage.js";
 import {checkLimitInputPixels} from "../limits.js";
 
 /** Inspect caller-retained encoded ranges. Source ownership stays with the caller. */
@@ -48,9 +48,9 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
   const {format,width,height,maxval}=next.value;
   metadata={format,width,height,space:format==="ppm"?"srgb":"b-w",channels:format==="ppm"?3:1,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha:false,size:source.size};
  } else {
-  const length=Math.min(512,source.size),head=await source.read(0,length,{signal});signal.throwIfAborted();
+  const length=Math.min(1029,source.size),head=await source.read(0,length,{signal});signal.throwIfAborted();
   if(!(head instanceof Uint8Array)||head.length!==length)throw new Error("Truncated image metadata source");
-  if(!isSvgBytes(head))throw new UnsupportedStoredResource();
+  if(!isSvgBytes(head)){if(isPdfBytes(head))throw new UnsupportedStoredResource();return rejectUnknownImage(source,signal);}
   metadata=await readSvgMetadataFromSource(source,signal,options);
  }
  signal.throwIfAborted();checkLimitInputPixels(metadata.width,metadata.height,options);return metadata;

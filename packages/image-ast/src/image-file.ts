@@ -1,3 +1,4 @@
+import {UnsupportedImageFormat} from "./codecs/unsupported-storage.js";
 import {tryPdfDecode} from "./image-pdf.js";
 import {imageOutputFormat} from "./output-format.js";
 import {encodeStoredImage,isStoredOutputFormat} from "./image-encode.js";
@@ -151,5 +152,5 @@ export async function tryImageFile(input: ImageResourceInput | StoredImageFileIn
     if (!complete) throw new FsError("EIO",{path:output,message:"Image publisher returned before consuming output"});
     failed=false;
     return info!;
-  } catch(error) {if(error instanceof UnsupportedStoredResource) {failed=false;return undefined;} throw error;} finally {await cleanup();}
+  } catch(error) {if(error instanceof UnsupportedStoredResource) {failed=false;if(!(error instanceof UnsupportedImageFormat))return undefined;} throw error;} finally {await cleanup();}
 }

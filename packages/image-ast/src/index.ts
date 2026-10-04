@@ -6,7 +6,7 @@ export {decodeHeifToStorage,encodeHeifFromStorage,readHeifMetadataFromSource} fr
 export {encodeStoredImage,isStoredOutputFormat} from "./image-encode.js";
 export {withImageSource} from "./image-source.js";
 export {decodeImageToStorage} from "./codecs/source-decode.js";
-export {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
+export {UnsupportedStoredResource,UnsupportedImageFormat} from "./codecs/unsupported-storage.js";
 export {joinStoredImages} from "./ops/join-storage.js";
 export {readGifMetadataFromSource} from "./codecs/gif-metadata-storage.js";
 export {encodeRawFromStorage} from "./codecs/raw-storage.js";

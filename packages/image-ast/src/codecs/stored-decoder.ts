@@ -1,4 +1,5 @@
-import {isSvgBytes} from "./svg-pdf.js";
+import {rejectUnknownImage} from "./unsupported-storage.js";
+import {isSvgBytes,isPdfBytes} from "./svg-pdf.js";
 import {decodeSvgSourceToStorage} from "./svg-storage.js";
 import {detectHeifFormatFromSource} from "./heif-format.js";
 import type {ImageByteSource} from "./png-storage.js";
@@ -21,7 +22,9 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
  const decoder=await detectHeifFormatFromSource(source,signal)?decodeHeifToStorage:isWebpBytes(prefix)?decodeWebpToStorage:isJpegBytes(prefix)?decodeJpegToStorage:isPngBytes(prefix)?decodePngToStorage:isNetpbmBytes(prefix)?decodeNetpbmToStorage:isBmpBytes(prefix)?decodeBmpToStorage:isTiffBytes(prefix)?decodeTiffToStorage:isGifBytes(prefix)?decodeGifToStorage:undefined;
  if(decoder)return decoder;
- const size=Math.min(512,source.size),header=await source.read(0,size,{signal});signal.throwIfAborted();
+ const size=Math.min(1029,source.size),header=await source.read(0,size,{signal});signal.throwIfAborted();
  if(!(header instanceof Uint8Array)||header.length!==size)throw new Error("Truncated image source");
- return isSvgBytes(header)?decodeSvgSourceToStorage:undefined;
+ if(isSvgBytes(header))return decodeSvgSourceToStorage;
+ if(isPdfBytes(header))return undefined;
+ return rejectUnknownImage(source,signal);
 }

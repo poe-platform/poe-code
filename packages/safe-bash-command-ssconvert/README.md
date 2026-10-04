@@ -108,7 +108,8 @@ cannot compile WebAssembly (including Cloudflare Workers). Font bytes and charac
 Formula-display mode prints parsed expressions with native number spelling and
 known function names, preserving unknown function spelling. It doubles column widths, including
 those widths when centering and fitting pages. Array formulas use `{=…}` in every
-member cell; shared formulas keep ordinary formula spelling. Zero hiding follows the native
+member cell; shared formulas keep ordinary formula spelling. Retained Gnumeric
+R1C1 views use relative/absolute R/C addresses, anchoring array members at the corner. Zero hiding follows the native
 numeric tolerance and hides FALSE, while retaining cell fills, text zeros and
 displayed formulas.
 PDF export retains styled cells' logical text for copying and extraction,

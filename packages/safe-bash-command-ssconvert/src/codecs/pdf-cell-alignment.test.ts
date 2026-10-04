@@ -173,3 +173,22 @@ it.each([
   const book = {...original, sheets: [{...sheet, cells: [{...sheet.cells[0]!, value: {kind: "string" as const, value}}]}]};
   expect((await pdfText(await writePdf(book, [], context))).runs[0]!.glyphs[0]!.y).toBeCloseTo(firstY, 6);
 });
+
+it.each([
+  ["=A1", "=R[-1]C[-1]"], ["=B2", "=RC"],
+  ["=A1+$A$1+A$1+$A1", "=R[-1]C[-1]+R1C1+R1C[-1]+R[-1]C1"],
+  ["=SUM(A1:C3)", "=sum(R[-1]C[-1]:R[1]C[1])"],
+  ["=SUM(A:A)", "=sum(C[-1])"], ["=SUM(1:1)", "=sum(R[-1])"], ["=SUM(A1:A1)", "=sum(R[-1]C[-1])"], ["=S!A1", "=S!R[-1]C[-1]"]
+])("prints native R1C1 reference spelling for %s", async (formula, expected) => {
+  const original = await fixture("GNM_HALIGN_GENERAL"), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, view: {...sheet.view, displayFormulas: true, gnumeric: {ExprConvention: "gnumeric:R1C1"}},
+    cells: [{...sheet.cells[0]!, row: 1, column: 1, formula}]}]};
+  expect((await pdfText(await writePdf(book, [], context))).runs[0]!.text).toBe(expected);
+});
+it("prints each R1C1 array member relative to the array corner", async () => {
+  const original = await fixture("GNM_HALIGN_GENERAL"), sheet = original.sheets[0]!;
+  const cells = [1, 2].flatMap(row => [1, 2].map(column => ({...sheet.cells[0]!, row, column, formula: "=A1", formulaGroup: "array"})));
+  const book = {...original, sheets: [{...sheet, cells, view: {...sheet.view, displayFormulas: true, gnumeric: {ExprConvention: "gnumeric:R1C1"}},
+    formulaGroups: [{id: "array", kind: "array" as const, expression: "=A1", range: {startRow: 1, startColumn: 1, endRow: 2, endColumn: 2}}]}]};
+  expect((await pdfText(await writePdf(book, [], context))).runs.map(run => run.text)).toEqual(Array(4).fill("{=R[-1]C[-1]}"));
+});

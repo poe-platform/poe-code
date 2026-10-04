@@ -10,7 +10,7 @@ import {rendered} from "../../formulas/values.js";
 const coreFunctions = new Set(["IF", "SUM", "PRODUCT", "GNUMERIC_VERSION", "TABLE", "RAND"]);
 
 /** Native formula view serializes the expression instead of echoing entered text. */
-export function renderPrintFormula(book: Workbook, sheet: Sheet, cell: Cell,
+export function renderPrintFormula(book: Workbook, sheet: Sheet, cell: Pick<Cell, "row" | "column" | "formula" | "arrayStringLiterals">,
   context: CapabilityContext, tick: (amount?: number) => void): string | undefined {
   if (!cell.formula) return undefined;
   tick(cell.formula.length);
@@ -18,7 +18,10 @@ export function renderPrintFormula(book: Workbook, sheet: Sheet, cell: Cell,
     workbook: book, arrayStringLiterals: cell.arrayStringLiterals ?? false, signal: context.signal,
     maximumDepth: context.limits.formulaDepth, onWork: tick});
   if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: PDF formula expression syntax");
-  const text = serializeExpression(parsed.document, {...gnumericGrammar, quoteSheetName: quoteNativeSheet}, false, true, {
+  const native = sheet.view?.gnumeric;
+  const r1c1 = native && typeof native === "object" && !Array.isArray(native) &&
+    (native as Readonly<Record<string, unknown>>).ExprConvention === "gnumeric:R1C1";
+  const text = serializeExpression(parsed.document, {...gnumericGrammar, address: r1c1 ? "r1c1" : "a1", quoteSheetName: quoteNativeSheet}, false, true, {
     numberLiteral: value => rendered({kind: "number", value}),
     functionName: (name, spelling) => (coreFunctions.has(name) || Object.hasOwn(functionDescriptors, name)) ? name.toLowerCase() : spelling
   });

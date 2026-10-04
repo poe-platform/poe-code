@@ -503,16 +503,20 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const print = sheetPrintSettings(sheet, context);
       if (!chosen && print.doNotPrint) continue;
       if (sheet.merges?.length || sheet.cells.some(cell => cell.richText)) unsupported("styled or merged cells");
-      const arrayGroups = new Set<string>();
-      if (sheetViewFlag(sheet, "displayFormulas")) for (const group of sheet.formulaGroups ?? []) {
+      const showFormulas = sheetViewFlag(sheet, "displayFormulas");
+      const arrayGroups = new Map<string, string>();
+      if (showFormulas) for (const group of sheet.formulaGroups ?? []) {
         tick();
-        if (group.kind === "array") arrayGroups.add(group.id);
+        if (group.kind !== "array") continue;
+        // Native array elements serialize the corner expression at its anchor.
+        const formula = renderPrintFormula(book, sheet, {row: group.range.startRow, column: group.range.startColumn,
+          formula: group.expression, arrayStringLiterals: group.arrayStringLiterals ?? false}, context, tick);
+        if (formula !== undefined) arrayGroups.set(group.id, "{" + formula + "}");
       }
       for (const cell of sheet.cells) {
-        if (sheetViewFlag(sheet, "displayFormulas")) {
-          const formula = renderPrintFormula(book, sheet, cell, context, tick);
-          if (formula !== undefined) printedFormulaText.set(cell,
-            cell.formulaGroup && arrayGroups.has(cell.formulaGroup) ? "{" + formula + "}" : formula);
+        if (showFormulas) {
+          const formula = (cell.formulaGroup ? arrayGroups.get(cell.formulaGroup) : undefined) ?? renderPrintFormula(book, sheet, cell, context, tick);
+          if (formula !== undefined) printedFormulaText.set(cell, formula);
         }
         const normalizedStyle = normalizePdfCellStyle(cell);
         if (normalizedStyle) {

@@ -87,7 +87,7 @@ export function serializeReference(first: ReferenceEndpoint, last: ReferenceEndp
     first.sheet ? sheet(first.sheet) + grammar.sheetSeparator : "";
   const a = address(first), b = last ? address(last) : undefined;
   if (a === "#REF!" || b === "#REF!") return external + span + "#REF!";
-  return external + span + a + (last && (a !== b || last.sheet === first.sheet) ? ":" + b : "");
+  return external + span + a + (last && (a !== b || grammar.address !== "r1c1" && last.sheet === first.sheet) ? ":" + b : "");
 }
 
 export function serializeLabelReference(node: Extract<FormulaNode, { kind: "reference" }>, grammar: FormulaGrammar, position: ParsePosition): string {

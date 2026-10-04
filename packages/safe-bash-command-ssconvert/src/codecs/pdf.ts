@@ -11,6 +11,7 @@ import { objectRectangle } from "../objects/layout.js";
 import { graphBackground } from "../rendering/images/scene.js";
 import { layoutPrintPages } from "../rendering/print/layout.js";
 import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
+import { splitPrintLines } from "@poe-code/spreadsheet-engine/rendering/print/text-lines";
 import { renderPrintFormula } from "@poe-code/spreadsheet-engine/rendering/print/formula-text";
 import { createPrintSpans } from "@poe-code/spreadsheet-engine/rendering/print/text-span";
 import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
@@ -215,7 +216,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       tick();
     }
     const {font, metrics, supported, ascentRatio, descentRatio} = selected;
-    const paragraphs = cellBox ? value.split("\r\n").join("\n").split("\r").join("\n").split("\n") : [value];
+    const paragraphs = cellBox ? splitPrintLines(value, tick) : [value];
     const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line, supported, tick) : line);
     for (const line of shapedLines) for (const scalar of line) {
       tick();
@@ -386,7 +387,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       sheet.cells.every(c => normalizePdfCellStyle(c) === undefined) &&
       sheet.cells.some(c => {
         const txt = c.displayedText ?? (c.value.kind === "blank" ? "" : String(c.value.value));
-        return txt.length >= 9 && !txt.includes("\n");
+        return txt.length >= 9 && !["\n", "\r", "\u2028", "\u2029"].some(separator => txt.includes(separator));
       });
     if (!isDelimited && !hasUnconfiguredWideCells) return sheet.columns;
     
@@ -395,7 +396,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     const maxWidthByCol = new Map<number, number>();
     for (const cell of sheet.cells) {
       const raw = sheetViewFlag(sheet, "displayFormulas") && cell.formula ? printedFormulaText.get(cell) ?? cell.formula : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? (cell.value.value ? "TRUE" : "FALSE") : String(cell.value.value));
-      if (!raw || raw.includes("\n") || raw.includes("\r")) continue;
+      if (!raw || ["\n", "\r", "\u2028", "\u2029"].some(separator => raw.includes(separator))) continue;
       const needed = Math.max(fallback, raw.length * 6 + 14);
       const prev = maxWidthByCol.get(cell.column) ?? fallback;
       if (needed > prev) maxWidthByCol.set(cell.column, needed);

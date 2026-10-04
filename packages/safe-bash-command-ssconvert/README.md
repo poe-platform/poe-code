@@ -116,7 +116,7 @@ including combining marks whose glyph positions differ from their text order.
 Styled Latin, Greek and Cyrillic text uses font-supported canonical composition;
 missing intermediate or final glyphs retain the supported decomposition.
 With explicit fonts, it also admits fully materialized Gnumeric styles for blank cells
-and values with explicit line breaks: General or explicit left/right/center alignment,
+and values with LF, CRLF, CR or Unicode line/paragraph breaks: General or explicit left/right/center alignment,
 font-metric indentation, top/center/bottom vertical placement, justified line spacing
 (distributed uses center), host-selected families with regular, bold or
 italic faces, positive finite sizes including fractional points, underline and

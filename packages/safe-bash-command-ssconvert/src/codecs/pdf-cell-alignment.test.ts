@@ -102,7 +102,7 @@ it("renders implicit defaults identically to the materialized native default sty
   expect(actual.runs).toEqual(expected.runs);
 });
 
-it.each(["\n", "\r", "\r\n"])("prints explicit %j line breaks without requiring control glyphs", async separator => {
+it.each(["\n", "\r", "\r\n", "\u2028", "\u2029"])("prints explicit %j line breaks without requiring control glyphs", async separator => {
   const book = await fixture("GNM_HALIGN_RIGHT"), sheet = book.sheets[0]!;
   const cells = [{...sheet.cells[0]!, value: {kind: "string" as const, value: `alpha${separator}ab`}}];
   const {runs} = await pdfText(await writePdf({...book, sheets: [{...sheet, cells}]}, [], context));
@@ -163,4 +163,13 @@ it.each([
   const book = {...original, sheets: [{...sheet, view: {...sheet.view, displayFormulas: true},
     cells: [{...sheet.cells[0]!, formula, value: {kind: "number" as const, value: 0}}]}]};
   expect((await pdfText(await writePdf(book, [], context))).runs[0]!.text).toBe(expected);
+});
+
+it.each([
+  ["alpha\u2028ab\u2028", 684.4], ["alpha\u2029ab\u2029", 694.3],
+  ["alpha\u2028\nab", 684.4], ["alpha\u2028\r\nab", 684.4], ["alpha\u2028\u2029ab", 684.4]
+] as const)("preserves native paragraph-boundary height for %j", async (value, firstY) => {
+  const original = await fixture("GNM_HALIGN_LEFT", 10, 72, "BOTTOM", 48), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, cells: [{...sheet.cells[0]!, value: {kind: "string" as const, value}}]}]};
+  expect((await pdfText(await writePdf(book, [], context))).runs[0]!.glyphs[0]!.y).toBeCloseTo(firstY, 6);
 });

@@ -162,3 +162,18 @@ for (const trailingNewline of ["", "\n"]) {
     }
   });
 }
+
+for (const trailingNewline of ["", "\n"]) {
+  for (const [rule, totals] of [
+    ["{ s += $3; c++ }", "410 40"],
+    ["/^a/ { c++ }", "0 39"],
+    ["{ c++ }", "0 40"],
+  ]) {
+    test(`END retains all final fields after ${rule} (newline=${!!trailingNewline})`, async () => {
+      const { run } = await fixture("a:b:10\n".repeat(39) + "x:y:20" + trailingNewline);
+      const result = await run(`${rule} END { print s+0, c, NF, $0, $1, $2, $3, NR, FNR }`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, `${totals} 3 x:y:20 x y 20 40 40\n`);
+    });
+  }
+}

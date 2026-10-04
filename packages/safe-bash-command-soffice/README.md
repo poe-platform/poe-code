@@ -48,7 +48,8 @@ shares the command's file authority, budgets and output lifecycle. Plain-text an
 (including CSV and Markdown source text) snapshots inputs in caller-backed storage,
 then streams UTF-8 output with backpressure. It admits cumulative input/output limits
 before publishing stdout and cleans up backing on cancellation or sink failure.
-Plain-text copies and RTF-to-text/HTML/DOCX conversion also retain intermediates in caller
+Plain-text and Markdown HTML/DOCX output, Markdown-to-text, plain-text copies, and
+RTF-to-text/HTML/DOCX conversion also retain intermediates in caller
 storage and publish output through guarded staging. Existing file identity, hard links,
 symlinks and permissions are preserved. Later input operands can reuse earlier generated
 outputs. Large inputs require an external safe-fs backend; other conversion routes and

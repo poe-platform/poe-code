@@ -2,7 +2,7 @@ import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { rtfTextSteps } from "./rtf-text.js";
 
-export interface RetainedRtfSnapshot { readonly firstPage: number; readonly firstBlock: number; readonly count: number }
+import type { RetainedTextSnapshot } from "./retained-blocks.js";
 
 /** One shared bounded metadata cache covers every input in an invocation. */
 export class RetainedRtfText {
@@ -14,7 +14,7 @@ export class RetainedRtfText {
   constructor(private readonly storage: PagedStorage, private readonly signal: AbortSignal) {
     this.groups = new IntegerTable(storage); this.pages = new IntegerTable(storage); this.blocks = new IntegerTable(storage);
   }
-  async retain(position: number, size: number): Promise<RetainedRtfSnapshot> {
+  async retain(position: number, size: number): Promise<RetainedTextSnapshot> {
     const { storage, signal, groups, pages, blocks } = this;
     const firstPage = this.page, firstBlock = this.count;
     const encoder = new TextEncoder(), buffer = new Uint8Array(4096);
@@ -63,13 +63,14 @@ export class RetainedRtfText {
     await paragraph(); await flush();
     return { firstPage, firstBlock, count: this.count - firstBlock };
   }
-  async *stream(snapshot: RetainedRtfSnapshot, separator = "\n"): AsyncGenerator<Uint8Array> {
+  async isHeading(_snapshot: RetainedTextSnapshot, index: number): Promise<boolean> { return index === 0; }
+  async *stream(snapshot: RetainedTextSnapshot, separator = "\n"): AsyncGenerator<Uint8Array> {
     for (let index = 0; index < snapshot.count; index++) {
       if (index) yield new TextEncoder().encode(separator);
       yield* this.streamBlock(snapshot, index);
     }
   }
-  async *streamBlock(snapshot: RetainedRtfSnapshot, index: number): AsyncGenerator<Uint8Array> {
+  async *streamBlock(snapshot: RetainedTextSnapshot, index: number): AsyncGenerator<Uint8Array> {
     const { storage, signal, pages, blocks } = this, block = snapshot.firstBlock + index;
     const end = Number(await blocks.get(BigInt(block * 2 + 1)));
     for (let offset = Number(await blocks.get(BigInt(block * 2))); offset < end;) {

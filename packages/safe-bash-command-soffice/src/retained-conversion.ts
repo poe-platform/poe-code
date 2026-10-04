@@ -1,11 +1,13 @@
-import { retainRtfDocx } from "./retained-docx.js";
+import { RetainedPlainText } from "./retained-plain.js";
+import { retainTextDocx } from "./retained-docx.js";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { FsError, type FileStaging } from "@poe-code/safe-fs/contracts";
 import { writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { escapeHtmlText } from "./html.js";
-import { RetainedRtfText, type RetainedRtfSnapshot } from "./retained-rtf.js";
+import { RetainedRtfText } from "./retained-rtf.js";
+import type { RetainedTextSnapshot } from "./retained-blocks.js";
 import { withSofficeInputs, type RetainedSofficeContext, type SofficeSnapshot } from "./retained-input.js";
 import type { SofficeLimits } from "./index.js";
 
@@ -21,12 +23,13 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   const colon = convertSpec.indexOf(":"), nextColon = colon < 0 ? -1 : convertSpec.indexOf(":", colon + 1);
   const format = (colon < 0 ? convertSpec : convertSpec.slice(0, colon)).toLowerCase();
   const filter = (colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon)) || (format === "csv" ? "Text - txt - csv (StarCalc)" : `${format}_Export`);
-  const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv", ".md"];
+  const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv"];
   if (!inputs.every(input => input.toLowerCase().endsWith(".rtf") ? format !== "pdf" :
-    !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["pdf", "docx", "html", "xlsx", "csv"].includes(format))) return undefined;
+    !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["pdf", "xlsx", "csv"].includes(format))) return undefined;
   return withSofficeInputs(inputs, context, limits, async (storage, sources) => {
     const original = new Map(sources), pending = new Map<string, SofficeSnapshot>(), messages: string[] = [];
-    const rtf = new RetainedRtfText(storage, signal), parsed = new WeakMap<SofficeSnapshot, RetainedRtfSnapshot>();
+    const rtf = new RetainedRtfText(storage, signal), plain = new RetainedPlainText(storage, signal);
+    const parsedRtf = new WeakMap<SofficeSnapshot, RetainedTextSnapshot>(), parsedPlain = new WeakMap<SofficeSnapshot, RetainedTextSnapshot>();
     const encoder = new TextEncoder();
     let stderr = "";
     for (const input of inputs) {
@@ -37,24 +40,25 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
       const stem = dot >= 0 && dot < basename.length - 1 ? basename.slice(0, dot) : basename;
       const path = resolvePath(cwd, outdir, `${stem}.${format}`);
       let output = source;
-      if (input.toLowerCase().endsWith(".rtf")) {
+      if (input.toLowerCase().endsWith(".rtf") || input.toLowerCase().endsWith(".md") || format === "html" || format === "docx") {
+        const rich = input.toLowerCase().endsWith(".rtf"), text = rich ? rtf : plain, parsed = rich ? parsedRtf : parsedPlain;
         let retained = parsed.get(source);
-        if (!retained) { retained = await rtf.retain(source.position, source.size); parsed.set(source, retained); }
+        if (!retained) { retained = await text.retain(source.position, source.size); parsed.set(source, retained); }
         const snapshot = retained;
         async function* chunks() {
-          if (format !== "html") { yield* rtf.stream(snapshot, "\n\n"); yield Uint8Array.of(10); return; }
+          if (format !== "html") { yield* text.stream(snapshot, "\n\n"); yield Uint8Array.of(10); return; }
           yield encoder.encode(`<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${escapeHtmlText(stem)}</title></head><body>\n`);
           for (let block = 0; block < snapshot.count; block++) {
-            const tag = block ? "p" : "h1", decoder = new TextDecoder();
+            const tag = await text.isHeading(snapshot, block) ? "h1" : "p", decoder = new TextDecoder("utf-8", { ignoreBOM: true });
             yield encoder.encode(`<${tag}>`);
-            for await (const bytes of rtf.streamBlock(snapshot, block)) yield encoder.encode(escapeHtmlText(decoder.decode(bytes, { stream: true })));
+            for await (const bytes of text.streamBlock(snapshot, block)) yield encoder.encode(escapeHtmlText(decoder.decode(bytes, { stream: true })));
             yield encoder.encode(escapeHtmlText(decoder.decode()) + `</${tag}>\n`);
           }
           yield encoder.encode("</body></html>\n");
         }
         // Metadata reads may allocate in the same backing store. Reserve the
         // complete encoded range first so publication and later inputs are contiguous.
-        const archive = format === "docx" ? await retainRtfDocx(storage, rtf, snapshot, signal) : undefined;
+        const archive = format === "docx" ? await retainTextDocx(storage, text, snapshot, signal) : undefined;
         const outputChunks = archive ? () => archive.read() : chunks;
         let size = archive?.size ?? 0;
         if (!archive) for await (const bytes of outputChunks()) {

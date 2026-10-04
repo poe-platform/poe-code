@@ -1,4 +1,5 @@
-import { RetainedRtfText, type RetainedRtfSnapshot } from "./retained-rtf.js";
+import { RetainedRtfText } from "./retained-rtf.js";
+import type { RetainedTextSnapshot } from "./retained-blocks.js";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -15,7 +16,7 @@ export async function catRetainedText(inputs: readonly string[], context: Retain
     for (const input of inputs) if (!sources.get(resolvePath(cwd, input))) {
       return { exitCode: 1, stdout: "", stderr: `Error: source file could not be loaded: ${input}\n` };
     }
-    const rtf = new RetainedRtfText(storage, signal), richText = new Map<string, RetainedRtfSnapshot>();
+    const rtf = new RetainedRtfText(storage, signal), richText = new Map<string, RetainedTextSnapshot>();
     for (const input of inputs) if (input.toLowerCase().endsWith(".rtf")) {
       const path = resolvePath(cwd, input);
       if (!richText.has(path)) {

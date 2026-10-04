@@ -356,7 +356,9 @@ export class ExecutionContext implements AdapterContext {
     budgets: readonly (keyof Limits)[] = [],
     retain = true
   ): Promise<void> {
-    this.checkpoint(0);
+    if (this.closing) this.checkpoint(0);
+    // The iterable may already own a source, including one whose factory just
+    // aborted the signal. Enroll its return() before the first cancellation check.
     const iterator =
       Symbol.asyncIterator in chunks ? chunks[Symbol.asyncIterator]() : chunks[Symbol.iterator]();
     let done = false;
@@ -403,10 +405,13 @@ export class ExecutionContext implements AdapterContext {
     this.checkpoint(); this.charge("resources", 1);
     const source = this.context.resources;
     if (!source?.resolveStream) this.fail("E_CAPABILITY", "Streaming resource resolver required");
-    const signal = this.signal;
-    const chunks = (async function* () {yield* source.resolveStream!(id, base, signal);})();
     let length = 0;
-    await this.consume(chunks, async bytes => {await accept(bytes); length += bytes.length;}, ["resourceBytes"]);
+    await this.call(async () => {
+      // Preserve the producer's iterator directly: an async-generator delegation
+      // would queue return() behind an unresolved next() during cancellation.
+      const chunks = source.resolveStream!(id, base, this.signal);
+      await this.consume(chunks, async bytes => {await accept(bytes); length += bytes.length;}, ["resourceBytes"]);
+    });
     return length;
   }
 

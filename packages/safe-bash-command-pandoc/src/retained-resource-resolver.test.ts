@@ -85,3 +85,43 @@ it("awaits each destination write before advancing a reused resolver chunk", asy
     expect(length).toBe(1048576); expect(accepted).toBe(length); expect(finalized).toBe(1);
   } finally {await context.close();}
 });
+
+it.each(["pending", "factory"])("closes a resolver directly when cancellation interrupts its %s", async mode => {
+  const {ExecutionContext} = await import("./execution.js");
+  const controller = new AbortController();
+  let started!: () => void, finishPull!: (value: IteratorResult<Uint8Array>) => void;
+  const ready = new Promise<void>(resolve => {started = resolve;});
+  const pull = new Promise<IteratorResult<Uint8Array>>(resolve => {finishPull = resolve;});
+  const returned = vi.fn(async () => ({done: true as const, value: undefined}));
+  const next = vi.fn(() => {started(); return pull;});
+  const accept = vi.fn(async () => {});
+  const context = new ExecutionContext("convert", {signal: controller.signal, resources: {
+    resolveStream() {
+      if (mode === "factory") {controller.abort(); started();}
+      return {[Symbol.asyncIterator]: () => ({next, return: returned})};
+    }
+  }});
+  let closing: Promise<void> | undefined;
+  try {
+    const operation = context.consumeResource("picture", undefined, accept);
+    const rejected = expect(operation).rejects.toMatchObject({code: "E_CANCELLED"});
+    await ready; controller.abort(); await rejected;
+    closing = context.close();
+    // close() dispatches owned cleanup callbacks in its first microtask.
+    await Promise.resolve(); await Promise.resolve();
+    expect(returned).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledTimes(mode === "factory" ? 0 : 1);
+    expect(accept).not.toHaveBeenCalled();
+  } finally {
+    finishPull({done: true, value: undefined});
+    await closing; await context.close();
+  }
+  expect(returned).toHaveBeenCalledOnce();
+});
+
+it("normalizes synchronous resolver factory failure", async () => {
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {resources: {resolveStream() {throw new Error("Factory failed");}}});
+  try {await expect(context.consumeResource("picture", undefined, async () => {})).rejects.toMatchObject({code: "E_IO", operation: "convert"});}
+  finally {await context.close();}
+});

@@ -607,6 +607,8 @@ reused chunks and slow sinks; record peak isolate memory, CPU, first-byte latenc
 and concurrent-request behavior. Verify that `resolve` is never called when a
 stream is available, that stream-only providers work, and that producer errors,
 invalid chunks, cancellation, limits and backing-store failures retire resources
-before output commit. The RTF workerd/R2 fixture covers both filesystem streams
+before output commit. Include a resolver whose `next()` waits until `return()`
+closes it, and one that aborts during creation; require exactly one return call
+and no further pulls in both cases. The RTF workerd/R2 fixture covers both filesystem streams
 and custom resolvers for PNG, baseline JPEG and progressive JPEG. Those bounded
 transfer/cleanup checks do not replace deployed memory and CPU measurements.

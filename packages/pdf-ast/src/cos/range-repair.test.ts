@@ -70,3 +70,15 @@ describe("retained repair discovery", () => {
     await f.source.close();
   });
 });
+
+it("preserves malformed-object recovery with bounded unknown keyword spellings",async()=>{
+ const {CosRangeLexer}=await import("./lexer.js");
+ const f=await fixture("1 0 obj "+"z".repeat(131072)+" endobj\n2 0 obj true endobj\ntrailer << /Root 2 0 R >>",4096);
+ const original=CosRangeLexer.prototype.nextToken;let largest=0,truncated=0;
+ const spy=vi.spyOn(CosRangeLexer.prototype,"nextToken").mockImplementation(async function(this:InstanceType<typeof CosRangeLexer>){const token=await original.call(this);if(token?.kind==="keyword"){largest=Math.max(largest,token.value.length);if(token.truncated)truncated++;}return token;});
+ try{
+  const events=[];for await(const event of scanCosRangeObjects(f.source,{compactKeywords:true}))events.push(event);
+  expect(events).toMatchObject([{kind:"object",object:{objectNumber:2,value:{kind:"boolean",value:true}}},{kind:"trailer"}]);
+  expect(largest).toBeLessThanOrEqual(65);expect(truncated).toBeGreaterThan(0);
+ }finally{spy.mockRestore();await f.source.close();}
+});

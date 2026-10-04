@@ -46,7 +46,7 @@ export type CosToken =
   | { readonly kind: "array-end"; readonly span: ByteSpan }
   | { readonly kind: "dict-start"; readonly span: ByteSpan }
   | { readonly kind: "dict-end"; readonly span: ByteSpan }
-  | { readonly kind: "keyword"; readonly value: string; readonly span: ByteSpan };
+  | { readonly kind: "keyword"; readonly value: string; readonly truncated?: true; readonly span: ByteSpan };
 
 export function isPdfWhitespace(byte: number): boolean {
   return (
@@ -135,6 +135,7 @@ class CosLexerState {
   pos: number;
   readonly end: number;
   readonly maxTokenBytes: number;
+  private readonly keywordLimit: number;
 
   constructor(
     bytes: Uint8Array,
@@ -144,12 +145,16 @@ class CosLexerState {
     readonly knownCommands?: ReadonlySet<string>,
     private readonly onTokenAllocation?: (bytes: number) => void,
     public stringMode: StringMode = "buffer",
-    private readonly compactNumbers = false
+    private readonly compactNumbers = false,
+    compactKeywords = false
   ) {
     this.window = bytes;
     this.pos = start;
     this.end = end;
     this.maxTokenBytes = maxTokenBytes;
+    let keywordLimit = compactKeywords ? 64 : Infinity;
+    if(compactKeywords)for(const command of knownCommands ?? [])keywordLimit=Math.max(keywordLimit,command.length);
+    this.keywordLimit=keywordLimit;
   }
 
   private *byte(position: number): LexWork<number | undefined> {
@@ -249,14 +254,17 @@ class CosLexerState {
       return { kind: "keyword", value: String.fromCharCode(b), span: { start, end: this.pos } };
     }
 
-    let raw = "";
+    let raw = "", truncated = false;
     while (this.pos < this.end) {
       const cur = (yield* this.byte(this.pos))!;
       if (isPdfWhitespace(cur) || isPdfDelimiter(cur)) break;
-      this.onTokenAllocation?.(32);
-      const next = raw + String.fromCharCode(cur);
-      if (this.knownCommands?.has(raw) && !this.knownCommands.has(next)) break;
-      raw = next;
+      if(!truncated){
+        this.onTokenAllocation?.(32);
+        const next = raw + String.fromCharCode(cur);
+        if (this.knownCommands?.has(raw) && !this.knownCommands.has(next)) break;
+        if(next.length>this.keywordLimit)truncated=true;
+        else raw=next;
+      }
       this.pos++;
       if (this.pos - start > this.maxTokenBytes) {
         throw new PdfError("E_LIMIT", "PDF token exceeds maximum byte length");
@@ -269,7 +277,9 @@ class CosLexerState {
     if (raw === "false") return { kind: "boolean", value: false, span };
     if (raw === "null") return { kind: "null", span };
 
-    return { kind: "keyword", value: raw, span };
+    // The extra marker makes this longer than every recognized command, so a
+    // shortened unknown keyword cannot accidentally become a known one.
+    return { kind: "keyword", value: truncated ? raw + "…" : raw, ...(truncated ? {truncated:true as const} : {}), span };
   }
 
   private *readNumber(): LexWork<CosToken> {
@@ -556,6 +566,8 @@ export class CosByteLexer extends CosLexerState {
 }
 
 export interface CosRangeLexerOptions {
+  /** Retain only a prefix of unknown keywords, marking them truncated. */
+  readonly compactKeywords?: boolean;
   /** Canonicalize number spellings longer than 2048 characters with bounded scratch. */
   readonly compactNumbers?: boolean;
   readonly onBackingError?: (error: unknown) => void;
@@ -609,7 +621,8 @@ export class CosRangeLexer {
       options.knownCommands,
       options.onTokenAllocation,
       options.stringStorage ? "count" : "buffer",
-      options.compactNumbers
+      options.compactNumbers,
+      options.compactKeywords
     );
     this.onBackingError = options.onBackingError;
     this.onTokenAllocation = options.onTokenAllocation;

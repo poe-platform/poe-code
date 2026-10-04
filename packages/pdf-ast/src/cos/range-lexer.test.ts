@@ -226,3 +226,36 @@ it("preserves number errors, admission, backing failures and cancellation in com
  try{await expect(new CosRangeLexer({...source,size:4096*1024},{compactNumbers:true,signal:controller.signal}).nextToken()).rejects.toBe(reason);}
  finally{clearTimeout(timer);}
 });
+
+it("bounds unrecognized keyword scratch without shortening its source span",async()=>{
+ const length=131073;let admitted=0;
+ const source={size:length,chunkBytes:4096,async read(_position:number,count:number){return new Uint8Array(count).fill(122);}};
+ const token=await new CosRangeLexer(source,{compactKeywords:true,onTokenAllocation:bytes=>{admitted+=bytes;}}).nextToken();
+ expect(token?.kind).toBe("keyword");if(token?.kind!=="keyword")throw new Error("Missing keyword");
+ expect(token.span).toEqual({start:0,end:length});expect(token.value.length).toBeLessThanOrEqual(65);
+ expect(admitted).toBeLessThanOrEqual(4096);
+ const original=await new CosRangeLexer(source).nextToken();
+ expect(original?.kind==="keyword"?original.value.length:0).toBe(length);
+});
+
+it("preserves recognized keywords, caller commands and token boundaries in compact keyword mode",async()=>{
+ const command="A".repeat(128),unknown="z".repeat(4096),text=`true false null endobj ${unknown} ${command}Q /After`;
+ const bytes=new TextEncoder().encode(text),source={size:bytes.length,chunkBytes:7,async read(at:number,n:number){return bytes.subarray(at,at+n);}},knownCommands=new Set([command,"Q"]);
+ const compact=new CosRangeLexer(source,{compactKeywords:true,knownCommands}),buffered=new CosByteLexer(bytes,0,bytes.length,Infinity,knownCommands);
+ for(;;){
+  const actual=await compact.nextToken(),expected=buffered.nextToken();
+  if(expected?.kind==="keyword"&&expected.value===unknown){expect(actual).toMatchObject({kind:"keyword",truncated:true,span:expected.span});if(actual?.kind!=="keyword")throw new Error("Missing keyword");expect(actual.value.length).toBe(129);expect(knownCommands.has(actual.value)).toBe(false);}
+  else expect(actual).toEqual(expected);
+  if(!expected)break;
+ }
+});
+
+it("preserves byte limits, source failures and timer cancellation for compact keywords",async()=>{
+ const source={size:131072,chunkBytes:4096,async read(_at:number,n:number){return new Uint8Array(n).fill(122);}};
+ await expect(new CosRangeLexer(source,{compactKeywords:true,maxTokenBytes:4096}).nextToken()).rejects.toMatchObject({code:"E_LIMIT"});
+ const reason=new Error("keyword backing failed");
+ await expect(new CosRangeLexer({...source,async read(){throw reason;}},{compactKeywords:true}).nextToken()).rejects.toBe(reason);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(reason),0);
+ try{await expect(new CosRangeLexer({...source,size:4096*1024},{compactKeywords:true,signal:controller.signal}).nextToken()).rejects.toBe(reason);}
+ finally{clearTimeout(timer);}
+});

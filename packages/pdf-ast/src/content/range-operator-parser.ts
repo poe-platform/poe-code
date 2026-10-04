@@ -8,6 +8,8 @@ import { PdfOperandStack } from "./operand-stack.js";
 import { PDF_KNOWN_COMMANDS } from "./operators.js";
 
 export interface ParseContentRangeOptions {
+  /** Bound ignored keyword spellings while preserving command recovery. */
+  readonly compactKeywords?: boolean;
   /** Bound numeric token spelling without changing operand values. */
   readonly compactNumbers?: boolean;
   /** Preserve inline ActualText bytes on pathStorage for retained consumers. */
@@ -34,7 +36,7 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
   }
   if (!Number.isSafeInteger(limits.chunkBytes) || limits.chunkBytes < 8) throw new RangeError("chunkBytes must be at least 8");
   const { signal } = options;
-  const lexer = new CosRangeLexer(source, { compactNumbers: options.compactNumbers ?? false, maxTokenBytes: limits.maxTokenBytes, knownCommands: PDF_KNOWN_COMMANDS, ...(options.pathStorage ? { stringStorage: options.pathStorage } : {}), ...(signal ? { signal } : {}) });
+  const lexer = new CosRangeLexer(source, { compactNumbers: options.compactNumbers ?? false, compactKeywords: options.compactKeywords ?? false, maxTokenBytes: limits.maxTokenBytes, knownCommands: PDF_KNOWN_COMMANDS, ...(options.pathStorage ? { stringStorage: options.pathStorage } : {}), ...(signal ? { signal } : {}) });
   const stack = new PdfOperandStack(storage, limits);
   const backedStack = options.pathStorage ? new StoredMetadataStack<PdfCosNode>(options.pathStorage, signal) : undefined;
   const operands = backedStack ?? stack;

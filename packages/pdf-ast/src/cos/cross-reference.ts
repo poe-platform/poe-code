@@ -54,7 +54,7 @@ export async function findPdfStartXref(source: PdfFileSource, options: PdfCrossR
       if (!matched) continue;
       const lexer = new CosRangeLexer(source, {
         start: start + i + marker.length,
-        compactNumbers: options.compactNumbers ?? false,
+        compactNumbers: options.compactNumbers ?? false, compactKeywords: options.compactKeywords ?? false,
         ...(options.maxTokenBytes === undefined ? {} : { maxTokenBytes: options.maxTokenBytes }),
         ...(options.signal ? { signal: options.signal } : {}),
       });

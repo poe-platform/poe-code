@@ -93,6 +93,7 @@ memory: set `maxTokenBytes` to bound decoded strings and encoded names/numbers.
 `start`, `end`, `knownCommands`, and `signal` control scanning. The caller closes
 the source after use; the lexer does not collect a document or own its handle.
 `compactNumbers: true` keeps numeric scratch bounded and canonicalizes spellings longer than 2048 characters, preserving binary64 rounding, signed zero, token spans and integer classification. It is available on retained value, document and content parsers; the default preserves source spellings.
+`compactKeywords: true` scans unknown keywords with a bounded prefix (64 characters or the longest supplied known command), then marks their spelling with an ellipsis and `truncated: true`. Recognized commands, token spans, byte admission and malformed-content recovery are preserved.
 With `stringStorage`, decoded literal/hex strings use caller backing and bounded
 chunks; tokens expose `storedBytes` with empty `bytes`. Retained content parsing
 uses this backing for text and array elements when `pathStorage` is supplied.

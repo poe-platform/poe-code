@@ -248,3 +248,11 @@ it("keeps long numeric operand spellings bounded in compact mode",async()=>{
   await iterator.return();
  }finally{await f.close();}
 });
+
+it("preserves operand recovery across long ignored keywords",async()=>{
+ const f=await fixture("7 "+"z".repeat(8192)+" w qQ"),actual=[];
+ try{
+  for await(const op of parseContentRangeOperators(f.source,f.storage,{compactKeywords:true}))actual.push(op);
+  expect(semantics(actual)).toEqual(semantics([...parseContentOperators(f.bytes)]));
+ }finally{await f.close();}
+});

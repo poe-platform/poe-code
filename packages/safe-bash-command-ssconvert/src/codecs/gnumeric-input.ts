@@ -81,8 +81,11 @@ export async function readGnumericDocument(input: Uint8Array | RangeSource, cont
       function initialize() {
         if (prefix[0] === 255 && prefix[1] === 254 || prefix[0] === 60 && prefix[1] === 0) xmlLimits.expectedEncoding = "UTF-16LE";
         if (prefix[0] === 254 && prefix[1] === 255 || prefix[0] === 0 && prefix[1] === 60) xmlLimits.expectedEncoding = "UTF-16BE";
-        const header = new TextDecoder("ascii").decode(prefix.subarray(0, length));
-        const encodingAt = header.startsWith("<?xml") && " \t\r\n".includes(header[5] ?? "\0") ? header.indexOf("encoding") : -1;
+        const bomLength = prefix[0] === 239 && prefix[1] === 187 && prefix[2] === 191 ? 3 : 0;
+        const header = new TextDecoder("ascii").decode(prefix.subarray(bomLength, length));
+        const declarationEnd = header.indexOf("?>");
+        const declaration = declarationEnd < 0 ? header : header.slice(0, declarationEnd);
+        const encodingAt = declaration.startsWith("<?xml") && " \t\r\n".includes(header[5] ?? "\0") ? declaration.indexOf("encoding") : -1;
         let declared: string | undefined, declaredAt = -1;
         if (encodingAt >= 0) {
           let at = encodingAt + 8; while (" \t\r\n".includes(header[at] ?? "\0")) at++;
@@ -105,7 +108,10 @@ export async function readGnumericDocument(input: Uint8Array | RangeSource, cont
         }
         decoder = new TextDecoder(xmlLimits.expectedEncoding, { fatal: true });
         decode = bytes => decoder!.decode(bytes, { stream: true });
-        return decode(prefix.subarray(0, length));
+        const text = decode(prefix.subarray(0, length));
+        // The native reader accepts UTF8; the shared XML parser expects its canonical name.
+        return xmlLimits.expectedEncoding === "UTF-8" && declared?.toLowerCase() === "utf8"
+          ? text.slice(0, declaredAt) + "UTF-8" + text.slice(declaredAt + declared.length) : text;
       }
       for await (const chunk of plain()) {
         let offset = 0;

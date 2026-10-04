@@ -6,6 +6,93 @@ import { Shell } from "../../src/shell/shell.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+test("public ffprobe family factories preserve synchronous limit validation", async () => {
+  const core = await import("../../src/core.js");
+  for (const create of [core.createFfprobeCommands, core.ffprobeCommands]) {
+    for (const limit of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+      for (const name of ["maxInputBytes", "maxOutputBytes"] as const) {
+        assert.throws(() => create({ limits: { [name]: limit } }), { name: "RangeError", message: "Invalid ffprobe limit" });
+      }
+    }
+    for (const limit of [undefined, 1, Number.MAX_SAFE_INTEGER]) {
+      assert.doesNotThrow(() => create({ limits: { maxInputBytes: limit, maxOutputBytes: limit } }));
+    }
+  }
+});
+
+for (const plugin of [false, true]) {
+  test(`public ffprobe family executes with configured ASTs and limits (plugin=${plugin})`, async context => {
+    const core = await import("../../src/core.js");
+    const direct = await import("../../src/commands/ffprobe/index.js");
+    const fs = createMemoryFileSystem();
+    const shell = new Shell({ fs });
+    context.after(() => shell.dispose());
+    const options = { asts: [], limits: { maxInputBytes: 1 } };
+    const commands = core.createFfprobeCommands(options);
+    assert.deepEqual(commands.map(({ name, description }) => ({ name, description })),
+      direct.createFfprobeCommands(options).map(({ name, description }) => ({ name, description })));
+    if (plugin) {
+      const configured = core.ffprobeCommands(options);
+      assert.equal(configured.name, direct.ffprobeCommands(options).name);
+      shell.use(configured);
+    } else {
+      for (const command of commands) shell.register(command);
+    }
+    const version = await shell.exec("ffprobe -version");
+    assert.equal(version.exitCode, 0, version.stderr);
+    assert.equal(version.stderr, "");
+    assert.ok(version.stdout.includes("registered ASTs: none"));
+    await fs.writeFile("/input", Uint8Array.of(1, 2));
+    const limited = await shell.exec("ffprobe /input");
+    assert.equal(limited.exitCode, 1);
+    assert.equal(limited.stdout, "");
+    assert.equal(limited.stderr, "ffprobe: EFBIG: file too large, readFile '/input'\n");
+  });
+}
+
+test("public ffprobe plugin preserves replacement policy", async context => {
+  const core = await import("../../src/core.js");
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  context.after(() => shell.dispose());
+  const existing = { name: "ffprobe", execute: async () => ({ exitCode: 37 }) };
+  shell.register(existing);
+  shell.use(core.ffprobeCommands({ replace: true, asts: [] }));
+  const result = await shell.exec("ffprobe -version");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stdout.includes("registered ASTs: none"));
+  const duplicate = new Shell({ fs: createMemoryFileSystem() });
+  context.after(() => duplicate.dispose());
+  duplicate.register(existing);
+  duplicate.use(core.ffprobeCommands());
+  await assert.rejects(duplicate.exec("ffprobe -version"), /Command already registered: ffprobe/);
+});
+
+test("public audio composition retains its inventory, validation and configured ffprobe", async context => {
+  const core = await import("../../src/core.js");
+  const direct = await import("../../src/commands/audio/index.js");
+  const options = { ffprobe: { asts: [] } };
+  assert.deepEqual(core.createAudioCommands(options).map(({ name, description }) => ({ name, description })),
+    direct.createAudioCommands(options).map(({ name, description }) => ({ name, description })));
+  assert.equal(core.createAudioCommand().name, "sox");
+  for (const name of ["ffprobe", "sox", "soxi"] as const) assert.equal(core.createAudioCommand(options, name).name, name);
+  for (const create of [core.createAudioCommand, core.createAudioCommands, core.audioCommands]) {
+    assert.throws(() => create({ ffprobe: { limits: { maxInputBytes: 0 } } }), RangeError);
+    assert.throws(() => create({ sox: { limits: { maxInputBytes: 0 } } }), RangeError);
+  }
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  context.after(() => shell.dispose());
+  const plugin = core.audioCommands(options);
+  assert.equal(plugin.name, direct.audioCommands(options).name);
+  shell.use(plugin);
+  for (const command of ["ffprobe -version", "sox --help", "soxi --help"]) {
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.ok(result.stdout.length > 0);
+    if (command.startsWith("ffprobe")) assert.ok(result.stdout.includes("registered ASTs: none"));
+  }
+});
+
 test("explicit command and family selection; full profile retains the optional inventory", () => {
   assert.deepEqual(lazy.createOptionalCommands(), []);
   assert.deepEqual(

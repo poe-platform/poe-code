@@ -1,4 +1,5 @@
 import { WavTags } from "./wav-tags.js";
+import { resolveFfprobeLimits } from "./options.js";
 import { formatTaggedAudio } from "./tag-format.js";
 import { writeProbeOutput } from "./probe-output.js";
 import { openProbeStream, sniffWavStream, withStagedProbeSource } from "./stream-input.js";
@@ -694,10 +695,7 @@ async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlug
 }
 
 export function createFfprobeCommand(options: MediaCommandsOptions = {}): CommandDefinition {
-  const limits = { maxInputBytes: 32 * 1024 * 1024, maxOutputBytes: 1024 * 1024, ...options.limits };
-  for (const value of [limits.maxInputBytes, limits.maxOutputBytes]) {
-    if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError("Invalid ffprobe limit");
-  }
+  const limits = resolveFfprobeLimits(options.limits);
   const astPlugins = options.asts ?? getDefaultMediaRegistry().astPlugins;
   const registry = options.asts ? createMediaAstRegistry(astPlugins) : getDefaultMediaRegistry().registry;
 
@@ -912,4 +910,3 @@ export function evalSyncFfprobe(
     return undefined;
   }
 }
-

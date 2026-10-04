@@ -1,5 +1,8 @@
 import { createGhCommands, ghMetadata } from "./lazy-gh.js";
 import { validatePandocOptions } from "safe-bash-command-pandoc/options";
+import { resolveFfprobeLimits } from "safe-bash-command-ffprobe/options";
+import { createSoxCommand } from "./commands/sox/index.js";
+import { createSoxiCommand } from "./commands/soxi/index.js";
 import {
   createLazyCommandLoader,
   createLazyCommands,
@@ -54,6 +57,34 @@ export const ffmpegCommands: ffmpegModule["ffmpegCommands"] = (options = {}) =>
   lazyCommandPlugin("ffmpeg-commands", createFfmpegCommands(options), options.replace ?? false);
 export type { FfmpegCommandsOptions } from "./commands/ffmpeg/index.js";
 export type { FfmpegCommandPair } from "./commands/ffmpeg/index.js";
+
+type ffprobeModule = typeof import("./commands/ffprobe/index.js");
+const loadffprobe = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/ffprobe/index.js"));
+export const createFfprobeCommands: ffprobeModule["createFfprobeCommands"] = (options = {}) => {
+  resolveFfprobeLimits(options.limits);
+  return createLazyCommands([ffmpegMetadata[1]], async () => {
+    const module = await loadffprobe();
+    return () => module.createFfprobeCommands(options);
+  }, options);
+};
+export const ffprobeCommands: ffprobeModule["ffprobeCommands"] = (options = {}) =>
+  lazyCommandPlugin("ffprobe-commands", createFfprobeCommands(options), options.replace ?? false);
+export type { FfprobeCommandsOptions, FfprobeLimits } from "./commands/ffprobe/index.js";
+
+type audioModule = typeof import("./commands/audio/index.js");
+export const createAudioCommands: audioModule["createAudioCommands"] = (options = {}) => [
+  ...createFfprobeCommands(options.ffprobe),
+  createSoxCommand(options.sox),
+  createSoxiCommand(options.sox)
+];
+export const createAudioCommand: audioModule["createAudioCommand"] = (options = {}, name = "sox") => {
+  const command = createAudioCommands(options).find(entry => entry.name === name);
+  if (!command) throw new TypeError(`Audio command not configured: ${name}`);
+  return command;
+};
+export const audioCommands: audioModule["audioCommands"] = (options = {}) =>
+  lazyCommandPlugin("audio-commands", createAudioCommands(options), options.replace ?? false);
+export type { AudioCommandsOptions } from "./commands/audio/index.js";
 
 type gitModule = typeof import("./commands/git/index.js");
 const loadgit = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/git/index.js"));

@@ -14,8 +14,9 @@ A delivered partial fix does not close its family. Each case now carries a
 `checkpoint20261004` separating qualified work, existing evidence, the next
 acceptance test, the family closure gate and qualification blockers. Use that
 checkpoint before expanding a cohort; historical receipts are not current registry
-or universal profile qualification. The next rendering gate is the retained RTL-tab
-placement/order cohort, not another sweep of already-qualified PDF controls.
+or universal profile qualification. The pure RTL-tab placement/order cohort is qualified. The next rendering gate is
+RTL tabs combined with paragraph or control-marker boundaries; preserve the
+existing guards until native glyph order, stops and marker placement agree.
 
 ## 1. What we're building
 

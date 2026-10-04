@@ -4749,9 +4749,9 @@
     {
       "id": "rendering-font-print-fidelity",
       "status": "open",
-      "currentFinding": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Pure RTL combined paragraph/tab/CR/U+2028 itemization is now qualified. Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted. See checkpoint20261004 for next acceptance and blockers. Mixed Hebrew/Latin tabbed Fill in both base directions, repetition and rotation is now qualified. Mixed Hebrew/Latin tabs with U+2028 markers also match the native six-control cohort.",
+      "currentFinding": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Pure RTL combined paragraph/tab/CR/U+2028 itemization is now qualified. Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted. See checkpoint20261004 for next acceptance and blockers. Mixed Hebrew/Latin tabbed Fill in both base directions, repetition and rotation is now qualified. Mixed Hebrew/Latin tabs with U+2028 markers also match the native six-control cohort. The retained18-control mixed paragraph/CR/line-separator tab cohort now matches native, including the previously mismatched RTL rotations.",
       "checkpoint20261004": {
-        "qualified": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Pure RTL combined paragraph/tab/CR/U+2028 itemization is now qualified. Mixed Hebrew/Latin tabbed Fill in both base directions, repetition and rotation is now qualified. Mixed Hebrew/Latin tabs with U+2028 markers also match the native six-control cohort.",
+        "qualified": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Pure RTL combined paragraph/tab/CR/U+2028 itemization is now qualified. Mixed Hebrew/Latin tabbed Fill in both base directions, repetition and rotation is now qualified. Mixed Hebrew/Latin tabs with U+2028 markers also match the native six-control cohort. The retained18-control mixed paragraph/CR/line-separator tab cohort now matches native, including the previously mismatched RTL rotations.",
         "evidence": [
           "#/pdfSharedBorders",
           "#/pdfBlankStyleRegions",
@@ -4765,9 +4765,10 @@
           "#/pdfRtlFillTabs",
           "#/pdfRtlFillCombinedItems",
           "#/pdfMixedFillTabs",
-          "#/pdfMixedFillLineSeparators"
+          "#/pdfMixedFillLineSeparators",
+          "#/pdfMixedFillControlOrder"
         ],
-        "nextAcceptance": "Repair the retained mixed RTL paragraph tab controls at +45/-45 degrees and the -45-degree mixed RTL CR control: removing their guards produces native placement mismatches. Keep the exact18-control cohort; no new permutation audit is needed.",
+        "nextAcceptance": "The retained mixed-control18-case checkpoint is complete. Broader weak/neutral/explicit bidi and shaping-direction override profiles remain unsupported; do not expand this completed checkpoint into a new permutation audit. Continue the existing encrypted-biff command-export acceptance gate next.",
         "closureGate": "Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted.",
         "qualificationBlockers": []
       }
@@ -6325,5 +6326,12 @@
     "implementation": "Allow bidi-resolved tab chunks to contain existing U+2028 vector markers; preserve RTL marker/tab origins. Retain CR and paragraph guards after native comparisons exposed rotated mixed-layout mismatches.",
     "validation": "Compiled U+2028 public fixture rejects before the change.719 print/PDF tests on the exploratory implementation and123 focused tests on the final restricted implementation pass. Selected workspace build and maintained command lint/source/test/public consumer types pass.18 native controls tested; the admitted six U+2028 controls produce24 SDK/command XML/PDF outputs,12 text/XML/position comparisons and12 raster comparisons within1pixel at144dpi. Rotated native/public screenshots inspected;24 SDK/command CR/paragraph guard checks pass.",
     "remaining": "All19families remain open. Retained exploratory native mismatches: mixed RTL paragraph tabs at+45/-45degrees and mixed RTL CR tabs at-45degrees. Unrotated and LTR neighbors are retained in the same18-control cohort; no expanded audit is required."
+  },
+  "pdfMixedFillControlOrder": {
+    "status": "Retained mixed Fill control checkpoint verified; broader rendering family remains open",
+    "implementation": "Measure mixed letter/tab/control items in logical order and place their glyphs and CR markers in whole-line visual order. Model Pango1.56.3/FriBidi1.0.16 single-paragraph X8 termination and L1 separator resets; preserve zero-level copy separators after paragraph termination. Keep existing pure-direction paths and reject unqualified weak/neutral/explicit bidi profiles.",
+    "validation": "Native-derived item-order tests fail before implementation.724 focused print/PDF tests plus final103 tests pass,including6 item-order/profile/cancellation checks. Selected workspace build and engine/command lint/source/test/public-consumer types pass. Reuse the same18 native controls:72 compiled SDK/command XML/PDF outputs,36 text/XML/position comparisons and36 raster pairs within1pixel at144dpi. Repaired rotated paragraph screenshot matches native.",
+    "source": "Pango1.56.3 pango-bidi-type.c and itemize.c; FriBidi1.0.16 fribidi-bidi.c X8 and L1; native Pango run-level/width probe uses the same installed versions as the reference.",
+    "remaining": "All19families remain open. This18-control checkpoint is complete; next existing family gate is encrypted-biff command-export counterparts for27 retained profiles, independent decrypt/readback/edit and wrong-password zero-output checks."
   }
 }

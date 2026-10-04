@@ -1,3 +1,4 @@
+import {controlBidiItems} from "@poe-code/spreadsheet-engine/rendering/print/control-bidi";
 import {printBidiRuns} from "@poe-code/spreadsheet-engine/rendering/print/bidi-runs";
 import {rotatedPrintLayout} from "@poe-code/spreadsheet-engine/rendering/print/rotated-text";
 import {printSharedBorders} from "@poe-code/spreadsheet-engine/rendering/print/shared-borders";
@@ -348,20 +349,27 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         // Tabs use shared stops across the entire repeated line.
         const rtlFill = singleParagraph && shaper.shape(metrics, shapedValue).direction === "rtl";
         const rtlTabs = rtlFill && tabbedFill;
-        // Line-separator markers already share the tab run visual origin.
-        // Mixed paragraph and CR placement still requires separate qualification.
+        const controlItems = tabbedFill && ["\r", "\u2029"].some(control => shapedValue.includes(control))
+          ? controlBidiItems(shapedValue, rtlFill ? "rtl" : "ltr", tick) : undefined;
+        const positionedItems = rtlTabs || controlItems !== undefined;
+        // Ordinary tabs resolve within each chunk. Paragraph/CR profiles
+        // require the whole-line item order resolved above.
         const bidiTabs = tabbedFill && !["\r", "\u2029"].some(control => shapedValue.includes(control));
         const tabPositions: {x: number}[] = [];
         const tabRuns: {start: number; end: number; first: number; last: number}[] = [];
-        const chunks = singleParagraph ? shapedValue.split("\t") : [shapedValue];
+        const chunks = controlItems ? controlItems.items.map(item => item.text) : singleParagraph ? shapedValue.split("\t") : [shapedValue];
         for (const [index, chunk] of chunks.entries()) {
           tick();
-          if (index > 0) {
+          if (!controlItems && index > 0) {
             width = nextPrintTabStop(width, tabWidth);
             displayWidth = nextPrintTabStop(displayWidth, displayTabWidth);
           }
           const start = width, first = tabPositions.length;
-          const parts = singleParagraph ? fillPrintItems(chunk, rtlFill, tick) : [chunk];
+          if (controlItems && chunk === "\t") {
+            width = nextPrintTabStop(width, tabWidth);
+            displayWidth = nextPrintTabStop(displayWidth, displayTabWidth);
+          }
+          const parts = controlItems ? (chunk === "\t" || chunk === "\u2029" ? [] : [chunk]) : singleParagraph ? fillPrintItems(chunk, rtlFill, tick) : [chunk];
           for (const part of parts) {
             tick();
             // Repeated edge separators can leave a copy separator alone.
@@ -370,12 +378,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             if ((part === "\u2028" || part === "\r") && separator) {
               const marker = {x: width, carriageReturn: part === "\r"};
               markers.push(marker);
-              if (rtlTabs) tabPositions.push(marker);
+              if (positionedItems) tabPositions.push(marker);
               width += separator.width;
               displayWidth += separator.displayWidth;
               continue;
             }
-            const items = bidiTabs ? printBidiRuns(part, rtlFill ? "rtl" : "ltr", tick) : [{text: part}];
+            const items = controlItems ? [controlItems.items[index]!] : bidiTabs ? printBidiRuns(part, rtlFill ? "rtl" : "ltr", tick) : [{text: part}];
             for (const item of items) {
               const run = shaper.shape(metrics, item.text);
               if ("direction" in item && run.direction !== item.direction) unsupported("bidirectional shaping direction");
@@ -387,17 +395,25 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
                 const glyph = {x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
                   y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale};
                 glyphs.push(glyph);
-                if (rtlTabs) tabPositions.push(glyph);
+                if (positionedItems) tabPositions.push(glyph);
                 advances.push(Math.round(advance));
                 width += Math.round(advance) * printDisplayScale;
                 displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
               }
             }
           }
-          if (rtlTabs) tabRuns.push({start, end: width, first, last: tabPositions.length});
+          if (positionedItems) tabRuns.push({start, end: width, first, last: tabPositions.length});
         }
-        if (rtlTabs) mirrorPrintTabRuns(tabPositions, tabRuns, width, tick);
-        if (!bidiTabs && runs.length > 1 && runs.some(run => run.direction === "rtl") && !(rtlFill && runs.every(run => run.direction === "rtl"))) unsupported("bidirectional fill layout");
+        if (controlItems) {
+          let origin = 0;
+          for (const index of controlItems.order) {
+            tick();
+            const item = tabRuns[index]!;
+            for (let at = item.first; at < item.last; at++) {tick(); tabPositions[at]!.x += origin - item.start;}
+            origin += item.end - item.start;
+          }
+        } else if (rtlTabs) mirrorPrintTabRuns(tabPositions, tabRuns, width, tick);
+        if (!controlItems && !bidiTabs && runs.length > 1 && runs.some(run => run.direction === "rtl") && !(rtlFill && runs.every(run => run.direction === "rtl"))) unsupported("bidirectional fill layout");
         const run = runs.length < 2 ? runs[0] : Object.create(runs[0]!, {
           glyphs: {value: runs.flatMap(run => run.glyphs)}, positions: {value: runs.flatMap(run => run.positions)}
         }) as NonNullable<typeof runs[0]>;

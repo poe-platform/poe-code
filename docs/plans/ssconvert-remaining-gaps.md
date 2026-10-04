@@ -164,7 +164,7 @@ no invalid plaintext publication. Describe unauthenticated legacy formats honest
 All functions preserve namespace replacement and absent-plugin behavior. Never
 remove difficult numeric inputs or relax exact comparisons to obtain a pass.
 
-Mixed Hebrew/Latin tabbed Fill now matches the bounded native cohort in both base directions, with repetition and ±45° rotation (ledger `pdfMixedFillTabs`). Mixed U+2028 tab markers also match (`pdfMixedFillLineSeparators`). Next rendering acceptance is the retained mixed RTL paragraph tabs at ±45° and CR tabs at -45°, where removing guards exposes placement mismatches. Reuse the existing 18-control cohort; all 19 family gates remain open.
+Mixed Hebrew/Latin tabbed Fill now matches the bounded native cohort in both base directions, with repetition and ±45° rotation (ledger `pdfMixedFillTabs`). Mixed U+2028 tab markers also match (`pdfMixedFillLineSeparators`). The retained mixed RTL paragraph/CR failures now match native across the same 18-control cohort (`pdfMixedFillControlOrder`); this checkpoint is complete. Next use the existing encrypted-BIFF gate: command-export counterparts for 27 retained profiles, independent decrypt/readback/edit, and wrong-password zero-output checks. Do not restart or expand the completed rendering cohort; all 19 family gates remain open.
 
 ## 4. Interfaces and test plan
 

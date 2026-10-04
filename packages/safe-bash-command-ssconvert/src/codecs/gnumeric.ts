@@ -16,7 +16,7 @@ import { gnumericGrammar } from "../formulas/conventions.js";
 import { quoteFormulaString } from "../formulas/serialization.js";
 import { gnumericFormulaNodes } from "./gnumeric-formula-nodes.js";
 import { rewriteReferences } from "../formulas/rewriting.js";
-import { applyGnumericStyle } from "./gnumeric-style-regions.js";
+import { applyGnumericStyle, normalizeGnumericStyle } from "./gnumeric-style-regions.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { readGnumericRichText, writeGnumericRichText } from "./gnumeric-rich-text.js";
 import { objectKinds } from "../objects/registry.js";
@@ -440,7 +440,10 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
     const indexed = index.find(n => n.text === name);
     const size = { rows: number(indexed, "Rows", DEFAULT_SHEET_SIZE.rows, true), columns: number(indexed, "Cols", DEFAULT_SHEET_SIZE.columns, true) };
     if (!validSheetSize(size)) invalid("invalid sheet dimensions");
-    const styles = children(child(node, "Styles"), "StyleRegion");
+    const styles = children(child(node, "Styles"), "StyleRegion").map(region => {
+      const style = child(region, "Style");
+      return {region, style: style ? normalizeGnumericStyle(style, tick) : undefined};
+    });
     const groups: NonNullable<Sheet["formulaGroups"]>[number][] = [];
     const cells: Cell[] = []; const addresses = new Map<string, number>();
     for await (const { key, node: item } of nodes(child(node, "Cells"))) {
@@ -474,10 +477,9 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       const stored = formula ? cached === undefined ? { kind: "blank" } as const : value(type, cached) : value(type, text);
       const valueFormat = attribute(item, "ValueFormat"); const runs = readGnumericRichText(valueFormat);
       let style: ImportedValue | undefined; let styleNode: XmlElement | undefined; let format = runs ? undefined : valueFormat;
-      for (const region of styles) {
+      for (const {region, style: s} of styles) {
         tick();
         const bounds = xmlRange(region); if (row < bounds.startRow || row > bounds.endRow || column < bounds.startColumn || column > bounds.endColumn) continue;
-        const s = child(region, "Style");
         if (s) {
           styleNode = styleNode && version >= 3 && version <= 5 ? applyGnumericStyle(styleNode, s, tick) : s;
           style = record(styleNode);

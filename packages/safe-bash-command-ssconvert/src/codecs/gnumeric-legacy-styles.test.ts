@@ -44,3 +44,29 @@ it.each([
   const borders = metadataNode(book.sheets[0]!.cells[0]!.style!.gnumeric)!.children.find(node => node.name === "StyleBorder")!;
   expect(Object.fromEntries(borders.children.map(node => [node.name, node.attributes]))).toEqual(expected);
 });
+
+it.each([4,10].flatMap(version => [
+  {name: "-adobe-helvetica-bold-o-normal", bold: false, italic: false},
+  {name: "-foundry-bold-i-normal", bold: true, italic: true},
+  {name: "-foundry-bold-o-normal", bold: true, italic: true},
+  {name: "-foundry-bold-r-normal", bold: true, italic: false},
+  {name: "-foundry-medium-i-normal", bold: false, italic: true},
+  {name: "-foundry--bold-i", bold: true, italic: false},
+  {name: "-", bold: false, italic: false},
+  {name: "-foundry-Bold-Italic", bold: false, italic: false}
+].map(font => ({version, ...font}))))("decodes native X11 hints for XML $version: $name", async ({version,name,bold,italic}) => {
+  const book = await readGnumeric(fixture(version, `<gnm:Style><gnm:Font Bold="0" Italic="0">${name}</gnm:Font></gnm:Style>`), context);
+  const style = cellPrintStyle(book.sheets[0]!.cells[0]!.style, () => {});
+  expect(style).toMatchObject({family: version === 4 ? "DejaVu Serif" : "Sans", size: version === 4 ? 16 : 10, bold, italic});
+  const reopened = await readGnumeric(await writeGnumeric(book, [], context), context);
+  expect(cellPrintStyle(reopened.sheets[0]!.cells[0]!.style, () => {})).toEqual(style);
+});
+
+it("keeps explicit font effects when an X11 name supplies no overriding hint", async () => {
+  const book = await readGnumeric(fixture(10, '<gnm:Style><gnm:Font Bold="1" Italic="1">-foundry-medium-r-normal</gnm:Font></gnm:Style>'), context);
+  expect(cellPrintStyle(book.sheets[0]!.cells[0]!.style, () => {})).toMatchObject({family: "Sans", bold: true, italic: true});
+});
+it("charges work while decoding long X11 font components", async () => {
+  const bytes = fixture(4, `<gnm:Style><gnm:Font>-${"a".repeat(512)}-bold-i</gnm:Font></gnm:Style>`);
+  await expect(readGnumeric(bytes, {...context, limits: {...context.limits, workbookWork: 100}})).rejects.toThrow("XML relationship work");
+});

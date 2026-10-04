@@ -154,6 +154,6 @@ it.each([
   const full = await pdfText(await writePdf(await fixture("h"), [], context));
   expect(runs).toEqual(full.runs);
 });
-it.each(['<g:Font Unit="0"/>', '<g:Font Bold="2"/>', '<g:Font/><g:Font/>', '<g:Font>-legacy-x11-font</g:Font>'])("refuses unsupported partial font %s", async child => {
+it.each(['<g:Font Unit="0"/>', '<g:Font Bold="2"/>', '<g:Font/><g:Font/>'])("refuses unsupported partial font %s", async child => {
   await expect(writePdf(await fixture("h", "", child), [], context)).rejects.toThrow("styled or merged cells");
 });

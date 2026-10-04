@@ -30,3 +30,31 @@ export function applyGnumericStyle(previous: XmlElement, patch: XmlElement, tick
   return {...patch, attributes: [...attributes.values()], children: [...children.values()], text,
     content: [...(text ? [{kind: "text" as const, text}] : []), ...children.values()]};
 }
+
+/** Native X11 names set weight/slant hints, never the font family. */
+export function normalizeGnumericStyle(style: XmlElement, tick: () => void): XmlElement {
+  const children = style.children.map(font => {
+    tick();
+    if (font.localName !== "Font" || font.namespace !== style.namespace || !font.text.startsWith("-")) return font;
+    const offset = (component: number) => {
+      let at = 0, separators = 0;
+      while (at < font.text.length && separators < component) {
+        tick();
+        if (font.text[at++] === "-") separators++;
+      }
+      if (font.text[at] === "-") {tick(); at++;}
+      return at;
+    };
+    const hints = new Set<string>();
+    if (font.text.startsWith("bold", offset(2))) hints.add("Bold");
+    const slant = offset(3);
+    if (font.text.startsWith("i", slant) || font.text.startsWith("o", slant)) hints.add("Italic");
+    const attributes = font.attributes.filter(attribute => {
+      tick();
+      return attribute.namespace !== "" || !hints.has(attribute.localName);
+    });
+    for (const name of hints) attributes.push({name, localName: name, namespace: "", value: "1"});
+    return {...font, text: "", attributes, content: font.children};
+  });
+  return {...style, children, content: [...(style.text ? [{kind: "text" as const, text: style.text}] : []), ...children]};
+}

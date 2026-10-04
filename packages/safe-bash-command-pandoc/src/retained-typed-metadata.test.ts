@@ -127,3 +127,21 @@ it.each(["admission", "publication"])("does not commit output when typed storage
   })).rejects.toMatchObject({code: "E_IO", message: "Capability failed"});
   expect(failed).toBe(true); expect(close).not.toHaveBeenCalled(); expect(abort).toHaveBeenCalledTimes(phase === "publication" ? 1 : 0); expect(live).toBe(0); expect(await fs.readdir("/")).toEqual([]);
 });
+
+it.each(["unicode", "accessor", "shape", "nodes", "text", "valid"])("preserves normalization before prototype validation: %s", async kind => {
+  const value: Record<string, unknown> = Object.assign(Object.create({inherited: true}), {t: "MetaString", c: "value"});
+  if (kind === "unicode") value.c = "\ud800";
+  const getter = vi.fn(() => "unexpected");
+  if (kind === "accessor") Object.defineProperty(value, "c", {get: getter, enumerable: true});
+  const metadata = {first: kind === "shape" ? {t: "Unknown"} : {t: "MetaBool", c: true}, second: value} as unknown as NonNullable<ConversionOptions["metadata"]>;
+  const options = {from: "json", to: "json", metadata};
+  const limits = kind === "nodes" ? {nodes: 15} : kind === "text" ? {text: 40} : {};
+  const expected = await convert([input], options, {limits}).catch(error => error);
+  expect(expected).toBeInstanceOf(Error);
+  const fs = new MemoryFileSystem();
+  await expect(convertToOutput([input], options, {limits, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+    async write() {throw new Error("Output forbidden");}, async close() {}, async abort() {}
+  }})).rejects.toMatchObject({code: expected.code, message: expected.message, operation: expected.operation, location: expected.location});
+  expect(getter).not.toHaveBeenCalled();
+  expect(await fs.readdir("/")).toEqual([]);
+});

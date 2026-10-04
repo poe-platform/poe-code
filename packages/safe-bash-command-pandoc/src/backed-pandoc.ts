@@ -49,7 +49,7 @@ const shapes: Readonly<Record<string, Rule>> = {
  * occupancy use the caller's paged scratch storage. With typedEnum, the root
  * is an SDK metadata map and validated enum-string positions are reported for
  * translation into wire constructors. */
-export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStorage, context: AdapterContext, typedEnum?: (position: number) => Promise<void>, normalized = false): Promise<void> {
+export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStorage, context: AdapterContext, typedEnum?: (position: number) => Promise<void>, normalized = false, invalidPrototypes?: IntegerTable): Promise<void> {
   const rules: Rule[] = [], ids = new Map<Rule, number>();
   let pending = 0, geometryFirst = 0, geometryLast = 0;
   const push = async (position: number, rule: Rule, cursor = 0, ordinal = 0): Promise<void> => {
@@ -190,7 +190,7 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
       continue;
     }
     if ("tag" in rule) {
-      if (header.kind !== "object") await fail(position);
+      if (header.kind !== "object" || await invalidPrototypes?.get(BigInt(position))) await fail(position);
       const tagPosition = await tree.property(position, "t");
       const tag = tagPosition === undefined || (await tree.describe(tagPosition)).kind !== "string" ? undefined : await tree.smallText(tagPosition, 32);
       if (tag === undefined || !Object.hasOwn(rule.tag, tag)) await fail(position, "Unknown tag", typedEnum || normalized ? ".t" : "");
@@ -212,7 +212,7 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
       continue;
     }
     const object = "record" in rule || "map" in rule;
-    if (header.kind !== (object ? "object" : "array")) await fail(position);
+    if (header.kind !== (object ? "object" : "array") || object && await invalidPrototypes?.get(BigInt(position))) await fail(position);
     if ("tuple" in rule && header.children !== rule.tuple.length) await fail(position, typedEnum || normalized ? "Invalid shape" : "Invalid tuple arity");
     if ("record" in rule && header.children !== Object.keys(rule.record).length * 2) await fail(position);
     const child = cursor || position + 32;

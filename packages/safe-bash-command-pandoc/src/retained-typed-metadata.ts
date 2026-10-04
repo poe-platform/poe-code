@@ -18,7 +18,7 @@ export async function retainTypedMetadata(value: NonNullable<ConversionOptions["
   let failure: {reason: unknown} | undefined;
   try {
     const enums = new IntegerTable(scratch, 64);
-    await validateBackedPandoc(source, scratch, context, async position => {await enums.set(BigInt(position), 1n);});
+    await validateBackedPandoc(source, scratch, context, async position => {await enums.set(BigInt(position), 1n);}, false, snapshot.invalidPrototypes);
     let position = source.rootPosition, closingContainer = false;
     while (position) {
       await context.cooperate();

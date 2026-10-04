@@ -1,5 +1,5 @@
 import {PandocError} from "./errors.js";
-import {PagedStorage} from "safe-bash-io-engine/storage";
+import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedJson} from "./backed-json.js";
 import {BackedText, type TextRange} from "./backed-text.js";
 import type {ExecutionContext} from "./execution.js";
@@ -11,6 +11,7 @@ import type {WorkingStorageOptions} from "./types.js";
  * key lists and traversal continuations used after admission. */
 export class RetainedJsonOptions {
   readonly tree: BackedJson;
+  invalidPrototypes?: IntegerTable;
   private closing: Promise<void> | undefined;
   private readonly release: () => void;
   private constructor(private readonly storage: PagedStorage, private readonly context: ExecutionContext) {
@@ -43,6 +44,7 @@ export class RetainedJsonOptions {
       return key;
     };
     const ast = layers === "ast";
+    if (ast) this.invalidPrototypes = new IntegerTable(scratch, 64);
     let cells = 0, attributes = 0, nodes = 0, textUnits = 0;
     const fail = async (frame: number, key?: string | number, message = "Invalid shape", code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
       let path = key === undefined ? "" : typeof key === "number" ? `[${key}]` : `.${key}`;
@@ -97,7 +99,7 @@ export class RetainedJsonOptions {
       if (ast && level > context.limits.depth) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
       if (ast && !parent) await reserveNode(position);
       if (ast && array && nodes + count > context.limits.nodes) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
-      if (ast && (array && Object.getOwnPropertySymbols(value).length || !array && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) await fail(position);
+      if (ast && array && Object.getOwnPropertySymbols(value).length) await fail(position);
       if (ast && array && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text))) {
         // Normalization inspects every own array descriptor before recognizing
         // cell tuples, so accessors and sparse slots precede the budget charge.
@@ -121,7 +123,12 @@ export class RetainedJsonOptions {
           context.charge("tableCells", span);
         }
       }
-      await tree.begin(array ? "array" : "object"); return position;
+      const node = await tree.begin(array ? "array" : "object");
+      // Native normalization examines all descriptors and budgets before schema
+      // validation checks record prototypes. Retain the fact, not the graph.
+      if (ast && !array && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)
+        await this.invalidPrototypes!.set(BigInt(node), 1n);
+      return position;
     };
     const resolve = async (frame: number, candidate?: object, candidateKey?: string | number): Promise<object> => {
       let value: object = root;

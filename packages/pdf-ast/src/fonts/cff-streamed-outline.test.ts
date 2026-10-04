@@ -70,14 +70,113 @@ it("propagates scratch admission before interpreting the glyph", () => {
 
 it("preserves long operand runs accepted by the existing compiler without collecting their drawing output", () => {
   const code = new Uint8Array(405);
-  code.set([139, 139, 21]); code.fill(140, 3, 403); code.set([5, 14], 403);
+  code.set([139, 139, 21]);
+  code.fill(140, 3, 403);
+  code.set([5, 14], 403);
   const renderer = new Type2Compiled({ glyphs: [code] }, [], [1, 0, 0, 1, 0, 0]);
   const expected = Array.from(renderer.compileGlyph(code, 0));
-  const actual: number[] = []; let admission = 0;
-  for (const chunk of renderer.glyphCommands(code, 0, bytes => { admission += bytes; })) {
+  const actual: number[] = [];
+  let admission = 0;
+  for (const chunk of renderer.glyphCommands(code, 0, (bytes) => {
+    admission += bytes;
+  })) {
     expect(chunk.length).toBeLessThanOrEqual(7);
     actual.push(...Array.from(chunk));
   }
   expect(actual).toEqual(expected);
   expect(admission).toBeGreaterThan(16384);
+});
+
+it("backs growing operand runs with constant renderer scratch", async () => {
+  const { createCffGlyphRenderer } = await import("./cff.js");
+  for (const count of [1024, 4096]) {
+    const code = new Uint8Array(count + 5);
+    code.set([139, 139, 21]);
+    code.fill(140, 3, count + 3);
+    code.set([5, 14], count + 3);
+    const cff = {
+      isCIDFont: false,
+      charset: { charset: ["A"] },
+      charStrings: { objects: [code] },
+      globalSubrIndex: { objects: [] },
+      topDict: { getByName: () => [1, 0, 0, 1, 0, 0] }
+    } as unknown as import("../vendor/pdfjs-fonts.mjs").CffFont;
+    let admitted = 0,
+      end = 0;
+    const data = new Uint8Array(65536);
+    const render = createCffGlyphRenderer(cff, {
+      onAllocation(bytes) {
+        admitted += bytes;
+        if (admitted > 40000) throw Error("growing operand scratch");
+      }
+    });
+    const storage = {
+      allocate(n: number) {
+        const at = end;
+        end += n;
+        return at;
+      },
+      async read(at: number, n: number) {
+        return data.slice(at, at + n);
+      },
+      async write(at: number, bytes: Uint8Array) {
+        data.set(bytes, at);
+      }
+    };
+    let segments = 0;
+    for await (const segment of render.storedSegments(0, storage)) {
+      segments++;
+      if (segment.kind === "line") expect(segment.x).toBe(segments - 1);
+    }
+    expect(segments).toBe(count / 2 + 2);
+    expect(admitted).toBeLessThanOrEqual(40000);
+  }
+});
+
+it("observes timer cancellation while processing a long backed operand run", async () => {
+  const { createCffGlyphRenderer } = await import("./cff.js");
+  const code = new Uint8Array(8197);
+  code.set([139, 139, 21]);
+  code.fill(140, 3, 8195);
+  code.set([5, 14], 8195);
+  const cff = {
+    isCIDFont: false,
+    charset: { charset: ["A"] },
+    charStrings: { objects: [code] },
+    globalSubrIndex: { objects: [] },
+    topDict: { getByName: () => [1, 0, 0, 1, 0, 0] }
+  } as unknown as import("../vendor/pdfjs-fonts.mjs").CffFont;
+  const data = new Uint8Array(128 * 1024);
+  let end = 0;
+  const storage = {
+    allocate(n: number) {
+      const at = end;
+      end += n;
+      return at;
+    },
+    async read(at: number, n: number) {
+      return data.slice(at, at + n);
+    },
+    async write(at: number, bytes: Uint8Array) {
+      data.set(bytes, at);
+    }
+  };
+  const controller = new AbortController(),
+    reason = new Error("cancel glyph");
+  const timer = setTimeout(() => controller.abort(reason), 0);
+  try {
+    await expect(
+      (async () => {
+        for await (const ignored of createCffGlyphRenderer(cff).storedSegments(
+          0,
+          storage,
+          controller.signal
+        )) {
+          /* consume */
+        }
+      })()
+    ).rejects.toBe(reason);
+  } finally {
+    clearTimeout(timer);
+  }
 });

@@ -12,8 +12,18 @@ export function streamCffOutlines(source) {
     .replaceAll("parse(subrCode);", "yield* parse(subrCode, depth + 1);")
     .replaceAll("            compileCharString(", "            yield* compileCharString(")
     .replace("  parse(charStringCode);", "  yield* parse(charStringCode);")
-    .replaceAll("stack.push(", "pushOperand(")
-    .replace("  const stack = [];", "  const stack = [];\n  function pushOperand(value) {\n    if (cmds.streaming && stack.length + 1 > cmds.maxOperands) { cmds.onFrameAllocation?.(16); cmds.maxOperands = stack.length + 1; }\n    stack.push(value);\n  }");
+    .replaceAll("stack.push(", "yield* pushOperand(")
+    .replaceAll("stack.pop()", '(yield* readOperand("pop"))')
+    .replaceAll("stack.shift()", '(yield* readOperand("shift"))')
+    .replace("  const stack = [];", `  const stack = cmds.createStack?.(cmds.depth) ?? [];
+  function* pushOperand(value) {
+    if (!Array.isArray(stack)) { yield stack.push(value); return; }
+    if (cmds.streaming && stack.length + 1 > cmds.maxOperands) { cmds.onFrameAllocation?.(16); cmds.maxOperands = stack.length + 1; }
+    stack.push(value);
+  }
+  function* readOperand(method) {
+    return Array.isArray(stack) ? stack[method]() : yield stack[method]();
+  }`);
   for (const name of ["moveTo", "lineTo", "bezierCurveTo"]) {
     const start = parser.indexOf("  function " + name + "("),
       nextFunction = parser.indexOf("\n  function ", start + 1),
@@ -33,7 +43,7 @@ export function streamCffOutlines(source) {
   const marker = "    compileCharString(code, cmds, this, glyphId);";
   if (!source.includes(marker)) throw new Error("CFF compiler source marker changed");
   source = source.replace(marker, "    for (const ignored of compileCharString(code, cmds, this, glyphId)) { /* synchronous collector */ }");
-  const method = `  *glyphCommands(code, glyphId, onAllocation) {
+  const method = `  *glyphCommands(code, glyphId, onAllocation, createStack) {
     onAllocation?.(16384);
     if (!code?.length || code[0] === 14) return;
     let matrix = this.fontMatrix;
@@ -44,6 +54,7 @@ export function streamCffOutlines(source) {
     assert(isNumberArray(matrix, 6), "Expected a valid fontMatrix.");
     const cmds = new Commands();
     cmds.streaming = true;
+    cmds.createStack = createStack;
     cmds.maxDepth = 1;
     cmds.maxSubrDepth = 10;
     cmds.maxOperands = 48;

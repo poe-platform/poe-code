@@ -67,7 +67,7 @@ it("uses the original .notdef outline without replacing extracted characters wit
   expect(font.getGlyphOutline(66)).toEqual(font.getGlyphOutline(65));
 });
 
-it("positions a Type 1 seac accent using the original glyph IDs", () => {
+it("positions a Type 1 seac accent using the original glyph IDs", async () => {
   const source = type1Program(true);
   const font = parseEmbeddedType1Font(source.bytes, {
     length1: source.length1, length2: source.length2, fontMatrix: [0.001, 0, 0, 0.001, 0, 0],
@@ -76,6 +76,11 @@ it("positions a Type 1 seac accent using the original glyph IDs", () => {
   expect(font.unicodeByCode.get(193)).toBe("Á");
   const vertices = new Set(font.getGlyphOutline(193).flatMap(segment => segment.kind === "line" ? [`${Math.round(segment.x * 1000)},${Math.round(segment.y * 1000)}`] : []));
   expect(vertices).toEqual(new Set(["0,0", "600,0", "300,700", "100,200", "700,200", "400,900"]));
+  const data = new Uint8Array(65536); let end = 0;
+  const storage = { allocate(n: number) { const at = end; end += n; return at; }, async read(at: number, n: number) { return data.slice(at, at + n); }, async write(at: number, bytes: Uint8Array) { data.set(bytes, at); } };
+  const backed = [];
+  for await (const segment of font.storedSegments(193, storage)) backed.push(segment);
+  expect(backed).toEqual(font.getGlyphOutline(193));
 });
 
 it("keeps CID-keyed Type 1 glyph IDs aligned after CFF conversion", () => {

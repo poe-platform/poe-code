@@ -31,9 +31,11 @@ export class CFFParser {
   parseFDSelect(offset: number, count: number): { format: number; fdSelect: number[] };
 }
 export class CFFCompiler { constructor(cff: CffFont); compile(): number[]; }
+export interface CffOperandStack { length: number; push(value: number): Promise<void>; pop(): Promise<number | undefined>; shift(): Promise<number | undefined>; }
 export class Type2Compiled {
   constructor(info: Record<string, unknown>, cmap: Array<{ start: number; end: number; idDelta: number }>, fontMatrix: number[]);
   glyphCommands(code: Uint8Array, glyphId: number, onAllocation?: (bytes: number) => void): Generator<ArrayLike<number>>;
+  glyphCommands(code: Uint8Array, glyphId: number, onAllocation: ((bytes: number) => void) | undefined, createStack: (depth: number) => CffOperandStack): Generator<ArrayLike<number> | Promise<unknown>, void, unknown>;
   compileGlyph(code: Uint8Array, glyphId: number, onAllocation?: (bytes: number) => void): ArrayLike<number>;
 }
 export function getGlyphsUnicode(): Record<string, number>;

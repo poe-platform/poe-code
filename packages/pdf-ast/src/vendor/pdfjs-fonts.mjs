@@ -10193,10 +10193,14 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
     cmds.add(DrawOPS.curveTo, [x1, y1, x2, y2, x3, y3]);
     if (cmds.streaming) { yield cmds.getPath(); cmds.cmds.length = 0; }
   }
-  const stack = [];
-  function pushOperand(value) {
+  const stack = cmds.createStack?.(cmds.depth) ?? [];
+  function* pushOperand(value) {
+    if (!Array.isArray(stack)) { yield stack.push(value); return; }
     if (cmds.streaming && stack.length + 1 > cmds.maxOperands) { cmds.onFrameAllocation?.(16); cmds.maxOperands = stack.length + 1; }
     stack.push(value);
+  }
+  function* readOperand(method) {
+    return Array.isArray(stack) ? stack[method]() : yield stack[method]();
   }
   let x = 0, y = 0;
   let stems = 0;
@@ -10220,52 +10224,52 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           stackClean = true;
           break;
         case 4:
-          y += stack.pop();
+          y += (yield* readOperand("pop"));
           yield* moveTo(x, y);
           stackClean = true;
           break;
         case 5:
           while (stack.length > 0) {
-            x += stack.shift();
-            y += stack.shift();
+            x += (yield* readOperand("shift"));
+            y += (yield* readOperand("shift"));
             yield* lineTo(x, y);
           }
           break;
         case 6:
           while (stack.length > 0) {
-            x += stack.shift();
+            x += (yield* readOperand("shift"));
             yield* lineTo(x, y);
             if (stack.length === 0) {
               break;
             }
-            y += stack.shift();
+            y += (yield* readOperand("shift"));
             yield* lineTo(x, y);
           }
           break;
         case 7:
           while (stack.length > 0) {
-            y += stack.shift();
+            y += (yield* readOperand("shift"));
             yield* lineTo(x, y);
             if (stack.length === 0) {
               break;
             }
-            x += stack.shift();
+            x += (yield* readOperand("shift"));
             yield* lineTo(x, y);
           }
           break;
         case 8:
           while (stack.length > 0) {
-            xa = x + stack.shift();
-            ya = y + stack.shift();
-            xb = xa + stack.shift();
-            yb = ya + stack.shift();
-            x = xb + stack.shift();
-            y = yb + stack.shift();
+            xa = x + (yield* readOperand("shift"));
+            ya = y + (yield* readOperand("shift"));
+            xb = xa + (yield* readOperand("shift"));
+            yb = ya + (yield* readOperand("shift"));
+            x = xb + (yield* readOperand("shift"));
+            y = yb + (yield* readOperand("shift"));
             yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
         case 10:
-          n = stack.pop();
+          n = (yield* readOperand("pop"));
           subrCode = null;
           if (font.isCFFCIDFont) {
             const fdIndex = font.fdSelect.getFDIndex(glyphId);
@@ -10295,65 +10299,65 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           v = code[i++];
           switch (v) {
             case 34:
-              xa = x + stack.shift();
-              xb = xa + stack.shift();
-              y1 = y + stack.shift();
-              x = xb + stack.shift();
+              xa = x + (yield* readOperand("shift"));
+              xb = xa + (yield* readOperand("shift"));
+              y1 = y + (yield* readOperand("shift"));
+              x = xb + (yield* readOperand("shift"));
               yield* bezierCurveTo(xa, y, xb, y1, x, y1);
-              xa = x + stack.shift();
-              xb = xa + stack.shift();
-              x = xb + stack.shift();
+              xa = x + (yield* readOperand("shift"));
+              xb = xa + (yield* readOperand("shift"));
+              x = xb + (yield* readOperand("shift"));
               yield* bezierCurveTo(xa, y1, xb, y, x, y);
               break;
             case 35:
-              xa = x + stack.shift();
-              ya = y + stack.shift();
-              xb = xa + stack.shift();
-              yb = ya + stack.shift();
-              x = xb + stack.shift();
-              y = yb + stack.shift();
+              xa = x + (yield* readOperand("shift"));
+              ya = y + (yield* readOperand("shift"));
+              xb = xa + (yield* readOperand("shift"));
+              yb = ya + (yield* readOperand("shift"));
+              x = xb + (yield* readOperand("shift"));
+              y = yb + (yield* readOperand("shift"));
               yield* bezierCurveTo(xa, ya, xb, yb, x, y);
-              xa = x + stack.shift();
-              ya = y + stack.shift();
-              xb = xa + stack.shift();
-              yb = ya + stack.shift();
-              x = xb + stack.shift();
-              y = yb + stack.shift();
+              xa = x + (yield* readOperand("shift"));
+              ya = y + (yield* readOperand("shift"));
+              xb = xa + (yield* readOperand("shift"));
+              yb = ya + (yield* readOperand("shift"));
+              x = xb + (yield* readOperand("shift"));
+              y = yb + (yield* readOperand("shift"));
               yield* bezierCurveTo(xa, ya, xb, yb, x, y);
-              stack.pop();
+              (yield* readOperand("pop"));
               break;
             case 36:
-              xa = x + stack.shift();
-              y1 = y + stack.shift();
-              xb = xa + stack.shift();
-              y2 = y1 + stack.shift();
-              x = xb + stack.shift();
+              xa = x + (yield* readOperand("shift"));
+              y1 = y + (yield* readOperand("shift"));
+              xb = xa + (yield* readOperand("shift"));
+              y2 = y1 + (yield* readOperand("shift"));
+              x = xb + (yield* readOperand("shift"));
               yield* bezierCurveTo(xa, y1, xb, y2, x, y2);
-              xa = x + stack.shift();
-              xb = xa + stack.shift();
-              y3 = y2 + stack.shift();
-              x = xb + stack.shift();
+              xa = x + (yield* readOperand("shift"));
+              xb = xa + (yield* readOperand("shift"));
+              y3 = y2 + (yield* readOperand("shift"));
+              x = xb + (yield* readOperand("shift"));
               yield* bezierCurveTo(xa, y2, xb, y3, x, y);
               break;
             case 37:
               const x0 = x, y0 = y;
-              xa = x + stack.shift();
-              ya = y + stack.shift();
-              xb = xa + stack.shift();
-              yb = ya + stack.shift();
-              x = xb + stack.shift();
-              y = yb + stack.shift();
+              xa = x + (yield* readOperand("shift"));
+              ya = y + (yield* readOperand("shift"));
+              xb = xa + (yield* readOperand("shift"));
+              yb = ya + (yield* readOperand("shift"));
+              x = xb + (yield* readOperand("shift"));
+              y = yb + (yield* readOperand("shift"));
               yield* bezierCurveTo(xa, ya, xb, yb, x, y);
-              xa = x + stack.shift();
-              ya = y + stack.shift();
-              xb = xa + stack.shift();
-              yb = ya + stack.shift();
+              xa = x + (yield* readOperand("shift"));
+              ya = y + (yield* readOperand("shift"));
+              xb = xa + (yield* readOperand("shift"));
+              yb = ya + (yield* readOperand("shift"));
               x = xb;
               y = yb;
               if (Math.abs(x - x0) > Math.abs(y - y0)) {
-                x += stack.shift();
+                x += (yield* readOperand("shift"));
               } else {
-                y += stack.shift();
+                y += (yield* readOperand("shift"));
               }
               yield* bezierCurveTo(xa, ya, xb, yb, x, y);
               break;
@@ -10363,10 +10367,10 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           break;
         case 14:
           if (stack.length >= 4) {
-            const achar = stack.pop();
-            const bchar = stack.pop();
-            y = stack.pop();
-            x = stack.pop();
+            const achar = (yield* readOperand("pop"));
+            const bchar = (yield* readOperand("pop"));
+            y = (yield* readOperand("pop"));
+            x = (yield* readOperand("pop"));
             cmds.save();
             cmds.translate(x, y);
             let cmap = lookupCmap(
@@ -10407,13 +10411,13 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           stackClean = true;
           break;
         case 21:
-          y += stack.pop();
-          x += stack.pop();
+          y += (yield* readOperand("pop"));
+          x += (yield* readOperand("pop"));
           yield* moveTo(x, y);
           stackClean = true;
           break;
         case 22:
-          x += stack.pop();
+          x += (yield* readOperand("pop"));
           yield* moveTo(x, y);
           stackClean = true;
           break;
@@ -10423,66 +10427,66 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           break;
         case 24:
           while (stack.length > 2) {
-            xa = x + stack.shift();
-            ya = y + stack.shift();
-            xb = xa + stack.shift();
-            yb = ya + stack.shift();
-            x = xb + stack.shift();
-            y = yb + stack.shift();
+            xa = x + (yield* readOperand("shift"));
+            ya = y + (yield* readOperand("shift"));
+            xb = xa + (yield* readOperand("shift"));
+            yb = ya + (yield* readOperand("shift"));
+            x = xb + (yield* readOperand("shift"));
+            y = yb + (yield* readOperand("shift"));
             yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
-          x += stack.shift();
-          y += stack.shift();
+          x += (yield* readOperand("shift"));
+          y += (yield* readOperand("shift"));
           yield* lineTo(x, y);
           break;
         case 25:
           while (stack.length > 6) {
-            x += stack.shift();
-            y += stack.shift();
+            x += (yield* readOperand("shift"));
+            y += (yield* readOperand("shift"));
             yield* lineTo(x, y);
           }
-          xa = x + stack.shift();
-          ya = y + stack.shift();
-          xb = xa + stack.shift();
-          yb = ya + stack.shift();
-          x = xb + stack.shift();
-          y = yb + stack.shift();
+          xa = x + (yield* readOperand("shift"));
+          ya = y + (yield* readOperand("shift"));
+          xb = xa + (yield* readOperand("shift"));
+          yb = ya + (yield* readOperand("shift"));
+          x = xb + (yield* readOperand("shift"));
+          y = yb + (yield* readOperand("shift"));
           yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           break;
         case 26:
           if (stack.length % 2) {
-            x += stack.shift();
+            x += (yield* readOperand("shift"));
           }
           while (stack.length > 0) {
             xa = x;
-            ya = y + stack.shift();
-            xb = xa + stack.shift();
-            yb = ya + stack.shift();
+            ya = y + (yield* readOperand("shift"));
+            xb = xa + (yield* readOperand("shift"));
+            yb = ya + (yield* readOperand("shift"));
             x = xb;
-            y = yb + stack.shift();
+            y = yb + (yield* readOperand("shift"));
             yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
         case 27:
           if (stack.length % 2) {
-            y += stack.shift();
+            y += (yield* readOperand("shift"));
           }
           while (stack.length > 0) {
-            xa = x + stack.shift();
+            xa = x + (yield* readOperand("shift"));
             ya = y;
-            xb = xa + stack.shift();
-            yb = ya + stack.shift();
-            x = xb + stack.shift();
+            xb = xa + (yield* readOperand("shift"));
+            yb = ya + (yield* readOperand("shift"));
+            x = xb + (yield* readOperand("shift"));
             y = yb;
             yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
         case 28:
-          pushOperand(view.getInt16(i));
+          yield* pushOperand(view.getInt16(i));
           i += 2;
           break;
         case 29:
-          n = stack.pop() + font.gsubrsBias;
+          n = (yield* readOperand("pop")) + font.gsubrsBias;
           subrCode = font.gsubrs[n];
           if (subrCode) {
             yield* parse(subrCode, depth + 1);
@@ -10491,42 +10495,42 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
         case 30:
           while (stack.length > 0) {
             xa = x;
-            ya = y + stack.shift();
-            xb = xa + stack.shift();
-            yb = ya + stack.shift();
-            x = xb + stack.shift();
-            y = yb + (stack.length === 1 ? stack.shift() : 0);
+            ya = y + (yield* readOperand("shift"));
+            xb = xa + (yield* readOperand("shift"));
+            yb = ya + (yield* readOperand("shift"));
+            x = xb + (yield* readOperand("shift"));
+            y = yb + (stack.length === 1 ? (yield* readOperand("shift")) : 0);
             yield* bezierCurveTo(xa, ya, xb, yb, x, y);
             if (stack.length === 0) {
               break;
             }
-            xa = x + stack.shift();
+            xa = x + (yield* readOperand("shift"));
             ya = y;
-            xb = xa + stack.shift();
-            yb = ya + stack.shift();
-            y = yb + stack.shift();
-            x = xb + (stack.length === 1 ? stack.shift() : 0);
+            xb = xa + (yield* readOperand("shift"));
+            yb = ya + (yield* readOperand("shift"));
+            y = yb + (yield* readOperand("shift"));
+            x = xb + (stack.length === 1 ? (yield* readOperand("shift")) : 0);
             yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
         case 31:
           while (stack.length > 0) {
-            xa = x + stack.shift();
+            xa = x + (yield* readOperand("shift"));
             ya = y;
-            xb = xa + stack.shift();
-            yb = ya + stack.shift();
-            y = yb + stack.shift();
-            x = xb + (stack.length === 1 ? stack.shift() : 0);
+            xb = xa + (yield* readOperand("shift"));
+            yb = ya + (yield* readOperand("shift"));
+            y = yb + (yield* readOperand("shift"));
+            x = xb + (stack.length === 1 ? (yield* readOperand("shift")) : 0);
             yield* bezierCurveTo(xa, ya, xb, yb, x, y);
             if (stack.length === 0) {
               break;
             }
             xa = x;
-            ya = y + stack.shift();
-            xb = xa + stack.shift();
-            yb = ya + stack.shift();
-            x = xb + stack.shift();
-            y = yb + (stack.length === 1 ? stack.shift() : 0);
+            ya = y + (yield* readOperand("shift"));
+            xb = xa + (yield* readOperand("shift"));
+            yb = ya + (yield* readOperand("shift"));
+            x = xb + (yield* readOperand("shift"));
+            y = yb + (stack.length === 1 ? (yield* readOperand("shift")) : 0);
             yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
@@ -10535,13 +10539,13 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             throw new FormatError(`unknown operator: ${v}`);
           }
           if (v < 247) {
-            pushOperand(v - 139);
+            yield* pushOperand(v - 139);
           } else if (v < 251) {
-            pushOperand((v - 247) * 256 + code[i++] + 108);
+            yield* pushOperand((v - 247) * 256 + code[i++] + 108);
           } else if (v < 255) {
-            pushOperand(-(v - 251) * 256 - code[i++] - 108);
+            yield* pushOperand(-(v - 251) * 256 - code[i++] - 108);
           } else {
-            pushOperand(view.getInt32(i) / 65536);
+            yield* pushOperand(view.getInt32(i) / 65536);
             i += 4;
           }
           break;
@@ -10669,7 +10673,7 @@ var Type2Compiled = class extends CompiledFont {
     this.fdSelect = cffInfo.fdSelect;
     this.fdArray = cffInfo.fdArray;
   }
-  *glyphCommands(code, glyphId, onAllocation) {
+  *glyphCommands(code, glyphId, onAllocation, createStack) {
     onAllocation?.(16384);
     if (!code?.length || code[0] === 14) return;
     let matrix = this.fontMatrix;
@@ -10680,6 +10684,7 @@ var Type2Compiled = class extends CompiledFont {
     assert(isNumberArray(matrix, 6), "Expected a valid fontMatrix.");
     const cmds = new Commands();
     cmds.streaming = true;
+    cmds.createStack = createStack;
     cmds.maxDepth = 1;
     cmds.maxSubrDepth = 10;
     cmds.maxOperands = 48;

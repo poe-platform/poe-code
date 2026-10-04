@@ -1,5 +1,5 @@
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
-import type { PdfPathSegment } from "../ast.js";
+import type { PdfPathSegment, PdfPixelStorage } from "../ast.js";
 import { createCffGlyphRenderer, type EmbeddedCffFont } from "./cff.js";
 import {
   Stream,
@@ -34,7 +34,7 @@ export function parseEmbeddedType1Font(
   }
   const render = createCffGlyphRenderer(cff, options);
   const standardEncoding = getEncoding("StandardEncoding")!;
-  function* glyphSegments(code: number): Generator<PdfPathSegment> {
+  function* glyphParts(code: number): Generator<{ gid: number; dx: number; dy: number }> {
     const gid = mapping.get(code) || notdef;
     const seac = seacs.get(gid);
     if (seac) {
@@ -42,31 +42,50 @@ export function parseEmbeddedType1Font(
       const accent = charset.indexOf(standardEncoding[seac[3]!]!);
       if (base >= 0 && accent >= 0) {
         const m = properties.fontMatrix;
-        const dx = seac[0]! * m[0]! + seac[1]! * m[2]! + m[4]!;
-        const dy = seac[0]! * m[1]! + seac[1]! * m[3]! + m[5]!;
-        yield* render.segments(base);
-        for (const segment of render.segments(accent)) {
-          if (segment.kind === "close") yield segment;
-          else if (segment.kind === "cubic")
-            yield {
-              ...segment,
-              x: segment.x + dx,
-              y: segment.y + dy,
-              x1: segment.x1 + dx,
-              y1: segment.y1 + dy,
-              x2: segment.x2 + dx,
-              y2: segment.y2 + dy
-            };
-          else yield { ...segment, x: segment.x + dx, y: segment.y + dy };
-        }
+        yield { gid: base, dx: 0, dy: 0 };
+        yield {
+          gid: accent,
+          dx: seac[0]! * m[0]! + seac[1]! * m[2]! + m[4]!,
+          dy: seac[0]! * m[1]! + seac[1]! * m[3]! + m[5]!
+        };
         return;
       }
     }
-    yield* render.segments(gid);
+    yield { gid, dx: 0, dy: 0 };
+  }
+  function displaced(segment: PdfPathSegment, dx: number, dy: number): PdfPathSegment {
+    if (segment.kind === "close" || (dx === 0 && dy === 0)) return segment;
+    if (segment.kind === "cubic")
+      return {
+        ...segment,
+        x: segment.x + dx,
+        y: segment.y + dy,
+        x1: segment.x1 + dx,
+        y1: segment.y1 + dy,
+        x2: segment.x2 + dx,
+        y2: segment.y2 + dy
+      };
+    return { ...segment, x: segment.x + dx, y: segment.y + dy };
+  }
+  function* glyphSegments(code: number): Generator<PdfPathSegment> {
+    for (const { gid, dx, dy } of glyphParts(code)) {
+      for (const segment of render.segments(gid)) yield displaced(segment, dx, dy);
+    }
+  }
+  async function* storedSegments(
+    code: number,
+    storage: PdfPixelStorage,
+    signal?: AbortSignal
+  ): AsyncGenerator<PdfPathSegment> {
+    for (const { gid, dx, dy } of glyphParts(code)) {
+      for await (const segment of render.storedSegments(gid, storage, signal))
+        yield displaced(segment, dx, dy);
+    }
   }
   return {
     unicodeByCode,
     glyphSegments,
+    storedSegments,
     getGlyphOutline(code) {
       const path: PdfPathSegment[] = [];
       for (const segment of glyphSegments(code)) {

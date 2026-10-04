@@ -1029,7 +1029,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
 
 export type PdfEvaluationRequest = {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
-  | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
+  | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>;storedSegments?(code:number,storage:PdfPixelStorage,signal?:AbortSignal):AsyncIterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
   | {readonly kind:"cmap-lookup";readonly map:StoredCMap;readonly code:number} | {readonly kind:"cmap-character";readonly map:StoredCMap;readonly bytes:Uint8Array;readonly offset:number} | {readonly kind:"cid-gid";readonly map:import("../fonts/stored-cid-map.js").StoredCidMap;readonly code:number} | {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
   | {readonly kind:"frame-pop";readonly stack:StoredMetadataStack<EvaluationFrame>} | {readonly kind:"capture-append";readonly writer:StoredOperationsWriter;readonly operation:PdfPaintOperation} | PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "append-clip"; readonly storage: PdfPixelStorage; readonly previous: PdfStoredClipPaths | undefined; readonly clip: PdfClipPath }

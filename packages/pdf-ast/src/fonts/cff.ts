@@ -1,5 +1,6 @@
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
-import type { PdfPathSegment } from "../ast.js";
+import { StoredFontOperands } from "./stored-operands.js";
+import type { PdfPathSegment, PdfPixelStorage } from "../ast.js";
 import {
   CFFParser,
   DrawOPS,
@@ -13,6 +14,11 @@ import {
 export interface CffGlyphRenderer {
   (glyphId: number): PdfPathSegment[];
   segments(glyphId: number): Generator<PdfPathSegment>;
+  storedSegments(
+    glyphId: number,
+    storage: PdfPixelStorage,
+    signal?: AbortSignal
+  ): AsyncGenerator<PdfPathSegment>;
 }
 
 export function createCffGlyphRenderer(
@@ -93,6 +99,52 @@ export function createCffGlyphRenderer(
   };
   let streamPeak = 0;
   return Object.assign(render, {
+    async *storedSegments(
+      glyphId: number,
+      storage: PdfPixelStorage,
+      signal?: AbortSignal
+    ): AsyncGenerator<PdfPathSegment> {
+      let streamBytes = 0;
+      const charge = (bytes: number) => {
+        signal?.throwIfAborted();
+        streamBytes += bytes;
+        if (streamBytes > streamPeak) {
+          allocation.admit(streamBytes - streamPeak);
+          streamPeak = streamBytes;
+        }
+      };
+      const stacks = new Map<number, StoredFontOperands>();
+      const program = renderer.glyphCommands(
+        cff.charStrings.objects[glyphId] ?? new Uint8Array(),
+        glyphId,
+        charge,
+        (depth) => {
+          let stack = stacks.get(depth);
+          if (!stack) {
+            charge(16384);
+            stack = new StoredFontOperands(storage, signal);
+            stacks.set(depth, stack);
+          }
+          stack.length = 0;
+          return stack;
+        }
+      );
+      try {
+        let step = program.next(),
+          requests = 0;
+        while (!step.done) {
+          if (++requests % 4096 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
+          signal?.throwIfAborted();
+          if (step.value instanceof Promise) step = program.next(await step.value);
+          else {
+            yield* commandSegments(step.value);
+            step = program.next();
+          }
+        }
+      } finally {
+        program.return();
+      }
+    },
     *segments(glyphId: number): Generator<PdfPathSegment> {
       let streamBytes = 0;
       for (const commands of renderer.glyphCommands(
@@ -136,6 +188,11 @@ export interface EmbeddedCffFont {
   readonly unicodeByCode: ReadonlyMap<number, string>;
   getGlyphOutline(code: number): PdfPathSegment[];
   glyphSegments(code: number): Generator<PdfPathSegment>;
+  storedSegments(
+    code: number,
+    storage: PdfPixelStorage,
+    signal?: AbortSignal
+  ): AsyncGenerator<PdfPathSegment>;
 }
 
 export function parseEmbeddedCffFont(
@@ -175,6 +232,8 @@ export function parseEmbeddedCffFont(
   return {
     unicodeByCode,
     getGlyphOutline: (code) => renderGlyph(glyphIds.get(code) ?? 0),
-    glyphSegments: (code) => renderGlyph.segments(glyphIds.get(code) ?? 0)
+    glyphSegments: (code) => renderGlyph.segments(glyphIds.get(code) ?? 0),
+    storedSegments: (code, storage, signal) =>
+      renderGlyph.storedSegments(glyphIds.get(code) ?? 0, storage, signal)
   };
 }

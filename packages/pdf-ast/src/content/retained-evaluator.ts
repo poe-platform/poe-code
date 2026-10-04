@@ -149,7 +149,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
         case "truetype-number": reply={kind:"resolved",node:cosNumber(request.operation==="id"?await request.font.getGlyphId(request.code):await request.font.getAdvanceWidthUnits(request.code))};break;
         case "truetype-path": {
           const writer=new StoredPathWriter(request.storage,signal);
-          for await(const segment of request.font.glyphSegments(request.glyphId))await writer.append(segment);
+          for await(const segment of (request.font.storedSegments?.(request.glyphId,request.storage,signal)??request.font.glyphSegments(request.glyphId)))await writer.append(segment);
           reply=await writer.finish();break;
         }
         case "cid-gid": reply={kind:"resolved",node:cosNumber(await readStoredCidGlyph(request.map,request.code,signal))};break;

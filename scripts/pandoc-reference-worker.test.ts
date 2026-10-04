@@ -9,10 +9,11 @@ const cases = modes.flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from =
   ["json", "plain", "html5", "rst", "gfm", "latex", "rtf", "odt", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])]
     .map(to => ({mode, from, to, ...ordinary}))));
 cases.push(...modes.flatMap(mode => ["json", "html5"].map(to => ({mode, from: "json", to, ...ordinary, transform: true}))));
-for (const option of ["metadata", "filter", "lua", "crlf", "byteQuota"] as const)
+for (const option of ["metadata", "filter", "lua", "crlf"] as const)
   cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, [option]: true})));
 cases.push(...modes.map(mode => ({mode, from: "json", to: "html5", ...ordinary, template: true})));
 cases.push(...modes.flatMap(mode => ["gfm", "rtf"].map(to => ({mode, from: "json", to, ...ordinary, writerOptions: true}))));
+cases.push(...modes.flatMap(mode => ["json", "plain"].map(to => ({mode, from: "json", to, ...ordinary, byteQuota: true}))));
 it.each(cases)("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata filter=$filter lua=$lua template=$template crlf=$crlf writerOptions=$writerOptions byteQuota=$byteQuota", async ({mode, from, to, transform, metadata, filter, lua, template, crlf, writerOptions, byteQuota}) => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput, createJsonFilterCapability, createLuaFilterCapability} from "./packages/safe-bash-command-pandoc/dist/index.js";

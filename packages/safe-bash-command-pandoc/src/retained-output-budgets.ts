@@ -39,3 +39,15 @@ export async function reserveRetainedOutput(source: () => AsyncIterable<string>,
     }
   }
 }
+
+/** Preserve native output-sink allocation boundaries for cumulative byte quotas. */
+export async function emitRetainedOutput(chunks: AsyncIterable<Uint8Array>, context: ExecutionContext): Promise<void> {
+  if (!Number.isFinite(context.limits.retainedBytes)) {for await (const bytes of chunks) await context.emit(bytes); return;}
+  let buffer = new Uint8Array(4096), used = 0;
+  for await (const bytes of chunks) for (let offset = 0; offset < bytes.length;) {
+    const count = Math.min(buffer.length - used, bytes.length - offset);
+    buffer.set(bytes.subarray(offset, offset + count), used); used += count; offset += count;
+    if (used === buffer.length) {await context.emit(buffer); buffer = new Uint8Array(4096); used = 0;}
+  }
+  if (used) await context.emit(buffer.subarray(0, used));
+}

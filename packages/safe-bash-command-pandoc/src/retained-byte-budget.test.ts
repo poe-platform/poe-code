@@ -3,11 +3,11 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convert, convertToOutput} from "./engine.js";
 import {ExecutionContext} from "./execution.js";
 
-it.each(["empty", "text", "unicode", "long", "invalid"].flatMap(kind => ["lf", "crlf"].map(eol => ({kind, eol: eol as "lf" | "crlf"}))))("retains JSON byte budgets for $kind with $eol", async ({kind, eol}) => {
+it.each(["empty", "text", "unicode", "long", "invalid"].flatMap(kind => ["json", "plain"].flatMap(to => ["lf", "crlf"].map(eol => ({kind, to, eol: eol as "lf" | "crlf"}))))) ("retains JSON-to-$to byte budgets for $kind with $eol", async ({kind, to, eol}) => {
   const text = JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: kind === "empty" ? [] : [{t: "Para", c: [{t: "Str", c: kind === "long" ? "😀".repeat(5000) : kind === "unicode" ? "😀é" : "hello"}]}]});
   const bytes = new TextEncoder().encode(kind === "invalid" ? text.slice(0, -3) : text);
   const input = {source: "/input.json", chunks: [bytes.subarray(0, 17), bytes.subarray(17)]};
-  const options = {from: "json", to: "json", eol, lossy: eol === "lf"};
+  const options = {from: "json", to, eol, lossy: eol === "lf"};
   const boundaries = new Set<number>([0, 1, 1000000]);
   const original = ExecutionContext.prototype.charge;
   const trace = vi.spyOn(ExecutionContext.prototype, "charge").mockImplementation(function(this: ExecutionContext, ...args) {

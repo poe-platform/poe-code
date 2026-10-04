@@ -1,4 +1,4 @@
-import {reserveRetainedOutput} from "./retained-output-budgets.js";
+import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import type {backedJsonOrder} from "./backed-json-order.js";
@@ -26,8 +26,9 @@ class PlainTape {
     this.text = new BackedText(storage, units => context.cooperate(units));
   }
   private reserveJoin(value: TextRange, parts: number): void {
-    if (!Number.isFinite(this.context.limits.references)) return;
+    if (!Number.isFinite(this.context.limits.references) && !Number.isFinite(this.context.limits.retainedBytes)) return;
     this.context.bound("outputBytes", value.units);
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", value.units * 2);
     this.context.charge("references", parts);
   }
   private async lineCount(value: TextRange): Promise<number> {
@@ -77,18 +78,22 @@ class PlainTape {
       if (job.op === "scalar") {result = await this.text.from(this.tree.scalarChunks(job.node)); count = 1; continue;}
       if (job.op === "post") {
         if (job.mode === "wrap" && !(this.options.wrap === "none" || this.options.wrap === "preserve" || this.options.wrap === undefined && this.options.columns === undefined)) {
-          if (Number.isFinite(this.context.limits.references)) this.context.charge("references", result.units + 1);
+          if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 4);
+          if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("references", result.units + 1);
           result = await this.text.wrap(result, this.options.columns ?? 72);
-          if (Number.isFinite(this.context.limits.references)) this.reserveJoin(result, await this.lineCount(result));
+          if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.reserveJoin(result, await this.lineCount(result));
         }
         if (job.mode === "code" && result.units) {
-          result = await this.text.indent(await this.text.trimFinalNewline(result), "    ", "    ");
-          if (Number.isFinite(this.context.limits.references)) this.reserveJoin(result, await this.lineCount(result));
+          result = await this.text.trimFinalNewline(result);
+          if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (result.units + (result.units + 1) * 4) * 2);
+          result = await this.text.indent(result, "    ", "    ");
+          if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.reserveJoin(result, await this.lineCount(result));
         }
         if (job.mode === "indent") {
           if (result.units || job.always) {
+            if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (result.units + (result.units + 1) * Math.max(job.first!.length, job.rest!.length)) * 2);
             result = await this.text.indent(result, job.first!, job.rest!);
-            if (Number.isFinite(this.context.limits.references)) this.reserveJoin(result, await this.lineCount(result));
+            if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.reserveJoin(result, await this.lineCount(result));
           } else result = await this.text.from([job.empty ?? ""]);
         }
         if (job.mode === "surround") {
@@ -321,10 +326,10 @@ export async function writeRetainedPlain(tree: BackedJson, context: ExecutionCon
       }
       if (pending) yield encoder.encode(pending);
     };
-    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references) && !Number.isFinite(context.limits.retainedBytes)) {
       let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}
     }
-    for await (const bytes of chunks()) await context.emit(bytes);
+    await emitRetainedOutput(chunks(), context);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};}
   finally {release();}

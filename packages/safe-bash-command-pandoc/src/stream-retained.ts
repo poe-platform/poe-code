@@ -1,4 +1,4 @@
-import {reserveRetainedOutput} from "./retained-output-budgets.js";
+import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import {reserveRetainedAstBudgets} from "./retained-ast-budgets.js";
 import type {readRetainedRtfDocument} from "./retained-rtf-document.js";
 import type {RetainedOptions} from "./retained-options.js";
@@ -169,15 +169,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       if (resourceCount) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent resources, language or direction document fields", "json", "$");
       if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) await preflight(() => document!.chunks(), options.eol);
       else await preflight(() => document!.chunks(options.eol));
-      if (Number.isFinite(context.limits.retainedBytes)) {
-        let buffer = new Uint8Array(4096), used = 0;
-        for await (const bytes of document.chunks(options.eol)) for (let offset = 0; offset < bytes.length;) {
-          const count = Math.min(buffer.length - used, bytes.length - offset);
-          buffer.set(bytes.subarray(offset, offset + count), used); used += count; offset += count;
-          if (used === buffer.length) {await context.emit(buffer); buffer = new Uint8Array(4096); used = 0;}
-        }
-        if (used) await context.emit(buffer.subarray(0, used));
-      } else for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);
+      await emitRetainedOutput(document.chunks(options.eol), context);
     }
   } catch (reason) {failure = {reason};}
   try {await document?.close();} catch (reason) {failure ??= {reason};}

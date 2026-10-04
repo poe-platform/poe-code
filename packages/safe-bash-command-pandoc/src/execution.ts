@@ -291,7 +291,8 @@ export class ExecutionContext implements AdapterContext {
     this.notices.push(structuredClone(diagnostic));
   }
 
-  snapshotDiagnostics(): readonly Diagnostic[] {
+  /** Set retain=false only when a retained writer already reserved this snapshot. */
+  snapshotDiagnostics(retain = true): readonly Diagnostic[] {
     this.checkpoint(0);
     const text = this.notices.reduce(
       (total, diagnostic) =>
@@ -301,7 +302,7 @@ export class ExecutionContext implements AdapterContext {
         (diagnostic.format?.length ?? 0),
       0
     );
-    this.charge("retainedBytes", text * 2);
+    if (retain) this.charge("retainedBytes", text * 2);
     return structuredClone(this.notices);
   }
 

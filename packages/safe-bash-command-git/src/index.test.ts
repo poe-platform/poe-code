@@ -444,7 +444,7 @@ test("git init scopes to target directory and git status skips nested git reposi
 });
 
 
-test("consecutive git commands reuse the default WASM instance instead of instantiating per command", async () => {
+test("consecutive git commands reuse the compiled module and release their WASM instances", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/repo", { recursive: true });
   await fs.writeFile("/repo/README.md", new TextEncoder().encode("# Demo\n"));
@@ -465,15 +465,17 @@ test("consecutive git commands reuse the default WASM instance instead of instan
     return { exitCode: res.exitCode, stdout, stderr };
   };
 
-  // Warm the default WASM instance once
+  // Compile the default module before observing subsequent instances.
   assert.equal((await run(["init", "-b", "main"])).exitCode, 0);
 
   const origInstance = WebAssembly.Instance;
   let instanceCount = 0;
+  const modules = new Set<WebAssembly.Module>();
   // @ts-expect-error tracking WebAssembly.Instance constructions
   WebAssembly.Instance = new Proxy(origInstance, {
     construct(target, argArray, newTarget) {
       instanceCount++;
+      modules.add(argArray[0]);
       return Reflect.construct(target, argArray, newTarget);
     },
   });
@@ -482,8 +484,10 @@ test("consecutive git commands reuse the default WASM instance instead of instan
     assert.equal((await run(["config", "user.name", "Dev"])).exitCode, 0);
     assert.equal((await run(["add", "README.md"])).exitCode, 0);
     assert.equal((await run(["commit", "-m", "initial"])).exitCode, 0);
-    assert.equal((await run(["status", "--short"])).exitCode, 0);
-    assert.equal(instanceCount, 0, "expected subsequent git commands to reuse the cached WASM instance");
+    const status = await run(["status", "--short"]);
+    assert.deepEqual(status, { exitCode: 0, stdout: "", stderr: "" });
+    assert.equal(instanceCount, 5, "completed commands must release their WASM instances");
+    assert.equal(modules.size, 1, "commands must reuse one compiled WASM module");
   } finally {
     WebAssembly.Instance = origInstance;
   }

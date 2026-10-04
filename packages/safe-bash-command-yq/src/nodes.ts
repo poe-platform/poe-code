@@ -373,8 +373,11 @@ async function adaptQuotedIndent(text: string, filename: string, yaml: YamlModul
   return { text: chunks.join(""), insertions, failures };
 }
 
-export async function decodeDocuments(text: string, filename: string, fileIndex: number, format: "yaml" | "json", yaml: YamlModule, work: NativeWork, onDocument?: (document: NativeDocument) => Promise<void>): Promise<NativeDocument[]> {
+export async function decodeDocuments(input: string | AsyncIterable<string>, filename: string, fileIndex: number, format: "yaml" | "json", yaml: YamlModule, work: NativeWork, onDocument?: (document: NativeDocument) => Promise<void>): Promise<NativeDocument[]> {
+  if (format !== "json" && typeof input !== "string") throw new TypeError("YAML input must be text");
+  let text = typeof input === "string" ? input : "";
   const documents: NativeDocument[] = [];
+  let documentCount = 0;
   const sources: { token: import("yaml").CST.Document; prefix: import("yaml").CST.Token[] }[] = [];
   const originalText = text;
   let insertions: { offset: number; length: number }[] = [];
@@ -415,7 +418,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
     if (!doc.contents) { const empty = new yaml.Scalar(null); empty.source = ""; work.node(); doc.contents = empty; }
     await inspectNode(doc.contents, yaml, work, true);
     const source = sources.shift();
-    if (format === "yaml") await recordHeadComments(doc.contents, source ? [...source.prefix, ...source.token.start] : [], documents.length === 0 ? text : undefined, yaml, work);
+    if (format === "yaml") await recordHeadComments(doc.contents, source ? [...source.prefix, ...source.token.start] : [], documentCount === 0 ? text : undefined, yaml, work);
     const anchors = new Set<string>();
     const pending: Node[] = [doc.contents];
     while (pending.length) {
@@ -445,35 +448,12 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
         }
       } else if (yaml.isSeq(node)) for (let index = node.items.length - 1; index >= 0; index--) if (yaml.isNode(node.items[index])) pending.push(node.items[index] as Node);
     }
-    const document = { doc, filename: implicit ? "" : filename, fileIndex, documentIndex: documents.length, format };
-    documents.push(document);
-    await onDocument?.(document);
+    const document = { doc, filename: implicit ? "" : filename, fileIndex, documentIndex: documentCount++, format };
+    if (onDocument) await onDocument(document);
+    else documents.push(document);
   };
   if (format === "json") {
-    let start = 0;
-    let depth = 0;
-    let quoted = false;
-    let escaped = false;
-    let tokens = 0;
-    const acceptJson = async (end: number) => {
-      const source = text.slice(start, end).trim();
-      start = end;
-      if (!source) return;
-      if (utf8ByteLength(source) > work.limits.maxDocumentBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
-      const doc = await decodeJsonDocument(source, filename, yaml, work);
-      await accept(doc);
-    };
-    for (let index = 0; index < text.length; index++) {
-      if ((index & 255) === 0) { const t = work.tick(256); if (t) await t; }
-      const character = text[index]!;
-      if (quoted) { if (escaped) escaped = false; else if (character === "\\") escaped = true; else if (character === '"') { quoted = false; if (depth === 0) await acceptJson(index + 1); } }
-      else if (character === '"') quoted = true;
-      else if (character === "{" || character === "[") { depth++; work.depth(depth); }
-      else if (character === "}" || character === "]") { depth--; if (depth === 0) { await acceptJson(index + 1); tokens = 0; } }
-      else if (/\s/u.test(character) && depth === 0) await acceptJson(index + 1);
-      if (!quoted && ",:{}[]".includes(character) && ++tokens > work.limits.maxParserNodes) throw new MikeError("yq limit exceeded: maxParserNodes");
-    }
-    await acceptJson(text.length);
+    await decodeJsonChunks(typeof input === "string" ? [input] : input, filename, yaml, work, accept);
     return documents;
   }
   const admitText = async (input: string) => {
@@ -517,6 +497,44 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
     if (!incomplete) break;
   }
   for (const item of parser.end()) await token(item);
-  for (const doc of composer.end(documents.length === 0, text.length)) await accept(doc as Document<Node>, !hasDocument);
+  for (const doc of composer.end(documentCount === 0, text.length)) await accept(doc as Document<Node>, !hasDocument);
   return documents;
+}
+
+// The framing state spans chunks, but completed documents are released before
+// another chunk is requested. Individual values still use the native node model.
+async function decodeJsonChunks(chunks: AsyncIterable<string> | Iterable<string>, filename: string, yaml: YamlModule, work: NativeWork, accept: (doc: Document<Node>) => Promise<void>): Promise<void> {
+  let fragments: string[] = [];
+  let depth = 0;
+  let quoted = false;
+  let escaped = false;
+  let tokens = 0;
+  let scanned = 0;
+  const finish = async () => {
+    const source = fragments.join("").trim();
+    fragments = [];
+    if (utf8ByteLength(source) > work.limits.maxDocumentBytes) throw new MikeError("yq limit exceeded: maxDocumentBytes");
+    if (source) await accept(await decodeJsonDocument(source, filename, yaml, work));
+  };
+  for await (const text of chunks) {
+    let start = 0;
+    for (let index = 0; index < text.length; index++) {
+      if ((scanned++ & 255) === 0) { const t = work.tick(256); if (t) await t; }
+      const character = text[index]!;
+      let complete = false;
+      if (quoted) {
+        if (escaped) escaped = false;
+        else if (character === "\\") escaped = true;
+        else if (character === '"') { quoted = false; complete = depth === 0; }
+      } else if (character === '"') quoted = true;
+      else if (character === "{" || character === "[") { depth++; work.depth(depth); }
+      else if (character === "}" || character === "]") { depth--; complete = depth === 0; }
+      else if (character.trim().length === 0 && depth === 0) complete = true;
+      if (complete) { fragments.push(text.slice(start, index + 1)); start = index + 1; await finish(); }
+      if (complete && (character === "}" || character === "]")) tokens = 0;
+      if (!quoted && ",:{}[]".includes(character) && ++tokens > work.limits.maxParserNodes) throw new MikeError("yq limit exceeded: maxParserNodes");
+    }
+    if (start < text.length) fragments.push(text.slice(start));
+  }
+  await finish();
 }

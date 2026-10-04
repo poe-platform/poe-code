@@ -152,10 +152,8 @@ export class NativeWork {
     return bytes;
   }
 
-  async collect(start: () => ByteSource): Promise<Uint8Array> {
+  async *chunks(start: () => ByteSource): AsyncGenerator<Uint8Array> {
     const iterator = await this.acquire(() => start()[Symbol.asyncIterator](), async value => { await value.return?.(); });
-    const chunks: Uint8Array[] = [];
-    let size = 0;
     let chunksSinceYield = 0;
     while (true) {
       this.assertOpen();
@@ -164,7 +162,7 @@ export class NativeWork {
       if (next.done) break;
       if (!(next.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
       this.input(next.value.byteLength);
-      if (next.value.byteLength) { const copy = new Uint8Array(next.value); chunks.push(copy); size += copy.length; }
+      yield next.value;
       const checkpoint = this.tick();
       chunksSinceYield++;
       if (checkpoint) {
@@ -176,10 +174,33 @@ export class NativeWork {
         this.assertOpen();
       }
     }
+  }
+
+  async collect(start: () => ByteSource): Promise<Uint8Array> {
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    for await (const chunk of this.chunks(start)) {
+      if (chunk.length) { chunks.push(new Uint8Array(chunk)); size += chunk.length; }
+    }
     const result = new Uint8Array(size);
     let offset = 0;
     for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; { const t = this.tick(); if (t) await t; } }
     return result;
+  }
+
+  async *decode(start: () => ByteSource, filename: string): AsyncGenerator<string> {
+    const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+    const decode = (bytes?: Uint8Array) => {
+      try { return bytes ? decoder.decode(bytes, { stream: true }) : decoder.decode(); }
+      catch { throw new MikeError(`bad file '${filename}': invalid UTF-8`); }
+    };
+    for await (const bytes of this.chunks(start)) {
+      for (let offset = 0; offset < bytes.length; offset += 4096) {
+        this.assertOpen();
+        yield decode(bytes.subarray(offset, offset + 4096));
+      }
+    }
+    yield decode();
   }
 
   async *encode(text: string): AsyncGenerator<Uint8Array> {

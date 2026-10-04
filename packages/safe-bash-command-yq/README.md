@@ -4,6 +4,11 @@ The default `createYqCommand()`, `createYqCommands()`, and `yqCommands()`
 use the Mike-yq profile with document, comment, alias and in-place editing support. Commands execute
 against the shell's virtual filesystem, using Web APIs in Workers without a global `Buffer`.
 In-place and split-file writes share the shell's configured output budget.
+JSON input is decoded incrementally from stdin or the injected filesystem: ordinary
+evaluation finishes each document's output before consuming the next document.
+Completed output can precede a later input error. Each individual document still
+uses an in-memory node model; `eval-all` retains all documents, and YAML and other
+formats still buffer input. This is not a bounded-memory guarantee for arbitrary queries.
 Resource quotas default to `Infinity`;
 configure finite byte, work, node, alias or depth limits when needed.
 The internal `safe-bash-command-yq/query` legacy query profile also accepts `limits.maxSourceLines` to bound YAML lines,

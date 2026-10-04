@@ -5,7 +5,8 @@ import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefin
 import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAllHelp, parseMikeArguments } from "./arguments.js";
 import { compileExpression } from "./expression.js";
 import { Evaluator } from "./evaluate.js";
-import { loadYaml, nodeTag, root, scalar, truth, type Candidate, type YamlModule } from "./nodes.js";
+import { decodeDocuments, loadYaml, nodeTag, root, scalar, truth, type Candidate, type NativeDocument, type YamlModule } from "./nodes.js";
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { openFileOutput } from "safe-bash-contracts/filesystem-output";
 import { encodeNative } from "./native-encoder.js";
 import { limitsFor, MikeError, NativeWork, type MikeLimits } from "./native-work.js";
@@ -41,6 +42,15 @@ export interface MikeYqOptions {
 function pathOf(context: CommandContext, name: string): string {
   if (name.includes("\0")) throw new MikeError("path contains NUL");
   return name.startsWith("/") ? name : `${context.cwd.endsWith("/") ? context.cwd : `${context.cwd}/`}${name}`;
+}
+
+function inputError(error: unknown, filename: string, work: NativeWork): never {
+  work.assertOpen();
+  if (error instanceof FsError) {
+    const description = { ENOENT: "no such file or directory", EACCES: "permission denied", ENOTDIR: "not a directory", EISDIR: "is a directory", ELOOP: "too many levels of symbolic links", EIO: "input/output error" }[error.code as string];
+    if (description) throw new MikeError(`${error.code === "EISDIR" ? "read" : "open"} ${filename}: ${description}`);
+  }
+  throw error;
 }
 
 async function runCommand(context: CommandContext, limits: MikeLimits, work: NativeWork): Promise<{ exitCode: number }> {
@@ -136,6 +146,21 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
       await print(await evaluator.run(program, [root({ doc, filename: "", fileIndex: 0, documentIndex: 0, format: "yaml" })]));
     } else {
       for (const [fileIndex, filename] of (operands.length ? operands : ["-"]).entries()) {
+        const accept = async (document: NativeDocument) => {
+          if (options.verbose) await writeVerbose(`Parsed ${filename}, document ${document.documentIndex}`, work);
+          if (options.all) { if (all.length >= limits.maxDocuments) throw new MikeError("yq limit exceeded: maxDocuments"); all.push(root(document)); }
+          else await print(await evaluator.run(program, [root(document)]));
+        };
+        if (format === "json" && !(options.frontMatter !== undefined && fileIndex === 0)) {
+          const path = fileIndex === 0 && original ? original.path : pathOf(context, filename);
+          const source = work.decode(async function* () {
+            if (filename === "-") { yield* context.stdin; return; }
+            try { yield* readFileStream(context.fs, path, { signal: work.signal }); }
+            catch (error) { inputError(error, filename, work); }
+          }, filename);
+          await decodeDocuments(source, filename, fileIndex, "json", yaml, work, accept);
+          continue;
+        }
         let bytes: Uint8Array;
         if (filename === "-") bytes = await work.collect(() => context.stdin);
         else {
@@ -143,12 +168,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
           try {
             bytes = await work.readFile(path);
           } catch (error) {
-            work.assertOpen();
-            if (error instanceof FsError) {
-              const description = { ENOENT: "no such file or directory", EACCES: "permission denied", ENOTDIR: "not a directory", EISDIR: "is a directory", ELOOP: "too many levels of symbolic links", EIO: "input/output error" }[error.code as string];
-              if (description) throw new MikeError(`${error.code === "EISDIR" ? "read" : "open"} ${filename}: ${description}`);
-            }
-            throw error;
+            inputError(error, filename, work);
           }
         }
         work.assertOpen();
@@ -171,11 +191,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
             end = newline < 0 ? text.length : newline + 1;
           }
         }
-        await decodeFormat(text, filename, fileIndex, options.frontMatter !== undefined && fileIndex === 0 ? "yaml" : format, yaml, work, async document => {
-          if (options.verbose) await writeVerbose(`Parsed ${filename}, document ${document.documentIndex}`, work);
-          if (options.all) { if (all.length >= limits.maxDocuments) throw new MikeError("yq limit exceeded: maxDocuments"); all.push(root(document)); }
-          else await print(await evaluator.run(program, [root(document)]));
-        });
+        await decodeFormat(text, filename, fileIndex, options.frontMatter !== undefined && fileIndex === 0 ? "yaml" : format, yaml, work, accept);
       }
       if (options.all) await print(await evaluator.run(program, all));
     }

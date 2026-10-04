@@ -1,3 +1,4 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { serializeCosDocument } from "../cos/writer.js";
 import { expect, it, vi } from "vitest";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
@@ -8,7 +9,7 @@ import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
 import { extractPageAnnotations } from "./evaluator.js";
 
-async function fixture(options: { malformed?: boolean; cycle?: boolean; malformedTree?: boolean; extraPages?: number; signal?: AbortSignal; maxTraversalStagingBytes?: number } = {}) {
+async function fixture(options: { backedKids?: "inline" | "indirect"; malformed?: boolean; cycle?: boolean; malformedTree?: boolean; extraPages?: number; signal?: AbortSignal; maxTraversalStagingBytes?: number } = {}) {
   const original = PdfDocument.create(); const first = original.addPage();
   for (let i = 0; i < (options.extraPages ?? 0); i++) original.addPage();
   const second = original.addPage();
@@ -39,6 +40,12 @@ async function fixture(options: { malformed?: boolean; cycle?: boolean; malforme
     const pages = original.cos.resolveDict(catalog.entries.find(entry => entry.key.decoded === "Pages")?.value)!;
     dictSet(pages, "Kids", cosArray([first.pageRef, original.cos.allocateObject(cosDict({})), second.pageRef]));
   }
+  if (options.backedKids === "indirect") {
+    for (const object of original.cos.objects.values()) if (object.value.kind === "dict") {
+      const kids = object.value.entries.find(entry => entry.key.decoded === "Kids");
+      if (kids?.value.kind === "array") dictSet(object.value,"Kids",original.cos.allocateObject(kids.value));
+    }
+  }
   const expected = options.cycle ? undefined : extractPageAnnotations(original.cos, first.pageDict);
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); 
   const bytes = serializeCosDocument({ rootRef: original.cos.rootRef, objects: [...original.cos.objects.values()] });
@@ -48,10 +55,11 @@ async function fixture(options: { malformed?: boolean; cycle?: boolean; malforme
     read: async (position: number, length: number) => bytes.slice(position, position + length), close: async () => {},
   }) } as unknown as FileSystem;
   const source = await PdfFileSource.open(input, "/input", { chunkBytes: 32, cacheBytes: 64 });
-  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { ...(options.signal ? { signal: options.signal } : {}), ...(options.maxTraversalStagingBytes !== undefined ? { maxTraversalStagingBytes: options.maxTraversalStagingBytes } : {}) });
+  const backing = options.backedKids ? new PagedStorage({fs,cwd:"/scratch",env:{},signal:options.signal ?? new AbortController().signal},2) : undefined;
+  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { ...(backing ? {valueArrays:{arrayStorage:backing,storedArrayKeys:["Kids"]}} : {}), ...(options.signal ? { signal: options.signal } : {}), ...(options.maxTraversalStagingBytes !== undefined ? { maxTraversalStagingBytes: options.maxTraversalStagingBytes } : {}) });
   const page = (await document.pages().next()).value!;
-  return { document, page, expected, fs, readFile, second, async close() {
-    await document.close(); await source.close(); expect(await fs.readdir("/scratch")).toEqual([]);
+  return { document, page, expected, fs, readFile, second, backing, async close() {
+    await document.close(); await source.close(); await backing?.close(); expect(await fs.readdir("/scratch")).toEqual([]);
   } };
 }
 it("streams annotations with external, direct, named and legacy destinations", async () => {
@@ -138,4 +146,36 @@ it("preserves cancellation during spilled destination traversal and removes its 
   });
   await expect(work.next()).rejects.toBe(rejection);
   expect(await f.fs.readdir("/scratch")).toEqual(before); await f.close();
+});
+
+it.each(["inline","indirect"] as const)("preserves pages and destination numbering with %s backed Kids",async backedKids=>{
+ const f=await fixture({backedKids,extraPages:32});
+ try{
+  const indices=[];for await(const page of f.document.pages())indices.push(page.index);
+  expect(indices).toEqual(Array.from({length:34},(_,i)=>i));
+  expect(await f.document.annotationPageNumber(f.second.pageRef)).toBe(34);
+  const annotations=[];for await(const annotation of f.page.annotations())annotations.push(annotation);
+  expect(annotations).toEqual(f.expected);
+ }finally{await f.close();}
+});
+
+it.each(["inline","indirect"] as const)("preserves malformed leaves and cyclic name branches with %s backed Kids",async backedKids=>{
+ for(const options of [{malformedTree:true},{cycle:true}]){
+  const f=await fixture({backedKids,...options});
+  try{
+   const annotations=[];for await(const annotation of f.page.annotations())annotations.push(annotation);
+   if(f.expected)expect(annotations).toEqual(f.expected);
+   else expect(annotations[2]?.uri).toBe("#page2");
+  }finally{await f.close();}
+ }
+});
+
+it("preserves backed page-list read errors and caller cancellation",async()=>{
+ for(const cancel of [false,true]){
+  const controller=new AbortController(),failure=new Error("page backing failed");
+  const f=await fixture({backedKids:"inline",signal:controller.signal,extraPages:4});
+  const read=vi.spyOn(f.backing!,"read").mockImplementation(async()=>{if(cancel){controller.abort(failure);return new Uint8Array(8);}throw failure;});
+  try{await expect(f.document.annotationPageNumber(f.second.pageRef)).rejects.toBe(failure);}
+  finally{read.mockRestore();await f.close();}
+ }
 });

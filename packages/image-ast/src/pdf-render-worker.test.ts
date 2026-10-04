@@ -1,13 +1,17 @@
+import {serializeCosDocument} from "../../pdf-ast/src/cos/writer.js";
 import {expect,it} from "vitest";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
+import {PdfDocument,cosArray,cosNumber,dictGet,dictSet} from "@poe-code/pdf-ast";
 import sharp,{decodeImage} from "./index.js";
 
-it("renders PDF pixels in Workerd with external input, index and pixel backing",async()=>{
+it.each([32,128])("renders PDF pixels with %i backed page references in Workerd",async count=>{
  // Keep the complete RGBA plane above 64 KiB while requiring only five raster tiles.
  const pixels=new Uint8Array(257*64*4);let state=1234567;for(let i=0;i<pixels.length;i++){state^=state<<13;state^=state>>>17;state^=state<<5;pixels[i]=state&255;}
- const pdf=await sharp(pixels,{raw:{width:257,height:64,channels:4}}).toFormat("pdf").toBuffer();const bytes=new Uint8Array(pdf.length+200000).fill(32);bytes.set(pdf);
+ const pdf=await sharp(pixels,{raw:{width:257,height:64,channels:4}}).toFormat("pdf").toBuffer();const document=PdfDocument.load(pdf),catalog=document.cos.resolveDict(document.cos.rootRef)!,pages=document.cos.resolveDict(dictGet(catalog,"Pages"))!,page=document.getPage(0).pageRef;
+ dictSet(pages,"Kids",cosArray(Array.from({length:count},()=>page)));dictSet(pages,"Count",cosNumber(count));
+ const saved=serializeCosDocument({rootRef:document.cos.rootRef,objects:[...document.cos.objects.values()]}),bytes=new Uint8Array(saved.length+200000).fill(32);bytes.set(saved);
  const expected=decodeImage(bytes);const expectedSum=expected.data.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0);
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"pdf-metadata-worker.ts",contents:`
  import {tryPdfDecode} from './packages/image-ast/src/index.ts';
@@ -17,12 +21,13 @@ it("renders PDF pixels in Workerd with external input, index and pixel backing",
  async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
  async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
+ const push=Array.prototype.push;Array.prototype.push=function(...values){const result=push.apply(this,values);if(this.length>64&&values.some(value=>value?.kind==='ref'))throw Error('resident page reference list');return result;};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded PDF allocation '+length);return Reflect.construct(target,args);}});
  try{let pixelEnd=0;const storage={allocate(length){const start=pixelEnd;pixelEnd+=length;return start;},async read(position,length){if(length>4096)throw Error('large pixel read');return new Uint8Array(await(await env.BACKING.fetch('https://backing/pixels?position='+position+'&length='+length)).arrayBuffer());},async write(position,bytes){if(bytes.length>4096)throw Error('large pixel write');await env.BACKING.fetch('https://backing/pixels?position='+position,{method:'PUT',body:bytes});}};
  const input=await fs.openReadFile('/input');let image;try{image=await tryPdfDecode({size,read:input.read},storage,fs,'/',new AbortController().signal);}finally{await input.close();}
  let sum=0;for(let offset=0;offset<image.width*image.height*4;offset+=4096){const bytes=await storage.read(image.position+offset,Math.min(4096,image.width*image.height*4-offset));for(let i=0;i<bytes.length;i++)sum=(sum+bytes[i]*((offset+i)%65521+1))%1000000007;}
  await env.BACKING.fetch('https://backing/pixels',{method:'DELETE'});
- return Response.json({metadata:{width:image.width,height:image.height,sum},opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
+ return Response.json({metadata:{width:image.width,height:image.height,sum},opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;Array.prototype.push=push;}
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
  const backing=new Map<string,{bytes:Uint8Array;size:number}>([["/input",{bytes,size:bytes.length}]]);

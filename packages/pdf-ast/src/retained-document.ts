@@ -1,3 +1,4 @@
+import { readStoredItems, readStoredRecord } from "./content/stored-record.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { ValueArrayStorage } from "./cos/value-parser.js";
 import { PdfMergeOutlines } from "./edit/retained-merge-outlines.js";
@@ -17,7 +18,7 @@ import { walkRetainedJavaScripts, type PdfRetainedJavaScript } from "./extract/r
 import { walkRetainedImages, type PdfRetainedImage, type PdfImageSelection } from "./extract/retained-images.js";
 import { walkRetainedFonts, type PdfRetainedFont, type PdfFontSelection } from "./extract/retained-fonts.js";
 import { walkRetainedAttachments, type PdfRetainedAttachment } from "./extract/retained-attachments.js";
-import { cosDict, decodePdfString, dictGet, type ByteSpan, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfRect } from "./ast.js";
+import { cosArray, cosNumber, cosDict, decodePdfString, dictGet, type ByteSpan, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfRect, type PdfStoredItems } from "./ast.js";
 import { PdfError } from "./errors.js";
 import { openPdfObjectReader, type OpenPdfObjectReaderOptions, type PdfOpenedObjectReader } from "./cos/object-reader.js";
 import type { PdfIndexStorage } from "./cos/object-index.js";
@@ -122,6 +123,14 @@ export class PdfRetainedDocument {
     return node ? { value: node, ...(reference ? { reference } : {}) } : undefined;
   }
 
+  /** Read one caller-backed array record with document cancellation and ownership. */
+  async readArrayItem(items: PdfStoredItems, position: number): Promise<import("./ast.js").PdfCosArray> {
+    this.assertOpen();
+    const record = await readStoredRecord<PdfCosNode>(items.storage, position, this.options.signal);
+    this.assertOpen();
+    return cosArray([cosNumber(record.next), record.value]);
+  }
+
   async info(): Promise<Readonly<Record<string, string>>> {
     const node = (await this.lookup(this.crossReference.infoRef))?.value;
     const result: Record<string, string> = Object.create(null) as Record<string, string>;
@@ -140,14 +149,17 @@ export class PdfRetainedDocument {
     const work = annotationPageNumberSteps(this.crossReference.rootRef, reference, this.depthLimit);
     let failed = false;
     try {
-      let step = work.next();
+      let step = work.next(), turns = 0;
       while (!step.done) {
+        if (++turns % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         this.assertOpen();
         const request = step.value;
         if (request.kind === "resolve") {
-          const resolved = await this.lookup(request.node);
+          const resolved = await this.lookup(request.node, undefined, request.arrayKey ? [request.arrayKey] : undefined);
           step = work.next(resolved?.stream && resolved.value.kind === "dict"
             ? { kind: "stream", dict: resolved.value, rawBytes: new Uint8Array() } : resolved?.value);
+        } else if (request.kind === "array-item") {
+          step = work.next(await this.readArrayItem(request.items, request.position));
         } else if (request.kind === "visit-page") step = work.next(await visited.add(request.reference.objectNumber));
         else throw new TypeError("Unexpected annotation page lookup request");
       }
@@ -171,9 +183,9 @@ export class PdfRetainedDocument {
         if (resolved?.value.kind !== "dict") return;
         const dict = resolved.value;
         const type = (await doc.lookup(dictGet(dict, "Type")))?.value;
-        const kids = (await doc.lookup(dictGet(dict, "Kids")))?.value;
+        const kids = (await doc.lookup(dictGet(dict, "Kids"), undefined, ["Kids"]))?.value;
         if ((type?.kind === "name" && type.decoded === "Pages") || kids?.kind === "array") {
-          if (kids?.kind === "array") for (const kid of kids.items) yield* walk(kid, depth + 1);
+          if (kids?.kind === "array") for await (const kid of kids.storedItems ? readStoredItems<PdfCosNode>(kids.storedItems, doc.options.signal) : kids.items) yield* walk(kid, depth + 1);
         } else if ((type?.kind === "name" && type.decoded === "Page") || dictGet(dict, "MediaBox") || dictGet(dict, "Contents")) {
           if (count >= Math.min(doc.options.maxPages!, Number.MAX_SAFE_INTEGER)) throw new PdfError("E_LIMIT", "PDF page count limit exceeded");
           yield new PdfRetainedPage(doc, count++, dict, node.kind === "ref" ? node : undefined);
@@ -469,15 +481,19 @@ export class PdfRetainedPage {
   async *annotations(): AsyncGenerator<import("./ast.js").PdfLinkAnnotation, void, void> {
     const work = extractPageAnnotationSteps(this.dict, this.document.crossReference.rootRef, this.document.depthLimit);
     try {
-      let step = work.next();
+      let step = work.next(), turns = 0;
       while (!step.done) {
+        if (++turns % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         const request = step.value;
         let result: PdfAnnotationResult;
         if (request.kind === "annotation") yield request.annotation;
         else if (request.kind === "resolve") {
-          const resolved = await this.document.lookup(request.node);
+          const resolved = await this.document.lookup(request.node, undefined, request.arrayKey ? [request.arrayKey] : undefined);
           result = resolved?.stream && resolved.value.kind === "dict"
             ? { kind: "stream", dict: resolved.value, rawBytes: new Uint8Array() } : resolved?.value;
+        }
+        else if (request.kind === "array-item") {
+          result = await this.document.readArrayItem(request.items, request.position);
         }
         else if (request.kind === "page-number") result = await this.document.annotationPageNumber(request.reference);
         else throw new TypeError("Unexpected annotation request");

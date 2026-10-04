@@ -179,3 +179,27 @@ it("keeps compressed PDF xref ranges in caller backing during inspection and ren
  }finally{open.mockRestore();await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("backs page-tree child lists while preserving selected-page metadata and pixels",async()=>{
+ const {PdfRetainedDocument}=await import("@poe-code/pdf-ast");
+ const {tryPdfMetadata}=await import("./image-pdf.js");
+ const original=PdfDocument.create();
+ for(let i=0;i<64;i++){const page=original.addPage([16+i,12]);page.setRawContentStream(new TextEncoder().encode("0.2 0.7 0.4 rg 2 3 8 6 re f"));}
+ const bytes=original.save(),options={page:63},expected=decodeImage(bytes,options),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},2);
+ const source={size:bytes.length,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
+ const lookup=vi.spyOn(PdfRetainedDocument.prototype,"lookup");
+ try{
+  expect(await tryPdfMetadata(source,fs,"/scratch",signal,options,storage)).toMatchObject({width:79,height:12,pages:64,pagePrimary:63});
+  const image=await tryPdfDecode(source,storage,fs,"/scratch",signal,options);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+  let visited=0;
+  for(let i=0;i<lookup.mock.calls.length;i++)if(lookup.mock.calls[i]![2]?.[0]==="Kids"){
+   const result=await lookup.mock.results[i]!.value;
+   if(result?.value.kind!=="array")continue;
+   expect(result.value.items).toEqual([]);expect(result.value.storedItems?.length).toBe(64);visited++;
+  }
+  expect(visited).toBeGreaterThanOrEqual(2);
+ }finally{lookup.mockRestore();await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

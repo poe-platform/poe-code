@@ -1,23 +1,44 @@
 import { PdfError } from "../errors.js";
-import { decodePdfString, dictGet, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfLinkAnnotation } from "../ast.js";
+import { decodePdfString, dictGet, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfStoredItems, type PdfLinkAnnotation } from "../ast.js";
 
-export type PdfAnnotationRequest = { readonly kind: "resolve"; readonly node: PdfCosNode }
+export type PdfAnnotationRequest = { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayKey?: string }
+  | { readonly kind: "array-item"; readonly items: PdfStoredItems; readonly position: number }
   | { readonly kind: "visit-page"; readonly reference: PdfCosRef }
   | { readonly kind: "page-number"; readonly reference: PdfCosRef }
   | { readonly kind: "annotation"; readonly annotation: PdfLinkAnnotation };
 export type PdfAnnotationResult = PdfCosNode | number | boolean | undefined;
 type AnnotationWork<T = void> = Generator<PdfAnnotationRequest, T, PdfAnnotationResult>;
-function* resolveNode(node: PdfCosNode | undefined): AnnotationWork<PdfCosNode | undefined> {
+function* resolveNode(node: PdfCosNode | undefined, arrayKey?: string): AnnotationWork<PdfCosNode | undefined> {
   if (!node) return undefined;
-  const result = yield { kind: "resolve", node };
+  const result = yield { kind: "resolve", node, ...(arrayKey ? {arrayKey} : {}) };
   if (typeof result === "number" || typeof result === "boolean") throw new TypeError("Expected a PDF annotation object");
   return result;
 }
 function* resolveDict(node: PdfCosNode | undefined): AnnotationWork<PdfCosDict | undefined> {
   const result = yield* resolveNode(node); return result?.kind === "dict" ? result : undefined;
 }
-function* resolveArray(node: PdfCosNode | undefined): AnnotationWork<PdfCosArray | undefined> {
-  const result = yield* resolveNode(node); return result?.kind === "array" ? result : undefined;
+function* resolveArray(node: PdfCosNode | undefined, arrayKey?: string): AnnotationWork<PdfCosArray | undefined> {
+  const result = yield* resolveNode(node, arrayKey); return result?.kind === "array" ? result : undefined;
+}
+/** Visit backed children without collecting the list; a match stops source reads. */
+function* visitChildren<T>(array: PdfCosArray, visit: (node: PdfCosNode) => AnnotationWork<T | undefined>): AnnotationWork<T | undefined> {
+  const stored = array.storedItems;
+  const length = stored?.length ?? array.items.length;
+  if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("Invalid stored array length");
+  let position = stored?.position ?? -1;
+  for (let i = 0; i < length; i++) {
+    let node = array.items[i];
+    if (stored) {
+      const result = yield {kind:"array-item",items:stored,position};
+      if (!result || typeof result !== "object" || result.kind !== "array" || result.items[0]?.kind !== "number" || !result.items[1]) throw new TypeError("Expected a PDF array record");
+      position = result.items[0].value;
+      node = result.items[1];
+    }
+    const found = yield* visit(node!);
+    if (found !== undefined) return found;
+  }
+  if (stored && position !== -1) throw new Error("Invalid stored array terminator");
+  return undefined;
 }
 /** Shared annotation semantics; drivers own object reads and destination page traversal. */
 export function* extractPageAnnotationSteps(pageDict: PdfCosDict, root: PdfCosRef | undefined, maxDepth = Infinity): AnnotationWork {
@@ -71,12 +92,10 @@ export function* extractPageAnnotationSteps(pageDict: PdfCosDict, root: PdfCosRe
                 if (kStr === destName) return namesArr.items[i + 1];
               }
             }
-            const kidsArr = (yield* resolveArray(dictGet(treeDict, "Kids")));
+            const kidsArr = (yield* resolveArray(dictGet(treeDict, "Kids"), "Kids"));
             if (kidsArr) {
-              for (const kid of kidsArr.items) {
-                const res = (yield* searchNameTree(kid, depth + 1));
-                if (res) return res;
-              }
+              const found = yield* visitChildren(kidsArr, kid => searchNameTree(kid, depth + 1));
+              if (found) return found;
             }
             return undefined;
           } finally { active.delete(identity); }
@@ -137,11 +156,10 @@ export function* annotationPageNumberSteps(root: PdfCosRef | undefined, referenc
     const dict = yield* resolveDict(node);
     if (!dict) return undefined;
     const type = yield* resolveNode(dictGet(dict, "Type"));
-    const kids = yield* resolveArray(dictGet(dict, "Kids"));
+    const kids = yield* resolveArray(dictGet(dict, "Kids"), "Kids");
     if (kids && (type?.kind !== "name" || type.decoded !== "Page")) {
-      for (const child of kids.items) {
-        const found = yield* walk(child, depth + 1); if (found !== undefined) return found;
-      }
+      const found = yield* visitChildren(kids, child => walk(child, depth + 1));
+      if (found !== undefined) return found;
     } else {
       index++;
       if (node.kind === "ref" && node.objectNumber === reference.objectNumber) return index;

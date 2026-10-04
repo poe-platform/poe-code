@@ -642,6 +642,9 @@ Remaining ownership and exit gates (proposed coordination split):
   strings and full diagnostic messages remain explicit whole-value boundaries.
   Repeat long-suffix cases for RTF, ODT and embedded HTML with duplicate paths,
   distinct fragments, Unicode, finite budgets, slow sinks and cleanup failures.
+  At path admission, assert that backing reads stop at the chunk containing the
+  first query/fragment delimiter; suffix counts come from the retained scalar
+  extent. Cover delimiters on both sides of a 4096-unit chunk boundary.
 - Final exits: run the composed public SDK/command workerd matrix without Node
   compatibility, then the increasing-size and concurrent deployed Cloudflare
   cohorts above. Record actual memory, CPU and first-byte measurements. Local

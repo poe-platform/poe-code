@@ -178,18 +178,22 @@ test("default pure and optional-file commands retain honest capability help", ()
 test("text file input and output modes fail before reading stdin or truncating output", async () => {
   const backing = await fixture({ input: "b\na\n", output: "keep" });
   const fs = restricted(backing, { read: false, streamingRead: false, retainedRead: false, write: false, streamingWrite: false });
-  for (const [command, args] of [["cut", ["-b1", "input"]], ["sort", ["input"]], ["uniq", ["input", "output"]]] as const) {
+  for (const [command, args, exitCode] of [["cut", ["-b1", "input"], 1], ["sort", ["input"], 2], ["uniq", ["input", "output"], 1]] as const) {
     const result = await run(command, args, { fs });
-    assert.equal(result.exitCode, 1, command);
+    assert.equal(result.exitCode, exitCode, command);
     assert.equal(result.stdout, "", command);
     assert.match(result.stderr, /ENOTSUP/u, command);
   }
   let pulls = 0;
   const stdin = { async *[Symbol.asyncIterator]() { pulls++; yield new TextEncoder().encode("b\na\n"); } };
-  assert.equal((await run("sort", ["-o", "output"], { fs, stdin })).exitCode, 1);
-  assert.equal((await run("uniq", ["-", "output"], { fs, stdin })).exitCode, 1);
-  assert.equal(pulls, 0);
-  assert.equal(new TextDecoder().decode(await backing.readFile("/work/output")), "keep");
+  for (const [command, args, exitCode] of [["sort", ["-o", "output"], 2], ["uniq", ["-", "output"], 1]] as const) {
+    const result = await run(command, args, { fs, stdin });
+    assert.equal(result.exitCode, exitCode, command);
+    assert.equal(result.stdout, "", command);
+    assert.match(result.stderr, /ENOTSUP/u, command);
+    assert.equal(pulls, 0, command);
+    assert.equal(new TextDecoder().decode(await backing.readFile("/work/output")), "keep", command);
+  }
   assert.equal((await run("cut", ["-b1"], { fs, stdin: "abc\n" })).stdout, "a\n");
 });
 

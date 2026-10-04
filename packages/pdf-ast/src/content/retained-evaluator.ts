@@ -1,8 +1,9 @@
+import { StoredReferenceMembership } from "./stored-reference-membership.js";
 import { storeDashArray } from "./stored-dash.js";
 import { readStoredRecord } from "./stored-record.js";
 import { readStoredCidGlyph } from "../fonts/stored-cid-map.js";
 import { appendStoredClip } from "./stored-clips.js";
-import { cosNumber, cosName, cosArray, cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
+import { cosBool, cosNumber, cosName, cosArray, cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
 import { decodePdfStreamChunks, type PdfStreamDecodeOptions } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
@@ -110,10 +111,12 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
   const nested = new Map<PdfEvaluationContentSource, AsyncGenerator<PdfContentEvent, void, void>>();
   const fonts: { resources: PdfCosDict | undefined; name: string; font: ResolvedPageFont | undefined }[] = [];
   const resourceOptions = { chunkBytes, maxStagingBytes: options.maxStagingBytes ?? Infinity, onAllocation: charge, ...(signal ? { signal } : {}) };
+  const memberships = new StoredReferenceMembership(shared, signal, charge);
   let failed = false;
   try {
-    let step = work.next();
+    let step = work.next(), requests = 0;
     while (!step.done) {
+      if (++requests % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
       signal?.throwIfAborted();
       const request = step.value; let reply: PdfEvaluationResult;
       switch (request.kind) {
@@ -149,6 +152,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
         case "dash-array": {
           reply = { kind: "dash-array", value: await storeDashArray(request.array, request.storage, request.resolveReferences ? resolve : async node => node, signal) }; break;
         }
+        case "array-reference": reply = { kind: "resolved", node: cosBool(await memberships.has(request.items, request.objectNumber)) }; break;
         case "array-item": {
           const record = await readStoredRecord<PdfCosNode>(request.items.storage, request.position, signal);
           reply = { kind: "resolved", node: cosArray([cosNumber(record.next), record.value]) }; break;
@@ -204,6 +208,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
     for (const selected of [...nested.values(), input]) {
       try { await selected.return(); } catch (error) { cleanupFailure ??= { error }; }
     }
+    try { await memberships.close(); } catch (error) { cleanupFailure ??= { error }; }
     if (!failed && cleanupFailure) await Promise.reject(cleanupFailure.error);
   }
 }

@@ -26,7 +26,7 @@ async function openPdfImage(source:ImageByteSource,fs:FileSystem,directory:strin
  const values=storage??owned!;
  const cleanup=async()=>{let failure:{error:unknown}|undefined;try{await document?.close();}catch(error){failure={error};}try{await retained.close();}catch(error){failure??={error};}try{await owned?.close();}catch(error){failure??={error};}if(failure)throw failure.error;};
  try{
-  document=await PdfRetainedDocument.open(retained,{fs,directory},{signal,recovery:"repair",chunkBytes:16384,maxNodes:Infinity,maxTokenBytes:Infinity,maxRecursionDepth:Infinity,maxPageTreeDepth:Infinity,valueArrays:{stringStorage:values,storedStringKeys:["ActualText"],arrayStorage:values,storedArrayKeys:["Widths","W","Differences"],storedArrayPaths:[["ExtGState","*","D"]]}});
+  document=await PdfRetainedDocument.open(retained,{fs,directory},{signal,recovery:"repair",chunkBytes:16384,maxNodes:Infinity,maxTokenBytes:Infinity,maxRecursionDepth:Infinity,maxPageTreeDepth:Infinity,valueArrays:{stringStorage:values,storedStringKeys:["ActualText"],arrayStorage:values,storedArrayKeys:["Widths","W","Differences","ON","OFF","OCGs"],storedArrayPaths:[["ExtGState","*","D"]]}});
   let pages=0,selected:PdfRetainedPage|undefined;
   for await(const page of document.pages()){pages++;if(page.index<=Math.max(0,settings.page??0))selected=page;}
   if(!selected)throw new PdfError("E_CAPABILITY","Page index out of bounds: 0");

@@ -136,3 +136,21 @@ it.each(["inline", "named", "map", "property", "value", "chain"])("keeps %s Actu
  }finally{spy.mockRestore();await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+
+it.each(["AllOn","AnyOn","AllOff","AnyOff"])("preserves Sips PDF pixels with backed %s layer lists",async policy=>{
+ const {cosArray,cosDict,cosName}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([24,16]);
+ const on=doc.cos.allocateObject(cosDict({Type:cosName("OCG")})),off=doc.cos.allocateObject(cosDict({Type:cosName("OCG")}));
+ const membership=doc.cos.allocateObject(cosDict({Type:cosName("OCMD"),P:cosName(policy),OCGs:cosArray([on,off])}));
+ dictSet(doc.cos.resolveDict(doc.cos.rootRef)!,"OCProperties",cosDict({D:cosDict({BaseState:cosName("OFF"),ON:cosArray(Array.from({length:512},()=>on)),OFF:cosArray([off])})}));
+ dictSet(page.pageDict,"Resources",cosDict({Properties:cosDict({Layer:membership})}));
+ page.setRawContentStream("/OC /Layer BDC 1 0 0 rg 1 1 20 10 re f EMC");
+ const bytes=doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ try{
+  const image=await tryPdfDecode({size:bytes.length,async read(at,n){return bytes.subarray(at,at+n);}},storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+ }finally{await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

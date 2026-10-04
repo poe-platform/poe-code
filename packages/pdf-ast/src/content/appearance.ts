@@ -2,6 +2,8 @@ import { cosDict, cosNumber, cosString, decodePdfString, dictGet, dictSet, type 
 import { optionalContentVisibilitySteps } from "./evaluator.js";
 
 export type PdfAppearanceRequest = { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayPathPrefix?: readonly string[] }
+  | { readonly kind: "array-reference"; readonly items: import("../ast.js").PdfStoredItems; readonly objectNumber: number }
+  | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number }
   | { readonly kind: "catalog" }
   | { readonly kind: "appearance-content"; readonly stream: PdfCosStream }
   | { readonly kind: "appearance"; readonly stream?: PdfCosStream; readonly nodes: readonly PdfContentNode[] };
@@ -24,7 +26,7 @@ function* visible(node: PdfCosNode | undefined): AppearanceWork<boolean> {
   try {
     let step = work.next();
     while (!step.done) {
-      if (step.value.kind !== "resolve" && step.value.kind !== "catalog") throw new TypeError("Unexpected appearance visibility request");
+      if (step.value.kind !== "resolve" && step.value.kind !== "catalog" && step.value.kind !== "array-item" && step.value.kind !== "array-reference") throw new TypeError("Unexpected appearance visibility request");
       const value = yield step.value;
       if (typeof value === "boolean") throw new TypeError("Expected a PDF appearance visibility object");
       step = work.next({ kind: "resolved", node: value });

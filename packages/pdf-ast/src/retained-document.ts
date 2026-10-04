@@ -105,6 +105,7 @@ export class PdfRetainedDocument {
   async lookup(node: PdfCosNode | undefined, arrays: ValueArrayStorage = this.options.valueArrays ?? {}, arrayPathPrefix?: readonly string[]): Promise<PdfRetainedValue | undefined> {
     this.assertOpen();
     if (arrayPathPrefix) arrays = { ...arrays, arrayPathPrefix,
+      ...(arrayPathPrefix.length && arrays.storedArrayKeys?.includes(arrayPathPrefix[arrayPathPrefix.length - 1]!) ? { storeRootArray: true } : {}),
       ...(arrayPathPrefix.length && arrays.storedStringKeys?.includes(arrayPathPrefix[arrayPathPrefix.length - 1]!) ? { storeRootString: true } : {}) };
     let reference: PdfCosRef | undefined;
     const visited = new Set<number>();

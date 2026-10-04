@@ -840,9 +840,26 @@ function* resolveEvaluationDict(node: PdfCosNode | undefined, arrayPathPrefix?: 
   const resolved = yield* resolveEvaluationNode(node, false, arrayPathPrefix);
   return resolved?.kind === "dict" ? resolved : resolved?.kind === "stream" ? resolved.dict : undefined;
 }
-function* resolveEvaluationArray(node: PdfCosNode | undefined, storeRootArray = false): EvaluationWork<import("../ast.js").PdfCosArray | undefined> {
-  const resolved = yield* resolveEvaluationNode(node, storeRootArray);
+function* resolveEvaluationArray(node: PdfCosNode | undefined, storeRootArray = false, arrayPathPrefix?: readonly string[]): EvaluationWork<import("../ast.js").PdfCosArray | undefined> {
+  const resolved = yield* resolveEvaluationNode(node, storeRootArray, arrayPathPrefix);
   return resolved?.kind === "array" ? resolved : undefined;
+}
+
+/** Visit backed arrays without a second resident list or membership set. */
+function* visitEvaluationArray(array: import("../ast.js").PdfCosArray, visit: (node: PdfCosNode) => EvaluationWork<void>): EvaluationWork<void> {
+  if (!array.storedItems) { for (const item of array.items) yield* visit(item); return; }
+  const items = array.storedItems;
+  if (!Number.isSafeInteger(items.length) || items.length < 0) throw new RangeError("Invalid stored array length");
+  let position = items.position;
+  for (let i = 0; i < items.length; i++) {
+    const reply = yield { kind: "array-item", items, position };
+    if (!reply || !("kind" in reply) || reply.kind !== "resolved" || reply.node?.kind !== "array") throw new TypeError("Expected stored array item");
+    const [next, value] = reply.node.items;
+    if (next?.kind !== "number" || !value) throw new TypeError("Expected stored array record");
+    position = next.value;
+    yield* visit(value);
+  }
+  if (position !== -1) throw new PdfError("E_PARSE", "Invalid stored array terminator");
 }
 
 export function* optionalContentVisibilitySteps(ocNode: PdfCosNode | undefined): EvaluationWork<boolean> {
@@ -858,17 +875,15 @@ export function* optionalContentVisibilitySteps(ocNode: PdfCosNode | undefined):
   const baseStateNode = dDict ? yield* resolveEvaluationNode(dictGet(dDict, "BaseState")) : undefined;
   const baseStateOff = baseStateNode?.kind === "name" && baseStateNode.decoded === "OFF";
 
-  function* collectRefSet(arrNode: PdfCosNode | undefined): EvaluationWork<Set<number>> {
-    const set = new Set<number>();
-    const arr = yield* resolveEvaluationArray(arrNode);
-    if (!arr) return set;
-    for (const item of arr.items) {
-      if (item.kind === "ref") set.add(item.objectNumber);
-    }
-    return set;
-  };
-  const onSet = dDict ? yield* collectRefSet(dictGet(dDict, "ON")) : new Set<number>();
-  const offSet = dDict ? yield* collectRefSet(dictGet(dDict, "OFF")) : new Set<number>();
+  const onArray = dDict ? yield* resolveEvaluationArray(dictGet(dDict, "ON"), false, ["ON"]) : undefined;
+  const offArray = dDict ? yield* resolveEvaluationArray(dictGet(dDict, "OFF"), false, ["OFF"]) : undefined;
+  function* containsReference(array: import("../ast.js").PdfCosArray | undefined, number: number): EvaluationWork<boolean> {
+    if (!array) return false;
+    if (!array.storedItems) return array.items.some(item => item.kind === "ref" && (item.objectNumber === number || Number.isNaN(item.objectNumber) && Number.isNaN(number)));
+    const reply = yield { kind: "array-reference", items: array.storedItems, objectNumber: number };
+    if (!reply || !("kind" in reply) || reply.kind !== "resolved" || reply.node?.kind !== "boolean") throw new TypeError("Expected stored reference membership");
+    return reply.node.value;
+  }
 
   function* isSingleOcgOn(node: PdfCosNode | undefined): EvaluationWork<boolean> {
     if (!node) return true;
@@ -884,8 +899,8 @@ export function* optionalContentVisibilitySteps(ocNode: PdfCosNode | undefined):
       }
     }
     if (refObjNum !== undefined) {
-      if (offSet.has(refObjNum)) return false;
-      if (onSet.has(refObjNum)) return true;
+      if (yield* containsReference(offArray, refObjNum)) return false;
+      if (yield* containsReference(onArray, refObjNum)) return true;
     }
     return !baseStateOff;
   };
@@ -896,14 +911,15 @@ export function* optionalContentVisibilitySteps(ocNode: PdfCosNode | undefined):
     const pNode = yield* resolveEvaluationNode(dictGet(ocDict, "P"));
     const policy = pNode?.kind === "name" ? pNode.decoded : "AnyOn";
     const ocgsEntry = dictGet(ocDict, "OCGs");
-    const ocgsArr = yield* resolveEvaluationArray(ocgsEntry);
-    const memberNodes = ocgsArr ? ocgsArr.items : ocgsEntry ? [ocgsEntry] : [];
-    if (memberNodes.length === 0) return true;
-    let anyOn = false, anyOff = false;
-    for (const member of memberNodes) {
+    const ocgsArr = yield* resolveEvaluationArray(ocgsEntry, false, ["OCGs"]);
+    let anyOn = false, anyOff = false, count = 0;
+    function* visitMember(member: PdfCosNode): EvaluationWork<void> {
       const on = yield* isSingleOcgOn(member);
-      anyOn ||= on; anyOff ||= !on;
+      anyOn ||= on; anyOff ||= !on; count++;
     }
+    if (ocgsArr) yield* visitEvaluationArray(ocgsArr, visitMember);
+    else if (ocgsEntry) yield* visitMember(ocgsEntry);
+    if (!count) return true;
     if (policy === "AllOn") return !anyOff;
     if (policy === "AnyOff") return anyOff;
     if (policy === "AllOff") return !anyOn;
@@ -1031,7 +1047,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|PdfStoredBytes|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = { readonly kind: "dash-array"; readonly array: import("../ast.js").PdfCosArray; readonly storage: PdfPixelStorage; readonly resolveReferences?: boolean } | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
+export type PdfEvaluationRequest = { readonly kind: "array-reference"; readonly items: import("../ast.js").PdfStoredItems; readonly objectNumber: number } | { readonly kind: "dash-array"; readonly array: import("../ast.js").PdfCosArray; readonly storage: PdfPixelStorage; readonly resolveReferences?: boolean } | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
   | {readonly kind:"font-unicode";readonly lookup:(code:number)=>Promise<string|undefined>;readonly code:number}
   | {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
   | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>;storedSegments?(code:number,storage:PdfPixelStorage,signal?:AbortSignal):AsyncIterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
@@ -2313,7 +2329,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "dash-array" || step.value.kind === "array-item" || step.value.kind === "string-bytes" || step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "dash-array" || step.value.kind === "array-reference" || step.value.kind === "array-item" || step.value.kind === "string-bytes" || step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

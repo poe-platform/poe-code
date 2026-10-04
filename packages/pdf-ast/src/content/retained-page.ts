@@ -1,4 +1,6 @@
-import { cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
+import { StoredReferenceMembership } from "./stored-reference-membership.js";
+import { readStoredRecord } from "./stored-record.js";
+import { cosBool, cosArray, cosNumber, cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
 import { decodePdfStreamChunks } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import type { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
@@ -40,13 +42,20 @@ export async function prepareRetainedPageContent(document: PdfRetainedDocument, 
     const work = preparePageAppearanceSteps(page.dict, pageResources, outputResources, options.hideAnnotations, options.onAllocation);
     let content: AsyncGenerator<PdfContentEvent, void, void> | undefined;
     let first: IteratorResult<PdfContentEvent, void> | undefined;
+    const memberships = new StoredReferenceMembership(storage, options.signal, options.onAllocation);
     let failed = false;
     try {
-      let step = work.next();
+      let step = work.next(), requests = 0;
       while (!step.done) {
+        if (++requests % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         options.signal?.throwIfAborted();
         const request = step.value; let result: PdfAppearanceResult;
         if (request.kind === "resolve" || request.kind === "catalog") result = await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node, request.kind === "resolve" ? request.arrayPathPrefix : undefined);
+        else if (request.kind === "array-reference") result = cosBool(await memberships.has(request.items, request.objectNumber));
+        else if (request.kind === "array-item") {
+          const record = await readStoredRecord<PdfCosNode>(request.items.storage, request.position, options.signal);
+          result = cosArray([cosNumber(record.next), record.value]);
+        }
         else if (request.kind === "appearance-content") {
           content = cursor(request.stream); first = await content.next(); result = !first.done;
           if (!emit || first.done) { await content.return(); content = undefined; }
@@ -62,7 +71,11 @@ export async function prepareRetainedPageContent(document: PdfRetainedDocument, 
         step = work.next(result);
       }
     } catch (error) { failed = true; throw error; }
-    finally { work.return(); await content?.return().catch(error => { if (!failed) throw error; }); }
+    finally {
+      work.return();
+      const cleanup = await Promise.allSettled([content?.return(), memberships.close()]);
+      if (!failed) for (const result of cleanup) if (result.status === "rejected") await Promise.reject(result.reason);
+    }
   }
   for await (const ignored of appearances(resources, false)) { void ignored; }
   async function* events(): AsyncGenerator<PdfContentEvent, void, void> {

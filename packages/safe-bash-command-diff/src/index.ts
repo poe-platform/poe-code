@@ -1,4 +1,3 @@
-import { evalSyncDiff } from "./sync.js";
 import type { CommandDefinition,VirtualShellPlugin } from "safe-bash-contracts";
 import type { DiffPatchOptions } from "safe-bash-diff-engine/shared";
 import { diffCommand as createDiffCommand } from "./diff.js";
@@ -17,6 +16,3 @@ export function diffCommands(options: DiffPatchOptions = {}): VirtualShellPlugin
     for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
   } };
 }
-
-import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
-syncCommandEvaluators.evalSyncDiff = evalSyncDiff;

@@ -1,4 +1,3 @@
-import { syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { registerDefaultExecutors } from "../internal.js";
 import { diffCommand, type DiffPatchOptions } from "safe-bash-command-diff";
@@ -23,5 +22,3 @@ export function diffPatchCommands(options: DiffPatchOptions = {}): VirtualShellP
 }
 export * from "safe-bash-command-diff";
 export * from "safe-bash-command-patch";
-import { evalSyncDiff } from "safe-bash-command-diff";
-syncCommandEvaluators.evalSyncDiff = evalSyncDiff;

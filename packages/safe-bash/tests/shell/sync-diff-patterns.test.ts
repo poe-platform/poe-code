@@ -4,6 +4,26 @@ import { setup } from './helpers.js';
 import { basicCommands } from '../../src/commands/basic.js';
 import { streamCommands } from '../../src/commands/streams.js';
 import { createDiffPatchCommands, evalSyncDiff } from '../../src/commands/diff-patch/index.js';
+import { syncCommandEvaluators } from '../../src/commands/internal.js';
+
+test('shell diff uses the asynchronous document path for files and pipelines', async context => {
+  assert.equal(syncCommandEvaluators.evalSyncDiff, undefined, 'buffered diff must remain an opt-in convenience API');
+  const { fs, shell, commands } = setup();
+  context.after(() => shell.dispose());
+  for (const command of [...basicCommands(), ...streamCommands(), ...createDiffPatchCommands()]) commands.register(command);
+  await fs.writeFile('/left', new TextEncoder().encode('same\nold\n'));
+  await fs.writeFile('/right', new TextEncoder().encode('same\nnew\n'));
+  for (const source of ['diff /left /right', 'diff /left /right | cat', 'cat /left | diff - /right', 'diff - /right < /left']) {
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, '2c2\n< old\n---\n> new\n');
+    assert.equal(result.stderr, '');
+    assert.equal(result.exitCode, source.endsWith('| cat') ? 0 : 1);
+  }
+  const substitution = await shell.exec('result=$(diff /left /right); printf "%s\\n" "$result"');
+  assert.equal(substitution.stdout, '2c2\n< old\n---\n> new\n');
+  assert.equal(substitution.stderr, '');
+  assert.equal(substitution.exitCode, 0);
+});
 
 test('sync diff delegates parsed basic patterns to the shared matcher', () => {
   const encoder = new TextEncoder();

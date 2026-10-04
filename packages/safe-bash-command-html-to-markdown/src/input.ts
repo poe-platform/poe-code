@@ -2,7 +2,7 @@ import { readFileStream } from "safe-bash-contracts/filesystem";
 import { readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
 import { pathOf } from "safe-bash-io-engine/internal";
 import type { Budget } from "./budget.js";
-import { Parser, type HtmlNode } from "./parser.js";
+import { Parser, type HtmlEventSink, type HtmlNode } from "./parser.js";
 
 class Cursor implements ByteSource {
   private iterator: AsyncIterator<Uint8Array> | undefined;
@@ -61,15 +61,16 @@ export class Inputs {
     return cursor;
   }
 
-  async document(name: string): Promise<HtmlNode> {
+  async document(name: string, sink?: HtmlEventSink): Promise<HtmlNode> {
     const cursor = this.open(name), decoder = new TextDecoder("utf-8", { fatal: true });
-    const parser = new Parser(this.budget);
+    const parser = new Parser(this.budget, sink);
     for await (const chunk of readBytes(cursor, this.context.signal)) {
       this.budget.add("input", chunk.byteLength);
       this.budget.work(Math.max(1, chunk.byteLength));
-      const owned = new Uint8Array(chunk);
-      for (let offset = 0; offset < owned.length; offset += 4096) {
-        await parser.feed(decoder.decode(owned.subarray(offset, offset + 4096), { stream: true }));
+      // Decode before awaiting. The resulting string owns its bytes, and the
+      // producer is not advanced until this chunk has been completely consumed.
+      for (let offset = 0; offset < chunk.length; offset += 4096) {
+        await parser.feed(decoder.decode(chunk.subarray(offset, offset + 4096), { stream: true }));
         { const c = this.budget.checkpoint(); if (c) await c; }
       }
       { const c = this.budget.checkpoint(); if (c) await c; }

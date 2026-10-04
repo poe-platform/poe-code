@@ -9,6 +9,13 @@ export interface HtmlNode {
   readonly text?: string;
 }
 
+/** Repaired parser events. A sink is awaited and owns any state it retains. */
+export type HtmlEvent =
+  | { readonly type: "open"; readonly tag: string; readonly attributes: ReadonlyMap<string, string> }
+  | { readonly type: "text"; readonly text: string }
+  | { readonly type: "close"; readonly tag: string };
+export type HtmlEventSink = (event: HtmlEvent) => void | Promise<void>;
+
 const voidTags = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
 export const blockTags = new Set(["address", "article", "aside", "blockquote", "dd", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "li", "main", "nav", "ol", "p", "pre", "section", "table", "ul"]);
 
@@ -25,12 +32,28 @@ export class Parser {
   private rawCandidate = "";
   private rawCandidateBytes = 0;
   private rawText: "drop" | "entities" | "literal" = "drop";
-  constructor(readonly budget: Budget) {}
+  /** Supplying a sink disables tree retention; root remains empty. */
+  constructor(readonly budget: Budget, private readonly sink?: HtmlEventSink) {}
+
+  private async emit(event: HtmlEvent): Promise<void> {
+    this.budget.context.signal.throwIfAborted();
+    await this.sink!(event);
+    this.budget.context.signal.throwIfAborted();
+  }
+
+  private async closeTo(length: number): Promise<void> {
+    while (this.stack.length > length) {
+      const node = this.stack.pop()!;
+      if (this.sink) await this.emit({ type: "close", tag: node.tag });
+    }
+  }
 
   private async appendText(text: string, decode = true): Promise<void> {
     if (!text) return;
     this.budget.add("tokens"); this.budget.add("nodes");
-    this.stack.at(-1)!.children.push({ tag: "text", attributes: new Map(), children: [], text: (decode ? await entities(text, this.budget) : text).replaceAll("\0", "\ufffd") });
+    const decoded = (decode ? await entities(text, this.budget) : text).replaceAll("\0", "\ufffd");
+    if (this.sink) await this.emit({ type: "text", text: decoded });
+    else this.stack.at(-1)!.children.push({ tag: "text", attributes: new Map(), children: [], text: decoded });
   }
 
   private async flushText(final: boolean, decode = true): Promise<void> {
@@ -64,7 +87,7 @@ export class Parser {
     } else if (this.rawCandidate) {
       if (this.rawCandidate.length >= target.length && character === ">") {
         this.budget.add("tokens"); await this.flushText(true, this.rawText === "entities");
-        if (this.rawText !== "drop") this.pop(this.rawName);
+        if (this.rawText !== "drop") await this.pop(this.rawName);
         this.rawCandidate = ""; this.rawCandidateBytes = 0; this.mode = "text";
       } else if (this.rawCandidate.length === target.length && (character === "/" || /[\t\r\n\f ]/u.test(character))) {
         await this.flushText(true, this.rawText === "entities");
@@ -82,9 +105,9 @@ export class Parser {
     } else await this.rawContent(character);
   }
 
-  private pop(name: string): void {
+  private async pop(name: string): Promise<void> {
     for (let index = this.stack.length - 1; index > 0; index--) {
-      if (this.stack[index]!.tag === name) { this.stack.length = index; return; }
+      if (this.stack[index]!.tag === name) { await this.closeTo(index); return; }
     }
   }
 
@@ -98,7 +121,7 @@ export class Parser {
         if (!ok) { simpleClose = false; break; }
       }
       if (simpleClose) {
-        this.pop(raw.slice(2, -1).toLowerCase());
+        await this.pop(raw.slice(2, -1).toLowerCase());
         return;
       }
     }
@@ -106,7 +129,7 @@ export class Parser {
     const match = /^<(\/)?([A-Za-z][A-Za-z0-9:_-]*)([\s\S]*)>$/u.exec(raw);
     if (!match || match[3] && !/^[\t\n\r\f /]/u.test(match[3])) { await this.appendText(raw); return; }
     const name = match[2]!.toLowerCase();
-    if (match[1]) { this.pop(name); return; }
+    if (match[1]) { await this.pop(name); return; }
     const tail = match[3]!, attributes = new Map<string, string>();
     let lastContent = tail.length - 1;
     while (lastContent >= 0 && /\s/u.test(tail[lastContent]!)) { this.budget.work(1); lastContent--; { const c = this.budget.checkpoint(); if (c) await c; } }
@@ -135,12 +158,12 @@ export class Parser {
       if (!attributes.has(key)) attributes.set(key, await entities(value, this.budget));
     }
     if (name === "script" || name === "style") { this.mode = "raw"; this.rawName = name; this.rawText = "drop"; return; }
-    if (name === "a") this.pop("a");
-    if (blockTags.has(name)) this.pop("p");
+    if (name === "a") await this.pop("a");
+    if (blockTags.has(name)) await this.pop("p");
     if (name === "li") {
       for (let index = this.stack.length - 1; index > 0; index--) {
         if (this.stack[index]!.tag === "ul" || this.stack[index]!.tag === "ol") break;
-        if (this.stack[index]!.tag === "li") { this.stack.length = index; break; }
+        if (this.stack[index]!.tag === "li") { await this.closeTo(index); break; }
       }
     }
     if (name === "tr" || name === "td" || name === "th") {
@@ -149,15 +172,18 @@ export class Parser {
         if (["table", "thead", "tbody", "tfoot"].includes(tag)) break;
         if (name !== "tr" && tag === "tr") break;
         if (name === "tr" ? tag === "tr" : tag === "td" || tag === "th") {
-          this.stack.length = index; break;
+          await this.closeTo(index); break;
         }
       }
     }
     this.budget.add("nodes");
     if (!voidTags.has(name) && !selfClosing) this.budget.check(this.stack.length, this.budget.limits.maxDepth, "depth");
-    const node: HtmlNode = { tag: name, attributes, children: [] };
-    this.stack.at(-1)!.children.push(node);
+    // Event mode keeps only the open-element names, never their attributes or descendants.
+    const node: HtmlNode = { tag: name, attributes: this.sink ? new Map() : attributes, children: [] };
+    if (this.sink) await this.emit({ type: "open", tag: name, attributes });
+    else this.stack.at(-1)!.children.push(node);
     if (!voidTags.has(name) && !selfClosing) this.stack.push(node);
+    else if (this.sink) await this.emit({ type: "close", tag: name });
     if (!selfClosing && ["title", "textarea", "xmp", "iframe", "noembed", "noframes", "plaintext"].includes(name)) {
       this.mode = "raw"; this.rawName = name === "plaintext" ? "" : name;
       this.rawText = name === "title" || name === "textarea" ? "entities" : "literal";
@@ -260,7 +286,7 @@ export class Parser {
     else if (this.mode === "tag") await this.appendText(this.buffer);
     else if (this.mode === "comment") this.budget.add("tokens");
     else if (this.mode === "raw" && this.rawText !== "drop") { await this.rawContent(this.rawCandidate); await this.flushText(true, this.rawText === "entities"); }
-    this.buffer = ""; this.stack.length = 1;
+    this.buffer = ""; await this.closeTo(1);
     return this.root;
   }
 }

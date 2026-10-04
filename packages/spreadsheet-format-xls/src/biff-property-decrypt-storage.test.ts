@@ -12,11 +12,11 @@ function fixture(mode = '') {
   const windows: Uint8Array[] = [];
   const context: CapabilityContext = { ...base, signal: controller.signal, own(fn) { cleanups.push(fn); }, createWorkingStorage() {
     opened++; if (mode === 'acquire' || mode === 'second' && opened === 2) throw failure;
-    const data = new Uint8Array(120000); let end = 0;
+    const ordinal = opened, data = new Uint8Array(120000); let end = 0;
     return { allocate(size) { const at = end; end += size; return at; }, async write(at, bytes) {
       expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve();
       if (mode === 'write') throw failure; data.set(bytes, at); if (mode === 'abort') controller.abort(failure);
-    }, async read(at, size) { if (mode === 'read') throw failure; return data.subarray(at, at + size); }, async close() { closed++; data.fill(0); } };
+    }, async read(at, size) { if (mode === 'read' && ordinal > 1 || mode === 'table-read' && ordinal === 1) throw failure; return data.subarray(at, at + size); }, async close() { closed++; data.fill(0); } };
   } };
   const streams = new Map([['Large', new Uint8Array(100003).fill(37)], ['Other', new Uint8Array([1, 2, 3])]]);
   const encrypted = prepareBiffPropertyContainer(streams, { ...base, limits: { ...base.limits, outputBytes: 2e6 } }, () => {})((block, length) => rc4Stream(key(block), length, base));
@@ -27,7 +27,7 @@ function fixture(mode = '') {
 }
 it('stages decrypted payloads in caller storage with owned bounded reads and input-sized admission', async () => {
   const f = fixture(), result = await decryptBiffPropertySources(f.encrypted, f.cipher, f.context, () => {});
-  expect(f.state().opened).toBe(2);
+  expect(f.state().opened).toBe(3);
   for (const [name, source] of result) {
     const expected = f.streams.get(name)!; expect(source.size).toBe(expected.length);
     for (let at = 0; at < source.size; at += 16384) expect(await source.read(at, 16384)).toEqual(expected.subarray(at, at + 16384));
@@ -35,7 +35,7 @@ it('stages decrypted payloads in caller storage with owned bounded reads and inp
   }
   expect(f.state().ciphers).toBe(f.state().retired); expect(f.windows.every(b => b.every(v => v === 0))).toBe(true);
   const source = result.get('Large')!; for (const close of f.cleanups) await close();
-  expect(f.state().closed).toBe(2); await expect(source.read(0, 1)).rejects.toThrow('closed');
+  expect(f.state().closed).toBe(3); await expect(source.read(0, 1)).rejects.toThrow('closed');
 });
 it.each(['acquire', 'write', 'abort', 'second'])('cleans cipher and partial staging after %s failure', async mode => {
   const f = fixture(mode); await expect(decryptBiffPropertySources(f.encrypted, f.cipher, f.context, () => {})).rejects.toBe(f.failure);
@@ -78,7 +78,7 @@ it('imports encrypted properties through injected safe-fs without the buffered p
 it('preserves backing read errors after successful staging', async () => {
   const f = fixture('read'), result = await decryptBiffPropertySources(f.encrypted, f.cipher, f.context, () => {});
   await expect(result.get('Large')!.read(0, 4)).rejects.toBe(f.failure);
-  for (const close of f.cleanups) await close(); expect(f.state().closed).toBe(2);
+  for (const close of f.cleanups) await close(); expect(f.state().closed).toBe(3);
 });
 it('decrypts a borrowed short ciphertext source using bounded range reads', async () => {
   const f = fixture(), borrowed = new Uint8Array(257); let reads = 0;
@@ -90,7 +90,7 @@ it('decrypts a borrowed short ciphertext source using bounded range reads', asyn
   expect(reads).toBeGreaterThan(300);
   for (const [name, range] of result) for (let at = 0; at < range.size; at += 16384)
     expect(await range.read(at, 16384)).toEqual(f.streams.get(name)!.subarray(at, at + 16384));
-  for (const close of f.cleanups) await close(); expect(f.state().closed).toBe(2);
+  for (const close of f.cleanups) await close(); expect(f.state().closed).toBe(3);
 });
 it.each(['read', 'empty', 'abort'])('cleans staging after ciphertext %s failure', async mode => {
   const f = fixture(), failure = new Error(mode), controller = new AbortController();
@@ -116,4 +116,58 @@ it('captures ciphertext capabilities during preflight before password acquisitio
   const result = await decryptBiffPropertySources(admitted, f.cipher, f.context, () => {});
   expect(await result.get('Other')!.read(0, 3)).toEqual(f.streams.get('Other'));
   for (const close of f.cleanups) await close();
+});
+it('stages and retires the descriptor table before opening plaintext payload storage', async () => {
+  const f = fixture(), allocations: number[] = [];
+  const context = { ...f.context, createWorkingStorage() {
+    const store = f.context.createWorkingStorage!(); return { ...store, allocate(size: number) { allocations.push(size); return store.allocate(size); } };
+  } };
+  const header = f.encrypted.slice(0, 8), cipher = createRc4Cipher(key(0), context); cipher.xor(header); cipher.close();
+  const tableSize = new DataView(header.buffer).getUint32(4, true);
+  const result = await decryptBiffPropertySources(f.encrypted, f.cipher, context, () => {});
+  expect(allocations).toEqual([tableSize, 100003, 3]); expect(f.state().closed).toBe(1);
+  expect(await result.get('Other')!.read(0, 3)).toEqual(f.streams.get('Other'));
+  for (const close of f.cleanups) await close(); expect(f.state().closed).toBe(3);
+});
+it('closes descriptor storage on parsing read failure before opening payload storage', async () => {
+  const f = fixture('table-read');
+  await expect(decryptBiffPropertySources(f.encrypted, f.cipher, f.context, () => {})).rejects.toBe(f.failure);
+  expect(f.state().opened).toBe(1); expect(f.state().closed).toBe(1);
+  for (const close of f.cleanups) await close(); expect(f.state().closed).toBe(1);
+});
+it.each(['range', 'overlap', 'flags', 'name', 'terminator', 'size', 'count'])('preserves malformed descriptor %s rejection on the staged path', async mode => {
+  const f = fixture(), bytes = new Uint8Array(52), view = new DataView(bytes.buffer);
+  view.setUint32(0, 12, true); view.setUint32(4, 40, true); bytes.set([1, 2, 3, 4], 8);
+  view.setUint32(12, 1, true); view.setUint32(16, 8, true); view.setUint32(20, 4, true);
+  view.setUint16(24, 7, true); bytes[26] = 9; bytes[27] = 1;
+  for (let i = 0; i < 9; i++) view.setUint16(32 + i * 2, 'Ancillary'.charCodeAt(i), true);
+  if (mode === 'range') view.setUint32(16, 100, true);
+  if (mode === 'overlap') view.setUint32(16, 12, true);
+  if (mode === 'flags') bytes[27] = 0;
+  if (mode === 'name') bytes[26] = 32;
+  if (mode === 'terminator') bytes[50] = 1;
+  if (mode === 'size') view.setUint32(4, 39, true);
+  if (mode === 'count') view.setUint32(12, 2, true);
+  await expect(decryptBiffPropertySources(bytes, () => ({ xor() {}, close() {} }), f.context, () => {})).rejects.toThrow('Invalid Excel BIFF');
+  expect(f.state().opened).toBe(1); expect(f.state().closed).toBe(1);
+  for (const close of f.cleanups) await close();
+});
+it('parses a large staged table using fixed-size reads and closes it before payload replay', async () => {
+  const streams = new Map(Array.from({ length: 800 }, (_, i) => [`Property${i}`, new Uint8Array([i % 251])]));
+  const context = { ...base, limits: { ...base.limits, outputBytes: 2e6 } };
+  const encrypted = prepareBiffPropertyContainer(streams, context, () => {})((block, length) => rc4Stream(key(block), length, context));
+  const cleanups: (() => void | Promise<void>)[] = []; let opened = 0, closed = 0, tableReads = 0;
+  const result = await decryptBiffPropertySources(encrypted, block => createRc4Cipher(key(block), context), { ...context,
+    own(close) { cleanups.push(close); }, createWorkingStorage() {
+      const ordinal = ++opened; let bytes = new Uint8Array();
+      if (ordinal > 1) expect(closed).toBe(1);
+      return { allocate(size) { if (ordinal === 1) expect(size).toBeGreaterThan(16384); bytes = new Uint8Array(size); return 0; },
+        async write(at, part) { expect(part.length).toBeLessThanOrEqual(16384); bytes.set(part, at); },
+        async read(at, size) { if (ordinal === 1) { tableReads++; expect(size).toBeLessThanOrEqual(64); } return bytes.subarray(at, at + size); },
+        async close() { closed++; bytes.fill(0); } };
+    }
+  }, () => {});
+  expect(tableReads).toBe(1601); expect(closed).toBe(1);
+  expect(await result.get('Property799')!.read(0, 1)).toEqual(streams.get('Property799'));
+  for (const close of cleanups) await close(); expect(closed).toBe(801);
 });

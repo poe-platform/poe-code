@@ -285,6 +285,8 @@ supply `resources.resolveStream(id, base, signal)` as an async byte iterable for
 retained RTF and ODT output. Each chunk is consumed into caller storage before the
 next pull, so producers may reuse their buffers. Cancellation calls the producer’s
 `return()` directly, even with a pending pull or cancellation during stream creation.
+Pending destination writes also release the conversion wait on cancellation or context
+closure, without accepting another chunk.
 Resolvers should honor `signal` while waiting for data. `resolveStream` takes precedence
 when both methods are supplied; a stream-only provider also works with buffered
 convenience APIs, which collect its bytes when required by an adapter. Explicit

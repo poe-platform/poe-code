@@ -425,3 +425,36 @@ it("closes an oversized producer once when cancellation interrupts a piece", asy
   expect(tail).not.toHaveBeenCalled();
   expect(closed).toHaveBeenCalledOnce();
 });
+
+for (const interruption of ["abort", "close"] as const) {
+  it(`interrupts pending chunk acceptance on ${interruption} without advancing the producer`, async () => {
+    const controller = new AbortController();
+    const context = createExecutionContext("read", {signal: controller.signal, yield: immediate});
+    let started!: () => void;
+    const ready = new Promise<void>(resolve => {started = resolve;});
+    let release!: () => void;
+    const blocked = new Promise<void>(resolve => {release = resolve;});
+    const next = vi.fn(async () => ({done: false as const, value: new Uint8Array(200000)}));
+    const returned = vi.fn(async () => ({done: true as const, value: undefined}));
+    const accept = vi.fn(async () => {started(); await blocked;});
+    let failure: unknown;
+    let settled = false;
+    const pending = context.consume({[Symbol.asyncIterator]: () => ({next, return: returned})}, accept)
+      .catch(error => {failure = error;})
+      .finally(() => {settled = true;});
+    await ready;
+    if (interruption === "abort") controller.abort();
+    else await context.close();
+    await new Promise<void>(resolve => setImmediate(resolve));
+    const interruptedWhileBlocked = settled;
+    release();
+    await pending;
+    await context.close();
+    await context.close();
+    expect(interruptedWhileBlocked).toBe(true);
+    expect(failure).toMatchObject({code: interruption === "abort" ? "E_CANCELLED" : "E_IO"});
+    expect(next).toHaveBeenCalledOnce();
+    expect(accept).toHaveBeenCalledOnce();
+    expect(returned).toHaveBeenCalledOnce();
+  });
+}

@@ -388,7 +388,8 @@ export class ExecutionContext implements AdapterContext {
           this.checkpoint(0);
           const end = Math.min(part.value.byteLength, offset + 65536);
           const owned = new Uint8Array(part.value.subarray(offset, end));
-          await accept(owned);
+          // Destination backpressure must be interruptible just like producer pulls.
+          await this.call(() => accept(owned));
           offset = end;
           await this.cooperate(0);
         } while (offset < part.value.byteLength);

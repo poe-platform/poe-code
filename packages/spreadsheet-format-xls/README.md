@@ -33,6 +33,10 @@ workbooks and global transformations keep the workbook path. Scalar row lookup
 and insertion order also use caller storage. Final nondefault row metadata arrays,
 formula/style state, stream names and interpreted property/encryption payloads still remain resident; this
 does not yet provide bounded memory for the complete conversion.
+Worksheet password verifiers survive BIFF7/8 conversion and edits through
+`view.protectedPasswordHash`, an integer from 0 to 65535; zero clears the verifier.
+This retains the legacy protection hash, without verifying passwords or encrypting
+workbook contents. Other-format password transport remains unsupported.
 BIFF editing preserves the workbook Normal style and font-aware column widths,
 including sheet defaults. Change `sheet.view.defaultColumnWidth` in points and
 adopt the edited workbook before export; BIFF stores defaults in whole font
@@ -48,8 +52,8 @@ BIFF8 also preserves boolean permissions in `sheet.view.protectedAllow`: `object
 `insertRows`, `insertHyperlinks`, `deleteColumns`, `deleteRows`, `selectLockedCells`,
 `sort`, `autoFilter`, `pivotTables`, and `selectUnlockedCells`. Unspecified
 permissions use native defaults: selecting cells is allowed; other actions are
-not. BIFF7 reports loss of nondefault permissions. Password hashes and permission
-transport to other formats remain outside this support.
+not. BIFF7 reports loss of nondefault permissions. XLSX shares this canonical
+permission map; other-format permission transport remains outside this support.
 The formula reader rejects malformed shared formulas containing BIFF live-label
 tokens; ordinary cell and array formulas retain their supported live labels.
 BIFF8 re-export preserves imported external-name cell, area and error definitions,

@@ -70,6 +70,8 @@ function* metadataSteps(length: number, revision: number, codepage: number, cont
     if (opcode === 0x12 || opcode === 0x63) {
       view.gnumeric = { ...(view.gnumeric as Record<string, ImportedValue> | undefined),
         Protected: data.bytes.length < 2 || data.u16(0) === 1 ? "1" : "0" };
+    } else if (opcode === 0x13 && data.bytes.length === 2) {
+      view.protectedPasswordHash = data.u16(0);
     } else if (opcode === 0x867 && data.bytes.length >= 23) {
       const flags = data.u16(19);
       view.protectedAllow = Object.fromEntries(biffProtectionPermissions.map((name, bit) => [name, !!(flags & (1 << bit))]));

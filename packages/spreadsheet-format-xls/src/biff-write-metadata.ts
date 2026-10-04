@@ -138,6 +138,19 @@ export class BiffMetadataWriter {
       throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF default column width");
     output.record(0x55, words(defaultCharacters));
     if (viewFlag(sheet, "Protected")) output.record(0x12, words(1));
+    const passwordHash = sheet.view?.protectedPasswordHash;
+    if (passwordHash !== undefined) {
+      if (typeof passwordHash !== "number" || !Number.isInteger(passwordHash) || passwordHash < 0 || passwordHash > 0xffff)
+        throw new SsconvertError("unsupported-feature", "Invalid Excel BIFF sheet password hash");
+      output.record(0x13, words(passwordHash));
+      for (const { record } of this.records.get(sheet)!) {
+        this.charge();
+        const data = record.data as { opcode?: unknown; bytes?: unknown } | undefined;
+        if (record.source === "biff" && record.kind === "PASSWORD" && !Array.isArray(data) && data?.opcode === 0x13 &&
+          typeof data.bytes === "string" && data.bytes.length === 4 && [...data.bytes].every(character => "0123456789abcdefABCDEF".includes(character)))
+          this.exported.add(record);
+      }
+    }
     const allowed = sheet.view?.protectedAllow;
     if (allowed !== undefined) {
       if (!allowed || typeof allowed !== "object" || Array.isArray(allowed))

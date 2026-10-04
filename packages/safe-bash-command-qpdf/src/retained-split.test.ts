@@ -2,20 +2,22 @@ import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { PdfDocument, cosStream, cosString, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, serializeCosDocument, cosStream, cosString, dictSet } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["single", "group", "padded", "escaped", "stdin", "encrypted", "rotate", "selection", "collision", "empty", "dash", "large-group", "discard-unused", "fixture", "fixture-rotate"]) it(`${mode === "selection" ? "preserves compatibility for" : "streams"} ${mode} split pages with exact bytes`, async () => {
+for (const mode of ["single", "group", "padded", "escaped", "stdin", "encrypted", "rotate", "selection", "collision", "empty", "dash", "large-group", "discard-unused", "fixture", "fixture-rotate", "remove-info", "remove-metadata", "remove-structure", "remove-acroform", "remove-page-labels", "fixture-remove-info", "root-info", "page-info-rotate"]) it(`${mode === "selection" ? "preserves compatibility for" : "streams"} ${mode} split pages with exact bytes`, async () => {
   const doc = PdfDocument.create(); for (let index = 0; index < 5; index++) doc.addPage([100 + index * 10, 200]).drawText(`Page ${index + 1}`, { x: 10, y: 20 });
   doc.setTitle("Title"); doc.setAuthor("Author"); doc.setSubject("Subject"); doc.setKeywords("Keywords");
   dictSet(doc.cos.resolveDict(doc.cos.infoRef)!, "Creator", cosString("Not copied"));
   if (mode === "discard-unused") doc.cos.allocateObject(cosStream(new Uint8Array(1048576).fill(65), { compress: false }));
-  const input = mode.startsWith("fixture") ? new Uint8Array(readFileSync(new URL("../../pdf-ast/src/fixtures/qpdf-shared-images.pdf", import.meta.url))) : doc.save(mode === "encrypted" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : {});
+  if (mode === "root-info") doc.cos.infoRef = doc.cos.rootRef;
+  if (mode === "page-info-rotate") doc.cos.infoRef = doc.getPage(0).ref;
+  const input = mode === "root-info" || mode === "page-info-rotate" ? serializeCosDocument({ objects: [...doc.cos.objects.values()], rootRef: doc.cos.rootRef, infoRef: doc.cos.infoRef }) : mode.startsWith("fixture") ? new Uint8Array(readFileSync(new URL("../../pdf-ast/src/fixtures/qpdf-shared-images.pdf", import.meta.url))) : doc.save(mode === "encrypted" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : {});
   const name = mode === "stdin" ? "-" : mode === "collision" ? "out-2.pdf" : "in.pdf";
   const target = mode === "padded" ? "out-%03d.pdf" : mode === "escaped" ? "out-%%-%d-%d.pdf" : mode === "collision" ? "out-%d.pdf" : mode === "dash" ? "-" : "out.pdf";
   const args = [...(mode === "encrypted" ? ["--password=reader"] : []), ...(mode === "empty" ? ["--empty"] : [name]),
-    `--split-pages=${mode === "group" || mode.startsWith("fixture") ? 2 : mode === "large-group" ? 100000000 : 1}`, ...((mode === "rotate" || mode === "fixture-rotate") ? ["--rotate=+90:1-z"] : []), ...(mode === "selection" ? ["--pages", ".", "5-1", "--"] : []), target];
+    `--split-pages=${mode === "group" || mode.startsWith("fixture") ? 2 : mode === "large-group" ? 100000000 : 1}`, ...((mode === "rotate" || mode === "fixture-rotate" || mode === "page-info-rotate") ? ["--rotate=+90:1-z"] : []), ...((mode === "root-info" || mode === "page-info-rotate") ? ["--remove-info"] : []), ...(mode.includes("remove-") ? [`--${mode.replace("fixture-", "")}`] : []), ...(mode === "selection" ? ["--pages", ".", "5-1", "--"] : []), target];
   const files = new Map([[name, input]]), expected = await runQpdfCli(args, files);
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); if (name !== "-") await fs.writeFile(`/${name}`, input);
   const guarded = new Proxy(fs, { get(owner, key) {
@@ -32,11 +34,11 @@ for (const mode of ["single", "group", "padded", "escaped", "stdin", "encrypted"
   assert.deepEqual(await fs.readdir("/scratch"), []);
 });
 
-for (const mode of ["read", "cancel", "budget", "publish"]) it(`preserves split publication and cleanup during ${mode} failure`, async () => {
+for (const mode of ["read", "cancel", "budget", "publish"]) for (const editing of [false, true]) it(`preserves split publication and cleanup during ${mode} failure (editing=${editing})`, async () => {
   const doc = PdfDocument.create(); doc.addPage([100, 200]); doc.addPage([300, 400]); doc.cos.allocateObject(cosStream(new Uint8Array(131073).fill(65), { compress: false })); const input = doc.save();
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
   const old = new Uint8Array([9]); await fs.writeFile("/out-1.pdf", old); await fs.writeFile("/out-2.pdf", old);
-  const args = ["in.pdf", "--split-pages", "out.pdf"], files = new Map([["in.pdf", input]]); await runQpdfCli(args, files);
+  const args = ["in.pdf", "--split-pages", ...(editing ? ["--remove-info"] : []), "out.pdf"], files = new Map([["in.pdf", input]]); await runQpdfCli(args, files);
   const controller = new AbortController(), reason = new Error("injected split failure"); let reads = 0, closes = 0, published = 0;
   const guarded = new Proxy(fs, { get(owner, key) {
     if (key === "readFile" || key === "writeFile") return () => { throw new Error("Whole-file split I/O forbidden"); };

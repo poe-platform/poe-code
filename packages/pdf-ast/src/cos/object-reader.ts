@@ -1,3 +1,4 @@
+import { resolvePdfStreamDictionary } from "./filter-dictionary.js";
 import { scanCosRangeObjects } from "./range-repair.js";
 import { recoveredBodies, recoverPdfReferences } from "./recovered-reference.js";
 import { cosRef, dictGet, type PdfXRefEntry, type PdfCosDict, type PdfCosNode, type PdfEncryptionState } from "../ast.js";
@@ -84,7 +85,8 @@ export class PdfObjectReader {
     const { object, dict } = await this.enqueue(async () => {
       const object = await this.load(objectNumber, generationNumber, new Set());
       if (object?.value.kind !== "dict" || !object.stream) throw new PdfError("E_PARSE", "Expected an indexed PDF stream");
-      return { object, dict: await this.resolveFilters(object.value, new Set([objectNumber])) };
+      const active = new Set([objectNumber]);
+      return { object, dict: await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, this.options) };
     });
     const span = object.stream!;
     const input = () => this.source.stream(span.start, span.end - span.start, this.options.signal);
@@ -189,7 +191,7 @@ export class PdfObjectReader {
     if (count > maximum(this.options.maxObjectStreamMembers, "maxObjectStreamMembers") || count > Math.floor(Number.MAX_SAFE_INTEGER / 16)) throw new PdfError("E_LIMIT", "PDF object stream member limit exceeded");
     active.add(number);
     let dict: PdfCosDict;
-    try { dict = await this.resolveFilters(object.value, active); } finally { active.delete(number); }
+    try { dict = await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, this.options); } finally { active.delete(number); }
     while (this.streams.size >= this.capacity) {
       const [key, oldest] = this.streams.entries().next().value!;
       this.streams.delete(key); await this.release(oldest);
@@ -244,34 +246,6 @@ export class PdfObjectReader {
     }
   }
 
-  private async resolveFilters(dict: PdfCosDict, active: Set<number>): Promise<PdfCosDict> {
-    let remaining = this.options.maxNodes!;
-    const resolve = async (node: PdfCosNode, depth: number): Promise<PdfCosNode> => {
-      if (--remaining < 0 || depth >= this.options.maxRecursionDepth!) throw new PdfError("E_LIMIT", "PDF filter resolution limit exceeded");
-      if (node.kind === "ref") {
-        if (active.has(node.objectNumber)) throw new PdfError("E_PARSE", "PDF filter reference cycle");
-        const object = await this.load(node.objectNumber, node.generationNumber, active);
-        if (!object) throw new PdfError("E_PARSE", "Missing PDF filter reference");
-        active.add(node.objectNumber);
-        try { return await resolve(object.value, depth + 1); } finally { active.delete(node.objectNumber); }
-      }
-      if (node.kind === "array") {
-        const items: PdfCosNode[] = [];
-        for (const item of node.items) items.push(await resolve(item, depth + 1));
-        return { ...node, items };
-      }
-      if (node.kind === "dict") {
-        const entries = [];
-        for (const entry of node.entries) entries.push({ ...entry, value: await resolve(entry.value, depth + 1) });
-        return { ...node, entries };
-      }
-      return node;
-    };
-    const entries = [];
-    for (const entry of dict.entries) entries.push(["Filter", "F", "DecodeParms", "DP", "Type"].includes(entry.key.decoded) ? { ...entry, value: await resolve(entry.value, 0) } : entry);
-    return { ...dict, entries };
-  }
-
   close(): Promise<void> {
     this.closing ??= this.pending.then(async () => {
       let failure: { error: unknown } | undefined;
@@ -290,7 +264,7 @@ export interface OpenPdfObjectReaderOptions extends Omit<PdfObjectReaderOptions,
 }
 export interface PdfOpenedObjectReader {
   readonly crossReference: PdfCrossReference;
-  readonly reader: PdfObjectReader;
+  readonly reader: Pick<PdfObjectReader, "get" | "decodeStream" | "objectStreamEntries" | "close">;
   readonly encryption?: PdfEncryptionState;
   /** Close the reader and owned xref index. The source remains caller-owned. */
   close(): Promise<void>;

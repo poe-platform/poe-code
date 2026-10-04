@@ -2497,7 +2497,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     const parsed = parseQpdfArguments(argv);
     if (parsed.options) {
       const defaults = parseQpdfArguments([]).options!;
-      const splitGraphEdits = parsed.options.splitPagesGroup !== undefined && [parsed.options.pageSpecs.length > 0, parsed.options.removeInfo, parsed.options.removeMetadata, parsed.options.removeStructure, parsed.options.removeAcroform, parsed.options.removePageLabels].some(Boolean);
+      const splitGraphEdits = parsed.options.splitPagesGroup !== undefined && parsed.options.pageSpecs.length > 0;
       const retained = !splitGraphEdits && Object.entries(parsed.options).every(([key, value]) => {
         if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCount", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs", "splitPagesGroup"].includes(key)) return true;
         if (key === "normalizeContentFlag" && value === false) return true;

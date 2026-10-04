@@ -53,9 +53,9 @@ decoding. File sizes are admitted before reading, and expanded lines count
 toward the configured argument budget.
 
 `--split-pages` stages grouped results and their names on caller storage before
-atomic file publication, including filename patterns and rotations. Combined
-splitting with page selections or graph-removal options currently uses the
-compatibility engine.
+atomic file publication, including filename patterns, rotations and information/metadata/structure/form/label
+removals. Combined splitting with page selections currently uses the compatibility
+engine.
 
 `--show-linearization` and `--check-linearization` preserve revision and repair
 ordering through caller-backed traversal. `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs

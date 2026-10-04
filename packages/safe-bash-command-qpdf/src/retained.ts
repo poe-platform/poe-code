@@ -6,7 +6,7 @@ import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
-import { PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
+import { editRetainedDocument, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -54,6 +54,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
   const inputs = new Map<string, PdfFileSource | undefined>();
   let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, intermediate: PdfFileSource | undefined, output: PdfFileSource | undefined, failed = false;
   let splitOutputs: PdfStagedOutputs | undefined;
+  let editedGraph: Awaited<ReturnType<typeof editRetainedDocument>> | undefined;
   async function publishInspection(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>): Promise<void> {
     async function* admitted() {
       let total = 0;
@@ -202,10 +203,12 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
     }
     if (options.splitPagesGroup !== undefined) {
-      for await (const object of retainedCosObjects(document, storage, { signal })) {
+      if (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels) {
+        editedGraph = await editRetainedDocument(document, storage, { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+      } else for await (const object of retainedCosObjects(document, storage, { signal })) {
         if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
       }
-      const parts = splitPageOutputs(document, storage, destination, options.splitPagesGroup, options.rotateSpecs, signal);
+      const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal);
       async function* entries() {
         // Preserve original Map insertion order when a split filename replaces
         // an input. Empty seed entries are discarded after staging.
@@ -246,7 +249,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     return { exitCode: 0 };
   } catch (error) { failed = true; if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
   finally {
-    const results = await Promise.allSettled([splitOutputs?.close(), document?.close(), ...[...new Set([...inputs.values(), source, intermediate, output])].map(input => input?.close())]);
+    const results = await Promise.allSettled([splitOutputs?.close(), editedGraph?.close(), document?.close(), ...[...new Set([...inputs.values(), source, intermediate, output])].map(input => input?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
   }
 }

@@ -1,3 +1,5 @@
+import { openStoredPdfObjectReader, type OpenStoredPdfOptions } from "./cos/stored-object-reader.js";
+import type { PdfMutableObjectStore } from "./cos/mutable-object-store.js";
 import { PdfRawTextIndex, type PdfRawTextIndexOptions } from "./extract/raw-text-index.js";
 import { streamRawTextChunks, type PdfRawTextOptions } from "./extract/raw-text-stream.js";
 import { prepareRetainedPageContent, type PdfRetainedPageEvaluationOptions } from "./content/retained-page.js";
@@ -23,10 +25,14 @@ export interface PdfRetainedDocumentOptions extends OpenPdfObjectReaderOptions {
   /** Aggregate live visited-index staging for each page walk. */
   readonly maxTraversalStagingBytes?: number;
 }
+export type PdfStoredDocumentOptions = PdfRetainedDocumentOptions & OpenStoredPdfOptions & {
+  /** Replay caller-backed logical pages when edits change the catalog tree. */
+  readonly pageReferences?: () => Iterable<PdfCosRef> | AsyncIterable<PdfCosRef>;
+};
 export interface PdfRetainedValue {
   readonly value: PdfCosNode;
   readonly reference?: PdfCosRef;
-  /** Encoded stream range in the retained input, when this is a stream. */
+  /** Encoded stream span in its reader's backing; stored spans are payload-relative. */
   readonly stream?: ByteSpan;
 }
 export interface PdfRetainedPageAttributes {
@@ -55,7 +61,8 @@ export class PdfRetainedDocument {
   private readonly walks = new Set<AsyncGenerator<unknown, void, void>>();
   private closing: Promise<void> | undefined;
   private constructor(private readonly opened: PdfOpenedObjectReader, private readonly storage: PdfIndexStorage,
-    private readonly options: PdfRetainedDocumentOptions, private readonly controller: AbortController) {
+    private readonly options: PdfRetainedDocumentOptions, private readonly controller: AbortController,
+    private readonly pageReferences?: PdfStoredDocumentOptions["pageReferences"]) {
     this.objects = opened.reader; this.crossReference = opened.crossReference; this.encryption = opened.encryption;
     this.depthLimit = options.maxPageTreeDepth!;
   }
@@ -69,6 +76,19 @@ export class PdfRetainedDocument {
     const configured = { ...options, signal, maxPages, maxPageTreeDepth, maxTraversalStagingBytes };
     const opened = await openPdfObjectReader(source, storage, configured);
     return new PdfRetainedDocument(opened, storage, configured, controller);
+  }
+
+  /** Read an editable caller-backed graph without normalizing it through a PDF
+   * save. The caller retains ownership of the store and its object identities. */
+  static async openStore(store: PdfMutableObjectStore, storage: PdfIndexStorage, options: PdfStoredDocumentOptions): Promise<PdfRetainedDocument> {
+    const maxPages = limit(options.maxPages, "maxPages", Infinity);
+    const maxPageTreeDepth = limit(options.maxPageTreeDepth, "maxPageTreeDepth", 100);
+    const maxTraversalStagingBytes = limit(options.maxTraversalStagingBytes, "maxTraversalStagingBytes", Infinity);
+    const controller = new AbortController();
+    const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
+    const configured = { ...options, signal, maxPages, maxPageTreeDepth, maxTraversalStagingBytes };
+    const opened = await openStoredPdfObjectReader(store, storage, configured);
+    return new PdfRetainedDocument(opened, storage, configured, controller, options.pageReferences);
   }
 
   private assertOpen(): void {
@@ -152,8 +172,18 @@ export class PdfRetainedDocument {
         }
       }
       try {
-        const root = (await doc.lookup(doc.crossReference.rootRef))?.value;
-        if (root?.kind === "dict") yield* walk(dictGet(root, "Pages"), 0);
+        if (doc.pageReferences) {
+          for await (const reference of doc.pageReferences()) {
+            doc.assertOpen();
+            if (count >= Math.min(doc.options.maxPages!, Number.MAX_SAFE_INTEGER)) throw new PdfError("E_LIMIT", "PDF page count limit exceeded");
+            const value = (await doc.lookup(reference))?.value;
+            if (value?.kind !== "dict") throw new PdfError("E_PARSE", "Missing stored PDF page");
+            yield new PdfRetainedPage(doc, count++, value, reference);
+          }
+        } else {
+          const root = (await doc.lookup(doc.crossReference.rootRef))?.value;
+          if (root?.kind === "dict") yield* walk(dictGet(root, "Pages"), 0);
+        }
       } catch (error) { failed = true; throw error; }
       finally {
         doc.walks.delete(work);

@@ -110,3 +110,14 @@ it("preserves output snapshots and cancels traversal of many small records", asy
   } finally { await store.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("replays a captured stream snapshot after replacing its object", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const store = new PdfMutableObjectStore({ fs, directory: "/scratch" });
+  try {
+    await store.set({ objectNumber: 1, generationNumber: 0, value: cosDict({}), stream: { length: 3, chunks: [Uint8Array.of(1, 2, 3)] } });
+    const snapshot = (await store.get(1))!.stream!;
+    await store.set({ objectNumber: 1, generationNumber: 0, value: cosDict({}), stream: { length: 1, chunks: [Uint8Array.of(9)] } });
+    for (let replay = 0; replay < 2; replay++) { const chunks = []; for await (const bytes of snapshot.chunks) chunks.push(bytes); expect(new Uint8Array(Buffer.concat(chunks))).toEqual(Uint8Array.of(1, 2, 3)); }
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

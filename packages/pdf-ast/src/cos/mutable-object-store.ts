@@ -121,7 +121,18 @@ export class PdfMutableObjectStore {
         signal.throwIfAborted(); yield await backing.read(streamAt + offset, Math.min(16384, length - offset));
       }
     }
-    return { ...object, stream: { length, chunks: chunks() } };
+    return { ...object, stream: { length, chunks: { [Symbol.asyncIterator]: chunks } } };
+  }
+  /** Enumerate live identities without parsing values or reading payloads. */
+  async *identities(): AsyncGenerator<{ objectNumber: number; generationNumber: number }, void, void> {
+    await this.pending; this.signal.throwIfAborted();
+    let work = 0;
+    for await (const [number, position] of this.index.entries()) {
+      this.signal.throwIfAborted();
+      if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      const bytes = await this.backing.read(Number(position), 8);
+      yield { objectNumber: Number(number), generationNumber: new DataView(bytes.buffer, bytes.byteOffset, bytes.length).getFloat64(0) };
+    }
   }
   async *objects(): AsyncGenerator<PdfRetainedOutputObject, void, void> {
     await this.pending; this.signal.throwIfAborted();

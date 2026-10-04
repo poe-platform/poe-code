@@ -816,6 +816,13 @@ Pass `rotations` as an iterable or async iterable of `{ pageIndex, degrees,
 relative? }` edits. Indices are zero-based, angles are multiples of 90, and
 ordered relative edits accumulate without collecting the selection.
 
+`editRetainedDocument(document, storage, options)` applies ordered rotations and
+information/metadata/structure/form/label removals to a caller-backed editable
+graph. Use its `document` for subsequent copies and close the result when done.
+It preserves unsaved stream dictionaries and logical page identities across edits.
+`PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
+existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
+
 `copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
 PDF for a synchronous or asynchronous iterable of zero-based page indices.
 Use `pageRotation(document, index)` to override a source rotation before

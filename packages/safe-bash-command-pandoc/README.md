@@ -447,7 +447,9 @@ yield checkpoints and timer cancellation apply to retained execution, including
 native library loops and callbacks. Use trusted scripts; this is not an isolation
 boundary. `readStream` takes precedence when both readers are supplied.
 Both `createLuaFilterCapability({readFile})`
-and `createLuaFilterCapability(loadScript)` accept the same filters. Define global
+and `createLuaFilterCapability(loadScript)` accept the same filters. Their buffered
+results are snapshotted before runtime setup yields, so later reader buffer reuse
+cannot change the acquired script. Prefer `readStream` for bounded acquisition. Define global
 callbacks, return one callback table, or return a list of tables to run in order.
 Within each table, inline callbacks run before `Inlines`, block callbacks, `Blocks`,
 `Meta`, and `Pandoc`. Callback identities remain fixed if the script changes globals.

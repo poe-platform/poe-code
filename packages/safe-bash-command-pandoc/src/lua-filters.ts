@@ -13,6 +13,7 @@ export interface LuaFilterOptions {
    * error is then thrown; hosts can track its identity to avoid printing twice.
    * Without this callback, streamed errors are collected into Error.message. */
   onError?(error: PandocError, message: AsyncIterable<Uint8Array>): Promise<void>;
+  /** Buffered source bytes are snapshotted before asynchronous runtime setup. */
   readFile(path: string, signal: AbortSignal | undefined): Promise<Uint8Array>;
   /** Sequential source capability; preferred when both readers are supplied. */
   readStream?(path: string, signal: AbortSignal | undefined): AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
@@ -34,12 +35,13 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
     async apply(document, request, context) {
       if (request.kind !== "lua") throw new PandocError("E_CAPABILITY", "convert", "This capability supports Lua filters only");
       context.checkpoint(0);
-      const source = readStream ? undefined : await readFile!(request.path, context.signal);
+      let source = readStream ? undefined : await readFile!(request.path, context.signal);
       context.checkpoint();
       if (!readStream) {
         if (!(source instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Lua filter source must be bytes");
         context.charge("inputBytes", source.byteLength);
         context.charge("retainedBytes", source.byteLength);
+        source = new Uint8Array(source);
       }
       const runtime = (await import("./fengari.generated.js")).default as typeof import("fengari");
       context.checkpoint(0);

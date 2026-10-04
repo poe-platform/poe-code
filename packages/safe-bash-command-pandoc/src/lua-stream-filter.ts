@@ -39,6 +39,7 @@ export async function applyLuaStream(load:LuaScriptLoader | LuaFilterOptions | L
       supplied=await (typeof load==="function"?load:load.readFile!)(request.path,signal);
       if(!(supplied instanceof Uint8Array))throw new PandocError("E_IO","convert","Lua filter source must be bytes");
       context.charge("inputBytes",supplied.length);context.charge("retainedBytes",supplied.length);
+      supplied=new Uint8Array(supplied);
     }
     const source=(async function*(){
       if(streamed)yield* (load as LuaStreamFilterOptions).readStream(request.path,signal);

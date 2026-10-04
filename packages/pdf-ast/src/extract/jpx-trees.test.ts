@@ -2,6 +2,12 @@ import { readFileSync } from "node:fs";
 import { expect, it, vi } from "vitest";
 import { JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 
+function treeLength(width: number): number {
+  let length = 0;
+  while (width > 1) { length += width * width; width = Math.ceil(width / 2); }
+  return length + 1;
+}
+
 function precinctFixture(size: number) {
   const original = new Uint8Array(readFileSync(new URL("../fixtures/rgb-lossless.j2k", import.meta.url)));
   let siz = -1, cod = -1, sot = -1, sod = -1;
@@ -38,7 +44,7 @@ it.each([1, 8])("backs large precinct tree values using %s-byte elements before 
       const request = next.value;
       if (typeof request !== "number" && "kind" in request) {
         if (request.kind === "vector-allocate") {
-          if (request.length === 257 * 257 * elementBytes) return;
+          if (request.length === treeLength(257) * elementBytes) return;
           const position = end; end += request.length;
           backing.set(position, new DataView(new ArrayBuffer(request.length)));
           next = steps.next(position);
@@ -72,7 +78,7 @@ it("uses caller storage for growing precinct trees and releases scratch on a lat
   const { PdfRetainedJpx } = await import("./retained-jpx.js");
   const fs = createMemoryFileSystem();
   await fs.mkdir("/scratch");
-  const size = 132, count = (size / 4) ** 2;
+  const size = 132, count = treeLength(size / 4);
   await fs.writeFile("/input", precinctFixture(size));
   const source = await PdfFileSource.open(fs, "/input");
   const storage = new PagedStorage({ fs, cwd: "/scratch", env: {}, signal: new AbortController().signal }, 2);

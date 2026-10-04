@@ -5,11 +5,11 @@ import { expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { decodeJpxToRgba } from "./images.js";
 
-it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks"])(
+it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "precincts"])(
   "decodes growing JPEG 2000 %s state in Workerd using external storage",
   async (profile) => {
     const images = new Map<number, { bytes: Uint8Array; sum: number }>();
-    const original = new Uint8Array(
+    let original = new Uint8Array(
       readFileSync(new URL("../fixtures/rgb-lossless.j2k", import.meta.url))
     );
     let siz = -1,
@@ -26,6 +26,15 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks"])(
           break;
         }
       }
+    if (profile === "precincts") {
+      const length = new DataView(original.buffer).getUint16(cod), at = cod + length;
+      const adjusted = new Uint8Array(original.length + 1);
+      adjusted.set(original.subarray(0, at)); adjusted[at] = 0x22;
+      adjusted.set(original.subarray(at), at + 1);
+      new DataView(adjusted.buffer).setUint16(cod, length + 1);
+      adjusted[cod + 2] = adjusted[cod + 2]! | 1;
+      original = adjusted; sot++; sod++;
+    }
     for (const height of [129, 513]) {
       const length = height === 129 ? 131072 : 524288;
       const binary = length.toString(2);
@@ -54,7 +63,8 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks"])(
       if (left !== 8) header.push(value << left);
       const part = header.length + length;
       const layers = height === 129 ? 1025 : 4097;
-      const bytes = new Uint8Array(sod + (profile === "codeblocks" ? header.length * 3 + 2 : profile === "segments" ? layers * 6 + 2 : profile === "codeblock-input" ? part * 3 + 2 : profile === "wavelet" ? 2 : 5));
+      const precincts = 2 * Math.ceil(height / 4);
+      const bytes = new Uint8Array(sod + (profile === "precincts" ? precincts * 6 + 2 : profile === "codeblocks" ? header.length * 3 + 2 : profile === "segments" ? layers * 6 + 2 : profile === "codeblock-input" ? part * 3 + 2 : profile === "wavelet" ? 2 : 5));
       bytes.set(original.subarray(0, sod));
       bytes.set(profile === "wavelet" ? [255, 217] : [224, 224, 224, 255, 217], sod);
       const view = new DataView(bytes.buffer);
@@ -87,6 +97,17 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks"])(
         bytes.set([255, 217], sod + header.length * 3);
         view.setUint32(sot + 4, 14 + header.length * 3);
         for (const offset of [4, 20]) view.setUint32(siz + offset, 5);
+        bytes[cod + 7] = 0; bytes[cod + 8] = 0; bytes[cod + 9] = 0;
+      }
+      if (profile === "precincts") {
+        // Defer inclusion until layer two, forcing every stored tree to be
+        // reconstructed after its precinct was evicted from the cache.
+        bytes.fill(128, sod, sod + precincts * 3);
+        bytes.fill(224, sod + precincts * 3, sod + precincts * 6);
+        bytes.set([255, 217], sod + precincts * 6);
+        for (const offset of [4, 20]) view.setUint32(siz + offset, 5);
+        view.setUint32(sot + 4, 14 + precincts * 6);
+        view.setUint16(cod + 4, 2);
         bytes[cod + 7] = 0; bytes[cod + 8] = 0; bytes[cod + 9] = 0;
       }
       const expected = decodeJpxToRgba(bytes);
@@ -176,7 +197,7 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks"])(
           nodeGlobals: boolean;
         };
         expect(result.sum).toBe(input.sum);
-        if (profile === "codeblocks") expect(result.decoderBytes).toBeLessThanOrEqual(131072);
+        if (profile === "codeblocks" || profile === "precincts") expect(result.decoderBytes).toBeLessThanOrEqual(131072);
         if (profile === "segments") {
           if (previousDecoderBytes !== undefined) expect(result.decoderBytes).toBe(previousDecoderBytes);
           previousDecoderBytes = result.decoderBytes;

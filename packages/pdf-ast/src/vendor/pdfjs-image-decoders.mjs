@@ -6005,10 +6005,11 @@ function* buildCodeblocks(context, subband, dimensions) {
   const cby1 = subband.tby1 + codeblockHeight - 1 >> ycb_;
   const precinctParameters = subband.resolution.precinctParameters;
   const count = Math.max(0, cbx1 - cbx0) * Math.max(0, cby1 - cby0);
-  context.onAllocation?.((context.storedPlanes ? 1024 : count * 1024) + precinctParameters.numprecincts * 16);
+  context.onAllocation?.((context.storedPlanes ? 2048 : count * 1024 + precinctParameters.numprecincts * 16));
   const codeblocks = context.storedPlanes
     ? {length: 0, records: yield* jpxVectorAllocate(count * 18, 8, true)} : [];
-  const precincts = [];
+  const precincts = context.storedPlanes
+    ? {records: yield* jpxVectorAllocate(precinctParameters.numprecincts * 8, 8, true), treeAdmission: 0} : [];
   let i, j, codeblock, precinctNumber;
   for (j = cby0; j < cby1; j++) {
     for (i = cbx0; i < cbx1; i++) {
@@ -6041,7 +6042,7 @@ function* buildCodeblocks(context, subband, dimensions) {
         }
         yield* writeJpxCodeblock(codeblock);
       } else codeblocks.push(codeblock);
-      let precinct = precincts[precinctNumber];
+      let precinct = yield* readJpxPrecinct(precincts, precinctNumber);
       if (precinct !== undefined) {
         if (i < precinct.cbxMin) {
           precinct.cbxMin = i;
@@ -6054,13 +6055,17 @@ function* buildCodeblocks(context, subband, dimensions) {
           precinct.cbyMax = j;
         }
       } else {
-        precincts[precinctNumber] = precinct = {
+        precinct = {
           cbxMin: i,
           cbyMin: j,
           cbxMax: i,
           cbyMax: j
         };
       }
+      if (precincts.records) {
+        precinct.collection = precincts; precinct.number = precinctNumber;
+        yield* writeJpxPrecinct(precinct);
+      } else precincts[precinctNumber] = precinct;
       codeblock.precinct = precinct;
     }
   }
@@ -6072,6 +6077,37 @@ function* buildCodeblocks(context, subband, dimensions) {
   };
   subband.codeblocks = codeblocks;
   subband.precincts = precincts;
+}
+// Only the current precinct and its tree level views are resident. Roots and
+// bounds survive eviction in caller-owned storage.
+function* writeJpxPrecinct(precinct) {
+  const collection = precinct.collection;
+  if (!collection) return;
+  const values = [1, precinct.cbxMin, precinct.cbyMin, precinct.cbxMax, precinct.cbyMax,
+    precinct.inclusionTree ? precinct.inclusionTree.root.position + 1 : 0,
+    precinct.zeroBitPlanesTree ? precinct.zeroBitPlanesTree.root.position + 1 : 0,
+    precinct.zeroBitPlanesTree ? precinct.zeroBitPlanesTree.presence.position + 1 : 0];
+  for (let field = 0; field < values.length; field++) {
+    yield* jpxVectorWrite(collection.records, precinct.number * 8 + field, values[field]);
+  }
+  collection.cached = precinct;
+}
+function* readJpxPrecinct(collection, number) {
+  if (!collection.records) return collection[number];
+  if (collection.cached?.number === number) return collection.cached;
+  if (!(yield* jpxVectorRead(collection.records, number * 8))) return undefined;
+  const values = [];
+  for (let field = 1; field < 8; field++) values.push(yield* jpxVectorRead(collection.records, number * 8 + field));
+  const precinct = {collection, number, cbxMin: values[0], cbyMin: values[1], cbxMax: values[2], cbyMax: values[3]};
+  if (values[4]) {
+    const width = precinct.cbxMax - precinct.cbxMin + 1, height = precinct.cbyMax - precinct.cbyMin + 1;
+    precinct.inclusionTree = new InclusionTree();
+    yield* precinct.inclusionTree.initialize(width, height, 0, undefined, true, values[4] - 1);
+    precinct.zeroBitPlanesTree = new TagTree();
+    yield* precinct.zeroBitPlanesTree.initialize(width, height, undefined, true, values[5] - 1, values[6] - 1);
+  }
+  collection.cached = precinct;
+  return precinct;
 }
 const jpxCodeblockGeometry = ["cbx", "cby", "tbx0_", "tby0_", "tbx1_", "tby1_", "precinctNumber"];
 function* writeJpxCodeblock(block) {
@@ -6085,14 +6121,14 @@ function* writeJpxCodeblock(block) {
     yield* jpxVectorWrite(block.record, block.recordIndex * 18 + 7 + field, values[field]);
   }
 }
-function* readJpxCodeblock(subband, index) {
+function* readJpxCodeblock(subband, index, withPrecinct = true) {
   const blocks = subband.codeblocks;
   if (!blocks.records) return blocks[index];
   const block = {record: blocks.records, recordIndex: index, subbandType: subband.type};
   const values = [];
   for (let field = 0; field < 18; field++) values.push(yield* jpxVectorRead(blocks.records, index * 18 + field));
   for (let field = 0; field < jpxCodeblockGeometry.length; field++) block[jpxCodeblockGeometry[field]] = values[field];
-  block.precinct = subband.precincts[block.precinctNumber];
+  if (withPrecinct) block.precinct = yield* readJpxPrecinct(subband.precincts, block.precinctNumber);
   block.Lblock = values[7];
   if (values[8]) block.included = true;
   if (!Number.isNaN(values[9])) block.zeroBitPlanes = values[9];
@@ -6117,7 +6153,9 @@ function* nextJpxPacketCodeblock(packet, cursor) {
   while (cursor.subband < packet.resolution.subbands.length) {
     const subband = packet.resolution.subbands[cursor.subband];
     while (cursor.index < subband.codeblocks.length) {
-      const block = yield* readJpxCodeblock(subband, cursor.index++);
+      const index = cursor.index++;
+      if (subband.codeblocks.records && (yield* jpxVectorRead(subband.codeblocks.records, index * 18 + 6)) !== packet.precinctNumber) continue;
+      const block = yield* readJpxCodeblock(subband, index);
       if (block.precinctNumber === packet.precinctNumber) return block;
     }
     cursor.subband++;
@@ -6601,12 +6639,23 @@ function* parseTilePackets(context, data, offset, dataLength) {
         } else {
           const width = precinct.cbxMax - precinct.cbxMin + 1;
           const height = precinct.cbyMax - precinct.cbyMin + 1;
+          let treeAllocation = context.onAllocation;
+          if (precinct.collection) {
+            const admission = (log2(Math.max(width, height)) + 1) * 768;
+            const collection = precinct.collection;
+            if (admission > collection.treeAdmission) {
+              context.onAllocation?.(admission - collection.treeAdmission);
+              collection.treeAdmission = admission;
+            }
+            treeAllocation = undefined;
+          }
           inclusionTree = new InclusionTree();
-          yield* inclusionTree.initialize(width, height, layerNumber, context.onAllocation, context.storedPlanes);
+          yield* inclusionTree.initialize(width, height, layerNumber, treeAllocation, context.storedPlanes);
           zeroBitPlanesTree = new TagTree();
-          yield* zeroBitPlanesTree.initialize(width, height, context.onAllocation, context.storedPlanes);
+          yield* zeroBitPlanesTree.initialize(width, height, treeAllocation, context.storedPlanes);
           precinct.inclusionTree = inclusionTree;
           precinct.zeroBitPlanesTree = zeroBitPlanesTree;
+          yield* writeJpxPrecinct(precinct);
           for (let l = 0; l < layerNumber; l++) {
             if ((yield* readBits(1)) !== 0) {
               throw new JpxError("Invalid tag tree");
@@ -6757,7 +6806,7 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
   const right = subband.type.charAt(0) === "H" ? 1 : 0;
   const bottom = subband.type.charAt(1) === "H" ? levelWidth : 0;
   for (let i = 0, ii = codeblocks.length; i < ii; ++i) {
-    const codeblock = yield* readJpxCodeblock(subband, i);
+    const codeblock = yield* readJpxCodeblock(subband, i, false);
     const blockWidth = codeblock.tbx1_ - codeblock.tbx0_;
     const blockHeight = codeblock.tby1_ - codeblock.tby0_;
     if (blockWidth === 0 || blockHeight === 0) {
@@ -7018,19 +7067,40 @@ function* jpxTagWrite(level, index, value) {
   yield* jpxVectorWrite(level.present, index, 1);
   yield* jpxVectorWrite(level.items, index, value);
 }
+function jpxTreeLength(width, height) {
+  const levels = log2(Math.max(width, height)) + 1;
+  let length = 0;
+  for (let i = 0; i < levels; i++) {
+    length += width * height;
+    width = Math.ceil(width / 2); height = Math.ceil(height / 2);
+  }
+  return length;
+}
+function jpxTreeView(root, offset, length) {
+  return {...root, position: root.position + offset * root.bytesPerElement, length};
+}
 class TagTree {
-  *initialize(width, height, onAllocation, stored) {
+  *initialize(width, height, onAllocation, stored, rootPosition, presencePosition) {
     const levelsLength = log2(Math.max(width, height)) + 1;
     this.levels = [];
+    let offset = 0;
+    if (stored) {
+      const length = jpxTreeLength(width, height);
+      this.root = rootPosition === undefined ? yield* jpxVectorAllocate(length, 8, true)
+        : {position: rootPosition, length, bytesPerElement: 8, integer: false};
+      this.presence = presencePosition === undefined ? yield* jpxVectorAllocate(length, 1, true, true)
+        : {position: presencePosition, length, bytesPerElement: 1, integer: true};
+    }
     for (let i = 0; i < levelsLength; i++) {
       onAllocation?.((stored ? 0 : width * height * 16) + 256);
       const level = {
         width,
         height,
-        items: stored ? yield* jpxVectorAllocate(width * height, 8, true) : [],
-        present: stored ? yield* jpxVectorAllocate(width * height, 1, true, true) : undefined
+        items: stored ? jpxTreeView(this.root, offset, width * height) : [],
+        present: stored ? jpxTreeView(this.presence, offset, width * height) : undefined
       };
       this.levels.push(level);
+      offset += width * height;
       width = Math.ceil(width / 2);
       height = Math.ceil(height / 2);
     }
@@ -7078,13 +7148,19 @@ class TagTree {
   }
 }
 class InclusionTree {
-  *initialize(width, height, defaultValue, onAllocation, stored) {
+  *initialize(width, height, defaultValue, onAllocation, stored, rootPosition) {
     const levelsLength = log2(Math.max(width, height)) + 1;
     this.levels = [];
+    let offset = 0;
+    if (stored) {
+      const length = jpxTreeLength(width, height);
+      this.root = rootPosition === undefined ? yield* jpxVectorAllocate(length, 1, true, true)
+        : {position: rootPosition, length, bytesPerElement: 1, integer: true};
+    }
     for (let i = 0; i < levelsLength; i++) {
       onAllocation?.((stored ? 0 : width * height) + 256);
-      const items = yield* jpxVectorAllocate(width * height, 1, stored, true);
-      if (defaultValue !== 0) for (let j = 0, jj = items.length; j < jj; j++) {
+      const items = stored ? jpxTreeView(this.root, offset, width * height) : yield* jpxVectorAllocate(width * height, 1, false, true);
+      if (rootPosition === undefined && defaultValue !== 0) for (let j = 0, jj = items.length; j < jj; j++) {
         yield* jpxVectorWrite(items, j, defaultValue);
       }
       onAllocation?.((stored ? 0 : width * height * 16) + 256);
@@ -7094,6 +7170,7 @@ class InclusionTree {
         items
       };
       this.levels.push(level);
+      offset += width * height;
       width = Math.ceil(width / 2);
       height = Math.ceil(height / 2);
     }

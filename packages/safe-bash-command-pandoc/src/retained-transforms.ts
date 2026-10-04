@@ -79,9 +79,10 @@ export async function transformRetainedJson(source: BackedJson, context: Executi
         }
         if (options.stripComments && (tag === "RawInline" || tag === "RawBlock") && await source.smallText(content! + 32, 4) === "html") {
           const text = (await source.describe(content! + 32)).end;
-          let nonempty = false;
-          for await (const chunk of withoutComments(source.scalarChunks(text))) {if (chunk) {nonempty = true; break;}}
-          if (!nonempty) continue;
+          let units = 0;
+          for await (const chunk of withoutComments(source.scalarChunks(text))) units += chunk.length;
+          context.charge("retainedBytes", units * 2);
+          if (!units) continue;
           await replacements.set(BigInt(text), 2n);
         }
       }

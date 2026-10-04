@@ -196,8 +196,9 @@ class HtmlTape {
   private async section(node: number): Promise<Section> {
     const c = (await this.tree.property(node, "c"))!, attrs = await this.at(c, 1), idNode = await this.at(attrs, 0);
     let base = await this.scalar(idNode); const explicit = base.units > 0;
+    const label = !explicit || Number.isFinite(this.context.limits.retainedBytes) ? await this.plain(await this.at(c, 2)) : undefined;
     if (!explicit) {
-      base = await this.map(await this.text.lower(await this.plain(await this.at(c, 2))), char => char === " " || char === "\n" ? "-" : "!\"#$%&'()*+,./:;<=>?@[\\]^`{|}~".includes(char) ? "" : char);
+      base = await this.map(await this.text.lower(label!), char => char === " " || char === "\n" ? "-" : "!\"#$%&'()*+,./:;<=>?@[\\]^`{|}~".includes(char) ? "" : char);
       if (!base.units) base = await this.text.from(["section"]);
     }
     const id = await this.unique(base, explicit ? this.headings : this.reserved); await this.headings.add(id);

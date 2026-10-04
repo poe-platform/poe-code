@@ -6064,5 +6064,11 @@
     "implementation": "Choose the LF return arrow from base direction and right-align unrotated RTL Fill. Preserve original workbook text. Rotated RTL Fill remains explicitly unsupported.",
     "validation": "Five new helper tests first failed; 467 focused tests and selected workspace build pass. Four native Hebrew inputs at 10/14pt with single/repeated LF produce 16 public SDK/command XML/PDF outputs; eight character/copy-count and XML comparisons pass. Native/public raster extents agree within one pixel at 288dpi; screenshots inspected.",
     "remaining": "Rotated RTL Fill native/public origins disagree in the retained 12-control profile. Next rendering acceptance test: match native rotated RTL line origins and copy counts before removing its refusal. Mixed-direction itemization and all 19 broad families remain open."
+  },
+  "pdfRotatedRtlFill": {
+    "status": "Rotated RTL Fill plain-text profile verified; broader rendering remains open",
+    "implementation": "Retain pre-repetition rotated line geometry while using the repeated unrotated text width for RTL horizontal placement. Bordered cells keep native single-copy placement. Remove the blanket rotated RTL Fill refusal; mixed-direction itemization guards remain.",
+    "validation": "Four new native-origin memory regressions failed before the fix. 486 focused tests and selected build pass. 26 independent native controls at 0, +/-45 and +/-90 degrees produce 104 SDK/command XML/PDF outputs. 52 text/copy-count and XML comparisons pass; 36 visible rotated origins match within 0.01pt. All 52 native/public raster pairs match within one pixel at 144dpi, including eight wholly off-page outputs. Screenshots inspected for both rotation signs and bordered vertical text.",
+    "remaining": "All 19 families remain open. Mixed-direction Fill itemization, rich text, broader font/Unicode/decorations and merged multipage rendering still require qualification. The next bounded rendering acceptance test is native/public glyph order and placement across RTL tab or paragraph itemization boundaries before relaxing those guards."
   }
 }

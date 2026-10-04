@@ -91,3 +91,17 @@ it.each([
     lineHeight: 2384 / 2048 * 7.5, width: 72, height: 60, indent: 0, alignment: "center", vertical: "justify"}, () => {});
   expect(origins.map(({x, y}) => [x, y])).toEqual(expected);
 });
+
+// Native RTL Fill uses the repeated, unrotated width for horizontal placement.
+// PDF page origins subtract the 72pt margin and the painter's 2.5pt x inset.
+it.each([
+  [10, 22.5, 67.5, 6.75, 58.5],
+  [10, 28.5, 57, 17.25, 58.5],
+  [14, 32.25, 64.5, 12, 57.75],
+  [14, 41.25, 41.25, 35.25, 57.75]
+] as const)("positions native rotated RTL Fill at font size %s and width %s", (size, naturalWidth, repeatedWidth, x, y) => {
+  const options = {angle: 45, bordered: false, widths: [naturalWidth], ascent: 1901 / 2048 * size * 0.75,
+    lineHeight: 2384 / 2048 * size * 0.75, width: 72, height: 60, indent: 0,
+    alignment: "right" as const, vertical: "bottom" as const, horizontalWidth: repeatedWidth};
+  expect(rotatedPrintLayout(options, () => {}).origins).toEqual([{x, y}]);
+});

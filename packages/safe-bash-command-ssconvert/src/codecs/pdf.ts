@@ -409,7 +409,6 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       let fillLayout: ReturnType<typeof rotatedPrintLayout> | undefined;
       if (fill) {
         if (shaper.shape(metrics, value).direction === "rtl") {
-          if (rotation) unsupported("rotated bidirectional fill layout");
           alignment = "right";
         }
         if (shapedLines.length !== 1) unsupported("fill control-character layout");
@@ -426,6 +425,11 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           if (!supported.has(0x200b)) unsupported("font coverage");
           shapedLines[0] = Array.from({length: copies}, () => shapedLines[0]!).join("​");
           value = value.repeat(copies);
+        }
+        if (fillLayout && alignment === "right") {
+          fillLayout = rotatedPrintLayout({angle: rotation, widths: [naturalWidth], ascent, lineHeight,
+            horizontalWidth: shapeLine(shapedLines[0]!).width, width: cellBox.width, height: cellBox.height,
+            indent: 0, bordered, alignment, vertical: cellBox.style.verticalAlignment}, tick);
         }
       }
       const wraps = cellBox.wrap === true && (!rotation || bordered);

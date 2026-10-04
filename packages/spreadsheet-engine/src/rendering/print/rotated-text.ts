@@ -1,5 +1,7 @@
 /** Native rotated Pango line origins, in points after rounding to display pixels at paint time. */
 export function rotatedPrintLayout(options: {
+  /** Override only the horizontal placement extent, as RTL Fill does after repetition. */
+  horizontalWidth?: number;
   angle: number; layoutWidth?: number; widths: readonly number[]; ascent: number; lineHeight: number;
   width: number; height: number; indent: number; bordered: boolean;
   alignment: "left" | "center" | "right";
@@ -38,7 +40,7 @@ export function rotatedPrintLayout(options: {
   const initial = measure(0);
   const {origins, naturalWidth} = spacing ? measure(spacing) : initial;
   // Native computes horizontal placement before vertical justification remeasures.
-  const horizontalWidth = initial.naturalWidth;
+  const horizontalWidth = options.horizontalWidth === undefined ? initial.naturalWidth : units(options.horizontalWidth);
   const width = units(options.width - 5), height = units(options.height - 1), indent = units(options.indent);
   let horizontal = options.alignment === "left" ? indent : 0;
   if (options.bordered ? sin < 0 : options.alignment === "right") horizontal += width - indent - horizontalWidth;

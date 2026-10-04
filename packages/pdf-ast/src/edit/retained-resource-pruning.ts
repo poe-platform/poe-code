@@ -1,5 +1,5 @@
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosDict, dictDelete, dictGet, dictSet, type PdfCosNode, type PdfCosRef } from "../ast.js";
+import { cosDict, dictDelete, dictGet, dictSet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { PdfNameIndex } from "../cos/name-index.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import type { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
@@ -42,10 +42,17 @@ async function collectNames(input: AsyncIterable<Uint8Array>, names: PdfNameInde
 }
 
 export async function pruneRetainedResources(document: PdfRetainedDocument, store: PdfMutableObjectStore, storage: PdfIndexStorage, signal: AbortSignal): Promise<void> {
-  async function dictionary(node: PdfCosNode | undefined) { const found = await document.lookup(node); return !found?.stream && found?.value.kind === "dict" ? { ...found, value: found.value } : undefined; }
   async function save(reference: PdfCosRef, value: PdfCosNode) { await store.set({ objectNumber: reference.objectNumber, generationNumber: reference.generationNumber, value }); }
   for await (const page of document.pages()) {
     signal.throwIfAborted();
+    let resources: { value: PdfCosDict; reference?: PdfCosRef } | undefined;
+    async function dictionary(node: PdfCosNode | undefined) {
+      const found = await document.lookup(node); if (found?.stream || found?.value.kind !== "dict") return;
+      // Stored lookups deserialize independent values. Keep the current page and
+      // resource owners canonical when resource categories alias either owner.
+      const same = (reference: PdfCosRef | undefined) => found.reference && reference && found.reference.objectNumber === reference.objectNumber && found.reference.generationNumber === reference.generationNumber;
+      return { ...found, value: same(page.reference) ? page.dict : same(resources?.reference) ? resources!.value : found.value };
+    }
     const names = new PdfNameIndex(storage, Infinity, signal), visitedNames = new PdfNameIndex(storage, Infinity, signal);
     const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4), found = new IntegerTable(backing);
     let failed = false;
@@ -58,7 +65,7 @@ export async function pruneRetainedResources(document: PdfRetainedDocument, stor
         const normal = appearance && await document.lookup(dictGet(appearance.value, "N"));
         if (normal?.stream && normal.reference) await collectNames(document.objects.decodeStream(normal.reference.objectNumber, normal.reference.generationNumber), names, found, signal);
       }
-      let resources = await dictionary(dictGet(page.dict, "Resources"));
+      resources = await dictionary(dictGet(page.dict, "Resources"));
       if (!resources) {
         const inherited = (await page.attributes()).resources, entries = [];
         for (const entry of inherited.entries) {

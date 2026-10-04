@@ -5,7 +5,7 @@ import { PdfDocument, cosArray, cosDict, cosName, cosStream, dictDelete, dictGet
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["direct", "indirect", "inherited", "transitive", "annotations", "escaped", "long", "split", "selection", "linearize", "slow", "boundary", "hex-tail", "pattern", "shared", "auto", "unsupported", "flatten"]) it(`prunes ${mode} resources through caller storage`, async () => {
+for (const mode of ["direct", "indirect", "inherited", "transitive", "annotations", "escaped", "long", "split", "selection", "linearize", "slow", "boundary", "hex-tail", "pattern", "shared", "auto", "unsupported", "flatten", "resource-self", "page-self"]) it(`prunes ${mode} resources through caller storage`, async () => {
   const document = PdfDocument.create(), page = document.addPage(), other = document.addPage();
   const font = document.cos.allocateObject(cosDict({ Type: cosName("Font"), BaseFont: cosName("Helvetica"), Subtype: cosName("Type1") }));
   const resources = cosDict({ Font: cosDict({ Used: font, Unused: font, Hidden: font }), XObject: cosDict({ Form: document.cos.allocateObject(cosStream(new TextEncoder().encode("/Hidden 10 Tf"))) }) });
@@ -19,6 +19,12 @@ for (const mode of ["direct", "indirect", "inherited", "transitive", "annotation
   if (mode === "hex-tail") { const fonts = document.cos.resolveDict(dictGet(resources, "Font"))!; dictSet(fonts, "Name#7", font); page.setRawContentStream("/Name#7"); }
   if (mode === "pattern") { dictSet(resources, "Pattern", cosDict({ P: document.cos.allocateObject(cosStream(new TextEncoder().encode("/Form Do"))) })); page.setRawContentStream("/P scn"); }
   if (mode === "shared") { const ref = document.cos.allocateObject(resources); dictSet(page.dict, "Resources", ref); dictSet(other.dict, "Resources", ref); }
+  if (mode === "resource-self") { const ref = document.cos.allocateObject(resources); dictSet(resources, "Font", ref); dictSet(resources, "Used", font); dictSet(page.dict, "Resources", ref); }
+  if (mode === "page-self") {
+    const root = document.cos.resolveDict(document.cos.rootRef)!, tree = document.cos.resolveDict(dictGet(root, "Pages"))!;
+    const kids = document.cos.resolveArray(dictGet(tree, "Kids"))!;
+    dictSet(page.dict, "Resources", kids.items[0]!); dictSet(page.dict, "Font", dictGet(resources, "Font")!);
+  }
   other.setRawContentStream(mode === "shared" ? "/Hidden 10 Tf" : "");
   if (mode === "unsupported") { const stream = document.cos.resolve(dictGet(page.dict, "Contents")); if (stream?.kind === "stream") dictSet(stream.dict, "Filter", cosName("Unsupported")); }
   const input = document.save(), args = ["in.pdf", "out.pdf", mode === "auto" ? "--remove-unreferenced-resources=auto" : "--remove-unreferenced-resources=yes", ...(mode === "flatten" ? ["--flatten-rotation"] : []), ...(mode === "linearize" ? ["--linearize"] : []), ...(mode === "split" ? ["--split-pages"] : []), ...(mode === "selection" ? ["--pages", ".", "1,1", "--"] : [])];

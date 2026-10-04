@@ -9,7 +9,7 @@ import { loadYaml, nodeTag, root, scalar, truth, type Candidate, type YamlModule
 import { writeFileOutputCounted } from "safe-bash-contracts/filesystem-output-budget";
 import { encodeNative } from "./native-encoder.js";
 import { limitsFor, MikeError, NativeWork, type MikeLimits } from "./native-work.js";
-import { captureInPlace, publishInPlace, type InPlaceTarget } from "./inplace.js";
+import { captureInPlace, publishInPlace, InPlaceOutput, type InPlaceTarget } from "./inplace.js";
 
 async function encodeNodeInfo(candidate: Candidate, yaml: YamlModule, work: NativeWork): Promise<string> {
   const node = candidate.node;
@@ -88,7 +88,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     const yaml = await work.track(loadYaml());
     work.assertOpen();
     const evaluator = new Evaluator(yaml, work, options.mergeSpec);
-    const results: string[] = [];
+    let results: InPlaceOutput | undefined;
     let qualified = false;
     const frontMatterBodies = new Map<number, string>();
     let previous: { fileIndex: number; documentIndex: number } | undefined;
@@ -125,7 +125,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
             return data.length;
           }));
           work.assertOpen();
-        } else if (options.inplace) results.push(text);
+        } else if (options.inplace) await (results ??= new InPlaceOutput(work)).append(text);
         else await work.write(utf8Encoder.encode(text));
         qualified ||= truth(candidate.node, yaml);
         previous = origin;
@@ -182,7 +182,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
       if (options.all) await print(await evaluator.run(program, all));
     }
     if (options.exitStatus && !qualified) throw new MikeError("no matches found");
-    if (options.inplace) await publishInPlace(original!, utf8Encoder.encode(results.join("")), work);
+    if (options.inplace) await publishInPlace(original!, results?.bytes() ?? new Uint8Array(), work);
     return { exitCode: 0 };
   } catch (error) {
     context.signal.throwIfAborted();

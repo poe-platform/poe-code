@@ -1,4 +1,5 @@
 import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/xml";
+import { createGnumericCellStorage, type GnumericChildren, type GnumericNode } from "./gnumeric-cell-storage.js";
 import { readGnumericDocument, GnumericSourceFailure } from "./gnumeric-input.js";
 import type { WorkbookSource } from "./types.js";
 import { orderedCells } from "@poe-code/spreadsheet-engine/workbook/ordered-cells";
@@ -37,7 +38,7 @@ function limit(message: string): never { throw new SsconvertError("resource-limi
 function invalid(message: string): never { throw new SsconvertError("io", `E Invalid Gnumeric XML: ${message}`); }
 
 export async function probeGnumeric(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<boolean> {
-  try { const root = await readGnumericDocument(bytes, context, false); return root.localName === "Workbook" && namespaces.has(root.namespace); }
+  try { const root = await readGnumericDocument(bytes, context, { retainTree: false }); return root.localName === "Workbook" && namespaces.has(root.namespace); }
   catch (error) { if (error instanceof GnumericSourceFailure) throw error.cause; if (error instanceof SsconvertError && error.code === "io") return false; throw error; }
 }
 
@@ -147,7 +148,7 @@ function metadata(root: XmlElement): Readonly<Record<string, ImportedValue>> {
   return properties;
 }
 
-async function warnUnknown(node: XmlElement, context: CapabilityContext, path: readonly string[] = []): Promise<void> {
+async function warnUnknown(node: XmlElement, context: CapabilityContext, nodes: GnumericChildren, path: readonly string[] = []): Promise<void> {
   if (node.localName === "Calculation" && namespaces.has(node.namespace)) {
     const convention = attribute(node, "DateConvention");
     if (convention !== undefined && convention !== "Apple:1904" && convention !== "Lotus:1900") {
@@ -155,14 +156,14 @@ async function warnUnknown(node: XmlElement, context: CapabilityContext, path: r
       await context.diagnostic?.({ code: "gnumeric-xml", severity: "warning", message, bytes: new TextEncoder().encode(message) });
     }
   }
-  for (const next of node.children) {
+  for await (const { node: next } of nodes(node)) {
     context.signal.throwIfAborted();
     const delegated = next.localName === "document-meta" && next.namespace === "urn:oasis:names:tc:opendocument:xmlns:office:1.0" || next.localName === "GODoc" && !next.namespace;
     if (delegated) continue;
     if (!accepted(node, next, path.at(-1))) {
       const message = `Unexpected element '${next.name}' in state : \n\t${[...path, node.localName].join(" -> ")}\n`;
       await context.diagnostic?.({ code: "gnumeric-xml", severity: "warning", message, bytes: new TextEncoder().encode(message) });
-    } else await warnUnknown(next, context, [...path, node.localName]);
+    } else await warnUnknown(next, context, nodes, [...path, node.localName]);
   }
 }
 
@@ -179,11 +180,11 @@ function names(node: XmlElement | undefined, sheet: string, local = false, sheet
 }
 
 /** Native XML cell expressions bind before delayed name definitions are parsed. */
-function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () => void): {
-  formulas: ReadonlyMap<XmlElement, string>; placeholders: readonly NamedExpression[]; rejections: ReadonlyMap<XmlElement, string>;
-} {
-  const bound = new Map<XmlElement, string>();
-  const rejections = new Map<XmlElement, string>();
+async function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () => void, nodes: GnumericChildren): Promise<{
+  formulas: ReadonlyMap<GnumericNode["key"], string>; placeholders: readonly NamedExpression[]; rejections: ReadonlyMap<GnumericNode["key"], string>;
+}> {
+  const bound = new Map<GnumericNode["key"], string>();
+  const rejections = new Map<GnumericNode["key"], string>();
   const placeholders: NamedExpression[] = [];
   const globals = new Set<string>(), locals = new Map<string, Set<string>>();
   const futureGlobals = new Set(children(root, "Names").flatMap(group => names(group, "").map(entry => entry.name)));
@@ -215,7 +216,8 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
         if (!namespaces.has(part.namespace)) continue;
         if (part.localName === "Names") {
           for (const entry of names(part, name)) locals.get(foldSheetName(name))!.add(entry.name);
-        } else if (part.localName === "Cells") for (const cell of children(part, "Cell")) {
+        } else if (part.localName === "Cells") for await (const { key, node: cell } of nodes(part)) {
+          if (cell.localName !== "Cell" || !namespaces.has(cell.namespace)) continue;
           const formula = child(cell, "Content")?.text ?? cell.text;
           if (!formula.startsWith("=") || attribute(cell, "ValueType") !== undefined && attribute(cell, "Value") === undefined) continue;
           const row = number(cell, "Row", -1), column = number(cell, "Col", -1);
@@ -249,10 +251,10 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
             }
             if (futureLocals.get(scope)?.has(node.name)) changes.set(node.start, { end: node.end, text: "[]" + node.name });
           });
-          if (rejection !== undefined) { rejections.set(cell, rejection); continue; }
+          if (rejection !== undefined) { rejections.set(key, rejection); continue; }
           let result = formula;
           for (const [start, change] of [...changes].sort(([a], [b]) => b - a)) result = result.slice(0, start) + change.text + result.slice(change.end);
-          if (result !== formula) bound.set(cell, result);
+          if (result !== formula) bound.set(key, result);
         }
       }
     }
@@ -263,7 +265,7 @@ function axisDefaultSize(node: XmlElement | undefined, fallback: number): number
   const size = number(node, "DefaultSizePts", fallback);
   return size > 0 ? size : fallback;
 }
-async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void, context: CapabilityContext): Promise<{ entries: AxisMetadata[]; defaultSize?: number }> {
+async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void, context: CapabilityContext, nodes: GnumericChildren): Promise<{ entries: AxisMetadata[]; defaultSize?: number }> {
   const result = new Map<number, AxisMetadata>();
   let defaultSize: number | undefined;
   const fallback = axis === "RowInfo" ? 12.75 : 48;
@@ -272,7 +274,8 @@ async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: num
   for (const node of sheet.children) {
     if (!namespaces.has(node.namespace)) continue;
     if (node.localName === "Cells") {
-      for (const cell of children(node, "Cell")) {
+      for await (const { node: cell } of nodes(node)) {
+        if (cell.localName !== "Cell" || !namespaces.has(cell.namespace)) continue;
         const index = number(cell, axis === "RowInfo" ? "Row" : "Col", -1);
         if (!Number.isSafeInteger(index) || index < 0 || index >= maximum) invalid("invalid cell position");
         if (!result.has(index)) {
@@ -314,9 +317,16 @@ async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: num
 }
 
 export async function readGnumeric(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook> {
-  const root = await readGnumericDocument(bytes, context).catch(error => { if (error instanceof GnumericSourceFailure) throw error.cause; throw error; });
+  let stored: ReturnType<typeof createGnumericCellStorage> | undefined;
+  const root = await readGnumericDocument(bytes, context, () => {
+    try {
+      stored = context.createWorkingStorage ? createGnumericCellStorage(context, name => namespaces.has(name)) : undefined;
+      return stored ?? {};
+    } catch (error) { throw new GnumericSourceFailure(error); }
+  }).catch(error => { if (error instanceof GnumericSourceFailure) throw error.cause; throw error; });
+  const nodes: GnumericChildren = stored?.children ?? function* (parent) { for (const node of parent?.children ?? []) yield { key: node, node }; };
   if (root.localName !== "Workbook" || !namespaces.has(root.namespace)) invalid("unsupported workbook namespace");
-  await warnUnknown(root, context);
+  await warnUnknown(root, context, nodes);
   const index = children(child(root, "SheetNameIndex"), "SheetName");
   const dataSheets = children(child(root, "Sheets"), "Sheet");
   let dateSystem: "1900" | "1904" = "1900";
@@ -366,7 +376,7 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
     expandedAxes += count;
   };
   const tick = () => { context.signal.throwIfAborted(); if (++work > (context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32)) limit("XML relationship work"); };
-  const boundNames = bindCellNames(root, context, tick);
+  const boundNames = await bindCellNames(root, context, tick, nodes);
   const sheets: Sheet[] = [];
   for (const [i, node] of sheetNodes.entries()) {
     context.signal.throwIfAborted();
@@ -377,14 +387,15 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
     const styles = children(child(node, "Styles"), "StyleRegion");
     const groups: NonNullable<Sheet["formulaGroups"]>[number][] = [];
     const cells: Cell[] = []; const addresses = new Map<string, number>();
-    for (const item of children(child(node, "Cells"), "Cell")) {
+    for await (const { key, node: item } of nodes(child(node, "Cells"))) {
+      if (item.localName !== "Cell" || !namespaces.has(item.namespace)) continue;
       context.signal.throwIfAborted(); if (++count > context.limits.cells) limit("cells");
       const row = number(item, "Row", -1), column = number(item, "Col", -1);
       if (!Number.isSafeInteger(row) || !Number.isSafeInteger(column) || row < 0 || column < 0 || row >= size.rows || column >= size.columns) invalid("invalid cell position");
       const text = child(item, "Content")?.text ?? item.text;
       const type = attribute(item, "ValueType"), cached = attribute(item, "Value"), id = attribute(item, "ExprID");
       let semantics = readFormulaSemantics(item);
-      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? readOpenFormula(item)?.source ?? boundNames.formulas.get(item) ?? text : undefined;
+      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? readOpenFormula(item)?.source ?? boundNames.formulas.get(key) ?? text : undefined;
       if (!text && id && shared.has(id)) {
         const original = shared.get(id)!;
         semantics = original.arrayStringLiterals ? { arrayStringLiterals: true } : {};
@@ -396,7 +407,7 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       // as a constant expression. Array corners use a separate native path.
       const rows = number(item, "Rows", 1), cols = number(item, "Cols", 1);
       const array = attribute(item, "Rows") !== undefined && attribute(item, "Cols") !== undefined && rows > 0 && cols > 0;
-      const rejection = boundNames.rejections.get(item);
+      const rejection = boundNames.rejections.get(key);
       if (formula && !array && rejection !== undefined) {
         const message = `Unparsable expression for ${formatA1(row, column)}: ${text} (${rejection})\n`;
         await context.diagnostic?.({ code: "gnumeric-xml", severity: "warning", message, bytes: new TextEncoder().encode(message) });
@@ -423,8 +434,8 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       const address = `${row}:${column}`, previous = addresses.get(address);
       if (previous === undefined) { addresses.set(address, cells.length); cells.push(cell); } else cells[previous] = cell;
     }
-    const rows = await axes(node, "RowInfo", size.rows, admitAxes, context);
-    const columns = await axes(node, "ColInfo", size.columns, admitAxes, context);
+    const rows = await axes(node, "RowInfo", size.rows, admitAxes, context, nodes);
+    const columns = await axes(node, "ColInfo", size.columns, admitAxes, context, nodes);
     const visibility = attribute(node, "Visibility")?.toLowerCase();
     sheets.push({ id: `s${i + 1}`, name, size, cells,
       visibility: visibility?.includes("very_hidden") || visibility === "very-hidden" ? "very-hidden" : visibility?.includes("hidden") ? "hidden" : "visible",

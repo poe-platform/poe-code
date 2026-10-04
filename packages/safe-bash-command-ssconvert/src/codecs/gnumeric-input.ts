@@ -1,4 +1,4 @@
-import { parseXmlStream, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
+import { parseXmlStream, XmlLimitError, type XmlElement, type XmlStreamLimits } from "@poe-code/safe-fs/xml";
 import { createCompressionCodec, type CompressionReader } from "@poe-code/office-package";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { SsconvertError, type CapabilityContext, type RangeSource } from "../contracts.js";
@@ -11,8 +11,10 @@ export class GnumericSourceFailure extends Error {
 function limit(message: string): never { throw new SsconvertError("resource-limit", `ssconvert ${message} limit exceeded`); }
 function invalid(message: string): never { throw new SsconvertError("io", `E Invalid Gnumeric XML: ${message}`); }
 
+type GnumericXmlOptions = Pick<XmlStreamLimits, "retainTree" | "streamElements" | "onElement">;
+
 /** Consume retained input and gzip output in bounded chunks, optionally retaining the XML tree. */
-export async function readGnumericDocument(input: Uint8Array | RangeSource, context: CapabilityContext, retainTree = true): Promise<XmlElement> {
+export async function readGnumericDocument(input: Uint8Array | RangeSource, context: CapabilityContext, options: GnumericXmlOptions | (() => GnumericXmlOptions) = {}): Promise<XmlElement> {
   context.signal.throwIfAborted();
   const size = input instanceof Uint8Array ? input.length : input.size;
   if (!Number.isSafeInteger(size) || size < 0) invalid("invalid source size");
@@ -70,7 +72,7 @@ export async function readGnumericDocument(input: Uint8Array | RangeSource, cont
         invalid("invalid gzip stream");
       } finally { await reader.close(); }
     }
-    const xmlLimits = { retainTree, expectedEncoding: "UTF-8" as "UTF-8" | "UTF-16LE" | "UTF-16BE", maxDepth: context.limits.xmlDepth ?? Infinity,
+    const xmlLimits = { ...(typeof options === "function" ? options() : options), expectedEncoding: "UTF-8" as "UTF-8" | "UTF-16LE" | "UTF-16BE", maxDepth: context.limits.xmlDepth ?? Infinity,
       maxNodes: context.limits.workbookNodes ?? Infinity, maxAttributes: context.limits.workbookNodes ?? Infinity,
       maxTextLength: context.limits.workbookTextBytes ?? context.limits.inputBytes };
     async function* text() {

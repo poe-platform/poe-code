@@ -92,3 +92,46 @@ it("keeps complete-document validation and admission when tree retention is disa
   for (const suffix of ['<x/>', 'text', '<!--unclosed'])
     await expect(parseXmlStream(chunks(xml + suffix, 1), { retainTree: false })).rejects.toBeInstanceOf(SyntaxError);
 });
+
+it("awaits detached complete subtrees with bounded read-ahead and preserves their mixed content", async () => {
+  let consumed = 0, pulled = 0, outstanding = 0;
+  const xml = '<item xmlns:q="urn:q" q:a="v">before<item>nested</item><![CDATA[after]]></item>';
+  const expected = parseXml(xml);
+  async function* source() {
+    yield '<root>';
+    for (let i = 0; i < 1000; i++) { expect(outstanding).toBe(0); pulled++; yield xml; }
+    yield '<kept/>tail</root>';
+  }
+  const root = await parseXmlStream(source(), { streamElements: {
+    matches(element) { return element.localName === 'item'; },
+    async consume(element, parent) {
+      expect(++outstanding).toBe(1); expect(pulled - consumed).toBe(1);
+      expect(parent!.children).toEqual([]);
+      expect({ ...element, prolog: [], epilog: [] }).toEqual(expected);
+      await Promise.resolve(); consumed++; outstanding--;
+    }
+  } });
+  expect(consumed).toBe(1000);
+  expect(root.children.map(n => n.localName)).toEqual(['kept']);
+  expect(root.text).toBe('tail');
+});
+
+it("closes subtree producers on asynchronous storage failures and rejects incompatible modes", async () => {
+  const failure = { storage: true }; let closed = false;
+  async function* source() { try { yield '<root><item/></root>'; } finally { closed = true; } }
+  const streamElements = { matches: () => true, async consume() { throw failure; } };
+  await expect(parseXmlStream(source(), { streamElements: { ...streamElements, matches: (_n, _p, depth) => depth > 1 } })).rejects.toBe(failure);
+  expect(closed).toBe(true);
+  await expect(parseXmlStream(['<root/>'], { streamElements })).rejects.toBeInstanceOf(TypeError);
+  for (const limits of [{ retainTree: false }, { retainContent: false }])
+    await expect(parseXmlStream(['<root/>'], { ...limits, streamElements })).rejects.toBeInstanceOf(TypeError);
+});
+
+it("bounds queued subtrees even when a producer supplies one large chunk", async () => {
+  let matched = 0, consumed = 0, maximum = 0;
+  const root = await parseXmlStream(['<root>' + '<x/>'.repeat(10000) + '</root>'], { streamElements: {
+    matches(_element, _parent, depth) { if (depth !== 2) return false; matched++; maximum = Math.max(maximum, matched - consumed); return true; },
+    async consume() { await Promise.resolve(); consumed++; }
+  } });
+  expect(consumed).toBe(10000); expect(maximum).toBeLessThanOrEqual(128); expect(root.children).toEqual([]);
+});

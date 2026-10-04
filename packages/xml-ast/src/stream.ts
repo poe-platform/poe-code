@@ -1,10 +1,16 @@
 import { SaxesParser } from "saxes/saxes.js";
 import { XmlLimitError } from "./errors.js";
-import type { XmlContent, XmlElement, XmlLimits } from "./index.js";
+import type { XmlContent, XmlElement, XmlLimits, XmlName } from "./index.js";
 
 export interface XmlStreamLimits extends XmlLimits {
   /** Validate the full document but return only its root name, without a retained tree. */
   readonly retainTree?: boolean;
+  /** Detach selected non-root subtrees and await their consumer before parsing
+   * the next 512-unit window. Nested matches belong to the selected ancestor. */
+  readonly streamElements?: {
+    readonly matches: (element: XmlName, parent: XmlName | undefined, depth: number) => boolean;
+    readonly consume: (element: XmlElement, parent: XmlElement) => void | Promise<void>;
+  };
 }
 
 /** Incremental source consumption. Individual XML tokens and optional trees remain resident. */
@@ -25,7 +31,11 @@ export async function parseXmlStream(
   }
   function charge(key: keyof typeof counters, value = 1) { counters[key] += value; bound(key, counters[key]); }
   const retainContent = limits.retainContent !== false, tree = limits.retainTree !== false, retain = tree && retainContent;
-  const stack: { element: XmlElement; namespaces: Map<string, string> }[] = [];
+  const streaming = limits.streamElements;
+  if (streaming && !retain) throw new TypeError("XML subtree streaming requires retained content and tree mode");
+  let selectedDepth = 0;
+  const completed: { element: XmlElement; parent: XmlElement }[] = [];
+  const stack: { element: XmlElement; namespaces: Map<string, string>; selected: boolean }[] = [];
   const prolog: XmlContent[] = [], epilog: XmlContent[] = [];
   const emptyNamespaces = new Map<string, string>();
   let root: XmlElement | undefined, declaration: string | undefined;
@@ -58,18 +68,28 @@ export async function parseXmlStream(
     for (const attr of attrs) charge("maxTextLength", attr.value.length);
     const name = { name: tag.name, namespace: tag.uri, localName: tag.local };
     limits.onElement?.(name, parent?.element, stack.length + 1);
+    const selected = !selectedDepth && !!streaming?.matches(name, parent?.element, stack.length + 1);
+    if (selected && !parent) throw new TypeError("XML subtree streaming cannot select the root");
+    if (selected) selectedDepth = stack.length + 1;
     charge("maxContentNodes", 1 + (retainContent ? attrs.length : 0));
     const element: XmlElement = { kind: "element", ...name, children: [], content: [], text: "",
       attributes: retain ? attrs.map(attr => ({ name: attr.name, localName: attr.local, namespace: attr.uri, value: attr.value })) : [],
       namespaces: retain ? namespaces : emptyNamespaces,
       ...(!root && retain ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
-    if (parent && tree) {
+    if (parent && tree && !selected) {
       parent.element.children.push(element);
       if (retain) (parent.element.content as XmlContent[]).push(element);
     } else if (!parent) root = element;
-    stack.push({ element, namespaces });
+    stack.push({ element, namespaces, selected });
   });
-  parser.on("closetag", () => { stack.pop(); });
+  parser.on("closetag", () => {
+    const frame = stack.pop()!;
+    if (frame.selected) { completed.push({ element: frame.element, parent: stack.at(-1)!.element }); selectedDepth = 0; }
+  });
+  async function drain() {
+    for (const entry of completed) { await checkpoint?.(0); await streaming!.consume(entry.element, entry.parent); }
+    completed.length = 0;
+  }
   function append(content: Exclude<XmlContent, XmlElement>) {
     charge("maxTextLength", content.text.length);
     charge("maxContentNodes");
@@ -100,11 +120,13 @@ export async function parseXmlStream(
     for (let i = 0; i < text.length; i += 512) {
       await checkpoint?.(0);
       write(text.slice(i, i + 512));
+      if (completed.length) await drain();
       await checkpoint?.(Math.min(512, text.length - i));
     }
   }
   await checkpoint?.(0);
   parser.close();
+  if (completed.length) await drain();
   if (!root) throw new SyntaxError("Invalid XML: incomplete document");
   return root;
 }

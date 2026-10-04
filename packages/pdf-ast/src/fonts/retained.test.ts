@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosDict, cosName, cosStream } from "../ast.js";
+import { cosArray, cosNumber, cosDict, cosName, cosStream } from "../ast.js";
 import { PdfError } from "../errors.js";
 import { PdfDocument } from "../document.js";
 import { PdfFileSource } from "../source.js";
@@ -148,4 +148,39 @@ it("keeps retained font widths in caller storage without building resident width
     expect(await font!.widths.get(999)).toBeUndefined();
     expect(resident).not.toHaveBeenCalled();
   } finally {resident.mockRestore();await f.close();}
+});
+
+it.each(["simple", "indirect", "cid", "encrypted"])("reads %s source width arrays incrementally", async mode => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const original = PdfDocument.create(); original.addPage();
+  const widths = cosArray(Array.from({length:1024}, (_, i) => cosNumber(i + 100)));
+  const table = mode === "indirect" ? original.cos.allocateObject(widths) : widths;
+  const fontDict = mode === "cid"
+    ? cosDict({Subtype:cosName("Type0"), DescendantFonts:cosArray([cosDict({W:cosArray([cosNumber(65), widths, cosNumber(2000), cosNumber(2010), cosNumber(777)])})])})
+    : cosDict({Subtype:cosName("Type1"),FirstChar:cosNumber(65),Widths:table});
+  const ref = original.cos.allocateObject(fontDict);
+  const {encryptCosDocument} = await import("../cos/security.js");
+  await fs.writeFile("/input", mode === "encrypted" ? encryptCosDocument(original.cos,{userPassword:"pw",revision:3}) : original.save());
+  const source = await PdfFileSource.open(fs,"/input",{chunkBytes:64,cacheBytes:128});
+  const document = await PdfRetainedDocument.open(source,{fs,directory:"/scratch"},{chunkBytes:64,cacheBytes:128,password:"pw",recovery:"repair"});
+  const bytes = new Uint8Array(2_000_000); let end = 0;
+  const storage = {allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return bytes.subarray(at,at+n);},async write(at:number,data:Uint8Array){expect(data.length).toBeLessThanOrEqual(4096);bytes.set(data,at);}};
+  const lookup = vi.spyOn(document,"lookup");
+  try {
+    const font = await resolveRetainedFont(document,{fs,directory:"/scratch"},cosDict({Font:cosDict({F:ref})}),"F",{resourceStorage:storage});
+    expect(await font!.widths.get(65)).toBe(100);
+    expect(await font!.widths.get(1088)).toBe(1123);
+    if(mode === "cid") expect(await font!.widths.get(2005)).toBe(777);
+    const resolved = await lookup.mock.results.find((_, i) => lookup.mock.calls[i]![0] === ref)!.value;
+    const value = resolved.value;
+    expect(value.kind).toBe("dict");
+    if(mode === "simple") {
+      const array = value.entries.find((entry: {key:{decoded:string}}) => entry.key.decoded === "Widths").value;
+      expect(array.items).toHaveLength(0); expect(array.storedItems.length).toBe(1024);
+    }
+    if (mode !== "indirect") {
+      const failure = new PdfError("E_PARSE", "caller storage failure");
+      await expect(document.lookup(ref, {arrayStorage:{...storage,async write(){throw failure;}},storedArrayKeys:["Widths","W"]})).rejects.toBe(failure);
+    }
+  } finally {await document.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
 });

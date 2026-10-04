@@ -321,3 +321,15 @@ export async function* readStoredItems<T>(items: import("../ast.js").PdfStoredIt
   }
   if (position !== -1) throw new Error("Invalid stored array terminator");
 }
+
+/** Append one persistent record and link the preceding record only after writing. */
+export async function appendStoredRecord(storage: PdfPixelStorage, value: unknown, previous: number, signal?: AbortSignal): Promise<number> {
+  const position = await writeStoredRecord(storage, value, -1, signal);
+  if (previous !== -1) {
+    const next = new Uint8Array(8);
+    new DataView(next.buffer).setFloat64(0, position, true);
+    await storage.write(previous, next, signal ? {signal} : undefined);
+    signal?.throwIfAborted();
+  }
+  return position;
+}

@@ -1,4 +1,4 @@
-import { StoredMetadataStack, readStoredItems, writeStoredRecord } from "./stored-record.js";
+import { StoredMetadataStack, readStoredItems, appendStoredRecord } from "./stored-record.js";
 import type { PdfCosNode } from "../ast.js";
 import { CosRangeLexer, type CosToken } from "../cos/lexer.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -74,15 +74,7 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
       let result: CosToken | PdfCosNode | number | undefined;
       switch (request.kind) {
         case "array-append": {
-          const backing = options.pathStorage!;
-          const position = await writeStoredRecord(backing, request.node, -1, signal);
-          if (request.previous !== -1) {
-            const next = new Uint8Array(8);
-            new DataView(next.buffer).setFloat64(0, position, true);
-            await backing.write(request.previous, next, signal ? { signal } : undefined);
-            signal?.throwIfAborted();
-          }
-          result = position; break;
+          result = await appendStoredRecord(options.pathStorage!, request.node, request.previous, signal); break;
         }
         case "token": result = await lexer.nextToken(); break;
         case "byte": {

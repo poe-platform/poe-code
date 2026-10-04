@@ -1,3 +1,4 @@
+import { appendStoredRecord, readStoredItems } from "../content/stored-record.js";
 import { readBytes } from "@poe-code/safe-fs/contracts";
 import { decodePdfStreamChunks, pdfImageCodec, type PdfStreamDecodeOptions, type PdfStreamInput } from "./filter-stream.js";
 import { drainWork, drainWorkAsync } from "../work.js";
@@ -258,7 +259,32 @@ export async function decryptPdfObjectStrings(
   if (securityHandlers.get(state)?.plaintextObjects.has(objectNumber) || options.streamType === "XRef" ||
       (options.streamType === "Metadata" && !state.encryptMetadata)) return value;
   if (value.kind === "stream") throw new PdfError("E_CAPABILITY", "Retained string decryption requires a stream dictionary, not buffered stream bytes");
-  return drainWorkAsync(transformNodeStringsAndStreamsSteps(value, bytes => decryptPdfBuffer(state, objectNumber, generationNumber, bytes)), options.signal);
+  let turns = 0;
+  async function transform(node: PdfCosNode): Promise<PdfCosNode> {
+    options.signal?.throwIfAborted();
+    if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+    if (node.kind === "array") {
+      if (node.storedItems) {
+        let position = -1, tail = -1;
+        for await (const item of readStoredItems<PdfCosNode>(node.storedItems, options.signal)) {
+          tail = await appendStoredRecord(node.storedItems.storage, await transform(item), tail, options.signal);
+          if (position === -1) position = tail;
+        }
+        return {...node, storedItems: {...node.storedItems, position}};
+      }
+      const items: PdfCosNode[] = [];
+      for (const item of node.items) items.push(await transform(item));
+      return {...node, items};
+    }
+    if (node.kind === "dict") {
+      const entries: PdfCosDict["entries"] = [];
+      const signature = isSignatureDictionary(node);
+      for (const entry of node.entries) entries.push({key:entry.key, value:signature && entry.key.decoded === "Contents" ? entry.value : await transform(entry.value)});
+      return {...node, entries};
+    }
+    return drainWorkAsync(transformNodeStringsAndStreamsSteps(node, bytes => decryptPdfBuffer(state, objectNumber, generationNumber, bytes)), options.signal);
+  }
+  return transform(value);
 }
 
 /** Describe the encoded payload left after retained decryption, matching the
@@ -425,6 +451,11 @@ export function encryptPdfBuffer(
   return rc4Transform(objKey, plaintext);
 }
 
+function isSignatureDictionary(node: PdfCosDict): boolean {
+  const type = dictGet(node, "Type"), fieldType = dictGet(node, "FT"), byteRange = dictGet(node, "ByteRange");
+  return (type?.kind === "name" && type.decoded === "Sig") || (fieldType?.kind === "name" && fieldType.decoded === "Sig") || (byteRange?.kind === "array" && dictGet(node, "Filter")?.kind === "name");
+}
+
 export function* transformNodeStringsAndStreamsSteps(
   node: PdfCosNode,
   transform: (bytes: Uint8Array) => Uint8Array,
@@ -439,8 +470,7 @@ export function* transformNodeStringsAndStreamsSteps(
       return { kind: "array", items };
     }
     case "dict": {
-      const type = dictGet(node, "Type"), fieldType = dictGet(node, "FT"), byteRange = dictGet(node, "ByteRange");
-      const signature = (type?.kind === "name" && type.decoded === "Sig") || (fieldType?.kind === "name" && fieldType.decoded === "Sig") || (byteRange?.kind === "array" && dictGet(node, "Filter")?.kind === "name");
+      const signature = isSignatureDictionary(node);
       const entries: PdfCosDict["entries"] = [];
       for (const e of node.entries) entries.push({ key: e.key, value: signature && e.key.decoded === "Contents" ? e.value : yield* transformNodeStringsAndStreamsSteps(e.value, transform, transformStream) });
       return { kind: "dict", entries };

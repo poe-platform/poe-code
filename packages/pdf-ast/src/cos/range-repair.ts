@@ -12,7 +12,8 @@ export type PdfRepairEvent =
  * payloads stay in the caller-owned source. Duplicate objects remain in file
  * order so the consumer can apply latest-body precedence in an external index. */
 export async function* scanCosRangeObjects(source: PdfFileSource, options: ParseCosRangeOptions = {}): AsyncGenerator<PdfRepairEvent, void> {
-  const configured = { maxNodes: 65536, maxTokenBytes: 1024 * 1024, maxRecursionDepth: 100, ...options, recovery: "repair" as const };
+  let backingFailure: {error: unknown} | undefined;
+  const configured = { maxNodes: 65536, maxTokenBytes: 1024 * 1024, maxRecursionDepth: 100, ...options, onBackingError(error: unknown) {backingFailure={error}; options.onBackingError?.(error);}, recovery: "repair" as const };
   const { signal } = configured;
   const work = repairCandidateSteps(source.size);
   let cache: Uint8Array = new Uint8Array(0); let start = 0; let turns = 0;
@@ -46,6 +47,7 @@ export async function* scanCosRangeObjects(source: PdfFileSource, options: Parse
           signal?.throwIfAborted();
           // Only malformed PDF syntax is repairable. Storage, admission and
           // cancellation failures must never silently discard an object.
+          if (backingFailure && Object.is(backingFailure.error,error)) throw error;
           if (!(error instanceof PdfError) || error.code !== "E_PARSE") throw error;
         }
         if (event) yield event;

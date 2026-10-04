@@ -1,12 +1,17 @@
-import type { PdfCosNode, PdfCosDict, PdfDictEntry } from "../ast.js";
+import type { PdfCosNode, PdfCosDict, PdfDictEntry, PdfPixelStorage, PdfStoredItems } from "../ast.js";
 import { PdfError } from "../errors.js";
 import type { CosToken } from "./lexer.js";
 
 // Drivers supply tokens and decide how a completed dictionary's optional stream
 // is represented. The container/reference grammar is shared by both I/O paths.
-export type ValueWork<T> = Generator<void | "token" | PdfCosDict, T, CosToken | PdfCosNode | undefined>;
+export interface ValueArrayStorage {
+  readonly arrayStorage?: PdfPixelStorage;
+  readonly storedArrayKeys?: readonly string[];
+  readonly storeRootArray?: boolean;
+}
+export type ValueWork<T> = Generator<void | "token" | PdfCosDict | {kind: "array-append"; node: PdfCosNode; previous: number}, T, CosToken | PdfCosNode | number | undefined>;
 
-export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, repair = false, maxNodes = Infinity): ValueWork<PdfCosNode | undefined> {
+export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, repair = false, maxNodes = Infinity, options: ValueArrayStorage = {}): ValueWork<PdfCosNode | undefined> {
   yield;
   let work = 0;
   let nodes = 0;
@@ -16,7 +21,7 @@ export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, re
   };
 
   type Container =
-    | { kind: "array"; start: number; items: PdfCosNode[] }
+    | { kind: "array"; start: number; items: PdfCosNode[]; storedItems?: PdfStoredItems; tail: number }
     | { kind: "dict"; start: number; entries: PdfDictEntry[]; key?: PdfDictEntry["key"] };
   const stack: Container[] = [];
   while (true) {
@@ -37,7 +42,7 @@ export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, re
     let node: PdfCosNode;
     if (parent?.kind === "array" && tok.kind === "array-end") {
       stack.pop();
-      node = { kind: "array", items: parent.items, span: { start: parent.start, end: tok.span.end } };
+      node = { kind: "array", items: parent.items, ...(parent.storedItems ? {storedItems: parent.storedItems} : {}), span: { start: parent.start, end: tok.span.end } };
     } else if (parent?.kind === "dict" && !parent.key) {
       if (tok.kind === "dict-end") {
         stack.pop();
@@ -59,7 +64,9 @@ export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, re
       charge();
       if (stack.length > maxDepth) throw new PdfError("E_LIMIT", "PDF syntax nesting limit exceeded");
       if (tok.kind === "array-start") {
-        stack.push({ kind: "array", start: tok.span.start, items: [] });
+        const backed = options.arrayStorage && (parent?.kind === "array" && parent.storedItems || parent?.kind === "dict" && options.storedArrayKeys?.includes(parent.key!.decoded) || !parent && options.storeRootArray);
+        stack.push({ kind: "array", start: tok.span.start, items: [], tail: -1,
+          ...(backed ? {storedItems: {storage: options.arrayStorage!, position: -1, length: 0}} : {}) });
         continue;
       }
       if (tok.kind === "dict-start") {
@@ -70,7 +77,13 @@ export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, re
     }
     const container = stack.at(-1);
     if (!container) return node;
-    if (container.kind === "array") container.items.push(node);
+    if (container.kind === "array") {
+      if (container.storedItems) {
+        const position = (yield {kind: "array-append", node, previous: container.tail}) as number;
+        container.storedItems = {...container.storedItems, position: container.tail === -1 ? position : container.storedItems.position, length: container.storedItems.length + 1};
+        container.tail = position;
+      } else container.items.push(node);
+    }
     else {
       container.entries.push({ key: container.key!, value: node });
       delete container.key;

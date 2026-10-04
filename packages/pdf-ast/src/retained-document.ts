@@ -1,3 +1,4 @@
+import type { ValueArrayStorage } from "./cos/value-parser.js";
 import { PdfMergeOutlines } from "./edit/retained-merge-outlines.js";
 import { walkRetainedPageLabels, type PdfRetainedPageLabel } from "./extract/retained-page-labels.js";
 import { walkRetainedFormFields, type PdfRetainedFormField } from "./extract/retained-form-fields.js";
@@ -100,7 +101,7 @@ export class PdfRetainedDocument {
   }
 
   /** Resolve a bounded reference chain, retaining the final stream's identity. */
-  async lookup(node: PdfCosNode | undefined): Promise<PdfRetainedValue | undefined> {
+  async lookup(node: PdfCosNode | undefined, arrays: ValueArrayStorage = {}): Promise<PdfRetainedValue | undefined> {
     this.assertOpen();
     let reference: PdfCosRef | undefined;
     const visited = new Set<number>();
@@ -109,7 +110,7 @@ export class PdfRetainedDocument {
       if (visited.size >= maximum) throw new PdfError("E_LIMIT", "PDF reference depth limit exceeded");
       if (visited.has(node.objectNumber)) throw new PdfError("E_PARSE", "Circular PDF indirect reference");
       visited.add(node.objectNumber); reference = node;
-      const object = await this.objects.get(node.objectNumber, node.generationNumber);
+      const object = await this.objects.get(node.objectNumber, node.generationNumber, arrays);
       this.assertOpen();
       if (object?.stream) return { value: object.value, reference, stream: object.stream };
       node = object?.value;

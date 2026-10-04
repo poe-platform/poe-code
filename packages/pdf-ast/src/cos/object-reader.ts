@@ -1,3 +1,4 @@
+import type { ValueArrayStorage } from "./value-parser.js";
 import { resolvePdfStreamDictionary } from "./filter-dictionary.js";
 import { scanCosRangeObjects } from "./range-repair.js";
 import { recoveredBodies, recoverPdfReferences } from "./recovered-reference.js";
@@ -11,7 +12,7 @@ import { CosRangeLexer } from "./lexer.js";
 import { PdfObjectIndex, type PdfIndexStorage } from "./object-index.js";
 import { parseCosRangeObject, parseCosRangeValue, type ParseCosRangeOptions, type PdfRangeObject } from "./range-parser.js";
 
-export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "resolveLength">, PdfStreamDecodeOptions {
+export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "resolveLength" | keyof ValueArrayStorage | "onBackingError">, PdfStreamDecodeOptions {
   readonly cacheBytes?: number;
   readonly encryption?: PdfEncryptionState;
   readonly encryptionObjectNumber?: number;
@@ -66,9 +67,9 @@ export class PdfObjectReader {
       ...options, chunkBytes, cacheBytes };
   }
 
-  get(objectNumber: number, generationNumber = 0): Promise<PdfRangeObject | undefined> {
+  get(objectNumber: number, generationNumber = 0, arrays: ValueArrayStorage = {}): Promise<PdfRangeObject | undefined> {
     integer(objectNumber, "objectNumber"); integer(generationNumber, "generationNumber");
-    return this.enqueue(() => this.load(objectNumber, generationNumber, new Set()));
+    return this.enqueue(() => this.load(objectNumber, generationNumber, new Set(), arrays));
   }
 
   private enqueue<T>(work: () => Promise<T>): Promise<T> {
@@ -96,7 +97,7 @@ export class PdfObjectReader {
       : decodePdfStreamChunks(dict, input, decodeOptions);
   }
 
-  private async load(objectNumber: number, generationNumber: number, active: Set<number>): Promise<PdfRangeObject | undefined> {
+  private async load(objectNumber: number, generationNumber: number, active: Set<number>, arrays: ValueArrayStorage = {}): Promise<PdfRangeObject | undefined> {
     this.options.signal?.throwIfAborted();
     if (active.has(objectNumber)) throw new PdfError("E_PARSE", "PDF indirect object cycle");
     if (active.size >= this.options.maxRecursionDepth!) throw new PdfError("E_LIMIT", "PDF object resolution depth limit exceeded");
@@ -115,14 +116,16 @@ export class PdfObjectReader {
         if (row.number !== objectNumber) throw new PdfError("E_PARSE", "Compressed object identity does not match xref");
         const end = ordinal + 1 === stream.count ? stream.data.size : stream.first + (await this.headerRow(stream.header, ordinal + 1)).offset;
         const start = stream.first + row.offset;
-        const parsed = await parseCosRangeValue(stream.data, start, { ...this.options, end });
+        const parsed = await parseCosRangeValue(stream.data, start, { ...this.options, ...arrays, end });
         if (!parsed.value) throw new PdfError("E_PARSE", "Empty compressed object");
         return { objectNumber, generationNumber, value: parsed.value, span: { start, end: parsed.offset } };
       }
       let object: PdfRangeObject;
+      let backingFailure: {error: unknown} | undefined;
+      const onBackingError = (error: unknown) => { backingFailure = {error}; };
       try {
         object = await parseCosRangeObject(this.source, this.repairedOffsets.get(objectNumber) ?? entry.offset!, {
-          ...this.options,
+          ...this.options, ...arrays, onBackingError,
           resolveLength: async reference => {
             const resolved = await this.load(reference.objectNumber, reference.generationNumber, active);
             return resolved?.value.kind === "number" ? resolved.value.value : undefined;
@@ -131,9 +134,10 @@ export class PdfObjectReader {
         if (object.objectNumber !== objectNumber || object.generationNumber !== generationNumber) throw new PdfError("E_PARSE", "Indirect object identity does not match xref");
       } catch (error) {
         this.options.signal?.throwIfAborted();
+        if (backingFailure && Object.is(backingFailure.error, error)) throw error;
         if (this.options.recovery !== "repair" || !(error instanceof PdfError) || error.code !== "E_PARSE") throw error;
         let recovered: PdfRangeObject | undefined;
-        for await (const event of scanCosRangeObjects(this.source, this.options)) {
+        for await (const event of scanCosRangeObjects(this.source, { ...this.options, ...arrays })) {
           if (event.kind === "object" && event.object.objectNumber === objectNumber && event.object.generationNumber === generationNumber) recovered = event.object;
         }
         if (!recovered) throw error;

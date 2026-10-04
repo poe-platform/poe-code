@@ -9,25 +9,43 @@ import { getEncoding, type Type1Properties, type CMap } from "../vendor/pdfjs-fo
 import { parseEmbeddedType1Font } from "./type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "./cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "./standard-outlines.js";
-import { dictGet, dictSet, type PdfCosNode, type PdfCosDict, type PdfCosArray, type PdfCosRef, type PdfCosStream, type PdfPixelStorage } from "../ast.js";
+import { dictGet, dictSet, type PdfCosNode, type PdfCosDict, type PdfCosArray, type PdfCosRef, type PdfCosStream, type PdfPixelStorage, type PdfStoredItems } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "./cmap.js";
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = {kind:"font-width-set";widths:StoredFontWidths;first:number;width:number;last?:number} | {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
+export type FontResolutionRequest = {kind:"array-item"; items:PdfStoredItems; position:number} | {kind:"font-width-set";widths:StoredFontWidths;first:number;width:number;last?:number} | {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined; storeRootArray?:boolean } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
 export type FontResolutionResult = StoredCffFont | StoredTrueTypeFont | PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
-function* resolve(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
-  const value = yield { kind: "resolve", node };
+function* resolve(node: PdfCosNode | undefined, storeRootArray = false): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
+  const value = yield { kind: "resolve", node, storeRootArray };
   if (value && !("kind" in value)) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
   return value;
 }
 function* resolveDict(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosDict | undefined, FontResolutionResult> {
   const value = yield* resolve(node); return value?.kind === "dict" ? value : value?.kind === "stream" ? value.dict : undefined;
 }
-function* resolveArray(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosArray | undefined, FontResolutionResult> {
-  const value = yield* resolve(node); return value?.kind === "array" ? value : undefined;
+function* resolveArray(node: PdfCosNode | undefined, backed = false): Generator<FontResolutionRequest, PdfCosArray | undefined, FontResolutionResult> {
+  const value = yield* resolve(node, backed); return value?.kind === "array" ? value : undefined;
+}
+
+function arrayCursor(array: PdfCosArray) {
+  let index = 0, position = array.storedItems?.position ?? -1;
+  return {
+    get remaining() { return (array.storedItems?.length ?? array.items.length) - index; },
+    *next(): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
+      if (index >= (array.storedItems?.length ?? array.items.length)) return undefined;
+      index++;
+      if (!array.storedItems) return array.items[index - 1];
+      const record = (yield {kind:"array-item", items:array.storedItems, position}) as PdfCosArray;
+      const next = record.items[1];
+      if (next?.kind !== "number") throw new Error("Invalid font array record");
+      position = next.value;
+      if (index === array.storedItems.length && position !== -1) throw new Error("Invalid stored array terminator");
+      return record.items[0];
+    }
+  };
 }
 
 export interface ResolvedPageFont {
@@ -148,22 +166,23 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 const dwNode = (yield* resolve(dictGet(cidDict, "DW")));
                 if (dwNode?.kind === "number")
                     defaultWidth = dwNode.value;
-                const wArr = (yield* resolveArray(dictGet(cidDict, "W")));
+                const wArr = (yield* resolveArray(dictGet(cidDict, "W"), true));
                 if (wArr) {
-                    let idx = 0;
-                    while (idx < wArr.items.length) {
-                        const first = (yield* resolve(wArr.items[idx++]));
-                        const second = (yield* resolve(wArr.items[idx++]));
+                    const cursor = arrayCursor(wArr);
+                    while (cursor.remaining) {
+                        const first = (yield* resolve(yield* cursor.next(), true));
+                        const second = (yield* resolve(yield* cursor.next(), true));
                         if (first?.kind === "number" && second?.kind === "array") {
-                            for (let k = 0; k < second.items.length; k++) {
-                                const wItem = (yield* resolve(second.items[k]));
+                            const nested = arrayCursor(second);
+                            for (let k = 0; nested.remaining; k++) {
+                                const wItem = (yield* resolve(yield* nested.next()));
                                 if (wItem?.kind === "number") {
                                     yield* setWidth(first.value + k, wItem.value);
                                 }
                             }
                         }
                         else if (first?.kind === "number" && second?.kind === "number") {
-                            const third = (yield* resolve(wArr.items[idx++]));
+                            const third = (yield* resolve(yield* cursor.next(), true));
                             if (third?.kind === "number") {
                                 if (!Number.isSafeInteger(first.value) || !Number.isSafeInteger(second.value))
                                     throw new PdfError("E_LIMIT", "Unsafe PDF font width range");
@@ -176,7 +195,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         }
         else {
             const firstCharNode = (yield* resolve(dictGet(fObj, "FirstChar")));
-            const widthsArr = (yield* resolveArray(dictGet(fObj, "Widths")));
+            const widthsArr = (yield* resolveArray(dictGet(fObj, "Widths"), true));
             if (widthsArr) {
                 // PDF.js extractWidths: explicit tables use MissingWidth, not a
                 // standard-font width for characters omitted from the table.
@@ -184,8 +203,9 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 const missingWidth = descriptor ? (yield* resolve(dictGet(descriptor, "MissingWidth"))) : undefined;
                 defaultWidth = (missingWidth?.kind === "number" ? missingWidth.value : 0) * type3Scale1000;
                 const firstChar = firstCharNode?.kind === "number" ? firstCharNode.value : 0;
-                for (let k = 0; k < widthsArr.items.length; k++) {
-                    const wItem = (yield* resolve(widthsArr.items[k]));
+                const cursor = arrayCursor(widthsArr);
+                for (let k = 0; cursor.remaining; k++) {
+                    const wItem = (yield* resolve(yield* cursor.next()));
                     if (wItem?.kind === "number") {
                         yield* setWidth(firstChar + k, wItem.value * type3Scale1000);
                     }
@@ -352,7 +372,7 @@ export function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDi
   let step = steps.next();
   while (!step.done) {
     let value: FontResolutionResult;
-    try { if(step.value.kind==="truetype-map" || step.value.kind==="font-width-set")throw new TypeError("Stored font requires asynchronous evaluation"); value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
+    try { if(step.value.kind==="array-item" || step.value.kind==="truetype-map" || step.value.kind==="font-width-set")throw new TypeError("Stored font requires asynchronous evaluation"); value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
     catch (error) { step = steps.throw(error); continue; }
     step = steps.next(value);
   }

@@ -3,9 +3,12 @@ import { dictGet, type ByteSpan, type PdfCosNode, type PdfCosRef } from "../ast.
 import { PdfError } from "../errors.js";
 import type { PdfFileSource } from "../source.js";
 import { CosRangeLexer, isPdfDelimiter, isPdfWhitespace } from "./lexer.js";
-import { parseValueSteps } from "./value-parser.js";
+import { appendStoredRecord } from "../content/stored-record.js";
+import { parseValueSteps, type ValueArrayStorage } from "./value-parser.js";
 
-export interface ParseCosRangeOptions {
+export interface ParseCosRangeOptions extends ValueArrayStorage {
+  /** @internal Distinguish caller storage failures from recoverable PDF syntax. */
+  readonly onBackingError?: (error: unknown) => void;
   /** Exclusive direct-value boundary, used for object-stream members. */
   readonly end?: number;
   readonly recovery?: "strict" | "repair";
@@ -94,14 +97,20 @@ async function resolveStreamLength(entry: PdfCosNode | undefined, options: Parse
 
 async function readValue(lexer: CosRangeLexer, depth: number, nodes: number, options: ParseCosRangeOptions): Promise<PdfCosNode | undefined> {
   const { signal } = options;
-  const work = parseValueSteps(lexer, depth, options.recovery === "repair", nodes);
+  const work = parseValueSteps(lexer, depth, options.recovery === "repair", nodes, options);
   let value: PdfCosNode | undefined;
   let turns = 0;
   try {
     let step = work.next();
     while (!step.done) {
       signal?.throwIfAborted();
-      step = step.value === undefined ? work.next() : work.next(step.value === "token" ? await lexer.nextToken() : step.value);
+      const request = step.value;
+      if (request && request !== "token" && request.kind === "array-append") {
+        let position: number;
+        try { position = await appendStoredRecord(options.arrayStorage!, request.node, request.previous, signal); }
+        catch (error) { options.onBackingError?.(error); throw error; }
+        step = work.next(position);
+      } else step = request === undefined ? work.next() : work.next(request === "token" ? await lexer.nextToken() : request);
       if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
     }
     value = step.value;

@@ -167,6 +167,7 @@ function* parseNodeFromLexerSteps(lexer: CosByteLexer, bytes: Uint8Array, maxDep
         yield;
         step = work.next();
       } else {
+        if (step.value !== "token" && step.value.kind === "array-append") throw new TypeError("Stored arrays require asynchronous parsing");
         step = work.next(step.value === "token" ? lexer.nextToken() : parseDictionaryStream(step.value, lexer, bytes));
       }
     }

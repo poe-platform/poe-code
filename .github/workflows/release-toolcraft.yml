@@ -57,43 +57,18 @@ on:
       - packages/ssconvert/**
       - turbo.json
 concurrency:
-  queue: max
+  # Finish the active release; accumulate newer changes in one pending run.
+  queue: single
   group: release-toolcraft-${{ github.ref }}
   cancel-in-progress: false
 permissions:
   contents: read
   id-token: write
 jobs:
-  queue-check:
-    runs-on: ubuntu-latest
-    outputs:
-      superseded: ${{ steps.check.outputs.superseded }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Check release queue position
-        id: check
-        run: |
-          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            git fetch origin main --depth=1
-            remote_main=$(git rev-parse origin/main)
-            if [ "$remote_main" != "$GITHUB_SHA" ]; then
-              echo "::notice::Queued toolcraft release $GITHUB_SHA superseded by newer commit on origin/main ($remote_main); coalescing into newer queued release."
-              echo "Queued toolcraft release $GITHUB_SHA superseded by newer commit on origin/main ($remote_main); coalescing into newer queued release." >> "$GITHUB_STEP_SUMMARY"
-              echo "superseded=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          fi
-          echo "superseded=false" >> "$GITHUB_OUTPUT"
   standalone-bundle:
-    needs: queue-check
-    if: needs.queue-check.outputs.superseded != 'true'
     strategy:
       matrix:
-        node-version: [18.18.0, 20, 22, 24]
+        node-version: [ 18.18.0, 20, 22, 24 ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -113,9 +88,7 @@ jobs:
       - name: Build and start the standalone CLI bundle
         run: npm run smoke:toolcraft-bundle
   publish:
-    if: needs.queue-check.outputs.superseded != 'true'
     needs:
-      - queue-check
       - standalone-bundle
     runs-on: ubuntu-latest
     steps:
@@ -293,6 +266,7 @@ jobs:
           npm audit signatures --omit=optional
         if: steps.release-admission.outputs.publish == 'true'
     concurrency:
-      queue: max
+      # Finish the active release; accumulate newer changes in one pending run.
+      queue: single
       group: release-toolcraft
       cancel-in-progress: false

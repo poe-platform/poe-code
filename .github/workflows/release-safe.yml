@@ -1,11 +1,6 @@
 name: Release scoped safe packages
 on:
-  workflow_dispatch:
-    inputs:
-      pin_revision:
-        description: Finish this explicitly selected revision even if main advances
-        type: boolean
-        default: false
+  workflow_dispatch: null
   push:
     branches:
       - main
@@ -46,12 +41,13 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     concurrency:
-      queue: max
+      # Finish the active release; accumulate newer changes in one pending run.
+      queue: single
       group: release-safe
       cancel-in-progress: false
     outputs:
       version: ${{ steps.version.outputs.next }}
-      published: ${{ steps.post-build-queue-check.outputs.publish }}
+      published: ${{ steps.queue-check.outputs.publish }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,7 +55,7 @@ jobs:
           fetch-depth: 0
           filter: blob:none
           persist-credentials: false
-      - name: Check release queue position and publication state
+      - name: Check completed publication
         id: queue-check
         shell: bash
         run: |
@@ -80,22 +76,6 @@ jobs:
               exit 0
             fi
           fi
-          if [ "$PIN_REVISION" != "true" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
-            changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
-              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast packages/xlsx-ast packages/xls-ast packages/pdf-ast packages/office-package \
-              packages/safe-bash-contracts packages/safe-bash-csv-engine \
-              packages/safe-playwright packages/safe-playwright-cloudflare \
-              'packages/spreadsheet-*' \
-              scripts/package-safe.mjs scripts/package-safe.test.ts scripts/bundle-safe-bash.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-browser.mjs scripts/verify-safe-cloudflare.mjs scripts/verify-safe-bash-profiles.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
-              .github/workflows/release-safe.yml || true)
-            changed_cmds=$(git diff --name-only "$GITHUB_SHA" origin/main | grep -E "^packages/safe-bash-(command-|.*-engine/)" || true)
-            if [ -n "$changed_later" ] || [ -n "$changed_cmds" ]; then
-              echo "::notice::Queued safe-bash push $GITHUB_SHA superseded by newer safe-bash commit on origin/main ($(git rev-parse --short origin/main)); coalescing into newer queued release."
-              echo "Queued safe-bash push $GITHUB_SHA superseded by newer safe-bash commit on origin/main; coalescing into newer queued release." >> "$GITHUB_STEP_SUMMARY"
-              echo "publish=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          fi
           echo "publish=true" >> "$GITHUB_OUTPUT"
       - name: Restore check cache
         id: check-cache
@@ -103,8 +83,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .turbo/ci-cache
-          key: safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-${{
-            hashFiles('package-lock.json', 'turbo.json') }}-${{ github.sha }}
+          key: safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-${{ github.sha }}
           restore-keys: |
             safe-release-checks-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json', 'turbo.json') }}-
             ${{ runner.os }}-${{ runner.arch }}-build-v1-${{ hashFiles('package-lock.json') }}-
@@ -169,53 +148,21 @@ jobs:
         with:
           path: .turbo/ci-cache
           key: ${{ steps.check-cache.outputs.cache-primary-key }}
-      - name: Re-check release queue position after build
-        id: post-build-queue-check
-        if: steps.queue-check.outputs.publish == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch --filter=blob:none origin main
-          if [ "$PIN_REVISION" != "true" ] && { [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; } && [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
-            changed_later=$(git diff --name-only "$GITHUB_SHA" origin/main -- \
-              packages/safe-bash packages/safe-fs packages/safe-js packages/xml-ast packages/xlsx-ast packages/xls-ast packages/pdf-ast packages/office-package \
-              packages/safe-bash-contracts packages/safe-bash-csv-engine \
-              packages/safe-playwright packages/safe-playwright-cloudflare \
-              'packages/spreadsheet-*' \
-              scripts/package-safe.mjs scripts/package-safe.test.ts scripts/bundle-safe-bash.mjs scripts/fixtures/safe-packages-* scripts/verify-safe-publication.mjs scripts/verify-safe-browser.mjs scripts/verify-safe-cloudflare.mjs scripts/verify-safe-bash-profiles.mjs scripts/build-workspaces.mjs scripts/check-cache.mjs \
-              .github/workflows/release-safe.yml || true)
-            changed_cmds=$(git diff --name-only "$GITHUB_SHA" origin/main | grep -E "^packages/safe-bash-(command-|.*-engine/)" || true)
-            if [ -n "$changed_later" ] || [ -n "$changed_cmds" ]; then
-              latest_sha=$(git rev-parse --short origin/main)
-              echo "::notice::Post-build check: safe-bash push $GITHUB_SHA superseded by newer safe-bash commit ($latest_sha); warm cache saved, skipping publication to hand off to newer queued release."
-              echo "Post-build check: safe-bash push $GITHUB_SHA superseded by newer safe-bash commit ($latest_sha); warm cache saved, skipping publication." >> "$GITHUB_STEP_SUMMARY"
-              echo "publish=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          fi
-          echo "publish=true" >> "$GITHUB_OUTPUT"
       - name: Verify Cloudflare Worker transport and resource lifecycle
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+        if: steps.queue-check.outputs.publish == 'true'
         run: npm run test:workers --workspace=@poe-code/safe-playwright-cloudflare
-      - run: npx vitest run scripts/package-debug-maps.test.ts
-          scripts/package-safe.test.ts scripts/root-optional-package.test.ts
-          scripts/safe-bash-optional-build.test.ts
-          scripts/safe-bash-optional-lifecycle.test.ts
-          scripts/verify-safe-publication.test.ts
-          scripts/safe-command-publication.test.ts
-          scripts/bundle-safe-bash-private.test.ts
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+      - run: npx vitest run scripts/package-debug-maps.test.ts scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts scripts/verify-safe-publication.test.ts scripts/safe-command-publication.test.ts scripts/bundle-safe-bash-private.test.ts
+        if: steps.queue-check.outputs.publish == 'true'
       - run: npm run lint:packages
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+        if: steps.queue-check.outputs.publish == 'true'
       - name: Prepare scoped artifacts
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+        if: steps.queue-check.outputs.publish == 'true'
         env:
           VERSION: ${{ steps.version.outputs.next }}
-        run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version
-          "$VERSION"
+        run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version "$VERSION"
       - name: Verify installed tarballs
         id: packed-consumers
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+        if: steps.queue-check.outputs.publish == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -289,7 +236,7 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           node scripts/verify-safe-cloudflare.mjs "$CLOUDFLARE_CONSUMER"
       - name: Verify packed Python host capabilities in workerd
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+        if: steps.queue-check.outputs.publish == 'true'
         timeout-minutes: 10
         env:
           PYTHON_TARBALLS: ${{ steps.packed-consumers.outputs.tarballs }}
@@ -316,23 +263,21 @@ jobs:
           (cd "$SAFE_BASH_PYTHON_CONSUMER_ROOT" && node --input-type=module -e "import {downloadPythonLlmPackages} from '@poe-platform/safe-bash/commands/python/node'; await downloadPythonLlmPackages(process.env.SAFE_BASH_LLM_PACKAGE_DIR);")
           node --test packages/safe-bash/tests/integration/python-jspi.test.mjs
       - name: Publish SafeFS with provenance
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+        if: steps.queue-check.outputs.publish == 'true'
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-fs" --provenance --access public
       - name: Publish SafeJS with provenance
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+        if: steps.queue-check.outputs.publish == 'true'
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-js" --provenance --access public
       - name: Publish Safe Bash with provenance
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+        if: steps.queue-check.outputs.publish == 'true'
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-bash" --provenance --access public
       - name: Record safe-publication ref
-        if: steps.post-build-queue-check.outputs.publish == 'true'
+        if: steps.queue-check.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh auth setup-git
           git push origin "$GITHUB_SHA:refs/heads/safe-publication" --force-with-lease || true
-    env:
-      PIN_REVISION: ${{ github.event_name == 'workflow_dispatch' && inputs.pin_revision || false }}
   verify-publication:
     needs: publish
     if: needs.publish.outputs.published == 'true'

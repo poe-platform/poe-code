@@ -7,7 +7,8 @@ on:
     paths:
       - 'packages/tiny-stdio-mcp-server/**'
 concurrency:
-  queue: max
+  # Finish the active release; accumulate newer changes in one pending run.
+  queue: single
   group: release-tiny-mcp
   cancel-in-progress: false
 permissions:

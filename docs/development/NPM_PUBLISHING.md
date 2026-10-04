@@ -15,11 +15,12 @@ GitHub.
 
 ## Release Queues
 
-Release workflows use GitHub's native concurrency queue:
+Automatic package releases use GitHub's native concurrency queue to accumulate
+pending changes independently for each publisher:
 
 ```yaml
 concurrency:
-  queue: max
+  queue: single
   group: release-package-name
   cancel-in-progress: false
 ```
@@ -29,15 +30,27 @@ publication retain separate groups, so validation can continue while a previous
 validated build publishes. Build-only validation has its own group. Each run
 continues using its triggering commit and its own verified build artifacts.
 
-`cancel-in-progress: false` alone still replaces older pending runs. `queue: max`
-retains up to 100 pending runs per group and rejects new arrivals when full.
-GitHub serves the queue by arrival at the concurrency gate, which can differ from
-commit or dispatch order. The root publisher retains its ancestry guard against
-publishing an older commit over an already published newer commit.
+The active run finishes even when `main` advances. While it runs, newer pushes
+replace the pending run for that publisher. The remaining run contains the
+accumulated commits, so a burst of package changes produces one follow-up release
+without a debounce delay or a backlog of one release per push. Package path
+filters and independent concurrency groups keep unrelated publishers parallel.
+SafeFS, SafeJS, and Safe Bash retain their existing shared-version release group.
+
+Running validation and builds are never discarded merely because a newer commit
+exists. Each run uses its triggering SHA, preserving the build and provenance
+identity. The root and scoped Safe publishers retain their ancestry guards
+against republishing changes already covered by a newer publication. The
+`pin_revision` input is no longer needed: every active run keeps its revision.
+
+GitHub schedules concurrency slots by arrival, which can differ from commit or
+dispatch order. Pending manual dispatches share the publisher's queue and can
+also be replaced; this queue does not promise a release for every requested SHA.
+The manual-only opencode-poe-auth publisher retains `queue: max`.
 
 Failed runs release their concurrency slot; inspect their errors and rerun them
-when appropriate. New pushes do not cancel running or queued releases. GitHub's
-ordinary workflow and job time limits still apply.
+when appropriate. New pushes never cancel active releases. GitHub's ordinary
+workflow and job time limits still apply.
 
 Pages publishing uses `queue: single` in the stable `pages` group with
 `cancel-in-progress: false`. The active deployment finishes while newer pushes

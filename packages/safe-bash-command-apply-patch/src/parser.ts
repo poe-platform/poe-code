@@ -1,16 +1,16 @@
 import { resolvePath } from "safe-bash-contracts";
 import { PatchError, Work } from "./shared.js";
 
-export interface ChangeLine { readonly kind: " " | "+" | "-"; readonly text: string; }
-export interface Hunk { readonly anchors: string[]; readonly lines: ChangeLine[]; eof: boolean; }
-export interface PatchFile {
+export interface ChangeLine<T = string> { readonly kind: " " | "+" | "-"; readonly text: T; }
+export interface Hunk<T = string> { readonly anchors: T[]; readonly lines: ChangeLine<T>[]; eof: boolean; }
+export interface PatchFile<T = string> {
   readonly kind: "add" | "delete" | "update";
   readonly path: string;
   readonly label: string;
   readonly destination?: string;
   readonly destinationLabel?: string;
-  readonly added: string[];
-  readonly hunks: Hunk[];
+  readonly added: T[];
+  readonly hunks: Hunk<T>[];
 }
 
 async function patchLines(text: string, work: Work): Promise<string[]> {
@@ -62,40 +62,54 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
   if (!work.cwd.startsWith("/") || work.cwd.includes("\0")) throw new PatchError("cwd must be an absolute virtual path", 2);
   await work.charge(text.length);
   const lines = await patchLines(text.trim(), work);
-  if (lines[0] !== "*** Begin Patch" || lines.at(-1) !== "*** End Patch") throw new PatchError("expected Begin Patch and End Patch envelope", 2);
-  const files: PatchFile[] = [];
+  return parseRecords({ length: lines.length, async get(index) {
+    const line = lines[index]!;
+    return { prefix: line.slice(0, 32), size: line.length, slice: offset => line.slice(offset), async read(offset) { return work.slice(line, offset); } };
+  } }, work);
+}
+
+export interface PatchRecord<T> {
+  readonly prefix: string;
+  readonly size: number;
+  slice(offset: number): T;
+  read(offset: number): Promise<string>;
+}
+
+export async function parseRecords<T>(lines: { readonly length: number; get(index: number): Promise<PatchRecord<T>> }, work: Work): Promise<PatchFile<T>[]> {
+  if (!lines.length || (await lines.get(0)).prefix !== "*** Begin Patch" || (await lines.get(lines.length - 1)).prefix !== "*** End Patch") throw new PatchError("expected Begin Patch and End Patch envelope", 2);
+  const files: PatchFile<T>[] = [];
   let index = 1;
   while (index < lines.length - 1) {
     work.count("maxFiles", 1);
-    const header = lines[index++]!;
+    const header = await lines.get(index++);
     let kind: PatchFile["kind"];
     let label: string;
-    if (header.startsWith("*** Add File: ")) { kind = "add"; label = header.slice(14); }
-    else if (header.startsWith("*** Delete File: ")) { kind = "delete"; label = header.slice(17); }
-    else if (header.startsWith("*** Update File: ")) { kind = "update"; label = header.slice(17); }
+    if (header.prefix.startsWith("*** Add File: ")) { kind = "add"; label = await header.read(14); }
+    else if (header.prefix.startsWith("*** Delete File: ")) { kind = "delete"; label = await header.read(17); }
+    else if (header.prefix.startsWith("*** Update File: ")) { kind = "update"; label = await header.read(17); }
     else throw new PatchError(`invalid file header at patch line ${index}`, 2);
     const path = await targetPath(label, work);
     let destination: string | undefined;
     let destinationLabel: string | undefined;
-    if (kind === "update" && lines[index]?.startsWith("*** Move to: ")) {
-      destinationLabel = lines[index++]!.slice(13);
+    if (kind === "update" && index < lines.length - 1 && (await lines.get(index)).prefix.startsWith("*** Move to: ")) {
+      destinationLabel = await (await lines.get(index++)).read(13);
       destination = await targetPath(destinationLabel, work);
     }
-    const added: string[] = [];
-    const hunks: Hunk[] = [];
-    let current: Hunk | undefined;
+    const added: T[] = [];
+    const hunks: Hunk<T>[] = [];
+    let current: Hunk<T> | undefined;
     let finished = false;
     while (index < lines.length - 1) {
-      const line = lines[index]!;
-      await work.charge(line.length + 1);
-      if (line.startsWith("*** Add File: ") || line.startsWith("*** Delete File: ") || line.startsWith("*** Update File: ")) break;
+      const line = await lines.get(index);
+      await work.charge(line.size + 1);
+      if (line.prefix.startsWith("*** Add File: ") || line.prefix.startsWith("*** Delete File: ") || line.prefix.startsWith("*** Update File: ")) break;
       if (kind === "add") {
-        if (!line.startsWith("+")) throw new PatchError(`invalid Add body at patch line ${index + 1}`, 2);
+        if (!line.prefix.startsWith("+")) throw new PatchError(`invalid Add body at patch line ${index + 1}`, 2);
         added.push(line.slice(1));
       } else if (kind === "delete") throw new PatchError("Delete cannot have a body", 2);
       else if (finished) throw new PatchError("EOF must terminate the file's last hunk", 2);
-      else if (line === "@@" || line.startsWith("@@ ")) {
-        const named = line.startsWith("@@ ");
+      else if (line.prefix === "@@" || line.prefix.startsWith("@@ ")) {
+        const named = line.prefix.startsWith("@@ ");
         if (current && current.lines.length === 0) {
           if (!named || current.anchors.length === 0) throw new PatchError("empty update hunk", 2);
         } else {
@@ -104,12 +118,12 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
           hunks.push(current);
         }
         if (named) current.anchors.push(line.slice(3));
-      } else if (line === "*** End of File") {
+      } else if (line.prefix === "*** End of File") {
         if (!current?.lines.length) throw new PatchError("EOF requires a nonempty hunk", 2);
         current.eof = true;
         finished = true;
       } else {
-        const prefix = line === "" ? " " : line[0];
+        const prefix = line.prefix === "" ? " " : line.prefix[0];
         if (prefix !== " " && prefix !== "+" && prefix !== "-") throw new PatchError(`invalid hunk line ${index + 1}`, 2);
         if (!current) {
           work.count("maxHunks", 1);

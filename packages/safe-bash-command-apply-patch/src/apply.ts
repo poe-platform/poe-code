@@ -4,10 +4,14 @@ import {
   type ByteSource, type CommandContext, type FileReadHandle, type FileStaging, type FileStat, type FileSystem,
 } from "safe-bash-contracts";
 import { settings, type ApplyPatchLimits } from "./options.js";
-import { parse, type PatchFile } from "./parser.js";
+import type { PatchFile as ParsedFile } from "./parser.js";
+import { parseDocument } from "./stored-parser.js";
+import type { StoredText } from "./stored-text.js";
 import { storedContents } from "./stored-matcher.js";
 import { IndexedDocument, closeDocumentResources } from "safe-bash-diff-engine/document";
 import { diagnostic, FileFailure, PatchError, Work } from "./shared.js";
+
+type PatchFile = ParsedFile<StoredText>;
 
 interface Snapshot { readonly path: string; readonly stat: FileStat; document?: IndexedDocument; }
 interface Plan { readonly file: PatchFile; readonly original?: Snapshot; readonly output?: IndexedDocument; }
@@ -59,33 +63,38 @@ class Invocation {
     this.fs = await this.work.fs(this.work.cwd, () => this.fs.confineExtraction!([...roots], { signal: this.context.signal }));
   }
 
-  private async input(): Promise<string> {
+  private async input(): Promise<IndexedDocument> {
     const { context, work } = this;
     work.check();
     if (context.args.length > 1) throw new PatchError("expected stdin or one literal patch argument", 2);
-    if (context.args.length === 1) {
-      const text = context.args[0]!;
-      const bytes = await work.utf8(text, work.limits.maxPatchBytes, 2);
-      context.inputBudget?.check(this.inputBytes += bytes);
-      return text;
+    const document = new IndexedDocument(work);
+    this.documents.add(document);
+    async function* source(this: Invocation): ByteSource {
+      if (context.args.length === 1) {
+        const text = context.args[0]!;
+        const bytes = await work.utf8(text, work.limits.maxPatchBytes, 2);
+        context.inputBudget?.check(this.inputBytes += bytes);
+        const encoder = new TextEncoder();
+        for (let offset = 0; offset < text.length;) {
+          let end = Math.min(text.length, offset + 4096);
+          const unit = text.charCodeAt(end - 1);
+          if (end < text.length && unit >= 0xd800 && unit <= 0xdbff) end--;
+          yield encoder.encode(text.slice(offset, end));
+          offset = end;
+        }
+      } else {
+        let bytes = 0;
+        for await (const chunk of readBytes(context.stdin, context.signal)) {
+          work.count("maxInputChunks", 1);
+          if (chunk.byteLength > work.limits.maxPatchBytes - bytes) throw new PatchError("maxPatchBytes limit exceeded");
+          context.inputBudget?.check(this.inputBytes += chunk.byteLength);
+          bytes += chunk.byteLength;
+          yield chunk;
+        }
+      }
     }
-    const chunks: Uint8Array[] = [];
-    let bytes = 0;
-    for await (const chunk of readBytes(context.stdin, context.signal)) {
-      work.count("maxInputChunks", 1);
-      if (chunk.byteLength > work.limits.maxPatchBytes - bytes) throw new PatchError("maxPatchBytes limit exceeded");
-      context.inputBudget?.check(this.inputBytes += chunk.byteLength);
-      await work.charge(1);
-      if (chunk.byteLength) chunks.push(await work.copy(chunk));
-      bytes += chunk.byteLength;
-      await work.checkpoint();
-    }
-    work.check();
-    work.admit(bytes);
-    const data = new Uint8Array(bytes);
-    let offset = 0;
-    for (const chunk of chunks) { await work.copyInto(chunk, data, offset); offset += chunk.length; }
-    return work.text(data, 2);
+    await document.load(source.call(this));
+    return document;
   }
 
   private async stat(path: string, cached: boolean): Promise<FileStat | undefined> {
@@ -301,7 +310,7 @@ class Invocation {
     let summary: Uint8Array;
     try {
       try {
-        const files = await parse(await this.input(), work);
+        const files = await parseDocument(await this.input(), work);
         await this.confine(files);
         const plans = await this.prepare(files);
         const lines = ["Success. Updated the following files:\n"];

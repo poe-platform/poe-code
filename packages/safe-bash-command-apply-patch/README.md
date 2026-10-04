@@ -22,12 +22,12 @@ update hunk once, including hunks with context anchors. Host
 limits. Shell input limits include the patch and physical target reads, including
 the safety rechecks before publication.
 
-Target snapshots, line indexes and replacements use bounded caches backed by your
-injected filesystem. Long target lines are matched and copied in blocks, including
+Patch payloads, target snapshots, line indexes and replacements use bounded caches
+backed by your injected filesystem. Long patch and target lines are matched and copied in blocks, including
 whitespace and Unicode normalization. Publication uses retained staging writes and
 atomic conditional replacement, preserving existing file identity and hardlinks.
 Backends need retained reads, retained staging cleanup/writes, atomic staged file
 mutation and confined mutations. Large workloads need external backing storage;
-a memory filesystem keeps spilled data in RAM. Patch parsing and per-file planning
-metadata still buffer in memory, so this is not yet a complete bounded-memory
-guarantee for arbitrarily large patches or file counts.
+a memory filesystem keeps spilled data in RAM. File paths, hunk/line descriptors
+and per-file planning metadata still buffer in memory, so this is not yet a
+complete bounded-memory guarantee for arbitrary line, hunk or file counts.

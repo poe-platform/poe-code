@@ -1,10 +1,10 @@
 import type { ByteSource } from "safe-bash-contracts";
 import { IndexedDocument } from "safe-bash-diff-engine/document";
 import type { PatchFile } from "./parser.js";
-import { normalized, normalizedCharacter } from "./matcher.js";
+import { equalText, type PatchText } from "./stored-text.js";
 import { PatchError, type Work } from "./shared.js";
 
-interface Record { start: number; end: number; ending: string; text?: string }
+interface Record { start: number; end: number; ending: string; text?: PatchText }
 
 async function record(document: IndexedDocument, index: number): Promise<Record> {
   const bounds = await document.line(index);
@@ -13,39 +13,12 @@ async function record(document: IndexedDocument, index: number): Promise<Record>
   return { start: bounds.start, end: bounds.end - ending.length, ending };
 }
 
-async function* text(document: IndexedDocument, start: number, end: number): AsyncGenerator<string> {
-  const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-  for await (const bytes of document.range(start, end)) yield decoder.decode(bytes, { stream: true });
-  const tail = decoder.decode(); if (tail) yield tail;
-}
-
-async function matches(document: IndexedDocument, index: number, expected: string, pass: number, work: Work): Promise<boolean> {
+async function matches(document: IndexedDocument, index: number, expected: PatchText, pass: number, work: Work): Promise<boolean> {
   const bounds = await record(document, index);
-  let start = bounds.start, end = bounds.end;
-  if (pass) {
-    expected = await normalized(expected, pass, work);
-    let first = -1, last = start, offset = start;
-    for await (const chunk of text(document, start, end)) for (const character of chunk) {
-      const code = character.codePointAt(0)!;
-      const width = code < 128 ? 1 : code < 2048 ? 2 : code < 65536 ? 3 : 4;
-      if (character.trim()) { if (first < 0) first = offset; last = offset + width; }
-      offset += width;
-      work.step(); if (work.due) await work.checkpoint();
-    }
-    end = last;
-    if (pass > 1) start = first < 0 ? end : first;
-  }
-  let position = 0;
-  for await (const chunk of text(document, start, end)) for (let character of chunk) {
-    work.step(); if (work.due) await work.checkpoint();
-    if (pass === 3) character = normalizedCharacter(character);
-    if (!expected.startsWith(character, position)) return false;
-    position += character.length;
-  }
-  return position === expected.length;
+  return equalText({ document, start: bounds.start, end: bounds.end }, expected, pass, work);
 }
 
-async function find(document: IndexedDocument, pattern: readonly string[], start: number, eof: boolean, work: Work): Promise<number> {
+async function find(document: IndexedDocument, pattern: readonly PatchText[], start: number, eof: boolean, work: Work): Promise<number> {
   const last = document.length - pattern.length;
   const first = eof ? last : start;
   if (first < start) return -1;
@@ -60,7 +33,7 @@ async function find(document: IndexedDocument, pattern: readonly string[], start
   return -1;
 }
 
-async function* records(file: PatchFile, original: IndexedDocument | undefined, work: Work, ending: string): AsyncGenerator<Record> {
+async function* records(file: PatchFile<PatchText>, original: IndexedDocument | undefined, work: Work, ending: string): AsyncGenerator<Record> {
   if (file.kind === "add") {
     for (const value of file.added) { await work.charge(1); yield { start: 0, end: 0, ending: "\n", text: value }; }
     return;
@@ -74,7 +47,7 @@ async function* records(file: PatchFile, original: IndexedDocument | undefined, 
       if (position < 0) throw new PatchError(`context anchor not found: ${file.label}`);
       cursor = position + 1; anchorPosition = position;
     }
-    const pattern: string[] = [];
+    const pattern: PatchText[] = [];
     for (const line of hunk.lines) { await work.charge(1); if (line.kind !== "+") pattern.push(line.text); }
     const searchStart = anchorPosition !== undefined && pattern.length && await matches(old, anchorPosition, pattern[0]!, 3, work) ? anchorPosition : cursor;
     const start = pattern.length ? await find(old, pattern, searchStart, hunk.eof, work) : hunk.eof ? old.length : cursor;
@@ -94,7 +67,7 @@ async function* records(file: PatchFile, original: IndexedDocument | undefined, 
 }
 
 /** Retain only one output record while deciding the final newline convention. */
-export async function storedContents(file: PatchFile, original: IndexedDocument | undefined, work: Work): Promise<IndexedDocument | undefined> {
+export async function storedContents(file: PatchFile<PatchText>, original: IndexedDocument | undefined, work: Work): Promise<IndexedDocument | undefined> {
   if (file.kind === "delete") return undefined;
   if (file.kind === "update" && !original) throw new PatchError(`missing target: ${file.label}`);
   if (file.kind === "update" && !file.hunks.length) return original;
@@ -112,6 +85,7 @@ export async function storedContents(file: PatchFile, original: IndexedDocument 
   const encoder = new TextEncoder();
   async function* emit(line: Record, last: boolean): ByteSource {
     if (line.text === undefined) yield* original!.range(line.start, line.end);
+    else if (typeof line.text !== "string") yield* line.text.document.range(line.text.start, line.text.end);
     else {
       await work.utf8(line.text, work.limits.maxFileBytes);
       for (let offset = 0; offset < line.text.length;) {

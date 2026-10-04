@@ -14,7 +14,8 @@ export function readBiffPropertySections(bytes: Uint8Array, admit: (count: numbe
   for (let i = 0; i < count; i++) {
     const at = 28 + i * 20, offset = file.u32(at + 16);
     if (offset < tableEnd || offset % 4) invalidBiff("invalid property section offset");
-    const size = file.u32(offset); if (size < 8 || size % 4) invalidBiff("invalid property section size");
+    // Native libgsf byte-string dictionaries and final values need not end on a word boundary.
+    const size = file.u32(offset); if (size < 8) invalidBiff("invalid property section size");
     file.check(offset, size);
     const guid = Array.from(file.slice(at, 16), byte => byte.toString(16).padStart(2, "0")).join("");
     sections.push({ guid, offset, end: offset + size });
@@ -32,7 +33,7 @@ export function readBiffPropertyValues(section: Binary, admit: (count: number) =
   const pointers: { id: number; at: number }[] = [], ids = new Set<number>();
   for (let i = 0; i < propertyCount; i++) {
     const id = section.u32(8 + i * 8), at = section.u32(12 + i * 8);
-    if (at < 8 + propertyCount * 8 || at % 4 || at > section.bytes.length - 4) invalidBiff("invalid property offset");
+    if (at < 8 + propertyCount * 8 || at > section.bytes.length - 4) invalidBiff("invalid property offset");
     if (ids.has(id)) invalidBiff("duplicate property ID");
     ids.add(id); pointers.push({ id, at });
   }

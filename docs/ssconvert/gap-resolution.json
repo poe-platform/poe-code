@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "nativePropertyAlignment": {
+      "finding": "Native Gnumeric/libgsf BIFF output has a90-byte custom-property section and a value at relative offset73 after its unpadded byte-string dictionary. Reader rejected both alignment conditions despite valid declared bounds.",
+      "repair": "Accept unpadded section lengths and property offsets. Keep section-start/table boundaries, length checks, duplicate/overlapping property guards and value/string validation. Exact native182-byte stream is a memory fixture with a truncation rejection control.",
+      "verification": "One original valid-input failure repaired;103 property/encrypted-property tests, selected build and owner lint/types pass. Eight independently generated native BIFF7/8 files read creator metadata correctly and complete16 compiled SDK/command CSV conversions. Exact automatic-label warning for BIFF8 retained; BIFF7 has no diagnostics. Screenshot inspected.",
+      "remaining": "Other property layouts, wider format/version/encryption qualification and all broader families remain open."
+    },
     "biffFirstPageNumber": {
       "scope": "Read valid SETUP starting-page words into first_page_number and preserve them through BIFF7/8 output. Invalid-data SETUP does not override an earlier valid page. Reject fractional, nonfinite and out-of-range values instead of wrapping; native automatic sentinel -1 retains its legacy word representation.",
       "verification": "Five original failures repaired;2450 affected tests, selected build and owner lint/source/test types pass. Four independent OpenPyXL controls produce16 SDK/command BIFF7/8 exports. All16 starting-page words match direct pinned Gnumeric conversions; all16 native BIFF re-exports preserve the values. Exact five source/native warnings and five product warnings retained; screenshot inspected.",

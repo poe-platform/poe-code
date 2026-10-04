@@ -48,6 +48,10 @@ sequentially, including `--empty`, per-source passwords, stdin and repeated
 sources. Inactive inputs release range caches while retaining their acquired
 identity. `--collate` interleaves lazy page batches with only one source document
 active at a time; batch boundaries preserve independent resource copies.
+`@argument-file` inputs use retained range reads and incremental UTF-8 line
+decoding. File sizes are admitted before reading, and expanded lines count
+toward the configured argument budget.
+
 `--split-pages` stages grouped results and their names on caller storage before
 atomic file publication, including filename patterns and rotations. Combined
 splitting with page selections or graph-removal options currently uses the

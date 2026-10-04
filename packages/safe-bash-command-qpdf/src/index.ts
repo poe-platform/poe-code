@@ -17,6 +17,7 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
   PdfDocument,
+  PdfFileSource,
   parseCosDocumentSteps,
   serializeCosDocumentSteps,
   encryptCosDocumentSteps,
@@ -2426,8 +2427,8 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
-    const argv = [...carrier.args];
-    const argumentBytes = argv.reduce((total, arg) => total + new TextEncoder().encode(arg).byteLength + 1, 0);
+    let argv = [...carrier.args];
+    let argumentBytes = argv.reduce((total, arg) => total + new TextEncoder().encode(arg).byteLength + 1, 0);
     if (argumentBytes > limits.maxArgumentBytes) throw new RangeError("Argument byte limit exceeded");
 
     // Collect referenced VFS files into a working Map and write back any modified/created outputs
@@ -2441,24 +2442,57 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
       }
     };
 
-    // qpdf argument files contain one argument per line, resolved from the cwd.
-    for (let i = 0; i < argv.length; i++) {
-      const token = argv[i]!;
-      if (!token.startsWith("@")) continue;
+    // Argument-file lines are decoded incrementally; expanded arguments remain
+    // subject to the parser's argument budget, including an unfinished line.
+    const expanded: string[] = [], encoder = new TextEncoder();
+    for (const token of argv) {
+      if (!token.startsWith("@")) { expanded.push(token); continue; }
       const path = token.slice(1);
-      let bytes: Uint8Array;
-      try {
-        bytes = await context.fs.readFile(resolvePath(context.cwd, path), { signal: invocation.signal });
-      } catch {
-        await writeBytes(context.stderr, new TextEncoder().encode(`qpdf: cannot open ${path}\n`), invocation.signal);
+      let source: PdfFileSource;
+      try { source = await PdfFileSource.open(context.fs, resolvePath(context.cwd, path), { signal: invocation.signal, chunkBytes: 16384 }); }
+      catch {
+        invocation.signal.throwIfAborted();
+        await writeBytes(context.stderr, encoder.encode(`qpdf: cannot open ${path}\n`), invocation.signal);
         return { exitCode: 2 };
       }
-      chargeBytes(bytes.byteLength);
-      const args = new TextDecoder().decode(bytes).split("\n").map(line => line.endsWith("\r") ? line.slice(0, -1) : line).filter(line => line.length > 0);
-      argv.splice(i, 1, ...args);
-      // Argument-file contents are arguments, not recursively expanded files.
-      i += args.length - 1;
+      let failed = false, reading = false;
+      try {
+        chargeBytes(source.size);
+        argumentBytes -= encoder.encode(token).length + 1;
+        const decoder = new TextDecoder(); let pending = "", pendingBytes = 0;
+        function accept(line: string, size: number, complete: boolean) {
+          if (line.endsWith("\r")) { line = line.slice(0, -1); size--; }
+          if (!line) return;
+          size++;
+          if (size > limits.maxArgumentBytes - argumentBytes) throw new RangeError("Argument byte limit exceeded");
+          if (complete) { argumentBytes += size; expanded.push(line); }
+        }
+        reading = true;
+        for await (const bytes of source.stream(0, source.size, invocation.signal)) {
+          reading = false;
+          const lines = decoder.decode(bytes, { stream: true }).split("\n");
+          pending += lines[0]!; pendingBytes += encoder.encode(lines[0]!).length;
+          if (lines.length > 1) {
+            accept(pending, pendingBytes, true);
+            for (let index = 1; index < lines.length - 1; index++) accept(lines[index]!, encoder.encode(lines[index]!).length, true);
+            pending = lines[lines.length - 1]!; pendingBytes = encoder.encode(pending).length;
+          }
+          accept(pending, pendingBytes, false);
+          reading = true;
+        }
+        reading = false;
+        const tail = decoder.decode();
+        accept(pending + tail, pendingBytes + encoder.encode(tail).length, true);
+      } catch (error) {
+        failed = true; invocation.signal.throwIfAborted();
+        if (!reading) throw error;
+        await writeBytes(context.stderr, encoder.encode(`qpdf: cannot open ${path}\n`), invocation.signal);
+        return { exitCode: 2 };
+      }
+      finally { await source.close().catch(error => { if (!failed) throw error; }); }
     }
+    // Do not recursively expand argument-file contents.
+    argv = expanded;
 
     const parsed = parseQpdfArguments(argv);
     if (parsed.options) {

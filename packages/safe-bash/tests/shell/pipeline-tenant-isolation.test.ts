@@ -319,6 +319,45 @@ test("missing grep input still executes downstream pipeline stages", async conte
   }
 });
 
+for (const producer of ["grep foo /work/sub/missing.txt", "find /work/sub/missing -name '*.txt'"]) {
+  for (const pipefail of [false, true]) test(`missing nested input preserves pipeline statuses: ${producer}, pipefail=${pipefail}`, async context => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work/sub", { recursive: true });
+    const shell = new Shell({ fs }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const command = `set ${pipefail ? "-o" : "+o"} pipefail; ${producer} | sort | wc -l`;
+    const producerStatus = producer.startsWith("grep") ? 2 : 1;
+    for (let run = 0; run < 3; run++) {
+      const result = await shell.exec(command);
+      assert.equal(result.stdout, "0\n");
+      assert.match(result.stderr, /missing/);
+      assert.equal(result.exitCode, pipefail ? producerStatus : 0);
+      const statuses = await shell.exec(`${command}; printf "%s\\n" "\${PIPESTATUS[@]}"`);
+      assert.equal(statuses.stdout, `0\n${producerStatus}\n0\n0\n`);
+    }
+  });
+}
+
+for (const [consumer, expected] of [
+  ["wc -l", "8192\n"],
+  ["head -n 2", "foo:value\nfoo:value\n"],
+  ["sort | wc -l", "8192\n"],
+  ["cut -d: -f2 | wc -c", `${8192 * 6}\n`],
+  ["tr : '\\n' | wc -l", "16384\n"],
+] as const) test(`large nested grep completes downstream ${consumer}`, async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work/sub", { recursive: true });
+  await fs.writeFile("/work/sub/large.txt", new TextEncoder().encode("foo:value\n".repeat(8192)));
+  const shell = new Shell({ fs }).use(agentCommands());
+  context.after(() => shell.dispose());
+  for (let run = 0; run < 3; run++) {
+    const result = await shell.exec(`grep foo /work/sub/large.txt | ${consumer}`);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  }
+});
+
 for (const prefix of ["", "echo ready; "]) {
   for (const consumer of ["wc -l", "head -n 3"]) {
     for (const mutation of ["extensions", "names", "subdirectory"]) {

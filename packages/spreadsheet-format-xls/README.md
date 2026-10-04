@@ -44,6 +44,9 @@ precedence; malformed payloads still report loss warnings. These settings remain
 separate from worksheet protection. XLSX workbook structure/window flags and legacy
 password verifiers also convert to BIFF7/8; unsupported protection fields retain
 loss warnings.
+BIFF starting-page words survive import/export through `PrintInformation`
+`first_page_number` metadata, following Gnumeric's native record behavior.
+The separate print enable flag and XML transport remain unqualified.
 BIFF editing preserves the workbook Normal style and font-aware column widths,
 including sheet defaults. Change `sheet.view.defaultColumnWidth` in points and
 adopt the edited workbook before export; BIFF stores defaults in whole font

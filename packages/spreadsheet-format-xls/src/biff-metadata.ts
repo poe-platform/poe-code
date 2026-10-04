@@ -130,6 +130,7 @@ function* metadataSteps(length: number, revision: number, codepage: number, cont
       errorDisplay = ["GNM_PRINT_ERRORS_AS_DISPLAYED", "GNM_PRINT_ERRORS_AS_BLANK", "GNM_PRINT_ERRORS_AS_DASHES", "GNM_PRINT_ERRORS_AS_NA"][revision >= 8 ? flags >> 10 & 3 : 0]!;
       if (!(flags & 4)) {
         paper = ({ 1: "na_letter", 5: "na_legal", 8: "iso_a3", 9: "iso_a4", 11: "iso_a5" } as Record<number, string>)[data.u16(0)] ?? `biff-paper-${data.u16(0)}`;
+        print.first_page_number = data.u16(4);
         const percentage = data.u16(2); scale = { type: "percentage", percentage: percentage >= 1 && percentage <= 1000 ? percentage : 100 };
       }
       if (revision > 4) { margins.header = data.f64(16) * 72; margins.footer = data.f64(24) * 72;

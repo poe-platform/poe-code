@@ -265,7 +265,10 @@ export class BiffMetadataWriter {
     }
     const setup = new Uint8Array(34), view = new DataView(setup.buffer), scale = child("Scale")?.attributes;
     view.setUint16(0, ({ na_letter: 1, na_legal: 5, iso_a3: 8, iso_a4: 9, iso_a5: 11 } as Record<string, number>)[child("paper")?.text ?? "iso_a4"] ?? 9, true);
-    view.setUint16(2, Number(scale?.percentage ?? 100), true); view.setUint16(4, 1, true);
+    const firstPage = Number(child("first_page_number")?.attributes.value ?? 1);
+    if (!Number.isInteger(firstPage) || firstPage < -1 || firstPage > 65535)
+      throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF first page number");
+    view.setUint16(2, Number(scale?.percentage ?? 100), true); view.setUint16(4, firstPage, true);
     view.setUint16(6, Number(scale?.cols ?? 1), true); view.setUint16(8, Number(scale?.rows ?? 1), true);
     const placement = child("comments")?.attributes.placement;
     const errorMode = Math.max(0, ["GNM_PRINT_ERRORS_AS_DISPLAYED", "GNM_PRINT_ERRORS_AS_BLANK", "GNM_PRINT_ERRORS_AS_DASHES", "GNM_PRINT_ERRORS_AS_NA"]

@@ -3,6 +3,11 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffFirstPageNumber": {
+      "scope": "Read valid SETUP starting-page words into first_page_number and preserve them through BIFF7/8 output. Invalid-data SETUP does not override an earlier valid page. Reject fractional, nonfinite and out-of-range values instead of wrapping; native automatic sentinel -1 retains its legacy word representation.",
+      "verification": "Five original failures repaired;2450 affected tests, selected build and owner lint/source/test types pass. Four independent OpenPyXL controls produce16 SDK/command BIFF7/8 exports. All16 starting-page words match direct pinned Gnumeric conversions; all16 native BIFF re-exports preserve the values. Exact five source/native warnings and five product warnings retained; screenshot inspected.",
+      "nativeLimits": "Pinned excel_read_SETUP reads offset4 only when flags&4 is clear, ignoring0x80; native writer also does not set0x80. Current change follows those measured semantics. Native XML omits this field, so empty XML results are not counted as passes. Cross-application enable-flag semantics, automatic sentinel behavior, actual printed pages, XML/other transports and broader requirements remain open."
+    },
     "xlsxMarginPointPrecision": {
       "finding": "XLSX margin import rounded inch-to-point conversions to four decimal places before any downstream writer. Four memory tests and96 of144 direct native BIFF field comparisons reproduced the precision loss.",
       "repair": "Retain full binary64 point values in neutral PrintInformation instead of formatting them prematurely. Zero and ordinary decimal controls remain unchanged.",

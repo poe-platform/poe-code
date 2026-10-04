@@ -1,3 +1,4 @@
+import { readStoredClips } from "../content/stored-clips.js";
 import { StoredStrokePoints } from "./stored-stroke-points.js";
 import { readStoredPath } from "../content/stored-path.js";
 import { prepareRetainedImageSampler } from "./retained-image-sampling.js";
@@ -10,7 +11,7 @@ import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
-import type { PdfStoredPath, PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
+import type { PdfStoredClipPaths, PdfStoredPath, PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate, encodeLzw } from "../cos/filters.js";
 import { flattenCubicPoints } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
@@ -628,6 +629,20 @@ function* pathSegments(segments: readonly PdfPathSegment[], stored: PdfStoredPat
   }
 }
 
+function* replayClips(clips: readonly PdfClipPath[] | undefined, stored: PdfStoredClipPaths | undefined, input?: RasterImageInput): Generator<PdfClipPath | undefined> {
+  if (clips) yield* clips;
+  if (!stored) return;
+  if (!input) throw new Error("Stored clips require the asynchronous raster driver");
+  const source = readStoredClips(stored, input.signal);
+  while (true) {
+    let next: IteratorResult<Extract<PdfClipPath, {segments: unknown}>> | undefined;
+    input.pathRequest = async () => { next = await source.next(); };
+    yield;
+    if (next!.done) return;
+    yield next!.value;
+  }
+}
+
 function *projectStrokeSubpaths(segments: readonly PdfPathSegment[], pageHeight: number, scale: number,
   toScreen = (x: number, y: number): StrokePoint => [x * scale, (pageHeight - y) * scale],
   stored?: PdfStoredPath, input?: RasterImageInput
@@ -1090,6 +1105,7 @@ function *renderDisplayListLayerSteps(
   const aaTxt = options.antialiasText !== false;
   // Reuse adjacent paints without retaining a page-sized mask for every clip.
   let cachedClips: readonly PdfClipPath[] | undefined;
+  let cachedStoredClips: PdfStoredClipPaths | undefined;
   let cachedClipMask: Uint8Array | undefined;
   let scratchClipLayer: Uint8Array | undefined;
   let cachedSoftMask: PdfSoftMask | undefined;
@@ -1102,7 +1118,7 @@ function *renderDisplayListLayerSteps(
     let original: PdfPaintOperation;
     if (input) {
       // Advancing may recycle every borrowed resource, including object identities.
-      cachedClips = undefined; cachedSoftMask = undefined; imageClipMasks.clear();
+      cachedClips = undefined; cachedStoredClips = undefined; cachedSoftMask = undefined; imageClipMasks.clear();
       input.requested = true;
       yield;
       const next = input.next!; input.next = undefined;
@@ -1132,17 +1148,19 @@ function *renderDisplayListLayerSteps(
       } };
     }
     const clips = original.value.clipPaths;
-    let clipMask = clips && clips === cachedClips ? cachedClipMask : undefined;
-    if (clips && !clipMask) {
+    const storedClips = original.value.storedClipPaths?.count ? original.value.storedClipPaths : undefined;
+    let clipMask = (clips || storedClips) && clips === cachedClips && storedClips === cachedStoredClips ? cachedClipMask : undefined;
+    if ((clips || storedClips) && !clipMask) {
       clipMask = cachedClipMask ?? (cachedClipMask = new Uint8Array(width * height));
       let firstClip = true;
-      for (const clip of clips) {
+      for (const clip of replayClips(clips, storedClips, images)) {
+        if (!clip) { yield; continue; }
         if (++work % 16384 === 0) yield;
         const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
         (yield* fillMaskScanline4x4Steps(clipMask, width, height, screenFillEdges(segments, toScreen, "segments" in clip ? clip.storedSegments : undefined, images), fillRule, !firstClip));
         firstClip = false;
       }
-      cachedClips = clips;
+      cachedClips = clips; cachedStoredClips = storedClips;
     }
     const softMask = original.value.softMask;
     if (softMask) {
@@ -1588,6 +1606,7 @@ export function *renderDisplayListToSvgSteps(
     for (const original of operations) {
       if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
       const operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;
+      if (original.value.storedClipPaths?.count) throw new Error("Stored clips require the asynchronous raster driver");
       const clips = original.value.clipPaths ?? [];
       const imageClips = original.value.clipImages ?? [];
       // Blend the finished masked/clipped paint with its parent backdrop.

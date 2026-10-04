@@ -1,3 +1,4 @@
+import { appendStoredClip } from "./stored-clips.js";
 import { cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
 import { decodePdfStreamChunks, type PdfStreamDecodeOptions } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -102,7 +103,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
     finally { await owner.close().catch(error => { if (!failed) throw error; }); }
   }
   const input = "events" in content ? (async function* () { yield* content.events; })() : cursor(content);
-  const work = evaluateContentSteps(params);
+  const work = evaluateContentSteps({...params,geometryStorage:options.imageStorage ?? options.pathStorage,geometrySignal:options.signal});
   const nested = new Map<PdfEvaluationContentSource, AsyncGenerator<PdfContentEvent, void, void>>();
   const fonts: { resources: PdfCosDict | undefined; name: string; font: ResolvedPageFont | undefined }[] = [];
   const resourceOptions = { chunkBytes, maxStagingBytes: options.maxStagingBytes ?? Infinity, onAllocation: charge, ...(signal ? { signal } : {}) };
@@ -113,6 +114,9 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
       signal?.throwIfAborted();
       const request = step.value; let reply: PdfEvaluationResult;
       switch (request.kind) {
+        case "append-clip": reply = await appendStoredClip(request.storage,request.previous,request.clip,signal); break;
+        case "path-append": for (const segment of request.segments) { signal?.throwIfAborted(); await request.writer.append(segment); } break;
+        case "path-finish": reply = await request.writer.finish(); break;
         case "transform-path": {
           const writer = new StoredPathWriter(request.path.storage, signal);
           let last: import("../ast.js").PdfPathSegment | undefined;

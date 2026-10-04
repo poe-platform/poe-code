@@ -1,3 +1,4 @@
+import { StoredPathWriter } from "./stored-path.js";
 import { annotationPageNumberSteps, extractPageAnnotationSteps } from "./annotations.js";
 import { resolvePageFonts, type ResolvedPageFont } from "../fonts/resolve.js";
 import { buildPostScriptJsFunction, DeviceCmykCS, MeshShading, Stream } from "../vendor/pdfjs-fonts.mjs";
@@ -6,6 +7,8 @@ import {
   decodePdfString,
   dictGet,
   type PdfClipPath,
+  type PdfStoredClipPaths,
+  type PdfPixelStorage,
   type PdfContentNode,
   type PdfCosDict,
   type PdfCosNode,
@@ -74,6 +77,7 @@ interface GraphicsState {
   fillColorSpaceName: string;
   strokeColorSpaceName: string;
   clipPaths?: readonly PdfClipPath[];
+  storedClipPaths?: PdfStoredClipPaths;
   clipImages?: readonly PdfEvaluatedImage[];
   softMask?: PdfSoftMask | undefined;
   clipRect?: [number, number, number, number] | undefined;
@@ -987,6 +991,9 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 }
 
 export type PdfEvaluationRequest = PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
+  | { readonly kind: "append-clip"; readonly storage: PdfPixelStorage; readonly previous: PdfStoredClipPaths | undefined; readonly clip: PdfClipPath }
+  | { readonly kind: "path-append"; readonly writer: StoredPathWriter; readonly segments: readonly PdfPathSegment[] }
+  | { readonly kind: "path-finish"; readonly writer: StoredPathWriter }
   | { readonly kind: "transform-path"; readonly path: PdfStoredPath; readonly matrix: Matrix6; readonly close: boolean }
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "resolve"; readonly node: PdfCosNode }
@@ -996,7 +1003,7 @@ export type PdfEvaluationRequest = PdfEvaluationShadingRequest | PdfEvaluationOp
   | { readonly kind: "color"; readonly name: string; readonly components: readonly number[]; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: Uint8Array | PdfContentRange; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeInlineImageNodeToRgba>[4] }
   | { readonly kind: "image"; readonly stream: PdfCosStream; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeXObjectImageToRgba>[3] };
-export type PdfEvaluationResult = PdfStoredPath | PdfContentEvent | ResolvedPageFont
+export type PdfEvaluationResult = PdfStoredClipPaths | PdfStoredPath | PdfContentEvent | ResolvedPageFont
   | { readonly kind: "shading"; readonly image: PdfEvaluatedImage | undefined }
   | { readonly kind: "color"; readonly value: readonly [number, number, number] }
   | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined }
@@ -1014,9 +1021,10 @@ function closeEvaluationIterators(iterators: ReadonlyArray<Pick<Iterator<unknown
 }
 
 /** Pull evaluated operations while the driver supplies content and resources.
- * Composite captures and path geometry remain in memory; the driver owns
+ * Composite captures remain in memory; retained geometry can use caller backing.
+ * The driver owns
  * resource admission and cursor cleanup, including on early return or failure. */
-export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes">): EvaluationWork {
+export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes"> & { readonly geometryStorage?: PdfPixelStorage | undefined; readonly geometrySignal?: AbortSignal | undefined }): EvaluationWork {
   const fonts: FontScope = [params.resourcesDict];
   function* selectedFont(scopes: FontScope, name: string): EvaluationWork<ResolvedPageFont | undefined> {
     for (const resources of scopes) {
@@ -1029,9 +1037,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
   let capturedOperations: PdfPaintOperation[] | undefined;
   let insideSoftMask = false;
   function* emit(operation: PdfPaintOperation): EvaluationWork {
-    const { clipPaths, clipImages, softMask } = curState();
-    if (clipPaths || clipImages || softMask) operation = { ...operation, value: { ...operation.value,
-      ...(clipPaths ? { clipPaths } : {}), ...(clipImages ? { clipImages } : {}), ...(softMask ? { softMask } : {}),
+    const { clipPaths, storedClipPaths, clipImages, softMask } = curState();
+    if (clipPaths || storedClipPaths || clipImages || softMask) operation = { ...operation, value: { ...operation.value,
+      ...(clipPaths ? { clipPaths } : {}), ...(storedClipPaths ? { storedClipPaths } : {}), ...(clipImages ? { clipImages } : {}), ...(softMask ? { softMask } : {}),
     } } as PdfPaintOperation;
     capturedOperations?.push(operation);
     yield { kind: "paint", operation, captured: capturedOperations !== undefined, insideSoftMask };
@@ -1062,6 +1070,14 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
 
   const stateStack: GraphicsState[] = [initialState];
   const curState = (): GraphicsState => stateStack[stateStack.length - 1]!;
+  function* appendClip(state: GraphicsState, clip: PdfClipPath): EvaluationWork {
+    if (params.geometryStorage) {
+      const reply = yield {kind:"append-clip",storage:params.geometryStorage,previous:state.storedClipPaths,clip};
+      if (!reply || !("kind" in reply) || reply.kind !== "stored-clips") throw new TypeError("Expected a stored clip snapshot");
+      state.storedClipPaths = reply;
+    } else state.clipPaths = [...(state.clipPaths ?? []), clip];
+  }
+
 
   function* decodeTokenGlyphs(
     bytes: Uint8Array,
@@ -1222,7 +1238,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             if (depth >= 8) throw new PdfError("E_LIMIT", "Soft-mask nesting exceeds the form depth limit");
             const parentOperations = capturedOperations;
             const parentInsideSoftMask = insideSoftMask;
-            const savedTextState = { pendingTextClip, hasTextClip, activeTm, activeTlm };
+            const savedTextState = { pendingTextClip, pendingStoredTextClip, hasTextClip, activeTm, activeTlm };
             const captured: PdfPaintOperation[] = [];
             capturedOperations = captured;
             insideSoftMask = true;
@@ -1231,6 +1247,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             // both its mask and its coverage at antialiased boundaries.
             const maskState = { ...st, softMask: undefined, fillAlpha: 1, strokeAlpha: 1, blendMode: "Normal" };
             delete maskState.clipPaths;
+            delete maskState.storedClipPaths;
             delete maskState.clipImages;
             delete maskState.clipRect;
             stateStack.push(maskState);
@@ -1240,7 +1257,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
               stateStack.pop();
               capturedOperations = parentOperations;
               insideSoftMask = parentInsideSoftMask;
-              ({ pendingTextClip, hasTextClip, activeTm, activeTlm } = savedTextState);
+              ({ pendingTextClip, pendingStoredTextClip, hasTextClip, activeTm, activeTlm } = savedTextState);
             }
             const parameters = yield { kind: "mask-parameters", mask, form, resources: activeResources };
             if (!parameters || !("kind" in parameters) || parameters.kind !== "mask-parameters") throw new TypeError("Expected PDF soft-mask parameters");
@@ -1321,6 +1338,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
   };
 
   let pendingTextClip: PdfPathSegment[] = [];
+  let pendingStoredTextClip: StoredPathWriter | undefined;
   let hasTextClip = false;
   let activeTm: Matrix6 = [1, 0, 0, 1, 0, 0];
   let activeTlm: Matrix6 = [1, 0, 0, 1, 0, 0];
@@ -1393,7 +1411,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     // containing stream's initial matrix, independently of the text matrix.
     const matrix = multiplyMatrices((yield* nums("Matrix", [1, 0, 0, 1, 0, 0])) as Matrix6, st.initialCtm);
     const type = yield* resolveEvaluationNode(dictGet(dict, "PatternType"));
-    stateStack.push({ ...st, clipRect: bounds, clipPaths: [...(st.clipPaths ?? []), { segments, fillRule, ...(storedSegments ? {storedSegments} : {}) }] });
+    const patternState = { ...st, clipRect: bounds };
+    yield* appendClip(patternState, {segments, fillRule, ...(storedSegments ? {storedSegments} : {})});
+    stateStack.push(patternState);
     try {
       if (type?.kind === "number" && type.value === 2) {
         const shading = yield* resolveEvaluationNode(dictGet(dict, "Shading"));
@@ -1435,8 +1455,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const tileClip: PdfPathSegment[] = [
             ...points.map(([x, y], i) => ({ kind: i === 0 ? "move" as const : "line" as const, x, y })), { kind: "close" },
           ];
-          stateStack.push({ ...curState(), fillPatternName: undefined, ctm: tileCtm, initialCtm: tileCtm,
-            clipPaths: [...(curState().clipPaths ?? []), tileClip] });
+          const tileState = { ...curState(), fillPatternName: undefined, ctm: tileCtm, initialCtm: tileCtm };
+          yield* appendClip(tileState, tileClip); stateStack.push(tileState);
           try { yield* walkNodes({ ...nodes }, mcid, actualText, patternResources, patternFonts, depth + 1); }
           finally { stateStack.pop(); }
         }
@@ -1479,7 +1499,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       nextCtm = multiplyMatrices(formMat, nextCtm);
     }
     let nextClip = !compositeGroup && st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined;
-    let nextClipPaths = compositeGroup ? undefined : st.clipPaths;
+    let formClip: PdfClipPath | undefined;
     const bboxArr = yield* resolveEvaluationArray(dictGet(form.dict, "BBox"));
     if (bboxArr && bboxArr.items.length >= 4) {
       const { items } = bboxArr;
@@ -1494,10 +1514,10 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         transformPoint(nextCtm, bx1, by1),
         transformPoint(nextCtm, bx0, by1),
       ];
-      nextClipPaths = [...(nextClipPaths ?? []), [
+      formClip = [
         ...pts.map(([x, y], index) => ({ kind: index === 0 ? "move" as const : "line" as const, x: x!, y: y! })),
         { kind: "close" },
-      ]];
+      ];
       const fMinX = Math.min(...pts.map(p => p[0]));
       const fMinY = Math.min(...pts.map(p => p[1]));
       const fMaxX = Math.max(...pts.map(p => p[0]));
@@ -1523,10 +1543,11 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       nextState.softMask = undefined;
       delete nextState.clipImages;
       delete nextState.clipPaths;
+      delete nextState.storedClipPaths;
       delete nextState.clipRect;
     }
     if (nextClip) nextState.clipRect = nextClip;
-    if (nextClipPaths) nextState.clipPaths = nextClipPaths;
+    if (formClip) yield* appendClip(nextState, formClip);
     stateStack.push(nextState);
     try {
       yield* walkNodes(formNodes, mcid, actualText, formResDict, formFonts, depth + 1);
@@ -1534,7 +1555,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       stateStack.pop();
       capturedOperations = parentOperations;
     }
-    if (compositeGroup) yield* emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, isolated, bboxClip: nextClipPaths?.[0], blendMode: st.blendMode, clipRect: st.clipRect } });
+    if (compositeGroup) yield* emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, isolated, bboxClip: formClip, blendMode: st.blendMode, clipRect: st.clipRect } });
   };
 
   function* markedContext(node: Extract<PdfContentNode, { kind: "marked-content" }>,
@@ -1590,7 +1611,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       const node = initialNode ?? (next ? (next.done ? undefined : next.value) : yield { kind: "node", ...(source ? { source } : {}) });
       initialNode = undefined;
       if (!node) break;
-      if (!("kind" in node) || node.kind === "stored-path") throw new TypeError("Expected a PDF content event");
+      if (!("kind" in node) || (node.kind === "stored-path" || node.kind === "stored-clips")) throw new TypeError("Expected a PDF content event");
       if (node.kind === "end-group") {
         const parent = groups.pop();
         if (parent) {
@@ -1644,13 +1665,13 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             if (close && last && last.kind !== "close" && last.kind !== "rect") transformedSegments.push({kind:"close"});
           }
 
-          const applyClip = () => {
+          const applyClip = function* (): EvaluationWork {
             if (!node.clip) return;
-            st.clipPaths = [...(st.clipPaths ?? []), {
+            yield* appendClip(st, {
               segments: transformedSegments,
               ...(storedSegments ? {storedSegments} : {}),
               fillRule: node.clip === "W*" ? "evenodd" : "nonzero",
-            }];
+            });
             let cMinX = Infinity, cMinY = Infinity, cMaxX = -Infinity, cMaxY = -Infinity;
             for (const s of transformedSegments) {
               if (s.kind === "move" || s.kind === "line") {
@@ -1685,7 +1706,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
 
           // PDF.js consumePath installs W/W* only after the current paint.
           if (node.paint === "n") {
-            applyClip();
+            yield* applyClip();
             break;
           }
 
@@ -1694,7 +1715,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const evaluatedFillPattern = isFill && (yield* paintPattern(transformedSegments,
             node.paint.includes("*") ? "evenodd" : "nonzero", activeResources, activeFonts, depth, mcid, actualText, storedSegments));
           if (evaluatedFillPattern && !isStroke) {
-            applyClip();
+            yield* applyClip();
             break;
           }
           const fillRule = node.paint.includes("*") ? "evenodd" : "nonzero";
@@ -1716,7 +1737,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             ...(st.dashPhase !== undefined ? { dashPhase: st.dashPhase } : {}),
             ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
           } });
-          applyClip();
+          yield* applyClip();
           break;
         }
 
@@ -1784,6 +1805,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const st = curState();
           if (!node.continuation) {
             pendingTextClip = [];
+            pendingStoredTextClip = undefined;
             hasTextClip = false;
             activeTm = [1, 0, 0, 1, 0, 0];
             activeTlm = [1, 0, 0, 1, 0, 0];
@@ -1810,7 +1832,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
                   const source = { stream: procNode };
                   const firstOp = yield { kind: "node", source };
-                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "stored-path" || firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color" || firstOp.kind === "shading"))) throw new TypeError("Expected Type3 content event");
+                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "stored-clips" || firstOp.kind === "stored-path" || firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color" || firstOp.kind === "shading"))) throw new TypeError("Expected Type3 content event");
                   if (!font.widths.has(item.charCode)) {
                     if (
                       firstOp?.kind === "state-op" &&
@@ -1889,7 +1911,12 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                       transformedGlyphSegs.push(seg);
                     }
                   }
-                  if (st.textRenderMode >= 4 && st.textRenderMode <= 7) pendingTextClip.push(...transformedGlyphSegs);
+                  if (st.textRenderMode >= 4 && st.textRenderMode <= 7) {
+                    if (params.geometryStorage) {
+                      pendingStoredTextClip ??= new StoredPathWriter(params.geometryStorage, params.geometrySignal);
+                      yield {kind:"path-append",writer:pendingStoredTextClip,segments:transformedGlyphSegs};
+                    } else pendingTextClip.push(...transformedGlyphSegs);
+                  }
                   const isFillGlyph = st.textRenderMode === 0 || st.textRenderMode === 2 || st.textRenderMode === 4 || st.textRenderMode === 6;
                   const isStrokeGlyph = st.textRenderMode === 1 || st.textRenderMode === 2 || st.textRenderMode === 5 || st.textRenderMode === 6;
                   const patterned = isFillGlyph && (yield* paintPattern(transformedGlyphSegs, "nonzero",
@@ -1995,8 +2022,13 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             }
           }
           if (node.end !== false && hasTextClip) {
-            st.clipPaths = [...(st.clipPaths ?? []), pendingTextClip];
+            if (pendingStoredTextClip) {
+              const path = yield {kind:"path-finish",writer:pendingStoredTextClip};
+              if (!path || !("kind" in path) || path.kind !== "stored-path") throw new TypeError("Expected stored text clip");
+              yield* appendClip(st, {segments:[],storedSegments:path,fillRule:"nonzero"});
+            } else yield* appendClip(st, pendingTextClip);
             pendingTextClip = [];
+            pendingStoredTextClip = undefined;
             hasTextClip = false;
           }
           activeTm = tm;
@@ -2040,7 +2072,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if (step.value.kind === "transform-path") {
+      } else if ((step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

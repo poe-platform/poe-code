@@ -29,7 +29,9 @@ without collecting segment arrays. `renderOperationStreamWindow` reads these
 pixels with a fixed range cache and stages downsampling levels in that same
 backing, preserving the buffered sampling math. Keep the backing alive until
 painting finishes, then close it. Parsed stroke point lists and dash runs spill
-to that backing with fixed caches for forward and reverse joins. Codec/color
+to that backing with fixed caches for forward and reverse joins. Clip lists use
+persistent fixed-size pages, preserving graphics-state snapshots and clip order;
+text clipping streams glyph outlines into the same backing. Codec/color
 state and nested captures retain their own memory requirements. Stored geometry is
 for the asynchronous raster driver; buffered display-list/SVG APIs retain their
 existing synchronous representation.
@@ -588,9 +590,9 @@ and patch control points in the caller's filesystem. Fixed caches and one-patch
 tessellation preserve global subdivision density without retaining a whole mesh.
 Fill and clip rasterization replay projected edges and cubic points with
 row-sized crossing scratch; scratch is local to each render. Stroke outlines
-and their projected raster edges also stream. Color-function snapshots, parser
-path segments, stroke point normalization, and dash expansion still have separate
-memory ownership.
+and their projected raster edges also stream. Retained parser paths, stroke
+points, dash expansion and geometric clip lists use caller backing; color-function
+snapshots and composite captures still have separate memory ownership.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in
 bitmap and SVG output, including uncolored tiles and transformed Forms.

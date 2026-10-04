@@ -169,6 +169,15 @@ export interface PdfStoredPath {
   readonly bounds: readonly [number, number, number, number];
 }
 
+/** Persistent clip vector in caller storage. Height is bounded by safe integer addresses. */
+export interface PdfStoredClipPaths {
+  readonly kind: "stored-clips";
+  readonly storage: PdfPixelStorage;
+  readonly position: number;
+  readonly count: number;
+  readonly height: number;
+}
+
 /** A clipping intersection. Bare segment arrays retain nonzero semantics. */
 export type PdfClipPath = readonly PdfPathSegment[] | {
   readonly segments: readonly PdfPathSegment[];
@@ -229,6 +238,7 @@ export interface PdfPlacedGlyph {
   readonly actualText?: string | undefined;
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
+  readonly storedClipPaths?: PdfStoredClipPaths | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly softMask?: PdfSoftMask | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
@@ -253,6 +263,7 @@ export interface PdfEvaluatedPath {
   readonly blendMode?: string | undefined;
   readonly isClip?: boolean | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
+  readonly storedClipPaths?: PdfStoredClipPaths | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly softMask?: PdfSoftMask | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
@@ -277,6 +288,7 @@ export interface PdfEvaluatedImage {
   readonly storedRgba?: PdfStoredPixels | undefined;
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
+  readonly storedClipPaths?: PdfStoredClipPaths | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly softMask?: PdfSoftMask | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
@@ -304,6 +316,7 @@ export interface PdfPaintGroup {
   readonly bboxClip?: PdfClipPath | undefined;
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
+  readonly storedClipPaths?: PdfStoredClipPaths | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
   readonly softMask?: PdfSoftMask | undefined;

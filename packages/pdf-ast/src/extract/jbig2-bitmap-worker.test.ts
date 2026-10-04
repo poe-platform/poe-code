@@ -5,9 +5,9 @@ import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 import {decodeJbig2ToRgba} from "./images.js";
 
-it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region", "halftone", "patterns", "repeated text", "repeated halftone", "symbols", "MMR symbols"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
+it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region", "halftone", "patterns", "repeated text", "repeated halftone", "symbols", "MMR symbols", "refinement symbols", "adaptive refinement symbols"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
  const inputs=new Map<number,{bytes:Uint8Array;sum:number}>();
- for(const height of profile === "patterns" ? [129,255] : profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile.startsWith("repeated")) ? [17,129] : [8193,32769]){
+ for(const height of profile === "adaptive refinement symbols" ? [129,520] : profile === "patterns" ? [129,255] : profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile.startsWith("repeated")) ? [17,129] : [8193,32769]){
   let bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
   if(profile === "region") {
    // One vertical-zero MMR code per all-white row, with a complete region
@@ -61,7 +61,16 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    input.set(header,51);input.set(pixels,51+header.length);input.set([8,64],51+header.length+pixels.length);
    view.setUint32(start,2);input[start+4]=6;input[start+5]=32;input[start+6]=1;input[start+7]=1;view.setUint32(start+8,39);
    view.setUint32(start+12,64);view.setUint32(start+16,height);view.setUint16(start+29,16);view.setUint32(start+31,1);bytes=input;
+   if(profile.includes("refinement")) {
+    const adaptive=profile === "adaptive refinement symbols",offset=adaptive?39:35;
+    const refined=new Uint8Array(start+offset+height*2+2);refined.set(input.subarray(0,start+(adaptive?31:35)));const view=new DataView(refined.buffer);
+    view.setUint16(start+29,adaptive?18:32786);view.setUint32(start+8,offset-12+height*2+2);
+    if(adaptive){refined.set([255,128,255,255],start+31);view.setUint32(start+35,1);}
+    let state=adaptive?3:height===8193?22:8;for(let at=start+offset;at<refined.length-2;at++){state=(Math.imul(state,1664525)+1013904223)>>>0;refined[at]=state>>>24;}
+    refined.set([255,172],refined.length-2);bytes=refined;
+   }
   }
+
   new DataView(bytes.buffer).setUint32(15,height);
   if(profile.includes("segments")) {
    const records:Uint8Array[]=[];
@@ -90,7 +99,7 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
  const storage=new PagedStorage({fs,cwd:'/',env:{},signal:new AbortController().signal},2);
  for(const name of ['Int8Array','Uint8Array','Uint8ClampedArray','Uint16Array','Uint32Array']){const Native=globalThis[name];originals.set(name,Native);globalThis[name]=new Proxy(Native,{construct(target,args){const bytes=typeof args[0]==='number'?args[0]*target.BYTES_PER_ELEMENT:args[0]?.byteLength??(args[0]?.length??0)*target.BYTES_PER_ELEMENT;peak=Math.max(peak,bytes);if(bytes>65536)throw Error('resident bitmap '+bytes);return Reflect.construct(target,args);}});}
  try{const source={size:length,chunkBytes:128,async read(at,length){if(length>128)throw Error('whole input');return new Uint8Array(await(await env.INPUT.fetch('https://input/?height='+height+'&at='+at+'&length='+length)).arrayBuffer());}};
- const image=await PdfRetainedJbig2.open(source,64,height,{bitmapStorage:storage,maxWorkingBytes:${profile.includes("symbols") ? 524288 : 262144}});let sum=0,index=0;try{for await(const row of image.rows())for(const value of row)sum=(sum+value*(index++%65521+1))%1000000007;}finally{image.close();await storage.close();}
+ const image=await PdfRetainedJbig2.open(source,64,height,{bitmapStorage:storage,maxWorkingBytes:${profile.includes("refinement") ? 1048576 : profile.includes("symbols") ? 524288 : 262144}});let sum=0,index=0;try{for await(const row of image.rows())for(const value of row)sum=(sum+value*(index++%65521+1))%1000000007;}finally{image.close();await storage.close();}
  return Response.json({sum,peak,opened,closed,decoderBytes:image.decoderBytes,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }finally{await storage.close();for(const [name,Native]of originals)globalThis[name]=Native;}}};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);

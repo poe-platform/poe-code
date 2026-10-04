@@ -2762,7 +2762,7 @@ function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, 
         for (k = 0; k < changingEntriesLength; k++) {
           i0 = i + changingTemplateY[k];
           j0 = j + changingTemplateX[k];
-          bit = bitmap[onRow ? i0 % rowCount : i0][j0];
+          bit = bitmap[onRow && i0 <= i ? i0 % rowCount : i0][j0];
           if (bit) {
             bit = changingTemplateBit[k];
             contextLabel |= bit;
@@ -2776,7 +2776,7 @@ function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, 
           if (j0 >= 0 && j0 < width) {
             i0 = i + templateY[k];
             if (i0 >= 0) {
-              bit = bitmap[onRow ? i0 % rowCount : i0][j0];
+              bit = bitmap[onRow && i0 <= i ? i0 % rowCount : i0][j0];
               if (bit) {
                 contextLabel |= bit << shift;
               }
@@ -2793,7 +2793,7 @@ function* decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, 
 }
 function* decodeRefinement(width, height, templateIndex, referenceBitmap, offsetX, offsetY, prediction, at, decodingContext) {
   decodingContext.onImageDimensions?.(width, height);
-  decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
+  if (!decodingContext.storedBitmap) decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
   let codingTemplate = RefinementTemplates[templateIndex].coding;
   if (templateIndex === 0) {
     codingTemplate = codingTemplate.concat([at[0]]);
@@ -2820,6 +2820,9 @@ function* decodeRefinement(width, height, templateIndex, referenceBitmap, offset
   const referenceWidth = referenceBitmap.width ?? referenceBitmap[0].length;
   const referenceHeight = referenceBitmap.height ?? referenceBitmap.length;
   const pseudoPixelContext = RefinementReusedContexts[templateIndex];
+  const rowCount = Math.max(1, ...codingTemplateY.map(y => -y)) + 1;
+  if (decodingContext.storedBitmap) decodingContext.onAllocation?.((width + 256) * (rowCount + 1) + 4096);
+  const stored = decodingContext.storedBitmap ? yield* createStoredJbigBitmap(width, height) : undefined;
   const bitmap = [];
   const decoder = (yield* decodingContext.getDecoder());
   const contexts = decodingContext.contextCache.getContexts("GR");
@@ -2833,7 +2836,8 @@ function* decodeRefinement(width, height, templateIndex, referenceBitmap, offset
       }
     }
     const row = new Uint8Array(width);
-    bitmap.push(row);
+    if (stored) bitmap[i % rowCount] = row;
+    else bitmap.push(row);
     for (let j = 0; j < width; j++) {
       let i0, j0;
       let contextLabel = 0;
@@ -2843,7 +2847,7 @@ function* decodeRefinement(width, height, templateIndex, referenceBitmap, offset
         if (i0 < 0 || j0 < 0 || j0 >= width) {
           contextLabel <<= 1;
         } else {
-          contextLabel = contextLabel << 1 | bitmap[i0][j0];
+          contextLabel = contextLabel << 1 | bitmap[stored && i0 <= i ? i0 % rowCount : i0][j0];
         }
       }
       for (k = 0; k < referenceTemplateLength; k++) {
@@ -2858,8 +2862,9 @@ function* decodeRefinement(width, height, templateIndex, referenceBitmap, offset
       const pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
       row[j] = pixel;
     }
+    if (stored) yield* storeJbigRow(stored, row, i);
   }
-  return bitmap;
+  return stored ?? bitmap;
 }
 function* decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols, numberOfExportedSymbols, huffmanTables, templateIndex, at, refinementTemplateIndex, refinementAt, decodingContext, huffmanInput) {
   if (huffman && refinement) {
@@ -3787,7 +3792,7 @@ class SimpleSegmentVisitor {
       huffmanInput = new Reader(data, start, end);
       huffmanTables = (yield* getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, admit));
     }
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit, this.storedBitmap);
     const bitmap = (yield* decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput, this.storedBitmap));
     (yield* this.drawBitmap(regionInfo, bitmap));
   }

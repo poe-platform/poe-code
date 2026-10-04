@@ -115,3 +115,13 @@ it.each([false,true].flatMap(transposed=>[0,2].flatMap(operator=>[0,1].map(fill=
   }expect(y).toBe(520);}finally{image.close();}
  }finally{await storage.close();await source.close();await globalSource.close();expect(await fs.readdir("/scratch")).toEqual([]);}
 });
+
+it("rejects a forward adaptive coding row after switching to a retained row window",async()=>{
+ const bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
+ bytes[60]=3;
+ expect(()=>new Jbig2Image().parseChunks([{data:bytes,start:0,end:bytes.length}])).toThrow();
+ const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",bytes);
+ const source=await PdfFileSource.open(fs,"/input"),storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal},2);
+ try{await expect(PdfRetainedJbig2.open(source,64,32,{bitmapStorage:storage})).rejects.toThrow();}
+ finally{await storage.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
+});

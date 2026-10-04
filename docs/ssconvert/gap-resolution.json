@@ -5145,6 +5145,13 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "xlsxBlankHeaderDefaults": {
+      "finding": "Omitted XLSX headers/footers inherited Gnumeric sheet/page defaults and printed invented text. Native xlsx-read.c wrap_sheet_new explicitly initializes both to blank.",
+      "implementation": "Always materialize normalized XLSX print header/footer defaults, including sheets without print elements; explicit section/opcode text overrides only its corresponding field. Foreign namespaces remain ignored and margin precision unchanged.",
+      "validation": "Five original failing regressions repaired.360 owner tests;3005 integration cases with four affected assertions updated and134-case rerun passing. Selected19-build closure, owner and command lint/source/test/Node/browser types pass. Six independent inputs produce12 public PDFs and12 XLSX roundtrips with empty diagnostics;18 native/public PDF text checks and72 OpenPyXL header fields match. PDF and CLI screenshots inspected.",
+      "limits": "Original Calibri11 default input remains an explicit unsupported-style PDF control. Qualified header cohort uses Sans10; header/footer glyph geometry and wider rendering remain open.",
+      "evidence": "out/ssconvert-continuation-1748/xlsx-default-headers"
+    },
     "pdfCenteredSpans": {
       "finding": "Centered string overflow previously refused default-style text layout. Three original memory reproducers failed.",
       "implementation": "Display-rounded advances choose whole-column extents independently on either side; occupied/formula cells and page bounds clip each direction. Native print-cell/cell-draw center scaling is preserved. Hidden-column traversal charges work and adjacent fractional boundaries cannot create phantom spans.",

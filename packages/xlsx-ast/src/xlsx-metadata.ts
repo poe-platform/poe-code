@@ -48,7 +48,8 @@ export function readXlsxMetadata(sheet: SourceNode): readonly UnsupportedRecord[
   const margins = element(sheet, "pageMargins"), setup = element(sheet, "pageSetup"), hf = element(sheet, "headerFooter");
   const options = element(sheet, "printOptions");
   const rowBreaks = element(sheet, "rowBreaks"), colBreaks = element(sheet, "colBreaks");
-  if (margins || setup || hf || rowBreaks || colBreaks || options) {
+  {
+    // XLSX defaults differ from Gnumeric: omitted headers and footers are blank.
     const print: ImportedValue[] = [];
     for (const [source, target] of [["headings", "titles"], ["gridLines", "grid"], ["horizontalCentered", "hcenter"], ["verticalCentered", "vcenter"]] as const) {
       const value = attribute(options, source);
@@ -94,7 +95,8 @@ export function readXlsxMetadata(sheet: SourceNode): readonly UnsupportedRecord[
       if (errors) print.push(gnode("errors", { PrintErrorsAs: errors }));
     }
     for (const [source, target] of [["oddHeader", "Header"], ["oddFooter", "Footer"]] as const) {
-      const value = element(hf, source); if (value) print.push(gnode(target, header(decodeXlsxString(value.text))));
+      const value = element(hf, source);
+      print.push(gnode(target, header(value ? decodeXlsxString(value.text) : "")));
     }
     for (const [source, name] of [[rowBreaks, "hPageBreaks"], [colBreaks, "vPageBreaks"]] as const) if (source) {
       const breaks = source.children.filter(c => nodeName(c) === "brk").map(node => gnode("break", {

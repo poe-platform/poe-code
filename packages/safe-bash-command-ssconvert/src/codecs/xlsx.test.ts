@@ -6,6 +6,7 @@ import { runCommand } from "../cli.js";
 import type { CapabilityContext } from "../contracts.js";
 import { readXlsx, probeXlsx } from "./xlsx.js";
 import { writeGnumeric } from "./gnumeric.js";
+import { metadataNode } from "./xlsx-write-support.js";
 
 export const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -117,7 +118,9 @@ it("matches native namespace scanning at sheet declarations and its absence at c
 });
 it("ignores known foreign namespace print metadata", async () => {
   const book = await readXlsx(await fixture(parts('<sheetData/><pageMargins xmlns="http://schemas.openxmlformats.org/drawingml/2006/main" left="999"/>')), context);
-  expect(book.sheets[0]!.unsupportedRecords?.some(record => record.kind === "PrintInformation") ?? false).toBe(false);
+  const print = metadataNode(book.sheets[0]!.unsupportedRecords!.find(record => record.kind === "PrintInformation")!.data)!;
+  expect(print.children.map(child => child.name)).toEqual(["Header", "Footer"]);
+  expect(print.children.every(child => Object.values(child.attributes).every(value => value === ""))).toBe(true);
 });
 it.each(["C", "C.UTF-8"])("preserves native shared-string warning bytes under %s", async locale => {
   const input = parts('<sheetData><row><c r="A1" t="s"><v>0\u00a0</v></c></row></sheetData>', `<workbook xmlns="${ss}" xmlns:r="${rel}"><sheets><sheet name="S" r:id="s"/></sheets></workbook>`);
@@ -175,7 +178,7 @@ it("exports interpreted comments, print settings and sheet protection", async ()
 it("preserves full precision for imported print points", async () => {
   const book = await readXlsx(await fixture(parts('<sheetData/><pageMargins top="0.123456"/>')), context);
   const print = book.sheets[0]!.unsupportedRecords!.find(record => record.kind === "PrintInformation")!;
-  expect(print.data).toMatchObject({ children: [{ name: "Margins", children: [{ name: "top", attributes: expect.arrayContaining([{ name: "Points", namespace: "", value: String(0.123456 * 72) }]) }] }] });
+  expect(print.data).toMatchObject({ children: expect.arrayContaining([expect.objectContaining({ name: "Margins", children: [expect.objectContaining({ name: "top", attributes: expect.arrayContaining([{ name: "Points", namespace: "", value: String(0.123456 * 72) }]) })] })]) });
   const before = structuredClone(book);
   expect(new TextDecoder().decode(await writeGnumeric(book, [], context))).toContain('Points="8.889"');
   expect(book).toEqual(before);

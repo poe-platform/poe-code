@@ -5381,6 +5381,49 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         };
     }
 }
+async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend: CompareFileSession, token: string, geometry: string, state: MagickState, signal: AbortSignal): Promise<StoredRgbaImage> {
+    const g = parseMagickGeometry(geometry), w = image.width, h = image.height;
+    type Span = { source: number; target: number; length: number };
+    let xs: Span[], ys: Span[], width = w, height = h;
+    if (token === "-roll") {
+        const dx = ((Math.round(g.x || g.width || 0) % w) + w) % w;
+        const dy = ((Math.round(g.y || g.height || 0) % h) + h) % h;
+        xs = [{ source: w - dx, target: 0, length: dx }, { source: 0, target: dx, length: w - dx }];
+        ys = [{ source: h - dy, target: 0, length: dy }, { source: 0, target: dy, length: h - dy }];
+    } else if (token === "-splice") {
+        const sw = Math.max(0, Math.round(g.width ?? 0)), sh = Math.max(0, Math.round(g.height ?? 0));
+        const base = resolveGravityOffset(w, h, state.gravity);
+        const east = state.gravity === "east" || state.gravity === "northeast" || state.gravity === "southeast";
+        const south = state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast";
+        const x = Math.max(0, Math.min(w, Math.round(base.left + (east ? -g.x : g.x))));
+        const y = Math.max(0, Math.min(h, Math.round(base.top + (south ? -g.y : g.y))));
+        width += sw; height += sh;
+        xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + sw, length: w - x }];
+        ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: h - y }];
+    } else {
+        const cw = Math.max(0, Math.round(g.width ?? 0)), ch = Math.max(0, Math.round(g.height ?? 0));
+        const { x, y } = gravityAdjustBox(w, h, cw, ch, g.x, g.y, state.gravity);
+        if (x + cw < 0 || y + ch < 0 || x > w || y > h) return image;
+        const x0 = Math.max(0, Math.min(w, x)), x1 = Math.max(x0, Math.min(w, x + cw));
+        const y0 = Math.max(0, Math.min(h, y)), y1 = Math.max(y0, Math.min(h, y + ch));
+        if (x1 - x0 >= w || y1 - y0 >= h) return image;
+        width -= x1 - x0; height -= y1 - y0;
+        xs = [{ source: 0, target: 0, length: x0 }, { source: x1, target: x0, length: w - x1 }];
+        ys = [{ source: 0, target: 0, length: y0 }, { source: y1, target: y0, length: h - y1 }];
+    }
+    const position = token === "-splice" ? (await createStoredCanvas(width, height, state.background, backend, signal)).position : backend.storage.allocate(width * height * 4);
+    let work = 0;
+    for (const y of ys) for (let row = 0; row < y.length; row++) for (const x of xs) {
+        for (let offset = 0; offset < x.length; offset += 4096) {
+            if (work++ % 64 === 0) await yieldTurn(signal);
+            const length = Math.min(4096, x.length - offset) * 4;
+            const bytes = await backend.storage.read(image.position + ((y.source + row) * w + x.source + offset) * 4, length);
+            await backend.storage.write(position + ((y.target + row) * width + x.target + offset) * 4, bytes);
+        }
+    }
+    return { ...image, position, width, height, ...(token === "-splice" ? { hasAlpha: true } : {}) };
+}
+
 async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
     const outSpec = argv.at(-1);
@@ -5429,7 +5472,10 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
+        if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
+            const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
+            steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);
+        } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel;
             transform(image => { const options = magickResizeOptions(image, geometry, kernel); return options ? { kind: "resize", ...options } : undefined; });
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {

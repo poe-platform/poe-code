@@ -1,5 +1,5 @@
 import {wireEnums} from "./retained-ast-budgets.js";
-import {reserveRetainedOutput} from "./retained-output-budgets.js";
+import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import {BackedTextSet} from "./backed-text-set.js";
@@ -76,7 +76,7 @@ class RstTape {
       if (buffer.length >= 4096) {await this.text.append(output, await this.literal(buffer)); buffer = "";}
     }
     if (buffer) await this.text.append(output, await this.literal(buffer));
-    if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", output.units);
+    if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) {this.context.bound("outputBytes", output.units); if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", output.units * 2);}
     return output;
   }
   private async unique(base: TextRange): Promise<TextRange> {
@@ -85,6 +85,7 @@ class RstTape {
       name = await this.join(await this.copy(base), await this.literal(`-ref-${++count}`)); await this.context.cooperate();
     }
     if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", name.units * 2);
     await this.used.add(name); return name;
   }
   private async id(source: TextRange): Promise<TextRange> {
@@ -170,7 +171,8 @@ class RstTape {
       const frame = await this.read<{parent: number; job: Job}>(this.top); this.top = frame.parent; const job = frame.job;
       await this.context.cooperate();
       if (job.op === "reserveFinish") {
-        this.context.bound("outputBytes", this.source.units - job.start!); continue;
+        this.context.bound("outputBytes", this.source.units - job.start!);
+        if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (this.source.units - job.start!) * 2); continue;
       }
       if (job.op === "reserveNext") {
         if (job.node < job.end!) {await this.push({...job, node: (await this.tree.describe(job.node)).end}); await this.push({op: "reserve", node: job.node, path: 0});} continue;
@@ -191,7 +193,7 @@ class RstTape {
         }
       }
       if (header.kind === "object" || header.kind === "array") {
-        if (Number.isFinite(this.context.limits.references)) await this.push({op: "reserveFinish", node: 0, path: 0, start: this.source.units});
+        if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) await this.push({op: "reserveFinish", node: 0, path: 0, start: this.source.units});
         await this.push({op: "reserveNext", node: job.node + 32, path: 0, end: header.end});
       }
     }
@@ -243,14 +245,14 @@ class RstTape {
         }
         if (child) {await this.push({...job, stage: 1}); await this.push(child);} else {
           result = job.text!; markup = false;
-          if (Number.isFinite(this.context.limits.references) && (job.mode === "inline" || job.mode === "block")) this.context.bound("outputBytes", result.units);
+          if ((Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) && (job.mode === "inline" || job.mode === "block")) {this.context.bound("outputBytes", result.units); if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 2);}
         }
         continue;
       }
       if (job.op === "post") {
         if (job.mode === "surround") result = await this.join(await this.literal(job.first!), result, await this.literal(job.last!));
         if (job.mode === "structural" && !result.units && !["Plain", "Para", "Div", "Figure"].includes(job.tag!)) await this.fail("Empty RST structural container", job.path);
-        if (job.mode === "structural" && Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", result.units);
+        if (job.mode === "structural" && (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes))) {this.context.bound("outputBytes", result.units); if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 2);}
         if (job.mode === "paragraph") result = await this.paragraph(result);
         if (job.mode === "style") {
           if (job.nested) await this.loss("Nested RST inline style projected to text", job.path);
@@ -398,7 +400,7 @@ class RstTape {
     const output = this.strikeout ? await this.literal(".. role:: strikeout") : emptyText();
     for (const value of [body, this.definitions]) if (value.units) {if (output.units) await this.text.append(output, await this.literal("\n\n")); await this.text.append(output, value);}
     if (body.units || this.definitions.units) await this.text.append(output, await this.literal("\n"));
-    if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", output.units);
+    if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) {this.context.bound("outputBytes", output.units); if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", output.units * 2);}
     return output;
   }
 
@@ -462,8 +464,8 @@ export async function writeRetainedRst(tree: BackedJson, context: ExecutionConte
       const encoder = new TextEncoder();
       for await (const part of writer.text.unicodeChunks(result)) yield encoder.encode(options.eol === "crlf" ? part.split("\n").join("\r\n") : part);
     };
-    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
-    for await (const bytes of chunks()) await context.emit(bytes);
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references) && !Number.isFinite(context.limits.retainedBytes)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
+    await emitRetainedOutput(chunks(), context);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};} finally {release();}
   if (failure) throw failure.reason;

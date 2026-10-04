@@ -1,0 +1,61 @@
+import type {IntegerTable} from "safe-bash-io-engine/storage";
+import type {BackedJson} from "./backed-json.js";
+import type {backedJsonOrder} from "./backed-json-order.js";
+import type {ExecutionContext} from "./execution.js";
+import {readJsonNumber, JsonNumberError} from "./json-number.js";
+import {PandocError} from "./errors.js";
+import {retainedPath, retainedValues} from "./retained-wire.js";
+
+/** Reserve normalized cell spans in document order without collecting tables.
+ * When translation positions are supplied, also perform the scalar checks that
+ * precede schema validation in the buffered normalizer. */
+export async function reserveRetainedTableCells(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, metadataOnly = false, enums?: IntegerTable): Promise<void> {
+  if (!Number.isFinite(context.limits.tableCells)) return;
+  let cells = 0;
+  const fail = async (position: number, message: string, code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
+    const path = await retainedPath(tree, position, metadataOnly);
+    throw new PandocError(code, "convert", `${path}: ${message}`, undefined, path);
+  };
+  const string = async (position: number, location = position): Promise<void> => {
+    let high = false;
+    for await (const chunk of tree.scalarChunks(position)) for (let i = 0; i < chunk.length; i++) {
+      const code = chunk.charCodeAt(i);
+      if (high) {if (code < 0xdc00 || code > 0xdfff) await fail(location, "Invalid Unicode"); high = false;}
+      else if (code >= 0xd800 && code <= 0xdbff) high = true;
+      else if (code >= 0xdc00 && code <= 0xdfff) await fail(location, "Invalid Unicode");
+    }
+    if (high) await fail(location, "Invalid Unicode");
+  };
+  const roots = metadataOnly ? [tree.rootPosition] : [(await tree.property(tree.rootPosition, "blocks"))!, (await tree.property(tree.rootPosition, "meta"))!];
+  for (const root of roots) for await (const {position: node, exit, key} of retainedValues(tree, order, root, async position => !!await enums?.get(BigInt(position)))) {
+    if (exit) continue;
+    await context.cooperate();
+    const header = await tree.describe(node), translated = Number(await enums?.get(BigInt(node)) ?? 0n);
+    if (enums) {
+      if (key) {
+        await string(key, header.parent);
+        if (["__proto__", "constructor", "prototype"].includes(await tree.smallText(key, 11) ?? "")) await fail(node, "Invalid shape");
+      }
+      if (translated || header.kind === "string") await string(translated || node, node);
+    }
+    if (header.kind !== "array" || header.children !== 5) continue;
+    const first = await tree.describe(node + 32), second = await tree.describe(first.end);
+    const tag = second.kind === "object" ? await tree.property(first.end, "t") : undefined;
+    const isString = enums ? second.kind === "string" || !!await enums.get(BigInt(first.end))
+      : tag !== undefined && ["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter"].includes(await tree.smallText(tag, 16) ?? "");
+    if (first.kind !== "array" || !isString) continue;
+    const row = second.end, column = (await tree.describe(row)).end;
+    const spanNumber = async (position: number): Promise<number> => {
+      if ((await tree.describe(position)).kind !== "literal") return fail(node, "Invalid spans");
+      try {
+        const value = await readJsonNumber(tree.scalarChunks(position), units => context.cooperate(units));
+        if (!Number.isSafeInteger(value) || value < 1) return fail(node, "Invalid spans");
+        return value;
+      } catch (error) {if (error instanceof JsonNumberError) return fail(node, "Invalid spans"); throw error;}
+    };
+    const span = await spanNumber(row) * await spanNumber(column);
+    cells += span;
+    if (!Number.isSafeInteger(cells) || cells > context.limits.tableCells) await fail(node, "AST budget exceeded", "E_LIMIT");
+    context.charge("tableCells", span);
+  }
+}

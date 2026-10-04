@@ -43,7 +43,8 @@ export class RetainedJsonOptions {
       return key;
     };
     const ast = layers === "ast";
-    const fail = async (frame: number, key?: string | number, message = "Invalid shape"): Promise<never> => {
+    let cells = 0;
+    const fail = async (frame: number, key?: string | number, message = "Invalid shape", code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
       let path = key === undefined ? "" : typeof key === "number" ? `[${key}]` : `.${key}`;
       for (let cursor = frame; cursor;) {
         const [parent, edge] = await get(cursor, 2);
@@ -53,7 +54,7 @@ export class RetainedJsonOptions {
         cursor = parent;
       }
       path = "$.metadata" + path;
-      throw new PandocError("E_AST", "convert", `${path}: ${message}`, undefined, path);
+      throw new PandocError(code, "convert", `${path}: ${message}`, undefined, path);
     };
     const unicode = async (value: string, frame: number, key?: string | number): Promise<void> => {
       for (let index = 0; index < value.length; index++) {
@@ -85,6 +86,20 @@ export class RetainedJsonOptions {
       }
       await put(position, [parent, edge, keys, count, 0, level, array ? 1 : 0, 0]);
       if (ast && (Object.getOwnPropertySymbols(value).length || !array && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) await fail(position);
+      if (ast && array && Number.isFinite(context.limits.tableCells)) {
+        // Normalization inspects every own array descriptor before recognizing
+        // cell tuples, so accessors and sparse slots precede the budget charge.
+        for (let i = 0; i < count; i++) {await property(value, i, position); await context.cooperate();}
+        if (count === 5 && Array.isArray(await property(value, 0, position)) && typeof await property(value, 1, position) === "string") {
+          const row = await property(value, 2, position), column = await property(value, 3, position);
+          if (typeof row !== "number" || typeof column !== "number" || !Number.isSafeInteger(row) || !Number.isSafeInteger(column) || row < 1 || column < 1)
+            await fail(position, undefined, "Invalid spans");
+          const span = (row as number) * (column as number);
+          cells += span;
+          if (!Number.isSafeInteger(cells) || cells > context.limits.tableCells) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
+          context.charge("tableCells", span);
+        }
+      }
       await tree.begin(array ? "array" : "object"); return position;
     };
     const resolve = async (frame: number, candidate?: object, candidateKey?: string | number): Promise<object> => {

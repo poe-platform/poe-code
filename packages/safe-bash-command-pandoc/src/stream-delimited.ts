@@ -91,7 +91,7 @@ export async function streamDelimited(
           throw new PandocError(error.code, "convert", error.message, error.format, `${input.source ?? input.base}:${error.location ?? "1:1"}`);
         throw error;
       }
-      context.charge("tableCells", parser.rows * parser.width);
+      for (let cell = 0; cell < parser.rows * parser.width; cell++) {context.charge("tableCells", 1); await context.cooperate();}
       view.setFloat64(8, parser.rows, true);
       view.setFloat64(16, parser.width, true);
       await storage.write(position, bytes);

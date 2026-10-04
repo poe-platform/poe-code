@@ -190,7 +190,7 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
       yield encoder.encode('{"pandoc-api-version":[1,23,1,2],"meta":');
       yield* merged.chunks(); yield encoder.encode(',"blocks":');
       yield* source.chunks(blocks, document.order); yield encoder.encode("}");
-    })()}, context, working, false);
+    })()}, context, working, false, false);
   } catch (reason) {failure = {reason};}
   try {await close();} catch (reason) {failure ??= {reason};}
   finally {release();}

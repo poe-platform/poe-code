@@ -1,3 +1,5 @@
+import {validateRetainedWire} from "./retained-wire.js";
+import {reserveRetainedTableCells} from "./retained-table-budget.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedJson} from "./backed-json.js";
 import {parseBackedJson} from "./backed-json-parser.js";
@@ -9,7 +11,7 @@ import type {ExecutionContext} from "./execution.js";
 import type {InputSource, WorkingStorageOptions} from "./types.js";
 
 /** Own a validated, replayable Pandoc wire document in caller storage. */
-export async function readRetainedJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, chargeInput = true) {
+export async function readRetainedJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, chargeInput = true, chargeCells = true) {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384)
     context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
@@ -73,8 +75,19 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         throw new PandocError("E_AST", "read", error.message, "json", `$@${offset}`);
       }
     });
-    await validateBackedPandoc(tree, scratch, context);
     const order = await backedJsonOrder(tree, scratch, units => context.cooperate(units));
+    if (chargeCells) {
+      try {
+        const enums = Number.isFinite(context.limits.tableCells) ? await validateRetainedWire(tree, order, scratch, context) : undefined;
+        await reserveRetainedTableCells(tree, order, context, false, enums);
+      }
+      catch (error) {
+        if (error instanceof PandocError && error.code === "E_LIMIT" && input.source)
+          throw new PandocError(error.code, error.operation, error.message, error.format, `${input.source}:${error.location ?? "1:1"}`);
+        throw error;
+      }
+    }
+    await validateBackedPandoc(tree, scratch, context, undefined, chargeCells && Number.isFinite(context.limits.tableCells));
     const meta = (await tree.property(tree.rootPosition, "meta"))!, blocks = (await tree.property(tree.rootPosition, "blocks"))!;
     const encoder = new TextEncoder();
     const output = async function* (eol?: "lf" | "crlf" | "native") {

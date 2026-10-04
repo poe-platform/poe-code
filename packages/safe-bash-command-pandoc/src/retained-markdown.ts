@@ -407,6 +407,7 @@ class MarkdownTape {
         const rows = await this.at(job.node, 1); await this.push({...job, stage: 1});
         if (await this.count(rows)) await this.push({op: "tableRows", node: rows, path: await this.path(job.path, "[1]"), width: job.width});
         else {
+          this.context.charge("tableCells", job.width!);
           result = await this.literal("| ");
           for (let column = 0; column < job.width!; column++) await this.text.append(result, await this.literal(column + 1 === job.width ? " |" : " | "));
           await this.text.append(result, await this.literal("\n"));

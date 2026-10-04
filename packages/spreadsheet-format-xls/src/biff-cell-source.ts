@@ -16,6 +16,28 @@ export function createBiffCellSource(context: CapabilityContext) {
   storage = context.createWorkingStorage(); check();
   const index = new IntegerTable(storage, 128), values = createBiffSharedStrings(context);
   return {
+    columns() {
+      let head: number | undefined, tail: number | undefined;
+      const links = 1n << 61n;
+      return {
+        async push(axis: AxisMetadata) {
+          check(); const ordinal = await values.append({ text: JSON.stringify(axis) }); check();
+          if (tail !== undefined) { await index.set(links | BigInt(tail), BigInt(ordinal)); check(); }
+          else head = ordinal;
+          tail = ordinal;
+        },
+        async *values(): AsyncGenerator<AxisMetadata> {
+          check(); let ordinal = head;
+          while (ordinal !== undefined) {
+            const value = await values.get(ordinal); check();
+            if (!value) throw new SsconvertError("io", "Missing staged BIFF column");
+            yield JSON.parse(value.text) as AxisMetadata;
+            check(); const next = await index.get(links | BigInt(ordinal)); check();
+            ordinal = next === undefined ? undefined : Number(next);
+          }
+        }
+      };
+    },
     rows(sheet: number) {
       const base = (1n << 62n) | BigInt(sheet) << 24n, order = (1n << 63n) | BigInt(sheet) << 24n;
       let count = 0;

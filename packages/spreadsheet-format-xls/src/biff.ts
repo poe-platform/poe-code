@@ -96,7 +96,7 @@ interface PendingExternalName { name: string; sheetIndex: number; tokens: Uint8A
 interface LegacyExternalLink { workbook?: string; sheet?: string; addin: boolean; names: PendingExternalName[]; }
 interface PendingSheet {
   ordinal: number; id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
-  modernCells?: boolean; cells: PendingCell[]; merges: Range[]; rows: Map<number, AxisMetadata & { hardSize?: boolean }> | ReturnType<ReturnType<typeof createBiffCellSource>["rows"]>; columns: AxisMetadata[]; labelRanges: LabelRange[];
+  modernCells?: boolean; cells: PendingCell[]; merges: Range[]; rows: Map<number, AxisMetadata & { hardSize?: boolean }> | ReturnType<ReturnType<typeof createBiffCellSource>["rows"]>; columns: AxisMetadata[] | ReturnType<ReturnType<typeof createBiffCellSource>["columns"]>; labelRanges: LabelRange[];
   unsupportedRecords: UnsupportedRecord[]; view: Record<string, ImportedValue>;
   records: BiffRecord[] | BiffRecordSelection; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
@@ -158,13 +158,25 @@ export async function readBiffWorkbookSource(input: RangeSource, context: Capabi
       if (opcode === 6 || opcode === 0x206 || opcode === 0x406) { formulas = true; break; }
     }
     if (!formulas) {
-      const source = { store: createBiffCellSource(context), readers: new Map<string, () => AsyncIterable<Cell>>() };
+      let closed = false;
+      context.own(() => { closed = true; });
+      const source = { store: createBiffCellSource(context), readers: new Map<string, () => AsyncIterable<Cell>>(), axes: new Map<string, BiffSourceAxes>() };
       const metadata = await readBiffContents(loaded.records, loaded.streamSize, loaded.streams, context, encoding, source);
       result = { metadata, cells(sheet) {
         context.signal.throwIfAborted();
         const read = source.readers.get(sheet);
         if (!read) throw new SsconvertError("invalid-request", "Unknown BIFF source sheet");
         return read();
+      }, async *axes(sheet, kind) {
+        context.signal.throwIfAborted();
+        if (closed) throw new SsconvertError("invalid-request", "BIFF source is closed");
+        const axes = source.axes.get(sheet);
+        if (!axes) throw new SsconvertError("invalid-request", "Unknown BIFF source sheet");
+        for await (const axis of kind === "rows" ? replayBiffRows(axes.rows, axes.defaultHeight) : axes.columns.values()) {
+          context.signal.throwIfAborted();
+          if (closed) throw new SsconvertError("invalid-request", "BIFF source is closed");
+          yield axis;
+        }
       } };
     }
   } catch (error) { failed = true; failure = error; }
@@ -173,7 +185,18 @@ export async function readBiffWorkbookSource(input: RangeSource, context: Capabi
   if (failed) throw failure;
   return result;
 }
-async function readBiffContents(records: BiffRecords, streamSize: number, streams: ReadonlyMap<string, Uint8Array> | undefined, context: CapabilityContext, encoding?: string, source?: { store: ReturnType<typeof createBiffCellSource>; readers: Map<string, () => AsyncIterable<Cell>> }): Promise<Workbook> {
+interface BiffSourceAxes {
+  rows: Map<number, AxisMetadata & { hardSize?: boolean }> | ReturnType<ReturnType<typeof createBiffCellSource>["rows"]>;
+  defaultHeight: number;
+  columns: AxisMetadata[] | ReturnType<ReturnType<typeof createBiffCellSource>["columns"]>;
+}
+async function* replayBiffRows(rows: BiffSourceAxes["rows"], defaultHeight: number): AsyncGenerator<AxisMetadata> {
+  for await (const { hardSize, ...row } of rows.values()) {
+    if (row.sizePoints !== defaultHeight || row.hidden || row.collapsed || row.outlineLevel || hardSize)
+      yield { ...row, style: { gnumeric: node("RowInfo", { HardSize: hardSize ? 1 : 0 }) } };
+  }
+}
+async function readBiffContents(records: BiffRecords, streamSize: number, streams: ReadonlyMap<string, Uint8Array> | undefined, context: CapabilityContext, encoding?: string, source?: { store: ReturnType<typeof createBiffCellSource>; readers: Map<string, () => AsyncIterable<Cell>>; axes: Map<string, BiffSourceAxes> }): Promise<Workbook> {
   const selection = "get" in records ? createBiffRecordSelections(records, context) : undefined;
   const firstRecord = await biffRecord(records, 0);
   if (!firstRecord || !bofOpcodes.has(firstRecord.opcode)) invalidBiff("missing BOF");
@@ -274,7 +297,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
         const name = accountText(bound?.name ?? (sheets.length ? `Worksheet${sheets.length + 1}` : "Worksheet"));
         if (sheets.some(sheet => sheet.name === name)) invalidBiff("duplicate worksheet name");
         sheet = { ordinal: sheets.length, id: name, name, offset: record.offset, visibility: bound?.visibility ?? "visible", cells: [],
-          merges: [], rows: source ? source.store.rows(sheets.length) : new Map(), columns: [], labelRanges: [], unsupportedRecords: [], view: {}, records: selection ? selection() : [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
+          merges: [], rows: source ? source.store.rows(sheets.length) : new Map(), columns: source ? source.store.columns() : [], labelRanges: [], unsupportedRecords: [], view: {}, records: selection ? selection() : [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
       }
       scopes.push({ type, ...(sheet ? { sheet } : {}), revision: ver }); lastFormula = undefined;
       if (![5, 0x10, 0x40, 0x100].includes(type)) await retain(record, sheet?.unsupportedRecords ?? unsupported);
@@ -605,7 +628,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       if (last < first || last > 256) invalidBiff("invalid column range");
       const { unit, baseline, step, scale } = columnMetrics();
       const width = (8 * unit + (data.u16(4) - baseline) / step) * (scale * 72 / 96);
-      for (let column = first; column <= Math.min(last, 255); column++) sheet.columns.push({ index: column,
+      for (let column = first; column <= Math.min(last, 255); column++) await sheet.columns.push({ index: column,
         sizePoints: width <= 0 ? Number(sheet.view.defaultColumnWidth ?? 48) : Math.max(4, width), hidden: width <= 0 || !!(flags & 1), outlineLevel: flags >> 8 & 7, collapsed: !!(flags & 0x1000) }); continue;
     }
     if (opcode === 0x12 || opcode === 0x63 || opcode === 0xdd) { await retain(record, sheet.unsupportedRecords, false); continue; }
@@ -871,14 +894,13 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     if (source) source.readers.set(sheet.id, renderCells);
     else for await (const cell of renderCells()) cells.push(cell);
     const rows: AxisMetadata[] = [];
-    for await (const { hardSize, ...row } of sheet.rows.values()) {
-      if (row.sizePoints !== Number(sheet.view.defaultRowHeight ?? 12.75) || row.hidden || row.collapsed || row.outlineLevel || hardSize)
-        rows.push({ ...row, style: { gnumeric: node("RowInfo", { HardSize: hardSize ? 1 : 0 }) } });
-    }
+    const defaultHeight = Number(sheet.view.defaultRowHeight ?? 12.75);
+    if (source) source.axes.set(sheet.id, { rows: sheet.rows, defaultHeight, columns: sheet.columns });
+    else for await (const row of replayBiffRows(sheet.rows, defaultHeight)) rows.push(row);
     resultSheets.push({ id: sheet.id, name: sheet.name, cells, visibility: sheet.visibility,
       size: { rows: sheet.modernCells || ver >= 8 ? 65536 : 16384, columns: 256 },
-      ...(sheet.merges.length ? { merges: sheet.merges } : {}), ...(rows.length ? { rows } : {}),
-      ...(sheet.columns.length ? { columns: sheet.columns } : {}), ...(Object.keys(sheet.view).length ? { view: sheet.view } : {}),
+      ...(sheet.merges.length ? { merges: sheet.merges } : {}), ...(source || rows.length ? { rows } : {}),
+      ...(source ? { columns: [] } : Array.isArray(sheet.columns) && sheet.columns.length ? { columns: sheet.columns } : {}), ...(Object.keys(sheet.view).length ? { view: sheet.view } : {}),
       ...(formulaGroups.length ? { formulaGroups } : {}),
       ...(sheet.labelRanges.length ? { labelRanges: sheet.labelRanges } : {}),
       ...(sheet.unsupportedRecords.length ? { unsupportedRecords: sheet.unsupportedRecords } : {}) });

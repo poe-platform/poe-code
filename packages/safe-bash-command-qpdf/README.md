@@ -44,3 +44,8 @@ options currently continue through the buffered compatibility engine.
 `--check`, `--show-npages` and `--show-encryption` also inspect retained inputs
 through caller-backed object and page indexes, preserving repair and password
 diagnostics without collecting input payloads.
+
+`--show-object` emits object syntax in bounded chunks. Combine it with
+`--raw-stream-data` or `--filtered-stream-data` for binary stream output. The
+command stages output on caller storage before writing stdout, so an output
+limit or decoding failure does not publish a partial result.

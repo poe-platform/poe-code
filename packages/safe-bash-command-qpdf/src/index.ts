@@ -1,3 +1,4 @@
+import { displayNodeParts } from "./display.js";
 import { executeRetainedQpdf } from "./retained.js";
 import { dirname, resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -199,33 +200,6 @@ export function parseQpdfPageRange(rangeSpec: string, totalPages: number): numbe
   return pages;
 }
 
-function formatCosNodeForDisplay(node: PdfCosNode | undefined): string {
-  if (!node) return "null";
-  switch (node.kind) {
-    case "null":
-      return "null";
-    case "boolean":
-      return node.value ? "true" : "false";
-    case "number":
-      return String(node.value);
-    case "name":
-      return `/${node.decoded}`;
-    case "string":
-      return `(${decodePdfString(node)})`;
-    case "ref":
-      return `${node.objectNumber} ${node.generationNumber} R`;
-    case "array":
-      return `[ ${node.items.map(formatCosNodeForDisplay).join(" ")} ]`;
-    case "dict": {
-      const inner = node.entries
-        .map((e) => `/${e.key.decoded} ${formatCosNodeForDisplay(e.value)}`)
-        .join(" ");
-      return `<< ${inner} >>`;
-    }
-    case "stream":
-      return `${formatCosNodeForDisplay(node.dict)}\nstream\n...(${node.rawBytes.byteLength} bytes)...\nendstream`;
-  }
-}
 
 function cosNodeToJson(node: PdfCosNode | undefined): unknown {
   if (!node) return null;
@@ -1396,7 +1370,7 @@ function* executeQpdfCli(
       const bytes = filteredStreamData ? baseDoc.cos.decodeStream(node) : node.rawBytes;
       return { exitCode: 0, stdout: bytesToLatin1(bytes), stdoutBytes: bytes, stderr: "" };
     }
-    return { exitCode: 0, stdout: formatCosNodeForDisplay(node) + "\n", stderr: "" };
+    return { exitCode: 0, stdout: Array.from(displayNodeParts(node)).join("") + "\n", stderr: "" };
   }
 
   if (listAttachments || showAttachmentKey !== undefined) {
@@ -2607,7 +2581,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     if (parsed.options) {
       const defaults = parseQpdfArguments([]).options!;
       const retained = Object.entries(parsed.options).every(([key, value]) => {
-        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption"].includes(key)) return true;
+        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData"].includes(key)) return true;
         if (key === "normalizeContentFlag" && value === false) return true;
         if (key === "objectStreamsMode" && value === "disable") return true;
         const baseline = defaults[key as keyof typeof defaults];

@@ -1,4 +1,5 @@
-import { PdfError, PdfFileSource, PdfRetainedDocument, saveRetainedDocumentChunks, retainedCosObjects, dictGet } from "@poe-code/pdf-ast";
+import { displayNodeParts, encodeDisplayParts } from "./display.js";
+import { PdfError, PdfFileSource, PdfRetainedDocument, saveRetainedDocumentChunks, retainedCosObjects, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -16,6 +17,9 @@ export interface RetainedQpdfOptions {
   check: boolean;
   showNpages: boolean;
   showEncryption: boolean;
+  showObject: { objNum: number; genNum: number } | undefined;
+  rawStreamData: boolean;
+  filteredStreamData: boolean;
 }
 export async function executeRetainedQpdf(context: CommandContext, options: RetainedQpdfOptions, limits: QpdfLimits, signal: AbortSignal, inputBytes = 0): Promise<{ exitCode: number }> {
   const diagnostic = async (message: string) => { await writeBytes(context.stderr, new TextEncoder().encode(message), signal); return { exitCode: 2 }; };
@@ -40,18 +44,43 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
       return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
     }
-    if (options.check || options.showNpages || options.showEncryption) {
-      let count = 0, linearized = false;
+    if (options.check || options.showNpages || options.showEncryption || options.showObject) {
+      let count = 0, linearized = false, highest = 0;
+      let inlinePage: PdfCosNode | undefined, selectedValue: PdfCosNode | undefined, selectedLength: number | undefined;
       try {
         for await (const object of retainedCosObjects(document, storage, { signal })) {
+          highest = Math.max(highest, object.objectNumber);
+          if (object.objectNumber === options.showObject?.objNum) { selectedValue = object.value; selectedLength = object.stream?.length; }
           if (!object.stream && object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined) linearized = true;
           // Loading a buffered document authenticates every encrypted stream.
           if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
         }
-        for await (const ignored of document.pages()) { void ignored; count++; }
+        for await (const page of document.pages()) {
+          count++;
+          if (!page.reference && ++highest === options.showObject?.objNum) inlinePage = page.dict;
+        }
       } catch (error) {
         signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
         return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
+      }
+      if (options.showObject && !options.check && !options.showNpages && !options.showEncryption) {
+        const number = options.showObject.objNum, entry = Number.isSafeInteger(number) && number >= 0 ? await document.crossReference.index.get(number, signal) : undefined, generation = entry?.generationNumber ?? 0;
+        let chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
+        if (selectedLength !== undefined && (options.rawStreamData || options.filteredStreamData)) chunks = document.objects.decodeStream(number, generation, { raw: !options.filteredStreamData });
+        else {
+          function* parts() { yield* displayNodeParts(selectedValue ?? inlinePage); if (selectedLength !== undefined) yield `\nstream\n...(${selectedLength} bytes)...\nendstream`; yield "\n"; }
+          chunks = encodeDisplayParts(parts(), signal);
+        }
+        async function* admitted() {
+          let total = 0;
+          for await (const bytes of chunks) {
+            if (bytes.length > limits.maxOutputBytes - total) throw new RangeError("Output byte limit exceeded");
+            total += bytes.length; yield bytes;
+          }
+        }
+        output = await PdfFileSource.fromStream(context.fs, storage.directory, admitted(), { signal, maxInputBytes: limits.maxOutputBytes });
+        for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
+        return { exitCode: 0 };
       }
       const encryption = document.encryption;
       const message = options.check

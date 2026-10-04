@@ -6006,5 +6006,11 @@
     "implementation": "Measure native line ranges with half-spacing and preserve horizontal placement computed before vertical remeasurement. Top/center/bottom behavior is unchanged.",
     "validation": "Two original refusal regressions reproduced;454 affected cases verified across453 passing cohort cases and15 corrected native-fixture cases. Selected build,engine/command lints/types and public consumers pass.24 independent native inputs produce96 SDK/command outputs;48 PDF-origin and48 character comparisons pass. Screenshots inspected for three-line tall-cell overflow.",
     "remaining": "Rotated Fill/horizontal Justify/Distributed and broader rich-text/font/Unicode/merged page profiles;all19families open."
+  },
+  "pdfRotatedHorizontalJustification": {
+    "status": "Focused horizontal Justify/Distributed rotation profile verified; broader rendering remains open",
+    "implementation": "Apply existing glyph justification to the projected rotated wrapping width; preserve native borderless nonwrapping behavior and paragraph endings.",
+    "validation": "Two original refusal regressions reproduced.441 PDF tests,selected build,command lint/source/test/public-consumer types pass.32 native inputs produce128 SDK/command XML/PDF outputs;64 line-origin comparisons,64 character comparisons and1214 common-word positions match. Native/public forced-line screenshot inspected.",
+    "remaining": "Rotated Fill and broader font/Unicode/decorations/rich-text/merged multipage qualification;all19families open."
   }
 }

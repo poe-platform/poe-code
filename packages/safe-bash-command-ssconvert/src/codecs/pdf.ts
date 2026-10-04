@@ -318,7 +318,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         indent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((digitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
         displayIndent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((displayDigitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
       }
-      if (rotation && (cellBox.style.alignment === "fill" || cellBox.style.alignment === "justify" || cellBox.style.alignment === "distributed")) unsupported("rotated justification or fill");
+      if (rotation && cellBox.style.alignment === "fill") unsupported("rotated fill");
       const bordered = cellBox.style.borders?.some(border => ["Top", "Bottom", "Left", "Right"].includes(border.side)) ?? false;
       const fill = cellBox.style.alignment === "fill";
       if (fill) {
@@ -343,7 +343,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const logicalText = line.text.split("​").join("").split("⁠").join("");
           const result = shapeLine(shaped);
           if (line.justify && result.run && (cellBox.style.alignment === "justify" || cellBox.style.alignment === "distributed")) {
-            const expanded = justifyPrintLine(shaped, result.run, result.advances, (cellBox.width - 5 - result.width) / printDisplayScale, tick);
+            const expanded = justifyPrintLine(shaped, result.run, result.advances, (wrapWidth - result.width) / printDisplayScale, tick);
             for (const [index, glyph] of result.glyphs.entries()) {tick(); glyph.x += expanded.offsets[index]! * printDisplayScale;}
             result.width += expanded.added * printDisplayScale;
           }

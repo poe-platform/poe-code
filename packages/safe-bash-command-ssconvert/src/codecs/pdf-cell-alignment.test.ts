@@ -403,3 +403,12 @@ it.each([-45, 45])("prints vertically justified rotated paragraphs at %s degrees
   const {runs} = await pdfText(await writePdf(input, [], context));
   expect(runs.map(run => run.text).join("")).toBe("alphabeta");
 });
+it.each(["JUSTIFY", "DISTRIBUTED"])("prints rotated horizontal %s paragraphs", async alignment => {
+  const book = await fixture("GNM_HALIGN_" + alignment, 10, 36, "CENTER", 20, 1);
+  const cell = book.sheets[0]!.cells[0]!;
+  const style = cell.style!.gnumeric as {attributes: {name: string; value: string}[]};
+  for (const attribute of style.attributes) if (attribute.name === "Rotation") attribute.value = "45";
+  const input = {...book, sheets: [{...book.sheets[0]!, cells: [{...cell, value: {kind: "string" as const, value: "alpha beta gamma"}}]}]};
+  const {runs} = await pdfText(await writePdf(input, [], context));
+  expect(runs.map(run => run.text).join("")).toBe("alpha beta gamma");
+});

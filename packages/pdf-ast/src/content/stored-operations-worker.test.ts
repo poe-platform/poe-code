@@ -24,7 +24,7 @@ it("evaluates growing group and mask captures in a Worker with external backing"
 
  const Native=Uint8Array,push=Array.prototype.push;
  globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const length=typeof args[0]==='number'?args[0]:args[0]?.byteLength??args[0]?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>8192)throw Error('unbounded capture bytes '+length+' '+new Error().stack);return Reflect.construct(target,args);}});
- Array.prototype.push=function(...items){if(this.length+items.length>64&&items.some(item=>item&&typeof item==='object'&&'value' in item&&['path','glyph','image','group'].includes(item.kind)))throw Error('collected operations');return Reflect.apply(push,this,items);};
+ Array.prototype.push=function(...items){if(this.length+items.length>8&&items.some(item=>item&&typeof item==='object'&&'value' in item&&['path','glyph','image','group'].includes(item.kind)))throw Error('collected operations');return Reflect.apply(push,this,items);};
  let source,document;
  try{let end=0;const storage={allocate(n){const at=end;end+=n;return at;},async read(at,n){if(n>4096)throw Error('large record read');return new Uint8Array(await(await env.BACKING.fetch('https://backing/pixels?position='+at+'&length='+n)).arrayBuffer());},async write(at,b){if(b.length>4096)throw Error('large record write');await env.BACKING.fetch('https://backing/pixels?position='+at,{method:'PUT',body:b});}};
  const index={fs,directory:'/'};source=await PdfFileSource.open(fs,'/input',{chunkBytes:256,cacheBytes:256});document=await PdfRetainedDocument.open(source,index,{chunkBytes:256,xref:{index:{chunkBytes:4096,cacheBytes:4096}}});
@@ -79,7 +79,9 @@ it("evaluates growing group and mask captures in a Worker with external backing"
     }
   });
   try {
-    for (const count of [128, 256])
+    // Trip capture collection after eight records; a fourfold growth still
+    // exercises external replay without thousands of redundant service calls.
+    for (const count of [16, 64])
       for (const mode of ["group", "mask"]) {
         const original = PdfDocument.create(),
           page = original.addPage(),

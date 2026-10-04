@@ -87,7 +87,10 @@ export function serializeReference(first: ReferenceEndpoint, last: ReferenceEndp
     first.sheet ? sheet(first.sheet) + grammar.sheetSeparator : "";
   const a = address(first), b = last ? address(last) : undefined;
   if (a === "#REF!" || b === "#REF!") return external + span + "#REF!";
-  return external + span + a + (last && (a !== b || grammar.address !== "r1c1" && last.sheet === first.sheet) ? ":" + b : "");
+  // Native A1 keeps both whole-axis endpoints, but collapses a single cell.
+  const repeatSingle = grammar.address !== "r1c1" &&
+    (grammar.id !== "gnumeric" || first.row === undefined || first.column === undefined);
+  return external + span + a + (last && (a !== b || repeatSingle && last.sheet === first.sheet) ? ":" + b : "");
 }
 
 export function serializeLabelReference(node: Extract<FormulaNode, { kind: "reference" }>, grammar: FormulaGrammar, position: ParsePosition): string {

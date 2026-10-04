@@ -155,7 +155,10 @@ it.each(["array", "shared"] as const)("marks only %s formula groups in formula-d
 });
 
 it.each([
-  ["=1 + 2 * 3", "=1+2*3"], ["=sUm(1,2)", "=sum(1,2)"], ["=((1+2))", "=((1+2))"],
+  ["=1 + 2 * 3", "=1+2*3"],
+  ["=SUM(A1:A1)", "=sum(A1)"], ["=SUM($A$1:$A$1)", "=sum($A$1)"],
+  ["=SUM(S!A1:A1)", "=sum(S!A1)"], ["=SUM($A1:A1)", "=sum($A1:A1)"],
+  ["=SUM(A:A)", "=sum(A:A)"], ["=SUM(1:1)", "=sum(1:1)"], ["=sUm(1,2)", "=sum(1,2)"], ["=((1+2))", "=((1+2))"],
   ["=+1", "=+1"], ["= a1 + $b$2", "=A1+$B$2"], ["=1.00+1e3", "=1+1000"],
   ["=MY.Unknown(1,2)", "=MY.Unknown(1,2)"], ["=1e-9", "=1E-09"], ["=S!A2", "=S!A2"], ["={1e-9,-1e-8}", "={1E-09,-1E-08}"], ['="a b" & "c"', '="a b"&"c"']
 ])("prints native expression spelling for %s", async (formula, expected) => {

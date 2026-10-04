@@ -279,3 +279,38 @@ it.each(["row", "column", "both"])("excludes hidden %s contents from print bound
   expect(actual.runs).toEqual(expected.runs);
   expect(actual.pdf.getPageCount()).toBe(expected.pdf.getPageCount());
 });
+
+it.each(["JUSTIFY", "DISTRIBUTED"])("accepts horizontal %s without expanding final lines", async alignment => {
+  const actual = await pdfText(await writePdf(await fixture(`GNM_HALIGN_${alignment}`), [], context));
+  const expected = await pdfText(await writePdf(await fixture(alignment === "JUSTIFY" ? "GNM_HALIGN_LEFT" : "GNM_HALIGN_CENTER"), [], context));
+  expect(actual.runs).toEqual(expected.runs);
+});
+it("justifies wrapped lines to the cell width while preserving paragraph endings", async () => {
+  const original = await fixture("GNM_HALIGN_JUSTIFY", 10, 72, "TOP", 60), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, cells: [{...sheet.cells[0]!, value: {kind: "string" as const, value: "alpha beta gamma delta epsilon"}}]}]};
+  const {runs} = await pdfText(await writePdf(book, [], context));
+  expect(runs.map(run => run.text)).toEqual(["alpha beta", "gamma delta", "epsilon"]);
+  expect(runs[0]!.glyphs[6]!.x).toBeCloseTo(125.75, 3);
+  expect(runs[1]!.glyphs[6]!.x).toBeCloseTo(121.25, 3);
+  expect(runs[2]!.glyphs[0]!.x).toBe(76.75);
+});
+
+it.each(["12345678901234567890", "abcdefghijklmnop", "alpha\u00a0beta gamma delta"])("expands wrapped clusters or nonbreaking spaces for %s", async value => {
+  const original = await fixture("GNM_HALIGN_JUSTIFY", 10, 72, "TOP", 60), sheet = original.sheets[0]!;
+  const {runs} = await pdfText(await writePdf({...original, sheets: [{...sheet, cells: [{...sheet.cells[0]!, value: {kind: "string" as const, value}}]}]}, [], context));
+  expect(runs.length).toBeGreaterThan(1);
+  expect(runs[0]!.glyphs[0]!.x).toBe(76.75);
+  expect(runs[0]!.glyphs.at(-1)!.x).toBeCloseTo(139.25, 2);
+});
+it("supports exact fontkit cluster mappings without native shaping", async () => {
+  const originalShaper = fontShaping.createFontShaper;
+  const create = vi.spyOn(fontShaping, "createFontShaper").mockImplementation((context, tick) => {
+    const shaper = originalShaper(context, tick);
+    return {...shaper, shape(metrics, value) {return metrics.layout(value);}};
+  });
+  try {
+    const original = await fixture("GNM_HALIGN_JUSTIFY", 10, 72, "TOP", 60), sheet = original.sheets[0]!;
+    const {runs} = await pdfText(await writePdf({...original, sheets: [{...sheet, cells: [{...sheet.cells[0]!, value: {kind: "string" as const, value: "12345678901234567890"}}]}]}, [], context));
+    expect(runs[0]!.glyphs.at(-1)!.x).toBeCloseTo(139.25, 2);
+  } finally {create.mockRestore();}
+});

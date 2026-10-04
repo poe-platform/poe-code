@@ -83,3 +83,11 @@ Fill LF translation follows Gnumeric 1.12.61 `src/gnm-format.c`,
 copyright 1998 Chris Lahey and Miguel de Icaza, 2006–2007 Morten Welinder,
 under GPL-2.0-or-later. The file matches the authenticated archive above;
 SHA-256 `8e574a8f199474f4e3c42756d74479bac08d720b6657deb7aca35bd60f563318`.
+
+Horizontal justification follows Pango 1.56.3 `pango/pango-layout.c`
+(`justify_words`, `justify_clusters`, `distribute_letter_spacing`), copyright
+2000, 2001, 2006 Red Hat Software, under LGPL-2.0-or-later. The file from the
+authenticated Pango archive above has SHA-256
+`273709ebcc6b1333b5e7126ffc4d510e95daaa0f42c7b3fe3007c1019a5c2836`.
+The helper expands explicit shaped advances with invocation work accounting;
+fontkit mappings that cannot establish logical clusters are refused.

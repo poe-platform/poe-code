@@ -1,7 +1,7 @@
 import {SsconvertError} from "../../contracts.js";
 import type {ImportedValue} from "@poe-code/spreadsheet-ast";
 
-const alignments = {GNM_HALIGN_GENERAL: "general", GNM_HALIGN_LEFT: "left", GNM_HALIGN_RIGHT: "right", GNM_HALIGN_CENTER: "center", GNM_HALIGN_FILL: "fill"} as const;
+const alignments = {GNM_HALIGN_GENERAL: "general", GNM_HALIGN_LEFT: "left", GNM_HALIGN_RIGHT: "right", GNM_HALIGN_CENTER: "center", GNM_HALIGN_FILL: "fill", GNM_HALIGN_JUSTIFY: "justify", GNM_HALIGN_DISTRIBUTED: "distributed"} as const;
 const verticalAlignments = {GNM_VALIGN_TOP: "top", GNM_VALIGN_BOTTOM: "bottom", GNM_VALIGN_CENTER: "center", GNM_VALIGN_JUSTIFY: "justify", GNM_VALIGN_DISTRIBUTED: "distributed"} as const;
 type AttributeRule = string | readonly string[] | ((value: string) => boolean);
 function validColor(value: string): boolean {
@@ -22,7 +22,7 @@ const styleDefaults: Readonly<Record<string, AttributeRule>> = {
 const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => value.trim() !== "" && Number.isFinite(Number(value)) && Number(value) > 0, Bold: ["0", "1"], Italic: ["0", "1"], Underline: ["0", "1", "2", "3", "4"], StrikeThrough: ["0", "1"], Script: "0"};
 
 export interface CellPrintStyle {
-  readonly alignment: "general" | "left" | "right" | "center" | "fill";
+  readonly alignment: "general" | "left" | "right" | "center" | "fill" | "justify" | "distributed";
   readonly verticalAlignment: "top" | "bottom" | "center" | "justify" | "distributed";
   readonly family: string;
   readonly wrap?: boolean;

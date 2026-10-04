@@ -5890,5 +5890,19 @@
   "history": {
     "commit": "27b9a96cbea652668a98d9af6502717c86cbfa1d",
     "note": "Bulky historical evidence and journals were removed at the user's request. Required fixture/provenance files remain. Historical results do not establish current-candidate completion."
+  },
+  "pdfHorizontalJustification": {
+    "status": "Targeted Justify/Distributed layout repair; all19 families remain open",
+    "implementation": "Justify forces string/formula wrapping; Distributed retains explicit wrapping. Wrapped lines expand spaces or positive shaping clusters using native fractional-unit spacing. Paragraph endings remain unexpanded; indentation is ignored. Distributed overflow retains its own centered origin. Ambiguous fontkit cluster mappings refuse explicitly.",
+    "validation": {
+      "tests": 392,
+      "nativeInputs": 26,
+      "publicOutputs": 104,
+      "automatedPDFComparisons": 48,
+      "visualCombiningPDFComparisons": 4,
+      "checks": "Selected converter build,engine and command lint/types,PDF screenshots. Three original failing regressions plus four cluster/fallback regressions pass. Native extraction reorders combining marks; those two inputs were checked visually rather than counted as automated token matches."
+    },
+    "source": "Authenticated Gnumeric1.12.61 and Pango1.56.3 justify_words/justify_clusters/distribute_letter_spacing; attribution and source hash in print/NOTICE.md.",
+    "remaining": "Full bidi,rotated/merged/rich cells,other format effects and complete rendering/profile acceptance remain open."
   }
 }

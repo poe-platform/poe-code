@@ -1,3 +1,4 @@
+import {justifyPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/justify-line";
 import {wrapPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/wrap-lines";
 import { PDFDocument, PDFHexString, PDFName, PDFOperator, PDFOperatorNames, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, setGraphicsState, type PDFPage, type PDFFont } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
@@ -271,6 +272,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const shapeLine = (shapedValue: string) => {
         const glyphs: {x: number; y: number}[] = [];
         let width = 0, displayWidth = 0;
+        const advances: number[] = [];
         // Pango's unhinted print profile rounds advances and offsets in display pixels.
         const run = shapedValue ? shaper.shape(metrics, shapedValue) : undefined;
         for (const position of run?.positions ?? []) {
@@ -280,13 +282,14 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           glyphs.push({x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
             // Pango rounds its downward y offset before the PDF coordinate inversion.
             y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale});
+          advances.push(Math.round(advance));
           width += Math.round(advance) * printDisplayScale;
           displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
         }
-        return {shapedValue, run, glyphs, width, displayWidth};
+        return {shapedValue, run, glyphs, width, displayWidth, advances};
       };
       let indent = 0, displayIndent = 0;
-      if (cellBox.style.indent && alignment !== "center" && cellBox.style.alignment !== "fill") {
+      if (cellBox.style.indent && alignment !== "center" && cellBox.style.alignment !== "fill" && cellBox.style.alignment !== "justify" && cellBox.style.alignment !== "distributed") {
         // GOFont averages the individually measured digits, with a one-pixel minimum.
         let digitWidth = 0, displayDigitWidth = 0;
         for (const digit of "0123456789") {
@@ -321,13 +324,19 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       const wraps = cellBox.wrap === true;
       const lines = (wraps ? paragraphs.flatMap(line => wrapPrintLine(line, Math.max(0, cellBox.width - 5 - indent),
-        candidate => shapeLine(normalizeFontText(candidate, supported, tick)).width, tick)) : shapedLines.map(text => ({text, hyphen: false})))
+        candidate => shapeLine(normalizeFontText(candidate, supported, tick)).width, tick).map((part, index, parts) => ({...part, justify: index < parts.length - 1}))) : shapedLines.map(text => ({text, hyphen: false, justify: false})))
         .map(line => {
           if (line.hyphen && !supported.has(0x2010)) unsupported("font coverage");
           const paintText = line.hyphen && line.text.endsWith("­") ? line.text.slice(0, -1) : line.text;
           const shaped = normalizeFontText(paintText + (line.hyphen ? "‐" : ""), supported, tick);
           const logicalText = line.text.split("​").join("").split("⁠").join("");
-          return {...shapeLine(shaped), logicalText, marked: line.hyphen || shaped !== logicalText};
+          const result = shapeLine(shaped);
+          if (line.justify && result.run && (cellBox.style.alignment === "justify" || cellBox.style.alignment === "distributed")) {
+            const expanded = justifyPrintLine(shaped, result.run, result.advances, (cellBox.width - 5 - result.width) / printDisplayScale, tick);
+            for (const [index, glyph] of result.glyphs.entries()) {tick(); glyph.x += expanded.offsets[index]! * printDisplayScale;}
+            result.width += expanded.added * printDisplayScale;
+          }
+          return {...result, logicalText, marked: line.hyphen || shaped !== logicalText};
         });
       const height = lineHeight * lines.length;
       let displayWidth = 0;
@@ -343,7 +352,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const clipWidth = Math.max(0, cellBox.width + (overflow?.left ?? 0) + (overflow?.right ?? 0) - 4);
       // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
       x += 2 + 0.5 + 3 * printDisplayScale + (alignment === "left" ? 0 : (cellBox.width - 5) / (alignment === "center" ? 2 : 1));
-      if (alignment === "center" && overflow && (overflow.left > 0 || overflow.right > 0)) {
+      if (alignment === "center" && cellBox.style.alignment !== "distributed" && overflow && (overflow.left > 0 || overflow.right > 0)) {
         // Native spanning centers are passed in points, then scaled by the painter.
         x += 2.5 + (printDisplayScale - 1) * (cellBox.width / 2 + overflow.left);
       }
@@ -674,9 +683,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const normalizedStyle = normalizePdfCellStyle(cell);
           const style = cellPrintStyle(normalizedStyle, tick);
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
-          const alignment = style.alignment === "fill" ? "left" : style.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
+          const alignment = style.alignment === "fill" || style.alignment === "justify" ? "left" : style.alignment === "distributed" ? "center" : style.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
             cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style.alignment;
-          const wrap = style.alignment !== "fill" && Boolean(formula || cell.value.kind === "string") && (style.wrap === true || style.verticalAlignment === "justify" || style.verticalAlignment === "distributed");
+          const wrap = style.alignment !== "fill" && Boolean(formula || cell.value.kind === "string") && (style.wrap === true || style.alignment === "justify" || style.verticalAlignment === "justify" || style.verticalAlignment === "distributed");
           const overflow = style.alignment !== "fill" && !wrap && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
             const required = alignment === "center" ? width + Math.max(0, (displayWidth - width + 5 * printDisplayScale) / 2) : Infinity;
             return {

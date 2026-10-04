@@ -11,6 +11,7 @@ export class QpdfJsonValues {
   private readonly scratch: PagedStorage;
   private readonly first: IntegerTable;
   private readonly next: IntegerTable;
+  private sourceOrder!: Awaited<ReturnType<typeof indexJsonObjects>>;
   private closed = false;
   private work = 0;
   private constructor(private readonly tree: BackedJson, storage: PdfIndexStorage, private readonly signal: AbortSignal) {
@@ -56,7 +57,7 @@ export class QpdfJsonValues {
     try { await view.index(); return view; } catch (error) { try { await view.close(); } catch { /* Preserve the original error. */ } throw error; }
   }
   private async index(): Promise<void> {
-    const order = await indexJsonObjects(this.tree, this.scratch, units => this.cooperate(units));
+    const order = this.sourceOrder = await indexJsonObjects(this.tree, this.scratch, units => this.cooperate(units));
     const pointer = async (at: number) => { const bytes = await this.scratch.read(at, 8); return new DataView(bytes.buffer, bytes.byteOffset, bytes.length).getFloat64(0, true); };
     const put = async (at: number, value: number) => { const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, value, true); await this.scratch.write(at, bytes); };
     const end = (await this.tree.describe(this.tree.rootPosition)).end;
@@ -158,7 +159,33 @@ export class QpdfJsonValues {
     }
     yield encoder.encode(utf16 ? ">" : ")");
   }
+  // JSON.parse removes duplicate JSON names before conversion, but decoded PDF
+  // name collisions happen after each value is converted. Validate the former
+  // view before emitting the latter so overwritten invalid numbers still fail.
+  private async validate(root: number): Promise<void> {
+    let position = root;
+    for (;;) {
+      await this.cooperate();
+      let header = await this.tree.describe(position);
+      if (header.kind === "object" || header.kind === "array") {
+        const child = header.kind === "object" ? await this.sourceOrder.first(position) : header.children ? position + 32 : 0;
+        if (child) { position = child; continue; }
+      } else if (header.kind === "literal") {
+        const token = await this.tree.smallText(position, 5);
+        if (token !== "null" && token !== "true" && token !== "false") cosNumber(await readJsonNumber(this.text(position), units => this.cooperate(units), false));
+      }
+      for (;;) {
+        if (position === root) return;
+        await this.cooperate();
+        const parent = await this.tree.describe(header.parent);
+        const next = parent.kind === "object" && header.kind !== "key" ? await this.sourceOrder.next(position, header.parent) : header.end < parent.end ? header.end : 0;
+        if (next) { position = next; break; }
+        position = header.parent; header = parent;
+      }
+    }
+  }
   async *chunks(root: number): AsyncGenerator<Uint8Array> {
+    await this.validate(root);
     const encoder = new TextEncoder(); let position = root, closing = false;
     while (position) {
       await this.cooperate(); const header = await this.tree.describe(position);

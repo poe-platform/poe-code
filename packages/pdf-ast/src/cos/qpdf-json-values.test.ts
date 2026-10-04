@@ -6,14 +6,14 @@ import { cosArray, cosDict, cosName, cosNumber, cosRef, cosString, cosHexString 
 import { serializeCosNodeBytes } from "./writer.js";
 import { QpdfJsonValues } from "./qpdf-json-values.js";
 
-async function fixture(input: string | AsyncIterable<string>, run: (values: QpdfJsonValues, root: number) => Promise<void>, signal = new AbortController().signal) {
+async function fixture(input: string | AsyncIterable<string>, run: (values: QpdfJsonValues, root: number, tree: BackedJson) => Promise<void>, signal = new AbortController().signal) {
   const fs = createMemoryFileSystem(); const context = { fs, cwd: "/", env: {}, signal };
   const tape = new PagedStorage(context, 1), scratch = new PagedStorage(context, 1);
   const tree = new BackedJson(tape, async () => {}); let values: QpdfJsonValues | undefined;
   try {
     await parseBackedJson(typeof input === "string" ? (async function* () { for (let at = 0; at < input.length; at += 7) yield input.slice(at, at + 7); })() : input, tree, scratch, async () => {}, (_at, message) => { throw new Error(message); }, undefined, true);
     values = await QpdfJsonValues.open(tree, { fs, directory: "/" }, { signal });
-    await run(values, tree.rootPosition);
+    await run(values, tree.rootPosition, tree);
   } finally { await values?.close(); await tape.close(); await scratch.close(); }
   expect(await fs.readdir("/")).toEqual([]);
 }
@@ -94,4 +94,25 @@ it("preserves empty containers and does not recognize malformed references", asy
   for (const text of ["1 0", "1 0 R x", "1 0 \tR", "1 0 o", "1 0 objx", "1 0 R\nR", "+1 0 R", "1 -0 R", "1 0.0 R", "1 0 R/", "obj:"]) {
     await fixture(JSON.stringify(text), async (values, root) => { expect(await values.reference(root)).toBeUndefined(); expect(await collect(values.chunks(root))).toEqual(serializeCosNodeBytes(cosString(text))); });
   }
+});
+
+it("validates values discarded by decoded-name collisions before emitting COS bytes", async () => {
+  for (const input of ['{"/x":1e400,"x":0}', '{"/x":{"nested":[1e400]},"n:/x":0}', '{"/1":-1e400,"1":0}']) {
+    await fixture(input, async (values, root) => {
+      const iterator = values.chunks(root);
+      await expect(iterator.next()).rejects.toThrow("Invalid non-finite PDF number");
+    });
+  }
+  await fixture('{"x":1e400,"x":0}', async (values, root) => {
+    expect(await collect(values.chunks(root))).toEqual(serializeCosNodeBytes(cosDict({x:cosNumber(0)})));
+  });
+});
+
+
+it("limits validation to the selected JSON subtree and ignores replaced JSON duplicates", async () => {
+  await fixture('{"ignored":1e400,"selected":{"/x":{"n":1e400,"n":0},"x":1}}', async (values, root, tree) => {
+    const selected = (await tree.property(root, "selected"))!;
+    expect(await collect(values.chunks(selected))).toEqual(serializeCosNodeBytes(cosDict({x:cosNumber(1)})));
+    await expect(collect(values.chunks(root))).rejects.toThrow("Invalid non-finite PDF number");
+  });
 });

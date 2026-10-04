@@ -16,7 +16,7 @@ try {
 }
 ```
 
-Modes: `gzip`, `gunzip`, `deflate-raw`, `inflate-raw`, `deflate-zlib`, `inflate-zlib`. Output chunks are owned and at most 64 KiB; consumers control backpressure. Pass runtime hooks for scheduling, input validation and diagnostics. Limits belong to callers. Raw and zlib decoders restore trailing input to the reader; gzip retains member admission and padding policy. Set `singleMember: true` with `gunzip` to require EOF immediately after one member, rejecting padding, trailing bytes and additional members. Readers own input retirement and must be closed in `finally`.
+Modes: `gzip`, `gunzip`, `deflate-raw`, `inflate-raw`, `deflate-zlib`, `inflate-zlib`. Output chunks are owned and at most 64 KiB; consumers control backpressure. Pass runtime hooks for scheduling, input validation and diagnostics. Limits belong to callers. Raw and zlib decoders restore trailing input to the reader; gzip retains member admission and padding policy. Set `singleMember: true` with `gunzip` to require EOF immediately after one member, rejecting padding, trailing bytes and additional members. Readers own input retirement and must be closed in `finally`. Closing a reader waits for input retirement and prevents an in-flight read from delivering another chunk; source failures and caller cancellation still propagate.
 
 The codec accepts bytes only, with no filesystem or container dependency. File adapters use the caller's injected filesystem. Other compression engines remain with their current owners until a concrete shared consumer requires migration.
 

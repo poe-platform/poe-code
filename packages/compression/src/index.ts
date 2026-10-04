@@ -66,7 +66,8 @@ export function createCompressionCodec(runtime: CodecRuntime = defaultRuntime): 
       for (;;) {
         if (++this.pulls % 64 === 0) await yieldTurn(this.signal);
         const next = await this.iterator.next();
-        if (next.done) return undefined;
+        this.signal.throwIfAborted();
+        if (this.closing || next.done) return undefined;
         if (next.value.length) return next.value;
       }
     }

@@ -8,7 +8,7 @@ import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
-import { editRetainedDocument, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
+import { editRetainedDocument, PdfDuplicateAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -17,6 +17,8 @@ import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import type { QpdfLimits } from "./index.js";
 
 export interface RetainedQpdfOptions extends QpdfJsonOptions {
+  removeAttachmentKeys: readonly string[];
+  addAttachmentSpecs: readonly { file: string; key: string; filename: string; description?: string; replace?: boolean }[];
   inputFile: string | undefined;
   emptyInput: boolean;
   splitPagesGroup: number | undefined;
@@ -80,7 +82,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     await context.fs.mkdir(storage.directory, { recursive: true, signal });
     const maximum = Math.min(limits.maxInputBytes, context.inputBudget?.maxBytes ?? Infinity);
     // Acquire identities and admit sizes without reading every input payload.
-    for (const candidate of new Set([inputName, ...options.pageSpecs.map(spec => spec.file)])) {
+    for (const candidate of new Set([inputName, ...options.pageSpecs.map(spec => spec.file), ...options.addAttachmentSpecs.map(spec => spec.file)])) {
       signal.throwIfAborted(); if (!candidate || candidate === "." || candidate === "-") continue;
       let acquired: PdfFileSource;
       try { acquired = await PdfFileSource.open(context.fs, resolvePath(context.cwd, candidate), { signal, maxInputBytes: maximum - inputBytes }); }
@@ -92,7 +94,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
       inputs.set(candidate, acquired); inputBytes += acquired.size; context.inputBudget?.check(inputBytes);
     }
-    if (inputName === "-" || options.pageSpecs.some(spec => spec.file === "-")) {
+    if (inputName === "-" || [...options.pageSpecs, ...options.addAttachmentSpecs].some(spec => spec.file === "-")) {
       const acquired = await PdfFileSource.fromStream(context.fs, storage.directory, context.stdin, { signal, maxInputBytes: maximum - inputBytes });
       inputs.set("-", acquired); inputBytes += acquired.size; context.inputBudget?.check(inputBytes);
     }
@@ -234,8 +236,6 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       document = await selectionGraph.openDocument();
     }
     const destination = options.replaceInput ? inputName : options.outputFile;
-    if (!destination) return await diagnostic("qpdf: an output file is required\n");
-    if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");
     const { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels } = options;
     async function* rotations() {
       if (!options.rotateSpecs.length) return;
@@ -244,9 +244,17 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         yield { pageIndex: number - 1, degrees: edit.angle * (edit.relative ? edit.sign : 1), relative: edit.relative };
       }
     }
-    if (options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
-      editedGraph = await editRetainedDocument(document, storage, { ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+    async function* attachments() {
+      for (const spec of options.addAttachmentSpecs) {
+        const input = inputs.get(spec.file); if (!input) throw new QpdfMissingInput(`attachment ${spec.file}`);
+        yield { ...spec, length: input.size, chunks: input.stream(0, input.size, signal) };
+      }
     }
+    if (options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
+      editedGraph = await editRetainedDocument(document, storage, { ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+    }
+    if (!destination) return await diagnostic("qpdf: an output file is required\n");
+    if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");
     if (options.splitPagesGroup !== undefined) {
       if (!editedGraph) for await (const object of retainedCosObjects(document, storage, { signal })) {
         if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
@@ -291,7 +299,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
     }
     return { exitCode: 0 };
-  } catch (error) { failed = true; if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
+  } catch (error) { failed = true; if (error instanceof PdfDuplicateAttachment) return await diagnostic(`qpdf: duplicate attachment key ${error.key}\n`); if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
   finally {
     const results = await Promise.allSettled([jsonOutput?.close(), splitOutputs?.close(), editedGraph?.close(), document?.close(), selectionGraph?.close(), ...[...new Set([...inputs.values(), source, output])].map(input => input?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);

@@ -90,3 +90,23 @@ it("closes label backing when the replacement iterable fails", async () => {
   finally { await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["short", "long", "cancel", "throw"])("cleans attachment staging after %s input", async mode => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const original = PdfDocument.create(); original.addPage(); await fs.writeFile("/input", original.save());
+  const storage = { fs, directory: "/scratch" }, source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+  const before = await fs.readdir("/scratch"), controller = new AbortController(), reason = new Error("attachment input failed");
+  async function* chunks() {
+    yield new Uint8Array(mode === "long" ? 5 : 1);
+    if (mode === "cancel") controller.abort(reason);
+    if (mode === "throw") throw reason;
+    yield new Uint8Array(1);
+  }
+  try {
+    const editing = editRetainedDocument(document, storage, { signal: controller.signal, attachments: [{ key: "data", filename: "data", length: 4, chunks: chunks() }] });
+    if (mode === "cancel" || mode === "throw") await expect(editing).rejects.toBe(reason);
+    else await expect(editing).rejects.toThrow(mode === "short" ? "Incomplete attachment bytes" : "Excess attachment bytes");
+    expect(await fs.readdir("/scratch")).toEqual(before);
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

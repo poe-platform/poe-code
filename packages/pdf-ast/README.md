@@ -857,6 +857,11 @@ of qpdf `--linearize`. Pass `pageLabels` as an iterable or async iterable of
 `{ index, style?, start?, prefix? }` entries to replace page labels. Indices are
 zero-based; entry order and duplicates are preserved, and an empty iterable
 creates an empty label tree. Labels take precedence over `removePageLabels`.
+Pass `removeAttachments` as an iterable of keys and `attachments` as an iterable
+of `{ key, filename, length, chunks, description?, replace? }` inputs to edit
+embedded files. Payload chunks stream into caller storage; `length` must match
+the supplied bytes. Removal runs before addition, and `replace: true` replaces
+the first matching key. Close the edited graph after saving or copying it.
 `PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
 existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
 

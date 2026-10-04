@@ -9,12 +9,12 @@ import { serializeCosDocument } from "./cos/writer.js";
 import { PdfRetainedDocument, type PdfRetainedDocumentOptions } from "./retained-document.js";
 const text = (s: string) => new TextEncoder().encode(s);
 
-async function fixture(bytes: Uint8Array, options: PdfRetainedDocumentOptions & {backedArrays?:readonly string[]} = {}) {
+async function fixture(bytes: Uint8Array, options: PdfRetainedDocumentOptions & {backedArrays?:readonly string[]; trackReads?:boolean} = {}) {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
   const reads = vi.fn(async (position: number, length: number) => bytes.slice(position, position + length));
   const readFile = vi.fn(async () => { throw new Error("full read forbidden"); });
   const input = { capabilities: { retainedRead: true }, readFile, openReadFile: async () => ({
-    stat: async () => ({ type: "file", size: bytes.length }), read: reads, close: async () => {},
+    stat: async () => ({ type: "file", size: bytes.length }), read: options.trackReads===false ? async(position:number,length:number)=>bytes.slice(position,position+length) : reads, close: async () => {},
   }) } as unknown as FileSystem;
   const source = await PdfFileSource.open(input, "/input", { chunkBytes: 64, cacheBytes: 128 });
   const backing=options.backedArrays?new PagedStorage({fs,cwd:"/scratch",env:{},signal:options.signal??new AbortController().signal},2):undefined;
@@ -214,4 +214,31 @@ it.each([false,true])("preserves content-list backing failure and cancellation (
  const read=vi.spyOn(f.backing!,"read").mockImplementation(async()=>{if(cancel){controller.abort(failure);return new Uint8Array(8);}throw failure;});
  try{await expect(page.streamContents().next()).rejects.toBe(failure);}
  finally{read.mockRestore();await f.close();}
+});
+
+it("bounds simultaneous generator pulls while visiting a deep branching page tree",async()=>{
+ const depth=2048,objects:PdfIndirectObject[]=[{objectNumber:1,generationNumber:0,value:cosDict({Type:cosName("Catalog"),Pages:cosRef(2)})}];
+ for(let i=0;i<depth;i++)objects.push({objectNumber:i+2,generationNumber:0,value:cosDict({Type:cosName("Pages"),Kids:cosArray([cosRef(i+3),cosRef(depth+3)]),Count:cosNumber(2)})});
+ for(const number of [depth+2,depth+3])objects.push({objectNumber:number,generationNumber:0,value:cosDict({Type:cosName("Page"),MediaBox:cosArray([0,0,10,10].map(value=>cosNumber(value)))})});
+ const f=await fixture(serializeCosDocument({rootRef:cosRef(1),objects}),{backedArrays:["Kids"],maxPageTreeDepth:Infinity,trackReads:false});
+ const pages=f.doc.pages();
+ const prototype=Object.getPrototypeOf(Object.getPrototypeOf((async function*(){yield 0;})())) as AsyncGenerator;
+ const original=prototype.next,push=Array.prototype.push;let active=0,peak=0,peakArray=0;
+ Array.prototype.push=function(this:unknown[],...items:unknown[]){const length=push.apply(this,items);peakArray=Math.max(peakArray,length);return length;};
+ prototype.next=function(this:AsyncGenerator,...args:Parameters<AsyncGenerator["next"]>){
+  peak=Math.max(peak,++active);return original.apply(this,args).finally(()=>{active--;});
+ };
+ try{expect((await pages.next()).value?.reference?.objectNumber).toBe(depth+2);expect(peak).toBeLessThan(128);expect(peakArray).toBeLessThanOrEqual(128);
+  expect((await pages.next()).value?.reference?.objectNumber).toBe(depth+3);
+  expect((await pages.next()).done).toBe(true);
+ }
+ finally{prototype.next=original;Array.prototype.push=push;await pages.return();await f.close();}
+});
+
+it.each([false,true])("preserves pending page-cursor read failure and cancellation (cancel=%s)",async cancel=>{
+ const controller=new AbortController(),failure=new Error("pending cursor failed"),f=await fixture(inheritedPdf(),{backedArrays:["Kids"],signal:controller.signal});
+ const pages=f.doc.pages();expect((await pages.next()).done).toBe(false);
+ const read=vi.spyOn(f.backing!,"read").mockImplementation(async()=>{if(cancel){controller.abort(failure);return new Uint8Array(16);}throw failure;});
+ try{await expect(pages.next()).rejects.toBe(failure);}
+ finally{read.mockRestore();await pages.return();await f.close();}
 });

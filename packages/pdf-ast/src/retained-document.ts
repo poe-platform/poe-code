@@ -1,5 +1,5 @@
 import { PdfArrayCursor } from "./content/array-cursor.js";
-import { readStoredItems, readStoredRecord } from "./content/stored-record.js";
+import { StoredMetadataStack, readStoredRecord } from "./content/stored-record.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { ValueArrayStorage } from "./cos/value-parser.js";
 import { PdfMergeOutlines } from "./edit/retained-merge-outlines.js";
@@ -19,7 +19,7 @@ import { walkRetainedJavaScripts, type PdfRetainedJavaScript } from "./extract/r
 import { walkRetainedImages, type PdfRetainedImage, type PdfImageSelection } from "./extract/retained-images.js";
 import { walkRetainedFonts, type PdfRetainedFont, type PdfFontSelection } from "./extract/retained-fonts.js";
 import { walkRetainedAttachments, type PdfRetainedAttachment } from "./extract/retained-attachments.js";
-import { cosArray, cosNumber, cosDict, decodePdfString, dictGet, type ByteSpan, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfRect, type PdfStoredItems } from "./ast.js";
+import { cosArray, cosNumber, cosDict, decodePdfString, dictGet, type ByteSpan, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfRect, type PdfStoredItems } from "./ast.js";
 import { PdfError } from "./errors.js";
 import { openPdfObjectReader, type OpenPdfObjectReaderOptions, type PdfOpenedObjectReader } from "./cos/object-reader.js";
 import type { PdfIndexStorage } from "./cos/object-index.js";
@@ -175,21 +175,50 @@ export class PdfRetainedDocument {
       const visited = new PdfReferenceSet(doc.storage, doc.options.maxTraversalStagingBytes, doc.options.signal);
       let count = 0;
       let failed = false;
-      async function* walk(node: PdfCosNode | undefined, depth: number): AsyncGenerator<PdfRetainedPage, void, void> {
-        doc.assertOpen();
-        if (!node) return;
-        if (depth > doc.depthLimit) throw new PdfError("E_LIMIT", "PDF page tree depth limit exceeded");
-        if (node.kind === "ref" && !await visited.add(node.objectNumber)) return;
-        const resolved = await doc.lookup(node);
-        if (resolved?.value.kind !== "dict") return;
-        const dict = resolved.value;
-        const type = (await doc.lookup(dictGet(dict, "Type")))?.value;
-        const kids = (await doc.lookup(dictGet(dict, "Kids"), undefined, ["Kids"]))?.value;
-        if ((type?.kind === "name" && type.decoded === "Pages") || kids?.kind === "array") {
-          if (kids?.kind === "array") for await (const kid of kids.storedItems ? readStoredItems<PdfCosNode>(kids.storedItems, doc.options.signal) : kids.items) yield* walk(kid, depth + 1);
-        } else if ((type?.kind === "name" && type.decoded === "Page") || dictGet(dict, "MediaBox") || dictGet(dict, "Contents")) {
-          if (count >= Math.min(doc.options.maxPages!, Number.MAX_SAFE_INTEGER)) throw new PdfError("E_LIMIT", "PDF page count limit exceeded");
-          yield new PdfRetainedPage(doc, count++, dict, node.kind === "ref" ? node : undefined);
+      async function* walk(first: PdfCosNode | undefined): AsyncGenerator<PdfRetainedPage, void, void> {
+        type Frame = { kids: PdfCosArray; index: number; position: number; depth: number };
+        // Buffered callers retain their existing bounded-by-depth convenience
+        // path. Source-backed Kids share the caller's record storage, so pending
+        // sibling cursors need no resident ancestor chain.
+        const backing = doc.options.valueArrays?.storedArrayKeys?.includes("Kids") ? doc.options.valueArrays.arrayStorage : undefined;
+        const frames = backing ? new StoredMetadataStack<Frame>(backing, doc.options.signal) : [] as Frame[];
+        let frame: Frame | undefined, node = first, depth = 0, turns = 0;
+        while (true) {
+          if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+          doc.assertOpen();
+          if (!node) {
+            frame ??= await frames.pop();
+            if (!frame) return;
+            const stored = frame.kids.storedItems, length = stored?.length ?? frame.kids.items.length;
+            if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("Invalid stored array length");
+            if (frame.index === length) {
+              if (stored && frame.position !== -1) throw new Error("Invalid stored array terminator");
+              frame = undefined; continue;
+            }
+            if (stored) {
+              const record = await readStoredRecord<PdfCosNode>(stored.storage, frame.position, doc.options.signal);
+              frame.position = record.next; node = record.value;
+            } else node = frame.kids.items[frame.index];
+            frame.index++; depth = frame.depth;
+            if (!node) continue;
+          }
+          const current = node; node = undefined;
+          if (depth > doc.depthLimit) throw new PdfError("E_LIMIT", "PDF page tree depth limit exceeded");
+          if (current.kind === "ref" && !await visited.add(current.objectNumber)) continue;
+          const resolved = await doc.lookup(current);
+          if (resolved?.value.kind !== "dict") continue;
+          const dict = resolved.value;
+          const type = (await doc.lookup(dictGet(dict, "Type")))?.value;
+          const kids = (await doc.lookup(dictGet(dict, "Kids"), undefined, ["Kids"]))?.value;
+          if ((type?.kind === "name" && type.decoded === "Pages") || kids?.kind === "array") {
+            if (kids?.kind === "array") {
+              if (frame) await frames.push(frame);
+              frame = {kids,index:0,position:kids.storedItems?.position ?? -1,depth:depth+1};
+            }
+          } else if ((type?.kind === "name" && type.decoded === "Page") || dictGet(dict, "MediaBox") || dictGet(dict, "Contents")) {
+            if (count >= Math.min(doc.options.maxPages!, Number.MAX_SAFE_INTEGER)) throw new PdfError("E_LIMIT", "PDF page count limit exceeded");
+            yield new PdfRetainedPage(doc, count++, dict, current.kind === "ref" ? current : undefined);
+          }
         }
       }
       try {
@@ -203,7 +232,7 @@ export class PdfRetainedDocument {
           }
         } else {
           const root = (await doc.lookup(doc.crossReference.rootRef))?.value;
-          if (root?.kind === "dict") yield* walk(dictGet(root, "Pages"), 0);
+          if (root?.kind === "dict") yield* walk(dictGet(root, "Pages"));
         }
       } catch (error) { failed = true; throw error; }
       finally {

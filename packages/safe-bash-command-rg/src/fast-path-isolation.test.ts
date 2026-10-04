@@ -41,6 +41,30 @@ test("count cache distinguishes middle bytes and filesystem tenants", async () =
   }
 });
 
+for (const [first, second] of [["v1.0.0", "v2.0.0"], ["aXXb", "aYYb"], ["user_1_id", "user_2_id"]] as const) {
+  for (const flags of [["-c"], ["-F", "-c"]]) {
+    test(`repeated ${flags.join(" ")} counts distinguish ${first} and ${second}`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.mkdir("/work");
+      await fs.writeFile("/work/data.txt", bytes(`${first}\n`.repeat(3)));
+      const command = createRgCommand();
+      for (const pattern of [first, second, second, first]) {
+        const result = await run(command, fs, [...flags, pattern, "/work"]);
+        assert.equal(result.exitCode, pattern === first ? 0 : 1);
+        assert.equal(result.stdout, pattern === first ? "/work/data.txt:3\n" : "");
+        assert.equal(result.stderr, "");
+      }
+      await fs.writeFile("/work/data.txt", bytes(`${first}\n${first}\n${second}\n`));
+      for (const pattern of [second, first, second]) {
+        const result = await run(command, fs, [...flags, pattern, "/work"]);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stdout, `/work/data.txt:${pattern === first ? 2 : 1}\n`);
+        assert.equal(result.stderr, "");
+      }
+    });
+  }
+}
+
 test("directory counts distinguish cat and cut across repeated searches", async () => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/work");

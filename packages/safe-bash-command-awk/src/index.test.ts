@@ -143,3 +143,29 @@ for (const output of ['print x', 'printf "%s\\n", x', 'printf "%s %s %s\\n", ENV
     }
   });
 }
+
+for (const ending of ["\n", ""]) {
+  test(`awk memory-file sums exceed signed 32-bit range and retain the final record (ending ${JSON.stringify(ending)})`, async () => {
+    const contents = "a,b,800000000\n".repeat(19) + `a,b,800000000${ending}`;
+    assert.equal(await runMemoryAwk([
+      "-F,", "{ sum += $3; cnt++ } END { print sum, cnt, NF, $0, $1, $3 }", "/data.csv",
+    ], { "/data.csv": contents }), "16000000000 20 3 a,b,800000000 a 800000000\n");
+  });
+
+  test(`awk END observes the final unmatched memory-file record (ending ${JSON.stringify(ending)})`, async () => {
+    const contents = "a,10,20,30\n".repeat(29) + `b,99,88${ending}`;
+    assert.equal(await runMemoryAwk([
+      "-F,", "/^a/ { cnt++ } END { print cnt, NF, $0, $1, $3, NR, FNR }", "/data.csv",
+    ], { "/data.csv": contents }), "29 3 b,99,88 b 88 30 30\n");
+  });
+}
+
+test("awk memory-file accumulation preserves large initial values across files", async () => {
+  assert.equal(await runMemoryAwk([
+    "-F,", "BEGIN { sum=2147483647; cnt=2147483647 } { sum += $3; cnt++ } END { print sum, cnt, NF, $0 }",
+    "/first.csv", "/second.csv",
+  ], {
+    "/first.csv": "a,b,800000000\n".repeat(20),
+    "/second.csv": "x,y,800000000\n".repeat(20),
+  }), "34147483647 2147483687 3 x,y,800000000\n");
+});

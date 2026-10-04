@@ -1,3 +1,4 @@
+import { createWorksheetIndexes, type XlsxSharedFormula } from "./worksheet-indexes.js";
 import { createWorksheetStorage } from "./worksheet-storage.js";
 import { createSharedStringStorage } from "./shared-string-storage.js";
 import { writeXlsxTheme } from "./xlsx-theme.js";
@@ -412,6 +413,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
     const sheetNodes = [...uniqueSheets.values()];
     if (sheetNodes.length > context.limits.sheets) limit("sheets");
     const storedRows = context.createWorkingStorage ? createWorksheetStorage(context, namespace => spreadsheetNamespaces.has(namespace)) : undefined;
+    const storedIndexes = context.createWorkingStorage ? createWorksheetIndexes(context) : undefined;
     let cellCount = 0;
     const sheets: Sheet[] = [];
     for (const sheetNode of sheetNodes) {
@@ -426,9 +428,10 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       source = await recognize(source, "xlsx_sheet_dtd", context, storedRows);
       const sheetRelations = await opc.relations(relation.target);
       const cells: Cell[] = [], rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], groups: FormulaGroup[] = [];
-      const cellIndexes = new Map<number, number>();
+      const indexes = storedIndexes?.sheet();
+      const cellIndexes = indexes?.cells ?? new Map<number, number>();
       const arrayGroups = new Map<string, FormulaGroup>();
-      const shared = new Map<string, { expression: string; row: number; column: number; id?: string; range?: Range; arrayStringLiterals?: boolean }>();
+      const shared = indexes?.shared ?? new Map<string, XlsxSharedFormula>();
       const columnStyles = children(child(source, "cols"), "col").filter(node => attr(node, "style") !== undefined)
         .map(node => ({ min: integer(attr(node, "min")) - 1, max: integer(attr(node, "max")) - 1, style: cellStyles[integer(attr(node, "style"))] }));
       const rowState = new Map<number, AxisMetadata>();
@@ -525,7 +528,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             let semantics = readFormulaSemantics(f);
             if (f) {
               const kind = attr(f, "t"), si = kind === "shared" ? attr(f, "si") : undefined;
-              const existing = si === undefined ? undefined : shared.get(si), ref = attr(f, "ref");
+              const existing = si === undefined ? undefined : await shared.get(si), ref = attr(f, "ref");
               if (existing && ref === undefined) {
                 // Native followers reuse the parsed definition even if they contain text.
                 semantics = existing.arrayStringLiterals ? { arrayStringLiterals: true } : {};
@@ -553,7 +556,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                     groupId = `shared-${si}-${cellCount}`;
                     groups.push({ id: groupId, kind: "shared", expression, range: bounds, ...semantics });
                   }
-                  shared.set(si, { expression, ...position, ...(groupId && bounds ? { id: groupId, range: bounds } : {}), ...semantics });
+                  await shared.set(si, { expression, ...position, ...(groupId && bounds ? { id: groupId, range: bounds } : {}), ...semantics });
                 } else if (kind === "array" && ref !== undefined) {
                   groupId = `array-${position.row}-${position.column}`; arrayRange = range(ref);
                 }
@@ -591,8 +594,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                   if (array.range.startRow !== array.range.endRow || array.range.startColumn !== array.range.endColumn) {
                     // A scalar expression cannot replace one member of a multi-cell array.
                     if (style) {
-                      const key = position.row * 16384 + position.column, index = cellIndexes.get(key);
-                      if (index === undefined) { cellIndexes.set(key, cells.length); cells.push({ ...position, value: { kind: "blank" }, formulaGroup: array.id, ...style }); }
+                      const key = position.row * 16384 + position.column, index = await cellIndexes.get(key);
+                      if (index === undefined) { await cellIndexes.set(key, cells.length); cells.push({ ...position, value: { kind: "blank" }, formulaGroup: array.id, ...style }); }
                       else cells[index] = { ...cells[index]!, ...style };
                     }
                     continue;
@@ -605,7 +608,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             if (type === "inlineStr" && !inline && !f && expression === undefined && style === undefined) continue;
             const hasCache = type === "inlineStr" ? inline !== undefined
               : raw !== undefined && (raw !== "" || type === "str");
-            const key = position.row * 16384 + position.column, index = cellIndexes.get(key);
+            const key = position.row * 16384 + position.column, index = await cellIndexes.get(key);
             const previous = index === undefined ? undefined : cells[index];
             let retained: Partial<Cell> = previous ?? {};
             const cache = hasCache ? value : previous?.value.kind === "blank" ? undefined : previous?.value;
@@ -625,7 +628,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                 : { formula: expression, ...semantics, formulaDirty: arrayRange !== undefined || !hasCache, ...(cache === undefined ? {} : { cachedResult: cache }) }),
               ...(f && expression === undefined && !hasCache && previous?.formula ? { formulaDirty: true } : {}),
               ...(groupId ? { formulaGroup: groupId } : {}), ...(style ?? {}), ...(richText ? { richText } : {}) };
-            if (index === undefined) { cellIndexes.set(key, cells.length); cells.push(cell); }
+            if (index === undefined) { await cellIndexes.set(key, cells.length); cells.push(cell); }
             else cells[index] = cell;
           }
         }

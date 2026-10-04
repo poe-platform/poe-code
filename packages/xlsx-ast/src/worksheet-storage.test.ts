@@ -23,7 +23,7 @@ async function fixture(alias = false, reused = false) {
     ['_rels/.rels', `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="r" Type="${rel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
     ['xl/workbook.xml', `<workbook xmlns="${ns}" xmlns:r="${rel}"><sheets><sheet name="Data" sheetId="1" r:id="sheet"/>${reused ? '<sheet name="Copy" sheetId="2" r:id="sheet"/>' : ''}</sheets></workbook>`],
     ['xl/_rels/workbook.xml.rels', `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="sheet" Type="${rel}/worksheet" Target="sheet.xml"/></Relationships>`],
-    ['xl/sheet.xml', `<worksheet xmlns="${ns}"><sheetFormatPr defaultRowHeight="17"/><sheetData>  \n` + Array.from({ length: 160 }, (_, i) => `<row r="${i + 1}"><bad/><c r="A${i + 1}"><v>${i}</v></c><c r="B${i + 1}"><f>A${i + 1}+1</f><v>${i + 1}</v></c></row> \n`).join('') + '<row r="1"><c r="A1"><v>999</v></c></row> \n</sheetData><sheetFormatPr defaultRowHeight="23"/><sheetData><row><c t="inlineStr"><is><r><rPr><b/></rPr><t>é😀</t></r></is></c></row></sheetData></worksheet>']
+    ['xl/sheet.xml', `<worksheet xmlns="${ns}"><sheetFormatPr defaultRowHeight="17"/><sheetData>  \n` + Array.from({ length: 160 }, (_, i) => `<row r="${i + 1}"><bad/><c r="A${i + 1}"><v>${i}</v></c><c r="B${i + 1}"><f t="shared" si="${i}">A${i + 1}+1</f><v>${i + 1}</v></c><c r="C${i + 1}"><f t="shared" si="${i}"/><v>${i + 2}</v></c></row> \n`).join('') + '<row r="1"><c r="A1"><v>999</v></c></row> \n</sheetData><sheetFormatPr defaultRowHeight="23"/><sheetData><row><c t="inlineStr"><is><r><rPr><b/></rPr><t>é😀</t></r></is></c></row></sheetData></worksheet>']
   ];
   if (alias) parts.push(['xl/_rels/sheet.xml.rels', `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="comments" Type="${rel}/comments" Target="sheet.xml"/></Relationships>`]);
   const zip = createZipCodec(), limits = { maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity, maxMembers: Infinity, maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity, chunkSize: 16384 };
@@ -36,8 +36,14 @@ it.each([false, true].flatMap(alias => [false, true].map(reused => ({ alias, reu
   const fs = createMemoryFileSystem(), borrowed = new Uint8Array(257);
   const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: '', extensions: [], async readSource(source, ctx) {
     guard.active = true;
+    const set = Map.prototype.set;
+    Map.prototype.set = function(key: unknown, value: unknown) {
+      if (typeof key === 'number' && key >= 16384 && typeof value === 'number') throw Error('resident cell position index');
+      if (value && typeof value === 'object' && 'expression' in value && 'row' in value && 'column' in value) throw Error('resident shared formula index');
+      return set.call(this, key, value);
+    };
     try { expect(await readXlsx(source, { ...ctx, async diagnostic(event) { actualDiagnostics.push(event); } })).toEqual(expected); }
-    finally { guard.active = false; }
+    finally { guard.active = false; Map.prototype.set = set; }
     return { sheets: [] };
   } }] });
   try { await engine.readWorkbook({ kind: 'range', source: { size: bytes.length, async read(position, maximum) {

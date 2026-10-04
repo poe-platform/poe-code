@@ -7,6 +7,8 @@ output and explicit resource limits.
 - Recursive directory comparison, exclusions and ignored-change options.
 - Exit status 0 for equal inputs, 1 for differences and 2 for errors.
 - Optional input, output, line, work, matrix, file, hunk and exclusion limits.
+- Exact `--brief` comparisons of regular files use retained 64 KiB reads,
+  including binary files and arbitrarily long lines.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
@@ -35,4 +37,7 @@ Omitted quotas remain unbounded; set finite limits for untrusted inputs.
 
 This internal workspace ships inside Safe Bash. Consumers use the public exports
 above, without installing a separate diff package. It uses injected filesystem and
-stream capabilities and does not invoke a host diff process.
+stream capabilities and does not invoke a host diff process. The bounded brief
+path requires identity-checked retained reads from the injected filesystem.
+Stdin, normalization options, full diff output, and directory metadata/output
+still use buffering; this is not a general bounded-memory guarantee for diff.

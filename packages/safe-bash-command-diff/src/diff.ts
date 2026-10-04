@@ -1,3 +1,4 @@
+import { compareBrief } from "./brief.js";
 import { contextual,normal,type Edit } from "./diff-format.js";
 import { flags,type DiffFlags } from "./diff-options.js";
 import { expandTabs,ifdef,quoteDiffArgument,quoteDiffName,script,sideBySide } from "./diff-output.js";
@@ -307,6 +308,17 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
             nested: true, leftParents, rightParents, leftEntry: match.left !== undefined, rightEntry: match.right !== undefined });
         }
       }
+      continue;
+    }
+    if (options.brief && options.whitespace === "exact" && !options.ignoreCase
+      && !options.ignoreTabs && !options.ignoreTrailing && !options.stripTrailingCr
+      && !options.ignoreBlank && options.ignorePatterns.length === 0
+      && leftStat?.type === "file" && rightStat?.type === "file" && !isStdin(left) && !isStdin(right)) {
+      const same = await compareBrief(budget, pathOf(context, left), pathOf(context, right), options.text);
+      if (!same) {
+        different = true;
+        append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
+      } else if (options.reportSame) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
       continue;
     }
     const read = async (path: string, stat: { type: string } | undefined) => {

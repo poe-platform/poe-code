@@ -5,7 +5,7 @@ type ByteSource,type CommandContext,type CommandDefinition,type FileStat,
 import { PublicDiagnostic,publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
-import { byteLength,concatBytes,decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
+import { byteLength,decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { pathOf } from "safe-bash-io-engine/internal";
 
 export interface DiffPatchOptions {
@@ -99,11 +99,16 @@ export class Budget {
     catch { throw new ToolError("binary input is unsupported (invalid UTF-8)"); }
   }
 
+  countLines(count: number): void {
+    this.lines += count;
+    if (this.lines > this.limits.maxLines) throw new ToolError("line limit exceeded");
+  }
+
   split(text: string): string[] {
     const result: string[] = [];
     let start = 0;
     while (start < text.length) {
-      if (++this.lines > this.limits.maxLines) throw new ToolError("line limit exceeded");
+      this.countLines(1);
       const newline = text.indexOf("\n", start);
       const end = newline < 0 ? text.length : newline + 1;
       result.push(text.slice(start, end));
@@ -131,6 +136,12 @@ export class Budget {
   }
 
   async readDiff(path: string, encoding: "utf8" | "latin1" = "utf8"): Promise<string> {
+    const bytes = await collectBytes(this.diffSource(path), { signal: this.context.signal });
+    return encoding === "latin1" ? decodeBytes(bytes, "latin1") : this.text(bytes);
+  }
+
+  /** Owned blocks from an identity-checked retained file; consumers must close the iterator. */
+  async *diffSource(path: string): AsyncGenerator<Uint8Array> {
     const { fs, signal } = this.context;
     const expected = this.inspected.get(path);
     const verifyAncestors = async () => {
@@ -150,29 +161,32 @@ export class Budget {
     await verifyAncestors();
     const handle = await fs.openReadFile(path, { signal });
     try {
+      signal.throwIfAborted();
       const stat = await handle.stat({ signal });
+      signal.throwIfAborted();
       if (!sameIdentity(stat, expected) || stat.size !== expected.size || stat.revision !== expected.revision)
         throw new ToolError("diff input changed while opening");
       await verifyAncestors();
       const remaining = Math.min(this.limits.maxInputBytes, this.context.inputBudget?.maxBytes ?? Infinity) - this.inputBytes;
       if (stat.size > remaining) throw new ToolError("input byte limit exceeded");
-      const chunks: Uint8Array[] = [];
+      if (!Number.isSafeInteger(stat.size) || stat.size < 0) throw new ToolError("invalid diff input size");
       let position = 0;
       while (position < stat.size) {
         this.step();
         { const c = this.checkpoint(); if (c) await c; }
         const size = Math.min(65536, stat.size - position);
         const chunk = await handle.read(position, size, { signal });
+        signal.throwIfAborted();
         if (!chunk.length || chunk.length > size) throw new ToolError("diff input changed while reading");
         this.input(chunk.length);
-        chunks.push(new Uint8Array(chunk));
+        if (this.inputBytes > this.limits.maxInputBytes) throw new ToolError("input byte limit exceeded");
         position += chunk.length;
+        yield new Uint8Array(chunk);
       }
       const after = await handle.stat({ signal });
+      signal.throwIfAborted();
       if (!sameIdentity(after, stat) || after.size !== stat.size || after.revision !== stat.revision)
         throw new ToolError("diff input changed while reading");
-      const bytes = concatBytes(chunks, position);
-      return encoding === "latin1" ? decodeBytes(bytes, "latin1") : this.text(bytes);
     } finally { await handle.close(); }
   }
 

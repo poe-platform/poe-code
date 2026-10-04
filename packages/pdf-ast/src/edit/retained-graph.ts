@@ -11,7 +11,7 @@ import { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
 import { PdfError } from "../errors.js";
 import type { SaveRetainedDocumentOptions } from "./retained-save.js";
 
-export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
+export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
 
 /** Own an editable graph and logical page index on caller storage. This applies
  * edits without the stream dictionary normalization performed by PDF saving.
@@ -87,6 +87,16 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
     if (options.removeMetadata) await removeRoot(["Metadata"]);
     if (options.removeStructure) await removeRoot(["StructTreeRoot", "MarkInfo"]);
     if (options.removeAcroform) await removeRoot(["AcroForm"]);
+    if (options.attachmentCopies) {
+      const copies = (async function* () { yield* options.attachmentCopies!; })(), first = await copies.next();
+      if (!first.done) {
+        async function* additions() { yield first.value!; yield* copies; }
+        let failed = false;
+        try { await editRetainedAttachments(document, store, storage, [], additions(), signal, true); addedObjects = true; }
+        catch (error) { failed = true; throw error; }
+        finally { await copies.return().catch(error => { if (!failed) throw error; }); }
+      }
+    }
     if (options.removeAttachments !== undefined || options.attachments !== undefined) {
       await editRetainedAttachments(document, store, storage, options.removeAttachments ?? [], options.attachments ?? [], signal); addedObjects = true;
     }

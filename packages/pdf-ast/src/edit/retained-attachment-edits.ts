@@ -22,11 +22,11 @@ export class PdfDuplicateAttachment extends PdfError {
 
 /** Flatten the edited name tree without collecting its pairs or new payloads. */
 export async function editRetainedAttachments(document: PdfRetainedDocument, target: PdfMutableObjectStore, storage: PdfIndexStorage,
-  remove: Iterable<string> | AsyncIterable<string>, additions: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>, signal: AbortSignal): Promise<void> {
-  const pairs = new PdfMutableObjectStore(storage, { signal }), frames = new PdfMutableObjectStore(storage, { signal });
-  const names = new PdfNameIndex(storage, Infinity, signal), removed = new PdfNameIndex(storage, Infinity, signal), visited = new PdfReferenceSet(storage, Infinity, signal);
+  remove: Iterable<string> | AsyncIterable<string>, additions: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>, signal: AbortSignal, preserveTree = false): Promise<void> {
+  const pairs = new PdfMutableObjectStore(storage, { signal });
+  const names = new PdfNameIndex(storage, Infinity, signal), removed = new PdfNameIndex(storage, Infinity, signal);
   const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4), first = new IntegerTable(backing), removals = new IntegerTable(backing);
-  let failed = false, pending = 0, count = 0, work = 0;
+  let failed = false, count = 0, work = 0;
   async function checkpoint() { signal.throwIfAborted(); if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0)); signal.throwIfAborted(); }
   async function resolve(node: PdfCosNode | undefined) { const result = await document.lookup(node); return result?.stream ? undefined : result; }
   async function save(reference: PdfCosRef, value: PdfCosNode) { await target.set({ objectNumber: reference.objectNumber, generationNumber: reference.generationNumber, value }); }
@@ -48,27 +48,8 @@ export async function editRetainedAttachments(document: PdfRetainedDocument, tar
     if (tree.value.kind !== "dict") throw new PdfError("E_PARSE", "Invalid attachment tree");
     if (tree.reference) owner = tree;
     for await (const key of remove) { await checkpoint(); await removals.set(BigInt((await removed.intern(key)).index), 1n); }
-    async function* tokens(): AsyncGenerator<PdfCosNode> {
-      let node: PdfCosNode | undefined = tree!.value;
-      for (;;) {
-        await checkpoint(); const value = (await resolve(node))?.value;
-        if (value?.kind === "dict") {
-          const entries = (await resolve(dictGet(value, "Names")))?.value;
-          if (entries?.kind === "array") for (const item of entries.items) { await checkpoint(); yield item; }
-          const kids = (await resolve(dictGet(value, "Kids")))?.value;
-          if (kids?.kind === "array") for (let i = kids.items.length - 1; i >= 0; i--) await frames.set({ objectNumber: ++pending, generationNumber: 0, value: kids.items[i]! });
-        }
-        node = undefined;
-        while (pending) {
-          await checkpoint(); const child = (await frames.get(pending--))!.value;
-          if (child.kind === "ref" && !await visited.add(child.objectNumber)) continue;
-          node = child; break;
-        }
-        if (!node) return;
-      }
-    }
     let keyNode: PdfCosNode | undefined;
-    for await (const node of tokens()) {
+    for await (const node of retainedAttachmentNameTokens(document, storage, tree.value, signal, !preserveTree)) {
       if (!keyNode) { keyNode = node; continue; }
       const keyValue = (await resolve(keyNode))?.value, key = keyValue?.kind === "string" ? decodePdfString(keyValue) : "";
       if (await removals.get(BigInt((await removed.intern(key)).index)) === undefined) {
@@ -110,7 +91,11 @@ export async function editRetainedAttachments(document: PdfRetainedDocument, tar
         }
       }
     }
-    const sentinel = cosArray([]); dictDelete(tree.value, "Kids"); dictSet(tree.value, "Names", sentinel);
+    const sentinel = cosArray([]);
+    const previous = preserveTree ? await resolve(dictGet(tree.value, "Names")) : undefined;
+    if (previous?.value.kind === "array" && previous.reference) owner = { value: sentinel, reference: previous.reference };
+    else dictSet(tree.value, "Names", sentinel);
+    if (!preserveTree) dictDelete(tree.value, "Kids");
     const encoder = new TextEncoder();
     async function* serialized(node: PdfCosNode): AsyncGenerator<Uint8Array> {
       await checkpoint();
@@ -133,5 +118,32 @@ export async function editRetainedAttachments(document: PdfRetainedDocument, tar
     let length = 0; for await (const bytes of serialized(owner.value)) length += bytes.length;
     await target.setSerializedValue({ objectNumber: owner.reference!.objectNumber, generationNumber: owner.reference!.generationNumber, body: { length, chunks: serialized(owner.value) } });
   } catch (error) { failed = true; throw error; }
-  finally { const results = await Promise.allSettled([pairs.close(), frames.close(), names.close(), removed.close(), visited.close(), backing.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+  finally { const results = await Promise.allSettled([pairs.close(), names.close(), removed.close(), backing.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+}
+
+export async function* retainedAttachmentNameTokens(document: PdfRetainedDocument, storage: PdfIndexStorage, root: PdfCosNode | undefined, signal: AbortSignal, recursive = true): AsyncGenerator<PdfCosNode> {
+  const frames = new PdfMutableObjectStore(storage, { signal }), visited = new PdfReferenceSet(storage, Infinity, signal);
+  let pending = 0, work = 0, failed = false;
+  async function checkpoint() { signal.throwIfAborted(); if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0)); }
+  async function resolve(node: PdfCosNode | undefined) { const result = await document.lookup(node); return result?.stream ? undefined : result; }
+  try {
+    let node: PdfCosNode | undefined = root;
+    for (;;) {
+      await checkpoint(); const value = (await resolve(node))?.value;
+      if (value?.kind === "dict") {
+        const entries = (await resolve(dictGet(value, "Names")))?.value;
+        if (entries?.kind === "array") for (const item of entries.items) { await checkpoint(); yield item; }
+        const kids = (await resolve(dictGet(value, "Kids")))?.value;
+        if (recursive && kids?.kind === "array") for (let i = kids.items.length - 1; i >= 0; i--) await frames.set({ objectNumber: ++pending, generationNumber: 0, value: kids.items[i]! });
+      }
+      node = undefined;
+      while (pending) {
+        await checkpoint(); const child = (await frames.get(pending--))!.value;
+        if (child.kind === "ref" && !await visited.add(child.objectNumber)) continue;
+        node = child; break;
+      }
+      if (!node) return;
+    }
+  } catch (error) { failed = true; throw error; }
+  finally { const results = await Promise.allSettled([frames.close(), visited.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

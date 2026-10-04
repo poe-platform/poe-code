@@ -861,7 +861,12 @@ Pass `removeAttachments` as an iterable of keys and `attachments` as an iterable
 of `{ key, filename, length, chunks, description?, replace? }` inputs to edit
 embedded files. Payload chunks stream into caller storage; `length` must match
 the supplied bytes. Removal runs before addition, and `replace: true` replaces
-the first matching key. Close the edited graph after saving or copying it.
+the first matching key. Pass `attachmentCopies` to append embedded files before
+removal/addition while preserving existing child name trees and indirect arrays.
+`copyRetainedAttachments(sourceDocument, storage, { prefix?, signal? })` supplies
+these inputs from another retained document, staging one decoded payload at a
+time. Keep the source document open until iteration finishes. Close the edited
+graph after saving or copying it.
 `PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
 existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
 

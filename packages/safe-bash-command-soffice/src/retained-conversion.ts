@@ -32,7 +32,7 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   const format = (colon < 0 ? convertSpec : convertSpec.slice(0, colon)).toLowerCase();
   const explicitFilter = colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon);
   const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv"];
-  const pptxConversion = (input: string) => input.toLowerCase().endsWith(".pptx") && format !== "pdf";
+  const pptxConversion = (input: string) => input.toLowerCase().endsWith(".pptx");
   const docxConversion = (input: string) => input.toLowerCase().endsWith(".docx");
   const plainTableConversion = (input: string) => ![...structured, ".rtf"].some(extension => input.toLowerCase().endsWith(extension)) && ["csv", "xlsx"].includes(format);
   const openDocumentConversion = (input: string) => [".odt", ".ods", ".odp"].some(extension => input.toLowerCase().endsWith(extension)) &&
@@ -62,9 +62,9 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
           messages.length = 0; break;
         }
       } else if (pptxConversion(input) || docxConversion(input) || openDocumentConversion(input) || spreadsheetTextConversion(input)) {
-        const document = format === "pdf" ? new RetainedOfficeBlocks(storage, signal) : undefined;
+        const document = format === "pdf" && !pptxConversion(input) ? new RetainedOfficeBlocks(storage, signal) : undefined;
         let text: SofficeSnapshot;
-        try { text = pptxConversion(input) ? await retainPptxText(storage, source, context, { format, title: stem }) : docxConversion(input) ? await retainDocxText(storage, source, context, "\n\n", format === "html" || format === "docx" ? { format, title: stem } : undefined, document) : spreadsheetTextConversion(input) ? await retainXlsxText(storage, source, context) : await retainOdtText(storage, source, context, document ? { blocks: document } : format === "docx" ? { docx: true } : format === "html" ? { htmlTitle: stem } : { paragraphSeparator: "\n\n" }); }
+        try { text = pptxConversion(input) ? await retainPptxText(storage, source, context, { format, title: stem, filterOptions: nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1) }) : docxConversion(input) ? await retainDocxText(storage, source, context, "\n\n", format === "html" || format === "docx" ? { format, title: stem } : undefined, document) : spreadsheetTextConversion(input) ? await retainXlsxText(storage, source, context) : await retainOdtText(storage, source, context, document ? { blocks: document } : format === "docx" ? { docx: true } : format === "html" ? { htmlTitle: stem } : { paragraphSeparator: "\n\n" }); }
         catch (error) {
           signal.throwIfAborted();
           stderr = `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n`;
@@ -83,7 +83,7 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
             signal.throwIfAborted(); await storage.write(position + written, bytes); written += bytes.length;
           }
           output = { position, size: archive.size };
-        } else if (format === "html") output = text;
+        } else if (format === "html" || format === "pdf") output = text;
         else {
           const position = storage.allocate(text.size + 1);
           for (let offset = 0; offset < text.size; offset += 16384) {

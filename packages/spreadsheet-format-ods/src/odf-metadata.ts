@@ -105,15 +105,16 @@ export function odfCellStyle(node: XmlElement, parent: ImportedValue | undefined
 }
 
 /** Metadata effects use the same retained-record path as the other importers. */
-export function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) => void, roots: readonly XmlElement[] = [],
-  sheetNames: readonly string[] = [], readText = createOdfTextReader(roots, charge)): UnsupportedRecord[] {
+export async function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) => void, roots: readonly XmlElement[] = [],
+  sheetNames: readonly string[] = [], readText = createOdfTextReader(roots, charge),
+  children: (node: XmlElement) => Iterable<XmlElement> | AsyncIterable<XmlElement> = node => node.children): Promise<UnsupportedRecord[]> {
   const objects: ImportedValue[] = [], regions: ImportedValue[] = [], print: ImportedValue[] = []; let row = 0, column = 0;
   const repeat = (n: XmlElement, name: string) => Number(attr(n, name, "table") ?? "1");
-  function rows(parent: XmlElement) {
-    for (const n of parent.children) {
+  async function rows(parent: XmlElement) {
+    for await (const n of children(parent)) {
       charge(); if (!ns.table.includes(n.namespace)) continue;
       if (["table-row-group", "table-rows", "table-header-rows"].includes(n.localName)) {
-        const start = row; rows(n);
+        const start = row; await rows(n);
         if (n.localName === "table-header-rows" && row > start) print.push(gnode("repeat_top", { value: `$${start + 1}:$${row}` }));
         continue;
       }
@@ -146,7 +147,7 @@ export function odfSheetMetadata(sheet: XmlElement, charge: (n?: number) => void
       row += repeat(n, "number-rows-repeated");
     }
   }
-  rows(sheet);
+  await rows(sheet);
   const styleName = attr(sheet, "style-name", "table");
   const containers = roots.flatMap(r => r.children);
   const styles = containers.flatMap(c => c.children).filter(n => ns.style.includes(n.namespace));

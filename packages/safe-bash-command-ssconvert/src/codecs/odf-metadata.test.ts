@@ -16,9 +16,9 @@ it("maps cell font/alignment/protection/colors into the shared Gnumeric style mo
   children: [{ name: "Font", text: "Serif", attributes: [
     { name: "Unit", value: "12" }, { name: "Bold", value: "1" }, { name: "Italic", value: "1" }] }] });
 });
-it("retains comments as Gnumeric objects and maps passive hyperlinks without network I/O", () => {
+it("retains comments as Gnumeric objects and maps passive hyperlinks without network I/O", async () => {
   const sheet = xml('<table:table-row><table:table-cell office:value-type="string"><text:p><text:a xlink:href="https://example.invalid/a">label</text:a></text:p><office:annotation><dc:creator>Ada</dc:creator><text:p>note</text:p></office:annotation></table:table-cell></table:table-row>');
-  const records = odfSheetMetadata(sheet, () => {});
+  const records = await odfSheetMetadata(sheet, () => {});
   expect(records.find(r => r.kind === "Objects")).toMatchObject({ kind: "Objects", data: { children: [{ name: "CellComment", attributes: [
     { name: "ObjectBound", value: "A1" }, { name: "ObjectOffset", value: "1 0 1 0" }, { name: "Direction", value: "17" },
     { name: "Print", value: "1" }, { name: "Author", value: "Ada" }, { name: "Text", value: "note" }] }] } });
@@ -41,9 +41,9 @@ it.each([
   ["#'Bang!'.Total", "'Bang!'!Total"],
   ["#Total", "Total"],
   ["https://example.invalid/Q.1!A1?x=%20", "https://example.invalid/Q.1!A1?x=%20"]
-])("imports hyperlink %s without changing target identity", (href, target) => {
+])("imports hyperlink %s without changing target identity", async (href, target) => {
   const sheet = xml(`<table:table-row><table:table-cell><text:p><text:a xlink:href="${href}">link</text:a></text:p></table:table-cell></table:table-row>`);
-  const styles = odfSheetMetadata(sheet, () => {}).find(r => r.kind === "Styles");
+  const styles = (await odfSheetMetadata(sheet, () => {})).find(r => r.kind === "Styles");
   expect(styles).toMatchObject({ data: { children: [{ children: [{ children: expect.arrayContaining([
     expect.objectContaining({ name: "HyperLink", attributes: expect.arrayContaining([{ name: "target", namespace: "", value: target }]) })
   ]) }] }] } });

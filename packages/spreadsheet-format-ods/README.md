@@ -30,7 +30,7 @@ Retained range input avoids a complete compressed-archive copy. With engine
 `workingFiles`, directory and member indexes spill through the caller's safe-fs
 using a shared bounded page cache. Scalar imports stage cells and row/column
 metadata in caller storage and replay them to source-capable exporters. Formula
-and named-expression inputs retain normal workbook preparation. Decoded XML,
+and named-expression inputs retain normal workbook preparation. Nonrow XML, style catalogs,
 decrypted members and formula workbooks remain resident; this is not yet a fully
 bounded conversion pipeline.
 Both exporters use working storage for compressed ZIP members and central records,
@@ -52,4 +52,4 @@ Existing ssconvert service IDs, supported profiles and documented fidelity limit
 remain unchanged. This private workspace is shipped through the containing
 products, not as a separate npm publication.
 
-ODF XML input decodes directly from ZIP member chunks (at most 16 KiB), including UTF-8 and UTF-16. Probes retain only a short prefix and drain the member to validate its size and CRC. Input XML trees and individual tokens remain resident; encrypted members still use buffered decryption.
+ODF XML input decodes directly from ZIP member chunks (at most 16 KiB), including UTF-8 and UTF-16. Probes retain only a short prefix and drain the member to validate its size and CRC. With working storage, raw and recognized row subtrees replay from canonical mixed-content records, preserving schema diagnostics, annotations, hyperlinks and nested row groups. Nonrow structure, styles, individual large rows/tokens and retained print-range XML still remain resident; encrypted members still use buffered decryption.

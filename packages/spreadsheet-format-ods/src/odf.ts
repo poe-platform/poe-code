@@ -1,3 +1,4 @@
+import { createOdfXmlStorage } from "./odf-xml-storage.js";
 import { createOdfSource } from "./odf-source.js";
 import { createAxisStorage } from "@poe-code/spreadsheet-engine/workbook/axis-storage";
 import { snapshotRecords } from "@poe-code/spreadsheet-ast/model";
@@ -201,9 +202,9 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
       for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; }
       buffers.set(name, result); return result;
     }
-    async function document(name: string) {
+    async function document(name: string, streamElements?: import("@poe-code/safe-fs/xml").XmlStreamLimits["streamElements"]) {
       const xmlLimits = { expectedEncoding: "UTF-8" as "UTF-8" | "UTF-16LE" | "UTF-16BE",
-        retainContent: true, maxDepth: context.limits.xmlDepth ?? Infinity, maxNodes: (context.limits.workbookNodes ?? Infinity) - nodes,
+        ...(streamElements ? { streamElements } : {}), retainContent: true, maxDepth: context.limits.xmlDepth ?? Infinity, maxNodes: (context.limits.workbookNodes ?? Infinity) - nodes,
         maxAttributes: context.limits.workbookNodes ?? Infinity, maxTextLength: limits.maxTextBytes,
         onElement() { nodes++; charge(); } };
       async function* text() {
@@ -309,7 +310,7 @@ export async function probeOdf(bytes: Uint8Array | RangeSource, context: Capabil
     return failure(error, context);
   }
 }
-async function recognize(root: XmlElement, schema: string, context: CapabilityContext, charge: (n?: number) => void): Promise<XmlElement> {
+async function recognize(root: XmlElement, schema: string, context: CapabilityContext, charge: (n?: number) => void, stored?: ReturnType<typeof createOdfXmlStorage>): Promise<XmlElement> {
   const states = edges[schema]!;
   async function visit(node: XmlElement, state: string, ancestors: readonly string[]): Promise<XmlElement | undefined> {
     charge();
@@ -318,6 +319,14 @@ async function recognize(root: XmlElement, schema: string, context: CapabilityCo
       if (Object.values(namespaces).some(ns => ns.includes(node.namespace)))
         await warning(`Unexpected element '${node.name}' in state : \n\t${ancestors.join(" -> ")}\n`, context, "odf-unknown-element");
       return undefined;
+    }
+    if (stored?.has(node)) {
+      const result: XmlElement = { ...node, children: [], content: [], text: "" };
+      for await (const item of stored.content(node)) {
+        const accepted = item.kind === "element" ? await visit(item, edge[1]!, [...ancestors, node.localName]) : item;
+        if (accepted) await stored.append(result, [accepted]);
+      }
+      return result;
     }
     const accepted: XmlElement[] = [], replacements = new Map<XmlElement, XmlElement>();
     for (const child of node.children) {
@@ -438,7 +447,11 @@ export function readOdf(bytes: Uint8Array | RangeSource, context: CapabilityCont
 export function readOdf(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode: true): Promise<Workbook | WorkbookSource | undefined>;
 export async function readOdf(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode = false): Promise<Workbook | WorkbookSource | undefined> {
   let close: (() => Promise<void>) | undefined;
+  let xmlStorage: ReturnType<typeof createOdfXmlStorage> | undefined;
+  let readFailure: { error: unknown } | undefined;
+  let result: Workbook | WorkbookSource | undefined;
   try {
+    result = await (async () => {
     const pkg = await openPackage(bytes, context);
     close = pkg.close;
     const version = await pkg.version(true);
@@ -458,22 +471,24 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
       if (manifest && (manifest.localName !== "manifest" || manifest.namespace !== urn + "manifest:1.0"
         || manifest.children.some(entry => entry.children.some(child => child.localName === "encryption-data")))) invalid("invalid inner package manifest");
     }
-    const raw = await pkg.document("content.xml");
+    if (context.createWorkingStorage) xmlStorage = createOdfXmlStorage(context, table);
+    const raw = await pkg.document("content.xml", xmlStorage?.streamElements);
+    const childNodes = (node: XmlElement) => xmlStorage ? xmlStorage.children(node) : node.children;
     // Formula preparation still requires the complete workbook. Select that
     // path before recognition, reusing this package/password and emitting each
     // diagnostic only once.
-    function requiresWorkbook(node: XmlElement): boolean {
+    async function requiresWorkbook(node: XmlElement): Promise<boolean> {
       pkg.charge();
-      return node.attributes.some(attribute => attribute.localName === "formula")
-        || ["named-expression", "named-range"].includes(node.localName)
-        || node.children.some(requiresWorkbook);
+      if (node.attributes.some(attribute => attribute.localName === "formula") || ["named-expression", "named-range"].includes(node.localName)) return true;
+      for await (const child of childNodes(node)) if (await requiresWorkbook(child)) return true;
+      return false;
     }
-    if (sourceMode && requiresWorkbook(raw)) sourceMode = false;
+    if (sourceMode && await requiresWorkbook(raw)) sourceMode = false;
     const stored = sourceMode ? createOdfSource(context) : undefined;
-    const preparseRoot = await recognize(raw, legacy ? "ooo1_content_dtd" : "opendoc_content_dtd", context, pkg.charge);
+    const preparseRoot = await recognize(raw, legacy ? "ooo1_content_dtd" : "opendoc_content_dtd", context, pkg.charge, xmlStorage);
     const styleRoots = [preparseRoot];
     if (await pkg.entries.has("styles.xml")) styleRoots.unshift(await recognize(await pkg.document("styles.xml"), "styles_dtd", context, pkg.charge));
-    const root = await recognize(raw, legacy ? "ooo1_content_dtd" : "opendoc_content_dtd", context, pkg.charge);
+    const root = await recognize(raw, legacy ? "ooo1_content_dtd" : "opendoc_content_dtd", context, pkg.charge, xmlStorage);
     const body = children(root, "body", office)[0], spreadsheet = legacy ? body : children(body, "spreadsheet", office)[0];
     if (!spreadsheet) invalid("missing spreadsheet body");
     const calculation = children(spreadsheet, "calculation-settings")[0];
@@ -487,7 +502,7 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
     for (const name of ["meta.xml", "settings.xml"]) if (await pkg.entries.has(name)) unsupportedRecords.push(record(await pkg.document(name)));
     const resources = new Set<string>();
     async function embedded(parent: XmlElement, base = "") {
-      for (const node of parent.children) {
+      for await (const node of childNodes(parent)) {
         pkg.charge();
         if (namespaces.OO_NS_DRAW!.includes(node.namespace) && ["image", "object", "object-ole"].includes(node.localName)) {
           const href = attr(node, "href", ["http://www.w3.org/1999/xlink"]);
@@ -546,7 +561,7 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
         if (++metadata > (context.limits.workbookNodes ?? Infinity)) limit("metadata"); records.push(record(n, extra));
       }
       async function axes(parent: XmlElement, axis: "row" | "column", level = 0): Promise<void> {
-        for (const n of parent.children) {
+        for await (const n of childNodes(parent)) {
           pkg.charge(); if (!table.includes(n.namespace)) continue;
           if (n.localName === `table-${axis}-group` || n.localName === `table-header-${axis}s` || n.localName === `table-${axis}s`) {
             await axes(n, axis, level + (n.localName.endsWith("-group") ? 1 : 0)); continue;
@@ -683,11 +698,11 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
         }
       }
       await axes(node, "column"); await axes(node, "row");
-      const translatedMetadata = [...odfSheetMetadata(node, pkg.charge, styleRoots, declaredSheetNames, readText), ...odfDatabaseRanges(spreadsheet, name, pkg.charge)];
+      const translatedMetadata = [...await odfSheetMetadata(node, pkg.charge, styleRoots, declaredSheetNames, readText, childNodes), ...odfDatabaseRanges(spreadsheet, name, pkg.charge)];
       if (translatedMetadata.length > (context.limits.workbookNodes ?? Infinity) - metadata) limit("metadata");
       metadata += translatedMetadata.length; records.push(...translatedMetadata);
-      for (const n of node.children) if (!["table-column", "table-row", "table-column-group", "table-row-group", "table-header-rows", "table-header-columns", "table-columns", "table-rows", "named-expressions"].includes(n.localName)) retain(n);
-      if (attr(node, "print-ranges")) retain(node, { printRanges: attr(node, "print-ranges")! });
+      for await (const n of childNodes(node)) if (!["table-column", "table-row", "table-column-group", "table-row-group", "table-header-rows", "table-header-columns", "table-columns", "table-rows", "named-expressions"].includes(n.localName)) retain(n);
+      if (attr(node, "print-ranges")) retain(xmlStorage ? await xmlStorage.materialize(node) : node, { printRanges: attr(node, "print-ranges")! });
       const sheetProperties = odfChildren(sheetStyle?.style.odf).find(n => odfObject(n)?.name === "table-properties" && odfObject(n)?.namespace === odfNamespaces.style), sheetAttributes = odfAttributes(sheetProperties, odfNamespaces.gnm);
       const viewAttributes: Record<string,string> = { RTL_Layout: odfAttributes(sheetProperties, odfNamespaces.style)["writing-mode"] === "rl-tb" ? "1" : "0" };
       for (const [source,target,invert] of [["display-formulas", "DisplayFormulas",false], ["display-col-header","HideColHeader",true], ["display-row-header","HideRowHeader",true]] as const) {
@@ -701,7 +716,7 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
       if (sheetStyle) sheets[sheets.length - 1] = { ...sheets[sheets.length - 1]!, view: { odf: sheetStyle.style.odf ?? null, gnumeric: viewAttributes } };
     }
     async function readNames(parent: XmlElement, sheet?: string) {
-      for (const container of children(parent, "named-expressions")) for (const n of container.children) {
+      for await (const container of childNodes(parent)) if (container.localName === "named-expressions" && table.includes(container.namespace)) for (const n of container.children) {
         pkg.charge(); const name = attr(n, "name"); if (!name) continue;
         const source = attr(n, "expression") ?? (attr(n, "cell-range-address") ? "=[" + attr(n, "cell-range-address") + "]" : undefined);
         if (!source) continue;
@@ -782,8 +797,20 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
       finalized.push({ ...sheet, cells: cells.sort((a, b) => a.row - b.row || a.column - b.column), size: { rows, columns } });
     }
     return { ...book, sheets: finalized };
-  } catch (error) { return failure(error, context); }
-  finally { await close?.(); }
+    })();
+  } catch (error) {
+    try { failure(error, context); } catch (error) { readFailure = { error }; }
+  }
+  const errors: unknown[] = [];
+  try { await xmlStorage?.close(); } catch (error) { errors.push(error); }
+  try { await close?.(); } catch (error) { errors.push(error); }
+  if (errors.length) {
+    if (readFailure) throw new AggregateError([readFailure.error, ...errors], "ODF read and cleanup failed");
+    if (errors.length === 1) throw errors[0];
+    throw new AggregateError(errors, "ODF cleanup failed");
+  }
+  if (readFailure) throw readFailure.error;
+  return result;
 }
 
 interface OdfStyle { readonly format?: string; readonly style: Readonly<Record<string, ImportedValue>>; readonly display?: string; }

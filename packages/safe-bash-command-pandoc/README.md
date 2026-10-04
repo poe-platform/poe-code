@@ -173,7 +173,10 @@ JSON/RTF/CSV/TSV → JSON without filters, metadata overrides or writer transfor
 retains finite `references` limits through both SDK and command, including input-block, decoded-fragment, parser-edge and table-span
 accounting with the same limit diagnostics. RTF syntax and font-literal references
 are counted in native decoding order. CSV/TSV table replays charge references
-once, preserving ragged-row padding and input aggregation order. Other reference-limited combinations
+once, preserving ragged-row padding and input aggregation order. Unfiltered
+plain-text output also retains finite reference limits, including wrapping,
+indentation, captions, tables and CRLF conversion, with matching output-limit
+errors. Other reference-limited combinations
 still use the compatibility path.
 JSON `metadataFiles` merge into retained generations before filters. File contents,
 merge keys, duplicate-key indexes and recursive map/list work stay in caller

@@ -12,7 +12,7 @@ type Job = {
   cursor?: number; end?: number; index?: number; text?: TextRange; count?: number;
   previous?: string; tag?: string; sep?: string; skip?: boolean; byCount?: boolean;
   start?: number; first?: string; rest?: string; empty?: string; title?: number;
-  parts?: Job[]; setCount?: number;
+  parts?: Job[]; setCount?: number; noJoin?: boolean; always?: boolean;
 };
 
 /** All pending writer calls, paths and intermediate text live in caller storage.
@@ -23,6 +23,16 @@ class PlainTape {
   constructor(private readonly tree: BackedJson, private readonly storage: PagedStorage,
     private readonly context: ExecutionContext, private readonly options: ConversionOptions) {
     this.text = new BackedText(storage, units => context.cooperate(units));
+  }
+  private reserveJoin(value: TextRange, parts: number): void {
+    if (!Number.isFinite(this.context.limits.references)) return;
+    this.context.bound("outputBytes", value.units);
+    this.context.charge("references", parts);
+  }
+  private async lineCount(value: TextRange): Promise<number> {
+    let lines = 1;
+    for await (const chunk of this.text.chunks(value)) for (const char of chunk) if (char === "\n") lines++;
+    return lines;
   }
   private async record(value: unknown): Promise<number> {
     const payload = new TextEncoder().encode(JSON.stringify(value)), bytes = new Uint8Array(8 + payload.length);
@@ -65,17 +75,28 @@ class PlainTape {
       if (job.op === "empty") {result = emptyText(); count = 0; continue;}
       if (job.op === "scalar") {result = await this.text.from(this.tree.scalarChunks(job.node)); count = 1; continue;}
       if (job.op === "post") {
-        if (job.mode === "wrap" && !(this.options.wrap === "none" || this.options.wrap === "preserve" || this.options.wrap === undefined && this.options.columns === undefined))
+        if (job.mode === "wrap" && !(this.options.wrap === "none" || this.options.wrap === "preserve" || this.options.wrap === undefined && this.options.columns === undefined)) {
+          if (Number.isFinite(this.context.limits.references)) this.context.charge("references", result.units + 1);
           result = await this.text.wrap(result, this.options.columns ?? 72);
-        if (job.mode === "code" && result.units) result = await this.text.indent(await this.text.trimFinalNewline(result), "    ", "    ");
-        if (job.mode === "indent") result = result.units ? await this.text.indent(result, job.first!, job.rest!) : await this.text.from([job.empty ?? ""]);
+          if (Number.isFinite(this.context.limits.references)) this.reserveJoin(result, await this.lineCount(result));
+        }
+        if (job.mode === "code" && result.units) {
+          result = await this.text.indent(await this.text.trimFinalNewline(result), "    ", "    ");
+          if (Number.isFinite(this.context.limits.references)) this.reserveJoin(result, await this.lineCount(result));
+        }
+        if (job.mode === "indent") {
+          if (result.units || job.always) {
+            result = await this.text.indent(result, job.first!, job.rest!);
+            if (Number.isFinite(this.context.limits.references)) this.reserveJoin(result, await this.lineCount(result));
+          } else result = await this.text.from([job.empty ?? ""]);
+        }
         if (job.mode === "surround") {
-          const output = await this.text.from([job.first!]); await this.text.append(output, result); await this.text.append(output, await this.text.from([job.rest!])); result = output;
+          const output = await this.text.from([job.first!]); await this.text.append(output, result); await this.text.append(output, await this.text.from([job.rest!])); result = output; this.reserveJoin(result, 3);
         }
         if (job.mode === "image") {
           if (!result.units) result = await this.text.from([" "]);
           const title = await this.text.from(this.tree.scalarChunks(job.title!));
-          if (title.units) {await this.text.append(result, await this.text.from([' "'])); await this.text.append(result, title); await this.text.append(result, await this.text.from(['"']));}
+          if (title.units) {await this.text.append(result, await this.text.from([' "'])); await this.text.append(result, title); await this.text.append(result, await this.text.from(['"'])); this.reserveJoin(result, 4);}
         }
         if (job.setCount !== undefined) count = job.setCount;
         continue;
@@ -106,11 +127,14 @@ class PlainTape {
           child = {op: job.mode!, node, path, index: job.index!, ...(job.start === undefined ? {} : {start: job.start})};
         }
         if (child) {job.stage = 1; await this.push(job); await this.push(child);}
-        else {result = job.text!; count = job.count!;}
+        else {
+          result = job.text!; count = job.count!;
+          if (!job.noJoin) this.reserveJoin(result, job.mode === "block" ? Math.max(0, count * 2 - 1) : count);
+        }
         continue;
       }
       if (job.op === "blocks" || job.op === "inlines" || job.op === "rows") {
-        await this.push(this.list(job.node, job.path, job.op === "blocks" ? "block" : job.op === "inlines" ? "inline" : "row", job.op === "rows" ? "\n" : "", job.op === "blocks"));
+        await this.push({...this.list(job.node, job.path, job.op === "blocks" ? "block" : job.op === "inlines" ? "inline" : "row", job.op === "rows" ? "\n" : "", job.op === "blocks"), noJoin: job.op === "rows"});
         continue;
       }
       const part = async (op: string, index: number): Promise<Job> => ({op, node: await this.at(job.node, index), path: await this.path(job.path, `[${index}]`)});
@@ -131,10 +155,10 @@ class PlainTape {
         await this.push({...job, op: "parts", parts: [term, definitions], sep: "\n", byCount: true}); continue;
       }
       if (job.op === "term" || job.op === "definitionBody") {
-        await this.push({...this.post(job.node, job.path, job.op === "term" ? "count" : "indent"), first: "  ", rest: "  ", setCount: 1});
+        await this.push({...this.post(job.node, job.path, job.op === "term" ? "count" : "indent"), first: "  ", rest: "  ", setCount: 1, always: job.op === "definitionBody"});
         await this.push({...job, op: job.op === "term" ? "inlines" : "blocks"}); continue;
       }
-      if (job.op === "definitions") {await this.push(this.list(job.node, job.path, "definitionBody", "\n")); continue;}
+      if (job.op === "definitions") {await this.push({...this.list(job.node, job.path, "definitionBody", "\n"), noJoin: true}); continue;}
       if (job.op === "row") {
         await this.push({...this.post(job.node, job.path, "count"), setCount: 1});
         const cells = await part("cells", 1); await this.push(this.list(cells.node, cells.path, "cell", "\t")); continue;
@@ -147,12 +171,12 @@ class PlainTape {
         await this.push(await part("blocks", 4)); continue;
       }
       if (job.op === "body") {
-        await this.push({...job, op: "parts", parts: [await part("rows", 2), await part("rows", 3)], sep: "\n", byCount: true}); continue;
+        await this.push({...job, op: "parts", parts: [await part("rows", 2), await part("rows", 3)], sep: "\n", byCount: true, noJoin: true}); continue;
       }
       if (job.op === "tableRows") {
         const head = await part("head", 3), bodies = await part("bodies", 4), foot = await part("foot", 5);
         const rows = async (section: Job): Promise<Job> => ({op: "rows", node: await this.at(section.node, 1), path: await this.path(section.path, "[1]")});
-        await this.push({...job, op: "parts", parts: [await rows(head), {...this.list(bodies.node, bodies.path, "body", "\n", false, true)}, await rows(foot)], sep: "\n", byCount: true}); continue;
+        await this.push({...job, op: "parts", parts: [await rows(head), {...this.list(bodies.node, bodies.path, "body", "\n", false, true), noJoin: true}, await rows(foot)], sep: "\n", byCount: true, noJoin: true}); continue;
       }
       if (job.op === "block" || job.op === "inline") {
         const tag = await this.tag(job.node), content = await this.tree.property(job.node, "c");
@@ -213,13 +237,19 @@ class PlainTape {
       }
       if (job.op === "table") {
         if (!job.stage) {await this.push({...job, stage: 1}); await this.push(job.parts![0]!);}
-        else if (job.stage === 1) {await this.push({...job, stage: 2, text: result}); await this.push(job.parts![1]!);}
-        else {if (result.units) await this.text.append(result, await this.text.from(["\n"])); await this.text.append(result, job.text!); count = 1;}
+        else if (job.stage === 1) {await this.push({...job, stage: 2, text: result, count}); await this.push(job.parts![1]!);}
+        else {
+          this.reserveJoin(job.text!, job.count!);
+          const parts = result.units ? 2 : 1;
+          if (result.units) await this.text.append(result, await this.text.from(["\n"]));
+          await this.text.append(result, job.text!); this.reserveJoin(result, parts); count = 1;
+        }
         continue;
       }
       throw new Error(`Unknown retained plain job: ${job.op}`);
     }
     await this.text.append(result, await this.text.from(["\n"]));
+    this.reserveJoin(result, 2);
     return result;
   }
 }
@@ -278,6 +308,13 @@ export async function writeRetainedPlain(tree: BackedJson, context: ExecutionCon
       const first = diagnostics[0]!;
       throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);
     }
+    if (options.eol === "crlf" && Number.isFinite(context.limits.references)) {
+      let units = 0;
+      for await (const chunk of writer.text.unicodeChunks(result)) for (const char of chunk) {
+        units += char === "\n" ? 2 : char.length;
+        context.bound("outputBytes", units); context.charge("references", 1);
+      }
+    }
     const chunks = async function* () {
       const encoder = new TextEncoder(); let pending = "";
       for await (const chunk of writer.text.chunks(result)) {
@@ -290,7 +327,15 @@ export async function writeRetainedPlain(tree: BackedJson, context: ExecutionCon
       if (pending) yield encoder.encode(pending);
     };
     if (Number.isFinite(context.limits.outputBytes)) {
-      let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}
+      let length = 0;
+      if (Number.isFinite(context.limits.references)) {
+        for await (const chunk of writer.text.unicodeChunks(result)) for (const char of chunk) {
+          if (options.eol === "crlf" && char === "\n") context.bound("outputBytes", ++length);
+          const code = char.codePointAt(0)!;
+          length += code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4;
+          context.bound("outputBytes", length);
+        }
+      } else for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}
     }
     for await (const bytes of chunks()) await context.emit(bytes);
   } catch (reason) {failure = {reason};}

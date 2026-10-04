@@ -1,9 +1,10 @@
-import {expect,it} from "vitest";
+import {beforeAll,expect,it} from "vitest";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
 
-it("uses bounded external backing for growing sampled color and shading tables in Workerd",async()=>{
+let script: string;
+beforeAll(async()=>{
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../../",import.meta.url)),sourcefile:"sampled-worker.ts",contents:`
  import {convertRetainedContentColor,resolveRetainedMaskParameters,renderRetainedShading} from './packages/pdf-ast/src/extract/retained-color.ts';
  import {PdfRetainedDecodedImage} from './packages/pdf-ast/src/extract/retained-decoded-image.ts';
@@ -45,14 +46,17 @@ it("uses bounded external backing for growing sampled color and shading tables i
  }finally{globalThis.Uint8Array=Native;}
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(o=>o.imports)).toEqual([]);
+ script=bundle.outputFiles[0]!.text;
+});
+it.each(["tint","mask","image","palette","ps:tint","ps:image","1","2","3","4","5","6","7"])("uses bounded external backing for growing %s functions in Workerd",async mode=>{
  const backing=new Map<string,Uint8Array>();
- const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{BACKING:async(request:Request)=>{
+ const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,script,serviceBindings:{BACKING:async(request:Request)=>{
   const url=new URL(request.url),at=Number(url.searchParams.get("at")),key=url.pathname;
   if(request.method==="DELETE"){backing.delete(key);return new Response();}
   if(request.method==="PUT"){const chunk=new Uint8Array(await request.arrayBuffer()),old=backing.get(key)??new Uint8Array(),next=new Uint8Array(Math.max(old.length,at+chunk.length));next.set(old);next.set(chunk,at);backing.set(key,next);return new Response();}
   return new Response(backing.get(key)?.slice(at,at+Number(url.searchParams.get("length"))));
  }}});
- try{for(const count of [65536,131072])for(const mode of ["tint","mask","image","palette","ps:tint","ps:image","1","2","3","4","5","6","7"]){
+ try{for(const count of [65536,131072]){
   const response=await runtime.dispatchFetch("https://sample/",{method:"POST",body:JSON.stringify({count,mode})});if(response.status!==200)throw Error(mode+": "+await response.text());
   const result=await response.json() as {values:number[];stageOpened:number;stageClosed:number;files:number;handles:number;closed:number;writes:number;reads:number;peak:number;produced:number;nodeGlobals:boolean};
   if(mode==="ps:tint")expect(result.values).toEqual([0.5,0.5,0.5]);

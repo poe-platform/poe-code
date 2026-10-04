@@ -1,11 +1,12 @@
-import { expect, it } from "vitest";
+import { beforeAll, expect, it } from "vitest";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import { PdfDocument } from "../document.js";
 import { cosBool, cosDict, cosName, cosNumber, cosArray, cosStream, dictSet } from "../ast.js";
 
-it("evaluates growing group and mask captures in a Worker with external backing", async () => {
+let script: string;
+beforeAll(async () => {
   const bundle = await build({
     stdin: {
       resolveDir: fileURLToPath(new URL("../../../../", import.meta.url)),
@@ -45,12 +46,15 @@ it("evaluates growing group and mask captures in a Worker with external backing"
     logLevel: "silent"
   });
   expect(Object.values(bundle.metafile!.outputs).flatMap((output) => output.imports)).toEqual([]);
+  script = bundle.outputFiles[0]!.text;
+});
+it.each(["group", "mask"])("evaluates growing %s captures in a Worker with external backing", async mode => {
   const backing = new Map<string, { bytes: Uint8Array; size: number }>();
   const runtime = new Miniflare({
     modules: true,
     compatibilityDate: "2026-07-01",
     cf: false,
-    script: bundle.outputFiles[0]!.text,
+    script,
     serviceBindings: {
       BACKING: async (request: Request) => {
         const url = new URL(request.url),
@@ -81,8 +85,7 @@ it("evaluates growing group and mask captures in a Worker with external backing"
   try {
     // Trip capture collection after eight records; a fourfold growth still
     // exercises external replay without thousands of redundant service calls.
-    for (const count of [16, 64])
-      for (const mode of ["group", "mask"]) {
+    for (const count of [16, 64]) {
         const original = PdfDocument.create(),
           page = original.addPage(),
           nums = (v: number[]) => cosArray(v.map((n) => cosNumber(n)));

@@ -1,9 +1,10 @@
-import {expect,it} from "vitest";
+import {beforeAll,expect,it} from "vitest";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
 
-it("parses, evaluates and clips growing paths in a Worker using external backing",async()=>{
+let script: string;
+beforeAll(async()=>{
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../../",import.meta.url)),sourcefile:"stored-path-worker.ts",contents:`
  import {PdfFileSource} from './packages/pdf-ast/src/source.ts';
  import {parseContentRangeEvents} from './packages/pdf-ast/src/content/range-events.ts';
@@ -28,13 +29,16 @@ it("parses, evaluates and clips growing paths in a Worker using external backing
  }finally{await source?.close();globalThis.Uint8Array=Native;Array.prototype.push=push;Array.prototype[Symbol.iterator]=iterator;}
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
+ script=bundle.outputFiles[0]!.text;
+});
+it.each(["fill","stroke","long","clips","states","marked"])("parses and evaluates growing %s paths in a Worker using external backing",async mode=>{
  let backing=new Uint8Array(2**23);
- const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{BACKING:async(request:Request)=>{
+ const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,script,serviceBindings:{BACKING:async(request:Request)=>{
   const url=new URL(request.url),at=Number(url.searchParams.get("at"));
   if(request.method==="PUT"){backing.set(new Uint8Array(await request.arrayBuffer()),at);return new Response();}
   return new Response(backing.slice(at,at+Number(url.searchParams.get("length"))));
  }}});
- try{for(const count of [256,512])for(const mode of ["fill","stroke","long","clips","states","marked"]){
+ try{for(const count of [256,512]){
   backing=new Uint8Array(2**23);
   const response=await runtime.dispatchFetch("https://verify/?count="+count+(mode==="fill"?"":"&stroke")+(mode==="long"?"&long":"")+(mode==="clips"?"&clips":"")+(mode==="states"?"&states":"")+(mode==="marked"?"&marked":""));if(response.status!==200)throw Error(await response.text());
   const result=await response.json() as {pixels:number[];peak:number;reads:number;bytes:number;nodeGlobals:boolean};

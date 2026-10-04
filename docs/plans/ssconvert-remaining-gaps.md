@@ -16,8 +16,9 @@ acceptance test, the family closure gate and qualification blockers. Use that
 checkpoint before expanding a cohort; historical receipts are not current registry
 or universal profile qualification. Each family now has a finite `remainingAcceptance`
 list; completed cohorts remain evidence, not new work. Native limitations stay
-separate from product passes. The next execution gate is encrypted Paradox
-companion absence/authority and diagnostics through both public routes.
+separate from product passes. The next independent execution gate is PERL_DATE signatures/coercions,
+arrays/errors and locale-sensitive cases. Retain completed Paradox version and
+companion-absence controls; actual external companion content remains open.
 
 ## 1. What we're building
 
@@ -171,14 +172,14 @@ Three retained checkpoints are complete: mixed Fill control order
 (`encryptedOdfCommandParity`). Their receipts include independent readback and
 failure controls; the encryption receipts retain native application limitations.
 The table above mirrors each ledger case's `remainingAcceptance` list. It replaces
-stale routing from rendering to BIFF to ODF: proceed to Paradox companion checks next.
+stale routing from rendering to BIFF to ODF: retain the completed Paradox version/companion-absence checks.
 Do not repeat completed cohorts unless a relevant runtime change or regression
 invalidates their evidence. Family closure still requires the listed acceptance
 and its independent evidence; this reconciliation does not qualify new profiles.
 Publication/installed-artifact gates remain separate from remote-main delivery.
 Paradox inline memo UTF-8 corruption is repaired (`paradoxInlineMemoUtf8`):
 plaintext/encrypted SDK and command routes preserve Unicode and do not access
-companions. The companion gate remains next; native unterminated memo
+companions. External companion content remains open; native unterminated memo
 allocation remains a reference limitation, not a parity pass.
 Memo M/F export also honors the native NUL boundary before testing inline
 capacity (`paradoxMemoNulCapacity`), removing false companion-loss warnings
@@ -186,8 +187,11 @@ while retaining true overflow diagnostics. This does not qualify external blobs.
 The bounded encrypted type-2 version-ID 3–15 cohort is complete
 (`paradoxVersionRoutes`): 13 native direct-file inputs and 52 public exports
 pass pxlib reopen. Current Gnumeric/GSF header refusal remains a separate
-reference limitation. Next check companion absence/authority and diagnostics;
-do not restart the completed single-short-record version cohort.
+reference limitation. Companion absence/authority is now also complete
+(`paradoxCompanionAbsence`):16 public controls and two native pxlib inputs
+agree on the exact warning and preserved unaffected value; cancellation publishes
+nothing. Actual companion content/index semantics remain open. Proceed to the
+existing PERL_DATE argument/locale gate without restarting these cohorts.
 
 ## 4. Interfaces and test plan
 

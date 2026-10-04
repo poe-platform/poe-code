@@ -4584,13 +4584,14 @@
       "status": "open",
       "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained.",
       "checkpoint20261004": {
-        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3–15 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen.",
+        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3–15 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen. Companion-absence authority and diagnostics pass 16 plaintext/encrypted SDK/command controls, with/without MB/PX sentinels and cancellation; native pxlib matches the missing-blob warning and unaffected short value.",
         "evidence": [
           "#/paradoxInlineMemoUtf8",
           "#/paradoxMemoNulCapacity",
-          "#/paradoxVersionRoutes"
+          "#/paradoxVersionRoutes",
+          "#/paradoxCompanionAbsence"
         ],
-        "nextAcceptance": "Qualify external memo/index companion absence and explicit authority through both public routes, preserving exact loss diagnostics and unaffected records. The retained 13-version single-short-record cohort is complete; do not repeat it as a new version audit.",
+        "nextAcceptance": "The retained version-byte and companion-absence checkpoints are complete. Remaining Paradox acceptance is external companion content/index semantics, wider field/key/content profiles and installed artifacts; do not repeat absence controls as support for external blobs.",
         "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
         "qualificationBlockers": [
           "Current Gnumeric/GSF path refuses all 13 retained version controls at header loading; direct pxlib file API opens them. Direct-file qualification is not a GSF application pass."
@@ -6479,6 +6480,24 @@
       "public-results.json": "7184d8f04dd193406534b1db350d5814d87431d00879b1c5d8438451d0093bc1",
       "native-export-results.json": "2b15870cf7bb06fd8bc884414e40b8367db1ae618ce2df72afb20d78c8404ce8",
       "native-results.json": "50395f3132ba868fd8ed4f0b53d3689cfc55b38748aa270f83328ff6fbae3f9d"
+    }
+  },
+  "paradoxCompanionAbsence": {
+    "status": "Bounded companion absence/authority checkpoint complete; family remains open",
+    "candidate": "084c8cce52ecf2d83ec7f7f7eb5c56b3daecaa71",
+    "runtimeChanges": false,
+    "input": "Original v12 type2 table with Memo,M,14 and Value,S,2. An inline note record is changed to declare a100-byte external memo; short42 remains. A second input encrypts the same physical table through the qualified cipher.",
+    "public": "16 cases: plaintext/encrypted x SDK/command x absent/present .mb/.MB/.px/.PX sentinels x success/cancellation. Read only input.db; never acquire companion authority. Success warns exactly Blob data is not contained in record and a blob file is not set., omits memo and preserves42. Cancellation from that warning retains the destination sentinel with zero writes; SDK preserves the exact cancellation reason. Companion sentinels remain unchanged.",
+    "native": "Debian arm64 libpx.so.0.6.9 SHA256 3c36ce0d9a847b10bff2d0018f2c24c7e26daa6f4250801fecb7f054a10fd3d7. Direct PX_open_file/PX_get_record/PX_get_data_blob with an explicit error callback returns-1 and the exact missing-blob warning for both inputs. PX_get_data_short independently retains42. This does not replace the separately failing Gnumeric/GSF application route.",
+    "verification": "Maintained selected workspace build and98 focused tests pass. No product defect reproduced.",
+    "remaining": "No external memo/index payload capability is qualified by ignoring sentinels. Actual companion content/index semantics, wider field/key/content profiles and installed artifacts remain open. Next independent existing family gate: PERL_DATE signatures/coercions/arrays/errors and locale-sensitive cases; retain completed Paradox version/absence cohorts.",
+    "hashes": {
+      "qualify.mjs": "138d375c0dae044e292d72540de4f6def1ba68c0415867b1eb211d6f160be778",
+      "results.json": "da013f45f27912c58eb238911ba200254ef45d3d18f6f6f94e1f71845d1d2d44",
+      "read.c": "191267e5701808bf3ff223604fdde560f22fcc702baadccbafd4663b22c07864",
+      "external-plain.db": "9f9d8bfc341be8afd37907b863bcd6f05e0cd79634737c3d5aa9eac65c6a0d01",
+      "external-encrypted.db": "bc0130c013616fbd978a9fa6d979cfbdf61430130873dd781221a37349aba1cf",
+      "native-results.json": "1adc6a346437b0b576193df31e66ef5a93daedc08225fba8b86972c2b47364ec"
     }
   }
 }

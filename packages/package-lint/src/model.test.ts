@@ -3,6 +3,23 @@ import { loadBuildView, loadWorkspace, parseMetafile } from "./model.js";
 import { memLintFs, pkgJson } from "./fixtures.js";
 import { createNpmPacklistProvider } from "./packlist.js";
 
+it("loads emitted XML streaming declarations through the guarded build view", async () => {
+  const fs = memLintFs({
+    "/repo/dist/metafile.json": pkgJson({ canonicalBundle: {} }),
+    "/repo/dist/types/xml-ast/index.d.ts": 'export * from "./stream.js";',
+    "/repo/dist/types/xml-ast/stream.d.ts": 'import { XmlLimitError } from "./errors.js";',
+    "/repo/dist/types/xml-ast/errors.d.ts": "export declare class XmlLimitError extends Error {}"
+  });
+
+  const build = await loadBuildView(fs, "/repo");
+
+  expect(build?.metafile.canonicalTypes).toEqual({
+    "dist/types/xml-ast/index.d.ts": ["./stream.js"],
+    "dist/types/xml-ast/stream.d.ts": ["./errors.js"],
+    "dist/types/xml-ast/errors.d.ts": []
+  });
+});
+
 it("preserves raw external specifiers and canonical producer evidence", () => {
   const canonicalBundle = {
     entryPoints: ["packages/safe-fs/src/index.ts"],
@@ -31,7 +48,9 @@ it.each([
   ["packages/safe-fs", "/outside/package"],
   ["dist/types/safe-fs", "/outside/package/dist"],
   ["dist/types/safe-fs/nested", "/outside/package/dist/nested"],
-  ["dist/types/safe-fs/index.d.ts", "/outside/package/dist/index.d.ts"]
+  ["dist/types/safe-fs/index.d.ts", "/outside/package/dist/index.d.ts"],
+  ["dist/types/xml-ast/stream.d.ts", "/outside/package/dist/index.d.ts"],
+  ["dist/types/xml-ast/errors.d.ts", "/outside/package/dist/index.d.ts"]
 ])(
   "rejects canonical declaration symlink %s before traversal or payload reads",
   async (link, target) => {

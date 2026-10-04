@@ -665,12 +665,14 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
   if (metafile.canonicalBundle || metafile.browserCanonicalBundle) {
     const packageDir = "packages/safe-fs";
     let admission = await createSourceAdmission(fs, rootDir, ".", []);
-    const xmlDeclaration = path.resolve(rootDir, canonicalXml.types);
+    const xmlDeclarations = new Set(canonicalXml.modules.map(module =>
+      path.resolve(rootDir, path.dirname(canonicalXml.types), `${module}.d.ts`)
+    ));
     const declarationFs = {
       async readdir(file: string) {
         const inspected = await admission.inspect(file);
         if (!inspected) return [];
-        if (file === xmlDeclaration) {
+        if (xmlDeclarations.has(file)) {
           if (inspected.excluded || !inspected.entries.at(-1)!.stat.isFile()) {
             throw new Error(`Unsupported canonical declaration file: ${file}`);
           }

@@ -37,7 +37,7 @@ class DocumentDecoder {
  * no input, field, row, document tree or output grows a resident collection. */
 export async function streamDelimited(
   inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", context: ExecutionContext,
-  working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions
+  working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions, readingInput?: (source?: string) => void
 ): Promise<void> {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384 !== 0)
@@ -81,6 +81,7 @@ export async function streamDelimited(
     let position = first;
     let nul = false;
     for (const input of inputs) {
+      readingInput?.(input.source);
       const bytes = await storage.read(position, 24);
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       const length = view.getFloat64(0, true);
@@ -92,11 +93,35 @@ export async function streamDelimited(
         throw error;
       }
       for (let cell = 0; cell < parser.rows * parser.width; cell++) {context.charge("tableCells", 1); await context.cooperate();}
+      if (parser.rows && Number.isFinite(context.limits.attributes)) {
+        // CSV/TSV emit only empty attribute tuples. Reserve them in the same
+        // order as AST normalization, deriving paths only when a bound fails.
+        let attributes = 0;
+        const reserve = async (path: () => string): Promise<void> => {
+          if (++attributes > context.limits.attributes) {
+            const location = "$.blocks[0].c" + path();
+            throw new PandocError("E_LIMIT", "convert", `${location}: AST budget exceeded`, undefined, location);
+          }
+          context.charge("attributes", 1);
+          await context.cooperate();
+        };
+        await reserve(() => "[0]");
+        await reserve(() => "[3][0]");
+        for (let row = 0; row < parser.rows; row++) {
+          if (row === 1) await reserve(() => "[4][0][0]");
+          const path = () => row ? `[4][0][3][${row - 1}]` : "[3][1][0]";
+          await reserve(() => path() + "[0]");
+          for (let column = 0; column < parser.width; column++) await reserve(() => path() + `[1][${column}][0]`);
+        }
+        if (parser.rows === 1) await reserve(() => "[4][0][0]");
+        await reserve(() => "[5][0]");
+      }
       view.setFloat64(8, parser.rows, true);
       view.setFloat64(16, parser.width, true);
       await storage.write(position, bytes);
       position += 24 + length;
     }
+    readingInput?.();
     if (nul && target === "html5" && !options.filters?.length) throw new PandocError("E_CAPABILITY", "convert", "NUL cannot be represented in HTML", "html5");
 
     if (includes || target !== "html5" || options.metadataFiles?.length || options.filters?.length || options.standalone || options.embedResources || options.toc || options.numberSections || options.stripComments || options.shiftHeadingLevelBy) {

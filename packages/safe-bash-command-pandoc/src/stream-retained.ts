@@ -1,4 +1,4 @@
-import {reserveRetainedTableCells} from "./retained-table-budget.js";
+import {reserveRetainedAstBudgets} from "./retained-ast-budgets.js";
 import type {readRetainedRtfDocument} from "./retained-rtf-document.js";
 import type {RetainedOptions} from "./retained-options.js";
 import {mergeRetainedMetadata} from "./retained-metadata.js";
@@ -92,7 +92,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       await document.close(); document = next; metadataChanged = true;
     }
     if (metadataChanged) {
-      await reserveRetainedTableCells(document.tree, document.order, context);
+      await reserveRetainedAstBudgets(document.tree, document.order, context);
       await inputResources?.reserve();
     }
     for (const request of options.filters ?? []) {

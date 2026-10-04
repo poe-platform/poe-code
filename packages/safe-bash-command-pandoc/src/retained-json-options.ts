@@ -43,7 +43,7 @@ export class RetainedJsonOptions {
       return key;
     };
     const ast = layers === "ast";
-    let cells = 0;
+    let cells = 0, attributes = 0;
     const fail = async (frame: number, key?: string | number, message = "Invalid shape", code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
       let path = key === undefined ? "" : typeof key === "number" ? `[${key}]` : `.${key}`;
       for (let cursor = frame; cursor;) {
@@ -86,10 +86,19 @@ export class RetainedJsonOptions {
       }
       await put(position, [parent, edge, keys, count, 0, level, array ? 1 : 0, 0]);
       if (ast && (Object.getOwnPropertySymbols(value).length || !array && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) await fail(position);
-      if (ast && array && Number.isFinite(context.limits.tableCells)) {
+      if (ast && array && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes))) {
         // Normalization inspects every own array descriptor before recognizing
         // cell tuples, so accessors and sparse slots precede the budget charge.
         for (let i = 0; i < count; i++) {await property(value, i, position); await context.cooperate();}
+        if (count === 3 && Number.isFinite(context.limits.attributes)) {
+          const id = await property(value, 0, position), classes = await property(value, 1, position), pairs = await property(value, 2, position);
+          if (typeof id === "string" && Array.isArray(classes) && Array.isArray(pairs)) {
+            const units = 1 + classes.length + pairs.length;
+            attributes += units;
+            if (!Number.isSafeInteger(attributes) || attributes > context.limits.attributes) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
+            context.charge("attributes", units);
+          }
+        }
         if (count === 5 && Array.isArray(await property(value, 0, position)) && typeof await property(value, 1, position) === "string") {
           const row = await property(value, 2, position), column = await property(value, 3, position);
           if (typeof row !== "number" || typeof column !== "number" || !Number.isSafeInteger(row) || !Number.isSafeInteger(column) || row < 1 || column < 1)

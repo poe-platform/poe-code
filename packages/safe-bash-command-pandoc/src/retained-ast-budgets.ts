@@ -6,12 +6,12 @@ import {readJsonNumber, JsonNumberError} from "./json-number.js";
 import {PandocError} from "./errors.js";
 import {retainedPath, retainedValues} from "./retained-wire.js";
 
-/** Reserve normalized cell spans in document order without collecting tables.
+/** Reserve normalized attributes and cell spans in document order without collecting tables.
  * When translation positions are supplied, also perform the scalar checks that
  * precede schema validation in the buffered normalizer. */
-export async function reserveRetainedTableCells(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, metadataOnly = false, enums?: IntegerTable): Promise<void> {
-  if (!Number.isFinite(context.limits.tableCells)) return;
-  let cells = 0;
+export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, metadataOnly = false, enums?: IntegerTable): Promise<void> {
+  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes)) return;
+  let cells = 0, attributes = 0;
   const fail = async (position: number, message: string, code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
     const path = await retainedPath(tree, position, metadataOnly);
     throw new PandocError(code, "convert", `${path}: ${message}`, undefined, path);
@@ -37,6 +37,15 @@ export async function reserveRetainedTableCells(tree: BackedJson, order: Awaited
         if (["__proto__", "constructor", "prototype"].includes(await tree.smallText(key, 11) ?? "")) await fail(node, "Invalid shape");
       }
       if (translated || header.kind === "string") await string(translated || node, node);
+    }
+    if (header.kind === "array" && header.children === 3 && Number.isFinite(context.limits.attributes)) {
+      const first = await tree.describe(node + 32), second = await tree.describe(first.end), third = await tree.describe(second.end);
+      if ((first.kind === "string" || !!await enums?.get(BigInt(node + 32))) && second.kind === "array" && third.kind === "array") {
+        const count = 1 + second.children + third.children;
+        attributes += count;
+        if (!Number.isSafeInteger(attributes) || attributes > context.limits.attributes) await fail(node, "AST budget exceeded", "E_LIMIT");
+        context.charge("attributes", count);
+      }
     }
     if (header.kind !== "array" || header.children !== 5) continue;
     const first = await tree.describe(node + 32), second = await tree.describe(first.end);

@@ -10,7 +10,7 @@ const table: Block = {t: "Table", c: [["", [], []], [null, []], [["AlignDefault"
 ]]], [["", [], []], []]]};
 const filters: FilterCapability = {async apply(document) {return document;}, async applyJsonStream({stdin, stdout}) {for await (const bytes of stdin) await stdout.write(bytes);}};
 
-async function compare(source: string, options: ConversionOptions, limits: {tableCells: number}) {
+async function compare(source: string, options: ConversionOptions, limits: {tableCells?: number; attributes?: number}) {
   const input = {bytes: encoder.encode(source), source: "/document.json"};
   const expected = await convert([input], options, {limits, filters}).catch(error => error);
   const fs = new MemoryFileSystem(), chunks: Uint8Array[] = [], close = vi.fn(async () => {});
@@ -73,4 +73,28 @@ it.each(["geometry", "unknown-block", "late-unicode"])("preserves typed metadata
   if (invalid === "late-unicode") blocks.push({t: "Para", c: [{t: "Str", c: "\ud800"}]});
   const source = JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: []});
   for (const tableCells of [0, 4, 100]) await compare(source, {from: "json", to: "plain", metadata: {value: {t: "MetaBlocks", c: blocks as Block[]}}}, {tableCells});
+});
+
+
+it.each([false, true])("counts identifier, classes and pairs with attribute budgets (typed=%s)", async typed => {
+  const attributed = structuredClone(table);
+  Object.defineProperty(attributed.c, "0", {value: ["id", ["a", "b"], [["k", "v"], ["other", "value"]]]});
+  const wire = await writeDocument({blocks: typed ? [] : [attributed], metadata: {}, resources: []}, {to: "json"}, {});
+  if (wire.kind !== "text") throw new Error("Expected JSON");
+  for (const attributes of [0, 1, 4, 5, 8, 10, 20, 40, 100]) await compare(wire.text, {from: "json", to: "json", filters: [{kind: "lua", path: "identity"}], ...(typed ? {metadata: {value: {t: "MetaBlocks", c: [attributed]}}} : {})}, {attributes});
+});
+
+it.each(["unicode", "span", "unknown"])("preserves attribute budget error precedence: %s", async invalid => {
+  const wire = await writeDocument({blocks: [table], metadata: {}, resources: []}, {to: "json"}, {});
+  if (wire.kind !== "text") throw new Error("Expected JSON");
+  const document = JSON.parse(wire.text);
+  if (invalid === "span") document.blocks[0].c[4][0][3][0][1][0][2] = 0;
+  if (invalid === "unicode") document.blocks.unshift({t: "Para", c: [{t: "Str", c: "\ud800"}]});
+  if (invalid === "unknown") document.blocks.unshift({t: "Unknown"});
+  for (const attributes of [0, 1, 4, 5, 6, 7, 8, 100]) await compare(JSON.stringify(document), {from: "json", to: "plain"}, {attributes});
+});
+
+it.each(["csv", "tsv"])("retains direct %s HTML output with generated attribute budgets", async from => {
+  for (const source of ["", "head", from === "csv" ? "a,b\nc" : "a\tb\nc"])
+    for (const attributes of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]) await compare(source, {from, to: "html"}, {attributes});
 });

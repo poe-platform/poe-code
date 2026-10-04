@@ -44,3 +44,19 @@ export function* vignettePixelSteps(source: { width: number; height: number }, b
         yield { kind: "write", position: start * 4, data };
     }
 }
+
+export function* raisePixelSteps(image: { width: number; height: number }, border: number, raised: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const size = image.width * image.height * 4;
+    for (let position = 0; position < size; position += 16384) {
+        yield;
+        const data = new Uint8Array((yield { kind: "read", position, length: Math.min(16384, size - position) })!);
+        for (let offset = 0; offset < data.length; offset += 4) {
+            const pixel = (position + offset) / 4, x = pixel % image.width, y = Math.floor(pixel / image.width);
+            const topLeft = y < border || x < border, bottomRight = y >= image.height - border || x >= image.width - border;
+            if (!topLeft && !bottomRight) continue;
+            const delta = (raised ? topLeft : bottomRight) ? 40 : -40;
+            for (let channel = 0; channel < 3; channel++) data[offset + channel] = Math.max(0, Math.min(255, data[offset + channel]! + delta));
+        }
+        yield { kind: "write", position, data };
+    }
+}

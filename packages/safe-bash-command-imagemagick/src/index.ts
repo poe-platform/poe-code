@@ -5,7 +5,7 @@ import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHist
 import { StoredImageStack, magickInput, type MagickFormatContext } from "./stored-stack.js";
 import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage } from "./floodfill.js";
-import { shadowPixelSteps, vignettePixelSteps } from "./effects-kernel.js";
+import { shadowPixelSteps, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
 import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
@@ -4411,30 +4411,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(tokens[++i] ?? "4");
             const bw = Math.max(1, Math.round(g.width ?? 4));
             const raised = t === "-raise";
-            stack = (yield* mapSteps(stack, function* (im) {
-                let pixelWork = 0;
-                const out = new Uint8Array(im.data);
-                for (let y = 0; y < im.height; y++) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    for (let x = 0; x < im.width; x++) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        const topLeft = y < bw || x < bw;
-                        const botRight = y >= im.height - bw || x >= im.width - bw;
-                        if (!topLeft && !botRight)
-                            continue;
-                        const lighten = raised ? topLeft : botRight;
-                        const idx = (y * im.width + x) * 4;
-                        for (let c = 0; c < 3; c++) {
-                            if (++pixelWork % 16384 === 0)
-                                yield;
-                            out[idx + c] = clampByteVal(lighten ? out[idx + c]! + 40 : out[idx + c]! - 40);
-                        }
-                    }
-                }
-                return { ...im, data: out };
-            }));
+            stack = yield* mapSteps(stack, function* (image) {
+                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, raised), signal);
+            });
         }
         else if (t === "-frame") {
             const g = parseMagickGeometry(tokens[++i] ?? "4x4");
@@ -4972,7 +4951,11 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
 async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
     const outSpec = argv.at(-1);
-    if (!outSpec || argv.some(token => ["--help", "-help", "-h", "--version", "-version", "-list", "--list"].includes(token))) return;
+    const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
+    if (!outSpec || tryHandleMagickListOption(argv) || optionArgs.some(token => ["--help", "-help", "-h", "--version", "-version"].includes(token))) {
+        await probeImageArguments(argv, input, stdinBytes, signal);
+        return drainSteps(runConvertCliSteps(argv, new Map(), stdinBytes, signal), signal);
+    }
     const output = inferOutputFormat(outSpec, "png");
     await yieldTurn(signal);
     let state = createDefaultState();
@@ -4982,7 +4965,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
     type Step = ((image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>) | { runStack: StackStep };
     const steps: Step[] = [];
     const stackStep = (runStack: StackStep) => { steps.push({ runStack }); };
-    let inputs = 0, operandsOnly = false;
+    let operandsOnly = false;
     const transform = (operation: (image: StoredRgbaImage) => Operation | undefined) => {
         steps.push(async (image, backend) => { if (!image) return; const node = operation(image); return node ? transformStoredImage(image, backend.storage, node, signal) : image; });
     };
@@ -5108,7 +5091,8 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             });
             continue;
         }
-        if (!operandsOnly && ["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token)) {
+        if (!operandsOnly && (["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token) || (token === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
+            if (token === "-layers") i++;
             const settings = { ...state };
             stackStep(async (stack, backend) => {
                 if (!stack.length || (token === "-composite" && stack.length < 2)) return stack;
@@ -5135,7 +5119,8 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             }); continue;
         }
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
-        if (!operandsOnly && ["-delay", "-loop", "-dispose"].includes(token)) { i++; continue; }
+        if (!operandsOnly && ["-delay", "-loop", "-dispose", "-deskew"].includes(token)) { i++; continue; }
+        if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
         if (!operandsOnly && (token === "-coalesce" || token === "-deconstruct")) continue;
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
@@ -5215,6 +5200,12 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
                 });
                 stack.length = 0; await stack.push(result); return stack;
             });
+        } else if (!operandsOnly && (token === "-raise" || token === "+raise")) {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "4"), border = Math.max(1, Math.round(geometry.width ?? 4)), raised = token === "-raise";
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, raisePixelSteps(image, border, raised), signal) : undefined);
+        } else if (!operandsOnly && (token === "-transpose" || token === "-transverse")) {
+            const background = state.background, kind = token === "-transpose" ? "flip" : "flop";
+            steps.push(async (image, backend) => image ? transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) : undefined);
         } else if (!operandsOnly && token === "-vignette") {
             i++;
             const background = state.background;
@@ -5302,8 +5293,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             const geometry = parseMagickGeometry(tokens[++i] ?? (token === "-frame" ? "4x4" : "0x0")), left = Math.max(0, Math.round(geometry.width ?? (token === "-frame" ? 4 : 0))), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
             transform(() => ({ kind: "extend", left, right: left, top, bottom: top, background, extendWith: "background" }));
         } else {
-            if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+") || token === "(" || token === ")")) return;
-            inputs++;
+            if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+") || token === "(" || token === ")")) continue;
             const captured = { ...state }, literal = operandsOnly, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             stackStep(async (stack, backend) => {
                 const base = stack.length === 1 ? await stack.get(0) : undefined, lower = token.toLowerCase();
@@ -5321,7 +5311,6 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
     }
     if (scopes.length) state = scopes[0]!.state;
-    if (!inputs) return;
     return withCompareFiles(input, stdinBytes, signal, async backend => {
         let image: StoredRgbaImage | undefined, stack = new StoredImageStack(backend.storage, signal);
         try {

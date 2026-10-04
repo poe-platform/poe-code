@@ -1,3 +1,4 @@
+import { propertyRange } from "./biff-property-range.js";
 import { BiffStagedOutput } from "./biff-staged-output.js";
 import { createBiffCatalogs } from "./biff-catalogs.js";
 import { biffFillPatterns } from "./biff-fill-patterns.js";
@@ -1008,11 +1009,17 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
   const propertyStreams = decryptedProperties ?? propertySources ?? streams;
   for (const [name, bytes] of decryptedProperties ?? []) {
     if (["\u0005SUMMARYINFORMATION", "\u0005DOCUMENTSUMMARYINFORMATION"].includes(name.toUpperCase())) continue;
-    accountFormulaWork(bytes.length * 2); metadataBytes += bytes.length * 2;
+    const range = propertyRange(bytes, context);
+    accountFormulaWork(range.size * 2); metadataBytes += range.size * 2;
     if (metadataBytes > (context.limits.workbookTextBytes ?? context.limits.inputBytes * 2))
       throw new SsconvertError("resource-limit", "ssconvert BIFF metadata byte limit exceeded");
+    let hex = "";
+    for (let at = 0; at < range.size;) {
+      const chunk = await range.read(at, 16384); at += chunk.length;
+      hex += Array.from(chunk, byte => byte.toString(16).padStart(2, "0")).join("");
+    }
     unsupported.push({ source: "biff", kind: "encrypted-ancillary", disposition: "retained",
-      data: { stream: accountText(name), bytes: accountText(Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("")) } });
+      data: { stream: accountText(name), bytes: accountText(hex) } });
     await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `BIFF encrypted ancillary stream ${name} retained without interpretation` });
   }
   const properties = propertyStreams ? await readBiffProperties(propertyStreams, context, accountText, accountFormulaWork, unsupported) : {};

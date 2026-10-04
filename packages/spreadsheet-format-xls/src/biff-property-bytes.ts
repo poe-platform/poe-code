@@ -9,9 +9,9 @@ export function* propertyChunks(value: BiffPropertyBytes): Iterable<Uint8Array> 
 }
 
 /** Consume lazy serialization once into caller storage; never retain emitted chunks. */
-export async function stagePropertyBytes(value: BiffPropertyBytes, context: CapabilityContext): Promise<BiffPropertySource> {
+export async function stagePropertyBytes(value: BiffPropertyBytes, context: CapabilityContext, maximumBytes = context.limits.outputBytes): Promise<BiffPropertySource> {
   context.signal.throwIfAborted();
-  if (!Number.isSafeInteger(value.length) || value.length < 0 || value.length > context.limits.outputBytes)
+  if (!Number.isSafeInteger(value.length) || value.length < 0 || value.length > maximumBytes)
     throw new SsconvertError('resource-limit', 'Invalid BIFF property serialization size');
   const acquire = context.createWorkingStorage?.bind(context);
   if (!acquire) throw new SsconvertError('capability-denied', 'BIFF properties require caller working storage');

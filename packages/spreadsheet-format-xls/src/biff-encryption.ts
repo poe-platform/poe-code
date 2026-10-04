@@ -1,7 +1,7 @@
 import { biffRecord, type BiffRecords } from "./biff-record-storage.js";
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { Binary, invalidBiff } from "./biff-binary.js";
-import { decryptBiffPropertyContainer, encryptedBiffPropertyStream } from "./biff-encrypted-properties.js";
+import { decryptBiffPropertyContainer, decryptBiffPropertySources, encryptedBiffPropertyStream } from "./biff-encrypted-properties.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 
 export interface BiffRc4Cipher {
@@ -46,7 +46,7 @@ export function rc4Stream(key: Uint8Array, length: number, context: CapabilityCo
 
 /** Decode admitted XOR/RC4 profiles; optional secret acquisition is explicit host authority. */
 export async function decryptBiffRecords(records: BiffRecords, revision: number, context: CapabilityContext,
-  streams?: ReadonlyMap<string, Uint8Array>, propertySources?: ReadonlyMap<string, RangeSource>): Promise<ReadonlyMap<string, Uint8Array> | undefined> {
+  streams?: ReadonlyMap<string, Uint8Array>, propertySources?: ReadonlyMap<string, RangeSource>): Promise<ReadonlyMap<string, Uint8Array | RangeSource> | undefined> {
   let array: Uint8Array | undefined, base: Uint8Array | undefined, work = 0;
   let block = -1, stream: Uint8Array | undefined;
   let cryptoapi = false, keyBits = 128;
@@ -250,10 +250,14 @@ export async function decryptBiffRecords(records: BiffRecords, revision: number,
         else records[at] = { ...record, data: new Binary(decoded) };
       } finally { if ("set" in records) decoded.fill(0); }
     }
-    return properties ? decryptBiffPropertyContainer(properties, keyStream, context, admit, number => {
+    if (!properties) return undefined;
+    const createCipher = (number: number) => {
       const key = blockKey(number);
       try { return createRc4Cipher(key, context); } finally { key.fill(0); }
-    }) : undefined;
+    };
+    // Staging must finish while the block-key base still exists.
+    return context.createWorkingStorage ? await decryptBiffPropertySources(properties, createCipher, context, admit) :
+      decryptBiffPropertyContainer(properties, keyStream, context, admit, createCipher);
   } catch (error) { for (const bytes of decodedBuffers) bytes.fill(0); throw error; }
   finally { array?.fill(0); base?.fill(0); stream?.fill(0); }
 }

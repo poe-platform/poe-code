@@ -50,9 +50,10 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
       encrypted = biffEncryptionProfiles.get(value);
       if (!encrypted || profile !== 8 && encrypted.algorithm !== "xor") throw new SsconvertError("invalid-request", "Invalid Excel BIFF encryption profile");
     }
-    const properties = await writeBiffProperties(book, context);
-    const propertyStreams = new Map(properties.streams), handledMetadata = new Set(properties.handledMetadata);
-    const propertyInputs = new Map<string, BiffPropertyInput>(propertyStreams);
+    const properties = context.createWorkingStorage ? await writeBiffProperties(book, context, true) : await writeBiffProperties(book, context);
+    const propertyStreams = new Map<string, Uint8Array>(), handledMetadata = new Set(properties.handledMetadata);
+    for (const [name, bytes] of properties.streams) if (bytes instanceof Uint8Array) propertyStreams.set(name, bytes);
+    const propertyInputs = new Map<string, BiffPropertyInput>(properties.streams);
     const streams = new Map<string, Uint8Array>();
     const staged = new Map<string, BiffStagedOutput>();
     let propertySource: BiffPropertySource | undefined;
@@ -61,6 +62,7 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
       const errors: unknown[] = [];
       for (const output of staged.values()) try { await output.close(); } catch (error) { errors.push(error); }
       try { await propertySource?.close(); } catch (error) { errors.push(error); }
+      try { await properties.close(); } catch (error) { errors.push(error); }
       if (encrypted) {
         for (const stream of streams.values()) stream.fill(0);
         for (const stream of propertyStreams.values()) stream.fill(0);
@@ -109,6 +111,9 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
       } else for (const [name, bytes] of propertyStreams) streams.set(name, bytes);
       const ranges = new Map<string, RangeSource>(staged);
       if (propertySource) ranges.set("encryption", propertySource);
+      else if (!streams.has("encryption")) for (const [name, value] of propertyInputs) {
+        if (!(value instanceof Uint8Array)) ranges.set(name, value);
+      }
       for (const [name, bytes] of streams) ranges.set(name, {
         size: bytes.length, async read(at, count) { return bytes.subarray(at, at + count); }
       });

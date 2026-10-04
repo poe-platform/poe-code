@@ -98,7 +98,7 @@ it.each([40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128])('publishes CryptoA
   });
   try {
     expect(await createBiffWriter(8)(book, options, ctx)).toEqual(expected);
-    expect(spy).not.toHaveBeenCalled(); expect(state.acquired).toBe(2); expect(state.closed).toBe(2);
+    expect(spy).not.toHaveBeenCalled(); expect(state.acquired).toBe(3); expect(state.closed).toBe(state.acquired);
   } finally { spy.mockRestore(); ranges.mockRestore(); }
 });
 

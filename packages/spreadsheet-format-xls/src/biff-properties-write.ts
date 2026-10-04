@@ -1,3 +1,5 @@
+import { propertyChunks, stagePropertyBytes, type BiffPropertyBytes } from "./biff-property-bytes.js";
+import type { BiffPropertySource } from "./biff-encrypted-properties-write.js";
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, UnsupportedRecord, Workbook } from "@poe-code/spreadsheet-ast";
 import { biffPropertyFields, biffPropertyFormats, isBiffKeywordSpace } from "./biff-properties.js";
@@ -95,10 +97,15 @@ function durationTicks(text: string): bigint | undefined {
 }
 
 /** Matches oleprops.cxx's UTF-8 codepage, untyped dictionary and aligned values. */
-export async function writeBiffProperties(book: Workbook, context: CapabilityContext): Promise<{
-  streams: ReadonlyMap<string, Uint8Array>; handledMetadata: ReadonlySet<UnsupportedRecord>;
-}> {
-  const streams = new Map<string, Uint8Array>(), sections = new Map<string, Map<number, Uint8Array>>();
+interface BiffProperties<T> {
+  streams: ReadonlyMap<string, T>;
+  handledMetadata: ReadonlySet<UnsupportedRecord>;
+  close(): Promise<void>;
+}
+export function writeBiffProperties(book: Workbook, context: CapabilityContext, staged: true): Promise<BiffProperties<BiffPropertySource>>;
+export function writeBiffProperties(book: Workbook, context: CapabilityContext, staged?: false): Promise<BiffProperties<Uint8Array>>;
+export async function writeBiffProperties(book: Workbook, context: CapabilityContext, staged = false): Promise<BiffProperties<Uint8Array | BiffPropertySource>> {
+  const planned = new Map<string, BiffPropertyBytes>(), sections = new Map<string, Map<number, BiffPropertyBytes>>();
   const handledKeys = new Set<string>();
   const unsupportedKeys: string[] = [];
   let work = 0, textBytes = 0, nodes = 0, payloadBytes = 0;
@@ -107,13 +114,14 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     if (work > (context.limits.workbookWork ?? context.limits.outputBytes * 8))
       throw new SsconvertError("resource-limit", "ssconvert BIFF property work limit exceeded");
   };
-  const allocate = (length: number): Uint8Array => {
+  const reserve = (length: number): number => {
     charge(length);
     if (length > 0xffffffff || length > context.limits.outputBytes)
       throw new SsconvertError("resource-limit", "ssconvert BIFF property output bytes limit exceeded");
-    return new Uint8Array(length);
+    return length;
   };
-  const string = (value: string): Uint8Array => {
+  const allocate = (length: number): Uint8Array => new Uint8Array(reserve(length));
+  const string = (value: string): BiffPropertyBytes => {
     let size = 0;
     for (let at = 0; at < value.length; at++) {
       charge(1); const point = value.codePointAt(at)!;
@@ -124,10 +132,22 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     textBytes += size;
     if (textBytes > (context.limits.workbookTextBytes ?? context.limits.outputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF property text limit exceeded");
-    const bytes = allocate(5 + size); new DataView(bytes.buffer).setUint32(0, size + 1, true);
-    new TextEncoder().encodeInto(value, bytes.subarray(4, 4 + size)); return bytes;
+    return { length: reserve(5 + size), *chunks() {
+      const header = new Uint8Array(4); new DataView(header.buffer).setUint32(0, size + 1, true); yield header;
+      const buffer = new Uint8Array(16384), encoder = new TextEncoder();
+      try {
+        for (let at = 0; at < value.length;) {
+          context.signal.throwIfAborted();
+          let end = Math.min(value.length, at + 4096);
+          if (end < value.length && value.charCodeAt(end - 1) >= 0xd800 && value.charCodeAt(end - 1) <= 0xdbff) end--;
+          const encoded = encoder.encodeInto(value.slice(at, end), buffer); at = end;
+          yield buffer.subarray(0, encoded.written);
+        }
+        yield new Uint8Array(1);
+      } finally { buffer.fill(0); }
+    } };
   };
-  const typed = (value: ImportedValue, key: string): Uint8Array | undefined => {
+  const typed = (value: ImportedValue, key: string): BiffPropertyBytes | undefined => {
     const timestamp = ["meta:creation-date", "meta:print-date", "dc:date"].includes(key);
     if (timestamp || key === "meta:editing-duration") {
       if (typeof value !== "string") return undefined;
@@ -162,8 +182,11 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
       }
     }
     if (typeof value === "string") {
-      const text = string(value), bytes = allocate(4 + text.length);
-      new DataView(bytes.buffer).setUint32(0, 30, true); bytes.set(text, 4); return bytes;
+      const text = string(value);
+      return { length: reserve(4 + text.length), *chunks() {
+        const header = new Uint8Array(4); new DataView(header.buffer).setUint32(0, 30, true);
+        yield header; yield* propertyChunks(text);
+      } };
     }
     if (typeof value === "boolean") {
       const bytes = allocate(8), view = new DataView(bytes.buffer);
@@ -178,7 +201,7 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     }
     return undefined;
   };
-  const names: { id: number; bytes: Uint8Array }[] = [];
+  const names: { id: number; bytes: BiffPropertyBytes }[] = [];
   for (const key in book.properties) if (Object.hasOwn(book.properties, key)) {
     charge(1); if (++nodes > (context.limits.workbookNodes ?? context.limits.outputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF property node limit exceeded");
@@ -207,48 +230,87 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     if (!field) { const bytes = string(key); nameBytes = bytes.length; names.push({ id, bytes }); }
     payloadBytes += value.length + nameBytes;
     if (payloadBytes > context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert BIFF property output bytes limit exceeded");
-    const properties = sections.get(guid) ?? new Map<number, Uint8Array>(); properties.set(id, value); sections.set(guid, properties);
+    const properties = sections.get(guid) ?? new Map<number, BiffPropertyBytes>(); properties.set(id, value); sections.set(guid, properties);
   }
   const handledMetadata = new Set<UnsupportedRecord>();
   for (const record of book.unsupportedRecords ?? []) {
     charge(1); if (handledPropertyRecord(record, handledKeys, charge)) handledMetadata.add(record);
   }
   if (names.length) {
-    const dictionary = allocate(4 + names.reduce((size, name) => size + 4 + name.bytes.length, 0)), view = new DataView(dictionary.buffer);
-    view.setUint32(0, names.length, true); let at = 4;
-    for (const name of names) { charge(1); view.setUint32(at, name.id, true); dictionary.set(name.bytes, at + 4); at += 4 + name.bytes.length; }
+    const length = reserve(4 + names.reduce((size, name) => size + 4 + name.bytes.length, 0));
+    const dictionary: BiffPropertyBytes = { length, *chunks() {
+      const header = new Uint8Array(4); new DataView(header.buffer).setUint32(0, names.length, true); yield header;
+      for (const name of names) {
+        charge(1); const id = new Uint8Array(4); new DataView(id.buffer).setUint32(0, name.id, true);
+        yield id; yield* propertyChunks(name.bytes);
+      }
+    } };
     sections.get(biffPropertyFormats.custom)!.set(0, dictionary);
     if (!sections.has(biffPropertyFormats.document)) sections.set(biffPropertyFormats.document, new Map());
   }
-  const encoded = new Map<string, Uint8Array>();
+  const encoded = new Map<string, BiffPropertyBytes>();
   for (const [guid, properties] of sections) {
     const codepage = allocate(8), cp = new DataView(codepage.buffer); cp.setUint32(0, 2, true); cp.setUint16(4, 65001, true);
     properties.set(1, codepage);
     const entries = [...properties].sort(([a], [b]) => a - b); charge(entries.length * Math.ceil(Math.log2(entries.length + 1)));
-    const size = 8 + entries.length * 8 + entries.reduce((size, [, value]) => size + Math.ceil(value.length / 4) * 4, 0);
-    const bytes = allocate(size), view = new DataView(bytes.buffer); view.setUint32(0, size, true); view.setUint32(4, entries.length, true);
-    let at = 8 + entries.length * 8;
-    for (let i = 0; i < entries.length; i++) {
-      charge(1); const [id, value] = entries[i]!; view.setUint32(8 + i * 8, id, true); view.setUint32(12 + i * 8, at, true);
-      bytes.set(value, at); at += Math.ceil(value.length / 4) * 4;
-    }
-    encoded.set(guid, bytes);
+    const size = reserve(8 + entries.length * 8 + entries.reduce((size, [, value]) => size + Math.ceil(value.length / 4) * 4, 0));
+    encoded.set(guid, { length: size, *chunks() {
+      const header = new Uint8Array(8), view = new DataView(header.buffer); view.setUint32(0, size, true); view.setUint32(4, entries.length, true); yield header;
+      let at = 8 + entries.length * 8;
+      for (const [id, value] of entries) {
+        charge(1); const entry = new Uint8Array(8), view = new DataView(entry.buffer);
+        view.setUint32(0, id, true); view.setUint32(4, at, true); yield entry;
+        at += Math.ceil(value.length / 4) * 4;
+      }
+      for (const [, value] of entries) {
+        yield* propertyChunks(value);
+        const padding = (4 - value.length % 4) % 4; if (padding) yield new Uint8Array(padding);
+      }
+    } });
   }
   for (const [name, formats] of [["\u0005SummaryInformation", [biffPropertyFormats.summary]],
     ["\u0005DocumentSummaryInformation", [biffPropertyFormats.document, biffPropertyFormats.custom]]] as const) {
     const present = formats.filter(guid => encoded.has(guid)); if (!present.length) continue;
-    const bytes = allocate(28 + present.length * 20 + present.reduce((size, guid) => size + encoded.get(guid)!.length, 0)), view = new DataView(bytes.buffer);
-    view.setUint16(0, 0xfffe, true); view.setUint32(4, 0x20001, true); view.setUint32(24, present.length, true);
-    let at = 28 + present.length * 20;
-    for (let i = 0; i < present.length; i++) {
-      charge(1); const guid = present[i]!, section = encoded.get(guid)!;
-      for (let j = 0; j < 16; j++) bytes[28 + i * 20 + j] = parseInt(guid.slice(j * 2, j * 2 + 2), 16);
-      view.setUint32(44 + i * 20, at, true); bytes.set(section, at); at += section.length;
-    }
+    const length = reserve(28 + present.length * 20 + present.reduce((size, guid) => size + encoded.get(guid)!.length, 0));
+    planned.set(name, { length, *chunks() {
+      const header = new Uint8Array(28), view = new DataView(header.buffer);
+      view.setUint16(0, 0xfffe, true); view.setUint32(4, 0x20001, true); view.setUint32(24, present.length, true); yield header;
+      let at = 28 + present.length * 20;
+      for (const guid of present) {
+        charge(1); const entry = new Uint8Array(20), view = new DataView(entry.buffer);
+        for (let j = 0; j < 16; j++) entry[j] = parseInt(guid.slice(j * 2, j * 2 + 2), 16);
+        view.setUint32(16, at, true); yield entry; at += encoded.get(guid)!.length;
+      }
+      for (const guid of present) yield* propertyChunks(encoded.get(guid)!);
+    } });
+  }
+  // Opaque snapshot merging still needs random byte-array access. Keep it explicit
+  // until that reader and its codepage/identity logic migrate to retained ranges.
+  const snapshots = (book.unsupportedRecords ?? []).some(record =>
+    record.source === "biff" && record.kind === "ole-properties" && record.disposition === "retained");
+  const streams = new Map<string, Uint8Array>();
+  if (!staged || snapshots) for (const [name, value] of planned) {
+    const bytes = new Uint8Array(value.length); let at = 0;
+    for (const part of propertyChunks(value)) { bytes.set(part, at); at += part.length; }
     streams.set(name, bytes);
   }
   const preserved = await mergeBiffProperties(book, streams, handledMetadata, context, charge, allocate);
   for (const key of unsupportedKeys) if (!preserved.has(key))
     await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF document property: ${key}` });
-  return { streams, handledMetadata };
+  if (!staged) return { streams, handledMetadata, async close() {} };
+  const sources = new Map<string, BiffPropertySource>();
+  const close = async () => {
+    const errors: unknown[] = [];
+    for (const source of sources.values()) try { await source.close(); } catch (error) { errors.push(error); }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length) throw new AggregateError(errors, "BIFF property sources cleanup failed");
+  };
+  try {
+    for (const [name, value] of snapshots ? streams : planned) sources.set(name, await stagePropertyBytes(value, context));
+    return { streams: sources, handledMetadata, close };
+  } catch (error) {
+    try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], "BIFF properties cleanup failed"); }
+    throw error;
+  } finally { if (snapshots) for (const bytes of streams.values()) bytes.fill(0); }
+
 }

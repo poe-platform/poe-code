@@ -4,7 +4,7 @@ import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import type { SofficeSnapshot } from "./retained-input.js";
 
 /** Parse cells incrementally; payloads and row indexes belong to caller storage. */
-export async function retainCsv(storage: PagedStorage, source: SofficeSnapshot, blocks: RetainedOfficeBlocks, signal: AbortSignal): Promise<void> {
+export async function retainCsv(storage: PagedStorage, source: SofficeSnapshot, blocks: RetainedOfficeBlocks, signal: AbortSignal, separator = ","): Promise<void> {
   const decoder = new TextDecoder(), encoder = new TextEncoder();
   let field = "", position = storage.allocate(0), size = 0, cells = 0;
   let quoted = false, pendingQuote = false, skipLF = false, last = "", work = 0;
@@ -33,7 +33,7 @@ export async function retainCsv(storage: PagedStorage, source: SofficeSnapshot, 
         if (quoted) pendingQuote = true;
         else if (!size && !field.length) quoted = true;
         else field += char;
-      } else if (!quoted && char === ",") await cell();
+      } else if (!quoted && char === separator) await cell();
       else if (!quoted && (char === "\r" || char === "\n")) { await row(); skipLF = char === "\r"; }
       else field += char;
       if (field.length >= 4096) await flush();

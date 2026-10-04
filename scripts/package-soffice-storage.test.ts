@@ -183,5 +183,12 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     const text = new TextDecoder().decode(format === "docx" ? readZipArchiveEntries(bytes).get("word/document.xml") : format === "xlsx" ? readZipArchiveEntries(bytes).get("xl/worksheets/sheet1.xml") : bytes);
     expect(text).toContain(format === "pdf" ? "%PDF-1.7" : "Packed spreadsheet");
   }
-  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["book.csv", "book.docx", "book.html", "book.pdf", "book.txt", "book.xlsx", "input.docx", "input.html", "input.md", "input.pdf", "office.docx", "office.html", "office.odt", "office.pdf"]);
+  for (const format of ["csv", "xlsx"]) {
+    const converted = await runSofficeFileCli(["--convert-to", format, "/input.md"], {filesystem,
+      stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+    expect(converted.exitCode).toBe(0);
+    const bytes = await fs.readFile("/input." + format);
+    expect(new TextDecoder().decode(format === "xlsx" ? readZipArchiveEntries(bytes).get("xl/worksheets/sheet1.xml") : bytes)).toContain("Packed document");
+  }
+  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["book.csv", "book.docx", "book.html", "book.pdf", "book.txt", "book.xlsx", "input.csv", "input.docx", "input.html", "input.md", "input.pdf", "input.xlsx", "office.docx", "office.html", "office.odt", "office.pdf"]);
 });

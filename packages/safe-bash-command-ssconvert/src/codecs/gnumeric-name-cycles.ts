@@ -1,7 +1,7 @@
 import type { CapabilityContext } from "../contracts.js";
 import { resolveName, type NamedExpression, type Workbook } from "../workbook.js";
 import { parseExpression } from "../formulas/parser.js";
-import type { FormulaNode } from "../formulas/ast.js";
+import { gnumericFormulaNodes } from "./gnumeric-formula-nodes.js";
 import { createGnumericNameGraph } from "./gnumeric-name-graph.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 
@@ -20,28 +20,21 @@ export async function rejectGnumericNameCycles(
       signal: context.signal, maximumLength: context.limits.inputBytes,
       ...(context.limits.workbookNodes === undefined ? {} : { maximumNodes: context.limits.workbookNodes }) });
     if (!parsed.ok) continue;
-    function* references(node: FormulaNode): Generator<number> {
-      tick();
-      if (node.kind === "name" && (node.workbook === undefined || node.workbook === "")) {
+    const root = parsed.document.root;
+    function* references(): Generator<number> {
+      for (const node of gnumericFormulaNodes(root)) {
+        tick();
+        if (node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") continue;
         const scope = node.workbook === "" && node.sheet === undefined ? undefined : node.sheet === undefined ? name.sheet :
           book.sheets.find(sheet => foldSheetName(sheet.name) === foldSheetName(node.sheet!))?.id;
-        if (node.sheet === undefined || scope !== undefined) {
-          const target = resolveName(book, node.name, scope);
-          if (target) yield indices.get(target)!;
-        }
-      }
-      if (node.kind === "unary" || node.kind === "parentheses") yield* references(node.child);
-      else if (node.kind === "binary") { yield* references(node.left); yield* references(node.right); }
-      else if (node.kind === "call") for (const child of node.args) yield* references(child);
-      else if (node.kind === "array") for (const row of node.rows) for (const child of row) yield* references(child);
-      else if (node.kind === "reference" && node.label?.kind === "radical") {
-        for (const ref of node.label.preceding ?? []) yield* references(ref);
-        if (node.label.data) yield* references(node.label.data);
+        if (node.sheet !== undefined && scope === undefined) continue;
+        const target = resolveName(book, node.name, scope);
+        if (target) yield indices.get(target)!;
       }
     }
     const dependencies: number[] = [], pending: number[] = [], seen = new Set<number>();
     const list = graph?.list(); graph?.reset();
-    for (const dependency of references(parsed.document.root)) {
+    for (const dependency of references()) {
       if (graph) { await list!.append(dependency); await graph.push(dependency); }
       else { dependencies.push(dependency); pending.push(dependency); }
     }

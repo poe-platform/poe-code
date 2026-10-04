@@ -13,7 +13,8 @@ import { gnumericChildren, gnumericAttributes, objectChildren } from "./gnumeric
 import { parseExpression } from "../formulas/parser.js";
 import { gnumericGrammar } from "../formulas/conventions.js";
 import { quoteFormulaString } from "../formulas/serialization.js";
-import { rewriteReferences, visitFormula } from "../formulas/rewriting.js";
+import { gnumericFormulaNodes } from "./gnumeric-formula-nodes.js";
+import { rewriteReferences } from "../formulas/rewriting.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { readGnumericRichText, writeGnumericRichText } from "./gnumeric-rich-text.js";
 import { objectKinds } from "../objects/registry.js";
@@ -189,36 +190,47 @@ async function bindCellNames(root: XmlElement, context: CapabilityContext, tick:
   const bound = values?.formulas ?? new Map<GnumericNode["key"], string>();
   const rejections = values?.rejections ?? new Map<GnumericNode["key"], string>();
   const placeholders: NamedExpression[] = [];
-  const globals = new Set<string>(), locals = new Map<string, Set<string>>();
-  const futureGlobals = new Set(children(root, "Names").flatMap(group => names(group, "").map(entry => entry.name)));
-  const futureLocals = new Map<string, Set<string>>();
+  const state = values?.names ?? new Map<string, number>();
+  const nameKey = (...parts: (string | number)[]) => JSON.stringify(parts);
+  for (const group of children(root, "Names")) for (const entry of names(group, "")) await state.set(nameKey("future-global", entry.name), 1);
+  let generation = 0;
   for (const sheet of children(child(root, "Sheets"), "Sheet")) {
     const name = sheetName(sheet);
-    if (name !== undefined) futureLocals.set(foldSheetName(name), new Set(children(sheet, "Names").flatMap(group => names(group, name).map(entry => entry.name))));
+    if (name === undefined) continue;
+    // Repeated folded sheet names replace the future declaration set, just as Map.set did.
+    await state.set(nameKey("future-sheet", foldSheetName(name)), ++generation);
+    for (const group of children(sheet, "Names")) for (const entry of names(group, name)) await state.set(nameKey("future-local", generation, entry.name), 1);
   }
-  const addSheet = (name: string) => {
-    const key = foldSheetName(name);
+  const addSheet = async (name: string) => {
+    const scope = foldSheetName(name);
+    if (await state.get(nameKey("sheet", scope)) !== undefined) return;
     // sheet_constructed installs these permanent names before XML content.
-    if (!locals.has(key)) locals.set(key, new Set(["Sheet_Title", "Print_Area"]));
+    await state.set(nameKey("sheet", scope), 1);
+    await state.set(nameKey("local", scope, "Sheet_Title"), 1);
+    await state.set(nameKey("local", scope, "Print_Area"), 1);
   };
-  const addGlobalPlaceholder = (name: string, row: number, column: number) => {
-    if (globals.has(name)) return;
-    globals.add(name);
-    if (!futureGlobals.has(name)) placeholders.push({ name, expression: "#NAME?", position: { sheet: "", row, column } });
+  const futureLocal = async (scope: string, name: string) => {
+    const group = await state.get(nameKey("future-sheet", scope));
+    return group !== undefined && await state.get(nameKey("future-local", group, name)) !== undefined;
+  };
+  const addGlobalPlaceholder = async (name: string, row: number, column: number) => {
+    if (await state.get(nameKey("global", name)) !== undefined) return;
+    await state.set(nameKey("global", name), 1);
+    if (await state.get(nameKey("future-global", name)) === undefined) placeholders.push({ name, expression: "#NAME?", position: { sheet: "", row, column } });
   };
   for (const section of root.children) {
     if (!namespaces.has(section.namespace)) continue;
     if (section.localName === "SheetNameIndex") {
-      for (const sheet of children(section, "SheetName")) addSheet(sheet.text);
+      for (const sheet of children(section, "SheetName")) await addSheet(sheet.text);
     } else if (section.localName === "Names") {
-      for (const entry of names(section, "")) globals.add(entry.name);
+      for (const entry of names(section, "")) await state.set(nameKey("global", entry.name), 1);
     } else if (section.localName === "Sheets") for (const sheet of children(section, "Sheet")) {
       const name = sheetName(sheet); if (name === undefined) continue;
-      addSheet(name);
+      await addSheet(name);
       for (const part of sheet.children) {
         if (!namespaces.has(part.namespace)) continue;
         if (part.localName === "Names") {
-          for (const entry of names(part, name)) locals.get(foldSheetName(name))!.add(entry.name);
+          for (const entry of names(part, name)) await state.set(nameKey("local", foldSheetName(name), entry.name), 1);
         } else if (part.localName === "Cells") for await (const { key, node: cell } of nodes(part)) {
           if (cell.localName !== "Cell" || !namespaces.has(cell.namespace)) continue;
           const formula = child(cell, "Content")?.text ?? cell.text;
@@ -229,31 +241,31 @@ async function bindCellNames(root: XmlElement, context: CapabilityContext, tick:
           if (!parsed.ok) continue;
           const changes = new Map<number, { end: number; text: string }>();
           let rejection: string | undefined;
-          visitFormula(parsed.document.root, node => {
+          for (const node of gnumericFormulaNodes(parsed.document.root)) {
             tick();
-            if (rejection !== undefined || node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") return;
+            if (rejection !== undefined || node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") continue;
             // Workbook-qualified names require a declaration or an earlier
             // unqualified-name placeholder. Native parsing stops at rejection.
             if (node.workbook === "" && node.sheet === undefined) {
-              if (!globals.has(node.name)) rejection = `Name '${node.name}' does not exist in workbook`;
-              return;
+              if (await state.get(nameKey("global", node.name)) === undefined) rejection = `Name '${node.name}' does not exist in workbook`;
+              continue;
             }
-            const scope = foldSheetName(node.sheet ?? name), visible = locals.get(scope);
-            if (!visible) { rejection = `Unknown sheet '${node.sheet}'`; return; }
-            if (visible.has(node.name)) return;
-            if (!globals.has(node.name)) {
+            const scope = foldSheetName(node.sheet ?? name), visible = await state.get(nameKey("sheet", scope));
+            if (!visible) { rejection = `Unknown sheet '${node.sheet}'`; continue; }
+            if (await state.get(nameKey("local", scope, node.name)) !== undefined) continue;
+            if (await state.get(nameKey("global", node.name)) === undefined) {
               // An unknown unqualified name creates a global placeholder;
               // a qualified name creates a placeholder on that sheet.
               if (node.sheet !== undefined) {
-                visible.add(node.name);
-                if (!futureLocals.get(scope)?.has(node.name)) placeholders.push({ name: node.name, expression: "#NAME?",
+                await state.set(nameKey("local", scope, node.name), 1);
+                if (!await futureLocal(scope, node.name)) placeholders.push({ name: node.name, expression: "#NAME?",
                   sheet: scope, position: { sheet: scope, row, column } });
-                return;
+                continue;
               }
-              addGlobalPlaceholder(node.name, row, column);
+              await addGlobalPlaceholder(node.name, row, column);
             }
-            if (futureLocals.get(scope)?.has(node.name)) changes.set(node.start, { end: node.end, text: "[]" + node.name });
-          });
+            if (await futureLocal(scope, node.name)) changes.set(node.start, { end: node.end, text: "[]" + node.name });
+          }
           if (rejection !== undefined) { await rejections.set(key, rejection); continue; }
           let result = formula;
           for (const [start, change] of [...changes].sort(([a], [b]) => b - a)) result = result.slice(0, start) + change.text + result.slice(change.end);
@@ -491,12 +503,13 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
     ...sheetNodes.flatMap((node, i) => {
       const sheet = sheets[i]!;
       const localNames = children(node, "Names").flatMap(group => declaredNames(group, sheet.id, true));
-      const present = new Set(localNames.map(entry => { tick(); return entry.name; }));
+      let titlePresent = false, areaPresent = false;
+      for (const entry of localNames) { tick(); if (entry.name === "Sheet_Title") titlePresent = true; if (entry.name === "Print_Area") areaPresent = true; }
       // Native data sheets own these names before any XML declarations are read.
       // Retain them as model definitions so lookup, edits and exports share them.
       for (const [name, expression] of [["Sheet_Title", quoteFormulaString(sheet.name, '"', gnumericGrammar)], ["Print_Area", "#REF!"]] as const) {
         tick();
-        if (!present.has(name)) localNames.push({ name, expression, sheet: sheet.id,
+        if (!(name === "Sheet_Title" ? titlePresent : areaPresent)) localNames.push({ name, expression, sheet: sheet.id,
           position: { sheet: sheet.id, row: 0, column: 0 } });
       }
       return localNames;

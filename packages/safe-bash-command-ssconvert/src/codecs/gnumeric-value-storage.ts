@@ -10,18 +10,19 @@ export interface GnumericAxisState { metadata: AxisMetadata; implicit: boolean; 
 /** Shared bounded workbook indexes and length-prefixed UTF-16 records. Cell,
  * axis and formula payloads share one 16 KiB scratch window across all sheets. */
 export function createGnumericValueStorage(context: CapabilityContext) {
-  let storage: WorkingStorage | undefined = undefined, cells: IntegerTable | undefined, axes: IntegerTable | undefined, bindings: IntegerTable | undefined, shared: ZipDirectoryIndex | undefined;
+  let storage: WorkingStorage | undefined = undefined, cells: IntegerTable | undefined, axes: IntegerTable | undefined, bindings: IntegerTable | undefined, shared: ZipDirectoryIndex | undefined, names: ZipDirectoryIndex | undefined;
   let closed = false, closing: Promise<void> | undefined, pending: Promise<unknown> = Promise.resolve(), axisGroup = 0;
   const scratch = new Uint8Array(16384), view = new DataView(scratch.buffer);
   const check = () => { context.signal.throwIfAborted(); if (closed) throw new SsconvertError("invalid-request", "Gnumeric values are closed"); };
   context.own(() => {
     closed = true;
-    return closing ??= pending.then(async () => { scratch.fill(0); cells = undefined; axes = undefined; bindings = undefined; shared = undefined; await storage?.close(); });
+    return closing ??= pending.then(async () => { scratch.fill(0); cells = undefined; axes = undefined; bindings = undefined; shared = undefined; names = undefined; await storage?.close(); });
   });
   check();
   if (!context.createWorkingStorage) throw new SsconvertError("capability-denied", "Gnumeric values require caller storage");
   storage = context.createWorkingStorage(); check(); cells = new IntegerTable(storage, 128); axes = new IntegerTable(storage, 128); bindings = new IntegerTable(storage, 128);
   shared = new ZipDirectoryIndex(storage, { maximumKeyLength: Infinity, signal: context.signal });
+  names = new ZipDirectoryIndex(storage, { maximumKeyLength: Infinity, signal: context.signal });
   function serial<T>(operation: () => Promise<T>): Promise<T> {
     const result = pending.then(() => { check(); return operation(); });
     pending = result.then(() => undefined, () => undefined); return result;
@@ -84,6 +85,10 @@ export function createGnumericValueStorage(context: CapabilityContext) {
   const base = (sheet: number) => BigInt(sheet) << 38n;
   return {
     formulas: binding(false), rejections: binding(true),
+    names: {
+      get(key: string) { return serial(async () => { const value = await names!.get(key); check(); return value; }); },
+      set(key: string, value: number) { return serial(async () => { await names!.set(key, value); check(); }); }
+    },
     shared: {
       get(id: string): Promise<GnumericSharedExpression | undefined> { return serial(async () => {
         const pointer = await shared!.get(id); check();

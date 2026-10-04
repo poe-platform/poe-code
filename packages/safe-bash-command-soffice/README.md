@@ -48,8 +48,11 @@ shares the command's file authority, budgets and output lifecycle. Plain-text an
 (including CSV and Markdown source text) snapshots inputs in caller-backed storage,
 then streams UTF-8 output with backpressure. It admits cumulative input/output limits
 before publishing stdout and cleans up backing on cancellation or sink failure.
-Large inputs require an external safe-fs backend; other conversion routes currently
-retain their buffered adapters.
+Plain-text copies and RTF-to-text/HTML conversion also retain intermediates in caller
+storage and publish output through guarded staging. Existing file identity, hard links,
+symlinks and permissions are preserved. Later input operands can reuse earlier generated
+outputs. Large inputs require an external safe-fs backend; other conversion routes and
+filesystems without the required retained capabilities still use buffered adapters.
 
 For direct TypeScript conversion, use `await runSofficeCli(args, files, cwd,
 { signal })`. Failed ODS conversion preserves an existing destination. The

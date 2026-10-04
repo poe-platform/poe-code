@@ -1,8 +1,9 @@
+import { tryRetainedTextConversion } from "./retained-conversion.js";
 import { rtfTextSteps } from "./rtf-text.js";
 import { catRetainedText } from "./retained-text.js";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import type { ByteSink } from "safe-bash-contracts/io";
-import { parseHtmlBlocks, type DocBlock } from "./html.js";
+import { parseHtmlBlocks, escapeHtmlText, type DocBlock } from "./html.js";
 import { parseMarkdownTableRows } from "./text-table.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resolvePath } from "@poe-code/safe-fs/core";
@@ -695,10 +696,6 @@ function formatStarCalcCsv(rows: readonly string[][], filterOptions?: string): U
   return new TextEncoder().encode(lines.join("\n") + "\n");
 }
 
-function escapeHtmlText(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
 function renderBlocksToText(blocks: readonly DocBlock[]): Uint8Array {
   const lines = blocks.map(block => block.kind === "table"
     ? (block.rows ?? []).map(row => row.join("\t")).join("\n")
@@ -1270,6 +1267,11 @@ export async function runSofficeFileCli(argv: readonly string[], options: Soffic
       const result = await catRetainedText(parsed.inputs, { ...context, signal: invocation.signal }, stdout.output, limits, chargeOutput);
       if (result.stderr) await writeBytes(context.stderr, new TextEncoder().encode(result.stderr), invocation.signal);
       return { exitCode: result.exitCode };
+    }
+    if (!("exitCode" in parsed)) {
+      const stdout = invocation.child(context.stdout);
+      const retained = await tryRetainedTextConversion(parsed, { ...context, signal: invocation.signal, stdout: stdout.output }, limits, chargeOutput);
+      if (retained) return retained;
     }
     let inputBytes = 0;
     for (const token of "exitCode" in parsed ? [] : parsed.inputs) {

@@ -63,18 +63,21 @@ export class RetainedRtfText {
     await paragraph(); await flush();
     return { firstPage, firstBlock, count: this.count - firstBlock };
   }
-  async *stream(snapshot: RetainedRtfSnapshot): AsyncGenerator<Uint8Array> {
-    const { storage, signal, pages, blocks } = this;
-    for (let block = snapshot.firstBlock; block < snapshot.firstBlock + snapshot.count; block++) {
-      if (block !== snapshot.firstBlock) yield Uint8Array.of(10);
-      const end = Number(await blocks.get(BigInt(block * 2 + 1)));
-      for (let offset = Number(await blocks.get(BigInt(block * 2))); offset < end;) {
-        signal.throwIfAborted();
-        const at = Number(await pages.get(BigInt(snapshot.firstPage + Math.floor(offset / 4096))));
-        const size = Math.min(4096 - offset % 4096, end - offset);
-        yield new Uint8Array(await storage.read(at + offset % 4096, size));
-        offset += size;
-      }
+  async *stream(snapshot: RetainedRtfSnapshot, separator = "\n"): AsyncGenerator<Uint8Array> {
+    for (let index = 0; index < snapshot.count; index++) {
+      if (index) yield new TextEncoder().encode(separator);
+      yield* this.streamBlock(snapshot, index);
+    }
+  }
+  async *streamBlock(snapshot: RetainedRtfSnapshot, index: number): AsyncGenerator<Uint8Array> {
+    const { storage, signal, pages, blocks } = this, block = snapshot.firstBlock + index;
+    const end = Number(await blocks.get(BigInt(block * 2 + 1)));
+    for (let offset = Number(await blocks.get(BigInt(block * 2))); offset < end;) {
+      signal.throwIfAborted();
+      const at = Number(await pages.get(BigInt(snapshot.firstPage + Math.floor(offset / 4096))));
+      const size = Math.min(4096 - offset % 4096, end - offset);
+      yield new Uint8Array(await storage.read(at + offset % 4096, size));
+      offset += size;
     }
   }
 }

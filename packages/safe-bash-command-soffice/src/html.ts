@@ -70,3 +70,7 @@ export function parseHtmlBlocks(source: string): DocBlock[] {
   flush();
   return blocks;
 }
+
+export function escapeHtmlText(text: string): string {
+  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}

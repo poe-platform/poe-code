@@ -43,7 +43,7 @@ export class PdfMergeOutlines {
     } catch (error) { failed = true; throw error; }
     finally { const results = await Promise.allSettled([frames.close(), seen.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
   }
-  async append(document: PdfRetainedDocument, pageOffset: number): Promise<void> {
+  async append(document: PdfRetainedDocument, pageOffset: number, includeUntitled = false): Promise<void> {
     const resolve = async (node: PdfCosNode | undefined) => (await document.lookup(node))?.value;
     const catalog = await resolve(document.crossReference.rootRef); if (catalog?.kind !== "dict") return;
     const outlines = await resolve(dictGet(catalog, "Outlines")); if (outlines?.kind !== "dict") return;
@@ -84,10 +84,18 @@ export class PdfMergeOutlines {
       for await (const outline of this.walk(document, dictGet(outlines, "First"), true)) {
         const title = await resolve(dictGet(outline, "Title")), text = title?.kind === "string" ? decodePdfString(title) : "";
         const index = await destination(dictGet(outline, "Dest") ?? dictGet(outline, "A"));
-        if (text) await this.objects.set({ objectNumber: ++this.count, generationNumber: 0, value: cosDict({ Title: cosString(text), Page: cosNumber(pageOffset + index) }) });
+        if (text || includeUntitled) await this.objects.set({ objectNumber: ++this.count, generationNumber: 0, value: cosDict({ Title: cosString(text), Page: cosNumber(pageOffset + index) }) });
       }
     } catch (error) { failed = true; throw error; }
     finally { await pages?.close().catch(error => { if (!failed) throw error; }); }
+  }
+  async *entries(): AsyncGenerator<{ title: string; pageIndex: number }, void, void> {
+    for await (const object of this.objects.objects()) {
+      await this.checkpoint();
+      const row = object.value as PdfCosDict, title = dictGet(row, "Title"), index = dictGet(row, "Page");
+      if (title?.kind !== "string" || index?.kind !== "number") throw new PdfError("E_PARSE", "Invalid staged outline summary");
+      yield { title: decodePdfString(title), pageIndex: index.value };
+    }
   }
   async finish(target: PdfMutableObjectStore, catalog: PdfCosDict, pageCount: number, page: (index: number) => Promise<PdfCosRef>): Promise<void> {
     if (!this.count || !pageCount) return;

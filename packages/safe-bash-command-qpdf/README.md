@@ -68,6 +68,12 @@ keep nested-form traversal state in caller storage. `--list-attachments` and
 attachment payloads sequentially and validating all attachments before publishing
 stdout. Binary extraction preserves the original bytes.
 
+`--json=1` and `--json=2` use retained input and caller-backed object, page,
+outline and attachment traversal. `--json-object`, `--json-key=pages`, inline
+base64 and `--json-stream-data=file` preserve the compatibility JSON format.
+JSON and decoded stream files are staged before publication; stdout and file
+writes remain bounded and honor output limits and cancellation.
+
 `--show-object` emits object syntax in bounded chunks. Combine it with
 `--raw-stream-data` or `--filtered-stream-data` for binary stream output. The
 command stages output on caller storage before writing stdout, so an output

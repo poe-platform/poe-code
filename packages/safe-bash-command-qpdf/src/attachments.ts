@@ -1,5 +1,5 @@
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { PdfError, PdfMutableObjectStore, PdfNameIndex, decodePdfString, dictGet, type PdfCosDict, type PdfCosNode, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
+import { PdfError, PdfMutableObjectStore, PdfNameIndex, decodePdfString, dictGet, type PdfCosDict, type PdfCosNode, type PdfIndexStorage, type PdfRetainedDocument, type PdfCosRef } from "@poe-code/pdf-ast";
 import { encodeDisplayParts } from "./display.js";
 
 export class QpdfMissingAttachment extends Error {
@@ -9,12 +9,12 @@ export class QpdfMissingAttachment extends Error {
 /** Match qpdf's key-based collection, including root AF and page annotations.
  * Traversal frames and membership live on caller storage; output is consumed
  * into publication staging so a later decoding failure cannot leak a prefix. */
-export async function* attachmentChunks(document: PdfRetainedDocument, storage: PdfIndexStorage, key: string | undefined,
-  signal: AbortSignal): AsyncGenerator<Uint8Array> {
+export async function* retainedAttachments(document: PdfRetainedDocument, storage: PdfIndexStorage,
+  signal: AbortSignal): AsyncGenerator<{ key: string; filename: string; reference: PdfCosRef }> {
   const values = new PdfMutableObjectStore(storage, { signal }), names = new PdfNameIndex(storage, Infinity, signal);
   const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const visited = new IntegerTable(backing), accepted = new IntegerTable(backing);
-  let failed = false, found = false, top = -1, work = 0;
+  let failed = false, top = -1, work = 0;
   async function dictionary(node: PdfCosNode | undefined): Promise<PdfCosDict | undefined> {
     const resolved = await document.lookup(node);
     return resolved?.value.kind === "dict" && !resolved.stream ? resolved.value : undefined;
@@ -77,14 +77,8 @@ export async function* attachmentChunks(document: PdfRetainedDocument, storage: 
       const stream = embedded && await document.lookup(dictGet(embedded, "UF") ?? dictGet(embedded, "F") ?? dictGet(embedded, "DOS") ?? dictGet(embedded, "Mac") ?? dictGet(embedded, "Unix"));
       if (!stream?.stream || !stream.reference) continue;
       await accepted.set(BigInt(identity), 1n);
-      const selected = key !== undefined && !found && (name === key || filename === key);
-      if (selected) found = true;
-      for await (const bytes of document.objects.decodeStream(stream.reference.objectNumber, stream.reference.generationNumber)) {
-        signal.throwIfAborted(); if (selected) yield bytes;
-      }
-      if (key === undefined) yield* encodeDisplayParts([name, " -> ", filename, "\n"], signal);
+      yield { key: name, filename, reference: stream.reference };
     }
-    if (key !== undefined && !found) throw new QpdfMissingAttachment(key);
   } catch (error) {
     failed = true;
     if (error instanceof PdfError && error.message.startsWith("Unsupported streaming PDF filter: ")) {
@@ -95,5 +89,26 @@ export async function* attachmentChunks(document: PdfRetainedDocument, storage: 
   finally {
     const results = await Promise.allSettled([values.close(), names.close(), backing.close()]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
+  }
+}
+
+export async function* attachmentChunks(document: PdfRetainedDocument, storage: PdfIndexStorage, key: string | undefined,
+  signal: AbortSignal): AsyncGenerator<Uint8Array> {
+  let found = false;
+  try {
+    for await (const attachment of retainedAttachments(document, storage, signal)) {
+      const selected = key !== undefined && !found && (attachment.key === key || attachment.filename === key);
+      if (selected) found = true;
+      for await (const bytes of document.objects.decodeStream(attachment.reference.objectNumber, attachment.reference.generationNumber)) {
+        signal.throwIfAborted(); if (selected) yield bytes;
+      }
+      if (key === undefined) yield* encodeDisplayParts([attachment.key, " -> ", attachment.filename, "\n"], signal);
+    }
+    if (key !== undefined && !found) throw new QpdfMissingAttachment(key);
+  } catch (error) {
+    if (error instanceof PdfError && error.message.startsWith("Unsupported streaming PDF filter: ")) {
+      throw new PdfError(error.code, `Unsupported PDF filter: ${error.message.slice("Unsupported streaming PDF filter: ".length)}`);
+    }
+    throw error;
   }
 }

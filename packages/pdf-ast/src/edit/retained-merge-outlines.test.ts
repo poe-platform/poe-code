@@ -119,3 +119,27 @@ it.each(["lookup", "write"])("preserves %s failures and releases outline backing
   try { await expect(outlines.append(document, 0)).rejects.toBe(reason); } finally { await outlines.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["complete", "return", "close", "limit", "cancel"])("owns retained outline summary traversal through %s", async mode => {
+  const original = PdfDocument.create(); original.addPage(); original.addPage();
+  const catalog = original.cos.resolveDict(original.cos.rootRef)!;
+  dictSet(catalog, "Dests", cosDict({ target: cosArray([original.getPage(1).ref, cosName("Fit")]) }));
+  const second = original.cos.allocateObject(cosDict({ Title: cosString("child"), Dest: cosNumber(0) }));
+  const first = original.cos.allocateObject(cosDict({ Title: cosString("parent"), Dest: cosName("target"), First: second }));
+  dictSet(original.cos.resolveDict(second)!, "Next", first);
+  dictSet(catalog, "Outlines", cosDict({ First: first }));
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
+  const controller = new AbortController(), source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { signal: controller.signal, ...(mode === "limit" ? { maxTraversalStagingBytes: 0 } : {}) });
+  const walk = document.outlines();
+  try {
+    if (mode === "limit") await expect(walk.next()).rejects.toThrow("limit");
+    else {
+      expect((await walk.next()).value).toEqual({ title: "parent", pageIndex: 1 });
+      if (mode === "complete") { expect((await walk.next()).value).toEqual({ title: "child", pageIndex: 0 }); expect((await walk.next()).done).toBe(true); }
+      else if (mode === "close") { await document.close(); expect((await walk.next()).done).toBe(true); }
+      else if (mode === "return") await walk.return(undefined);
+      else { controller.abort(new Error("cancel outline")); await expect(walk.next()).rejects.toThrow("cancel outline"); }
+    }
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

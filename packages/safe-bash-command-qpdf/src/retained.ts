@@ -1,3 +1,4 @@
+import { createQpdfJson, type QpdfJsonOptions } from "./json.js";
 import { parseQpdfPageLabels } from "./page-labels.js";
 import { splitPageOutputs } from "./split.js";
 import { iterateQpdfPageRange } from "./page-range.js";
@@ -15,7 +16,7 @@ import { resolvePath } from "safe-bash-contracts/path";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import type { QpdfLimits } from "./index.js";
 
-export interface RetainedQpdfOptions {
+export interface RetainedQpdfOptions extends QpdfJsonOptions {
   inputFile: string | undefined;
   emptyInput: boolean;
   splitPagesGroup: number | undefined;
@@ -61,6 +62,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
   const inputs = new Map<string, PdfFileSource | undefined>();
   let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, failed = false;
   let splitOutputs: PdfStagedOutputs | undefined;
+  let jsonOutput: Awaited<ReturnType<typeof createQpdfJson>> | undefined;
   let selectionGraph: Awaited<ReturnType<typeof copyQpdfSelections>> | undefined;
   let editedGraph: Awaited<ReturnType<typeof editRetainedDocument>> | undefined;
   async function publishInspection(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>): Promise<void> {
@@ -193,6 +195,40 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       await writeBytes(context.stdout, bytes, signal);
       return { exitCode: 0 };
     }
+    if (options.jsonVersion !== undefined) {
+      try { editedGraph = await editRetainedDocument(document, storage, { signal }); }
+      catch (error) {
+        signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
+        return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
+      }
+      for (const key of options.jsonKeys) {
+        if (options.jsonVersion === 1 && key === "qpdf") return await diagnostic("qpdf: json-key=qpdf is not valid for json=1\n");
+        if (options.jsonVersion === 2 && (key === "objects" || key === "objectinfo")) return await diagnostic(`qpdf: json-key=${key} is only valid for json=1\n`);
+      }
+      if (options.jsonStreamDataMode === "file" && !(options.jsonStreamPrefix ?? (options.outputFile && options.outputFile !== "-" ? `${options.outputFile}-` : undefined))) return await diagnostic("qpdf: --json-stream-data=file requires --json-stream-prefix or an output file\n");
+      jsonOutput = await createQpdfJson(document, editedGraph.document, source, storage, options, inputs.keys(), limits.maxOutputBytes, signal);
+      const destination = options.outputFile;
+      const stdout = !destination || destination === "-";
+      if (stdout) for await (const bytes of jsonOutput.json.stream(0, jsonOutput.json.size, signal)) await writeBytes(context.stdout, bytes, signal);
+      let wroteJson = false;
+      async function writeOutput(name: string, chunks: AsyncIterable<Uint8Array>) {
+        if (name === "-") { for await (const bytes of chunks) await writeBytes(context.stdout, bytes, signal); return; }
+        const path = resolvePath(context.cwd, name); await context.fs.mkdir(resolvePath(path, ".."), { recursive: true, signal }); await publish(context, path, chunks, signal);
+      }
+      let publishing = destination;
+      try {
+        for await (const entry of jsonOutput.files.entries()) {
+          publishing = entry.name;
+          if (!stdout && entry.name === destination) { await writeOutput(entry.name, jsonOutput.json.stream(0, jsonOutput.json.size, signal)); wroteJson = true; }
+          else await writeOutput(entry.name, entry.contents());
+        }
+        if (!stdout && !wroteJson) { publishing = destination; await writeOutput(destination!, jsonOutput.json.stream(0, jsonOutput.json.size, signal)); }
+      } catch (error) {
+        signal.throwIfAborted(); if (!(error instanceof Error) || !("code" in error)) throw error;
+        return await diagnostic(`qpdf: open ${publishing}: ${error.code === "ENOENT" ? "No such file or directory" : error.code}\n`);
+      }
+      return { exitCode: 0 };
+    }
     if (options.pageSpecs.length) {
       selectionGraph = await copyQpdfSelections(document, source, inputs, storage, options, signal);
       document = await selectionGraph.openDocument();
@@ -257,7 +293,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     return { exitCode: 0 };
   } catch (error) { failed = true; if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
   finally {
-    const results = await Promise.allSettled([splitOutputs?.close(), editedGraph?.close(), document?.close(), selectionGraph?.close(), ...[...new Set([...inputs.values(), source, output])].map(input => input?.close())]);
+    const results = await Promise.allSettled([jsonOutput?.close(), splitOutputs?.close(), editedGraph?.close(), document?.close(), selectionGraph?.close(), ...[...new Set([...inputs.values(), source, output])].map(input => input?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
   }
 }

@@ -131,6 +131,10 @@ Annotations are returned individually; callers own any results they collect.
 Individual COS arrays/dictionaries still use the object reader's admitted
 representation.
 
+`doc.outlines()` yields outline titles and zero-based destination page indices.
+It resolves direct and named destinations and stages traversal records on caller
+storage; closing the document releases suspended iterations.
+
 `doc.pageLabels()` streams page-label definitions in source number-tree order,
 including duplicate indices, with `index`, `start`, optional `prefix` and `style`.
 Traversal state uses caller storage; closing the document releases suspended

@@ -1,3 +1,4 @@
+import { PdfMergeOutlines } from "./edit/retained-merge-outlines.js";
 import { walkRetainedPageLabels, type PdfRetainedPageLabel } from "./extract/retained-page-labels.js";
 import { walkRetainedFormFields, type PdfRetainedFormField } from "./extract/retained-form-fields.js";
 import { openStoredPdfObjectReader, type OpenStoredPdfOptions } from "./cos/stored-object-reader.js";
@@ -246,6 +247,19 @@ export class PdfRetainedDocument {
           ...(doc.options.signal ? { signal: doc.options.signal } : {}),
         });
       } finally { doc.walks.delete(work); }
+    }
+    const work = visit(this); return work;
+  }
+
+  outlines(): AsyncGenerator<{ title: string; pageIndex: number }, void, void> {
+    async function* visit(doc: PdfRetainedDocument): AsyncGenerator<{ title: string; pageIndex: number }, void, void> {
+      doc.assertOpen(); doc.walks.add(work);
+      const storage = new PdfStagingStorage(doc.storage, doc.options.maxTraversalStagingBytes);
+      const outlines = new PdfMergeOutlines(storage, doc.options.signal!, Infinity);
+      let failed = false;
+      try { await outlines.append(doc, 0, true); yield* outlines.entries(); }
+      catch (error) { failed = true; throw error; }
+      finally { doc.walks.delete(work); await outlines.close().catch(error => { if (!failed) throw error; }); }
     }
     const work = visit(this); return work;
   }

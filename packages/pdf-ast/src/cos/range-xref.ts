@@ -1,5 +1,6 @@
 import { readBytes } from "@poe-code/safe-fs/contracts";
-import { dictGet, type PdfCosDict, type PdfXRefEntry } from "../ast.js";
+import { readStoredItems } from "../content/stored-record.js";
+import { dictGet, type PdfCosNode, type PdfCosDict, type PdfXRefEntry } from "../ast.js";
 import { PdfError } from "../errors.js";
 import type { PdfFileSource } from "../source.js";
 import { decodePdfStreamChunks } from "./filter-stream.js";
@@ -135,19 +136,22 @@ export async function* readCosXrefRevision(source: PdfFileSource, offset: number
   if (!Number.isSafeInteger(w0 + w1 + w2) || w0 + w1 + w2 === 0) throw new PdfError("E_PARSE", "Invalid XRef entry fields length");
   if (size?.kind !== "number" || !Number.isSafeInteger(size.value) || size.value < 0) throw new PdfError("E_PARSE", "Invalid XRef stream Size");
   const index = dictGet(dict, "Index");
-  if (index && (index.kind !== "array" || index.items.length % 2 !== 0)) throw new PdfError("E_PARSE", "Invalid XRef range fields");
-  function* subsections(): Generator<readonly [number, number]> {
+  if (index && (index.kind !== "array" || (index.storedItems?.length ?? index.items.length) % 2 !== 0)) throw new PdfError("E_PARSE", "Invalid XRef range fields");
+  async function* subsections(): AsyncGenerator<readonly [number, number]> {
     if (!index) { yield [0, size!.kind === "number" ? size!.value : 0]; return; }
     if (index.kind !== "array") return;
-    for (let i = 0; i < index.items.length; i += 2) {
-      const start = index.items[i];
-      const count = index.items[i + 1];
-      if (start?.kind !== "number" || count?.kind !== "number") throw new PdfError("E_PARSE", "Invalid XRef range fields");
-      yield [start.value, count.value];
+    let start: PdfCosNode | undefined;
+    const items = index.storedItems ? readStoredItems<PdfCosNode>(index.storedItems, signal) : index.items;
+    for await (const node of items) {
+      signal?.throwIfAborted();
+      if (!start) { start = node; continue; }
+      if (start.kind !== "number" || node.kind !== "number") throw new PdfError("E_PARSE", "Invalid XRef range fields");
+      yield [start.value, node.value];
+      start = undefined;
     }
   }
   // Validate all ranges before invoking a decoder or allocating record state.
-  for (const [start, count] of subsections()) { range(start, count); admit(count); }
+  for await (const [start, count] of subsections()) { range(start, count); admit(count); }
   if (admitted > Math.floor(Math.min(maxDecoded, Number.MAX_SAFE_INTEGER) / (w0 + w1 + w2))) {
     throw new PdfError("E_LIMIT", "PDF xref decoded byte limit exceeded");
   }
@@ -161,7 +165,7 @@ export async function* readCosXrefRevision(source: PdfFileSource, offset: number
   const reader = new DecodedFields(decoded, maxDecoded, signal);
   let failed = false;
   try {
-    for (const [start, count] of subsections()) {
+    for await (const [start, count] of subsections()) {
       for (let i = 0; i < count; i++) {
         const type = w0 ? await reader.integer(w0) : 1;
         const field1 = await reader.integer(w1);

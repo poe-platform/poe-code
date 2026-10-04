@@ -1,3 +1,4 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { describe, expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { FileReadHandle, FileSystem } from "@poe-code/safe-fs/contracts";
@@ -39,6 +40,52 @@ async function collect(source: PdfFileSource, offset: number, options: Parameter
 }
 
 describe("range cross-reference revisions", () => {
+  it("streams sparse xref ranges from caller backing without retaining the Index array", async () => {
+    const count = 256;
+    const bytes = stream("[0 1 0]", `[${Array.from({length: count}, (_, i) => `${i * 2} 1`).join(" ")}]`, Array(count).fill(45), String(count * 2));
+    const source = await input(bytes).open();
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+    const backing = new PagedStorage({fs, cwd:"/scratch", env:{}, signal:new AbortController().signal}, 2);
+    try {
+      const result = await collect(source, 0, {arrayStorage:backing, storedArrayKeys:["Index"]});
+      expect(result.entries).toEqual(Array.from({length:count}, (_, i) => ({type:"uncompressed", objectNumber:i * 2, offset:45, generationNumber:0})));
+      expect(dictGet(result.trailer,"Index")).toMatchObject({kind:"array",items:[],storedItems:{length:count * 2}});
+    } finally { await backing.close(); await source.close(); }
+    expect(await fs.readdir("/scratch")).toEqual([]);
+  });
+
+  it.each(["[0]", "[0 1 3 -1]", "[0 1 /Bad 2]", "[0 1 9007199254740991 2]"])("validates backed ranges %s before decoding", async index => {
+    const source = await input(stream("[0 1 0]", index, [45])).open();
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+    const backing = new PagedStorage({fs, cwd:"/scratch", env:{}, signal:new AbortController().signal}, 2);
+    const decodeStream = vi.fn(async function* () { yield new Uint8Array([45]); });
+    try {
+      await expect(collect(source,0,{arrayStorage:backing,storedArrayKeys:["Index"],decodeStream})).rejects.toMatchObject({code:"E_PARSE"});
+      expect(decodeStream).not.toHaveBeenCalled();
+    } finally { await backing.close(); await source.close(); }
+    expect(await fs.readdir("/scratch")).toEqual([]);
+  });
+
+  it.each(["budget", "read", "cancel"])("preserves backed range %s failures before decoding", async mode => {
+    const source = await input(stream("[0 1 0]", "[0 1 2 1]", [45,46])).open();
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+    const controller = new AbortController(), failure = new Error("backing read failed");
+    const backing = new PagedStorage({fs,cwd:"/scratch",env:{},signal:controller.signal},2);
+    const storage = {allocate:backing.allocate.bind(backing),write:backing.write.bind(backing),async read(at:number,n:number){
+      if(mode === "read")throw failure;
+      if(mode === "cancel")controller.abort(failure);
+      return backing.read(at,n);
+    }};
+    const decodeStream = vi.fn(async function* () { yield new Uint8Array([45,46]); });
+    try {
+      const operation=collect(source,0,{arrayStorage:storage,storedArrayKeys:["Index"],signal:controller.signal,maxEntries:1,decodeStream});
+      if(mode === "budget")await expect(operation).rejects.toMatchObject({code:"E_LIMIT"});
+      else await expect(operation).rejects.toBe(failure);
+      expect(decodeStream).not.toHaveBeenCalled();
+    } finally { await backing.close(); await source.close(); }
+    expect(await fs.readdir("/scratch")).toEqual([]);
+  });
+
   it("feeds classic entries directly into external index storage", async () => {
     const doc = PdfDocument.create();
     doc.addPage().drawText("xref parity", { x: 20, y: 20 });

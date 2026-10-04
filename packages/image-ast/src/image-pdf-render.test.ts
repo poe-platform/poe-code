@@ -154,3 +154,28 @@ it.each(["AllOn","AnyOn","AllOff","AnyOff"])("preserves Sips PDF pixels with bac
  }finally{await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("keeps compressed PDF xref ranges in caller backing during inspection and rendering",async()=>{
+ const {PdfRetainedDocument,dictGet}=await import("@poe-code/pdf-ast");
+ const {tryPdfMetadata}=await import("./image-pdf.js");
+ const original=PdfDocument.create(),page=original.addPage([16,12]);
+ page.setRawContentStream(new TextEncoder().encode("0.2 0.7 0.4 rg 2 3 8 6 re f"));
+ const base=original.save(),revision=PdfDocument.load(base).cos.revisions[0]!,root=dictGet(revision.trailer,"Root"),size=dictGet(revision.trailer,"Size");
+ if(root?.kind!=="ref"||size?.kind!=="number")throw Error("fixture trailer");
+ const suffix=new TextEncoder().encode(`\n${size.value} 0 obj << /Type /XRef /Size ${size.value+1} /Root ${root.objectNumber} ${root.generationNumber} R /Prev ${revision.xrefOffset} /W [0 1 0] /Index [${Array.from({length:256},(_,i)=>`${i} 0`).join(" ")}] /Length 0 >> stream\n\nendstream endobj\nstartxref\n${base.length+1}\n%%EOF`);
+ const bytes=new Uint8Array(base.length+suffix.length);bytes.set(base);bytes.set(suffix,base.length);
+ const expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},2);
+ const source={size:bytes.length,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
+ const open=vi.spyOn(PdfRetainedDocument,"open");
+ try{
+  expect(await tryPdfMetadata(source,fs,"/scratch",signal,{},storage)).toMatchObject({width:16,height:12});
+  const image=await tryPdfDecode(source,storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+  for(const result of open.mock.results){
+   const document=await result.value;
+   expect(dictGet(document.crossReference.trailer,"Index")).toMatchObject({kind:"array",items:[],storedItems:{length:512,storage}});
+  }
+ }finally{open.mockRestore();await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

@@ -30,11 +30,10 @@ tags, and undeclared entities, reporting repairs on stderr. `--encode ENCODING`
 selects UTF-8, UTF-16 (including LE/BE), US-ASCII, or ISO-8859-1 output. Inputs come
 from stdin or one or more files in the configured virtual filesystem. Normal input
 is decoded and parsed incrementally. `--noout` without XPath discards the document
-tree. Ordinary formatting and canonicalization keep document nodes in a 1 MiB
+tree. Formatting and canonicalization, including `--noblanks` and `--encode`, keep document nodes in a 1 MiB
 page cache and spill through the supplied filesystem under `TMPDIR` or the working
 directory. Large workloads need an external filesystem backend; a memory filesystem
-still stores spilled bytes in RAM. XPath and `--noblanks`, `--nocdata`, `--encode`
-still retain a tree, and `--recover` buffers the source. Individual XML tokens and
+still stores spilled bytes in RAM. XPath and `--nocdata` still retain a tree, and `--recover` buffers the source. Individual XML tokens and
 active ancestry also remain resident, so this is not yet a bounded-memory guarantee
 for arbitrary documents or queries. Files are
 processed in order; malformed files report an error while later files continue.

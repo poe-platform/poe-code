@@ -87,7 +87,8 @@ export async function* serializeDocument(
   source: XmlElement | StoredXmlDocument,
   mode: DocumentMode,
   budget: XmlBudget,
-  format = mode === "format"
+  format = mode === "format",
+  options: { noblanks?: boolean; declaration?: string | undefined } = {}
 ): AsyncGenerator<string> {
   type Reference = XmlContent | number;
   const stored = source instanceof StoredXmlDocument ? source : undefined;
@@ -100,7 +101,8 @@ export async function* serializeDocument(
   }
   const root = await load(rootReference) as XmlElement;
   const canonical = mode !== "format";
-  const escaping = { canonical, ascii: !canonical && !root.declaration?.includes("encoding") };
+  const documentDeclaration = options.declaration ?? root.declaration;
+  const escaping = { canonical, ascii: !canonical && !documentDeclaration?.includes("encoding") };
   if (canonical) {
     // Iterators retain only the active ancestry, never an array of all siblings.
     const pending: AsyncIterator<Reference>[] = [(async function* () { yield rootReference; })()];
@@ -122,12 +124,14 @@ export async function* serializeDocument(
       }
       pending.push(children(next.value));
     }
-  } else yield declaration(root.declaration);
+  } else yield declaration(documentDeclaration);
   interface Frame {
     content: Reference | string;
     depth: number;
     namespaces: ReadonlyMap<string, string>;
     preserveSpace: boolean;
+    preserveBlanks: boolean;
+    inline: boolean;
   }
   const namespaces = new Map<string, string>([["xml", xml]]);
   async function* siblings(): AsyncGenerator<Reference> {
@@ -139,7 +143,7 @@ export async function* serializeDocument(
     }
   }
   async function* documentFrames(): AsyncGenerator<Frame> {
-    const frame = { depth: 0, namespaces, preserveSpace: false };
+    const frame = { depth: 0, namespaces, preserveSpace: false, preserveBlanks: false, inline: false };
     let after = false;
     for await (const reference of siblings()) {
       { const p = budget.tick(); if (p) await p; }
@@ -156,7 +160,7 @@ export async function* serializeDocument(
       }
     }
   }
-  async function* selectedChildren(reference: Reference, preserveSpace: boolean): AsyncGenerator<{ reference: Reference; mixed: boolean }> {
+  async function* selectedChildren(reference: Reference, preserveSpace: boolean, preserveBlanks: boolean): AsyncGenerator<{ reference: Reference; mixed: boolean }> {
     let mixed = false, count = 0;
     const iterator = children(reference);
     let current = await iterator.next();
@@ -172,7 +176,7 @@ export async function* serializeDocument(
             { const p = budget.tick(); if (p) await p; }
             if (!" \t\n\r".includes(character)) blank = false;
           }
-          skip = format && !preserveSpace && !mixed && blank && (count > 0 || !next.done);
+          skip = (format && !preserveSpace || options.noblanks === true && !preserveBlanks) && !mixed && blank && (count > 0 || !next.done);
           if (!skip) mixed = true;
         } else if (child.kind === "cdata") mixed = true;
         if (!skip) { count++; yield { reference: current.value, mixed }; }
@@ -191,15 +195,17 @@ export async function* serializeDocument(
     const current = await load(reference);
     if (current.kind === "element") {
       let preserveSpace = frame.preserveSpace;
+      let preserveBlanks = frame.preserveBlanks;
       for (const attribute of current.attributes) {
         { const p = budget.tick(); if (p) await p; }
         if (attribute.namespace === xml && attribute.localName === "space") {
+          preserveBlanks = attribute.value === "preserve";
           if (attribute.value === "preserve") preserveSpace = true;
           else if (attribute.value === "default") preserveSpace = false;
         }
       }
       let count = 0, mixed = false;
-      for await (const child of selectedChildren(reference, preserveSpace)) { count++; mixed = child.mixed; }
+      for await (const child of selectedChildren(reference, preserveSpace, preserveBlanks)) { count++; mixed = child.mixed; }
       const ordered = canonical ? await attributes(current, frame.namespaces, budget, mode === "exc-c14n") : [];
       if (!canonical) {
         for (const namespace of [true, false]) for (const attribute of current.attributes) {
@@ -216,14 +222,14 @@ export async function* serializeDocument(
       }
       if (!count && !canonical) { yield "/>"; continue; }
       yield ">";
-      const indent = !canonical && format && !mixed && count > 0;
+      const indent = !canonical && format && !frame.inline && !mixed && count > 0;
       const childNamespaces = new Map(frame.namespaces);
       if (canonical) for (const attribute of ordered) {
         if (attribute.namespace === xmlns) childNamespaces.set(attribute.localName, attribute.value);
       }
-      const childFrame = { depth: frame.depth + 1, namespaces: childNamespaces, preserveSpace };
+      const childFrame = { depth: frame.depth + 1, namespaces: childNamespaces, preserveSpace, preserveBlanks, inline: frame.inline || mixed };
       pending.push((async function* (): AsyncGenerator<Frame> {
-        for await (const child of selectedChildren(reference, preserveSpace)) {
+        for await (const child of selectedChildren(reference, preserveSpace, preserveBlanks)) {
           if (indent) yield { ...childFrame, content: "\n" + "  ".repeat(childFrame.depth) };
           yield { ...childFrame, content: child.reference };
         }

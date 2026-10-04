@@ -34,7 +34,8 @@ Repeat the input-size and concurrency measurements for `xmllint --format`,
 before/after the root, namespace declarations and mixed content. Confirm spill
 writes use only the injected external safe-fs, read/write windows stay at or below
 16 KiB, and scratch descriptors close after success, sink failure and cancellation.
-Compare output with native xmllint. Record the fixed page-cache cost separately
+Repeat with `--noblanks` and each supported `--encode` value, including UTF-16 BOM
+and non-ASCII text. Compare output with native xmllint. Record the fixed page-cache cost separately
 from the largest token and active ancestry: those costs still grow with token size
 and nesting depth. Also measure startup/first-byte latency; formatting validates
 the document before publishing output.

@@ -4,7 +4,8 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createXmllintCommand } from "./index.js";
 
-for (const cancel of [false, true]) test(`XML formatting uses injected paged storage and retires it (cancel=${cancel})`, async () => {
+for (const args of [[], ["--noblanks"], ["--encode", "UTF-16"]])
+for (const cancel of [false, true]) test(`XML formatting uses injected paged storage and retires it (${args.join(" ")}, cancel=${cancel})`, async () => {
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("sink stopped");
   let opened = 0, closed = 0, written = 0, output = 0, outstanding = 0;
   const injected = new Proxy(fs, { get(target, key) {
@@ -33,7 +34,7 @@ for (const cancel of [false, true]) test(`XML formatting uses injected paged sto
   } });
   const payload = "a".repeat(16384), encoder = new TextEncoder();
   const result = Promise.resolve(createXmllintCommand().execute({ command: "xmllint",
-    ...createCommandArguments([]), cwd: "/", env: {}, fs: injected, signal: controller.signal,
+    ...createCommandArguments(args), cwd: "/", env: {}, fs: injected, signal: controller.signal,
     stdin: { async *[Symbol.asyncIterator]() {
       yield encoder.encode("<r>");
       const reused = encoder.encode(`<x>${payload}</x>`);
@@ -50,7 +51,8 @@ for (const cancel of [false, true]) test(`XML formatting uses injected paged sto
   if (cancel) await assert.rejects(result, error => error === failure);
   else {
     assert.equal((await result).exitCode, 0);
-    assert.equal(output, encoder.encode('<?xml version="1.0"?>\n<r></r>\n').length + 80 * (payload.length + 7));
+    const expected = encoder.encode('<?xml version="1.0"?>\n<r></r>\n').length + 80 * (payload.length + 7);
+    assert.equal(output, args.includes("UTF-16") ? (expected + ' encoding="UTF-16"'.length) * 2 + 2 : expected);
   }
   assert.equal(opened, 1);
   assert.equal(closed, opened);

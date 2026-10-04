@@ -259,3 +259,28 @@ for (const [query, expected] of [
   assert.equal(result.exitCode, 0, result.errors);
   assert.equal(result.output, expected + "\n");
 });
+
+for (const flags of [[], ["--format"], ["--c14n"], ["--exc-c14n"], ["--encode", "UTF-8"]]) {
+  test(`stored whitespace removal preserves tree semantics (${flags.join(" ")})`, async () => {
+    for (const input of [
+      '<r> <a/> <b/> </r>',
+      '<r> <a/> text <b/> </r>',
+      '<r xml:space="preserve"> <a xml:space="default"> <b/> </a> </r>',
+      '<r xml:space="preserve"> <a xml:space="invalid"> <b/> </a> </r>',
+      '<r><a> </a><b><![CDATA[ ]]><c/> </b></r>',
+    ]) {
+      const actual = await run(["--noblanks", ...flags], input);
+      // Recovery selects the established tree transformation on valid XML.
+      const expected = await run(["--recover", "--noblanks", ...flags], input);
+      assert.equal(actual.exitCode, 0);
+      assert.equal(actual.output, expected.output, input);
+      assert.equal(actual.errors, expected.errors);
+    }
+  });
+}
+
+test("format preserves inline descendants of mixed content", async () => {
+  const input = '<r xml:space="preserve"> <a xml:space="default"> <b/> </a> </r>';
+  const result = await run(["--noblanks", "--format"], input);
+  assert.equal(result.output, '<?xml version="1.0"?>\n<r xml:space="preserve"> <a xml:space="default"><b/></a> </r>\n');
+});

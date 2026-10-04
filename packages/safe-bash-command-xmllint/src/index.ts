@@ -154,7 +154,7 @@ async function executeDocument(
   try {
     const recoveryMessages = new Set<string>();
     let parsedRoot: XmlElement;
-    if (!options.query && !options.noout && !options.recover && !options.noblanks && !options.nocdata && options.encoding === undefined) {
+    if (!options.query && !options.noout && !options.recover && !options.nocdata) {
       stored = await StoredXmlDocument.parse(readXmlChunks(context, file, budget, runtime), context, budget);
       parsedRoot = await stored.node(stored.root) as XmlElement;
     } else if (options.recover) {
@@ -267,7 +267,8 @@ async function executeDocument(
           stored ?? root,
           options.mode,
           budget,
-          options.format
+          options.format,
+          { noblanks: options.noblanks ?? false, declaration: root.declaration }
         ))
           await write(part);
       }

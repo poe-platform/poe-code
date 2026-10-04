@@ -16,21 +16,58 @@ for (const [command, patch] of [
   ["apply_patch", "*** Begin Patch\n*** Update File: /work/left\n@@\n-old\n+new\n*** End Patch\n"],
 ] as const) test(`Shell maxInputBytes bounds ${command}`, async () => {
   const fs = await filesystem({ left: "old\n", right: "new\n" });
-  const shell = new Shell({ fs, cwd: "/work" });
+  const originalEntries = await fs.readdir("/work");
+  const originalIdentity = (await fs.lstat("/work/left")).ino;
+  let targetBytes = 0;
+  const observed = new Proxy(fs, { get(target, key) {
+    if (key === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+      const handle = await target.openReadFile(...args);
+      return { ...handle, async read(...readArgs: Parameters<typeof handle.read>) {
+        const bytes = await handle.read(...readArgs);
+        if (args[0] === "/work/left") targetBytes += bytes.length;
+        return bytes;
+      } };
+    };
+    const value: unknown = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const shell = new Shell({ fs: observed, cwd: "/work" });
   for (const definition of createDiffPatchCommands()) shell.register(definition);
   shell.register(createApplyPatchCommand());
   try {
     const limit = Buffer.byteLength(patch) + 7;
-    const rejected = shell.exec(command, { stdin: patch, limits: { maxInputBytes: limit } });
-    if (command.startsWith("patch ")) await assert.rejects(rejected, { name: "ShellLimitError", limit: "maxInputBytes" });
-    else {
-      const result = await rejected;
-      if (command.startsWith("diff ")) assert.equal(result.exitCode, 2);
-      else assert.notEqual(result.exitCode, 0);
+    const result = await shell.exec(command, { stdin: patch, limits: { maxInputBytes: limit } });
+    if (command.startsWith("patch ")) {
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stderr, "patch: commit stopped; 0/1 files committed; failing operation may have side effects; path /work/left: input byte limit exceeded\n");
+      assert.equal(targetBytes, 4, "the second retained read is rejected from its size before consuming payload");
     }
+    else if (command.startsWith("diff ")) assert.equal(result.exitCode, 2);
+    else assert.notEqual(result.exitCode, 0);
     assert.equal(new TextDecoder().decode(await fs.readFile("/work/left")), "old\n");
+    assert.equal((await fs.lstat("/work/left")).ino, originalIdentity);
+    assert.deepEqual(await fs.readdir("/work"), originalEntries);
+    targetBytes = 0;
     const admitted = await shell.exec(command, { stdin: patch, limits: { maxInputBytes: limit + 1 } });
     assert.equal(admitted.exitCode, command.startsWith("diff ") ? 1 : 0, admitted.stderr);
+    if (command.startsWith("patch ")) assert.equal(targetBytes, 8);
+  } finally { await shell.dispose(); }
+});
+
+test("patch preserves Shell maxInputBytes failure while consuming stdin", async () => {
+  const fs = await filesystem({ left: "old\n" });
+  const entries = await fs.readdir("/work");
+  const identity = (await fs.lstat("/work/left")).ino;
+  const shell = new Shell({ fs, cwd: "/work" });
+  for (const definition of createDiffPatchCommands()) shell.register(definition);
+  try {
+    const patch = "--- left\n+++ left\n@@ -1 +1 @@\n-old\n+new\n";
+    await assert.rejects(shell.exec("patch /work/left", { stdin: patch, limits: { maxInputBytes: Buffer.byteLength(patch) - 1 } }), {
+      name: "ShellLimitError", limit: "maxInputBytes",
+    });
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/left")), "old\n");
+    assert.equal((await fs.lstat("/work/left")).ino, identity);
+    assert.deepEqual(await fs.readdir("/work"), entries);
   } finally { await shell.dispose(); }
 });
 

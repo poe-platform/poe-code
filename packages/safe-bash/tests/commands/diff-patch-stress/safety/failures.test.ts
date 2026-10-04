@@ -3,7 +3,7 @@ import test from "node:test";
 import { FsError, type FileSystem } from "../../../../src/contracts/index.js";
 import { assertBytes, bytes, creation, cwd, deletion, instrument, invoke, memory, replacement, snapshot } from "./helpers.js";
 
-for (const method of ["lstat", "readFile", "readStream"] as const) {
+for (const method of ["lstat", "openReadFile", "retainedRead"] as const) {
   for (const code of ["EACCES", "EIO", "EPERM"] as const) {
     test(`atomic extension ${method} ${code} on later target stops prevalidation without writes`, async () => {
       const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
@@ -11,9 +11,8 @@ for (const method of ["lstat", "readFile", "readStream"] as const) {
       const controller = new AbortController();
       let injected = false;
       const observed = instrument(backing, {
-        streaming: method === "readStream",
         before(operation) {
-          assert.equal(operation.signal, controller.signal);
+          assert.equal(operation.signal, operation.method === "closeReadFile" ? undefined : controller.signal);
           if (operation.method === method && operation.path === `${cwd}/second`) {
             injected = true;
             throw new FsError(code, { syscall: method, path: operation.path });
@@ -144,7 +143,7 @@ for (const change of ["content", "symlink", "hardlink", "removed", "parent"] as 
     let changedState: unknown[] = [];
     const observed = instrument(backing, {
       async after(call) {
-        if (injected || call.method !== "readFile" || call.path !== `${cwd}/dir/second`) return;
+        if (injected || call.method !== "closeReadFile" || call.path !== `${cwd}/dir/second`) return;
         injected = true;
         if (change === "content") await backing.writeFile(`${cwd}/first`, bytes("concurrent\n"));
         if (change === "symlink") { await backing.rm(`${cwd}/first`); await backing.symlink("sentinel", `${cwd}/first`); }
@@ -210,7 +209,7 @@ for (const phase of ["preflight", "publication"] as const) test(`same-byte repla
       if (phase === "publication" && call.method === "publishStagedFile" && call.path === `${cwd}/target`) await replaceTarget(call.path);
     },
     async after(call) {
-      if (phase !== "preflight" || call.method !== "readFile" || call.path !== `${cwd}/target` || ++targetReads !== 1) return;
+      if (phase !== "preflight" || call.method !== "closeReadFile" || call.path !== `${cwd}/target` || ++targetReads !== 1) return;
       await replaceTarget(call.path);
     },
   });

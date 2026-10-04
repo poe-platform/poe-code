@@ -43,7 +43,7 @@ export async function snapshot(backing: MemoryFileSystem): Promise<unknown[]> {
 }
 
 export interface Operation {
-  readonly method: keyof FileSystem;
+  readonly method: keyof FileSystem | "retainedRead" | "closeReadFile";
   readonly path: string;
   readonly signal: AbortSignal | undefined;
   readonly destination: string | undefined;
@@ -58,7 +58,7 @@ export interface Hooks {
 
 export function instrument(backing: MemoryFileSystem, hooks: Hooks = {}) {
   const calls: Operation[] = [];
-  async function perform<Result>(method: keyof FileSystem, path: string, options: FsOptions | undefined, action: () => Promise<Result>, destination?: string, flag?: string): Promise<Result> {
+  async function perform<Result>(method: Operation["method"], path: string, options: FsOptions | undefined, action: () => Promise<Result>, destination?: string, flag?: string): Promise<Result> {
     const operation = { method, path, signal: options?.signal, destination, flag };
     calls.push(operation);
     await hooks.before?.(operation);
@@ -69,7 +69,13 @@ export function instrument(backing: MemoryFileSystem, hooks: Hooks = {}) {
   const fs: FileSystem = {
     capabilities: { ...backing.capabilities, open: false, streamingRead: hooks.streaming ?? false },
     readFile: (path, options) => perform("readFile", path, options, () => backing.readFile(path, options)),
-    openReadFile: (path, options) => perform("openReadFile", path, options, () => backing.openReadFile(path, options)),
+    async openReadFile(path, options) {
+      const handle = await perform("openReadFile", path, options, () => backing.openReadFile(path, options));
+      return { ...handle,
+        read: (position, length, options) => perform("retainedRead", path, options, () => handle.read(position, length, options)),
+        close: () => perform("closeReadFile", path, undefined, () => handle.close()),
+      };
+    },
     writeFile: (path, data, options) => perform("writeFile", path, options, () => backing.writeFile(path, data, options), undefined, options?.flag),
     appendFile: (path, data, options) => perform("appendFile", path, options, () => backing.appendFile(path, data, options)),
     stat: (path, options) => perform("stat", path, options, () => backing.stat(path, options)),

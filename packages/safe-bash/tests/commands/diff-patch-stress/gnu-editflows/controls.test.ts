@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { ByteSource, FsOptions, ReadStreamOptions } from "../../../../src/contracts/index.js";
+import type { ByteSource, FsOptions } from "../../../../src/contracts/index.js";
 import { change, create, fixtures, remove, twoHunks } from "./fixtures.js";
 import { contents, cwd, execute, filesystem, instrument, requireAtomic, root, shell, snapshot } from "./support.js";
 
@@ -124,14 +124,12 @@ for (const atomic of [false, true]) {
     let observed: AbortSignal | undefined;
     let started = false;
     const wrapped = instrument(fs, (method, parameters) => {
-      if ((method !== "readStream" && method !== "readFile") || parameters[0] !== `${cwd}/second`) return undefined;
-      observed = (parameters[1] as ReadStreamOptions | FsOptions | undefined)?.signal;
+      if (method !== "openReadFile" || parameters[0] !== `${cwd}/second`) return undefined;
+      observed = (parameters[1] as FsOptions | undefined)?.signal;
       assert(observed instanceof AbortSignal, "host reads must receive Shell's composed signal");
-      const stalled = () => { started = true; controller.abort(new Error("cancel later target read")); return new Promise<IteratorResult<Uint8Array>>(() => {}); };
-      if (method === "readStream") return { [Symbol.asyncIterator]() { return { next: stalled }; } } satisfies ByteSource;
       started = true;
       controller.abort(new Error("cancel later target read"));
-      return new Promise<Uint8Array>(() => {});
+      return new Promise<never>(() => {});
     });
     const outcome = await execute(shell(wrapped), { args, input: change("unified", "first") + change("unified", "second") }, controller.signal).then(result => result, error => error as unknown);
     if (outcome && typeof outcome === "object" && "stderr" in outcome) {

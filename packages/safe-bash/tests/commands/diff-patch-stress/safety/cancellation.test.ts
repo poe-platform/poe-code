@@ -18,7 +18,7 @@ for (const tool of ["diff", "patch"] as const) {
   }
 }
 
-for (const method of ["lstat", "readFile", "readStream"] as const) {
+for (const method of ["lstat", "openReadFile", "retainedRead"] as const) {
   test(`atomic extension blocked ${method} aborts without effects and observes late host rejection`, { timeout: 4000 }, async () => {
     const backing = await memory({ first: "old\n", second: "old\n" });
     const before = await snapshot(backing);
@@ -27,9 +27,8 @@ for (const method of ["lstat", "readFile", "readStream"] as const) {
     const reason = { at: method };
     const controller = new AbortController();
     const observed = instrument(backing, {
-      streaming: method === "readStream",
       async before(call) {
-        assert.equal(call.signal, controller.signal);
+        assert.equal(call.signal, call.method === "closeReadFile" ? undefined : controller.signal);
         if (call.method !== method || call.path !== `${cwd}/second`) return;
         entered.resolve();
         await blocked.promise;
@@ -99,7 +98,7 @@ for (const method of ["publishStagedFile", "rm"] as const) {
     const reason = new Error(`stop ${method}`);
     const observed = instrument(backing, {
       async before(call) {
-        assert.equal(call.signal, call.method === "removeStagedFile" ? undefined : controller.signal);
+        assert.equal(call.signal, call.method === "removeStagedFile" || call.method === "closeReadFile" ? undefined : controller.signal);
         if (call.method === method && call.path === `${cwd}/second`) {
           entered.resolve();
           await blocked.promise;

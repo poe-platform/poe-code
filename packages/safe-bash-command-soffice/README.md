@@ -44,12 +44,12 @@ The workspace entrypoint exports `sofficeCommands()` for plugin registration,
 `SofficeCommandsOptions` object; existing factory names remain available.
 
 `runSofficeFileCli(args, { filesystem, stdout, stderr, cwd, signal, limits })`
-shares the command's file authority, budgets and output lifecycle. Plain-text, RTF, XLSX and OpenDocument (ODT/ODS/ODP) `--cat`
+shares the command's file authority, budgets and output lifecycle. Plain-text, RTF, DOCX, XLSX and OpenDocument (ODT/ODS/ODP) `--cat`
 (including CSV and Markdown source text) snapshots inputs in caller-backed storage,
 then streams UTF-8 output with backpressure. It admits cumulative input/output limits
 before publishing stdout and cleans up backing on cancellation or sink failure.
 Plain-text and Markdown HTML/DOCX/PDF output, Markdown-to-text, plain-text copies, and
-RTF-to-text/HTML/DOCX/PDF and OpenDocument-to-text/HTML/DOCX/PDF conversion, plus XLSX/CSV-to-text/HTML/DOCX/PDF/CSV/XLSX and plain-text/Markdown-to-CSV/XLSX, also retain intermediates in caller
+RTF-to-text/HTML/DOCX/PDF and OpenDocument-to-text/HTML/DOCX/PDF conversion, plus DOCX-to-text, XLSX/CSV-to-text/HTML/DOCX/PDF/CSV/XLSX and plain-text/Markdown-to-CSV/XLSX, also retain intermediates in caller
 storage and publish output through guarded staging. Existing file identity, hard links,
 symlinks and permissions are preserved. Later input operands can reuse earlier generated
 outputs. Text PDF conversion retains word wrapping and page content in caller storage,

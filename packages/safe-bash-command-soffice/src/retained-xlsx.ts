@@ -1,3 +1,4 @@
+import { RetainedSpans } from "./retained-spans.js";
 import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { createZipCodec } from "@poe-code/office-package/zip";
 import { openRetainedXml, resolveOfficeResources, type RetainedXml, type XmlLexicalToken, type XmlRange } from "@poe-code/office-xml";
@@ -5,30 +6,6 @@ import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { retainXmlText } from "./retained-xml-text.js";
 import type { RetainedSofficeContext, SofficeSnapshot } from "./retained-input.js";
 
-class Spans {
-  private readonly values: IntegerTable;
-  count = 0;
-  constructor(private readonly storage: PagedStorage, private readonly signal: AbortSignal, private readonly enabled = true) { this.values = new IntegerTable(storage); }
-  async add(span: SofficeSnapshot): Promise<void> {
-    if (!this.enabled) return;
-    await this.values.set(BigInt(this.count * 2), BigInt(span.position));
-    await this.values.set(BigInt(this.count * 2 + 1), BigInt(span.size)); this.count++;
-  }
-  async finish(first = 0): Promise<SofficeSnapshot> {
-    let size = 0;
-    for (let index = first; index < this.count; index++) size += Number(await this.values.get(BigInt(index * 2 + 1)));
-    const position = this.storage.allocate(size); let written = 0;
-    for (let index = first; index < this.count; index++) {
-      const start = Number(await this.values.get(BigInt(index * 2))), length = Number(await this.values.get(BigInt(index * 2 + 1)));
-      for (let offset = 0; offset < length; offset += 16384) {
-        this.signal.throwIfAborted();
-        const bytes = new Uint8Array(await this.storage.read(start + offset, Math.min(16384, length - offset)));
-        await this.storage.write(position + written, bytes); written += bytes.length;
-      }
-    }
-    return { position, size };
-  }
-}
 
 class Cursor {
   readonly tokens: AsyncGenerator<XmlLexicalToken>;
@@ -93,7 +70,7 @@ export async function retainXlsxText(storage: PagedStorage, source: SofficeSnaps
     finally { try { await cursor.tokens.return(undefined); } finally { await xml.close().catch(error => { if (!failed) throw error; }); } }
   };
   if (shared) await parse(shared, async cursor => {
-    const spans = new Spans(storage, signal);
+    const spans = new RetainedSpans(storage, signal);
     for (;;) {
       const next = await cursor.tokens.next(); if (next.done) break;
       if (next.value.kind !== "start-name" || await cursor.name(next.value.range) !== "si" || await cursor.open() === undefined) continue;
@@ -110,7 +87,7 @@ export async function retainXlsxText(storage: PagedStorage, source: SofficeSnaps
   });
   document?.beginTable();
   const empty = { position: 0, size: 0 };
-  const output = new Spans(storage, signal, !document), tab = { position: await storage.append(Uint8Array.of(9)), size: 1 }, newline = { position: await storage.append(Uint8Array.of(10)), size: 1 };
+  const output = new RetainedSpans(storage, signal, !document), tab = { position: await storage.append(Uint8Array.of(9)), size: 1 }, newline = { position: await storage.append(Uint8Array.of(10)), size: 1 };
   let rows = 0;
   const selected = sheet ?? fallback;
   if (selected) await parse(selected, async cursor => {

@@ -5,7 +5,7 @@ import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { expect, it } from "vitest";
 
-it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "odt-sdk", "odt-command", "odt-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel"])("streams Soffice text through external Worker backing (%s)", async mode => {
+it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "odt-sdk", "odt-command", "odt-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel", "docx-sdk", "docx-command", "docx-cancel"])("streams Soffice text through external Worker backing (%s)", async mode => {
   const builtins = new Set(builtinModules.flatMap(name => [name, `node:${name}`]));
   const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export * as soffice from "safe-bash-command-soffice";
@@ -19,12 +19,12 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
   const runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request,env){
-      const variant=new URL(request.url).pathname.slice(1),rtf=variant.startsWith('rtf-'),odt=variant.startsWith('odt-'),xlsx=variant.startsWith('xlsx-'),mode=variant.split('-').at(-1),namespace=new api.MemoryFileSystem();await namespace.mkdir('/spill');
+      const variant=new URL(request.url).pathname.slice(1),docx=variant.startsWith('docx-'),rtf=variant.startsWith('rtf-'),odt=variant.startsWith('odt-'),xlsx=variant.startsWith('xlsx-'),mode=variant.split('-').at(-1),namespace=new api.MemoryFileSystem();await namespace.mkdir('/spill');
       const {fs:backing,events}=api.createR2PagedFixture(namespace,env.PAGES);
       let inputClosed=0,inputReads=0,largestInput=0,largestAllocation=0;
       const fs=new Proxy(backing,{get(target,key){
         if(key==='readStream')return async function*(path,options){
-          if(path!==(rtf?'/input.rtf':odt?'/input.odt':xlsx?'/input.xlsx':'/input'))throw new Error('Unexpected source');
+          if(path!==(docx?'/input.docx':rtf?'/input.rtf':odt?'/input.odt':xlsx?'/input.xlsx':'/input'))throw new Error('Unexpected source');
           const meta=await env.PAGES.head('input');
           try{for(let position=0;position<meta.size;position+=16384){
             options?.signal?.throwIfAborted();
@@ -41,7 +41,7 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
       const stderr={async write(bytes){throw new Error(new TextDecoder().decode(bytes));}};
       let result;
       try{
-        const args=['--cat',rtf?'/input.rtf':odt?'/input.odt':xlsx?'/input.xlsx':'/input'];
+        const args=['--cat',docx?'/input.docx':rtf?'/input.rtf':odt?'/input.odt':xlsx?'/input.xlsx':'/input'];
         if(mode==='command')result=await api.soffice.createSofficeCommand().execute({command:'soffice',...api.createCommandArguments(args),cwd:'/spill',env:{},fs,signal:controller.signal,stdout,stderr,stdin:(async function*(){})()});
         else result=await api.soffice.runSofficeFileCli(args,{filesystem:fs,cwd:'/spill',signal:controller.signal,stdout,stderr});
       }catch(error){if(mode!=='cancel'||error!==reason)throw error;cancelled=true;}finally{globalThis.Uint8Array=Native;}
@@ -53,7 +53,7 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
   try {
     const bucket = await runtime.getR2Bucket("PAGES");
     const source = mode.startsWith("rtf-") ? new TextEncoder().encode("{\\rtf1 " + "a".repeat(1100000) + "\\par }") : new Uint8Array(1100000).fill(97);
-    await bucket.put("input", mode.startsWith("odt-") ? createStoredZipArchive({
+    await bucket.put("input", mode.startsWith("docx-") ? createStoredZipArchive({ "word/document.xml": new TextEncoder().encode("<w:p><w:t>" + "a".repeat(1100000) + "</w:t></w:p>") }) : mode.startsWith("odt-") ? createStoredZipArchive({
       "content.xml": new TextEncoder().encode("<office><text:p>" + "a".repeat(1100000) + "</text:p></office>")
     }) : mode.startsWith("xlsx-") ? createStoredZipArchive({
       "xl/worksheets/sheet1.xml": new TextEncoder().encode('<worksheet><row><c t="s"><v>0</v></c></row></worksheet>'),
@@ -69,7 +69,7 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
     expect(result.inputClosed).toBe(1); expect(result.inputReads).toBeGreaterThan(64);
     expect(result.largestInput).toBeLessThanOrEqual(16384); expect(result.largestAllocation).toBeLessThanOrEqual(65536);
     // The small XLSX worksheet fits its bounded cache; only shared strings spill.
-    expect(result.events.opened).toBe(mode.startsWith("xlsx-") || mode.startsWith("odt-") ? 2 : 1); expect(result.events.closed).toBe(result.events.opened);
+    expect(result.events.opened).toBe(mode.startsWith("docx-") || mode.startsWith("xlsx-") || mode.startsWith("odt-") ? 2 : 1); expect(result.events.closed).toBe(result.events.opened);
     expect(result.events.reads).toBeGreaterThan(0); expect(result.events.writes).toBeGreaterThan(0);
     expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
     expect(result.remaining).toBe(0); expect(result.namespace).toEqual([]); expect(result.hostGlobals).toEqual(["undefined", "undefined", "undefined"]);

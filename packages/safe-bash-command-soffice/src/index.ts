@@ -1242,7 +1242,7 @@ export async function runSofficeFileCli(argv: readonly string[], options: Soffic
 
     const vfsFiles = new Map<string, Uint8Array>();
     const parsed = parseSofficeArguments(argv, context.cwd);
-    const structured = [".pdf", ".docx", ".pptx", ".html", ".htm"];
+    const structured = [".pdf", ".pptx", ".html", ".htm"];
     if ((context.fs.readStream || context.fs.openReadFile) && !("exitCode" in parsed) && parsed.catMode && !parsed.convertSpec && parsed.inputs.length &&
         parsed.inputs.every(path => !structured.some(extension => path.toLowerCase().endsWith(extension)))) {
       const stdout = invocation.child(context.stdout);

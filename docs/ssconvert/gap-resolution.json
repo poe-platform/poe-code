@@ -4584,8 +4584,10 @@
       "status": "open",
       "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained.",
       "checkpoint20261004": {
-        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered.",
-        "evidence": [],
+        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access.",
+        "evidence": [
+          "#/paradoxInlineMemoUtf8"
+        ],
         "nextAcceptance": "Qualify companion-file and wider version profiles through both public export routes, preserving records/schema and exact diagnostics after native reopen.",
         "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
         "qualificationBlockers": [],
@@ -6435,5 +6437,12 @@
     "native": "LibreOffice25.2.3.2:13correct/wrong-password observations match expected outcomes. Five encrypted profiles plus plaintext open,preserve values/text/formulas,and recalculate SUM49to107 after an edit;all six wrong passwords refuse. Six native-edited XLSX files pass current public readback. Plain/AES128native PDF screenshots are byte-identical and inspected;owned isolated Calc session terminated.",
     "limitations": "Calc still refuses CFB8 with the correct password; its existing empty-password limitation is unchanged. Legacy CBC/CFB prefix checksums are not full authentication. No runtime defect reproduced in this finite checkpoint.",
     "remaining": "All19families remain open. Next existing gate: encrypted-paradox companion-file and wider version profiles through both public export routes. ODF password/tampering/application and installed-artifact closure remains open."
+  },
+  "paradoxInlineMemoUtf8": {
+    "status": "Inline memo repair verified; companion/version and installed-artifact gates remain open",
+    "source": "Authenticated Gnumeric 1.12.61 archive 2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12; plugins/paradox/paradox.c SHA256 70933d8b124417e65edfdc5f9b06cd8e711d4bbf9ea26794d4709ee9b91530c6, lines 210-215 and 555-559 pass raw memo bytes between UTF-8 values and blob APIs, separately from alpha codepage conversion.",
+    "reproduction": "Two memory-only plaintext/encrypted roundtrips corrupted café 漢 😀 into Latin-1 mojibake before the decoder repair.",
+    "verification": "91 focused Paradox/database tests, changed-file ESLint, test type-check and maintained selected workspace build pass. Six memo controls cover Unicode, preserved BOM and existing NUL termination. Four compiled SDK/command export-and-command-readback routes retain exact Unicode memo and CP1252 alpha values, read only the table/input and leave a companion sentinel untouched. Maintained terminal screenshot inspected: accented text is correct; the screenshot font lacks CJK/emoji glyphs, so exact byte assertions provide their verification.",
+    "limitations": "Native inline memo allocation has a retained unterminated-string defect; source validation and bounded product roundtrips are not a new native memo parity pass. No external companion capability or wider version profile is newly qualified."
   }
 }

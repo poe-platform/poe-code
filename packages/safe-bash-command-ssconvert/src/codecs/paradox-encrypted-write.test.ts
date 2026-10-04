@@ -193,3 +193,23 @@ it.each(["success", "missing", "callback", "work", "output", "invalid-schema"])(
       }
     } finally { await engine.dispose(); }
   });
+
+// Inline memo bytes are UTF-8 in Gnumeric's blob writer/reader, independently
+// of the CP1252 encoding used for alpha fields in the same table.
+it.each([
+  [false, "café 漢 😀", "café 漢 😀"],
+  [true, "café 漢 😀", "café 漢 😀"],
+  [false, "\ufeffmemo", "\ufeffmemo"],
+  [true, "\ufeffmemo", "\ufeffmemo"],
+  [false, "café\0ignored", "café"],
+  [true, "café\0ignored", "café"]
+] as const)("preserves inline memo text with encryption=%s and text=%j", async (encrypted, text, expected) => {
+  const book: Workbook = { sheets: [{ id: "m", name: "Memo", cells: [
+    { row: 0, column: 0, value: { kind: "string", value: "Memo,M,40" } },
+    { row: 1, column: 0, value: { kind: "string", value: text } }
+  ] }] };
+  const output = await writeParadox(book, encrypted ? options : [], bindings().context);
+  const imported = await readParadox(output, context);
+  expect(imported.sheets[0]!.cells.find(cell => cell.row === 1)?.value)
+    .toEqual({ kind: "string", value: expected });
+});

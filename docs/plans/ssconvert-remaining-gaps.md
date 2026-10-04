@@ -176,6 +176,10 @@ Do not repeat completed cohorts unless a relevant runtime change or regression
 invalidates their evidence. Family closure still requires the listed acceptance
 and its independent evidence; this reconciliation does not qualify new profiles.
 Publication/installed-artifact gates remain separate from remote-main delivery.
+Paradox inline memo UTF-8 corruption is repaired (`paradoxInlineMemoUtf8`):
+plaintext/encrypted SDK and command routes preserve Unicode and do not access
+companions. The companion/version gate remains next; native unterminated memo
+allocation remains a reference limitation, not a parity pass.
 
 ## 4. Interfaces and test plan
 

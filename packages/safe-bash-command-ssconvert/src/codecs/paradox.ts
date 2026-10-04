@@ -154,7 +154,13 @@ export async function readParadox(bytes: Uint8Array, context: CapabilityContext)
           } else if (field.type === 12) {
             if (raw.length < 10) { await warning("Could not read record from paradox file."); continue; }
             const size = new DataView(raw.buffer, raw.byteOffset, raw.length).getUint32(raw.length - 6, true);
-            if (size && size <= raw.length - 10) value = { kind: "string", value: databaseText(raw.subarray(0, size), 28591) };
+            if (size && size <= raw.length - 10) {
+              // Gnumeric passes memo bytes directly to its UTF-8 string value,
+              // unlike alpha fields, which pxlib converts from the table codepage.
+              const memo = raw.subarray(0, size), nul = memo.indexOf(0);
+              value = { kind: "string", value: new TextDecoder("utf-8", { ignoreBOM: true })
+                .decode(nul < 0 ? memo : memo.subarray(0, nul)) };
+            }
             else if (size) await warning("Blob data is not contained in record and a blob file is not set.");
           } else if (field.type !== 1) value = { kind: "string", value: `Field type ${field.type} is not supported.` };
           if (row < 65536 && column < 256) input.add(cells, row, column, value, format ? { format } : {});

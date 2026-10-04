@@ -1,7 +1,9 @@
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { SsconvertError, type CapabilityContext, type WorkingStorage } from "@poe-code/spreadsheet-engine/contracts";
-import type { Cell } from "@poe-code/spreadsheet-ast";
+import type { AxisMetadata, Cell } from "@poe-code/spreadsheet-ast";
 import { createBiffSharedStrings } from "./biff-shared-strings.js";
+
+export type BiffRow = AxisMetadata & { hardSize?: boolean };
 
 export interface BiffScalarCell { cell: Cell; xf: number; revision: number; codepage: number; }
 
@@ -14,6 +16,37 @@ export function createBiffCellSource(context: CapabilityContext) {
   storage = context.createWorkingStorage(); check();
   const index = new IntegerTable(storage, 128), values = createBiffSharedStrings(context);
   return {
+    rows(sheet: number) {
+      const base = (1n << 62n) | BigInt(sheet) << 24n, order = (1n << 63n) | BigInt(sheet) << 24n;
+      let count = 0;
+      return {
+        async has(row: number) { check(); const found = await index.get(base | BigInt(row)); check(); return found !== undefined; },
+        async get(row: number): Promise<BiffRow | undefined> {
+          check(); const ordinal = await index.get(base | BigInt(row)); check();
+          if (ordinal === undefined) return undefined;
+          const value = await values.get(Number(ordinal)); check();
+          if (!value) throw new SsconvertError("io", "Missing staged BIFF row");
+          return JSON.parse(value.text) as BiffRow;
+        },
+        async set(row: number, value: BiffRow) {
+          check(); const key = base | BigInt(row), previous = await index.get(key); check();
+          const ordinal = await values.append({ text: JSON.stringify(value) }); check();
+          await index.set(key, BigInt(ordinal)); check();
+          if (previous === undefined) { await index.set(order | BigInt(count++), BigInt(row)); check(); }
+        },
+        async *values(): AsyncGenerator<BiffRow> {
+          check();
+          // A second namespace preserves Map insertion order even when ROW
+          // records update coordinates encountered earlier in cell records.
+          for await (const [, row] of index.entries(order, order + BigInt(count))) {
+            const value = await this.get(Number(row));
+            if (!value) throw new SsconvertError("io", "Missing staged BIFF row");
+            yield value;
+          }
+          check();
+        }
+      };
+    },
     async append(sheet: number, pending: BiffScalarCell) {
       check();
       const key = BigInt(sheet) << 24n | BigInt(pending.cell.row * 256 + pending.cell.column);

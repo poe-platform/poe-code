@@ -25,14 +25,19 @@ test.each([7, 8] as const)("replays BIFF%s scalar cells with metadata parity and
       return source!.metadata;
     }
   }] });
-  const push = Array.prototype.push;
+  const push = Array.prototype.push, set = Map.prototype.set;
+  Map.prototype.set = function(key: unknown, value: unknown) {
+    if (value && typeof value === "object" && "index" in value && "sizePoints" in value)
+      throw new Error("resident BIFF row map");
+    return set.call(this, key, value);
+  };
   Array.prototype.push = function(this: unknown[], ...items: unknown[]) {
     if (!inspecting && items.some(item => item && typeof item === "object" && ("cell" in item && "xf" in item || "row" in item && "column" in item && "value" in item)))
       throw new Error("resident BIFF cell array");
     return push.apply(this, items);
   };
   try { await engine.readWorkbook({ kind: "range", source: { size: bytes.length, async read(position, length) { return bytes.subarray(position, position + length); } } }, { importType: "fixture" }, { signal: context.signal }); }
-  finally { Array.prototype.push = push; await engine.dispose(); }
+  finally { Array.prototype.push = push; Map.prototype.set = set; await engine.dispose(); }
   expect(await fs.readdir("/")).toEqual([]);
 });
 
@@ -131,4 +136,90 @@ test.each(["read", "sink", "cancel"])("retires staged replay after %s failure", 
     if (mode === "cancel") controller.abort(reason); else throw reason;
   } } } }, { signal: controller.signal })).rejects.toBe(reason);
   expect(await fs.readdir("/")).toEqual([]); await engine.dispose();
+});
+
+
+test("preserves inferred row timing and insertion order across later ROW and default-height records", async () => {
+  const record = (opcode: number, body: Uint8Array) => [opcode & 255, opcode >> 8, body.length & 255, body.length >> 8, ...body];
+  const number = (row: number) => { const body = new Uint8Array(14), view = new DataView(body.buffer); view.setUint16(0, row, true); view.setFloat64(6, row, true); return record(0x203, body); };
+  const row = new Uint8Array(16), view = new DataView(row.buffer);
+  view.setUint16(0, 2, true); view.setUint16(6, 300, true); view.setUint16(12, 0x60, true);
+  const bytes = Uint8Array.from([...record(0x809, Uint8Array.of(0, 6, 16, 0)), ...number(2), ...number(0),
+    ...record(0x208, row), ...record(0x225, Uint8Array.of(0, 0, 144, 1)), ...number(9), ...record(10, new Uint8Array())]);
+  const expected = await readBiff(bytes, context);
+  expect(expected.sheets[0]!.rows!.map(row => [row.index, row.sizePoints, row.hidden])).toEqual([[2, 15, true], [0, 12.75, undefined]]);
+  const fs = createMemoryFileSystem(), engine = createEngine({ workingFiles: { fs, directory: "/", cacheBytes: 16384 }, codecs: [{ id: "fixture", description: "fixture", extensions: [],
+    async readSource(range, ctx) {
+      const source = (await readBiffWorkbookSource(range, ctx))!;
+      expect(source.metadata.sheets[0]!.rows).toEqual(expected.sheets[0]!.rows);
+      return source.metadata;
+    }
+  }] });
+  try { await engine.readWorkbook({ kind: "range", source: { size: bytes.length, async read(position, length) { return bytes.subarray(position, position + length); } } }, { importType: "fixture" }, { signal: context.signal }); }
+  finally { await engine.dispose(); }
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+
+test("keeps staged row order, updates and ownership across sheet and cache boundaries", async () => {
+  const { createBiffCellSource } = await import("./biff-cell-source.js");
+  const fs = createMemoryFileSystem(); let saved: ReturnType<ReturnType<typeof createBiffCellSource>["rows"]> | undefined;
+  let reads = 0, writes = 0, pending = 0;
+  const engine = createEngine({ workingFiles: { fs, directory: "/", cacheBytes: 16384 }, codecs: [{ id: "fixture", description: "fixture", extensions: [],
+    async readSource(_range, ctx) {
+      const source = createBiffCellSource({ ...ctx, createWorkingStorage() {
+        const store = ctx.createWorkingStorage!();
+        return { ...store, async read(position, length) { reads++; expect(length).toBeLessThanOrEqual(16384); return store.read(position, length); },
+          async write(position, bytes) { writes++; expect(bytes.length).toBeLessThanOrEqual(16384); expect(++pending).toBe(1);
+            try { await Promise.resolve(); await store.write(position, bytes); } finally { pending--; } } };
+      } });
+      const sheets = [source.rows(0), source.rows(1)]; saved = sheets[0];
+      for (let i = 299; i >= 0; i--) for (const [sheet, rows] of sheets.entries()) await rows.set(i, { index: i, sizePoints: 12 + sheet });
+      await sheets[0]!.set(299, { index: 299, sizePoints: 30, hidden: true, hardSize: true });
+      expect(await sheets[0]!.has(400)).toBe(false); expect(await sheets[0]!.get(400)).toBeUndefined();
+      for (let pass = 0; pass < 2; pass++) for (const [sheet, rows] of sheets.entries()) {
+        let expected = 299;
+        for await (const row of rows.values()) {
+          expect(row).toEqual(sheet === 0 && expected === 299 ? { index: 299, sizePoints: 30, hidden: true, hardSize: true } : { index: expected, sizePoints: 12 + sheet });
+          Object.assign(row, { index: 999 }); expected--;
+        }
+        expect(expected).toBe(-1);
+      }
+      return { sheets: [] };
+    }
+  }] });
+  try { await engine.readWorkbook({ kind: "range", source: { size: 0, async read() { return new Uint8Array(); } } }, { importType: "fixture" }, { signal: context.signal }); }
+  finally { await engine.dispose(); }
+  expect(reads).toBeGreaterThan(0); expect(writes).toBeGreaterThan(0);
+  await expect(saved!.get(0)).rejects.toThrow("closed");
+  await expect(saved!.values().next()).rejects.toThrow("closed");
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+
+test.each(["read", "write", "cancel"])("cleans staged rows after backing %s failure", async mode => {
+  const { createBiffCellSource } = await import("./biff-cell-source.js");
+  const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("row backing failure");
+  let armed = mode === "write";
+  const engine = createEngine({ workingFiles: { fs, directory: "/", cacheBytes: 16384 }, codecs: [{ id: "fixture", description: "fixture", extensions: [],
+    async readSource(_range, ctx) {
+      const source = createBiffCellSource({ ...ctx, createWorkingStorage() {
+        const store = ctx.createWorkingStorage!();
+        return { ...store, async read(position, length) {
+          if (armed && mode === "read") throw failure;
+          const bytes = await store.read(position, length);
+          if (armed && mode === "cancel") controller.abort(failure);
+          return bytes;
+        }, async write(position, bytes) { if (armed && mode === "write") throw failure; await store.write(position, bytes); } };
+      } });
+      const rows = source.rows(0);
+      for (let i = 0; i < 300; i++) await rows.set(i, { index: i, sizePoints: 12 });
+      armed = true;
+      for await (const row of rows.values()) expect(row.index).toBeGreaterThanOrEqual(0);
+      return { sheets: [] };
+    }
+  }] });
+  try { await expect(engine.readWorkbook({ kind: "range", source: { size: 0, async read() { return new Uint8Array(); } } }, { importType: "fixture" }, { signal: controller.signal })).rejects.toBe(failure); }
+  finally { await engine.dispose(); }
+  expect(await fs.readdir("/")).toEqual([]);
 });

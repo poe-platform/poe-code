@@ -95,7 +95,7 @@ interface PendingExternalName { name: string; sheetIndex: number; tokens: Uint8A
 interface LegacyExternalLink { workbook?: string; sheet?: string; addin: boolean; names: PendingExternalName[]; }
 interface PendingSheet {
   ordinal: number; id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
-  modernCells?: boolean; cells: PendingCell[]; merges: Range[]; rows: Map<number, AxisMetadata & { hardSize?: boolean }>; columns: AxisMetadata[]; labelRanges: LabelRange[];
+  modernCells?: boolean; cells: PendingCell[]; merges: Range[]; rows: Map<number, AxisMetadata & { hardSize?: boolean }> | ReturnType<ReturnType<typeof createBiffCellSource>["rows"]>; columns: AxisMetadata[]; labelRanges: LabelRange[];
   unsupportedRecords: UnsupportedRecord[]; view: Record<string, ImportedValue>;
   records: BiffRecord[] | BiffRecordSelection; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
@@ -229,8 +229,8 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     const xf = ver === 2 ? data.u8(4) & 63 : data.u16(4);
     if (ver >= 8) sheet.modernCells = true;
     const cell: PendingCell = { cell: { row, column, value, ...extra }, xf, revision: ver, codepage };
-    if ((value.kind !== "blank" || extra.cachedResult !== undefined) && !sheet.rows.has(row))
-      sheet.rows.set(row, { index: row, sizePoints: Number(sheet.view.defaultRowHeight ?? 12.75) });
+    if ((value.kind !== "blank" || extra.cachedResult !== undefined) && !(await sheet.rows.has(row)))
+      await sheet.rows.set(row, { index: row, sizePoints: Number(sheet.view.defaultRowHeight ?? 12.75) });
     if (source) await source.store.append(sheet.ordinal, cell); else sheet.cells.push(cell); return cell;
   };
   const stringParts = async (index: number, offset: number): Promise<{ parts: Binary[]; next: number }> => {
@@ -273,7 +273,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
         const name = accountText(bound?.name ?? (sheets.length ? `Worksheet${sheets.length + 1}` : "Worksheet"));
         if (sheets.some(sheet => sheet.name === name)) invalidBiff("duplicate worksheet name");
         sheet = { ordinal: sheets.length, id: name, name, offset: record.offset, visibility: bound?.visibility ?? "visible", cells: [],
-          merges: [], rows: new Map(), columns: [], labelRanges: [], unsupportedRecords: [], view: {}, records: selection ? selection() : [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
+          merges: [], rows: source ? source.store.rows(sheets.length) : new Map(), columns: [], labelRanges: [], unsupportedRecords: [], view: {}, records: selection ? selection() : [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
       }
       scopes.push({ type, ...(sheet ? { sheet } : {}), revision: ver }); lastFormula = undefined;
       if (![5, 0x10, 0x40, 0x100].includes(type)) await retain(record, sheet?.unsupportedRecords ?? unsupported);
@@ -579,8 +579,8 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       const flags = opcode === 0x208 ? data.u16(12) : 0, row = data.u16(0), height = data.u16(6);
       const customHeight = height > 0 && !(height & 0x8000);
       if (customHeight || flags & 0x37) {
-        const previous = sheet.rows.get(row) ?? { index: row, sizePoints: Number(sheet.view.defaultRowHeight ?? 12.75) };
-        sheet.rows.set(row, { ...previous, ...(customHeight ? { sizePoints: 0.05 * height, hardSize: !!(flags & 0x40) } : {}),
+        const previous = await sheet.rows.get(row) ?? { index: row, sizePoints: Number(sheet.view.defaultRowHeight ?? 12.75) };
+        await sheet.rows.set(row, { ...previous, ...(customHeight ? { sizePoints: 0.05 * height, hardSize: !!(flags & 0x40) } : {}),
           ...(flags & 0x20 ? { hidden: true } : {}),
           ...(flags & 0x17 ? { outlineLevel: flags & 7, collapsed: !!(flags & 0x10) } : {}) });
       }
@@ -863,9 +863,11 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     }
     if (source) source.readers.set(sheet.id, renderCells);
     else for await (const cell of renderCells()) cells.push(cell);
-    const rows = [...sheet.rows.values()].filter(row => row.sizePoints !== Number(sheet.view.defaultRowHeight ?? 12.75) ||
-      row.hidden || row.collapsed || row.outlineLevel || row.hardSize)
-      .map(({ hardSize, ...row }) => ({ ...row, style: { gnumeric: node("RowInfo", { HardSize: hardSize ? 1 : 0 }) } }));
+    const rows: AxisMetadata[] = [];
+    for await (const { hardSize, ...row } of sheet.rows.values()) {
+      if (row.sizePoints !== Number(sheet.view.defaultRowHeight ?? 12.75) || row.hidden || row.collapsed || row.outlineLevel || hardSize)
+        rows.push({ ...row, style: { gnumeric: node("RowInfo", { HardSize: hardSize ? 1 : 0 }) } });
+    }
     resultSheets.push({ id: sheet.id, name: sheet.name, cells, visibility: sheet.visibility,
       size: { rows: sheet.modernCells || ver >= 8 ? 65536 : 16384, columns: 256 },
       ...(sheet.merges.length ? { merges: sheet.merges } : {}), ...(rows.length ? { rows } : {}),

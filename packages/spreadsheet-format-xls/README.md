@@ -29,7 +29,8 @@ erased after staging. Shared-string CONTINUE payloads decode one record at a tim
 Decoded shared text and rich runs use caller storage with fixed descriptor and
 payload windows for lookup. Scalar imports can replay ordered cells from caller
 storage into streaming exporters, preserving cell styles and metadata. Formula
-workbooks and global transformations keep the workbook path. Row/metadata maps,
+workbooks and global transformations keep the workbook path. Scalar row lookup
+and insertion order also use caller storage. Final nondefault row metadata arrays,
 formula/style state, stream names and interpreted property/encryption payloads still remain resident; this
 does not yet provide bounded memory for the complete conversion.
 BIFF editing preserves the workbook Normal style and font-aware column widths,

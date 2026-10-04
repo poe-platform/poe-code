@@ -117,3 +117,50 @@ it("copies a generated repeated selection without collecting input pages or outp
   } finally { await retained.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("copies sequential retained documents and releases each before requesting the next", async () => {
+  const inputs = [input(true, true), input(false, false)], selections = [[1, 0, 1], [0, 1]];
+  const expected = PdfDocument.create(), info = expected.cos.resolveDict(expected.cos.infoRef)!;
+  for (let i = 0; i < inputs.length; i++) {
+    const source = PdfDocument.load(inputs[i]!, { password: "reader" });
+    if (i === 0) {
+      const metadata = source.getMetadata();
+      for (const [key, name] of [["Title", "title"], ["Author", "author"], ["Subject", "subject"], ["Keywords", "keywords"], ["Creator", "creator"], ["Producer", "producer"]] as const) if (metadata[name]) dictSet(info, key, cosString(metadata[name]!));
+    }
+    expected.copyPagesFrom(source, selections[i]!);
+  }
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const storage = { fs, directory: "/scratch" }; let live = 0, closed = 0;
+  async function* documents() {
+    for (let i = 0; i < inputs.length; i++) {
+      expect(live).toBe(0); await fs.writeFile("/input", inputs[i]!);
+      const source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage, { password: "reader" }); live++;
+      try { yield { document, indices: selections[i]! }; }
+      finally { await document.close(); await source.close(); live--; closed++; }
+    }
+  }
+  const chunks = [];
+  for await (const bytes of copyRetainedPagesChunks(documents(), storage)) { expect(live).toBe(0); expect(closed).toBe(2); chunks.push(bytes); }
+  expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.save()); expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+for (const mode of ["cumulative-limit", "source-error"] as const) it(`closes sequential sources and backing after ${mode}`, async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", input(false, false));
+  const storage = { fs, directory: "/scratch" }, reason = new Error("next source failed"); let closed = 0, outputs = 0;
+  async function* sources() {
+    for (let i = 0; i < 2; i++) {
+      const source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+      try { yield { document, indices: [0, 1] }; }
+      finally { await document.close(); await source.close(); closed++; }
+      if (mode === "source-error") throw reason;
+    }
+  }
+  const operation = (async () => { for await (const ignored of copyRetainedPagesChunks(sources(), storage, { maxPages: 3 })) { void ignored; outputs++; } })();
+  if (mode === "source-error") await expect(operation).rejects.toBe(reason); else await expect(operation).rejects.toThrow("limit");
+  expect(outputs).toBe(0); expect(closed).toBe(mode === "source-error" ? 1 : 2); expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("serializes an empty source sequence like a newly created document", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const chunks = [];
+  for await (const bytes of copyRetainedPagesChunks([], { fs, directory: "/scratch" })) chunks.push(bytes);
+  expect(new Uint8Array(Buffer.concat(chunks))).toEqual(PdfDocument.create().save()); expect(await fs.readdir("/scratch")).toEqual([]);
+});

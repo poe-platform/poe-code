@@ -751,7 +751,14 @@ optional content and document metadata. The single-page spelling
 `copyRetainedPageChunks(document, pageIndex, storage, options)` remains available.
 Selection records, source identity maps and target object bodies use caller
 backing; the flat output page tree and encoded stream payloads stream in chunks.
-The source page tree is scanned once. Supply `maxPages`, `maxObjects`,
+To combine sources, pass a synchronous or asynchronous iterable of
+`{ document, indices }` as `copyRetainedPagesChunks(sources, storage, options)`.
+Each source is fully copied before the iterable resumes, so a source generator
+can close that document and its input before opening the next. Metadata comes
+from the first source; forms accumulate with the ordinary page-copy behavior.
+Page and form reference lists remain on caller storage. Source-specific indexes
+close after each source, and `maxPages` applies across the whole operation.
+Each source page tree is scanned once. Supply `maxPages`, `maxObjects`,
 `maxOutputBytes`, `maxRecursionDepth`, `chunkBytes` and `signal` as needed.
 Individual COS arrays and dictionaries still materialize under parser limits.
 Consume or return the iterator to release scratch storage, and stage output

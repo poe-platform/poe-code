@@ -122,7 +122,7 @@ font-metric indentation, top/center/bottom vertical placement, justified line sp
 (distributed uses center), host-selected families with regular, bold or
 italic faces, positive finite sizes including fractional points, underline and
 strikethrough, and RGB/RGBA text and solid backgrounds, including transparency.
-Wrapped strings and displayed formulas use Unicode word boundaries with grapheme fallback and discretionary hyphens; numeric cells ignore wrapping and General numbers reduce precision to fit. Single-line Fill alignment repeats text without kerning between copies and ignores wrapping and indentation; Fill control-character glyphs remain unsupported. Oversized text is clipped at row boundaries. Font selections
+Wrapped strings and displayed formulas use Unicode word boundaries with grapheme fallback and discretionary hyphens; numeric cells ignore wrapping and General numbers reduce precision to fit. Single-line Fill alignment repeats text without kerning between copies and ignores wrapping and indentation; LF characters in left-to-right filled strings print as return arrows; other Fill control glyphs and bidirectional Fill remain unsupported. Oversized text is clipped at row boundaries. Font selections
 share one invocation byte budget. This profile uses the captured native 96-DPI
 scale and print insets, so size 10 paints at 7.5 points. Cell alignment, fit and glyph placement
 use shaped advances and offsets. Exact native rendering remains unqualified. Other styles,

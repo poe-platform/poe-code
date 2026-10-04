@@ -78,3 +78,8 @@ The compact script ranges derive from Unicode16 `Scripts.txt` at
 https://www.unicode.org/Public/16.0.0/ucd/Scripts.txt (SHA-256
 `9e88f0a677df47311106340be8ede2ecdacd9c1c931831218d2be6d5508e0039`),
 under Unicode License V3 retained in `hyphen-scripts.ts`.
+
+Fill LF translation follows Gnumeric 1.12.61 `src/gnm-format.c`,
+copyright 1998 Chris Lahey and Miguel de Icaza, 2006–2007 Morten Welinder,
+under GPL-2.0-or-later. The file matches the authenticated archive above;
+SHA-256 `8e574a8f199474f4e3c42756d74479bac08d720b6657deb7aca35bd60f563318`.

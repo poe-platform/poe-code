@@ -220,7 +220,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     }
     return selected;
   };
-  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; generalNumber?: number; zoom?: number; wrap?: boolean; overflow?: (displayWidth: number) => {left: number; right: number} }) => {
+  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; generalNumber?: number; zoom?: number; wrap?: boolean; fillString?: boolean; overflow?: (displayWidth: number) => {left: number; right: number} }) => {
     tick(value.length);
     if (!value) return;
     const bold = cellBox?.style.bold ?? false, italic = cellBox?.style.italic ?? false, family = cellBox?.style.family ?? "Sans";
@@ -242,6 +242,11 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       };
       value = await formatting.format({kind: "number", value: cellBox.generalNumber}, "General", context,
         {unicodeMinus: true, generalLayout: {width: available, measure}});
+    }
+    if (cellBox?.style.alignment === "fill" && cellBox.fillString && value.includes("\n")) {
+      if (shaper.shape(metrics, value).direction === "rtl") unsupported("bidirectional fill layout");
+      value = value.split("\n").join("↩");
+      tick(value.length);
     }
     const paragraphs = cellBox ? splitPrintLines(value, tick) : [value];
     const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line, supported, tick) : line);
@@ -681,7 +686,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             };
           } : undefined;
           await text(page, value, x, y, style.size * printDisplayScale, alignment,
-            {width, height, style, wrap,
+            {width, height, style, wrap, fillString: !formula && cell.value.kind === "string",
               ...(generalNumber === undefined ? {} : {generalNumber, zoom: Number(sheet.view?.zoom ?? 1)}),
               ...(overflow === undefined ? {} : {overflow})});
         }

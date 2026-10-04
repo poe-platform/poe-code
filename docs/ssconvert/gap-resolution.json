@@ -5881,6 +5881,12 @@
     },
     "remaining": "Two retained native multiline Fill controls draw return-arrow glyphs. They remain explicitly unsupported and are excluded from passing comparisons. Bidi and other horizontal modes remain open."
   },
+  "pdfFillLineFeed": {
+    "status": "Left-to-right Fill LF translation qualified; all19 families remain open",
+    "source": "Gnumeric1.12.61 gnm-format.c replaces LF by U+21A9 in nonnumeric single-paragraph layouts; native source matches authenticated release archive.",
+    "validation": "Original memory refusal repaired;385 PDF tests,selected build,command lint/types,12 public/native PDF comparisons across6 inputs and screenshots. Original retained36/72pt cases plus leading,trailing,repeated and loneLF.",
+    "remaining": "Other control glyphs and bidirectional Fill retain explicit refusals. Wider rendering/profile and family acceptance remain open."
+  },
   "history": {
     "commit": "27b9a96cbea652668a98d9af6502717c86cbfa1d",
     "note": "Bulky historical evidence and journals were removed at the user's request. Required fixture/provenance files remain. Historical results do not establish current-candidate completion."

@@ -73,11 +73,15 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
         appendBiffAncillaryStreams(book, propertyStreams, handledMetadata, context);
       const source = handledMetadata.size ? { ...book,
         unsupportedRecords: (book.unsupportedRecords ?? []).filter(record => !handledMetadata.has(record)) } : book;
-      if ((!encrypted || encrypted.algorithm === "xor") && context.createWorkingStorage) {
+      if (context.createWorkingStorage) {
         for (const revision of profile === "dsf" ? [7, 8] as const : [profile]) {
           const output = new BiffStagedOutput(context, revision === 8 ? 8224 : 2080);
           staged.set(revision === 7 ? "Book" : "Workbook", output);
           await writeBiffStream(source, revision, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted, revision) : undefined, output);
+          if (revision === 8 && encrypted && encrypted.algorithm !== "xor") {
+            const container = await encryptBiffStream(output, context, encrypted, propertyStreams);
+            if (container) streams.set("encryption", container);
+          }
         }
       } else {
         if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(source, 7, profile === "dsf", context,

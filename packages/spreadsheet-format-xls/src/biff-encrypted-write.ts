@@ -1,5 +1,5 @@
 import { md5, sha1 } from "@noble/hashes/legacy.js";
-import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { rc4Stream } from "./biff-encryption.js";
 import { prepareBiffPropertyContainer } from "./biff-encrypted-properties-write.js";
 
@@ -37,13 +37,21 @@ function unsupported(message: string): never {
   throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: encrypted Excel workbook ${message}`);
 }
 
+export interface BiffRc4Source extends RangeSource {
+  patch(position: number, bytes: Uint8Array): Promise<void>;
+}
+const plaintextRecords = new Set([0x809, 0x2f, 0x194, 0x195, 0xe1, 0x196, 0x138]);
+
 /** Encrypt an owned BIFF8 stream with its FILEPASS slot already included in all
  * offsets. MS-OFFCRYPTO 2.3.5/2.3.6 and MS-XLS 2.2.10: unauthenticated RC4. */
-export async function encryptBiffStream(bytes: Uint8Array, context: CapabilityContext,
+export async function encryptBiffStream(bytes: Uint8Array | BiffRc4Source, context: CapabilityContext,
   profile: Exclude<BiffEncryptionProfile, { readonly algorithm: "xor" }> = { algorithm: "rc4" },
   properties: ReadonlyMap<string, Uint8Array> = new Map()): Promise<Uint8Array | undefined> {
   context.signal.throwIfAborted();
   if (!context.password || !context.entropy) unsupported("export requires password and cryptographic entropy capabilities");
+  const size = bytes instanceof Uint8Array ? bytes.length : bytes.size;
+  if (!Number.isSafeInteger(size) || size < 0) throw new SsconvertError("invalid-request", "Invalid BIFF RC4 output size");
+  const source = bytes instanceof Uint8Array ? undefined : { size, read: bytes.read.bind(bytes), patch: bytes.patch.bind(bytes) };
   // Admit the maximum password/KDF, verifier and every absolute-position block
   // before calling either host capability or allocating cryptographic material.
   const cryptoapi = profile.algorithm === "rc4-cryptoapi", hash = cryptoapi ? sha1 : md5;
@@ -54,7 +62,7 @@ export async function encryptBiffStream(bytes: Uint8Array, context: CapabilityCo
     if (work > (context.limits.workbookWork ?? context.limits.inputBytes * 8))
       throw new SsconvertError("resource-limit", "ssconvert BIFF encryption work limit exceeded");
   };
-  charge(1280 + 16 + hashLength + bytes.length + Math.ceil(bytes.length / 1024) * (64 + 256 + 1024));
+  charge(1280 + 16 + hashLength + size + Math.ceil(size / 1024) * (64 + 256 + 1024));
   const encryptProperties = profile.algorithm === "rc4-cryptoapi" && profile.encryptedProperties
     ? prepareBiffPropertyContainer(properties, context, charge) : undefined;
   let secret: string | Uint8Array | undefined;
@@ -97,6 +105,10 @@ export async function encryptBiffStream(bytes: Uint8Array, context: CapabilityCo
       for (let i = 0; i < 16; i++) { material.set(initial.subarray(0, 5), i * 21); material.set(entropy.subarray(0, 16), i * 21 + 5); }
     }
     base = hash(material); verifierHash = hash(entropy.subarray(16)); stream = keyStream(0, 16 + hashLength);
+    if (!(bytes instanceof Uint8Array)) {
+      await encryptSource(source!, cryptoapi, entropy, verifierHash, stream, keyStream, context);
+      return encryptProperties?.(keyStream);
+    }
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const pass = 4 + view.getUint16(2, true);
     const headerSize = cryptoapi ? view.getUint32(pass + 14, true) : 0;
@@ -114,7 +126,7 @@ export async function encryptBiffStream(bytes: Uint8Array, context: CapabilityCo
       context.signal.throwIfAborted();
       const opcode = view.getUint16(at, true), length = view.getUint16(at + 2, true), end = at + 4 + length;
       // Record headers and the BoundSheet lbPlyPos field remain plaintext.
-      if (![0x809, 0x2f, 0x194, 0x195, 0xe1, 0x196, 0x138].includes(opcode)) {
+      if (!plaintextRecords.has(opcode)) {
         for (let offset = at + 4 + (opcode === 0x85 ? 4 : 0); offset < end; offset++) {
           const number = Math.floor(offset / 1024);
           if (number !== block) { stream?.fill(0); stream = keyStream(number, 1024); block = number; }
@@ -128,4 +140,62 @@ export async function encryptBiffStream(bytes: Uint8Array, context: CapabilityCo
     password.fill(0); entropy?.fill(0); initial?.fill(0); base?.fill(0); material.fill(0);
     keyInput.fill(0); stream?.fill(0); verifierHash?.fill(0);
   }
+}
+
+/** Replay physical records while keeping cipher offsets absolute across reads. */
+async function encryptSource(source: BiffRc4Source, cryptoapi: boolean, entropy: Uint8Array,
+  verifierHash: Uint8Array, verifierStream: Uint8Array, keyStream: (block: number, length: number) => Uint8Array,
+  context: CapabilityContext): Promise<void> {
+  async function read(position: number, length: number): Promise<Uint8Array> {
+    context.signal.throwIfAborted();
+    if (position < 0 || position > source.size - length) throw new SsconvertError("io", "Truncated BIFF RC4 output");
+    const bytes = new Uint8Array(length);
+    try {
+      for (let at = 0; at < length;) {
+        const part = await source.read(position + at, length - at, { signal: context.signal }); context.signal.throwIfAborted();
+        if (!part.length || part.length > length - at) throw new SsconvertError("io", "Truncated BIFF RC4 output");
+        bytes.set(part, at); at += part.length;
+      }
+      return bytes;
+    } catch (error) { bytes.fill(0); throw error; }
+  }
+  const bof = await read(0, 4), pass = 4 + new DataView(bof.buffer).getUint16(2, true);
+  const header = await read(pass, cryptoapi ? 18 : 4), view = new DataView(header.buffer);
+  const headerSize = cryptoapi ? view.getUint32(14, true) : 0, length = view.getUint16(2, true);
+  if (view.getUint16(0, true) !== 0x2f || length !== (cryptoapi ? 74 + headerSize : 54))
+    throw new TypeError("Missing BIFF8 encryption header slot");
+  if (pass + 4 + length > source.size) throw new SsconvertError("io", "Truncated BIFF RC4 output");
+  const salt = cryptoapi ? pass + 22 + headerSize : pass + 10, verifier = salt + 16;
+  const verifierDigest = verifier + 16 + (cryptoapi ? 4 : 0);
+  const encryptedVerifier = new Uint8Array(16), encryptedHash = new Uint8Array(verifierHash.length);
+  try {
+    if (!cryptoapi) { await source.patch(pass + 4, new Uint8Array([1, 0, 1, 0, 1, 0])); context.signal.throwIfAborted(); }
+    await source.patch(salt, entropy.subarray(0, 16)); context.signal.throwIfAborted();
+    for (let i = 0; i < 16; i++) encryptedVerifier[i] = entropy[16 + i]! ^ verifierStream[i]!;
+    for (let i = 0; i < verifierHash.length; i++) encryptedHash[i] = verifierHash[i]! ^ verifierStream[i + 16]!;
+    await source.patch(verifier, encryptedVerifier); context.signal.throwIfAborted();
+    await source.patch(verifierDigest, encryptedHash); context.signal.throwIfAborted();
+  } finally { encryptedVerifier.fill(0); encryptedHash.fill(0); verifierStream.fill(0); }
+  let stream: Uint8Array | undefined, block = -1;
+  try {
+    for (let at = 0; at < source.size;) {
+      const header = await read(at, 4), view = new DataView(header.buffer);
+      const opcode = view.getUint16(0, true), length = view.getUint16(2, true), end = at + 4 + length;
+      if (end > source.size) throw new SsconvertError("io", "Truncated BIFF RC4 output");
+      if (!plaintextRecords.has(opcode)) {
+        for (let offset = at + 4 + (opcode === 0x85 ? 4 : 0); offset < end;) {
+          const bytes = await read(offset, Math.min(16384, end - offset));
+          try {
+            for (let i = 0; i < bytes.length; i++) {
+              const absolute = offset + i, number = Math.floor(absolute / 1024);
+              if (number !== block) { stream?.fill(0); stream = keyStream(number, 1024); block = number; }
+              bytes[i] = bytes[i]! ^ stream![absolute % 1024]!;
+            }
+            await source.patch(offset, bytes); context.signal.throwIfAborted(); offset += bytes.length;
+          } finally { bytes.fill(0); }
+        }
+      }
+      at = end;
+    }
+  } finally { stream?.fill(0); }
 }

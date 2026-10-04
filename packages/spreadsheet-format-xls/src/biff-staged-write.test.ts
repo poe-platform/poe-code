@@ -5,11 +5,12 @@ import { BiffOutput } from './biff-write-binary.js';
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {}, environment: { env: {}, locale: 'C', timezone: 'UTC' },
   limits: { inputBytes: 2e6, outputBytes: 2e6, cells: 5000, sheets: 10, operations: 100 } };
-it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', true]] as const)('stages BIFF %s XOR=%s without finishing a resident record array', async (profile, xor) => {
+it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', true], [8, 'rc4'], [8, 'rc4-cryptoapi-40-properties'], [8, 'rc4-cryptoapi-128']] as const)('stages BIFF %s encryption=%s without finishing a resident record array', async (profile, xor) => {
   const book = { sheets: [{ id: 's', name: 'Data', cells: Array.from({ length: 2000 }, (_, row) => ({ row, column: 0,
     value: { kind: 'string' as const, value: `item ${row}` } })) }] };
-  const options = xor ? ['encryption=xor'] : [];
-  const encryptionContext = { ...context, password: { async read() { return new Uint8Array([112, 97, 115, 115]); } } };
+  const options = xor ? [`encryption=${xor === true ? 'xor' : xor}`] : [];
+  const encryptionContext = { ...context, password: { async read() { return xor === true ? new Uint8Array([112, 97, 115, 115]) : 'password'; } },
+    entropy: { async read({ length }: { length: number }) { return Uint8Array.from({ length }, (_, i) => i + 1); } } };
   const expected = await createBiffWriter(profile)(book, options, encryptionContext);
   const cleanup: (() => void | Promise<void>)[] = []; let writes = 0, acquired = 0, closed = 0, pending = 0;
   const ctx: CapabilityContext = { ...encryptionContext, own(fn) { cleanup.push(fn); }, createWorkingStorage() {
@@ -31,7 +32,7 @@ it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', t
   expect(closed).toBe(acquired);
 });
 
-it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', true]] as const)('publishes BIFF %s XOR=%s through injected safe-fs with bounded transfers', async (profile, xor) => {
+it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', true], [8, 'rc4'], [8, 'rc4-cryptoapi-40-properties'], [8, 'rc4-cryptoapi-128']] as const)('publishes BIFF %s encryption=%s through injected safe-fs with bounded transfers', async (profile, xor) => {
   const { createMemoryFileSystem } = await import('@poe-code/safe-fs/core');
   const { createEngine } = await import('@poe-code/spreadsheet-engine');
   const { xlsFormat } = await import('./index.js');
@@ -46,12 +47,13 @@ it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', t
     }); return handle;
   });
   const buffered = vi.fn(() => { throw new Error('buffered writer'); });
-  const password = { async read() { return new Uint8Array([112, 97, 115, 115]); } };
-  const options = xor ? ['encryption=xor'] : [];
-  const engine = createEngine({ password, workingFiles: { fs, directory: '/', cacheBytes: 16384 }, formats: [{ ...xlsFormat,
+  const password = { async read() { return xor === true ? new Uint8Array([112, 97, 115, 115]) : 'password'; } };
+  const entropy = { async read({ length }: { length: number }) { return Uint8Array.from({ length }, (_, i) => i + 1); } };
+  const options = xor ? [`encryption=${xor === true ? 'xor' : xor}`] : [];
+  const engine = createEngine({ password, entropy, workingFiles: { fs, directory: '/', cacheBytes: 16384 }, formats: [{ ...xlsFormat,
     services: xlsFormat.services.map(codec => codec.direction === 'write' ? { ...codec, write: buffered } : codec) }] });
   const raw = { sheets: [{ id: 's', name: 'Data', cells: Array.from({ length: 2000 }, (_, row) => ({ row, column: 0, value: { kind: 'number' as const, value: row } })) }] };
-  const expected = await createBiffWriter(profile)(raw, options, { ...context, password });
+  const expected = await createBiffWriter(profile)(raw, options, { ...context, password, entropy });
   try {
     const book = await engine.adoptWorkbook(raw, { signal: context.signal }); let at = 0;
     await engine.writeWorkbook(book, { kind: 'stream', sink: { async write(bytes) {
@@ -63,7 +65,7 @@ it.each([[7, false], [8, false], ['dsf', false], [7, true], [8, true], ['dsf', t
   } finally { await engine.dispose(); }
 });
 
-it.each(['write', 'read', 'sink', 'cancel'])('cleans injected BIFF output storage after %s failure', async mode => {
+it.each(['write', 'read', 'sink', 'cancel', 'password', 'entropy'])('cleans injected BIFF output storage after %s failure', async mode => {
   const { createMemoryFileSystem } = await import('@poe-code/safe-fs/core');
   const { createEngine } = await import('@poe-code/spreadsheet-engine');
   const { xlsFormat } = await import('./index.js');
@@ -76,14 +78,20 @@ it.each(['write', 'read', 'sink', 'cancel'])('cleans injected BIFF output storag
     if (mode === 'read') vi.spyOn(handle, 'read').mockRejectedValue(reason);
     return handle;
   });
-  const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, formats: [xlsFormat] });
+  const credentialFailure = mode === 'password' || mode === 'entropy';
+  const engine = createEngine({
+    password: { async read() { if (mode === 'password') throw reason; return 'password'; } },
+    entropy: { async read({ length }) { if (mode === 'entropy') throw reason; return Uint8Array.from({ length }, (_, i) => i + 1); } },
+    workingFiles: { fs, directory: '/', cacheBytes: 16384 }, formats: [xlsFormat] });
   const raw = { sheets: [{ id: 's', name: 'Data', cells: Array.from({ length: 2000 }, (_, row) => ({ row, column: 0, value: { kind: 'number' as const, value: row } })) }] };
   try {
     const book = await engine.adoptWorkbook(raw, { signal: controller.signal });
-    await expect(engine.writeWorkbook(book, { kind: 'stream', sink: { async write() {
+    const operation = engine.writeWorkbook(book, { kind: 'stream', sink: { async write() {
       if (mode === 'sink') throw reason;
       if (mode === 'cancel') controller.abort(reason);
-    } } }, { exportType: 'Gnumeric_Excel:excel_biff8' }, { signal: controller.signal })).rejects.toBe(reason);
+    } } }, { exportType: 'Gnumeric_Excel:excel_biff8', exportOptions: credentialFailure ? ['encryption=rc4'] : [] }, { signal: controller.signal });
+    if (credentialFailure) await expect(operation).rejects.toThrow('acquisition failed');
+    else await expect(operation).rejects.toBe(reason);
     expect(closed).toBeGreaterThan(0); expect(await fs.readdir('/')).toEqual([]);
   } finally { await engine.dispose(); }
 });

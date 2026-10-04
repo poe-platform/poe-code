@@ -43,7 +43,7 @@ export class RetainedJsonOptions {
       return key;
     };
     const ast = layers === "ast";
-    let cells = 0, attributes = 0;
+    let cells = 0, attributes = 0, nodes = 0;
     const fail = async (frame: number, key?: string | number, message = "Invalid shape", code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
       let path = key === undefined ? "" : typeof key === "number" ? `[${key}]` : `.${key}`;
       for (let cursor = frame; cursor;) {
@@ -55,6 +55,10 @@ export class RetainedJsonOptions {
       }
       path = "$.metadata" + path;
       throw new PandocError(code, "convert", `${path}: ${message}`, undefined, path);
+    };
+    const reserveNode = async (frame: number, key?: string | number): Promise<void> => {
+      if (++nodes > context.limits.nodes) await fail(frame, key, "AST budget exceeded", "E_LIMIT");
+      context.charge("nodes", 1);
     };
     const unicode = async (value: string, frame: number, key?: string | number): Promise<void> => {
       for (let index = 0; index < value.length; index++) {
@@ -86,8 +90,10 @@ export class RetainedJsonOptions {
       }
       await put(position, [parent, edge, keys, count, 0, level, array ? 1 : 0, 0]);
       if (ast && level > context.limits.depth) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
-      if (ast && (Object.getOwnPropertySymbols(value).length || !array && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) await fail(position);
-      if (ast && array && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth))) {
+      if (ast && !parent) await reserveNode(position);
+      if (ast && array && nodes + count > context.limits.nodes) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
+      if (ast && (array && Object.getOwnPropertySymbols(value).length || !array && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) await fail(position);
+      if (ast && array && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes))) {
         // Normalization inspects every own array descriptor before recognizing
         // cell tuples, so accessors and sparse slots precede the budget charge.
         for (let i = 0; i < count; i++) {await property(value, i, position); await context.cooperate();}
@@ -133,14 +139,18 @@ export class RetainedJsonOptions {
       }
       return value;
     };
-    if (ast && context.limits.depth < 1) throw new PandocError("E_LIMIT", "convert", "$: AST budget exceeded", undefined, "$");
+    if (ast) for (const [index, path] of ["$", "$", "$.blocks", "$"].entries()) {
+      if (index === 1 && context.limits.depth < 1) throw new PandocError("E_LIMIT", "convert", "$: AST budget exceeded", undefined, "$");
+      if (++nodes > context.limits.nodes) throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
+      context.charge("nodes", 1);
+    }
     const rootFrame = await enter(root, 0, 0, ast ? 1 : 0);
     let frame = rootFrame, current: object = root;
     while (frame) {
       await context.cooperate();
       const fields = await get(frame, 8), [parent, , keys, count, index, level, array] = fields;
       if (index! >= count!) {
-        if (ast && array && Object.keys(current).length !== count) await fail(frame);
+        if (ast && (array ? Object.keys(current).length !== count : Object.getOwnPropertySymbols(current).length > 0)) await fail(frame);
         await tree.end(); frame = parent!;
         if (frame) current = await resolve(frame);
         continue;
@@ -148,14 +158,14 @@ export class RetainedJsonOptions {
       await put(frame + 32, [index! + 1]);
       const key = array ? index! : await keyAt(keys!, index!);
       if (ast && level! + 1 > context.limits.depth) await fail(frame, typeof key === "string" ? undefined : key, "AST budget exceeded", "E_LIMIT");
-      if (ast && typeof key === "string") await unicode(key, frame);
+      if (ast && typeof key === "string") {await reserveNode(frame); await unicode(key, frame);}
       const value = await property(current, key, frame);
-      if (ast && typeof value === "string") await unicode(value, frame, key);
       if (!array) {
         context.charge("references", 1);
         if (key === "__proto__" || key === "constructor" || key === "prototype") {if (ast) await fail(frame, key); context.fail("E_OPTION", "Unsafe metadata key");}
         await tree.key(key as string);
       }
+      if (ast) {await reserveNode(frame, key); if (typeof value === "string") await unicode(value, frame, key);}
       if (layers === true && frame === rootFrame) {
         if (value === null || typeof value !== "object" || Array.isArray(value)) context.fail("E_OPTION", "JSON metadata must be an object");
         await resolve(frame, value as object);
@@ -166,12 +176,16 @@ export class RetainedJsonOptions {
         if (array && !ast) context.fail("E_OPTION", "Null metadata list elements are unsupported");
         await tree.value(null); continue;
       }
-      if (!ast) context.bound("depth", level! + 1); context.charge("nodes", 1); await context.cooperate();
+      if (!ast) {context.bound("depth", level! + 1); context.charge("nodes", 1);} await context.cooperate();
       if (typeof value === "string" || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value)) await tree.value(value);
       else if (value && typeof value === "object") {
         await resolve(frame, value, key);
         frame = await enter(value, frame, index!, level! + (ast || Array.isArray(value) ? 1 : 2)); current = value;
       } else {if (ast) await fail(frame, key, typeof value === "number" ? "Invalid shape" : "Non-JSON or cyclic input"); context.fail("E_OPTION", "Invalid JSON metadata value");}
+    }
+    if (ast) for (const path of ["$", "$.resources"]) {
+      if (++nodes > context.limits.nodes) throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
+      context.charge("nodes", 1);
     }
   }
   async truthy(node: number): Promise<boolean> {

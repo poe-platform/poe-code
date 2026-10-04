@@ -57,7 +57,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
     catch {throw new PandocError("E_ENCODING", "convert", "Invalid UTF-8 input");}
   })();
   let failure: {reason: unknown} | undefined;
-  let result: {tree: BackedJson; order: Awaited<ReturnType<typeof backedJsonOrder>>; chunks(eol?: "lf" | "crlf" | "native"): AsyncGenerator<Uint8Array>; close(): Promise<void>} | undefined;
+  let result: {normalizedNodes?: number; tree: BackedJson; order: Awaited<ReturnType<typeof backedJsonOrder>>; chunks(eol?: "lf" | "crlf" | "native"): AsyncGenerator<Uint8Array>; close(): Promise<void>} | undefined;
   const close = async () => {
     let failure: {reason: unknown} | undefined;
     try {await storage.close();} catch (reason) {failure = {reason};}
@@ -65,6 +65,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
     finally {cleanup();}
     if (failure) throw failure.reason;
   };
+  let nodes = 0, normalizedNodes = 0;
   try {
     await parseBackedJson(text, tree, scratch, units => context.cooperate(units), (offset, message) => {
       throw new PandocError("E_AST", "read", message, "json", `$@${offset}`);
@@ -74,12 +75,12 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         if (!(error instanceof JsonNumberError)) throw error;
         throw new PandocError("E_AST", "read", error.message, "json", `$@${offset}`);
       }
-    }, false, chargeInput && Number.isFinite(context.limits.depth) ? (depth, container) => {if (!container) context.bound("depth", depth);} : undefined);
+    }, false, chargeInput && Number.isFinite(context.limits.depth) ? (depth, container) => {if (!container) context.bound("depth", depth);} : undefined, chargeInput ? (_kind, complete) => {if (!complete) context.bound("nodes", ++nodes);} : undefined);
     const order = await backedJsonOrder(tree, scratch, units => context.cooperate(units));
     if (chargeAst) {
       try {
-        const enums = (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth)) ? await validateRetainedWire(tree, order, scratch, context) : undefined;
-        await reserveRetainedAstBudgets(tree, order, context, false, enums);
+        const enums = (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes)) ? await validateRetainedWire(tree, order, scratch, context) : undefined;
+        normalizedNodes = await reserveRetainedAstBudgets(tree, order, context, enums);
       }
       catch (error) {
         if (error instanceof PandocError && error.code === "E_LIMIT" && input.source)
@@ -87,7 +88,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         throw error;
       }
     }
-    await validateBackedPandoc(tree, scratch, context, undefined, chargeAst && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth)));
+    await validateBackedPandoc(tree, scratch, context, undefined, chargeAst && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes)));
     const meta = (await tree.property(tree.rootPosition, "meta"))!, blocks = (await tree.property(tree.rootPosition, "blocks"))!;
     const encoder = new TextEncoder();
     const output = async function* (eol?: "lf" | "crlf" | "native") {
@@ -97,7 +98,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
       yield* tree.chunks(blocks, order);
       yield encoder.encode(eol === "crlf" ? "}\r\n" : "}\n");
     };
-    result = {tree, order, chunks: output, close};
+    result = {normalizedNodes, tree, order, chunks: output, close};
   } catch (reason) {
     failure = {reason: reason instanceof PandocError && reason.code === "E_AST" && input.source
       ? new PandocError(reason.code, reason.operation, reason.message, reason.format, `${input.source}:${reason.location ?? "1:1"}`)

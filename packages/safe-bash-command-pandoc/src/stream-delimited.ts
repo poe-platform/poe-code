@@ -93,7 +93,21 @@ export async function streamDelimited(
           throw new PandocError(error.code, "convert", error.message, error.format, `${input.source ?? input.base}:${error.location ?? "1:1"}`);
         throw error;
       }
-      if (Number.isFinite(context.limits.depth)) {
+      if (Number.isFinite(context.limits.nodes)) {
+        let nodes = 1, word = false, nonempty = false;
+        const node = () => context.bound("nodes", ++nodes);
+        await replay(position + 24, length, new DelimitedParser(format, context, {
+          async text(text) {
+            for (const char of text) {
+              if (char === " " || char === "\n") {if (word) node(); node(); word = false;}
+              else word = true;
+              nonempty = true;
+            }
+          },
+          async field() {if (word) node(); if (nonempty) node(); word = false; nonempty = false;}
+        }));
+      }
+      if (Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes)) {
         // Depth can fail inside the generated cell structure before later
         // attribute/span charges. Replay that normalization in caller storage.
         const pages = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, cacheBytes / 16384);
@@ -157,7 +171,7 @@ export async function streamDelimited(
       }
       await tree.end(); await tree.end();
       await streamRetainedDocument(async () => ({
-        tree,
+        normalizedNodes: 0, tree,
         order: await backedJsonOrder(tree, storage, units => context.cooperate(units)),
         async *chunks(eol) {
           yield* tree.chunks();

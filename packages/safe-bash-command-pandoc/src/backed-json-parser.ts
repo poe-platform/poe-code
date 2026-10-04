@@ -49,9 +49,9 @@ type NumberState = "start" | "minus" | "zero" | "int" | "dot" | "frac" | "exp" |
 export async function parseBackedJson(
   chunks: AsyncIterable<string>, tree: BackedJson, index: PagedStorage,
   cooperate: (units?: number) => Promise<void>, error: (offset: number, message: string, tokenOffset?: number) => never,
-  validateNumber?: (node: number, offset: number) => Promise<void>, allowDuplicateKeys = false, checkDepth?: (depth: number, container?: boolean) => void
+  validateNumber?: (node: number, offset: number) => Promise<void>, allowDuplicateKeys = false, checkDepth?: (depth: number, container?: boolean) => void, node?: (kind: "object" | "array" | "key" | "scalar", complete?: boolean) => void
 ): Promise<void> {
-  let depth = 0;
+  let depth = 0, valueAtEof = true;
   checkDepth?.(depth);
   const keys = new Keys(index, tree, cooperate);
   let mode: Mode = "value", token: "string" | "number" | "keyword" | undefined;
@@ -68,6 +68,7 @@ export async function parseBackedJson(
   };
   const end = async (): Promise<Mode> => {
     await flush();
+    if (token) node?.(isKey ? "key" : "scalar", true);
     if (!token) depth--;
     position = await tree.end();
     token = undefined;
@@ -153,18 +154,18 @@ export async function parseBackedJson(
           if (keywordIndex === keyword.length) mode = await end();
           continue;
         }
-        if (char === " " || char === "\t" || char === "\r" || char === "\n") continue;
+        if (char === " " || char === "\t" || char === "\r" || char === "\n") {if (mode === "value") valueAtEof = true; continue;}
         if (mode === "done") error(offset, "Unexpected trailing JSON");
         if (mode === "separator") {
           const parent = await tree.describe(position);
           if (char === (parent.kind === "array" ? "]" : "}")) mode = await end();
-          else if (char === ",") mode = parent.kind === "array" ? "value" : "key";
+          else if (char === ",") {mode = parent.kind === "array" ? "value" : "key"; valueAtEof = false;}
           else error(offset, "Expected JSON comma");
           continue;
         }
         if (mode === "colon") {
           if (char !== ":") error(offset, "Expected JSON colon");
-          mode = "value";
+          mode = "value"; valueAtEof = true;
           checkDepth?.(depth);
           continue;
         }
@@ -179,12 +180,14 @@ export async function parseBackedJson(
           keyOffset = offset;
           hash = 2166136261;
           for (const char of String(keyParent)) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
+          node?.("key");
           position = keyPosition = await tree.begin("key");
           isKey = true;
           token = "string"; tokenOffset = offset;
           continue;
         }
         checkDepth?.(depth);
+        node?.(char === "{" ? "object" : char === "[" ? "array" : "scalar");
         if (char === "{" || char === "[") {
           depth++;
           checkDepth?.(depth, true);
@@ -201,6 +204,7 @@ export async function parseBackedJson(
       }
     }
   }
+  if (!token && mode === "value" && valueAtEof) node?.("scalar");
   if (token === "number") mode = await endNumber();
   if (token || mode !== "done") error(offset, "Incomplete JSON value", token ? tokenOffset : undefined);
   if (work) await cooperate(work);

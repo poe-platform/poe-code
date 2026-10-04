@@ -302,9 +302,17 @@ class RetainedRtfReader {
     await this.flow.append(await this.ast.tag("Image", await this.ast.value([["", [], []], [], [id, ""]])));
   }
   /** Match document-normalization charges using backed lengths, without reading payloads. */
-  async reserveResources(): Promise<void> {
+  async reserveResources(nodes?: number): Promise<void> {
     let total = 0;
+    const node = (path: string, count = 1, reserve = true) => {
+      if (nodes === undefined) return;
+      if (nodes + count > this.context.limits.nodes) throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
+      if (reserve) {nodes += count; this.context.charge("nodes", count);}
+    };
+    node("$.resources", this.pictureCount, false);
     for (let index = 1; index <= this.pictureCount; index++) {
+      const path = `$.resources[${index - 1}]`;
+      for (const suffix of ["", "", ".id", "", ".bytes"]) node(path + suffix);
       const record = Number(await this.pictures.get(BigInt(index))!);
       const bytes = await this.storage.read(record + 8, 8);
       const length = new DataView(bytes.buffer, bytes.byteOffset, bytes.length).getFloat64(0, true);

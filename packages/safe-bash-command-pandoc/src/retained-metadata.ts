@@ -59,7 +59,7 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
       let parseError: {offset: number} | undefined;
       try {await parseBackedJson(decoded(), overlay, scratch, cooperate, (offset, _message, tokenOffset) => {
         parseError = {offset: tokenOffset ?? offset}; throw new PandocError("E_PARSE", "convert", "Invalid JSON metadata", "json");
-      }, undefined, true, Number.isFinite(context.limits.depth) ? (depth, container) => {if (container) context.bound("depth", depth);} : undefined);} catch (error) {
+      }, undefined, true, Number.isFinite(context.limits.depth) ? (depth, container) => {if (container) context.bound("depth", depth);} : undefined, (kind, complete) => {if (kind === "object" || kind === "array" || complete) context.charge("nodes", 1);});} catch (error) {
         if (!parseError) throw error;
         let line = 1, column = 1, offset = 0;
         for await (const text of decoded()) {
@@ -169,13 +169,17 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
           await merged.value("MetaMap"); await merged.key("c"); await push(2);
           const tag = a ? await source.property(a, "t") : undefined;
           const left = tag !== undefined && await source.smallText(tag, 7) === "MetaMap" ? (await source.property(a, "c"))! : 0;
+          if (!left) context.charge("nodes", 1);
           await push(3, left, b, 0, jobDepth + (left ? 0 : 1));
         } else if (header.kind === "array") {
+          context.charge("nodes", 1);
           await merged.value("MetaList"); await merged.key("c"); await merged.begin("array"); await push(2); await push(2);
           if (header.children) await push(7, b + 32, header.end);
         } else if (header.kind === "string") {
+          context.charge("nodes", 1);
           await merged.value("MetaString"); await merged.key("c"); await push(2); await push(0, b, 1);
         } else {
+          context.charge("nodes", 1);
           const literal = await overlay.smallText(b, 5);
           if (literal === "true" || literal === "false") {
             await merged.value("MetaBool"); await merged.key("c"); await merged.value(literal === "true");

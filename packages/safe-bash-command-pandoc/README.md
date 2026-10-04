@@ -165,7 +165,8 @@ document collections. Output preserves constructor bytes and binary64 numeric
 semantics, validates the complete document before publication, and preflights
 finite output budgets. Retained JSON conversions support finite `inputBytes`, `outputBytes`, `work`,
 `diagnostics`, `fonts`, `includes`, `images`, `binaryBytes`, `layoutWork`, `parts`,
-`compressedBytes`, and `expandedBytes`,
+`compressedBytes`, `expandedBytes`, `resources`, `resourceBytes`, `tableRows`,
+`tableColumns`, `tableFieldText`, `tableCells`, `attributes`, `depth`, and `nodes`,
 line endings, and the same non-transforming options as the table path. It uses
 two page caches of at most `cacheBytes` each, plus fixed small index caches.
 JSON `metadataFiles` merge into retained generations before filters. File contents,

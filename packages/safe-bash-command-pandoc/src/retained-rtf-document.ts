@@ -32,7 +32,7 @@ export async function readRetainedRtfDocument(input: InputSource, context: Execu
     await tree.key("blocks"); await reader.ast.write(reader.blocks, tree);
     await tree.end();
     document = await readRetainedJson({chunks: tree.chunks()}, context, working, false);
-    await reader.reserveResources();
+    await reader.reserveResources(document.normalizedNodes);
     await syntax.close(); await wire.close();
     return {document, resources: {count: reader.resourceCount, maxIdLength: `rtf-picture-${reader.resourceCount}.png`.length, get: reader.resource.bind(reader), reserve: reader.reserveResources.bind(reader)}, close};
   } catch (error) {

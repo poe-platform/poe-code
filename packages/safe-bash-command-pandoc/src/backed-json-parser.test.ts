@@ -4,11 +4,13 @@ import {PagedStorage} from "safe-bash-io-engine/storage";
 import {ExecutionContext} from "./execution.js";
 import {BackedJson} from "./backed-json.js";
 import {parseBackedJson} from "./backed-json-parser.js";
+import {parseStrictJson} from "./strict-json.js";
 import {readJsonNumber} from "./json-number.js";
 
-async function parse(input: string, chunkSize = 7, signal = new AbortController().signal, numbers = false): Promise<string> {
+async function parse(input: string, chunkSize = 7, signal = new AbortController().signal, numbers = false, nodeLimit = Infinity): Promise<string> {
   const fs = new MemoryFileSystem();
-  const context = new ExecutionContext("convert", {signal});
+  const context = new ExecutionContext("convert", {signal, limits: {nodes: nodeLimit}});
+  let nodes = 0;
   const storage = new PagedStorage({fs, cwd: "/", env: {}, signal}, 1);
   const index = new PagedStorage({fs, cwd: "/", env: {}, signal}, 1);
   const tree = new BackedJson(storage, units => context.cooperate(units));
@@ -21,7 +23,7 @@ async function parse(input: string, chunkSize = 7, signal = new AbortController(
         if (!(error instanceof RangeError)) throw error;
         throw new Error(`${offset}: ${error.message}`);
       }
-    } : undefined);
+    } : undefined, false, undefined, (_kind, complete) => {if (!complete) context.bound("nodes", ++nodes);});
     let result = "";
     for await (const bytes of tree.chunks()) {
       expect(bytes.length).toBeLessThanOrEqual(16384);
@@ -89,4 +91,19 @@ it.each(["9007199254740992", "9007199254740990.5", "1e9999", "1e-9999"])("applie
 it("validates a long fractional spelling directly from backed storage", async () => {
   const token = "0.1" + "0".repeat(30000);
   expect(await parse('[' + token + ']', 113, undefined, true)).toBe('[' + token + ']');
+});
+
+it.each(["", " ", "[", "[ ", "[1,", "[1, ", '{"a":', '{"a": ', '{"a":1,', '{"a":1, ', '{"a":true}', '[null,false,{"a":"x"}]', '{"a":1,"a":2}'])
+("preserves strict parser node-limit precedence for %j", async input => {
+  for (let nodes = 0; nodes < 12; nodes++) {
+    const context = new ExecutionContext("convert", {limits: {nodes}});
+    let expected: unknown;
+    try {await parseStrictJson(input, context, () => {throw new SyntaxError();});}
+    catch (error) {expected = error;}
+    finally {await context.close();}
+    const actual = await parse(input, 1, undefined, false, nodes).catch(error => error);
+    if (expected instanceof Error && "code" in expected && expected.code === "E_LIMIT") expect(actual).toMatchObject({code: "E_LIMIT", message: expected.message});
+    else if (expected instanceof Error) {expect(actual).toBeInstanceOf(Error); expect(actual.code).not.toBe("E_LIMIT");}
+    else expect(actual).not.toBeInstanceOf(Error);
+  }
 });

@@ -8,15 +8,23 @@ import {retainedPath, retainedValues} from "./retained-wire.js";
 
 const wireEnums = new Set(["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter", "SingleQuote", "DoubleQuote", "InlineMath", "DisplayMath", "AuthorInText", "SuppressAuthor", "NormalCitation", "DefaultStyle", "Example", "Decimal", "LowerRoman", "UpperRoman", "LowerAlpha", "UpperAlpha", "DefaultDelim", "Period", "OneParen", "TwoParens"]);
 
-/** Reserve normalized attributes and cell spans in document order without collecting tables.
+/** Reserve normalized nodes, attributes and cell spans without collecting the AST.
  * When translation positions are supplied, also perform the scalar checks that
  * precede schema validation in the buffered normalizer. */
-export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, metadataOnly = false, enums?: IntegerTable): Promise<void> {
-  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes) && !Number.isFinite(context.limits.depth)) return;
-  let cells = 0, attributes = 0;
+export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, enums?: IntegerTable): Promise<number> {
+  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes) && !Number.isFinite(context.limits.depth) && !Number.isFinite(context.limits.nodes)) return 0;
+  let cells = 0, attributes = 0, nodes = 0;
   const fail = async (position: number, message: string, code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
-    const path = await retainedPath(tree, position, metadataOnly);
+    const path = await retainedPath(tree, position);
     throw new PandocError(code, "convert", `${path}: ${message}`, undefined, path);
+  };
+  const nodeBudget = async (position: number, count = 1, reserve = true, suffix = ""): Promise<void> => {
+    const next = nodes + count;
+    if (!Number.isSafeInteger(next) || next > context.limits.nodes) {
+      const path = await retainedPath(tree, position) + suffix;
+      throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
+    }
+    if (reserve) {nodes = next; context.charge("nodes", count);}
   };
   const string = async (position: number, location = position): Promise<void> => {
     let high = false;
@@ -39,47 +47,55 @@ export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited
     const name = await tree.smallText(tag, 32);
     return wireEnums.has(name ?? "") ? tag : 0;
   };
+  await nodeBudget(tree.rootPosition);
   if (context.limits.depth < 1) await fail(tree.rootPosition, "AST budget exceeded", "E_LIMIT");
-  const roots = metadataOnly ? [tree.rootPosition] : [(await tree.property(tree.rootPosition, "blocks"))!, (await tree.property(tree.rootPosition, "meta"))!];
-  for (const root of roots) for await (const {position: node, exit, key, depth} of retainedValues(tree, order, root, async position => !!await translated(position))) {
-    if (exit) continue;
-    await context.cooperate();
-    const header = await tree.describe(node), enumPosition = await translated(node);
-    if (depth + 1 > context.limits.depth) await fail(key ? header.parent : node, "AST budget exceeded", "E_LIMIT");
-    if (enums) {
-      if (key) {
+  const roots = [(await tree.property(tree.rootPosition, "blocks"))!, (await tree.property(tree.rootPosition, "meta"))!];
+  for (const root of roots) {
+    await nodeBudget(tree.rootPosition); // blocks/metadata property name
+    for await (const {position: node, exit, key, depth} of retainedValues(tree, order, root, async position => !!await translated(position))) {
+      if (exit) continue;
+      await context.cooperate();
+      const header = await tree.describe(node), enumPosition = await translated(node);
+      if (depth + 1 > context.limits.depth) await fail(key ? header.parent : node, "AST budget exceeded", "E_LIMIT");
+      if (key) await nodeBudget(header.parent);
+      if (enums && key) {
         await string(key, header.parent);
         if (["__proto__", "constructor", "prototype"].includes(await tree.smallText(key, 11) ?? "")) await fail(node, "Invalid shape");
       }
-      if (enumPosition || header.kind === "string") await string(enumPosition || node, node);
-    }
-    if (header.kind === "array" && header.children === 3 && Number.isFinite(context.limits.attributes)) {
-      const first = await tree.describe(node + 32), second = await tree.describe(first.end), third = await tree.describe(second.end);
-      if ((first.kind === "string" || !!await enums?.get(BigInt(node + 32))) && second.kind === "array" && third.kind === "array") {
-        const count = 1 + second.children + third.children;
-        attributes += count;
-        if (!Number.isSafeInteger(attributes) || attributes > context.limits.attributes) await fail(node, "AST budget exceeded", "E_LIMIT");
-        context.charge("attributes", count);
+      await nodeBudget(node);
+      if (enums && (enumPosition || header.kind === "string")) await string(enumPosition || node, node);
+      if (header.kind === "array" && !enumPosition) await nodeBudget(node, header.children, false);
+      if (header.kind === "array" && header.children === 3 && Number.isFinite(context.limits.attributes)) {
+        const first = await tree.describe(node + 32), second = await tree.describe(first.end), third = await tree.describe(second.end);
+        if ((first.kind === "string" || !!await enums?.get(BigInt(node + 32))) && second.kind === "array" && third.kind === "array") {
+          const count = 1 + second.children + third.children;
+          attributes += count;
+          if (!Number.isSafeInteger(attributes) || attributes > context.limits.attributes) await fail(node, "AST budget exceeded", "E_LIMIT");
+          context.charge("attributes", count);
+        }
       }
+      if (header.kind !== "array" || header.children !== 5) continue;
+      const first = await tree.describe(node + 32), second = await tree.describe(first.end);
+      const tag = second.kind === "object" ? await tree.property(first.end, "t") : undefined;
+      const isString = enums ? second.kind === "string" || !!await enums.get(BigInt(first.end))
+        : tag !== undefined && ["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter"].includes(await tree.smallText(tag, 16) ?? "");
+      if (first.kind !== "array" || !isString) continue;
+      const row = second.end, column = (await tree.describe(row)).end;
+      const spanNumber = async (position: number): Promise<number> => {
+        if ((await tree.describe(position)).kind !== "literal") return fail(node, "Invalid spans");
+        try {
+          const value = await readJsonNumber(tree.scalarChunks(position), units => context.cooperate(units));
+          if (!Number.isSafeInteger(value) || value < 1) return fail(node, "Invalid spans");
+          return value;
+        } catch (error) {if (error instanceof JsonNumberError) return fail(node, "Invalid spans"); throw error;}
+      };
+      const span = await spanNumber(row) * await spanNumber(column);
+      cells += span;
+      if (!Number.isSafeInteger(cells) || cells > context.limits.tableCells) await fail(node, "AST budget exceeded", "E_LIMIT");
+      context.charge("tableCells", span);
     }
-    if (header.kind !== "array" || header.children !== 5) continue;
-    const first = await tree.describe(node + 32), second = await tree.describe(first.end);
-    const tag = second.kind === "object" ? await tree.property(first.end, "t") : undefined;
-    const isString = enums ? second.kind === "string" || !!await enums.get(BigInt(first.end))
-      : tag !== undefined && ["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter"].includes(await tree.smallText(tag, 16) ?? "");
-    if (first.kind !== "array" || !isString) continue;
-    const row = second.end, column = (await tree.describe(row)).end;
-    const spanNumber = async (position: number): Promise<number> => {
-      if ((await tree.describe(position)).kind !== "literal") return fail(node, "Invalid spans");
-      try {
-        const value = await readJsonNumber(tree.scalarChunks(position), units => context.cooperate(units));
-        if (!Number.isSafeInteger(value) || value < 1) return fail(node, "Invalid spans");
-        return value;
-      } catch (error) {if (error instanceof JsonNumberError) return fail(node, "Invalid spans"); throw error;}
-    };
-    const span = await spanNumber(row) * await spanNumber(column);
-    cells += span;
-    if (!Number.isSafeInteger(cells) || cells > context.limits.tableCells) await fail(node, "AST budget exceeded", "E_LIMIT");
-    context.charge("tableCells", span);
   }
+  await nodeBudget(tree.rootPosition); // resources property name
+  await nodeBudget(tree.rootPosition, 1, true, ".resources"); // resource entries are reserved by their owner
+  return nodes;
 }

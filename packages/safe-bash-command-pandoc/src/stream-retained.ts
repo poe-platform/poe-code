@@ -92,8 +92,8 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       await document.close(); document = next; metadataChanged = true;
     }
     if (metadataChanged) {
-      await reserveRetainedAstBudgets(document.tree, document.order, context);
-      await inputResources?.reserve();
+      const nodes = await reserveRetainedAstBudgets(document.tree, document.order, context);
+      await inputResources?.reserve(nodes);
     }
     for (const request of options.filters ?? []) {
       if (request.kind === "json") await checkImageOrigins(document.tree, context);
@@ -115,7 +115,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
         const next = await readRetainedJson({chunks: (async function* () {
           for (let offset = 0; offset < length; offset += 16384) yield await response.read(start + offset, Math.min(16384, length - offset));
         })()}, context, working, false);
-        await inputResources?.reserve();
+        await inputResources?.reserve(next.normalizedNodes);
         if(origins){if(request.kind==="lua")await origins.transfer(document.tree,next.tree);else origins.clear();}
         await document.close();
         document = next;

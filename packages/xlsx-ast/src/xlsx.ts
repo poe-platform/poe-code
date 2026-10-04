@@ -1,3 +1,4 @@
+import { createWorksheetStorage } from "./worksheet-storage.js";
 import { createSharedStringStorage } from "./shared-string-storage.js";
 import { writeXlsxTheme } from "./xlsx-theme.js";
 import { writeXlsxWorkbookProtection } from "./xlsx-workbook-protection.js";
@@ -56,7 +57,7 @@ const schemaEdges = Object.fromEntries(Object.entries(xlsxSchemas).map(([name, s
   return [name, edges];
 }));
 async function recognize(root: XmlElement, schema: string, context: CapabilityContext,
-  streamed?: { children(root: XmlElement): AsyncIterable<XmlElement>; accept(node: XmlElement): Promise<void> }): Promise<XmlElement> {
+  streamed?: { children(root: XmlElement): AsyncIterable<XmlElement>; stage(parent: XmlElement, node: XmlElement): Promise<boolean>; complete?(parent: XmlElement, node: XmlElement): void }): Promise<XmlElement> {
   const edges = schemaEdges[schema]; if (!edges) return root;
   const prefixes = new Map<string, string>(), namespacePrefixes = new Map<string, string>(), unknownPrefixes = new Set<string>();
   async function visit(node: XmlElement, parent: string, ancestors: readonly string[], inheritedNamespace: string): Promise<XmlElement | undefined> {
@@ -91,24 +92,23 @@ async function recognize(root: XmlElement, schema: string, context: CapabilityCo
     // recognized children rather than retaining rejected raw descendants.
     const content: XmlContent[] | undefined = streamed ? [] : undefined;
     let contentAt = 0;
-    for await (const item of streamed && ancestors.length === 0 ? streamed.children(node) : node.children) {
-      if (content && ancestors.length) {
+    for await (const item of streamed ? streamed.children(node) : node.children) {
+      if (content) {
         while (contentAt < node.content.length && node.content[contentAt] !== item) content.push(node.content[contentAt++]!);
         contentAt++;
       }
       const child = await visit(item, match[1], [...ancestors, node.localName], namespace);
-      if (child) {
-        if (streamed && ancestors.length === 0) { if (child.localName === "si") await streamed.accept(child); }
-        else { accepted.push(child); content?.push(child); }
-      }
+      if (child && !(await streamed?.stage(node, child))) { accepted.push(child); content?.push(child); }
     }
-    if (content && ancestors.length) while (contentAt < node.content.length) content.push(node.content[contentAt++]!);
-    return { ...node, ...(content ? { content } : {}), namespace: xlsxNamespaces[match[2]]?.[0] ?? node.namespace, children: accepted,
+    if (content) while (contentAt < node.content.length) content.push(node.content[contentAt++]!);
+    const result = { ...node, ...(content ? { content } : {}), namespace: xlsxNamespaces[match[2]]?.[0] ?? node.namespace, children: accepted,
       attributes: node.attributes.map(attribute => {
         const colon = attribute.name.indexOf(":");
         const key = colon < 0 ? undefined : prefixes.get(attribute.name.slice(0, colon));
         return key ? { ...attribute, namespace: xlsxNamespaces[key]![0]! } : attribute;
       }) };
+    streamed?.complete?.(node, result);
+    return result;
   }
   return await visit(root, "START", [], "") ?? { ...root, children: [] };
 }
@@ -210,10 +210,14 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
     context.signal.throwIfAborted();
     if (amount > maximumWork - packageWork) limit("work"); packageWork += amount;
   }
-  const documents = new Map<string, XmlElement>();
-  async function document(name: string, streamElements?: XmlStreamLimits["streamElements"]): Promise<XmlElement> {
+  const documents = new Map<string, { root: XmlElement; restore?: (root: XmlElement) => Promise<XmlElement>; restored?: XmlElement }>();
+  async function document(name: string, streamElements?: XmlStreamLimits["streamElements"], restore?: (root: XmlElement) => Promise<XmlElement>): Promise<XmlElement> {
     context.signal.throwIfAborted();
-    const cached = documents.get(name); if (cached) return cached;
+    const cached = documents.get(name);
+    if (cached) {
+      if (!streamElements && cached.restore) return cached.restored ??= await cached.restore(cached.root);
+      return cached.root;
+    }
     const entry = await entries.get(name); if (!entry) return invalid(`missing part '${name}'`);
     const xmlLimits = { ...(streamElements ? { streamElements } : {}), expectedEncoding: "UTF-8" as "UTF-8" | "UTF-16LE" | "UTF-16BE",
       maxDepth: context.limits.xmlDepth ?? Infinity,
@@ -249,7 +253,7 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
       if (units && ++parserWork % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
     });
     if (pendingUnits) charge(1);
-    documents.set(name, result); return result;
+    documents.set(name, { root: result, ...(streamElements && restore ? { restore } : {}) }); return result;
   }
 
   async function relations(base: string): Promise<readonly Relationship[]> {
@@ -407,6 +411,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
     }
     const sheetNodes = [...uniqueSheets.values()];
     if (sheetNodes.length > context.limits.sheets) limit("sheets");
+    const storedRows = context.createWorkingStorage ? createWorksheetStorage(context, namespace => spreadsheetNamespaces.has(namespace)) : undefined;
     let cellCount = 0;
     const sheets: Sheet[] = [];
     for (const sheetNode of sheetNodes) {
@@ -417,8 +422,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       if (relation.type !== relationships + "/worksheet") {
         workbookRecords.push({ source: relation.target, kind: "non-worksheet", disposition: "dropped" }); continue;
       }
-      let source = await opc.document(relation.target); rootIs(source, "worksheet");
-      source = await recognize(source, "xlsx_sheet_dtd", context);
+      let source = await opc.document(relation.target, storedRows?.streamElements, storedRows?.restore); rootIs(source, "worksheet");
+      source = await recognize(source, "xlsx_sheet_dtd", context, storedRows);
       const sheetRelations = await opc.relations(relation.target);
       const cells: Cell[] = [], rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], groups: FormulaGroup[] = [];
       const cellIndexes = new Map<number, number>();
@@ -451,7 +456,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           continue;
         }
         if (section.localName !== "sheetData") continue;
-        for (const row of children(section, "row")) {
+        for await (const row of storedRows ? storedRows.rows(section) : children(section, "row")) {
           const rowIndex = attr(row, "r") === undefined ? nextRow : integer(attr(row, "r")) - 1;
           if (rowIndex < 0 || rowIndex >= 1048576) invalid("invalid row"); nextRow = rowIndex + 1;
           const height = attr(row, "ht") === undefined ? undefined : number(attr(row, "ht"));

@@ -70,11 +70,14 @@ retained range sources as well as byte arrays. Range input fetches ZIP metadata
 and requested member data in chunks of at most 16 KiB, without copying the whole
 compressed archive. XML decoding and parsing consume member chunks directly,
 including UTF-8 and both UTF-16 byte orders, without full decoded byte/string
-copies. Keep the source open until the operation settles. XML trees, individual
-parser tokens and the workbook model remain resident; large workbook
-conversion still requires further storage migration. With engine `workingFiles`,
-the directory and member indexes use caller-backed scratch storage and bounded
-caches. Without that capability the convenience reader retains the directory.
+copies. Keep the source open until the operation settles. With engine `workingFiles`,
+the directory and member indexes, shared strings and worksheet row XML use
+caller-backed scratch storage with bounded transfer windows and caches. Rows
+replay through schema recognition and cell decoding in source order. Parts also
+used as opaque metadata preserve that role's original XML. Individual rows,
+strings, parser tokens, other metadata and the final workbook model remain
+resident; large workbook conversion still requires further storage migration.
+Without working storage, the convenience reader retains the directory and XML trees.
 
 `createXlsxStreamWriter` uses `workingFiles` to stage ZIP member payloads and
 central records in the caller’s safe-fs. XML encoding and member compression

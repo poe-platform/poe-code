@@ -113,8 +113,11 @@ export async function writeStoredRecord(
   signal?: AbortSignal
 ): Promise<number> {
   signal?.throwIfAborted();
-  let length = 0;
+  let length = 0, work = 0;
   for (const bytes of encode(value, storage)) {
+    // Resolved capability promises alone do not let abort timers run.
+    work += bytes.length;
+    if (work >= 65536) { await new Promise<void>(resolve => setTimeout(resolve, 0)); work = 0; }
     signal?.throwIfAborted();
     length += bytes.length;
     if (!Number.isSafeInteger(length + 16)) throw new RangeError("Invalid capture length");
@@ -132,7 +135,10 @@ export async function writeStoredRecord(
   view.setFloat64(8, length, true);
   let used = 16,
     offset = 0;
+  work = 0;
   for (const chunk of encode(value, storage)) {
+    work += chunk.length;
+    if (work >= 65536) { await new Promise<void>(resolve => setTimeout(resolve, 0)); work = 0; }
     signal?.throwIfAborted();
     for (let at = 0; at < chunk.length; ) {
       const count = Math.min(bytes.length - used, chunk.length - at);
@@ -164,6 +170,7 @@ class RecordReader {
   private bytes: Uint8Array = new Uint8Array();
   private offset = 0;
   private loaded = 0;
+  private work = 0;
   constructor(
     private readonly storage: PdfPixelStorage,
     private readonly position: number,
@@ -174,9 +181,14 @@ class RecordReader {
     return this.length - this.loaded + this.bytes.length - this.offset;
   }
   async take(length: number): Promise<Uint8Array> {
+    if (this.work >= 65536) {
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+      this.work = 0;
+    }
     this.signal?.throwIfAborted();
     if (!Number.isSafeInteger(length) || length < 0 || length > 4096 || length > this.remaining)
       throw new Error("Invalid capture field length");
+    this.work += length;
     if (this.offset + length <= this.bytes.length) {
       const result = this.bytes.subarray(this.offset, this.offset + length);
       this.offset += length;
@@ -315,6 +327,7 @@ export async function* readStoredItems<T>(items: import("../ast.js").PdfStoredIt
   if (!Number.isSafeInteger(items.length) || items.length < 0) throw new RangeError("Invalid stored array length");
   let position = items.position;
   for (let i = 0; i < items.length; i++) {
+    if (i && i % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
     const record = await readStoredRecord<T>(items.storage, position, signal);
     yield record.value;
     position = record.next;

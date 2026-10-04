@@ -121,3 +121,31 @@ it.each([-1, NaN, 0.5])("rejects an invalid array element count before reading: 
   const storage: PdfPixelStorage = { allocate() { throw new Error("unexpected allocation"); }, async read() { throw new Error("unexpected read"); }, async write() { throw new Error("unexpected write"); } };
   await expect(readStoredItems({ storage, position: -1, length }).next()).rejects.toThrow("Invalid stored array length");
 });
+
+
+it.each(["measure", "write", "read", "items"])("allows timer cancellation during stored record %s", async (operation) => {
+  const storage = backing(2 * 1024 * 1024);
+  const payload = new Uint8Array(1024 * 1024);
+  const position = operation === "read" ? await writeStoredRecord(storage, payload) : -1;
+  let head = -1;
+  if (operation === "items") {
+    for (let i = 0; i < 8192; i++) head = await writeStoredRecord(storage, i, head);
+  }
+  const controller = new AbortController(), failure = new Error("timer cancellation");
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  if (operation === "write") {
+    const write = storage.write;
+    storage.write = async (...args) => {
+      timer ??= setTimeout(() => controller.abort(failure), 0);
+      await write(...args);
+    };
+  } else timer = setTimeout(() => controller.abort(failure), 0);
+  try {
+    const work = operation === "write" || operation === "measure" ? writeStoredRecord(storage, payload, -1, controller.signal)
+      : operation === "read" ? readStoredRecord(storage, position, controller.signal)
+      : (async () => {
+        for await (const value of readStoredItems({ storage, position: head, length: 8192 }, controller.signal)) void value;
+      })();
+    await expect(work.then(() => "completed")).rejects.toBe(failure);
+  } finally { clearTimeout(timer); }
+});

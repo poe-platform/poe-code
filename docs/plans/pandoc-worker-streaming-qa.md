@@ -207,7 +207,9 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   stay out of the resident string. Ports use bounded numeric parsing; opaque hosts stream and IPv6 literals use a
   format-bounded buffer. ASCII domain labels and decimal/octal/hex IPv4 numbers
   use bounded state, including percent-encoded ASCII with escape carry across
-  chunks and no recursive decoding. Unicode and punycode hostnames (including
+  chunks and no recursive decoding. Fixed-size UTF-8 decoding rejects malformed
+  byte sequences, unpaired surrogates and forbidden decoded characters even after
+  encountering Unicode or punycode. Valid Unicode and punycode hostnames (including
   their percent-encoded forms) still use native whole-value validation. Runtime-owned state
   is not bounded by protocol streaming. Whole-value runtimes currently retain
   documents. The internal Lua storage layer retains binary strings, table

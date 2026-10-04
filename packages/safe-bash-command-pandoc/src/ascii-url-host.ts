@@ -1,8 +1,14 @@
 /** Bounded admission for ASCII domains and WHATWG IPv4 numbers. IDNA labels and
- * non-ASCII decoded bytes explicitly defer to the native host parser. */
+ * valid Unicode explicitly defer to the native host parser after bounded UTF-8
+ * and forbidden-code-point validation. */
 export class AsciiUrlHost {
   private native = false;
   private escape = "";
+  private surrogate = "";
+  private readonly decoder = new TextDecoder("utf-8", {fatal: true, ignoreBOM: true});
+  private readonly encoder = new TextEncoder();
+  private readonly bytes = new Uint8Array(1024);
+  private used = 0;
   private invalid = false;
   private pipe = false;
   private size = 0;
@@ -28,24 +34,41 @@ export class AsciiUrlHost {
     return this.size === 2 && this.pipe && this.first >= "a" && this.first <= "z" ? this.first + "|" : undefined;
   }
   write(char: string): void {
-    if (this.native) return;
-    if (char.length !== 1 || char.charCodeAt(0) > 127) {this.size = 3; this.pipe = false; this.native = true; return;}
-    char = char.toLowerCase();
-    if (!this.size) this.first = char;
-    this.size = Math.min(3, this.size + 1);
+    // File drive syntax is determined before percent decoding and IDNA mapping.
+    if (!this.size) this.first = char.charCodeAt(0) < 128 ? char.toLowerCase() : "";
+    this.size = Math.min(3, this.size + char.length);
     this.pipe = this.size === 2 && char === "|";
+    if (this.invalid) return;
+    if (this.surrogate) {
+      if (char.length !== 1 || char.charCodeAt(0) < 0xdc00 || char.charCodeAt(0) > 0xdfff) {this.invalid = true; return;}
+      char = this.surrogate + char; this.surrogate = "";
+    }
     if (this.escape) {
-      if (!(char >= "0" && char <= "9" || char >= "a" && char <= "f")) {this.invalid = true; return;}
-      this.escape += char;
+      const hex = char.toLowerCase();
+      if (hex.length !== 1 || !(hex >= "0" && hex <= "9" || hex >= "a" && hex <= "f")) {this.invalid = true; return;}
+      this.escape += hex;
       if (this.escape.length < 3) return;
-      char = String.fromCharCode(Number.parseInt(this.escape.slice(1), 16)).toLowerCase();
-      this.escape = "";
-      // Non-ASCII bytes need UTF-8/IDNA validation together with the original
-      // hostname. Never interpret an individual byte as a Unicode character.
-      if (char.charCodeAt(0) > 127) {this.native = true; return;}
-      if (char === "%") {this.invalid = true; return;}
-    } else if (char === "%") {this.escape = "%"; return;}
-    if (char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127 || "#/:<>?@[\\]^|".includes(char)) {this.invalid = true; return;}
+      this.byte(Number.parseInt(this.escape.slice(1), 16)); this.escape = "";
+    } else if (char === "%") this.escape = "%";
+    else if (char.charCodeAt(0) < 128) this.byte(char.charCodeAt(0));
+    else if (char.length === 1 && char.charCodeAt(0) >= 0xd800 && char.charCodeAt(0) <= 0xdbff) this.surrogate = char;
+    else for (const byte of this.encoder.encode(char)) this.byte(byte);
+  }
+  private byte(value: number): void {
+    this.bytes[this.used++] = value;
+    if (this.used === this.bytes.length) this.decode(true);
+  }
+  private decode(stream: boolean): void {
+    try {
+      for (const char of this.decoder.decode(this.bytes.subarray(0, this.used), {stream})) this.domain(char);
+    } catch {this.invalid = true;}
+    this.used = 0;
+  }
+  private domain(char: string): void {
+    if (char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127 || "%#/:<>?@[\\]^|\ufffd".includes(char)) {this.invalid = true; return;}
+    if (char.length !== 1 || char.charCodeAt(0) > 127) {this.native = true; return;}
+    if (this.native) return;
+    char = char.toLowerCase();
     if (char === ".") {this.label(); return;}
     const digit = char >= "0" && char <= "9";
     if (this.prefix.length < 4) this.prefix += char;
@@ -73,7 +96,8 @@ export class AsciiUrlHost {
   }
   /** Consume the final label, ignoring exactly one trailing dot. */
   finish(): boolean | undefined {
-    if (this.invalid || this.escape) return false;
+    this.decode(false);
+    if (this.invalid || this.escape || this.surrogate) return false;
     if (this.native) return undefined;
     if (this.length) this.label();
     if (!this.lastDigits && !this.lastValid) return true;

@@ -153,12 +153,44 @@ it("preserves native encoded-host admission and raw file-drive rules", async () 
   const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
   const {ExecutionContext} = await import("./execution.js");
   const context = new ExecutionContext("convert", {});
-  const hosts = ["%43:", "%43|", "C%7c", "%31%32%37%2e1", "%30%78ff", "%78n--bcher-kva", "%c3%a9", "é%61", "%ff", "%e0%80%80", "%", "%0", "%zz", "%25", "%252e", "%ef%bb%bf", "%00", "%2f", "%3a", "%5b::1%5d"];
+  const hosts = ["K|", "K:", "%43:", "%43|", "C%7c", "%31%32%37%2e1", "%30%78ff", "%78n--bcher-kva", "%c3%a9", "é%61", "%ff", "%e0%80%80", "%", "%0", "%zz", "%25", "%252e", "%ef%bb%bf", "%00", "%2f", "%3a", "%5b::1%5d"];
   for (let byte = 0; byte < 256; byte++) hosts.push("a%" + byte.toString(16).padStart(2, "0") + "b");
   try {
     for (const scheme of ["http", "file", "custom"]) for (const host of hosts) for (const size of [1, 2, 7]) {
       const value = `${scheme}://${host}/image`;
       expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += size) yield value.slice(i, i + size);}, context), value).toBe(URL.canParse(value));
+    }
+  } finally {await context.close();}
+});
+
+
+it("rejects malformed Unicode hosts without materializing their payloads", async () => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {}), native = URL.canParse.bind(URL);
+  const parse = vi.spyOn(URL, "canParse").mockImplementation((value, base) => {
+    if (String(value).length > 128) throw new Error("Whole malformed host forbidden");
+    return native(value, base);
+  });
+  try {
+    for (const host of ["%ff".repeat(10000), "%c3%a9".repeat(10000) + "%00", "é".repeat(10000) + "%ed%a0%80", "é".repeat(10000) + "%f4%90%80%80", "é".repeat(10000) + "%c3", "é".repeat(10000) + "%zz", "é".repeat(10000) + "\ud800", "é".repeat(10000) + "%c3é", "é".repeat(10000) + "%25"]) {
+      const value = `https://${host}/image`;
+      expect(native(value)).toBe(false);
+      expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += 127) yield value.slice(i, i + 127);}, context)).toBe(false);
+    }
+  } finally {parse.mockRestore(); await context.close();}
+});
+
+
+it("matches native UTF-8 host decoding across byte-buffer and surrogate boundaries", async () => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {});
+  const endings = ["%c2%80", "%e0%a0%80", "%ed%9f%bf", "%ed%a0%80", "%f0%90%80%80", "%f4%8f%bf%bf", "%f4%90%80%80", "%ef%bb%bf", "%ef%bf%bd", "%c3é", "%c3", "%80", "😀", "\ud800", "\udc00", "é%25", "é%2f", "xn--a%00"];
+  try {
+    for (const offset of [0, 1021, 1022, 1023, 1024]) for (const ending of endings) for (const size of [1, 127]) {
+      const value = "https://" + "a".repeat(offset) + ending + "/image";
+      expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += size) yield value.slice(i, i + size);}, context), `${offset} ${ending}`).toBe(URL.canParse(value));
     }
   } finally {await context.close();}
 });

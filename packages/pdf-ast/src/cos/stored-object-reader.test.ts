@@ -66,3 +66,29 @@ it("retains logical page identities when edits clear an aliased page tree", asyn
   finally { await document.close(); await store.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("keeps lookup path context local while preserving default backing across reference chains", async () => {
+  const { PdfFileSource } = await import("../source.js");
+  const original = PdfDocument.create(); original.addPage();
+  const target = original.cos.allocateObject(cosDict({ D: cosArray([cosArray([cosNumber(2),cosNumber(3)]),cosNumber(0)]), Widths: cosArray([cosNumber(500)]) }));
+  const alias = original.cos.allocateObject(target);
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input",original.save());
+  const source = await PdfFileSource.open(fs,"/input");
+  const bytes = new Uint8Array(65536); let end = 0;
+  const backing = { allocate(n:number) { const at=end; end+=n; return at; }, async read(at:number,n:number) { return bytes.subarray(at,at+n); }, async write(at:number,part:Uint8Array) { bytes.set(part,at); } };
+  const options = { arrayStorage:backing, storedArrayKeys:["Widths"], storedArrayPaths:[["ExtGState","*","D"]] };
+  const document = await PdfRetainedDocument.open(source,{fs,directory:"/scratch"},{valueArrays:options});
+  try {
+    for (const prefix of [undefined,["ExtGState","GS"],undefined]) {
+      const result = await document.lookup(alias,undefined,prefix);
+      if(result?.value.kind!=="dict")throw Error("Expected dictionary");
+      const dash=dictGet(result.value,"D"),widths=dictGet(result.value,"Widths");
+      expect(widths).toMatchObject({kind:"array",items:[],storedItems:{length:1,storage:backing}});
+      if(dash?.kind!=="array")throw Error("Expected dash");
+      expect(dash.items.length).toBe(prefix?0:2);
+      expect(dash.storedItems?.length).toBe(prefix?2:undefined);
+      expect(result.reference).toMatchObject(target);
+    }
+    expect(options).not.toHaveProperty("arrayPathPrefix");
+  } finally { await document.close(); await source.close(); expect(await fs.readdir("/scratch")).toEqual([]); }
+});

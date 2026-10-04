@@ -3,7 +3,9 @@ import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 
-it.each(["root", "path"])("renders growing %s dash declarations in Workerd with backing in a separate isolate", async mode => {
+it.each(["root", "path", "map", "state"])("renders growing %s dash declarations in Workerd with backing in a separate isolate", async mode => {
+  const keys = mode === "path" ? ["Resources", "ExtGState", "GS", "D"] : mode === "map" ? ["GS", "D"] : mode === "state" ? ["D"] : [];
+  const context = mode === "map" ? ["ExtGState"] : mode === "state" ? ["ExtGState", "GS"] : [];
   const bundle = await build({ stdin: {
     resolveDir: fileURLToPath(new URL("../../../../", import.meta.url)), sourcefile: "dash-worker.ts", contents: `
 import {dictGet} from './packages/pdf-ast/src/ast.ts';
@@ -16,10 +18,10 @@ export default {async fetch(request,env){
  const push=Array.prototype.push;Array.prototype.push=function(...items){const n=push.apply(this,items);peak=Math.max(peak,n);if(n>64)throw Error('resident dash array');return n;};
  try {
  const storage={allocate(n){const at=end;end+=n;return at;},async read(at,n){if(n>4096)throw Error('large read');reads++;return new Uint8Array(await(await env.BACKING.fetch('https://backing/?at='+at+'&length='+n)).arrayBuffer());},async write(at,bytes){if(bytes.length>4096)throw Error('large write');writes++;await env.BACKING.fetch('https://backing/?at='+at,{method:'PUT',body:bytes});}};
- const prefix=${JSON.stringify(mode === "path" ? "<< /Resources << /ExtGState << /GS << /D [" : "[")},suffix=${JSON.stringify(mode === "path" ? "] >> >> >> >>" : "]")};
+ const prefix=${JSON.stringify(keys.map(key => "<< /" + key + " ").join("") + "[")},suffix=${JSON.stringify("]" + " >>".repeat(keys.length))};
  const source={size:prefix.length+count*2+suffix.length,chunkBytes:128,async read(at,n){const bytes=new Uint8Array(n);for(let i=0;i<n;i++){const p=at+i-prefix.length;bytes[i]=p<0?prefix.charCodeAt(at+i):p<count*2?p%2?32:51:suffix.charCodeAt(p-count*2);}return bytes;}};
- let {value}=await parseCosRangeValue(source,0,{arrayStorage:storage,storeRootArray:true,storedArrayPaths:[['ExtGState','*','D']]});
- if(${JSON.stringify(mode === "path")}){for(const key of ['Resources','ExtGState','GS','D'])value=dictGet(value,key);}
+ let {value}=await parseCosRangeValue(source,0,{arrayStorage:storage,storeRootArray:true,storedArrayPaths:[['ExtGState','*','D']],arrayPathPrefix:${JSON.stringify(context)}});
+ for(const key of ${JSON.stringify(keys)})value=dictGet(value,key);
  if(value.items.length||value.storedItems.length!==count)throw Error('resident declaration');
  const dash=await storeDashArray(value,storage,async node=>node);
  if(dash.length!==count||dash.total!==count*3)throw Error('wrong pattern');

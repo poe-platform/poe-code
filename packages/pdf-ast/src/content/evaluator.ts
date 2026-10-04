@@ -829,14 +829,14 @@ export function isOptionalContentVisible(doc: ParsedCosDocument | undefined, ocN
   return step.value;
 }
 
-function* resolveEvaluationNode(node: PdfCosNode | undefined, storeRootArray = false): EvaluationWork<PdfCosNode | undefined> {
+function* resolveEvaluationNode(node: PdfCosNode | undefined, storeRootArray = false, arrayPathPrefix?: readonly string[]): EvaluationWork<PdfCosNode | undefined> {
   if (!node) return undefined;
-  const result = yield { kind: "resolve", node, ...(storeRootArray ? { storeRootArray } : {}) };
+  const result = yield { kind: "resolve", node, ...(storeRootArray ? { storeRootArray } : {}), ...(arrayPathPrefix ? { arrayPathPrefix } : {}) };
   if (!result || !("kind" in result) || result.kind !== "resolved") throw new TypeError("Expected a resolved PDF object");
   return result.node;
 }
-function* resolveEvaluationDict(node: PdfCosNode | undefined): EvaluationWork<PdfCosDict | undefined> {
-  const resolved = yield* resolveEvaluationNode(node);
+function* resolveEvaluationDict(node: PdfCosNode | undefined, arrayPathPrefix?: readonly string[]): EvaluationWork<PdfCosDict | undefined> {
+  const resolved = yield* resolveEvaluationNode(node, false, arrayPathPrefix);
   return resolved?.kind === "dict" ? resolved : resolved?.kind === "stream" ? resolved.dict : undefined;
 }
 function* resolveEvaluationArray(node: PdfCosNode | undefined, storeRootArray = false): EvaluationWork<import("../ast.js").PdfCosArray | undefined> {
@@ -1041,7 +1041,7 @@ export type PdfEvaluationRequest = { readonly kind: "dash-array"; readonly array
   | { readonly kind: "path-finish"; readonly writer: StoredPathWriter }
   | { readonly kind: "transform-path"; readonly path: PdfStoredPath; readonly matrix: Matrix6; readonly close: boolean }
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
-  | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly storeRootArray?: boolean }
+  | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly storeRootArray?: boolean; readonly arrayPathPrefix?: readonly string[] }
   | { readonly kind: "catalog" }
   | { readonly kind: "close-content"; readonly source: PdfEvaluationContentSource }
   | { readonly kind: "mask-parameters"; readonly mask: PdfCosDict; readonly form: PdfCosStream; readonly resources: PdfCosDict | undefined }
@@ -1375,8 +1375,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     } else if (operator === "K") {
       st.strokeColor = yield* resolveScColorOperands("DeviceCMYK", ops, activeResources);
     } else if (operator === "gs" && activeResources && ops[0]?.kind === "name") {
-      const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"));
-      const gsDict = extDict ? yield* resolveEvaluationDict(dictGet(extDict, ops[0].decoded)) : undefined;
+      const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"), ["ExtGState"]);
+      const gsDict = extDict ? yield* resolveEvaluationDict(dictGet(extDict, ops[0].decoded), ["ExtGState", ops[0].decoded]) : undefined;
       if (gsDict) {
         const mask = yield* resolveEvaluationNode(dictGet(gsDict, "SMask"));
         if (mask?.kind === "name" && mask.decoded === "None") {

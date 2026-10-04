@@ -10,6 +10,8 @@ export interface ValueArrayStorage {
   /** Match a suffix of enclosing dictionary keys; '*' matches one key.
    * Array boundaries do not match dictionary path segments. */
   readonly storedArrayPaths?: readonly (readonly string[])[];
+  /** Enclosing keys from the caller when parsing an indirect dictionary. */
+  readonly arrayPathPrefix?: readonly string[];
   readonly storeRootArray?: boolean;
 }
 export type ValueWork<T> = Generator<void | "token" | PdfCosDict | {kind: "array-append"; node: PdfCosNode; previous: number}, T, CosToken | PdfCosNode | number | undefined>;
@@ -29,10 +31,18 @@ export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, re
   const stack: Container[] = [];
   function matchesStoredPath(): boolean {
     return options.storedArrayPaths?.some(path => {
-      if (!path.length || path.length > stack.length) return false;
+      const prefix = options.arrayPathPrefix ?? [], length = prefix.length + stack.length;
+      if (!path.length || path.length > length) return false;
       for (let i = 0; i < path.length; i++) {
-        const parent = stack[stack.length - path.length + i]!;
-        if (parent.kind !== "dict" || !parent.key || (path[i] !== "*" && path[i] !== parent.key.decoded)) return false;
+        const at = length - path.length + i;
+        let key: string | undefined;
+        if (at < prefix.length) key = prefix[at];
+        else {
+          const parent = stack[at - prefix.length]!;
+          if (parent.kind !== "dict") return false;
+          key = parent.key?.decoded;
+        }
+        if (key === undefined || (path[i] !== "*" && path[i] !== key)) return false;
       }
       return true;
     }) ?? false;

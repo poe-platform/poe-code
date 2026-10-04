@@ -1,20 +1,20 @@
 import { cosDict, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfContentNode, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { optionalContentVisibilitySteps } from "./evaluator.js";
 
-export type PdfAppearanceRequest = { readonly kind: "resolve"; readonly node: PdfCosNode }
+export type PdfAppearanceRequest = { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayPathPrefix?: readonly string[] }
   | { readonly kind: "catalog" }
   | { readonly kind: "appearance-content"; readonly stream: PdfCosStream }
   | { readonly kind: "appearance"; readonly stream?: PdfCosStream; readonly nodes: readonly PdfContentNode[] };
 export type PdfAppearanceResult = PdfCosNode | boolean | undefined;
 type AppearanceWork<T = void> = Generator<PdfAppearanceRequest, T, PdfAppearanceResult>;
-function* resolveNode(node: PdfCosNode | undefined): AppearanceWork<PdfCosNode | undefined> {
+function* resolveNode(node: PdfCosNode | undefined, arrayPathPrefix?: readonly string[]): AppearanceWork<PdfCosNode | undefined> {
   if (!node) return undefined;
-  const result = yield { kind: "resolve", node };
+  const result = yield { kind: "resolve", node, ...(arrayPathPrefix ? { arrayPathPrefix } : {}) };
   if (typeof result === "boolean") throw new TypeError("Expected a PDF appearance object");
   return result;
 }
-function* resolveDict(node: PdfCosNode | undefined): AppearanceWork<PdfCosDict | undefined> {
-  const value = yield* resolveNode(node); return value?.kind === "dict" ? value : undefined;
+function* resolveDict(node: PdfCosNode | undefined, arrayPathPrefix?: readonly string[]): AppearanceWork<PdfCosDict | undefined> {
+  const value = yield* resolveNode(node, arrayPathPrefix); return value?.kind === "dict" ? value : undefined;
 }
 function* resolveArray(node: PdfCosNode | undefined): AppearanceWork<PdfCosArray | undefined> {
   const value = yield* resolveNode(node); return value?.kind === "array" ? value : undefined;
@@ -37,7 +37,7 @@ function* visible(node: PdfCosNode | undefined): AppearanceWork<boolean> {
 export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCosDict, evalResourcesDict: PdfCosDict, hideAnnotations = false, onAllocation?: (bytes: number) => void): AppearanceWork {
   onAllocation?.(64 * pageRes.entries.length);
   for (const entry of pageRes.entries) {
-    const sub = (yield* resolveDict(entry.value));
+    const sub = (yield* resolveDict(entry.value, [entry.key.decoded]));
     if (sub) {
       onAllocation?.(64 + sub.entries.length * 64);
       const clonedSub = cosDict({});
@@ -89,9 +89,9 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
           const apRes = (yield* resolveDict(dictGet(apN.dict, "Resources")));
           if (apRes) {
             for (const subKey of ["Font", "XObject", "ExtGState", "ColorSpace", "Pattern", "Shading"]) {
-              const srcSub = (yield* resolveDict(dictGet(apRes, subKey)));
+              const srcSub = (yield* resolveDict(dictGet(apRes, subKey), [subKey]));
               if (!srcSub) continue;
-              let dstSub = (yield* resolveDict(dictGet(evalResourcesDict, subKey)));
+              let dstSub = (yield* resolveDict(dictGet(evalResourcesDict, subKey), [subKey]));
               if (!dstSub) {
                 onAllocation?.(64);
                 dstSub = cosDict({});

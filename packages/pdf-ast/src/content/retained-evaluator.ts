@@ -52,9 +52,9 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
     options.onAllocation?.(bytes); admitted += bytes;
   }
   const identities = new WeakMap<PdfCosStream, PdfCosRef>();
-  async function resolve(node: PdfCosNode | undefined, storeRootArray = false): Promise<PdfCosNode | undefined> {
+  async function resolve(node: PdfCosNode | undefined, storeRootArray = false, arrayPathPrefix?: readonly string[]): Promise<PdfCosNode | undefined> {
     charge(64);
-    const value = await document.lookup(node, storeRootArray && options.imageStorage ? { arrayStorage: options.imageStorage, storeRootArray: true } : undefined);
+    const value = await document.lookup(node, storeRootArray && options.imageStorage ? { arrayStorage: options.imageStorage, storeRootArray: true } : undefined, arrayPathPrefix);
     signal?.throwIfAborted();
     if (value?.stream && value.reference && value.value.kind === "dict") {
       charge(128);
@@ -145,7 +145,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
           const selected = nested.get(request.source); nested.delete(request.source);
           await selected?.return(); break;
         }
-        case "resolve": case "catalog": reply = { kind: "resolved", node: await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node, request.kind === "resolve" && request.storeRootArray) }; break;
+        case "resolve": case "catalog": reply = { kind: "resolved", node: await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node, request.kind === "resolve" && request.storeRootArray, request.kind === "resolve" ? request.arrayPathPrefix : undefined) }; break;
         case "dash-array": {
           reply = { kind: "dash-array", value: await storeDashArray(request.array, request.storage, request.resolveReferences ? resolve : async node => node, signal) }; break;
         }

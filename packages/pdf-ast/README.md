@@ -92,7 +92,10 @@ retained `lookup` also accept `arrayStorage`, `storedArrayKeys`, `storedArrayPat
 lookups too, including inline font resources. `storedArrayPaths` matches a suffix
 of enclosing dictionary keys, with `"*"` matching one key. For example,
 `[["ExtGState", "*", "D"]]` backs inline graphics-state dash declarations while
-leaving unrelated annotation and action `/D` arrays unchanged.
+leaving unrelated annotation and action `/D` arrays unchanged. Use
+`arrayPathPrefix` when parsing an indirect dictionary with known enclosing keys.
+The third `lookup` argument supplies this prefix without replacing the document's
+backing configuration; retained graphics-state evaluation carries it automatically.
 Retained font resolution uses these options for direct and indirect width tables
 when `resourceStorage` is supplied, including encrypted objects. `/Differences`
 uses caller-backed declaration maps as well: retained fonts expose asynchronous

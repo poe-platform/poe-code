@@ -19,9 +19,9 @@ export async function prepareRetainedPageContent(document: PdfRetainedDocument, 
   options.onAllocation?.(64);
   const resources = cosDict(); const identities = new WeakMap<PdfCosStream, PdfCosRef>();
   const chunkBytes = options.chunkBytes ?? 4096;
-  async function resolve(node: PdfCosNode | undefined) {
+  async function resolve(node: PdfCosNode | undefined, arrayPathPrefix?: readonly string[]) {
     options.signal?.throwIfAborted(); options.onAllocation?.(64);
-    const resolved = await document.lookup(node);
+    const resolved = await document.lookup(node, undefined, arrayPathPrefix);
     if (resolved?.stream && resolved.reference && resolved.value.kind === "dict") {
       options.onAllocation?.(128);
       const stream: PdfCosStream = { kind: "stream", dict: resolved.value, rawBytes: new Uint8Array() };
@@ -46,7 +46,7 @@ export async function prepareRetainedPageContent(document: PdfRetainedDocument, 
       while (!step.done) {
         options.signal?.throwIfAborted();
         const request = step.value; let result: PdfAppearanceResult;
-        if (request.kind === "resolve" || request.kind === "catalog") result = await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node);
+        if (request.kind === "resolve" || request.kind === "catalog") result = await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node, request.kind === "resolve" ? request.arrayPathPrefix : undefined);
         else if (request.kind === "appearance-content") {
           content = cursor(request.stream); first = await content.next(); result = !first.done;
           if (!emit || first.done) { await content.return(); content = undefined; }

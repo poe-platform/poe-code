@@ -69,25 +69,27 @@ it("backs inline font widths and encodings before decoding or inspecting PDF ima
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
 
-it("backs inline graphics-state dashes before Sips PDF metadata and pixel traversal",async()=>{
+it.each(["inline","map","state","both"])("backs %s graphics-state dashes before Sips PDF pixel traversal",async mode=>{
  const {cosArray,cosDict,dictGet,PdfRetainedDocument}=await import("@poe-code/pdf-ast");
  const {tryPdfMetadata}=await import("./image-pdf.js");
  const original=PdfDocument.create(),page=original.addPage([24,16]);
  const values=Array.from({length:1025},(_,i)=>cosNumber(i%2?3:2));
- dictSet(page.pageDict,"Resources",cosDict({ExtGState:cosDict({Dashes:cosDict({D:cosArray([cosArray(values),cosNumber(2)])})})}));
+ const state=cosDict({D:cosArray([cosArray(values),cosNumber(2)])});
+ const states=cosDict({Dashes:mode==="state"||mode==="both"?original.cos.allocateObject(state):state});
+ dictSet(page.pageDict,"Resources",cosDict({ExtGState:mode==="map"||mode==="both"?original.cos.allocateObject(states):states}));
  page.setRawContentStream("/Dashes gs 1 w 1 8 m 23 8 l S");
  const bytes=original.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
  const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
  const source={size:bytes.length,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
  let seen=0;
  const lookup=PdfRetainedDocument.prototype.lookup;
- const spy=vi.spyOn(PdfRetainedDocument.prototype,"lookup").mockImplementation(async function(node,arrays){
-  const result=await lookup.call(this,node,arrays);
+ const spy=vi.spyOn(PdfRetainedDocument.prototype,"lookup").mockImplementation(async function(node,arrays,prefix){
+  const result=await lookup.call(this,node,arrays,prefix);
   if(result?.value.kind==="dict"){
    const resources=dictGet(result.value,"Resources");
    const states=resources?.kind==="dict"?dictGet(resources,"ExtGState"):undefined;
-   const state=states?.kind==="dict"?dictGet(states,"Dashes"):undefined;
-   const dash=state?.kind==="dict"?dictGet(state,"D"):undefined;
+   const state=states?.kind==="dict"?dictGet(states,"Dashes"):dictGet(result.value,"Dashes");
+   const dash=state?.kind==="dict"?dictGet(state,"D"):dictGet(result.value,"D");
    if(dash?.kind==="array"){
     expect(dash.items).toHaveLength(0);expect(dash.storedItems?.length).toBe(2);
     expect(dash.storedItems?.storage).toBe(storage);seen++;
@@ -97,7 +99,7 @@ it("backs inline graphics-state dashes before Sips PDF metadata and pixel traver
  });
  try{
   expect(await tryPdfMetadata(source,fs,"/scratch",signal,{},storage)).toMatchObject({width:24,height:16});
-  const metadataReads=seen;expect(metadataReads).toBeGreaterThan(0);
+  const metadataReads=seen;if(mode==="inline")expect(metadataReads).toBeGreaterThan(0);
   const image=await tryPdfDecode(source,storage,fs,"/scratch",signal);
   expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
   expect(seen).toBeGreaterThan(metadataReads);

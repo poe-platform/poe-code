@@ -1526,7 +1526,7 @@ describe("scoped safe package artifacts", () => {
         "native/bz2", "native/types", "native/xz", "native/zstd",
       ]],
       ["safe-bash-line-ending-engine", ["index", "internal", "io", "stage", "convert", "encoding", "info", "command", "sync"]],
-      ["safe-bash-xml-engine", ["document", "evaluate", "io", "json", "limits", "query", "stored-document"]],
+      ["safe-bash-xml-engine", ["document", "evaluate", "io", "json", "limits", "query", "stored-document", "stored-evaluate"]],
     ] as const) {
       for (const entry of entries) expected[`/output/safe-bash/dist/${name}/${entry}.d.ts`] = "export {};\n";
     }

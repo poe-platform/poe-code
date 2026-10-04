@@ -204,6 +204,12 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
         "@poe-code/safe-fs/core": [
           "../safe-fs/src/core.ts"
         ],
+        "@poe-code/safe-fs/runtime-core": [
+          "../safe-fs/src/runtime-core.ts"
+        ],
+        "@poe-code/safe-fs/fs/memory": [
+          "../safe-fs/src/fs/memory/index.ts"
+        ],
         "@poe-code/safe-fs/node": [
           "../safe-fs/src/node-host.ts"
         ],

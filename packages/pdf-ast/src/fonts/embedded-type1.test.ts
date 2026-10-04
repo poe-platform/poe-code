@@ -12,7 +12,7 @@ import {
 import { parseEmbeddedType1Font } from "./type1.js";
 import { bytesToString, stringToBytes } from "../bytes.js";
 
-function type1Program(accent = false) {
+function type1Program(accent = false, glyphName = "A") {
   const number = (value: number): number[] =>
     value >= -107 && value <= 107
       ? [value + 139]
@@ -63,13 +63,16 @@ function type1Program(accent = false) {
       " ND\n"
     : "";
   const header =
-    "%!PS-AdobeFont-1.0: TestTriangle 1.0\n11 dict begin\n/FontName /TestTriangle def\n/FontType 1 def\n/FontMatrix [0.001 0 0 0.001 0 0] def\n/FontBBox [0 0 600 700] def\n/Encoding 256 array 0 1 255 {1 index exch /.notdef put} for dup 65 /A put readonly def\ncurrentdict end\ncurrentfile eexec\n";
+    "%!PS-AdobeFont-1.0: TestTriangle 1.0\n11 dict begin\n/FontName /TestTriangle def\n/FontType 1 def\n/FontMatrix [0.001 0 0 0.001 0 0] def\n/FontBBox [0 0 600 700] def\n/Encoding 256 array 0 1 255 {1 index exch /.notdef put} for dup 65 /A put readonly def\ncurrentdict end\ncurrentfile eexec\n".replace(
+      "dup 65 /A put",
+      `dup 65 /${glyphName} put`
+    );
   const privateData = stringToBytes(
     "\0\0\0\0dup /Private 8 dict dup begin\n/lenIV -1 def\n/RD {string currentfile exch readstring pop} executeonly def\n/ND {noaccess def} executeonly def\n/NP {noaccess put} executeonly def\n/Subrs 0 array def\n/CharStrings 4 dict dup begin\n/.notdef " +
       triangle.length +
       " RD " +
       bytesToString(triangle) +
-      " ND\n/A " +
+      ` ND\n/${glyphName} ` +
       triangle.length +
       " RD " +
       bytesToString(triangle) +
@@ -91,14 +94,16 @@ function type1Program(accent = false) {
 }
 
 it.each([
-  [false, false],
-  [true, false],
-  [false, true],
-  [true, true]
-])("renders embedded Type 1 glyphs (Differences: %s, ToUnicode: %s)", async (remap, toUnicode) => {
+  [false, false, false],
+  [true, false, false],
+  [false, true, false],
+  [true, true, false],
+  [true, false, true],
+  [true, true, true]
+])("Type1 Differences=%s ToUnicode=%s ligature=%s", async (remap, toUnicode, ligature) => {
   const doc = PdfDocument.create();
   const page = doc.addPage([100, 100]);
-  const { bytes, length1, length2 } = type1Program();
+  const { bytes, length1, length2 } = type1Program(false, ligature ? "fi" : "A");
   const fontFile = doc.cos.allocateObject(
     cosStream(bytes, {
       dict: cosDict({
@@ -117,7 +122,11 @@ it.each([
       LastChar: cosNumber(66),
       Widths: cosArray([cosNumber(600), cosNumber(600)]),
       ...(remap
-        ? { Encoding: cosDict({ Differences: cosArray([cosNumber(66), cosName("A")]) }) }
+        ? {
+            Encoding: cosDict({
+              Differences: cosArray([cosNumber(66), cosName(ligature ? "fi" : "A")])
+            })
+          }
         : {}),
       ...(toUnicode
         ? {
@@ -147,7 +156,7 @@ it.each([
   dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: font }) }));
   page.setRawContentStream(`BT /F1 100 Tf 10 10 Td (${remap ? "B" : "A"}) Tj ET`);
   const glyph = PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList().glyphs[0]!;
-  expect(glyph.unicode).toBe(toUnicode ? "Ω" : "A");
+  expect(glyph.unicode).toBe(toUnicode ? "Ω" : ligature ? "fi" : "A");
   const segments = glyph.outline!.segments;
   const vertices = new Set(
     segments.flatMap((segment) =>

@@ -1142,8 +1142,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       return reply.node?.kind==="number"?reply.node.value:reply.node?.kind==="name"?reply.node.decoded:undefined;
     }
     function* difference(code:number):EvaluationWork<string|undefined>{
+      if(font?.differences.has(code))return font.differences.get(code);
       const embedded=font?.embeddedCff;
-      if(embedded && "storedCff" in embedded && embedded.getUnicode && !font?.cmap?.map.has(code)){
+      if(embedded && "storedCff" in embedded && embedded.getUnicode){
         const reply=yield {kind:"font-unicode",lookup:embedded.getUnicode,code};
         if(!reply||!("kind" in reply)||reply.kind!=="resolved")throw new TypeError("Expected font Unicode label");
         if(reply.node?.kind==="name")return reply.node.decoded;

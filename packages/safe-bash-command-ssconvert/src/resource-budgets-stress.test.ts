@@ -71,12 +71,20 @@ it("reports forbidden entity declarations as a host capability denial", async ()
 });
 it("admits a gzip declared inflated size before acquiring a decompressor", async () => {
   const { gzipSync } = await import("node:zlib");
+  const compression = await import("@poe-code/office-package");
   const { readGnumeric } = await import("./codecs/gnumeric.js");
-  let acquisitions = 0;
-  await expect(readGnumeric(new Uint8Array(gzipSync('<gnm:Workbook xmlns:gnm="http://www.gnumeric.org/v10.dtd"><gnm:Sheets/></gnm:Workbook>')), {
-    signal: new AbortController().signal, environment, limits: { ...limits, inflatedBytes: 16 }, own() { acquisitions++; }
-  })).rejects.toMatchObject({ code: "resource-limit" });
-  expect(acquisitions).toBe(0);
+  const acquire = vi.spyOn(compression, "createCompressionCodec");
+  const bytes = new Uint8Array(gzipSync('<gnm:Workbook xmlns:gnm="http://www.gnumeric.org/v10.dtd"><gnm:Sheets/></gnm:Workbook>'));
+  try {
+    await expect(readGnumeric(bytes, {
+      signal: new AbortController().signal, environment, limits: { ...limits, inflatedBytes: 16 }, own() {}
+    })).rejects.toMatchObject({ code: "resource-limit" });
+    expect(acquire).not.toHaveBeenCalled();
+    await readGnumeric(bytes, {
+      signal: new AbortController().signal, environment, limits, own() {}
+    });
+    expect(acquire).toHaveBeenCalledOnce();
+  } finally { acquire.mockRestore(); }
 });
 it.each(["xlsx", "odf"] as const)("refuses %s ZIP ratios before decoding a corrupted deflate payload", async format => {
   const { createZipCodec } = await import("@poe-code/office-package");

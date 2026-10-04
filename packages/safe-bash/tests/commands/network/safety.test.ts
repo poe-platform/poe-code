@@ -260,11 +260,44 @@ test("upload quota stops bytes rather than truncating successfully", async () =>
   finally { await host.close(); }
 });
 
-test("stdin replay overflow fails honestly instead of sending a prefix", async () => {
+test("stdin replay storage overflow fails honestly instead of sending a prefix", async () => {
   const host = await server();
   try {
-    const result = await run(["-L", "-T", "-", host.origin + "/redirect/307"], { stdin: Buffer.alloc(400, 97), options: { limits: { maxBufferBytes: 128 } } });
+    const fs = await fixture();
+    const createStagedFile = fs.createStagedFile.bind(fs);
+    let stagedBytes = 0;
+    fs.createStagedFile = async (...args) => {
+      const stage = await createStagedFile(...args);
+      const writer = stage.writer;
+      assert.ok(writer);
+      return { ...stage, writer: { ...writer, async write(bytes, options) {
+        if (stagedBytes + bytes.length > 128) throw new FsError("ENOSPC");
+        await writer.write(bytes, options);
+        stagedBytes += bytes.length;
+      } } };
+    };
+    const payload = Buffer.alloc(400, 97);
+    const stdin = (async function* () { yield payload.subarray(0, 100); yield payload.subarray(100); })();
+    const result = await run(["-L", "-T", "-", host.origin + "/redirect/307"], { fs, stdin, options: { limits: { maxBufferBytes: 128 } } });
     assert.equal(result.exitCode, 65); assert.equal(host.requests.filter(request => request.path === "/echo").length, 0);
+    assert.equal(stagedBytes, 100);
+    assert.deepEqual(host.requests.map(({ path, body }) => ({ path, body })), [{ path: "/redirect/307", body: payload }]);
+    assert.deepEqual(await fs.readdir("/work"), []);
+  } finally { await host.close(); }
+});
+
+test("stdin replay beyond the control buffer limit sends the complete stored body", async () => {
+  const host = await server();
+  try {
+    const fs = await fixture();
+    const payload = Buffer.from(Array.from({ length: 400 }, (_, index) => index % 256));
+    const result = await run(["-L", "-T", "-", host.origin + "/redirect/307"], { fs, stdin: payload, options: { limits: { maxBufferBytes: 128 } } });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(host.requests.map(({ path, body }) => ({ path, body })), [
+      { path: "/redirect/307", body: payload },
+      { path: "/echo", body: payload },
+    ]);
+    assert.deepEqual(await fs.readdir("/work"), []);
   } finally { await host.close(); }
 });
 

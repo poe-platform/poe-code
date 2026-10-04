@@ -1,4 +1,5 @@
 import { utf8ByteLength, bytesFrom } from "safe-bash-byte-engine";
+import { PagedStorageCache } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { escapeText } from "safe-bash-contracts/escaping";
 import { isFsError, type CommandContext, type FsError } from "safe-bash-contracts";
@@ -13,6 +14,7 @@ export class FileFailure extends Error {
 }
 
 export class Work {
+  readonly documentCache = new PagedStorageCache(16);
   private units = 0;
   private nextYield = 4096;
   private closed = false;

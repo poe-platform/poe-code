@@ -12,6 +12,47 @@ const pageBytes = 16 * 1024;
 let serial = 0;
 type Page = { bytes: Uint8Array; dirty: boolean };
 
+/** Shares one resident-page limit across stores, retaining each store's caller
+ * filesystem and cleanup ownership. Serializes cache users through eviction IO. */
+export class PagedStorageCache {
+  private readonly pages = new Map<Page, () => Promise<void>>();
+  private active: Promise<unknown> = Promise.resolve();
+
+  constructor(private readonly maxPages: number) {
+    if (!Number.isSafeInteger(maxPages) || maxPages < 1) throw new RangeError("Invalid storage page cache size");
+  }
+
+  get residentBytes(): number { return this.pages.size * pageBytes; }
+
+  run<T>(action: () => Promise<T>): Promise<T> {
+    const work = this.active.then(action);
+    this.active = work.then(() => undefined, () => undefined);
+    return work;
+  }
+
+  async acquire(): Promise<Page> {
+    if (this.pages.size < this.maxPages) return { bytes: new Uint8Array(pageBytes), dirty: false };
+    const [page, release] = this.pages.entries().next().value!;
+    await release();
+    this.pages.delete(page);
+    page.bytes.fill(0);
+    return page;
+  }
+
+  retain(page: Page, release: () => Promise<void>): void {
+    this.pages.delete(page);
+    this.pages.set(page, release);
+  }
+
+  touch(page: Page): void {
+    const release = this.pages.get(page)!;
+    this.pages.delete(page);
+    this.pages.set(page, release);
+  }
+
+  forget(page: Page): void { this.pages.delete(page); }
+}
+
 /** A bounded page cache backed only by the caller filesystem. The default is
  * one MiB; callers own close() on every outcome. Memory filesystems still retain
  * spilled data in RAM, so large workloads require an external backing provider. */
@@ -29,7 +70,7 @@ export class PagedStorage {
   private active: Promise<unknown> = Promise.resolve();
   private closing: Promise<void> | undefined;
 
-  constructor(private readonly context: PagedStorageContext, private readonly maxPages = 64) {
+  constructor(private readonly context: PagedStorageContext, private readonly maxPages = 64, private readonly cache?: PagedStorageCache) {
     if (!Number.isSafeInteger(maxPages) || maxPages < 1) throw new RangeError("Invalid storage page cache size");
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
   }
@@ -44,10 +85,11 @@ export class PagedStorage {
 
   private operation<T>(action: () => Promise<T>): Promise<T> {
     this.signal.throwIfAborted();
-    const work = this.active.then(() => {
+    const execute = () => {
       this.signal.throwIfAborted();
       return action();
-    });
+    };
+    const work = this.active.then(() => this.cache ? this.cache.run(execute) : execute());
     this.active = work.then(() => undefined, () => undefined);
     return work;
   }
@@ -103,6 +145,7 @@ export class PagedStorage {
     if (cached) {
       this.pages.delete(number);
       this.pages.set(number, cached);
+      this.cache?.touch(cached);
       return cached;
     }
     let reusable: Page | undefined;
@@ -111,11 +154,14 @@ export class PagedStorage {
       const [oldNumber, oldPage] = this.pages.entries().next().value!;
       await this.flush(oldNumber, oldPage);
       this.pages.delete(oldNumber);
+      this.cache?.forget(oldPage);
       reusable = oldPage;
     }
     // Flush owns the bytes until its awaited write completes. Reuse only then;
     // zero new/unwritten ranges so the previous page cannot leak into them.
-    const page: Page = reusable ?? { bytes: new Uint8Array(pageBytes), dirty: false };
+    const page: Page = reusable ?? (this.cache ? await this.cache.acquire() : { bytes: new Uint8Array(pageBytes), dirty: false });
+    // Shared eviction may await IO owned by a different, still-live signal.
+    this.signal.throwIfAborted();
     if (reusable) page.bytes.fill(0);
     if (number * pageBytes < this.diskLength) {
       let offset = 0;
@@ -127,6 +173,11 @@ export class PagedStorage {
       }
     }
     this.pages.set(number, page);
+    this.cache?.retain(page, async () => {
+      if (!this.descriptor) await this.spill();
+      await this.flush(number, page);
+      this.pages.delete(number);
+    });
     return page;
   }
 
@@ -169,24 +220,28 @@ export class PagedStorage {
     this.controller.abort(new FsError("ECANCELED"));
     return this.closing ??= (async () => {
       await this.active.catch(() => {});
-      this.pages.clear();
-      const descriptor = this.descriptor;
-      if (!descriptor) return;
-      const cancellation = new FsError("ECANCELED");
-      try {
-        if (!this.unlinked) {
-          const expected = this.initial ?? await descriptor.stat();
-          await this.context.fs.removeFileConditional!(this.path!, { parent: this.parent!, expected }).catch(error => {
-            if (!isFsError(error) || error.code !== "ENOENT") throw error;
+      const retire = async () => {
+        for (const page of this.pages.values()) this.cache?.forget(page);
+        this.pages.clear();
+        const descriptor = this.descriptor;
+        if (!descriptor) return;
+        const cancellation = new FsError("ECANCELED");
+        try {
+          if (!this.unlinked) {
+            const expected = this.initial ?? await descriptor.stat();
+            await this.context.fs.removeFileConditional!(this.path!, { parent: this.parent!, expected }).catch(error => {
+              if (!isFsError(error) || error.code !== "ENOENT") throw error;
+            });
+          }
+        } finally {
+          // Conditional descriptors must discard their private staged writes, not
+          // publish the scratch data when the command retires its handle.
+          await descriptor.close({ signal: AbortSignal.abort(cancellation) }).catch(error => {
+            if (error !== cancellation) throw error;
           });
         }
-      } finally {
-        // Conditional descriptors must discard their private staged writes, not
-        // publish the scratch data when the command retires its handle.
-        await descriptor.close({ signal: AbortSignal.abort(cancellation) }).catch(error => {
-          if (error !== cancellation) throw error;
-        });
-      }
+      };
+      await (this.cache ? this.cache.run(retire) : retire());
     })();
   }
 }

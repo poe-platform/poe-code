@@ -1,5 +1,5 @@
-import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { IndexedDocument, closeDocumentResources } from "safe-bash-diff-engine/document";
+import { PagedStorage, PagedStorageCache } from "@poe-code/safe-fs/storage";
+import { IndexedDocument, closeDocumentResources, type DocumentBudget } from "safe-bash-diff-engine/document";
 import { Budget, ToolError, host } from "safe-bash-diff-engine/shared";
 import type { ByteSource } from "safe-bash-contracts";
 
@@ -64,10 +64,14 @@ export async function equalTargetLines(left: TargetLine, right: TargetLine, budg
 /** Owns caller-backed immutable targets for the duration of patch preflight/publication. */
 export class TargetDocuments {
   private readonly documents = new Set<IndexedDocument>();
-  constructor(readonly budget: Budget) {}
+  private readonly documentBudget: DocumentBudget;
+  constructor(readonly budget: Budget) {
+    this.documentBudget = { context: budget.context, documentCache: new PagedStorageCache(16),
+      step: budget.step.bind(budget), checkpoint: budget.checkpoint.bind(budget) };
+  }
 
   async load(source: ByteSource): Promise<IndexedDocument> {
-    const document = new IndexedDocument(this.budget, 2);
+    const document = new IndexedDocument(this.documentBudget, 2);
     this.documents.add(document);
     await document.load(source);
     if (document.binary) throw new ToolError("binary input is unsupported (NUL byte)");

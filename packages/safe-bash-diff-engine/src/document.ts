@@ -1,7 +1,8 @@
-import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { PagedStorage, type PagedStorageCache } from "@poe-code/safe-fs/storage";
 import { readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
 export interface DocumentBudget {
   readonly context: CommandContext;
+  readonly documentCache?: PagedStorageCache;
   step(amount?: number): void;
   checkpoint(): void | Promise<void>;
 }
@@ -30,8 +31,8 @@ export class IndexedDocument {
   private loaded = false;
 
   constructor(readonly budget: DocumentBudget, pages = 16) {
-    this.data = new PagedStorage(budget.context, pages);
-    this.index = new PagedStorage(budget.context, pages);
+    this.data = new PagedStorage(budget.context, pages, budget.documentCache);
+    this.index = new PagedStorage(budget.context, pages, budget.documentCache);
     budget.context.registerCleanup?.(() => this.close());
   }
 
@@ -86,8 +87,10 @@ export class IndexedDocument {
     const bytes = await this.index.read(8 + position * 24, 24);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const line = { start: view.getFloat64(0, true), end: view.getFloat64(8, true), hash: view.getUint32(16, true) };
-    if (this.cache.size === 256) this.cache.delete(this.cache.keys().next().value!);
-    this.cache.set(position, line);
+    if (!this.budget.documentCache) {
+      if (this.cache.size === 256) this.cache.delete(this.cache.keys().next().value!);
+      this.cache.set(position, line);
+    }
     return line;
   }
 
@@ -111,6 +114,7 @@ export class IndexedDocument {
   }
 
   private retainComparison(position: number, line: DocumentLine, bytes: Uint8Array): void {
+    if (this.budget.documentCache) return;
     if (this.comparisons.has(position)) return;
     if (this.comparisons.size === 512) this.comparisons.delete(this.comparisons.keys().next().value!);
     this.comparisons.set(position, { line, bytes });

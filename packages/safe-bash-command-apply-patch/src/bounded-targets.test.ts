@@ -3,6 +3,48 @@ import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { toByteSource, type FileSystem } from "safe-bash-contracts";
 import { createApplyPatchCommand } from "./index.js";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
+
+test("many live targets share a fixed aggregate document cache", async t => {
+  const fs = createMemoryFileSystem();
+  const block = new Uint8Array(32768).fill(120);
+  let patch = "*** Begin Patch\n";
+  for (let index = 0; index < 40; index++) {
+    await fs.writeStream(`/file${index}`, { async *[Symbol.asyncIterator]() {
+      yield block; yield new TextEncoder().encode("\nold\n");
+    } });
+    patch += `*** Update File: /file${index}\n@@\n-old\n+new\n`;
+  }
+  patch += "*** End Patch\n";
+  const stores = new Set<PagedStorage>();
+  let peak = 0;
+  const resident = () => [...stores].reduce((sum, storage) => sum + (Reflect.get(storage, "pages") as Map<unknown, unknown>).size * 16384, 0);
+  for (const key of ["read", "write"] as const) {
+    const original = PagedStorage.prototype[key];
+    t.mock.method(PagedStorage.prototype, key, async function(this: PagedStorage, ...args: unknown[]) {
+      stores.add(this);
+      const result = await Reflect.apply(original, this, args);
+      peak = Math.max(peak, resident());
+      return result;
+    });
+  }
+  let diagnostic = "", summary = "";
+  const result = await createApplyPatchCommand().execute({
+    command: "apply_patch", args: [], cwd: "/", env: {}, fs,
+    stdin: toByteSource(patch), signal: new AbortController().signal,
+    stdout: { async write(bytes) { assert.ok(bytes.length <= 16384); await Promise.resolve(); summary += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { diagnostic += new TextDecoder().decode(bytes); } },
+  });
+  assert.equal(result.exitCode, 0, diagnostic);
+  assert.ok(stores.size >= 160, "test must cover independent original and replacement stores");
+  assert.ok(peak <= 24 * 16384, `aggregate resident pages grew to ${peak} bytes`);
+  assert.equal(resident(), 0);
+  assert.equal(summary, "Success. Updated the following files:\n" + Array.from({ length: 40 }, (_, index) => `M /file${index}\n`).join(""));
+  for (let index = 0; index < 40; index++) {
+    assert.equal(new TextDecoder().decode((await fs.readFile(`/file${index}`)).subarray(-5)), "\nnew\n");
+  }
+  assert.equal((await fs.readdir("/")).length, 40);
+});
 
 for (const failure of ["none", "write", "cancel"] as const) test(`target processing uses bounded reads and conditional streamed output: failure=${failure}`, async () => {
   const fs = createMemoryFileSystem();

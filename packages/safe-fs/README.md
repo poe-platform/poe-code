@@ -10,6 +10,11 @@ working data. Supply `{fs, cwd, env, signal}` and an optional page-cache count
 `env.TMPDIR` or `cwd`, with conditional unlink and cleanup through `close()`.
 Providers must support those capabilities; there is no host fallback. Use an
 external backend for large data because memory filesystems retain spilled bytes.
+To bound aggregate pages across multiple live stores, pass the same
+`new PagedStorageCache(16)` as the third argument to each `PagedStorage` constructor.
+This shares a 256 KiB resident-page budget; `cache.residentBytes` reports current
+page retention. Eviction uses each store's filesystem, and each store still owns
+its `close()` cleanup. The budget excludes caller buffers and backend storage.
 `IntegerTable.entries()` replays records in unsigned key order with a fixed
 16-level node stack and batches of at most 128 records. It accepts zero-filled
 caller storage with `allocate`, `read` and `write`; mutation during traversal

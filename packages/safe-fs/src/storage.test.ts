@@ -1,7 +1,109 @@
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "./fs/memory/index.js";
-import {PagedStorage, IntegerTable} from "./storage.js";
+import {PagedStorage, PagedStorageCache, IntegerTable} from "./storage.js";
 import type {FileSystem} from "./contracts/filesystem.js";
+
+it("shares a fixed page budget across independently live stores and concurrent readers", async () => {
+  const fs = new MemoryFileSystem();
+  const cache = new PagedStorageCache(2);
+  const context = {fs, cwd: "/", env: {}, signal: new AbortController().signal};
+  const stores = Array.from({length: 20}, () => new PagedStorage(context, 2, cache));
+  const open = vi.spyOn(fs, "open");
+  try {
+    await Promise.all(stores.map((storage, index) => storage.append(new Uint8Array(1000).fill(index))));
+    expect(cache.residentBytes).toBeLessThanOrEqual(32768);
+    expect(open.mock.calls.length).toBeGreaterThanOrEqual(18);
+    for (let round = 0; round < 3; round++) {
+      await Promise.all(stores.map(async (storage, index) => {
+        expect(await storage.read(8, 1000)).toEqual(new Uint8Array(1000).fill(index));
+        expect(cache.residentBytes).toBeLessThanOrEqual(32768);
+      }));
+    }
+    await stores[0]!.close();
+    expect(await stores[19]!.read(8, 1000)).toEqual(new Uint8Array(1000).fill(19));
+  } finally { await Promise.all(stores.map(storage => storage.close())); }
+  expect(cache.residentBytes).toBe(0);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("waits for another store's eviction IO before closing a shared-cache owner", async () => {
+  const fs = new MemoryFileSystem();
+  const cache = new PagedStorageCache(1);
+  const context = {fs, cwd: "/", env: {}, signal: new AbortController().signal};
+  const left = new PagedStorage(context, 2, cache), right = new PagedStorage(context, 2, cache);
+  let entered!: () => void, release!: () => void, closed = 0;
+  const pending = new Promise<void>(resolve => { entered = resolve; });
+  const released = new Promise<void>(resolve => { release = resolve; });
+  const open = fs.open.bind(fs);
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args);
+    return { capabilities: handle.capabilities,
+      stat: handle.stat.bind(handle), read: handle.read.bind(handle), truncate: handle.truncate.bind(handle), sync: handle.sync.bind(handle),
+      async write(...params) { entered(); await released; return handle.write(...params); },
+      async close(...params) { closed++; await handle.close(...params); },
+    };
+  });
+  try {
+    await left.append(new Uint8Array([37]));
+    const address = right.allocate(1);
+    const eviction = right.write(address, new Uint8Array([42]));
+    const failure = eviction.then(() => undefined, error => error);
+    await pending;
+    const closing = left.close();
+    await Promise.resolve(); await Promise.resolve();
+    expect(closed).toBe(0);
+    release();
+    expect(await failure).toMatchObject({code: "ECANCELED"}); await closing;
+    expect(closed).toBe(1);
+    await right.write(address, new Uint8Array([42]));
+    expect(await right.read(address, 1)).toEqual(new Uint8Array([42]));
+  } finally { release(); await Promise.all([left.close(), right.close()]); }
+  expect(cache.residentBytes).toBe(0);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("does not lose the victim when shared-cache spill fails", async () => {
+  const fs = new MemoryFileSystem();
+  const cache = new PagedStorageCache(1);
+  const context = {fs, cwd: "/", env: {}, signal: new AbortController().signal};
+  const left = new PagedStorage(context, 2, cache), right = new PagedStorage(context, 2, cache);
+  const failure = new Error("spill failed");
+  const open = vi.spyOn(fs, "open").mockRejectedValueOnce(failure);
+  try {
+    await left.append(new Uint8Array([37]));
+    const address = right.allocate(1);
+    await expect(right.write(address, new Uint8Array([42]))).rejects.toBe(failure);
+    expect(await left.read(8, 1)).toEqual(new Uint8Array([37]));
+    await right.write(address, new Uint8Array([42]));
+    expect(await left.read(8, 1)).toEqual(new Uint8Array([37]));
+    expect(await right.read(address, 1)).toEqual(new Uint8Array([42]));
+    expect(open).toHaveBeenCalledTimes(3);
+  } finally { await Promise.all([left.close(), right.close()]); }
+  expect(cache.residentBytes).toBe(0);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each(["read", "write"] as const)("observes requester cancellation during another store's eviction: %s", async operation => {
+  const fs = new MemoryFileSystem(), cache = new PagedStorageCache(1);
+  const controller = new AbortController(), reason = new Error("requester cancelled");
+  const context = {fs, cwd: "/", env: {}, signal: new AbortController().signal};
+  const owner = new PagedStorage(context, 2, cache);
+  const requester = new PagedStorage({...context, signal: controller.signal}, 2, cache);
+  const open = fs.open.bind(fs);
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args), write = handle.write.bind(handle);
+    handle.write = async (...params) => { controller.abort(reason); return write(...params); };
+    return handle;
+  });
+  try {
+    await owner.append(Uint8Array.of(37));
+    const address = requester.allocate(1);
+    await expect(operation === "read" ? requester.read(address, 1) : requester.write(address, Uint8Array.of(42))).rejects.toBe(reason);
+    expect(await owner.read(8, 1)).toEqual(Uint8Array.of(37));
+  } finally { await Promise.all([owner.close(), requester.close()]); }
+  expect(cache.residentBytes).toBe(0);
+  expect(await fs.readdir("/")).toEqual([]);
+});
 
 it("spills bounded pages through caller handles and retires scratch files", async () => {
   const fs = new MemoryFileSystem();

@@ -6,6 +6,39 @@ import { TargetDocuments } from "./stored-target.js";
 import { applyStoredHunks } from "./stored-hunks.js";
 import { parsePatch } from "./patch-formats.js";
 import { filesystem, run } from "./helpers.test.js";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
+
+for (const args of [[], ["--atomic"]]) test(`multiple GNU patch targets share bounded document pages: ${args}`, async t => {
+  const fs = await filesystem();
+  const block = new Uint8Array(32768).fill(120);
+  let input = "";
+  for (let index = 0; index < 24; index++) {
+    await fs.writeStream(`/work/file${index}`, { async *[Symbol.asyncIterator]() {
+      yield block; yield new TextEncoder().encode("\nold\n");
+    } });
+    input += `--- file${index}\n+++ file${index}\n@@ -2 +2 @@\n-old\n+new\n`;
+  }
+  const stores = new Set<PagedStorage>();
+  const resident = () => [...stores].reduce((sum, storage) => sum + (Reflect.get(storage, "pages") as Map<unknown, unknown>).size * 16384, 0);
+  let peak = 0;
+  for (const key of ["read", "write"] as const) {
+    const original = PagedStorage.prototype[key];
+    t.mock.method(PagedStorage.prototype, key, async function(this: PagedStorage, ...params: unknown[]) {
+      stores.add(this);
+      const result = await Reflect.apply(original, this, params);
+      peak = Math.max(peak, resident());
+      return result;
+    });
+  }
+  const result = await run("patch", args, { fs, input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(peak <= 20 * 16384, `aggregate cache grew to ${peak} bytes`);
+  assert.equal(resident(), 0);
+  for (let index = 0; index < 24; index++) {
+    assert.equal(new TextDecoder().decode((await fs.readFile(`/work/file${index}`)).subarray(-5)), "\nnew\n");
+  }
+  assert.equal((await fs.readdir("/work")).length, 24);
+});
 
 test("asymmetric patch matching rejects at the GNU boundary within 10,000 work units", async () => {
   const fs = await filesystem();

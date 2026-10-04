@@ -1,7 +1,8 @@
+import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
-import { PdfError, PdfFileSource, PdfRetainedDocument, saveRetainedDocumentChunks, retainedCosObjects, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
+import { PdfError, PdfFileSource, PdfRetainedDocument, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -11,6 +12,8 @@ import type { QpdfLimits } from "./index.js";
 
 export interface RetainedQpdfOptions {
   inputFile: string | undefined;
+  emptyInput: boolean;
+  pageSpecs: readonly { file: string; password?: string; range: string }[];
   outputFile: string | undefined;
   password: string | undefined;
   replaceInput: boolean;
@@ -36,19 +39,39 @@ export interface RetainedQpdfOptions {
 export async function executeRetainedQpdf(context: CommandContext, options: RetainedQpdfOptions, limits: QpdfLimits, signal: AbortSignal, inputBytes = 0): Promise<{ exitCode: number }> {
   const diagnostic = async (message: string) => { await writeBytes(context.stderr, new TextEncoder().encode(message), signal); return { exitCode: 2 }; };
   const inputName = options.inputFile;
-  if (!inputName) return diagnostic("qpdf: an input file is required\n");
+  const useEmpty = options.emptyInput && !options.isEncrypted && !options.requiresPassword;
   const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
-  let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, failed = false;
+  const inputs = new Map<string, PdfFileSource | undefined>();
+  let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, intermediate: PdfFileSource | undefined, output: PdfFileSource | undefined, failed = false;
   try {
     await context.fs.mkdir(storage.directory, { recursive: true, signal });
-    const maximum = Math.min(limits.maxInputBytes, context.inputBudget?.maxBytes ?? Infinity) - inputBytes;
-    try {
-      source = inputName === "-" ? await PdfFileSource.fromStream(context.fs, storage.directory, context.stdin, { signal, maxInputBytes: maximum }) : await PdfFileSource.open(context.fs, resolvePath(context.cwd, inputName), { signal, maxInputBytes: maximum });
-      context.inputBudget?.check(inputBytes + source.size);
-    } catch (error) {
-      signal.throwIfAborted();
-      if (error instanceof Error && "code" in error && ["ENOENT", "ENOTDIR", "EACCES", "EISDIR"].includes(String(error.code))) return await diagnostic(`qpdf: cannot open ${inputName}\n`);
-      throw error;
+    const maximum = Math.min(limits.maxInputBytes, context.inputBudget?.maxBytes ?? Infinity);
+    // Acquire identities and admit sizes without reading every input payload.
+    for (const candidate of new Set([inputName, ...options.pageSpecs.map(spec => spec.file)])) {
+      signal.throwIfAborted(); if (!candidate || candidate === "." || candidate === "-") continue;
+      let acquired: PdfFileSource;
+      try { acquired = await PdfFileSource.open(context.fs, resolvePath(context.cwd, candidate), { signal, maxInputBytes: maximum - inputBytes }); }
+      catch (error) {
+        signal.throwIfAborted();
+        if ((error instanceof Error && "code" in error && ["ENOENT", "ENOTDIR", "EACCES", "EISDIR"].includes(String(error.code))) ||
+            (error instanceof PdfError && error.message === "PDF source must be a regular file")) { inputs.set(candidate, undefined); continue; }
+        throw error;
+      }
+      inputs.set(candidate, acquired); inputBytes += acquired.size; context.inputBudget?.check(inputBytes);
+    }
+    if (inputName === "-" || options.pageSpecs.some(spec => spec.file === "-")) {
+      const acquired = await PdfFileSource.fromStream(context.fs, storage.directory, context.stdin, { signal, maxInputBytes: maximum - inputBytes });
+      inputs.set("-", acquired); inputBytes += acquired.size; context.inputBudget?.check(inputBytes);
+    }
+    if (useEmpty) {
+      const objects = [cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) }), cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }), cosDict({ Producer: cosString("@poe-code/pdf-ast") })];
+      source = await PdfFileSource.fromStream(context.fs, storage.directory, serializeRetainedCosDocumentChunks({
+        objects: objects.map((value, index) => ({ objectNumber: index + 1, generationNumber: 0, value })), rootRef: cosRef(1), infoRef: cosRef(3), signal,
+      }, storage), { signal });
+    } else {
+      if (!inputName) return await diagnostic("qpdf: an input file is required\n");
+      source = inputs.get(inputName);
+      if (!source) return await diagnostic(`qpdf: cannot open ${inputName}\n`);
     }
     if (options.isEncrypted || options.requiresPassword) {
       // Preserve the compatibility predicate's literal marker test, including
@@ -128,7 +151,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
       const encryption = document.encryption;
       const message = options.check
-        ? `checking ${inputName}\nPDF Version: ${document.crossReference.version}\nFile is ${encryption ? "encrypted" : "not encrypted"}\nFile is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n`
+        ? `checking ${inputName ?? "empty"}\nPDF Version: ${document.crossReference.version}\nFile is ${encryption ? "encrypted" : "not encrypted"}\nFile is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n`
         : options.showNpages ? `${count}\n`
         : encryption ? `R = ${encryption.revision}\nV = ${encryption.version}\nLength = ${encryption.keyLengthBits}\nprint: ${encryption.permissions.print ? "allowed" : "not allowed"}\nmodify: ${encryption.permissions.modify ? "allowed" : "not allowed"}\nextract for accessibility: ${encryption.permissions.copy ? "allowed" : "not allowed"}\n`
         : "File is not encrypted\n";
@@ -136,6 +159,12 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       if (bytes.length > limits.maxOutputBytes) throw new RangeError("Output byte limit exceeded");
       await writeBytes(context.stdout, bytes, signal);
       return { exitCode: 0 };
+    }
+    if (options.pageSpecs.length) {
+      const selected = copyQpdfSelections(document, source, inputs, storage, options, signal);
+      try { intermediate = await PdfFileSource.fromStream(context.fs, storage.directory, selected, { signal }); }
+      finally { await selected.return(undefined); }
+      document = await PdfRetainedDocument.open(intermediate, storage, { signal, recovery: "repair" });
     }
     const destination = options.replaceInput ? inputName : options.outputFile;
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
@@ -153,9 +182,9 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
     }
     return { exitCode: 0 };
-  } catch (error) { failed = true; throw error; }
+  } catch (error) { failed = true; if (error instanceof QpdfMissingInput) return await diagnostic(error.message); throw error; }
   finally {
-    const results = await Promise.allSettled([document?.close(), source?.close(), output?.close()]);
+    const results = await Promise.allSettled([document?.close(), ...[...new Set([...inputs.values(), source, intermediate, output])].map(input => input?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
   }
 }

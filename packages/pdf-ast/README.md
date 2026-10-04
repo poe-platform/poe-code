@@ -57,7 +57,9 @@ using the caller's safe-fs. `read(position, maxBytes)` returns owned bytes up to
 backpressure. Always close the source in `finally`. The default range cache is
 256 KiB with 64 KiB chunks; `maxInputBytes` rejects oversized inputs before any
 payload read. Sources require retained-read support and never reopen a pathname
-or fall back to whole-file reads. The caller chooses and owns the backend;
+or fall back to whole-file reads. `releaseCache()` drops cached ranges after
+accepted reads while keeping the same retained identity, so inactive inputs need
+not retain their range buffers. The caller chooses and owns the backend;
 memory-backed safe-fs still stores its files in RAM.
 
 `new PdfStagingStorage({ fs, directory }, maxBytes)` provides one aggregate
@@ -817,7 +819,8 @@ To combine sources, pass a synchronous or asynchronous iterable of
 `{ document, indices }` as `copyRetainedPagesChunks(sources, storage, options)`.
 Each source is fully copied before the iterable resumes, so a source generator
 can close that document and its input before opening the next. Metadata comes
-from the first source; forms accumulate with the ordinary page-copy behavior.
+from the first source unless `metadata` supplies an override; pass `{}` to keep
+only the default producer. Forms accumulate with the ordinary page-copy behavior.
 With `includeOutlines: true`, full-document selections flatten source outlines,
 preserving titles and destinations with source offsets and first-page fallbacks.
 Traversal frames, outline records and page-reference indexes use caller storage.

@@ -223,6 +223,15 @@ export class PdfFileSource {
     }
   }
 
+  /** Drop cached ranges after accepted reads, preserving the retained identity.
+   * Useful when switching between inputs without keeping inactive caches live. */
+  releaseCache(): Promise<void> {
+    if (this.closing) return Promise.reject(new PdfError("E_CAPABILITY", "PDF source is closed"));
+    const operation = this.pending.then(() => { this.cache.clear(); });
+    this.pending = operation;
+    return operation;
+  }
+
   /** Accepted reads finish before closing; subsequent requests are rejected. */
   close(): Promise<void> {
     this.closing ??= this.pending.then(async () => {

@@ -208,3 +208,18 @@ it("queries creation capabilities for the prospective staging entry rather than 
  try{expect(await source.read(0,3)).toEqual(Uint8Array.of(1,2,3));expect(queries[0]?.startsWith("/scratch/.pdf-")).toBe(true);}finally{await source.close();}
  expect(await memory.readdir("/scratch")).toEqual([]);
 });
+
+it("releases queued range caches while retaining the same read handle and owned results", async () => {
+  const backend = generatedFile();
+  const source = await PdfFileSource.open(backend.fs, "/large.pdf", options);
+  const first = source.read(0, 8);
+  const released = source.releaseCache();
+  const second = source.read(0, 8);
+  await released;
+  expect(await first).toEqual(await second);
+  expect(backend.read).toHaveBeenCalledTimes(2);
+  expect(backend.fs.openReadFile).toHaveBeenCalledTimes(1);
+  expect(backend.close).not.toHaveBeenCalled();
+  await source.close();
+  await expect(source.releaseCache()).rejects.toMatchObject({ code: "E_CAPABILITY" });
+});

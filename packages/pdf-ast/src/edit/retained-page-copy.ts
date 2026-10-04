@@ -13,6 +13,8 @@ import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
 
 export interface CopyRetainedPageOptions {
+  /** Override copied metadata; an empty object keeps only the default producer. */
+  readonly metadata?: Readonly<Record<string, string>>;
   /** Merge all source embedded files; the first occurrence of each name wins. */
   readonly includeAttachments?: boolean;
   /** Merge source page labels, offset by preceding copied pages; use with full-document selections. */
@@ -56,7 +58,12 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   const catalog = cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) });
   type ReferenceList = { first: number; last: number; count: number };
   const pages: ReferenceList = { first: 0, last: 0, count: 0 }, formFields: ReferenceList = { first: 0, last: 0, count: 0 };
-  let failed = false, work = 0, pageCount = 0, copiedMetadata = false, formRef: ReturnType<typeof cosRef> | undefined;
+  let failed = false, work = 0, pageCount = 0, copiedMetadata = options.metadata !== undefined, formRef: ReturnType<typeof cosRef> | undefined;
+  function information(metadata: Readonly<Record<string, string>> = {}) {
+    const info = cosDict({ Producer: cosString("@poe-code/pdf-ast") });
+    for (const key of ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"]) if (metadata[key]) dictSet(info, key, cosString(metadata[key]!));
+    return info;
+  }
   async function checkpoint(depth = 0) {
     signal.throwIfAborted(); if (depth > maximumDepth) throw new PdfError("E_LIMIT", "PDF page copy depth limit exceeded");
     if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0)); signal.throwIfAborted();
@@ -124,9 +131,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
     }
     try {
       if (!copiedMetadata) {
-        const info = cosDict({ Producer: cosString("@poe-code/pdf-ast") }), metadata = await document.info();
-        for (const key of ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"]) if (metadata[key]) dictSet(info, key, cosString(metadata[key]!));
-        await store.set({ objectNumber: 3, generationNumber: 0, value: info }); copiedMetadata = true;
+        await store.set({ objectNumber: 3, generationNumber: 0, value: information(await document.info()) }); copiedMetadata = true;
       }
       for await (const index of typeof pageIndices === "number" ? [pageIndices] : pageIndices) {
         await checkpoint();
@@ -249,7 +254,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   }
   try {
     await store.allocate(catalog); await store.allocate(cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }));
-    await store.allocate(cosDict({ Producer: cosString("@poe-code/pdf-ast") }));
+    await store.allocate(information(options.metadata));
     for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await labels?.append(source.document, pageCount); await outlines?.append(source.document, pageCount); await append(source.document, source.indices); }
     await outlines?.finish(store, catalog, pageCount, async index => cosRef(Number(await pageReferences!.get(BigInt(index)))));
     const attachmentNames = await attachments?.finish(store, catalog);

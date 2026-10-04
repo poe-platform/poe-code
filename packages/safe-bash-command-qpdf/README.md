@@ -42,7 +42,11 @@ page labels use retained random-access input and caller-backed output staging,
 including stdin/stdout, password-protected input and `--replace-input`. File
 publication requires retained atomic staging from the injected filesystem; scratch
 storage uses `TMPDIR`. Use an external backend for large files. Other transformation
-options currently continue through the buffered compatibility engine.
+options currently continue through the buffered compatibility engine. `--pages`
+selections and ordinary merges use lazy ranges and process source documents
+sequentially, including `--empty`, per-source passwords, stdin and repeated
+sources. Inactive inputs release range caches while retaining their acquired
+identity. Collated merges still use the compatibility engine.
 
 `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs
 through caller-backed object and page indexes, preserving repair and password

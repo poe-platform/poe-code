@@ -244,3 +244,14 @@ it("uses XML A1 formula conventions even when the sheet display convention is R1
   const output = new TextDecoder().decode(await writeGnumeric(book, [], context));
   expect(output).toContain('ExprConvention="gnumeric:R1C1"'); expect(output).toContain('>=RC+1</gnm:Cell>');
 });
+
+it.each([2, 3, 4, 5, 6, 10].flatMap(version => ["", 'Format="General"', 'Format="0.000"'].map(last => ({version, last}))))("applies version $version overlapping number format: $last", async ({version, last}) => {
+  const namespace = version < 8 ? `http://www.gnome.org/gnumeric/v${version}` : `http://www.gnumeric.org/v${version}.dtd`;
+  const source = `<gnm:Workbook xmlns:gnm="${namespace}"><gnm:SheetNameIndex><gnm:SheetName gnm:Cols="256" gnm:Rows="65536">S</gnm:SheetName></gnm:SheetNameIndex><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Styles><gnm:StyleRegion startRow="0" endRow="0" startCol="0" endCol="0"><gnm:Style Format="0.00"/></gnm:StyleRegion><gnm:StyleRegion startRow="0" endRow="0" startCol="0" endCol="0"><gnm:Style ${last}/></gnm:StyleRegion></gnm:Styles><gnm:Cells><gnm:Cell Row="0" Col="0" ValueType="40">1.2</gnm:Cell></gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>`;
+  const f = fixture(new TextEncoder().encode(source));
+  const chunks: Uint8Array[] = [];
+  const result = await f.engine.convert({input: {kind: "resource", uri: "/book.gnumeric"}, exportType: "Gnumeric_stf:stf_assistant", exportOptions: ["format=preserve"],
+    destination: {kind: "stream", sink: {async write(bytes) {chunks.push(bytes);}}}}, f.operation);
+  expect(result.exitCode).toBe(0);
+  expect(Buffer.concat(chunks).toString()).toBe(last === 'Format="0.000"' ? "1.200\n" : !last && version >= 3 && version <= 5 ? "1.20\n" : "1.2\n");
+});

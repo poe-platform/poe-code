@@ -464,7 +464,12 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       for (const region of styles) {
         tick();
         const bounds = xmlRange(region); if (row < bounds.startRow || row > bounds.endRow || column < bounds.startColumn || column > bounds.endColumn) continue;
-        const s = child(region, "Style"); if (s) { style = record(s); format = attribute(s, "Format") ?? format; }
+        const s = child(region, "Style");
+        if (s) {
+          style = record(s);
+          // XML v3-v5 applies partial regions; modern regions replace with defaults.
+          format = attribute(s, "Format") ?? (version >= 6 || version <= 2 ? runs ? undefined : valueFormat : format);
+        }
       }
       const group = formula && array ? `array-${row}-${column}` : undefined;
       if (group) {

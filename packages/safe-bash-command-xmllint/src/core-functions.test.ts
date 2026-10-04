@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createXmllintCommand, type XmllintCommandsOptions } from "./index.js";
 
@@ -7,15 +8,17 @@ const document = '<root><item id="a" n="10">First</item><item id="b" n="20"><sub
 async function run(args: string[], input = document, options: XmllintCommandsOptions = {}) {
   let output = "", errors = "";
   const files = new Map<string, Uint8Array>();
+  const fs = createMemoryFileSystem();
   const carrier = createCommandArguments(args);
   const context = {
     args: carrier.args, arguments: carrier, command: "xmllint", cwd: "/", env: {},
     signal: new AbortController().signal, stdin: toByteSource(input),
-    fs: { async writeFile(path: string, bytes: Uint8Array) { files.set(path, bytes.slice()); } },
+    fs,
     stdout: { async write(bytes: Uint8Array) { output += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes: Uint8Array) { errors += new TextDecoder().decode(bytes); } },
   } as unknown as CommandContext;
   const result = await createXmllintCommand(options).execute(context);
+  for (const entry of await fs.readdir("/")) if (entry.type === "file") files.set("/" + entry.name, await fs.readFile("/" + entry.name));
   return { ...result, output, errors, files };
 }
 for (const [query, expected] of [

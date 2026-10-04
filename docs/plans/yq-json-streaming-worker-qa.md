@@ -64,3 +64,17 @@ paged XML selection results cannot qualify them. A Node heap measurement cannot
 replace workerd/Cloudflare results. Store raw
 measurements temporarily in `/out`, summarize verified observations in the delivery
 record and remove temporary evidence after use.
+
+### XML file publication
+
+Exercise `--output` with generated reused chunks, an external backing provider, and
+a slow retained staging writer. Compare bytes and encodings with stdout/native
+xmllint. Observe at most one 16 KiB write pending; replace a symlink before commit
+and verify the guarded publication refuses it. Abort during acquisition, writes,
+sealing, and publication; verify staging is retired after active I/O. Check hardlink
+identity and unchanged destination content on limits and failed publication.
+For providers without retained atomic staging, verify the 64 KiB page cache spills
+and that replay begins only after serialization and shell output-budget admission.
+This fallback retains the backend's ordinary write guarantees; it does not add
+atomicity to a backend without it. Measure both paths with the Worker procedure
+above; local deterministic spill tests alone are not Worker qualification.

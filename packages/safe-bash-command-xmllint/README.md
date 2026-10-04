@@ -25,7 +25,10 @@ and `round`. Predicates also support comparisons, `and`, `or`, and positions.
 Supported modes include `--noout`, `--format`, `--c14n`, `--exc-c14n`,
 and `--xpath`. Use `--noblanks` to remove ignorable whitespace before queries
 or serialization, `--nocdata` to serialize CDATA as escaped text, and `--output FILE` / `-o FILE` to write serialized XML to
-the virtual filesystem. `--recover` repairs truncated elements, mismatched end
+the virtual filesystem. File output streams into retained staging when the filesystem
+supports guarded atomic publication, preserving existing file identity and aliases.
+Other backends use a 64 KiB caller-backed spool and replay after serialization and
+output-budget admission, with that backend's normal write guarantees. `--recover` repairs truncated elements, mismatched end
 tags, and undeclared entities, reporting repairs on stderr. `--encode ENCODING`
 selects UTF-8, UTF-16 (including LE/BE), US-ASCII, or ISO-8859-1 output. Inputs come
 from stdin or one or more files in the configured virtual filesystem. Normal input

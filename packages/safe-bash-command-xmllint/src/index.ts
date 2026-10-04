@@ -13,7 +13,7 @@ import {
 } from "safe-bash-contracts";
 import { StoredXPath } from "safe-bash-xml-engine/stored-evaluate";
 import { StoredXmlDocument } from "safe-bash-xml-engine/stored-document";
-import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
+import { XmlFileOutput } from "./file-output.js";
 import { prepareDocument, encodeOutput, outputEncoding } from "./output.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { pathOf } from "safe-bash-contracts/path";
@@ -151,6 +151,7 @@ async function executeDocument(
 ): Promise<{ exitCode: number }> {
   let outputFailed = false;
   let stored: StoredXmlDocument | undefined;
+  let fileOutput: XmlFileOutput | undefined;
   let completed = false;
   try {
     const recoveryMessages = new Set<string>();
@@ -189,23 +190,14 @@ async function executeDocument(
     for (const message of recoveryMessages)
       await runtime.writeDiagnostic(context.stderr, `xmllint: ${message} (recovered)\n`, context.signal);
     const root = await prepareDocument(parsedRoot, options.noblanks ?? false, options.encoding, budget, options.nocdata ?? false);
-    const documentOutputStart = budget.outputBytes;
-    const fileChunks: Uint8Array[] = [];
-    const sink = options.output === undefined || options.query !== undefined ? context.stdout : {
-      async write(bytes: Uint8Array) { fileChunks.push(bytes.slice()); }
-    };
+    if (options.output !== undefined && options.query === undefined && !options.noout)
+      fileOutput = new XmlFileOutput(context, runtime.pathOf(context, options.output));
     let encodingStarted = false;
     async function finish(): Promise<void> {
       await flushWrite();
-      if (options.output !== undefined && options.query === undefined && !options.noout) {
-        const bytes = new Uint8Array(budget.outputBytes - documentOutputStart);
-        let offset = 0;
-        for (const chunk of fileChunks) { bytes.set(chunk, offset); offset += chunk.length; }
-        const destination = runtime.pathOf(context, options.output);
-        try {
-          await runtime.interruptible(() => writeFileOutput(context, bytes,
-            data => context.fs.writeFile(destination, data, { signal: context.signal })), context.signal);
-        } catch (error) {
+      if (fileOutput) {
+        try { await fileOutput.finish(); }
+        catch (error) {
           if (error instanceof FsError) throw new XmlQueryError(error.message, 6);
           throw error;
         }
@@ -220,8 +212,10 @@ async function executeDocument(
         outBatchUsed = 0;
         writesCount++;
         try {
-          await writeBytes(sink, slice, context.signal);
+          if (fileOutput) await fileOutput.write(slice);
+          else await writeBytes(context.stdout, slice, context.signal);
         } catch (error) {
+          if (fileOutput && error instanceof FsError) throw new XmlQueryError(error.message, 6);
           outputFailed = true;
           throw error;
         }
@@ -250,8 +244,10 @@ async function executeDocument(
           await flushWrite();
           writesCount++;
           try {
-            await writeBytes(sink, bytes, context.signal);
+            if (fileOutput) await fileOutput.write(bytes);
+            else await writeBytes(context.stdout, bytes, context.signal);
           } catch (error) {
+            if (fileOutput && error instanceof FsError) throw new XmlQueryError(error.message, 6);
             outputFailed = true;
             throw error;
           }
@@ -314,7 +310,8 @@ async function executeDocument(
   } catch (error) {
     return reportError(context, runtime, error, outputFailed);
   } finally {
-    if (stored) await stored.close().catch(error => { if (completed) throw error; });
+    try { if (fileOutput) await fileOutput.close().catch(error => { if (completed) throw error; }); }
+    finally { if (stored) await stored.close().catch(error => { if (completed) throw error; }); }
   }
 }
 

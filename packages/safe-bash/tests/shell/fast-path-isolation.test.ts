@@ -40,6 +40,35 @@ test("find pipelines retain recursive contexts and work without Buffer", async c
   } finally { globalThis.Buffer = original; }
 });
 
+test("recursive find completes every downstream stage after an empty traversal", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/sub/dir", { recursive: true });
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const source = 'find /sub -name "*.ts" | wc -l';
+  const empty = await shell.exec(source);
+  assert.equal(empty.stdout, "0\n");
+  assert.equal(empty.stderr, "");
+  assert.equal(empty.exitCode, 0);
+
+  await fs.writeFile("/sub/a.ts", Uint8Array.of(65));
+  await fs.writeFile("/sub/dir/b.ts", Uint8Array.of(66));
+  await fs.writeFile("/sub/dir/ignored.txt", Uint8Array.of(67));
+  for (const [pipeline, expected] of [
+    ["wc -l", "2\n"],
+    ["sort", "/sub/a.ts\n/sub/dir/b.ts\n"],
+    ["head -n 1", "/sub/a.ts\n"],
+    ["cut -d/ -f2", "sub\nsub\n"],
+    ["tr a-z A-Z", "/SUB/A.TS\n/SUB/DIR/B.TS\n"],
+    ["sort -r | head -n 1 | cut -d/ -f4 | tr a-z A-Z", "B.TS\n"],
+  ]) {
+    const result = await shell.exec(`find /sub -name "*.ts" | ${pipeline}`);
+    assert.equal(result.stdout, expected, pipeline);
+    assert.equal(result.stderr, "", pipeline);
+    assert.equal(result.exitCode, 0, pipeline);
+  }
+});
+
 test("find fast and general paths reject unsearchable directories", async context => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/dir");

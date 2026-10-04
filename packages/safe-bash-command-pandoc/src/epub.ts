@@ -164,7 +164,15 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       const archive = await codec.readZipArchive((input as Input).bytes, limits, signal);
       for (const entry of archive.entries) await processEntry(entry);
     }
-    if (new TextDecoder().decode(await getPart("mimetype")) !== "application/epub+zip") fail("mimetype", "Invalid or missing EPUB mimetype");
+    const mime = await partRecord("mimetype"), expectedMime = "application/epub+zip";
+    // The only accepted UTF-8 spellings are the ASCII value and that value
+    // preceded by a BOM (which TextDecoder historically ignored). Probe at most
+    // 23 bytes; an invalid large member must not become a resident byte/string copy.
+    if (mime && !(mime instanceof Uint8Array)) ctx.charge("retainedBytes", mime.length);
+    const mimeLength = mime?.length ?? 0;
+    if (!mime || mimeLength !== expectedMime.length && mimeLength !== expectedMime.length + 3
+      || new TextDecoder().decode(mime instanceof Uint8Array ? mime : await storage!.read(mime.position, mime.length)) !== expectedMime)
+      fail("mimetype", "Invalid or missing EPUB mimetype");
     if (await hasPart("META-INF/encryption.xml")) fail("META-INF/encryption.xml", "Unsupported EPUB encryption/DRM or font obfuscation");
     const xmlCache = new Map<string, XmlElement>();
     const xml = async (part: string) => {

@@ -119,6 +119,11 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   cancellation to win, zero pulls/writes, one return, no output lifecycle calls,
   and no scratch or R2 objects. This verifies producer ownership only: EPUB XML,
   chapter ASTs and media resources still require bounded retained intermediates.
+  The same Worker fixture checks oversized `mimetype` members with R2 backing:
+  validation probes at most 23 bytes, preserving the accepted UTF-8 BOM spelling,
+  quota precedence and the invalid-mimetype diagnostic. Unit parity covers valid,
+  truncated and trailing-content spellings. Fixture archive construction is
+  buffered test setup, not evidence of a bounded EPUB writer or a memory plateau.
 - Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
   independently of input bytes and document nesting. JSON and CSV/TSV to plain

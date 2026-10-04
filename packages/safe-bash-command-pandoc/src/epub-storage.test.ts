@@ -9,9 +9,9 @@ import {createPandocCommand} from "./command.js";
 const encoder = new TextEncoder();
 const zip = createZipCodec({compression: createCompressionCodec(), yieldTurn: async () => {}, fail(message) {throw new Error(message);}});
 const zipLimits = {maxArchiveBytes: 8 * 1024 * 1024, maxEntryBytes: 8 * 1024 * 1024, maxTotalBytes: 8 * 1024 * 1024, maxMembers: 20, maxPathBytes: 1024, maxDepth: 16, maxPaxBytes: 1024, maxTextBytes: 1024, chunkSize: 4096};
-async function publication(size = 256 * 1024, content = "<p>Streamed book.</p>") {
+async function publication(size = 256 * 1024, content = "<p>Streamed book.</p>", mimetype = encoder.encode("application/epub+zip")) {
   const files = {
-    mimetype: encoder.encode("application/epub+zip"),
+    mimetype,
     "META-INF/container.xml": encoder.encode('<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>'),
     "package.opf": encoder.encode('<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Stored book</dc:title></metadata><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="chapter"/></spine></package>'),
     "chapter.xhtml": encoder.encode(`<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Chapter</title></head><body>${content}</body></html>`),
@@ -223,5 +223,40 @@ it.each(["async", "sync"].flatMap(kind => [false, true].map(cleanupFails => ({ki
     : {[Symbol.iterator]() {controller.abort(); return {next, return: close};}};
   await expect(readDocument({chunks}, {from: "epub"}, {signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}})).rejects.toMatchObject({code: "E_CANCELLED"});
   expect(next).not.toHaveBeenCalled(); expect(close).toHaveBeenCalledOnce();
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+
+it.each([4097, 262145])("validates a %i-byte EPUB mimetype without decoding the complete member", async size => {
+  const bytes = await publication(0, "<p>Book.</p>", encoder.encode("application/epub+zip" + "x".repeat(size - 20)));
+  const fs = new MemoryFileSystem();
+  const decode = TextDecoder.prototype.decode;
+  const spy = vi.spyOn(TextDecoder.prototype, "decode").mockImplementation(function (this: TextDecoder, input, options) {
+    if (input && input.byteLength > 4096) throw new Error("Whole member decoding forbidden");
+    return decode.call(this, input, options);
+  });
+  try {
+    await expect(readDocument({chunks: (async function* () {for (let offset = 0; offset < bytes.length; offset += 997) yield bytes.subarray(offset, offset + 997);})()}, {from: "epub"}, {
+      workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}
+    })).rejects.toMatchObject({code: "E_PARSE", message: "Invalid or missing EPUB mimetype", location: "mimetype"});
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {spy.mockRestore();}
+});
+
+it.each(["application/epub+zip", "\ufeffapplication/epub+zip", "application/epub+zip\n", "", "application/epub+zi", "application/epub+zip\ufffd"])
+("preserves buffered and caller-backed EPUB mimetype validation for %j", async mimetype => {
+  const bytes = await publication(0, "<p>Book.</p>", encoder.encode(mimetype)), fs = new MemoryFileSystem();
+  const expected = await convert([{bytes}], {from: "epub", to: "plain"}, {}).catch(error => error);
+  const actual = await convert([{chunks: (async function* () {for (const byte of bytes) yield Uint8Array.of(byte);})()}], {from: "epub", to: "plain"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}}).catch(error => error);
+  if (expected instanceof Error) expect(actual).toMatchObject({message: expected.message, code: (expected as Error & {code: string}).code});
+  else expect(actual).toEqual(expected);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("preserves the retained-byte quota before rejecting an oversized EPUB mimetype", async () => {
+  const bytes = await publication(0, "", new Uint8Array(262145).fill(65)), fs = new MemoryFileSystem();
+  await expect(readDocument({chunks: (async function* () {yield bytes;})()}, {from: "epub"}, {
+    workingFiles: {fs, directory: "/", cacheBytes: 16384}, limits: {retainedBytes: 32768}, yield: async () => {}
+  })).rejects.toMatchObject({code: "E_LIMIT", message: expect.stringContaining("retainedBytes")});
   expect(await fs.readdir("/")).toEqual([]);
 });

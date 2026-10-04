@@ -39,19 +39,21 @@ const PADDING_32 = Uint8Array.from([
   0x2f, 0x0c, 0xa9, 0xfe, 0x64, 0x53, 0x69, 0x7a,
 ]);
 
-export function rc4Transform(key: Uint8Array, data: Uint8Array): Uint8Array {
-  const s = new Uint8Array(256);
-  for (let i = 0; i < 256; i++) s[i] = i;
-  let j = 0;
-  for (let i = 0; i < 256; i++) {
-    j = (j + s[i]! + key[i % key.length]!) & 0xff;
-    const tmp = s[i]!;
-    s[i] = s[j]!;
-    s[j] = tmp;
+export function rc4Transform(key: Uint8Array, data: Uint8Array, state?: { s?: Uint8Array; x?: number; y?: number }): Uint8Array {
+  const s = state?.s ?? new Uint8Array(256);
+  if (!state?.s) {
+    for (let i = 0; i < 256; i++) s[i] = i;
+    let j = 0;
+    for (let i = 0; i < 256; i++) {
+      j = (j + s[i]! + key[i % key.length]!) & 0xff;
+      const tmp = s[i]!;
+      s[i] = s[j]!;
+      s[j] = tmp;
+    }
   }
   const out = new Uint8Array(data.length);
-  let x = 0;
-  let y = 0;
+  let x = state?.x ?? 0;
+  let y = state?.y ?? 0;
   for (let k = 0; k < data.length; k++) {
     x = (x + 1) & 0xff;
     y = (y + s[x]!) & 0xff;
@@ -60,6 +62,7 @@ export function rc4Transform(key: Uint8Array, data: Uint8Array): Uint8Array {
     s[y] = tmp;
     out[k] = data[k]! ^ s[(s[x]! + s[y]!) & 0xff]!;
   }
+  if (state) { state.s = s; state.x = x; state.y = y; }
   return out;
 }
 
@@ -422,7 +425,7 @@ export function encryptPdfBuffer(
   return rc4Transform(objKey, plaintext);
 }
 
-function* transformNodeStringsAndStreamsSteps(
+export function* transformNodeStringsAndStreamsSteps(
   node: PdfCosNode,
   transform: (bytes: Uint8Array) => Uint8Array,
   transformStream?: (stream: PdfCosStream) => PdfCosStream
@@ -519,9 +522,7 @@ function createR6Encryption(userPassword: string, ownerPassword: string, pMask: 
   }) };
 }
 
-export function* prepareEncryptedCosDocumentSteps(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Generator<void, SerializeCosOptions, void> {
-  yield;
-
+export function createPdfEncryption(options: EncryptPdfOptions = {}) {
   const userPassword = options.userPassword ?? "";
   const ownerPassword = options.ownerPassword ?? userPassword;
   const revision = options.revision ?? 6;
@@ -536,6 +537,13 @@ export function* prepareEncryptedCosDocumentSteps(doc: ParsedCosDocument, option
     keyLengthBits: fileKey.length * 8, encryptMetadata: true,
     permissions: decodePermissionsMask(pMask), fileKey,
   };
+  return { state, encryptDict, idBytes, revision };
+}
+
+export function* prepareEncryptedCosDocumentSteps(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Generator<void, SerializeCosOptions, void> {
+  yield;
+
+  const { state, encryptDict, idBytes, revision } = createPdfEncryption(options);
   let maxObjNum = 0;
   for (const obj of doc.objects.values()) maxObjNum = Math.max(maxObjNum, obj.objectNumber);
   const encryptObjNum = maxObjNum + 1;

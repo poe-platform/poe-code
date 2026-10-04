@@ -8,7 +8,7 @@ import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
-import { copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
+import { encryptRetainedPdfChunks, copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -18,6 +18,7 @@ import type { QpdfLimits } from "./index.js";
 
 export interface RetainedQpdfOptions extends QpdfJsonOptions {
   copyAttachmentsSpecs: readonly { file: string; prefix: string; password?: string }[];
+  encryptConfig: { userPassword: string; ownerPassword: string; print: boolean; modify: boolean; copy: boolean; addNotes: boolean } | undefined;
   flattenRotation: boolean;
   removeAttachmentKeys: readonly string[];
   addAttachmentSpecs: readonly { file: string; key: string; filename: string; description?: string; replace?: boolean }[];
@@ -308,6 +309,13 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     const producer = saveRetainedDocumentChunks(editedGraph?.document ?? document, storage, { ...(editedGraph ? {} : { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations() }), signal, normalizeContent, objectStreams: options.decrypt && document.encryption ? "preserve" : options.objectStreamsMode, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
     finally { await producer.return(undefined); }
+    if (options.encryptConfig && !options.decrypt) {
+      const plaintext = output, config = options.encryptConfig;
+      let encryptionFailed = false;
+      try { output = await PdfFileSource.fromStream(context.fs, storage.directory, encryptRetainedPdfChunks(plaintext, storage, { userPassword: config.userPassword, ownerPassword: config.ownerPassword, permissions: { print: config.print, modify: config.modify, copy: config.copy, addNotes: config.addNotes }, signal, maxOutputBytes: limits.maxOutputBytes }), { signal, maxInputBytes: limits.maxOutputBytes }); }
+      catch (error) { encryptionFailed = true; throw error; }
+      finally { await plaintext.close().catch(error => { if (!encryptionFailed) throw error; }); }
+    }
     if (destination === "-") { for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal); }
     else {
       try { const path = resolvePath(context.cwd, destination); await context.fs.mkdir(resolvePath(path, ".."), { recursive: true, signal }); await publish(context, path, output.stream(0, output.size, signal), signal); }

@@ -873,6 +873,10 @@ removal/addition while preserving existing child name trees and indirect arrays.
 these inputs from another retained document, staging one decoded payload at a
 time. Keep the source document open until iteration finishes. Close the edited
 graph after saving or copying it.
+`encryptRetainedPdfChunks(source, storage, options)` encrypts a retained PDF source
+with the same password, revision, and permission options as buffered encryption.
+Stream payloads use fixed-size cipher blocks and caller-provided backing.
+The caller keeps ownership of the source and supplies the backing filesystem.
 `PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
 existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
 

@@ -96,3 +96,6 @@ export { saveRetainedDocumentChunks, type SaveRetainedDocumentOptions, type Reta
 export { editRetainedDocument, PdfDuplicateAttachment, type RetainedAttachmentInput, type EditRetainedDocumentOptions, type RetainedPageLabel } from "./edit/retained-graph.js";
 
 export { copyRetainedAttachments } from "./edit/retained-attachment-copies.js";
+
+export { retainedObjectOrder } from "./cos/retained-object-order.js";
+export { encryptRetainedPdfChunks } from "./cos/retained-encryption.js";

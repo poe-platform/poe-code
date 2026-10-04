@@ -40,3 +40,24 @@ it("keeps malformed workbook protection warnings and does not reuse sheet settin
     expect(diagnostics).toContain("Unsupported Excel BIFF export metadata: " + kind);
   }
 });
+
+for (const revision of [7, 8] as const) it(`transports XLSX workbook protection into BIFF${revision}`, async () => {
+  for (const password of ["1", "1234", "ffff", "0000"]) {
+    const diagnostics: string[] = [];
+    const input = { sheets: [{ id: "s", name: "Data", cells: [] }], unsupportedRecords: [{ source: "xl/workbook.xml", kind: "workbookProtection", disposition: "retained" as const,
+      data: { name: "workbookProtection", namespace: "http://schemas.openxmlformats.org/spreadsheetml/2006/main", attributes: { lockStructure: "true", lockWindows: "1", workbookPassword: password }, children: [], text: "" } }] };
+    const output = await readBiff(await createBiffWriter(revision)(input, [], { ...context, diagnostic: async item => { diagnostics.push(item.message); } }), context);
+    const hash = Number.parseInt(password, 16), expected = ["0100", "0100", (hash & 255).toString(16).padStart(2, "0") + (hash >> 8).toString(16).padStart(2, "0")];
+    for (const [index, [kind, opcode]] of definitions.entries()) expect(output.unsupportedRecords!.find(r => r.kind === kind)?.data).toMatchObject({ opcode, bytes: expected[index] });
+    expect(diagnostics).toEqual([]);
+  }
+});
+it("keeps warnings for modern or malformed XLSX workbook protection", async () => {
+  for (const attributes of [{ workbookAlgorithmName: "SHA-512" }, { workbookPassword: "garbage" }, { lockStructure: "yes" }, { lockRevision: "true" }] as readonly Record<string, string>[]) {
+    const diagnostics: string[] = [];
+    await createBiffWriter(8)({ sheets: [{ id: "s", name: "Data", cells: [] }], unsupportedRecords: [{ source: "xl/workbook.xml", kind: "workbookProtection", disposition: "retained",
+      data: { name: "workbookProtection", namespace: "http://schemas.openxmlformats.org/spreadsheetml/2006/main", attributes, children: [], text: "" } }] }, [],
+      { ...context, diagnostic: async item => { diagnostics.push(item.message); } });
+    expect(diagnostics).toContain("Unsupported Excel BIFF export metadata: workbookProtection");
+  }
+});

@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxToBiffWorkbookProtection": {
+      "scope": "Standard-namespace XLSX workbookProtection structure/window flags and1-4hex-digit legacy password verifiers convert to BIFF7/8 global records. Retained edits work; unknown/modern/revision fields and malformed values retain warnings.",
+      "verification": "Two original failures repaired;2437 affected tests, selected build and owner lint/types pass. Eight independently generated OpenPyXL3.1.5 controls produce32 SDK/command exports with96 exact encoded fields and four exact unrelated warnings each. Gnumeric1.12.61 reads all32 structure states; Calc25.2.3.2 reads all16 BIFF8 window flags. Screenshot inspected.",
+      "nativeLimitation": "Calc loses all eight enabled BIFF7 window states. Independent native-generated BIFF7 with explicitly set WINDOWPROTECT also loses it. Release-matched sc/source/filter/excel/read.cxx handles opcode0x19 only in BIFF8, not older workbook states. SHA2566913d42542cd275733afb11679e575611cd4b22001f802192f324517ed23d010. The other eight BIFF7 false defaults are not counted as protection-support passes. Exact javaldx startup warning retained.",
+      "remaining": "BIFF7 independent window/password semantics, protection enforcement, modern/revision transport and all broader families remain open. No release or family closure."
+    },
     "biffToXlsxWorkbookProtection": {
       "scope": "BIFF workbook PROTECT/WINDOWPROTECT/PASSWORD records translate to XLSX workbookProtection in both editions, preserving later-record edits and short presence-only PROTECT. Zero verifier removes password metadata. Existing XLSX records take precedence; malformed and unrepresented records still warn.",
       "verification": "Two original failures reproduced.225 owner tests plus the added zero-verifier control pass; selected build and owner lint/source/test types pass.44 compiled SDK/command exports match132 encoded attributes and132 independent OpenPyXL3.1.5 values, with16 exact unrelated diagnostics per export. CLI screenshot inspected.",

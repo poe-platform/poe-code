@@ -88,6 +88,25 @@ export class BiffMetadataWriter {
     const values = new Map(Object.values(fields).map(opcode => [opcode, words(0)]));
     for (const record of this.book.unsupportedRecords ?? []) {
       this.charge();
+      if (record.kind !== "workbookProtection") continue;
+      const node = metadataNode(record.data, amount => this.charge(amount));
+      if (!node || node.name !== "workbookProtection" || node.namespace !== "http://schemas.openxmlformats.org/spreadsheetml/2006/main") continue;
+      let complete = !node.children.length && !node.text.trim();
+      for (const [name, value] of Object.entries(node.attributes)) {
+        this.charge();
+        if (name === "lockStructure" || name === "lockWindows") {
+          if (!["0", "1", "false", "true"].includes(value)) { complete = false; continue; }
+          values.set(name === "lockStructure" ? 0x12 : 0x19, words(value === "1" || value === "true" ? 1 : 0));
+        } else if (name === "workbookPassword") {
+          if (value.length < 1 || value.length > 4 || ![...value].every(character => "0123456789abcdefABCDEF".includes(character))) { complete = false; continue; }
+          values.set(0x13, words(Number.parseInt(value, 16)));
+        } else complete = false;
+      }
+      if (complete) this.exported.add(record);
+      break;
+    }
+    for (const record of this.book.unsupportedRecords ?? []) {
+      this.charge();
       if (record.source !== "biff" || !Object.hasOwn(fields, record.kind)) continue;
       const opcode = fields[record.kind]!;
       const data = record.data as { opcode?: unknown; bytes?: unknown } | undefined;

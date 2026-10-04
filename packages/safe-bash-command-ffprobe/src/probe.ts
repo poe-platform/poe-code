@@ -1,4 +1,4 @@
-import { parseAudio } from "@poe-code/audio-ast";
+import { parseAudio, type AudioAst } from "@poe-code/audio-ast";
 
 export function parseArguments(args: readonly string[]) {
   let filename = "",
@@ -64,8 +64,11 @@ export function parseArguments(args: readonly string[]) {
 
 type Row = Record<string, string | number | Record<string, string>>;
 export function probe(data: Uint8Array, args: readonly string[]): string {
-  const parsed = parseArguments(args),
-    audio = parseAudio(data, { maxAtomDepth: 64 });
+  const parsed = parseArguments(args);
+  return formatAudioProbe(parseAudio(data, { maxAtomDepth: 64 }), data.length, parsed);
+}
+
+export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>): string {
   const { sections, format, settings } = parsed;
   const serials = [
     ...new Set(
@@ -146,8 +149,8 @@ export function probe(data: Uint8Array, args: readonly string[]): string {
       nb_streams: audio.streams.length,
       format_name: audio.format === "m4a" ? "mov,mp4,m4a,3gp,3g2,mj2" : audio.format,
       duration: formatDuration.toFixed(6),
-      size: String(data.length),
-      bit_rate: String(formatDuration ? Math.floor((data.length * 8) / formatDuration) : 0),
+      size: String(size),
+      bit_rate: String(formatDuration ? Math.floor((size * 8) / formatDuration) : 0),
       ...(Object.keys(formatTags).length ? { tags: formatTags } : {})
     });
     if (sections.has("format_tags")) row.tags = tags;

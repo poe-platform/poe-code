@@ -1,7 +1,7 @@
 import { Reader, ascii, cleanText, duration, join, uint32 } from "./binary.js";
 import type { AudioAst, AudioNode, AudioTags, PcmAudio, WavOptions } from "./types.js";
 
-const infoNames: Record<string, string> = {
+export const infoNames: Record<string, string> = {
   INAM: "title",
   IART: "artist",
   IPRD: "album",
@@ -118,6 +118,23 @@ export function parseWav(bytes: Uint8Array): AudioAst {
   }
   if (!nodes.some((n) => n.type === "fmt ") || !nodes.some((n) => n.type === "data"))
     throw new Error("WAV requires fmt and data");
+  const stream = wavStream({ format, sampleRate, channels, bits, validBits, align, dataSize });
+  const seconds = stream.duration;
+  return {
+    format: "wav",
+    data: bytes,
+    nodes,
+    tags,
+    pictures: [],
+    streams: [stream],
+    duration: seconds,
+    bitrate: seconds ? (bytes.length * 8) / seconds : 0
+  };
+}
+/** Shared layout validation for resident and retained-source probes. */
+export function wavStream({ format, sampleRate, channels, bits, validBits, align, dataSize }: {
+  format: number; sampleRate: number; channels: number; bits: number; validBits: number; align: number; dataSize: number;
+}) {
   if (
     !channels ||
     !sampleRate ||
@@ -136,26 +153,8 @@ export function parseWav(bytes: Uint8Array): AudioAst {
     throw new Error("Unsupported WAV encoding");
   const samples = dataSize / align,
     seconds = duration(samples, sampleRate);
-  return {
-    format: "wav",
-    data: bytes,
-    nodes,
-    tags,
-    pictures: [],
-    streams: [
-      {
-        codec: format === 3 ? "pcm_float" : "pcm",
-        sampleRate,
-        channels,
-        bitsPerSample: bits,
-        samples,
-        duration: seconds,
-        bitrate: sampleRate * align * 8
-      }
-    ],
-    duration: seconds,
-    bitrate: seconds ? (bytes.length * 8) / seconds : 0
-  };
+  return { codec: format === 3 ? "pcm_float" : "pcm", sampleRate, channels, bitsPerSample: bits,
+    samples, duration: seconds, bitrate: sampleRate * align * 8 };
 }
 export function decodePcm(bytes: Uint8Array | AudioAst): PcmAudio {
   const ast = bytes instanceof Uint8Array ? parseWav(bytes) : bytes;

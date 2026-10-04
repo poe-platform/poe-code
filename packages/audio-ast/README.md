@@ -5,6 +5,7 @@ Inspect audio containers, edit their metadata, and process PCM samples in JavaSc
 | API                                                  | Use                                                                                                       |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `parseAudio(bytes)`                                  | WAV, MP3, FLAC, Ogg Vorbis/Opus, and M4A audio AST with byte spans, metadata, pictures, and stream timing |
+| `probeWavSource({ size, read }, { signal })` | Strict WAV stream metadata through caller-owned retained reads; skips samples and AST nodes |
 | `probeAudio(bytes)`                                  | Format, stream, duration, bitrate, and normalized tags                                                    |
 | `writeAudioMetadata(bytesOrAst, tags, { pictures })` | Merge tags and preserve encoded audio; regenerate container sizes, MP4 chunk offsets, and Ogg checksums   |
 | `decodePcm(bytesOrAst)`                              | Decode integer and IEEE float WAV to planar `Float64Array` channels                                       |
@@ -35,3 +36,5 @@ WAV parsing includes extensible format precision/channel masks, INFO, Broadcast 
 Compressed formats support inspection and metadata editing; decoding and encoding compressed audio are outside the PCM API. Metadata writing preserves unknown container chunks and blocks. ID3 frames with unsupported transformation flags or unmappable v2.2 identifiers cause a rewrite error rather than silently losing data. Fragmented MP4 editing is rejected because fragment-relative offsets require a different writer. Truncated structures, inconsistent layouts, invalid checksums, and unsupported encodings throw errors. AST byte arrays are views of the input; keep the input immutable while using its AST. Silence has `-Infinity` peak/RMS dBFS and zero crest factor. Zero crossings are counted per channel, ignoring intervening zero-valued samples.
 
 `parseAudio(bytes, { maxAtomDepth })` and `probeAudio(bytes, { maxAtomDepth })` optionally bound MP4 atom nesting. The default is `Infinity`.
+
+`probeWavSource` preserves RIFF bounds, extensible PCM validation, multiple data chunks and normalized INFO tags. Reads are at most 16 KiB; the caller owns source identity and lifetime. Tag strings remain materialized metadata, so their total size still affects memory.

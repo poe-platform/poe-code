@@ -4,7 +4,7 @@ import type {StoredCMap} from "./stored-cmap.js";
 import type { StoredCidMap } from "./stored-cid-map.js";
 import { FontWidths } from "./widths.js";
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
-import { getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
+import { getEncoding, type Type1Properties, type CMap } from "../vendor/pdfjs-fonts.mjs";
 import { parseEmbeddedType1Font } from "./type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "./cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "./standard-outlines.js";
@@ -15,7 +15,7 @@ import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; purpose?: "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
+export type FontResolutionRequest = {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
 export type FontResolutionResult = StoredCffFont | StoredTrueTypeFont | PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
 function* resolve(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
   const value = yield { kind: "resolve", node };
@@ -28,11 +28,7 @@ function* resolveDict(node: PdfCosNode | undefined): Generator<FontResolutionReq
 function* resolveArray(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosArray | undefined, FontResolutionResult> {
   const value = yield* resolve(node); return value?.kind === "array" ? value : undefined;
 }
-function* decodeStream(stream: PdfCosStream): Generator<FontResolutionRequest, Uint8Array, FontResolutionResult> {
-  const value = yield { kind: "decode", stream };
-  if (!(value instanceof Uint8Array)) throw new TypeError("Font decoder did not return bytes");
-  return value;
-}
+
 export interface ResolvedPageFont {
   readonly name: string;
   readonly baseFont: string;
@@ -231,7 +227,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                     const length1 = (yield* resolve(dictGet(program.dict, "Length1")));
                     const length2 = (yield* resolve(dictGet(program.dict, "Length2")));
                     const flags = (yield* resolve(dictGet(fDesc, "Flags")));
-                    embeddedCff = parseEmbeddedType1Font((yield* decodeStream(program)), {
+                    const type1Properties: Type1Properties = {
                         length1: length1?.kind === "number" ? length1.value : 0,
                         length2: length2?.kind === "number" ? length2.value : 0,
                         flags: flags?.kind === "number" ? flags.value : 0,
@@ -239,7 +235,11 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                         baseEncodingName: baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined,
                         differences: glyphNames, overridableEncoding: true, widths: widths.createType1View(),
                         composite: subtype === "Type0", cMap: { charCodeOf: (cid: number) => cid },
-                    }, allocationOptions);
+                    };
+                    const decoded=yield {kind:"decode",stream:program,purpose:"type1",type1Properties};
+                    if(decoded && "storedCff" in decoded)embeddedCff=decoded;
+                    else if(decoded instanceof Uint8Array)embeddedCff=parseEmbeddedType1Font(decoded,type1Properties,allocationOptions);
+                    else throw new TypeError("Font decoder did not return a Type1 font");
                 }
                 else if (programType?.kind === "name" && (programType.decoded === "Type1C" || programType.decoded === "CIDFontType0C")) {
                     const encodingName=baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined;

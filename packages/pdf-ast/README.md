@@ -667,7 +667,9 @@ reused after iteration, and cancellation and backend errors retain their identit
 CFF and OpenType CFF programs also use caller-backed source views, bounded
 INDEX/DICT readers and operand pages. Native charstring repairs execute in glyph
 order against a caller-backed copy, preserving the original source and metadata.
-Type 1 programs still admit their intrinsic parser buffers before allocation. `maxWorkingBytes`,
+Type 1 programs use caller-backed token spans, decrypted programs, glyph/name records,
+encodings and subroutine return frames. Conversion and Unicode lookup retain bounded
+caches; binary, hex, PFB and CID-keyed containers share this path. `maxWorkingBytes`,
 `maxStagingBytes`, `onAllocation` and cancellation apply to this font operation.
 The returned font belongs to the caller; this does not account for the document's
 separate parser/decoder state or qualify aggregate Worker memory usage.

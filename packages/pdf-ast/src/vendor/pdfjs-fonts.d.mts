@@ -195,3 +195,15 @@ export class PSStackBasedInterpreter {
   pop():number;
   result(range:readonly number[]):number[];
 }
+
+export interface Type1ConversionStep { readonly error: boolean; readonly next?: number; readonly done?: boolean; readonly call?: CffCodeSource & {readonly start: number}; }
+export class StoredType1CharString {
+  constructor(stack: {readonly length:number;get(index:number):Promise<number|undefined>;push(...values:Array<number|undefined>):Promise<void>;pop():Promise<number|undefined>;at(index:number):Promise<number|undefined>;splice(start:number,count:number):Promise<Array<number|undefined>>;clear():void},output:{push(...bytes:number[]):Promise<void>});
+  width:number;
+  lsb:number;
+  flexing:boolean;
+  seac:Array<number|undefined>|undefined;
+  convertStep(encoded:CffCodeSource,subrs:{get(index:number):Promise<(CffCodeSource & {readonly start:number})|undefined>},seacAnalysisEnabled:boolean,position:number):Generator<Promise<unknown>|undefined,Type1ConversionStep,unknown>;
+}
+
+export function recoverGlyphName(name:string,glyphsUnicode:Record<string,number>):string;

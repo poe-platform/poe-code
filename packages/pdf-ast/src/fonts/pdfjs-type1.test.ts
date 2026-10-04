@@ -29,9 +29,23 @@ describe("Type1Parser", function () {
     subrMapOffset = 0,
     subrCount = 0,
     sdBytes = 0,
-    trailer = "",
-  }: { binary: Uint8Array; cidCount?: number; fdBytes?: number; dataFormat?: string; declaredLength?: number; lenIV?: number; subrMapOffset?: number; subrCount?: number; sdBytes?: number; trailer?: string }) {
-    const data = dataFormat === "Hex" ? Array.from(binary, byte => byte.toString(16).padStart(2, "0")).join("") : bytesToString(binary);
+    trailer = ""
+  }: {
+    binary: Uint8Array;
+    cidCount?: number;
+    fdBytes?: number;
+    dataFormat?: string;
+    declaredLength?: number;
+    lenIV?: number;
+    subrMapOffset?: number;
+    subrCount?: number;
+    sdBytes?: number;
+    trailer?: string;
+  }) {
+    const data =
+      dataFormat === "Hex"
+        ? Array.from(binary, (byte) => byte.toString(16).padStart(2, "0")).join("")
+        : bytesToString(binary);
     return new StringStream(
       "%!PS-Adobe-3.0 Resource-CIDFont\n" +
         "/CIDMapOffset 0 def\n" +
@@ -46,6 +60,52 @@ describe("Type1Parser", function () {
         "end def\n" +
         `(${dataFormat}) ${declaredLength} StartData ${data}${trailer}`
     );
+  }
+
+  async function compareStoredCid(
+    stream: StringStream,
+    expected: ReturnType<Type1Parser["extractCidKeyedFontProgram"]>
+  ) {
+    const { FontProgramStore } = await import("./stored-program.js"),
+      { parseStoredType1Cid } = await import("./stored-type1-cid.js");
+    const bytes = (stream as unknown as { bytes: Uint8Array }).bytes,
+      data = new Uint8Array(1024 * 1024);
+    data.set(bytes);
+    let end = bytes.length;
+    const storage = {
+      allocate(n: number) {
+        const at = end;
+        end += n;
+        return at;
+      },
+      async read(at: number, n: number) {
+        expect(n).toBeLessThanOrEqual(4096);
+        return data.slice(at, at + n);
+      },
+      async write(at: number, value: Uint8Array) {
+        expect(value.length).toBeLessThanOrEqual(4096);
+        data.set(value, at);
+      }
+    };
+    const actual = await parseStoredType1Cid(
+      new FontProgramStore({ storage, position: 0, byteLength: bytes.length }).range(),
+      { fontMatrix: [0.001, 0, 0, 0.001, 0, 0], bbox: [0, 0, 0, 0] },
+      storage
+    );
+    if (!expected) {
+      expect(actual).toBeUndefined();
+      return;
+    }
+    expect(actual!.count).toBe(expected.charstrings.length + 1);
+    for (let i = 0; i < expected.charstrings.length; i++) {
+      const glyph = (await actual!.glyph(i + 1))!,
+        code = [];
+      for (let j = 0; j < glyph.code.length; j++) code.push(await glyph.code.byte(j));
+      expect(code).toEqual(expected.charstrings[i]!.charstring);
+      expect(glyph.width).toBe(expected.charstrings[i]!.width);
+      expect(glyph.name).toBe(expected.charstrings[i]!.glyphName);
+    }
+    expect(data.subarray(0, bytes.length)).toEqual(bytes);
   }
 
   // Inverse of the Type 1 charstring cipher: produces ciphertext that
@@ -144,7 +204,7 @@ describe("Type1Parser", function () {
     expect(program.properties.privateData.get("ExpansionFactor")).toEqual(99);
   });
 
-  it("parses a CID-keyed Type 1 font program", function () {
+  it("parses a CID-keyed Type 1 font program", async function () {
     // 0 500 hsbw endchar
     const notdefCharString = [0x8b, 0xf8, 0x88, 0x0d, 0x0e];
     // 0 250 hsbw endchar
@@ -161,22 +221,21 @@ describe("Type1Parser", function () {
     const stream = createCidKeyedFontStream({ binary });
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
     const program = parser.extractCidKeyedFontProgram({})!;
+    await compareStoredCid(stream, program);
 
     expect(program.subrs.length).toEqual(0);
     expect(program.charstrings.map(({ glyphName }) => glyphName)).toEqual([
       ".notdef",
       "cid1",
-      "cid2",
+      "cid2"
     ]);
     expect(program.charstrings[0]!.width).toEqual(500);
     expect(program.charstrings[1]!.width).toEqual(500);
-    expect(program.charstrings[1]!.charstring).toEqual(
-      program.charstrings[0]!.charstring
-    );
+    expect(program.charstrings[1]!.charstring).toEqual(program.charstrings[0]!.charstring);
     expect(program.charstrings[2]!.width).toEqual(250);
   });
 
-  it("parses a hex-encoded CID-keyed Type 1 data section", function () {
+  it("parses a hex-encoded CID-keyed Type 1 data section", async function () {
     const binary = Uint8Array.of(
       4,
       9,
@@ -196,11 +255,12 @@ describe("Type1Parser", function () {
     const stream = createCidKeyedFontStream({ binary, dataFormat: "Hex" });
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
     const program = parser.extractCidKeyedFontProgram({})!;
+    await compareStoredCid(stream, program);
 
     expect(program.charstrings[2]!.width).toEqual(250);
   });
 
-  it("rejects CID-keyed Type 1 fonts with multiple FD indices", function () {
+  it("rejects CID-keyed Type 1 fonts with multiple FD indices", async function () {
     const binary = Uint8Array.of(
       // CIDMap: CID 0 selects FD index 1, which is unsupported.
       1,
@@ -216,14 +276,15 @@ describe("Type1Parser", function () {
     const stream = createCidKeyedFontStream({
       binary,
       cidCount: 1,
-      fdBytes: 1,
+      fdBytes: 1
     });
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
 
     expect(parser.extractCidKeyedFontProgram({})).toBeNull();
+    await compareStoredCid(stream, null);
   });
 
-  it("uses subrs when parsing a CID-keyed Type 1 font", function () {
+  it("uses subrs when parsing a CID-keyed Type 1 font", async function () {
     // 0 333 hsbw return -- callable subroutine.
     const subr0 = [0x8b, 0xf7, 0xe1, 0x0d, 0x0b];
     // 0 500 hsbw endchar.
@@ -249,17 +310,18 @@ describe("Type1Parser", function () {
       cidCount: 2,
       subrMapOffset: 3,
       subrCount: 1,
-      sdBytes: 1,
+      sdBytes: 1
     });
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
     const program = parser.extractCidKeyedFontProgram({})!;
+    await compareStoredCid(stream, program);
 
     expect(program.subrs.length).toEqual(1);
     expect(program.charstrings[0]!.width).toEqual(500);
     expect(program.charstrings[1]!.width).toEqual(333);
   });
 
-  it("decrypts charstrings when lenIV > 0", function () {
+  it("decrypts charstrings when lenIV > 0", async function () {
     const cid0Plain = [0x8b, 0xf8, 0x88, 0x0d, 0x0e]; // 0 500 hsbw endchar
     const cid0Cipher = encryptCharString(cid0Plain, 4);
     const binary = Uint8Array.of(
@@ -271,17 +333,20 @@ describe("Type1Parser", function () {
     const stream = createCidKeyedFontStream({
       binary,
       cidCount: 1,
-      lenIV: 4,
+      lenIV: 4
     });
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
     const program = parser.extractCidKeyedFontProgram({})!;
+    await compareStoredCid(stream, program);
 
     expect(program.charstrings[0]!.width).toEqual(500);
   });
 
-  it("decodes hex CID-keyed data with whitespace between digits", function () {
+  it("decodes hex CID-keyed data with whitespace between digits", async function () {
     const binary = Uint8Array.of(4, 9, 9, 14, 0x8b, 0xf8, 0x88, 0x0d, 0x0e);
-    const hexWithSpaces = Array.from(binary, byte => byte.toString(16).padStart(2, "0")).join(" ");
+    const hexWithSpaces = Array.from(binary, (byte) => byte.toString(16).padStart(2, "0")).join(
+      " "
+    );
     const stream = new StringStream(
       "%!PS-Adobe-3.0 Resource-CIDFont\n" +
         "/CIDMapOffset 0 def\n" +
@@ -293,11 +358,12 @@ describe("Type1Parser", function () {
     );
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
     const program = parser.extractCidKeyedFontProgram({})!;
+    await compareStoredCid(stream, program);
 
     expect(program.charstrings[0]!.width).toEqual(500);
   });
 
-  it("rejects truncated CID-keyed binary data", function () {
+  it("rejects truncated CID-keyed binary data", async function () {
     // CIDMap declares 3 CIDs (4 entries x 1 byte = 4 bytes) but only 2 bytes
     // of binary follow, so the CIDMap read goes past the end.
     const binary = Uint8Array.of(0, 0);
@@ -305,9 +371,10 @@ describe("Type1Parser", function () {
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
 
     expect(parser.extractCidKeyedFontProgram({})).toBeNull();
+    await compareStoredCid(stream, null);
   });
 
-  it("rejects malformed StartData token sequences", function () {
+  it("rejects malformed StartData token sequences", async function () {
     const cases = [
       // Missing the "(Binary)" / "(Hex)" parenthesised tag.
       "Binary 4 StartData \x00\x00\x00\x00",
@@ -316,7 +383,7 @@ describe("Type1Parser", function () {
       // Unsupported data type.
       "(Ascii) 4 StartData \x00\x00\x00\x00",
       // Zero length.
-      "(Binary) 0 StartData",
+      "(Binary) 0 StartData"
     ];
     for (const tail of cases) {
       const stream = new StringStream(
@@ -328,10 +395,11 @@ describe("Type1Parser", function () {
       );
       const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
       expect(parser.extractCidKeyedFontProgram({})).toBeNull();
+      await compareStoredCid(stream, null);
     }
   });
 
-  it("rejects oversized hex StartData lengths", function () {
+  it("rejects oversized hex StartData lengths", async function () {
     // Declares 1 GiB of hex data; must be rejected before any allocation.
     const stream = new StringStream(
       "%!PS-Adobe-3.0 Resource-CIDFont\n" +
@@ -343,12 +411,11 @@ describe("Type1Parser", function () {
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
 
     expect(parser.extractCidKeyedFontProgram({})).toBeNull();
+    await compareStoredCid(stream, null);
   });
 
   it("parses font header font matrix", function () {
-    const stream = new StringStream(
-      "/FontMatrix [0.001 0 0 0.001 0 0 ]readonly def\n"
-    );
+    const stream = new StringStream("/FontMatrix [0.001 0 0 0.001 0 0 ]readonly def\n");
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
     const props: { fontMatrix?: number[] } = {};
     parser.extractFontHeader(props);
@@ -363,8 +430,60 @@ describe("Type1Parser", function () {
         "readonly def\n"
     );
     const parser = new Type1Parser(stream, false, SEAC_ANALYSIS_ENABLED);
-    const props: { overridableEncoding: boolean; builtInEncoding?: string[] } = { overridableEncoding: true };
+    const props: { overridableEncoding: boolean; builtInEncoding?: string[] } = {
+      overridableEncoding: true
+    };
     parser.extractFontHeader(props);
     expect(props.builtInEncoding![33]).toEqual("arrowright");
   });
+  it.each(["Binary", "Hex"])(
+    "reads source-backed CID Type1 %s data and blank-glyph reuse",
+    async (dataFormat) => {
+      const { parseEmbeddedType1Font } = await import("./type1.js"),
+        { parseStoredType1Font } = await import("./stored-type1.js");
+      const binary = Uint8Array.of(4, 9, 9, 14, 139, 248, 136, 13, 14, 139, 247, 142, 13, 14);
+      const bytes = (
+        createCidKeyedFontStream({ binary, dataFormat }) as unknown as { bytes: Uint8Array }
+      ).bytes;
+      const properties = {
+        length1: 0,
+        length2: 0,
+        fontMatrix: [0.001, 0, 0, 0.001, 0, 0],
+        bbox: [0, 0, 0, 0],
+        widths: {},
+        flags: 4,
+        composite: true,
+        cMap: { charCodeOf: (cid: number) => cid }
+      };
+      const native = parseEmbeddedType1Font(bytes, { ...properties }),
+        data = new Uint8Array(1024 * 1024);
+      data.set(bytes);
+      let end = bytes.length;
+      const storage = {
+        allocate(n: number) {
+          const at = end;
+          end += n;
+          return at;
+        },
+        async read(at: number, n: number) {
+          expect(n).toBeLessThanOrEqual(4096);
+          return data.slice(at, at + n);
+        },
+        async write(at: number, value: Uint8Array) {
+          expect(value.length).toBeLessThanOrEqual(4096);
+          data.set(value, at);
+        }
+      };
+      const parsed = await parseStoredType1Font(
+        { storage, position: 0, byteLength: bytes.length },
+        { ...properties }
+      );
+      for (let code = 0; code < 3; code++) {
+        const actual = [];
+        for await (const segment of parsed.glyphSegments(code)) actual.push(segment);
+        expect(actual).toEqual(native.getGlyphOutline(code));
+        expect(await parsed.getUnicode(code)).toBe(native.unicodeByCode.get(code));
+      }
+    }
+  );
 });

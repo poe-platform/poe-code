@@ -1,3 +1,4 @@
+import { parseStoredType1Font } from "./stored-type1.js";
 import { parseStoredCffFont } from "./stored-cff.js";
 import { parseStoredTrueTypeFont } from "./stored-truetype.js";
 import { cosNumber } from "../ast.js";
@@ -21,8 +22,8 @@ export interface PdfRetainedFontOptions extends PdfFontAllocationOptions {
 }
 
 /** Resolve one font without loading the document or unrelated font programs.
- * TrueType/CFF programs and glyph scratch retain caller resource backing;
- * Type 1 parser buffers are admitted separately. The caller owns font lifetime. */
+ * Font programs and glyph scratch retain caller resource backing.
+ * The caller owns font lifetime. */
 export async function resolveRetainedFont(document: PdfRetainedDocument, storage: PdfIndexStorage,
   resources: PdfCosDict | undefined, name: string, options: PdfRetainedFontOptions = {}): Promise<ResolvedPageFont | undefined> {
   const chunkBytes = options.chunkBytes ?? 65536;
@@ -91,9 +92,13 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
             }
             finally{program.return(undefined as never);}
           }else{
-            if((step.value.purpose==="truetype" || step.value.purpose==="cff") && options.resourceStorage){
+            if((step.value.purpose==="truetype" || step.value.purpose==="cff" || step.value.purpose==="type1") && options.resourceStorage){
               const backing=options.resourceStorage,position=backing.allocate(staged.size);let offset=0;
               for await(const bytes of staged.stream(0,staged.size,signal)){await backing.write(position+offset,bytes,signal?{signal}:undefined);offset+=bytes.length;}
+              if(step.value.purpose==="type1"){
+                value=await parseStoredType1Font({storage:backing,position,byteLength:staged.size},step.value.type1Properties!,{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
+                step=steps.next(value);continue;
+              }
               if(step.value.purpose==="cff"){
                 value=await parseStoredCffFont({storage:backing,position,byteLength:staged.size},step.value.encodingName,step.value.differences??new Map(),{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
                 step=steps.next(value);continue;

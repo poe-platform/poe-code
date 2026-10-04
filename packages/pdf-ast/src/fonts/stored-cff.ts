@@ -6,10 +6,9 @@ import {
   getEncoding,
   getGlyphsUnicode
 } from "../vendor/pdfjs-fonts.mjs";
-import { commandSegments } from "./cff.js";
+import { createStoredCffRenderer } from "./stored-cff-renderer.js";
 import { FontProgramStore, type FontProgramRange } from "./stored-program.js";
 import { StoredFontValues } from "./stored-values.js";
-import { StoredFontOperands } from "./stored-operands.js";
 import { readStoredCffMetadata } from "./stored-cff-metadata.js";
 import type { StoredCidMap } from "./stored-cid-map.js";
 import type { PdfFontAllocationOptions } from "./memory.js";
@@ -17,6 +16,7 @@ import type { PdfFontAllocationOptions } from "./memory.js";
 export interface StoredCffFont {
   readonly storedCff: true;
   readonly unicodeByCode: ReadonlyMap<number, string>;
+  getUnicode?(code: number): Promise<string | undefined>;
   glyphSegments(code: number): AsyncGenerator<PdfPathSegment>;
   glyphSegmentsById(glyphId: number): AsyncGenerator<PdfPathSegment>;
 }
@@ -242,48 +242,12 @@ export async function parseStoredCffFont(
     cmap,
     cff.matrix
   );
-  let peak = 0;
-  async function* glyphSegmentsById(glyph: number): AsyncGenerator<PdfPathSegment> {
-    const stacks = new Map<number, StoredFontOperands>();
-    let scratch = 0;
-    const charge = (bytes: number) => {
-      scratch += bytes;
-      if (scratch > peak) {
-        options.onAllocation?.(scratch - peak);
-        peak = scratch;
-      }
-    };
-    const steps = renderer.glyphCommands(
-      (await glyphs.get(glyph)) ?? new Uint8Array(),
-      glyph,
-      charge,
-      (depth) => {
-        let stack = stacks.get(depth);
-        if (!stack) {
-          charge(16384);
-          stack = new StoredFontOperands(storage, signal);
-          stacks.set(depth, stack);
-        }
-        stack.length = 0;
-        return stack;
-      }
-    );
-    try {
-      let step = steps.next(),
-        requests = 0;
-      while (!step.done) {
-        if (++requests % 4096 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
-        signal?.throwIfAborted();
-        if (step.value instanceof Promise) step = steps.next(await step.value);
-        else {
-          yield* commandSegments(step.value);
-          step = steps.next();
-        }
-      }
-    } finally {
-      steps.return();
-    }
-  }
+  const glyphSegmentsById = createStoredCffRenderer(
+    renderer,
+    (gid) => glyphs.get(gid),
+    storage,
+    options
+  );
   return {
     storedCff: true,
     unicodeByCode,

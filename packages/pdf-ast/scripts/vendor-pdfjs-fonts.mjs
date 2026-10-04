@@ -1,3 +1,4 @@
+import { streamType1Conversion } from "./type1-conversion-stream.mjs";
 import { streamCffRepairs } from "./cff-repair-stream.mjs";
 import { streamCffOutlines } from "./cff-outline-stream.mjs";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -17,8 +18,8 @@ const result = await build({
       'export { CFFParser, CFFCompiler, CFFStrings } from "./src/core/cff_parser.js";',
       'export { Type2Compiled } from "./src/core/font_renderer.js";',
       'export { Type1Font } from "./src/core/type1_font.js";',
-      'export { Type1Parser } from "./src/core/type1_parser.js";',
-      'export { MacStandardGlyphOrdering } from "./src/core/fonts_utils.js";',
+      'export { Type1Parser, StoredType1CharString } from "./src/core/type1_parser.js";',
+      'export { MacStandardGlyphOrdering, recoverGlyphName } from "./src/core/fonts_utils.js";',
       'export { CipherTransformFactory, PDF17, PDF20 } from "./src/core/crypto.js";',
       'export { Dict, Name } from "./src/core/primitives.js";',
       'export { saslPrep } from "./src/core/sasl_prep.js";',
@@ -140,7 +141,7 @@ const result = await build({
           if (!source.includes(before)) throw new Error("PDF.js Type1 parser allocation source marker changed: " + before);
           source = source.replaceAll(before, after);
         }
-        return { contents: source, loader: "js" };
+        return { contents: streamType1Conversion(source), loader: "js" };
       });
       builder.onLoad({ filter: /type1_font\.js$/ }, args => {
         let source = readFileSync(args.path, "utf8");

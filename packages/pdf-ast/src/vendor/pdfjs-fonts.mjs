@@ -23031,3 +23031,262 @@ export {
   getMetrics,
   saslPrep
 };
+
+export class StoredType1CharString extends Type1CharString {
+    constructor(stack, output) { super(); this.stack = stack; this.output = output; }
+    *convertStep(encoded, subrs, seacAnalysisEnabled, position) {
+    let i = position;
+    ;
+    ;
+    let error = false;
+    let wx, sbx, subrNumber;
+    do {
+        let value = (yield encoded.byte(i));
+        if (value < 32) {
+            if (value === 12) {
+                value = (value << 8) + (yield encoded.byte(++i));
+            }
+            switch (value) {
+                case 1:
+                    if (!HINTING_ENABLED) {
+                        (yield this.stack.clear());
+                        break;
+                    }
+                    error = (yield* this.executeCommandSteps(2, COMMAND_MAP.hstem));
+                    break;
+                case 3:
+                    if (!HINTING_ENABLED) {
+                        (yield this.stack.clear());
+                        break;
+                    }
+                    error = (yield* this.executeCommandSteps(2, COMMAND_MAP.vstem));
+                    break;
+                case 4:
+                    if (this.flexing) {
+                        if (this.stack.length < 1) {
+                            error = true;
+                            break;
+                        }
+                        const dy = (yield this.stack.pop());
+                        (yield this.stack.push(0, dy));
+                        break;
+                    }
+                    error = (yield* this.executeCommandSteps(1, COMMAND_MAP.vmoveto));
+                    break;
+                case 5:
+                    error = (yield* this.executeCommandSteps(2, COMMAND_MAP.rlineto));
+                    break;
+                case 6:
+                    error = (yield* this.executeCommandSteps(1, COMMAND_MAP.hlineto));
+                    break;
+                case 7:
+                    error = (yield* this.executeCommandSteps(1, COMMAND_MAP.vlineto));
+                    break;
+                case 8:
+                    error = (yield* this.executeCommandSteps(6, COMMAND_MAP.rrcurveto));
+                    break;
+                case 9:
+                    (yield this.stack.clear());
+                    break;
+                case 10:
+                    if (this.stack.length < 1) {
+                        error = true;
+                        break;
+                    }
+                    subrNumber = (yield this.stack.pop());
+                    if (!(yield subrs.get(subrNumber))) {
+                        error = true;
+                        break;
+                    }
+                    return { call: (yield subrs.get(subrNumber)), next: i + 1, error: false };
+                    break;
+                case 11: return { done: true, error: error };
+                case 13:
+                    if (this.stack.length < 2) {
+                        error = true;
+                        break;
+                    }
+                    wx = (yield this.stack.pop());
+                    sbx = (yield this.stack.pop());
+                    this.lsb = sbx;
+                    this.width = wx;
+                    (yield this.stack.push(wx, sbx));
+                    error = (yield* this.executeCommandSteps(2, COMMAND_MAP.hmoveto));
+                    break;
+                case 14:
+                    (yield this.output.push(COMMAND_MAP.endchar[0]));
+                    break;
+                case 21:
+                    if (this.flexing) {
+                        break;
+                    }
+                    error = (yield* this.executeCommandSteps(2, COMMAND_MAP.rmoveto));
+                    break;
+                case 22:
+                    if (this.flexing) {
+                        (yield this.stack.push(0));
+                        break;
+                    }
+                    error = (yield* this.executeCommandSteps(1, COMMAND_MAP.hmoveto));
+                    break;
+                case 30:
+                    error = (yield* this.executeCommandSteps(4, COMMAND_MAP.vhcurveto));
+                    break;
+                case 31:
+                    error = (yield* this.executeCommandSteps(4, COMMAND_MAP.hvcurveto));
+                    break;
+                case (12 << 8) + 0:
+                    (yield this.stack.clear());
+                    break;
+                case (12 << 8) + 1:
+                    if (!HINTING_ENABLED) {
+                        (yield this.stack.clear());
+                        break;
+                    }
+                    error = (yield* this.executeCommandSteps(2, COMMAND_MAP.vstem));
+                    break;
+                case (12 << 8) + 2:
+                    if (!HINTING_ENABLED) {
+                        (yield this.stack.clear());
+                        break;
+                    }
+                    error = (yield* this.executeCommandSteps(2, COMMAND_MAP.hstem));
+                    break;
+                case (12 << 8) + 6:
+                    if (seacAnalysisEnabled) {
+                        const asb = (yield this.stack.at(-5));
+                        this.seac = (yield this.stack.splice(-4, 4));
+                        this.seac[0] += this.lsb - asb;
+                        error = (yield* this.executeCommandSteps(0, COMMAND_MAP.endchar));
+                    }
+                    else {
+                        error = (yield* this.executeCommandSteps(4, COMMAND_MAP.endchar));
+                    }
+                    break;
+                case (12 << 8) + 7:
+                    if (this.stack.length < 4) {
+                        error = true;
+                        break;
+                    }
+                    (yield this.stack.pop());
+                    wx = (yield this.stack.pop());
+                    const sby = (yield this.stack.pop());
+                    sbx = (yield this.stack.pop());
+                    this.lsb = sbx;
+                    this.width = wx;
+                    (yield this.stack.push(wx, sbx, sby));
+                    error = (yield* this.executeCommandSteps(3, COMMAND_MAP.rmoveto));
+                    break;
+                case (12 << 8) + 12:
+                    if (this.stack.length < 2) {
+                        error = true;
+                        break;
+                    }
+                    const num2 = (yield this.stack.pop());
+                    const num1 = (yield this.stack.pop());
+                    (yield this.stack.push(num1 / num2));
+                    break;
+                case (12 << 8) + 16:
+                    if (this.stack.length < 2) {
+                        error = true;
+                        break;
+                    }
+                    subrNumber = (yield this.stack.pop());
+                    const numArgs = (yield this.stack.pop());
+                    if (subrNumber === 0 && numArgs === 3) {
+                        const flexArgs = (yield this.stack.splice(-17, 17));
+                        (yield this.stack.push(flexArgs[2] + flexArgs[0],
+                        // bcp1x + rpx
+                        flexArgs[3] + flexArgs[1],
+                        // bcp1y + rpy
+                        flexArgs[4],
+                        // bcp2x
+                        flexArgs[5],
+                        // bcp2y
+                        flexArgs[6],
+                        // p2x
+                        flexArgs[7],
+                        // p2y
+                        flexArgs[8],
+                        // bcp3x
+                        flexArgs[9],
+                        // bcp3y
+                        flexArgs[10],
+                        // bcp4x
+                        flexArgs[11],
+                        // bcp4y
+                        flexArgs[12],
+                        // p3x
+                        flexArgs[13],
+                        // p3y
+                        flexArgs[14]
+                        // flexDepth
+                        // 15 = finalx unused by flex
+                        // 16 = finaly unused by flex
+                        ));
+                        error = (yield* this.executeCommandSteps(13, COMMAND_MAP.flex, true));
+                        this.flexing = false;
+                        (yield this.stack.push(flexArgs[15], flexArgs[16]));
+                    }
+                    else if (subrNumber === 1 && numArgs === 0) {
+                        this.flexing = true;
+                    }
+                    break;
+                case (12 << 8) + 17:
+                    break;
+                case (12 << 8) + 33:
+                    (yield this.stack.clear());
+                    break;
+                default:
+                    warn('Unknown type 1 charstring command of "' + value + '"');
+                    break;
+            }
+            if (error) {
+                break;
+            }
+            continue;
+        }
+        else if (value <= 246) {
+            value -= 139;
+        }
+        else if (value <= 250) {
+            value = (value - 247) * 256 + (yield encoded.byte(++i)) + 108;
+        }
+        else if (value <= 254) {
+            value = -((value - 251) * 256) - (yield encoded.byte(++i)) - 108;
+        }
+        else {
+            value = ((yield encoded.byte(++i)) & 255) << 24 | ((yield encoded.byte(++i)) & 255) << 16 | ((yield encoded.byte(++i)) & 255) << 8 | ((yield encoded.byte(++i)) & 255) << 0;
+        }
+        (yield this.stack.push(value));
+    } while (false);
+    return { next: i + 1, error: error };
+}
+*executeCommandSteps(howManyArgs, command, keepStack) {
+    const stackLength = this.stack.length;
+    if (howManyArgs > stackLength) {
+        return true;
+    }
+    const start = stackLength - howManyArgs;
+    for (let i = start; i < stackLength; i++) {
+        let value = (yield this.stack.get(i));
+        if (Number.isInteger(value)) {
+            (yield this.output.push(28, value >> 8 & 255, value & 255));
+        }
+        else {
+            value = 65536 * value | 0;
+            (yield this.output.push(255, value >> 24 & 255, value >> 16 & 255, value >> 8 & 255, value & 255));
+        }
+    }
+    (yield this.output.push(...command));
+    if (keepStack) {
+        (yield this.stack.splice(start, howManyArgs));
+    }
+    else {
+        (yield this.stack.clear());
+    }
+    return false;
+}
+  }
+
+export { recoverGlyphName };

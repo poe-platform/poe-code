@@ -1,3 +1,4 @@
+import { FontDecimal } from "./font-decimal.js";
 import type { FontProgramRange } from "./stored-program.js";
 
 /** INDEX entries stay as views into caller storage, including shifted CFF data. */
@@ -23,70 +24,6 @@ export async function readCffIndex(source: FontProgramRange, position: number, e
   };
 }
 
-/** parseFloat's prefix grammar, without retaining an arbitrarily long decimal.
- * Binary64 rounding boundaries terminate within 800 significant decimal digits;
- * a sticky tail preserves the side of a boundary after that exact prefix. */
-class Decimal {
-  private phase: "start" | "integer" | "fraction" | "exponent" | "exponentDigits" | "done" =
-    "start";
-  private negative = false;
-  private exponentNegative = false;
-  private exponent = 0;
-  private exponentDigits = 0;
-  private digits = 0;
-  private significant = 0;
-  private fraction = 0;
-  private prefix = "";
-  private sticky = false;
-  constructor(private readonly exponentLimit: number) {}
-  accept(char: string): void {
-    if (this.phase === "done") return;
-    if (this.phase === "start") {
-      this.phase = "integer";
-      if (char === "-") {
-        this.negative = true;
-        return;
-      }
-    }
-    if (this.phase === "exponent") {
-      this.phase = "exponentDigits";
-      if (char === "-") {
-        this.exponentNegative = true;
-        return;
-      }
-    }
-    const digit = char.charCodeAt(0) - 48;
-    if (digit >= 0 && digit <= 9) {
-      if (this.phase === "exponentDigits") {
-        this.exponentDigits++;
-        this.exponent = Math.min(this.exponentLimit, this.exponent * 10 + digit);
-      } else {
-        this.digits++;
-        if (this.phase === "fraction") this.fraction++;
-        if (this.significant || digit !== 0) {
-          this.significant++;
-          if (this.prefix.length < 800) this.prefix += char;
-          else if (digit !== 0) this.sticky = true;
-        }
-      }
-    } else if (char === "." && this.phase === "integer") this.phase = "fraction";
-    else if (char === "E" && this.digits && (this.phase === "integer" || this.phase === "fraction"))
-      this.phase = "exponent";
-    else this.phase = "done";
-  }
-  value(): number {
-    if (!this.digits) return NaN;
-    if (!this.significant) return this.negative ? -0 : 0;
-    const prefix = this.prefix + (this.sticky ? "1" : "");
-    const exponent =
-      (this.exponentDigits ? this.exponent * (this.exponentNegative ? -1 : 1) : 0) -
-      this.fraction +
-      this.significant -
-      prefix.length;
-    return Number(`${this.negative ? "-" : ""}${prefix}e${exponent}`);
-  }
-}
-
 export async function readCffDictionary(
   source: FontProgramRange,
   selected: ReadonlySet<number>
@@ -97,7 +34,7 @@ export async function readCffDictionary(
     values: number[] = [],
     invalid = false;
   async function real() {
-    const decimal = new Decimal(source.length * 2 + 2048);
+    const decimal = new FontDecimal(source.length * 2 + 2048);
     let done = false;
     while (position < source.length && !done) {
       const byte = (await source.byte(position++))!;

@@ -14,15 +14,41 @@ export class StoredFontValues {
   private first = -1;
   private page: Page | undefined;
   private base = 0;
-  private length = 0;
+  private size = 0;
   private requests = 0;
   constructor(
     private readonly storage: PdfPixelStorage,
     private readonly signal?: AbortSignal
   ) {}
+  get length(): number {
+    return this.size;
+  }
+  async push(...values: Array<number | undefined>): Promise<void> {
+    for (const value of values) await this.set(this.size, value);
+  }
+  async pop(): Promise<number | undefined> {
+    this.signal?.throwIfAborted();
+    if (!this.size) return undefined;
+    const value = await this.get(this.size - 1);
+    this.size--;
+    return value;
+  }
+  async at(index: number): Promise<number | undefined> {
+    return this.get(index < 0 ? this.size + index : index);
+  }
+  /** Native Type1 conversion removes fixed operand groups (at most 17). */
+  async splice(start: number, count: number): Promise<Array<number | undefined>> {
+    start = start < 0 ? Math.max(0, this.size + start) : Math.min(start, this.size);
+    count = Math.max(0, Math.min(count, this.size - start));
+    const values = await this.slice(start, start + count);
+    for (let at = start + count; at < this.size; at++)
+      await this.set(at - count, await this.get(at));
+    this.size -= count;
+    return values;
+  }
   clear(): void {
     this.signal?.throwIfAborted();
-    this.length = 0;
+    this.size = 0;
   }
   private allocate(previous = -1): Page {
     const position = this.storage.allocate(4096);
@@ -93,7 +119,7 @@ export class StoredFontValues {
   }
   async get(index: number): Promise<number | undefined> {
     this.signal?.throwIfAborted();
-    if (!Number.isSafeInteger(index) || index < 0 || index >= this.length) return undefined;
+    if (!Number.isSafeInteger(index) || index < 0 || index >= this.size) return undefined;
     const page = await this.seek(index),
       at = 16 + (index - this.base) * 9;
     return page.bytes[at] ? page.view.getFloat64(at + 1, true) : undefined;
@@ -101,23 +127,23 @@ export class StoredFontValues {
   async set(index: number, value: number | undefined): Promise<void> {
     this.signal?.throwIfAborted();
     if (!Number.isSafeInteger(index) || index < 0) throw new RangeError("Invalid font value index");
-    while (this.length < index) {
-      const page = await this.seek(this.length),
-        count = Math.min(index - this.length, this.base + CAPACITY - this.length);
-      for (let i = 0; i < count; i++) page.bytes[16 + (this.length + i - this.base) * 9] = 0;
+    while (this.size < index) {
+      const page = await this.seek(this.size),
+        count = Math.min(index - this.size, this.base + CAPACITY - this.size);
+      for (let i = 0; i < count; i++) page.bytes[16 + (this.size + i - this.base) * 9] = 0;
       page.dirty = true;
-      this.length += count;
+      this.size += count;
     }
     const page = await this.seek(index),
       at = 16 + (index - this.base) * 9;
     page.bytes[at] = value === undefined ? 0 : 1;
     if (value !== undefined) page.view.setFloat64(at + 1, value, true);
     page.dirty = true;
-    this.length = Math.max(this.length, index + 1);
+    this.size = Math.max(this.size, index + 1);
   }
   async slice(start: number, end: number): Promise<Array<number | undefined>> {
-    start = start < 0 ? Math.max(0, this.length + start) : Math.min(start, this.length);
-    end = end < 0 ? Math.max(0, this.length + end) : Math.min(end, this.length);
+    start = start < 0 ? Math.max(0, this.size + start) : Math.min(start, this.size);
+    end = end < 0 ? Math.max(0, this.size + end) : Math.min(end, this.size);
     const values: Array<number | undefined> = [];
     for (let index = start; index < end; index++) values.push(await this.get(index));
     return values;

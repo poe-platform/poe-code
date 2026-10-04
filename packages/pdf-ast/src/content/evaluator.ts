@@ -1028,7 +1028,8 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
+export type PdfEvaluationRequest = {readonly kind:"font-unicode";readonly lookup:(code:number)=>Promise<string|undefined>;readonly code:number}
+  | {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
   | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>;storedSegments?(code:number,storage:PdfPixelStorage,signal?:AbortSignal):AsyncIterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
   | {readonly kind:"cmap-lookup";readonly map:StoredCMap;readonly code:number} | {readonly kind:"cmap-character";readonly map:StoredCMap;readonly bytes:Uint8Array;readonly offset:number} | {readonly kind:"cid-gid";readonly map:import("../fonts/stored-cid-map.js").StoredCidMap;readonly code:number} | {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
   | {readonly kind:"frame-pop";readonly stack:StoredMetadataStack<EvaluationFrame>} | {readonly kind:"capture-append";readonly writer:StoredOperationsWriter;readonly operation:PdfPaintOperation} | PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
@@ -1130,6 +1131,15 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       if(!reply||!("kind" in reply)||reply.kind!=="resolved")throw new TypeError("Expected CMap value");
       return reply.node?.kind==="number"?reply.node.value:reply.node?.kind==="name"?reply.node.decoded:undefined;
     }
+    function* difference(code:number):EvaluationWork<string|undefined>{
+      const embedded=font?.embeddedCff;
+      if(embedded && "storedCff" in embedded && embedded.getUnicode && !font?.cmap?.map.has(code)){
+        const reply=yield {kind:"font-unicode",lookup:embedded.getUnicode,code};
+        if(!reply||!("kind" in reply)||reply.kind!=="resolved")throw new TypeError("Expected font Unicode label");
+        if(reply.node?.kind==="name")return reply.node.decoded;
+      }
+      return font?.differences.get(code);
+    }
     if(font?.storedEncodingCMap||font?.storedCMap){
       for(let offset=0;offset<bytes.length;){
         let code=bytes[offset]!,length=1;
@@ -1143,7 +1153,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         const encoded=encoding?yield* lookup(encoding,code):font.encodingCMap?.lookup(code);
         const hasEncoding=!!(encoding||font.encodingCMap),cid=hasEncoding?(typeof encoded==="number"?encoded:0):code;
         const mapped=font.storedCMap?yield* lookup(font.storedCMap,code):font.cmap?.map.get(code);
-        const fallback=hasEncoding?(font.differences.get(cid)??(cid>=0x20&&cid<=0x10ffff?String.fromCodePoint(cid):"")):font.isTwoByteCid?(code>=0x20&&code<=0x10ffff?String.fromCodePoint(code):""):(font.differences.get(code)??decodeWinAnsiByte(code));
+        const fallback=hasEncoding?((yield* difference(cid))??(cid>=0x20&&cid<=0x10ffff?String.fromCodePoint(cid):"")):font.isTwoByteCid?(code>=0x20&&code<=0x10ffff?String.fromCodePoint(code):""):((yield* difference(code))??decodeWinAnsiByte(code));
         yield {charCode:code,...(hasEncoding?{cid}:{}),isSpace:hasEncoding?length===1&&bytes[offset]===0x20:!font.isTwoByteCid&&code===0x20,unicode:typeof mapped==="string"?mapped:fallback,advance1000:font.widths.get(cid)??font.defaultWidth};
         offset+=length;
       }
@@ -1154,7 +1164,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       for (const { charCode, isSpace } of iterateCMapCharacters(encoding, bytes)) {
         const value = encoding.lookup(charCode);
         const cid = typeof value === "number" ? value : 0;
-        const unicode = font.cmap?.map.get(charCode) ?? font.differences.get(cid) ?? (cid >= 0x20 && cid <= 0x10ffff ? String.fromCodePoint(cid) : "");
+        const unicode = font.cmap?.map.get(charCode) ?? (yield* difference(cid)) ?? (cid >= 0x20 && cid <= 0x10ffff ? String.fromCodePoint(cid) : "");
         yield { charCode, cid, isSpace, unicode, advance1000: font.widths.get(cid) ?? font.defaultWidth };
       }
       return;
@@ -1163,7 +1173,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       if (!font.isTwoByteCid) {
         for (let i = 0; i < bytes.length; i++) {
           const code = bytes[i]!;
-          const unicode = font.cmap.map.get(code) ?? (font.differences.has(code) ? font.differences.get(code)! : decodeWinAnsiByte(code));
+          const unicode = font.cmap.map.get(code) ?? ((yield* difference(code)) ?? decodeWinAnsiByte(code));
           yield { charCode: code, isSpace: code === 0x20, unicode, advance1000: font.widths.get(code) ?? font.defaultWidth };
         }
         return;
@@ -1185,7 +1195,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     const stdMetrics = STANDARD_14_FONTS[normalizeStandard14FontName(font?.baseFont ?? curState().fontName)];
     for (let i = 0; i < bytes.length; i++) {
       const code = bytes[i]!;
-      yield { charCode: code, isSpace: code === 0x20, unicode: font?.differences.get(code) ?? decodeWinAnsiByte(code),
+      yield { charCode: code, isSpace: code === 0x20, unicode: (yield* difference(code)) ?? decodeWinAnsiByte(code),
         advance1000: font ? font.widths.get(code) ?? font.defaultWidth : stdMetrics.widthsByCode[code] ?? stdMetrics.defaultWidth };
     }
   }
@@ -2195,7 +2205,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

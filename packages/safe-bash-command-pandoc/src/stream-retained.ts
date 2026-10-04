@@ -1,3 +1,4 @@
+import {retainedImageOriginAllowed} from "./retained-image-origin.js";
 import {jsonFilterWrite, type JsonFilterOutput} from "./json-filters.js";
 import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import {reserveRetainedAstBudgets} from "./retained-ast-budgets.js";
@@ -24,9 +25,8 @@ import type {BackedJson} from "./backed-json.js";
 import type {ExecutionContext} from "./execution.js";
 import type {ConversionOptions, WorkingStorageOptions} from "./types.js";
 
-/** Preserve the existing JSON filter origin policy. Native URL admission still
- * needs an individual URI value; this is an explicit remaining whole-value
- * boundary, separate from the retained document and protocol payloads. */
+/** Preserve JSON-filter origin admission without materializing ordinary paths
+ * or opaque URLs. Authority validation remains a native whole-value boundary. */
 async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): Promise<void> {
   const end = (await tree.describe(tree.rootPosition)).end;
   for (let position = tree.rootPosition; position < end;) {
@@ -40,9 +40,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
         for await (const child of tree.children(content)) {
           if (index++ !== 2) continue;
           const target = child + 32;
-          let url = "";
-          for await (const part of tree.scalarChunks(target)) {context.charge("retainedBytes", part.length * 2); url += part;}
-          if (!url.startsWith("/") && !URL.canParse(url))
+          if (!await retainedImageOriginAllowed(() => tree.scalarChunks(target), context))
             throw new PandocError("E_UNSUPPORTED_FEATURE", "convert", "JSON filters cannot preserve relative image source directories");
         }
       }

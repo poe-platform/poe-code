@@ -4,7 +4,7 @@ import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
 const modes = ["sdk", "command"];
-const ordinary = {transform: false, metadata: false, filter: false, lua: false, template: false, crlf: false, writerOptions: false, byteQuota: false, joined: false, fileScope: false};
+const ordinary = {transform: false, metadata: false, filter: false, lua: false, template: false, crlf: false, writerOptions: false, byteQuota: false, joined: false, fileScope: false, imageUri: false};
 const cases = modes.flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from =>
   ["json", "plain", "html5", "rst", "gfm", "latex", "rtf", "odt", ...(["json", "rtf"].includes(from) ? ["commonmark"] : [])]
     .map(to => ({mode, from, to, ...ordinary}))));
@@ -27,7 +27,8 @@ for (const option of ["filter", "lua"] as const)
   cases.push(...modes.map(mode => ({mode, from: "mediawiki", to: "plain", ...ordinary, [option]: true, byteQuota: true})));
 cases.push(...modes.map(mode => ({mode, from: "mediawiki", to: "plain", ...ordinary, byteQuota: true, joined: true})));
 cases.push(...modes.flatMap(mode => ["none", "lua", "json"].map(filter => ({mode, from: "mediawiki", to: "plain", ...ordinary, byteQuota: true, joined: true, fileScope: true, lua: filter === "lua", filter: filter === "json"}))));
-it.each(cases)("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata filter=$filter lua=$lua template=$template crlf=$crlf writerOptions=$writerOptions byteQuota=$byteQuota joined=$joined fileScope=$fileScope", async ({mode, from, to, transform, metadata, filter, lua, template, crlf, writerOptions, byteQuota, joined, fileScope}) => {
+cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, filter: true, byteQuota: true, imageUri: true})));
+it.each(cases)("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata filter=$filter lua=$lua template=$template crlf=$crlf writerOptions=$writerOptions byteQuota=$byteQuota joined=$joined fileScope=$fileScope imageUri=$imageUri", async ({mode, from, to, transform, metadata, filter, lua, template, crlf, writerOptions, byteQuota, joined, fileScope, imageUri}) => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput, createJsonFilterCapability, createLuaFilterCapability} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -41,7 +42,8 @@ it.each(cases)("retains finite $from-to-$to reference budgets through the public
       await namespace.writeFile('/input.json', new Uint8Array());
       const {fs: backing, events} = api.createR2PagedFixture(namespace, env.PAGES);
       const value = 'x'.repeat(${mode === 'command' || lua ? 600000 : 17000});
-      const json = JSON.stringify({'pandoc-api-version': [1,23,1,2], meta: {}, blocks: [{t: 'Para', c: [{t: 'Str', c: value}]}]});
+      const json = JSON.stringify({'pandoc-api-version': [1,23,1,2], meta: {}, blocks: [{t: 'Para', c: [${imageUri} ? {t: 'Image', c: [['', [], []], [], ['data:' + value, '']]} : {t: 'Str', c: value}]}]});
+      if (${imageUri}) {const native = URL.canParse.bind(URL); URL.canParse = (value, base) => {if (String(value).length > 4096) throw new Error('Whole URI forbidden'); return native(value, base);};}
       const transform = ${transform}, metadata = ${metadata}, filter = ${filter}, lua = ${lua}, template = ${template}, crlf = ${crlf}, writerOptions = ${writerOptions};
       const templateFiles = {"/template": "$if(show)$$header-includes$$body$$endif$", "/header": "header", "/before": "before", "/after": "after"};
       if (template) for (const [path, value] of Object.entries(templateFiles)) {await namespace.writeFile(path, new Uint8Array()); await env.PAGES.put(path, value);}
@@ -56,7 +58,7 @@ it.each(cases)("retains finite $from-to-$to reference budgets through the public
       }});
       let text = '', largest = 0, closed = 0;
       const output = {async write(bytes) {text += new TextDecoder().decode(bytes); largest = Math.max(largest, bytes.length);}, async close() {closed++;}, async abort() {}};
-      const limits = {...(${byteQuota} ? {retainedBytes: (from === "csv" || from === "tsv" || writerOptions || ${joined}) ? 64000000 : 32000000} : {}), references: (crlf || to === 'latex' || to === 'rtf') ? 2000000 : 10000, text: (metadata || filter || lua || ${joined}) ? 6000000 : transform ? 4000000 : 2000000, nodes: 1000, depth: 64};
+      const limits = {...(${byteQuota} ? {retainedBytes: (from === "csv" || from === "tsv" || writerOptions || ${joined} || ${imageUri}) ? 64000000 : 32000000} : {}), references: (crlf || to === 'latex' || to === 'rtf') ? 2000000 : 10000, text: (metadata || filter || lua || ${joined}) ? 6000000 : transform ? 4000000 : 2000000, nodes: 1000, depth: 64};
       if (${JSON.stringify(mode)} === 'sdk') {
         await api.convertToOutput([{chunks: fs.readStream('/input.json')}, ...(${joined} ? [{chunks: fs.readStream('/input.json')}] : [])], {from, to, fileScope: ${fileScope}, ...(writerOptions ? {standalone: true, ...(to === "gfm" ? {toc: true, ascii: true, wrap: "auto", columns: 12, rawContent: "retain"} : {})} : {}), ...(crlf ? {eol: "crlf", standalone: false} : {}), ...(template ? {template: {chunks: fs.readStream("/template")}, variables: {show: "yes"}, includeInHeader: [{chunks: fs.readStream("/header")}], includeBeforeBody: [{chunks: fs.readStream("/before")}], includeAfterBody: [{chunks: fs.readStream("/after")}]} : {}), ...(filter || lua ? {filters: [{kind: lua ? "lua" : "json", path: lua ? "/filter.lua" : "/filter"}]} : {}), ...(metadata ? {metadataJson: [{title: value}]} : {}), ...(transform ? {stripComments: true, shiftHeadingLevelBy: -1} : {})}, {limits, ...(lua ? {filters: api.createLuaFilterCapability({readStream: () => fs.readStream("/filter.lua")})} : {}), ...(filter ? {filters: api.createJsonFilterCapability({async runStream({stdin, stdout}) {for await (const bytes of stdin) await stdout.write(bytes); return 0;}})} : {}), workingFiles: {fs, directory: '/spill', cacheBytes: lua ? 1048576 : 16384}, output});
       } else {

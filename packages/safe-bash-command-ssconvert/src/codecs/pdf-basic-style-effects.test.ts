@@ -1,5 +1,5 @@
 import {expect, it, vi} from "vitest";
-import {PDFPage, rgb} from "pdf-lib";
+import {PDFPage, PDFName, PDFDict, PDFNumber, PDFArray, PDFRawStream, decodePDFRawStream, rgb} from "pdf-lib";
 import {suppliedDefaultFont} from "safe-bash-pdf-engine";
 import type {CapabilityContext, FontCapability} from "../contracts.js";
 import {readGnumeric} from "./gnumeric.js";
@@ -97,8 +97,32 @@ it.each([
     expect(rectangle).toHaveBeenCalledWith(expect.objectContaining({color: rgb(channels[0], channels[1], channels[2])}));
   } finally {rectangle.mockRestore();}
 });
-it.each(["", "0:0", "0:0:0:0", "0:0:10000", "0:0:-1", "0:0:GG", "0:0:ffjunk", "0:0:0:FFFF:0"])("refuses malformed or translucent color %s before font selection", async color => {
+it.each(["", "0:0", "0:0:10000", "0:0:-1", "0:0:GG", "0:0:ffjunk", "0:0:0:FFFF:0"])("refuses malformed color %s before font selection", async color => {
   const resolve = vi.fn<FontCapability["resolve"]>(async () => suppliedDefaultFont().bytes);
   await expect(writePdf(await fixture([{text: "color", attributes: attributes.replace('Fore="0:0:0"', `Fore="${color}"`)}]), [], {...context, fonts: {resolve}})).rejects.toThrow("styled or merged cells");
   expect(resolve).not.toHaveBeenCalled();
+});
+it.each([['8000', 128 / 255], ['0000', 0], ['00ff', 0]])("applies native alpha %s to text and fills without leaking into adjacent cells", async (alpha, opacity) => {
+  const resolve = async () => suppliedDefaultFont().bytes;
+  const transparent = attributes.replace('Fore="0:0:0"', `Fore="FFFF:0:0:${alpha}"`).replace('Back="FFFF:FFFF:FFFF"', `Back="0:0:FFFF:${alpha}"`).replace('Shade="0"', 'Shade="1"');
+  const book = await fixture([{text: "alpha", attributes: transparent}, {text: "opaque"}]);
+  const rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
+  try {
+    const {pdf, runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve}}));
+    expect(runs.map(run => run.text)).toEqual(["alpha", "opaque"]);
+    expect(rectangle).toHaveBeenCalledWith(expect.objectContaining({color: rgb(0, 0, 1), opacity}));
+    const page = pdf.getPage(0), resources = page.node.Resources()!.lookup(PDFName.of("ExtGState"), PDFDict);
+    expect(resources.entries().map(([,ref]) => pdf.context.lookup(ref, PDFDict).lookup(PDFName.of("ca"), PDFNumber).asNumber())).toContain(opacity);
+    const contents = page.node.Contents() as PDFArray;
+    const operations = contents.asArray().map(ref => new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
+    const textPrefixes = operations.split("BT");
+    const firstPrefix = textPrefixes[0]!.slice(textPrefixes[0]!.lastIndexOf("\nq\n"));
+    const alphaOperator = firstPrefix.split("\n").find(line => line.endsWith(" gs"))!;
+    expect(alphaOperator).toBeDefined();
+    const selected = resources.lookup(PDFName.of(alphaOperator.split(" ")[0]!.slice(1)), PDFDict);
+    expect(selected.lookup(PDFName.of("ca"), PDFNumber).asNumber()).toBe(opacity);
+    expect(textPrefixes[1]!.slice(textPrefixes[1]!.lastIndexOf("\nq\n"))).not.toContain(" gs");
+    const textStates = operations.split("BT").slice(1).map(part => part.slice(part.indexOf("ET") + 2).trimStart().startsWith("EMC\nQ"));
+    expect(textStates).toEqual([true, true]);
+  } finally {rectangle.mockRestore();}
 });

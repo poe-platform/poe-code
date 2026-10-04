@@ -43,10 +43,11 @@ SHA-256 `7e0e222ff559e3e90ef037a41c221cd5520c94b894582a64c97dede8c97841f6`,
 under the same GPL-2.0-or-later source attribution. Display advances select
 whole-column spans independently on each side; print advances position glyphs.
 
-Opaque cell colors follow the 16-bit to 8-bit channel conversion in
+Cell colors follow the 16-bit to 8-bit channel conversion in
 Gnumeric `src/style-color.c` (`gnm_color_new_rgba16`), author Miguel de Icaza,
 and the `src/xml-sax-read.c` color fields, copyright 2000–2007 Jody Goldberg
 and 2007–2024 Morten Welinder (GPL version 2 or 3). Source SHA-256 values:
 `c1abfd266978b313af7e1efb011880a39cccf8c24f53e8364b8913fc5aa10367`
 and `05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3`,
-respectively. Translucent colors remain outside the admitted print profile.
+respectively. Alpha channels use the same high-byte conversion, and the PDF
+painter scopes text opacity to each cell.

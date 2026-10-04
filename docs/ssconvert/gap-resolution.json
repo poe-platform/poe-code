@@ -5145,6 +5145,14 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "pdfAlphaColors": {
+      "finding": "Three alpha controls originally refused styled/merged cells. Native XML color parsing and print_cell_gtk carry8-bit alpha into Cairo.",
+      "implementation": "Retain high-byte alpha for foreground and solid fills. PDF text uses a scoped nonstroking graphics state, while solid rectangles receive their own opacity. Zero/low-byte/half/opaque boundaries and subsequent opaque text are covered.",
+      "validation": "338 print/PDF tests,selected19-workspace build,engine/command lint/source/test and Node/browser types. Six independent current-version XML inputs produce12 public PDFs and6 native renders.18 exact composited fill pixels match;native/public text receipts and inspected CLI/PDF screenshots retained.",
+      "limits": "Product retains logical text for zero-alpha cells; native Cairo omits it from extraction. Raster metrics and original text receipts are retained, not a global pixel-parity claim. Patterned fills, decorations and other rendering scope remain open.",
+      "legacyGeometry": "Version-controlled evidence in pdf-colors shows pre1.12.60 native row/column correction; current-version widths stay unchanged. With no Version element, native hack_colrow_size is an uninitialized stack field (xml-sax-read.c read_file_init_state); do not imitate that undefined behavior. Original missing-version and missing-version/SheetNameIndex two-page controls remain preserved.",
+      "evidence": "out/ssconvert-continuation-1748/pdf-alpha;pdf-colors/version-geometry.json and retained source"
+    },
     "pdfOpaqueColors": {
       "finding": "Opaque colors outside black/red foreground and white/yellow fill were refused. Five original valid-color regressions failed.",
       "implementation": "Admit bounded hexadecimal RGB and opaque RGBA fields; convert each16-bit channel using its high byte, matching gnm_color_new_rgba16. Solid/no-fill styles accept inactive pattern colors. Malformed and translucent colors retain explicit refusal before font resolution.",

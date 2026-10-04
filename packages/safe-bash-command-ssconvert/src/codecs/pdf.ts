@@ -1,4 +1,4 @@
-import { PDFDocument, PDFHexString, PDFName, PDFOperator, PDFOperatorNames, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFPage, type PDFFont } from "pdf-lib";
+import { PDFDocument, PDFHexString, PDFName, PDFOperator, PDFOperatorNames, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, setGraphicsState, type PDFPage, type PDFFont } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
 import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "safe-bash-pdf-engine";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
@@ -265,6 +265,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const resource = page.node.newFontDictionary(font.name, font.ref);
       // Positioned marks can be reordered by text extractors; retain the logical cell string.
       page.pushOperators(pushGraphicsState());
+      if (cellBox.style.foregroundAlpha !== 1) {
+        const alpha = page.node.newExtGState("CellAlpha", pdf.context.obj({Type: "ExtGState", ca: cellBox.style.foregroundAlpha}));
+        page.pushOperators(setGraphicsState(alpha));
+      }
       if (overflows) page.pushOperators(pdfRectangle(clipLeft, 0, clipWidth, page.getHeight()), clip(), endPath());
       page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
         [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]),
@@ -472,7 +476,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
           const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
           page.drawRectangle({ x: x + 2, y: page.getHeight() - y - height - 0.2,
-            width: width + 0.2, height: height + 0.2, color: rgb(...style.background) });
+            width: width + 0.2, height: height + 0.2, color: rgb(...style.background),
+            ...(style.backgroundAlpha === 1 ? {} : {opacity: style.backgroundAlpha}) });
         }
         for (const cell of sheet.cells) {
           tick();

@@ -5,7 +5,7 @@ import {ExecutionContext} from "./execution.js";
 import type {Block} from "./ast-types.js";
 import type {FilterCapability} from "./types.js";
 
-it.each(["json", "rtf", "csv", "tsv"].flatMap(from => ["images", "binaryBytes", "layoutWork", "parts", "compressedBytes", "expandedBytes"].flatMap(key => ["plain", "html", "commonmark", "gfm", "rst", "latex", "rtf", "odt", "json"].map(to => ({from, key, to})))))
+it.each(["json", "rtf", "csv", "tsv"].flatMap(from => ["images", "binaryBytes", "layoutWork", "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes"].flatMap(key => ["plain", "html", "commonmark", "gfm", "rst", "latex", "rtf", "odt", "json"].map(to => ({from, key, to})))))
 ("keeps $from to $to retained with a finite $key budget", async ({from, key, to}) => {
   const hex = "89504e470d0a1a0a0000000d49484452000000010000000108000000003a7e9b550000000d494441547801010200fdff008000820081c36e25e00000000049454e44ae426082";
   const target = "data:image/png;base64," + btoa(String.fromCharCode(...Array.from({length: hex.length / 2}, (_, index) => Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16))));

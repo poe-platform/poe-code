@@ -1,3 +1,4 @@
+import {PandocError} from "./errors.js";
 import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
 import {RetainedRtfAst, type RtfValue} from "./retained-rtf-ast.js";
 import {RetainedRtfDefinitions} from "./retained-rtf-definitions.js";
@@ -299,6 +300,23 @@ class RetainedRtfReader {
     const number = ++this.pictureCount; await this.pictures.set(BigInt(number), BigInt(await this.storage.append(record)));
     const id = `rtf-picture-${number}.${encoding === "jpeg" ? "jpg" : "png"}`;
     await this.flow.append(await this.ast.tag("Image", await this.ast.value([["", [], []], [], [id, ""]])));
+  }
+  /** Match document-normalization charges using backed lengths, without reading payloads. */
+  async reserveResources(): Promise<void> {
+    let total = 0;
+    for (let index = 1; index <= this.pictureCount; index++) {
+      const record = Number(await this.pictures.get(BigInt(index))!);
+      const bytes = await this.storage.read(record + 8, 8);
+      const length = new DataView(bytes.buffer, bytes.byteOffset, bytes.length).getFloat64(0, true);
+      total += length;
+      if (!Number.isSafeInteger(total) || total > this.context.limits.resourceBytes) {
+        const path = `$.resources[${index - 1}].bytes`;
+        throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
+      }
+      this.context.charge("resourceBytes", length);
+      this.context.charge("resources", 1);
+      await this.context.cooperate();
+    }
   }
   get resourceCount(): number {return this.pictureCount;}
   async resource(id: string): Promise<{identity: number; chunks: () => AsyncGenerator<Uint8Array>} | undefined> {

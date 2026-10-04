@@ -153,6 +153,13 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   image-origin diagnostics and RTF unreferenced-resource errors with and without
   a resource filesystem. Finite image-count, binary-byte and layout-work budgets
   remain on this path; other finite structural budgets still need accounting.
+  Finite resource-count and resource-byte budgets also retain JSON/RTF/CSV/TSV
+  conversion. RTF reserves its backed picture lengths at initial normalization,
+  after combined metadata layers, and after each filter generation. Ownership
+  transfers do not charge the bytes again. Differential checks cover exact limits,
+  repeated filesystem/resolver images, source locations, templates/includes,
+  cleanup, and ODT resolver accounting. Include these budgeted paths in the
+  size/concurrency measurements; functional parity alone does not qualify memory.
   Shipped SDK/command workerd tests use R2 pages and prohibit resident Lua.
   These functional checks do not establish size/concurrency memory or CPU limits.
 

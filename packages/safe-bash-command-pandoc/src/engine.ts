@@ -627,7 +627,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     (request?.kind === "json" || request?.kind === "lua") && typeof context.filters?.applyJsonStream === "function");
   const retainedLimits = Object.entries(context.limits ?? {}).every(([key, value]) => [
     "inputBytes", "outputBytes", "work", "diagnostics", "fonts", "includes", "images", "binaryBytes", "layoutWork",
-    "parts", "compressedBytes", "expandedBytes", "tableRows", "tableColumns", "tableFieldText",
+    "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText",
     // These format-specific budgets have no consumers in the retained format pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
   ].includes(key) || key === "tableCells" && ["csv", "tsv"].includes(reader.descriptor.name) && !options.filters?.length && !options.metadata || value === Infinity);

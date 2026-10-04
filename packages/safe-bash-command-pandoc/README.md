@@ -287,7 +287,7 @@ precedes output commit, including cleanup failure and cancellation.
 The unfiltered backed CSV/TSV paths support line endings (and ASCII conversion for HTML) and finite
 `inputBytes`, `outputBytes`, `tableRows`, `tableColumns`, `tableCells`, and
 `tableFieldText` limits. With filters, finite input/output, work, diagnostics, font, include, image, binary-byte,
-layout-work, archive-part, compressed-byte and expanded-byte budgets are supported;
+layout-work, archive-part, compressed-byte, expanded-byte, resource-count and resource-byte budgets are supported;
 finite row, column and field-text limits remain on the retained reader path, including typed metadata.
 Finite table-cell budgets with filters still use the compatibility converter. Limits for unrelated formats
 (`glyphs`, `pages`, `objects`, `xmlDepth`, `xmlNodes`, `macros`, `directives`, `entities`,

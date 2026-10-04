@@ -71,24 +71,26 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     const inputResources = loaded.resources, resourceCount = inputResources?.count ?? 0;
     closeResources = loaded.closeResources;
     document = loaded;
+    let metadataChanged = false;
     for (const file of options.metadataFiles ?? []) {
       const next = await mergeRetainedMetadata(document, {source: file}, context, working);
       await document.close();
-      document = next;
+      document = next; metadataChanged = true;
     }
     if (includes?.metadata) {
       const tree = includes.metadata.tree;
       for await (const root of tree.children(tree.rootPosition)) {
         const next = await mergeRetainedMetadata(document, {tree, root}, context, working);
-        await document.close(); document = next;
+        await document.close(); document = next; metadataChanged = true;
       }
     }
     if (includes?.typedMetadata) {
       const tree = includes.typedMetadata.tree;
       const next = await mergeRetainedMetadata(document, {tree, root: tree.rootPosition, typed: true}, context, working);
       await origins?.transfer(document.tree, next.tree, tree);
-      await document.close(); document = next;
+      await document.close(); document = next; metadataChanged = true;
     }
+    if (metadataChanged) await inputResources?.reserve();
     for (const request of options.filters ?? []) {
       if (request.kind === "json") await checkImageOrigins(document.tree, context);
       await preflight(document.chunks());
@@ -109,6 +111,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
         const next = await readRetainedJson({chunks: (async function* () {
           for (let offset = 0; offset < length; offset += 16384) yield await response.read(start + offset, Math.min(16384, length - offset));
         })()}, context, working, false);
+        await inputResources?.reserve();
         if(origins){if(request.kind==="lua")await origins.transfer(document.tree,next.tree);else origins.clear();}
         await document.close();
         document = next;

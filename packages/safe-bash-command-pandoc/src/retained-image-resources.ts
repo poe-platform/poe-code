@@ -12,7 +12,7 @@ type Span = {position: number; length: number};
 
 /** Retain image identity and admitted bytes independently of format validation. */
 export async function prepareRetainedImageResources(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext,
-  working: WorkingStorageOptions, options: ConversionOptions, origin: ResourceOrigin | ((node:number)=>Promise<ResourceOrigin>) = {}, embedded?: Awaited<ReturnType<typeof readRetainedRtfDocument>>["resources"]) {
+  working: WorkingStorageOptions, options: ConversionOptions, origin: ResourceOrigin | ((node:number)=>Promise<ResourceOrigin>) = {}, embedded?: Pick<Awaited<ReturnType<typeof readRetainedRtfDocument>>["resources"], "count" | "maxIdLength" | "get">) {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close()), text = new BackedText(storage, units => context.cooperate(units));
   const identities = new BackedTextSet(storage, text);
@@ -121,9 +121,9 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     if (used) {await storage.append(buffer.subarray(0, used)); length += used;}
     context.charge("resources", 1); context.charge("resourceBytes", length, false); return {position, length};
   };
-  const acquire = async (producer: Iterable<Uint8Array> | AsyncIterable<Uint8Array>): Promise<Span> => {
+  const acquire = async (producer: Iterable<Uint8Array> | AsyncIterable<Uint8Array>, chargeBytes = true): Promise<Span> => {
     const position = storage.allocate(0); let length = 0;
-    await context.consume(producer, async bytes => {await storage.append(bytes); length += bytes.length;}, ["resourceBytes"]);
+    await context.consume(producer, async bytes => {await storage.append(bytes); length += bytes.length;}, chargeBytes ? ["resourceBytes"] : []);
     return {position, length};
   };
   try {
@@ -136,7 +136,8 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         const identity = BigInt(supplied.identity);
         let record = await resourceSpans.get(identity);
         if (!record) {
-          record = BigInt(await save(await acquire(supplied.chunks())));
+          // Reader normalization already charged these owned resource bytes.
+          record = BigInt(await save(await acquire(supplied.chunks(), false)));
           await resourceSpans.set(identity, record);
         }
         await inputSpans.set(key, record); await inputIdentities.set(key, identity);
@@ -230,7 +231,9 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
       else if (context.resources) {
         const bytes = await context.resources.resolve(await scalar(node), undefined, context.signal);
         if (!(bytes instanceof Uint8Array)) throw new PandocError("E_RESOURCE", "convert", "Invalid resource bytes", options.to);
-        context.charge("resources", 1); span = await acquire([bytes]);
+        // ODT charges its image bytes in the writer; resolver admission is already charged.
+        if (options.to !== "odt") context.charge("resources", 1);
+        span = await acquire([bytes], options.to !== "odt");
         if (options.to === "odt") await targetSpans.set(key, BigInt(await save(span)));
       } else {
         const record = Number(await targetSpans.get(key) ?? 0n);

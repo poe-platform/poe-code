@@ -6,9 +6,9 @@ import {ExecutionContext} from "./execution.js";
 const input = (text: string) => ({bytes: new TextEncoder().encode(text)});
 it.each(["json", "rtf", "csv", "tsv"].flatMap(from => ["plain", "html", "json", "rtf", "odt"].map(to => ({from, to}))))("retains $from to $to with finite include budgets", async ({from, to}) => {
   const source = input(from === "json" ? '{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[]}' : from === "rtf" ? String.raw`{\rtf1 body}` : "head\nvalue");
-  for (const template of [null, undefined, input("$header-includes$:$body$")]) for (const includes of [0, 1, 2, 3, 4, 5]) {
+  for (const template of [null, undefined, input("$header-includes$:$body$")]) for (const limits of [...[0, 1, 2, 3, 4, 5].map(includes => ({includes})), ...[0, 5, 6, 11, 12, 22, 23, 24, 45, 46, 100000].map(resourceBytes => ({resourceBytes}))]) {
     const options = {from, to, ...(template === null ? {} : {...(template ? {template} : {}), includeInHeader: [input("header")], includeBeforeBody: [input("before"), input("second")], includeAfterBody: [input("after")]})};
-    const limits = {includes}, expected = await convert([source], options, {limits}).catch(error => error);
+    const expected = await convert([source], options, {limits}).catch(error => error);
     const fs = new MemoryFileSystem(), parts: Uint8Array[] = [];
     const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
     const close = vi.fn(async () => {expect(await fs.readdir("/")).toEqual([]);});

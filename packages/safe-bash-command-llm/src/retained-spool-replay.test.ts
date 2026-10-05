@@ -112,3 +112,52 @@ test("an active write excludes sealing and concurrent writes", async () => {
   for await (const chunk of spool.replay()) assert.deepEqual(chunk, Uint8Array.of(42));
  } finally { release(); await spool.close(); }
 });
+
+test("independent spool leases retire partial reads without consuming the owner", async () => {
+ const fs = new MemoryFileSystem(), signal = new AbortController().signal;
+ const spool = await createLlmSpool(fs, "/", signal);
+ await spool.write(new Uint8Array(40000).fill(42));
+ const first = await spool.lease(signal), second = await spool.lease(signal);
+ const partial = first.bytes[Symbol.asyncIterator]();
+ assert.equal((await partial.next()).value?.length, 16384);
+ await first.dispose();
+ await assert.rejects(partial.next(), {code: "EBADF"});
+ let size = 0; for await (const chunk of second.bytes) {size += chunk.length; assert.ok(chunk.length <= 16384);}
+ assert.equal(size, 40000);
+ await second.dispose();
+ const third = await spool.lease(signal);
+ await spool.close();
+ await assert.rejects(third.bytes[Symbol.asyncIterator]().next(), {code: "EBADF"});
+ await assert.rejects(spool.lease(signal), {code: "EBADF"});
+ assert.deepEqual(await fs.readdir("/"), []);
+});
+
+test("cancelling a pending lease read leaves the spool available for another request", async () => {
+ const backing = new MemoryFileSystem(), parent = new AbortController(), cancelled = new AbortController();
+ let opens = 0, retired = false, entered!: () => void, release!: () => void;
+ const started = new Promise<void>(resolve => {entered = resolve;});
+ const barrier = new Promise<void>(resolve => {release = resolve;});
+ const fs = new Proxy(backing, {get(target, key) {
+  if (key === "openReadFile") return async (...args: Parameters<typeof backing.openReadFile>) => {
+   const reader = await target.openReadFile(...args), index = ++opens;
+   return {...reader, stat: reader.stat.bind(reader),
+    async read(...readArgs: Parameters<typeof reader.read>) {if (index === 1) {entered(); await barrier; return Uint8Array.of(42);} return reader.read(...readArgs);},
+    async close() {if (index === 1) retired = true; await reader.close();}
+   };
+  };
+  const value: unknown = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;
+ }});
+ const spool = await createLlmSpool(fs, "/", parent.signal);
+ try {
+  await spool.write(Uint8Array.of(42));
+  const first = await spool.lease(cancelled.signal);
+  const pending = first.bytes[Symbol.asyncIterator]().next();
+  await started; cancelled.abort(new Error("cancel reader")); await first.dispose();
+  assert.ok(retired);
+  const second = await spool.lease(parent.signal);
+  for await (const bytes of second.bytes) assert.deepEqual(bytes, Uint8Array.of(42));
+  await second.dispose();
+  release(); await assert.rejects(pending, {code: "EBADF"});
+ } finally {release(); await spool.close();}
+ assert.deepEqual(await backing.readdir("/"), []);
+});

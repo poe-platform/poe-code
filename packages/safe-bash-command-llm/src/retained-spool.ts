@@ -1,3 +1,6 @@
+import { fileSource } from "./file-source.js";
+import { waitForSource } from "./request-source.js";
+import type { LlmInputSource } from "./types.js";
 import { FsError, type FileReadHandle, type FileStat, type FileSystem } from "safe-bash-contracts";
 
 let serial = 0;
@@ -41,6 +44,15 @@ export async function createLlmSpool(fs: FileSystem, directory: string, signal: 
  let writing = false;
  let written = 0;
  let closing: Promise<void> | undefined;
+ const leases = new Set<LlmInputSource>();
+ const seal = (): Promise<void> => {
+  return sealing ??= (async () => {
+     sealed = await writer.finish({ signal });
+     if (sealed.size !== written) throw new FsError("EIO", { message: "LLM spool size mismatch" });
+     signal.throwIfAborted();
+     if (closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
+    })();
+ };
  return {
   async write(bytes: Uint8Array): Promise<void> {
    signal.throwIfAborted();
@@ -61,11 +73,8 @@ export async function createLlmSpool(fs: FileSystem, directory: string, signal: 
    if (active || writing) throw new FsError("EBUSY", { message: "LLM spool is in use" });
    active = true;
    try {
-    sealing ??= (async () => {
-     sealed = await writer.finish({ signal });
-     if (sealed.size !== written) throw new FsError("EIO", { message: "LLM spool size mismatch" });
-     signal.throwIfAborted();
-     if (closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
+    await seal();
+    if (!reader) {
      const opened = await fs.openReadFile!(owner.file.path, { signal });
      if (closing || signal.aborted) {
       await opened.close();
@@ -73,8 +82,7 @@ export async function createLlmSpool(fs: FileSystem, directory: string, signal: 
       throw new FsError("EBADF", { message: "LLM spool is closed" });
      }
      reader = opened;
-    })();
-    await sealing;
+    }
     signal.throwIfAborted();
     if (closing || !reader) throw new FsError("EBADF", { message: "LLM spool is closed" });
     verifyRetainedFile(await reader.stat({ signal }), sealed!);
@@ -100,9 +108,40 @@ export async function createLlmSpool(fs: FileSystem, directory: string, signal: 
     }
    } finally { active = false; }
   },
+  /** A fresh identity-checked reader. Disposing it never closes the backing
+   * spool; closing the spool retires every outstanding reader. */
+  async lease(leaseSignal: AbortSignal = signal): Promise<LlmInputSource> {
+   leaseSignal = AbortSignal.any([signal, leaseSignal]);
+   leaseSignal.throwIfAborted();
+   if (closing) throw new FsError("EBADF", {message: "LLM spool is closed"});
+   if (writing) throw new FsError("EBUSY", {message: "LLM spool write is active"});
+   await waitForSource(seal, leaseSignal);
+   if (closing) throw new FsError("EBADF", {message: "LLM spool is closed"});
+   const source = await fileSource({fs, path: owner.file.path, signal: leaseSignal, expectedStat: sealed!});
+   if (closing || leaseSignal.aborted) {
+    await source.dispose();
+    leaseSignal.throwIfAborted();
+    throw new FsError("EBADF", {message: "LLM spool is closed"});
+   }
+   let disposal: Promise<void> | undefined;
+   const lease: LlmInputSource = {bytes: source.bytes, dispose() {
+    return disposal ??= (async () => {
+     leaseSignal.removeEventListener("abort", abort);
+     try {await source.dispose();} finally {leases.delete(lease);}
+    })();
+   }};
+   const abort = (): void => {void lease.dispose().catch(() => undefined);};
+   leases.add(lease);
+   leaseSignal.addEventListener("abort", abort, {once: true});
+   return lease;
+  },
   close(): Promise<void> {
    closing ??= (async () => {
-    try { await reader?.close(); }
+    try {
+     const results = await Promise.allSettled([reader?.close(), ...Array.from(leases, lease => lease.dispose())]);
+     const rejected = results.find(result => result.status === "rejected");
+     if (rejected?.status === "rejected") throw rejected.reason;
+    }
     finally { try { await cleanup.remove(); } finally { await cleanup.close(); } }
    })();
    return closing;

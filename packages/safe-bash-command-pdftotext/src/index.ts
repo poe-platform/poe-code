@@ -1191,7 +1191,7 @@ export function runPdftohtmlCliSync(argv: readonly string[], files: Map<string, 
 export async function pdftohtml(context: CommandContext, maxInputBytes = Infinity): Promise<{ exitCode: number }> {
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
-    const plan = parseHtmlArguments(getCommandArguments(context).args);
+    const plan = parseHtmlArguments(getCommandArguments(context).args, true);
     const stdout = invocation.child(context.stdout);
     if ("exitCode" in plan) {
       if (plan.stdout) await writeBytes(stdout.output, new TextEncoder().encode(plan.stdout), invocation.signal);

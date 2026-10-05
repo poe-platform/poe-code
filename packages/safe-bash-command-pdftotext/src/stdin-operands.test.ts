@@ -5,19 +5,20 @@ import { PdfDocument } from "@poe-code/pdf-ast";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { pdftohtml } from "./index.js";
 
-const cases: [string[], number][] = [[["in.pdf", "-"], 0], [["-f", "1", "in.pdf", "-"], 0], [["-upw", "-", "in.pdf", "-"], 0], [["-", "-"], 1]];
+const cases: [string[], number][] = [[["-stdout"], 1], [[], 1], [["in.pdf", "-"], 0], [["-f", "1", "in.pdf", "-"], 0], [["-upw", "-", "in.pdf", "-"], 0], [["-", "-"], 1], ...["-v", "--version", "-h", "-help", "--help", "-?"].map((flag): [string[], number] => [[flag], 0])];
 for (const [args, expectedReads] of cases) {
   it(JSON.stringify(args), async () => {
     const doc = PdfDocument.create(); doc.addPage().drawText("Fixture", { x: 20, y: 20, size: 12 });
     const pdf = doc.save();
     const files = new Map<string, Uint8Array>([["/work/in.pdf", pdf], ["/work/args.txt", new TextEncoder().encode("in.pdf\r\n--npages\r\n")], ["/work/transform.txt", new TextEncoder().encode("in.pdf\nout.pdf\n")], ["/work/stdin.txt", new TextEncoder().encode("-\n--npages\n")]]);
     const fs = createMemoryFileSystem(); await fs.mkdir("/work");
+    await fs.writeFile("/work/-", new TextEncoder().encode("not a PDF"));
     for (const [path, bytes] of files) await fs.writeFile(path, bytes);
     let reads = 0;
     const output: Uint8Array[] = [], errors: Uint8Array[] = [];
     const carrier = createCommandArguments(args);
     const context = {
-      command: "pdftotext", args: carrier.args, argumentValues: carrier, cwd: "/work", env: {},
+      command: "pdftohtml", args: carrier.args, argumentValues: carrier, cwd: "/work", env: {},
       signal: new AbortController().signal, registerCleanup() {},
       stdin: { async *[Symbol.asyncIterator]() { reads++; yield pdf.slice(0, 30); yield pdf.slice(30); } },
       stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
@@ -28,6 +29,7 @@ for (const [args, expectedReads] of cases) {
     assert.equal(result.exitCode, 0, new TextDecoder().decode(Buffer.concat(errors)));
     assert.equal(reads, expectedReads);
     assert.ok(output.length || files.has("/work/out.pdf"));
+    if (expectedReads) assert.ok(Buffer.concat(output).toString().includes("Fixture"));
     if (files.has("/work/out.pdf")) assert.equal(PdfDocument.load(files.get("/work/out.pdf")!).getPageCount(), 1);
     if (args.includes("--npages") || args[0] === "@args.txt" || args[0] === "@stdin.txt") assert.equal(new TextDecoder().decode(Buffer.concat(output)), "1\n");
   });

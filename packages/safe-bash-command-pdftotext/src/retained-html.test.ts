@@ -78,7 +78,7 @@ test("retained HTML reads reused stdin chunks with passwords and selected pages"
   assert.equal(new TextDecoder().decode(joined(f.stdout)), expected.stdout); await f.clean();
 });
 
-for (const args of [["-f", "9", "input.pdf", "-"], ["-fmt", "bad", "input.pdf"], ["-enc", "bad", "input.pdf"], ["missing.pdf", "-"], []]) test(`retained HTML preserves diagnostics: ${args}`, async () => {
+for (const args of [["-f", "9", "input.pdf", "-"], ["-fmt", "bad", "input.pdf"], ["-enc", "bad", "input.pdf"], ["missing.pdf", "-"]]) test(`retained HTML preserves diagnostics: ${args}`, async () => {
   const doc = PdfDocument.create(); doc.addPage(); const input = doc.save(), files = new Map([["input.pdf", input]]);
   const expected = await runPdftohtmlCli(args, files), f = await fixture(input, args);
   assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, expected.exitCode);
@@ -130,4 +130,11 @@ for (const title of ["", "café & <title>".repeat(1024)]) test(`retained HTML st
   t.mock.method(PdfRetainedDocument.prototype, "info", async () => { throw new Error("whole metadata map forbidden"); });
   assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, expected.exitCode);
   assert.equal(new TextDecoder().decode(joined(f.stdout)), expected.stdout); await f.clean();
+});
+
+test("retained HTML reports empty implicit stdin as an input error", async () => {
+  const f = await fixture(new Uint8Array(), []);
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 1);
+  assert.equal(new TextDecoder().decode(joined(f.stderr)), "I/O Error: Couldn't open file '-'\n");
+  await f.clean();
 });

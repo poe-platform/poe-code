@@ -22,8 +22,10 @@ Stored XPath uses ordered, paged node references for selections, predicates and 
 small selection caches hold at most 128 references. It reads node metadata on demand
 and walks subtrees through stored parent/sibling links. Whitespace removal and CDATA
 conversion update those links; coalesced text stays in replayable token fragments.
-Recovery parsing writes repaired nodes into the same page store, but currently
-requires a complete source string.
+Recovery parsing writes repaired nodes into the same page store. It validates and
+normalizes input into a separate 64 KiB caller-backed source cache, then replays
+4 KiB UTF-16 windows through the same repair parser. Source backing is retired
+before output; the complete source string is never assembled.
 XPath string functions use a fixed small-value cache and paged code points for
 larger values. Searches and large translation maps also use caller-backed storage;
 scalar output replays bounded chunks. Individual parser tokens and parser ancestry

@@ -1,7 +1,8 @@
+import { parseXmlRecovery } from "safe-bash-xml-engine";
 import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import { createXqCommand } from "safe-bash-command-xq";
-import { readXmlChunks, readXmlInput, type XmlCommandRuntime } from "safe-bash-xml-engine/io";
+import { readXmlChunks, type XmlCommandRuntime } from "safe-bash-xml-engine/io";
 import { parseXmlStream, parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
 import {
   FsError,
@@ -157,31 +158,14 @@ async function executeDocument(
     const recoveryMessages = new Set<string>();
     let parsedRoot: XmlElement;
     if (options.query || !options.noout) {
-      const source = options.recover ? await readXmlInput(context, file, budget, runtime) : readXmlChunks(context, file, budget, runtime);
+      const source = readXmlChunks(context, file, budget, runtime);
       stored = await StoredXmlDocument.parse(source, context, budget, 64,
         options.recover ? message => { recoveryMessages.add(message); } : undefined);
       await stored.transform({ noblanks: options.noblanks ?? false, nocdata: options.nocdata ?? false });
       parsedRoot = await stored.node(stored.root) as XmlElement;
     } else if (options.recover) {
-      const source = await readXmlInput(context, file, budget, runtime);
-      const parser = parseXmlSteps(source, {
-        retainTree: false,
-        recover: (message: string) => { recoveryMessages.add(message); },
-        ...limits,
-        maxContentNodes: limits.maxNodes,
-        expectedEncoding: "UTF-8"
-      });
-      let parsed = parser.next();
-      try {
-        while (!parsed.done) {
-          const p = budget.tick(parsed.value);
-          if (p) await p;
-          parsed = parser.next();
-        }
-      } finally {
-        if (!parsed.done) parser.return(undefined as never);
-      }
-      parsedRoot = parsed.value;
+      parsedRoot = await parseXmlRecovery(readXmlChunks(context, file, budget, runtime), context, budget,
+        message => { recoveryMessages.add(message); });
     } else {
       parsedRoot = await parseXmlStream(readXmlChunks(context, file, budget, runtime), {
         ...limits,

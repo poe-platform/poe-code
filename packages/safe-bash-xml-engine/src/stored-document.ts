@@ -1,4 +1,5 @@
-import { parseXmlSteps, parseXmlStream, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
+import { parseXmlRecovery } from "./recovery.js";
+import { parseXmlStream, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { XmlBudget } from "./limits.js";
 
@@ -57,24 +58,7 @@ export class StoredXmlDocument {
             parent = reference;
           }
       };
-      if (recover) {
-        if (typeof source !== "string") throw new TypeError("XML recovery currently requires a complete source string");
-        const queued: XmlStreamEvent[] = [];
-        const parser = parseXmlSteps(source, {
-          ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false,
-          recover, events: event => { queued.push(event); },
-        });
-        let step = parser.next();
-        try {
-          while (true) {
-            for (const event of queued) await consume(event);
-            queued.length = 0;
-            if (step.done) break;
-            const checkpoint = budget.tick(step.value); if (checkpoint) await checkpoint;
-            step = parser.next();
-          }
-        } finally { if (!step.done) parser.return(undefined as never); }
-      } else await parseXmlStream(source, {
+      if (recover) await parseXmlRecovery(source, context, budget, recover, consume); else await parseXmlStream(source, {
         ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false,
         events: consume,
       }, units => budget.tick(units));

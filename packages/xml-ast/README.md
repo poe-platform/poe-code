@@ -31,7 +31,7 @@ Resource limits and the prohibition on DTDs remain in force. With `retainTree: f
 repaired closing events. Drain events between generator checkpoints to await
 external storage; the source string and open parser frames remain resident.
 
-`parseXmlStream` consumes each chunk before requesting the next and calls the optional asynchronous checkpoint with at most 512 UTF-16 units. It preserves the buffered parser’s tree shape, namespaces and retained content. The source is closed on parsing or checkpoint failure. Decode byte sources incrementally before passing their strings. This avoids a full source string; the resulting tree and individual XML tokens still reside in memory. Recovery remains available through the buffered parser.
+`parseXmlStream` consumes each chunk before requesting the next and calls the optional asynchronous checkpoint with at most 512 UTF-16 units. It preserves the buffered parser’s tree shape, namespaces and retained content. The source is closed on parsing or checkpoint failure. Decode byte sources incrementally before passing their strings. This avoids a full source string; the resulting tree and individual XML tokens still reside in memory. Recovery is available through `parseXmlSteps` or the externally backed source API.
 
 For validation or root-name detection, pass `retainTree: false` to `parseXmlStream`. It validates the complete document and enforces the same limits, but returns a root element with empty data fields. Only open element frames, namespace scopes and current parser tokens remain resident; completed descendants, text, attributes and document content are not retained. `onElement` still observes each element.
 
@@ -45,3 +45,12 @@ window awaits the consumer before advancing. Event elements contain names,
 attributes and namespace metadata; individual XML tokens and open ancestry still
 remain resident. This mode lets a caller own document storage independently of
 the codec. Consumer failures propagate unchanged and close the input iterator.
+
+`normalizeXmlChunks(chunks)` validates XML characters and normalizes BOM/line endings
+in windows of at most 513 UTF-16 units, preserving surrogate pairs across chunks.
+Store those windows in caller-owned backing and drive `parseXmlSourceSteps(length,
+limits)`: numbers are work checkpoints; read requests specify UTF-16 `offset` and
+`length` (at most 4096 units). Fill each request's `value` before advancing the
+iterator. The source must already be validated and normalized. This supports the
+same repairs and events without a complete source string; tokens and open ancestry
+still remain resident. Close the iterator and backing on errors or cancellation.

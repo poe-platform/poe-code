@@ -4,7 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createXmllintCommand } from "./index.js";
 
-for (const args of [[], ["--recover"], ["--recover", "--nocdata"], ["--recover", "--xpath", "count(//x)"], ["--xpath", "concat(/r, /r)"], ["--nocdata"], ["--noblanks", "--xpath", "count(//x)"], ["--noblanks"], ["--encode", "UTF-16"], ["--xpath", "count(//x)"], ["--xpath", "//x[last()]"]])
+for (const args of [[], ["--recover", "--noout"], ["--recover"], ["--recover", "--nocdata"], ["--recover", "--xpath", "count(//x)"], ["--xpath", "concat(/r, /r)"], ["--nocdata"], ["--noblanks", "--xpath", "count(//x)"], ["--noblanks"], ["--encode", "UTF-16"], ["--xpath", "count(//x)"], ["--xpath", "//x[last()]"]])
 for (const cancel of [false, true]) test(`XML formatting uses injected paged storage and retires it (${args.join(" ")}, cancel=${cancel})`, async () => {
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("sink stopped");
   let opened = 0, closed = 0, written = 0, output = 0, outstanding = 0;
@@ -49,7 +49,10 @@ for (const cancel of [false, true]) test(`XML formatting uses injected paged sto
     } },
     stderr: { async write(bytes) {
       const text = new TextDecoder().decode(bytes);
-      if (args.includes("--recover")) assert.equal(text, "xmllint: incomplete document (recovered)\n");
+      if (args.includes("--recover")) {
+        assert.equal(text, "xmllint: incomplete document (recovered)\n");
+        if (cancel && args.includes("--noout")) controller.abort(failure);
+      }
       else assert.fail(text);
     } },
   }));
@@ -57,9 +60,9 @@ for (const cancel of [false, true]) test(`XML formatting uses injected paged sto
   else {
     assert.equal((await result).exitCode, 0);
     const expected = encoder.encode('<?xml version="1.0"?>\n<r></r>\n').length + records * (payload.length + 7);
-    assert.equal(output, args.includes("concat(/r, /r)") ? 2 * records * payload.length + 1 : args.includes("count(//x)") ? 3 : args.includes("//x[last()]") ? payload.length + 8 : args.includes("UTF-16") ? (expected + ' encoding="UTF-16"'.length) * 2 + 2 : expected);
+    assert.equal(output, args.includes("--noout") ? 0 : args.includes("concat(/r, /r)") ? 2 * records * payload.length + 1 : args.includes("count(//x)") ? 3 : args.includes("//x[last()]") ? payload.length + 8 : args.includes("UTF-16") ? (expected + ' encoding="UTF-16"'.length) * 2 + 2 : expected);
   }
-  assert.equal(opened, 1);
+  assert.equal(opened, args.includes("--recover") && !args.includes("--noout") ? 2 : 1);
   assert.equal(closed, opened);
   assert.equal(outstanding, 0);
   assert.ok(written >= 1024 * 1024, "document data must reach the caller's backing store");

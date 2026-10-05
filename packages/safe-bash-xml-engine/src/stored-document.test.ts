@@ -127,3 +127,23 @@ for (const cancel of [false, true]) test(`serializer retires stored frames after
   assert.equal(opened, 1); assert.equal(closed, opened);
   assert.deepEqual(await fs.readdir("/"), []);
 });
+
+for (const width of [1, 7, 512]) test(`recovery reads chunked source with split Unicode and line endings (width=${width})`, async () => {
+  const input = '\uFEFF<?xml version="1.0"?><r a="a\r\nb">\r\n😀é<x>tail&missing;</r>';
+  const signal = new AbortController().signal, fs = createMemoryFileSystem();
+  const budget = () => new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const expectedMessages: string[] = [], actualMessages: string[] = [];
+  const expected = parseXml(input, { recover: message => expectedMessages.push(message) });
+  const source = { async *[Symbol.asyncIterator]() {
+    for (let index = 0; index < input.length; index += width) yield input.slice(index, index + width);
+  } };
+  const document = await StoredXmlDocument.parse(source, { fs, cwd: '/', env: {}, signal }, budget(), 1, message => actualMessages.push(message));
+  try {
+    let actualOutput = '', expectedOutput = '';
+    for await (const chunk of serializeDocument(document, 'format', budget(), false)) actualOutput += chunk;
+    for await (const chunk of serializeDocument(expected, 'format', budget(), false)) expectedOutput += chunk;
+    assert.equal(actualOutput, expectedOutput);
+    assert.deepEqual(actualMessages, expectedMessages);
+  } finally { await document.close(); }
+  assert.deepEqual(await fs.readdir('/'), []);
+});

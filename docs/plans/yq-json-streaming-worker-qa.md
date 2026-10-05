@@ -57,8 +57,10 @@ native xmllint without a concatenated value in the formatting/selection path.
 
 For recovery, repeat formatting, CDATA conversion and XPath with a missing final
 closing tag. Verify repaired output and diagnostics, paged node writes and cleanup
-on cancellation. Recovery source text is still buffered: report its size-dependent
-memory separately and do not qualify recovery as bounded end to end.
+on cancellation. Include `--recover --noout` to isolate the 64 KiB normalized-source
+cache from document storage. Confirm source replay reads at most 4096 UTF-16 units
+and retires its backing before output. Large individual tokens and parser ancestry
+still need separate measurements; do not qualify recovery as bounded end to end.
 
 ## Remaining qualification scope
 

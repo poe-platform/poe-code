@@ -1,3 +1,7 @@
+import { validCharacter } from "./characters.js";
+export { normalizeXmlChunks } from "./characters.js";
+import { XmlSource, type XmlSourceStep } from "./source.js";
+export type { XmlSourceRead, XmlSourceStep } from "./source.js";
 import type { XmlStreamEvent } from "./stream.js";
 import { XmlLimitError } from "./errors.js";
 export { XmlLimitError } from "./errors.js";
@@ -36,14 +40,13 @@ export interface XmlLimits {
   readonly onElement?: (element: XmlName, parent: XmlName | undefined, depth: number) => void;
 }
 
-function* find(source: string, needle: string, start: number): Generator<number, number, void> {
-  const found = source.indexOf(needle, start);
+function find(source: string, needle: string, start: number): Generator<number, number, void>;
+function find(source: XmlSource, needle: string, start: number): Generator<XmlSourceStep, number, void>;
+function* find(source: string | XmlSource, needle: string, start: number): Generator<XmlSourceStep, number, void> {
+  const found = typeof source === "string" ? source.indexOf(needle, start) : yield* source.indexOf(needle, start);
   const end = found < 0 ? source.length : found;
   let remaining = end - start;
-  while (remaining >= 512) {
-    yield 512;
-    remaining -= 512;
-  }
+  while (remaining >= 512) { yield 512; remaining -= 512; }
   if (remaining > 0) yield remaining;
   return found;
 }
@@ -53,13 +56,6 @@ const xmlnsNamespace = "http://www.w3.org/2000/xmlns/";
 
 function invalid(message: string): never {
   throw new SyntaxError(`Invalid XML: ${message}`);
-}
-
-function validCharacter(point: number): boolean {
-  return point === 9 || point === 10 || point === 13
-    || (point >= 0x20 && point <= 0xd7ff)
-    || (point >= 0xe000 && point <= 0xfffd)
-    || (point >= 0x10000 && point <= 0x10ffff);
 }
 
 function nameStart(point: number): boolean {
@@ -211,61 +207,36 @@ export interface XmlStepLimits extends XmlLimits {
   readonly events?: (event: XmlStreamEvent) => void;
 }
 
-export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Generator<number, XmlElement, void> {
+function validateLimits(limits: XmlStepLimits): void {
+  for (const limit of [limits.maxDepth, limits.maxNodes, limits.maxAttributes, limits.maxContentNodes, limits.maxAttributesPerElement, limits.maxNamespaces]) {
+    if (limit !== undefined && ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 1)) throw new RangeError("XML limits must be positive integers");
+  }
+  if (limits.maxTextLength !== undefined && ((limits.maxTextLength !== Infinity && !Number.isSafeInteger(limits.maxTextLength)) || limits.maxTextLength < 1)) throw new RangeError("XML limits must be positive integers");
+  if (limits.events && limits.retainTree !== false) throw new TypeError("XML events require retainTree: false");
+}
+
+/** Parse a validated, BOM-free, line-normalized UTF-16 source via bounded read requests. */
+export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {}): Generator<XmlSourceStep, XmlElement, void> {
+  validateLimits(limits);
+  const source = new XmlSource(length);
   const maxDepth = limits.maxDepth ?? Infinity;
   const maxNodes = limits.maxNodes ?? Infinity;
   const maxAttributes = limits.maxAttributes ?? Infinity;
   const retainContent = limits.retainContent !== false;
   const retainTree = limits.retainTree !== false;
   const retain = retainTree && retainContent;
-  if (limits.events && retainTree) throw new TypeError("XML events require retainTree: false");
   const maxContentNodes = limits.maxContentNodes ?? Infinity;
   const emptyContent: readonly XmlContent[] = Object.freeze([]);
   const emptyAttributes: readonly XmlAttribute[] = Object.freeze([]);
   const emptyNamespaces: ReadonlyMap<string, string> = new Map();
   const maxAttributesPerElement = limits.maxAttributesPerElement ?? Infinity;
   const maxNamespaces = limits.maxNamespaces ?? Infinity;
-  for (const limit of [limits.maxDepth, limits.maxNodes, limits.maxAttributes, limits.maxContentNodes, limits.maxAttributesPerElement, limits.maxNamespaces]) {
-    if (limit !== undefined && ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 1)) throw new RangeError("XML limits must be positive integers");
-  }
   const maxTextLength = limits.maxTextLength ?? Infinity;
-  if (limits.maxTextLength !== undefined && ((maxTextLength !== Infinity && !Number.isSafeInteger(maxTextLength)) || maxTextLength < 1)) throw new RangeError("XML limits must be positive integers");
   let textLength = 0;
   const admitText = (text: string): void => {
     if (text.length > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
     textLength += text.length;
   };
-  const chunks: string[] = [];
-  const start = input.charCodeAt(0) === 0xfeff ? 1 : 0;
-  let chunkStart = start;
-  let chunkLength = 0;
-  let normalizedChunk = "";
-  // Keep validated spans intact; only changed line endings need new strings.
-  for (let index = start; index < input.length; index++) {
-    const point = input.codePointAt(index)!;
-    if (!validCharacter(point)) invalid("invalid character");
-    if (point === 13) {
-      normalizedChunk += input.slice(chunkStart, index) + "\n";
-      if (input.charCodeAt(index + 1) === 10) index++;
-      chunkStart = index + 1;
-      chunkLength++;
-    } else {
-      chunkLength += point > 0xffff ? 2 : 1;
-      if (point > 0xffff) index++;
-    }
-    if (chunkLength >= 512) {
-      if (normalizedChunk) {
-        chunks.push(normalizedChunk + input.slice(chunkStart, index + 1));
-        normalizedChunk = "";
-        chunkStart = index + 1;
-      }
-      chunkLength = 0;
-      yield 512;
-    }
-  }
-  if (chunkLength) yield chunkLength;
-  if (chunks.length || normalizedChunk) chunks.push(normalizedChunk + input.slice(chunkStart));
-  const source = chunks.length ? chunks.join("") : input.slice(start);
   const stack: { element: XmlElement; content: XmlContent[] | undefined; name: string; namespaces: Map<string, string> }[] = [];
   let root: XmlElement | undefined;
   const prolog: XmlContent[] = [];
@@ -281,10 +252,10 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
     if (++contentNodes > maxContentNodes) throw new XmlLimitError("maxContentNodes", "XML content node limit exceeded");
   };
   let pendingWork = 0;
-  const skipWhitespace = function* (): Generator<number, number> {
+  const skipWhitespace = function* (): Generator<XmlSourceStep, number> {
     const start = offset;
     while (offset < source.length) {
-      const c = source.charCodeAt(offset);
+      const c = (yield* source.charCodeAt(offset));
       if (c !== 32 && c !== 9 && c !== 10 && c !== 13) break;
       offset++;
       pendingWork++;
@@ -292,16 +263,16 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
     }
     return offset - start;
   };
-  const scanName = function* (): Generator<number, [string, string, string]> {
+  const scanName = function* (): Generator<XmlSourceStep, [string, string, string]> {
     const start = offset;
     while (offset < source.length) {
-      const c = source.charCodeAt(offset);
+      const c = (yield* source.charCodeAt(offset));
       if (c === 32 || c === 9 || c === 13 || c === 10 || c === 47 || c === 61 || c === 62 || c === 63) break;
       offset++;
       pendingWork++;
       if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
     }
-    const name = source.slice(start, offset);
+    const name = (yield* source.slice(start, offset));
     pendingWork += offset - start;
     while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
     const [prefix, localName] = qualifiedNameSync(name, qualifiedNames);
@@ -312,10 +283,10 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
     if (pendingWork >= 512) {
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
     }
-    if (source.charCodeAt(offset) !== 60) {
-      const next = source.indexOf("<", offset);
+    if ((yield* source.charCodeAt(offset)) !== 60) {
+      const next = (yield* source.indexOf("<", offset));
       const endPos = next < 0 ? source.length : next;
-      const text = source.slice(offset, endPos);
+      const text = (yield* source.slice(offset, endPos));
       pendingWork += (endPos - offset) + text.length;
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       if (text.indexOf("]]>") >= 0) invalid("CDATA terminator in text");
@@ -345,23 +316,23 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
         }
       }
       offset = endPos;
-    } else if (source.startsWith("<!--", offset)) {
+    } else if ((yield* source.startsWith("<!--", offset))) {
       const end = yield* find(source, "-->", offset + 4);
-      if (end < 0 || (yield* find(source.slice(offset + 4, end), "--", 0)) >= 0 || source.slice(offset + 4, end).endsWith("-")) {
+      const text = end < 0 ? "" : yield* source.slice(offset + 4, end);
+      if (end < 0 || (yield* find(text, "--", 0)) >= 0 || text.endsWith("-")) {
         invalid("malformed comment");
       }
       const parent = stack.at(-1);
-      const text = source.slice(offset + 4, end);
       admitText(text);
       admitContent();
       if (retain) { (parent?.content ?? (root ? epilog : prolog)).push({ kind: "comment", text }); }
       limits.events?.({ type: "content", content: { kind: "comment", text }, parent: parent?.element });
       offset = end + 3;
-    } else if (source.startsWith("<![CDATA[", offset)) {
+    } else if ((yield* source.startsWith("<![CDATA[", offset))) {
       if (!stack.length) invalid("CDATA outside root");
       const end = yield* find(source, "]]>", offset + 9);
       if (end < 0) invalid("unterminated CDATA");
-      const cdataText = source.slice(offset + 9, end);
+      const cdataText = (yield* source.slice(offset + 9, end));
       admitText(cdataText);
       const parent = stack.at(-1)!;
       if (retainTree) parent.element.text += cdataText;
@@ -369,20 +340,20 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
       if (retain) parent.content!.push({ kind: "cdata", text: cdataText });
       limits.events?.({ type: "content", content: { kind: "cdata", text: cdataText }, parent: parent.element });
       offset = end + 3;
-    } else if (source.startsWith("<?", offset)) {
+    } else if ((yield* source.startsWith("<?", offset))) {
       const start = offset;
       offset += 2;
       const [target] = yield* scanName();
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       const end = yield* find(source, "?>", offset);
       if (end < 0) invalid("unterminated processing instruction");
-      const content = source.slice(offset, end);
+      const content = (yield* source.slice(offset, end));
       if (target.length === 3 && target.toLowerCase() === "xml") {
         if (start !== 0 || target !== "xml"
           || !(yield* validDeclaration(content, limits.expectedEncoding))) {
           invalid("unsupported XML declaration");
         }
-        if (retainContent) declaration = source.slice(start, end + 2);
+        if (retainContent) declaration = (yield* source.slice(start, end + 2));
       } else if (content && !" \t\n\r".includes(content[0]!)) invalid("invalid processing instruction");
       if (!(target.length === 3 && target.toLowerCase() === "xml")) {
         const parent = stack.at(-1);
@@ -399,14 +370,14 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
         limits.events?.({ type: "content", content: { kind: "processing-instruction", target, text }, parent: parent?.element });
       }
       offset = end + 2;
-    } else if (source.startsWith("<!", offset)) {
+    } else if ((yield* source.startsWith("<!", offset))) {
       invalid("DTD and entity declarations are forbidden");
-    } else if (source.charCodeAt(offset + 1) === 47) {
+    } else if ((yield* source.charCodeAt(offset + 1)) === 47) {
       offset += 2;
       const [name] = yield* scanName();
       yield* skipWhitespace();
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-      const closed = source[offset++] === ">" ? stack.pop() : undefined;
+      const closed = (yield* source.slice(offset++, offset)) === ">" ? stack.pop() : undefined;
       if (closed?.name !== name) {
         if (!limits.recover) invalid("mismatched closing tag");
         limits.recover("mismatched closing tag");
@@ -414,7 +385,7 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
       if (closed) limits.events?.({ type: "close", element: closed.element, parent: stack.at(-1)?.element });
     } else {
       offset++;
-      const repeated = previousEmpty && source.startsWith(previousEmpty.suffix, offset) ? previousEmpty : undefined;
+      const repeated = previousEmpty && (yield* source.startsWith(previousEmpty.suffix, offset)) ? previousEmpty : undefined;
       const [name, prefix, localName]: [string, string, string] = repeated
         ? [repeated.name, repeated.prefix, repeated.localName]
         : (yield* scanName());
@@ -429,7 +400,7 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
       while (!repeated) {
         const ws = (yield* skipWhitespace());
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-        const ch = source.charCodeAt(offset);
+        const ch = (yield* source.charCodeAt(offset));
         if (ch === 47 || ch === 62 || limits.recover && offset === source.length) break;
         if (ws === 0) invalid("attributes require whitespace");
         const [attribute, attrPrefix, attrLocal] = yield* scanName();
@@ -438,16 +409,16 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
         if (++attributeCount > maxAttributes) throw new XmlLimitError("maxAttributes", "XML attribute limit exceeded");
         if ((attributes?.size ?? 0) >= maxAttributesPerElement) throw new XmlLimitError("maxAttributesPerElement", "XML attribute limit exceeded");
         yield* skipWhitespace();
-        if (source[offset++] !== "=") invalid("missing attribute equals");
+        if ((yield* source.slice(offset++, offset)) !== "=") invalid("missing attribute equals");
         yield* skipWhitespace();
-        const quote = source[offset++];
+        const quote = (yield* source.slice(offset++, offset));
         if (quote !== '"' && quote !== "'") invalid("unquoted attribute");
-        const end = source.indexOf(quote, offset);
+        const end = (yield* source.indexOf(quote, offset));
         const scanLen = (end < 0 ? source.length : end) - offset;
         pendingWork += scanLen;
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         if (end < 0) invalid("unterminated attribute");
-        const raw = source.slice(offset, end);
+        const raw = (yield* source.slice(offset, end));
         pendingWork += raw.length * 2;
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         if (raw.indexOf("<") >= 0) invalid("less-than in attribute");
@@ -513,15 +484,15 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
       if (parent) { if (retainTree) { parent.element.children.push(element); parent.content?.push(element); } }
       else if (root) invalid("multiple root elements");
       else root = element;
-      const empty = source[offset] === "/";
+      const empty = (yield* source.slice(offset, offset + 1)) === "/";
       if (empty) offset++;
-      if (source[offset++] !== ">") {
+      if ((yield* source.slice(offset++, offset)) !== ">") {
         if (!limits.recover) invalid("unterminated start tag");
         limits.recover("unterminated start tag");
       }
       // Only cache compact, attribute-free spellings. Namespace resolution and
       // every admission counter still run for each distinct physical element.
-      if (empty && !attributes && name.length <= 512 && source.slice(offset - name.length - 3, offset) === `<${name}/>`)
+      if (empty && !attributes && name.length <= 512 && (yield* source.slice(offset - name.length - 3, offset)) === `<${name}/>`)
         previousEmpty = { suffix: name + "/>", name, prefix, localName };
       limits.events?.({ type: "open", element, parent: parent?.element });
       if (!empty) stack.push({ element, content, name, namespaces });
@@ -540,6 +511,55 @@ export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Gener
     }
   }
   return root;
+}
+
+function* normalizeXmlSteps(input: string): Generator<number, string, void> {
+  const chunks: string[] = [];
+  const start = input.charCodeAt(0) === 0xfeff ? 1 : 0;
+  let chunkStart = start;
+  let chunkLength = 0;
+  let normalizedChunk = "";
+  // Keep validated spans intact; only changed line endings need new strings.
+  for (let index = start; index < input.length; index++) {
+    const point = input.codePointAt(index)!;
+    if (!validCharacter(point)) invalid("invalid character");
+    if (point === 13) {
+      normalizedChunk += input.slice(chunkStart, index) + "\n";
+      if (input.charCodeAt(index + 1) === 10) index++;
+      chunkStart = index + 1;
+      chunkLength++;
+    } else {
+      chunkLength += point > 0xffff ? 2 : 1;
+      if (point > 0xffff) index++;
+    }
+    if (chunkLength >= 512) {
+      if (normalizedChunk) {
+        chunks.push(normalizedChunk + input.slice(chunkStart, index + 1));
+        normalizedChunk = "";
+        chunkStart = index + 1;
+      }
+      chunkLength = 0;
+      yield 512;
+    }
+  }
+  if (chunkLength) yield chunkLength;
+  if (chunks.length || normalizedChunk) chunks.push(normalizedChunk + input.slice(chunkStart));
+  return chunks.length ? chunks.join("") : input.slice(start);
+}
+
+export function* parseXmlSteps(input: string, limits: XmlStepLimits = {}): Generator<number, XmlElement, void> {
+  validateLimits(limits);
+  const source = yield* normalizeXmlSteps(input);
+  const parser = parseXmlSourceSteps(source.length, limits);
+  let step = parser.next();
+  try {
+    while (!step.done) {
+      if (typeof step.value === "number") yield step.value;
+      else step.value.value = source.slice(step.value.offset, step.value.offset + step.value.length);
+      step = parser.next();
+    }
+    return step.value;
+  } finally { if (!step.done) parser.return(undefined as never); }
 }
 
 export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {

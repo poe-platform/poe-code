@@ -1,6 +1,13 @@
+export { probeEsdsSource, type Mp4AudioSpecificMetadata } from './esds-source.js';
 export * from "./types.js";
 export * from "./binary.js";
-export * from "./codecs.js";
+export {
+  parseH264Sps, parseAvcC, buildAvcC, parseHvcC, parseAv1C, parseVpcC,
+  parseEsds, parseAudioSpecificConfig, buildAudioSpecificConfig, buildEsdsBox,
+  parseDOps, avccToAnnexB, annexBToAvcc, buildH264SpsPps, encodeH264IdrFrame,
+  decodeH264FrameToRgba, createSilentAacFrame, wrapAdtsFrame, parseAdtsStream,
+  type ParsedH264Sps, type H264ReferenceBuffer
+} from "./codecs.js";
 export * from "./mp4.js";
 export * from "./mp4-source.js";
 export * from "./containers/mkv.js";

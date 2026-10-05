@@ -1,3 +1,4 @@
+import type { Mp4SampleSteps, Mp4TableRange } from './mp4-sample-source.js';
 import { decodeH264 } from "@poe-code/media-codecs";
 import {
   BinaryReader,
@@ -449,66 +450,53 @@ export function parseVpcC(payload: Uint8Array): Mp4VpcCConfig {
   };
 }
 
-export function parseEsds(payload: Uint8Array): Mp4AudioSpecificConfig {
-  const reader = new BinaryReader(payload);
-  // FullBox version + flags
-  if (reader.remaining >= 4) reader.skip(4);
-
-  let objectTypeIndication = 0x40;
-  let maxBitrate = 128000;
-  let avgBitrate = 128000;
+/** Shared descriptor traversal. Only resident convenience callers retain decoder bytes. */
+export function* esdsSteps(table: Mp4TableRange, retainDecoderBytes = false): Mp4SampleSteps<Omit<Mp4AudioSpecificConfig, 'rawEsdsBytes'>> {
+  let offset = table.payloadSize >= 4 ? 4 : 0;
+  const skip = (length: number) => { offset = Math.min(table.payloadSize, offset + length); };
+  function* read(length: number): Mp4SampleSteps<BinaryReader> {
+    const size = Math.min(length, table.payloadSize - offset);
+    const bytes = size ? (yield { kind: 'read', table, offset: table.payloadOffset + offset, length: size }) as Uint8Array : new Uint8Array();
+    offset += size; return new BinaryReader(bytes);
+  }
+  let objectTypeIndication = 0x40, maxBitrate = 128000, avgBitrate = 128000;
   let decoderSpecificInfo: Uint8Array = new Uint8Array([0x12, 0x10]);
-
-  function readDescrLength(): number {
-    let len = 0;
-    for (let i = 0; i < 4 && !reader.eof; i++) {
-      const b = reader.readU8();
-      len = (len << 7) | (b & 0x7f);
-      if ((b & 0x80) === 0) break;
+  while (offset < table.payloadSize) {
+    const tag = (yield* read(1)).readU8();
+    let length = 0;
+    for (let i = 0; i < 4 && offset < table.payloadSize; i++) {
+      const byte = (yield* read(1)).readU8(); length = (length << 7) | (byte & 0x7f);
+      if (!(byte & 0x80)) break;
     }
-    return len;
-  }
-
-  while (!reader.eof) {
-    const tag = reader.readU8();
-    const len = readDescrLength();
-    if (tag === 0x03) {
-      // ES_Descriptor
-      reader.skip(2); // ES_ID
-      const flags = reader.readU8();
-      if (flags & 0x80) reader.skip(2);
-      if (flags & 0x40) {
-        const urlLen = reader.readU8();
-        reader.skip(urlLen);
-      }
-      if (flags & 0x20) reader.skip(2);
-    } else if (tag === 0x04) {
-      // DecoderConfigDescriptor
-      objectTypeIndication = reader.readU8();
-      reader.skip(1); // streamType
-      reader.skip(3); // bufferSizeDB
-      maxBitrate = reader.readU32BE();
-      avgBitrate = reader.readU32BE();
-    } else if (tag === 0x05) {
-      // DecoderSpecificInfo (AudioSpecificConfig)
-      decoderSpecificInfo = reader.readSlice(len);
+    if (tag === 3) {
+      skip(2); const flags = (yield* read(1)).readU8();
+      if (flags & 0x80) skip(2);
+      if (flags & 0x40) { const size = (yield* read(1)).readU8(); skip(size); }
+      if (flags & 0x20) skip(2);
+    } else if (tag === 4) {
+      const config = yield* read(13);
+      objectTypeIndication = config.readU8(); config.skip(4);
+      maxBitrate = config.readU32BE(); avgBitrate = config.readU32BE();
+    } else if (tag === 5) {
+      // Extended object type + explicit frequency + channels occupy at most 43 bits.
+      decoderSpecificInfo = (yield* read(retainDecoderBytes ? length : Math.min(length, 6))).bytes;
       break;
-    } else {
-      reader.skip(len);
-    }
+    } else skip(length);
   }
-
   const asc = parseAudioSpecificConfig(decoderSpecificInfo);
-  return {
-    objectTypeIndication,
-    audioObjectType: asc.audioObjectType,
-    sampleRate: asc.sampleRate,
-    channelCount: asc.channelCount,
-    maxBitrate,
-    avgBitrate,
-    decoderSpecificInfo,
-    rawEsdsBytes: payload
-  };
+  return { objectTypeIndication, audioObjectType: asc.audioObjectType, sampleRate: asc.sampleRate,
+    channelCount: asc.channelCount, maxBitrate, avgBitrate, decoderSpecificInfo };
+}
+
+export function parseEsds(payload: Uint8Array): Mp4AudioSpecificConfig {
+  const steps = esdsSteps({ payloadOffset: 0, payloadSize: payload.length }, true);
+  let next = steps.next();
+  while (!next.done) {
+    const step = next.value;
+    if (step.kind !== 'read') throw new Error('Unexpected ES descriptor step');
+    next = steps.next(payload.subarray(step.offset, step.offset + step.length));
+  }
+  return { ...next.value, rawEsdsBytes: payload };
 }
 
 export function parseAudioSpecificConfig(asc: Uint8Array): {

@@ -4,8 +4,9 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {RetainedSourceText} from "./retained-source-text.js";
 import {RetainedYamlValues} from "./retained-yaml-value.js";
+import {renderRetainedYamlKey} from "./retained-yaml-render.js";
 
-async function compare(text: string, prefix = "", renderedKey?: string) {
+async function compare(text: string, prefix = "") {
   const fs = new MemoryFileSystem(), owner = {fs, cwd: "/", env: {}, signal: new AbortController().signal};
   const input = new PagedStorage(owner, 1), storage = new PagedStorage(owner, 1), source = new RetainedSourceText(input, async () => {});
   await source.append([prefix, text, "outside"]);
@@ -44,7 +45,7 @@ async function compare(text: string, prefix = "", renderedKey?: string) {
   try {
     const native = parseDocument(text); native.options.logLevel = "silent"; let expected: unknown, failed = native.errors.length > 0;
     try {expected = structuredClone(native.toJS({maxAliasCount: 32}));} catch {failed = true;}
-    const action = graph.compose(source, {start: prefix.length, end: prefix.length + text.length}).then(root => graph.convert(root, async () => {if (renderedKey === undefined) throw new Error("Unexpected collection key"); return graph.text.from([renderedKey]);}));
+    const action = graph.compose(source, {start: prefix.length, end: prefix.length + text.length}).then(root => graph.convert(root, ref => renderRetainedYamlKey(graph, source, ref, storage, async () => {})));
     if (failed) await expect(action).rejects.toThrow();
     else {const actual = await read(await action); expect(actual).toEqual(expected); return actual;}
   } finally {await input.close(); await storage.close(); expect(await fs.readdir("/")).toEqual([]); expect(maximum).toBeLessThanOrEqual(8208);}
@@ -128,12 +129,12 @@ it("uses JavaScript key coercion for merges and preserves Set iteration", async 
     "value: { !!merge <<: {null: empty, true: yes, 12: number} }\n",
     "value: { !!merge <<: !!omap [] }\n", "value: { !!merge <<: !!omap [one: two] }\n"
   ]) await compare(text);
-  await compare("base: &base {? [one, two]: value}\nmerged: { !!merge <<: *base }\n", "", "[ one, two ]");
-  await compare("base: &base {? [[one, two], null, []]: value}\nmerged: { !!merge <<: *base }\n", "", "[ [ one, two ], null, [] ]");
+  await compare("base: &base {? [one, two]: value}\nmerged: { !!merge <<: *base }\n");
+  await compare("base: &base {? [[one, two], null, []]: value}\nmerged: { !!merge <<: *base }\n");
 });
 
 it("coerces cyclic merge keys without recursively expanding them", async () => {
-  await compare("base: &base {? &arr [*arr]: value}\nmerged: { !!merge <<: *base }\n", "", "[ *arr ]");
+  await compare("base: &base {? &arr [*arr]: value}\nmerged: { !!merge <<: *base }\n");
 });
 it("preserves shared and cyclic identities after conversion", async () => {
   const result = await compare("a: &x {self: *x}\nb: *x\n") as {a: {self: unknown}; b: unknown};
@@ -158,4 +159,14 @@ it.each([0, 1, 2, 15, 30, 31, 32, 33])("matches alias visit accounting across %i
   for (const body of ["{key: value}", "{key: *x}", "{key: &local [], again: *local}", "{ !!merge <<: {key: *x} }"]) {
     await compare(`anchor: &x value\nbase: &base ${body}\nmerged: { !!merge <<: [${"*base, ".repeat(count)}] }\n`);
   }
+});
+
+it("converts real formatted collection keys with comments, tags and aliases", async () => {
+  for (const text of [
+    "? [one, # moved\n two]\n: value\n",
+    "? {one: 1.200, two: !!binary YWJj}\n: value\n",
+    "? !!pairs [{one: two} # wrapper\n]\n: value\n",
+    "? &a [*a, {*a : value}]\n: value\n",
+    "? { ? [one, two]: [three, four] }\n: value\n"
+  ]) await compare(text, "excluded\n");
 });

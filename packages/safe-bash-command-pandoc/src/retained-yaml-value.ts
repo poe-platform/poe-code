@@ -390,7 +390,7 @@ export class RetainedYamlValues {
     const make = async ({token: ref, props}: RetainedYamlChild): Promise<number> => {
       const token = ref !== undefined && ref >= 0 ? await tree.get(ref) : {type: "scalar" as const, offset: props.end, source: {start: props.end, end: props.end}};
       const offset = token.offset!, span = token.source && typeof token.source !== "string" ? token.source : {start: offset, end: offset};
-      const presentation: PresentationRecord = {token: ref !== undefined && ref >= 0 ? ref : undefined, anchor: props.anchor, tag: props.tag,
+      const presentation: PresentationRecord = {token: ref !== undefined && ref >= 0 ? ref : await tree.create(token), anchor: props.anchor, tag: props.tag,
         commentBefore: await this.text.from(retainedYamlCommentChunks(source, tree, props.commentTokens, props.commentSkip)), comment: emptyText(), spaceBefore: !!props.spaceBefore, pair: false};
       const create = async (node: RetainedYamlValue) => {
         const output = await this.create(node);

@@ -72,6 +72,16 @@ as admitted JSON for `streamJson`, plus bounded `summaries()` for human listings
 Typeface/variant strings and ordered declarations stay in caller storage; font
 payloads are never installed or interpreted. Close the reader when finished.
 `stageRetainedFonts` supplies the default `fonts list` response.
+`openRetainedMedia` (from `media`) exposes `occurrences()` and `media()` as
+admitted JSON for `streamJson`, plus `summaries()`, `count` and `close()`.
+Playback, caption and timing XML preserve standalone namespace bindings. Media
+hashes and all variable-length metadata use bounded streams and caller storage.
+On shape-selection failure, `RetainedMediaSelectionError` exposes a replayable
+`candidates()` iterator; close the error after reading its diagnostics.
+`stageRetainedMedia` returns `{ output, ok }` for list/get, including complete
+selection diagnostics without truncation. Write JSON output to stdout, human
+errors to stderr, and close the staged output. These reads never activate external
+targets or claim playback verification.
 `openRetainedNotes` (from `notes`) exposes a caller-backed `records()` iterator,
 with replayable part/master references, speaker text and body IDs. Close it after
 reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with

@@ -79,11 +79,7 @@ function relationshipKind(type: string): MediaOccurrence["kind"] | null {
   if (relationships.some((ns) => type === `${ns}/audio`)) return "audio";
   return type === mediaRelationship ? "unknown" : null;
 }
-export async function readMedia(
-  input: BinaryInput,
-  options: ReadMediaOptions,
-  context: SelectionContext
-): Promise<MediaInventory> {
+export function validateMediaOptions(options: ReadMediaOptions): void {
   const scopes = [
     "slides",
     "layouts",
@@ -124,6 +120,14 @@ export async function readMedia(
     [options.scope, options.slide, options.shape].some((value) => value !== undefined)
   )
     throw new SelectionError("invalid-selection");
+}
+
+export async function readMedia(
+  input: BinaryInput,
+  options: ReadMediaOptions,
+  context: SelectionContext
+): Promise<MediaInventory> {
+  validateMediaOptions(options);
   const source = await readBinary(input, context);
   const reader = await readPackage(source, context);
   const index = await readSelectionIndex(source, context);
@@ -414,3 +418,5 @@ export async function readMedia(
   }
   return { occurrences, media, playbackVerified: false };
 }
+
+export {openRetainedMedia,stageRetainedMedia,RetainedMediaSelectionError} from './retained-media.js';

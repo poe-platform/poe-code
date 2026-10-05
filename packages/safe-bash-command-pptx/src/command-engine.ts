@@ -1,3 +1,4 @@
+import { stageRetainedMedia } from 'safe-bash-presentation-engine/media';
 import { prepareRetainedObjectExtraction } from "./command-object-extraction-streaming.js";
 import { stageRetainedObjects, stageRetainedFonts } from "safe-bash-presentation-engine/opaque-objects";
 import { stageRetainedTransitions } from 'safe-bash-presentation-engine/transitions';
@@ -4163,6 +4164,25 @@ async function executeRequest(
         publication = { inputPath: args.input!, outputPath: destination, bytes: staged.bytes(), originalBytes: input, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
       }
       result = success(operation, null);
+    } else if ((args.operation === "media.list" || args.operation === "media.get") && request.streaming) {
+      const context = { ...options.context, signal: request.signal, workingStorage: request.streaming.workingStorage };
+      const input = await request.streaming.openInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));
+      const hash = sha256.create();
+      for await (const bytes of input.stream()) { request.signal.throwIfAborted(); hash.update(bytes); }
+      const fingerprint = Array.from(hash.digest(), byte => byte.toString(16).padStart(2, "0")).join("");
+      const archive = await openPackageArchive(input, context); let failed = false;
+      try {
+        const staged = await stageRetainedMedia(archive, fingerprint, {
+          ...(args.scope === undefined ? {} : { scope: args.scope }),
+          ...(args.slide === undefined ? {} : { slide: args.slide }),
+          ...(args.shape === undefined ? {} : { shape: args.shape }),
+          ...(args.token === undefined ? {} : { select: args.token })
+        }, context, {operation: args.operation, json: args.json, maxOutputBytes: options.maxOutputBytes});
+        stagedOutput = staged.output; exitCode = staged.ok ? 0 : 1;
+      } catch (error) { failed = true; throw error; }
+      finally { try { await archive.close(); } catch (error) { if (!failed) { await stagedOutput?.close().catch(() => {}); await Promise.reject(error); } } }
+      owned.push(stagedOutput!);
+      result = success(operation, null);
     } else if ((args.operation === "objects.list" || args.operation === "fonts.list") && request.streaming) {
       const context = { ...options.context, signal: request.signal, workingStorage: request.streaming.workingStorage };
       const input = await request.streaming.openInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));
@@ -7045,10 +7065,10 @@ async function executeRequest(
   }
   if (stagedOutput) {
     let failed = false;
-    try { await stagedOutput.write(request.streaming!.stdout); }
+    try { await stagedOutput.write(exitCode && !json ? request.streaming!.stderr : request.streaming!.stdout); }
     catch (error) { failed = true; throw error; }
     finally { try { await stagedOutput.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
-    return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() };
+    return { exitCode, stdout: new Uint8Array(), stderr: new Uint8Array() };
   }
   if (operation === "validate" && request.streaming) {
     request.signal.throwIfAborted();

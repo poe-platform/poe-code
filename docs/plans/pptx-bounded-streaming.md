@@ -726,7 +726,7 @@ extraction, workbook or Worker runtime matrix.
 
 | Area | Remaining migration |
 | --- | --- |
-| Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation, animation and accessibility readers; opaque-object and font inventories are migrated. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image, link/comment, equation, animation and accessibility readers; opaque-object, font and media inventories are migrated. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
 | Extraction | Image/media extraction, including manifests and multi-output publication; package and opaque/embedded-object extraction are migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |
@@ -909,3 +909,25 @@ and an independent Python XML namespace/Unicode round-trip. This is a prerequisi
 for rich media/animation metadata; media reads and extraction are not yet migrated.
 Other outstanding readers, mutations, workbook processing and Worker qualification
 remain in the operation matrix above.
+
+
+## Retained media inventory
+
+The default media list/get commands now use retained input and staged output.
+Media occurrence ordering, selection, shared part hashes, poster references,
+playback/caption/timing markup and raw extension descendants preserve the buffered
+reader's semantics. Arbitrary identities, names, relationships and XML fragments
+remain in caller storage. Selection failures stream complete candidate lists,
+including lists larger than the previous retained readers' diagnostic caps.
+
+Focused verification covers both dialects, shared and external targets, notes,
+missing/wrong bindings, part/slide/object selectors, file/stdin public adapters,
+slow bounded sinks, reused buffers, observed spill IO, output limits and injected
+source/storage/sink/cancellation failures. The 101 media engine/command cases and
+scoped lint/build checks pass. A native python-pptx movie fixture, with a synthetic
+opaque clip and generated poster, preserves exact human/JSON metadata through the
+default adapter; input bytes and scratch cleanup are checked. This establishes
+metadata interoperability, not video decoding or playback.
+
+Media extraction, image reads/extraction, other remaining reads/mutations,
+embedded workbook processing and Worker runtime qualification remain unfinished.

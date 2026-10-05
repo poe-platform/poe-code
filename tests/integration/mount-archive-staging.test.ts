@@ -44,21 +44,14 @@ for (const nested of [false, true]) for (const replaceAncestor of [false, true])
       ...(nested ? { "/skills/user": writable } : {}),
     } });
     const result = await tar(fs, ["-xf", "/skills/.system/input.tar", "-C", nested ? "/skills/user/work" : "/work"]);
-    if (nested) {
-      // Nested publication is supported, but extraction also mutates directories
-      // and metadata whose contract cannot guard ancestors on another backend.
-      assert.equal(result.exitCode, 2);
-      assert.equal(publications, 0);
-      assert.match(result.stderr, /ENOTSUP|not supported/);
-      assert.deepEqual(await writable.readdir("/work"), []);
-      return;
-    }
     assert.equal(publications, 1, result.stderr);
     assert.equal(result.exitCode, replaceAncestor ? 2 : 0, result.stderr);
     if (replaceAncestor) {
       await assert.rejects(writable.lstat("/work/sub/file"), { code: "ENOENT" });
       assert.deepEqual(await writable.readdir("/work/old"), []);
+      assert.deepEqual(await writable.readdir("/work/sub"), []);
     } else {
+      assert.equal(result.stderr, "");
       assert.deepEqual(await writable.readFile("/work/sub/file"), payload);
       assert.deepEqual((await writable.readdir("/work/sub")).map(entry => entry.name), ["file"]);
     }

@@ -26,3 +26,9 @@ Use `PythonCommandsOptions` to configure limits, runtime providers, and packages
 Existing default command behavior and registration collision rules are unchanged.
 This package is internal and bundled into Safe Bash; consumers use the public
 Safe Bash paths above, including `/commands/python/node`, `/worker`, and `/docker`.
+
+Python LLM buffered calls and streams preserve the same host error classifications:
+unsupported model capabilities and other service failures raise `poe_llm.LlmError`
+with code `service` and a sanitized message. Host limits raise `LimitError` with
+code `limit`; timeouts raise `asyncio.TimeoutError`. `CapabilityError` remains
+available for explicit capability errors, such as an unavailable Python LLM bridge.

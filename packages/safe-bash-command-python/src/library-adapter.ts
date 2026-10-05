@@ -113,7 +113,7 @@ class _SafeAsyncLibraryBridge(_SafeLibraryBridge):
   try:
    value = await self.wait('begin', capability=self.name, value=dict(operation=operation, payload=payload))
   except self.host.HostError as error:
-   self.fail(dict(code=error.code if error.code != 'service' else 'capability', message=str(error)))
+   self.fail(dict(code=error.code, message=str(error)))
   if isinstance(value, dict) and value.get('error'):
    self.fail(value['error'])
   return value

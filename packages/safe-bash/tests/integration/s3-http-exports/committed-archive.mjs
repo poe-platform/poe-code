@@ -435,7 +435,7 @@ export function assertRootShellExports(manifest, rootManifest) {
     },
     "./safe-bash/pdf-ast": {
       "types": "./dist/types/pdf-ast/index.d.ts",
-      "import": "./packages/pdf-ast/dist/index.js"
+      "import": "./dist/pdf-ast.js"
     },
     "./safe-bash/image-ast": {
       "types": "./dist/types/image-ast/index.d.ts",

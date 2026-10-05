@@ -31,6 +31,9 @@ test("current shell facade inventory authenticates canonical contracts and rejec
   const changed = structuredClone(root);
   changed.exports["./safe-bash/contracts"].import = "./dist/unapproved.js";
   assert.throws(() => distChecks.assertRootShellExports(manifest, changed), /inventory/);
+  const privatePdf = structuredClone(root);
+  privatePdf.exports["./safe-bash/pdf-ast"].import = "./packages/pdf-ast/dist/index.js";
+  assert.throws(() => distChecks.assertRootShellExports(manifest, privatePdf), /inventory/);
   const extra = structuredClone(root);
   extra.exports["./safe-bash/unapproved"] = { import: "./dist/unapproved.js" };
   assert.throws(() => distChecks.assertRootShellExports(manifest, extra), /inventory/);

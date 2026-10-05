@@ -1,7 +1,27 @@
 import { describe, expect, it } from "vitest";
+import { createInitialState } from "./state.js";
 import { buildExplorerDemoConfig, parseExplorerDemoOptions } from "./demo.js";
 
 describe("explorer demo", () => {
+  it.each(["single-detail-mode", "list-detail-mode"] as const)(
+    "admits %s with working action accelerators and core bindings",
+    (mode) => {
+      const config = buildExplorerDemoConfig({ mode, slowDetail: false });
+      const state = createInitialState(config, { cols: 104, rows: 22 });
+      const actions = [...config.actions, ...(config.detail.actions ?? [])];
+
+      for (const action of actions.filter(action => !action.primary)) {
+        expect(action.accelerator).toBeDefined();
+        expect(state.bindings.resolve({ name: action.accelerator, ctrl: true })).toEqual({
+          type: "action", id: action.id
+        });
+        expect(state.bindings.resolve({ name: action.accelerator })).toBeUndefined();
+      }
+      for (const [name, id] of [["a", "selectAll"], ["c", "quit"], ["p", "palette"], ["u", "halfPageUp"], ["d", "halfPageDown"]]) {
+        expect(state.bindings.resolve({ name, ctrl: true })).toEqual({ type: "builtin", id });
+      }
+    }
+  );
   it("defaults to single-detail mode and allows args to override env", () => {
     expect(parseExplorerDemoOptions([], {})).toEqual({
       mode: "single-detail-mode",

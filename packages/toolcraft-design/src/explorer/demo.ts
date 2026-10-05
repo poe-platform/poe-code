@@ -264,7 +264,7 @@ function buildReviewDetail(slowDetail: boolean): Detail<void> {
       {
         id: "resolve-comment",
         label: "Resolve comment",
-        key: "x",
+        accelerator: "x",
         showInFooter: true,
         handler: (ctx) => {
           ctx.toast(`Resolved ${ctx.item?.title ?? ctx.row.title}`, "success");
@@ -288,7 +288,7 @@ function demoActions(): Action<void>[] {
     {
       id: "refresh",
       label: "Refresh",
-      key: "r",
+      accelerator: "r",
       showInFooter: true,
       handler: async (ctx) => {
         await ctx.refresh();
@@ -298,7 +298,7 @@ function demoActions(): Action<void>[] {
     {
       id: "archive",
       label: () => "Archive selected",
-      key: "a",
+      accelerator: "e",
       destructive: true,
       showInFooter: true,
       handler: (ctx) => {

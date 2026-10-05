@@ -82,7 +82,7 @@ for(const nested of [false,true])it(`preserves existing PDF structural admission
 
 
 it.each(["success","write","cancel"])("owns resource backing for metadata-only PDF inspection on %s",async phase=>{
- const {cosDict,cosString,dictSet,dictGet,PdfRetainedDocument}=await import("@poe-code/pdf-ast");
+ const {cosDict,cosString,dictSet,readPdfDictionaryValue,PdfRetainedDocument}=await import("@poe-code/pdf-ast");
  const document=PdfDocument.create(),page=document.addPage([17,11]);
  dictSet(page.pageDict,"Resources",cosDict({Properties:cosDict({Replacement:cosDict({ActualText:cosString("replacement".repeat(8192))})})}));
  const bytes=document.save(),fs=new MemoryFileSystem();let seen=0,opened=0,closed=0;
@@ -102,10 +102,10 @@ it.each(["success","write","cancel"])("owns resource backing for metadata-only P
  const spy=vi.spyOn(PdfRetainedDocument.prototype,"lookup").mockImplementation(async function(...args){
   const result=await lookup.apply(this,args);
   if(result?.value.kind==="dict"){
-   const resources=dictGet(result.value,"Resources");
-   const properties=resources?.kind==="dict"?dictGet(resources,"Properties"):undefined;
-   const replacement=properties?.kind==="dict"?dictGet(properties,"Replacement"):undefined;
-   const text=replacement?.kind==="dict"?dictGet(replacement,"ActualText"):undefined;
+   const resources=await readPdfDictionaryValue(result.value,"Resources",controller.signal);
+   const properties=resources?.kind==="dict"?await readPdfDictionaryValue(resources,"Properties",controller.signal):undefined;
+   const replacement=properties?.kind==="dict"?await readPdfDictionaryValue(properties,"Replacement",controller.signal):undefined;
+   const text=replacement?.kind==="dict"?await readPdfDictionaryValue(replacement,"ActualText",controller.signal):undefined;
    if(text?.kind==="string"){seen++;expect(text.bytes.length).toBe(0);expect(text.storedBytes?.byteLength).toBeGreaterThan(65536);}
   }
   return result;

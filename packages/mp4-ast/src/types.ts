@@ -518,6 +518,16 @@ export type MediaProbeRecords = Omit<MediaProbeResult, "packets" | "frames"> & {
   readonly frames?: Iterable<MediaProbeFrame> | undefined;
 };
 
+/** Caller-backed, one-shot record sources. Consume before retiring the input source. */
+export type MediaProbeSourceRecords = Omit<MediaProbeResult, "streams" | "chapters" | "packets" | "frames"> & {
+  /** Retire plugin-owned backing after all requested records, including unselected sections. */
+  readonly close?: () => Promise<void>;
+  readonly streams: Iterable<MediaProbeStream> | AsyncIterable<MediaProbeStream>;
+  readonly chapters: Iterable<MediaProbeResult["chapters"][number]> | AsyncIterable<MediaProbeResult["chapters"][number]>;
+  readonly packets?: Iterable<MediaProbePacket> | AsyncIterable<MediaProbePacket> | undefined;
+  readonly frames?: Iterable<MediaProbeFrame> | AsyncIterable<MediaProbeFrame> | undefined;
+};
+
 export interface MediaSourceProbeOptions extends ParseMediaOptions {
   readonly signal?: AbortSignal;
   readonly showPackets?: boolean;
@@ -610,6 +620,8 @@ export interface MediaAstPlugin {
   parse(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument;
   serialize(doc: MediaDocument, options?: SerializeMediaOptions): Uint8Array;
   probe(bytes: Uint8Array, options?: ParseMediaOptions & { showPackets?: boolean; showFrames?: boolean }): MediaProbeResult;
+  /** Lazy caller-backed records; source remains alive through complete enumeration. */
+  probeRecords?(source: MediaProbeSource, options?: MediaSourceProbeOptions): Promise<MediaProbeSourceRecords>;
   /** Optional bounded range path; packet/frame descriptors may be lazy iterables. */
   probeMetadata?(source: MediaProbeSource, options?: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
   /** Optional bounded sequential metadata path; consumes input through EOF. */

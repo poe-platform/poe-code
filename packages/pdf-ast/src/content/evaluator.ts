@@ -970,8 +970,10 @@ export function* evaluateMaskTransferSteps(doc:ParsedCosDocument,transfer:PdfCos
 }
 
 export function* resolveMaskParameterSteps(mask: PdfCosDict, form: PdfCosStream, activeResources: PdfCosDict | undefined): Generator<PdfMaskParameterRequest, Pick<PdfSoftMask, "backdrop" | "transferMap">, unknown> {
-  const group = yield* resolveColorNode(dictGet(form.dict, "Group"), "dict");
-  const colorSpace = group ? dictGet(group, "CS") : undefined;
+  const groupNode = (yield {kind:"dictionary-value",dict:form.dict,key:"Group",preserveDeferred:true}) as PdfCosNode | undefined;
+  const resolvedGroup = (yield {kind:"resolve",node:groupNode,storeRootDictionary:true}) as PdfCosNode | undefined;
+  const group = resolvedGroup?.kind === "stream" ? resolvedGroup.dict : resolvedGroup?.kind === "dict" ? resolvedGroup : undefined;
+  const colorSpace = group ? (yield {kind:"dictionary-value",dict:group,key:"CS"}) as PdfCosNode | undefined : undefined;
   const bc = yield* resolveColorNode((yield {kind:"dictionary-value",dict:mask,key:"BC"}) as PdfCosNode | undefined, "array");
   let components: number[] | undefined;
   if (bc) {
@@ -1430,7 +1432,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           st.softMask = undefined;
         } else if (mask?.kind === "dict") {
           const subtype = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(mask, "S"));
-          const form = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(mask, "G"));
+          const form = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(mask, "G", true), false, undefined, true);
           if (form?.kind === "stream" && subtype?.kind === "name" && (subtype.decoded === "Alpha" || subtype.decoded === "Luminosity")) {
             if (depth >= 8) throw new PdfError("E_LIMIT", "Soft-mask nesting exceeds the form depth limit");
             const parentOperations = capturedOperations;
@@ -1682,9 +1684,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     maskGroup = false
   ): EvaluationWork {
     const st = curState();
-    const group = yield* resolveEvaluationDict(dictGet(form.dict, "Group"));
-    const groupType = group ? yield* resolveEvaluationNode(dictGet(group, "S")) : undefined;
-    const isolation = group ? yield* resolveEvaluationNode(dictGet(group, "I")) : undefined;
+    const group = yield* resolveEvaluationDict(yield* lookupEvaluationDictionary(form.dict, "Group", true), undefined, true);
+    const groupType = group ? yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(group, "S")) : undefined;
+    const isolation = group ? yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(group, "I")) : undefined;
     const isolated = isolation?.kind === "boolean" && isolation.value;
     // PDF.js beginGroup: ordinary non-isolated
     // Forms paint directly, retaining inherited state. Group effects instead
@@ -1692,12 +1694,12 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     const compositeGroup = !maskGroup && groupType?.kind === "name" && groupType.decoded === "Transparency" &&
       (isolated || st.fillAlpha !== 1 || !!st.softMask || (!!st.blendMode && st.blendMode !== "Normal" && st.blendMode !== "Compatible"));
     const formNodes = { stream: form };
-    const formResDict = (yield* resolveEvaluationDict(dictGet(form.dict, "Resources"), ["Resources"])) ?? activeResources;
+    const formResDict = (yield* resolveEvaluationDict(yield* lookupEvaluationDictionary(form.dict, "Resources"), ["Resources"])) ?? activeResources;
     const formFonts: FontScope = [formResDict, ...activeFonts];
     let nextCtm: Matrix6 = [...st.ctm] as Matrix6;
-    const matArr = yield* resolveEvaluationArray(dictGet(form.dict, "Matrix"));
-    if (matArr && matArr.items.length >= 6) {
-      const { items } = matArr;
+    const matArr = yield* resolveEvaluationArray(yield* lookupEvaluationDictionary(form.dict, "Matrix", true), true);
+    if (matArr && (matArr.storedItems?.length ?? matArr.items.length) >= 6) {
+      const items = yield* evaluationArrayPrefix(matArr, 6);
       function* mn(idx: number, fb = 0): EvaluationWork<number> {
         const resolved = yield* resolveEvaluationNode(items[idx]);
         return resolved?.kind === "number" ? resolved.value : fb;
@@ -1707,9 +1709,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     }
     let nextClip = !compositeGroup && st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined;
     let formClip: PdfClipPath | undefined;
-    const bboxArr = yield* resolveEvaluationArray(dictGet(form.dict, "BBox"));
-    if (bboxArr && bboxArr.items.length >= 4) {
-      const { items } = bboxArr;
+    const bboxArr = yield* resolveEvaluationArray(yield* lookupEvaluationDictionary(form.dict, "BBox", true), true);
+    if (bboxArr && (bboxArr.storedItems?.length ?? bboxArr.items.length) >= 4) {
+      const items = yield* evaluationArrayPrefix(bboxArr, 4);
       function* bn(idx: number, fb = 0): EvaluationWork<number> {
         const resolved = yield* resolveEvaluationNode(items[idx]);
         return resolved?.kind === "number" ? resolved.value : fb;
@@ -1968,15 +1970,15 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const st = curState();
           if (activeResources) {
             const xobjDict = yield* resolveEvaluationDict(dictGet(activeResources, "XObject"), ["Resources", "XObject"]);
-            const xobjNode = xobjDict ? yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(xobjDict, node.name)) : undefined;
+            const xobjNode = xobjDict ? yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(xobjDict, node.name, true), false, undefined, true) : undefined;
             if (xobjNode?.kind === "stream") {
-              if (!(yield* optionalContentVisibilitySteps(dictGet(xobjNode.dict, "OC")))) {
+              if (!(yield* optionalContentVisibilitySteps(yield* lookupEvaluationDictionary(xobjNode.dict, "OC")))) {
                 break;
               }
-              const subNode = yield* resolveEvaluationNode(dictGet(xobjNode.dict, "Subtype"));
+              const subNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(xobjNode.dict, "Subtype"));
               const sub = subNode?.kind === "name" ? subNode.decoded : "";
               if (sub === "Image") {
-                const maskNode = yield* resolveEvaluationNode(dictGet(xobjNode.dict, "ImageMask"));
+                const maskNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(xobjNode.dict, "ImageMask"));
                 const patternMask = !!st.fillPatternName && maskNode?.kind === "boolean" && maskNode.value;
                 const imageResult = yield { kind: "image", stream: xobjNode, resources: activeResources,
                   fillColor: patternMask ? { r: 1, g: 1, b: 1, alpha: 1 } : { ...st.fillColor, alpha: st.fillAlpha } };

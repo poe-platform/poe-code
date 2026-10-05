@@ -382,3 +382,24 @@ it.each(["Alpha","Luminosity"].flatMap(subtype=>["inline","indirect","encrypted"
  }finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["form","group","matrix","bbox"].flatMap(location=>(location==="form"?["plain","encrypted"]:["plain","indirect","encrypted"]).flatMap(mode=>["xobject","mask"].map(use=>({location,mode,use})))))("keeps selected $use $location metadata backed ($mode)",async({location,mode,use})=>{
+ const {cosArray,cosDict,cosName,cosStream}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([12,12]);
+ const unused=()=>cosArray(Array.from({length:256},()=>cosNumber(773)));
+ const group=cosDict({S:cosName("Transparency"),CS:cosName("DeviceRGB"),I:{kind:"boolean",value:true},...(location==="group"?{Unused:unused()}:{})});
+ const matrix=cosArray([1,0,0,1,2,0].map(value=>cosNumber(value))),bbox=cosArray([0,0,6,12].map(value=>cosNumber(value)));
+ if(location==="matrix")matrix.items.push(...unused().items);
+ if(location==="bbox")bbox.items.push(...unused().items);
+ const formDict=cosDict({Subtype:cosName("Form"),Group:mode==="indirect"?doc.cos.allocateObject(group):group,Matrix:mode==="indirect"?doc.cos.allocateObject(matrix):matrix,BBox:mode==="indirect"?doc.cos.allocateObject(bbox):bbox,...(location==="form"?{Unused:unused()}:{})});
+ const form=doc.cos.allocateObject(cosStream(formDict,new TextEncoder().encode(".5 g 0 0 6 12 re f")));
+ if(use==="xobject"){dictSet(page.pageDict,"Resources",cosDict({XObject:cosDict({Selected:form})}));page.setRawContentStream("/Selected Do");}
+ else{dictSet(page.pageDict,"Resources",cosDict({ExtGState:cosDict({Selected:cosDict({SMask:cosDict({S:cosName("Luminosity"),G:form,BC:cosArray([.2,.3,.4].map(value=>cosNumber(value)))})})})}));page.setRawContentStream("/Selected gs 1 0 0 rg 0 0 12 12 re f");}
+ const bytes=mode==="encrypted"?doc.save({encrypt:{revision:3}}):doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ expect(expected.data.some((value,index)=>index%4===1&&value<255)).toBe(true);
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const push=Array.prototype.push;Array.prototype.push=function<T>(this:T[],...values:T[]):number{if(this.length>=64&&values.some(value=>(value as {kind?:string;value?:number})?.kind==="number"&&(value as {value:number}).value===773))throw Error("unused Form metadata became resident");return push.apply(this,values);};
+ try{const image=await tryPdfDecode({size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}},storage,fs,"/scratch",signal);expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);}
+ finally{Array.prototype.push=push;await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

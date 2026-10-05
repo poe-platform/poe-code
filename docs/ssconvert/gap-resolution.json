@@ -4700,21 +4700,22 @@
       "status": "open",
       "currentFinding": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup. Resolve wider providers/types, native CLI failure and installed/cross-runtime qualification. See checkpoint20261004 for the next acceptance test and qualification blockers.",
       "checkpoint20261004": {
-        "qualified": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup. Real SQLite3.51.2 query callbacks now qualify in-flight cancellation, read-only transaction commit/rollback, explicit provider credential rejection and exactly-once retirement through SDK/command.",
+        "qualified": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup. Real SQLite3.51.2 query callbacks now qualify in-flight cancellation, read-only transaction commit/rollback, explicit provider credential rejection and exactly-once retirement through SDK/command. Retained integer/tiny-number discrepancies are isolated to provider behavior: explicit GDA gint64 succeeds and Node SQLite produces the tiny-number difference before conversion.",
         "evidence": [
           "#/reference/databaseLive",
           "#/currentQualification20261002/gdaIndexEmpty",
-          "#/databaseInflightLifecycle"
+          "#/databaseInflightLifecycle",
+          "#/databaseProviderTypeClassification"
         ],
-        "nextAcceptance": "Investigate the retained four large untyped native integer failures and tiny numeric discrepancy using explicit provider/type controls; qualify remaining installed/cross-runtime profiles without repeating the completed SQLite lifecycle cohort.",
+        "nextAcceptance": "Qualify remaining installed/cross-runtime database profiles and provider-specific types/lifecycle; preserve the classified GDA inference and SQLite numeric-profile differences without repeating the completed SQLite cohorts.",
         "closureGate": "Resolve wider providers/types, native CLI failure and installed/cross-runtime qualification.",
         "qualificationBlockers": [
           "The unmodified native CLI crashes when its plugin opens GTK without initialization; API/dialog evidence does not qualify that CLI path.",
-          "Four large untyped native integers fail and one tiny numeric result differs from the explicit SQLite host."
+          "GDA SQLite defaults untyped integers to gint and rejects values outside signed 32-bit; explicit gint64 succeeds. Node22.22.2 SQLite3.51.2 returns 1e-300 one binary64 step below the native SQLite3.46.1 profile before spreadsheet conversion. These provider-profile differences remain compatibility limitations."
         ],
         "remainingAcceptance": [
           "Explicit in-memory SQLite in-flight cancellation, read-only transactions, provider credential admission and connection retirement are qualified. Extend only to remaining provider-specific lifecycle profiles; preserve original cancellation identity and zero publication.",
-          "Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and integer/tiny-number discrepancies as unresolved outcomes."
+          "Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and classified GDA integer-inference/SQLite tiny-number profile differences as compatibility limitations."
         ]
       }
     },
@@ -6629,5 +6630,17 @@
       "public.mjs": "d9ea1a5b8403cee67dc31f88780078cffe47083deb0d2d3db32f256f9ab7e6b6",
       "results.json": "c6022457341ab4322f582061342835ade3961310bf715c196ef3a0909c60a877"
     }
+  },
+  "databaseProviderTypeClassification": {
+    "profile": "Linux GDA6 SQLite provider via GI, explicit in-memory connection; Python sqlite3 SQLite3.46.1; Darwin Node22.22.2 builtin SQLite3.51.2. No saved environment profile read or modified.",
+    "nativeIdentity": {
+      "libgdaSha256": "cb80491c295a564bd1e6784a1fd1b4c964b42531c79d3c81386f676104bc3b1d",
+      "sqliteProviderSha256": "dbdd5e0b4be5e507d84e722a72957ac93493159bf028ac36f9bfee644ab6acef"
+    },
+    "evidence": "Retained database-types-current/probe.py, native.json, host.mjs and host.json continuation evidence.",
+    "controls": "34 GDA queries: six integer boundaries and 1e-300 in untyped/TEXT/REAL/BIGINT expressions, plus six explicit GObject.TYPE_INT64 overrides. Seven Node SQLite queries: six exact BigInt boundaries and the tiny value. Assertions pass.",
+    "integerFinding": "2147483648, -2147483649, 9223372036854775807 and -9223372036854775808 fail as inferred gint with Integer value is too big, both untyped and CAST AS BIGINT. Signed-32-bit neighbors succeed. TEXT preserves all six integer strings; REAL succeeds with binary64 rounding; all six explicit gint64 overrides preserve exact integers. Gnumeric plugin-gda.c lines429/508 use default gda_connection_statement_execute_select; line164 reads provider values. No spreadsheet implementation defect established.",
+    "tinyFinding": "Native GDA and Python SQLite3.46.1 produce 0x1.56e1fc2f8f359p-997, matching nearest binary64 Decimal conversion. Node SQLite3.51.2 produces bits01a56e1fc2f8f358 before conversion, one step below literal bits01a56e1fc2f8f359. The retained XLSX discrepancy originates in the explicit host query result, not export.",
+    "limitations": "Provider-level classification only; not a fresh SDK/command, installed-artifact, server-provider or native CLI qualification. Do not emulate GDA integer inference or alter host-provided floats globally. Native CLI GTK crash and remaining family gates remain open. Initial probe JSON serialization of boxed GdaText was corrected to get_string; no provider mutation occurred."
   }
 }

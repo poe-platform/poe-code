@@ -4662,15 +4662,16 @@
           "#/currentQualification20261002/pythonPrintfActivated",
           "#/pythonPrintfByteAdmission",
           "#/pythonPrintfPrecisionAdmission",
-          "#/pythonRangeRefRepresentation"
+          "#/pythonRangeRefRepresentation",
+          "#/pythonFormatterValueBoundary"
         ],
-        "nextAcceptance": "Continue sheet/tuple representation, remaining diagnostics and installed-artifact profiles. Preserve the documented portable RangeRef identity contract; native process addresses are not stable goldens.",
+        "nextAcceptance": "Continue reachable loader-value coercion/diagnostic and containing installed-artifact profiles. Sheet/tuple helper APIs are outside the sample formatter call path. Preserve documented opaque RangeRef identities and native-address differences.",
         "closureGate": "Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences.",
         "qualificationBlockers": [
-          "Combined native sheet/tuple probes crash; native control-character XLSX loss is not a formatting parity pass."
+          "Historical combined sheet/tuple probes exercised separate loader helpers, not PY_PRINTF arguments. Native control-character XLSX loss remains a classified exporter limitation, not a formatting parity pass."
         ],
         "remainingAcceptance": [
-          "Sheet/tuple representation semantics and remaining coercion/diagnostic cases. RangeRef percent formatting now uses documented call-local opaque identities; native address bytes and address-dependent truncation are deliberately not byte-parity claims.",
+          "Remaining coercion and diagnostic profiles within the native loader value kinds: boolean, float, string, range, array, error and empty. Sheet/tuple helper APIs are not PY_PRINTF arguments; retain their historical native crash evidence without treating them as an unimplemented formatter API.",
           "Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting."
         ]
       }
@@ -6969,5 +6970,105 @@
     "independent": "Original Gnumeric1.12.61 plugins/python-loader/py-gnumeric.c514-533 establishes fresh wrappers and default repr. Isolated CPython3.13 static-type probe verifies two distinct address-bearing representations and56 formatting/coercion cases without modifying native plugins. A separate Python percent-format oracle checks the documented opaque representation. This is structural/default-type evidence, not a full activated Gnumeric application run.",
     "limitations": "Portable identities have different bytes and lengths from native allocation addresses. Padding/truncation involving that identity therefore applies to the portable representation and is not literal native parity. Sheet/tuple probes and installed containing artifacts remain open; other18families unchanged.",
     "evidence": "Retained python-reference-current/probe.c,probe.py,native.json,cases.json,input.gnumeric,public.mjs,results.json,xml-checks.json,build logs and command.png. Native probe at /out/python-reference-1748; no existing reference source/binary changed."
+  },
+  "pythonFormatterValueBoundary": {
+    "finding": "The native sample func_printf(format,*args) only evaluates format % args. gnm_value_to_py_obj accepts boolean,float,string,cellrange,array,error,empty; arrays become lists, ranges become RangeRef, and errors/empty become None. It never creates a Sheet,CellRef or tuple argument.",
+    "callBoundary": "call_python_function creates a tuple solely for PyObject_CallObject positional arguments. RangeRef.get_tuple/start/end are separate methods and are never invoked by the default repr/str path. Formatting the wrapper does not traverse its sheet or endpoints. The portable Value union likewise has scalar/reference/matrix/set values, not arbitrary Python objects.",
+    "sources": {
+      "plugins/py-func/py_func.py": "514e02e416c9664d8d5f0ad04ff58e51468c636e75ed7edc197fb73c88263b4f",
+      "plugins/python-loader/py-gnumeric.c": "639f259fd15d493696f39f90a2cb10562c318ddd55e064f10e33826f98bce856"
+    },
+    "sourceLocations": "Native py-gnumeric.c228-282 conversion switch,331-359 call boundary,477-505 reference helpers,514-533 default representation; py_func.py func_printf. Portable formulas/functions/types.ts Value and formulas/optional-providers.ts PY_PRINTF binding.",
+    "decision": "Remove the unreachable sheet/tuple formatter gate; retain historical helper-crash observations. No new arbitrary-Python API or runtime change is required. Reachable coercion/diagnostic and installed qualification remain open."
+  },
+  "completionAudit20261005": {
+    "decision": "Whole task incomplete. Main delivery, family qualification and registry publication are separate states. No partial commit establishes whole-task completion.",
+    "families": {
+      "pwd-resource-identity": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/0/checkpoint20261004/remainingAcceptance"
+      },
+      "lotus-named-formula-references": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/1/checkpoint20261004/remainingAcceptance"
+      },
+      "biff-external-and-token-formulas": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/2/checkpoint20261004/remainingAcceptance"
+      },
+      "encrypted-biff": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/3/checkpoint20261004/remainingAcceptance"
+      },
+      "encrypted-odf": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/4/checkpoint20261004/remainingAcceptance"
+      },
+      "encrypted-paradox": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/5/checkpoint20261004/remainingAcceptance"
+      },
+      "perl-date": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/6/checkpoint20261004/remainingAcceptance"
+      },
+      "perl-sed": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/7/checkpoint20261004/remainingAcceptance"
+      },
+      "python-printf": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/8/checkpoint20261004/remainingAcceptance"
+      },
+      "python-capwords-unicode": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/9/checkpoint20261004/remainingAcceptance"
+      },
+      "database-functions": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/10/checkpoint20261004/remainingAcceptance"
+      },
+      "atl-last": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/11/checkpoint20261004/remainingAcceptance"
+      },
+      "numeric-ln1p-log1p-acos": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/12/checkpoint20261004/remainingAcceptance"
+      },
+      "numeric-bessel-high-q": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/13/checkpoint20261004/remainingAcceptance"
+      },
+      "format-record-roundtrip": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/14/checkpoint20261004/remainingAcceptance"
+      },
+      "rendering-font-print-fidelity": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/15/checkpoint20261004/remainingAcceptance"
+      },
+      "solver-analysis-accuracy": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/16/checkpoint20261004/remainingAcceptance"
+      },
+      "optional-profiles": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/17/checkpoint20261004/remainingAcceptance"
+      },
+      "public-packed-artifacts": {
+        "completion": "not-proven",
+        "acceptance": "#/cases/18/checkpoint20261004/remainingAcceptance"
+      }
+    },
+    "verification": "All19cases remain open; every remainingAcceptance item is mirrored in the plan and every checkpoint evidence pointer resolves. This is an acceptance/evidence-index audit, not a rerun or universal validation of historical native cohorts.",
+    "externalGate": {
+      "registryRoot": "poe-code17.0.41",
+      "rootGitHead": "c8851094da60e42b6c29fbd9da88351ef4dba270",
+      "registryScoped": "@poe-platform/safe-bash0.1.817",
+      "finding": "Root publication predates subsequent repairs. A containing installed root artifact remains unavailable in the checked registry. Scoped containing behavior must be qualified per feature; its newer version alone is not evidence.",
+      "effect": "Continue independent implementation and qualification; do not wait for full release before main delivery. No global work impasse is established."
+    },
+    "nativeLimitations": "Historical application crashes, unsupported records and provider differences remain classified limitations. Revalidate each exact environment before calling it a current external outage."
   }
 }

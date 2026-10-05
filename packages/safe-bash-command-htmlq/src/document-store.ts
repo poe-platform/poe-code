@@ -121,6 +121,12 @@ export class DocumentStore {
     }
   }
 
+  async patchAttribute(id: number, name: number, namespace: HtmlAttribute["namespace"]): Promise<void> {
+    const bytes = new Uint8Array(8), view = new DataView(bytes.buffer);
+    view.setFloat64(0, name, true); await this.storage.write(id + 8, bytes);
+    view.setFloat64(0, attributeNamespaces.indexOf(namespace), true); await this.storage.write(id + 24, bytes);
+  }
+
   async replaceAttribute(id: number, value: number): Promise<void> {
     const bytes = new Uint8Array(8);
     new DataView(bytes.buffer).setFloat64(0, value, true);

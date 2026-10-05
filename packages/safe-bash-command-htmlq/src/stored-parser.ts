@@ -1,15 +1,14 @@
 import type { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { TextStore } from "safe-bash-command-html-to-markdown/stored-text";
-import { HtmlBudget, type HtmlOptions, type HtmlNamespace, type HtmlAttribute, type HtmlNode } from "./contracts.js";
+import { HtmlBudget, type HtmlOptions, type HtmlNamespace, type HtmlNode } from "./contracts.js";
 import { DocumentStore, StoredSequence } from "./document-store.js";
 import { decodedHtml } from "./tree.js";
-import { StreamingHtmlTokenizer } from "./streaming-tokenizer.js";
-import { rawElements, voidElements, type HtmlToken } from "./tokenizer.js";
+import { StoredHtmlTokenizer, StoredNames, type StoredHtmlToken } from "./stored-tokenizer.js";
+import { lowerStoredName } from "./stored-name.js";
+import { StoredQueries } from "./stored-selectors.js";
+import { rawElements, voidElements } from "./tokenizer.js";
 import { htmlSpace } from "./entities.js";
 import { formatting, blocks, headElements, tableAllowedElements, headingElements, htmlScopeBarriers, mathmlScopeBarriers, svgScopeBarriers, specialHtmlElements, captionBreakingElements, tableCloseElements, endScopeExtraElements, svgNames, svgAttributes } from "./tree-rules.js";
-function allSpace(value: string): boolean { for (const c of value)
-    if (!htmlSpace(c))
-        return false; return true; }
 /** Recovery uses stored node identities and stored open/formatting sequences.
  * Token framing is still shared with the incremental compatibility tokenizer. */
 export async function parseStoredHtml(source: AsyncIterable<Uint8Array>, tree: DocumentStore, strings: TextStore, storage: PagedStorage, options: HtmlOptions): Promise<number> {
@@ -35,7 +34,7 @@ export async function parseStoredHtml(source: AsyncIterable<Uint8Array>, tree: D
             yield result;
         }
     }
-    const tokenizer = new StreamingHtmlTokenizer(normalized(), budget);
+    const tokenizer = new StoredHtmlTokenizer(normalized(), budget, tree, strings, storage);
     let result = 0, failure: {
         error: unknown;
     } | undefined;
@@ -57,12 +56,23 @@ export async function parseStoredHtml(source: AsyncIterable<Uint8Array>, tree: D
         throw failure.error;
     return result;
 }
-async function buildStoredTree(tree: DocumentStore, strings: TextStore, storage: PagedStorage, tokenizer: StreamingHtmlTokenizer, budget: HtmlBudget): Promise<number> {
+async function buildStoredTree(tree: DocumentStore, strings: TextStore, storage: PagedStorage, tokenizer: StoredHtmlTokenizer, budget: HtmlBudget): Promise<number> {
+    const queries = new StoredQueries(tree, strings, storage, budget);
+    const whitespacePrefix = async (root: number): Promise<number> => {
+        let offset = 0;
+        for await (const chunk of strings.chunks(root)) {
+            budget.charge("work", chunk.length);
+            for (const c of chunk) { if (!htmlSpace(c)) return offset; offset++; }
+        }
+        return offset;
+    };
+    const allSpace = async (root: number): Promise<boolean> => await whitespacePrefix(root) === (await strings.info(root)).length;
     const labels = new Map<number, string>();
     const names = new Map<string, number>();
     const value = async (id: number): Promise<string> => {
         const cached = labels.get(id);
         if (cached !== undefined) return cached;
+        if ((await strings.info(id)).length > 64) return "";
         let value = "";
         for await (const chunk of strings.chunks(id)) value += chunk;
         if (value.length <= 64) {
@@ -84,10 +94,12 @@ async function buildStoredTree(tree: DocumentStore, strings: TextStore, storage:
         return id;
     };
     const meta = async (id: number) => { const node = await tree.read(id); return { ...node, name: await value(node.name) }; };
-    const make = async (kind: HtmlNode["kind"], name = "", data = "", namespace: HtmlNamespace = "html"): Promise<number> => {
+    const make = async (kind: HtmlNode["kind"], name: string | number = "", data: string | number = "", namespace: HtmlNamespace = "html"): Promise<number> => {
         budget.charge("nodes", 1);
-        budget.charge("retainedBytes", 128 + (name.length + data.length) * 2);
-        return tree.create(kind, { name: await nameRef(name), data: await strings.from(data), namespace });
+        const nameId = typeof name === "string" ? await nameRef(name) : name;
+        const dataId = typeof data === "string" ? await strings.from(data) : data;
+        budget.charge("retainedBytes", 128 + ((await strings.info(nameId)).length + (await strings.info(dataId)).length) * 2);
+        return tree.create(kind, { name: nameId, data: dataId, namespace });
     };
     const append = async (parent: number, node: number, before = 0): Promise<void> => {
         const previous = (await tree.read(node)).parent;
@@ -136,22 +148,17 @@ async function buildStoredTree(tree: DocumentStore, strings: TextStore, storage:
         await stack.truncate(index);
         await clearFormatting();
     } };
-    const setAttributes = async (node: number, attributes: readonly HtmlAttribute[]): Promise<void> => {
-        for (const a of attributes)
-            await tree.attribute(node, await strings.from(a.name), await strings.from(a.value), a.namespace);
+    const setAttributes = async (node: number, attributes: number): Promise<void> => {
+        const source = await tree.read(attributes);
+        await tree.patch(node, { firstAttribute: source.firstAttribute, lastAttribute: source.lastAttribute, attributeCount: source.attributeCount });
     };
-    const mergeAttributes = async (node: number, attributes: readonly HtmlAttribute[]): Promise<void> => {
-        budget.charge("work", (await tree.read(node)).attributeCount + attributes.length);
-        for (const a of attributes) {
-            let exists = false;
-            for await (const old of tree.attributes(node))
-                if (await value(old.name) === a.name) {
-                    exists = true;
-                    break;
-                }
-            if (!exists) {
-                budget.charge("retainedBytes", 64 + (a.name.length + a.value.length) * 2);
-                await setAttributes(node, [a]);
+    const mergeAttributes = async (node: number, attributes: number): Promise<void> => {
+        const names = new StoredNames(storage, strings, queries);
+        for await (const old of tree.attributes(node)) await names.add(old.name);
+        for await (const a of tree.attributes(attributes)) {
+            if (await names.add(a.name)) {
+                budget.charge("retainedBytes", 64 + ((await strings.info(a.name)).length + (await strings.info(a.value)).length) * 2);
+                await tree.attribute(node, a.name, a.value, a.namespace);
             }
         }
     };
@@ -274,15 +281,15 @@ async function buildStoredTree(tree: DocumentStore, strings: TextStore, storage:
             await stack.splice(await stack.indexOf(block) + 1, 0, replacement);
         }
     };
-    const text = async (data: string): Promise<void> => {
+    const text = async (data: number): Promise<void> => {
         if (!data)
             return;
         await reconstruct();
-        const [parent, before] = allSpace(data) ? [await target(), undefined] : await location();
+        const [parent, before] = await allSpace(data) ? [await target(), undefined] : await location();
         const last = before ? (await tree.read(before)).previous : (await tree.read(parent)).last;
         if (last && (await tree.read(last)).kind === "text") {
-            budget.charge("retainedBytes", data.length * 2);
-            await tree.patch(last, { data: await strings.concat((await tree.read(last)).data, await strings.from(data)) });
+            budget.charge("retainedBytes", (await strings.info(data)).length * 2);
+            await tree.patch(last, { data: await strings.concat((await tree.read(last)).data, data) });
         }
         else
             await append(parent!, await make("text", "", data), before);
@@ -317,43 +324,36 @@ async function buildStoredTree(tree: DocumentStore, strings: TextStore, storage:
         }
         if (token.kind === "text") {
             if (mode === "beforeHead") {
-                if (allSpace(token.data))
+                if (await allSpace(token.data))
                     continue;
                 mode = "body";
                 await stack.push(body);
             }
-            if (mode === "head" && await current() === head && !allSpace(token.data)) {
+            if (mode === "head" && await current() === head && !await allSpace(token.data)) {
                 mode = "body";
                 await stack.truncate(1);
                 await stack.push(body);
             }
             let data = token.data;
-            if ((await meta(await current())).name === "colgroup" && !allSpace(data)) {
-                let prefix = 0;
-                while (htmlSpace(data[prefix] ?? "")) {
-                    budget.charge("work", 1);
-                    prefix++;
-                }
-                if (prefix)
-                    await text(data.slice(0, prefix));
-                data = data.slice(prefix);
+            if ((await meta(await current())).name === "colgroup" && !await allSpace(data)) {
+                const prefix = await whitespacePrefix(data);
+                if (prefix) await text(await strings.slice(data, 0, prefix));
+                data = await strings.slice(data, prefix);
                 await stack.pop();
             }
             if (((await meta(await current())).name === "pre" ||
                 (await meta(await current())).name === "textarea" ||
                 (await meta(await current())).name === "listing") &&
                 (await tree.read(await current())).childCount === 0 &&
-                data.startsWith("\n"))
-                data = data.slice(1);
-            if ((await meta(await current())).namespace === "html" && !rawElements.has((await meta(await current())).name))
-                data = data.includes("\0") ? data.replaceAll("\0", "") : data;
+                await strings.at(data, 0) === "\n")
+                data = await strings.slice(data, 1);
             await text(data);
             continue;
         }
-        let t = token as Extract<HtmlToken, {
-            name: string;
+        let t = token as Extract<StoredHtmlToken, {
+            name: number;
         }>;
-        const name = t.name;
+        const name = await value(t.name);
         if ((await meta(await current())).namespace === "html" && (await meta(await current())).name === "colgroup" &&
             name !== "col" && name !== "template" && name !== "colgroup")
             await stack.pop();
@@ -469,7 +469,7 @@ async function buildStoredTree(tree: DocumentStore, strings: TextStore, storage:
             else {
                 for (let i = stack.length - 1; i > 0; i--) {
                     budget.charge("work", 1);
-                    if ((await meta((await stack.get(i))!)).name.toLowerCase() === name) {
+                    if (await queries.equal(await lowerStoredName(strings, (await tree.read((await stack.get(i))!)).name, budget), t.name)) {
                         await stack.truncate(i);
                         break;
                     }
@@ -617,22 +617,20 @@ async function buildStoredTree(tree: DocumentStore, strings: TextStore, storage:
             if (formatting.has(name))
                 await reconstruct();
         }
-        const node = await make("element", ns === "svg" ? (svgNames[name] ?? name) : name, "", ns);
+        const node = await make("element", ns === "svg" ? (svgNames[name] ?? t.name) : t.name, "", ns);
         const attributes = t.attributes;
-        budget.charge("retainedBytes", attributes.reduce((sum, a) => sum + 64 + (a.name.length + a.value.length) * 2, 0));
-        if (ns !== "html")
-            for (const a of attributes) {
-                if (ns === "svg")
-                    a.name = svgAttributes[a.name] ?? a.name;
-                if (ns === "mathml" && a.name === "definitionurl")
-                    a.name = "definitionURL";
-                const colon = a.name.indexOf(":");
-                const prefix = a.name.slice(0, colon);
-                if (colon > 0 && ["xml", "xmlns", "xlink"].includes(prefix))
-                    a.namespace = prefix as "xml" | "xmlns" | "xlink";
-                else if (a.name === "xmlns")
-                    a.namespace = "xmlns";
+        for await (const a of tree.attributes(attributes)) {
+            budget.charge("retainedBytes", 64 + ((await strings.info(a.name)).length + (await strings.info(a.value)).length) * 2);
+            if (ns !== "html") {
+                const label = await value(a.name);
+                const adjusted = ns === "svg" ? svgAttributes[label] : label === "definitionurl" ? "definitionURL" : undefined;
+                let namespace = a.namespace;
+                for (const prefix of ["xml", "xmlns", "xlink"] as const)
+                    if (await queries.literal(a.name, prefix + ":", false, true)) namespace = prefix;
+                if (label === "xmlns") namespace = "xmlns";
+                await tree.patchAttribute(a.id, adjusted ? await nameRef(adjusted) : a.name, namespace);
             }
+        }
         await setAttributes(node, attributes);
         const [parent, before] = ns === "html" && !tableAllowedElements.has(name) ? await location() : [await target(), undefined];
         await append(parent, node, before);

@@ -39,9 +39,11 @@ UTF-16 units. Normalized/pretty traversal uses parent/sibling records, and selec
 attribute comparisons scan bounded text windows. Compatibility tests compare
 stored recovery, selectors and formatting with the existing parser, including
 adoption, foster parenting, namespaces and template fragments. The public
-source-only convenience APIs still retain their DOM. Individual token framing,
-parser handling of large token values/names and URL joins remain unbounded;
-these are required follow-up implementation work before qualification.
+source-only convenience APIs still retain their DOM. Token frames, decoded values, names and duplicate-attribute indexes now use
+caller storage. Long-name end-tag matching scans bounded rope windows. Generated
+large text/comment/name/attribute cases assert bounded text writes and spill I/O;
+malformed-token cases compare against the existing tokenizer. URL joins remain
+unbounded and require implementation before qualification.
 Output publication now prefers direct streaming publication, then retained atomic
 staging with one awaited write of at most 16 KiB. Deterministic tests cover reused
 chunks, slow writes, cancellation, destination conflicts, aliased input/output,

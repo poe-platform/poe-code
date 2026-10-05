@@ -324,6 +324,13 @@ adapter; installed reference binaries remain unchanged. The original Debian
 no-reencoding profile remains separately classified. Wider Paradox acceptance
 and all other family gates remain open.
 
+Paradox alpha export now matches bounded native iconv overflow loss
+(`paradoxAlphaConversionOverflow`): oversized converted fields become null,
+while fitting values, NUL prefixes and length warnings remain intact. Four
+regressions,90 focused tests and20 public/native readbacks verify the repair.
+Native exporter schema use-after-free and exact-buffer terminator overflow
+are classified separately; remaining family acceptance stays open.
+
 ## 4. Interfaces and test plan
 
 Use existing `createEngine`, `readWorkbook`, `writeWorkbook`, `convert` and

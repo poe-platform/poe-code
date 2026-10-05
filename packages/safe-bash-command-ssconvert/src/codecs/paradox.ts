@@ -286,7 +286,11 @@ async function writeParadoxTable(book: Workbook, context: CapabilityContext): Pr
           const nul = text.indexOf("\0"), alpha = nul < 0 ? text : text.slice(0, nul);
           const nlen = new TextEncoder().encode(alpha).length;
           if (nlen > field.length) await warning(`Field ${column + 1} in line ${row + 1} has possibly been cut off. Data has ${nlen} ${nlen === 1 ? "character" : "characters"}.`);
-          try { raw.set(encodeText(alpha, "CP1252", false, context).subarray(0, field.length)); }
+          try {
+            const encoded = encodeText(alpha, "CP1252", false, context);
+            // Native iconv has length + 1 conversion bytes; E2BIG leaves null.
+            if (encoded.length <= field.length + 1) raw.set(encoded.subarray(0, field.length));
+          }
           catch (error) { if (!(error instanceof SsconvertError) || error.code === "resource-limit") throw error; /* pxlib leaves null on conversion loss. */ }
         } else if (field.type === 23) {
           const nul = text.indexOf("\0"), decimal = nul < 0 ? text : text.slice(0, nul);

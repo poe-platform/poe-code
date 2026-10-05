@@ -286,3 +286,28 @@ it.each([
   expect(imported.sheets[0]!.cells.find(cell => cell.row === 1)?.value)
     .toEqual({ kind: "string", value: expected });
 });
+
+// Pinned iconv pxlib uses field length + 1 conversion bytes. E2BIG leaves
+// the complete field null, whereas a fitting CP1252 value is copied intact.
+it.each([false, true].flatMap(encrypted => [
+  [encrypted, "abcdefghij", undefined],
+  [encrypted, "cafééééééé", undefined],
+  [encrypted, "abcdefgh", "abcdefgh"],
+  [encrypted, "cafééééé", "cafééééé"],
+  [encrypted, "ab\0abcdefghijk", "ab"]
+] as const))("matches bounded native alpha conversion with encryption=%s and text=%j", async (encrypted, text, expected) => {
+  const book: Workbook = { sheets: [{ id: "s", name: "Alpha", cells: [
+    { row: 0, column: 0, value: { kind: "string", value: "Label,A,8" } },
+    { row: 1, column: 0, value: { kind: "string", value: text } }
+  ] }] };
+  const messages: string[] = [];
+  const bytes = await writeParadox(book, encrypted ? options : [], {
+    ...bindings().context, async diagnostic(diagnostic) { messages.push(diagnostic.message); }
+  });
+  const read = await readParadox(bytes, context);
+  expect(read.sheets[0]!.cells.find(cell => cell.row === 1)?.value)
+    .toEqual(expected === undefined ? undefined : { kind: "string", value: expected });
+  const length = new TextEncoder().encode(text.split("\0")[0]).length;
+  expect(messages).toEqual(length > 8
+    ? [`Field 1 in line 2 has possibly been cut off. Data has ${length} characters.`] : []);
+});

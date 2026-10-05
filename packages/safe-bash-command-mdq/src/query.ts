@@ -339,7 +339,8 @@ export async function select(doc: Document, selectors: Selector[], budget: MdqBu
       }
       if (hit) { output.push(n.kind === "item" ? node("list", { children: [n] }) : n); continue; }
       const children = [...n.children];
-      for (const i of n.inline) {
+      // Section titles participate in section matching, not descendant selection.
+      for (const i of n.kind === "section" ? [] : n.inline) {
         if (n.kind !== "inline") children.push(node("inline", { inline: [i] }));
         else {
           children.push(...i.children.map(c => node("inline", { inline: [c] })));

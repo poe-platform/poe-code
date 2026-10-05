@@ -50,6 +50,18 @@ describe("prepareDetailContent", () => {
     expect(renderMarkdown).toHaveBeenCalledTimes(3);
   });
 
+  it("keeps colliding hashes separate and reuses each source", () => {
+    const first = prepareDetailContent("costarring", 81);
+    const second = prepareDetailContent("liquid", 81);
+
+    expect(second).not.toBe(first);
+    expect(first.text).toBe("costarring");
+    expect(second.text).toBe("liquid");
+    expect(second.lines[0].map((cell) => cell.ch).join("")).toBe("liquid");
+    expect(prepareDetailContent("costarring", 81)).toBe(first);
+    expect(prepareDetailContent("liquid", 81)).toBe(second);
+  });
+
   it("preserves the minimum preparation width", () => {
     expect(prepareDetailContent("Minimum width", 0)).toBe(prepareDetailContent("Minimum width", 1));
   });

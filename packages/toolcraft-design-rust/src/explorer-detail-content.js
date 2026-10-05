@@ -8,7 +8,7 @@ const policy=createComponentPolicy(native.designExplorerDetailContentPolicy,{
   object:()=>({}),array:()=>[],undefined:()=>undefined,
   assign:(value,key,item)=>{value[key]=item;},
   trim:content=>content.trim(),trimEnd:text=>text.trimEnd(),same:(a,b)=>a===b,max:Math.max,
-  key:(hash,width)=>`${hash}:${width}`,
+  key:(content,width)=>`${width}:${content}`,
   hash:content=>typeof content==='string'&&Object.getOwnPropertyDescriptor(String.prototype,'charCodeAt')?.value===charCodeAt?native.designExplorerContentHash(content):policy('hash',[content]),
   lt:(a,b)=>a<b,charCodeAt:(content,index)=>content.charCodeAt(index),xor:(a,b)=>a^b,imul:Math.imul,unsigned:value=>value>>>0,
   cacheGet:(cache,key)=>cache.get(key),cacheSet:(cache,key,value)=>cache.set(key,value),

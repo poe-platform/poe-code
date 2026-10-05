@@ -1,4 +1,4 @@
-//! Explorer Markdown preparation and the existing content-hash/width cache policy.
+//! Explorer Markdown preparation and the source-content/width cache policy.
 use crate::feedback::Host;
 
 const HASH_OFFSET: u32 = 2_166_136_261;
@@ -48,7 +48,7 @@ pub fn run<H: Host>(
                 return Ok(obj!("text"=>l!(""),"lines"=>lines));
             }
             let width = c!("max", n!(1.), args[1]);
-            let key = c!("key", c!("hash", content), width);
+            let key = c!("key", content, width);
             let cache = args[2];
             let cached = c!("cacheGet", cache, key);
             if !host.is_undefined(cached)? {

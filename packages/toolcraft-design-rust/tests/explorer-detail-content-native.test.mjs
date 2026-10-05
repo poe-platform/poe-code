@@ -9,7 +9,7 @@ test('detail preparation matches Markdown wrapping and styled grapheme cells',as
   for(const content of sources)for(const width of [0,1,9,20,66,113])assert.deepEqual(native.prepareDetailContent(content,width),reference.prepareDetailContent(content,width),JSON.stringify({content,width}));
 });
 
-test('detail preparation retains cache identity, mutable results and hash collisions',async()=>{
+test('detail preparation retains cache identity, mutable results and separates hash collisions',async()=>{
   const native=await import('toolcraft-design-rust/explorer/detail-content');
   for(const api of [native,reference]){
     const first=api.prepareDetailContent('Shared native cache source',20);
@@ -19,16 +19,23 @@ test('detail preparation retains cache identity, mutable results and hash collis
     first.lines[0][0].ch='changed';assert.equal(api.prepareDetailContent('Shared native cache source',20).lines[0][0].ch,'changed');
     assert.equal(api.prepareDetailContent('Minimum native width',0),api.prepareDetailContent('Minimum native width',1));
     assert.notEqual(api.prepareDetailContent('',20),api.prepareDetailContent('',20));
-    assert.equal(api.prepareDetailContent('costarring',81),api.prepareDetailContent('liquid',81));
+    const firstCollision=api.prepareDetailContent('costarring',81);
+    const secondCollision=api.prepareDetailContent('liquid',81);
+    assert.notEqual(firstCollision,secondCollision);
+    assert.equal(firstCollision.text,'costarring');
+    assert.equal(secondCollision.text,'liquid');
+    assert.equal(secondCollision.lines[0].map(cell=>cell.ch).join(''),'liquid');
+    assert.equal(api.prepareDetailContent('costarring',81),firstCollision);
+    assert.equal(api.prepareDetailContent('liquid',81),secondCollision);
   }
 });
 
-test('detail preparation preserves coercion order, hash readers and exact errors',async()=>{
+test('detail preparation preserves coercion order and exact errors',async()=>{
   const native=await import('toolcraft-design-rust/explorer/detail-content');
   function capture(api){
     const source='Observed hash source',trace=[];
     api.prepareDetailContent(source,41);
-    const content={trim(){trace.push('trim');return 'x';},get length(){trace.push('length');return source.length;},get charCodeAt(){trace.push('charCodeAt');return function(index){trace.push(['call',this===content,index]);return source.charCodeAt(index);};}};
+    const content={trim(){trace.push('trim');return 'x';},toString(){trace.push('toString');return source;}};
     const width={valueOf(){trace.push('width');return 41;}};
     return {value:api.prepareDetailContent(content,width),trace};
   }

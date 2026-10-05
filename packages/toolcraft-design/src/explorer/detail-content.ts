@@ -14,7 +14,7 @@ export function prepareDetailContent(content: string, width: number): PreparedDe
   }
 
   width = Math.max(1, width);
-  const key = `${contentHash(content)}:${width}`;
+  const key = `${width}:${content}`;
   const cached = markdownCache.get(key);
   if (cached !== undefined) return cached;
   const text = renderMarkdown(content, { width }).trimEnd();
@@ -26,13 +26,4 @@ export function prepareDetailContent(content: string, width: number): PreparedDe
   const prepared = { text, lines };
   markdownCache.set(key, prepared);
   return prepared;
-}
-
-function contentHash(content: string): number {
-  let hash = 2166136261;
-  for (let index = 0; index < content.length; index += 1) {
-    hash ^= content.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
 }

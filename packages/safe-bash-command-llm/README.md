@@ -128,8 +128,37 @@ failure or cancellation, including sources returned after cancellation.
 `beforeCall` may throw `LlmCancelToolCall` to decline a call and continue. Missing
 tools and implementation failures become result errors; a declared tool without
 an implementation stops execution. The helper retains no conversation history.
-Execution chains, parallel async execution, CLI tool selection and Python tool
-bridging remain incomplete.
+Parallel async execution, CLI tool selection and broader Python tool bridging
+remain incomplete.
+
+Use `streamLlmToolChain` to repeat requests and serial tool execution without
+giving the library ownership of conversation state:
+
+```ts
+for await (const event of streamLlmToolChain({
+  tools,
+  context: { fs, cwd, signal },
+  openResponse: (index, signal) => service.streamSources(
+    host.prepareRequest(index, signal)
+  ),
+  visit: result => host.consumeToolResult(result),
+  chainLimit: 5,
+  maxOutputBytes: 1_000_000,
+  maxToolOutputBytes: 1_000_000,
+})) {
+  await host.consumeResponseEvent(event);
+}
+```
+
+The host supplies each request and consumes/stages each borrowed tool result
+before the next request opens. Use `service.stream` for buffered requests or
+`service.streamSources` for leased inputs. The chain retains no response list,
+messages or persisted history. Output and tool byte limits apply across all
+rounds. Consumer exit aborts the active response and does not run pending tools.
+The SDK default chain limit is 10; zero/null disables it. Matching the pinned
+reference, the limit is checked after yielding each response, before executing
+tools, including a final response with no calls. CLI orchestration remains
+incomplete.
 
 Register host tools with `createLlmToolRegistry(definitions)` and pass the returned
 map as `llmCommands({ tools, providers })`. Inspect registrations with

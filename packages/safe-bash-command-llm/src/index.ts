@@ -30,4 +30,6 @@ export { createLlmFragmentSource, type LlmFragmentInputSource, type LlmFragmentS
 
 export { createLlmUrlFragmentSource } from "./url-fragment-source.js";
 
+export { streamLlmToolChain, type LlmToolChainOptions } from "./tool-chain.js";
+
 export { createLlmFragmentLoaders, loadLlmPluginFragments, getLlmFragmentPrefix, type LlmFragmentLoader, type LlmFragmentLoaderContext, type LlmLoadedFragment } from "./fragment-loaders.js";

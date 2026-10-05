@@ -1,4 +1,4 @@
-import { BiffPropertyRange } from './biff-property-range.js';
+import { BiffPropertyRange, propertyRange, readPropertyValueRanges } from './biff-property-range.js';
 import { Binary } from './biff-binary.js';
 import { readBiffPropertySections, readBiffPropertyValues } from './biff-properties-layout.js';
 import * as mergeProperties from './biff-properties-merge.js';
@@ -145,7 +145,7 @@ it.each(['second-write', 'output-write', 'read', 'output-read', 'abort'])('clean
   };
   await expect(writeBiffProperties(input, retainedContext, true)).rejects.toBe(failure);
   for (const cleanup of cleanups) await cleanup();
-  expect(state.closed).toBe(state.acquired); expect(state.acquired).toBe(mode === 'second-write' || mode === 'read' ? 2 : 4);
+  expect(state.closed).toBe(state.acquired); expect(state.acquired).toBe(mode === 'second-write' ? 2 : mode === 'read' || mode === 'output-read' ? 3 : 4);
   expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
 });
 
@@ -277,4 +277,49 @@ it.each([65001, 1200, 1252, 932].flatMap(cp => ['success', 'name-write', 'name-r
     }
   } finally { spy.mockRestore(); for (const close of cleanups) await close(); }
   expect(state.closed).toBe(state.acquired);
+});
+
+it('indexes unsorted property pointers in bounded caller storage', async () => {
+  const { ctx, state } = fixture(), count = 300, bytes = new Uint8Array(8 + count * 12), view = new DataView(bytes.buffer);
+  view.setUint32(0, bytes.length, true); view.setUint32(4, count, true);
+  for (let i = 0; i < count; i++) {
+    view.setUint32(8 + i * 8, i, true);
+    view.setUint32(12 + i * 8, 8 + count * 8 + (count - i - 1) * 4, true);
+  }
+  const values = await readPropertyValueRanges(propertyRange(bytes, ctx), () => {}, () => {}, ctx);
+  expect([...values.keys()]).toEqual(Array.from({ length: count }, (_, i) => count - i - 1));
+  expect(state.acquired).toBe(1); expect(state.closed).toBe(1);
+});
+
+it.each(['allocate', 'write', 'read', 'abort', 'duplicate-id', 'duplicate-offset'])('cleans property pointer indexes after %s', async mode => {
+  const { ctx, state, failure } = fixture(), controller = new AbortController(), count = 300;
+  const bytes = new Uint8Array(8 + count * 12), view = new DataView(bytes.buffer);
+  view.setUint32(4, count, true);
+  for (let i = 0; i < count; i++) {
+    view.setUint32(8 + i * 8, mode === 'duplicate-id' && i === count - 1 ? 0 : i, true);
+    view.setUint32(12 + i * 8, 8 + count * 8 + (mode === 'duplicate-offset' && i === count - 1 ? 0 : i) * 4, true);
+  }
+  state.mode = mode;
+  if (mode === 'abort') state.hold = async () => { controller.abort(failure); };
+  const active = { ...ctx, signal: controller.signal };
+  const result = readPropertyValueRanges(propertyRange(bytes, active), () => {}, () => {}, active);
+  if (mode.startsWith('duplicate')) await expect(result).rejects.toThrow(mode === 'duplicate-id' ? 'duplicate property ID' : 'overlapping property values');
+  else await expect(result).rejects.toBe(failure);
+  expect(state.acquired).toBe(1); expect(state.closed).toBe(1);
+});
+
+it.each([false, true])('preserves index close failures alongside parse failures=%s', async malformed => {
+  const { ctx, state, failure } = fixture(), bytes = new Uint8Array(20), view = new DataView(bytes.buffer);
+  view.setUint32(4, 1, true); view.setUint32(12, malformed ? 0 : 16, true);
+  const active = { ...ctx, createWorkingStorage() {
+    const storage = ctx.createWorkingStorage!();
+    return { ...storage, async close() { await storage.close(); throw failure; } };
+  } };
+  const result = readPropertyValueRanges(propertyRange(bytes, active), () => {}, () => {}, active);
+  if (malformed) {
+    const error = await result.catch(error => error) as AggregateError;
+    expect(error).toBeInstanceOf(AggregateError); expect(error.errors[0].message).toContain('invalid property offset');
+    expect(error.errors[1]).toBe(failure);
+  } else await expect(result).rejects.toBe(failure);
+  expect(state.closed).toBe(1);
 });

@@ -46,7 +46,7 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
     const modeled: [number, number, string][] = [];
     for (const { guid, offset, end } of sections) {
       if (!biffPropertyFields.has(guid) && guid !== custom) { unknown = true; continue; }
-      const values = await readPropertyValueRanges(file.slice(offset, end - offset), admit, accountWork);
+      const values = await readPropertyValueRanges(file.slice(offset, end - offset), admit, accountWork, context);
       const cp = values.get(1); let codepage = 1252;
       if (cp) { if ((await cp.u32(0)) !== 2) invalidBiff("invalid property codepage type"); codepage = await cp.u16(4); }
       const names = new Map<number, string>(), dictionary = values.get(0);

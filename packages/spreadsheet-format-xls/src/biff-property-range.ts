@@ -1,3 +1,4 @@
+import { IntegerTable } from '@poe-code/safe-fs/storage';
 import { SsconvertError, type CapabilityContext, type RangeSource } from '@poe-code/spreadsheet-engine/contracts';
 import { Binary, invalidBiff } from './biff-binary.js';
 import type { BiffPropertySection } from './biff-properties-layout.js';
@@ -73,19 +74,46 @@ export async function readPropertySectionRanges(file: BiffPropertyRange, admit: 
   return sections;
 }
 export async function readPropertyValueRanges(section: BiffPropertyRange, admit: (count: number) => void,
-  accountWork: (amount: number) => void): Promise<Map<number, BiffPropertyRange>> {
+  accountWork: (amount: number) => void, context: CapabilityContext): Promise<Map<number, BiffPropertyRange>> {
   const count = await section.u32(4); section.check(8, count * 8); admit(count);
-  const pointers: { id: number; at: number }[] = [], ids = new Set<number>();
-  for (let i = 0; i < count; i++) {
-    const entry = new Binary(await section.read(8 + i * 8, 8)), id = entry.u32(0), at = entry.u32(4);
-    if (at < 8 + count * 8 || at > section.size - 4) invalidBiff('invalid property offset');
-    if (ids.has(id)) invalidBiff('duplicate property ID'); ids.add(id); pointers.push({ id, at });
-  }
-  accountWork(count * Math.ceil(Math.log2(count + 1))); pointers.sort((a, b) => a.at - b.at);
+  accountWork(count * Math.ceil(Math.log2(count + 1)));
+  const storage = context.createWorkingStorage?.();
   const values = new Map<number, BiffPropertyRange>();
-  for (let i = 0; i < count; i++) {
-    const { id, at } = pointers[i]!, next = pointers[i + 1]?.at ?? section.size;
-    if (next === at) invalidBiff('overlapping property values'); values.set(id, section.slice(at, next - at));
+  try {
+    const backing = storage && {
+      allocate(length: number) { section.check(0, 0); return storage.allocate(length); },
+      async read(at: number, length: number) {
+        section.check(0, 0); const bytes = await storage.read(at, length); section.check(0, 0); return bytes;
+      },
+      async write(at: number, bytes: Uint8Array) {
+        section.check(0, 0); const owned = new Uint8Array(bytes);
+        try { await storage.write(at, owned); section.check(0, 0); } finally { owned.fill(0); }
+      }
+    };
+    backing?.allocate(8);
+    const ids = backing ? new IntegerTable(backing, 64) : new Map<bigint, bigint>();
+    const offsets = backing ? new IntegerTable(backing, 64) : new Map<bigint, bigint>();
+    for (let i = 0; i < count; i++) {
+      const entry = new Binary(await section.read(8 + i * 8, 8)), id = BigInt(entry.u32(0)), at = entry.u32(4);
+      if (at < 8 + count * 8 || at > section.size - 4) invalidBiff('invalid property offset');
+      if (await ids.get(id) !== undefined) invalidBiff('duplicate property ID');
+      section.check(0, 0); await ids.set(id, 1n); section.check(0, 0);
+      if (await offsets.get(BigInt(at)) !== undefined) invalidBiff('overlapping property values');
+      section.check(0, 0); await offsets.set(BigInt(at), id); section.check(0, 0);
+    }
+    const entries = offsets instanceof Map ? [...offsets].sort(([a], [b]) => Number(a - b)) : offsets.entries();
+    let previous: { id: number; at: number } | undefined;
+    for await (const [offset, id] of entries) {
+      section.check(0, 0); const at = Number(offset);
+      if (previous) values.set(previous.id, section.slice(previous.at, at - previous.at));
+      previous = { id: Number(id), at };
+    }
+    if (previous) values.set(previous.id, section.slice(previous.at, section.size - previous.at));
+  } catch (error) {
+    try { await storage?.close(); }
+    catch (cleanup) { throw new AggregateError([error, cleanup], 'BIFF property index and cleanup failed'); }
+    throw error;
   }
+  await storage?.close(); section.check(0, 0);
   return values;
 }

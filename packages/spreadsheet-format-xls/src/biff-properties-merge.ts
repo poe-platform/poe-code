@@ -77,7 +77,7 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     for (const section of await readPropertySectionRanges(file, admit, charge)) {
       const bytes = file.slice(section.offset, section.end - section.offset);
       sections.push({ ...section, bytes, ...(biffPropertyFields.has(section.guid) || section.guid === biffPropertyFormats.custom ?
-        { values: await readPropertyValueRanges(bytes, admit, charge) } : {}) });
+        { values: await readPropertyValueRanges(bytes, admit, charge, context) } : {}) });
     }
     return sections;
   };

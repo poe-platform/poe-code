@@ -52,3 +52,12 @@ test('fd supports explicit search roots, color alias, prune and custom ignore fi
   assert.deepEqual(a.ignoreFiles, ['rules']);
   for (const args of [['-c', 'invalid'], ['--search-path'], ['--ignore-file'], ['--search-path', 'a', 'needle', 'b']]) assert.throws(() => parseFdArguments(args));
 });
+
+test('result limits must be positive while omitted limits remain unlimited', () => {
+  for (const args of [['--max-results', '0'], ['--max-results=0']]) {
+    assert.throws(() => parseFdArguments(args), { message: '--max-results must be greater than zero' });
+  }
+  assert.equal(parseFdArguments([]).maxResults, Infinity);
+  assert.equal(parseFdArguments(['--max-results', '1']).maxResults, 1);
+  assert.equal(parseFdArguments(['--max-results=2']).maxResults, 2);
+});

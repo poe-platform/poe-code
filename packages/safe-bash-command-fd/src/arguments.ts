@@ -61,7 +61,10 @@ export function parseFdArguments(argv: readonly string[]): FdArguments {
         case 'max-depth': a.maxDepth=number(value); break;
         case 'min-depth': a.minDepth=number(value); break;
         case 'exact-depth': a.minDepth=a.maxDepth=number(value); break;
-        case 'max-results': a.maxResults=number(value) || Infinity; break;
+        case 'max-results':
+          a.maxResults=number(value);
+          if (a.maxResults===0) throw new FdUsageError('--max-results must be greater than zero');
+          break;
         case 'and': a.patterns.push(value); break;
         case 'extension': a.extensions.push(value.startsWith('.') ? value.slice(1) : value); break;
         case 'type': {

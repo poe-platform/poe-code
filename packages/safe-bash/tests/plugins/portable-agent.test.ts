@@ -215,10 +215,13 @@ test("all regex consumers use the injected provider and retire their workers", a
     assert.equal(defaultSearch.stderr, "");
     assert.equal(requests[0]!.descriptor.kind, "rg");
     assert.equal(created, retired);
+    requests.length = 0;
     const pcre = await shell.exec("printf 'aa\\n' | rg -P 'a+'");
-    assert.equal(pcre.exitCode, 2);
-    assert.equal(pcre.stdout, "");
-    assert.match(pcre.stderr, /unsupported/);
+    assert.equal(pcre.exitCode, 0, pcre.stderr);
+    assert.equal(pcre.stdout, "aa\n");
+    assert.equal(pcre.stderr, "");
+    assert.ok(requests.length > 0);
+    assert.equal(requests.at(-1)!.descriptor.kind, "rg");
     assert.equal(created, retired);
     const unsupported = await shell.exec("printf 'aa\\n' | rg -P '(?<=a)a'");
     assert.equal(unsupported.exitCode, 2);

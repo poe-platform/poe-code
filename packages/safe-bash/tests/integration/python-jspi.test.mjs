@@ -469,11 +469,14 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   const response = await nativeFixture.miniflare.dispatchFetch('http://fixture/llm-functions');
   const result = await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
-  for (const key of ['listing','serial','concurrent','defaultTool','toolboxListing','toolboxSerial','toolboxAsync']) assert.equal(result[key].exitCode,0,result[key].stderr);
+  for (const key of ['plugins','pluginTools','missingPlugins','listing','serial','concurrent','defaultTool','toolboxListing','toolboxSerial','toolboxAsync']) assert.equal(result[key].exitCode,0,result[key].stderr);
   assert.deepEqual(JSON.parse(result.listing.stdout).tools.map(tool=>tool.name),['add','first','llm_time','llm_version','second','unicode_text']);
   assert.equal(result.serial.stdout,'2,5,'+'😀'.repeat(4096)+'\n');
   assert.equal(result.concurrent.stdout,'first,second\n');
   assert.equal(result.defaultTool.stdout,'0.27.1\n');
+  assert.deepEqual(JSON.parse(result.plugins.stdout).map(plugin=>({...plugin,hooks:[...plugin.hooks].sort()})),[{name:'llm-safe-host',hooks:['register_embedding_models','register_models'],version:'0.1'}]);
+  assert.deepEqual(JSON.parse(result.pluginTools.stdout),[{name:'llm.default_plugins.default_tools',hooks:['register_tools']}]);
+  assert.equal(result.missingPlugins.stdout,'[]\n');
   assert.equal(result.unknownTool.exitCode,1);
   assert.ok(result.unknownTool.stderr.includes('Tool(s) missing_tool not found.'));
   assert.equal(result.brokenFunction.exitCode,1);

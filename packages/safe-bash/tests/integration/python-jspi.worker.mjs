@@ -204,6 +204,9 @@ _pm.register(_Plugin(), name="fixture")
   const loadTools = createPythonLlmToolLoader({createExecutor,createCapabilities: context => ({llm:createPythonLlmCapability(context,service)})});
   const shell = new Shell({fs:backend,cwd:'/work',env:{HOME:'/work',LLM_USER_PATH:'/work/llm-config'}}).use(llmCommands({service,loadTools}));
   try {
+    const plugins = await shell.exec('llm plugins');
+    const pluginTools = await shell.exec('llm plugins --all --hook register_tools');
+    const missingPlugins = await shell.exec('llm plugins --hook missing');
     const listing = await shell.exec('llm tools list --functions functions.py --json');
     const serial = await shell.exec('llm hello --functions functions.py');
     const concurrent = await shell.exec('llm hello --async --functions functions.py');
@@ -221,7 +224,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

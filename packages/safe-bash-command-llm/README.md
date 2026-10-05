@@ -203,6 +203,15 @@ Sync/async preparation runs before approvals and method execution. Additional
 model-provider registration and ambient entrypoint loading stay disabled; runtime
 packages remain explicitly provisioned by the host.
 
+Use `llm plugins` to list the configured interpreter's installed plugin names,
+versions and hooks. `--all` includes built-in plugins; repeated `--hook NAME`
+filters match any requested hook. SDK callers pass
+`pluginQuery: { all: true, hooks: ["register_tools"] }` to the same loader and read
+`session.plugins`, then close the session. Metadata obeys the loader input limit;
+CLI JSON output streams under the output limit. Package installation and provider
+provisioning remain host-controlled.
+
+
 Run selected tools with `llm -T lookup "Find an answer"`. Repeat `-T`/`--tool`
 for multiple registrations. The CLI executes calls serially by default; `--async` runs declared coroutine tools concurrently and sends results
 back to the model through the shared service. `--cl`/`--chain-limit` defaults to

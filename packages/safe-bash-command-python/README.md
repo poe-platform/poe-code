@@ -64,3 +64,11 @@ so model transport and credentials stay platform-owned. Result text and attachme
 storage; close direct SDK sessions after consuming their borrowed results.
 Cancellation is cooperative for Python tasks; CPU-bound or cancellation-suppressing
 code still requires runtime-enforced interruption. No conversation history is stored.
+
+Use `llm plugins` to list the configured interpreter's installed plugin names,
+versions and hooks. `--all` includes built-in plugins; repeated `--hook NAME`
+filters match any requested hook. SDK callers pass
+`pluginQuery: { all: true, hooks: ["register_tools"] }` to the same loader and read
+`session.plugins`, then close the session. Metadata obeys the loader input limit;
+CLI JSON output streams under the output limit. Package installation and provider
+provisioning remain host-controlled.

@@ -1,5 +1,5 @@
 export { serializeLlmTokenUsage } from "./usage.js";
-export { createLlmToolRegistry, selectLlmTools, type LlmRegisteredTool, type LlmToolLoader, type LlmToolboxDescription } from './tool-registry.js';
+export { createLlmToolRegistry, selectLlmTools, type LlmRegisteredTool, type LlmToolLoader, type LlmToolboxDescription, type LlmPluginQuery, type LlmPluginInfo } from './tool-registry.js';
 export {executeLlmToolCalls, LlmCancelToolCall, type LlmToolContext, type LlmToolOutput, type LlmExecutableTool, type LlmToolExecutionResult, type LlmToolExecutionOptions} from './tool-execution.js';
 export type { LlmTool, LlmToolCall, LlmMessage } from "./types.js";
 export { createLlmInputBudget, type LlmInputLimits } from "./input-budget.js";

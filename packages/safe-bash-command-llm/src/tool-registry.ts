@@ -64,13 +64,17 @@ export interface LlmToolboxDescription {
   readonly tools: readonly Pick<LlmRegisteredTool, "name" | "description" | "inputSchema" | "signature">[];
 }
 
-/** An invocation-owned runtime for Python function definitions. The caller owns
+export interface LlmPluginQuery {readonly all: boolean; readonly hooks: readonly string[];}
+export interface LlmPluginInfo {readonly name: string; readonly hooks: readonly string[]; readonly version?: string;}
+
+/** An invocation-owned runtime for Python tools and plugin discovery. The caller owns
  * canonical storage, transport and admission; closing retires all callables. */
 export type LlmToolLoader = (options: {
   readonly context: CommandContext;
   readonly definitions: readonly string[];
   readonly toolNames?: readonly string[];
   readonly discovery?: boolean;
+  readonly pluginQuery?: LlmPluginQuery;
   readonly maxInputBytes: number;
   readonly maxOutputBytes: number;
-}) => Promise<{readonly tools: readonly LlmRegisteredTool[]; readonly toolboxes?: readonly LlmToolboxDescription[]; close(): Promise<void>}>;
+}) => Promise<{readonly tools: readonly LlmRegisteredTool[]; readonly toolboxes?: readonly LlmToolboxDescription[]; readonly plugins?: readonly LlmPluginInfo[]; close(): Promise<void>}>;

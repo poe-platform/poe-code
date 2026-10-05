@@ -53,7 +53,7 @@ The LLM library must not own history or persistence, including through an option
 | `llm models options show` | model | incomplete |
 | `llm openai` |  | incomplete |
 | `llm openai models` | --json; --key | incomplete |
-| `llm plugins` | --all; --hook (repeatable) | incomplete |
+| `llm plugins` | --all; --hook (repeatable) | native Python metadata discovery implemented; 15 pinned CLI output/help/error cases, bounded protocol/cleanup tests and source/installed workerd checks pass; final hosted qualification remains incomplete |
 | `llm prompt` | prompt; -s/--system; -m/--model; -d/--database; -q/--query (repeatable); -a/--attachment (repeatable); --at/--attachment-type ×2 (repeatable); -T/--tool (repeatable); --functions (repeatable); --td/--tools-debug; --ta/--tools-approve; --cl/--chain-limit; -o/--option ×2 (repeatable); --schema; --schema-multi; -f/--fragment (repeatable); --sf/--system-fragment (repeatable); -t/--template; -p/--param ×2 (repeatable); --no-stream; -n/--no-log; --log; -c/--continue; --cid/--conversation; --key; --save; --async; -u/--usage; -x/--extract; --xl/--extract-last | incomplete |
 | `llm schemas` |  | Excluded: history belongs to the host |
 | `llm schemas dsl` | input; --multi | incomplete |
@@ -103,6 +103,18 @@ profile budgets/portable smokes also pass; Python/LLM is 2,096,874 bytes with no
 assets. Plugin installation workflows, stateless chat, SQL import streaming,
 remaining stateful codecs, exact help/errors, large JSON controls and complete
 hosted acceptance remain incomplete.
+
+
+Plugin discovery now exposes native names, versions and hooks through `llm plugins`
+and the same invocation-owned SDK loader. Built-in inclusion and repeated hook
+filters follow the pinned package. Fifteen native CLI captures cover output, help,
+filtering and diagnostics. Metadata admission, invalid protocol data, bounded
+output and cleanup have regressions; 933 LLM and 251 Python tests plus lint/types
+pass. Source and independently installed workerd checks verify platform metadata,
+default tooling and missing-hook selection. Screenshot inspection passes. The
+installed Python/LLM profile is 2,098,496 bytes with no assets, within the unchanged
+budget. Plugin installation and the remaining acceptance checklist above remain
+incomplete.
 
 
 ## Acceptance matrix

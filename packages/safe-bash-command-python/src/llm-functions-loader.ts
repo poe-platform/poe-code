@@ -1,4 +1,4 @@
-import {createLlmSpool, createLlmToolRegistry, type LlmToolLoader, type LlmRegisteredTool, type LlmToolOutput, type LlmSourceAttachment, type LlmToolContext, type LlmToolboxDescription} from 'safe-bash-command-llm';
+import {createLlmSpool, createLlmToolRegistry, type LlmToolLoader, type LlmRegisteredTool, type LlmToolOutput, type LlmSourceAttachment, type LlmToolContext, type LlmToolboxDescription, type LlmPluginInfo} from 'safe-bash-command-llm';
 import {toByteSource} from 'safe-bash-contracts';
 import {createPythonExecutorCommands, type PythonCommandsOptions} from './executor.js';
 import type {PythonHostCapability, PythonHostValue} from './host-capabilities.js';
@@ -27,9 +27,10 @@ export function createPythonLlmToolLoader(options: PythonCommandsOptions): LlmTo
     if (!capability) throw new Error('Unknown Python tool invocation');
     return {...capabilities, llm_tools: capability};
   }})[0]!;
-  return async ({context, definitions, toolNames = [], discovery = false, maxInputBytes, maxOutputBytes}) => {
+  return async ({context, definitions, toolNames = [], discovery = false, pluginQuery, maxInputBytes, maxOutputBytes}) => {
     if (!Array.isArray(definitions) || definitions.some(value => typeof value !== 'string')) throw new TypeError('Python tool definitions must be strings');
     if (!Array.isArray(toolNames) || toolNames.some(value => typeof value !== 'string') || typeof discovery !== 'boolean') throw new TypeError('Invalid Python tool selection');
+    if (pluginQuery && (typeof pluginQuery.all !== 'boolean' || !Array.isArray(pluginQuery.hooks) || pluginQuery.hooks.some(value => typeof value !== 'string'))) throw new TypeError('Invalid Python plugin query');
     for (const limit of [maxInputBytes, maxOutputBytes]) if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError('Invalid Python tool byte limit');
     context.signal.throwIfAborted();
     const controller = new AbortController();
@@ -38,6 +39,7 @@ export function createPythonLlmToolLoader(options: PythonCommandsOptions): LlmTo
     const ready = deferred<void>();
     const tools: LlmRegisteredTool[] = [];
     const toolboxes: LlmToolboxDescription[] = [];
+    let plugins: readonly LlmPluginInfo[] | undefined;
     const spools = new Set<Spool>();
     const jobs = new Map<number, {result: ReturnType<typeof deferred<LlmToolOutput>>; output: Spool; attachments: LlmSourceAttachment[]; files: Map<number, Spool>; bytes: number; limit: number}>();
     const queue: PythonHostValue[] = [];
@@ -88,7 +90,7 @@ export function createPythonLlmToolLoader(options: PythonCommandsOptions): LlmTo
       const message = record(value);
       if (message.op !== 'next' && message.op !== 'failed') signal.throwIfAborted();
       if (message.op === 'definitions') return [...definitions];
-      if (message.op === 'selection') return {names: [...toolNames], discovery};
+      if (message.op === 'selection') return {names: [...toolNames], discovery, ...(pluginQuery ? {pluginQuery: {all: pluginQuery.all, hooks: [...pluginQuery.hooks]}} : {})};
       if (message.op === 'admit') {
         if (typeof message.size !== 'number' || !Number.isSafeInteger(message.size) || message.size < 0) throw new TypeError('Invalid Python definition byte count');
         controls += message.size;
@@ -96,9 +98,19 @@ export function createPythonLlmToolLoader(options: PythonCommandsOptions): LlmTo
         return null;
       }
       if (message.op === 'failed') {initializationFailed = true; fail(new Error(String(message.message))); return null;}
-      if (message.op === 'register' || message.op === 'toolbox') {
+      if (message.op === 'register' || message.op === 'toolbox' || message.op === 'plugins') {
         controls += encoder.encode(JSON.stringify(message)).length;
         if (controls > maxInputBytes) throw new RangeError('Python tool definition byte limit exceeded');
+      }
+      if (message.op === 'plugins') {
+        if (loaded || plugins || !pluginQuery || !Array.isArray(message.plugins)) throw new TypeError('Invalid Python plugin discovery');
+        plugins = Object.freeze(message.plugins.map(value => {
+          const plugin = record(value);
+          if (typeof plugin.name !== 'string' || !Array.isArray(plugin.hooks) || plugin.hooks.some(hook => typeof hook !== 'string') ||
+            (plugin.version !== undefined && typeof plugin.version !== 'string')) throw new TypeError('Invalid Python plugin metadata');
+          return Object.freeze({name: plugin.name, hooks: Object.freeze(plugin.hooks as string[]), ...(typeof plugin.version === 'string' ? {version: plugin.version} : {})});
+        }));
+        return null;
       }
       if (message.op === 'toolbox') {
         if (loaded || typeof message.name !== 'string' || !Array.isArray(message.tools)) throw new TypeError('Invalid Python toolbox registration');
@@ -195,7 +207,7 @@ export function createPythonLlmToolLoader(options: PythonCommandsOptions): LlmTo
       await Promise.all([...spools].map(value => value.close())); spools.clear();
     })();
     context.registerCleanup?.(close);
-    try {signal.throwIfAborted(); await ready.promise; return {tools: Object.freeze(tools), toolboxes: Object.freeze(toolboxes), close};}
+    try {signal.throwIfAborted(); await ready.promise; return {tools: Object.freeze(tools), toolboxes: Object.freeze(toolboxes), ...(plugins ? {plugins} : {}), close};}
     catch (error) {await close(); throw error;}
   };
 }

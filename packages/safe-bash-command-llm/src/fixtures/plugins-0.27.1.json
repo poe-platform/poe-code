@@ -1,0 +1,129 @@
+[
+  {
+    "args": [],
+    "stdout": "[\n  {\n    \"name\": \"fixture-tools\",\n    \"hooks\": [\n      \"register_tools\",\n      \"register_fragment_loaders\"\n    ],\n    \"version\": \"1.2\"\n  },\n  {\n    \"name\": \"fixture-\\u754c\",\n    \"hooks\": [\n      \"register_template_loaders\"\n    ]\n  }\n]\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--all"
+    ],
+    "stdout": "[\n  {\n    \"name\": \"fixture-tools\",\n    \"hooks\": [\n      \"register_tools\",\n      \"register_fragment_loaders\"\n    ],\n    \"version\": \"1.2\"\n  },\n  {\n    \"name\": \"fixture-\\u754c\",\n    \"hooks\": [\n      \"register_template_loaders\"\n    ]\n  },\n  {\n    \"name\": \"llm.default_plugins.default_tools\",\n    \"hooks\": [\n      \"register_tools\"\n    ]\n  }\n]\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--hook",
+      "register_tools"
+    ],
+    "stdout": "[\n  {\n    \"name\": \"fixture-tools\",\n    \"hooks\": [\n      \"register_tools\",\n      \"register_fragment_loaders\"\n    ],\n    \"version\": \"1.2\"\n  }\n]\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--hook=missing"
+    ],
+    "stdout": "[]\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--hook",
+      "missing",
+      "--hook",
+      "register_template_loaders"
+    ],
+    "stdout": "[\n  {\n    \"name\": \"fixture-\\u754c\",\n    \"hooks\": [\n      \"register_template_loaders\"\n    ]\n  }\n]\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--all",
+      "--hook",
+      "register_tools"
+    ],
+    "stdout": "[\n  {\n    \"name\": \"fixture-tools\",\n    \"hooks\": [\n      \"register_tools\",\n      \"register_fragment_loaders\"\n    ],\n    \"version\": \"1.2\"\n  },\n  {\n    \"name\": \"llm.default_plugins.default_tools\",\n    \"hooks\": [\n      \"register_tools\"\n    ]\n  }\n]\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--help"
+    ],
+    "stdout": "Usage: llm plugins [OPTIONS]\n\n  List installed plugins\n\nOptions:\n  --all        Include built-in default plugins\n  --hook TEXT  Filter for plugins that implement this hook\n  -h, --help   Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--unknown"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: No such option: --unknown\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--unknown",
+      "--help"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: No such option: --unknown\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--hook"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '--hook' requires an argument.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--all=yes"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '--all' does not take a value.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "extra"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: Got unexpected extra argument (extra)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--",
+      "--all"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: Got unexpected extra argument (--all)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "-h"
+    ],
+    "stdout": "Usage: llm plugins [OPTIONS]\n\n  List installed plugins\n\nOptions:\n  --all        Include built-in default plugins\n  --hook TEXT  Filter for plugins that implement this hook\n  -h, --help   Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--hook",
+      "--help"
+    ],
+    "stdout": "[]\n",
+    "stderr": "",
+    "exitCode": 0
+  }
+]

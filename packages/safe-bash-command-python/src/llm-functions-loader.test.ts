@@ -149,3 +149,33 @@ test('reported initialization failure lets the interpreter return before retirem
   await assert.rejects(load({context: context(), definitions: [], maxInputBytes: 4096, maxOutputBytes: 4096}), /invalid selection/);
   assert.equal(interrupted, false);
 });
+
+test('plugin discovery forwards the query and returns admitted native metadata', async () => {
+  const plugins = [{name: 'fixture-tools', hooks: ['register_tools'], version: '1.2'}];
+  const load = createPythonLlmToolLoader({createExecutor: () => ({terminate() {}, async run(start) {
+    start.onReady();
+    const send = (value: Parameters<NonNullable<typeof start.host>['request']>[0]) => start.host!.request({version: 1, operation: 'call', capability: 'llm_tools', value});
+    assert.deepEqual(await send({op: 'selection'}), {names: [], discovery: false, pluginQuery: {all: true, hooks: ['register_tools']}});
+    await send({op: 'plugins', plugins});
+    await send({op: 'ready'});
+    assert.equal(await send({op: 'next'}), null);
+    return 0;
+  }})});
+  const session = await load({context: context(), definitions: [], maxInputBytes: 4096, maxOutputBytes: 4096,
+    pluginQuery: {all: true, hooks: ['register_tools']}});
+  try {assert.deepEqual(session.plugins, plugins);}
+  finally {await session.close();}
+});
+
+for (const [label, metadata, limit] of [['malformed', [{name: 'bad', hooks: [1]}], 4096], ['oversized', [{name: 'x'.repeat(200), hooks: []}], 80]] as const)
+  test(`plugin discovery rejects ${label} metadata and retires startup`, async () => {
+    let retired = false;
+    const load = createPythonLlmToolLoader({createExecutor: () => ({terminate() {retired = true;}, async run(start) {
+      start.onReady();
+      try {await start.host!.request({version: 1, operation: 'call', capability: 'llm_tools', value: {op: 'plugins', plugins: metadata}});}
+      catch {return 1;}
+      assert.fail('invalid metadata accepted');
+    }})});
+    await assert.rejects(load({context: context(), definitions: [], pluginQuery: {all: true, hooks: []}, maxInputBytes: limit, maxOutputBytes: 4096}));
+    assert.equal(retired, true);
+  });

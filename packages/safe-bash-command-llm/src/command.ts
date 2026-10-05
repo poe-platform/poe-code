@@ -1,3 +1,5 @@
+import {pluginsCommand} from './plugins-command.js';
+import type {LlmPluginQuery} from './tool-registry.js';
 import {pythonRepr} from "./python-repr.js";
 import { promptToolChain } from "./prompt-tool-chain.js";
 import { createToolApproval } from "./prompt-tool-approval.js";
@@ -207,14 +209,14 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   };
   const admitBuffered = (size: number): void => input.admit(size, true);
   const functionSessions = new Set<Awaited<ReturnType<NonNullable<LlmCommandsOptions['loadTools']>>>>();
-  const loadDefinitions = async (definitions: readonly string[], toolNames: readonly string[] = [], discovery = false) => {
+  const loadDefinitions = async (definitions: readonly string[], toolNames: readonly string[] = [], discovery = false, pluginQuery?: LlmPluginQuery) => {
     if (!loadTools) throw new Error("Python tool loading is not configured");
     const diagnostic = operation.child(context.stderr).output;
-    const loaded = await operation.acquire(async () => {const value = await loadTools({definitions, toolNames, discovery,
+    const loaded = await operation.acquire(async () => {const value = await loadTools({definitions, toolNames, discovery, ...(pluginQuery ? {pluginQuery} : {}),
       context: {...context, signal, stdout: {write: bytes => write(bytes, true)}, stderr: {write: async bytes => {admitOutput(bytes.length); await writeOutput(diagnostic, bytes);}}},
       maxInputBytes: input.remaining(true), maxOutputBytes: limits?.maxOutputBytes ?? Infinity});
       let closing: Promise<void> | undefined;
-      return {tools: value.tools, ...(value.toolboxes ? {toolboxes: value.toolboxes} : {}), close: () => closing ??= Promise.resolve().then(() => value.close())};
+      return {tools: value.tools, ...(value.plugins ? {plugins: value.plugins} : {}), ...(value.toolboxes ? {toolboxes: value.toolboxes} : {}), close: () => closing ??= Promise.resolve().then(() => value.close())};
     }, value => value.close());
     functionSessions.add(loaded);
     return loaded;
@@ -277,6 +279,16 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       argumentText(1);
       await emitText(modelsGroupHelp);
       return { exitCode: 0 };
+    }
+    if (argumentsValue.args[0] === 'plugins') {
+      argumentText(0);
+      const tokens = Array.from({length: argumentsValue.args.length - 1}, (_, index) => argumentText(index + 1));
+      return {exitCode: await pluginsCommand(tokens, emitText, text => writeDiagnostic(context.stderr, text, signal), step, signal,
+        loadTools ? async query => {
+          const session = await loadDefinitions([], [], false, query);
+          if (!session.plugins) throw new Error('Python runtime did not return plugin metadata');
+          return session.plugins;
+        } : undefined)};
     }
     if (argumentsValue.args[0] === 'tools') {
       argumentText(0);

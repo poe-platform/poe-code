@@ -5,7 +5,7 @@ import asyncio, codecs, inspect, json
 import safe_host
 from _poe_llm_capability import bridge
 from llm.cli import _tools_from_code, _gather_tools
-from llm import ToolOutput, Tool, Toolbox, get_tools
+from llm import ToolOutput, Tool, Toolbox, get_tools, get_plugins
 from llm.models import _wrap_tools, _get_instance
 from llm_safe_host import _attachment_type
 
@@ -64,6 +64,13 @@ async def main():
     discovery = selection.get("discovery", False)
     tools = []
     try:
+        plugin_query = selection.get("pluginQuery")
+        if plugin_query is not None:
+            plugins = get_plugins(plugin_query["all"])
+            hooks = set(plugin_query["hooks"])
+            if hooks:
+                plugins = [plugin for plugin in plugins if hooks.intersection(plugin["hooks"])]
+            send("plugins", plugins=plugins)
         registered = get_tools() if discovery and not names else {}
         functions = []
         for definition in definitions:

@@ -459,6 +459,8 @@ interface MagickState {
   pointsize: number;
   gravity: GravityPosition;
   quality: number;
+  delay?: number;
+  loop?: number;
   density: number;
   fuzz: number;
   kernel: ResizeKernel;
@@ -4178,7 +4180,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-adjoin") {
             state.adjoin = true;
         }
-        else if (t === "-delay" || t === "-loop" || t === "-dispose") {
+        else if (t === "-delay") {
+            state.delay = Number(tokens[++i] ?? 0) * 10;
+        }
+        else if (t === "-loop") {
+            state.loop = Number(tokens[++i] ?? 0);
+        }
+        else if (t === "-dispose") {
             i++;
         }
         else if (t === "-coalesce" || t === "-deconstruct") {
@@ -4802,6 +4810,8 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             format,
             quality: state.quality,
             ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : {}),
+            ...(state.delay === undefined ? {} : { delay: state.delay }),
+            ...(state.loop === undefined ? {} : { loop: state.loop }),
             consumeInput: true
         } as any);
         detachRgbaBuffer(toEncode.data);
@@ -5119,7 +5129,9 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             }); continue;
         }
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
-        if (!operandsOnly && ["-delay", "-loop", "-dispose", "-deskew"].includes(token)) { i++; continue; }
+        if (!operandsOnly && token === "-delay") { state.delay = Number(tokens[++i] ?? 0) * 10; continue; }
+        if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
+        if (!operandsOnly && ["-dispose", "-deskew"].includes(token)) { i++; continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
         if (!operandsOnly && (token === "-coalesce" || token === "-deconstruct")) continue;
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
@@ -5382,7 +5394,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             pageHeight = first.height;
             image = { ...first, position, height: first.height * stack.length, pages: stack.length, pageHeight };
         }
-        const stdoutBytes = await backend.publish(image, output.path, { format: output.format, quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }) });
+        const stdoutBytes = await backend.publish(image, output.path, { format: output.format, quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }), ...(state.delay === undefined ? {} : { delay: state.delay }), ...(state.loop === undefined ? {} : { loop: state.loop }) });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
 }
@@ -5919,7 +5931,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             tileCols = g.width;
             tileRows = g.height;
         }
-        else if (t === "-geometry") {
+        else if (t === "-geometry" || t === "-thumbnail") {
             const g = parseMagickGeometry(argv[++i] ?? "+2+2");
             cellW = g.width;
             cellH = g.height;

@@ -1240,7 +1240,18 @@ export class MountFileSystem implements FileSystem {
         && writer.writeStream && writer.capabilities.streamingWrite !== false) {
         const source = readBytes(reader.readStream(origin.local, options), options.signal);
         let failed = false;
-        try { await writer.writeStream(target.local, source, writeOptions); }
+        try {
+          // Admit lazy reader startup before the writer can truncate its target.
+          // Later transfer failures retain the backend's partial-write semantics.
+          const first = await source.next();
+          await writer.writeStream(target.local, (async function* () {
+            let item = first;
+            while (!item.done) {
+              yield item.value;
+              item = await source.next();
+            }
+          })(), writeOptions);
+        }
         catch (error) { failed = true; throw error; }
         finally { await finishCleanup(() => source.return(undefined), failed); }
       } else {

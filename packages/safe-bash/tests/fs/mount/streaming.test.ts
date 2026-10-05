@@ -105,6 +105,83 @@ test("cross-mount writer error keeps partial effects, global metadata, and origi
   assert.deepEqual(await root.readFile("/source"), new Uint8Array([1, 2]));
 });
 
+for (const existing of [false, true]) for (const cancel of [false, true]) {
+  test(`cross-mount source admission preserves destination: existing=${existing}, cancel=${cancel}`, async () => {
+    const root = createMemoryFileSystem(), disk = createMemoryFileSystem();
+    const original = new Uint8Array([7, 0, 255]);
+    await root.writeFile("/source", new Uint8Array([1]));
+    if (existing) await disk.writeFile("/copy", original);
+    const controller = new AbortController();
+    const reason = new FsError("ENOTSUP", { path: "/source", syscall: "readStream" });
+    let returned = 0, writes = 0;
+    const mount = createMountFileSystem({
+      root: wrapped(root, { readStream: () => ({ [Symbol.asyncIterator]() { return {
+        async next(): Promise<IteratorResult<Uint8Array>> {
+          if (cancel) controller.abort(reason);
+          throw reason;
+        },
+        async return() { returned++; return { done: true as const, value: undefined }; },
+      }; } }) }),
+      mounts: { "/disk": wrapped(disk, { async writeStream(path, input, options) {
+        writes++;
+        await disk.writeStream(path, input, options);
+      } }) },
+    });
+    await assert.rejects(mount.copyFile("/source", "/disk/copy", { signal: controller.signal }), error => {
+      if (cancel) return error === reason;
+      assert.ok(error instanceof FsError);
+      assert.equal(error.code, "ENOTSUP");
+      assert.equal(error.path, "/source");
+      assert.equal(error.dest, "/disk/copy");
+      assert.equal(error.syscall, "copyFile");
+      assert.equal(error.cause, reason);
+      return true;
+    });
+    assert.equal(returned, 1);
+    assert.equal(writes, 0);
+    if (existing) assert.deepEqual(await disk.readFile("/copy"), original);
+    else await assert.rejects(disk.stat("/copy"), { code: "ENOENT" });
+    assert.deepEqual((await disk.readdir("/")).map(entry => entry.name), existing ? ["copy"] : []);
+  });
+}
+
+test("cross-mount empty source replaces existing content after source admission", async () => {
+  const root = createMemoryFileSystem(), disk = createMemoryFileSystem();
+  await root.writeFile("/source", new Uint8Array());
+  await disk.writeFile("/copy", new Uint8Array([7, 0, 255]));
+  await createMountFileSystem({ root, mounts: { "/disk": disk } }).copyFile("/source", "/disk/copy");
+  assert.deepEqual(await disk.readFile("/copy"), new Uint8Array());
+  assert.deepEqual((await disk.readdir("/")).map(entry => entry.name), ["copy"]);
+});
+
+test("cross-mount later source failure preserves the transferred prefix and closes once", async () => {
+  const root = createMemoryFileSystem(), disk = createMemoryFileSystem();
+  const original = new Uint8Array([1, 2]), prefix = new Uint8Array([0, 255]);
+  await root.writeFile("/source", original);
+  await disk.writeFile("/copy", new Uint8Array([7]));
+  const reason = new FsError("EIO", { path: "/source", syscall: "readStream" });
+  let returned = 0;
+  const mount = createMountFileSystem({
+    root: wrapped(root, { readStream: () => (async function* () {
+      try { yield prefix; throw reason; }
+      finally { returned++; }
+    })() }),
+    mounts: { "/disk": disk },
+  });
+  await assert.rejects(mount.copyFile("/source", "/disk/copy"), error => {
+    assert.ok(error instanceof FsError);
+    assert.equal(error.code, "EIO");
+    assert.equal(error.path, "/source");
+    assert.equal(error.dest, "/disk/copy");
+    assert.equal(error.syscall, "copyFile");
+    assert.equal(error.cause, reason);
+    return true;
+  });
+  assert.equal(returned, 1);
+  assert.deepEqual(await disk.readFile("/copy"), prefix);
+  assert.deepEqual(await root.readFile("/source"), original);
+});
+
 test("heterogeneous streams remain conditional and selected unsupported paths fail before input", async () => {
   const root = createMemoryFileSystem();
   const limited = createMemoryFileSystem();

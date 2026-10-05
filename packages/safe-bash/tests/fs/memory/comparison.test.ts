@@ -222,19 +222,39 @@ for (const kind of ["s3", "webdav"] as const) {
 
   test(`qualified ${kind} comparison cannot grant unsupported overlay retained reads`, async () => {
     const memory = new MemoryFileSystem();
-    const { filesystem: remote } = qualified(kind, memory);
+    const { filesystem: remote, operations } = qualified(kind, memory);
     await memory.writeFile("/source", payload);
     await remote.writeFile("/target", previous);
     const nested = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/nested": createReadOnlyFileSystem(memory) } });
     const upper = new MemoryFileSystem();
     const overlay = createOverlayFileSystem({ lower: remote, upper });
     const filesystem = mounted(nested, overlay);
-    await assert.rejects(filesystem.copyFile("/memory/nested/source", "/remote/target"), { code: "ENOTSUP" });
+    const start = operations().length;
+    await assert.rejects(mounted(memory, overlay).copyFile("/remote/target", "/memory/source"), { code: "ENOTSUP" });
+    metadataOnly(operations().slice(start));
     assert.deepEqual(await memory.readFile("/source"), payload);
     assert.deepEqual(await remote.readFile("/target"), previous);
     assert.deepEqual(await upper.readdir("/"), []);
     await assert.rejects(filesystem.copyFile("/remote/target", "/memory/nested/source"), { code: "EROFS" });
     assert.deepEqual(await memory.readFile("/source"), payload);
+  });
+
+  test(`qualified ${kind} overlay overwrite does not read unsupported lower content`, async () => {
+    const memory = new MemoryFileSystem();
+    const { filesystem: remote, operations } = qualified(kind, memory);
+    await memory.writeFile("/source", payload);
+    await remote.writeFile("/target", previous);
+    const nested = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/nested": createReadOnlyFileSystem(memory) } });
+    const upper = new MemoryFileSystem();
+    const overlay = createOverlayFileSystem({ lower: remote, upper });
+    const start = operations().length;
+    await mounted(nested, overlay).copyFile("/memory/nested/source", "/remote/target");
+    metadataOnly(operations().slice(start));
+    assert.deepEqual(await memory.readFile("/source"), payload);
+    assert.deepEqual(await remote.readFile("/target"), previous);
+    assert.deepEqual(await upper.readFile("/target"), payload);
+    assert.deepEqual(await overlay.readFile("/target"), payload);
+    assert.deepEqual((await upper.readdir("/")).map(entry => entry.name), ["target"]);
   });
 
 

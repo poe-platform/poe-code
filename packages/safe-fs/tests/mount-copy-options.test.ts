@@ -106,8 +106,8 @@ for (const streaming of [false, true]) {
       }
       await expect(fs.copyFile("/source/source", "/target/copy", { signal: controller.signal, exclusive: false })).rejects.toBe(reason);
       if (streaming) expect(closed).toHaveBeenCalledOnce();
-      if (streaming) expect((await writer.readFile("/copy")).byteLength).toBe(0);
-      else await expect(writer.stat("/copy")).rejects.toMatchObject({ code: "ENOENT" });
+      expect(writer.writes).toHaveLength(0);
+      await expect(writer.stat("/copy")).rejects.toMatchObject({ code: "ENOENT" });
     });
   });
 }

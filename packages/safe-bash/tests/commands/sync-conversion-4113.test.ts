@@ -1395,8 +1395,8 @@ EOF
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(res.stderr, "");
   assert.equal(
-    res.stdout.trim(),
-    `["alpha","beta"]#a:|  b: 1|  c:|    - 2|    - 3#first step,second step,third step#third step`
+    res.stdout,
+    `["alpha","beta"]#a:|  b: 1|  c:|    - 2|    - 3#first step,second step,third step#third step\n`
   );
 });
 

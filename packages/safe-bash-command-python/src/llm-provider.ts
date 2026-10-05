@@ -109,6 +109,10 @@ def _request(model, prompt, stream, response, conversation):
 
     try:
         messages = []
+        def add_results(results):
+            for result in results:
+                messages.append({"role": "tool", "content": text_input(result.output),
+                                 "toolCallId": result.tool_call_id})
         for previous in conversation.responses if conversation else ():
             if previous.prompt.system:
                 messages.append({"role": "system", "content": text_input(previous.prompt.system)})
@@ -116,8 +120,20 @@ def _request(model, prompt, stream, response, conversation):
             attachments = previous.attachments or previous.prompt.attachments
             if attachments:
                 message["attachments"] = attachment_inputs(attachments)
-            messages.append(message)
-            messages.append({"role": "assistant", "content": text_input(previous.text_or_raise())})
+            if previous.prompt.prompt or attachments:
+                messages.append(message)
+            add_results(previous.prompt.tool_results)
+            text = previous.text_or_raise()
+            if text:
+                messages.append({"role": "assistant", "content": text_input(text)})
+            calls = previous.tool_calls_or_raise()
+            if calls:
+                messages.append({"role": "assistant", "content": "", "toolCalls": [
+                    {"name": call.name, "arguments": call.arguments,
+                     **({"id": call.tool_call_id} if call.tool_call_id is not None else {})}
+                    for call in calls
+                ]})
+        add_results(prompt.tool_results)
         payload = {**_context(), "model": model.model_id, "prompt": text_input(prompt.prompt),
                    "messages": messages, "stream": stream, "attachments": [], "retain_response": True,
                    "options": prompt.options.model_dump(exclude_none=True)}
@@ -125,6 +141,12 @@ def _request(model, prompt, stream, response, conversation):
             payload["system"] = text_input(prompt.system)
         if prompt.schema is not None:
             payload["schema"] = prompt.schema
+        if prompt.tools:
+            payload["tools"] = [
+                {"name": tool.name, "inputSchema": tool.input_schema,
+                 **({"description": tool.description} if tool.description is not None else {})}
+                for tool in prompt.tools
+            ]
         payload["attachments"] = attachment_inputs(prompt.attachments)
         yield payload
     finally:
@@ -148,6 +170,9 @@ def _event(event, response):
                            details=usage.get("details"))
         response.response_json = result.get("metadata", {})
         response.resolved_model = result.get("model", response.model.model_id)
+        for call in result.get("toolCalls", ()):
+            response.add_tool_call(llm.ToolCall(name=call["name"], arguments=call["arguments"],
+                                               tool_call_id=call.get("id")))
         return None
     raise llm.ModelError("This model returned non-text output")
 
@@ -168,6 +193,7 @@ class _HostModel:
     def __init__(self, entry):
         self.model_id = entry["id"]
         self.supports_schema = "schema" in entry["capabilities"]
+        self.supports_tools = "tools" in entry["capabilities"]
         self.attachment_types = set(entry["metadata"]["attachmentTypes"])
         self.Options = _options(entry["metadata"].get("options", {}))
 

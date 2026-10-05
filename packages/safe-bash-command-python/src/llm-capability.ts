@@ -1,7 +1,7 @@
 import type { HttpTransport } from "safe-bash-network-engine/types";
 import type { CommandContext } from "safe-bash-contracts";
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from "safe-bash-command-llm/service";
-import type { LlmOption, LlmInputSource } from "safe-bash-command-llm/types";
+import type { LlmOption, LlmInputSource, LlmTool, LlmToolCall, LlmMessage } from "safe-bash-command-llm/types";
 import { parseLlmSchemaDsl, createLlmInputBudget, selectLlmModelByQuery, getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
 import { sniffMimeType } from "safe-bash-command-llm/mime";
 import { pathOf } from "safe-bash-io-engine/internal";
@@ -264,14 +264,20 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         for await (const chunk of retained.bytes) { consume(chunk.byteLength); yield chunk; }
       })(), dispose:retained.dispose};
     };
+    if (payload.tools !== undefined && !Array.isArray(payload.tools)) throw new TypeError('Invalid LLM tools');
+    // Shared-service validation owns declarative schemas and model admission.
+    const tools = payload.tools as unknown as readonly LlmTool[] | undefined;
     const messages = payload.messages === undefined ? undefined : (() => {
       if (!Array.isArray(payload.messages)) throw new TypeError('Invalid LLM messages');
       return payload.messages.map(value => {
         const message = record(value);
-        if (!['system','user','assistant'].includes(message.role as string) || message.content === undefined) throw new TypeError('Invalid LLM message');
-        return {role:message.role as 'system'|'user'|'assistant',content:message.content,attachments:message.attachments ?? []};
+        if (!['system','user','assistant','tool'].includes(message.role as string) || message.content === undefined) throw new TypeError('Invalid LLM message');
+        return {role:message.role as LlmMessage['role'],content:message.content,attachments:message.attachments ?? [],
+          ...(message.toolCalls === undefined ? {} : {toolCalls:message.toolCalls as unknown as readonly LlmToolCall[]}),
+          ...(message.toolCallId === undefined ? {} : {toolCallId:message.toolCallId as string})};
       });
     })();
+    if ((tools?.length || messages?.some(message => message.role === 'tool' || message.toolCalls?.length)) && !model.capabilities?.includes('tools')) throw new Error(`Model ${model.id} does not support tools`);
     const inputGroups = [payload.attachments ?? [], ...messages?.map(message => message.attachments) ?? []];
     for (const group of inputGroups) if (!Array.isArray(group)) throw new TypeError('Expected canonical LLM attachments');
     const sourceInputs = inputGroups.some(group => (group as readonly PythonHostValue[]).length > 0)
@@ -324,17 +330,16 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         }
         const prompt = await inputSource(payload.prompt ?? '');
         const system = payload.system === undefined ? undefined : await inputSource(payload.system);
-        const history: {role:'system'|'user'|'assistant';content:LlmInputSource;attachments:{mimeType:string;source:LlmInputSource}[]}[] = [];
-        for (const value of messages ?? []) {
-          const message = record(value);
-          if (!['system','user','assistant'].includes(message.role as string)) throw new TypeError('Invalid LLM message role');
-          history.push({role:message.role as 'system'|'user'|'assistant',content:await inputSource(message.content!),attachments:attachmentGroups[history.length + 1]!});
+        const history: LlmMessage<LlmInputSource, {mimeType:string;source:LlmInputSource}>[] = [];
+        for (const message of messages ?? []) {
+          history.push({...message,content:await inputSource(message.content),attachments:attachmentGroups[history.length + 1]!});
         }
         return {
           prompt,
           ...(payload.model == null ? {} : {model:payload.model as string}),
           ...(system === undefined ? {} : {system}),
           ...(messages === undefined ? {} : {messages:history}),
+          ...(tools === undefined ? {} : {tools}),
           ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
           options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
           attachments:attachmentGroups[0]!, signal, stream, ...(key === undefined ? {} : {key}), ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
@@ -348,7 +353,8 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       prompt:payload.prompt === undefined ? '' : payload.prompt as string,
       ...(payload.model == null ? {} : {model:payload.model as string}),
       ...(payload.system === undefined ? {} : {system:payload.system as string}),
-      ...(messages === undefined ? {} : {messages:messages.map(message => ({role:message.role,content:message.content as string}))}),
+      ...(messages === undefined ? {} : {messages:messages.map(({attachments:_ignoredAttachments,...message}) => ({...message,content:message.content as string}))}),
+      ...(tools === undefined ? {} : {tools}),
       ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
       options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
       attachments:[], signal, stream, ...(key === undefined ? {} : {key}), ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),

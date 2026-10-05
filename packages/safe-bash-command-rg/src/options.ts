@@ -414,8 +414,7 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "no-multiline": result.multiline = false; break;
         case "multiline-dotall": result.multilineDotall = true; break;
         case "no-multiline-dotall": result.multilineDotall = false; break;
-        case "P": case "pcre2": throw new SearchError("unsupported option: PCRE2 is unavailable");
-        case "no-pcre2": break;
+        case "P": case "pcre2": case "no-pcre2": break;
         case "j": case "threads": count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
         case "sort": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "path") throw new SearchError("only --sort=path is supported"); break;
         case "color": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "never") throw new SearchError("only --color=never is supported"); break;

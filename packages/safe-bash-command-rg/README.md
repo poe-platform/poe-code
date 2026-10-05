@@ -35,8 +35,10 @@ for each invocation before command-line arguments, so later command-line options
 take precedence. `--no-config` skips the file. Configuration reads obey the
 filesystem and input-byte limits.
 
-`-P` and `--pcre2` fail with exit status 2: PCRE2 is unavailable.
-Ordinary patterns use the bounded regex dialect, including with an injected provider.
+`-P` and `--pcre2` accept the portable subset supported by the bounded regex
+dialect, such as `^a+$`. They do not enable a PCRE2 engine: unsupported syntax
+(including lookaround and backreferences) fails with exit status 2. The same
+bounded dialect applies with an injected provider.
 
 Search recursively with `rg -t ts needle /src`, select paths with `-g`, or list
 selected files with `--files`. Hidden files, ignore rules, symlinks and traversal

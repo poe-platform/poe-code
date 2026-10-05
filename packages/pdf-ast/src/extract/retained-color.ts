@@ -4,7 +4,7 @@ import { compileStoredPostScript } from "../content/stored-postscript.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { renderRetainedMesh } from "./retained-mesh.js";
 import { readBytes } from "@poe-code/safe-fs/contracts";
-import { cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream, type PdfEvaluatedImage } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream, type PdfEvaluatedImage, type PdfPixelStorage } from "../ast.js";
 import { colorComponentCountSteps, renderShadingDictToImageSteps, meshShadingColorSteps, type PdfEvaluationShadingRequest, convertContentColorSteps, evalShadingFunctionSteps, evaluateMaskTransferSteps, type PdfFunctionSource, type PdfFunctionReadRequest, resolveMaskParameterSteps, type PdfMaskParameterRequest } from "../content/evaluator.js";
 import { createCalibratedColorSpace } from "../content/calibrated-color.js";
 import { decodePdfStreamChunks } from "../cos/filter-stream.js";
@@ -80,11 +80,14 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
     options.onAllocation?.(bytes);
     used += bytes;
   }
-  async function resolve(value: PdfCosNode | undefined, path?: readonly string[], storeRootDictionary=false): Promise<PdfCosNode | undefined> {
+  async function resolve(value: PdfCosNode | undefined, path?: readonly string[], storeRootDictionary=false, valueStorage?: PdfPixelStorage): Promise<PdfCosNode | undefined> {
     options.signal?.throwIfAborted();
     if (++nodes > maxNodes) throw new PdfError("E_LIMIT", "PDF color node limit exceeded");
     charge(64);
-    const resolved = await document.lookup(value, undefined, path, storeRootDictionary);
+    const resolved = await document.lookup(value, valueStorage ? {
+      dictionaryStorage: valueStorage, arrayStorage: valueStorage, stringStorage: valueStorage, containerStorage: valueStorage,
+      deferDictionaryValues: true, deferArrayValues: true, storeRootArray: true, storeRootString: true,
+    } : undefined, path, storeRootDictionary);
     options.signal?.throwIfAborted();
     if (!resolved) return undefined;
     if (resolved.stream && resolved.reference && resolved.value.kind === "dict") {
@@ -157,37 +160,38 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
       return value;
     } finally { if (ref !== undefined) active.delete(ref); }
   }
-  async function snapshotNumbers(node: PdfCosNode | undefined): Promise<PdfCosNode | undefined> {
-    const value = await resolve(node);
+  async function snapshotNumbers(node: PdfCosNode | undefined, valueStorage?: PdfPixelStorage): Promise<PdfCosNode | undefined> {
+    const value = await resolve(node, undefined, Boolean(valueStorage), valueStorage);
     if (value?.kind !== "array") return value;
     const items: PdfCosNode[] = [];
-    for (const item of value.items) {
-      const number = await resolve(item);
+    for await (const item of value.storedItems ? readStoredItems<PdfCosNode>(value.storedItems, options.signal) : value.items) {
+      const number = await resolve(item, undefined, Boolean(valueStorage), valueStorage);
       items.push(number?.kind === "number" ? number : cosNumber(0));
     }
     return cosArray(items);
   }
-  async function snapshotFunction(node: PdfCosNode | undefined, depth = 0): Promise<PdfCosNode | undefined> {
+  async function snapshotFunction(node: PdfCosNode | undefined, depth = 0, valueStorage?: PdfPixelStorage): Promise<PdfCosNode | undefined> {
     if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF function state depth limit exceeded");
-    const value = await resolve(node, undefined, true);
+    const value = await resolve(node, undefined, true, valueStorage);
     if (value?.kind === "array") {
       const items: PdfCosNode[] = [];
-      for await (const item of value.storedItems ? readStoredItems<PdfCosNode>(value.storedItems, options.signal) : value.items) items.push(await snapshotFunction(item, depth + 1) ?? { kind: "null" });
+      for await (const item of value.storedItems ? readStoredItems<PdfCosNode>(value.storedItems, options.signal) : value.items) items.push(await snapshotFunction(item, depth + 1, value.storedItems?.storage ?? valueStorage) ?? { kind: "null" });
       return cosArray(items);
     }
     const dict = value?.kind === "stream" ? value.dict : value?.kind === "dict" ? value : undefined;
     if (!dict) return value;
-    const type = await resolve(await readPdfDictionaryValue(dict, "FunctionType", options.signal));
+    valueStorage = dict.storedEntries?.storage ?? valueStorage;
+    const type = await resolve(await readPdfDictionaryValue(dict, "FunctionType", options.signal, {preserveDeferred:true}), undefined, Boolean(valueStorage), valueStorage);
     const kind = type?.kind === "number" ? type.value : 2;
     const keys = kind === 0 && value?.kind === "stream" ? ["Domain", "Range", "Size", "BitsPerSample", "Encode", "Decode"]
       : kind === 3 ? ["Domain", "Range", "Functions", "Bounds", "Encode", "C0", "C1", "N"]
         : kind === 4 && value?.kind === "stream" ? ["Domain", "Range"] : ["Domain", "Range", "C0", "C1", "N"];
     const selected = cosDict({ FunctionType: cosNumber(kind) });
     for (const key of keys) {
-      const item = await readPdfDictionaryValue(dict, key, options.signal, {preserveDeferred:key === "Functions"});
+      const item = await readPdfDictionaryValue(dict, key, options.signal, {preserveDeferred:true});
       if (!item) continue;
       charge(64);
-      const field = key === "Functions" ? await snapshotFunction(item, depth + 1) : await snapshotNumbers(item);
+      const field = key === "Functions" ? await snapshotFunction(item, depth + 1, valueStorage) : await snapshotNumbers(item, valueStorage);
       selected.entries.push({ key: cosName(key), value: field ?? { kind: "null" } });
     }
     if(value?.kind === "stream" && (kind===0||kind===4) && storedFunctions)return storeFunction(value,selected);

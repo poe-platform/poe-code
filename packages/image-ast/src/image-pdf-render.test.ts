@@ -358,7 +358,7 @@ it.each(["Alpha","Luminosity"].flatMap(subtype=>["inline","indirect","encrypted"
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
 
-it.each(["Alpha","Luminosity"].flatMap(subtype=>["inline","indirect","encrypted","sampled","postscript","encrypted-sampled","encrypted-postscript","stitched","encrypted-stitched"].map(mode=>({subtype,mode}))))("keeps unused $subtype soft-mask transfer fields backed ($mode)",async({subtype,mode})=>{
+it.each(["Alpha","Luminosity"].flatMap(subtype=>["inline","indirect","encrypted","sampled","postscript","encrypted-sampled","encrypted-postscript","stitched","encrypted-stitched","indirect-stitched","encrypted-indirect-stitched","numeric","indirect-numeric","encrypted-indirect-numeric","scalar","indirect-scalar"].map(mode=>({subtype,mode}))))("keeps unused $subtype soft-mask transfer fields backed ($mode)",async({subtype,mode})=>{
  const {cosArray,cosDict,cosName,cosStream}=await import("@poe-code/pdf-ast");
  const doc=PdfDocument.create(),page=doc.addPage([12,12]);
  const form=doc.cos.allocateObject(cosStream(cosDict({Subtype:cosName("Form"),BBox:cosArray([0,0,12,12].map(value=>cosNumber(value))),Group:cosDict({S:cosName("Transparency"),CS:cosName("DeviceRGB")})}),new TextEncoder().encode(".5 g 0 0 6 12 re f")));
@@ -366,7 +366,9 @@ it.each(["Alpha","Luminosity"].flatMap(subtype=>["inline","indirect","encrypted"
  let functionValue: import("@poe-code/pdf-ast").PdfCosNode=transfer;
  if(mode.includes("sampled")){dictSet(transfer,"FunctionType",cosNumber(0));dictSet(transfer,"Size",cosArray([cosNumber(2)]));dictSet(transfer,"BitsPerSample",cosNumber(8));dictSet(transfer,"Range",cosArray([cosNumber(0),cosNumber(1)]));dictSet(transfer,"Filter",doc.cos.allocateObject(cosName("ASCIIHexDecode")));functionValue=cosStream(transfer,new TextEncoder().encode("00ff>"));}
  if(mode.includes("postscript")){dictSet(transfer,"FunctionType",cosNumber(4));dictSet(transfer,"Range",cosArray([cosNumber(0),cosNumber(1)]));functionValue=cosStream(transfer,new TextEncoder().encode("{ }"));}
- if(mode.includes("stitched"))functionValue=cosDict({FunctionType:cosNumber(3),Domain:cosArray([cosNumber(0),cosNumber(1)]),Functions:cosArray([transfer]),Bounds:cosArray([]),Encode:cosArray([cosNumber(0),cosNumber(1)])});
+ if(mode.includes("numeric")){const ignored=cosDict({Unused:cosArray(Array.from({length:256},()=>cosNumber(763)))}),numbers=cosArray([ignored]);dictSet(transfer,"C0",mode.includes("indirect")?doc.cos.allocateObject(numbers):numbers);}
+ if(mode.includes("scalar")){const ignored=cosDict({Unused:cosArray(Array.from({length:256},()=>cosNumber(763)))});dictSet(transfer,"N",mode.includes("indirect")?doc.cos.allocateObject(ignored):ignored);}
+ if(mode.includes("stitched"))functionValue=cosDict({FunctionType:cosNumber(3),Domain:cosArray([cosNumber(0),cosNumber(1)]),Functions:mode.includes("indirect")?doc.cos.allocateObject(cosArray([transfer])):cosArray([transfer]),Bounds:cosArray([]),Encode:cosArray([cosNumber(0),cosNumber(1)])});
  const mask=cosDict({S:cosName(subtype),G:form,BC:cosArray([.2,.3,.4].map(value=>cosNumber(value))),TR:mode==="inline"?functionValue:doc.cos.allocateObject(functionValue)});
  dictSet(page.pageDict,"Resources",cosDict({ExtGState:cosDict({Selected:cosDict({SMask:mode==="inline"?mask:doc.cos.allocateObject(mask)})})}));
  page.setRawContentStream("/Selected gs 1 0 0 rg 0 0 12 12 re f");

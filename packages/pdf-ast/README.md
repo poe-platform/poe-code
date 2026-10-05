@@ -38,7 +38,10 @@ as its fourth argument to read fields individually from that definition. Retaine
 graphics-state evaluation uses this path, including indirect definitions and
 selected soft-mask dictionaries. Mask subtype, form, backdrop and transfer fields
 are read individually; unused fields remain backed. Transfer functions select only
-their function fields, including nested stitching functions. Stream decoding also
+their function fields, including nested stitching functions. Indirect function
+arrays read one entry at a time, preserving backing for inline child definitions.
+Numeric fields resolve individual numbers; ignored composite values retain backing
+and keep the same numeric fallbacks. Stream decoding also
 reads filter and encryption fields from backed root dictionaries without expanding
 unrelated metadata. Blend-mode,
 font and dash arrays read only their consumed prefix; unused tails and ignored

@@ -12,7 +12,7 @@ test("explicit prompt subcommand matches implicit prompt and preserves escaped l
   const cases: { args: string[]; expected: string }[] = [
     { args: ["hello", "-m", "echo", "--no-log"], expected: "hello\n" },
     { args: ["prompt", "hello", "-m", "echo", "--no-log"], expected: "hello\n" },
-    { args: ["--", "prompt", "hello"], expected: "prompt hello\n" },
+    { args: ["prompt", "--", "prompt hello"], expected: "prompt hello\n" },
   ];
   for (const { args, expected } of cases) {
     const chunks: Uint8Array[] = [], errors: Uint8Array[] = [];

@@ -45,7 +45,7 @@ async function fixture(args: readonly string[], settings: {
 
 test("routes aliases and combines stdin content before the instruction with untouched options", async () => {
   const fake = provider();
-  const run = await fixture(["-m", "chat", "summarize", "this", "-s", "be terse", "-o", "temperature", "0.70", "--option", "__proto__", "literal"], { provider: fake, stdin: toByteSource("notes") });
+  const run = await fixture(["-m", "chat", "summarize this", "-s", "be terse", "-o", "temperature", "0.70", "--option", "__proto__", "literal"], { provider: fake, stdin: toByteSource("notes") });
   assert.equal((await run.execute()).exitCode, 0);
   const request = fake.requests[0]!;
   assert.equal(request.model, "text");
@@ -58,7 +58,7 @@ test("routes aliases and combines stdin content before the instruction with unto
 });
 
 test("supports stdin-only, arguments-only, empty prompts, and explicit end of options", async () => {
-  for (const [args, stdin, prompt] of [[[], "input\n", "input\n"], [["words"], "", "words"], [[], "", ""], [["--", "-m", "models"], "", "-m models"]] as const) {
+  for (const [args, stdin, prompt] of [[[], "input\n", "input\n"], [["words"], "", "words"], [[], "", ""], [["prompt", "--", "-m models"], "", "-m models"]] as const) {
     const fake = provider();
     const run = await fixture(args, { provider: fake, stdin: toByteSource(stdin) });
     assert.equal((await run.execute()).exitCode, 0);

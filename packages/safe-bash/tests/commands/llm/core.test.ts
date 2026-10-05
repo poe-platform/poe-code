@@ -150,7 +150,7 @@ test("llm selects across providers, explicit MIME wins, and repeated options use
     { name: "two", models: [{ id: "two", aliases: ["alias"], attachmentTypes: ["audio/wav"] }], async *complete(request) { received = request; yield "yes"; } },
   ], defaultModel: "one" }));
   try {
-    assert.equal((await shell.exec("llm -m alias --at /file audio/wav -o speed 1 -o speed 2 -- --literal words")).stdout, "yes\n");
+    assert.equal((await shell.exec("llm prompt -m alias --at /file audio/wav -o speed 1 -o speed 2 -- '--literal words'")).stdout, "yes\n");
     assert.equal(received.prompt, "--literal words");
     assert.equal(received.options.speed, "2");
     assert.equal(received.attachments[0]!.mimeType, "audio/wav");

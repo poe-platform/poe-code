@@ -52,46 +52,54 @@ interface Arguments {
   attachments: { path: string; mimeType?: string }[];
 }
 
-async function parse(length: number, text: (index: number) => string, step: () => Promise<void>, admitBytes: (size: number) => void): Promise<Arguments> {
+class LlmPromptUsageError extends Error {}
+
+async function parse(length: number, text: (index: number) => string, step: () => Promise<void>): Promise<Arguments> {
   const parsed: Arguments = { prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
   let ended = false;
   for (let index = 0; index < length; index++) {
     await step();
     const argument = text(index);
-    if (!ended && ["--no-log", "-n"].includes(argument)) continue;
-    if (!ended && ["-x", "--extract", "--xl", "--extract-last"].includes(argument)) { parsed.extract = argument === "--xl" || argument === "--extract-last" ? "last" : parsed.extract ?? "first"; parsed.noStream = true; continue; }
-    if (!ended && (argument === "-u" || argument === "--usage")) { parsed.usage = true; continue; }
-    if (!ended && argument === "--no-stream") { parsed.noStream = true; continue; }
     if (ended || !argument.startsWith("-") || argument === "-") { operands.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
-    const equals = argument.indexOf("=");
-    const long = argument.startsWith("--");
-    const flag = long ? argument.slice(0, equals < 0 ? undefined : equals) : argument.slice(0, 2);
-    const attached = long ? equals < 0 ? undefined : argument.slice(equals + 1) : argument.length > 2 ? argument.slice(2) : undefined;
-    const take = (): string => {
-      if (++index >= length) throw new Error(`Option ${flag} requires an argument`);
-      return text(index);
-    };
-    if (!["-f", "--fragment", "--sf", "--system-fragment", "-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
-    const value = attached ?? take();
-    if (flag === "-f" || flag === "--fragment") parsed.fragments.push(value);
-    else if (flag === "--sf" || flag === "--system-fragment") parsed.systemFragments.push(value);
-    else if (flag === "-q" || flag === "--query") parsed.queries.push(value);
-    else if (flag === "-t" || flag === "--template") parsed.template = value;
-    else if (flag === "--schema") parsed.schema = value;
-    else if (flag === "--schema-multi") parsed.schemaMulti = value;
-    else if (flag === "--key") parsed.key = value;
-    else if (flag === "--save") parsed.save = value;
-    else if (flag === "-p" || flag === "--param") Object.defineProperty(parsed.params, value, { value: take(), enumerable: true, configurable: true, writable: true });
-    else if (flag === "-m" || flag === "--model") parsed.model = value;
-    else if (flag === "-s" || flag === "--system") parsed.system = value;
-    else if (flag === "-o" || flag === "--option") parsed.options[value] = take();
-    else if (flag === "--at" || flag === "--attachment-type") parsed.attachments.push({ path: value, mimeType: take() });
-    else parsed.attachments.push({ path: value });
+    const equals = argument.indexOf("="), long = argument.startsWith("--");
+    for (let cursor = long ? 0 : 1; cursor < argument.length; cursor++) {
+      await step();
+      const flag = long ? argument.slice(0, equals < 0 ? undefined : equals) : "-" + argument[cursor];
+      const boolean = ["--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
+      if (boolean) {
+        if (long && equals >= 0) throw new LlmPromptUsageError(`Error: Option '${flag}' does not take a value.`);
+        if (["-x", "--extract", "--xl", "--extract-last"].includes(flag)) { parsed.extract = flag === "--xl" || flag === "--extract-last" ? "last" : parsed.extract ?? "first"; parsed.noStream = true; }
+        else if (flag === "-u" || flag === "--usage") parsed.usage = true;
+        else if (flag === "--no-stream") parsed.noStream = true;
+        if (long) break;
+        continue;
+      }
+      if (!["-f", "--fragment", "--sf", "--system-fragment", "-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+      const attached = long ? equals < 0 ? undefined : argument.slice(equals + 1) : argument.slice(cursor + 1) || undefined;
+      const arity = ["-o", "--option", "-p", "--param", "--at", "--attachment-type"].includes(flag) ? 2 : 1;
+      if (length - index - 1 < arity - (attached === undefined ? 0 : 1)) throw new LlmPromptUsageError(`Error: Option '${flag}' requires ${arity === 2 ? "2 arguments" : "an argument"}.`);
+      const value = attached ?? text(++index);
+      if (flag === "-f" || flag === "--fragment") parsed.fragments.push(value);
+      else if (flag === "--sf" || flag === "--system-fragment") parsed.systemFragments.push(value);
+      else if (flag === "-q" || flag === "--query") parsed.queries.push(value);
+      else if (flag === "-t" || flag === "--template") parsed.template = value;
+      else if (flag === "--schema") parsed.schema = value;
+      else if (flag === "--schema-multi") parsed.schemaMulti = value;
+      else if (flag === "--key") parsed.key = value;
+      else if (flag === "--save") parsed.save = value;
+      else if (flag === "-p" || flag === "--param") Object.defineProperty(parsed.params, value, { value: text(++index), enumerable: true, configurable: true, writable: true });
+      else if (flag === "-m" || flag === "--model") parsed.model = value;
+      else if (flag === "-s" || flag === "--system") parsed.system = value;
+      else if (flag === "-o" || flag === "--option") parsed.options[value] = text(++index);
+      else if (flag === "--at" || flag === "--attachment-type") parsed.attachments.push({ path: value, mimeType: text(++index) });
+      else parsed.attachments.push({ path: value });
+      break;
+    }
   }
-  if (operands.length > 1) admitBytes(operands.length - 1);
-  parsed.prompt = operands.join(" ");
+  if (operands.length > 1) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra argument${operands.length === 2 ? "" : "s"} (${operands.slice(1).join(" ")})`);
+  parsed.prompt = operands[0] ?? "";
   return parsed;
 }
 
@@ -264,7 +272,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return { exitCode: 0 };
     }
     const promptOffset = argumentsValue.args[0] === "prompt" ? 1 : 0;
-    const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step, admitBuffered);
+    const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
     const configuration = createLlmConfiguration(context, limits?.maxConfigurationBytes, invocationLoaders);
     if (args.model === undefined && args.queries.length) {
       try { args.model = (await selectLlmModelByQuery(service.models, args.queries, await configuration.aliases(), signal)).model.id; }
@@ -585,7 +593,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (writing) throw error;
     await operation.close();
     await writeDiagnostic(context.stderr, `${error instanceof Error || error instanceof TypeError ? error.message.slice(0, 4096) : "llm provider failed"}\n`, context.signal);
-    return { exitCode: error instanceof LlmModelsUsageError ? 2 : 1 };
+    return { exitCode: error instanceof LlmModelsUsageError || error instanceof LlmPromptUsageError ? 2 : 1 };
   } finally {
     controller.abort(new Error("llm request closed"));
     await operation.close();

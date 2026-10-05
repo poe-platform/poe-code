@@ -1,0 +1,161 @@
+[
+  {
+    "args": [
+      "prompt",
+      "a",
+      "b"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra argument (b)\n"
+  },
+  {
+    "args": [
+      "a",
+      "b",
+      "c"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra arguments (b c)\n"
+  },
+  {
+    "args": [
+      "-m"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '-m' requires an argument.\n"
+  },
+  {
+    "args": [
+      "prompt",
+      "-m"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '-m' requires an argument.\n"
+  },
+  {
+    "args": [
+      "-o",
+      "a"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '-o' requires 2 arguments.\n"
+  },
+  {
+    "args": [
+      "--at",
+      "file"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '--at' requires 2 arguments.\n"
+  },
+  {
+    "args": [
+      "--no-stream=yes"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '--no-stream' does not take a value.\n"
+  },
+  {
+    "args": [
+      "--usage=yes"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '--usage' does not take a value.\n"
+  },
+  {
+    "args": [
+      "-un",
+      "a",
+      "b"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra argument (b)\n"
+  },
+  {
+    "args": [
+      "prompt",
+      "--",
+      "-x",
+      "a"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra argument (a)\n"
+  },
+  {
+    "args": [
+      "--sf"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '--sf' requires an argument.\n"
+  },
+  {
+    "args": [
+      "--fragment=x",
+      "a",
+      "b"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra argument (b)\n"
+  },
+  {
+    "args": [
+      "-uo",
+      "a"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '-o' requires 2 arguments.\n"
+  },
+  {
+    "args": [
+      "--param=name"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '--param' requires 2 arguments.\n"
+  },
+  {
+    "args": [
+      "--attachment-type=file"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '--attachment-type' requires 2 arguments.\n"
+  },
+  {
+    "args": [
+      "--no-log=yes"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '--no-log' does not take a value.\n"
+  },
+  {
+    "args": [
+      "--extract=yes"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '--extract' does not take a value.\n"
+  },
+  {
+    "args": [
+      "--extract-last=yes"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Error: Option '--extract-last' does not take a value.\n"
+  }
+]

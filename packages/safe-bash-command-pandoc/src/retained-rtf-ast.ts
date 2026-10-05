@@ -2,7 +2,7 @@ import type {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, type TextRange} from "./backed-text.js";
 import type {BackedJson} from "./backed-json.js";
 
-const tags = ["Code", "CodeBlock", "HorizontalRule", "Str", "Space", "LineBreak", "Strong", "Emph", "Underline", "Strikeout", "SmallCaps", "Superscript", "Subscript", "Span", "Para", "Header", "Div", "BulletList", "OrderedList", "Table", "ColWidthDefault", "AlignDefault", "Plain", "Image", "Link", "Note", "Decimal", "UpperRoman", "LowerRoman", "UpperAlpha", "LowerAlpha", "Period", "OneParen", "TwoParens", "BlockQuote", "Figure"] as const;
+const tags = ["Code", "CodeBlock", "HorizontalRule", "Str", "Space", "LineBreak", "Strong", "Emph", "Underline", "Strikeout", "SmallCaps", "Superscript", "Subscript", "Span", "Para", "Header", "Div", "BulletList", "OrderedList", "Table", "ColWidthDefault", "AlignDefault", "Plain", "Image", "Link", "Note", "Decimal", "UpperRoman", "LowerRoman", "UpperAlpha", "LowerAlpha", "Period", "OneParen", "TwoParens", "BlockQuote", "Figure", "MetaMap", "MetaList", "MetaString", "MetaBlocks", "MetaInlines"] as const;
 export type RtfValue = {readonly position: number};
 type Literal = string | number | null | RtfValue | readonly Literal[];
 
@@ -27,8 +27,9 @@ export class RetainedRtfAst {
   private async record(fields: readonly number[]): Promise<number> {
     const position = this.storage.allocate(fields.length * 8); await this.put(position, fields); return position;
   }
-  // Fixed 40-byte nodes: array(0), UTF-16 string(1), number/null(2), Pandoc tag(3).
+  // Fixed 40-byte nodes: array(0), UTF-16 string(1), number/null(2), tag(3), object(4).
   async array(): Promise<RtfValue> {return {position: await this.record([0, 0, 0, 0, 0])};}
+  async object(): Promise<RtfValue> {return {position: await this.record([4, 0, 0, 0, 0])};}
   async string(value: TextRange): Promise<RtfValue> {return {position: await this.record([1, value.first, value.last, value.units, 0])};}
   async tag(name: typeof tags[number], content?: RtfValue): Promise<RtfValue> {
     return {position: await this.record([3, tags.indexOf(name), content?.position ?? 0, 0, 0])};
@@ -48,7 +49,7 @@ export class RetainedRtfAst {
   }
   private async list(value: RtfValue): Promise<number[]> {
     const fields = await this.fields(value.position, 5);
-    if (fields[0] !== 0) throw new Error("RTF AST array required");
+    if (fields[0] !== 0 && fields[0] !== 4) throw new Error("Retained AST collection required");
     return fields;
   }
   async count(value: RtfValue): Promise<number> {return (await this.list(value))[3]!;}
@@ -100,6 +101,66 @@ export class RetainedRtfAst {
     await this.text.append(target, source);
     await this.put(value.position + 8, [target.first, target.last, target.units]);
   }
+  async kind(value: RtfValue): Promise<"array" | "string" | "literal" | "tag" | "object"> {
+    return (["array", "string", "literal", "tag", "object"] as const)[(await this.fields(value.position, 1))[0]!]!;
+  }
+  async at(array: RtfValue, index: number): Promise<RtfValue | undefined> {
+    if (!Number.isSafeInteger(index) || index < 0) throw new RangeError("Invalid retained array index");
+    let ordinal = 0; for await (const child of this.children(array)) if (ordinal++ === index) return child;
+    return undefined;
+  }
+  async set(array: RtfValue, index: number, value: RtfValue): Promise<void> {
+    if (!Number.isSafeInteger(index) || index < 0) throw new RangeError("Invalid retained array index");
+    let link = (await this.list(array))[1]!;
+    while (link && index--) {await this.cooperate(); link = (await this.fields(link + 8, 1))[0]!;}
+    await this.cooperate();
+    if (!link) throw new RangeError("Retained array index out of range");
+    await this.put(link + 16, [value.position]);
+  }
+  async replaceTag(value: RtfValue, name: typeof tags[number], content?: RtfValue): Promise<void> {
+    if (await this.kind(value) !== "tag") throw new Error("Retained tag required");
+    await this.put(value.position, [3, tags.indexOf(name), content?.position ?? 0, 0, 0]);
+  }
+  /** Preorder edits become visible to traversal. A visitor can skip children or
+   * substitute an expansion root without retaining per-depth JS continuations. */
+  async walk(root: RtfValue, visit: (value: RtfValue, depth: number, leaving: boolean) => Promise<void | false | {descend: RtfValue}>): Promise<void> {
+    let pending = await this.record([0, root.position, 0, 0]);
+    const push = async (position: number, depth: number, leaving: number) => {pending = await this.record([pending, position, depth, leaving]);};
+    while (pending) {
+      const [next, position, depth, leaving] = await this.fields(pending, 4); pending = next!;
+      await this.cooperate(); const value = {position: position!};
+      const action = await visit(value, depth!, !!leaving);
+      if (leaving) continue;
+      await push(position!, depth!, 1);
+      if (action === false) continue;
+      if (action) {await push(action.descend.position, depth! + 1, 0); continue;}
+      const fields = await this.fields(position!, 5);
+      if (fields[0] === 3 && fields[2]) await push(fields[2], depth! + 1, 0);
+      else if (fields[0] === 0 || fields[0] === 4) {
+        let link = fields[2]!;
+        while (link) {await this.cooperate(); const [previous, , child] = await this.fields(link, 3); await push(child!, depth! + 1, 0); link = previous!;}
+      }
+    }
+  }
+  /** Independent mutable copy, including text chains, using backed copy jobs. */
+  async clone(root: RtfValue): Promise<RtfValue> {
+    let pending = 0;
+    const shallow = async (source: RtfValue): Promise<RtfValue> => {
+      await this.cooperate(); const fields = await this.fields(source.position, 5), kind = fields[0]!;
+      if (kind === 1) return this.string(await this.text.from(this.text.chunks(await this.range(source))));
+      const target = {position: await this.record(kind === 0 || kind === 4 ? [kind, 0, 0, 0, 0] : kind === 3 ? [kind, fields[1]!, 0, 0, 0] : fields)};
+      if (kind === 0 || kind === 3 || kind === 4) pending = await this.record([pending, source.position, target.position]);
+      return target;
+    };
+    const result = await shallow(root);
+    while (pending) {
+      const [next, source, target] = await this.fields(pending, 3); pending = next!;
+      const fields = await this.fields(source!, 5);
+      if (fields[0] === 3 && fields[2]) await this.put(target! + 16, [(await shallow({position: fields[2]})).position]);
+      else if (fields[0] !== 3) for await (const child of this.children({position: source!})) await this.push({position: target!}, await shallow(child));
+    }
+    return result;
+  }
   /** Target tape must use a different store: its records are contiguous, while
    * this store also receives traversal frames during serialization. */
   async write(value: RtfValue, target: BackedJson): Promise<void> {
@@ -107,8 +168,8 @@ export class RetainedRtfAst {
     const begin = async (value: RtfValue) => {
       await this.cooperate();
       const fields = await this.fields(value.position, 5), kind = fields[0]!;
-      if (kind === 0) {
-        await target.begin("array"); frame = await this.record([frame, fields[1]!, 0]);
+      if (kind === 0 || kind === 4) {
+        await target.begin(kind === 0 ? "array" : "object"); frame = await this.record([frame, fields[1]!, kind === 4 ? 2 : 0]);
       } else if (kind === 3) {
         await target.begin("object"); await target.key("t"); await target.value(tags[fields[1]!]!);
         if (fields[2]) await target.key("c");
@@ -124,7 +185,14 @@ export class RetainedRtfAst {
       await this.cooperate();
       const [parent, cursor, tag] = await this.fields(frame, 3);
       if (!cursor) {await target.end(); frame = parent!;}
-      else if (tag) {await this.put(frame + 8, [0]); await begin({position: cursor});}
+      else if (tag === 1) {await this.put(frame + 8, [0]); await begin({position: cursor});}
+      else if (tag === 2) {
+        const child = await this.fields(cursor, 3), pair = {position: child[2]!};
+        if (await this.count(pair) !== 2) throw new Error("Retained object entry requires a key/value pair");
+        const key = (await this.edge(pair))!, value = (await this.edge(pair, true))!;
+        await target.begin("key"); for await (const text of this.text.chunks(await this.range(key))) await target.text(text); await target.end();
+        await this.put(frame + 8, [child[1]!]); await begin(value);
+      }
       else {
         const child = await this.fields(cursor, 3);
         await this.put(frame + 8, [child[1]!]); await begin({position: child[2]!});

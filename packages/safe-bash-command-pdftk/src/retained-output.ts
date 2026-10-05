@@ -1,25 +1,27 @@
 import { retainedRotations } from "./retained-rotate.js";
-import { editRetainedDocument, type RetainedAppendAttachment, type RetainedStampInput, PdfFileSource, PdfMutableObjectStore, PdfRetainedDocument, cosBool, dictDelete, dictGet, dictSet, encryptRetainedPdfChunks, retainedCosObjects, saveRetainedDocumentChunks, type PdfCosArray } from "@poe-code/pdf-ast";
+import { editRetainedDocument, type RetainedInfoUpdate, type RetainedAppendAttachment, type RetainedStampInput, PdfFileSource, PdfMutableObjectStore, PdfRetainedDocument, cosBool, dictDelete, dictGet, dictSet, encryptRetainedPdfChunks, retainedCosObjects, saveRetainedDocumentChunks, type PdfCosArray } from "@poe-code/pdf-ast";
 import type { PdftkArguments } from "./arguments.js";
 
 type Storage = ConstructorParameters<typeof PdfMutableObjectStore>[0];
 
 /** Common PDF output flags; the caller retains input identities and publishes
  * the resulting chunks. Graph edits and encoded payloads use caller storage. */
-export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined, attachments: AsyncIterable<RetainedAppendAttachment>, attachmentPage: string | undefined, stamps: Iterable<RetainedStampInput> | undefined): AsyncGenerator<Uint8Array> {
+export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined, attachments: AsyncIterable<RetainedAppendAttachment>, attachmentPage: string | undefined, stamps: Iterable<RetainedStampInput> | undefined, info?: { updates: AsyncIterable<RetainedInfoUpdate>; useUpdatedId: boolean }): AsyncGenerator<Uint8Array> {
+  const infoUpdates = info?.updates;
   const store = new PdfMutableObjectStore(storage, { signal });
   let edited: Awaited<ReturnType<typeof editRetainedDocument>> | undefined;
   let document: PdfRetainedDocument | undefined, plaintext: PdfFileSource | undefined, failed = false;
   try {
-    if (options.operation === "attach_files" || stamps) {
+    if (options.operation === "attach_files" || stamps || infoUpdates) {
       const pageIndex = attachmentPage !== undefined && pageCount! > 0 ? attachmentPage.toLowerCase() === "end" ? pageCount! - 1 : Math.max(0, Math.min(pageCount! - 1, (Number.parseInt(attachmentPage, 10) || 1) - 1)) : undefined;
-      edited = await editRetainedDocument(source, storage, { signal, ...(options.operation === "attach_files" ? { appendAttachments: attachments } : {}), ...(stamps ? { stamps } : {}), ...(pageIndex !== undefined ? { attachmentPageIndex: pageIndex } : {}) });
+      edited = await editRetainedDocument(source, storage, { signal, ...(infoUpdates ? { infoUpdates } : {}), ...(options.operation === "attach_files" ? { appendAttachments: attachments } : {}), ...(stamps ? { stamps } : {}), ...(pageIndex !== undefined ? { attachmentPageIndex: pageIndex } : {}) });
     }
     const input = edited?.document ?? source;
     const pageReferences = edited ? { pageReferences: async function* () { for await (const page of input.pages()) if (page.reference) yield page.reference; } } : {};
     for await (const object of retainedCosObjects(input, storage, { signal })) await store.set(object);
-    const reference = source.crossReference;
-    const idArray = options.keepFinalId || options.keepFirstId ? selectedId ?? reference.idArray : reference.idArray ?? selectedId;
+    const reference = input.crossReference;
+    const chosenId = info?.useUpdatedId ? reference.idArray : selectedId;
+    const idArray = options.keepFinalId || options.keepFirstId ? chosenId ?? reference.idArray : reference.idArray ?? chosenId;
     document = await PdfRetainedDocument.openStore(store, storage, { rootRef: reference.rootRef, version: reference.version, ...pageReferences, ...(reference.infoRef ? { infoRef: reference.infoRef } : {}), ...(idArray ? { idArray } : {}), signal });
     const root = await document.lookup(reference.rootRef);
     if (root?.value.kind === "dict" && !root.stream && root.reference) {

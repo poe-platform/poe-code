@@ -1,3 +1,4 @@
+import { retainedInfoUpdates } from "./retained-info-updates.js";
 import { retainedBurst } from "./retained-burst.js";
 import { retainedOutput } from "./retained-output.js";
 import { retainedUnpack } from "./retained-unpack.js";
@@ -22,6 +23,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
   let selectedId: PdfCosArray | undefined;
   const counts = new Map<PdftkArguments["inputs"][number], number>();
   const inputs = new Map<string, PdfFileSource | undefined>();
+  const infoPath = options.operation === "update_info" || options.operation === "update_info_utf8" ? options.opArgs[0] ?? "-" : undefined;
   const overlayPath = ["stamp", "multistamp", "background", "multibackground"].includes(options.operation) ? options.opArgs[0] ?? "-" : undefined;
   const attachmentPaths: string[] = []; let attachmentPage: string | undefined;
   if (options.operation === "attach_files") for (let i = 0; i < options.opArgs.length; i++) {
@@ -37,11 +39,11 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
   try {
     await context.fs.mkdir(storage.directory, { recursive: true, signal });
     const maximum = context.inputBudget?.maxBytes ?? Infinity;
-    if (options.inputs.some(input => input.file === "-") || attachmentPaths.includes("-") || overlayPath === "-") {
+    if (options.inputs.some(input => input.file === "-") || attachmentPaths.includes("-") || overlayPath === "-" || infoPath === "-") {
       const source = await PdfFileSource.fromStream(context.fs, storage.directory, context.stdin, { signal, maxInputBytes: maximum });
       inputs.set("-", source); total += source.size; context.inputBudget?.check(total);
     }
-    for (const input of [...options.inputs, ...attachmentPaths.map(file => ({ file })), ...(overlayPath !== undefined ? [{ file: overlayPath }] : [])]) {
+    for (const input of [...options.inputs, ...attachmentPaths.map(file => ({ file })), ...(overlayPath !== undefined ? [{ file: overlayPath }] : []), ...(infoPath !== undefined ? [{ file: infoPath }] : [])]) {
       if (inputs.has(input.file)) continue;
       let source: PdfFileSource;
       try { source = await PdfFileSource.open(context.fs, resolvePath(context.cwd, input.file), { signal, maxInputBytes: maximum - total }); }
@@ -69,6 +71,8 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
       await document.close(); document = undefined; await source.releaseCache();
     }
     document = await PdfRetainedDocument.open(inputs.get(primary.file)!, storage, { signal, recovery: "strict", ...(primary.password ? { password: primary.password } : {}) });
+    const infoSource = infoPath === undefined ? undefined : inputs.get(infoPath);
+    if (infoPath !== undefined && !infoSource) return await diagnostic(`Error: Unable to open info file '${infoPath}'\n`);
     let overlayPages = 0;
     if (overlayPath !== undefined) {
       const source = inputs.get(overlayPath); if (!source) return await diagnostic(`Error: Unable to open '${overlayPath}'\n`);
@@ -88,7 +92,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
       }
       return { exitCode: 0 };
     }
-    output = await PdfFileSource.fromStream(context.fs, storage.directory, (["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground"].includes(options.operation) ? retainedOutput(document, storage, options, selectedId, signal, new Map([...handles].map(([handle, input]) => [handle, { pageCount: counts.get(input)! }])), counts.get(primary), attachments(), attachmentPage, overlayDocument ? [{ source: overlayDocument, mode: options.operation.includes("background") ? "underlay" : "overlay", preserveStreams: true, pages: stampPages() }] : undefined) : options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
+    output = await PdfFileSource.fromStream(context.fs, storage.directory, (["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground", "update_info", "update_info_utf8"].includes(options.operation) ? retainedOutput(document, storage, options, selectedId, signal, new Map([...handles].map(([handle, input]) => [handle, { pageCount: counts.get(input)! }])), counts.get(primary), attachments(), attachmentPage, overlayDocument ? [{ source: overlayDocument, mode: options.operation.includes("background") ? "underlay" : "overlay", preserveStreams: true, pages: stampPages() }] : undefined, infoSource ? { updates: retainedInfoUpdates(infoSource.stream(0, infoSource.size, signal), signal), useUpdatedId: idInput === primary } : undefined) : options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
     const destination = options.outputTarget;
     if (!destination || destination === "-") for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
     else {

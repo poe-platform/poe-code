@@ -1,3 +1,4 @@
+import { decodePdftkEntities, hexToBytes } from "./info-text.js";
 import { formatBurstFilename } from "./burst-filename.js";
 import { executeRetainedPdftk } from "./retained.js";
 import { PDFTK_OPERATIONS, parsePdftkArgumentsSteps } from "./arguments.js";
@@ -209,31 +210,6 @@ function encodePdftkText(str: string, utf8: boolean): string {
     } else {
       out += ch;
     }
-  }
-  return out;
-}
-
-function decodePdftkEntities(str: string): string {
-  let out = "";
-  let i = 0;
-  while (i < str.length) {
-    if (str[i] === "&" && str[i + 1] === "#") {
-      const semi = str.indexOf(";", i + 2);
-      if (semi !== -1) {
-        const body = str.slice(i + 2, semi);
-        const cp =
-          body.startsWith("x") || body.startsWith("X")
-            ? Number.parseInt(body.slice(1), 16)
-            : Number.parseInt(body, 10);
-        if (Number.isFinite(cp) && cp >= 0) {
-          out += String.fromCodePoint(cp);
-          i = semi + 1;
-          continue;
-        }
-      }
-    }
-    out += str[i]!;
-    i++;
   }
   return out;
 }
@@ -585,17 +561,6 @@ function bytesToHexLower(bytes: Uint8Array): string {
     hex += b.toString(16).padStart(2, "0");
   }
   return hex;
-}
-
-function hexToBytes(hex: string): Uint8Array {
-  const clean = hex.trim();
-  const len = Math.floor(clean.length / 2);
-  const out = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    const byteVal = Number.parseInt(clean.slice(i * 2, i * 2 + 2), 16);
-    out[i] = Number.isNaN(byteVal) ? 0 : byteVal;
-  }
-  return out;
 }
 
 function formatDumpData(doc: PdfDocument, utf8 = true): string {
@@ -1842,7 +1807,7 @@ async function executePdftk(context: CommandContext, retainedContext: CommandCon
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const parsed = await drainSteps(parsePdftkArgumentsSteps(argv), invocation.signal);
-    if (parsed.options && ((["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground", "burst"].includes(parsed.options.operation) && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
+    if (parsed.options && ((["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground", "burst", "update_info", "update_info_utf8"].includes(parsed.options.operation) && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
       return await executeRetainedPdftk({ ...retainedContext, signal: invocation.signal, stdout: invocation.child(context.stdout).output }, parsed.options);
     }
     const vfsFiles = new Map<string, Uint8Array>();

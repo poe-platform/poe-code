@@ -990,7 +990,13 @@ ordered relative edits accumulate without collecting the selection.
 
 `editRetainedDocument(document, storage, options)` applies ordered rotations and
 information/metadata/structure/form/label removals to a caller-backed editable
-graph. Use its `document` for subsequent copies and close the result when done.
+graph. Pass `infoUpdates` as an iterable or async iterable of `RetainedInfoUpdate`
+records to edit Info strings, trailer ID members, page geometry, page labels and
+bookmarks. Info changes apply in order; page properties retain their last value
+and first-seen page order, then apply rotation, dimensions, media and crop boxes.
+Labels and bookmarks follow, using caller-backed records. Page numbers are
+one-based; label indices are zero-based. Individual text values remain resident.
+Use its `document` for subsequent copies and close the result when done.
 The result exposes `pageCount` and `getPage(index)` for bounded indexed access
 without retaining a page array. Pass `bookmarks` as an iterable or async iterable
 of `{ title, level, pageNumber }` to replace outlines in order. Levels and page

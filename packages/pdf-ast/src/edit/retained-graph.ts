@@ -1,3 +1,5 @@
+import { applyRetainedInfoUpdates, type RetainedInfoUpdate } from "./retained-info-updates.js";
+export type { RetainedInfoUpdate } from "./retained-info-updates.js";
 import { setRetainedBookmarks, type RetainedBookmark } from "./retained-bookmarks.js";
 export type { RetainedBookmark } from "./retained-bookmarks.js";
 import { appendRetainedAttachments, type RetainedAppendAttachment } from "./retained-append-attachments.js";
@@ -22,7 +24,7 @@ import { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
 import { PdfError } from "../errors.js";
 import type { SaveRetainedDocumentOptions } from "./retained-save.js";
 
-export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly bookmarks?: Iterable<RetainedBookmark> | AsyncIterable<RetainedBookmark>; readonly appendAttachments?: AsyncIterable<RetainedAppendAttachment>; readonly attachmentPageIndex?: number; readonly stamps?: Iterable<RetainedStampInput> | AsyncIterable<RetainedStampInput>; readonly generateAppearances?: boolean; readonly flattenAnnotations?: "all" | "print" | "screen"; readonly flattenRotation?: boolean; readonly externalizeInlineImages?: RetainedInlineImageOptions; readonly removeUnreferencedResources?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
+export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly infoUpdates?: Iterable<RetainedInfoUpdate> | AsyncIterable<RetainedInfoUpdate>; readonly bookmarks?: Iterable<RetainedBookmark> | AsyncIterable<RetainedBookmark>; readonly appendAttachments?: AsyncIterable<RetainedAppendAttachment>; readonly attachmentPageIndex?: number; readonly stamps?: Iterable<RetainedStampInput> | AsyncIterable<RetainedStampInput>; readonly generateAppearances?: boolean; readonly flattenAnnotations?: "all" | "print" | "screen"; readonly flattenRotation?: boolean; readonly externalizeInlineImages?: RetainedInlineImageOptions; readonly removeUnreferencedResources?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
 
 /** Own an editable graph and logical page index on caller storage. This applies
  * edits without the stream dictionary normalization performed by PDF saving.
@@ -64,6 +66,14 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
     const configured = { rootRef: source.crossReference.rootRef, version: source.crossReference.version, ...(source.crossReference.idArray ? { idArray: source.crossReference.idArray } : {}), signal, pageReferences,
       ...(options.maxPages === undefined ? {} : { maxPages: options.maxPages }), ...(options.maxRecursionDepth === undefined ? {} : { maxRecursionDepth: options.maxRecursionDepth }) };
     document = await PdfRetainedDocument.openStore(store, storage, { ...configured, ...(infoRef ? { infoRef } : {}) });
+    if (options.infoUpdates) {
+      const updated = await applyRetainedInfoUpdates(document, store, storage, count, getPage, options.infoUpdates, signal, options.maxRecursionDepth);
+      infoRef = updated.infoRef;
+      if (updated.idArray) configured.idArray = updated.idArray;
+      await document.close();
+      document = await PdfRetainedDocument.openStore(store, storage, { ...configured, ...(infoRef ? { infoRef } : {}) });
+      addedObjects = true;
+    }
     for await (const edit of options.rotations ?? []) {
       signal.throwIfAborted();
       if (!Number.isSafeInteger(edit.pageIndex) || edit.pageIndex < 0 || edit.pageIndex >= count) throw new RangeError("Page index out of bounds");
@@ -102,7 +112,7 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
     if (options.generateAppearances && !options.removeAcroform) { await generateRetainedFormAppearances(document, store, storage, signal); addedObjects = true; }
     if (options.removeInfo) {
       await removeRoot(["Metadata"]);
-      const found = await document.lookup(source.crossReference.infoRef);
+      const found = await document.lookup(infoRef);
       if (found?.value.kind === "dict" && !found.stream && found.reference) {
         const date = dictGet(found.value, "ModDate"); found.value.entries.length = 0;
         if (date) dictSet(found.value, "ModDate", date); else infoRef = undefined;

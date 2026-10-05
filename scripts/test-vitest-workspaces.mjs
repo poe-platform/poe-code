@@ -239,7 +239,8 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
         console.log(`Unit workspace ${group.phase.name}: no test files (explicitly allowed)`);
         continue;
       }
-      console.log(`Unit workspace ${group.phase.name}: running ${group.specifications.length - group.resumed.size} files${group.resumed.size ? ` (${group.resumed.size} isolated files cached)` : ""}`);
+      const remaining = group.specifications.filter(specification => !group.resumed.has(specification.moduleId)).length;
+      console.log(`Unit workspace ${group.phase.name}: running ${remaining} files${group.resumed.size ? ` (${group.resumed.size} isolated files cached)` : ""}`);
     }
     const queue = groups.filter(group => !group.cached).flatMap(group => group.specifications.filter(specification => !group.resumed.has(specification.moduleId)));
     if (queue.length) {

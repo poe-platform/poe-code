@@ -1,5 +1,5 @@
 import { createFsFromVolume, Volume } from "memfs";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { prewarmNativeNodeTestWorkspaces, runSharedVitest, sharedVitestStages } from "./test-vitest-workspaces.mjs";
 import { createCheckCache } from "./check-cache.mjs";
 
@@ -322,10 +322,14 @@ describe("batched shared Vitest execution", () => {
     expect(runBatch).toHaveBeenLastCalledWith("/repo", [rootFile.moduleId, betaFile.moduleId]);
   });
 
-  it("resumes successful isolated files within an interrupted workspace without caching its unfinished files", async () => {
+  it.each([false, true])("resumes successful isolated files and reports remaining files with source cache %s", async (sourceCache) => {
     const { fileSystem } = fixture();
     const cacheStore = createCheckCache({ directory: "/cache", fileSystem });
-    const fingerprints = new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]);
+    const fingerprints = Object.assign(new Map([["alpha", "a".repeat(64)], ["beta", "b".repeat(64)]]), {
+      ...(sourceCache ? { sourceFingerprints: new Map([["alpha", "s".repeat(64)]]) } : {})
+    });
+    const output = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    onTestFinished(() => output.mockRestore());
     const laterAlpha = { moduleId: "/repo/packages/alpha/src/later.test.ts" };
     function prepare() {
       const runner = contexts();
@@ -341,10 +345,12 @@ describe("batched shared Vitest execution", () => {
       if (files.includes(laterAlpha.moduleId)) throw new Error("isolated runner interrupted");
       return files;
     });
-    await expect(runSharedVitest("/repo", phases, { cacheStore, fingerprints, runBatch: firstBatch, batchSize: 1 })).rejects.toThrow("isolated runner interrupted");
+    await expect(runSharedVitest("/repo", phases, { cacheStore, fingerprints, fileSystem, runBatch: firstBatch, batchSize: 1 })).rejects.toThrow("isolated runner interrupted");
+    output.mockClear();
     prepare();
     const resumedBatch = vi.fn(async (_root: string, files: string[]) => files);
-    await runSharedVitest("/repo", phases, { cacheStore, fingerprints, runBatch: resumedBatch });
+    await runSharedVitest("/repo", phases, { cacheStore, fingerprints, fileSystem, runBatch: resumedBatch });
+    expect(output).toHaveBeenCalledWith("Unit workspace alpha: running 1 files (1 isolated files cached)");
     expect(resumedBatch).toHaveBeenCalledExactlyOnceWith("/repo", [rootFile.moduleId, laterAlpha.moduleId, betaFile.moduleId]);
     prepare();
     const changedBatch = vi.fn(async (_root: string, files: string[]) => files);

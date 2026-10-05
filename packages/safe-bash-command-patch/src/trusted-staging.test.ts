@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contents, filesystem, run } from "./helpers.test.js";
 
-for (const failure of ["none", "write", "cancel"] as const) {
-  test(`trusted staging streams conditional chunks and cleans ownership: ${failure}`, async t => {
+for (const atomicStagingAncestry of [false, true]) for (const failure of ["none", "write", "cancel"] as const) {
+  test(`conditional staging streams and cleans ownership (ancestry=${atomicStagingAncestry}): ${failure}`, async t => {
     const old = "a".repeat(40000), next = "b".repeat(40000);
     const fs = await filesystem({ target: `${old}\n` });
     await fs.chmod("/work/target", 0o640);
-    const capabilities = { ...fs.capabilities, atomicStagingAncestry: false,
-      trustedOwnedStaging: true, retainedStagingCleanup: false, retainedStagingWrite: false };
+    const capabilities = { ...fs.capabilities, atomicStagingAncestry,
+      trustedOwnedStaging: !atomicStagingAncestry, retainedStagingCleanup: false, retainedStagingWrite: false };
     Object.defineProperty(fs, "capabilities", { value: capabilities });
     const create = fs.createStagedFile.bind(fs);
     t.mock.method(fs, "createStagedFile", async (...args: Parameters<typeof create>) => {
@@ -16,6 +16,12 @@ for (const failure of ["none", "write", "cancel"] as const) {
       assert.equal(args[2].type, "file");
       if (args[2].type === "file") assert.equal(args[2].data.length, 0);
       return create(...args);
+    });
+    const publish = fs.publishStagedFile.bind(fs);
+    t.mock.method(fs, "publishStagedFile", async (...args: Parameters<typeof publish>) => {
+      assert.equal(Boolean(args[2].ancestors?.length), atomicStagingAncestry);
+      assert.ok(args[2].destination, "publication retains authoritative destination identity");
+      return publish(...args);
     });
     const write = fs.writeFileConditional.bind(fs);
     const controller = new AbortController(), reason = new Error("trusted write stopped");
@@ -57,4 +63,30 @@ test("trusted staging requires conditional writes before creating output", async
   assert.equal(create.mock.callCount(), 0);
   assert.equal(await contents(fs, "target"), "old\n");
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["target"]);
+});
+
+test("caller-backed conditional staging refuses a changed destination", async t => {
+  const fs = await filesystem({ target: "old\n" });
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities,
+    retainedStagingCleanup: false, retainedStagingWrite: false } });
+  const publish = fs.publishStagedFile.bind(fs);
+  t.mock.method(fs, "publishStagedFile", async (...args: Parameters<typeof publish>) => {
+    await fs.writeFile("/work/target", new TextEncoder().encode("concurrent\n"));
+    return publish(...args);
+  });
+  const result = await run("patch", [], { fs, input: "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n" });
+  assert.equal(result.exitCode, 2);
+  assert.equal(await contents(fs, "target"), "concurrent\n");
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["target"]);
+});
+
+test("caller-backed staging refuses unsupported conditional writes before creation", async t => {
+  const fs = await filesystem({ target: "old\n" });
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities,
+    retainedStagingCleanup: false, retainedStagingWrite: false, atomicFileMutation: false } });
+  const create = t.mock.method(fs, "createStagedFile");
+  const result = await run("patch", [], { fs, input: "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n" });
+  assert.equal(result.exitCode, 2);
+  assert.equal(create.mock.callCount(), 0);
+  assert.equal(await contents(fs, "target"), "old\n");
 });

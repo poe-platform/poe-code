@@ -72,6 +72,13 @@ export class PatchPublication {
       if (parent === "/") break;
     }
     const context = this.context;
+    const capabilities = await host(context, async () =>
+      await context.fs.capabilitiesFor?.(path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
+    const retained = !this.trusted && capabilities.retainedStagingCleanup === true && capabilities.retainedStagingWrite === true;
+    if (!retained && (!context.fs.writeFileConditional
+      || (capabilities.atomicFileMutation !== true && capabilities.trustedOwnedStaging !== true))) {
+      throw new ToolError("filesystem does not support conditional staging writes");
+    }
     const parent = ancestors[ancestors.length - 1]!.stat;
     let staging: FileStaging | undefined;
     let operation: Promise<void> | undefined;
@@ -91,12 +98,12 @@ export class PatchPublication {
         if (this.trusted) await this.validate(path);
         staging = await context.fs.createStagedFile!(`${dirname(path) === "/" ? "" : dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
           type: "file", data: new Uint8Array(),
-        }, { parent, retainCleanup: !this.trusted, signal: context.signal, ...(mode === undefined ? {} : { mode }),
+        }, { parent, retainCleanup: retained, signal: context.signal, ...(mode === undefined ? {} : { mode }),
           ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }) });
-        if (!this.trusted && (!staging.writer || !staging.cleanup)) throw new ToolError("filesystem does not support retained staging writes");
+        if (retained && (!staging.writer || !staging.cleanup)) throw new ToolError("filesystem does not support retained staging writes");
         for await (const bytes of readBytes(typeof source === "string" ? targetBytes(source) : source, context.signal)) {
           if (closed) throw new ToolError("patch publication is closed");
-          if (this.trusted) {
+          if (!retained) {
             const stat = await context.fs.writeFileConditional!(staging.file.path, bytes, {
               parent: staging.directory.stat, expected: staging.file.stat, append: true, signal: context.signal,
               ...(mode === undefined ? {} : { mode }),
@@ -105,7 +112,7 @@ export class PatchPublication {
             staging = { ...staging, file: { ...staging.file, stat } };
           } else await staging.writer!.write(bytes, { signal: context.signal });
         }
-        const stat = this.trusted ? staging.file.stat : await staging.writer!.finish({ signal: context.signal });
+        const stat = !retained ? staging.file.stat : await staging.writer!.finish({ signal: context.signal });
         context.signal.throwIfAborted();
         if (closed) throw new ToolError("patch publication is closed");
         if (this.trusted) await this.validate(path);

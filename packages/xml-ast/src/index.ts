@@ -1,3 +1,5 @@
+import { XmlFrames, type XmlFrameRequest } from "./frames.js";
+export type { XmlParserFrame, XmlFrameRequest } from "./frames.js";
 import { validCharacter } from "./characters.js";
 export { normalizeXmlChunks } from "./characters.js";
 import { XmlSource, type XmlSourceStep } from "./source.js";
@@ -215,9 +217,18 @@ function validateLimits(limits: XmlStepLimits): void {
   if (limits.events && limits.retainTree !== false) throw new TypeError("XML events require retainTree: false");
 }
 
+export interface XmlSourceLimits extends XmlStepLimits {
+  /** Store active parser frames through host-serviced requests. Requires retainTree: false. */
+  readonly storeFrames?: boolean;
+}
+export type XmlParseStep = XmlSourceStep | XmlFrameRequest;
+
 /** Parse a validated, BOM-free, line-normalized UTF-16 source via bounded read requests. */
-export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {}): Generator<XmlSourceStep, XmlElement, void> {
+export function parseXmlSourceSteps(length: number, limits?: XmlStepLimits & { readonly storeFrames?: false }): Generator<XmlSourceStep, XmlElement, void>;
+export function parseXmlSourceSteps(length: number, limits: XmlSourceLimits): Generator<XmlParseStep, XmlElement, void>;
+export function* parseXmlSourceSteps(length: number, limits: XmlSourceLimits = {}): Generator<XmlParseStep, XmlElement, void> {
   validateLimits(limits);
+  if (limits.storeFrames && limits.retainTree !== false) throw new TypeError("Stored XML frames require retainTree: false");
   const source = new XmlSource(length);
   const maxDepth = limits.maxDepth ?? Infinity;
   const maxNodes = limits.maxNodes ?? Infinity;
@@ -237,7 +248,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
     if (text.length > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
     textLength += text.length;
   };
-  const stack: { element: XmlElement; content: XmlContent[] | undefined; name: string; namespaces: Map<string, string> }[] = [];
+  const stack = new XmlFrames(limits.storeFrames === true);
   let root: XmlElement | undefined;
   const prolog: XmlContent[] = [];
   const epilog: XmlContent[] = [];
@@ -293,7 +304,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
       const resolved = stack.length ? (text.indexOf("&") < 0 ? (pendingWork += text.length, text) : yield* entities(text, limits.recover)) : text;
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       admitText(resolved);
-      const parent = stack.at(-1);
+      const parent = (yield* stack.peek());
       if (parent) {
         if (retainTree) parent.element.text += resolved;
         if (resolved.length) {
@@ -322,7 +333,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
       if (end < 0 || (yield* find(text, "--", 0)) >= 0 || text.endsWith("-")) {
         invalid("malformed comment");
       }
-      const parent = stack.at(-1);
+      const parent = (yield* stack.peek());
       admitText(text);
       admitContent();
       if (retain) { (parent?.content ?? (root ? epilog : prolog)).push({ kind: "comment", text }); }
@@ -334,7 +345,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
       if (end < 0) invalid("unterminated CDATA");
       const cdataText = (yield* source.slice(offset + 9, end));
       admitText(cdataText);
-      const parent = stack.at(-1)!;
+      const parent = (yield* stack.peek())!;
       if (retainTree) parent.element.text += cdataText;
       admitContent();
       if (retain) parent.content!.push({ kind: "cdata", text: cdataText });
@@ -356,7 +367,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
         if (retainContent) declaration = (yield* source.slice(start, end + 2));
       } else if (content && !" \t\n\r".includes(content[0]!)) invalid("invalid processing instruction");
       if (!(target.length === 3 && target.toLowerCase() === "xml")) {
-        const parent = stack.at(-1);
+        const parent = (yield* stack.peek());
         let wsStart = 0;
         while (wsStart < content.length && " \t\n\r".includes(content[wsStart]!)) wsStart++;
         pendingWork += wsStart;
@@ -377,12 +388,12 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
       const [name] = yield* scanName();
       yield* skipWhitespace();
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-      const closed = (yield* source.slice(offset++, offset)) === ">" ? stack.pop() : undefined;
+      const closed = (yield* source.slice(offset++, offset)) === ">" ? (yield* stack.pop()) : undefined;
       if (closed?.name !== name) {
         if (!limits.recover) invalid("mismatched closing tag");
         limits.recover("mismatched closing tag");
       }
-      if (closed) limits.events?.({ type: "close", element: closed.element, parent: stack.at(-1)?.element });
+      if (closed) limits.events?.({ type: "close", element: closed.element, parent: (yield* stack.peek())?.element });
     } else {
       offset++;
       const repeated = previousEmpty && (yield* source.startsWith(previousEmpty.suffix, offset)) ? previousEmpty : undefined;
@@ -395,7 +406,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       let attributes: Map<string, string> | undefined;
       const attrMeta: [string, string, string][] = [];
-      let namespaces = stack.at(-1)?.namespaces ?? new Map([["xml", xmlNamespace]]);
+      let namespaces = (yield* stack.peek())?.namespaces ?? new Map([["xml", xmlNamespace]]);
       let ownsNamespaces = stack.length === 0;
       while (!repeated) {
         const ws = (yield* skipWhitespace());
@@ -464,7 +475,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
       if (++nodes > maxNodes) throw new XmlLimitError("maxNodes", "XML resource limit exceeded");
       if (stack.length + 1 > maxDepth) throw new XmlLimitError("maxDepth", "XML resource limit exceeded");
       const namespace = namespaces.get(prefix) ?? "";
-      limits.onElement?.({ name, namespace, localName }, stack.at(-1)?.element, stack.length + 1);
+      limits.onElement?.({ name, namespace, localName }, (yield* stack.peek())?.element, stack.length + 1);
       admitContent();
       const retainedAttributes: XmlAttribute[] = [];
       if (retainContent && attributes) {
@@ -480,7 +491,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       const content: XmlContent[] | undefined = retain ? [] : undefined;
       const element: XmlElement = { kind: "element", name, namespace, localName, children: [], text: "", content: content ?? emptyContent, attributes: retainContent ? retainedAttributes : emptyAttributes, namespaces: retainContent ? namespaces : emptyNamespaces, ...(root === undefined && retainContent ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
-      const parent = stack.at(-1);
+      const parent = (yield* stack.peek());
       if (parent) { if (retainTree) { parent.element.children.push(element); parent.content?.push(element); } }
       else if (root) invalid("multiple root elements");
       else root = element;
@@ -495,7 +506,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
       if (empty && !attributes && name.length <= 512 && (yield* source.slice(offset - name.length - 3, offset)) === `<${name}/>`)
         previousEmpty = { suffix: name + "/>", name, prefix, localName };
       limits.events?.({ type: "open", element, parent: parent?.element });
-      if (!empty) stack.push({ element, content, name, namespaces });
+      if (!empty) yield* stack.push({ element, content, name, namespaces });
       else limits.events?.({ type: "close", element, parent: parent?.element });
     }
   }
@@ -505,8 +516,8 @@ export function* parseXmlSourceSteps(length: number, limits: XmlStepLimits = {})
     if (!limits.recover) invalid("incomplete document");
     limits.recover("incomplete document");
     while (stack.length) {
-      const closed = stack.pop()!;
-      limits.events?.({ type: "close", element: closed.element, parent: stack.at(-1)?.element });
+      const closed = (yield* stack.pop())!;
+      limits.events?.({ type: "close", element: closed.element, parent: (yield* stack.peek())?.element });
       yield 1;
     }
   }

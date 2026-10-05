@@ -59,8 +59,11 @@ For recovery, repeat formatting, CDATA conversion and XPath with a missing final
 closing tag. Verify repaired output and diagnostics, paged node writes and cleanup
 on cancellation. Include `--recover --noout` to isolate the 64 KiB normalized-source
 cache from document storage. Confirm source replay reads at most 4096 UTF-16 units
-and retires its backing before output. Large individual tokens and parser ancestry
-still need separate measurements; do not qualify recovery as bounded end to end.
+and retires its backing before output. Add deeply nested recovery input with short
+names and a fixed namespace scope, small enough that source text alone fits the
+cache; confirm linked parser frames spill and are restored in order. Interrupt a
+frame write and a frame read during unwinding and verify descriptor cleanup. Large
+individual tokens, namespace scopes and ordinary-parser ancestry still need separate measurements; do not qualify recovery as bounded end to end.
 
 ## Remaining qualification scope
 

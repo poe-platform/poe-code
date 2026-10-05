@@ -80,3 +80,45 @@ test('recovery retains normalization work accounting at a split surrogate bounda
   const root = await parseXmlRecovery([input], { fs: createMemoryFileSystem(), cwd: '/', env: {}, signal }, budget, () => {});
   assert.equal(root.name, 'r');
 });
+
+for (const outcome of ['success', 'cancel', 'read'] as const) test(`recovery ancestry spills even when source fits in cache (${outcome})`, async () => {
+  const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error('ancestry storage stopped');
+  let writes = 0, opened = 0, closed = 0, closes = 0;
+  const injected = new Proxy(fs, { get(target, key) {
+    if (key === 'open') return async (...args: Parameters<typeof fs.open>) => {
+      const handle = await fs.open(...args); opened++;
+      return new Proxy(handle, { get(descriptor, member) {
+        if (member === 'write') return async (...values: Parameters<typeof handle.write>) => {
+          writes++; assert.ok(values[0].length <= 16384);
+          if (outcome === 'cancel') controller.abort(failure);
+          return handle.write(...values);
+        };
+        if (member === 'read') return async (...values: Parameters<typeof handle.read>) => {
+          if (outcome === 'read' && closes > 0 && values[1] !== null && values[1] >= 32768) throw failure;
+          return handle.read(...values);
+        };
+        if (member === 'close') return async () => { closed++; await handle.close(); };
+        const value = Reflect.get(descriptor, member, descriptor);
+        return typeof value === 'function' ? value.bind(descriptor) : value;
+      } });
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  } });
+  const depth = 600;
+  const source = { async *[Symbol.asyncIterator]() {
+    for (let index = 0; index < depth; index++) yield `<x xmlns:p="urn:${index}">`;
+  } };
+  const operation = parseXmlRecovery(source, { fs: injected, cwd: '/', env: {}, signal: controller.signal },
+    new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {}), () => {}, async event => {
+      if (event.type === 'close') {
+        assert.equal(event.element.namespaces.get('p'), `urn:${depth - ++closes}`);
+        assert.equal(event.parent?.namespaces.get('p'), closes < depth ? `urn:${depth - closes - 1}` : undefined);
+      }
+    });
+  if (outcome !== 'success') await assert.rejects(operation, error => error === failure);
+  else { await operation; assert.equal(closes, depth); }
+  assert.ok(writes > 0, 'parser ancestry must reach injected backing even for a source smaller than 64 KiB');
+  assert.equal(opened, 1); assert.equal(closed, opened);
+  assert.deepEqual(await fs.readdir('/'), []);
+});

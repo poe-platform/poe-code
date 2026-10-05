@@ -1,3 +1,4 @@
+import { StoredXmlFrames } from "./frames.js";
 import { normalizeXmlChunks, parseXmlSourceSteps, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { XmlBudget } from "./limits.js";
@@ -5,7 +6,7 @@ import { XmlBudget } from "./limits.js";
 type XmlEvent = Parameters<NonNullable<NonNullable<Parameters<typeof parseXmlSourceSteps>[1]>["events"]>>[0];
 
 /** Validate and replay recovery input through a 64 KiB caller-backed source cache.
- * The parser retains only its current source window, tokens and active ancestry. */
+ * The parser retains only its current source window, tokens and the current frame. */
 export async function parseXmlRecovery(
   source: AsyncIterable<string> | Iterable<string>,
   context: PagedStorageContext & { readonly registerCleanup?: (cleanup: () => Promise<void>) => void },
@@ -27,8 +28,9 @@ export async function parseXmlRecovery(
       const checkpoint = budget.tick(Math.min(chunk.length, 512)); if (checkpoint) await checkpoint;
     }
     const queued: XmlEvent[] = [];
+    const frames = new StoredXmlFrames(storage);
     const parser = parseXmlSourceSteps(length, {
-      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false,
+      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true,
       recover, ...(consume ? { events: (event: XmlEvent) => { queued.push(event); } } : {}),
     });
     let step = parser.next();
@@ -39,6 +41,8 @@ export async function parseXmlRecovery(
         if (step.done) { await storage.close(); return step.value; }
         if (typeof step.value === "number") {
           const checkpoint = budget.tick(step.value); if (checkpoint) await checkpoint;
+        } else if ("frameOperation" in step.value) {
+          await frames.execute(step.value);
         } else {
           const request = step.value;
           const bytes = await storage.read(start + request.offset * 2, request.length * 2);

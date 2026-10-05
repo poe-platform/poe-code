@@ -40,10 +40,11 @@ still stores spilled bytes in RAM. Ordinary XPath uses stored nodes and paged
 selection sets for predicates and unions. `--nocdata` and `--noblanks` transform
 stored nodes for formatting and XPath; adjacent text fragments remain backed by
 the filesystem. `--recover` uses the same paged document storage and a separate 64 KiB
-caller-backed cache for normalized input, including with `--noout`. XPath string
+caller-backed cache for normalized input and linked parser frames, including with
+`--noout`. XPath string
 functions use paged code-point values and replay scalar output in chunks. Formatting
 and canonicalization store pending traversal frames in the same page cache. Individual XML tokens and
-parser ancestry also remain resident, so this is not yet a bounded-memory guarantee
+ordinary-parser ancestry and individual namespace scopes remain resident, so this is not yet a bounded-memory guarantee
 for arbitrary documents or queries. Files are
 processed in order; malformed files report an error while later files continue.
 XPath output remains enabled with `--noout` or `--format`. When writing multiple

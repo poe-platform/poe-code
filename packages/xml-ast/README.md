@@ -54,3 +54,10 @@ limits)`: numbers are work checkpoints; read requests specify UTF-16 `offset` an
 iterator. The source must already be validated and normalized. This supports the
 same repairs and events without a complete source string; tokens and open ancestry
 still remain resident. Close the iterator and backing on errors or cancellation.
+
+For tree-free external parsing, set `storeFrames: true` alongside `retainTree: false`.
+The iterator also yields `frameOperation` requests: `push` saves the supplied frame,
+`pop` removes the latest frame, and `peek` needs its `frame` filled with the saved
+metadata. Keep the host stack in bounded backing storage. The parser caches one
+current frame; individual frame metadata and namespace scopes still have their own
+size cost. The default string and stream APIs retain their existing ancestry behavior.

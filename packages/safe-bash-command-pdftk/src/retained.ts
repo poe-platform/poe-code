@@ -1,3 +1,4 @@
+import { assembleRetainedPdftk } from "./retained-assembly.js";
 import { retainedInfoUpdates } from "./retained-info-updates.js";
 import { retainedBurst } from "./retained-burst.js";
 import { retainedOutput } from "./retained-output.js";
@@ -33,6 +34,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
   async function* attachments() {
     for (const path of attachmentPaths) { const source = inputs.get(path); if (source) yield { filename: path.slice(path.lastIndexOf("/") + 1), chunks: source.stream(0, source.size, signal) }; }
   }
+  let assembled: Awaited<ReturnType<typeof assembleRetainedPdftk>> | undefined;
   let overlayDocument: PdfRetainedDocument | undefined;
   let document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, total = 0, failed = false;
   const diagnostic = async (message: string) => { await writeBytes(context.stderr, new TextEncoder().encode(message), signal); return { exitCode: 1 }; };
@@ -92,7 +94,10 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
       }
       return { exitCode: 0 };
     }
-    output = await PdfFileSource.fromStream(context.fs, storage.directory, (["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground", "update_info", "update_info_utf8"].includes(options.operation) ? retainedOutput(document, storage, options, selectedId, signal, new Map([...handles].map(([handle, input]) => [handle, { pageCount: counts.get(input)! }])), counts.get(primary), attachments(), attachmentPage, overlayDocument ? [{ source: overlayDocument, mode: options.operation.includes("background") ? "underlay" : "overlay", preserveStreams: true, pages: stampPages() }] : undefined, infoSource ? { updates: retainedInfoUpdates(infoSource.stream(0, infoSource.size, signal), signal), useUpdatedId: idInput === primary } : undefined) : options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
+    if (options.operation === "cat" || options.operation === "shuffle") {
+      assembled = await assembleRetainedPdftk(document, storage, options, counts, handles, async input => PdfRetainedDocument.open(inputs.get(input.file)!, storage, { signal, recovery: "strict", ...(input.password ? { password: input.password } : {}) }), signal);
+    }
+    output = await PdfFileSource.fromStream(context.fs, storage.directory, (["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground", "update_info", "update_info_utf8", "cat", "shuffle"].includes(options.operation) ? retainedOutput(assembled?.document ?? document, storage, options, selectedId, signal, new Map([...handles].map(([handle, input]) => [handle, { pageCount: counts.get(input)! }])), counts.get(primary), attachments(), attachmentPage, overlayDocument ? [{ source: overlayDocument, mode: options.operation.includes("background") ? "underlay" : "overlay", preserveStreams: true, pages: stampPages() }] : undefined, infoSource ? { updates: retainedInfoUpdates(infoSource.stream(0, infoSource.size, signal), signal), useUpdatedId: idInput === primary } : undefined) : options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
     const destination = options.outputTarget;
     if (!destination || destination === "-") for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
     else {
@@ -105,7 +110,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
     return { exitCode: 0 };
   } catch (error) { failed = true; throw error; }
   finally {
-    const results = await Promise.allSettled([document?.close(), overlayDocument?.close(), output?.close(), ...[...inputs.values()].map(source => source?.close())]);
+    const results = await Promise.allSettled([assembled?.close(), document?.close(), overlayDocument?.close(), output?.close(), ...[...inputs.values()].map(source => source?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
   }
 }

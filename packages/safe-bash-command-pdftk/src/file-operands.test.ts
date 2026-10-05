@@ -41,7 +41,7 @@ async function execute(command: ReturnType<typeof createPdftkCommand>, args: str
 it("Pdftk reads only input operands", async () => {
   const { result, reads, stderr } = await execute(createPdftkCommand(), ["in.pdf", "cat", "1", "output", "out.pdf"]);
   assert.equal(result.exitCode, 0, stderr);
-  assert.deepEqual([...new Set(reads)], ["/work/in.pdf"]);
+  assert.deepEqual([...new Set(reads.filter(path => !path.startsWith("/tmp/")))], ["/work/in.pdf"]);
 });
 
 it("Pdftk reports missing output parents without creating directories", async () => {

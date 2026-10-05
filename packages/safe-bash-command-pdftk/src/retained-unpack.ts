@@ -5,7 +5,7 @@ type Storage = ConstructorParameters<typeof PdfMutableObjectStore>[0];
 
 /** Decode all attachments before publication, keeping payloads and duplicate
  * filename ordering on caller storage instead of a whole-document byte map. */
-export async function* retainedUnpack(document: PdfRetainedDocument, storage: Storage, directory: string, inputNames: Iterable<string>, signal: AbortSignal): AsyncGenerator<{ path: string; chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> }> {
+export async function* retainedUnpack(document: PdfRetainedDocument, storage: Storage, directory: string, inputNames: Iterable<string>, signal: AbortSignal, includeSentinel = false): AsyncGenerator<{ path: string; chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> }> {
   const names = new PdfNameIndex(storage, Infinity, signal), outputs = new PdfMutableObjectStore(storage, { signal });
   const stack = new PdfMutableObjectStore(storage, { signal }), backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4), seen = new IntegerTable(backing, 64);
   const cleanDir = directory.endsWith("/") ? directory.slice(0, -1) : directory;
@@ -62,7 +62,7 @@ export async function* retainedUnpack(document: PdfRetainedDocument, storage: St
       const path = output.value.kind === "dict" ? dictGet(output.value, "Path") : undefined;
       if (path?.kind === "string" && output.stream) {
         const name = decodePdfString(path);
-        if (name !== "-") yield { path: name, chunks: output.stream.chunks };
+        if (includeSentinel || name !== "-") yield { path: name, chunks: output.stream.chunks };
       }
     }
   } catch (error) { failed = true; throw error; }

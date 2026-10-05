@@ -143,3 +143,23 @@ it.each(["complete", "return", "close", "limit", "cancel"])("owns retained outli
   } finally { await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["finish", "return", "document-close"])("retains outline levels and closes traversal after %s", async mode => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const storage = { fs, directory: "/scratch" }, original = PdfDocument.create(); original.addPage(); original.addPage();
+  const catalog = original.cos.resolveDict(original.cos.rootRef)!;
+  dictSet(catalog, "Dests", cosDict({ target: cosArray([original.getPage(1).ref, cosName("Fit")]) }));
+  const child = original.cos.allocateObject(cosDict({ Title: cosName("Named title"), Dest: cosString("target") }));
+  const next = original.cos.allocateObject(cosDict({ Title: cosString("Last"), Dest: cosName("missing") }));
+  const parent = original.cos.allocateObject(cosDict({ First: child, Next: next }));
+  dictSet(original.cos.resolveDict(next)!, "Next", parent);
+  dictSet(catalog, "Outlines", original.cos.allocateObject(cosDict({ First: parent })));
+  await fs.writeFile("/input", original.save()); const source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+  const details = document.outlineDetails();
+  try {
+    expect((await details.next()).value).toEqual({ title: "Named title", pageIndex: 1, level: 2 });
+    if (mode === "finish") { expect((await details.next()).value).toEqual({ title: "Last", pageIndex: 0, level: 1 }); expect((await details.next()).done).toBe(true); }
+    else if (mode === "return") await details.return();
+    else await document.close();
+  } finally { await details.return(); await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

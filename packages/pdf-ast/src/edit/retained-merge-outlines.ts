@@ -19,7 +19,7 @@ export class PdfMergeOutlines {
     if (++this.work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
     this.signal.throwIfAborted();
   }
-  private async *walk(document: PdfRetainedDocument, start: PdfCosNode | undefined, outlines: boolean): AsyncGenerator<PdfCosDict> {
+  private async *walk(document: PdfRetainedDocument, start: PdfCosNode | undefined, outlines: boolean): AsyncGenerator<{ dict: PdfCosDict; level: number }> {
     const frames = new PdfMutableObjectStore(this.storage, { signal: this.signal }), seen = new PdfReferenceSet(this.storage, Infinity, this.signal); let pending = 0, failed = false;
     const push = async (node: PdfCosNode | undefined, depth: number) => {
       if (node) await frames.set({ objectNumber: ++pending, generationNumber: 0, value: cosArray([node, cosNumber(depth)]) });
@@ -33,7 +33,7 @@ export class PdfMergeOutlines {
         await this.checkpoint(depth);
         if (node.kind === "ref" && !await seen.add(node.objectNumber)) continue;
         const dict = (await document.lookup(node))?.value; if (dict?.kind !== "dict") continue;
-        yield dict;
+        yield { dict, level: depth + 1 };
         if (outlines) { await push(dictGet(dict, "Next"), depth); await push(dictGet(dict, "First"), depth + 1); }
         else {
           const kids = (await document.lookup(dictGet(dict, "Kids")))?.value;
@@ -43,7 +43,7 @@ export class PdfMergeOutlines {
     } catch (error) { failed = true; throw error; }
     finally { const results = await Promise.allSettled([frames.close(), seen.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
   }
-  async append(document: PdfRetainedDocument, pageOffset: number, includeUntitled = false): Promise<void> {
+  async append(document: PdfRetainedDocument, pageOffset: number, includeUntitled = false, includeNameTitles = false): Promise<void> {
     const resolve = async (node: PdfCosNode | undefined) => (await document.lookup(node))?.value;
     const catalog = await resolve(document.crossReference.rootRef); if (catalog?.kind !== "dict") return;
     const outlines = await resolve(dictGet(catalog, "Outlines")); if (outlines?.kind !== "dict") return;
@@ -52,7 +52,7 @@ export class PdfMergeOutlines {
       const legacy = await resolve(dictGet(catalog, "Dests")), direct = legacy?.kind === "dict" ? dictGet(legacy, name) : undefined;
       if (direct) return direct;
       const names = await resolve(dictGet(catalog, "Names"));
-      if (names?.kind === "dict") for await (const tree of this.walk(document, dictGet(names, "Dests"), false)) {
+      if (names?.kind === "dict") for await (const { dict: tree } of this.walk(document, dictGet(names, "Dests"), false)) {
         const pairs = await resolve(dictGet(tree, "Names"));
         if (pairs?.kind === "array") for (let i = 0; i + 1 < pairs.items.length; i += 2) {
           await this.checkpoint(); const key = await resolve(pairs.items[i]);
@@ -81,20 +81,23 @@ export class PdfMergeOutlines {
       return number?.kind === "number" && number.value >= 0 && number.value < pageCount ? Math.round(number.value) : 0;
     };
     try {
-      for await (const outline of this.walk(document, dictGet(outlines, "First"), true)) {
-        const title = await resolve(dictGet(outline, "Title")), text = title?.kind === "string" ? decodePdfString(title) : "";
+      for await (const { dict: outline, level } of this.walk(document, dictGet(outlines, "First"), true)) {
+        const title = await resolve(dictGet(outline, "Title")), text = title?.kind === "string" ? decodePdfString(title) : includeNameTitles && title?.kind === "name" ? title.decoded : "";
         const index = await destination(dictGet(outline, "Dest") ?? dictGet(outline, "A"));
-        if (text || includeUntitled) await this.objects.set({ objectNumber: ++this.count, generationNumber: 0, value: cosDict({ Title: cosString(text), Page: cosNumber(pageOffset + index) }) });
+        if (text || includeUntitled) await this.objects.set({ objectNumber: ++this.count, generationNumber: 0, value: cosDict({ Title: cosString(text), Page: cosNumber(pageOffset + index), Level: cosNumber(level) }) });
       }
     } catch (error) { failed = true; throw error; }
     finally { await pages?.close().catch(error => { if (!failed) throw error; }); }
   }
   async *entries(): AsyncGenerator<{ title: string; pageIndex: number }, void, void> {
+    for await (const { title, pageIndex } of this.details()) yield { title, pageIndex };
+  }
+  async *details(): AsyncGenerator<{ title: string; pageIndex: number; level: number }, void, void> {
     for await (const object of this.objects.objects()) {
       await this.checkpoint();
-      const row = object.value as PdfCosDict, title = dictGet(row, "Title"), index = dictGet(row, "Page");
+      const row = object.value as PdfCosDict, title = dictGet(row, "Title"), index = dictGet(row, "Page"), level = dictGet(row, "Level");
       if (title?.kind !== "string" || index?.kind !== "number") throw new PdfError("E_PARSE", "Invalid staged outline summary");
-      yield { title: decodePdfString(title), pageIndex: index.value };
+      yield { title: decodePdfString(title), pageIndex: index.value, level: level?.kind === "number" ? level.value : 1 };
     }
   }
   async finish(target: PdfMutableObjectStore, catalog: PdfCosDict, pageCount: number, page: (index: number) => Promise<PdfCosRef>): Promise<void> {

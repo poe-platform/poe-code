@@ -221,6 +221,8 @@ Individual COS arrays/dictionaries still use the object reader's admitted
 representation.
 
 `doc.outlines()` yields outline titles and zero-based destination page indices.
+`doc.outlineDetails()` also includes one-based hierarchy levels, accepts PDF name
+titles, and omits untitled entries. Both readers use caller-backed traversal.
 It resolves direct and named destinations and stages traversal records on caller
 storage; closing the document releases suspended iterations.
 

@@ -101,6 +101,23 @@ function daysInMonth(year: number, month: number): number {
   return table[month - 1]!;
 }
 
+function isValidDay(spec: string, year: number, month: number): boolean {
+  if (spec.length === 0 || [...spec].some(char => char < "0" || char > "9")) return false;
+  const day = Number(spec);
+  return day >= 1 && day <= daysInMonth(year, month)
+    && !(year === 1752 && month === 9 && day >= 3 && day <= 13);
+}
+
+function firstCalendarMonth(
+  year: number, month: number, count: number, wholeYear: boolean,
+  beforeMonths: number, spanAround: boolean,
+): number | undefined {
+  const offset = wholeYear ? 0 : beforeMonths || (spanAround ? Math.floor((count - 1) / 2) : 0);
+  const first = year * 12 + (wholeYear ? 0 : month - 1) - offset;
+  const last = first + count - 1;
+  return Number.isSafeInteger(first) && first >= 12 && last < 10000 * 12 ? first : undefined;
+}
+
 // Returns day of week 0=Sun..6=Sat for (year, month 1..12, day 1..31) with 1752 reform
 function dayOfWeek(year: number, month: number, day: number): number {
   const t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
@@ -482,7 +499,7 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
       } else if (operands.length === 3) {
         const m = parseMonthSpec(operands[1]!);
         const y = Number(operands[2]);
-        if (m === undefined || !/^\d+$/.test(operands[2]!) || y < 1 || y > 9999) {
+        if (m === undefined || !/^\d+$/.test(operands[2]!) || y < 1 || y > 9999 || !isValidDay(operands[0]!, y, m)) {
           await writeText(context.stderr, "cal: invalid date arguments\n");
           return { exitCode: 1 };
         }
@@ -499,12 +516,16 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
         return { exitCode: 1 };
       }
 
+      const first = firstCalendarMonth(year, month, count, wholeYear, beforeMonths, spanAround);
+      if (first === undefined) {
+        await writeText(context.stderr, "cal: calendar span exceeds year range 1..9999\n");
+        return { exitCode: 1 };
+      }
+
       const gridWidth = julian ? 27 : 20;
       const perRow = julian ? 2 : 3;
 
       if (verticalLayout) {
-        const offset = wholeYear ? 0 : beforeMonths || (spanAround ? Math.floor((spanMonths - 1) / 2) : 0);
-        const first = year * 12 + (wholeYear ? 0 : month - 1) - offset;
         const grids = [];
         for (let index = 0; index < count; index++) {
           await yieldTurn(context.signal);
@@ -550,18 +571,8 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
         return { exitCode: 0 };
       }
 
-      let startYear = year;
-      let startMonth = month;
-      if (beforeMonths > 0) {
-        const totalMonths = startYear * 12 + (startMonth - 1) - beforeMonths;
-        startYear = Math.floor(totalMonths / 12);
-        startMonth = ((totalMonths % 12) + 12) % 12 + 1;
-      } else if (spanAround && spanMonths > 1) {
-        const offset = Math.floor((spanMonths - 1) / 2);
-        const totalMonths = startYear * 12 + (startMonth - 1) - offset;
-        startYear = Math.floor(totalMonths / 12);
-        startMonth = ((totalMonths % 12) + 12) % 12 + 1;
-      }
+      const startYear = Math.floor(first / 12);
+      const startMonth = first % 12 + 1;
 
       if (spanMonths === 1) {
         const g = renderMonthGrid(startYear, startMonth, { mondayFirst, julian, includeYearInHeader: true });
@@ -769,7 +780,7 @@ export function evalSyncCal(
   } else if (operands.length === 3) {
     const m = parseMonthSpec(operands[1]!);
     const y = Number(operands[2]);
-    if (m === undefined || !/^\d+$/.test(operands[2]!) || y < 1 || y > 9999) return undefined;
+    if (m === undefined || !/^\d+$/.test(operands[2]!) || y < 1 || y > 9999 || !isValidDay(operands[0]!, y, m)) return undefined;
     month = m;
     year = y;
   } else if (operands.length > 3) {
@@ -778,15 +789,15 @@ export function evalSyncCal(
 
   const count = wholeYear ? 12 : spanMonths;
   if (!Number.isSafeInteger(count) || count > 24) return undefined;
+  const first = firstCalendarMonth(year, month, count, wholeYear, beforeMonths, spanAround);
+  if (first === undefined) return undefined;
   const gridWidth = julian ? 27 : 20;
   const perRow = julian ? 2 : 3;
 
   if (verticalLayout) {
-    const offset = wholeYear ? 0 : beforeMonths || (spanAround ? Math.floor((spanMonths - 1) / 2) : 0);
-    const baseMonth = wholeYear ? 0 : month - 1 - offset;
     const grids: string[][] = [];
     for (let idx = 0; idx < count; idx++) {
-      const total = year * 12 + baseMonth + idx;
+      const total = first + idx;
       grids.push(renderVerticalNcalMonth(Math.floor(total / 12), ((total % 12) + 12) % 12 + 1, {
         mondayFirst, julian, includeYearInHeader: !wholeYear, showWeeks,
       }));
@@ -823,18 +834,8 @@ export function evalSyncCal(
     return lines.join("\n");
   }
 
-  let startYear = year;
-  let startMonth = month;
-  if (beforeMonths > 0) {
-    const totalMonths = startYear * 12 + (startMonth - 1) - beforeMonths;
-    startYear = Math.floor(totalMonths / 12);
-    startMonth = ((totalMonths % 12) + 12) % 12 + 1;
-  } else if (spanAround && spanMonths > 1) {
-    const offset = Math.floor((spanMonths - 1) / 2);
-    const totalMonths = startYear * 12 + (startMonth - 1) - offset;
-    startYear = Math.floor(totalMonths / 12);
-    startMonth = ((totalMonths % 12) + 12) % 12 + 1;
-  }
+  const startYear = Math.floor(first / 12);
+  const startMonth = first % 12 + 1;
 
   if (spanMonths === 1) {
     const g = renderMonthGrid(startYear, startMonth, { mondayFirst, julian, includeYearInHeader: true });

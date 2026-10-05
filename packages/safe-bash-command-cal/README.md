@@ -8,7 +8,7 @@ Display formatted single-month, three-month (`-3`), or full-year (`-y`) calendar
 
 ## Features
 
-- `cal [[MONTH] YEAR]` — Render a specific month or 12-month year grid
+- `cal [[[DAY] MONTH] YEAR]` — Render a specific month or 12-month year grid
 - `-3` / `--three`, `-1` / `--one`, `-y` / `--year` — Surrounding month and full-year layouts
 - `-M` / `--monday` and `-j` / `--julian` — Monday-first weeks and Julian day-of-year numbers
 - **1752 Reformation** — Accurate 11-day September 1752 transition
@@ -25,3 +25,5 @@ const res = await shell.exec("cal 9 1752");
 Resource limits are disabled (`Infinity`) by default. Pass `limits` to the command factory or plugin to enforce bounds; omitted limits remain disabled.
 
 The `maxMonths` quota applies to the complete rendered span, including `-A`/`-B`, `-3`, and full-year calendars. Multi-month rendering cooperates with cancellation.
+
+Calendar spans must stay within years 1–9999. Day operands must exist in the selected month; September 3–13, 1752 are omitted by the calendar reform. Invalid dates or spans fail without printing a calendar.

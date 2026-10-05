@@ -6,6 +6,7 @@ import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 import { resolveBundleGraph, resolveConsumerGraph, resolveSharedRuntimeBuilds } from "./bundle-graph.mjs";
+import { publishSafeBashRuntime } from "./safe-bash-runtime.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { collectPackageFiles, findBundleIssues, canonicalFs, canonicalFsRoutes, collectCanonicalDeclarations, collectCanonicalNativeAssets } from "../packages/package-lint/dist/bundle-policy.js";
 import { publishDeclarations } from "./publish-declarations.mjs";
@@ -419,5 +420,10 @@ for (const entry of providerOutputs) {
   }
 }
 await writeFile(path.join(rootDir, "dist/metafile.json"), JSON.stringify(metafile));
+
+await publishSafeBashRuntime(rootDir, await collectPackageFiles(rootDir, packageJson.files, {
+  readdir: (directory) => readdir(directory, { withFileTypes: true }),
+  stat
+}));
 
 console.log("Bundle complete: dist/index.js + dist/bin.cjs");

@@ -21,13 +21,13 @@ export function resolveSafeBashBinaryPath(overrideBin?: string): string {
   try {
     const currentDir = path.dirname(fileURLToPath(import.meta.url));
     const repoRoot = path.resolve(currentDir, "../../..");
-    const distBin = path.join(repoRoot, "dist", "bin", "safe-bash.js");
-    if (fs.existsSync(distBin)) {
-      return distBin;
-    }
     const shimBin = path.join(repoRoot, "scripts", "safe-bash-shim.mjs");
     if (fs.existsSync(shimBin)) {
       return shimBin;
+    }
+    const distBin = path.join(repoRoot, "dist", "bin", "safe-bash.js");
+    if (fs.existsSync(distBin)) {
+      return distBin;
     }
   } catch {
     // Fall through to ~/.local/bin/safe-bash

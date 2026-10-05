@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import { describe, expect, it, vi } from "vitest";
 import {
   mergeSpawnEnvironment,
   resolveSafeBashBinaryPath,
@@ -54,6 +55,18 @@ describe("safe-bash opt-in environment overrides", () => {
     expect(optInMerged.POE_CODE_SAFE_BASH).toBe("1");
     expect(optInMerged.CODEX_SANDBOX_MODE).toBe("workspace-write");
     expect(optInMerged.PATH).toBe("/usr/local/bin:/usr/bin");
+  });
+
+  it("prefers the stable source-linked launcher over mutable dist", () => {
+    const exists = vi.spyOn(fs, "existsSync").mockReturnValue(true);
+    const previous = process.env.SAFE_BASH_BIN;
+    delete process.env.SAFE_BASH_BIN;
+    try {
+      expect(resolveSafeBashBinaryPath().endsWith("/scripts/safe-bash-shim.mjs")).toBe(true);
+    } finally {
+      if (previous !== undefined) process.env.SAFE_BASH_BIN = previous;
+      exists.mockRestore();
+    }
   });
 
   it("resolves a usable safe-bash binary path when no override is passed", () => {

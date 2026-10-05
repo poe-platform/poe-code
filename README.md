@@ -162,6 +162,8 @@ poe-code models --search claude
 
 ## SDK
 
+In source checkouts, `npm run build` publishes a validated Safe Bash snapshot for `scripts/safe-bash-shim.mjs`, so command rebuilds keep the last successful runtime usable. Snapshots stay in `.cache/safe-bash-runtime`; remove this directory only after stopping local shells, then rebuild before launching again.
+
 Safe Bash supports noncapturing SDK execution with `captureOutput: false` and streams CLI output without retaining a full result. Sips PDF conversion and detailed image inspection keep input and rendered pixels in caller-backed storage. [Pandoc RTF conversions](packages/safe-bash-command-pandoc/README.md) use caller-backed parsing and Lua filters, including streamed HTML image embedding. ZIP reads and TAR mutations use caller-backed staging and range reads; large archives require suitable external filesystem storage. It also provides [Graphviz rendering](packages/safe-bash-command-dot/README.md) through `poe-code/safe-bash/graphviz`, [local audio/video inspection and WAV editing](packages/safe-bash-command-audio/README.md) through `poe-code/safe-bash/commands/audio`, [recursive file search with `rgrep`](packages/safe-bash-command-rgrep/README.md), and [structural code search and rewrites with `ast-grep` / `sg`](packages/safe-bash-command-ast-grep/README.md).
 
 Use `poe-code` programmatically in your own code:

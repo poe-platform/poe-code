@@ -14,6 +14,7 @@ npm run dev --workspace packages/safe-bash-playground
 npm run build:workspaces -- --workspace=safe-bash-playground
 npm run build:site --workspace packages/safe-bash-playground
 npm run test:unit --workspace packages/safe-bash-playground
+npm run test:integration --workspace packages/safe-bash-playground
 ```
 
 `dev` serves source files with Vite live reload at `http://127.0.0.1:5173/`,
@@ -21,6 +22,12 @@ using the same browser-engine plugin as the production build. If that port is
 busy, Vite selects the next available port and prints its URL. `build` typechecks
 and builds, while `build:site` only produces the static site. Serve `dist/site`
 over HTTP rather than opening `index.html` through `file://`.
+
+Session unit tests use the in-memory filesystem and controlled execution, without
+building or starting the browser engine. `test:integration` preserves the real
+browser session cases, including shell pipelines, cwd, cancellation, completion,
+and quotas. Build the workspace dependency closure first; this explicit route
+starts native workers and can take several minutes.
 
 Application HTML, CSS, and TypeScript changes reload live. The engine plugin
 also watches its browser shims and invalidates the compiled kernel when they

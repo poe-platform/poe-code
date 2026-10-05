@@ -1,5 +1,4 @@
 import { IntegerTable } from "@poe-code/safe-fs/storage";
-import type { XmlElement } from "@poe-code/safe-fs/core";
 import { formatScalar, type Node } from "./evaluate.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
 import { evaluateExpression, expressionText, testPredicate, type NodeSelection } from "./predicate.js";
@@ -71,7 +70,7 @@ export class StoredXPath {
   }
 
   async select(query: Query, context = this.document.document): Promise<StoredSelection> {
-    const root = await this.document.metadata(this.document.root) as XmlElement;
+    const namespaces = await this.document.namespaceScope(this.document.root);
     const union = new StoredSelection(this);
     for (const path of query.paths) {
       let contexts = new StoredSelection(this);
@@ -79,7 +78,7 @@ export class StoredXPath {
       for (const step of path) {
         const colon = step.name.indexOf(":");
         const prefix = colon < 0 ? "" : step.name.slice(0, colon);
-        const namespace = colon < 0 ? "" : root.namespaces.get(prefix);
+        const namespace = colon < 0 ? "" : await namespaces.get(prefix);
         if (namespace === undefined) throw new XmlQueryError(`undefined XPath namespace prefix: ${prefix}`, 10);
         const localName = colon < 0 ? step.name : step.name.slice(colon + 1);
         const parents = new StoredSelection(this);

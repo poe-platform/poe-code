@@ -1,11 +1,13 @@
 import { parseStoredXml } from "./recovery.js";
 import { parseXmlStream, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
+import { StoredNamespaces } from "./stored-namespaces.js";
 import { XmlBudget } from "./limits.js";
 
 // Fixed-size links are separate from the variable-size node metadata. Pointers
 // are safe integer byte offsets; zero is the absent-link sentinel.
-const headerBytes = 72;
+const headerBytes = 80;
+const namespacesField = 72;
 const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32, firstAttributeField = 40, lastAttributeField = 48, flagsField = 56, fragmentField = 64;
 const textFlag = 1, preserveSpaceFlag = 2;
 
@@ -13,7 +15,7 @@ export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
 type XmlStreamEvent = Parameters<NonNullable<NonNullable<Parameters<typeof parseXmlStream>[1]>["events"]>>[0];
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
   kind: "element"; name: string; localName: string; namespace: string;
-  namespaces: [string, string][]; declaration?: string;
+  declaration?: string;
 };
 
 /** XML node state in the caller's paged filesystem storage. Metadata is loaded
@@ -37,6 +39,8 @@ export class StoredXmlDocument {
     try {
       context.registerCleanup?.(document.close.bind(document));
       document.documentReference = await document.storage.append(new Uint8Array(headerBytes));
+      const namespaces = await new StoredNamespaces(document.storage, budget).set("xml", "http://www.w3.org/XML/1998/namespace");
+      await document.set(document.documentReference, namespacesField, namespaces.reference);
       let parent = document.documentReference, fragmentTail = 0;
       const consume = async (event: XmlStreamEvent): Promise<void> => {
           if (event.type === "close") { parent = await document.field(parent, parentField); return; }
@@ -45,7 +49,6 @@ export class StoredXmlDocument {
           else {
             const element = event.element;
             metadata = { kind: "element", name: element.name, localName: element.localName, namespace: element.namespace,
-              namespaces: [...element.namespaces],
               ...(element.declaration === undefined ? {} : { declaration: element.declaration }) };
           }
           const continuation = event.type === "content" && event.continuation === true;
@@ -53,6 +56,10 @@ export class StoredXmlDocument {
           if (continuation) await document.set(fragmentTail, fragmentField, reference);
           fragmentTail = reference;
           if (event.type === "open") {
+            let namespaces = await document.namespaceScope(parent);
+            for (const attribute of event.element.attributes) if (attribute.namespace === "http://www.w3.org/2000/xmlns/")
+              namespaces = await namespaces.set(attribute.name === "xmlns" ? "" : attribute.localName, attribute.value);
+            await document.set(reference, namespacesField, namespaces.reference);
             for (const attribute of event.element.attributes) {
               await document.append(reference, { kind: "attribute", value: attribute });
             }
@@ -122,9 +129,15 @@ export class StoredXmlDocument {
     if (value.kind === "element") {
       const attributes: XmlAttribute[] = [];
       for await (const attribute of this.attributes(reference)) attributes.push(attribute);
-      return { ...value, attributes };
+      const namespaces = new Map<string, string>();
+      for await (const [prefix, uri] of await this.namespaceScope(reference)) namespaces.set(prefix, uri);
+      return { ...value, attributes, namespaces };
     }
     return value;
+  }
+
+  async namespaceScope(reference: number): Promise<StoredNamespaces> {
+    return new StoredNamespaces(this.storage, this.budget, await this.field(reference, namespacesField));
   }
 
   async metadata(reference: number): Promise<XmlContent | StoredXmlAttribute> {
@@ -141,7 +154,7 @@ export class StoredXmlDocument {
     if (metadata.kind === "cdata" && (await this.field(reference, flagsField) & textFlag))
       return { kind: "text", text: metadata.text };
     return metadata.kind === "element"
-      ? { ...metadata, attributes: [], namespaces: new Map(metadata.namespaces), children: [], content: [], text: "" }
+      ? { ...metadata, attributes: [], namespaces: new Map<string, string>(), children: [], content: [], text: "" }
       : metadata;
   }
 

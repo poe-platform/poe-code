@@ -1,5 +1,6 @@
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import { escape } from "./evaluate.js";
+import { StoredNamespaces } from "./stored-namespaces.js";
 import { StoredAttributes } from "./stored-attributes.js";
 import { StoredXmlDocument } from "./stored-document.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
@@ -7,6 +8,7 @@ import { XmlBudget, XmlQueryError } from "./limits.js";
 export type DocumentMode = "format" | "c14n" | "exc-c14n";
 const xmlns = "http://www.w3.org/2000/xmlns/";
 const xml = "http://www.w3.org/XML/1998/namespace";
+type NamespaceScope = ReadonlyMap<string, string> | StoredNamespaces;
 
 function compare(left: string, right: string): number {
   let a = 0,
@@ -40,7 +42,8 @@ function declaration(source: string | undefined): string {
 async function attributes(
   element: XmlElement,
   source: () => AsyncIterable<XmlAttribute>,
-  inherited: ReadonlyMap<string, string>,
+  namespaces: NamespaceScope,
+  inherited: NamespaceScope,
   budget: XmlBudget,
   exclusive: boolean,
   stored?: StoredXmlDocument
@@ -52,7 +55,7 @@ async function attributes(
       if (Array.isArray(selected)) selected.push(attribute); else await selected.append(attribute);
     }
   }
-  for (const [prefix, uri] of element.namespaces) {
+  for await (const [prefix, uri] of namespaces) {
     { const _p = budget.tick(uri.length + prefix.length + 1); if (_p) await _p; }
     if (prefix === "xml") continue;
     if (exclusive) {
@@ -66,7 +69,7 @@ async function attributes(
       }
       if (!used) continue;
     }
-    if (uri === (inherited.get(prefix) ?? "")) continue;
+    if (uri === ((await inherited.get(prefix)) ?? "")) continue;
     const attribute = {
       name: prefix ? `xmlns:${prefix}` : "xmlns",
       namespace: xmlns,
@@ -95,7 +98,7 @@ type Reference = XmlContent | number;
 interface Frame {
   content: Reference | string;
   depth: number;
-  namespaces: ReadonlyMap<string, string>;
+  namespaces: NamespaceScope;
   preserveSpace: boolean;
   preserveBlanks: boolean;
   inline: boolean;
@@ -105,7 +108,6 @@ interface Frame {
  * Reverse links in place to schedule siblings in order without retaining them. */
 class StoredFrames {
   private head = 0;
-  private readonly namespaces = new WeakMap<ReadonlyMap<string, string>, number>();
   constructor(private readonly document: StoredXmlDocument) {}
 
   private async store(value: unknown): Promise<number> {
@@ -127,11 +129,8 @@ class StoredFrames {
     let reversed = 0;
     for await (const frame of source) {
       const checkpoint = this.document.budget.tick(); if (checkpoint) await checkpoint;
-      let namespaces = this.namespaces.get(frame.namespaces);
-      if (namespaces === undefined) {
-        namespaces = await this.store([...frame.namespaces]);
-        this.namespaces.set(frame.namespaces, namespaces);
-      }
+      if (!(frame.namespaces instanceof StoredNamespaces)) throw new TypeError("Stored frames require backed namespace scopes");
+      const namespaces = frame.namespaces.reference;
       const value = await this.store({ ...frame, namespaces });
       const link = new Uint8Array(16), view = new DataView(link.buffer);
       view.setFloat64(0, reversed, true); view.setFloat64(8, value, true);
@@ -153,8 +152,7 @@ class StoredFrames {
     const view = new DataView(link.buffer, link.byteOffset, 16);
     this.head = view.getFloat64(0, true);
     const frame = await this.load(view.getFloat64(8, true)) as Omit<Frame, "namespaces"> & { namespaces: number };
-    const namespaces = new Map(await this.load(frame.namespaces) as [string, string][]);
-    this.namespaces.set(namespaces, frame.namespaces);
+    const namespaces = new StoredNamespaces(this.document.storage, this.document.budget, frame.namespaces);
     return { ...frame, namespaces };
   }
 }
@@ -186,6 +184,9 @@ export async function* serializeDocument(
     if (typeof reference === "number") yield* stored!.attributes(reference);
     else if (reference.kind === "element") yield* reference.attributes;
   }
+  async function namespaceScope(reference: Reference, element: XmlElement): Promise<NamespaceScope> {
+    return typeof reference === "number" ? stored!.namespaceScope(reference) : element.namespaces;
+  }
   const root = await load(rootReference) as XmlElement;
   const canonical = mode !== "format";
   const documentDeclaration = options.declaration ?? root.declaration;
@@ -209,7 +210,7 @@ export async function* serializeDocument(
       const element = await load(reference);
       if (element.kind !== "element") continue;
       { const p = budget.tick(); if (p) await p; }
-      for (const [prefix, uri] of element.namespaces) {
+      for await (const [prefix, uri] of await namespaceScope(reference, element)) {
         { const p = budget.tick(uri.length + prefix.length + 1); if (p) await p; }
         if (!uri) continue;
         const colon = uri.indexOf(":");
@@ -221,7 +222,7 @@ export async function* serializeDocument(
       }
     }
   } else yield declaration(documentDeclaration);
-  const namespaces = new Map<string, string>([["xml", xml]]);
+  const namespaces: NamespaceScope = stored ? await new StoredNamespaces(stored.storage, budget).set("xml", xml) : new Map([["xml", xml]]);
   async function* siblings(): AsyncGenerator<Reference> {
     if (stored) yield* stored.children(stored.document);
     else {
@@ -305,7 +306,7 @@ export async function* serializeDocument(
       }
       let count = 0, mixed = false;
       for await (const child of selectedChildren(reference, preserveSpace, preserveBlanks)) { count++; mixed = child.mixed; }
-      const ordered = canonical ? await attributes(current, () => elementAttributes(reference), frame.namespaces, budget, mode === "exc-c14n", stored) : [];
+      const ordered = canonical ? await attributes(current, () => elementAttributes(reference), await namespaceScope(reference, current), frame.namespaces, budget, mode === "exc-c14n", stored) : [];
       async function* outputAttributes(): AsyncGenerator<XmlAttribute> {
         if (canonical) yield* ordered;
         else for (const namespace of [true, false]) for await (const attribute of elementAttributes(reference)) {
@@ -318,9 +319,12 @@ export async function* serializeDocument(
       yield `<${current.name}`;
       for await (const attribute of outputAttributes()) {
         if (canonical && attribute.namespace === xmlns) {
-          changed ??= new Map(frame.namespaces);
-          changed.set(attribute.localName, attribute.value);
-          childNamespaces = changed;
+          if (childNamespaces instanceof StoredNamespaces) childNamespaces = await childNamespaces.set(attribute.localName, attribute.value);
+          else {
+            changed ??= new Map(childNamespaces);
+            changed.set(attribute.localName, attribute.value);
+            childNamespaces = changed;
+          }
         }
         { const p = budget.tick(); if (p) await p; }
         yield ` ${attribute.name}="`;

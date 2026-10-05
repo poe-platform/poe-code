@@ -271,3 +271,34 @@ test("stored query and serialization paths avoid the buffered element loader", a
     }
   } finally { await document.close(); }
 });
+
+test("stored namespace scopes avoid aggregate metadata and preserve shadowing", async () => {
+  const { StoredXPath } = await import("./stored-evaluate.js");
+  const { parseQuery } = await import("./query.js");
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const declarations = Array.from({ length: 120 }, (_, index) => ` xmlns:p${index}="urn:${index}"`).join("");
+  const input = `<r${declarations}><p119:x xmlns:p0="urn:changed"><p0:x/></p119:x><p0:x/></r>`;
+  const document = await StoredXmlDocument.parse([input], { fs, cwd: "/", env: {}, signal }, budget, 1);
+  try {
+    const root = await document.metadata(document.root);
+    assert.equal(root.kind, "element");
+    if (root.kind !== "element") assert.fail();
+    assert.equal(root.namespaces.size, 0, "mandatory metadata must not materialize namespace scopes");
+    const buffered = await document.node(document.root);
+    assert.equal(buffered.kind, "element");
+    if (buffered.kind !== "element") assert.fail();
+    assert.equal(buffered.namespaces.get("p119"), "urn:119");
+    const xpath = new StoredXPath(document, budget);
+    assert.equal(await xpath.scalar(await parseQuery("count(//p0:x)", budget)), "1");
+    assert.equal(await xpath.scalar(await parseQuery("count(//p119:x)", budget)), "1");
+    const { parseXml } = await import("@poe-code/safe-fs/core");
+    for (const mode of ["format", "c14n", "exc-c14n"] as const) {
+      let actual = "", expected = "";
+      for await (const part of serializeDocument(document, mode, budget)) actual += part;
+      for await (const part of serializeDocument(parseXml(input), mode, budget)) expected += part;
+      assert.equal(actual, expected);
+    }
+  } finally { await document.close(); }
+  assert.deepEqual(await fs.readdir("/"), []);
+});

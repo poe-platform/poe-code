@@ -104,9 +104,10 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
     }
     async function* outlines() {
       let depth = 0, skipLevel: number | undefined;
-      for await (const item of doc.outlineDetails({ includeUntitled: true, includeNameTitles: false })) {
+      for await (const item of doc.streamOutlineDetails({ includeUntitled: true, includeNameTitles: false })) {
         if (skipLevel !== undefined) { if (item.level > skipLevel) continue; skipLevel = undefined; }
-        if (!item.title) { skipLevel = item.level; continue; }
+        let hasTitle = false; for await (const part of item.title()) if (part) { hasTitle = true; break; }
+        if (!hasTitle) { skipLevel = item.level; continue; }
         await yieldTurn(signal);
         if (!depth) yield plan.xmlMode ? "  <outline>\n" : '<hr/>\n<a name="outline"></a><h1>Document Outline</h1>\n<ul>\n';
         const level = Math.max(1, item.level);
@@ -120,7 +121,7 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
         depth = level;
         if (plan.xmlMode) yield* indent(depth + 1);
         yield plan.xmlMode ? `<item page="${item.pageIndex + 1}">` : `<li><a href="#page${item.pageIndex + 1}">`;
-        for (let at = 0; at < item.title.length; at += 2048) yield escape(item.title.slice(at, at + 2048));
+        for await (const part of item.title()) yield escape(part);
         yield plan.xmlMode ? "</item>\n" : "</a>\n";
       }
       if (depth && !plan.xmlMode) yield "</li>\n";

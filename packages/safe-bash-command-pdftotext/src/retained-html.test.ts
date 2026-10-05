@@ -38,15 +38,16 @@ for (const mode of [[], ["-xml"]]) for (const image of [[], ["-i"], ["-dataurls"
   });
 }
 
-for (const mode of [[], ["-xml"]]) test(`retained HTML preserves nested outlines and skips untitled branches: ${mode}`, async () => {
+for (const mode of [[], ["-xml"]]) test(`retained HTML preserves nested outlines and skips untitled branches: ${mode}`, async (t) => {
   const doc = PdfDocument.create(); doc.addPage().drawText("Outline", { x: 10, y: 100 });
   const item = (title: string, extra = {}) => cosDict({ Title: cosString(title), Dest: cosArray([cosNumber(0), cosName("Fit")]), ...extra });
   const following = item("Following");
   const hidden = item("", { First: item("Hidden child"), Next: following });
-  const parent = item("Parent & title", { First: item("Child", { First: item("Grandchild") }), Next: hidden });
+  const parent = item("Parent & 😀 title".repeat(2048), { First: item("Child", { First: item("Grandchild") }), Next: hidden });
   dictSet(doc.cos.resolveDict(doc.cos.rootRef)!, "Outlines", cosDict({ First: parent }));
   const input = doc.save(), args = [...mode, "input.pdf", "-"];
   const expected = await runPdftohtmlCli(args, new Map([["input.pdf", input]])), f = await fixture(input, args);
+  t.mock.method(PdfRetainedDocument.prototype, "outlineDetails", () => { throw new Error("whole outline title forbidden"); });
   assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, expected.exitCode);
   assert.equal(new TextDecoder().decode(joined(f.stdout)), expected.stdout); await f.clean();
 });

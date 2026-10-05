@@ -163,3 +163,44 @@ it.each(["finish", "return", "document-close"])("retains outline levels and clos
   } finally { await details.return(); await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("streams retained outline titles after the source closes", async () => {
+  const { PdfMergeOutlines } = await import("./retained-merge-outlines.js");
+  const original = PdfDocument.create(); original.addPage(); const title = "café😀<&".repeat(8192);
+  const item = original.cos.allocateObject(cosDict({ Title: cosString(title), Dest: cosArray([original.getPage(0).ref, cosName("Fit")]) }));
+  dictSet(original.cos.resolveDict(original.cos.rootRef)!, "Outlines", cosDict({ First: item }));
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
+  const storage = { fs, directory: "/scratch" }, source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+  const outlines = new PdfMergeOutlines(storage, new AbortController().signal);
+  try {
+    await outlines.append(document, 0); await document.close(); await source.close();
+    let count = 0;
+    for await (const item of outlines.streamDetails()) {
+      expect(item.pageIndex).toBe(0); expect(item.level).toBe(1);
+      for (let repeat = 0; repeat < 2; repeat++) {
+        let actual = ""; for await (const part of item.title()) { expect(part.length).toBeLessThanOrEqual(4096); actual += part; }
+        expect(actual).toBe(title);
+      }
+      count++;
+    }
+    expect(count).toBe(1);
+  } finally { await outlines.close(); await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it.each(["return", "close", "cancel"])("releases streamed title backing on %s", async mode => {
+  const original = PdfDocument.create(); original.addPage();
+  dictSet(original.cos.resolveDict(original.cos.rootRef)!, "Outlines", cosDict({ First: cosDict({ Title: cosString("title".repeat(8192)) }) }));
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
+  const controller = new AbortController(), source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { signal: controller.signal });
+  const walk = document.streamOutlineDetails();
+  try {
+    const item = (await walk.next()).value!; if (!item) throw new Error("missing outline");
+    const title = item.title(); expect((await title.next()).value).toBeTruthy();
+    if (mode === "return") await walk.return();
+    else if (mode === "close") await document.close();
+    else { controller.abort(new Error("cancel title")); await walk.return(); }
+    await expect(item.title().next()).rejects.toThrow(); await title.return();
+  } finally { await walk.return(); await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

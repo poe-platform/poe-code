@@ -1222,7 +1222,11 @@ from the first source unless `metadata` supplies an override; pass `{}` to keep
 only the default producer. Forms accumulate with the ordinary page-copy behavior.
 With `includeOutlines: true`, full-document selections flatten source outlines,
 preserving titles and destinations with source offsets and first-page fallbacks.
-Traversal frames, outline records and page-reference indexes use caller storage.
+Traversal frames, outline records, title strings, and page-reference indexes use
+caller storage. `document.streamOutlineDetails()` yields `pageIndex`, `level`, and
+a repeatable `title()` string stream. Consume titles before closing the outer
+iterator; document closure also releases their backing. `outlineDetails()` and
+`outlines()` remain conveniences that collect one title at a time.
 
 With `includePageLabels: true`, full-document selections retain source page labels
 offset by the preceding copied pages. Label records and the final number tree use

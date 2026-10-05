@@ -1,6 +1,6 @@
 import type { PdfMutableObjectStore } from "./cos/mutable-object-store.js";
 import type { PdfIndexStorage } from "./cos/object-index.js";
-import { PdfMergeOutlines } from "./edit/retained-merge-outlines.js";
+import { PdfMergeOutlines, type PdfStreamedOutline } from "./edit/retained-merge-outlines.js";
 import { walkRetainedAttachments, type PdfRetainedAttachment } from "./extract/retained-attachments.js";
 import { walkRetainedFonts, type PdfFontSelection, type PdfRetainedFont } from "./extract/retained-fonts.js";
 import { walkRetainedFormFieldDetails, type PdfRetainedFormFieldDetails } from "./extract/retained-form-field-details.js";
@@ -13,6 +13,7 @@ import { walkRetainedStructure, type PdfRetainedStructureItem, type PdfStructure
 import { PdfRetainedReader, openRetainedSource, openRetainedStore, type PdfRetainedDocumentOptions, type PdfStoredDocumentOptions } from "./retained-reader.js";
 import type { PdfFileSource } from "./source.js";
 import { PdfStagingStorage } from "./staging-budget.js";
+export type { PdfStreamedOutline } from "./edit/retained-merge-outlines.js";
 export { PdfRetainedPage, PdfRetainedReader, type PdfRetainedDocumentOptions, type PdfRetainedPageAttributes, type PdfRetainedValue, type PdfStoredDocumentOptions } from "./retained-reader.js";
 
 /** Retained document reader with document-wide extraction conveniences. */
@@ -83,7 +84,7 @@ export class PdfRetainedDocument extends PdfRetainedReader {
     async function* visit(doc: PdfRetainedDocument): AsyncGenerator<{ title: string; pageIndex: number }, void, void> {
       doc.assertOpen(); doc.walks.add(work);
       const storage = new PdfStagingStorage(doc.storage, doc.options.maxTraversalStagingBytes);
-      const outlines = new PdfMergeOutlines(storage, doc.options.signal!, Infinity);
+      const outlines = new PdfMergeOutlines(storage, doc.options.signal!, Infinity, doc.options.maxTraversalStagingBytes);
       let failed = false;
       try { await outlines.append(doc, 0, true); yield* outlines.entries(); }
       catch (error) { failed = true; throw error; }
@@ -96,9 +97,23 @@ export class PdfRetainedDocument extends PdfRetainedReader {
     async function* visit(doc: PdfRetainedDocument): AsyncGenerator<{ title: string; pageIndex: number; level: number }, void, void> {
       doc.assertOpen(); doc.walks.add(work);
       const storage = new PdfStagingStorage(doc.storage, doc.options.maxTraversalStagingBytes);
-      const outlines = new PdfMergeOutlines(storage, doc.options.signal!, Infinity);
+      const outlines = new PdfMergeOutlines(storage, doc.options.signal!, Infinity, doc.options.maxTraversalStagingBytes);
       let failed = false;
       try { await outlines.append(doc, 0, options.includeUntitled ?? false, options.includeNameTitles ?? true); yield* outlines.details(); }
+      catch (error) { failed = true; throw error; }
+      finally { doc.walks.delete(work); await outlines.close().catch(error => { if (!failed) throw error; }); }
+    }
+    const work = visit(this); return work;
+  }
+
+  /** Repeatable title streams remain valid until the outer traversal closes. */
+  streamOutlineDetails(options: { readonly includeUntitled?: boolean; readonly includeNameTitles?: boolean } = {}): AsyncGenerator<PdfStreamedOutline, void, void> {
+    async function* visit(doc: PdfRetainedDocument): AsyncGenerator<PdfStreamedOutline, void, void> {
+      doc.assertOpen(); doc.walks.add(work);
+      const storage = new PdfStagingStorage(doc.storage, doc.options.maxTraversalStagingBytes);
+      const outlines = new PdfMergeOutlines(storage, doc.options.signal!, Infinity, doc.options.maxTraversalStagingBytes);
+      let failed = false;
+      try { await outlines.append(doc, 0, options.includeUntitled ?? false, options.includeNameTitles ?? true); yield* outlines.streamDetails(); }
       catch (error) { failed = true; throw error; }
       finally { doc.walks.delete(work); await outlines.close().catch(error => { if (!failed) throw error; }); }
     }

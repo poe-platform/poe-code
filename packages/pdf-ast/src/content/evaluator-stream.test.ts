@@ -147,7 +147,7 @@ it("suspends named marked-content properties for retained lookup", async () => {
   expect(work.next().value).toEqual({ kind: "node" });
   const nodes = parseContentStream(new TextEncoder().encode("/Span /Label BDC BT /F1 12 Tf (A) Tj ET EMC"));
   let step = work.next(nodes[0]);
-  expect(step.value).toEqual({ kind: "resolve", node: properties });
+  expect(step.value).toEqual({ kind: "resolve", node: properties, arrayPathPrefix: ["Resources", "Properties"] });
   let reads = 0;
   while (!step.done) {
     if (step.value.kind === "resolve") {

@@ -10,7 +10,13 @@ non-streaming backends retain a buffered compatibility path. Blank-line filterin
 uses bounded scans and stored edit flags across output modes. Regex ignored lines
 and function headings stream when their patterns do not require capture replay.
 Backreferences replay UTF-16 text and deduplicated search states in caller storage
-with a shared 256 KiB page cache. Directory metadata still needs migration. GNU patch
+with a shared 256 KiB page cache. Directory entry grouping and matching now use
+caller-backed records and merge indexes with one shared 256 KiB cache, plus
+individual entry names. Enumeration uses directory iterators where available;
+large listings close the initial iterator and acquire backing handles before
+one restart, so spill acquisition cannot invalidate the new snapshot. Pending
+traversal/ancestry metadata, exclusions and array-only directory backends remain.
+GNU patch
 target payloads, hunk application and publication now use caller-backed documents
 and retained staging writers, including merge/ifdef, backups, rejects and output
 concatenation. Target documents, rendered rejects and status output share a

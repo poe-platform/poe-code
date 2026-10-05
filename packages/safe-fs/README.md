@@ -15,6 +15,9 @@ To bound aggregate pages across multiple live stores, pass the same
 This shares a 256 KiB resident-page budget; `cache.residentBytes` reports current
 page retention. Eviction uses each store's filesystem, and each store still owns
 its `close()` cleanup. The budget excludes caller buffers and backend storage.
+Call `await storage.prepare()` before opening a directory iterator when its
+snapshot includes the scratch directory. It acquires and unlinks the backing
+handle up front, so later spills do not mutate that directory's namespace.
 `IntegerTable.entries()` replays records in unsigned key order with a fixed
 16-level node stack and batches of at most 128 records. It accepts zero-filled
 caller storage with `allocate`, `read` and `write`; mutation during traversal

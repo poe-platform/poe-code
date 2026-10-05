@@ -3,6 +3,24 @@ import {MemoryFileSystem} from "./fs/memory/index.js";
 import {PagedStorage, PagedStorageCache, IntegerTable} from "./storage.js";
 import type {FileSystem} from "./contracts/filesystem.js";
 
+it("prepares one detached backing handle before directory iteration and preserves cached data", async () => {
+  const fs = new MemoryFileSystem(), context = {fs, cwd: "/", env: {}, signal: new AbortController().signal};
+  const storage = new PagedStorage(context, 1), open = vi.spyOn(fs, "open");
+  try {
+    const position = await storage.append(new Uint8Array([37, 42]));
+    await Promise.all([storage.prepare(), storage.prepare()]);
+    expect(open).toHaveBeenCalledTimes(1);
+    await fs.writeFile("/entry", new Uint8Array());
+    for await (const entry of fs.iterateDirectory("/")) {
+      expect(entry.name).toBe("entry");
+      for (let index = 0; index < 4; index++) await storage.append(new Uint8Array(16384).fill(index));
+    }
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(await storage.read(position, 2)).toEqual(new Uint8Array([37, 42]));
+  } finally { await storage.close(); }
+  expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["entry"]);
+});
+
 it("shares a fixed page budget across independently live stores and concurrent readers", async () => {
   const fs = new MemoryFileSystem();
   const cache = new PagedStorageCache(2);

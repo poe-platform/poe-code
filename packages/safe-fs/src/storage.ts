@@ -83,6 +83,11 @@ export class PagedStorage {
     return offset;
   }
 
+  /** Acquire and unlink backing storage before observing a directory snapshot. */
+  async prepare(): Promise<void> {
+    await this.operation(async () => { if (!this.descriptor) await this.spill(); });
+  }
+
   private operation<T>(action: () => Promise<T>): Promise<T> {
     this.signal.throwIfAborted();
     const execute = () => {

@@ -53,6 +53,10 @@ formatter also emits bounded chunks within long lines.
 Blank-line filtering (`-B`) scans indexed lines in bounded blocks across output modes.
 Ignored-line and function-heading patterns scan bounded blocks; backreferences
 replay text and deduplicated search state through caller storage with a shared
-256 KiB page cache. Headings retain only their displayed prefix. Directory
-metadata and special-file
+256 KiB page cache. Headings retain only their displayed prefix. Directory entry
+grouping, matching and ordering use stored records with a shared 256 KiB cache
+plus individual entry names. Large listings acquire scratch handles before
+restarting enumeration once, avoiding changes to a live directory snapshot.
+Pending traversal and ancestry metadata, exclusion patterns, array-only directory
+backends and special-file
 backends without streaming reads still have buffered paths; this is not a general bounded-memory guarantee for every diff option.

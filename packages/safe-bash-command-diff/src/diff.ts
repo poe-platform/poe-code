@@ -1,3 +1,4 @@
+import { directoryMatches } from "./stored-directory.js";
 import { closeDocumentResources } from "safe-bash-diff-engine/document";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { indexedDiff, type StdinDocument } from "./indexed.js";
@@ -272,57 +273,15 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
       }
       const leftParents = leftIdentity === undefined ? pair.leftParents : [...pair.leftParents, leftIdentity];
       const rightParents = rightIdentity === undefined ? pair.rightParents : [...pair.rightParents, rightIdentity];
-      const names = new Map<string, { left: string[]; right: string[] }>();
-      const key = (name: string) => options.ignoreFileNameCase ? name.replace(/[A-Z]/gu, letter => letter.toLowerCase()) : name;
-      // Each side may contain all the same names; only their union consumes pairs.
-      const maxEntries = budget.remainingFiles - pending.length;
-      let count = 0;
-      for (const [side, path] of [["left", leftStat ? left : undefined], ["right", rightStat ? right : undefined]] as const) {
-        if (path === undefined) continue;
-        const entries = await host(context, () => context.fs.readdir(pathOf(context, path), { signal: context.signal, ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }));
-        if (entries.length > maxEntries) throw new ToolError("file/entry limit exceeded");
-        for (const entry of entries) {
-          budget.step();
-          if (!entry.name || entry.name === "." || entry.name === ".." || /[/\\\0\r\n\t]/u.test(entry.name)) throw new ToolError("unsafe directory entry name");
-          let excluded = false;
-          const byteName = exclusions.length ? decodeBytes(encodeBytes(entry.name), "latin1") : entry.name;
-          for (const pattern of exclusions) if (await pattern.find(byteName, budget)) { excluded = true; break; }
-          if (excluded) continue;
-          const folded = key(entry.name);
-          let group = names.get(folded);
-          if (!group) { group = { left: [], right: [] }; names.set(folded, group); }
-          const before = Math.max(group.left.length, group.right.length);
-          group[side].push(entry.name);
-          count += Math.max(group.left.length, group.right.length) - before;
-          if (count > maxEntries) throw new ToolError("file/entry limit exceeded");
-        }
-      }
-      for (const name of [...names.keys()].sort().reverse()) {
-        if (!pair.nested && options.startingFile !== undefined && name < key(options.startingFile)) continue;
-        const group = names.get(name)!;
-        group.left.sort();
-        group.right.sort();
-        const rightNames = new Set(group.right);
-        const matches: { left?: string; right?: string }[] = [];
-        const unmatchedLeft: string[] = [];
-        for (const leftName of group.left) {
-          if (rightNames.delete(leftName)) matches.push({ left: leftName, right: leftName });
-          else unmatchedLeft.push(leftName);
-        }
-        const unmatchedRight = [...rightNames];
-        for (let index = 0; index < Math.max(unmatchedLeft.length, unmatchedRight.length); index++) {
-          const leftName = unmatchedLeft[index], rightName = unmatchedRight[index];
-          matches.push({ ...(leftName === undefined ? {} : { left: leftName }), ...(rightName === undefined ? {} : { right: rightName }) });
-        }
-        matches.sort((first, second) => {
-          const unmatched = Number(first.left === undefined || first.right === undefined) - Number(second.left === undefined || second.right === undefined);
-          const firstName = first.left ?? first.right!, secondName = second.left ?? second.right!;
-          return unmatched || (firstName < secondName ? -1 : firstName > secondName ? 1 : 0);
-        });
-        for (const match of matches.reverse()) {
-          pending.push({ left: childPath(left, match.left ?? match.right!), right: childPath(right, match.right ?? match.left!),
-            nested: true, leftParents, rightParents, leftEntry: match.left !== undefined, rightEntry: match.right !== undefined });
-        }
+      const excluded = async (name: string) => {
+        const byteName = exclusions.length ? decodeBytes(encodeBytes(name), "latin1") : name;
+        for (const pattern of exclusions) if (await pattern.find(byteName, budget)) return true;
+        return false;
+      };
+      for await (const match of directoryMatches(leftStat ? left : undefined, rightStat ? right : undefined, budget,
+        options.ignoreFileNameCase, budget.remainingFiles - pending.length, excluded, pair.nested ? undefined : options.startingFile)) {
+        pending.push({ left: childPath(left, match.left ?? match.right!), right: childPath(right, match.right ?? match.left!),
+          nested: true, leftParents, rightParents, leftEntry: match.left !== undefined, rightEntry: match.right !== undefined });
       }
       continue;
     }

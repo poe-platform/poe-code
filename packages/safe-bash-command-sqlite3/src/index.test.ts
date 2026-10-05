@@ -1049,3 +1049,39 @@ test("sqlite3 creates and queries an in-memory FTS5 table", async () => {
     "CREATE VIRTUAL TABLE docs USING fts5(title, body); INSERT INTO docs VALUES ('hello', 'world'); SELECT * FROM docs; SELECT title FROM docs WHERE docs MATCH 'WORLD';"]);
   assert.deepEqual(result, { code: 0, stdout: "hello|world\nhello\n", stderr: "" });
 });
+
+test("sqlite3 records persistent foreign keys and enforces them only when enabled", async () => {
+  const fs = createMemoryFileSystem();
+  const setup = await runSqlite3(fs, ["/fk.db", "CREATE TABLE parent(id INTEGER PRIMARY KEY); CREATE TABLE child(id INTEGER PRIMARY KEY, pid INTEGER REFERENCES parent(id) ON DELETE CASCADE); INSERT INTO child VALUES(1,99);"]);
+  assert.equal(setup.code, 0, setup.stderr);
+  const meta = await runSqlite3(fs, ["-json", "/fk.db", "PRAGMA foreign_key_list(child);"]);
+  assert.deepEqual(JSON.parse(meta.stdout), [{ id: 0, seq: 0, table: "parent", from: "pid", to: "id", on_update: "NO ACTION", on_delete: "CASCADE", match: "NONE" }]);
+  const invalid = await runSqlite3(fs, ["/fk.db", "PRAGMA foreign_keys=ON; INSERT INTO child VALUES(2,100);"]);
+  assert.equal(invalid.code, 1);
+  assert.match(invalid.stderr, /FOREIGN KEY constraint failed/);
+});
+
+test("sqlite3 cascades deletes and sets composite foreign keys to null", async () => {
+  const res = await runSqlite3(createMemoryFileSystem(), ["-json", ":memory:", `
+    PRAGMA foreign_keys=ON;
+    CREATE TABLE parent(a INTEGER, b TEXT, PRIMARY KEY(a,b));
+    CREATE TABLE child(id INTEGER PRIMARY KEY, a INTEGER, b TEXT, CONSTRAINT fk FOREIGN KEY(a,b) REFERENCES parent(a,b) ON DELETE SET NULL);
+    CREATE TABLE leaf(id INTEGER REFERENCES child(id) ON DELETE CASCADE);
+    INSERT INTO parent VALUES(1,'x'); INSERT INTO child VALUES(7,1,'x'); INSERT INTO leaf VALUES(7);
+    DELETE FROM parent; SELECT a,b FROM child; DELETE FROM child; SELECT count(*) AS n FROM leaf;
+  `]);
+  assert.equal(res.code, 0, res.stderr);
+  assert.equal(res.stdout.trim(), '[{"a":null,"b":null}]\n[{"n":0}]');
+});
+
+test("sqlite3 rejects orphaning parent writes and child updates atomically", async () => {
+  const fs = createMemoryFileSystem();
+  assert.equal((await runSqlite3(fs, ["/fk.db", "CREATE TABLE p(id INTEGER PRIMARY KEY); CREATE TABLE c(pid INTEGER REFERENCES p); INSERT INTO p VALUES(1),(2); INSERT INTO c VALUES(1);"])).code, 0);
+  for (const sql of ["DELETE FROM p", "UPDATE p SET id=3 WHERE id=1", "UPDATE c SET pid=9", "INSERT OR IGNORE INTO c VALUES(9)"]) {
+    const res = await runSqlite3(fs, ["/fk.db", `PRAGMA foreign_keys=ON; ${sql};`]);
+    assert.equal(res.code, 1, sql);
+    assert.match(res.stderr, /FOREIGN KEY constraint failed/);
+  }
+  const rows = await runSqlite3(fs, ["/fk.db", "SELECT id FROM p ORDER BY id; SELECT pid FROM c;"]);
+  assert.equal(rows.stdout, "1\n2\n1\n");
+});

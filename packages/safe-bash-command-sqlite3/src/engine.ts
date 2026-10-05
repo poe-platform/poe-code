@@ -77,6 +77,14 @@ export interface TableRow {
   data: Record<string, SqlValue>;
 }
 
+interface ForeignKeyDef {
+  columns: string[];
+  table: string;
+  target: string[];
+  onDelete: string;
+  onUpdate: string;
+}
+
 export interface TableDef {
   name: string;
   sql: string;
@@ -90,6 +98,7 @@ export interface TableDef {
   primaryKeyOrder?: { desc: boolean; collation: string | undefined }[] | undefined;
   uniqueColSets: string[][];
   fts5?: boolean | undefined;
+  foreignKeys?: ForeignKeyDef[] | undefined;
 }
 
 // This bounded subset follows unicode61 for ASCII input. Reject other input
@@ -153,6 +162,7 @@ function cloneSqlValue(v: SqlValue): SqlValue {
 function cloneTableDef(t: TableDef): TableDef {
   return {
     fts5: t.fts5,
+    foreignKeys: t.foreignKeys?.map(key => ({ ...key, columns: [...key.columns], target: [...key.target] })),
     name: t.name,
     sql: t.sql,
     columns: t.columns.map((c) => ({ ...c })),
@@ -1642,6 +1652,7 @@ export class SqliteDatabase {
   public lastChanges = 0;
   public totalChanges = 0;
   public inTransaction = false;
+  private foreignKeyDepth = 0;
   private outerRows: Record<string, SqlValue>[] = [];
   private preparing = false;
   private txSnapshot: SnapshotState | null = null;
@@ -2161,16 +2172,32 @@ export class SqliteDatabase {
       return null;
     }
 
-    if (first === "INSERT" || first === "REPLACE") {
-      return yield* this.executeInsert(sql, tokens, positionalParams, cteScope);
-    }
-
-    if (first === "UPDATE") {
-      return yield* this.executeUpdate(tokens, positionalParams, cteScope);
-    }
-
-    if (first === "DELETE") {
-      return yield* this.executeDelete(tokens, positionalParams, cteScope);
+    if (["INSERT", "REPLACE", "UPDATE", "DELETE"].includes(first)) {
+      const snapshot = this.foreignKeys && this.foreignKeyDepth === 0 ? yield* this.captureSnapshot() : null;
+      const existingRows = new Set<TableRow>();
+      if (snapshot) {
+        for (const table of this.tables.values()) {
+          for (const row of table.rows) { yield; existingRows.add(row); }
+        }
+      }
+      const counters = [this.lastChanges, this.totalChanges, this.lastInsertRowid];
+      this.foreignKeyDepth++;
+      try {
+        let result: QueryResultSet | null;
+        if (first === "UPDATE") result = yield* this.executeUpdate(tokens, positionalParams, cteScope);
+        else if (first === "DELETE") result = yield* this.executeDelete(tokens, positionalParams, cteScope);
+        else result = yield* this.executeInsert(sql, tokens, positionalParams, cteScope);
+        if (snapshot) yield* this.validateForeignKeys(snapshot, existingRows);
+        return result;
+      } catch (error) {
+        if (snapshot) {
+          yield* this.restoreSnapshot(snapshot);
+          [this.lastChanges, this.totalChanges, this.lastInsertRowid] = counters as [number, number, number];
+        }
+        throw error;
+      } finally {
+        this.foreignKeyDepth--;
+      }
     }
 
     if (first === "WITH") {
@@ -2221,7 +2248,7 @@ export class SqliteDatabase {
     if (name === "foreign_keys") {
       if (arg !== undefined) {
         const u = arg.toUpperCase();
-        this.foreignKeys = u === "1" || u === "ON" || u === "TRUE";
+        if (!this.inTransaction && this.savepoints.size === 0) this.foreignKeys = u === "1" || u === "ON" || u === "TRUE";
         return null;
       }
       return { columns: ["foreign_keys"], rows: [[this.foreignKeys ? 1 : 0]] };
@@ -2319,7 +2346,8 @@ export class SqliteDatabase {
     if (name === "foreign_key_list") {
       return {
         columns: ["id", "seq", "table", "from", "to", "on_update", "on_delete", "match"],
-        rows: []
+        rows: (this.findTable(arg ?? "")?.foreignKeys ?? []).flatMap((key, id) =>
+          key.columns.map((column, seq) => [id, seq, key.table, column, key.target[seq] ?? null, key.onUpdate, key.onDelete, "NONE"]))
       };
     }
     if (name === "compile_options") {
@@ -2510,6 +2538,7 @@ export class SqliteDatabase {
       const primaryKeyCols: string[] = [];
       const primaryKeyOrder: NonNullable<TableDef["primaryKeyOrder"]> = [];
       const uniqueColSets: string[][] = [];
+      const foreignKeys: ForeignKeyDef[] = [];
 
       for (const part of bodyParts) {
         yield;
@@ -2521,6 +2550,36 @@ export class SqliteDatabase {
           pIdx += 2;
         }
         const firstWord = (part[pIdx]?.value ?? "").toUpperCase();
+        const reference = part.findIndex(token => token.type === "word" && token.value.toUpperCase() === "REFERENCES");
+        if (reference !== -1) {
+          let cursor = reference + 1;
+          const table = part[cursor++]!.value;
+          const readColumns = (start: number): string[] => {
+            const names: string[] = [];
+            for (let i = start + 1; i < part.length && part[i]!.value !== ")"; i++) {
+              if (part[i]!.value !== ",") names.push(part[i]!.value);
+            }
+            return names;
+          };
+          const target = part[cursor]?.value === "(" ? readColumns(cursor) : [];
+          const key: ForeignKeyDef = {
+            table, target, columns: firstWord === "FOREIGN" ? readColumns(pIdx + 2) : [part[0]!.value],
+            onDelete: "NO ACTION", onUpdate: "NO ACTION"
+          };
+          for (; cursor < part.length; cursor++) {
+            if (part[cursor]?.value.toUpperCase() === "DEFERRABLE" && part[cursor - 1]?.value.toUpperCase() !== "NOT") {
+              throw new Error("unsupported deferred foreign key");
+            }
+            if (part[cursor]?.value.toUpperCase() !== "ON") continue;
+            const event = part[++cursor]?.value.toUpperCase();
+            let action = part[++cursor]?.value.toUpperCase() ?? "";
+            if (action === "SET" || action === "NO") action += " " + part[++cursor]?.value.toUpperCase();
+            if (!["CASCADE", "SET NULL", "SET DEFAULT", "RESTRICT", "NO ACTION"].includes(action)) throw new Error("invalid foreign key action");
+            if (event === "DELETE") key.onDelete = action;
+            else if (event === "UPDATE") key.onUpdate = action;
+          }
+          foreignKeys.unshift(key);
+        }
         if (firstWord === "PRIMARY" && part[pIdx + 1]?.value.toUpperCase() === "KEY") {
           pIdx += 2;
           if (part[pIdx]?.value === "(") {
@@ -2600,7 +2659,8 @@ export class SqliteDatabase {
         strict,
         primaryKeyCols,
         primaryKeyOrder,
-        uniqueColSets
+        uniqueColSets,
+        foreignKeys
       });
       return;
     }
@@ -3167,6 +3227,110 @@ export class SqliteDatabase {
     return `X'${hex}'`;
   }
 
+  private foreignKeyColumns(parent: TableDef, key: ForeignKeyDef): ColumnDef[] {
+    const names = key.target.length ? key.target : parent.primaryKeyCols;
+    const columns = names.map(name => parent.columns.find(column => column.name.toLowerCase() === name.toLowerCase()));
+    const uniqueSets = [parent.primaryKeyCols, ...parent.uniqueColSets,
+      ...[...this.indexes.values()].filter(index => index.unique && index.tableName.toLowerCase() === parent.name.toLowerCase()).map(index => index.columns)];
+    if (names.length !== key.columns.length || columns.some(column => !column) || !uniqueSets.some(set =>
+      set.length === names.length && set.every((name, i) => name.toLowerCase() === names[i]!.toLowerCase()))) {
+      throw new Error(`foreign key mismatch - referencing ${parent.name}`);
+    }
+    return columns as ColumnDef[];
+  }
+
+  private foreignKeyMatches(child: TableDef, row: TableRow, key: ForeignKeyDef, columns: ColumnDef[], parent: Record<string, SqlValue>): boolean {
+    return key.columns.every((name, i) => {
+      const column = child.columns.find(column => column.name.toLowerCase() === name.toLowerCase());
+      if (!column) throw new Error(`unknown column ${name} in foreign key definition`);
+      const value = row.data[column.name] ?? null;
+      const target = columns[i]!;
+      return value !== null && sqlEquals(applyColumnAffinity(value, target.type, false), parent[target.name] ?? null, target.collate) === true;
+    });
+  }
+
+  private *validateForeignKeys(before: SnapshotState, existingRows: Set<TableRow>): SqlSteps<void> {
+    for (const child of this.tables.values()) {
+      for (const key of child.foreignKeys ?? []) {
+        yield;
+        const parent = this.findTable(key.table);
+        for (const row of child.rows) {
+          yield;
+          if (key.columns.some(name => {
+            const column = child.columns.find(column => column.name.toLowerCase() === name.toLowerCase());
+            return column && row.data[column.name] == null;
+          })) continue;
+          if (!parent) throw new Error(`no such table: ${key.table}`);
+          const columns = this.foreignKeyColumns(parent, key);
+          let found = false;
+          for (const target of parent.rows) {
+            yield;
+            if (this.foreignKeyMatches(child, row, key, columns, target.data)) { found = true; break; }
+          }
+          if (!found) {
+            // Enabling enforcement does not validate orphan rows written while it was off.
+            const oldChild = before.tables.get(child.name);
+            const oldRow = oldChild?.rows.find(old => old.rowid === row.rowid);
+            const unchanged = existingRows.has(row) && oldRow && key.columns.every(name => {
+              const column = child.columns.find(column => column.name.toLowerCase() === name.toLowerCase())!;
+              return sqlEquals(oldRow.data[column.name] ?? null, row.data[column.name] ?? null) === true;
+            });
+            if (unchanged) {
+              let previouslyValid = false;
+              const oldParent = before.tables.get(parent.name);
+              for (const target of oldParent?.rows ?? []) {
+                yield;
+                if (this.foreignKeyMatches(child, oldRow, key, columns, target.data)) { previouslyValid = true; break; }
+              }
+              if (!previouslyValid) continue;
+            }
+            throw new Error("FOREIGN KEY constraint failed");
+          }
+        }
+      }
+    }
+  }
+
+  private *applyForeignKeyActions(parent: TableDef, oldData: Record<string, SqlValue>, newData?: Record<string, SqlValue>): SqlSteps<void> {
+    if (!this.foreignKeys) return;
+    if (this.foreignKeyDepth > 100) throw new Error("too many levels of foreign key recursion");
+    const quote = (name: string): string => '"' + name.split('"').join('""') + '"';
+    for (const child of this.tables.values()) {
+      for (const key of child.foreignKeys ?? []) {
+        yield;
+        if (key.table.toLowerCase() !== parent.name.toLowerCase()) continue;
+        const columns = this.foreignKeyColumns(parent, key);
+        if (newData && columns.every(column => sqlEquals(oldData[column.name] ?? null, newData[column.name] ?? null, column.collate) === true)) continue;
+        const action = newData ? key.onUpdate : key.onDelete;
+        if (action === "NO ACTION") continue;
+        const matches: TableRow[] = [];
+        for (const row of child.rows) {
+          yield;
+          if (this.foreignKeyMatches(child, row, key, columns, oldData)) matches.push(row);
+        }
+        if (action === "RESTRICT" && matches.length) throw new Error("FOREIGN KEY constraint failed");
+        for (const row of matches) {
+          yield;
+          // Use ordinary writes so cascades obey constraints and fire triggers.
+          const where = child.withoutRowId
+            ? child.primaryKeyCols.map(name => `${quote(name)} IS ${this.toSqlLiteral(row.data[name] ?? null)}`).join(" AND ")
+            : `rowid = ${row.rowid}`;
+          if (action === "CASCADE" && !newData) {
+            yield* this.executeStatementSteps(`DELETE FROM ${quote(child.name)} WHERE ${where}`);
+          } else {
+            const assignments = key.columns.map((name, i) => {
+              const column = child.columns.find(column => column.name.toLowerCase() === name.toLowerCase())!;
+              const value = action === "CASCADE" ? this.toSqlLiteral(newData![columns[i]!.name] ?? null)
+                : action === "SET DEFAULT" ? column.defaultExpr ?? "NULL" : "NULL";
+              return `${quote(name)} = ${value}`;
+            });
+            yield* this.executeStatementSteps(`UPDATE ${quote(child.name)} SET ${assignments.join(", ")} WHERE ${where}`);
+          }
+        }
+      }
+    }
+  }
+
   private *checkConstraintsAndConflicts(
     tbl: TableDef,
     candidate: TableRow,
@@ -3639,6 +3803,7 @@ export class SqliteDatabase {
           }
           yield* this.fireTriggers(tbl.name, "BEFORE", "UPDATE", oldData, newData);
           conflictRow.data = newData;
+          yield* this.applyForeignKeyActions(tbl, oldData, newData);
           yield* this.fireTriggers(tbl.name, "AFTER", "UPDATE", oldData, newData);
           insertedCount += 1;
           affectedRows.push(conflictRow);
@@ -3648,6 +3813,7 @@ export class SqliteDatabase {
           const idxToRemove = tbl.rows.indexOf(conflictRow);
           if (idxToRemove !== -1) {
             tbl.rows.splice(idxToRemove, 1);
+            yield* this.applyForeignKeyActions(tbl, conflictRow.data);
           }
         } else {
           throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
@@ -3933,10 +4099,12 @@ export class SqliteDatabase {
         if (conflictAction !== "REPLACE") throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
         replacedRows.add(conflict);
         tbl.rows.splice(tbl.rows.indexOf(conflict), 1);
+        yield* this.applyForeignKeyActions(tbl, conflict.data);
         conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate, row.rowid);
       }
       row.data = newData;
       row.rowid = candidate.rowid;
+      yield* this.applyForeignKeyActions(tbl, oldData, newData);
       tbl.nextRowId = Math.max(tbl.nextRowId, row.rowid + 1);
       tbl.maxAutoInc = Math.max(tbl.maxAutoInc, row.rowid);
       updated += 1;
@@ -4044,6 +4212,10 @@ export class SqliteDatabase {
     }
 
     tbl.rows = kept;
+    for (const row of deletedRows) {
+      yield;
+      yield* this.applyForeignKeyActions(tbl, row.data);
+    }
     this.lastChanges = deletedRows.length;
     this.totalChanges += deletedRows.length;
 

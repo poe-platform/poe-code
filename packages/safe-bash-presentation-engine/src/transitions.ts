@@ -355,3 +355,5 @@ export async function mutateTransitions(
   if (!affected.length && !options.allowEmpty) throw new SelectionError("missing-selection");
   return s.finish(selected[0]?.part ?? s.main, affected);
 }
+
+export { openRetainedTransitions, stageRetainedTransitions } from './retained-transitions.js';

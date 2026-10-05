@@ -51,6 +51,10 @@ Pass `'paragraphs'` for `paragraphFormats()` and `paragraphCount`, optionally
 selecting a zero-based `paragraph`. Paragraph formatting uses the same admitted
 JSON representation and streams tab lists. `stageRetainedText` supports
 `text.paragraphs.list` and `text.paragraphs.get`.
+`openRetainedTransitions` (from `transitions`) exposes `records()`, `count` and
+`close()` for ordered slide transition metadata. It preserves unsupported effects,
+slide selection and timing validation while keeping records in caller storage.
+`stageRetainedTransitions` provides staged `transitions.list/get` output.
 `openRetainedNotes` (from `notes`) exposes a caller-backed `records()` iterator,
 with replayable part/master references, speaker text and body IDs. Close it after
 reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with

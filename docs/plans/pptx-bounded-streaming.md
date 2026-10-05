@@ -726,7 +726,7 @@ extraction, workbook or Worker runtime matrix.
 
 | Area | Remaining migration |
 | --- | --- |
-| Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
 | Extraction | Image/media and embedded/opaque object extraction, including manifests and multi-output publication; package extraction is migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |
@@ -820,3 +820,21 @@ slow sinks, output limits, cancellation, storage/sink errors and cleanup. Native
 python-pptx chart/workbook input is compared through the built public adapter with
 whole-file reads forbidden. Other reads, extraction, mutations, workbook processing
 and actual Worker runtime qualification remain in the open operation matrix.
+
+
+## Retained transition reads
+
+`openRetainedTransitions` and the default `transitions list/get` commands now use
+retained input, complete shared-graph admission, caller-backed ordered records and
+staged responses. Slide cardinality includes slides without transitions even though
+those slides do not emit result items. Fixed-schema effect checks, wrapped/unknown
+transitions, sound actions and integer-millisecond admission use bounded state;
+arbitrarily padded timing attributes and unknown XML are never collected.
+
+Checks cover both dialects, selected/unfiltered SDK reads, supported and unsupported
+effects, extension durations, malformed scalars, zero/multiple-slide cardinality,
+reused source chunks, bounded writes, slow output, limits, cancellation, storage/sink
+failure and cleanup. A native two-slide python-pptx chart/workbook deck verifies
+exact output parity through the built public adapter with whole-file reads forbidden.
+Transition mutations, the other operation families and Worker qualification remain
+unfinished; this delivery does not change the remaining qualification matrix.

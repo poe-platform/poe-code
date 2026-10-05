@@ -1,3 +1,4 @@
+import { stageRetainedTransitions } from 'safe-bash-presentation-engine/transitions';
 import { stageRetainedMemberships } from 'safe-bash-presentation-engine/memberships';
 import { stageRetainedPresentationSettings } from 'safe-bash-presentation-engine/presentation-settings';
 import { stageRetainedTags, type TagOptions } from 'safe-bash-presentation-engine/tags';
@@ -4172,8 +4173,8 @@ async function executeRequest(
         publication = { inputPath: args.input!, outputPath: destination, bytes: staged.bytes(), originalBytes: input, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
       }
       result = success(operation, null);
-    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "text.frames.list" || args.operation === "text.frames.get" || args.operation === "text.runs.list" || args.operation === "text.runs.get" || args.operation === "text.paragraphs.list" || args.operation === "text.paragraphs.get" || args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "properties.list" || args.operation === "properties.get" || args.operation === "tags.list" || args.operation === "tags.get" || args.operation === "settings.list" || args.operation === "settings.get" || args.operation === "sections.list" || args.operation === "sections.get" || args.operation === "shows.list" || args.operation === "shows.get" || args.operation === "xml.get") && request.streaming) {
-      if (args.token && args.operation !== "notes.list" && args.operation !== "notes.get" && args.operation !== "tags.list" && args.operation !== "tags.get" && !['sections.list', 'sections.get', 'shows.list', 'shows.get'].includes(args.operation)) decodeSelectionToken(args.token);
+    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "text.frames.list" || args.operation === "text.frames.get" || args.operation === "text.runs.list" || args.operation === "text.runs.get" || args.operation === "text.paragraphs.list" || args.operation === "text.paragraphs.get" || args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "properties.list" || args.operation === "properties.get" || args.operation === "tags.list" || args.operation === "tags.get" || args.operation === "settings.list" || args.operation === "settings.get" || args.operation === "sections.list" || args.operation === "sections.get" || args.operation === "shows.list" || args.operation === "shows.get" || args.operation === "transitions.list" || args.operation === "transitions.get" || args.operation === "xml.get") && request.streaming) {
+      if (args.token && args.operation !== "notes.list" && args.operation !== "notes.get" && args.operation !== "tags.list" && args.operation !== "tags.get" && !['sections.list', 'sections.get', 'shows.list', 'shows.get', 'transitions.list', 'transitions.get'].includes(args.operation)) decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const hash = sha256.create();
       for await (const bytes of input.stream()) { request.signal.throwIfAborted(); hash.update(bytes); }
@@ -4181,8 +4182,12 @@ async function executeRequest(
       const context = { ...options.context, signal: request.signal, workingStorage: request.streaming.workingStorage };
       const archive = await openPackageArchive(input, context); let failed = false;
       try {
-        const scope = args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "tags.list" || args.operation === "tags.get" || args.operation === "sections.list" || args.operation === "sections.get" || args.operation === "shows.list" || args.operation === "shows.get" ? undefined : args.token ? decodeSelectionToken(args.token).scope : args.scope;
-        stagedOutput = args.operation === "sections.list" || args.operation === "sections.get" || args.operation === "shows.list" || args.operation === "shows.get"
+        const scope = args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "tags.list" || args.operation === "tags.get" || args.operation === "sections.list" || args.operation === "sections.get" || args.operation === "shows.list" || args.operation === "shows.get" || args.operation === "transitions.list" || args.operation === "transitions.get" ? undefined : args.token ? decodeSelectionToken(args.token).scope : args.scope;
+        stagedOutput = args.operation === "transitions.list" || args.operation === "transitions.get"
+          ? await stageRetainedTransitions(archive, fingerprint, args.operation === 'transitions.list' && !args.token && args.slide === undefined ? {} : { selection: args.token ? { token: args.token } : {
+            kind: 'slide', scope: 'slides', ...(args.slide === undefined ? {} : { position: { coordinateSystem: 'one-based', value: args.slide } }), ...(args.all ? { all: true } : {})
+          } }, context, { operation: args.operation, json: args.json, maxOutputBytes: options.maxOutputBytes })
+          : args.operation === "sections.list" || args.operation === "sections.get" || args.operation === "shows.list" || args.operation === "shows.get"
           ? await stageRetainedMemberships(archive, fingerprint, args.operation.startsWith('sections.') ? 'sections' : 'shows', {
             ...(args.token === undefined ? {} : { token: args.token }), ...(args.slide === undefined ? {} : { slide: args.slide })
           }, context, { operation: args.operation, json: args.json, maxOutputBytes: options.maxOutputBytes })

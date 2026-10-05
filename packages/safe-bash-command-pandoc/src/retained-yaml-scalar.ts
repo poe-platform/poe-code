@@ -34,7 +34,8 @@ const horizontal = (char: string) => char === " " || char === "\t";
  * Schema resolution (numbers, booleans, tags) belongs to the document composer. */
 export async function decodeRetainedYamlScalar(source: RetainedSourceText, token: SourceRange, output: BackedText,
   cooperate: (units?: number) => Promise<void>): Promise<TextRange> {
-  const quote = await source.unit(token.start), quoted = quote === "'" || quote === '"';
+  const quote = token.start < token.end ? await source.unit(token.start) : "", quoted = quote === "'" || quote === '"';
+  if (!quoted && ["\t", ",", "%", "|", ">", "@", "`"].includes(quote)) throw new RetainedYamlSyntaxError(token.start);
   if (quoted && (token.end - token.start < 2 || await source.unit(token.end - 1) !== quote)) throw new RetainedYamlSyntaxError(token.end);
   const range = {start: token.start + (quoted ? 1 : 0), end: token.end - (quoted ? 1 : 0)};
   async function* folded(): AsyncGenerator<string> {
@@ -217,17 +218,20 @@ export async function decodeRetainedYamlBlock(source: RetainedSourceText, token:
 export type RetainedYamlScalar = {kind: "string"; text: TextRange} | {kind: "number"; value: number} | {kind: "boolean"; value: boolean} | {kind: "null"; value: null};
 
 /** YAML 1.2 core schema. Decimal rounding uses the existing bounded binary64
- * reader; radix integers retain at most 1028 bits, even for huge input tokens. */
+ * reader; radix integers retain at most 1028 bits, even for huge input tokens.
+ * Explicit core tags select only their own spellings; nonmatches remain strings,
+ * matching the existing composer's unresolved-tag warning behavior. */
 export async function resolveRetainedYamlScalar(text: BackedText, range: TextRange,
-  cooperate: (units?: number) => Promise<void>): Promise<RetainedYamlScalar> {
+  cooperate: (units?: number) => Promise<void>, expected?: "int" | "float" | "bool" | "null"): Promise<RetainedYamlScalar> {
   if (range.units <= 5) {
     let word = ""; for await (const chunk of text.chunks(range)) word += chunk;
-    if (["", "~", "null", "Null", "NULL"].includes(word)) return {kind: "null", value: null};
-    if (["true", "True", "TRUE", "false", "False", "FALSE"].includes(word)) return {kind: "boolean", value: word[0] === "t" || word[0] === "T"};
-    if ([".nan", ".NaN", ".NAN"].includes(word)) return {kind: "number", value: NaN};
+    if ((!expected || expected === "null") && ["", "~", "null", "Null", "NULL"].includes(word)) return {kind: "null", value: null};
+    if ((!expected || expected === "bool") && ["true", "True", "TRUE", "false", "False", "FALSE"].includes(word)) return {kind: "boolean", value: word[0] === "t" || word[0] === "T"};
+    if ((!expected || expected === "float") && [".nan", ".NaN", ".NAN"].includes(word)) return {kind: "number", value: NaN};
     const magnitude = word[0] === "+" || word[0] === "-" ? word.slice(1) : word;
-    if ([".inf", ".Inf", ".INF"].includes(magnitude)) return {kind: "number", value: word[0] === "-" ? -Infinity : Infinity};
+    if ((!expected || expected === "float") && [".inf", ".Inf", ".INF"].includes(magnitude)) return {kind: "number", value: word[0] === "-" ? -Infinity : Infinity};
   }
+  if (expected === "bool" || expected === "null") return {kind: "string", text: range};
   let position = 0, first = "", radix = 0, integer = 0n, overflow = false;
   let before = 0, after = 0, exponentDigits = 0, dot = false, exponent = false, valid = true, exponentSign = false;
   for await (const chunk of text.chunks(range)) {
@@ -250,6 +254,7 @@ export async function resolveRetainedYamlScalar(text: BackedText, range: TextRan
     }
     await cooperate(chunk.length);
   }
+  if (expected === "int" && (dot || exponent) || expected === "float" && (radix || !dot && !exponent)) valid = false;
   if (!valid || (radix ? position <= 2 : before + after === 0 || exponent && exponentDigits === 0)) return {kind: "string", text: range};
   if (radix) return {kind: "number", value: overflow ? Infinity : Number(integer)};
   return {kind: "number", value: await readJsonNumber(text.chunks(range), units => cooperate(units), false)};

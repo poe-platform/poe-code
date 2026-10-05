@@ -142,3 +142,25 @@ it("matches native numeric rounding for generated long mantissas and radix integ
     });
   }
 });
+it.each(["int", "float", "bool", "null"] as const)("preserves explicit core tag !!%s resolution", async tag => {
+  for (const token of ["", "12", "-12", "+12", "1.0", "1e2", "0xF", "0o7", "true", "false", "null", "~", ".inf", ".nan", "not", "0012", "1.2.3"]) {
+    const doc = parseDocument(`value: !!${tag} ${JSON.stringify(token)}`); expect(doc.errors).toEqual([]);
+    const expected = doc.toJS().value;
+    await fixture(token, async (_source, output) => {
+      const result = await resolveRetainedYamlScalar(output, await output.from([token]), async () => {}, tag);
+      if (result.kind === "string") {let value = ""; for await (const chunk of output.chunks(result.text)) value += chunk; expect(value).toBe(expected);}
+      else expect(Object.is(result.value, expected), `${tag}: ${token}`).toBe(true);
+    });
+  }
+});
+it.each(["@reserved", "`reserved", "%directive", ",flow", "|block", ">block", "\tvalue"])("rejects reserved plain-scalar start %j", async token => {
+  await fixture(token, async (source, output) => {
+    await expect(decodeRetainedYamlScalar(source, {start: 0, end: source.length}, output, async () => {})).rejects.toBeInstanceOf(RetainedYamlSyntaxError);
+  });
+});
+it("decodes an empty selected scalar without inspecting adjacent source", async () => {
+  await fixture('"outside"', async (source, output) => {
+    const value = await decodeRetainedYamlScalar(source, {start: 0, end: 0}, output, async () => {});
+    expect(value.units).toBe(0);
+  });
+});

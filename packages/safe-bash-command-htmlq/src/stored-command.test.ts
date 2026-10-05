@@ -75,3 +75,39 @@ for (const during of ["spill", "sink", "abort"] as const) {
     assert.deepEqual(await fs.readdir("/scratch"), []);
   });
 }
+
+test("base detection and href rewriting keep large values out of native URL", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const original = globalThis.URL;
+  globalThis.URL = class extends original {
+    constructor(input: string | URL, base?: string | URL) {
+      assert.ok(String(input).length + String(base ?? "").length <= 4096, "Payload-wide native URL call");
+      super(input, base);
+    }
+  };
+  const prefix = "https://example.test/joined\n", payloadLength = 16 * 4096;
+  let offset = 0, peak = 0;
+  const context = {
+    command: "htmlq", args: [], fs, cwd: "/scratch", env: {}, signal: new AbortController().signal,
+    stdin: (async function* () {
+      const encode = (value: string) => new TextEncoder().encode(value), chunk = encode("x".repeat(4096));
+      yield encode('<base href="https://example.test/');
+      for (let i = 0; i < 16; i++) yield chunk;
+      yield encode('/file"><a href="../joined">A</a><a href="////');
+      for (let i = 0; i < 16; i++) yield chunk;
+      yield encode('">B</a>');
+    })(),
+    stdout: { async write(bytes: Uint8Array) {
+      peak = Math.max(peak, bytes.length); await new Promise<void>(resolve => setImmediate(resolve));
+      for (const byte of bytes) {
+        assert.equal(byte, offset < prefix.length ? prefix.charCodeAt(offset) : offset < prefix.length + payloadLength ? 120 : 10);
+        offset++;
+      }
+    } }, stderr: { async write() { assert.fail("Unexpected diagnostic"); } }
+  } as unknown as CommandContext;
+  try {
+    assert.equal((await htmlq(context, { selector: "a", attributes: ["href"], detectBase: true })).exitCode, 0);
+    assert.equal(offset, prefix.length + payloadLength + 1); assert.ok(peak <= 16384);
+    assert.deepEqual(await fs.readdir("/scratch"), []);
+  } finally { globalThis.URL = original; }
+});

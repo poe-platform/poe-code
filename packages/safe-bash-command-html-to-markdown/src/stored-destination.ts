@@ -3,12 +3,14 @@ import type { Budget } from "./budget.js";
 import { StoredBuilder } from "./stored-builder.js";
 import type { TextStore } from "./stored-text.js";
 
+type HostBudget = Pick<Budget, "work" | "checkpoint">;
+
 const alpha = (character: string): boolean => character >= "A" && character <= "Z" || character >= "a" && character <= "z";
 const digit = (character: string): boolean => character >= "0" && character <= "9";
 
 /** The URL standard permits arbitrary ASCII label lengths. Validate domains and
  * IPv4 numbers with fixed state instead of handing such labels to native URL. */
-async function asciiHost(text: TextStore, root: number, budget: Budget, validatePunycode = true): Promise<boolean | undefined> {
+async function asciiHost(text: TextStore, root: number, budget: HostBudget, validatePunycode = true, onIpv4?: (address: string) => void): Promise<boolean | undefined> {
   interface Part { valid: boolean; decimal: boolean; value: number }
   const parts: Part[] = [];
   let count = 0, length = 0, prefix = "", radix = 10, valid = true, decimal = true, value = 0;
@@ -46,12 +48,15 @@ async function asciiHost(text: TextStore, root: number, budget: Budget, validate
     const part = parts[index]!;
     if (!part.valid || part.value >= (index === count - 1 ? 256 ** (5 - count) : 256)) return false;
   }
+  let address = parts[count - 1]!.value;
+  for (let index = 0; index < count - 1; index++) address += parts[index]!.value * 256 ** (3 - index);
+  onIpv4?.([24, 16, 8, 0].map(shift => String((address >>> shift) & 255)).join("."));
   return true;
 }
 
 /** Percent-decoded host bytes are UTF-8, including when an escape or scalar
  * crosses a storage leaf. The decoded spelling remains in caller storage. */
-async function decodeHost(text: TextStore, root: number, budget: Budget): Promise<number> {
+async function decodeHost(text: TextStore, root: number, budget: HostBudget): Promise<number> {
   const result = text.builder(), decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }), encoder = new TextEncoder();
   const bytes = new Uint8Array(4096);
   let used = 0, percent = "";
@@ -83,7 +88,7 @@ async function decodeHost(text: TextStore, root: number, budget: Budget): Promis
 
 /** IDNA is label-local. Keep the assembled ASCII domain in caller storage;
  * the final IPv4 decision must still see all labels, after Unicode mappings. */
-async function idnaHost(text: TextStore, root: number, budget: Budget): Promise<number> {
+async function idnaHost(text: TextStore, root: number, budget: HostBudget): Promise<number> {
   const domain = text.builder();
   // Native implementations can use a stricter IDNA path when any input label
   // contains Unicode. Preserve that whole-domain mode even for ASCII A-labels.
@@ -136,6 +141,32 @@ async function idnaHost(text: TextStore, root: number, budget: Budget): Promise<
     }
   }
   return await finish() ? domain.finish() : 0;
+}
+
+/** Canonical URL hostname without payload-sized native URL input. */
+export async function normalizeStoredHostname(text: TextStore, root: number, budget: HostBudget): Promise<number | undefined> {
+  if (!root) return undefined;
+  if (await text.at(root, 0) === "[") {
+    if ((await text.info(root)).length > 47) return undefined;
+    let input = ""; for await (const chunk of text.chunks(root)) input += chunk;
+    try { return text.from(new URL(`http://${input}/`).hostname); } catch { return undefined; }
+  }
+  if (await text.includes(root, "%")) { root = await decodeHost(text, root, budget); if (!root) return undefined; }
+  let address: string | undefined;
+  let valid = await asciiHost(text, root, budget, true, value => { address = value; });
+  if (valid === undefined) {
+    root = await idnaHost(text, root, budget);
+    if (!root) return undefined;
+    valid = await asciiHost(text, root, budget, false, value => { address = value; });
+  }
+  if (!valid) return undefined;
+  if (address !== undefined) return text.from(address);
+  const result = text.builder();
+  for await (const chunk of text.chunks(root)) {
+    budget.work(chunk.length); await result.write(chunk.toLowerCase());
+    const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint;
+  }
+  return result.finish();
 }
 
 async function hostname(text: TextStore, root: number, budget: Budget): Promise<boolean> {

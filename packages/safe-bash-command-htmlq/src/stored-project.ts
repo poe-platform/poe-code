@@ -6,9 +6,8 @@ import type { HtmlqArguments } from "./arguments.js";
 import { DocumentStore, StoredSequence } from "./document-store.js";
 import { parseStoredHtml } from "./stored-parser.js";
 import { selectStoredHtml, StoredQueries } from "./stored-selectors.js";
+import { StoredUrls } from "./stored-url.js";
 import { knownName, serializeStoredHtml, storedWhitespace } from "./stored-serializer.js";
-
-function baseUrl(value: string): URL | undefined { try { return new URL(value); } catch { return undefined; } }
 
 /** The command owns storage cleanup, so sink failures cannot hide spill cleanup
  * errors while an async iterator is being closed by for-await. */
@@ -26,14 +25,15 @@ export async function* projectStoredHtmlq(source: AsyncIterable<Uint8Array>, arg
   });
   const document = await parseStoredHtml(source, tree, text, storage, options);
   const query = new StoredQueries(tree, text, storage, budget);
-  const string = async (id: number): Promise<string> => { let result = ""; for await (const chunk of text.chunks(id)) result += chunk; return result; };
-  let base = baseUrl(args.base);
+  const urls = new StoredUrls(text, storage, budget);
+  let base = await urls.parse(await text.from(args.base));
   if (args.detectBase) {
     for await (const first of selectStoredHtml(document, "base", tree, text, storage, options)) {
-      base = baseUrl(await string(await query.attribute(await tree.read(first), "href") ?? 0)) ?? base;
+      base = await urls.parse(await query.attribute(await tree.read(first), "href") ?? 0) ?? base;
       break;
     }
   }
+  const baseHref = base ? await urls.serialize(base) : 0;
   const selected = selectStoredHtml(document, args.selector, tree, text, storage, options);
   let removal = "";
   if (args.removeNodes.length) {
@@ -101,14 +101,21 @@ export async function* projectStoredHtmlq(source: AsyncIterable<Uint8Array>, arg
     if (base && node.namespace === "html" && ["a", "area", "link"].includes(await knownName(text, node.name))) {
       for await (const a of tree.attributes(id)) {
         if (a.namespace !== "none" || !await query.literal(a.name, "href")) continue;
-        const href = await string(a.value);
-        budget.charge("work", href.length + base.href.length);
-        let value: string;
-        if (href.startsWith("////")) { let i = 0; while (href[i] === "/") i++; value = href.slice(i); }
-        else { try { value = new URL(href, base).href; } catch { value = base.href; } }
-        budget.charge("work", node.attributeCount + value.length);
-        budget.charge("retainedBytes", node.attributeCount * 64 + value.length * 2);
-        await tree.replaceAttribute(a.id, await text.from(value)); break;
+        const hrefLength = (await text.info(a.value)).length;
+        budget.charge("work", hrefLength + (await text.info(baseHref)).length);
+        let value: number;
+        if (await query.literal(a.value, "////", false, true)) {
+          let offset = 0;
+          for await (const c of text.characters(a.value)) { budget.charge("work", 1); if (c !== "/") break; offset++; }
+          value = await text.slice(a.value, offset);
+        } else {
+          const resolved = await urls.parse(a.value, base);
+          value = resolved ? await urls.serialize(resolved) : baseHref;
+        }
+        const valueLength = (await text.info(value)).length;
+        budget.charge("work", node.attributeCount + valueLength);
+        budget.charge("retainedBytes", node.attributeCount * 64 + valueLength * 2);
+        await tree.replaceAttribute(a.id, value); break;
       }
     }
     if (args.attributes.length) {

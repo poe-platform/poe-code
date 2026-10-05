@@ -1,4 +1,5 @@
-import type { Budget } from "./budget.js";
+import type { Budget as MarkdownBudget } from "./budget.js";
+type Budget = Pick<MarkdownBudget, "work" | "checkpoint">;
 import type { TextStore, TextBuilder } from "./stored-text.js";
 
 // Native normalization sees only individual scalars or scalar pairs. These

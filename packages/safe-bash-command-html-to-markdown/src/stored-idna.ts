@@ -2,7 +2,8 @@
 /// <reference path="./tr46.d.ts" />
 import mappingData from "tr46/lib/mappingTable.json" with { type: "json" };
 import regexes from "tr46/lib/regexes.js";
-import type { Budget } from "./budget.js";
+import type { Budget as MarkdownBudget } from "./budget.js";
+type Budget = Pick<MarkdownBudget, "work" | "checkpoint">;
 import type { TextStore } from "./stored-text.js";
 import { normalizeStored } from "./stored-normalize.js";
 import { decodePunycode, encodePunycode } from "./stored-punycode.js";

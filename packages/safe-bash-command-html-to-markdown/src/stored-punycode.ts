@@ -1,4 +1,5 @@
-import type { Budget } from "./budget.js";
+import type { Budget as MarkdownBudget } from "./budget.js";
+type Budget = Pick<MarkdownBudget, "work" | "checkpoint">;
 import type { TextStore } from "./stored-text.js";
 
 // RFC 3492 parameters. Native URL's punycode codec uses signed 32-bit arithmetic.

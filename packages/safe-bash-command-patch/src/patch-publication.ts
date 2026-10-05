@@ -91,14 +91,21 @@ export class PatchPublication {
         if (this.trusted) await this.validate(path);
         staging = await context.fs.createStagedFile!(`${dirname(path) === "/" ? "" : dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
           type: "file", data: new Uint8Array(),
-        }, { parent, retainCleanup: true, signal: context.signal, ...(mode === undefined ? {} : { mode }),
+        }, { parent, retainCleanup: !this.trusted, signal: context.signal, ...(mode === undefined ? {} : { mode }),
           ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }) });
-        if (!staging.writer || !staging.cleanup) throw new ToolError("filesystem does not support retained staging writes");
+        if (!this.trusted && (!staging.writer || !staging.cleanup)) throw new ToolError("filesystem does not support retained staging writes");
         for await (const bytes of readBytes(typeof source === "string" ? targetBytes(source) : source, context.signal)) {
           if (closed) throw new ToolError("patch publication is closed");
-          await staging.writer.write(bytes, { signal: context.signal });
+          if (this.trusted) {
+            const stat = await context.fs.writeFileConditional!(staging.file.path, bytes, {
+              parent: staging.directory.stat, expected: staging.file.stat, append: true, signal: context.signal,
+              ...(mode === undefined ? {} : { mode }),
+              ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }),
+            });
+            staging = { ...staging, file: { ...staging.file, stat } };
+          } else await staging.writer!.write(bytes, { signal: context.signal });
         }
-        const stat = await staging.writer.finish({ signal: context.signal });
+        const stat = this.trusted ? staging.file.stat : await staging.writer!.finish({ signal: context.signal });
         context.signal.throwIfAborted();
         if (closed) throw new ToolError("patch publication is closed");
         if (this.trusted) await this.validate(path);

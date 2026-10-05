@@ -258,7 +258,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const capabilities = await host(context, async () => await fs.capabilitiesFor?.(context.cwd, { signal: context.signal }) ?? fs.capabilities);
     if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: "patch", path: context.cwd });
     const trusted = capabilities.atomicStagingAncestry !== true && capabilities.trustedOwnedStaging === true;
-    if ((trusted ? !fs.prepareDirectory || !fs.removeFileConditional : !fs.confineExtraction || capabilities.atomicStagingAncestry !== true)
+    if ((trusted ? !fs.prepareDirectory || !fs.removeFileConditional || !fs.writeFileConditional : !fs.confineExtraction || capabilities.atomicStagingAncestry !== true)
       || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) {
       throw new ToolError("filesystem does not support race-safe patch publication");
     }

@@ -27,6 +27,7 @@ const profiles = {
 };
 const patchPublicationError = "patch: filesystem does not support race-safe patch publication\n";
 const diffReadError = "diff: diff input requires identity-checked retained reads\n";
+const patchReadError = "patch: diff input requires identity-checked retained reads\n";
 
 function refusal(result: ShellResult, stderr: string, exitCode = 2): void {
   assert.equal(result.exitCode, exitCode, result.stderr);
@@ -53,7 +54,8 @@ for (const backend of writableAdapters) {
           profile.retainedReads ? "" : "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/work/payload.bin'\ngzip: unexpected end of file\n"],
         ["diff -q old.txt target.txt", "", profile.retainedReads ? 0 : 2,
           profile.retainedReads ? "" : diffReadError],
-        ["patch --dry-run -i change.diff", undefined],
+        ["patch --dry-run -i change.diff", undefined, profile.retainedReads ? 0 : 2,
+          profile.retainedReads ? "" : patchReadError],
       ] as const;
       for (const [source, expected, status = 0, stderr = ""] of probes) {
         try {
@@ -102,7 +104,11 @@ for (const backend of writableAdapters) {
         success(await exec("cat change.diff > generated.diff"), "");
       }
       assert.equal(Buffer.from(await fs.readFile("/work/generated.diff")).toString(), change);
-      success(await exec("patch --dry-run -i generated.diff"), "checking file target.txt\n");
+      const beforeDryRun = await snapshotTree(fs);
+      const dryRun = await exec("patch --dry-run -i generated.diff");
+      if (profile.retainedReads) success(dryRun, "checking file target.txt\n");
+      else refusal(dryRun, patchReadError);
+      assert.deepEqual(await snapshotTree(fs), beforeDryRun);
       const beforePatch = await snapshotTree(fs);
       const patched = await exec("patch -i generated.diff > patch.log && diff -q target.txt new.txt && cat target.txt");
       if (profile.patchPublication) success(patched, revised);
@@ -225,20 +231,20 @@ for (const backend of writableAdapters) {
         success(await exec("cat target.txt"), original);
       }
       assert.equal(Buffer.from(await fs.readFile("/work/target.txt")).toString(), original);
-      // A refused consumer need not drain its producer. Use supported dry-run
-      // consumption to check complete streamed bytes; refusal effects are above.
+      // Piped input does not supply retained identities for named target files.
       const source = profile.retainedReads
         ? "diff -u --label target.txt --label target.txt target.txt new.txt"
         : "cat change.diff";
       const diff = await exec(`${source} | tee streamed.diff | patch${profile.patchPublication ? "" : " --dry-run"} > patch.log`);
-      success(diff, "");
+      if (profile.retainedReads) success(diff, "");
+      else refusal(diff, patchReadError);
       assert.equal(Buffer.from(await fs.readFile("/work/streamed.diff")).toString(), change);
       assert.equal(Buffer.from(await fs.readFile("/work/target.txt")).toString(), profile.patchPublication ? revised : original);
       if (!profile.patchPublication) {
         assert.deepEqual(await snapshotTree(fs), {
-          ...beforePatch, "/work/patch.log": new TextEncoder().encode("checking file target.txt\n"),
+          ...beforePatch, "/work/patch.log": new Uint8Array(),
           "/work/reverse.log": new Uint8Array(), "/work/streamed.diff": new TextEncoder().encode(change),
-        }, "dry-run consumes the complete stream without patch publication");
+        }, "refused target reads publish no patch output or target changes");
       }
     });
   });

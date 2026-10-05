@@ -553,7 +553,8 @@
             "@poe-code/spreadsheet-ast": "*",
             "@noble/hashes": "2.4.0",
             "safe-bash-io-engine": "*",
-            "@poe-code/json-ast": "*"
+            "@poe-code/json-ast": "*",
+            "@poe-code/office-xml": "*"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",

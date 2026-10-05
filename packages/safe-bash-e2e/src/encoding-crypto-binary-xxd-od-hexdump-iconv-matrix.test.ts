@@ -151,7 +151,7 @@ describe("safe-bash e2e: encoding, cryptographic digests, binary inspection, ico
       ].join("\n"),
     );
     assert.equal(res.exitCode, 0, res.stderr);
-    assert.match(res.stdout, /\*\n00000020  42 42/);
+    assert.match(res.stdout, /\*\n00000020 {2}42 42/);
     assert.match(res.stdout, /---\n4\n0000000 4241 4443 ?\n$/);
   });
 

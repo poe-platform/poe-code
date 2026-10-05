@@ -300,7 +300,7 @@ BC_EOF
   it("18. envsubst substitutes environment variables selectively with restriction format strings and lists variables via -v", async () => {
     await withE2EHarness(async (h) => {
       const res = await h.exec(
-        `HOST=db.internal PORT=5432 SECRET=keep_literal envsubst '\$HOST \$PORT' <<< 'postgres://\$HOST:\$PORT/?secret=\${SECRET}'`,
+        `HOST=db.internal PORT=5432 SECRET=keep_literal envsubst '$HOST $PORT' <<< 'postgres://$HOST:$PORT/?secret=\${SECRET}'`,
       );
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(res.stdout, "postgres://db.internal:5432/?secret=${SECRET}\n");

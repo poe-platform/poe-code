@@ -8,17 +8,17 @@ describe("POSIX & GNU Bash 5.3 oracle differential parity E2E suite", () => {
       const res = await h.exec(`
 IFS=:
 x="a:b:"
-set -- \$x
+set -- $x
 printf 'colon:%d:[%s][%s][%s]\\n' "$#" "$1" "$2" "\${3-NONE}"
 
 IFS=" :"
 y="  a : b :: c : "
-set -- \$y
+set -- $y
 printf 'mixed:%d:[%s][%s][%s][%s]\\n' "$#" "$1" "$2" "$3" "$4"
 
 IFS=""
 z="  keep   all   spaces  "
-set -- \$z
+set -- $z
 printf 'empty_ifs:%d:[%s]\\n' "$#" "$1"
 `);
       assert.equal(res.exitCode, 0, res.stderr);
@@ -40,7 +40,7 @@ unset x y
 z="final_val"
 printf '1:[%s]\\n' "\${x:-"a  b"}"
 printf '2:[%s]\\n' "\${x:-'hello'}"
-printf '3:[%s]\\n' "\${x:-\${y:-\${z:+nested_\$z}}}"
+printf '3:[%s]\\n' "\${x:-\${y:-\${z:+nested_$z}}}"
 `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(
@@ -78,7 +78,7 @@ printf 'suf=[%s]\\n' "\${words[*]/%foo/Y}"
     await withE2EHarness({ env: { LC_ALL: "C" } }, async (h) => {
       const res = await h.exec(`
 for v in a b c; do
-  case \$v in
+  case $v in
     a) printf 'A' ;&
     b) printf 'B' ;;&
     b|c) printf 'BC' ;;
@@ -100,9 +100,9 @@ y=0
 (( x && (y = 5) ))
 (( x == 0 && (y = 99) ))
 (( x == 1 || (y = 88) ))
-printf 'short_circuit:%d:%d\\n' "\$x" "\$y"
-printf 'ternary:%d:%d\\n' "\$(( 1 ? 2 : 0 ? 3 : 4 ))" "\$(( 0 ? 2 : 1 ? 3 : 4 ))"
-printf 'base64:%d:%d:%d:%d\\n' "\$((64#a))" "\$((64#A))" "\$((64#@))" "\$((64#_))"
+printf 'short_circuit:%d:%d\\n' "$x" "$y"
+printf 'ternary:%d:%d\\n' "$(( 1 ? 2 : 0 ? 3 : 4 ))" "$(( 0 ? 2 : 1 ? 3 : 4 ))"
+printf 'base64:%d:%d:%d:%d\\n' "$((64#a))" "$((64#A))" "$((64#@))" "$((64#_))"
 `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(
@@ -140,13 +140,13 @@ printf '%s ' svc-{api,worker{1..2}}-{dev,prod}; printf '\\n'
       const res = await h.exec(`
 NAME="world"
 cat <<-INDENTED
-		hello \$NAME
+		hello $NAME
 	  indented_spaces
 	INDENTED
 cat <<'LITERAL'
-literal \$NAME \\n
+literal $NAME \\n
 LITERAL
-tr 'a-z' 'A-Z' <<< "here string \$NAME"
+tr 'a-z' 'A-Z' <<< "here string $NAME"
 `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(
@@ -167,20 +167,20 @@ tr 'a-z' 'A-Z' <<< "here string \$NAME"
 f1() {
   local x="inner_from_f1"
   f2
-  printf 'f1_after_f2=%s ' "\$x"
+  printf 'f1_after_f2=%s ' "$x"
 }
 f2() {
-  printf 'f2_sees=%s ' "\$x"
+  printf 'f2_sees=%s ' "$x"
   x="mutated_by_f2"
 }
 x="global_x"
 f1
-printf 'global_x=%s\\n' "\$x"
+printf 'global_x=%s\\n' "$x"
 
 v=10
 ( v=99; exit 0 )
-{ v=\$((v + 5)); }
-printf 'v_after=%d\\n' "\$v"
+{ v=$((v + 5)); }
+printf 'v_after=%d\\n' "$v"
 `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(
@@ -199,7 +199,7 @@ printf 'v_after=%d\\n' "\$v"
 printf 'abc:def:ghi' | {
   read -r -d ':' a
   read -r -n 3 b
-  printf 'read=[%s][%s]\\n' "\$a" "\$b"
+  printf 'read=[%s][%s]\\n' "$a" "$b"
 }
 printf 'one,two,three,four,' | {
   mapfile -d ',' -t -s 1 -n 2 arr
@@ -255,7 +255,7 @@ printf '[%*.*s][%*d]\\n' 8 3 'hello' -5 42
   it("12. awk BEGIN/END, OFS rebuilding ($1=$1), split(), match() RSTART/RLENGTH, and gsub()", async () => {
     await withE2EHarness({ env: { LC_ALL: "C" } }, async (h) => {
       const res = await h.exec(`
-printf 'a b c\\nd e\\n' | awk 'BEGIN { OFS=":" } { \$1=\$1; print NR, NF, \$0 } END { print "total", NR }'
+printf 'a b c\\nd e\\n' | awk 'BEGIN { OFS=":" } { $1=$1; print NR, NF, $0 } END { print "total", NR }'
 awk 'BEGIN { s="foo-123-bar-456"; n=split(s, a, "-"); match(s, /[0-9]+/); printf "%d|%s|%d|%d\\n", n, a[2], RSTART, RLENGTH }'
 `);
       assert.equal(res.exitCode, 0, res.stderr);
@@ -271,7 +271,7 @@ awk 'BEGIN { s="foo-123-bar-456"; n=split(s, a, "-"); match(s, /[0-9]+/); printf
       const res = await h.exec(`
 printf '1\\n2\\n3\\n4\\n' | sed -n '2,3{s/^/X/;p;}'
 printf 'key=value\\n' | sed 's/\\([a-z]*\\)=\\([a-z]*\\)/[\\2:\\1:&]/'
-printf 'a\\nb\\nc\\n' | sed '1!G;h;\$!d'
+printf 'a\\nb\\nc\\n' | sed '1!G;h;$!d'
 `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(
@@ -301,7 +301,7 @@ printf 'a:b:c:d\\nno_delim\\n1:2:3:4\\n' | cut -s -d: -f1,3-
       const res = await h.exec(`
 printf 'b,2\\na,10\\na,2\\nb,10\\n' | sort -t, -k1,1 -k2,2nr
 echo "---"
-printf 'x\\nx\\ny\\nz\\nz\\nz\\n' | uniq -c | awk '{print \$1,\$2}'
+printf 'x\\nx\\ny\\nz\\nz\\nz\\n' | uniq -c | awk '{print $1,$2}'
 `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(
@@ -423,8 +423,8 @@ JSON
       },
       async (h) => {
         const res = await h.exec(`
-awk '{ print \$1, \$(NF-1), \$NF }' /workspace/access.log \\
-  | awk '{ bytes[\$1] += \$3; count[\$1]++ } END { for (ip in count) printf "%s %d %d\\n", ip, count[ip], bytes[ip] }' \\
+awk '{ print $1, $(NF-1), $NF }' /workspace/access.log \\
+  | awk '{ bytes[$1] += $3; count[$1]++ } END { for (ip in count) printf "%s %d %d\\n", ip, count[ip], bytes[ip] }' \\
   | sort -k1,1
 `);
         assert.equal(res.exitCode, 0, res.stderr);

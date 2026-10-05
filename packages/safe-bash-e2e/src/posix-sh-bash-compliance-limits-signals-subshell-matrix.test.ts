@@ -239,7 +239,7 @@ describe("POSIX sh / Bash compliance, ShellLimits quotas, AbortSignal cancellati
         echo "1:\${UNSET_VAR:-default1}"
         echo "2:\${EMPTY_VAR:-default2}"
         echo "3:\${EMPTY_VAR-default3}"
-        echo "4:\${ASSIGN_ME:=assigned_val}:\$ASSIGN_ME"
+        echo "4:\${ASSIGN_ME:=assigned_val}:$ASSIGN_ME"
         echo "5:\${SET_VAR:+alt_val}"
         echo "6:\${#SET_VAR}"
         echo "7:\${SET_VAR#*.}"
@@ -280,7 +280,7 @@ describe("POSIX sh / Bash compliance, ShellLimits quotas, AbortSignal cancellati
       const nounsetRes = await h.exec(`
         set -u
         echo "before"
-        echo "\$DEFINITELY_UNSET_VAR"
+        echo "$DEFINITELY_UNSET_VAR"
         echo "after"
       `);
       assert.notEqual(nounsetRes.exitCode, 0);

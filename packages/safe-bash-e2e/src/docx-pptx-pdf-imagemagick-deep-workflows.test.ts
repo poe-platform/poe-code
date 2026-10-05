@@ -283,14 +283,14 @@ cat /workspace/docs/report.docx
 
   it("5. pptxCommands publishOutput detects stale-input on concurrent mutation and publication-unsupported on read-only mounts", async () => {
     let mutateBeforePublish = false;
-    let BackingFsRef: sb.FileSystem | undefined;
+    const memFs = new sb.MemoryFileSystem();
 
     const engine: PptxCommandEngine = {
       async execute({ args, readInput, publishOutput }) {
         const target = decoder.decode(args[0]!);
         const originalBytes = await readInput(target, 65536);
-        if (mutateBeforePublish && BackingFsRef) {
-          await BackingFsRef.writeFile(
+        if (mutateBeforePublish) {
+          await memFs.writeFile(
             "/workspace/concurrent.pptx",
             encoder.encode("CONCURRENTLY_MODIFIED_BYTES"),
           );
@@ -321,8 +321,6 @@ cat /workspace/docs/report.docx
       },
     };
 
-    const memFs = new sb.MemoryFileSystem();
-    BackingFsRef = memFs;
     await memFs.mkdir("/workspace", { recursive: true });
     await memFs.writeFile("/workspace/concurrent.pptx", encoder.encode("INITIAL_DECK"));
 

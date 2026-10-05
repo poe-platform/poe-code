@@ -273,7 +273,7 @@ export GLOBAL_TAG="v1.0"
 declare -i RETRY_COUNT=3
 declare -a ITEMS=([0]="first" [3]="fourth")
 declare -A META=([env]="prod" [region]="us-east")
-greet() { printf 'hi:%s\\n' "\$1"; }
+greet() { printf 'hi:%s\\n' "$1"; }
 shopt -s nullglob dotglob
 set -o pipefail
 `,
@@ -296,7 +296,7 @@ set -o pipefail
       assert.equal(session.state.umask, 0o027);
 
       const res2 = await session.exec(`
-printf 'cwd=%s umask=%s tag=%s retry=%d\\n' "\$(pwd)" "\$(umask)" "\$GLOBAL_TAG" "\$RETRY_COUNT"
+printf 'cwd=%s umask=%s tag=%s retry=%d\\n' "$(pwd)" "$(umask)" "$GLOBAL_TAG" "$RETRY_COUNT"
 printf 'items=%s meta=%s\\n' "\${ITEMS[0]},\${ITEMS[3]}" "\${META[env]},\${META[region]}"
 greet "world"
 dirs -p | tr '\\n' '|'

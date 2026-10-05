@@ -315,9 +315,9 @@ describe("xargs, env, timeout, date, seq, shuf, split, csplit, and math/utility 
       },
       async (h) => {
         const r = await h.exec(`
-          envsubst '\${SERVICE_NAME} \$SERVICE_PORT' < nginx.conf.tmpl
+          envsubst '\${SERVICE_NAME} $SERVICE_PORT' < nginx.conf.tmpl
           echo "---"
-          envsubst -v '\${SERVICE_NAME} \$SERVICE_PORT'
+          envsubst -v '\${SERVICE_NAME} $SERVICE_PORT'
         `);
         assert.equal(r.exitCode, 0);
         assert.equal(

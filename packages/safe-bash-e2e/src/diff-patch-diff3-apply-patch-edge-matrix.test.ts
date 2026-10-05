@@ -177,7 +177,7 @@ describe("diff, patch, diff3, and apply-patch edge matrix", () => {
       "patch -l -F 2 '/work/ drifted.txt' < /work/change.patch",
     );
     assert.equal(drifted.exitCode, 0);
-    assert.match(await h.readText("/work/ drifted.txt"), /target   new/);
+    assert.match(await h.readText("/work/ drifted.txt"), /target {3}new/);
 
     const fwd = await h.exec("patch -N /work/updated.txt < /work/change.patch");
     assert.equal(fwd.exitCode, 1);

@@ -114,7 +114,7 @@ empty=""
 unset missing
 printf 'colon_def=%s plain_def=%s\\n' "\${empty:-fallback}" "\${empty-fallback}"
 printf 'missing_def=%s\\n' "\${missing-fallback2}"
-printf 'assign=%s after=%s\\n' "\${assigned:=created_now}" "\$assigned"
+printf 'assign=%s after=%s\\n' "\${assigned:=created_now}" "$assigned"
 printf 'alt_set=%s alt_empty=%s\\n' "\${assigned:+is_present}" "\${empty:+is_present}"
 
 declare -A map=([alpha]=10 [beta]=20 [gamma]=30)
@@ -144,12 +144,12 @@ declare -i counter=10+5*2
 counter+=3*4
 declare -l lower_var="MiXeD_CaSe_123"
 declare -u upper_var="MiXeD_CaSe_123"
-printf 'counter=%d lower=%s upper=%s\\n' "\$counter" "\$lower_var" "\$upper_var"
+printf 'counter=%d lower=%s upper=%s\\n' "$counter" "$lower_var" "$upper_var"
 
 my_helper() {
   local -i local_sum="7 + 8"
   local -u local_tag="scoped_ok"
-  printf 'inside:%d:%s\\n' "\$local_sum" "\$local_tag"
+  printf 'inside:%d:%s\\n' "$local_sum" "$local_tag"
 }
 my_helper
 declare -F my_helper
@@ -177,11 +177,11 @@ declare -n ref1=target
 declare -n ref2=ref1
 ref2="mutated"
 ref1+="_appended"
-printf 'target=%s ref1=%s ref2=%s\\n' "\$target" "\$ref1" "\$ref2"
+printf 'target=%s ref1=%s ref2=%s\\n' "$target" "$ref1" "$ref2"
 
 # Unsetting -n removes only the nameref alias, preserving target
 unset -n ref1
-printf 'after_unset_n_target=%s\\n' "\$target"
+printf 'after_unset_n_target=%s\\n' "$target"
 
 # Rebind and unset target through nameref
 declare -n ref3=target
@@ -214,15 +214,15 @@ fi
 parse_args() {
   local OPTIND=1 opt
   while getopts ":ab:c" opt "$@"; do
-    case "\$opt" in
+    case "$opt" in
       a) printf 'A ' ;;
-      b) printf 'B(%s) ' "\$OPTARG" ;;
+      b) printf 'B(%s) ' "$OPTARG" ;;
       c) printf 'C ' ;;
-      :) printf 'MISSING(%s) ' "\$OPTARG" ;;
-      \\?) printf 'UNKNOWN(%s) ' "\$OPTARG" ;;
+      :) printf 'MISSING(%s) ' "$OPTARG" ;;
+      \\?) printf 'UNKNOWN(%s) ' "$OPTARG" ;;
     esac
   done
-  shift \$((OPTIND - 1))
+  shift $((OPTIND - 1))
   printf 'REST=[%s]\\n' "$*"
 }
 
@@ -243,22 +243,22 @@ parse_args -z -b
   it("8. getopt command: short and long options (--long), optional arguments, and eval set -- workflow", async () => {
     await withE2EHarness(async (h) => {
       const res = await h.exec(`
-PARSED=\$(getopt -o vf:o:: --long verbose,file:,output:: -n 'deploy.sh' -- -v --file "config prod.yml" --output=dist arg1 "arg 2")
-eval set -- "\$PARSED"
+PARSED=$(getopt -o vf:o:: --long verbose,file:,output:: -n 'deploy.sh' -- -v --file "config prod.yml" --output=dist arg1 "arg 2")
+eval set -- "$PARSED"
 
 VERBOSE=0
 FILE=""
 OUT=""
 while true; do
-  case "\$1" in
+  case "$1" in
     -v|--verbose) VERBOSE=1; shift ;;
-    -f|--file) FILE="\$2"; shift 2 ;;
+    -f|--file) FILE="$2"; shift 2 ;;
     -o|--output) OUT="\${2:-default_out}"; shift 2 ;;
     --) shift; break ;;
     *) break ;;
   esac
 done
-printf 'V=%d FILE=[%s] OUT=[%s] POS=[%s|%s]\\n' "\$VERBOSE" "\$FILE" "\$OUT" "\$1" "\$2"
+printf 'V=%d FILE=[%s] OUT=[%s] POS=[%s|%s]\\n' "$VERBOSE" "$FILE" "$OUT" "$1" "$2"
 `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(
@@ -274,12 +274,12 @@ printf 'V=%d FILE=[%s] OUT=[%s] POS=[%s|%s]\\n' "\$VERBOSE" "\$FILE" "\$OUT" "\$
 PS3="Choose env> "
 COLUMNS=40
 select env in "dev" "staging" "prod" "quit"; do
-  if [ -z "\$env" ]; then
-    printf 'invalid:%s\\n' "\$REPLY"
+  if [ -z "$env" ]; then
+    printf 'invalid:%s\\n' "$REPLY"
     continue
   fi
-  printf 'selected:%s(reply=%s)\\n' "\$env" "\$REPLY"
-  if [ "\$env" = "prod" ]; then
+  printf 'selected:%s(reply=%s)\\n' "$env" "$REPLY"
+  if [ "$env" = "prod" ]; then
     break
   fi
 done <<'SELECT_IN'
@@ -332,11 +332,11 @@ printf 'pipefail_neg=%d pf_pipes=%s\\n' "$?" "\${PIPESTATUS[*]}"
   read -r first_line <&4
   read -r second_line <&4
 } 4< /workspace/fd3.log
-printf 'read4=%s,%s\\n' "\$first_line" "\$second_line"
+printf 'read4=%s,%s\\n' "$first_line" "$second_line"
 
 # Swap stdout and stderr for a compound block via descriptor 3
-SWAPPED=\$( { { printf 'to-stdout'; printf 'to-stderr' >&2; } 3>&1 1>&2 2>&3 3>&-; } 2>/workspace/orig_out.txt )
-printf 'swapped_captured=%s orig_out=%s\\n' "\$SWAPPED" "\$(cat /workspace/orig_out.txt)"
+SWAPPED=$( { { printf 'to-stdout'; printf 'to-stderr' >&2; } 3>&1 1>&2 2>&3 3>&-; } 2>/workspace/orig_out.txt )
+printf 'swapped_captured=%s orig_out=%s\\n' "$SWAPPED" "$(cat /workspace/orig_out.txt)"
 
 # Combined &> redirection
 { printf 'both-out\\n'; printf 'both-err\\n' >&2; } &> /workspace/combined.log
@@ -404,7 +404,7 @@ shopt -u nullglob
 shopt -s dotglob
 all_entries=(*)
 shopt -u dotglob
-printf 'dotglob_has_hidden=%s\\n' "\$(printf '%s\\n' "\${all_entries[@]}" | grep '^\\.hidden$')"
+printf 'dotglob_has_hidden=%s\\n' "$(printf '%s\\n' "\${all_entries[@]}" | grep '^\\.hidden$')"
 
 # nocaseglob
 shopt -s nocaseglob
@@ -446,7 +446,7 @@ mkdir -p /workspace/real_dir/child /workspace/other
 ln -s /workspace/real_dir /workspace/sym_dir
 
 cd /workspace/sym_dir/child
-printf 'logical=%s physical=%s\\n' "\$(pwd -L)" "\$(pwd -P)"
+printf 'logical=%s physical=%s\\n' "$(pwd -L)" "$(pwd -P)"
 
 pushd /workspace/other >/dev/null
 pushd /tmp >/dev/null
@@ -474,8 +474,8 @@ pwd -P
     await withE2EHarness(async (h) => {
       const res = await h.exec(`
 my_echo() { printf 'fn:%s\\n' "$*"; }
-printf 'type_fn=%s type_cd=%s type_grep=%s\\n' "\$(type -t my_echo)" "\$(type -t cd)" "\$(type -t grep)"
-printf 'cmd_v=%s\\n' "\$(command -v my_echo)"
+printf 'type_fn=%s type_cd=%s type_grep=%s\\n' "$(type -t my_echo)" "$(type -t cd)" "$(type -t grep)"
+printf 'cmd_v=%s\\n' "$(command -v my_echo)"
 builtin echo "from-builtin-echo"
 
 mkdir -p /usr/local/bin
@@ -529,7 +529,7 @@ stat -c '%a' /workspace/strict_file.txt
 let "a = 2#10110" "b = 16#1f" "c = 8#77"
 let "d = (a < b ? b : a) << 1"
 (( e = 10, f = ++e + e++ ))
-printf 'a=%d b=%d c=%d d=%d e=%d f=%d\\n' "\$a" "\$b" "\$c" "\$d" "\$e" "\$f"
+printf 'a=%d b=%d c=%d d=%d e=%d f=%d\\n' "$a" "$b" "$c" "$d" "$e" "$f"
 
 # let returns 1 when last expression evaluates to 0, 0 when non-zero
 if let "zero_val = 5 - 5"; then
@@ -552,8 +552,8 @@ fi
         files: {
           "/workspace/lib.sh": `
 printf 'lib_args=[%s](%d)\\n' "$*" "$#"
-EXPORTED_FROM_LIB="loaded_\$1"
-if [ "\$2" = "early" ]; then
+EXPORTED_FROM_LIB="loaded_$1"
+if [ "$2" = "early" ]; then
   return 42
 fi
 printf 'lib_completed\\n'
@@ -564,14 +564,14 @@ printf 'lib_completed\\n'
         const res = await h.exec(`
 set -- caller_one caller_two
 source /workspace/lib.sh sub_a normal
-printf 'after1: caller=[%s] var=%s\\n' "$*" "\$EXPORTED_FROM_LIB"
+printf 'after1: caller=[%s] var=%s\\n' "$*" "$EXPORTED_FROM_LIB"
 
 source /workspace/lib.sh sub_b early
 RET=$?
-printf 'after2: ret=%d caller=[%s] var=%s\\n' "\$RET" "$*" "\$EXPORTED_FROM_LIB"
+printf 'after2: ret=%d caller=[%s] var=%s\\n' "$RET" "$*" "$EXPORTED_FROM_LIB"
 
 dyn_name="EXPORTED_FROM_LIB"
-eval "printf 'eval_indirect=%s\\n' \\"\\\$\$dyn_name\\""
+eval "printf 'eval_indirect=%s\\n' \\"\\$$dyn_name\\""
 `);
         assert.equal(res.exitCode, 0, res.stderr);
         assert.equal(

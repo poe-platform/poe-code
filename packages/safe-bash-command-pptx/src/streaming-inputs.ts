@@ -1,4 +1,5 @@
-import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { RetainedInputCatalog } from "./retained-input-catalog.js";
+import { PagedStorage, PagedStorageCache } from "@poe-code/safe-fs/storage";
 import { FsError, writeBytes, type ByteSink, type ByteSource, type CommandContext, type FileStat } from "safe-bash-contracts";
 import { compareCopyIdentity } from "safe-bash-contracts/filesystem-identity";
 import { pathOf } from "safe-bash-io-engine/internal";
@@ -31,19 +32,22 @@ export function sameRetainedIdentity(before: FileStat, after: FileStat): boolean
   return compareCopyIdentity(before, after) === "same";
 }
 
-export function createPptxInputSession(context: CommandContext, snapshots: Map<string, FileStat>) {
+export function createPptxInputSession(context: CommandContext) {
   const { fs, signal } = context;
   const directory = pathOf(context, context.env.TMPDIR || context.cwd);
   const workingStorage = Object.freeze({ fs, directory });
-  const storage = new PagedStorage({ fs, cwd: directory, env: {}, signal });
+  const cache = new PagedStorageCache(64);
+  const storage = new PagedStorage({ fs, cwd: directory, env: {}, signal }, 64, cache);
   const sources = new Map<string, PptxRetainedInput>();
-  const identities = new Map<string, FileStat>();
+  const metadata = new PagedStorage({ fs, cwd: directory, env: {}, signal }, 64, cache);
+  const catalog = new RetainedInputCatalog(metadata, signal);
+  const remember = (path: string, value: PptxRetainedInput) => { sources.delete(path); sources.set(path, value); if (sources.size > 128) sources.delete(sources.keys().next().value!); return value; };
   let pending: Promise<unknown> = Promise.resolve();
   let closed = false, closing: Promise<void> | undefined;
   const check = () => { signal.throwIfAborted(); if (closed) throw new FsError("EBADF"); };
   const close = () => {
     closed = true;
-    return closing ??= pending.then(() => storage.close());
+    return closing ??= pending.then(async () => { const results = await Promise.allSettled([storage.close(), metadata.close()]); for (const result of results) if (result.status === "rejected") throw result.reason; sources.clear(); });
   };
   context.registerCleanup?.(close);
   function source(start: number, size: number): PptxRetainedInput {
@@ -76,7 +80,10 @@ export function createPptxInputSession(context: CommandContext, snapshots: Map<s
           if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 0)) throw new FsError("EINVAL");
           const resolved = path === "-" ? "-" : pathOf(context, path);
           const cached = sources.get(resolved);
-          if (cached) { if (cached.size > maxBytes) throw new FsError("EFBIG"); return cached; }
+          if (cached) { if (cached.size > maxBytes) throw new FsError("EFBIG"); return remember(resolved, cached); }
+          const saved = await catalog.get(resolved);
+          if (saved) { if (saved.size > maxBytes) throw new FsError("EFBIG"); return remember(resolved, source(saved.start, saved.size)); }
+          let sourceStart = 0, entryObservation: FileStat | undefined, retainedIdentity: FileStat | undefined;
           let retained: PptxRetainedInput;
           if (path === "-") {
             const start = storage.allocate(0);
@@ -93,7 +100,7 @@ export function createPptxInputSession(context: CommandContext, snapshots: Map<s
               }
             }
             check();
-            retained = source(start, size);
+            sourceStart = start; retained = source(start, size);
           } else {
             const capabilities = await fs.capabilitiesFor?.(resolved, { signal }) ?? fs.capabilities;
             check();
@@ -128,9 +135,9 @@ export function createPptxInputSession(context: CommandContext, snapshots: Map<s
                 if (sameRetainedIdentity(entry, entry) && (!sameRetainedIdentity(entry, after) || entry.revision !== after.revision
                   || entry.opaqueVersion !== after.opaqueVersion || entry.size !== after.size || entry.mode !== after.mode
                   || entry.nlink !== after.nlink || entry.mtimeMs !== after.mtimeMs || entry.ctimeMs !== after.ctimeMs)) throw new FsError("EAGAIN");
-                if (!snapshots.has(resolved)) snapshots.set(resolved, entry);
+                entryObservation = entry;
               }
-              retained = source(start, size);
+              sourceStart = start; retained = source(start, size);
             } else {
               const entry = await fs.lstat(resolved, { signal });
               check();
@@ -164,18 +171,18 @@ export function createPptxInputSession(context: CommandContext, snapshots: Map<s
                   || observed.opaqueVersion !== after.opaqueVersion
                   || observed.size !== after.size || observed.mode !== after.mode || observed.nlink !== after.nlink
                   || observed.mtimeMs !== after.mtimeMs || observed.ctimeMs !== after.ctimeMs) throw new FsError("EAGAIN");
-                captured = source(start, observed.size);
+                sourceStart = start; captured = source(start, observed.size);
               } catch (error) { failure = { error }; }
               try { await handle.close(); } catch (error) { failure ??= { error }; }
               check();
               if (failure) throw failure.error;
               retained = captured!;
-              if (!snapshots.has(resolved)) snapshots.set(resolved, entry);
-              identities.set(resolved, observed!);
+              entryObservation = entry;
+              retainedIdentity = observed!;
             }
           }
-          sources.set(resolved, retained);
-          return retained;
+          await catalog.put(resolved, { start: sourceStart, size: retained.size, ...(entryObservation ? { entry: entryObservation } : {}), ...(retainedIdentity ? { identity: retainedIdentity } : {}) });
+          return remember(resolved, retained);
         } catch (error) {
           signal.throwIfAborted();
           throw Object.assign(new Error("Input could not be read."), { code: error instanceof FsError && error.code === "EFBIG" ? "resource-limit"
@@ -186,5 +193,8 @@ export function createPptxInputSession(context: CommandContext, snapshots: Map<s
       return work;
     }
   });
-  return { io, identities, close };
+  return { io, close,
+    async snapshot(path: string, peer: FileStat) { check(); return (await catalog.get(path, peer))?.entry; },
+    async *observations(peer: FileStat) { check(); for await (const [path, record] of catalog.entries(peer)) { check(); if (record.entry) yield { path, entry: record.entry, identity: record.identity }; } check(); }
+  };
 }

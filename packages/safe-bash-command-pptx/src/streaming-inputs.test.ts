@@ -229,3 +229,28 @@ for (const mode of ["success", "unsupported", "late-unsupported", "changed", "li
   if (mode === "success") expect(spillBytes).toBeGreaterThan(1024 * 1024);
   expect(await owner.readdir("/scratch")).toEqual([]);
 });
+
+for (const mode of ['replay', 'protected-first', 'protected-last', 'in-place'] as const) it(`keeps input identity after source-cache eviction: ${mode}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir('/inputs'); await fs.mkdir('/scratch');
+  for (let n = 0; n < 260; n++) await fs.writeFile(`/inputs/${n}`, new Uint8Array([n % 256]));
+  let opened = 0;
+  const owner = new Proxy(fs, { get(target, key) {
+    if (key === 'readFile') return async () => { throw new Error('whole-file read forbidden'); };
+    if (key === 'openReadFile') return async (...args: Parameters<NonNullable<typeof fs.openReadFile>>) => { opened++; return fs.openReadFile!(...args); };
+    const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value;
+  } });
+  const engine: PptxCommandEngine = { async execute(request) {
+    let earliest: PptxRetainedInput | undefined;
+    for (let n = 0; n < 260; n++) { const input = await request.streaming.openInput(`/inputs/${n}`, Infinity); if (!n) earliest = input; }
+    if (mode === 'replay') await fs.writeFile('/inputs/0', new Uint8Array([255]));
+    const first = await request.streaming.openInput('/inputs/0', Infinity); expect(first).not.toBe(earliest);
+    expect(await first.read(0, 1, { signal: request.signal })).toEqual(new Uint8Array([0])); expect(opened).toBe(260);
+    await expect(request.streaming.openInput('/inputs/0', 0)).rejects.toMatchObject({ code: 'resource-limit' });
+    if (mode !== 'replay') await request.publishOutput!({ ...(mode === 'in-place' ? { inputPath: '/inputs/0' } : {}), outputPath: mode === 'protected-last' ? '/inputs/259' : '/inputs/0', bytes: toByteSource(new Uint8Array([42])), originalBytes: first, inPlace: mode === 'in-place', force: true, dryRun: false });
+    return { exitCode: 0 };
+  } };
+  const args = createCommandArguments([]), run = Promise.resolve(createPptxCommand({ engine }).execute({ command: 'pptx', args: args.args, argumentValues: args, cwd: '/', env: { TMPDIR: '/scratch' }, fs: owner, stdin: toByteSource(''), signal: new AbortController().signal, stdout: { async write() {} }, stderr: { async write() {} } }));
+  if (mode.startsWith('protected')) await expect(run).rejects.toMatchObject({ code: 'io-failure' }); else expect((await run).exitCode).toBe(0);
+  expect(await fs.readFile('/inputs/0')).toEqual(new Uint8Array([mode === 'replay' ? 255 : mode === 'in-place' ? 42 : 0])); expect(await fs.readdir('/scratch')).toEqual([]);
+});

@@ -1,3 +1,5 @@
+import { openRetainedPackManifest } from "./retained-pack-manifest.js";
+import { stageRetainedPackage } from "safe-bash-presentation-engine/package-tools";
 import { prepareRetainedExtraction } from "./command-extract-streaming.js";
 import { stageRetainedText } from "safe-bash-presentation-engine/retained-text";
 import { stageRetainedInspection, type StagedInspection } from "safe-bash-presentation-engine/retained-inspection";
@@ -218,7 +220,8 @@ export interface AdmittedCommandEngineOptions {
 }
 import type { PptxPublicationRequest } from "safe-bash-presentation-engine/publication";
 export type { PptxPublicationRequest } from "safe-bash-presentation-engine/publication";
-export type PptxStreamPublicationRequest = Omit<PptxPublicationRequest, "bytes" | "originalBytes"> & {
+export type PptxStreamPublicationRequest = Omit<PptxPublicationRequest, "bytes" | "originalBytes" | "protectedInputPaths"> & {
+  readonly protectedInputPaths?: readonly string[] | AsyncIterable<string>;
   readonly bytes: import("safe-bash-contracts").ByteSource;
   readonly originalBytes: import("./streaming-inputs.js").PptxRetainedInput;
 };
@@ -4105,7 +4108,27 @@ async function executeRequest(
     output.json = args.json;
     output.operation = args.operation;
     const operation = args.operation;
-    if (args.operation === "extract" && request.streaming && (!request.publishOutputs || request.publishOutputStreams) && (!request.preflightOutput || request.preflightOutputStream)) {
+    if (args.operation === "pack" && request.streaming) {
+      if (args.creation?.author !== undefined || args.creation?.timestamp !== undefined) throw new OfficeError("unsupported-edit", "Pack metadata overrides are unavailable; source properties are preserved.", "validate-intent");
+      const streaming = request.streaming, context = { ...options.context, signal: request.signal, workingStorage: streaming.workingStorage };
+      const input = await streaming.openInput(args.manifest!, Math.min(context.limits.maxBytes, context.xmlLimits.maxBytes));
+      const manifest = await openRetainedPackManifest(input.stream(), context, { manifest: args.manifest!, ...(args.output === undefined ? {} : { output: args.output }) });
+      owned.push(manifest); let total = 0;
+      const packed = await stageRetainedPackage(manifest.members(), async function* (part) {
+        const source = await streaming.openInput(await manifest.path(part), Math.min(context.limits.maxBytes, context.archiveLimits.maxEntryBytes, context.archiveLimits.maxTotalBytes - total));
+        total += source.size; yield* source.stream();
+      }, context, args.creation?.kind ? { kind: args.creation.kind } : {});
+      owned.push(packed);
+      if (packed.size > options.maxOutputBytes) throw new OfficeError("resource-limit", "Packed output exceeds byte limit.", "validate-intent");
+      const dryRun = args.dryRun ?? false;
+      result = { version: 1, operation, ok: true, warnings: [], errors: [], locations: [], affected: packed.count,
+        data: { effects: ["packed"], outputs: dryRun ? [] : [{ path: args.output!, sha256: packed.fingerprint, bytes: packed.size }], fingerprint: dryRun ? null : packed.fingerprint, dryRun } };
+      human = `${dryRun ? "Validated" : "Packed"} ${packed.count} package part(s)\n`;
+      if (args.output && args.output !== "-") {
+        if (!request.publishOutput) throw Object.assign(new Error("Output publication unavailable."), { code: "publication-unsupported" });
+        publication = { outputPath: args.output, protectedInputPaths: manifest.paths(), bytes: packed.bytes(), originalBytes: input, inPlace: false, force: args.force ?? false, dryRun };
+      } else if (args.output === "-" && !dryRun) stagedOutput = { close: packed.close, async write(sink) { for await (const bytes of packed.bytes()) await sink.write(bytes); } };
+    } else if (args.operation === "extract" && request.streaming && (!request.publishOutputs || request.publishOutputStreams) && (!request.preflightOutput || request.preflightOutputStream)) {
       retainedExtraction = await prepareRetainedExtraction(args, request, options);
       owned.push(retainedExtraction);
       result = success(operation, null);

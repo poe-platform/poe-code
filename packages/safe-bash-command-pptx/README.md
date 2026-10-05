@@ -20,7 +20,11 @@ Snapshots use the caller's filesystem, spill through a bounded cache into
 inputs use retained reads with verifiable identity/version metadata when available,
 or copy streaming reads incrementally. Buffered-only backends retain a readFile
 convenience fallback;
-`-` snapshots stdin for replay. Memory-backed filesystems keep spilled data in
+`-` snapshots stdin for replay. Replay offsets and identity observations live in
+caller storage alongside payloads under a shared 1 MiB page cache; a 128-entry
+source cache keeps repeated reads cheap without retaining every source object.
+Identity-scope capabilities are weakly labeled rather than strongly retained.
+Memory-backed filesystems keep spilled data in
 memory, so large inputs need an external storage backend.
 
 `publishOutput` also accepts a byte source and retained `originalBytes`. Streamed
@@ -43,7 +47,12 @@ Every destination is preflighted before writing. Use `publishOutputStreams` for 
 trusted all-or-nothing transaction over an async iterable, optionally with
 `preflightOutputStream`; otherwise extraction requires `--allow-partial-output`.
 Explicit legacy `publishOutputs`/`preflightOutput` callbacks retain the buffered
-compatibility path unless their stream counterparts are supplied. Other operations
+compatibility path unless their stream counterparts are supplied. `pack` parses its
+manifest into caller storage, streams member admission and stages the complete ZIP
+before publication. It preserves hashes, package guards, protected input identity,
+force/dry-run and binary stdout. Stream publication callbacks may receive
+`protectedInputPaths` as an async iterable; consume it before publishing.
+Other operations
 still use buffered document models during their streaming migration.
 
 The command owns PowerPoint argument parsing, schemas, discovery and execution.

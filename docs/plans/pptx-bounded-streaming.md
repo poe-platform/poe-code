@@ -481,12 +481,9 @@ and at most 16 KiB outstanding writes. Native python-pptx verified all 41 member
 through the default adapter with whole-file reads forbidden, reconstructed the
 deck and confirmed text/chart/workbook parity and scratch cleanup.
 
-Next migrate `pack`: its JSON manifest parsing, member admission and complete
-archive collection remain buffered. Preserve duplicate-key rejection, explicit
-scoped paths, hash verification, complete graph checks, metadata policy,
-protected inputs and publication semantics. Other extraction/mutation paths,
-richer reads and embedded workbook intermediates remain too. No Worker runtime
-qualification or complete migration is claimed.
+Package packing now also follows the retained execution path described below.
+Other extraction/mutation paths, richer reads and embedded workbook intermediates
+remain. No Worker runtime qualification or complete migration is claimed.
 
 ## Remaining implementation
 
@@ -521,8 +518,8 @@ slow consumption, source/storage failures, cancellation and iterator retirement.
 The 31 new packing cases and 61 archive/package regressions pass, as do the
 maintained engine lint/type checks and workspace build. Native python-pptx packing
 preserves all 41 chart-deck members, text, chart values and embedded workbook, with
-exact buffered ZIP bytes and empty scratch. This is an engine capability, not a
-migration of the default pack command; no Worker qualification is claimed.
+exact buffered ZIP bytes and empty scratch. The default pack command now uses
+this capability; no Worker qualification is claimed.
 
 `openRetainedPackManifest` now uses the shared `@poe-code/json-ast` parser with
 caller-backed nesting, UTF-16 scalars and duplicate-key indexes. It validates the
@@ -530,8 +527,8 @@ complete schema, canonical part uniqueness, scoped paths, stdin ownership and
 output/source exclusion before returning replayable descriptors and path lookups.
 The JSON tree and part-to-input index stay in caller storage. One path at a time
 is materialized for the filesystem's string API; there is no resident path list.
-The buffered command shares the same scoped-path function. The new parser remains
-internal and is not yet selected by the default pack execution branch.
+The buffered command shares the same scoped-path function. The default pack
+execution branch now composes this parser with retained member admission.
 
 Thirty parser tests cover generated/reused chunks, spills, bounded writes, slow
 traversal, syntax/UTF-8/schema/depth/limit failures, cancellation and source cleanup.
@@ -540,10 +537,24 @@ and the maintained workspace build passed. A native 41-member chart deck survive
 manifest-to-retained-packing composition with exact member/text/chart/workbook
 parity, Unicode scoped paths and empty scratch. No Worker qualification is claimed.
 
-Next: migrate protected input identities and replay indexes without growing arrays
-or session maps, then connect `openRetainedPackManifest` to `stageRetainedPackage`.
-Wire staged archive and response publication for force/dry-run/binary stdout.
-Other mutations, richer reads and workbook intermediates also remain unfinished.
+Default pack now uses retained manifest/member inputs, staged archives, ordinary
+conditional publication, dry-run and binary stdout. Human and JSON responses have
+fixed schema/size independent of member count. Protected paths are async iterables.
+The input session stores replay offsets and original/retained observations in a
+caller-backed catalog, sharing one 1 MiB page cache with payload snapshots. Its
+source-object cache has 128 entries. Backend identity scopes use weak capability
+labels; registered symbols use their global names. Reconstructed observations
+compare against the current destination scope without retaining the old objects.
+Buffered-only engine requests keep their compatibility path.
+
+Tests cover source-cache eviction/replay, early/late protected sources, in-place
+publication after eviction, object/private-symbol/global-symbol scopes, manifest
+and byte parity, output budgets, dry-run, force, cancellation and publication
+failure. All 1,272 command tests, maintained command lint/type checks and the
+selected workspace build passed. Native default-adapter pack retained all 42 inputs (manifest plus 41
+members), made no whole-file reads, preserved exact members/text/chart/workbook
+values and left scratch empty. Other mutations, richer reads, other extraction
+operations and mandatory embedded-workbook intermediates remain unfinished.
 
 ## Manual workerd / Cloudflare QA
 

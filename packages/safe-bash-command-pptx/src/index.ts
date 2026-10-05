@@ -17,7 +17,7 @@ export interface PptxCommandEngine {
     readonly readInput: (path: string, maxBytes: number) => Promise<Uint8Array>;
     readonly publishOutput?: (publication: {
       readonly inputPath?: string;
-      readonly protectedInputPaths?: readonly string[];
+      readonly protectedInputPaths?: readonly string[] | AsyncIterable<string>;
       readonly outputPath: string;
       readonly bytes: Uint8Array | ByteSource;
       readonly originalBytes: Uint8Array | PptxRetainedInput;
@@ -60,7 +60,7 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
       }
     const snapshots = new Map<string, FileStat>();
     engine ??= (await import("./engine.js")).createPptxCommandEngine();
-    const inputs = createPptxInputSession(context, snapshots);
+    const inputs = createPptxInputSession(context);
     let result: Awaited<ReturnType<PptxCommandEngine["execute"]>> | undefined;
     let failure: { error: unknown } | undefined;
     try {
@@ -125,11 +125,17 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
             }
             if (destination && destination.type !== "file") throw new FsError("EINVAL");
             if (destination) {
-              const protectedInputs = new Set((publication.protectedInputPaths ?? []).filter(path => path !== "-").map(path => pathOf(context, path)));
+              let protectInput = false;
+              for await (const path of publication.protectedInputPaths ?? []) { signal.throwIfAborted(); if (path !== "-" && pathOf(context, path) === input) protectInput = true; }
               for (const [source, observed] of snapshots) {
-                if (source === input && !protectedInputs.has(source)) continue;
-                const identity = inputs.identities.get(source) ?? (observed.type === "symlink" ? await fs.stat(source, { signal }) : observed);
+                if (source === input && !protectInput) continue;
+                const identity = observed.type === "symlink" ? await fs.stat(source, { signal }) : observed;
                 if (source === output || await compareObservedEntries(fs, source, identity, fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");
+              }
+              for await (const observed of inputs.observations(destination)) {
+                if (observed.path === input && !protectInput) continue;
+                const identity = observed.identity ?? (observed.entry.type === "symlink" ? await fs.stat(observed.path, { signal }) : observed.entry);
+                if (observed.path === output || await compareObservedEntries(fs, observed.path, identity, fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");
               }
             }
             if (destination && !publication.inPlace) {
@@ -166,7 +172,7 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
             }
             if (parent.type !== "directory") throw new FsError("ENOTDIR");
             if (publication.inPlace) {
-              const original = snapshots.get(input!);
+              const original = snapshots.get(input!) ?? (destination ? await inputs.snapshot(input!, destination) : undefined);
               if (!original || original.type !== "file" || !destination || (original.revision === undefined && original.opaqueVersion === undefined)
                 || original.revision !== destination.revision || original.opaqueVersion !== destination.opaqueVersion || original.size !== destination.size
                 || original.mode !== destination.mode || original.nlink !== destination.nlink

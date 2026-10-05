@@ -64,7 +64,7 @@ member, verifies hashes and the complete presentation, and returns
 `{ count, size, fingerprint, bytes(), close() }`. Member order, ZIP intermediates
 and replayable output live in caller storage; close the result after consumption.
 Optional `{ kind: "pptx" | "potx" | "ppsx" }` checks the presentation type.
-The default `pack` command still uses its buffered compatibility path.
+The default `pack` command uses this API with retained manifests and inputs.
 `openRetainedXmlReplacement` (from `xml-parts`) admits a replacement byte stream
 for an exact existing presentation or slide part, including guarded child reorder
 and removal. It retains replacement bytes and comparison state in caller storage,

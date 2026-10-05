@@ -854,6 +854,25 @@ function* resolveEvaluationArray(node: PdfCosNode | undefined, storeRootArray = 
   return resolved?.kind === "array" ? resolved : undefined;
 }
 
+/** Read the fixed prefix consumed by a graphics-state field. */
+function* evaluationArrayPrefix(array: import("../ast.js").PdfCosArray, count: number): EvaluationWork<PdfCosNode[]> {
+  if (!array.storedItems) return array.items.slice(0, count);
+  const items = array.storedItems;
+  if (!Number.isSafeInteger(items.length) || items.length < 0) throw new RangeError("Invalid stored array length");
+  const prefix: PdfCosNode[] = [];
+  let position = items.position;
+  for (let i = 0; i < Math.min(count, items.length); i++) {
+    const reply = yield { kind: "array-item", items, position };
+    if (!reply || !("kind" in reply) || reply.kind !== "resolved" || reply.node?.kind !== "array") throw new TypeError("Expected stored array item");
+    const [next, value] = reply.node.items;
+    if (next?.kind !== "number" || !value) throw new TypeError("Expected stored array record");
+    position = next.value;
+    prefix.push(value);
+  }
+  if (items.length <= count && position !== -1) throw new PdfError("E_PARSE", "Invalid stored array terminator");
+  return prefix;
+}
+
 /** Visit backed arrays without a second resident list or membership set. */
 function* visitEvaluationArray(array: import("../ast.js").PdfCosArray, visit: (node: PdfCosNode) => EvaluationWork<void>): EvaluationWork<void> {
   if (!array.storedItems) { for (const item of array.items) yield* visit(item); return; }
@@ -1440,47 +1459,36 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             st.softMask = { subtype: subtype.decoded, operations: captured instanceof StoredOperationsWriter ? [] : captured, ...(captured instanceof StoredOperationsWriter ? {storedOperations:captured.snapshot()} : {}), ...parameters.value };
           }
         }
-        const bmNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "BM"));
+        const bmNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "BM", true), true);
         if (bmNode?.kind === "name") {
           st.blendMode = bmNode.decoded === "Compatible" ? "Normal" : bmNode.decoded;
-        } else if (bmNode?.kind === "array" && bmNode.items.length > 0) {
-          const firstBm = yield* resolveEvaluationNode(bmNode.items[0]);
+        } else if (bmNode?.kind === "array" && (bmNode.storedItems?.length ?? bmNode.items.length) > 0) {
+          const firstBm = yield* resolveEvaluationNode((yield* evaluationArrayPrefix(bmNode, 1))[0]);
           if (firstBm?.kind === "name") {
             st.blendMode = firstBm.decoded === "Compatible" ? "Normal" : firstBm.decoded;
           }
         }
-        const caNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "ca"));
+        const caNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "ca", true), true);
         if (caNode?.kind === "number") st.fillAlpha = Math.max(0, Math.min(1, caNode.value));
-        const CANode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "CA"));
+        const CANode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "CA", true), true);
         if (CANode?.kind === "number") st.strokeAlpha = Math.max(0, Math.min(1, CANode.value));
-        const lwNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "LW"));
+        const lwNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "LW", true), true);
         if (lwNode?.kind === "number") st.strokeWidth = Math.max(0, lwNode.value);
-        const lcNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "LC"));
+        const lcNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "LC", true), true);
         if (lcNode?.kind === "number" && (lcNode.value === 0 || lcNode.value === 1 || lcNode.value === 2)) {
           st.lineCap = lcNode.value;
         }
-        const ljNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "LJ"));
+        const ljNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "LJ", true), true);
         if (ljNode?.kind === "number" && (ljNode.value === 0 || ljNode.value === 1 || ljNode.value === 2)) {
           st.lineJoin = ljNode.value;
         }
-        const mlNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "ML"));
+        const mlNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "ML", true), true);
         if (mlNode?.kind === "number" && mlNode.value > 0) {
           st.miterLimit = mlNode.value;
         }
-        const dArr = yield* resolveEvaluationArray(yield* lookupEvaluationDictionary(gsDict, "D"), true);
+        const dArr = yield* resolveEvaluationArray(yield* lookupEvaluationDictionary(gsDict, "D", true), true);
         if (dArr && (dArr.storedItems?.length ?? dArr.items.length) >= 2) {
-          let pair = dArr.items;
-          if (dArr.storedItems) {
-            pair = [];
-            let position = dArr.storedItems.position;
-            for (let i = 0; i < 2; i++) {
-              const reply = yield { kind: "array-item", items: dArr.storedItems, position };
-              if (!reply || !("kind" in reply) || reply.kind !== "resolved" || reply.node?.kind !== "array") throw new TypeError("Expected dash state record");
-              const [next, value] = reply.node.items;
-              if (next?.kind !== "number" || !value) throw new TypeError("Expected dash state value");
-              position = next.value; pair.push(value);
-            }
-          }
+          const pair = yield* evaluationArrayPrefix(dArr, 2);
           const patArr = yield* resolveEvaluationArray(pair[0], true);
           const phaseNode = yield* resolveEvaluationNode(pair[1]);
           if (patArr && params.geometryStorage) {
@@ -1501,9 +1509,10 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             st.dashPhase = phaseNode?.kind === "number" ? phaseNode.value : 0;
           }
         }
-        const fontArr = yield* resolveEvaluationArray(yield* lookupEvaluationDictionary(gsDict, "Font"));
-        if (fontArr && fontArr.items.length >= 2) {
-          const fSizeNode = yield* resolveEvaluationNode(fontArr.items[1]);
+        const fontArr = yield* resolveEvaluationArray(yield* lookupEvaluationDictionary(gsDict, "Font", true), true);
+        if (fontArr && (fontArr.storedItems?.length ?? fontArr.items.length) >= 2) {
+          const pair = yield* evaluationArrayPrefix(fontArr, 2);
+          const fSizeNode = yield* resolveEvaluationNode(pair[1]);
           if (fSizeNode?.kind === "number") st.fontSize = fSizeNode.value;
           const gsFontKey = `__ExtGS_Font_${ops[0].decoded}`;
           const gsFontResources: PdfCosDict = {
@@ -1516,7 +1525,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   entries: [
                     {
                       key: { kind: "name", decoded: gsFontKey, rawBytes: new Uint8Array(0) },
-                      value: fontArr.items[0]!,
+                      value: pair[0]!,
                     },
                   ],
                 },

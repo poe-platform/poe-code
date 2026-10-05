@@ -56,7 +56,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
   const identities = new WeakMap<PdfCosStream, PdfCosRef>();
   async function resolve(node: PdfCosNode | undefined, storeRootArray = false, arrayPathPrefix?: readonly string[], storeRootDictionary = false): Promise<PdfCosNode | undefined> {
     charge(64);
-    const value = await document.lookup(node, storeRootArray && options.imageStorage ? { arrayStorage: options.imageStorage, storeRootArray: true } : undefined, arrayPathPrefix, storeRootDictionary);
+    const value = await document.lookup(node, undefined, arrayPathPrefix, storeRootDictionary, storeRootArray ? options.imageStorage : undefined);
     signal?.throwIfAborted();
     if (value?.stream && value.reference && value.value.kind === "dict") {
       charge(128);

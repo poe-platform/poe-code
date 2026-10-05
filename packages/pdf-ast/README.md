@@ -35,7 +35,10 @@ keeps the backing alive until all dictionary consumers finish. Set
 string and container storage to defer resource definitions during parsing.
 Named lookup expands only the selected definition; pass `{preserveDeferred: true}`
 as its fourth argument to read fields individually from that definition. Retained
-graphics-state evaluation uses this path, including indirect definitions.
+graphics-state evaluation uses this path, including indirect definitions. Blend-mode,
+font and dash arrays read only their consumed prefix; unused tails and ignored
+array-valued numeric fields stay in caller backing. Root-array lookups preserve
+the document’s nested-value backing policy, including font widths.
 Enumeration expands one at a
 time. Explicit width, string and nested resource selectors remain backed.
 

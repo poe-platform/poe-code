@@ -289,3 +289,21 @@ it.each(["inline","map","state","both","stream","encrypted-stream"])("reads sele
  }finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+
+it.each(["BM", "Font", "ca"].flatMap(key => [false, true].map(indirect => ({key, indirect}))))("keeps selected $key array tails backed (indirect=$indirect)", async ({key, indirect}) => {
+ const {cosArray,cosDict,cosName}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([12,12]);
+ const prefix=key==="BM"?[cosName("Multiply")]:key==="Font"?[cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica"),FirstChar:cosNumber(0),LastChar:cosNumber(255),Widths:cosArray(Array.from({length:256},()=>cosNumber(751)))}),cosNumber(5)]:[];
+ const value=cosArray([...prefix,...Array.from({length:256},()=>cosNumber(751))]);
+ dictSet(page.pageDict,"Resources",cosDict({ExtGState:cosDict({Selected:cosDict({[key]:indirect?doc.cos.allocateObject(value):value})})}));
+ page.setRawContentStream("0 1 0 rg 0 0 12 12 re f /Selected gs 1 0 0 rg 0 0 12 12 re f"+(key==="Font"?" 0 0 0 rg BT 1 3 Td (x) Tj ET":""));
+ const bytes=doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const push=Array.prototype.push;Array.prototype.push=function<T>(this:T[],...values:T[]):number{if(this.length>=64&&values.some(value=>(value as {kind?:string;value?:number})?.kind==="number"&&(value as {value:number}).value===751))throw Error("unused selected field array tail became resident");return push.apply(this,values);};
+ try{
+  const image=await tryPdfDecode({size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}},storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+ }finally{Array.prototype.push=push;await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

@@ -1,3 +1,4 @@
+import { savedTabDestination, savedTabDestinations } from './saved-tabs.js';
 import type { PlaywrightAdapter, PlaywrightPage, PlaywrightContext, PlaywrightContextOptions, PlaywrightStorageState } from './adapter.js';
 import type { PlaywrightSessionCheckpoint, PlaywrightSessionPersistence } from './controller.js';
 import { readPlaywrightStorageState } from './native-storage-replacement.js';
@@ -122,7 +123,7 @@ export function encodeBrowserProfile(profile: BrowserProfile, limitOptions: Brow
 export async function restoreBrowserProfile(options: {
   adapter: PlaywrightAdapter; profile: BrowserProfile; limits?: BrowserProfileLimits;
   name: string; signal: AbortSignal;
-  /** Saved URLs may repeat actions. Navigation requires explicit host authorization. */
+  /** Saved URLs may repeat actions. Authorized navigation is deferred until a command uses the tab. */
   tabRestoration?: 'blank' | 'navigate';
   /** Interrupted-owner recovery: storage only, one blank page, no script or URL replay. */
   recovery?: boolean;
@@ -142,9 +143,11 @@ export async function restoreBrowserProfile(options: {
     const pages: PlaywrightPage[] = [];
     const urls = options.recovery ? ['about:blank'] : profile.tabs.length ? profile.tabs : ['about:blank'];
     if (lease.context.pages().length + urls.length > limits.maxTabs) throw new Error('Browser profile tab limit exceeded');
-    for (const ignoredUrl of urls) {
+    for (const url of urls) {
       signal.throwIfAborted();
-      pages.push(await lease.context.newPage());
+      const page = await lease.context.newPage();
+      pages.push(page);
+      if (!options.recovery && tabRestoration === 'navigate') savedTabDestinations.set(page, url);
     }
     signal.throwIfAborted();
     if (options.recovery) return {
@@ -167,10 +170,7 @@ export async function restoreBrowserProfile(options: {
           if (!runtime) throw new Error('Browser adapter cannot restore provider profile settings');
           await runtime.restore(profile.runtimeState, signal);
         }
-        for (let i = 0; tabRestoration === 'navigate' && i < pages.length; i++) {
-          signal.throwIfAborted();
-          await pages[i]!.goto(urls[i]!);
-        }
+        signal.throwIfAborted();
       },
     };
   } catch (error) {
@@ -203,7 +203,7 @@ export async function checkpointBrowserProfile(session: PlaywrightSessionCheckpo
   const { pages, selected } = checkpointPages(session, limits);
   return encodeBrowserProfile({
     state: result!.value, contextOptions,
-    tabs: pages.map(page => page.url()), selected,
+    tabs: pages.map(page => savedTabDestination(page) ?? page.url()), selected,
     ...(session.configuration === undefined ? {} : { configuration: session.configuration }),
     ...(session.expiresAt === undefined ? {} : { expiresAt: session.expiresAt }),
     ...(session.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: session.idleTimeoutMs }),

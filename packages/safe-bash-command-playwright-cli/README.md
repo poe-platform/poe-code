@@ -18,6 +18,13 @@ await shell.dispose();
 
 `trustedAdapter` is supplied by your host. Available operations depend on its
 registered abilities. The command is optional and is never installed by default.
+When a host authorizes saved-URL restoration with `tabRestoration: "navigate"`,
+URLs load on demand: attaching and listing tabs do not navigate, while selecting
+or using a tab loads its saved URL. Unvisited URLs and the selected tab survive
+profile checkpoints. An explicit `goto` replaces that tab's saved destination.
+Failed or cancelled navigation still follows the host's interrupted-operation
+recovery policy; it does not replay other tabs in the background.
+
 Replacement requires `replace: true`; resource limits and supported Node/Cloudflare
 profiles remain those of the public controller API.
 

@@ -1,3 +1,4 @@
+import { savedTabDestination, savedTabDestinations } from './saved-tabs.js';
 import { SnapshotReferenceError } from './snapshot-reference-error.js';
 import { createPlaywrightSessionSelection } from './session-selection.js';
 import type { PlaywrightSessionPersistence } from './session-persistence.js';
@@ -909,7 +910,29 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       retained = true;
       throw new PlaywrightPageUnavailableError(`Previous page is unavailable. Saved browser state was restored, but the page action was not executed. Use playwright-cli -s ${session.name} goto <url> to visit a normal page and verify any earlier action before repeating it. Do not reuse a one-time login URL.`);
     };
+    const restoreSelectedTab = async (session: Session) => {
+      const page = session.page;
+      if (!page) return;
+      const destination = savedTabDestination(page);
+      if (destination === undefined) return;
+      active = session;
+      retained = false;
+      try {
+        await runAction(session, async () => {
+          await page.goto(destination, { timeout: sessionNavigationTimeout(session) });
+        });
+      } catch (error) {
+        // A failed replay may have caused effects. Retire it so the existing
+        // interrupted-operation recovery policy governs the next command.
+        retained = false;
+        throw error;
+      }
+      checkSession(session);
+      savedTabDestinations.delete(page);
+      session.pagesNeedingNavigation?.delete(page);
+    };
     const pageResult = async (session: Session, code: string | undefined, snapshot: 'none' | 'inline' | 'file' = 'none', filename?: string): Promise<PlaywrightCommandResult> => {
+      await restoreSelectedTab(session);
       if (parsed.command !== 'snapshot' || !options.persistence?.resumeAfterIdle) assertPageAvailable(session);
       const sections: PlaywrightResultSection[] = [];
       if (session.page && session.pagesNeedingNavigation?.has(session.page)) sections.push({ title: 'Result', content: 'Browser session restored. The previous page state was lost; this is a fresh blank page. The interrupted action was not replayed. Verify its outcome before repeating it.' });
@@ -1089,7 +1112,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       const restoreRoutes = capturePlaywrightRoutes(session.lease.context);
       const pages = session.lease.context.pages();
       const selected = session.page ? pages.indexOf(session.page) : -1;
-      const urls = pages.map(page => page.url());
+      const tabs = pages.map(page => ({ destination: savedTabDestination(page), url: page.url() }));
       session.detachPage?.();
       session.detachContext?.();
       await session.disposeCapabilities?.();
@@ -1099,12 +1122,13 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       await initializeContext(session);
       observeContext(session);
       delete session.page;
-      for (const [index, url] of urls.entries()) {
+      for (const [index, { destination, url }] of tabs.entries()) {
         if (context.pages().length >= maxTabs) throw new PlaywrightResourceLimitError('Playwright tab limit exceeded');
         const page = await context.newPage();
         await initializePage(session, page);
         if (index === 0) await restoreRoutes?.(context, cleanup => session.cleanups.add(cleanup));
-        if (url !== 'about:blank') await page.goto(url, { timeout: sessionNavigationTimeout(session) });
+        if (destination !== undefined) savedTabDestinations.set(page, destination);
+        else if (url !== 'about:blank') await page.goto(url, { timeout: sessionNavigationTimeout(session) });
         if (index === selected) await selectPage(session, page, () => checkSession(session));
       }
       session.pages = [...context.pages()];
@@ -1246,12 +1270,17 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             check();
           }
           const current = sessions.get(parsed.session);
-          if (current?.state === 'open' && !(parsed.command === 'snapshot' && options.persistence?.resumeAfterIdle) && !['goto', 'open', 'close', 'delete-data', 'list', 'config-print', 'tab-list', 'tab-select', 'tab-new', 'tab-close'].includes(parsed.command)) assertPageAvailable(current);
           if (current?.state === 'open' && current.idleTimeoutMs) {
             paused = current;
             current.idlePaused = true;
             clearTimeout(current.expiryTimer);
           }
+          if (current?.state === 'open' && current.page && savedTabDestination(current.page) !== undefined
+            && !['goto', 'open', 'close', 'delete-data', 'list', 'config-print', 'tab-list', 'tab-select', 'tab-new', 'tab-close'].includes(parsed.command)) {
+            restorationWorkStarted = true;
+            await restoreSelectedTab(current);
+          }
+          if (current?.state === 'open' && !(parsed.command === 'snapshot' && options.persistence?.resumeAfterIdle) && !['goto', 'open', 'close', 'delete-data', 'list', 'config-print', 'tab-list', 'tab-select', 'tab-new', 'tab-close'].includes(parsed.command)) assertPageAvailable(current);
           const modalPage = current?.page;
           if (modalPage && getPlaywrightModal(modalPage) && !['dialog-accept', 'dialog-dismiss', 'upload', 'snapshot', 'close', 'delete-data', 'tab-select', 'tab-close'].includes(parsed.command)) {
             retained = true;
@@ -1436,6 +1465,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               checkSession(session);
               await runAction(session, async () => { await session.page!.goto(parsed.url!, { timeout: sessionNavigationTimeout(session) }); });
               checkSession(session);
+              savedTabDestinations.delete(session.page!);
               session.pagesNeedingNavigation?.delete(session.page!);
               await writeResult(await pageResult(session, actionCode(session, { name: 'navigate', url: parsed.url! }, `await page.goto(${playwrightCodeString(parsed.url!)});`), 'file'));
               checkSession(session);
@@ -1471,7 +1501,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               };
               await writeResult({ sections: [{ title: 'Result', content: { json: config as unknown as import('./response.js').PlaywrightJsonValue } }] });
             } else if (parsed.command === 'tab-list') {
-              const tabs = await Promise.all(pages.map(async (tab, index) => `- ${index}:${tab === page ? ' (current)' : ''} [${await tab.title?.() ?? ''}](${tab.url()})`));
+              const tabs = await Promise.all(pages.map(async (tab, index) => `- ${index}:${tab === page ? ' (current)' : ''} [${await tab.title?.() ?? ''}](${savedTabDestination(tab) ?? tab.url()})`));
               await writeResult({ sections: [{ title: 'Result', content: tabs.join('\n') }] });
             } else if (parsed.command === 'tab-new') {
               if (pages.length >= maxTabs) throw new PlaywrightResourceLimitError('Playwright tab limit exceeded');
@@ -1498,7 +1528,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 const next = tab === page ? session.pages[0] : page;
                 if (next) await selectPage(session, next, () => checkSession(session));
                 else { session.detachPage?.(); delete session.page; }
-              } else await selectPage(session, tab, () => checkSession(session));
+              } else {
+                await selectPage(session, tab, () => checkSession(session));
+                await restoreSelectedTab(session);
+              }
               checkSession(session);
               if (session.page && session.pagesNeedingNavigation?.has(session.page)) {
                 // The tab mutation already completed. Report it and checkpoint

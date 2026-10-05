@@ -31,7 +31,7 @@ function fixture(failure: 'navigation' | 'startup' | 'allocation') {
             url: () => url,
             async goto(next: string) {
               if (next.endsWith('/fail')) throw new Error('injected navigation failure');
-              if (next.endsWith('/effect')) effects++;
+              if (next.endsWith('/effect')) { effects++; throw new Error('injected navigation failure'); }
               url = next;
             },
             frames: () => [], async title() { return 'synthetic'; },
@@ -83,7 +83,7 @@ test('failed checkpoint of a recovered attachment retains uncertainty', async ()
   const host = fixture('navigation');
   const controller = host.create();
   try {
-    await assert.rejects(run(controller, ['attach', 'owned']), /injected navigation failure/);
+    await assert.rejects(run(controller, ['-s=owned', 'snapshot']), /injected navigation failure/);
     host.failCheckpoint();
     await assert.rejects(run(controller, ['attach', 'owned']), /injected checkpoint failure/);
     assert.equal(host.state.receipt, 'unknown');
@@ -97,7 +97,7 @@ async function run(controller: ReturnType<typeof createPlaywrightController>, ar
 }
 
 for (const command of [['-s=owned', 'snapshot'], ['attach', 'owned']]) {
-  for (const failure of ['navigation', 'startup'] as const) {
+  for (const failure of (command[0] === 'attach' ? ['startup'] : ['navigation', 'startup']) as ('navigation' | 'startup')[]) {
     for (const restart of [false, true]) {
       test(`${command.join(' ')} preserves failed ${failure} effects across recovery (restart=${restart})`, async () => {
         const host = fixture(failure);
@@ -137,8 +137,13 @@ for (const command of [['-s=owned', 'snapshot'], ['attach', 'owned']]) {
       assert.equal(host.state.startups, 0);
       assert.deepEqual(host.state.tabs, ['https://example.test/effect', 'https://example.test/fail']);
       host.allowAllocation();
-      await assert.rejects(run(controller, command), /injected navigation failure/);
-      assert.equal(host.state.effects, 1);
+      if (command[0] === 'attach') {
+        await run(controller, command);
+        assert.equal(host.state.effects, 0);
+      } else {
+        await assert.rejects(run(controller, command), /injected navigation failure/);
+        assert.equal(host.state.effects, 1);
+      }
     } finally { await controller.dispose(); }
   });
 }

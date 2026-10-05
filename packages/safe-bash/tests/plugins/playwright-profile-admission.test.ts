@@ -262,7 +262,10 @@ test('restore accepts existing tabs within the combined limit and defers provide
   assert.equal(events.length, 0);
   for (const page of item.pages.slice(1)) page.goto = mock.fn(async url => { events.push(url); });
   await restored.initialize!({ signal: item.controller.signal });
-  assert.deepEqual(events, ['restore', ...profile.tabs]);
+  assert.deepEqual(events, ['restore']);
+  const checkpoint = parseBrowserProfile(await checkpointBrowserProfile({ ...item.session, selectedPage: restored.selectedPage! }, { ...limits, maxTabs: 3 }, item.controller.signal));
+  assert.deepEqual(checkpoint.tabs, ['https://existing.example/0', ...profile.tabs]);
+  assert.equal(checkpoint.selected, 2);
   assert.deepEqual(restore.mock.calls[0]!.arguments, [runtimeState, item.controller.signal]);
   assert.equal(item.release.mock.callCount(), 0);
 });

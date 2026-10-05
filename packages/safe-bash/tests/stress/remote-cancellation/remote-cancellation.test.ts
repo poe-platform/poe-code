@@ -179,7 +179,7 @@ audit("S10 S3 aggregate upload quota closes body without publication", async tra
   assert.equal(result.kind, "value");
   if (result.kind === "value") {
     trace.event(`settled:exit=${result.value.exitCode}:stderr=${result.value.stderr.trim()}`);
-    assert.equal(result.value.exitCode, 1);
+    assert.equal(result.value.exitCode, 2);
     assert.match(result.value.stderr, /large|limit|EFBIG/i);
   }
   assert.ok(trace.events.some(event => event.startsWith("op:S3.putObjectStream")));
@@ -426,7 +426,7 @@ audit("D10 native HTTP WebDAV aggregate upload quota preserves unpublished desti
   assert.equal(result.kind, "value");
   if (result.kind === "value") {
     trace.event(`settled:exit=${result.value.exitCode}:stderr=${result.value.stderr.trim()}`);
-    assert.equal(result.value.exitCode, 1);
+    assert.equal(result.value.exitCode, 2);
     assert.match(result.value.stderr, /large|limit|EFBIG/i);
   }
   assert.ok(trace.events.some(event => event.startsWith("op:DAV.PUT")));

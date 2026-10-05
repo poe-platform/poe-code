@@ -11,7 +11,7 @@ NEVER EVER REVERT CHANGES THAT YOU DIDN'T MAKE
 
 When adding a new provider, the author should be creating 1 provider file, everything else is automatic, derived from the provider config. We can't have any if/case statements that will branch depending on the provider.
 
-We are not doing branches unless requested. Everything happens on main and we push straight to main (when requested).
+In poe-code only, we are not doing branches unless requested. Everything happens on main and we push straight to main (when requested).
 
 ALWAYS monitor the build after push until the release is successful. 
 
@@ -34,7 +34,7 @@ Use `npm run lint:workflows`
 ## Commits
 
 - Follow Conventional Commits (`feat`, `fix`, `chore`, `docs`, `test`, `refactor`).
-- Give every atomic improvement its own commit and push it directly to `main`; do not batch unrelated improvements.
+- Give every atomic improvement its own commit and push it directly to `main` (poe-code only); do not batch unrelated improvements.
 - Commit specific files that you edited, never blanket git add -A
 - Do not add yourself as co-author!
 - Do not commit files that are in gitignore

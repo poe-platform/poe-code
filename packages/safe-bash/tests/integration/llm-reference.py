@@ -46,7 +46,7 @@ def record(prompt, stream, response, conversation):
             message["attachments"] = [{"mimeType": attachment.resolve_type(), "text": text_receipt(attachment.content_bytes().decode())} for attachment in attachments]
         messages.extend([message,
                          {"role": "assistant", "content": previous.text_or_raise()}])
-    calls.append({"prompt": text_receipt(prompt.prompt), "stream": stream, "messages": messages,
+    calls.append({**({"async": True} if isinstance(response, llm.AsyncResponse) else {}), "prompt": text_receipt(prompt.prompt), "stream": stream, "messages": messages,
                   "options": prompt.options.model_dump(exclude_none=True),
                   **({"schema": prompt.schema} if prompt.schema is not None else {}),
                   "attachments": [{"mimeType": attachment.resolve_type(), "text": text_receipt(attachment.content_bytes().decode())}

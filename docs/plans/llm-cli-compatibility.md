@@ -70,6 +70,8 @@ The LLM library must not own history or persistence, including through an option
 | `llm tools list` | tool_defs; --json; --functions (repeatable) | partial: injected registry, selection, text/JSON discovery, collision handling and bounded output have pinned fixtures; Python functions, toolboxes and default plugin tools remain incomplete |
 | `llm uninstall` | packages; -y/--yes | incomplete |
 
+The genuine Python host adapter now registers only declared async pairs, exposes their independent options/capabilities/streaming metadata, and preserves async mode through buffered and source requests. Pinned native resolver regressions and the maintained workerd/native workflow comparison cover selection and dispatch. This does not complete functions, toolboxes, plugins or the wider Python acceptance scope.
+
 ## Acceptance matrix
 
 All rows require deterministic differential fixtures against the pinned distribution; help alone is insufficient.

@@ -164,10 +164,10 @@ async function qualifyStandardLlm(backend, createExecutor, cancel = false, polic
   const calls = [];
   const controller = new AbortController();
   const provider = {name:'fixture',models:[
-    {id:'fixture',capabilities:['messages','schema'],attachmentTypes:['text/plain'],options:{temperature:{type:'number',minimum:0,maximum:2},bias:{type:'object'},stop:{type:'array'}}},
+    {id:'fixture',asyncModel:{},capabilities:['messages','schema'],attachmentTypes:['text/plain'],options:{temperature:{type:'number',minimum:0,maximum:2},bias:{type:'object'},stop:{type:'array'}}},
     {id:'fixture-embed',capabilities:['embed']},
   ], async *complete(request) {
-    calls.push({prompt:request.prompt,stream:request.stream,messages:request.messages,options:request.options,schema:request.schema,attachments:request.attachments.map(a=>({mimeType:a.mimeType,text:a.receipt ?? new TextDecoder().decode(a.bytes)}))});
+    calls.push({...(request.async ? {async:true} : {}),prompt:request.prompt,stream:request.stream,messages:request.messages,options:request.options,schema:request.schema,attachments:request.attachments.map(a=>({mimeType:a.mimeType,text:a.receipt ?? new TextDecoder().decode(a.bytes)}))});
     if (request.prompt === 'second' && request.messages?.at(-2)?.content !== 'first') throw new Error('Conversation history missing');
     if (request.prompt === 'rich' && (request.options.temperature !== 0.25 || request.schema?.properties?.answer?.type !== 'string' || (request.attachments[0]?.receipt ?? new TextDecoder().decode(request.attachments[0]?.bytes)) !== 'attached')) throw new Error('Rich prompt changed');
     if (request.prompt === 'empty-output') {
@@ -245,7 +245,7 @@ async function qualifyHostServices(backend, createExecutor) {
   let inputSourceBytes = 0;
   let retiredBridge;
   const provider = { name:'fake', models:[
-    {id:'fake',capabilities:['messages','schema','embed'],attachmentTypes:['text/plain'],options:{temperature:{type:'number',minimum:0,maximum:2},mode:{type:'string'},enabled:{type:'boolean'},count:{type:'integer'},nullable:{type:'string',nullable:true}}},
+    {id:'fake',asyncModel:{},capabilities:['messages','schema','embed'],attachmentTypes:['text/plain'],options:{temperature:{type:'number',minimum:0,maximum:2},mode:{type:'string'},enabled:{type:'boolean'},count:{type:'integer'},nullable:{type:'string',nullable:true}}},
     {id:'binary',outputType:'application/octet-stream'},
   ], async *complete(request) {
     if (request.prompt === 'cancel-call') {

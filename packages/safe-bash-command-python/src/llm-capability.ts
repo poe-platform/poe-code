@@ -1,6 +1,6 @@
 import type { HttpTransport } from "safe-bash-network-engine/types";
 import type { CommandContext } from "safe-bash-contracts";
-import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from "safe-bash-command-llm/service";
+import type { LlmService, LlmServiceModel, LlmServiceRequest, LlmServiceSourceRequest } from "safe-bash-command-llm/service";
 import type { LlmOption, LlmInputSource, LlmTool, LlmToolCall, LlmMessage } from "safe-bash-command-llm/types";
 import { parseLlmSchemaDsl, createLlmInputBudget, selectLlmModelByQuery, getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
 import { sniffMimeType } from "safe-bash-command-llm/mime";
@@ -175,7 +175,9 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     const selected = payload.model ?? await configuration.defaultModel();
     if (selected !== undefined && typeof selected !== 'string') throw new TypeError('Model must be a string');
     const identity = selected === undefined ? undefined : await configuration.resolveAlias(selected);
-    const {model} = service.resolve(identity);
+    if (payload.async !== undefined && typeof payload.async !== 'boolean') throw new TypeError('Invalid LLM async option');
+    const mode = payload.async === true ? {async: true} : {};
+    const {model} = service.resolve(identity, mode);
     payload = {...payload,model:model.id,options:{...await configuration.modelOptions(model.id),...record(payload.options ?? {})}};
     jsonBytes(payload,bufferedInputLimit,'Python LLM buffered input byte limit exceeded');
     signal.throwIfAborted();
@@ -287,7 +289,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     try {
       if (sourceInputs) {
         if (!service.streamSources) throw new TypeError('Shared LLM service does not support streamed inputs');
-        const {model,provider} = service.resolve(payload.model == null ? undefined : payload.model as string);
+        const {model,provider} = service.resolve(payload.model == null ? undefined : payload.model as string, mode);
         if (!provider.completeSources || model.inputSources === false) throw new Error(`Model ${model.id} does not support streamed inputs`);
         for (const inputs of inputGroups) {
           const attachments: {mimeType:string;source:LlmInputSource}[] = [];
@@ -335,7 +337,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
           history.push({...message,content:await inputSource(message.content),attachments:attachmentGroups[history.length + 1]!});
         }
         return {
-          prompt,
+          ...mode, prompt,
           ...(payload.model == null ? {} : {model:payload.model as string}),
           ...(system === undefined ? {} : {system}),
           ...(messages === undefined ? {} : {messages:history}),
@@ -350,7 +352,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       throw error;
     }
     return {
-      prompt:payload.prompt === undefined ? '' : payload.prompt as string,
+      ...mode, prompt:payload.prompt === undefined ? '' : payload.prompt as string,
       ...(payload.model == null ? {} : {model:payload.model as string}),
       ...(payload.system === undefined ? {} : {system:payload.system as string}),
       ...(messages === undefined ? {} : {messages:messages.map(({attachments:_ignoredAttachments,...message}) => ({...message,content:message.content as string}))}),
@@ -451,15 +453,18 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       if (operation.operation === 'models') {
         const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
         const aliases = await configuration.aliases();
-        const models = service.models.map(entry => ({
+        const describe = (entry: LlmServiceModel) => ({
           id:entry.model.id,aliases:getLlmModelAliases(entry,aliases),capabilities:[...entry.model.capabilities ?? []],
-          metadata:{...(entry.model.options === undefined ? {} : {options:Object.fromEntries(Object.entries(entry.model.options).map(([name, option]) => [name, {
+          metadata:{...(entry.model.canStream === undefined ? {} : {canStream: entry.model.canStream}), ...(entry.model.options === undefined ? {} : {options:Object.fromEntries(Object.entries(entry.model.options).map(([name, option]) => [name, {
             type:option.type,
             ...(option.minimum === undefined ? {} : {minimum:option.minimum}),
             ...(option.maximum === undefined ? {} : {maximum:option.maximum}),
             ...(option.nullable === undefined ? {} : {nullable:option.nullable}),
             ...(option.description === undefined ? {} : {description:option.description}),
           }]))}),provider:entry.provider.name,attachmentTypes:[...entry.model.attachmentTypes ?? []],outputType:entry.model.outputType ?? 'text/plain'},
+        });
+        const models = service.models.map(entry => ({...describe(entry),
+          ...(entry.model.asyncModel === undefined ? {} : {asyncModel: describe(service.resolve(entry.model.id, {async: true}))}),
         }));
         jsonBytes(models,bufferedLimit);
         return models;

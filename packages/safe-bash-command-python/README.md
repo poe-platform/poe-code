@@ -33,6 +33,12 @@ with code `service` and a sanitized message. Host limits raise `LimitError` with
 code `limit`; timeouts raise `asyncio.TimeoutError`. `CapabilityError` remains
 available for explicit capability errors, such as an unavailable Python LLM bridge.
 
+The genuine `llm==0.27.1` provider registers async models only when the host
+defines `asyncModel`. `llm.get_async_model()` uses that paired definition for
+options, attachments and capabilities, and forwards async mode to the shared
+service. `canStream: false` is exposed as Python `can_stream = False`; the shared
+service enforces nonstreaming provider requests.
+
 The genuine `llm==0.27.1` provider exposes tools when the host model declares
 the `tools` capability. Pass native `llm.Tool` values to sync or async prompts;
 returned calls support the reference's `execute_tool_calls()` callbacks and

@@ -192,6 +192,7 @@ class _HostModel:
 
     def __init__(self, entry):
         self.model_id = entry["id"]
+        self.can_stream = entry["metadata"].get("canStream", True)
         self.supports_schema = "schema" in entry["capabilities"]
         self.supports_tools = "tools" in entry["capabilities"]
         self.attachment_types = set(entry["metadata"]["attachmentTypes"])
@@ -218,6 +219,7 @@ class HostAsyncModel(_HostModel, llm.AsyncModel):
         from poe_llm import LlmError
         import safe_host
         with _request(self, prompt, stream, response, conversation) as payload:
+            payload["async"] = True
             events = bridge.stream(payload)
             try:
                 async for event in events:
@@ -256,7 +258,9 @@ def register_models(register):
     llm.get_default_model.__defaults__ = ("default_model.txt", _call("resolve_model", _context()))
     for entry in entries:
         if entry["metadata"]["outputType"] == "text/plain" and set(entry["capabilities"]) != {"embed"}:
-            register(HostModel(entry), HostAsyncModel(entry), aliases=entry["aliases"])
+            paired = entry.get("asyncModel")
+            register(HostModel(entry), HostAsyncModel(paired) if paired is not None else None,
+                     aliases=entry["aliases"])
 
 
 @llm.hookimpl(trylast=True)

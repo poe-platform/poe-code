@@ -1,7 +1,7 @@
 {
   "license": "MIT",
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/build.mjs",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "node --import tsx --test src/*.test.ts",
@@ -82,5 +82,10 @@
   "dependencies": {
     "tr46": "7.0.0"
   },
-  "private": true
+  "private": true,
+  "poeCode": {
+    "bundle": {
+      "prebuilt": true
+    }
+  }
 }

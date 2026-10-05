@@ -1,5 +1,6 @@
 import { parseCommonMarkBlocks, parseCommonMarkInlines, type PendingBlock, type Inline as ParsedInline, type AdapterContext } from "safe-bash-markdown-engine";
 import { normalizeLabel, decodeSyntax } from "safe-bash-markdown-engine/commonmark-syntax";
+import { MdqError } from "./options.js";
 import type { MdqBudget } from "./budget.js";
 
 export interface Link { url: string; title?: string; reference?: string; style?: "collapsed" | "shortcut"; autolink?: "bracketed" | "bare" }
@@ -62,7 +63,8 @@ export async function parseDocument(source: string, budget: MdqBudget): Promise<
     const b = stack.pop()!;
     if (b.kind === "footnote") {
       noteLabels.add(normalizeLabel(b.label, budget));
-      if (!pendingNotes.has(b.label)) pendingNotes.set(b.label, b.blocks);
+      if (pendingNotes.has(b.label)) throw new MdqError(`Markdown parse error:\nfound multiple definitions for link/image/footnote: ${b.label}\n\n`);
+      pendingNotes.set(b.label, b.blocks);
     }
     if ("blocks" in b) stack.push(...[...b.blocks].reverse());
     if (b.kind === "list") for (const item of [...b.items].reverse()) stack.push(...[...item.blocks].reverse());

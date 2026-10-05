@@ -14,7 +14,9 @@ mdq -q '# Authentication' SPEC.md
 Queries retain section heading levels and nested content. Headings inside fenced
 code stay code; setext headings and headings inside lists and quotes are parsed
 structurally. Success returns status 0, no matches return 1, and argument errors
-return 2. `-q` suppresses output while preserving match status.
+return 2. Duplicate footnote definitions with the same case-sensitive label return
+status 1 with a parse error and no output. Ordinary duplicate link definitions keep
+the first destination. `-q` suppresses output while preserving match status.
 
 | Select | Query |
 | --- | --- |

@@ -18,8 +18,12 @@ concatenation. Target documents, rendered rejects and status output share a
 without assembling complete output strings; status writes are at most 16 KiB.
 Hunk matching maps old/new lines through stored numeric indexes sharing the same
 cache; merge and conditional output replay ranges without copied line lists.
-Patch input parsing, hunk metadata, file maps and retained resource handles
-still need migration; the buffered patch convenience evaluator is no longer
+Patch input now stages stdin/streaming sources and uses retained reads for capable
+file backends. Transport normalization and mail envelope removal replay the
+stored physical-line index without a whole-input string or physical-line array.
+The string parser remains available as a convenience API. Parsed hunk bodies,
+individual decoded lines, normal/context conversions, hunk metadata, file maps
+and retained resource handles still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.
 Apply-patch payload parsing, target snapshots, matching and replacements use
 caller-backed indexes and retained staged publication. Patch lines remain byte

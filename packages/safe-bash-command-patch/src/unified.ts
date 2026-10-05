@@ -29,26 +29,34 @@ function header(line: string, prefix: string): string {
 
 export function startIndex(start: number, count: number): number { return count === 0 ? start : start - 1; }
 
+export interface PatchInput { readonly length: number; read(index: number): Promise<string | undefined> }
 export interface UnifiedCursor { readonly lines: readonly string[]; index: number }
+export interface IndexedUnifiedCursor { readonly input: PatchInput; index: number }
 
 export async function parseUnified(text: string, budget: Budget): Promise<FilePatch[]> {
   if (text && !text.endsWith("\n")) throw new ToolError("patch is truncated: missing final LF");
-  return parseUnifiedReader({ lines: budget.split(text).map(line => line.slice(0, -1)), index: 0 }, budget, false);
+  const lines = budget.split(text).map(line => line.slice(0, -1));
+  return parseUnifiedReader({ input: { length: lines.length, async read(index) { return lines[index]; } }, index: 0 }, budget, false);
 }
 
-export async function parseUnifiedSection(cursor: UnifiedCursor, budget: Budget): Promise<FilePatch[]> {
-  return parseUnifiedReader(cursor, budget, true);
+export async function parseUnifiedSection(cursor: IndexedUnifiedCursor | UnifiedCursor, budget: Budget): Promise<FilePatch[]> {
+  if ("input" in cursor) return parseUnifiedReader(cursor, budget, true);
+  const indexed: IndexedUnifiedCursor = { index: cursor.index,
+    input: { length: cursor.lines.length, async read(index) { return cursor.lines[index]; } } };
+  const patches = await parseUnifiedReader(indexed, budget, true);
+  cursor.index = indexed.index;
+  return patches;
 }
 
-async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single: boolean): Promise<FilePatch[]> {
-  const physical = cursor.lines;
+async function parseUnifiedReader(cursor: IndexedUnifiedCursor, budget: Budget, single: boolean): Promise<FilePatch[]> {
+  const physical = cursor.input;
   const patches: FilePatch[] = [];
   let index = cursor.index;
   let pendingMetadata = false;
   while (index < physical.length) {
     budget.step();
     { const c = budget.checkpoint(); if (c) await c; }
-    const line = physical[index]!;
+    const line = (await physical.read(index))!;
     if (line === "") { index++; continue; }
     if (/^diff (?:--git |-[^ ]+ )/u.test(line) || /^index [0-9a-f]+\.\.[0-9a-f]+(?: 100(?:644|755))?$/u.test(line)
       || /^(?:new file|deleted file) mode 100(?:644|755)$/u.test(line)) {
@@ -59,17 +67,17 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
     const oldPath = header(line, "--- ");
     const oldHeader = line.slice(4);
     const oldEpoch = isEpochHeader(line);
-    const newPath = header(physical[++index] ?? "", "+++ ");
-    const newHeader = physical[index]!.slice(4);
-    const newEpoch = isEpochHeader(physical[index]!);
+    const newPath = header((await physical.read(++index)) ?? "", "+++ ");
+    const newHeader = (await physical.read(index))!.slice(4);
+    const newEpoch = isEpochHeader((await physical.read(index))!);
     index++;
     budget.file();
     const hunks: Hunk[] = [];
     let oldEnded = false;
     let newEnded = false;
-    while (index < physical.length && physical[index]!.startsWith("@@")) {
+    while (index < physical.length && (await physical.read(index))!.startsWith("@@")) {
       budget.hunk();
-      const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@( .*)?$/u.exec(physical[index++]!);
+      const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@( .*)?$/u.exec((await physical.read(index++))!);
       if (!match) throw new ToolError("malformed unified hunk header");
       const oldStart = integer(match[1]!, "old start");
       const oldCount = integer(match[2] ?? "1", "old count");
@@ -87,7 +95,7 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
       while (oldRead < oldCount || newRead < newCount) {
         budget.step();
         { const c = budget.checkpoint(); if (c) await c; }
-        const body = physical[index++];
+        const body = await physical.read(index++);
         const kind = body === "" ? " " : body?.[0];
         if (body === undefined || (kind !== " " && kind !== "+" && kind !== "-")) throw new ToolError("truncated or malformed hunk body");
         if ((kind !== "+" && oldEnded) || (kind !== "-" && newEnded)) throw new ToolError("content follows an incomplete final line");
@@ -97,7 +105,7 @@ async function parseUnifiedReader(cursor: UnifiedCursor, budget: Budget, single:
         const entry: PatchLine = { kind, text: `${body.slice(1)}\n` };
         lines.push(entry);
         changed ||= kind !== " ";
-        if (physical[index] === "\\ No newline at end of file") {
+        if ((await physical.read(index)) === "\\ No newline at end of file") {
           if (entry.text === "\n") throw new ToolError("empty incomplete line is not a valid text line");
           index++;
           entry.text = entry.text.slice(0, -1);

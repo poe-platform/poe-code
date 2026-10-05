@@ -2,7 +2,7 @@ import { IndexedDocument, closeDocumentResources } from "safe-bash-diff-engine/d
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { TargetDocuments, equalTargetLines, targetBytes } from "./stored-target.js";
 import { applyStoredHunks } from "./stored-hunks.js";
-import { unwrapPatch } from "./patch-envelope.js";
+import { unwrapStoredPatch } from "./stored-input.js";
 import { parsePatch,type ParseProgress,type PatchFormat } from "./patch-formats.js";
 import { authorizeOutputs,authorizePaths,backupName,candidateStat,ensureParents,pruneDirectories,pruneParents,regular,rejectName,selectTarget,type AuthorizedPatch,type BackupOptions,type PathOptions } from "./patch-gnu-paths.js";
 import { rejectBytes } from "./patch-gnu-reject.js";
@@ -289,9 +289,16 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const stat = await inspect(budget, options.input);
       if (stat?.type !== "file") throw new ToolError("patch input must be a regular file");
     }
-    const input = await budget.read(options.input === "-" ? "-" : resolvePath(context.cwd, options.input));
+    const inputPath = resolvePath(context.cwd, options.input);
+    const inputCapabilities = options.input === "-" ? undefined : await host(context, async () =>
+      await context.fs.capabilitiesFor?.(inputPath, { signal: context.signal }) ?? context.fs.capabilities);
+    const input = options.input === "-" ? await documents.load(budget.stdinSource())
+      : inputCapabilities?.retainedRead && context.fs.openReadFile ? await documents.read(inputPath)
+        : context.fs.readStream && inputCapabilities?.streamingRead !== false ? await documents.load(budget.streamSource(inputPath))
+          : await documents.load(targetBytes(await budget.read(inputPath)));
     const progress: ParseProgress | undefined = options.atomic ? undefined : {};
-    const sections = await parsePatch(await unwrapPatch(input, budget), budget, options.format, explicit, progress);
+    const sections = await parsePatch(await unwrapStoredPatch(input, budget), budget, options.format, explicit, progress);
+    await documents.release(input);
     const parsed = options.format === "normal" ? sections : sections.filter(patch => !patch.unlocated);
     if (sections.length && !parsed.length) throw new ToolError("no identifiable patch; normal input requires a target, Index header, or -n");
     const reject = options.reject === undefined || options.reject === "-" ? options.reject : safeTarget(options.reject, 0, true);

@@ -2,7 +2,7 @@ import type {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, type TextRange} from "./backed-text.js";
 import type {BackedJson} from "./backed-json.js";
 
-const tags = ["Code", "CodeBlock", "HorizontalRule", "Str", "Space", "LineBreak", "Strong", "Emph", "Underline", "Strikeout", "SmallCaps", "Superscript", "Subscript", "Span", "Para", "Header", "Div", "BulletList", "OrderedList", "Table", "ColWidthDefault", "AlignDefault", "Plain", "Image", "Link", "Note", "Decimal", "UpperRoman", "LowerRoman", "UpperAlpha", "LowerAlpha", "Period", "OneParen", "TwoParens", "BlockQuote", "Figure", "MetaMap", "MetaList", "MetaString", "MetaBlocks", "MetaInlines", "SoftBreak", "RawInline", "RawBlock", "AlignLeft", "AlignRight", "AlignCenter"] as const;
+const tags = ["Code", "CodeBlock", "HorizontalRule", "Str", "Space", "LineBreak", "Strong", "Emph", "Underline", "Strikeout", "SmallCaps", "Superscript", "Subscript", "Span", "Para", "Header", "Div", "BulletList", "OrderedList", "Table", "ColWidthDefault", "AlignDefault", "Plain", "Image", "Link", "Note", "Decimal", "UpperRoman", "LowerRoman", "UpperAlpha", "LowerAlpha", "Period", "OneParen", "TwoParens", "BlockQuote", "Figure", "MetaMap", "MetaList", "MetaString", "MetaBlocks", "MetaInlines", "SoftBreak", "RawInline", "RawBlock", "AlignLeft", "AlignRight", "AlignCenter", "Cite", "NormalCitation", "SuppressAuthor"] as const;
 export type RtfValue = {readonly position: number};
 type Literal = string | number | null | RtfValue | readonly Literal[];
 

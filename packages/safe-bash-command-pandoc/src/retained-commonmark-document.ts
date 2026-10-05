@@ -1,5 +1,6 @@
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import type {AdapterContext} from "safe-bash-markdown-engine/types";
+import {upgradeRetainedCitations} from "./retained-citations.js";
 import {letter} from "./commonmark-syntax.js";
 import type {RetainedCommonMarkBlocks} from "./retained-commonmark-blocks.js";
 import {parseRetainedCommonMarkInlines} from "./retained-commonmark-inlines.js";
@@ -103,7 +104,7 @@ export async function assembleRetainedCommonMark(
   for (;;) {
     context.bound("depth", depth);
     if (!position) {
-      if (!frame) return root;
+      if (!frame) {if (extensions.citations) await upgradeRetainedCitations(root, ast, source, context); return root;}
       const bytes = await tape.read(frame, 64), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       frame = view.getFloat64(0, true); position = view.getFloat64(8, true); out = {position: view.getFloat64(16, true)};
       depth = view.getFloat64(24, true); tight = !!view.getFloat64(32, true); mode = view.getFloat64(40, true); taskNode = view.getFloat64(48, true); checked = !!view.getFloat64(56, true); continue;

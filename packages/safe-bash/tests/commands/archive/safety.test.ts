@@ -236,7 +236,7 @@ test("input archive pathname and inode aliases cannot be overwritten during extr
   } finally { await shell.dispose(); }
 });
 
-test("RealFS refuses extraction without an atomic confinement guarantee", async () => {
+test("RealFS extracts within its trusted root and rejects escaping symlinks", async () => {
   const temporary = await mkdtemp(join(directory, ".native-real-"));
   try {
     await mkdir(join(temporary, "root"));
@@ -250,9 +250,12 @@ test("RealFS refuses extraction without an atomic confinement guarantee", async 
       assert.deepEqual(await readFile(join(temporary, "outside/keep")), Buffer.from(binary));
       await fs.writeFile("/work/file", binary);
       const roundtrip = await shell.exec("tar czf archive file; tar xzf archive -C /out");
-      assert.equal(roundtrip.exitCode, 2, roundtrip.stderr);
-      assert.match(roundtrip.stderr, /race-safe archive extraction|not supported/u);
-      await assert.rejects(fs.lstat("/out/file"), { code: "ENOENT" });
+      assert.equal(roundtrip.exitCode, 0, roundtrip.stderr);
+      assert.equal(roundtrip.stderr, "");
+      assert.deepEqual(await fs.readFile("/out/file"), binary);
+      assert.deepEqual((await fs.readdir("/out")).map(entry => entry.name).sort(), ["file", "link"]);
+      assert.deepEqual(await readFile(join(temporary, "outside/keep")), Buffer.from(binary));
+      assert.notEqual(fs.capabilities.atomicFileStaging, true);
     } finally { await shell.dispose(); }
   } finally { await rm(temporary, { recursive: true, force: true }); }
 });

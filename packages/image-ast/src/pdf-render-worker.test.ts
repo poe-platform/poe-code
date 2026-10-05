@@ -5,7 +5,7 @@ import {fileURLToPath} from "node:url";
 import {PdfDocument,cosArray,cosDict,cosName,cosString,cosStream,cosNumber,dictGet,dictSet,serializeCosDocument} from "@poe-code/pdf-ast";
 import sharp,{decodeImage} from "./index.js";
 
-it.each([32,128])("renders PDF pixels with %i backed page, content and annotation references in Workerd",async count=>{
+it.each([32,128].flatMap(count=>["metadata","pixels"].map(mode=>({count,mode}))))("validates $mode with $count backed PDF references in Workerd",async ({count,mode})=>{
  // Keep the complete RGBA plane above 64 KiB while requiring only five raster tiles.
  const pixels=new Uint8Array(257*64*4);let state=1234567;for(let i=0;i<pixels.length;i++){state^=state<<13;state^=state>>>17;state^=state<<5;pixels[i]=state&255;}
  const pdf=await sharp(pixels,{raw:{width:257,height:64,channels:4}}).toFormat("pdf").toBuffer();const document=PdfDocument.load(pdf),catalog=document.cos.resolveDict(document.cos.rootRef)!,pages=document.cos.resolveDict(dictGet(catalog,"Pages"))!,page=document.getPage(0).pageRef;
@@ -27,12 +27,20 @@ it.each([32,128])("renders PDF pixels with %i backed page, content and annotatio
  for(let i=0;i<count;i++)namedRoot=document.cos.allocateObject(cosDict({Kids:cosArray([cosDict({}),namedRoot])}));
  dictSet(catalog,"Names",cosDict({Dests:namedRoot}));
  let nested=cosArray([cosNumber(7)]);for(let i=0;i<count;i++)nested=cosArray([nested]);dictSet(pageDict,"Widths",nested);
+ // Keep explicit Length slots before a same-width test key: serialization
+ // normalizes stream lengths, so rename the extra keys after writing the xref.
+ let lengthReference=document.cos.allocateObject(cosNumber(0));
+ for(let i=0;i<count;i++){const stream=cosStream(new Uint8Array());dictSet(stream.dict,"Length",cosNumber(0));dictSet(stream.dict,"LengtH",lengthReference);lengthReference=document.cos.allocateObject(stream);}
+ dictSet(contentObject.dict,"LengtH",lengthReference);
  const saved=serializeCosDocument({rootRef:document.cos.rootRef,objects:[...document.cos.objects.values()]}),bytes=new Uint8Array(saved.length+200000).fill(32);bytes.set(saved);
+ const lengthKey=new TextEncoder().encode("/LengtH");let renamed=0;
+ for(let i=0;i<saved.length-lengthKey.length;i++){if(lengthKey.every((byte,j)=>bytes[i+j]===byte)){bytes[i+lengthKey.length-1]=104;renamed++;}}
+ expect(renamed).toBe(count+1);
  const expected=decodeImage(bytes);const expectedSum=expected.data.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0);
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"pdf-metadata-worker.ts",contents:`
  import {tryPdfDecode} from './packages/image-ast/src/index.ts';
  import {PdfFileSource,PdfRetainedDocument,CosRangeLexer} from '@poe-code/pdf-ast';
- export default {async fetch(request,env){const {size,namedRoot}=await request.json();let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
+ export default {async fetch(request,env){const {size,namedRoot,mode}=await request.json();let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
  const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
  const fs={capabilities:{retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(){return parent;},async capabilitiesFor(){return this.capabilities;},
  async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
@@ -47,12 +55,13 @@ it.each([32,128])("renders PDF pixels with %i backed page, content and annotatio
  syncPrototype.next=function(...args){maxSync=Math.max(maxSync,++activeSync);try{return syncNext.apply(this,args);}finally{activeSync--;}};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded PDF allocation '+length);return Reflect.construct(target,args);}});
  try{let pixelEnd=0;const storage={allocate(length){const start=pixelEnd;pixelEnd+=length;return start;},async read(position,length){if(length>4096)throw Error('large pixel read');return new Uint8Array(await(await env.BACKING.fetch('https://backing/pixels?position='+position+'&length='+length)).arrayBuffer());},async write(position,bytes){if(bytes.length>4096)throw Error('large pixel write');await env.BACKING.fetch('https://backing/pixels?position='+position,{method:'PUT',body:bytes});}};
- const source=await PdfFileSource.open(fs,'/input',{chunkBytes:4096,cacheBytes:8192});let doc;
+ let metadata;if(mode==='metadata'){const source=await PdfFileSource.open(fs,'/input',{chunkBytes:4096,cacheBytes:8192});let doc;
  try{doc=await PdfRetainedDocument.open(source,{fs,directory:'/'},{chunkBytes:4096,cacheBytes:8192,maxPageTreeDepth:Infinity,maxRecursionDepth:Infinity,compactNumbers:true,compactKeywords:true,valueArrays:{dictionaryStorage:storage,storedDictionaryKeys:['Font'],containerStorage:storage,arrayStorage:storage,storedArrayKeys:['Kids','Contents','Annots','Widths']}});if(await doc.annotationPageNumber({kind:'ref',objectNumber:0,generationNumber:0})!==undefined)throw Error('unexpected destination');if((await doc.annotationNamedDestination(namedRoot,'target'))?.kind!=='array')throw Error('missing named destination');if(await doc.annotationNamedDestination(namedRoot,'absent')!==undefined)throw Error('unexpected named destination');}finally{try{await doc?.close();}finally{await source.close();}}
- const input=await fs.openReadFile('/input');let image;try{image=await tryPdfDecode({size,read:input.read},storage,fs,'/',new AbortController().signal);}finally{await input.close();}
+ }else{const input=await fs.openReadFile('/input');let image;try{image=await tryPdfDecode({size,read:input.read},storage,fs,'/',new AbortController().signal);}finally{await input.close();}
  let sum=0;for(let offset=0;offset<image.width*image.height*4;offset+=4096){const bytes=await storage.read(image.position+offset,Math.min(4096,image.width*image.height*4-offset));for(let i=0;i<bytes.length;i++)sum=(sum+bytes[i]*((offset+i)%65521+1))%1000000007;}
+ metadata={width:image.width,height:image.height,sum};}
  await env.BACKING.fetch('https://backing/pixels',{method:'DELETE'});
- return Response.json({metadata:{width:image.width,height:image.height,sum},opened,closed,removed,files:files.size,reads,maxAllocation,maxPulls,maxSet,maxSync,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{CosRangeLexer.prototype.nextToken=tokenNext;globalThis.Uint8Array=Native;Array.prototype.push=push;generatorPrototype.next=next;Set.prototype.add=add;syncPrototype.next=syncNext;}
+ return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,maxPulls,maxSet,maxSync,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{CosRangeLexer.prototype.nextToken=tokenNext;globalThis.Uint8Array=Native;Array.prototype.push=push;generatorPrototype.next=next;Set.prototype.add=add;syncPrototype.next=syncNext;}
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
  const runtime=new Miniflare({workers:[{name:"image",modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{BACKING:"backing"}},
@@ -65,7 +74,7 @@ it.each([32,128])("renders PDF pixels with %i backed page, content and annotatio
  }}`}]});
  try{const backing=await runtime.getWorker("backing");
  await backing.fetch("https://backing/input?position=0",{method:"PUT",body:bytes});
- const response=await runtime.dispatchFetch("https://image/",{method:"POST",body:JSON.stringify({size:bytes.length,namedRoot})});if(response.status!==200)throw new Error(await response.text());const result=await response.json() as {metadata:unknown;opened:number;closed:number;removed:number;files:number;reads:number;maxAllocation:number;maxPulls:number;maxSet:number;maxSync:number;nodeGlobals:boolean};
- expect(result.metadata).toEqual({width:expected.width,height:expected.height,sum:expectedSum});expect(result.opened).toBeGreaterThan(2);expect(result.closed).toBe(result.opened);expect(result.removed).toBeGreaterThan(0);expect(result.files).toBe(1);expect(result.reads).toBeGreaterThan(8);expect(result.maxAllocation).toBeLessThanOrEqual(65536);expect(result.maxPulls).toBeLessThan(64);expect(result.maxSet).toBeLessThanOrEqual(64);expect(result.maxSync).toBeLessThan(32);expect(result.nodeGlobals).toBe(false);expect(await(await backing.fetch("https://backing/status")).json()).toEqual(["/input"]);
+ const response=await runtime.dispatchFetch("https://image/",{method:"POST",body:JSON.stringify({size:bytes.length,namedRoot,mode})});if(response.status!==200)throw new Error(await response.text());const result=await response.json() as {metadata:unknown;opened:number;closed:number;removed:number;files:number;reads:number;maxAllocation:number;maxPulls:number;maxSet:number;maxSync:number;nodeGlobals:boolean};
+ if(mode==="pixels")expect(result.metadata).toEqual({width:expected.width,height:expected.height,sum:expectedSum});else expect(result.metadata).toBeUndefined();expect(result.opened).toBeGreaterThan(2);expect(result.closed).toBe(result.opened);expect(result.removed).toBeGreaterThan(0);expect(result.files).toBe(1);expect(result.reads).toBeGreaterThan(8);expect(result.maxAllocation).toBeLessThanOrEqual(65536);expect(result.maxPulls).toBeLessThan(64);expect(result.maxSet).toBeLessThanOrEqual(64);expect(result.maxSync).toBeLessThan(32);expect(result.nodeGlobals).toBe(false);expect(await(await backing.fetch("https://backing/status")).json()).toEqual(["/input"]);
  }finally{await runtime.dispose();}
 },15000);

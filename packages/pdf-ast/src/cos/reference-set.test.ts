@@ -53,6 +53,9 @@ describe("externally backed traversal references", () => {
   it.each([65, 513])("tracks %i visited references with bounded outstanding bytes", async count => {
     const storage = externalStorage(); const visited = new PdfReferenceSet(storage);
     for (let number = 0; number < count; number++) expect(await visited.add(number)).toBe(true);
+    for (let number = 0; number < count; number++) expect(await visited.has(number)).toBe(true);
+    expect(await visited.has(count)).toBe(false);
+    expect(await visited.add(count)).toBe(true);
     for (let number = count - 1; number >= 0; number--) expect(await visited.add(number)).toBe(false);
     expect(storage.live.size).toBeLessThanOrEqual(4); expect(storage.peakFiles).toBeLessThanOrEqual(12);
     expect(storage.peakWrite).toBeLessThanOrEqual(2048);

@@ -1,8 +1,9 @@
+import { PdfReferenceSet } from "./reference-set.js";
 import type { ValueArrayStorage } from "./value-parser.js";
 import { resolvePdfStreamDictionary } from "./filter-dictionary.js";
 import { scanCosRangeObjects } from "./range-repair.js";
 import { recoveredBodies, recoverPdfReferences } from "./recovered-reference.js";
-import { cosRef, dictGet, type PdfXRefEntry, type PdfCosDict, type PdfCosNode, type PdfEncryptionState } from "../ast.js";
+import { cosRef, dictGet, type PdfXRefEntry, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfEncryptionState } from "../ast.js";
 import { PdfError } from "../errors.js";
 import { PdfFileSource } from "../source.js";
 import { decodePdfStreamChunks, type PdfStreamDecodeOptions } from "./filter-stream.js";
@@ -24,6 +25,13 @@ export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "reso
   /** Aggregate decoded object-stream data and header tape bytes. */
   readonly maxStagingBytes?: number;
   readonly maxObjectStreamMembers?: number;
+  /** Live ancestor-index staging for each indirect length traversal. */
+  readonly maxTraversalStagingBytes?: number;
+}
+interface LengthPath {
+  readonly seen: PdfReferenceSet;
+  readonly parent: LengthPath | undefined;
+  depth: number;
 }
 interface ObjectStream {
   readonly data: PdfFileSource;
@@ -54,6 +62,7 @@ export class PdfObjectReader {
   // Recursive length/object-stream lookups share one failure identity so an
   // outer recovery pass cannot mistake a caller-storage error for PDF syntax.
   private readonly backingFailures = new WeakMap<Set<number>, { error: unknown }>();
+  private readonly lengthPaths = new WeakMap<Set<number>, LengthPath>();
   private readonly repairedOffsets = new Map<number, number>();
   private readonly options: PdfObjectReaderOptions;
   private readonly capacity: number;
@@ -69,6 +78,7 @@ export class PdfObjectReader {
     this.capacity = integer(options.objectStreamCacheEntries ?? 2, "objectStreamCacheEntries", 1);
     this.stagingLimit = maximum(options.maxStagingBytes, "maxStagingBytes");
     maximum(options.maxObjectStreamMembers, "maxObjectStreamMembers");
+    maximum(options.maxTraversalStagingBytes, "maxTraversalStagingBytes");
     this.options = { maxNodes: 65536, maxTokenBytes: 1048576, maxRecursionDepth: 100,
       ...options, chunkBytes, cacheBytes };
   }
@@ -103,10 +113,49 @@ export class PdfObjectReader {
       : decodePdfStreamChunks(dict, input, decodeOptions);
   }
 
-  private async load(objectNumber: number, generationNumber: number, active: Set<number>, arrays: ValueArrayStorage = this.options.valueArrays ?? {}): Promise<PdfRangeObject | undefined> {
+  /** A stream-valued /Length is invalid as a length, but its references still
+   * need cycle, admission and backing-error validation. Walk those discarded
+   * values in source order instead of retaining one parser and AST per link. */
+  private async resolveLength(reference: PdfCosRef, active: Set<number>): Promise<number | undefined> {
+    const path: LengthPath = { seen: new PdfReferenceSet(this.storage, this.options.maxTraversalStagingBytes, this.options.signal),
+      parent: this.lengthPaths.get(active), depth: 0 };
+    this.lengthPaths.set(active, path);
+    let next: PdfCosRef | undefined = reference, result: number | undefined, failed = false;
+    try {
+      while (next) {
+        const current = next;
+        next = undefined;
+        const object = await this.load(current.objectNumber, current.generationNumber, active, this.options.valueArrays ?? {},
+          async child => { next = child; return undefined; });
+        if (path.depth === 0 && object?.value.kind === "number") result = object.value.value;
+        // Keep ancestor identities for nested compressed-object/filter lookups,
+        // even though the corresponding discarded ASTs have been released.
+        try { await path.seen.add(current.objectNumber); }
+        catch (error) { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); throw error; }
+        path.depth++;
+      }
+      return result;
+    } catch (error) { failed = true; throw error; }
+    finally {
+      if (path.parent) this.lengthPaths.set(active, path.parent); else this.lengthPaths.delete(active);
+      try { await path.seen.close(); } catch (error) {
+        if (!failed) { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); await Promise.reject(error); }
+      }
+    }
+  }
+
+  private async load(objectNumber: number, generationNumber: number, active: Set<number>, arrays: ValueArrayStorage = this.options.valueArrays ?? {}, resolveLength?: ParseCosRangeOptions["resolveLength"]): Promise<PdfRangeObject | undefined> {
     this.options.signal?.throwIfAborted();
     if (active.has(objectNumber)) throw new PdfError("E_PARSE", "PDF indirect object cycle");
-    if (active.size >= this.options.maxRecursionDepth!) throw new PdfError("E_LIMIT", "PDF object resolution depth limit exceeded");
+    let depth = active.size;
+    for (let path = this.lengthPaths.get(active); path; path = path.parent) {
+      let seen: boolean;
+      try { seen = await path.seen.has(objectNumber); }
+      catch (error) { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); throw error; }
+      if (seen) throw new PdfError("E_PARSE", "PDF indirect object cycle");
+      depth += path.depth;
+    }
+    if (depth >= this.options.maxRecursionDepth!) throw new PdfError("E_LIMIT", "PDF object resolution depth limit exceeded");
     const entry = await this.index.get(objectNumber, this.options.signal);
     if (!entry || entry.type === "free" || generationNumber !== (entry.generationNumber ?? 0)) return undefined;
     active.add(objectNumber);
@@ -128,16 +177,17 @@ export class PdfObjectReader {
         return { objectNumber, generationNumber, value: parsed.value, span: { start, end: parsed.offset } };
       }
       let object: PdfRangeObject;
+      let pendingLength: Promise<number | undefined> | undefined;
       try {
         object = await parseCosRangeObject(this.source, this.repairedOffsets.get(objectNumber) ?? entry.offset!, {
           ...this.options, ...arrays, onBackingError,
-          resolveLength: async reference => {
-            const resolved = await this.load(reference.objectNumber, reference.generationNumber, active);
-            return resolved?.value.kind === "number" ? resolved.value.value : undefined;
-          },
+          resolveLength: reference => pendingLength = resolveLength ? resolveLength(reference) : this.resolveLength(reference, active),
         });
         if (object.objectNumber !== objectNumber || object.generationNumber !== generationNumber) throw new PdfError("E_PARSE", "Indirect object identity does not match xref");
       } catch (error) {
+        // The parser races cancellation against its resolver. This resolver is
+        // reader-owned, so drain its staging cleanup before publishing failure.
+        await pendingLength?.catch(() => {});
         this.options.signal?.throwIfAborted();
         const backingFailure = this.backingFailures.get(active);
         if (backingFailure && Object.is(backingFailure.error, error)) throw error;

@@ -214,6 +214,95 @@ describe("range-backed PDF object reader", () => {
     await f.close();
   });
 
+  it("keeps invalid indirect stream-length chains out of resident recursion", async () => {
+    let text = "";
+    const entries: PdfXRefEntry[] = [];
+    for (let number = 1; number <= 256; number++) {
+      entries.push(plain(number, text.length));
+      text += `${number} 0 obj << /Length ${number + 1} 0 R >>\nstream\nhello\nendstream\nendobj\n`;
+    }
+    entries.push(plain(257, text.length));
+    text += "257 0 obj 5 endobj";
+    const f = await fixture(text, entries, { maxRecursionDepth: Infinity });
+    const add = Set.prototype.add;
+    let peak = 0;
+    Set.prototype.add = function<T>(this: Set<T>, value: T): Set<T> {
+      const result = add.call(this, value) as Set<T>;
+      peak = Math.max(peak, this.size);
+      return result;
+    };
+    try {
+      let result = "";
+      for await (const chunk of f.reader.decodeStream(1)) result += new TextDecoder().decode(chunk);
+      expect(result).toBe("hello");
+      expect(peak).toBeLessThanOrEqual(64);
+    } finally { Set.prototype.add = add; await f.close(); }
+  });
+
+  it.each(["cycle", "depth", "staging", "write", "cancel"])("cleans indirect length traversal after %s failure", async mode => {
+    let text = "";
+    const entries: PdfXRefEntry[] = [], abort = new AbortController();
+    for (let number = 1; number <= 130; number++) {
+      entries.push(plain(number, text.length));
+      text += `${number} 0 obj << /Length ${number === 130 ? 2 : number + 1} 0 R >>\nstream\nhello\nendstream\nendobj\n`;
+    }
+    const f = await fixture(text, entries, { maxRecursionDepth: mode === "depth" ? 100 : Infinity,
+      maxTraversalStagingBytes: mode === "staging" ? 0 : Infinity, recovery: mode === "write" ? "repair" : "strict", signal: abort.signal });
+    const before = await f.fs.readdir("/scratch"), failure = new PdfError("E_PARSE", "caller length backing failed");
+    const create = f.fs.createStagedFile!.bind(f.fs);
+    const spy = vi.spyOn(f.fs, "createStagedFile").mockImplementation(async (...args) => {
+      const staged = await create(...args);
+      if (mode === "write") return { ...staged, writer: { ...staged.writer!, write: async () => { throw failure; } } };
+      if (mode === "cancel") abort.abort(failure);
+      return staged;
+    });
+    try {
+      if (mode === "write" || mode === "cancel") await expect(f.reader.get(1)).rejects.toBe(failure);
+      else await expect(f.reader.get(1)).rejects.toThrow(mode === "staging" ? "limit" : mode);
+      expect(await f.fs.readdir("/scratch")).toEqual(before);
+      if (mode === "write") {
+        spy.mockRestore();
+        // A new caller operation must not inherit a failed traversal's active path.
+        await expect(f.reader.get(999)).resolves.toBeUndefined();
+      }
+    } finally { spy.mockRestore(); await f.close(); }
+  });
+
+  it("awaits caller-backed length cleanup before cancellation settles", async () => {
+    let text = "";
+    const entries: PdfXRefEntry[] = [], abort = new AbortController();
+    for (let number = 1; number <= 66; number++) {
+      entries.push(plain(number,text.length));
+      text += `${number} 0 obj << /Length ${number+1} 0 R >>\nstream\nx\nendstream\nendobj\n`;
+    }
+    const f = await fixture(text,entries,{maxRecursionDepth:Infinity,signal:abort.signal});
+    const failure = new Error("cancel length staging"), create = f.fs.createStagedFile!.bind(f.fs);
+    let release!: () => void, entered!: () => void, settled = false;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const cleaning = new Promise<void>(resolve => { entered = resolve; });
+    const spy = vi.spyOn(f.fs,"createStagedFile").mockImplementation(async (...args) => {
+      const staged = await create(...args);
+      return {...staged, writer:{...staged.writer!,write:async bytes => {await staged.writer!.write(bytes);abort.abort(failure);}},
+        cleanup:{...staged.cleanup!,remove:async (...removeArgs) => {entered();await held;return staged.cleanup!.remove(...removeArgs);}}};
+    });
+    const pending = f.reader.get(1).finally(() => {settled=true;}).catch(error => error);
+    try {
+      await cleaning;
+      await new Promise(resolve => setTimeout(resolve,0));
+      expect(settled).toBe(false);
+    } finally { release(); expect(await pending).toBe(failure); spy.mockRestore(); await f.close(); }
+  });
+
+  it("detects a discarded length ancestor reached through a compressed member", async () => {
+    const a = "1 0 obj << /Length 2 0 R >>\nstream\na\nendstream\nendobj\n";
+    const b = "2 0 obj << /Length 3 0 R >>\nstream\nb\nendstream\nendobj\n";
+    const c = "3 0 obj << /Length 4 0 R >>\nstream\nc\nendstream\nendobj\n";
+    const container = "10 0 obj << /Type /ObjStm /N 1 /First 4 /Length 2 0 R >>\nstream\n4 0 1\nendstream\nendobj";
+    const f = await fixture(a + b + c + container, [plain(1), plain(2,a.length), plain(3,a.length+b.length),
+      plain(10,a.length+b.length+c.length), compressed(4,0)]);
+    try { await expect(f.reader.get(1)).rejects.toThrow("cycle"); } finally { await f.close(); }
+  });
+
   it("honors cancellation and parser admission", async () => {
     const abort = new AbortController();
     const f = await fixture("1 0 obj (oversized) endobj", [plain(1)], { maxTokenBytes: 3, signal: abort.signal });

@@ -13,12 +13,17 @@ export class PdfReferenceSet {
     if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid traversal staging limit");
   }
 
-  async add(number: number): Promise<boolean> {
+  async has(number: number): Promise<boolean> {
     if (this.closed) throw new PdfError("E_CAPABILITY", "PDF reference set is closed");
     this.signal?.throwIfAborted();
     if (!Number.isSafeInteger(number) || number < 0) throw new RangeError("Invalid PDF reference number");
-    if (this.tail.has(number)) return false;
-    for (const level of this.levels) if (await level?.get(number, this.signal)) return false;
+    if (this.tail.has(number)) return true;
+    for (const level of this.levels) if (await level?.get(number, this.signal)) return true;
+    return false;
+  }
+
+  async add(number: number): Promise<boolean> {
+    if (await this.has(number)) return false;
     this.tail.add(number);
     if (this.tail.size < 64) return true;
     let level = 0;

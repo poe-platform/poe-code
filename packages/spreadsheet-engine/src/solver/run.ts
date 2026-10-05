@@ -38,6 +38,12 @@ export async function runSolverValidation(book: Workbook, context: CapabilityCon
       }
       const result = await runCooperatively(solveLinearSteps(linear.rows, linear.objective, model.domains, budget), context.signal);
       solution = result.quality === 'infeasible' || result.quality === 'unbounded' ? undefined : result.solution;
+      // Linearization substitutes fixed inputs into the affine constants, leaving
+      // zero columns. Restore those coordinates before recalculation and reports.
+      if (solution) {
+        budget.tick(model.variables.length);
+        solution = solution.map((value, i) => program.lower[i] === program.upper[i] ? program.lower[i]! : value);
+      }
       if (algorithm.id === 'glpk' && model.options.sensitivityReport && (result.quality === 'infeasible' || result.quality === 'unbounded' || model.domains.some(d => d !== 'continuous'))) { await warning('Solver: Solver ran, but failed'); return book; }
       if (result.quality === 'infeasible' || result.quality === 'unbounded') { reportSolution = model.variables.map(() => 0); reportedValue = 0; }
       if (result.quality === 'limit') { await warning('Solver reached time or iteration limit'); quality = solution ? 'Feasible' : undefined; }

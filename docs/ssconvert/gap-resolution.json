@@ -4882,10 +4882,11 @@
       "status": "open",
       "currentFinding": "Qualified linear/nonlinear models and reports match native CSV effects. Report diagnostics, independent solver factories, wider sensitivity/nonlinear/analysis behavior and layout remain open.",
       "checkpoint20261004": {
-        "qualified": "Qualified linear/nonlinear models and report CSV effects have retained native comparisons. Degenerate continuous-LP sensitivity now uses a dual-feasible active basis. Independent lp_solve confirms the bounded model; both public profiles and objective directions preserve correct optima/report intervals with shared work and cancellation. Negative upper-bound affine probing retains backward slopes, including fractional and integer domains; independent lp_solve and compiled public routes verify the optimum.",
+        "qualified": "Qualified linear/nonlinear models and report CSV effects have retained native comparisons. Degenerate continuous-LP sensitivity now uses a dual-feasible active basis. Independent lp_solve confirms the bounded model; both public profiles and objective directions preserve correct optima/report intervals with shared work and cancellation. Negative upper-bound affine probing retains backward slopes, including fractional and integer domains; independent lp_solve and compiled public routes verify the optimum. Substituted fixed coordinates are restored before workbook recalculation and reports; direct/alias, fractional, negative and mixed integer models are qualified.",
         "evidence": [
           "#/solverDegenerateSensitivity",
-          "#/solverNegativeUpperBounds"
+          "#/solverNegativeUpperBounds",
+          "#/solverFixedCoordinates"
         ],
         "nextAcceptance": "Continue independent solver/report and nonlinear boundary profiles beyond the verified degenerate dual-basis repair. Preserve basis-dependent GLPK limits and native reversed minimization intervals as classified differences, not exact parity.",
         "closureGate": "Complete remaining solver/analysis numerical, report and layout profiles with independent native evidence.",
@@ -6940,5 +6941,12 @@
     "verification": "132 solver tests in 14 files pass, including fractional and integer bounds. Changed-file lint, engine source and command test types and selected workspace build pass. Four compiled GLPK/lpsolve SDK/command XLSX conversions give x=-1 and 3*x+2=-1, with only the existing Solver-record export warning.",
     "independent": "Unmodified lp_solve with x+y<=-1, y=0 and free x confirms x=-1, objective 3*x=-3. Its free declaration overwrites an earlier simple bound, so the independent control uses a row constraint. Native Gnumeric GLPK reports Solver ran, but failed for the direct-bound fixture; this repair is mathematically verified, not native-result parity.",
     "remaining": "Other independent solver/report, nonlinear, analysis and installed profiles remain open."
+  },
+  "solverFixedCoordinates": {
+    "finding": "Three failing-before direct regressions returned zero instead of fixed 3, -3 and 0.25. Affine linearization correctly substituted the fixed inputs into constants, but solve results did not reconstruct those coordinates.",
+    "implementation": "Restore lower==upper coordinates after a successful linear solve and before recalculation or reports. Charge the shared work budget. Preserve undefined infeasible/unbounded results and native GLPK constant-row diagnostics; no out-of-domain probing.",
+    "verification": "136 solver tests in 15 files plus six final fixed-coordinate tests pass. Changed lint, selected20-workspace build and source/test types pass. Four compiled lpsolve max/min SDK/command exports retain x=3, objective11 and the existing single Solver-record loss warning. Independent XLSX values and screenshot checked. Mixed alias/integer controls preserve guarded formulas, reports and input immutability.",
+    "independent": "Unmodified lp_solve confirms x=3,y=2.5 for x=3,x+y<=5.5,maximize2*y. Corrected native Gnumeric direct equality fixture reports Solver ran, but failed, matching the retained GLPK behavior. Initial fixture construction accidentally changed ProblemType to4 and triggered a native assertion; corrected fixture preserves ProblemType1. That malformed run is not compatibility evidence.",
+    "remaining": "Native GLPK constant-row limitations, other report/sensitivity/nonlinear/analysis and installed profiles remain open."
   }
 }

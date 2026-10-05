@@ -5,21 +5,24 @@ import { shufCommands } from '@poe-platform/safe-bash/commands/shuf';
 import sharp from '@poe-platform/safe-bash/sharp';
 import { createMemoryFileSystem } from '@poe-platform/safe-fs/core';
 
-export async function verifyImagePandocShuf() {
+export async function verifyImagePandocShuf(backing) {
   const fs = createMemoryFileSystem();
   const encoder = new TextEncoder();
   await fs.mkdir('/spill');
   await fs.writeFile('/image.png', await sharp({ create: { width: 13, height: 7, channels: 4, background: 'blue' } }).png().toBuffer());
   await fs.writeFile('/input.md', encoder.encode('alpha\n\nbeta\n'));
+  await fs.writeFile('/input.rtf', encoder.encode(String.raw`{\rtf1 hello}`));
   await fs.writeFile('/filter.lua', encoder.encode('function Str(el) return pandoc.Str(string.upper(el.text)) end'));
   await fs.writeFile('/entropy', new Uint8Array(128));
+  const remote = backing?.createStorage(fs, backing.bucket);
   const calls = new Set();
-  const filesystem = new Proxy(fs, { get(target, key) {
+  const filesystem = new Proxy(remote?.fs ?? fs, { get(target, key) {
+    if (remote && key === 'readStream') return (...args) => { calls.add(key); return fs.readStream(...args); };
     if (key === 'readFile' || key === 'writeFile') return () => { throw new Error('Whole-file I/O forbidden'); };
     const value = Reflect.get(target, key, target);
     return typeof value === 'function' ? (...args) => { calls.add(key); return value.apply(target, args); } : value;
   } });
-  const shell = new Shell({ fs: filesystem, env: { TMPDIR: '/spill' } })
+  const shell = new Shell({ fs: filesystem, cwd: '/spill', env: { TMPDIR: '/spill' } })
     .use(sipsCommands()).use(pandocCommands()).use(shufCommands());
   shell.commands.register(createIdentifyCommand());
   try {
@@ -43,6 +46,48 @@ export async function verifyImagePandocShuf() {
     if (!rejected) throw new Error('Ambient path accepted');
     if (!calls.has('readStream') || !calls.has('openReadFile')) throw new Error('Missing injected streaming/range I/O');
     if ((await fs.readdir('/spill')).length !== 0) throw new Error('Working files leaked');
+    if (remote) {
+      const verifySpill = async (label, run) => {
+        const before = { ...remote.events };
+        await run();
+        if (remote.events.opened <= before.opened || remote.events.writes <= before.writes || remote.events.reads <= before.reads)
+          throw new Error(label + ': no external spill round trip');
+        if (remote.events.opened !== remote.events.closed || (await backing.bucket.list({ limit: 1 })).objects.length)
+          throw new Error(label + ': remote scratch leaked');
+        if (remote.events.largestTransfer > 16384 || (await fs.readdir('/spill')).length)
+          throw new Error(label + ': transfer window or namespace cleanup');
+      };
+      await verifySpill('Sips', async () => {
+        const result = await shell.exec('sips -p 600 600 /image.png --out /padded.png && identify -format "%wx%h" /padded.png');
+        if (result.exitCode !== 0 || !result.stdout.endsWith('600x600')) throw new Error(JSON.stringify(result));
+      });
+      await verifySpill('Pandoc Lua', async () => {
+        const result = await shell.exec('pandoc -f rtf -t plain -L /filter.lua /input.rtf');
+        if (result.exitCode !== 0 || result.stdout !== 'HELLO\n') throw new Error(JSON.stringify(result));
+      });
+      await verifySpill('Shuf', async () => {
+        let bytes = 0, largest = 0;
+        const result = await shell.exec('shuf --random-source=/entropy', {
+          captureOutput: false,
+          stdin: (async function* () {
+            // One record larger than the 1 MiB cache, generated with a fixed window.
+            for (let index = 0; index < 128; index++) yield new Uint8Array(16384).fill(120);
+            yield Uint8Array.of(10);
+          })(),
+          stdout: { async write(chunk) {
+            largest = Math.max(largest, chunk.length);
+            for (const byte of chunk) {
+              if (byte !== (bytes === 2097152 ? 10 : 120)) throw new Error('Shuf output bytes differ');
+              bytes++;
+            }
+            await Promise.resolve();
+          } },
+          stderr: { async write(chunk) { throw new Error(new TextDecoder().decode(chunk)); } },
+        });
+        if (result.exitCode !== 0 || bytes !== 2097153 || largest > 16384 || result.stdoutBytes.length)
+          throw new Error('Shuf retained output or exceeded its streaming window');
+      });
+    }
     return { image: true, lua: true, entropy: true };
   } finally { await shell.dispose(); }
 }

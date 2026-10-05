@@ -257,16 +257,18 @@ export async function verifySafeBashPortableCommands(consumer) {
       console.log(JSON.stringify({ profile: "portable-export", route, condition, inputs: Object.keys(result.metafile.inputs).length }));
     }
   }
-  for (const [filename, verify, expected] of [
+  for (const [filename, verify, expected, remote] of [
     ["safe-packages-network-safejs.mjs", "verifyNetworkAndSafeJs", { networkEntries: 3, nodeEntries: 3, safeJsEntries: 1 }],
     ["safe-packages-image-pandoc-shuf.mjs", "verifyImagePandocShuf", { image: true, lua: true, entropy: true }],
+    ["safe-packages-image-pandoc-shuf.mjs", "verifyImagePandocShuf", { image: true, lua: true, entropy: true }, true],
   ]) {
-    const fixture = await readFile(new URL("./fixtures/" + filename, import.meta.url), "utf8");
+    const fixture = (remote ? await readFile(new URL("./pandoc-r2-storage.fixture.mjs", import.meta.url), "utf8") + "\n" : "") +
+      await readFile(new URL("./fixtures/" + filename, import.meta.url), "utf8");
     for (const conditions of [["workerd"], ["workerd", "worker", "browser"]]) {
       const result = await build({
         absWorkingDir: consumer,
-        stdin: { contents: fixture + `\nexport default { async fetch() {
-          try { return Response.json(await ${verify}()); }
+        stdin: { contents: fixture + `\nexport default { async fetch(request, env) {
+          try { return Response.json(await ${verify}(${remote ? "{ createStorage: createR2PagedFixture, bucket: env.PAGES }" : ""})); }
           catch (error) { return new Response(error.stack ?? String(error), { status: 500 }); }
         } };`, resolveDir: consumer, sourcefile: "portable-commands.mjs" },
         bundle: true, format: "esm", platform: "neutral", conditions, write: false,
@@ -280,13 +282,13 @@ export async function verifySafeBashPortableCommands(consumer) {
         type: output.path.endsWith(".js") ? "ESModule" : output.path.endsWith(".wasm") ? "CompiledWasm" : "Data",
         contents: output.path.endsWith(".js") ? output.text : output.contents,
       }));
-      const worker = new Miniflare({ modules, modulesRoot: path.join(consumer, "portable-commands"), compatibilityDate: "2026-07-01" });
+      const worker = new Miniflare({ r2Buckets: remote ? ["PAGES"] : [], modules, modulesRoot: path.join(consumer, "portable-commands"), compatibilityDate: "2026-07-01" });
       try {
         const response = await worker.dispatchFetch("https://portable.test", { signal: AbortSignal.timeout(30_000) });
         const body = await response.text();
         assert.equal(response.status, 200, body);
         assert.deepEqual(JSON.parse(body), expected);
-        console.log(JSON.stringify({ profile: filename, conditions, ...JSON.parse(body) }));
+        console.log(JSON.stringify({ profile: filename, conditions, remote: remote ?? false, ...JSON.parse(body) }));
       } finally { await worker.dispose(); }
     }
   }

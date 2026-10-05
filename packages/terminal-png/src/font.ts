@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 
-// Full JetBrains Mono (all Unicode blocks including box-drawing and geometric shapes).
+// JetBrains Mono supplies the primary text and box-drawing glyphs.
 // The @fontsource subsets only cover Latin and miss characters used by the design system.
 const fontPackageRoot = dirname(require.resolve("jetbrains-mono/package.json"));
 const webfontRoot = join(fontPackageRoot, "fonts/webfonts");
@@ -36,7 +36,13 @@ export const JETBRAINS_MONO_FONT_FILES = Object.freeze([
 ] as const);
 export const JETBRAINS_MONO_TTF_PATH = JETBRAINS_MONO_FONT_FILES[0];
 
+export const FALLBACK_FONT_PATH = resolveAssetPath("terminal-glyph-fallback.ttf");
+
 export const FONT_FACE_CSS = [
+  `@font-face {
+  font-family: 'Terminal Glyph Fallback';
+  src: url('data:font/ttf;base64,${readFileSync(FALLBACK_FONT_PATH).toString("base64")}') format('truetype');
+}`,
   createFontFace(JETBRAINS_MONO_BASE64, 400, "normal"),
   createFontFace(readWebfontBase64("JetBrainsMono-Bold.woff2"), 700, "normal"),
   createFontFace(readWebfontBase64("JetBrainsMono-Italic.woff2"), 400, "italic"),

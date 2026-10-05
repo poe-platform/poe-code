@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Resvg } from "@resvg/resvg-js";
-import { JETBRAINS_MONO_FONT_FILES } from "./font.js";
+import { FALLBACK_FONT_PATH, JETBRAINS_MONO_FONT_FILES } from "./font.js";
 import { renderPng } from "./png-renderer.js";
 
 const renderMock = vi.fn(() => ({
@@ -27,7 +27,7 @@ describe("renderPng options", () => {
     expect(Resvg).toHaveBeenCalledWith("<svg />", {
       font: {
         defaultFontFamily: "JetBrains Mono",
-        fontFiles: JETBRAINS_MONO_FONT_FILES,
+        fontFiles: [...JETBRAINS_MONO_FONT_FILES, FALLBACK_FONT_PATH],
         loadSystemFonts: false,
         monospaceFamily: "JetBrains Mono"
       },

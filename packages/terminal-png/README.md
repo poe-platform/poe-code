@@ -1,6 +1,7 @@
 # terminal-png
 
-Render PNG images from ANSI terminal output.
+Render PNG images from ANSI terminal output. Bundled fonts render the design spinner frames
+(◒ ◐ ◓ ◑) and the wide prompt glyph 界 without relying on installed system fonts.
 
 ## API
 

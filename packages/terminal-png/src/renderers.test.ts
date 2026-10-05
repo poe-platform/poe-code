@@ -464,6 +464,21 @@ describe("renderPng", () => {
     };
   }
 
+  it.each(["", "\u001b[1m", "\u001b[3m", "\u001b[1;3m"])(
+    "renders spinner frames and the wide prompt glyph instead of missing-glyph boxes (%s)",
+    (style) => {
+      const frames: Buffer[] = [];
+      for (const glyph of ["◒", "◐", "◓", "◑", "界"]) {
+        const svg = renderSvg(parseAnsi(`${style}${glyph}`), { window: false });
+        const png = renderPng(svg);
+        const missingGlyph = renderPng(svg.replaceAll(glyph, "\u0378"));
+        expect(png.equals(missingGlyph), `missing glyph: ${glyph}`).toBe(false);
+        frames.push(png);
+      }
+      expect(new Set(frames.map((png) => png.toString("base64"))).size).toBe(5);
+    }
+  );
+
   it("renders SVG output as a PNG buffer", () => {
     const svg = renderSvg([createRun()], { window: false });
 

@@ -64,7 +64,7 @@ const XTERM_256_PALETTE = [
 
 const BACKGROUND = "#171717";
 const DEFAULT_FOREGROUND = "#c4c4c4";
-const FONT_FAMILY = "JetBrains Mono";
+const FONT_FAMILY = "JetBrains Mono, Terminal Glyph Fallback";
 const FONT_SIZE = 14;
 const LINE_HEIGHT = 1.2;
 const CHARACTER_WIDTH = 8.412666666666667;

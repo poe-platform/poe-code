@@ -4724,23 +4724,24 @@
     {
       "id": "atl-last",
       "status": "open",
-      "currentFinding": "Native schedule/mutation and explicit-host failure contracts are qualified. Published root17.0.41 and scoped0.1.813 pass160 SDK/command conversions on Node22/24 without native PATH. They predate the conditional-unlink fix; containing artifacts and remaining declared deployment profiles remain open.",
+      "currentFinding": "Scoped0.1.817 passes installed conditional-unlink controls on Node22/24/26. Root17.0.41 still recalculates inactive conditional watchers on stale-tag feeds. Root containing publication and remaining deployment profiles remain open.",
       "checkpoint20261004": {
-        "qualified": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Session polling now unlinks old tags before actual formula evaluation, including conditional branches that no longer call ATL_LAST; direct/dependency-triggered deactivation and reactivation pass. Twelve native FIFO phases now qualify tag/value/newline splitting across reads, writer close/reopen after each fragment, and dynamic tag rebinding; 24 native values match the persistent compiled session and 24 SDK/command snapshots. Four native formula replacement/removal/restoration phases match eight persistent-session values and eight public conversion snapshots. Eight SDK/command feed/close failure controls verify iterator retirement, awaited exactly-once cleanup, sanitized feed errors and original cancellation/close-error identities. Published root17.0.41/scoped0.1.813 pass160 SDK/command conversions on Node22/24 with native tools absent from PATH; strict public datasource types pass. This excludes the later conditional-unlink fix.",
+        "qualified": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Session polling now unlinks old tags before actual formula evaluation, including conditional branches that no longer call ATL_LAST; direct/dependency-triggered deactivation and reactivation pass. Twelve native FIFO phases now qualify tag/value/newline splitting across reads, writer close/reopen after each fragment, and dynamic tag rebinding; 24 native values match the persistent compiled session and 24 SDK/command snapshots. Four native formula replacement/removal/restoration phases match eight persistent-session values and eight public conversion snapshots. Eight SDK/command feed/close failure controls verify iterator retirement, awaited exactly-once cleanup, sanitized feed errors and original cancellation/close-error identities. Published root17.0.41/scoped0.1.813 pass160 SDK/command conversions on Node22/24 with native tools absent from PATH; strict public datasource types pass. This excludes the later conditional-unlink fix. Scoped0.1.817 now passes24 installed conditional-unlink conversions across Node22/24/26, direct/dependency-triggered branches and whole/byte-split feeds. Root17.0.41 retains48 counted-evaluation deviations across24 matching controls; outputs and cleanup remain correct.",
         "evidence": [
           "#/currentQualification20261002/datasourceRecalculationCleanup",
           "#/datasourceConditionalUnlink",
           "#/datasourceNativeSchedules",
           "#/datasourceMutationAndClose",
-          "#/datasourceRegistryDeployment"
+          "#/datasourceRegistryDeployment",
+          "#/datasourceContainingRegistry"
         ],
-        "nextAcceptance": "Qualify conditional-unlink behavior when containing root/scoped artifacts are published, then remaining declared deployment profiles. Do not repeat the160 qualified Node22/24 registry schedule/mutation/error conversions.",
+        "nextAcceptance": "Qualify a root artifact containing conditional-unlink and remaining declared deployment profiles. Reuse the completed48 Node22/24/26 conditional controls and prior160 schedule/mutation/error conversions.",
         "closureGate": "Complete containing installed root/scoped datasource and deployment profiles; preserve qualified native and explicit-host lifecycle evidence.",
         "qualificationBlockers": [
-          "Current root17.0.41 and scoped0.1.813 predate conditional-unlink commit dc2778d60e. Scoped0.1.813 published at02:09:52Z; fix committed at02:17:30Z. Installed scoped datasource code still calls recalculation without the unlink observer. A containing publication remains unverified."
+          "Root17.0.41 predates dc2778d60e and still performs two extra stale-tag evaluations per inactive scenario. Scoped0.1.817 passes containing behavior on Node22/24/26; root containing publication remains unverified."
         ],
         "remainingAcceptance": [
-          "Containing root/scoped conditional-unlink fix and remaining declared deployment profiles. Current root17.0.41/scoped0.1.813 schedule/mutation/feed-close contracts are qualified on Node22/24; retain those registry receipts."
+          "Root containing conditional-unlink publication and remaining declared deployment profiles. Scoped0.1.817 conditional deactivation/reactivation is qualified on Node22/24/26 through installed SDK/command APIs; retain earlier schedule/mutation/feed-close receipts."
         ]
       }
     },
@@ -6948,5 +6949,16 @@
     "verification": "136 solver tests in 15 files plus six final fixed-coordinate tests pass. Changed lint, selected20-workspace build and source/test types pass. Four compiled lpsolve max/min SDK/command exports retain x=3, objective11 and the existing single Solver-record loss warning. Independent XLSX values and screenshot checked. Mixed alias/integer controls preserve guarded formulas, reports and input immutability.",
     "independent": "Unmodified lp_solve confirms x=3,y=2.5 for x=3,x+y<=5.5,maximize2*y. Corrected native Gnumeric direct equality fixture reports Solver ran, but failed, matching the retained GLPK behavior. Initial fixture construction accidentally changed ProblemType to4 and triggered a native assertion; corrected fixture preserves ProblemType1. That malformed run is not compatibility evidence.",
     "remaining": "Native GLPK constant-row limitations, other report/sensitivity/nonlinear/analysis and installed profiles remain open."
+  },
+  "datasourceContainingRegistry": {
+    "artifacts": {
+      "root": "poe-code17.0.41",
+      "scoped": "@poe-platform/safe-bash0.1.817"
+    },
+    "deployment": "Fresh isolated consumer outside repository. Public namespace resolution asserted inside consumer node_modules. All runs use PATH=/nonexistent and absolute Node22.22.2,24.21.0,26.10.0 executables. No private workspace/native imports.",
+    "verification": "48 SDK/command conversions cover direct/dependency-triggered deactivation and reactivation with whole/byte-split transport. Scoped24 cases pass; root24 cases retain two stale-tag evaluation deviations each. All240 bounded polls,48 exact final CSVs,48 exactly-once closes and empty diagnostics pass. Strict TypeScript5.9.3 NodeNext without skipLibCheck validates public datasource and solver hooks.",
+    "behavior": "Scoped active/deactivated/inactive/reactivated/active evaluation counts1,2,2,4,5; root1,3,4,6,7. Both retain values0,0,1 during inactivity and1,5,6 at completion. Counts establish missing root unlink behavior; value-only checks would not qualify it.",
+    "remaining": "Root containing publication and other declared deployment profiles remain open. Preserve historical0.1.813 schedule/mutation/lifecycle receipts and all other family acceptance gates. No runtime code change was needed.",
+    "evidence": "Retained atl-containing-current/check.mjs, consumer.mts, three versioned result files, lockfile and integrity/hash provenance. Initial prototype-sensitive assertion was corrected to compare CellValue fields; required unused goalSeek host hook supplied before final runs."
   }
 }

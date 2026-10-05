@@ -48,6 +48,7 @@ export function resolveJqLimits(options: Partial<JqLimits> = {}): JqLimits {
   return Object.freeze(limits);
 }
 export class Budget {
+  readsInput = false;
   private steps = 0;
   private readonly yieldTimes = new Float64Array([monotonicNow()]);
   private lastYieldSteps = 0;

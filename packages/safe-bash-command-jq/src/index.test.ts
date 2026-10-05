@@ -262,3 +262,47 @@ test("jq supports --version, -V, --help, and -h", async () => {
   assert.ok(stdout.startsWith(expectedPrefix), `expected ${flag} stdout to start with ${expectedPrefix}, got ${stdout}`);
  }
 });
+
+for (const [args, input, expected] of [
+ [["-Rnc", '[inputs | split(",")]'], "a,b\nc,d\n", '[["a","b"],["c","d"]]\n'],
+ [["-nsc", "[inputs]"], "1 2 3", '[[1,2,3]]\n'],
+ [["-nc", "[limit(1; inputs)], [inputs]"], "1 2 3", '[1]\n[2,3]\n'],
+ [["-nc", "[inputs]"], "1 2 3", '[1,2,3]\n'],
+ [["-c", "[., inputs]"], "1 2 3", '[1,2,3]\n'],
+ [["-Rnc", "def rows: inputs; [rows]"], "a\n\nb", '["a","","b"]\n'],
+ [["-Rnc", "[inputs]"], "", '[]\n'],
+] as const) test(`jq consumes shared input: ${args.join(" ")}`, async () => {
+ const values = createCommandArguments([...args]);
+ let stdout = "", stderr = "";
+ const result = await createJqCommand().execute({
+  command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {},
+  fs: createMemoryFileSystem(), stdin: toByteSource(input),
+  stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+  stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  signal: new AbortController().signal,
+ });
+ assert.equal(result.exitCode, 0, stderr);
+ assert.equal(stdout, expected);
+});
+
+for (const limits of [{}, { maxInputBytes: 2 }, { maxCollectionSize: 1 }]) test(`jq inputs reads bounded virtual files: ${JSON.stringify(limits)}`, async () => {
+ const fs = createMemoryFileSystem();
+ await fs.writeFile("/a", new TextEncoder().encode("1\n"));
+ await fs.writeFile("/b", new TextEncoder().encode("2\n"));
+ const values = createCommandArguments(["-nc", "[inputs]", "/a", "/b"]);
+ let stdout = "", stderr = "";
+ const result = await createJqCommand({ limits }).execute({
+  command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+  stdin: toByteSource(""),
+  stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+  stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  signal: new AbortController().signal,
+ });
+ if (Object.keys(limits).length) {
+  assert.notEqual(result.exitCode, 0);
+  assert.ok(stderr.includes(Object.keys(limits)[0]!), stderr);
+ } else {
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(stdout, "[1,2]\n");
+ }
+});

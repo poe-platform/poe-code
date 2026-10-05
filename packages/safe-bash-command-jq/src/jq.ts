@@ -774,7 +774,21 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     } else {
       ast = await compileProgram(context, options, source, budget);
     }
-    const interpreter = new Interpreter(budget, options.variables, undefined, context.env);
+    const sharedInput = budget.readsInput ? (async function* () {
+      const source = inputs(context, options, budget, convert, undefined, undefined, undefined, true);
+      if (options.slurp && !options.rawInput) {
+        const values: Json[] = [];
+        let bytes = 2;
+        for await (const value of source) {
+          budget.collection(values.length + 1);
+          bytes += budget.value(value) + (values.length ? 1 : 0);
+          if (bytes > limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+          values.push(value);
+        }
+        yield values;
+      } else yield* source;
+    })() : undefined;
+    const interpreter = new Interpreter(budget, options.variables, undefined, context.env, sharedInput);
     let lastTruth: boolean | undefined;
     let status = 0;
     const suffix = options.rawOutput0 ? "\0" : options.joinOutput ? "" : "\n";
@@ -902,7 +916,17 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       if (status < 2 && invocationLast !== undefined) lastTruth = truth(invocationLast);
       if (diagnostics.length) await flush();
     };
-    if (options.nullInput) {
+    if (sharedInput) {
+      try {
+        if (options.nullInput) await emitSyncOrAsync(null);
+        else for await (const value of sharedInput) {
+          await emitSyncOrAsync(value);
+          await flushStdout();
+        }
+      } finally {
+        await sharedInput.return(undefined);
+      }
+    } else if (options.nullInput) {
       await emitSyncOrAsync(null);
       // XML frontends still parse their documents when jq receives null.
       if (convert) for await (const value of inputs(context, options, budget, convert)) budget.value(value);

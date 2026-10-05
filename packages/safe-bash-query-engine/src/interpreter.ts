@@ -66,7 +66,7 @@ export class Interpreter {
   private scratchObj: Record<string, Json> = object();
   private readonly scratchKeys: string[] = [];
   private scratchInUse = false;
-  constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame, private readonly environment: Readonly<Record<string, string>> = {}) {}
+  constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame, private readonly environment: Readonly<Record<string, string>> = {}, private readonly inputSource?: AsyncIterator<Json>) {}
   resetForRun(budget: Budget, variables: ReadonlyMap<string, Json>): void {
     (this as unknown as { budget: Budget }).budget = budget;
     (this as unknown as { variables: ReadonlyMap<string, Json> }).variables = variables;
@@ -942,6 +942,16 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "inputs") {
+      while (this.inputSource) {
+        const pending = budget.tickSync(); if (pending) await pending;
+        const next = await this.inputSource.next();
+        if (next.done) return;
+        budget.value(next.value);
+        yield next.value;
+      }
+      return;
+    }
     if (name === "env") {
       const result = object();
       let bytes = 2, count = 0;

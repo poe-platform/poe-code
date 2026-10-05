@@ -42,7 +42,7 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
 });
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
   trim: [0], ltrim: [0], rtrim: [0],
-  path: [1], leaf_paths: [0], fabs: [0], env: [0],
+  path: [1], leaf_paths: [0], fabs: [0], env: [0], inputs: [0],
   walk: [1], test: [1, 2], match: [1, 2], in: [1], IN: [1, 2], INDEX: [1, 2], isempty: [1], nth: [1, 2], pick: [1], sqrt: [0], todate: [0], fromdate: [0],
   explode: [0], implode: [0], utf8bytelength: [0], floor: [0], ceil: [0], round: [0], abs: [0], index: [1], rindex: [1],
   while: [2], until: [2], fromdateiso8601: [0], todateiso8601: [0], strftime: [1], strflocaltime: [1], strptime: [1], gmtime: [0], mktime: [0],
@@ -495,6 +495,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     const { node, depth } = pending.pop()!;
     if (visited.has(node)) continue;
     visited.add(node);
+    if (node.kind === "call" && node.name === "inputs") budget.readsInput = true;
     if (depth > limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
     const token = unresolved.get(node);
     if (token && node.kind === "call") {

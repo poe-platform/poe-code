@@ -1,4 +1,5 @@
 import { fragmentLoaderCommand } from "./fragment-loader-command.js";
+import { toolsCommand } from './tools-command.js';
 import { getLlmFragmentPrefix, loadLlmPluginFragments } from "./fragment-loaders.js";
 import { sourceBytes } from "./request-source.js";
 import { createLlmUrlFragmentSource } from "./url-fragment-source.js";
@@ -115,7 +116,7 @@ async function interrupted<Value>(start: () => Value | PromiseLike<Value>, signa
   });
 }
 
-async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections'], fragmentLoaders: NonNullable<LlmCommandsOptions['fragmentLoaders']>) {
+async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections'], fragmentLoaders: NonNullable<LlmCommandsOptions['fragmentLoaders']>, tools: NonNullable<LlmCommandsOptions['tools']>) {
   context.signal.throwIfAborted();
   const controller = new AbortController();
   const operation = createOutputOperation(context, context.stdout);
@@ -228,6 +229,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       argumentText(1);
       await emitText(modelsGroupHelp);
       return { exitCode: 0 };
+    }
+    if (argumentsValue.args[0] === 'tools') {
+      argumentText(0);
+      const tokens=Array.from({length:argumentsValue.args.length-1},(_,index)=>argumentText(index+1));
+      return {exitCode:await toolsCommand(tokens,tools,emitText,text=>writeDiagnostic(context.stderr,text,signal),step,signal)};
     }
     if (argumentsValue.args[0] === "fragments") {
       if (argumentsValue.args[1] !== "loaders") {
@@ -638,7 +644,7 @@ export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefin
   const templateLoaderOptions: TemplateLoaderOptions = { maxRemoteBytes, ...(options.templateLoaders ? { loaders: options.templateLoaders } : {}) };
   const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
   const collections=options.collections;
-  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections, options.fragmentLoaders ?? new Map()) };
+  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections, options.fragmentLoaders ?? new Map(), options.tools ?? new Map()) };
 }
 
 export function createLlmCommands(options: LlmCommandsOptions = {}): readonly CommandDefinition[] {

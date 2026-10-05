@@ -67,7 +67,7 @@ The LLM library must not own history or persistence, including through an option
 | `llm templates path` |  | incomplete |
 | `llm templates show` | name | incomplete |
 | `llm tools` |  | incomplete |
-| `llm tools list` | tool_defs; --json; --functions (repeatable) | incomplete |
+| `llm tools list` | tool_defs; --json; --functions (repeatable) | partial: injected registry, selection, text/JSON discovery, collision handling and bounded output have pinned fixtures; Python functions, toolboxes and default plugin tools remain incomplete |
 | `llm uninstall` | packages; -y/--yes | incomplete |
 
 ## Acceptance matrix

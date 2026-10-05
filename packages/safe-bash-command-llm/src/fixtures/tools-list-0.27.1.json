@@ -1,0 +1,178 @@
+[
+  {
+    "argv": [
+      "tools"
+    ],
+    "exitCode": 0,
+    "stdout": "alpha()\n\nzeta() (plugin: fixture)\n\n  Find Z\u00fcrich.\n\n  Keep spacing.\n\nzeta()\n\n  Second registration\n\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "list"
+    ],
+    "exitCode": 0,
+    "stdout": "alpha()\n\nzeta() (plugin: fixture)\n\n  Find Z\u00fcrich.\n\n  Keep spacing.\n\nzeta()\n\n  Second registration\n\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "--json"
+    ],
+    "exitCode": 0,
+    "stdout": "{\n  \"tools\": [\n    {\n      \"name\": \"alpha\",\n      \"description\": null,\n      \"arguments\": {},\n      \"plugin\": null\n    },\n    {\n      \"name\": \"zeta\",\n      \"description\": \"  Find Z\\u00fcrich.\\n\\nKeep spacing.  \",\n      \"arguments\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"string\"\n          }\n        }\n      },\n      \"plugin\": \"fixture\"\n    },\n    {\n      \"name\": \"zeta_1\",\n      \"description\": \"Second registration\",\n      \"arguments\": {\n        \"type\": \"object\"\n      },\n      \"plugin\": null\n    }\n  ],\n  \"toolboxes\": []\n}\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "list",
+      "--json"
+    ],
+    "exitCode": 0,
+    "stdout": "{\n  \"tools\": [\n    {\n      \"name\": \"alpha\",\n      \"description\": null,\n      \"arguments\": {},\n      \"plugin\": null\n    },\n    {\n      \"name\": \"zeta\",\n      \"description\": \"  Find Z\\u00fcrich.\\n\\nKeep spacing.  \",\n      \"arguments\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"string\"\n          }\n        }\n      },\n      \"plugin\": \"fixture\"\n    },\n    {\n      \"name\": \"zeta_1\",\n      \"description\": \"Second registration\",\n      \"arguments\": {\n        \"type\": \"object\"\n      },\n      \"plugin\": null\n    }\n  ],\n  \"toolboxes\": []\n}\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "zeta"
+    ],
+    "exitCode": 0,
+    "stdout": "zeta() (plugin: fixture)\n\n  Find Z\u00fcrich.\n\n  Keep spacing.\n\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "zeta_1"
+    ],
+    "exitCode": 0,
+    "stdout": "zeta()\n\n  Second registration\n\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "zeta",
+      "zeta_1",
+      "--json"
+    ],
+    "exitCode": 0,
+    "stdout": "{\n  \"tools\": [\n    {\n      \"name\": \"zeta\",\n      \"description\": \"Second registration\",\n      \"arguments\": {\n        \"type\": \"object\"\n      },\n      \"plugin\": null\n    }\n  ],\n  \"toolboxes\": []\n}\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "zeta",
+      "alpha",
+      "zeta"
+    ],
+    "exitCode": 0,
+    "stdout": "alpha()\n\nzeta() (plugin: fixture)\n\n  Find Z\u00fcrich.\n\n  Keep spacing.\n\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "missing",
+      "other"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": "Error: Tool(s) missing, other not found. Available tools: zeta, alpha, zeta_1\n"
+  },
+  {
+    "argv": [
+      "tools",
+      "--help"
+    ],
+    "exitCode": 0,
+    "stdout": "Usage: llm tools [OPTIONS] COMMAND [ARGS]...\n\n  Manage tools that can be made available to LLMs\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List available tools that have been provided by plugins\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "list",
+      "--help"
+    ],
+    "exitCode": 0,
+    "stdout": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\n\n  List available tools that have been provided by plugins\n\nOptions:\n  --json            Output as JSON\n  --functions TEXT  Python code block or file path defining functions to\n                    register as tools\n  -h, --help        Show this message and exit.\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "--wat"
+    ],
+    "exitCode": 2,
+    "stdout": "",
+    "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list --help' for help.\n\nError: No such option '--wat'.\n"
+  },
+  {
+    "argv": [
+      "tools",
+      "--json=false"
+    ],
+    "exitCode": 2,
+    "stdout": "",
+    "stderr": "Error: Option '--json' does not take a value.\n"
+  },
+  {
+    "argv": [
+      "tools",
+      "--",
+      "--json"
+    ],
+    "exitCode": 0,
+    "stdout": "{\n  \"tools\": [\n    {\n      \"name\": \"alpha\",\n      \"description\": null,\n      \"arguments\": {},\n      \"plugin\": null\n    },\n    {\n      \"name\": \"zeta\",\n      \"description\": \"  Find Z\\u00fcrich.\\n\\nKeep spacing.  \",\n      \"arguments\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"string\"\n          }\n        }\n      },\n      \"plugin\": \"fixture\"\n    },\n    {\n      \"name\": \"zeta_1\",\n      \"description\": \"Second registration\",\n      \"arguments\": {\n        \"type\": \"object\"\n      },\n      \"plugin\": null\n    }\n  ],\n  \"toolboxes\": []\n}\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "list",
+      "--",
+      "--json"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": "Error: Tool(s) --json not found. Available tools: zeta, alpha, zeta_1\n"
+  },
+  {
+    "argv": [
+      "tools",
+      "--help",
+      "--wat"
+    ],
+    "exitCode": 0,
+    "stdout": "Usage: llm tools [OPTIONS] COMMAND [ARGS]...\n\n  Manage tools that can be made available to LLMs\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List available tools that have been provided by plugins\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "tools",
+      "list",
+      "--help",
+      "--wat"
+    ],
+    "exitCode": 2,
+    "stdout": "",
+    "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list --help' for help.\n\nError: No such option '--wat'.\n"
+  },
+  {
+    "argv": [
+      "tools",
+      "list",
+      "--json=true",
+      "--help"
+    ],
+    "exitCode": 2,
+    "stdout": "",
+    "stderr": "Error: Option '--json' does not take a value.\n"
+  }
+]

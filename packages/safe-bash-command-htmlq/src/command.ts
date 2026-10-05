@@ -15,6 +15,7 @@ import type { FileStat } from "safe-bash-contracts/filesystem";
 import {
   defaultHtmlLimits,
   HtmlBudget,
+  HtmlCancellationError,
   HtmlError,
   invocationOptions,
   type HtmlLimits,
@@ -46,6 +47,16 @@ function admittedLimits(overrides: Partial<HtmlLimits> = {}): HtmlLimits {
       throw new HtmlError("E_LIMIT", "Limits must be nonnegative safe integers or Infinity", 0, name);
   }
   return Object.freeze(limits);
+}
+function cancellationReason(error: unknown, signal: AbortSignal, seen = new Set<unknown>()): unknown {
+  if (error instanceof HtmlCancellationError && error.signal === signal) return signal.reason;
+  if (!(error instanceof AggregateError) || seen.has(error)) return error;
+  seen.add(error);
+  const errors = error.errors.map(failure => cancellationReason(failure, signal, seen));
+  seen.delete(error);
+  return errors.some((failure, index) => !Object.is(failure, error.errors[index]))
+    ? new AggregateError(errors, error.message, { cause: error })
+    : error;
 }
 export async function htmlq(
   context: CommandContext,
@@ -352,7 +363,7 @@ export async function htmlq(
   try {
     result = await task;
   } catch (error) {
-    failure = { error };
+    failure = { error: cancellationReason(error, options.signal) };
   }
   try {
     await cleanup();

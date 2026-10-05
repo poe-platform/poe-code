@@ -8,7 +8,7 @@ import {
 import { shellValueFromBytes } from "safe-bash-contracts/value";
 import { FsError } from "safe-bash-contracts/errors";
 import { createHtmlqCommand, htmlq, htmlqCommands, HtmlError } from "./index.js";
-import { defaultHtmlLimits, HtmlBudget } from "./contracts.js";
+import { defaultHtmlLimits, HtmlBudget, HtmlCancellationError } from "./contracts.js";
 
 test("every htmlq quota defaults to unlimited in the engine", () => {
   const budget = new HtmlBudget({ signal: new AbortController().signal });
@@ -175,7 +175,7 @@ test("informational output observes limits and propagates sink failures and canc
     await assert.rejects(htmlq({ ...cancelled.context, stdout: {
       async write() { assert.fail("closed consumer must not receive output"); },
       ownedOutput: { consumerClosed: consumer.signal, async write() { assert.fail("closed consumer must not receive output"); } }
-    } }), { code: "E_CANCELLED" });
+    } }), error => error === consumer.signal.reason);
     assert.deepEqual(cancelled.errors, []);
   }
 });
@@ -278,6 +278,49 @@ test("limits accept larger ceilings; cancellation releases pending source once",
   assert.equal(returned, 1);
   await Promise.all(f.cleanups.map((fn) => fn()));
 });
+for (const api of ["command", "sdk"] as const) for (const phase of ["before", "read"] as const) {
+  for (const reason of [new Error("caller cancelled"), { cancellation: true }, 0, false, null, "", undefined]) {
+    test(`${api} preserves ${String(reason)} cancellation identity ${phase} input`, async () => {
+      const f = fixture(["p"]), controller = new AbortController();
+      let reads = 0, returned = 0;
+      if (phase === "before") controller.abort(reason);
+      const context = { ...f.context, signal: controller.signal, stdin: {
+        [Symbol.asyncIterator]() { return {
+          next() {
+            reads++;
+            controller.abort(reason);
+            return new Promise<IteratorResult<Uint8Array>>(() => {});
+          },
+          async return() { returned++; return { done: true as const, value: undefined }; }
+        }; }
+      } };
+      await assert.rejects(async () => api === "command"
+        ? await createHtmlqCommand().execute(context) : await htmlq(context),
+      error => error === controller.signal.reason);
+      assert.equal(reads, phase === "read" ? 1 : 0);
+      assert.equal(returned, phase === "read" ? 1 : 0);
+      assert.equal(f.output.length, 0);
+      assert.equal(f.errors.length, 0);
+      await Promise.all(f.cleanups.map(fn => fn()));
+    });
+  }
+}
+test("caller cancellation does not replace foreign failures with cancellation-shaped codes", async () => {
+  const foreign = new HtmlError("E_CANCELLED", "foreign cancellation");
+  const other = new AbortController();
+  other.abort(new Error("another invocation cancelled"));
+  const unrelated = new HtmlCancellationError(other.signal);
+  for (const failure of [foreign, unrelated, { code: "E_CANCELLED" }, new AggregateError([foreign, unrelated, { code: "E_CANCELLED" }], "foreign failures")]) {
+    const f = fixture(["p", "-o", "out"]), controller = new AbortController();
+    const context = { ...f.context, signal: controller.signal, fs: {
+      ...f.context.fs,
+      async lstat() { controller.abort(new Error("caller cancelled")); throw failure; }
+    } };
+    await assert.rejects(() => htmlq(context), error => error === failure);
+    assert.equal(f.output.length, 0);
+    assert.equal(f.errors.length, 0);
+  }
+});
 test("exhausted output and work budgets return structured failure without unaccounted diagnostics", async () => {
   const f = fixture(["p", "-t"], "<p>A</p><p>B</p>");
   const result = await htmlq(f.context, { limits: { outputBytes: 3 } });
@@ -342,14 +385,16 @@ test("output consumer closure cancels pending input and awaits its cleanup", asy
     ownedOutput: { consumerClosed: consumer.signal, async write() {} }
   };
   const running = createHtmlqCommand().execute({ ...f.context, stdin: source, stdout: sink });
+  let observed: unknown;
   const ended = await Promise.race([
     Promise.resolve(running).then(
       () => "resolved",
-      () => "rejected"
+      error => { observed = error; return "rejected"; }
     ),
     new Promise<string>((resolve) => setImmediate(() => resolve("pending")))
   ]);
   assert.equal(ended, "rejected");
+  assert.equal(observed, consumer.signal.reason);
   assert.equal(returned, 1);
 });
 test("command source admission preserves cross-realm bytes and cancellation cleanup failures", async () => {
@@ -370,11 +415,12 @@ test("command source admission preserves cross-realm bytes and cancellation clea
   assert.equal(f.text(), "X\n");
   const cancelled = fixture(["p"]),
     controller = new AbortController();
+  const reason = new Error("caller cancellation with cleanup failure");
   const source = {
     [Symbol.asyncIterator]() {
       return {
         next() {
-          controller.abort();
+          controller.abort(reason);
           return new Promise<IteratorResult<Uint8Array>>(() => {});
         },
         async return(): Promise<IteratorResult<Uint8Array>> {
@@ -390,7 +436,7 @@ test("command source admission preserves cross-realm bytes and cancellation clea
         stdin: source,
         signal: controller.signal
       }),
-    (error: unknown) => error instanceof AggregateError && error.errors[1] === 0
+    (error: unknown) => error instanceof AggregateError && error.errors[0] === reason && error.errors[1] === 0
   );
 });
 test("late read completion cannot call parent budgets after invocation cleanup", async () => {
@@ -639,7 +685,7 @@ test("retained VFS read cancellation drains admitted read work before cleanup se
   await new Promise<void>(resolve => setImmediate(resolve));
   assert.equal(cleaned, false);
   complete(new TextEncoder().encode("<p>late</p>"));
-  await assert.rejects(() => running, { code: "E_CANCELLED" });
+  await assert.rejects(() => running, error => error === controller.signal.reason);
   await Promise.all([ended, closing]);
   assert.equal(cleaned, true);
   assert.equal(f.files.has("/vfs/out"), false);

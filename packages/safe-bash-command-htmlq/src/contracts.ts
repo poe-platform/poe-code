@@ -37,6 +37,12 @@ export class HtmlError extends Error {
     this.name = "HtmlError";
   }
 }
+/** Internal provenance for command-boundary cancellation translation. */
+export class HtmlCancellationError extends HtmlError {
+  constructor(readonly signal: AbortSignal) {
+    super("E_CANCELLED", "HTML invocation cancelled");
+  }
+}
 export type HtmlNamespace = "html" | "svg" | "mathml";
 export interface HtmlAttribute {
   name: string;
@@ -127,7 +133,7 @@ export class HtmlBudget {
   }
   check(): void {
     if (this.options.signal.aborted)
-      throw new HtmlError("E_CANCELLED", "HTML invocation cancelled");
+      throw new HtmlCancellationError(this.options.signal);
   }
   bound(resource: keyof HtmlLimits, amount: number): void {
     this.check();

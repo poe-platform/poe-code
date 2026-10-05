@@ -1,6 +1,7 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
 import {
   HtmlBudget,
+  HtmlCancellationError,
   HtmlError,
   type MutableHtmlNode as HtmlNode,
   type HtmlNode as PublicHtmlNode,
@@ -424,7 +425,7 @@ async function* decodedHtml(source: AsyncIterable<Uint8Array>, options: HtmlOpti
     }
   };
   const abort = (): never => {
-    throw new HtmlError("E_CANCELLED", "HTML invocation cancelled");
+    throw new HtmlCancellationError(options.signal);
   };
   try {
     while (true) {
@@ -432,7 +433,7 @@ async function* decodedHtml(source: AsyncIterable<Uint8Array>, options: HtmlOpti
       if (++sinceYield >= 4096) { await yieldTurn(); budget.check(); sinceYield = 0; }
       let listener: () => void = () => {};
       const cancellation = new Promise<never>((_, reject) => {
-        listener = () => reject(new HtmlError("E_CANCELLED", "HTML invocation cancelled"));
+        listener = () => reject(new HtmlCancellationError(options.signal));
         options.signal.addEventListener("abort", listener, { once: true });
       });
       let result: IteratorResult<Uint8Array>;

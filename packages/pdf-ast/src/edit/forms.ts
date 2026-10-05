@@ -695,7 +695,7 @@ export function generateDocumentFormAppearances(doc: ParsedCosDocument): void {
   return drainWork(generateDocumentFormAppearancesSteps(doc));
 }
 
-function decodeXmlEntities(text: string): string {
+export function decodeFormDataEntities(text: string): string {
   let out = "";
   let i = 0;
   while (i < text.length) {
@@ -760,7 +760,7 @@ function extractAttributeValue(tagBody: string, attrName: string): string | unde
   if (quote !== "\"" && quote !== "'") return undefined;
   const end = tagBody.indexOf(quote, after + 1);
   if (end === -1) return undefined;
-  return decodeXmlEntities(tagBody.slice(after + 1, end));
+  return decodeFormDataEntities(tagBody.slice(after + 1, end));
 }
 
 function parseXfdfString(text: string, out: Map<string, string | boolean>): void {
@@ -795,7 +795,7 @@ function parseXfdfString(text: string, out: Map<string, string | boolean>): void
     } else if (tagName === "value" && !selfClosing && fieldStack.length > 0) {
       const closeVal = text.indexOf("</value>", pos);
       if (closeVal !== -1) {
-        const rawVal = decodeXmlEntities(text.slice(pos, closeVal));
+        const rawVal = decodeFormDataEntities(text.slice(pos, closeVal));
         const fullFieldName = fieldStack.filter(Boolean).join(".");
         if (fullFieldName) {
           if (rawVal === "Off") out.set(fullFieldName, false);
@@ -1040,9 +1040,9 @@ export function parseFormDataBytes(bytes: Uint8Array): Map<string, string | bool
       if (line.startsWith("FieldType:")) {
         curType = line.slice("FieldType:".length).trim();
       } else if (line.startsWith("FieldName:")) {
-        curName = decodeXmlEntities(line.slice("FieldName:".length).trim());
+        curName = decodeFormDataEntities(line.slice("FieldName:".length).trim());
       } else if (line.startsWith("FieldValue:") && curName) {
-        const val = decodeXmlEntities(line.slice("FieldValue:".length).trim());
+        const val = decodeFormDataEntities(line.slice("FieldValue:".length).trim());
         if (val === "Yes" || val === "On") {
           out.set(curName, true);
         } else if (val === "Off" || val === "false" || (curType === "Button" && val === "")) {

@@ -1000,6 +1000,10 @@ graph. Pass `formUpdates` as an iterable or async iterable of `{ name, value }`
 records to fill fields in order, including checkbox states, choices, inherited
 text styling and generated appearances. Field traversal and appearance output use
 caller storage; each individual field value and COS container remains resident.
+`parseRetainedFormData(source, storage, { signal })` reads text, XFDF or FDF from
+a retained source and yields these records with duplicate-field ordering preserved.
+Its input text, tokens, field names and overwrite state use caller storage;
+individual names, values and lexical tokens remain resident. The source is borrowed.
 Pass `infoUpdates` as an iterable or async iterable of `RetainedInfoUpdate`
 records to edit Info strings, trailer ID members, page geometry, page labels and
 bookmarks. Info changes apply in order; page properties retain their last value

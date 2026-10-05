@@ -49,6 +49,7 @@ export async function generateRetainedFormAppearances(document: PdfRetainedDocum
   async function stream(dict: PdfCosNode, chunks: Iterable<Uint8Array>) {
     const source = await PdfFileSource.fromStream(storage.fs, storage.directory, chunks, { signal }); let failed = false;
     try {
+      if (update && dict.kind === "dict") dictSet(dict, "Length", cosNumber(source.size));
       const ref = await store.allocate(); await store.set({ objectNumber: ref.objectNumber, generationNumber: 0, value: dict, stream: { length: source.size, chunks: source.stream(0, source.size, signal), decoded: true } }); return ref;
     } catch (error) { failed = true; throw error; }
     finally { await source.close().catch(error => { if (!failed) throw error; }); }

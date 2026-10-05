@@ -1,24 +1,30 @@
 import { retainedRotations } from "./retained-rotate.js";
-import { editRetainedDocument, type RetainedInfoUpdate, type RetainedAppendAttachment, type RetainedStampInput, PdfFileSource, PdfMutableObjectStore, PdfRetainedDocument, cosBool, dictDelete, dictGet, dictSet, encryptRetainedPdfChunks, retainedCosObjects, saveRetainedDocumentChunks, type PdfCosArray } from "@poe-code/pdf-ast";
+import { parseRetainedFormData, editRetainedDocument, type RetainedInfoUpdate, type RetainedAppendAttachment, type RetainedStampInput, PdfFileSource, PdfMutableObjectStore, PdfRetainedDocument, cosBool, cosName, dictDelete, dictGet, dictSet, encryptRetainedPdfChunks, retainedCosObjects, saveRetainedDocumentChunks, type PdfCosArray } from "@poe-code/pdf-ast";
 import type { PdftkArguments } from "./arguments.js";
 
 type Storage = ConstructorParameters<typeof PdfMutableObjectStore>[0];
 
 /** Common PDF output flags; the caller retains input identities and publishes
  * the resulting chunks. Graph edits and encoded payloads use caller storage. */
-export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined, attachments: AsyncIterable<RetainedAppendAttachment>, attachmentPage: string | undefined, stamps: Iterable<RetainedStampInput> | undefined, info?: { updates: AsyncIterable<RetainedInfoUpdate>; useUpdatedId: boolean }): AsyncGenerator<Uint8Array> {
+export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined, attachments: AsyncIterable<RetainedAppendAttachment>, attachmentPage: string | undefined, stamps: Iterable<RetainedStampInput> | undefined, info?: { updates: AsyncIterable<RetainedInfoUpdate>; useUpdatedId: boolean }, formData?: PdfFileSource): AsyncGenerator<Uint8Array> {
   const infoUpdates = info?.updates;
   const store = new PdfMutableObjectStore(storage, { signal });
   let edited: Awaited<ReturnType<typeof editRetainedDocument>> | undefined;
   let document: PdfRetainedDocument | undefined, plaintext: PdfFileSource | undefined, failed = false;
   try {
-    if (options.operation === "attach_files" || stamps || infoUpdates) {
+    if (options.operation === "attach_files" || stamps || infoUpdates || formData) {
       const pageIndex = attachmentPage !== undefined && pageCount! > 0 ? attachmentPage.toLowerCase() === "end" ? pageCount! - 1 : Math.max(0, Math.min(pageCount! - 1, (Number.parseInt(attachmentPage, 10) || 1) - 1)) : undefined;
-      edited = await editRetainedDocument(source, storage, { signal, ...(infoUpdates ? { infoUpdates } : {}), ...(options.operation === "attach_files" ? { appendAttachments: attachments } : {}), ...(stamps ? { stamps } : {}), ...(pageIndex !== undefined ? { attachmentPageIndex: pageIndex } : {}) });
+      edited = await editRetainedDocument(source, storage, { signal, ...(formData ? { formUpdates: parseRetainedFormData(formData, storage, { signal }) } : {}), ...(infoUpdates ? { infoUpdates } : {}), ...(options.operation === "attach_files" ? { appendAttachments: attachments } : {}), ...(stamps ? { stamps } : {}), ...(pageIndex !== undefined ? { attachmentPageIndex: pageIndex } : {}) });
     }
     const input = edited?.document ?? source;
     const pageReferences = edited ? { pageReferences: async function* () { for await (const page of input.pages()) if (page.reference) yield page.reference; } } : {};
-    for await (const object of retainedCosObjects(input, storage, { signal })) await store.set(object);
+    for await (const object of retainedCosObjects(input, storage, { signal })) {
+      if (formData && options.replacementFont && object.value.kind === "dict") {
+        const subtype = dictGet(object.value, "Subtype"), font = dictGet(object.value, "BaseFont");
+        if (subtype?.kind === "name" && subtype.decoded === "Type1" && font?.kind === "name" && font.decoded === "Helvetica") dictSet(object.value, "BaseFont", cosName(options.replacementFont.startsWith("/") ? options.replacementFont.slice(1) : options.replacementFont));
+      }
+      await store.set(object);
+    }
     const reference = input.crossReference;
     const chosenId = info?.useUpdatedId ? reference.idArray : selectedId;
     const idArray = options.keepFinalId || options.keepFirstId ? chosenId ?? reference.idArray : reference.idArray ?? chosenId;
@@ -28,7 +34,7 @@ export async function* retainedOutput(source: PdfRetainedDocument, storage: Stor
       const form = await document.lookup(dictGet(root.value, "AcroForm"));
       if (form?.value.kind === "dict" && !form.stream) {
         if (options.dropXfa) dictDelete(form.value, "XFA");
-        if (options.needAppearances) dictSet(form.value, "NeedAppearances", cosBool(true));
+        if (formData || options.needAppearances) dictSet(form.value, "NeedAppearances", cosBool(options.needAppearances));
         if (form.reference) await store.set({ objectNumber: form.reference.objectNumber, generationNumber: form.reference.generationNumber, value: form.value });
         else dictSet(root.value, "AcroForm", form.value);
       }

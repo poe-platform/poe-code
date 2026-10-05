@@ -17,7 +17,7 @@ it.each(['json','json:compact=1','default','csv','compact','flat'])('formats asy
 it.each(['default','csv','compact','flat'])('yields %s before enumerating the next stream',printFormat=>{
   let read=0,closed=0;
   function* streams(){try{for(let i=0;i<10000;i++){read++;yield {...probe.streams[0]!,index:i};}}finally{closed++;}}
-  const parts=command.formatFfprobeResultChunks({...probe,streams:streams()},{...opts,printFormat,showPackets:false});
+  const parts=command.formatFfprobeResultChunks({...probe,streams:streams()},{...opts,printFormat,showPackets:false,showFrames:false});
   const first=parts.next();expect(first.done).toBe(false);expect(read).toBe(1);parts.return(undefined);expect(closed).toBe(1);
 });
 it.each(['success','read','close','cancel'])('keeps caller input alive for lazy source records: %s',async mode=>{
@@ -54,7 +54,7 @@ it.each(['automatic','stdin'])('uses lazy record hooks for %s input',async mode=
 });
 it('selects and counts streams incrementally with legacy ordinal and tag formatting',async()=>{
   const streams=[{...probe.streams[0]!,index:8},{...probe.streams[0]!,index:4,tags:{title:'é,"\n'}}];
-  let output='';for await(const part of command.formatFfprobeSourceChunks({...probe,streams:rows(streams)},{...opts,printFormat:'csv',showFormat:false,showPackets:false,selectStreams:'a:1',showEntries:'stream=index,nb_read_packets:stream_tags=title',countPackets:true}))output+=part;
+  let output='';for await(const part of command.formatFfprobeSourceChunks({...probe,streams:rows(streams)},{...opts,printFormat:'csv',showFormat:false,showPackets:false,showFrames:false,selectStreams:'a:1',showEntries:'stream=index,nb_read_packets:stream_tags=title',countPackets:true}))output+=part;
   expect(output).toBe('stream,4,"é,""\n",3\n');
 });
 

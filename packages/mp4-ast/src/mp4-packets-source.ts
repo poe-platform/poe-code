@@ -1,8 +1,10 @@
+import { scanMp4CodecDescriptions } from './mp4-codec-source.js';
+import { probeSampleFormat, type Mp4CodecMetadata } from './mp4-codec-metadata.js';
 import { BinaryReader } from './binary.js';
 import { scanMp4Boxes, type Mp4BoxSpan } from './mp4-source.js';
 import { scanMp4Fragment, type Mp4FragmentDefaults } from './mp4-fragment-source.js';
 import { consumeMp4SampleSteps, readMp4SampleRange, scanMp4SampleTable, type Mp4SampleScanOptions, type Mp4SampleSpan, type Mp4SampleSteps, type Mp4SampleTables } from './mp4-sample-source.js';
-import { MediaBudgetTracker, type MediaProbePacket, type MediaProbeSource, type MediaResourceLimits, type MediaTrackType } from './types.js';
+import { MediaBudgetTracker, type MediaProbePacket, type MediaProbeFrame, type MediaProbeSource, type MediaResourceLimits, type MediaTrackType } from './types.js';
 
 export interface Mp4PacketScanOptions extends Omit<Mp4SampleScanOptions, 'type' | 'syncSamples'> {
   readonly limits?: MediaResourceLimits;
@@ -10,8 +12,36 @@ export interface Mp4PacketScanOptions extends Omit<Mp4SampleScanOptions, 'type' 
   readonly syncSamples?: (trackIndex: number) => Mp4SampleScanOptions['syncSamples'] | Promise<Mp4SampleScanOptions['syncSamples']>;
 }
 
+type ProbeSample = {
+  sample: Pick<Mp4SampleSpan, 'pts' | 'dts' | 'duration' | 'size' | 'isKeyframe'>;
+  track: { index: number; type: MediaTrackType; timescale: number; width: number | undefined; height: number | undefined; codec: Mp4CodecMetadata | undefined };
+  bytePos: number;
+};
+
 /** Replay packet descriptors without retaining tracks, boxes, table rows or payloads. */
 export async function* scanMp4Packets(source: MediaProbeSource, options: Mp4PacketScanOptions = {}): AsyncGenerator<MediaProbePacket, void> {
+  for await (const { sample, track, bytePos } of scanProbeSamples(source, options, false)) {
+    const scale = Math.max(1, track.timescale);
+    yield { codec_type: track.type, stream_index: track.index, pts: sample.pts, pts_time: (sample.pts / scale).toFixed(6), dts: sample.dts, dts_time: (sample.dts / scale).toFixed(6), duration: sample.duration, duration_time: (sample.duration / scale).toFixed(6), size: String(sample.size), pos: String(bytePos), flags: sample.isKeyframe ? 'K_' : '__' };
+  }
+}
+
+/** Replay frame descriptors with bounded scalar codec metadata; no media decoding. */
+export async function* scanMp4Frames(source: MediaProbeSource, options: Mp4PacketScanOptions = {}): AsyncGenerator<MediaProbeFrame, void> {
+  for await (const { sample, track } of scanProbeSamples(source, options, true)) {
+    const scale = Math.max(1, track.timescale), ptsTime = (sample.pts / scale).toFixed(6);
+    yield { media_type: track.type, stream_index: track.index, key_frame: sample.isKeyframe ? 1 : 0,
+      pts: sample.pts, pts_time: ptsTime, pkt_dts: sample.dts, pkt_dts_time: (sample.dts / scale).toFixed(6),
+      best_effort_timestamp: sample.pts, best_effort_timestamp_time: ptsTime,
+      pkt_duration: sample.duration, pkt_duration_time: (sample.duration / scale).toFixed(6), pkt_size: String(sample.size),
+      width: track.width, height: track.height, pix_fmt: track.type === 'video' ? (track.codec?.pixFmt ?? 'yuv420p') : undefined,
+      pict_type: track.type === 'video' ? (sample.isKeyframe ? 'I' : 'P') : undefined,
+      sample_fmt: probeSampleFormat(track.type, track.codec?.codecName ?? (track.type === 'video' ? 'h264' : 'aac')),
+      nb_samples: track.type === 'audio' ? sample.duration : undefined, channels: track.type === 'audio' ? (track.codec?.channels ?? 2) : undefined };
+  }
+}
+
+async function* scanProbeSamples(source: MediaProbeSource, options: Mp4PacketScanOptions, withCodec: boolean): AsyncGenerator<ProbeSample, void> {
   options.signal?.throwIfAborted();
   const budget = options.budget ?? new MediaBudgetTracker(options.limits), work = { budget, ...(options.signal ? { signal: options.signal } : {}), ...(options.checkpoint ? { checkpoint: options.checkpoint } : {}) };
   budget.checkInputBytes(source.size);
@@ -34,11 +64,12 @@ export async function* scanMp4Packets(source: MediaProbeSource, options: Mp4Pack
   for await (const trak of scanMp4Boxes(source, { ...moov.children, ...work })) {
     if (trak.type !== 'trak') continue;
     const index = trackIndex++; budget.checkStreams(trackIndex);
-    const tkhd = await first(trak, 'tkhd'), header = await read(tkhd, 36);
-    let id = index + 1, headerDuration = 0;
+    const tkhd = await first(trak, 'tkhd'), header = await read(tkhd, withCodec ? 96 : 36);
+    let id = index + 1, headerDuration = 0, width: number | undefined, height: number | undefined;
     if ((tkhd?.payloadSize ?? 0) >= 24) {
       const version = header.readU8(); header.skip(3 + (version === 1 ? 16 : 8));
       id = header.readU32BE() || id; header.skip(4); headerDuration = version === 1 ? header.readU64BE() : header.readU32BE();
+      if (withCodec) { header.skip(52); const w = Math.round(header.readFixed16_16()), h = Math.round(header.readFixed16_16()); if (w > 0) width = w; if (h > 0) height = h; }
     }
     const mdia = await first(trak, 'mdia'), mdhd = await first(mdia, 'mdhd'), media = await read(mdhd, 32);
     let timescale = movieTimescale, declaredDuration = 0;
@@ -53,6 +84,12 @@ export async function* scanMp4Packets(source: MediaProbeSource, options: Mp4Pack
     if (stbl?.children) for await (const box of scanMp4Boxes(source, { ...stbl.children, ...work })) {
       if (['stts', 'ctts', 'stsc', 'stsz', 'stco', 'co64', 'stss'].includes(box.type)) { const name = box.type as keyof Mp4SampleTables; tables[name] ??= box; }
     }
+    let codec: Mp4CodecMetadata | undefined;
+    if (withCodec) {
+      const stsd = await first(stbl, 'stsd');
+      if (stsd) for await (const description of scanMp4CodecDescriptions(source, stsd, work)) { codec = description; break; }
+    }
+    const track = { index, type, timescale, width: width ?? codec?.width, height: height ?? codec?.height, codec };
     let defaults: Mp4FragmentDefaults = { defaultSampleDescriptionIndex: 1, defaultSampleDuration: type === 'video' ? 3000 : 1024, defaultSampleSize: 0, defaultSampleFlags: 0 };
     if (mvex?.children) for await (const box of scanMp4Boxes(source, { ...mvex.children, ...work })) {
       if (box.type !== 'trex' || box.payloadSize < 24) continue;
@@ -101,9 +138,8 @@ export async function* scanMp4Packets(source: MediaProbeSource, options: Mp4Pack
     const trackDuration = result.value ?? (duration || declaredDuration || Math.round(headerDuration / Math.max(1, movieTimescale) * timescale));
     maxDuration = Math.max(maxDuration, trackDuration / Math.max(1, timescale)); budget.checkDuration(maxDuration);
     let bytePos = 0, cursor = 0;
-    const packet = (sample: Pick<Mp4SampleSpan, 'pts' | 'dts' | 'duration' | 'size' | 'isKeyframe'>): MediaProbePacket => {
-      const result = { codec_type: type, stream_index: index, pts: sample.pts, pts_time: (sample.pts / Math.max(1, timescale)).toFixed(6), dts: sample.dts, dts_time: (sample.dts / Math.max(1, timescale)).toFixed(6), duration: sample.duration, duration_time: (sample.duration / Math.max(1, timescale)).toFixed(6), size: String(sample.size), pos: String(bytePos), flags: sample.isKeyframe ? 'K_' : '__' };
-      bytePos += sample.size; return result;
+    const packet = (sample: ProbeSample['sample']): ProbeSample => {
+      const record = { sample, track, bytePos }; bytePos += sample.size; return record;
     };
     for await (const sample of samples()) {
       if (type !== 'subtitle' || !count || allPacked) { yield packet(sample); continue; }

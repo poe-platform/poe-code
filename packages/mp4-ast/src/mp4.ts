@@ -1,3 +1,4 @@
+import { sampleEntryHeader, applyCodecMetadata, finishCodecMetadata, probeSampleFormat } from './mp4-codec-metadata.js';
 import { mp4FragmentHeader, mp4FragmentTime, mp4FragmentRunSteps } from "./mp4-fragment-source.js";
 import { mp4SampleTableSteps, type Mp4SampleTables } from "./mp4-sample-source.js";
 import { mp4BoxLayout, mp4BoxChildrenOffset } from "./mp4-box-layout.js";
@@ -32,7 +33,6 @@ import {
   parseAvcC,
   parseDOps,
   parseEsds,
-  parseH264Sps,
   parseHvcC,
   parseVpcC
 } from "./codecs.js";
@@ -126,213 +126,39 @@ function findBoxes(boxes: readonly Mp4Box[] | undefined, type: string): Mp4Box[]
 function parseStsdBox(payload: Uint8Array): MediaCodecDescription[] {
   const reader = new BinaryReader(payload);
   if (reader.remaining < 8) return [];
-  reader.skip(4); // version + flags
-  const entryCount = reader.readU32BE();
-  const descriptions: MediaCodecDescription[] = [];
-
+  reader.skip(4); const entryCount = reader.readU32BE(), descriptions: MediaCodecDescription[] = [];
   for (let i = 0; i < entryCount && reader.remaining >= 8; i++) {
-    const entryStart = reader.offset;
-    const entrySize = reader.readU32BE();
-    const formatFourCC = reader.readFourCC();
-    if (entrySize < 8 || entryStart + entrySize > payload.byteLength) break;
-    const rawEntryBytes = payload.subarray(entryStart, entryStart + entrySize);
-    const body = payload.subarray(entryStart + 8, entryStart + entrySize);
-
-    let codecName = formatFourCC.trim().toLowerCase();
-    let profile: string | undefined;
-    let level: number | undefined;
-    let width: number | undefined;
-    let height: number | undefined;
-    let pixFmt: string | undefined;
-    let sarWidth = 1;
-    let sarHeight = 1;
-    let sampleRate: number | undefined;
-    let channels: number | undefined;
-    let bitsPerSample: number | undefined;
-    let avcC: ReturnType<typeof parseAvcC> | undefined;
-    let hvcC: ReturnType<typeof parseHvcC> | undefined;
-    let av1C: ReturnType<typeof parseAv1C> | undefined;
-    let vpcC: ReturnType<typeof parseVpcC> | undefined;
-    let esds: ReturnType<typeof parseEsds> | undefined;
-    let dOps: ReturnType<typeof parseDOps> | undefined;
-
-    if (
-      formatFourCC === "avc1" ||
-      formatFourCC === "avc3" ||
-      formatFourCC === "hvc1" ||
-      formatFourCC === "hev1" ||
-      formatFourCC === "av01" ||
-      formatFourCC === "vp08" ||
-      formatFourCC === "vp09" ||
-      formatFourCC === "mp4v" ||
-      formatFourCC === "jpeg" ||
-      formatFourCC === "mjpa" ||
-      formatFourCC === "png " ||
-      formatFourCC === "s263"
-    ) {
-      // VisualSampleEntry: 6 reserved + 2 data_ref_index + 16 pre_defined/reserved + 2 width + 2 height + ... = 78 bytes before child boxes
-      if (body.byteLength >= 78) {
-        const vReader = new BinaryReader(body);
-        vReader.skip(6 + 2 + 16);
-        width = vReader.readU16BE();
-        height = vReader.readU16BE();
-        vReader.skip(4 + 4 + 4 + 2 + 32 + 2 + 2);
-        const childBoxes = parseMp4Boxes(body.subarray(78));
-
-        for (const child of childBoxes) {
-          if (child.type === "avcC") {
-            avcC = parseAvcC(child.payload);
-            codecName = "h264";
-            level = avcC.levelIdc;
-            if (avcC.sps[0]) {
-              const spsInfo = parseH264Sps(avcC.sps[0]);
-              profile = spsInfo.profileName;
-              width = spsInfo.width || width;
-              height = spsInfo.height || height;
-              pixFmt = spsInfo.pixFmt;
-              sarWidth = spsInfo.sarWidth;
-              sarHeight = spsInfo.sarHeight;
-            }
-          } else if (child.type === "hvcC") {
-            hvcC = parseHvcC(child.payload);
-            codecName = "hevc";
-            level = hvcC.generalLevelIdc;
-            profile = hvcC.generalProfileIdc === 2 ? "Main 10" : "Main";
-            pixFmt = hvcC.bitDepthLumaMinus8 > 0 ? "yuv420p10le" : "yuv420p";
-          } else if (child.type === "av1C") {
-            av1C = parseAv1C(child.payload);
-            codecName = "av1";
-            profile = av1C.seqProfile === 0 ? "Main" : av1C.seqProfile === 1 ? "High" : "Professional";
-            level = av1C.seqLevelIdx0;
-            pixFmt = av1C.highBitdepth ? "yuv420p10le" : "yuv420p";
-          } else if (child.type === "vpcC") {
-            vpcC = parseVpcC(child.payload);
-            codecName = formatFourCC === "vp08" ? "vp8" : "vp9";
-            profile = `Profile ${vpcC.profile}`;
-            level = vpcC.level;
-            pixFmt = "yuv420p";
-          } else if (child.type === "esds") {
-            esds = parseEsds(child.payload);
-          } else if (child.type === "pasp" && child.payload.byteLength >= 8) {
-            const pReader = new BinaryReader(child.payload);
-            sarWidth = pReader.readU32BE() || 1;
-            sarHeight = pReader.readU32BE() || 1;
+    const start = reader.offset, size = reader.readU32BE(), format = reader.readFourCC();
+    if (size < 8 || start + size > payload.length) break;
+    const body = payload.subarray(start + 8, start + size), state = sampleEntryHeader(format, body);
+    let avcC: ReturnType<typeof parseAvcC> | undefined, hvcC: ReturnType<typeof parseHvcC> | undefined,
+      av1C: ReturnType<typeof parseAv1C> | undefined, vpcC: ReturnType<typeof parseVpcC> | undefined,
+      esds: ReturnType<typeof parseEsds> | undefined, dOps: ReturnType<typeof parseDOps> | undefined;
+    if (state.childOffset !== undefined && state.childOffset < body.length) {
+      for (const child of parseMp4Boxes(body.subarray(state.childOffset))) {
+        if (state.kind === 'video') {
+          if (child.type === 'avcC') { avcC = parseAvcC(child.payload); applyCodecMetadata(state, { type: 'avcC', levelIdc: avcC.levelIdc, sps: avcC.sps[0] }); }
+          else if (child.type === 'hvcC') { hvcC = parseHvcC(child.payload); applyCodecMetadata(state, { ...hvcC, type: 'hvcC' }); }
+          else if (child.type === 'av1C') { av1C = parseAv1C(child.payload); applyCodecMetadata(state, { ...av1C, type: 'av1C' }); }
+          else if (child.type === 'vpcC') { vpcC = parseVpcC(child.payload); applyCodecMetadata(state, { ...vpcC, type: 'vpcC' }); }
+          else if (child.type === 'esds') esds = parseEsds(child.payload);
+          else if (child.type === 'pasp' && child.payload.length >= 8) {
+            const aspect = new BinaryReader(child.payload);
+            applyCodecMetadata(state, { type: 'pasp', sarWidth: aspect.readU32BE(), sarHeight: aspect.readU32BE() });
+          }
+        } else if (state.kind === 'audio') {
+          if (child.type === 'esds') { esds = parseEsds(child.payload); applyCodecMetadata(state, { type: 'esds', config: esds }); }
+          else if (child.type === 'dOps') { dOps = parseDOps(child.payload); applyCodecMetadata(state, { ...dOps, type: 'dOps' }); }
+          else if (child.type === 'wave' && child.children) {
+            const nested = findBox(child.children, 'esds');
+            if (nested) { esds = parseEsds(nested.payload); applyCodecMetadata(state, { type: 'wave-esds', config: esds }); }
           }
         }
       }
-      if (formatFourCC === "avc1" || formatFourCC === "avc3") codecName = "h264";
-      else if (formatFourCC === "hvc1" || formatFourCC === "hev1") codecName = "hevc";
-      else if (formatFourCC === "av01") codecName = "av1";
-      else if (formatFourCC === "vp08") codecName = "vp8";
-      else if (formatFourCC === "vp09") codecName = "vp9";
-      else if (formatFourCC === "jpeg" || formatFourCC === "mjpa") codecName = "mjpeg";
-      else if (formatFourCC === "mp4v") codecName = "mpeg4";
-      else if (formatFourCC === "png ") codecName = "png";
-      pixFmt = pixFmt ?? "yuv420p";
-    } else if (
-      formatFourCC === "mp4a" ||
-      formatFourCC === "Opus" ||
-      formatFourCC === "fLaC" ||
-      formatFourCC === "alac" ||
-      formatFourCC === "ac-3" ||
-      formatFourCC === "ec-3" ||
-      formatFourCC === "sowt" ||
-      formatFourCC === "twos" ||
-      formatFourCC === "lpcm" ||
-      formatFourCC === ".mp3" ||
-      formatFourCC === "ulaw" ||
-      formatFourCC === "alaw"
-    ) {
-      // AudioSampleEntry: 6 reserved + 2 data_ref_index + 2 version + 6 reserved + 2 channels + 2 sampleSize + 4 pre_defined/reserved + 4 sampleRate (16.16) = 28 bytes
-      if (body.byteLength >= 28) {
-        const aReader = new BinaryReader(body);
-        aReader.skip(6 + 2);
-        const qtVersion = aReader.readU16BE();
-        aReader.skip(6);
-        channels = aReader.readU16BE();
-        bitsPerSample = aReader.readU16BE();
-        aReader.skip(4);
-        sampleRate = Math.round(aReader.readU32BE() / 65536);
-
-        let childOffset = 28;
-        if (qtVersion === 1) childOffset += 16;
-        else if (qtVersion === 2) childOffset += 36;
-
-        if (childOffset < body.byteLength) {
-          const childBoxes = parseMp4Boxes(body.subarray(childOffset));
-          for (const child of childBoxes) {
-            if (child.type === "esds") {
-              esds = parseEsds(child.payload);
-              if (esds.sampleRate > 0) sampleRate = esds.sampleRate;
-              if (esds.channelCount > 0) channels = esds.channelCount;
-              if (esds.objectTypeIndication === 0x6b || esds.objectTypeIndication === 0x69) {
-                codecName = "mp3";
-              } else {
-                codecName = "aac";
-                profile = esds.audioObjectType === 5 ? "HE-AAC" : "LC";
-              }
-            } else if (child.type === "dOps") {
-              dOps = parseDOps(child.payload);
-              codecName = "opus";
-              sampleRate = dOps.inputSampleRate || 48000;
-              channels = dOps.outputChannelCount || channels;
-            } else if (child.type === "wave" && child.children) {
-              const waveEsds = findBox(child.children, "esds");
-              if (waveEsds) {
-                esds = parseEsds(waveEsds.payload);
-                if (esds.sampleRate > 0) sampleRate = esds.sampleRate;
-                if (esds.channelCount > 0) channels = esds.channelCount;
-              }
-            }
-          }
-        }
-      }
-      if (formatFourCC === "mp4a" && codecName === "mp4a") {
-        codecName = "aac";
-        profile = profile ?? "LC";
-      } else if (formatFourCC === "Opus") codecName = "opus";
-      else if (formatFourCC === "fLaC") codecName = "flac";
-      else if (formatFourCC === "alac") codecName = "alac";
-      else if (formatFourCC === "ac-3") codecName = "ac3";
-      else if (formatFourCC === "ec-3") codecName = "eac3";
-      else if (formatFourCC === "sowt") codecName = "pcm_s16le";
-      else if (formatFourCC === "twos") codecName = "pcm_s16be";
-      else if (formatFourCC === "lpcm") codecName = "pcm_s16le";
-      else if (formatFourCC === ".mp3") codecName = "mp3";
-    } else if (formatFourCC === "tx3g" || formatFourCC === "text") {
-      codecName = "mov_text";
-    } else if (formatFourCC === "wvtt") {
-      codecName = "webvtt";
-    } else if (formatFourCC === "stpp") {
-      codecName = "ttml";
     }
-
-    descriptions.push({
-      formatFourCC,
-      codecName,
-      codecTagString: formatFourCC,
-      profile,
-      level,
-      width,
-      height,
-      pixFmt,
-      sarWidth,
-      sarHeight,
-      sampleRate,
-      channels,
-      bitsPerSample,
-      avcC,
-      hvcC,
-      av1C,
-      vpcC,
-      esds,
-      dOps,
-      rawStsdEntryBytes: rawEntryBytes
-    });
-
-    reader.seek(entryStart + entrySize);
+    descriptions.push({ ...finishCodecMetadata(state), avcC, hvcC, av1C, vpcC, esds, dOps, rawStsdEntryBytes: payload.subarray(start, start + size) });
+    reader.seek(start + size);
   }
-
   return descriptions;
 }
 
@@ -2120,11 +1946,7 @@ export function buildProbeResultFromDoc(
     const codecLongName = CODEC_LONG_NAMES[codecName] ?? codecName;
     const rawTag = desc?.formatFourCC ?? (track.type === "video" ? "avc1" : "mp4a");
     const tagFourCC = Array.from(rawTag).map(c => c.charCodeAt(0) < 32 ? `[${c.charCodeAt(0)}]` : c).join("");
-    const sampleFormat = track.type !== "audio" ? undefined : ({
-      pcm_u8: "u8", pcm_s16le: "s16", pcm_s16be: "s16",
-      pcm_s24le: "s32", pcm_s24be: "s32", pcm_s32le: "s32", pcm_s32be: "s32",
-      pcm_f32le: "flt", pcm_f32be: "flt", pcm_f64le: "dbl", pcm_f64be: "dbl"
-    } as Record<string, string>)[codecName] ?? "fltp";
+    const sampleFormat = probeSampleFormat(track.type, codecName);
     const tagHex = doc.containerFormat === "wav"
       ? "0x" + (rawTag.charCodeAt(0) | (rawTag.charCodeAt(1) << 8)).toString(16).padStart(4, "0")
       : "0x" +

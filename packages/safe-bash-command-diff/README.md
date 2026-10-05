@@ -57,6 +57,8 @@ replay text and deduplicated search state through caller storage with a shared
 grouping, matching and ordering use stored records with a shared 256 KiB cache
 plus individual entry names. Large listings acquire scratch handles before
 restarting enumeration once, avoiding changes to a live directory snapshot.
-Pending traversal and ancestry metadata, exclusion patterns, array-only directory
-backends and special-file
+Exclusion files, pattern descriptors and compiled byte globs share another
+256 KiB cache backed by caller storage. Matching does not allocate regex state
+against the input-byte quota; source bytes and exclusion quotas remain enforced.
+Pending traversal and ancestry metadata, array-only directory backends and special-file
 backends without streaming reads still have buffered paths; this is not a general bounded-memory guarantee for every diff option.

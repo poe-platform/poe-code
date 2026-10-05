@@ -15,7 +15,10 @@ caller-backed records and merge indexes with one shared 256 KiB cache, plus
 individual entry names. Enumeration uses directory iterators where available;
 large listings close the initial iterator and acquire backing handles before
 one restart, so spill acquisition cannot invalidate the new snapshot. Pending
-traversal/ancestry metadata, exclusions and array-only directory backends remain.
+traversal/ancestry metadata and array-only directory backends remain. Exclusion
+files, descriptors and compiled byte glob instructions now use caller storage
+with one shared 256 KiB cache. Matching uses scalar state instead of input-sized
+regex state; actual input and explicit exclusion quotas remain enforced.
 GNU patch
 target payloads, hunk application and publication now use caller-backed documents
 and retained staging writers, including merge/ifdef, backups, rejects and output

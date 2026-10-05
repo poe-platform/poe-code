@@ -1,3 +1,4 @@
+import { StoredExclusions } from "./stored-exclusions.js";
 import { directoryMatches } from "./stored-directory.js";
 import { closeDocumentResources } from "safe-bash-diff-engine/document";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
@@ -11,9 +12,8 @@ import { basename,createCommandArguments,isFsError,writeBytes,type CommandContex
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { Budget,ToolError,definition,host,inspect,sameIdentity,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
-import { byteLength,decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
+import { decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { pathOf } from "safe-bash-io-engine/internal";
-import { Pattern } from "safe-bash-regex-engine/text/regex";
 
 async function comparisonLines(lines: string[], options: DiffFlags, budget: Budget): Promise<string[]> {
   const whitespace = options.whitespace;
@@ -117,38 +117,6 @@ async function edits(oldLines: string[], newLines: string[], oldKeys: string[], 
   return result;
 }
 
-async function exclusionPatterns(options: DiffFlags, budget: Budget): Promise<Pattern[]> {
-  const exclusions: Pattern[] = [];
-  let patternBytes = 0;
-  const append = async (source: string, ignoreCase: boolean, start = 0, end = source.length) => {
-    budget.step(1 + end - start);
-    { const c = budget.checkpoint(); if (c) await c; }
-    if (exclusions.length >= budget.limits.maxExcludePatterns) throw new ToolError("exclusion pattern count limit exceeded");
-    // UTF-16 length is a lower bound on UTF-8 bytes; admit the slice before allocating it.
-    const remaining = budget.limits.maxExcludePatternBytes - patternBytes;
-    if (end - start > remaining) throw new ToolError("exclusion pattern byte limit exceeded");
-    const sourcePattern = source.slice(start, end);
-    const bytes = byteLength(sourcePattern);
-    if (bytes > remaining) throw new ToolError("exclusion pattern byte limit exceeded");
-    patternBytes += bytes;
-    exclusions.push(globPattern(sourcePattern, ignoreCase));
-  };
-  for (const { pattern, ignoreCase } of options.excludes) await append(pattern, ignoreCase);
-  for (const { path, ignoreCase } of options.excludeFiles) {
-    if (path !== "-") await inspect(budget, path, "follow");
-    const contents = await (path === "-" ? budget.read("-") : budget.readDiff(pathOf(budget.context, path)));
-    let start = 0;
-    while (start < contents.length) {
-      const newline = contents.indexOf("\n", start);
-      const end = newline < 0 ? contents.length : newline;
-      if (end > start) await append(contents, ignoreCase, start, end);
-      else { budget.step(); { const c = budget.checkpoint(); if (c) await c; } }
-      start = end + 1;
-    }
-  }
-  return exclusions;
-}
-
 function childPath(directory: string, name: string): string {
   let end = directory.length;
   while (end > 0 && directory[end - 1] === "/") end--;
@@ -158,14 +126,15 @@ function childPath(directory: string, name: string): string {
 async function run(context: CommandContext, budget: Budget): Promise<number> {
   const storage = new PagedStorage(context, 32);
   const stdin: StdinDocument = {};
-  context.registerCleanup?.(() => storage.close());
-  try { return await runStored(context, budget, storage, stdin); }
-  finally { await closeDocumentResources([storage, ...(stdin.document ? [stdin.document] : [])]); }
+  const exclusions = new StoredExclusions(budget);
+  context.registerCleanup?.(() => closeDocumentResources([storage, exclusions]));
+  try { return await runStored(context, budget, storage, stdin, exclusions); }
+  finally { await closeDocumentResources([storage, exclusions, ...(stdin.document ? [stdin.document] : [])]); }
 }
 
-async function runStored(context: CommandContext, budget: Budget, storage: PagedStorage, stdinDocument: StdinDocument): Promise<number> {
+async function runStored(context: CommandContext, budget: Budget, storage: PagedStorage, stdinDocument: StdinDocument, exclusions: StoredExclusions): Promise<number> {
   const options = flags(context.args);
-  const exclusions = await exclusionPatterns(options, budget);
+  await exclusions.load(options);
   let outputSize = 0;
   let encoding: "utf8" | "latin1" = "utf8";
   const appendBytes = async (bytes: Uint8Array) => {
@@ -273,13 +242,8 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
       }
       const leftParents = leftIdentity === undefined ? pair.leftParents : [...pair.leftParents, leftIdentity];
       const rightParents = rightIdentity === undefined ? pair.rightParents : [...pair.rightParents, rightIdentity];
-      const excluded = async (name: string) => {
-        const byteName = exclusions.length ? decodeBytes(encodeBytes(name), "latin1") : name;
-        for (const pattern of exclusions) if (await pattern.find(byteName, budget)) return true;
-        return false;
-      };
       for await (const match of directoryMatches(leftStat ? left : undefined, rightStat ? right : undefined, budget,
-        options.ignoreFileNameCase, budget.remainingFiles - pending.length, excluded, pair.nested ? undefined : options.startingFile)) {
+        options.ignoreFileNameCase, budget.remainingFiles - pending.length, name => exclusions.matches(name), pair.nested ? undefined : options.startingFile)) {
         pending.push({ left: childPath(left, match.left ?? match.right!), right: childPath(right, match.right ?? match.left!),
           nested: true, leftParents, rightParents, leftEntry: match.left !== undefined, rightEntry: match.right !== undefined });
       }
@@ -436,66 +400,6 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
   return trouble ? 2 : different ? 1 : 0;
 }
 
-function globPattern(source: string, ignoreCase: boolean): Pattern {
-  source = decodeBytes(encodeBytes(source), "latin1");
-  let result = "^";
-  const oppositeCase = (character: string) => !ignoreCase ? ""
-    : character >= "A" && character <= "Z" ? character.toLowerCase()
-    : character >= "a" && character <= "z" ? character.toUpperCase() : "";
-  for (let index = 0; index < source.length; index++) {
-    const character = source[index]!;
-    if (character === "\\" && index + 1 < source.length) {
-      const literal = source[++index]!;
-      result += oppositeCase(literal) ? `[${literal}${oppositeCase(literal)}]` : `\\${literal}`;
-    }
-    else if (character === "[") {
-      let end = index + 1;
-      const negated = source[end] === "!" || source[end] === "^";
-      if (negated) end++;
-      if (source[end] === "]") end++;
-      while (end < source.length && source[end] !== "]") {
-        if (source[end] === "\\" && end + 1 < source.length) end += 2;
-        else if (source[end] === "[" && source[end + 1] === ":") {
-          const classEnd = source.indexOf(":]", end + 2);
-          if (classEnd < 0) break;
-          end = classEnd + 2;
-        } else end++;
-      }
-      if (source[end] === "]") {
-        // Fold explicit ASCII literals/range endpoints; POSIX classes retain their meaning.
-        let body = "";
-        const literal = (value: string) => "\\]^-".includes(value) ? `\\${value}` : value;
-        for (let scan = index + 1 + Number(negated); scan < end; scan++) {
-          if (source[scan] === "[" && source[scan + 1] === ":") {
-            const closing = source.indexOf(":]", scan + 2) + 1;
-            body += source.slice(scan, closing + 1);
-            scan = closing;
-            continue;
-          }
-          if (source[scan] === "\\" && scan + 1 < end) scan++;
-          let first = source[scan]!;
-          if (ignoreCase && first >= "A" && first <= "Z") first = first.toLowerCase();
-          if (source[scan + 1] === "-" && scan + 2 < end) {
-            let last = source[scan + 2]!;
-            if (ignoreCase && last >= "A" && last <= "Z") last = last.toLowerCase();
-            for (let code = first.charCodeAt(0); code <= last.charCodeAt(0); code++) {
-              const value = String.fromCharCode(code);
-              body += literal(value) + oppositeCase(value);
-            }
-            scan += 2;
-          } else body += literal(first) + oppositeCase(first);
-        }
-        result += body ? "[" + (negated ? "^" : "") + body + "]" : negated ? "[\u0000-\u00ff]" : "[^\u0000-\u00ff]";
-        index = end;
-      } else result += "\\[";
-    }
-    else if (character === "*") result += ".*";
-    else if (character === "?") result += ".";
-    else result += oppositeCase(character) ? `[${character}${oppositeCase(character)}]`
-      : ".^$+(){}|]".includes(character) ? `\\${character}` : character;
-  }
-  return new Pattern(result + "$", true, false, "awk");
-}
 
 async function ignoreChanges(changes: Edit[], options: DiffFlags, budget: Budget): Promise<void> {
   if (!options.ignoreBlank && !options.ignorePatterns.length) return;

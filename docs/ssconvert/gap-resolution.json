@@ -4657,13 +4657,14 @@
       "status": "open",
       "currentFinding": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired. Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences. See checkpoint20261004 for the next acceptance test and qualification blockers.",
       "checkpoint20261004": {
-        "qualified": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired. Malformed byte-string format/scalar/array arguments now use the existing Unicode rendering refusal instead of leaking internal hexadecimal storage as text; all three Python profiles and both public routes are covered. Precision-limited scalar/array representations now stream only the required characters, avoiding false output-limit refusal for long arguments while preserving UTF-8 and padding admission. Complete RangeRef representations now format with bounded call-local opaque identities; simultaneous wrapper arguments are distinct. Precision/padding and all three Python profiles pass compiled SDK/command controls.",
+        "qualified": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired. Malformed byte-string format/scalar/array arguments now use the existing Unicode rendering refusal instead of leaking internal hexadecimal storage as text; all three Python profiles and both public routes are covered. Precision-limited scalar/array representations now stream only the required characters, avoiding false output-limit refusal for long arguments while preserving UTF-8 and padding admission. Complete RangeRef representations now format with bounded call-local opaque identities; simultaneous wrapper arguments are distinct. Precision/padding and all three Python profiles pass compiled SDK/command controls. Large string/repr/ascii/character precision is admitted independently of output size, with actual streamed-output limits and native signed-int precision overflow. Numeric precision and field width remain resource bounded.",
         "evidence": [
           "#/currentQualification20261002/pythonPrintfActivated",
           "#/pythonPrintfByteAdmission",
           "#/pythonPrintfPrecisionAdmission",
           "#/pythonRangeRefRepresentation",
-          "#/pythonFormatterValueBoundary"
+          "#/pythonFormatterValueBoundary",
+          "#/pythonStringPrecisionAdmission"
         ],
         "nextAcceptance": "Continue reachable loader-value coercion/diagnostic and containing installed-artifact profiles. Sheet/tuple helper APIs are outside the sample formatter call path. Preserve documented opaque RangeRef identities and native-address differences.",
         "closureGate": "Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences.",
@@ -7070,5 +7071,13 @@
       "effect": "Continue independent implementation and qualification; do not wait for full release before main delivery. No global work impasse is established."
     },
     "nativeLimitations": "Historical application crashes, unsupported records and provider differences remain classified limitations. Revalidate each exact environment before calling it a current external outage."
+  },
+  "pythonStringPrecisionAdmission": {
+    "finding": "Seven original regressions showed benign %.1000s/r/a/c and maximum signed-int string precision rejected merely because precision exceeded outputBytes; precision overflow also produced a resource refusal instead of native ValueError.",
+    "implementation": "Parse precision independently from width, bounded by CPython signed C int2147483647. String/repr/ascii/character conversions charge actual emitted output. Numeric formats retain precision-based admission before expensive formatting; widths remain bounded. Precision overflow returns ValueError: precision too big.",
+    "verification": "1052formatter/profile tests pass,including7failing-before regressions and width/numeric-output controls. Changedlint,20workspacebuild,engine source/command testtypes pass. SixcompiledSDK/command conversions across all3Pythonprofiles verify54values and54formula identities with independentZIP/XML checks;zero diagnostics andscreenshot inspected.",
+    "independent": "Unmodified native CPython3.13 confirms %.2147483647s/r/a/c short outputs and ValueError for2147483648 and verylongprecisiondigits. Existing sample wraps TypeError only, so ValueError message remains visible. ActualXLSXcustom-errorwire spelling ischecked separately.",
+    "remaining": "Other reachable coercion/diagnostic and installedprofiles remain open. All19family audit remains incomplete; this targeted fix is not full-task completion.",
+    "evidence": "Retained python-string-precision-current/native.json,before.log,cases.json,input.gnumeric,public.mjs,results.json,xml-checks.json,verify.log,verify.exit andcommand.png."
   }
 }

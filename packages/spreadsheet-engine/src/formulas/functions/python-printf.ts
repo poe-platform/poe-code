@@ -162,7 +162,7 @@ export function pythonPrintf(profile: PythonUnicodeProfile, args: readonly (Valu
         if (flag === "-") left = true; if (flag === "0") zero = true;
         if (flag === "+") plus = true; if (flag === " ") space = true; if (flag === "#") alternate = true;
       }
-      const operand = (): number => {
+      const operand = (isPrecision = false): number => {
         if (chars[index] === "*") {
           index++; const value = take();
           if (typeof value !== "boolean") throw new PythonFormatError("TypeError", "* wants int");
@@ -171,13 +171,14 @@ export function pythonPrintf(profile: PythonUnicodeProfile, args: readonly (Valu
         let count = 0;
         while (chars[index] !== undefined && chars[index]! >= "0" && chars[index]! <= "9") {
           host.tick(); count = count * 10 + Number(chars[index++]);
-          if (count > limit) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+          if (isPrecision && count > 2147483647) throw new PythonFormatError("ValueError", "precision too big");
+          if (!isPrecision && count > limit) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
         }
         return count;
       };
       const width = operand();
       let precision: number | undefined;
-      if (chars[index] === ".") { index++; precision = operand(); }
+      if (chars[index] === ".") { index++; precision = operand(true); }
       if (chars[index] !== undefined && "hlL".includes(chars[index]!)) index++;
       const conversion = chars[index];
       if (conversion === undefined) throw new PythonFormatError("ValueError", "incomplete format");
@@ -201,6 +202,7 @@ export function pythonPrintf(profile: PythonUnicodeProfile, args: readonly (Valu
       } else if ("diuoxXeEfFgG".includes(conversion)) {
         if (typeof value !== "number" && typeof value !== "boolean" || "oxX".includes(conversion) && typeof value !== "boolean")
           throw new PythonFormatError("TypeError", "numeric conversion requires a number");
+        if (precision !== undefined && precision > limit) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
         const number = Number(value), negative = number < 0 || Object.is(number, -0);
         numeric = true;
         sign = negative ? "-" : plus ? "+" : space ? " " : "";

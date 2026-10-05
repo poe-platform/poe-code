@@ -119,3 +119,21 @@ it.each([
 ] as const)("still bounds emitted representation and padding for %s", (formula, outputBytes) => {
   expect(() => calculate(formula, { limits: { ...context.limits, outputBytes } })).toThrow("text limit");
 });
+
+it.each([
+  ['%.1000s', 'ok'], ['%.1000r', "'ok'"], ['%.1000a', "'ok'"],
+  ['%.2147483647s', 'ok'], ['%.1000c', 'x']
+])('admits short output despite a large precision in %s', (format, expected) => {
+  expect(calculate(`=PY_PRINTF("${format}","${format.endsWith('c') ? 'x' : 'ok'}")`, {
+    limits: { ...context.limits, outputBytes: 32 }
+  })).toEqual({ kind: 'string', value: expected });
+});
+it.each(['%.2147483648s', '%.9999999999999999999999r'])('reports native precision overflow for %s', format => {
+  expect(calculate(`=PY_PRINTF("${format}","ok")`)).toEqual({
+    kind: 'error', value: "Python exception (<class 'ValueError'>: precision too big)"
+  });
+});
+it.each(['%1000s', '%.1000f', '%.1000d'])('still bounds required output or numeric work for %s', format => {
+  expect(() => calculate(`=PY_PRINTF("${format}",1)`, { limits: { ...context.limits, outputBytes: 32 } }))
+    .toThrow('text limit');
+});

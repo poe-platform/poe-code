@@ -10,7 +10,7 @@ import { safeTarget } from "./patch-path.js";
 import { PatchPublication } from "./patch-publication.js";
 import { parseUnifiedReader } from "./unified.js";
 import { PatchBodyStore, reverseStoredPatch as reversePatch, type PatchLines, type ReplayPatch as FilePatch, type ReplayOutcome as HunkOutcome } from "./stored-patch.js";
-import { FsError,dirname,pipeBytes,resolvePath,writeBytes,type CommandContext } from "safe-bash-contracts";
+import { FsError,dirname,pathOf,pipeBytes,resolvePath,writeBytes,type CommandContext } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { Budget,ToolError,definition,host,inspect,integer,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
 
@@ -291,7 +291,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const stat = await inspect(budget, options.input);
       if (stat?.type !== "file") throw new ToolError("patch input must be a regular file");
     }
-    const inputPath = resolvePath(context.cwd, options.input);
+    const inputPath = pathOf(context, options.input);
     const inputCapabilities = options.input === "-" ? undefined : await host(context, async () =>
       await context.fs.capabilitiesFor?.(inputPath, { signal: context.signal }) ?? context.fs.capabilities);
     const input = options.input === "-" ? await documents.load(budget.stdinSource())

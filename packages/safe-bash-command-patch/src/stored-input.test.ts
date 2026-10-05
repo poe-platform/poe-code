@@ -3,6 +3,45 @@ import test from "node:test";
 import { Budget } from "safe-bash-diff-engine/shared";
 import { contents, filesystem, replacement, run } from "./helpers.test.js";
 
+for (const input of ["./changes", "nested/../changes", "/work/nested/../changes"]) {
+  for (const dryRun of [false, true]) test(`patch retains identity for dot-segment input ${input} dry=${dryRun}`, async () => {
+    const fs = await filesystem({ target: "old\n", changes: replacement, "nested/sentinel": "untouched\n" });
+    const open = fs.openReadFile.bind(fs);
+    const reads: string[] = [];
+    const observed = new Proxy(fs, { get(target, property) {
+      if (property === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+        reads.push(args[0]);
+        const handle = await open(...args);
+        return new Proxy(handle, { get(target, property) {
+          if (property === "read") return async (...args: Parameters<typeof handle.read>) => {
+            assert.ok(args[1] <= 65536);
+            return target.read(...args);
+          };
+          const value = Reflect.get(target, property, target);
+          return typeof value === "function" ? value.bind(target) : value;
+        } });
+      };
+      const value = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const result = await run("patch", ["-i", input, ...(dryRun ? ["--dry-run"] : [])], { fs: observed });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(reads[0], input.startsWith("/") ? input : `/work/${input}`);
+    assert.equal(await contents(fs, "target"), dryRun ? "old\n" : "new\n");
+    assert.equal(await contents(fs, "changes"), replacement);
+    assert.equal(await contents(fs, "nested/sentinel"), "untouched\n");
+  });
+}
+
+test("patch input dot segments do not hide a symlink ancestor", async () => {
+  const fs = await filesystem({ target: "old\n", changes: replacement, "nested/sentinel": "untouched\n" });
+  await fs.symlink("nested", "/work/link");
+  const result = await run("patch", ["-i", "link/../changes"], { fs });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /symlink paths are unsupported/u);
+  assert.equal(await contents(fs, "target"), "old\n");
+});
+
 for (const transport of ["plain", "mail", "crlf"]) test(`patch stages ${transport} input without a whole-file loader or line array`, async t => {
   const count = 6000;
   const fs = await filesystem({ target: "old\n".repeat(count) });

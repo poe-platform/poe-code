@@ -1014,15 +1014,17 @@ test("pptx slides add rejects missing placeholders and out-of-range positions wi
 });
 
 test("pptx slide mutations preserve identity through ordered JSON selection and shell publication", async () => {
-  const { shell, volume } = fixture();
-  volume.writeFileSync(
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(pptxCommands({ engine: createPptxCommandEngine({ context, maxOutputBytes: 262144, maxArgumentBytes: 65536 }) }));
+  await fs.writeFile(
     "/work/slides.pptx",
     await createPresentation(
       { slides: [{ name: "Same" }, { name: "Second" }, { name: "Same" }, { name: "Fourth" }] },
       context
     )
   );
-  const source = new Uint8Array(volume.readFileSync("/work/slides.pptx") as Buffer);
+  const source = await fs.readFile("/work/slides.pptx");
   const selection = [
     { kind: "slide", position: { coordinateSystem: "one-based", value: 4 } },
     { kind: "slide", position: { coordinateSystem: "one-based", value: 2 } }
@@ -1033,7 +1035,7 @@ test("pptx slide mutations preserve identity through ordered JSON selection and 
   assert.equal(move.exitCode, 0, move.stdout + move.stderr);
   assert.equal(JSON.parse(move.stdout).affected, 2);
   assert.deepEqual(
-    new Uint8Array(volume.readFileSync("/work/slides.pptx") as Buffer),
+    await fs.readFile("/work/slides.pptx"),
     await mutateSlides(source, { selection, position: 1 }, context)
   );
   const listed = await shell.exec("pptx inspect slides.pptx --json");

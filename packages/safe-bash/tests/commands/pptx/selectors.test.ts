@@ -152,14 +152,16 @@ test("pptx XML commands read original bytes and validate before virtual file pub
     "show.xml": originalXml
   }).map(([name, xml]) => ({ name, bytes: new TextEncoder().encode(xml) })));
   for (const scenario of ["new", "in-place", "dry-run", "invalid", "unsupported", "alias", "exists", "force", "race", "dry-readonly", "dry-write-disabled", "readonly", "write-disabled"]) {
-    const { shell, volume, fs } = fixture();
-    volume.writeFileSync("/work/deck.pptx", original);
-    volume.writeFileSync("/work/change.xml", scenario === "invalid" ? "<broken>" : changedXml);
-    if (["invalid", "unsupported", "exists", "force"].includes(scenario)) volume.writeFileSync("/work/out.pptx", "keep");
-    if (scenario === "unsupported") fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, atomicFileMutation: false });
-    if (["dry-readonly", "readonly"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, readOnly: true });
-    if (["dry-write-disabled", "write-disabled"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, write: false });
-    if (scenario === "race") fs.writeFileConditional = async () => { throw new FsError("EAGAIN"); };
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/deck.pptx", original);
+    await fs.writeFile("/work/change.xml", new TextEncoder().encode(scenario === "invalid" ? "<broken>" : changedXml));
+    const shell = new Shell({ fs, cwd: "/work" }).use(pptxCommands({ engine: createPptxCommandEngine({ context, maxOutputBytes: 65536, maxArgumentBytes: 8192 }) }));
+    if (["invalid", "unsupported", "exists", "force"].includes(scenario)) await fs.writeFile("/work/out.pptx", new TextEncoder().encode("keep"));
+    if (scenario === "unsupported") fs.capabilitiesFor = async () => ({ ...fs.capabilities, atomicFileMutation: false, atomicFileStaging: false });
+    if (["dry-readonly", "readonly"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, readOnly: true });
+    if (["dry-write-disabled", "write-disabled"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, write: false });
+    if (scenario === "race") fs.publishStagedFile = async () => { throw new FsError("EAGAIN"); };
     const read = await shell.exec("pptx xml get deck.pptx --part /show.xml --scope presentation");
     assert.equal(read.exitCode, 0, read.stderr);
     assert.equal(read.stdout, originalXml);
@@ -174,14 +176,14 @@ test("pptx XML commands read original bytes and validate before virtual file pub
     assert.equal(envelope.ok, success, scenario);
     assert.equal(envelope.affected, success ? 1 : 0, scenario);
     assert.equal(result.stderr, "");
-    if (scenario !== "in-place") assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), original);
+    if (scenario !== "in-place") assert.deepEqual(await fs.readFile("/work/deck.pptx"), original);
     if (["new", "in-place", "force"].includes(scenario)) {
       const output = scenario === "in-place" ? "deck.pptx" : "out.pptx";
       const verified = await shell.exec(`pptx xml get ${output} --part /show.xml --scope presentation`);
       assert.equal(verified.exitCode, 0, verified.stderr);
       assert.equal(verified.stdout, changedXml);
-    } else if (["invalid", "unsupported", "exists"].includes(scenario)) assert.equal(volume.readFileSync("/work/out.pptx", "utf8"), "keep");
-    else assert.equal(volume.existsSync("/work/out.pptx"), false);
+    } else if (["invalid", "unsupported", "exists"].includes(scenario)) assert.equal(new TextDecoder().decode(await fs.readFile("/work/out.pptx")), "keep");
+    else await assert.rejects(fs.stat("/work/out.pptx"), { code: "ENOENT" });
   }
 });
 

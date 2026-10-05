@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test, { after, before, mock } from "node:test";
-import { Volume } from "memfs";
 import { compileJsonSchema } from "toolcraft-schema";
 import { createPptxCommandEngine, createPresentation, readComments, readCommentAuthors } from "safe-bash-pptx-engine";
 import { parseXmlPart } from "../../../../safe-bash-presentation-engine/src/xml.js";
@@ -68,14 +67,11 @@ async function fixture(security?: "signature" | "protection" | "authors-only") {
     }
   }
   const bytes = storedArchive([...parts].map(([name, payload]) => ({ name, bytes: payload })));
-  const volume = Volume.fromJSON({ "/work/review deck.pptx": Buffer.from(bytes) });
   const fs = new MemoryFileSystem();
-  fs.readStream = async function* (path, options) {
-    options?.signal?.throwIfAborted();
-    yield new Uint8Array(volume.readFileSync(path) as Buffer);
-  };
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/review deck.pptx", bytes);
   const shell = new Shell({ fs, cwd: "/work" }).use(pptxCommands({ engine: createPptxCommandEngine({ context, maxOutputBytes: 262144, maxArgumentBytes: 65536 }) }));
-  return { bytes, parts, volume, shell };
+  return { bytes, parts, fs, shell };
 }
 
 test("modern and legacy comment inventories agree across SDK and shell JSON", async () => {
@@ -118,7 +114,7 @@ test("comments list exposes modern author identities without inventing absent th
     assert.deepEqual(data.comments, []);
     assert.deepEqual(data.authors, await readCommentAuthors(f.bytes, context));
     assert.deepEqual(data.authors.map((author: { id: string; userId: string }) => [author.id, author.userId]), [["person-a", "local:avery"], ["person-b", "local:blair"]]);
-    assert.deepEqual(f.volume.readFileSync("/work/review deck.pptx"), Buffer.from(f.bytes));
+    assert.deepEqual(await f.fs.readFile("/work/review deck.pptx"), f.bytes);
   } finally { await f.shell.dispose(); }
 });
 
@@ -131,7 +127,7 @@ test("slide rename and legacy comment edit retain modern parts and associations 
       const parts = new Map(inspectZip(result.stdoutBytes).map(member => [member.name, member.payload]));
       for (const name of ["ppt/comments/thread.xml", "ppt/authors.xml", "ppt/slides/_rels/slide1.xml.rels", "ppt/_rels/presentation.xml.rels"]) assert.deepEqual(parts.get(name), f.parts.get(name), name);
     }
-    assert.deepEqual(f.volume.readFileSync("/work/review deck.pptx"), Buffer.from(f.bytes));
+    assert.deepEqual(await f.fs.readFile("/work/review deck.pptx"), f.bytes);
   } finally { await f.shell.dispose(); }
 });
 
@@ -146,7 +142,7 @@ for (const security of [undefined, "signature", "protection"] as const) {
       assert.equal(result.exitCode, 1, result.stderr);
       assert.equal(result.stdoutBytes.length, 0);
       assert.ok(result.stderr.includes("unsupported-edit"), result.stderr);
-      assert.deepEqual(f.volume.readFileSync("/work/review deck.pptx"), Buffer.from(f.bytes));
+      assert.deepEqual(await f.fs.readFile("/work/review deck.pptx"), f.bytes);
     } finally { await f.shell.dispose(); }
   });
 }

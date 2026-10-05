@@ -853,6 +853,39 @@ describe("adaptCodex", () => {
     expect(events.some((event) => event.event === "error")).toBe(false);
   });
 
+  it.each([true, false])("preserves esbuild service failures with diagnostic controls (started=%s)", async (started) => {
+    const item = {
+      id: "esbuild-failure", type: "command_execution", command: "bun scripts/build.ts",
+      status: "failed", exit_code: 1,
+      aggregated_output: "error: The service was stopped\n    at /workspace/node_modules/esbuild/lib/main.js:1230:34\nBun v1.4.2 (Linux x64)\n"
+    };
+    const events = await collect(adaptCodex(fromArray([
+      ...(started ? [JSON.stringify({ type: "item.started", item })] : []),
+      JSON.stringify({ type: "item.completed", item })
+    ])));
+    expect(events).toContainEqual(expect.objectContaining({ event: "tool_complete", status: "failed" }));
+    const diagnostic = events.find((event) => event.event === "error");
+    expect(diagnostic).toEqual({ event: "error", message: expect.stringContaining(item.aggregated_output.trim()) });
+    if (diagnostic?.event !== "error") throw new Error("Missing esbuild diagnostic");
+    expect(diagnostic.message).toContain("does not establish a sandbox denial");
+    expect(diagnostic.message).toContain("Node");
+    expect(diagnostic.message).toContain("same directory");
+    expect(diagnostic.message).toContain("existing approval reviewer");
+    expect(diagnostic.message).toContain("Do not retry automatically");
+  });
+
+  it.each([
+    { status: "completed", exit_code: 0, aggregated_output: "error: The service was stopped\n at /node_modules/esbuild/lib/main.js:1230" },
+    { status: "failed", exit_code: 1, aggregated_output: "error: The service was stopped" },
+    { status: "failed", exit_code: 1, aggregated_output: "error: Build failed\n at /node_modules/esbuild/lib/main.js:1230" },
+    { status: "failed", exit_code: 1, aggregated_output: { message: "The service was stopped" } }
+  ])("does not misdiagnose unrelated service failures (%j)", async (result) => {
+    const events = await collect(adaptCodex(fromArray([JSON.stringify({
+      type: "item.completed", item: { id: "other", type: "command_execution", command: "build", ...result }
+    })])));
+    expect(events.some((event) => event.event === "error")).toBe(false);
+  });
+
   it("maps item.completed reasoning to ReasoningEvent", async () => {
     const updates = await collect(
       adaptCodex(

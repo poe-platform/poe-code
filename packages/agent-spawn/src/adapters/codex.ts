@@ -210,6 +210,24 @@ export async function* adaptCodex(
         yield { event: "tool_complete", id: item.id, kind, path, ...(status ? { status } : {}) };
         if (itemType === "command_execution" && status === "failed"
           && isNonEmptyString(item.aggregated_output)
+          && item.aggregated_output.includes("esbuild/lib/main.js:")
+          && item.aggregated_output.split("\n").some((line) => line.trim() === "error: The service was stopped"
+            || line.trim() === "Error: The service was stopped")) {
+          yield {
+            event: "error",
+            message: `${item.aggregated_output.trim()}
+esbuild's child service stopped; this message alone does not establish a sandbox denial.
+On the failing host, compare a minimal esbuild transform under Bun and Node in the
+same directory and sandbox, recording runtime versions and child stderr/exit status.
+A successful esbuild --version does not verify the service pipe lifecycle.
+If session policy permits, request the exact failing probe through the existing approval reviewer
+with sandbox_permissions: "require_escalated" to compare execution outside the sandbox.
+Do not retry automatically or bypass a denial. A passing macOS probe does not verify Linux.
+Keep build prerequisite failures separate from application test failures.`
+          };
+        }
+        if (itemType === "command_execution" && status === "failed"
+          && isNonEmptyString(item.aggregated_output)
           && item.aggregated_output.trim().startsWith("bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted")) {
           yield {
             event: "error",

@@ -54,6 +54,15 @@ retry commands, switch to unrestricted mode, or bypass managed requirements.
 With `approval_policy=never`, or when managed policy forbids escalation, use a
 host supporting bubblewrap and the required sandbox policy.
 
+When a failed Codex command reports esbuild's `The service was stopped` with an
+esbuild stack trace, the CLI and SDK event stream retain the original output and
+suggest comparing a minimal transform under Bun and Node on the failing host.
+This error alone does not identify a sandbox denial or the cause of child-service
+termination. Record runtime versions and child stderr/exit status; a successful
+`esbuild --version` does not exercise the service pipe lifecycle, and a macOS pass
+does not verify Linux. Any comparison outside the sandbox requires the existing
+approval flow. Build prerequisite failures remain separate from application tests.
+
 When Codex reports that the active permission policy prohibits granting escalation,
 Poe Code preserves the denial and recommends normal sandbox execution with
 `sandbox_permissions: "use_default"` only when the sandbox permits the authorized

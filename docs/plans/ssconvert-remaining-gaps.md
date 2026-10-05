@@ -150,7 +150,7 @@ delivered root/scoped fixture separation `61baed7701`.
 | PERL_SED | 1. Retained corpus classification and bounded 12-case Unicode/raw-byte/NUL transport are complete. Preserve native atomic state limitations and malformed-byte XML exclusions; remaining grammar and installed-runtime scope stays open. 2. Remaining bounded grammar, Unicode/raw bytes, malformed inputs and lifecycle through activated and installed routes; keep original interpreter goldens. |
 | PY_PRINTF | 1. Address-bearing RangeRef/sheet representation semantics, remaining coercion and diagnostic cases; compare structure rather than unstable addresses. 2. Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting. |
 | PY_CAPWORDS | 1. Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts. 2. Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash. |
-| Database functions | 1. Explicit in-memory SQLite in-flight cancellation, read-only transactions, provider credential admission and connection retirement are qualified. Extend only to remaining provider-specific lifecycle profiles; preserve original cancellation identity and zero publication. 2. Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and classified GDA integer-inference/SQLite tiny-number profile differences as compatibility limitations. |
+| Database functions | 1. Explicit in-memory SQLite in-flight cancellation, read-only transactions, provider credential admission and connection retirement are qualified. Extend only to remaining provider-specific lifecycle profiles; preserve original cancellation identity and zero publication. 2. Remaining provider-specific types and installed non-SQLite profiles; root/scoped SQLite lifecycle is qualified on Node22/24. Retain native CLI crash and classified GDA integer-inference/SQLite tiny-number profile differences as compatibility limitations. |
 | ATL_LAST | 1. FIFO split reads, watcher mutation, feed/close ordering and rebinding: values, dependent recalculation, diagnostics and exactly-once cleanup through SDK/command. 2. Remaining installed/deployment profiles; reuse the qualified eight-value normal/late/partial/completed record cohort. |
 | LN1P/log1p/acos | 1. Independent binary64 boundary/holdout inputs for LN1P/log1p/acos on declared runtimes, including signed zero, subnormals, poles, NaN/infinity and overflow; exact values and diagnostics through both routes. 2. Remaining runtime-library and installed profiles; distinguish rounding/profile differences from algorithm accuracy. |
 | Higher-q Bessel | 1. Current installed artifacts against retained native Bessel cohorts; independent uncovered fractional/near-integer and high-order boundaries. 2. Remaining domain/runtime profiles, warnings/errors and work ceilings; retain explained Darwin libm/FMA differences and all 3296 qualified matches per route. |
@@ -241,6 +241,13 @@ difference originates in Node SQLite before conversion (one binary64 step below
 the native profile). These remain provider compatibility limitations; no global
 spreadsheet coercion change is justified. Continue with remaining installed and
 provider/runtime profiles, without repeating these 41 query controls.
+
+Published root17.0.41 and scoped0.1.812 database lifecycle contracts are now
+qualified on Node22/SQLite3.51.2 and Node24/SQLite3.53.4
+(`databaseRegistryLifecycle`). All48 SDK/command conversions pass, including
+eight in-query cancellations and retirement of40connections; strict public
+TypeScript consumers pass. Remaining database work is provider-specific types
+and non-SQLite profiles, with the native limitations preserved.
 
 ## 4. Interfaces and test plan
 

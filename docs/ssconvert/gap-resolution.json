@@ -4700,14 +4700,15 @@
       "status": "open",
       "currentFinding": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup. Resolve wider providers/types, native CLI failure and installed/cross-runtime qualification. See checkpoint20261004 for the next acceptance test and qualification blockers.",
       "checkpoint20261004": {
-        "qualified": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup. Real SQLite3.51.2 query callbacks now qualify in-flight cancellation, read-only transaction commit/rollback, explicit provider credential rejection and exactly-once retirement through SDK/command. Retained integer/tiny-number discrepancies are isolated to provider behavior: explicit GDA gint64 succeeds and Node SQLite produces the tiny-number difference before conversion.",
+        "qualified": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup. Real SQLite3.51.2 query callbacks now qualify in-flight cancellation, read-only transaction commit/rollback, explicit provider credential rejection and exactly-once retirement through SDK/command. Retained integer/tiny-number discrepancies are isolated to provider behavior: explicit GDA gint64 succeeds and Node SQLite produces the tiny-number difference before conversion. Registry-installed root17.0.41 and scoped0.1.812 SQLite lifecycle contracts pass all48 SDK/command conversions on Node22.22.2/SQLite3.51.2 and Node24.21.0/SQLite3.53.4; strict public TypeScript consumers pass.",
         "evidence": [
           "#/reference/databaseLive",
           "#/currentQualification20261002/gdaIndexEmpty",
           "#/databaseInflightLifecycle",
-          "#/databaseProviderTypeClassification"
+          "#/databaseProviderTypeClassification",
+          "#/databaseRegistryLifecycle"
         ],
-        "nextAcceptance": "Qualify remaining installed/cross-runtime database profiles and provider-specific types/lifecycle; preserve the classified GDA inference and SQLite numeric-profile differences without repeating the completed SQLite cohorts.",
+        "nextAcceptance": "Qualify remaining provider-specific types/lifecycle and installed non-SQLite profiles. Published root/scoped SQLite lifecycle is qualified on Node22/24; do not repeat those cohorts.",
         "closureGate": "Resolve wider providers/types, native CLI failure and installed/cross-runtime qualification.",
         "qualificationBlockers": [
           "The unmodified native CLI crashes when its plugin opens GTK without initialization; API/dialog evidence does not qualify that CLI path.",
@@ -4715,7 +4716,7 @@
         ],
         "remainingAcceptance": [
           "Explicit in-memory SQLite in-flight cancellation, read-only transactions, provider credential admission and connection retirement are qualified. Extend only to remaining provider-specific lifecycle profiles; preserve original cancellation identity and zero publication.",
-          "Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and classified GDA integer-inference/SQLite tiny-number profile differences as compatibility limitations."
+          "Remaining provider-specific types and installed non-SQLite profiles; root/scoped SQLite lifecycle is qualified on Node22/24. Retain native CLI crash and classified GDA integer-inference/SQLite tiny-number profile differences as compatibility limitations."
         ]
       }
     },
@@ -6642,5 +6643,37 @@
     "integerFinding": "2147483648, -2147483649, 9223372036854775807 and -9223372036854775808 fail as inferred gint with Integer value is too big, both untyped and CAST AS BIGINT. Signed-32-bit neighbors succeed. TEXT preserves all six integer strings; REAL succeeds with binary64 rounding; all six explicit gint64 overrides preserve exact integers. Gnumeric plugin-gda.c lines429/508 use default gda_connection_statement_execute_select; line164 reads provider values. No spreadsheet implementation defect established.",
     "tinyFinding": "Native GDA and Python SQLite3.46.1 produce 0x1.56e1fc2f8f359p-997, matching nearest binary64 Decimal conversion. Node SQLite3.51.2 produces bits01a56e1fc2f8f358 before conversion, one step below literal bits01a56e1fc2f8f359. The retained XLSX discrepancy originates in the explicit host query result, not export.",
     "limitations": "Provider-level classification only; not a fresh SDK/command, installed-artifact, server-provider or native CLI qualification. Do not emulate GDA integer inference or alter host-provided floats globally. Native CLI GTK crash and remaining family gates remain open. Initial probe JSON serialization of boxed GdaText was corrected to get_string; no provider mutation occurred."
+  },
+  "databaseRegistryLifecycle": {
+    "status": "Installed root/scoped SQLite lifecycle and Node22/24 gate verified; broader provider/type scope remains open",
+    "artifacts": {
+      "poe-code": {
+        "version": "17.0.41",
+        "resolved": "https://registry.npmjs.org/poe-code/-/poe-code-17.0.41.tgz",
+        "integrity": "sha512-YNCqf86Hy5/O6OIeGW7H16fLRLPEpyW8GMkmtaSIp5E4FI5aLfLSLD9yAmWQfOB9jRnzaJNG39PlXV0in0aYPQ=="
+      },
+      "@poe-platform/safe-bash": {
+        "version": "0.1.812",
+        "resolved": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.812.tgz",
+        "integrity": "sha512-T6SfEgTvGjdHhWBlj9Gjw8pj7ZEzcXatRG0FX9oTp2w5bNvzli0UqRTRScsHnFHFYaqk5s6QMIo5+zqubYIU+Q=="
+      }
+    },
+    "runtimes": [
+      "Node22.22.2 / SQLite3.51.2",
+      "Node24.21.0 / SQLite3.53.4"
+    ],
+    "controls": "Retained six SQLite scenarios through both public namespaces and SDK/command on each runtime: success, in-query cancellation, wrong DSN, wrong username, wrong password, and rejected write. Fresh registry install resolves exclusively under isolated consumer node_modules; no workspace imports.",
+    "results": "48 conversions pass.40connections retire exactly once before completion and remain closed after disposal;16commits,24rollbacks.8cancellations retain original reason identity and publish zero bytes.24credential-rejection conversions allocate zero connections. All seeded values remain42, retired statements reject reuse, successful CSV210 and quoted error text match, and diagnostics are empty.",
+    "types": "TypeScript5.9.3 strict NodeNext public consumer checks root/scoped DatabaseQuery, createDatabaseFunctions, context ownership/signal/tick, engine and command signatures; noEmit succeeds. skipLibCheck excludes checking dependency internals.",
+    "evidence": "Retained database-registry-current/check.mjs, check-node24.mjs, results.json, results-node24.json, consumer.mts, package-lock.json and provenance.json.",
+    "hashes": {
+      "check.mjs": "1fb0805207b506114a6bb66882f92a092f7b8194f3fe3dbfafba25ddd032e78a",
+      "check-node24.mjs": "f1c59ca319fbc6c301764715551db57622e72f1d51e7e3998435cc52f659664e",
+      "results.json": "7814afaf8abc904a49db83af904a1452093b2a27e6fa9cd21848df907abb1bdc",
+      "results-node24.json": "2f046c063765f6e654042f4a6450947617a6b49e0ed7f49e2daf5fcae9c511e3",
+      "consumer.mts": "ebc515fde190d560e5275e44b7ed1cb48f3fb4045edbfc14a9c4fd78351de21b",
+      "package-lock.json": "ef5c9bc4f3193fab83ae28cb8425eb489717833943650e929b9a16f3d2ee4829"
+    },
+    "limitations": "No runtime changes. Synthetic explicit host credentials do not qualify server authentication. Cooperative SQLite callback cancellation does not qualify blocked sockets. Installed artifacts predate current main; this proves their database lifecycle contract only. Remaining provider-specific types, non-SQLite profiles and native CLI limitations stay open."
   }
 }

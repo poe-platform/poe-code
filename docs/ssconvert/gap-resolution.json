@@ -4584,7 +4584,7 @@
       "status": "open",
       "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained.",
       "checkpoint20261004": {
-        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3\u201315 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen. Companion-absence authority and diagnostics pass 16 plaintext/encrypted SDK/command controls, with/without MB/PX sentinels and cancellation; native pxlib matches the missing-blob warning and unaffected short value. Genuine pxlib-generated DB/MB pairs now validate the same default-reading authority contract in16 public controls; explicit native attachment independently recovers the89-byte plaintext memo. Alpha exports now stop at NUL before encoding and warning admission;12 public plaintext/encrypted outputs pass independent pxlib field-byte checks. Eight ASCII application readbacks pass with a documented process-local GSF callback correction. BCD export now skips non-digit fractional characters until precision or NUL;16 public plaintext/encrypted outputs match bounded native field/decode controls and adapted-GSF application readbacks.",
+        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3\u201315 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen. Companion-absence authority and diagnostics pass 16 plaintext/encrypted SDK/command controls, with/without MB/PX sentinels and cancellation; native pxlib matches the missing-blob warning and unaffected short value. Genuine pxlib-generated DB/MB pairs now validate the same default-reading authority contract in16 public controls; explicit native attachment independently recovers the89-byte plaintext memo. Alpha exports now stop at NUL before encoding and warning admission;12 public plaintext/encrypted outputs pass independent pxlib field-byte checks. Eight ASCII application readbacks pass with a documented process-local GSF callback correction. BCD export now skips non-digit fractional characters until precision or NUL;16 public plaintext/encrypted outputs match bounded native field/decode controls and adapted-GSF application readbacks. Native300-record/two-block primary indexes now pass16 public CSV/XLSX routes with signed/null trailers and8 independent XLSX application readbacks. All65 retained version inputs/exports additionally pass application readback under the explicit GSF callback adapter.",
         "evidence": [
           "#/paradoxInlineMemoUtf8",
           "#/paradoxMemoNulCapacity",
@@ -4592,12 +4592,13 @@
           "#/paradoxCompanionAbsence",
           "#/paradoxCompanionContent",
           "#/paradoxAlphaNulBoundary",
-          "#/paradoxBcdFractionDigits"
+          "#/paradoxBcdFractionDigits",
+          "#/paradoxIndexApplicationReadback"
         ],
-        "nextAcceptance": "Version-byte, companion-absence and genuine memo default-reading checkpoints are complete. Remaining Paradox acceptance includes primary-index content, wider field/key/block/record profiles and installed artifacts. Preserve encrypted native memo null-payload and Gnumeric/GSF header-refusal limitations; do not repeat default-reading controls as external blob support.",
+        "nextAcceptance": "Retain the completed version, genuine-memo default-reading, alpha/BCD and300-record primary-index checkpoints. Remaining Paradox acceptance is wider field/key/block/record profiles, password/truncation/work/cleanup and installed artifacts. Adapted GSF application evidence is now available; retain the separate native writer/encoding/external-memo limitations.",
         "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
         "qualificationBlockers": [
-          "Current Gnumeric/GSF path refuses all 13 retained version controls at header loading; direct pxlib file API opens them. Direct-file qualification is not a GSF application pass.",
+          "The original unadapted Gnumeric/GSF profile refuses the13 retained version inputs at header loading because pxlib casts a buffer pointer to int. All13 inputs and52 retained exports now pass an explicitly adapted GSF byte-count profile. The unadapted failure and library-without-reencoding warning remain classified separately.",
           "Native pxlib-generated encrypted DB/MB pair with explicit attachment returns success and declared length89 but a null memo payload. Plaintext explicit attachment returns exact content; neither this limitation nor default no-attachment behavior qualifies encrypted external memo content.",
           "Native pxlib0.6.9 BCD writing uses an unsigned reverse index and can read before short integral strings. The retained30-digit integral controls avoid that underflow; undefined short-input native parity is not claimed."
         ],
@@ -7139,6 +7140,31 @@
       "bcd-read.c": "e37019afbcdd15f66aec93c3010921fa1e65bb45a43709ad0eda7ca9c6d7202d",
       "bcd-native-results.json": "c4d6a2b815da63a844420b80299bb02a827dc6d2b41acda099426ab7aea0ff36",
       "bcd-gsf-results.json": "77225a85334e7c5f463a50969b6225a6721b45b318d4621df66d0d1bf41bab67"
+    }
+  },
+  "paradoxIndexApplicationReadback": {
+    "status": "Bounded multiblock primary-index and adapted application readback checkpoints complete; family remains open",
+    "runtimeChanges": false,
+    "input": "Independent pxlib0.6.9 writer generates300 primary-index records across two2048-byte physical blocks. Each carries a signed short key, signed/null trailer fields, a signed extremum and the source block number. Native index headers have an empty field name; schema is ,S,2.",
+    "encryptionProvenance": "The native index writer encrypts data after password=test but leaves the header encryption key zero. Preserve that original failing fixture separately. The qualified encrypted fixture differs only by inserting the previously qualified native test-password key0x20e26198 at header offset37. Direct pxlib and adapted Gnumeric then recover all300 records. This is explicit fixture repair, not a native encrypted-index writer pass. Native px_head.c SHA256 fd980a7a9abe2ef823e465ce0fc62b713ed4ff78069814c3312588125f28ed0e.",
+    "public": "16 exports: plaintext/keyed-encrypted input x SDK/command x whole/bytewise feeds x CSV/XLSX. All300 records, signed/null trailer fields and physical block numbers are preserved. CSV matches the independent native output exactly. Only the explicit input resource is read. The exact portable diagnostic is Target encoding could not be set.",
+    "independentReadback": "All8 public XLSX outputs reopen in unmodified Gnumeric XLSX import with300 exact records and empty stderr; the GSF adapter is unnecessary for XLSX. Native primary-index import uses the explicitly documented GSF byte-count adapter and retains Library has not been compiled with support for reencoding. as a reference-build diagnostic difference.",
+    "retainedVersions": "Hash equality verified for all13 retained version-ID3-15 inputs plus52 prior SDK/command plaintext/encrypted outputs. All65 now pass Gnumeric application CSV readback under the process-local GSF return-value adapter: exact Value,S,2 schema and42 value, with the exact reencoding warning retained. No fixtures or original unadapted failure receipts were overwritten; this is new application-profile evidence, not a rerun of the completed public/direct-file cohort.",
+    "verification": "Selected ssconvert workspace build and28 maintained index/encryption tests pass. No product defect reproduced in this checkpoint.",
+    "remaining": "Remaining wider field/key/block/record, password/truncation/work/cleanup and installed profiles stay open. Original unadapted GSF behavior, native encrypted-index key omission, encrypted external memo null payload and short-BCD undefined reads are not compatibility passes.",
+    "hashes": {
+      "generate.c": "611991f6d04511d1133f29fe95e5e7bd8e6268451b3e367ead1d6512555c0778",
+      "plain.px": "c2847cb99936bfd9dddf19130e6b743ecbd772d6942a23e8c20c2eea2a8ee5c1",
+      "encrypted.px": "d0c95af9450abb93bc79d2c843fd32707a1693cf698880cd46421cd91c7cec1d",
+      "keyed.px": "6bda85f60540dc61dab70be8f4cdd15c1f07ec12853d0030dee20d1c09c802f3",
+      "native.json": "9b64d56568816d2db73505fdc2da9c56da9da218b1b9dad0c2356c885d69c066",
+      "keyed-native.json": "7b68825787429bc19b0cbdf89dd3b8c5e86c4c47e74de890b7b9ed654fee9db5",
+      "plain-native.csv": "cc27cb24f55b61938361ed96ab59b53a7ff8a1806f18804dbf9a7a59cd9cadfe",
+      "public.mjs": "d4a281801bbc6ab59e6c147f1dc2d196316e08af3de1fbd6945a2b5fe535792e",
+      "public-results.json": "925203e668fb001e09049b4f8adf5ef823da946cc99eaf689889fccc83d7a4fa",
+      "xlsx-native-results.json": "5ed5161ee6a5bc1f3bb3bdd56e2cf056f80640e6a0aef4c217c671a60cc99744",
+      "version-readback.py": "fc5c453bf995e0838341b17b3d447d62a17968009bac134879cd15448543e954",
+      "versions-adapted-gsf.json": "c830a7deb7b3638628a136cde66ee29855395283b5e7995be5e15d8cd60f1484"
     }
   }
 }

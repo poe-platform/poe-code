@@ -214,6 +214,14 @@ native bytes and adapted-GSF application readback. The native writer underflows
 an unsigned reverse index on short integral strings. Those failed controls remain
 recorded separately; the qualified cohort uses30 integral digits to bound that
 scan without modifying native BCD logic. Wider profiles remain open.
+The300-record/two-block primary-index cohort now passes16 public CSV/XLSX
+routes, preserving signed/null trailers and block numbers; all8 XLSX outputs
+reopen exactly in native Gnumeric without diagnostics
+(`paradoxIndexApplicationReadback`). The encrypted fixture explicitly restores
+the key omitted by the native index writer; its original failure remains retained.
+All65 hash-verified version inputs/exports also pass application readback under
+the GSF byte-count adapter. Keep that adapted-profile result separate from the
+original header refusal and unavailable native reencoding support.
 PERL_DATE takes no arguments: the activated sample and eight compiled public
 routes match all ten scalar/error/reference/array rejection and valid-call
 controls in C/C.UTF-8 (`perlDateArgumentLocale`). Broader locale/runtime profiles

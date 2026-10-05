@@ -5,7 +5,51 @@ import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { Capture } from "../../src/shell/runtime.js";
+import { searchCommands } from "../../src/commands/search/index.js";
+import { structuredCommands } from "../../src/commands/structured/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
+
+for (const command of [
+  "mkdir -p PATH/new",
+  "rm -rf PATH/file.json",
+  "jq .x PATH/file.json",
+  "grep 42 PATH/file.json",
+  "grep -i 42 PATH/file.json",
+  "rg 42 PATH/file.json",
+  "rg --files PATH",
+  "sed 's/42/99/' PATH/file.json",
+  "awk '{print}' PATH/file.json",
+  "find PATH -type f",
+  "grep 42 PATH/file.json | wc -l",
+  "find PATH -type f | wc -l",
+  "for i in 1 2; do grep 42 PATH/file.json; done",
+  "echo changed > PATH/file.json",
+]) for (const middleware of [false, true]) {
+  test(`pathname limits survive memory fast paths: ${command}, middleware=${middleware}`, async t => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(standardCommands()).use(searchCommands()).use(structuredCommands()).use(textProgramCommands());
+    t.after(() => shell.dispose());
+    if (middleware) shell.use((_context, next) => next());
+    const bytes = new TextEncoder().encode('{"x":42}\n');
+    for (const directory of ["/shallow/ok", "/workspace/a/b/c/d"]) {
+      await fs.mkdir(directory, { recursive: true });
+      await fs.writeFile(`${directory}/file.json`, bytes);
+    }
+    const deep = `set -o pipefail; ${command.replaceAll("PATH", "/workspace/a/b/c/d")}`;
+    // Warm caches without a limit, then verify the same source with an override.
+    assert.equal((await shell.exec(deep)).exitCode, 0);
+    await fs.writeFile("/workspace/a/b/c/d/file.json", bytes);
+    await fs.rm("/workspace/a/b/c/d/new", { recursive: true, force: true });
+    const rejected = await shell.exec(deep, { limits: { maxPathnameComponents: 3 } });
+    assert.notEqual(rejected.exitCode, 0, rejected.stdout);
+    assert.match(rejected.stderr, /ENAMETOOLONG/);
+    assert.deepEqual(await fs.readFile("/workspace/a/b/c/d/file.json"), bytes);
+    await assert.rejects(fs.stat("/workspace/a/b/c/d/new"), { code: "ENOENT" });
+    const admitted = await shell.exec(command.replaceAll("PATH", "/shallow/ok"), { limits: { maxPathnameComponents: 3 } });
+    assert.equal(admitted.exitCode, 0, admitted.stderr);
+    assert.equal((await shell.exec(deep)).exitCode, 0);
+  });
+}
 
 test("Node Shell validates omitted options consistently with the portable shell", async context => {
   const { Shell: NodeShell } = await import("../../src/shell/node.js");

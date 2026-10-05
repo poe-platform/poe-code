@@ -2525,7 +2525,9 @@ export class Runtime {
     this._canFastMemoryRedirect = undefined;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.backingFs = getRuntimeBackingFileSystem(this.sourceFs) ?? this.sourceFs;
-    this._isMemoryBackingFs = isUnmodifiedMemoryFileSystem(this.backingFs);
+    // Raw-memory shortcuts bypass scoped pathname admission, so only enable
+    // them when the execution has no pathname-component limit.
+    this._isMemoryBackingFs = budget.limits.maxPathnameComponents === Infinity && isUnmodifiedMemoryFileSystem(this.backingFs);
     registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
     if (commandSignal !== signal) {
       inheritYieldCheckpoint(signal, commandSignal);
@@ -2566,7 +2568,7 @@ export class Runtime {
     if (!this._fs) {
       this._fs = scopeFileSystem(this._rawFs, this.budget.chargeFs, this.signal, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
       runtimeFileSystems.set(this._fs, this.sourceFs);
-      registerRuntimeBackingFileSystem(this._fs, this.backingFs, this.budget.chargeFs);
+      if (this.budget.limits.maxPathnameComponents === Infinity) registerRuntimeBackingFileSystem(this._fs, this.backingFs, this.budget.chargeFs);
     }
     return this._fs;
   }
@@ -2594,7 +2596,7 @@ export class Runtime {
     }
     const created = scopeFileSystem( creationFileSystem(this.sourceFs, umask), this.budget.chargeFs, toNativeAbortSignal(sig), this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents }, );
     runtimeFileSystems.set(created, this.sourceFs);
-    registerRuntimeBackingFileSystem(created, this.backingFs, this.budget.chargeFs);
+    if (this.budget.limits.maxPathnameComponents === Infinity) registerRuntimeBackingFileSystem(created, this.backingFs, this.budget.chargeFs);
     this._contextFsMask = umask;
     this._contextFsSignal = sig;
     this._contextFs = created;

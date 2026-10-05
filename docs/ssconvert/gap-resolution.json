@@ -4791,7 +4791,7 @@
       "id": "format-record-roundtrip",
       "status": "open",
       "glossaryTimestampFinding": "Timestamp and pathname cohorts are qualified independently. The exact48-plugin glossary activation succeeds, but actual native saving fails its legacy gsf import without output; see reference.glossaryFilenameAndSaver. Installed-registry and complete saver qualification remain open.",
-      "currentFinding": "Qualified Calc XLSX cell/range links and imported external-name definitions now survive relationship reordering and live target edits; see xlsxExternalNameDefinitions. All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches encode/decode ST_Xstring and preserve empty cached results without forced recalculation; the 139-test cohort and 32 compiled SDK/command observations passed. Comment author/text escapes and VML type references are repaired; rich comment metadata and native rendering remain open. At 89dd9aa4ba, rich cell font names use rFont with XString decoding/encoding, rather than treating numeric family classification as a typeface. LibreOffice bce0998a stylesbuffer.cxx:605-617 establishes this correction; it intentionally replaces the old Gnumeric-family-handler expectation. Seven failing-before checks become 111 passing focused checks, with package and root lint passing. Current compiled/native font qualification remains open. Raw-NUL formula transport was fixed at3266448aeb and now passes current compiled SDK/command export/edit/readback and independent XML checks; native Gnumeric preserves wire escapes instead of decoding them, a classified reader limitation.",
+      "currentFinding": "Qualified Calc XLSX cell/range links and imported external-name definitions now survive relationship reordering and live target edits; see xlsxExternalNameDefinitions. All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches encode/decode ST_Xstring and preserve empty cached results without forced recalculation; the 139-test cohort and 32 compiled SDK/command observations passed. Comment author/text escapes and VML type references are repaired; rich comment metadata and native rendering remain open. At 89dd9aa4ba, rich cell font names use rFont with XString decoding/encoding, rather than treating numeric family classification as a typeface. LibreOffice bce0998a stylesbuffer.cxx:605-617 establishes this correction; it intentionally replaces the old Gnumeric-family-handler expectation. Seven failing-before checks become 111 passing focused checks, with package and root lint passing. Current compiled/native font qualification remains open. Raw-NUL formula transport was fixed at3266448aeb and now passes current compiled SDK/command export/edit/readback and independent XML checks; native Gnumeric preserves wire escapes instead of decoding them, a classified reader limitation. Retained XLSX note geometry now survives text edits: unique cell identity preserves validated rectangle style, eight-coordinate anchor, visibility and movement flags. Ambiguous/moved notes use defaults; arbitrary VML remains unexported with existing loss diagnostics. Native rendering and remaining comment metadata stay open.",
       "richFontEvidence": {
         "source": "out/ssconvert-xlsx-metadata/rich-font-source.json",
         "red": "out/ssconvert-xlsx-metadata/rich-font-red.log",
@@ -4817,16 +4817,17 @@
         }
       },
       "checkpoint20261004": {
-        "qualified": "Scoped record/style/protection/theme, formula/name identity and rich-text repairs are delivered; registration of 48 directional services is not full format closure. Raw-NUL/control/literal-escape cell and defined-name formula transport is qualified through both current compiled XLSX editions, SDK/command conversion and edits;100 independent wire checks across10 archives pass.",
+        "qualified": "Scoped record/style/protection/theme, formula/name identity and rich-text repairs are delivered; registration of 48 directional services is not full format closure. Raw-NUL/control/literal-escape cell and defined-name formula transport is qualified through both current compiled XLSX editions, SDK/command conversion and edits;100 independent wire checks across10 archives pass. Retained note rectangle/anchor/visibility/movement flags survive both XLSX editions, SDK/command conversions and text edits; malformed/ambiguous source geometry is not reused.",
         "evidence": [
           "#/reference/xlsxAllocatedDefaultStyle",
           "#/reference/xlsxSelfContainedThemes",
           "#/reference/xlsxToBiffWorkbookProtection",
           "#/reference/biffOperationOrder",
           "#/reference/glossaryFilenameAndSaver",
-          "#/xlsxFormulaNulTransport"
+          "#/xlsxFormulaNulTransport",
+          "#/xlsxCommentGeometry"
         ],
-        "nextAcceptance": "Continue rich-comment metadata/geometry and remaining directional-service version/record semantics. Preserve completed raw-NUL formula wire/public checks and classified native-reader limitations.",
+        "nextAcceptance": "Continue remaining rich-comment metadata/geometry beyond retained note rectangles, plus native rendering and remaining directional-service semantics; preserve completed formula and geometry receipts.",
         "closureGate": "Close applicable per-format/version/record semantics, diagnostics and installed public composition; require explicit loss outcomes for unsupported records.",
         "qualificationBlockers": [
           "Calc/Gnumeric lose selected original protection/comment fields; matching empty readbacks do not qualify preservation.",
@@ -4834,7 +4835,7 @@
           "Gnumeric1.12.61 passes raw formula XML text to xlsx_parse_expr and preserves ST_Xstring escape spelling; native readback does not prove decoded NUL/literal-escape identity."
         ],
         "remainingAcceptance": [
-          "Existing directional-service matrix: unqualified version/record transports, starting with rich-comment metadata/geometry and independent edit/readback. Raw-NUL formula wire/public export is qualified; retain native Gnumeric escape-decoding limitations.",
+          "Existing directional-service matrix: remaining rich-comment metadata/geometry beyond retained note rectangles, native rendering and independent edit/readback. Raw-NUL formula wire/public export is qualified; retain native Gnumeric escape-decoding limitations.",
           "Remaining formula/name/style/encoding/metadata/merge/chart/object/link semantics and installed composition; explicit loss diagnostics for unsupported records, not opaque-preservation claims."
         ]
       }
@@ -6879,5 +6880,11 @@
     "validation": "101 maintained tests pass across cell/formula string, defined-name and metadata formula suites; selected20-workspace build passes. Four compiled SDK/command conversions preserve20cell formulas and20names. Eight edited cell/name identities pass. Python zipfile/ElementTree and independent one-pass Xstring decoding validate all100 formula/name entries across10archives; every XML part parses.",
     "native": "Native Gnumeric1.12.61 reopens the edited2006 archive without errors but retains escaped wire spellings in cell/name formulas and normalizes CR to LF. xlsx-read.c:1498 passes xin->content->str directly to xlsx_parse_expr. This is an observed native-reader limitation, not a decoded-preservation pass. Isolated Calc headless read/export produced no output after115seconds and was terminated; its result is inconclusive, not a pass.",
     "remaining": "Full metadata/geometry/rendering and wider directional-service/installed composition remain open. Do not reintroduce invalid raw XML or double-decode literal escape tokens to match a native reader limitation."
+  },
+  "xlsxCommentGeometry": {
+    "finding": "Every exported note previously regenerated default anchors, zero width/height and hidden visibility, discarding retained VML rectangles and movement flags even after text-only edits. Two edition regressions fail before the fix.",
+    "implementation": "Index uniquely matched Note ClientData by cell; retain validated scalar margins/dimensions/z-index/visibility, eight integer anchor coordinates and explicit MoveWithCells/SizeWithCells/Visible/AutoFill flags. Reject duplicate identities and malformed anchors; moved notes or edited ObjectOffset use defaults. Do not copy arbitrary VML, relationships or executable style values; existing broader loss diagnostics remain.",
+    "validation": "423 tests across39 owning/related files, final7 geometry tests, changed-file lint, test types and selected20-workspace build pass. Tests include actual XLSX import/re-export, moved/ambiguous note identity and hostile/malformed VML. Four compiled SDK/command conversions and four subsequent text-edit exports preserve the hand-authored geometry; Python zipfile/ElementTree independently checks all8 archives for rectangle/anchor/flags and edited text. Public command screenshot inspected.",
+    "limits": "This proves retained XLSX scalar note geometry through current source/public routes, not all VML properties, new Gnumeric geometry conversion, full comment metadata, native rendering or containing installed releases. Those remaining requirements stay open."
   }
 }

@@ -3,6 +3,9 @@
 Read and write XLSX workbooks using the shared spreadsheet model and explicit
 resource limits, cancellation and host capabilities. The implementation covers
 worksheet cells, formulas, styles, names, comments and workbook metadata.
+Imported note rectangles, visibility and movement flags survive text edits and XLSX
+re-export when the note has an unambiguous cell identity. Other VML properties
+remain subject to loss diagnostics.
 Formula exports preserve control characters and literal escape tokens in cells,
 defined names, validation rules and conditional formatting.
 Imports resolve numbered external links to their declared workbook paths in cell,

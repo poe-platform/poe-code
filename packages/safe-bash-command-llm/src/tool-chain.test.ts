@@ -210,3 +210,11 @@ test("empty response events yield cooperatively for cancellation", async () => {
     assert.ok(pulled < 4096);
   } finally {clearTimeout(timer);}
 });
+
+test('a final response without calls still prepares toolbox state like the pinned chain', async () => {
+  let prepared = 0;
+  await drain(options({tools: [{name: 'lookup', inputSchema: {}, prepare() {prepared++;}}],
+    async *openResponse() {yield {type: 'response', response: {model: 'fixture'}};},
+    visit() {assert.fail('no calls to visit');}}));
+  assert.equal(prepared, 1);
+});

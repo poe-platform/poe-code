@@ -73,3 +73,29 @@ asyncio.run(check())
   assert.ifError(result.error);
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
+
+test('platform provider policy permits tool plugins but rejects model hooks and entrypoint loading', {skip: !available && !process.env.LLM_TEST_PYTHON ? 'Requires pinned llm==0.27.1' : false}, () => {
+  const result = spawnSync(python, ['-B', '-c', `
+import json,sys,types,llm
+provider=types.ModuleType('fixture_provider')
+exec(json.load(sys.stdin),provider.__dict__)
+llm.plugins.load_plugins()
+provider.restrict_providers()
+class Tools:
+ @llm.hookimpl
+ def register_tools(self,register): register(lambda: 'tool',name='fixture_tool')
+class Models:
+ @llm.hookimpl(specname='register_models')
+ def register_tools(self,register): pass
+llm.plugins.pm.register(Tools(),'fixture-tools')
+tools=llm.get_tools()
+assert tools['llm_version'].implementation()=='0.27.1'
+assert tools['fixture_tool'].implementation()=='tool'
+for operation in (lambda:llm.plugins.pm.register(Models(),'fixture-models'),lambda:llm.plugins.pm.register(object(),'empty'),lambda:llm.plugins.pm.load_setuptools_entrypoints('llm')):
+ try: operation()
+ except llm.ModelError as error: assert 'platform-configured providers' in str(error)
+ else: raise AssertionError('provider policy bypassed')
+assert llm.plugins.pm.get_plugin('fixture-models') is None
+`], {input: JSON.stringify(pythonLlmProvider), encoding: 'utf8', timeout: 5000});
+  assert.ifError(result.error); assert.equal(result.status, 0, result.stdout + result.stderr);
+});

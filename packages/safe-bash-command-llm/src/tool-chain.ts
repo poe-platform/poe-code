@@ -103,7 +103,6 @@ export async function* streamLlmToolChain(options: LlmToolChainOptions): AsyncGe
       if (!response) throw new Error("LLM stream ended without response metadata");
       if (chainLimit && index + 1 >= chainLimit) throw new Error(`Chain limit of ${chainLimit} exceeded.`);
       const calls = response.response.toolCalls ?? [];
-      if (!calls.length) return;
       let visited = false;
       await executeLlmToolCalls({
         ...(options.async === undefined ? {} : {async: options.async}),

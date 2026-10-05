@@ -25,6 +25,9 @@ export type LlmToolOutput = (
   | { readonly source: LlmInputSource; readonly output?: never }
 ) & { readonly attachments?: readonly LlmSourceAttachment[] };
 export interface LlmExecutableTool extends LlmTool {
+  /** Shared runtime preparation runs once per distinct hook, before approvals.
+   * The runtime owns per-instance initialization and retirement. */
+  readonly prepare?: (context: LlmToolContext, mode: {readonly async: boolean}) => void | PromiseLike<void>;
   /** Declared coroutine, eligible for concurrent execution in async mode.
    * Promise-returning synchronous implementations leave this unset. */
   readonly async?: boolean;
@@ -278,6 +281,10 @@ export async function executeLlmToolCalls(
     if (!failed) { failed = true; failure = error; controller.abort(error); }
   };
   try {
+    const preparations = new Set([...tools.values()].map(tool => tool.prepare).filter(prepare => prepare !== undefined));
+    for (const prepare of preparations) {
+      await waitForSource(async () => prepare(context, {async: options.async ?? false}), signal);
+    }
     for (let index = 0; index < options.calls.length; index++) {
       await yieldTurn(signal);
       const call = options.calls[index]!;

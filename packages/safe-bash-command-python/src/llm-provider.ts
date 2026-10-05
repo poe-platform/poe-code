@@ -13,13 +13,22 @@ from pydantic import Field, create_model
 # The runtime's enabled provider owns network authorization and billing.
 # Keep the genuine plugin manager; disable the bundled direct-HTTP provider.
 llm.plugins.pm.set_blocked("llm.default_plugins.openai_models")
-llm.plugins.pm.set_blocked("llm.default_plugins.default_tools")
 
 
 def restrict_providers():
     def reject(*args, **kwargs):
         raise llm.ModelError("This runtime uses platform-configured providers")
-    llm.plugins.pm.register = reject
+    register = llm.plugins.pm.register
+    def register_tooling(plugin, name=None):
+        hooks = []
+        for attribute in dir(plugin):
+            options = llm.plugins.pm.parse_hookimpl_opts(plugin, attribute)
+            if options is not None:
+                hooks.append(options.get("specname") or attribute)
+        if not hooks or any(hook not in ("register_tools", "register_template_loaders", "register_fragment_loaders") for hook in hooks):
+            reject()
+        return register(plugin, name)
+    llm.plugins.pm.register = register_tooling
     llm.plugins.pm.load_setuptools_entrypoints = reject
 
 

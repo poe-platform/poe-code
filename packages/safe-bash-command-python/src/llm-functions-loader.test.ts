@@ -108,3 +108,44 @@ test('registered invocation cleanup retires borrowed attachment storage', async 
     assert.deepEqual(await ctx.fs.readdir('/'), []);
   } finally {await session.close();}
 });
+
+test('Python registry sessions expose plugin metadata and prepare toolboxes through the owned interpreter', async () => {
+  const ctx = context();
+  const load = createPythonLlmToolLoader({createExecutor: () => ({terminate() {}, async run(start) {
+    start.onReady();
+    const send = (value: Parameters<NonNullable<typeof start.host>['request']>[0]) => start.host!.request({version: 1, operation: 'call', capability: 'llm_tools', value});
+    assert.deepEqual(await send({op: 'selection'}), {names: ['Counter(3)'], discovery: false});
+    await send({op: 'register', index: 0, name: 'Counter_add', registryKey: 'Counter_add', plugin: 'fixture', inputSchema: {}, signature: '(value)', asynchronous: false});
+    await send({op: 'ready', prepare: true});
+    const preparation = await send({op: 'next'}) as {id: number; prepare: boolean; asynchronous: boolean};
+    assert.equal(preparation.prepare, true); assert.equal(preparation.asynchronous, true);
+    await send({op: 'done', id: preparation.id});
+    const call = await send({op: 'next'}) as {id: number};
+    await send({op: 'text', id: call.id, text: '5'}); await send({op: 'done', id: call.id});
+    assert.equal(await send({op: 'next'}), null);
+    return 0;
+  }})});
+  const session = await load({context: ctx, definitions: [], toolNames: ['Counter(3)'], maxInputBytes: 4096, maxOutputBytes: 4096});
+  try {
+    assert.equal(session.tools[0]!.plugin, 'fixture');
+    assert.ok(session.tools[0]!.prepare);
+    const callContext = {fs: ctx.fs, cwd: '/', signal: ctx.signal, maxBytes: 4096};
+    await session.tools[0]!.prepare!(callContext, {async: true});
+    const result = await session.tools[0]!.implementation!({value: 2}, callContext);
+    await result.source!.dispose();
+  } finally {await session.close();}
+  assert.deepEqual(await ctx.fs.readdir('/'), []);
+});
+
+test('reported initialization failure lets the interpreter return before retirement', async () => {
+  let interrupted: boolean | undefined;
+  const load = createPythonLlmToolLoader({createExecutor: () => ({terminate() {}, async run(start) {
+    start.onReady();
+    await start.host!.request({version: 1, operation: 'call', capability: 'llm_tools', value: {op: 'failed', message: 'invalid selection'}});
+    await new Promise<void>(resolve => setImmediate(resolve));
+    interrupted = start.signal.aborted;
+    return 0;
+  }})});
+  await assert.rejects(load({context: context(), definitions: [], maxInputBytes: 4096, maxOutputBytes: 4096}), /invalid selection/);
+  assert.equal(interrupted, false);
+});

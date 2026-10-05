@@ -4,8 +4,9 @@ export const pythonLlmFunctionsProgram = /* @__PURE__ */ (() => String.raw`
 import asyncio, codecs, inspect, json
 import safe_host
 from _poe_llm_capability import bridge
-from llm.cli import _tools_from_code
-from llm import ToolOutput
+from llm.cli import _tools_from_code, _gather_tools
+from llm import ToolOutput, Tool, Toolbox, get_tools
+from llm.models import _wrap_tools, _get_instance
 from llm_safe_host import _attachment_type
 
 
@@ -58,24 +59,67 @@ def write_attachment(identifier, attachment):
 
 async def main():
     definitions = send("definitions")
+    selection = send("selection")
+    names = selection.get("names", [])
+    discovery = selection.get("discovery", False)
     tools = []
     try:
+        registered = get_tools() if discovery and not names else {}
+        functions = []
         for definition in definitions:
-            tools.extend(_tools_from_code(load_definition(definition)))
-        for index, tool in enumerate(tools):
-            send("register", index=index, name=tool.name, description=tool.description,
-                 inputSchema=tool.input_schema, signature=str(inspect.signature(tool.implementation)),
+            functions.extend(_tools_from_code(load_definition(definition)))
+        if discovery:
+            if names:
+                registered = {tool.name: tool for tool in functions + _gather_tools(names, [])}
+            else:
+                for tool in functions:
+                    registered[tool.name] = tool
+            entries = [(key, tool, None) for key, tool in registered.items()]
+        else:
+            entries = [(tool.name, tool, None) for tool in functions]
+            for selection_index, selected in enumerate(_gather_tools(names, [])):
+                entries.extend((tool.name, tool, selection_index) for tool in _wrap_tools([selected]))
+        for key, tool, selection_index in entries:
+            if not isinstance(tool, Tool):
+                methods = []
+                for method in tool.method_tools():
+                    methods.append(dict(name=method.name, description=method.description,
+                        inputSchema=method.input_schema,
+                        signature=str(inspect.signature(method.implementation)).replace("(self, ", "(").replace("(self)", "()")))
+                send("toolbox", name=key, tools=methods)
+                continue
+            index = len(tools)
+            tools.append(tool)
+            send("register", index=index, name=tool.name, registryKey=key, description=tool.description,
+                 plugin=tool.plugin, selectionIndex=selection_index, inputSchema=tool.input_schema,
+                 signature=str(inspect.signature(tool.implementation)),
                  asynchronous=inspect.iscoroutinefunction(tool.implementation))
     except Exception as error:
         send("failed", message=getattr(error, "message", str(error)))
         return
-    send("ready")
+    send("ready", prepare=any(isinstance(_get_instance(tool.implementation), Toolbox) for tool in tools))
     pending = set()
     cancelled = False
 
     async def execute(command):
         identifier = command["id"]
         try:
+            if command.get("prepare"):
+                asynchronous = command.get("asynchronous", False)
+                flag = "_async_prepared" if asynchronous else "_prepared"
+                instances = []
+                for tool in {tool.name: tool for tool in tools}.values():
+                    instance = _get_instance(tool.implementation)
+                    if isinstance(instance, Toolbox) and not getattr(instance, flag, False):
+                        instances.append(instance)
+                for instance in instances:
+                    if asynchronous:
+                        await instance.prepare_async()
+                    else:
+                        instance.prepare()
+                    setattr(instance, flag, True)
+                send("done", id=identifier)
+                return
             output = tools[command["tool"]].implementation(**command["arguments"])
             if inspect.isawaitable(output):
                 output = await output

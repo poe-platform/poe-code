@@ -57,7 +57,7 @@ def _install_safe_llm_import():
     if any(getattr(finder, "_safe_llm_provider", False) for finder in sys.meta_path):
         return
     def configure_plugins(module):
-        module.DEFAULT_PLUGINS = ()
+        module.DEFAULT_PLUGINS = ("llm.default_plugins.default_tools",)
         module.LLM_LOAD_PLUGINS = "llm-safe-host"
 
     def configure_provider(module):

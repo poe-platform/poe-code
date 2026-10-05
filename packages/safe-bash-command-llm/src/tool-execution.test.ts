@@ -388,3 +388,34 @@ test("aborting an outstanding result read retires its source without visiting an
   assert.equal(released, 1);
   assert.equal(executed, 1);
 });
+
+for (const asynchronous of [false, true]) test(`shared tool preparation precedes approvals in async=${asynchronous}`, async () => {
+  const events: string[] = [];
+  const prepare = async (context: {signal: AbortSignal}, mode: {async: boolean}) => {
+    context.signal.throwIfAborted();
+    assert.equal(mode.async, asynchronous);
+    events.push('prepare');
+  };
+  const tools = ['one', 'two'].map(name => ({name, inputSchema: {}, prepare, implementation: () => {events.push(name); return {output: 'ok'};}}));
+  await executeLlmToolCalls({async: asynchronous, tools,
+    calls: [{name: 'one', arguments: {}}], context: {fs: new MemoryFileSystem(), cwd: '/', signal: new AbortController().signal},
+    beforeCall() {events.push('approve');}}, () => {events.push('visit');});
+  assert.deepEqual(events, ['prepare', 'approve', 'one', 'visit']);
+});
+
+test('tool preparation failures stop a batch before approvals or calls', async () => {
+  const failure = new Error('prepare failed');
+  await assert.rejects(executeLlmToolCalls({tools: [{name: 'one', inputSchema: {}, prepare() {throw failure;}, implementation() {assert.fail('executed');}}],
+    calls: [{name: 'one', arguments: {}}], context: {fs: new MemoryFileSystem(), cwd: '/', signal: new AbortController().signal},
+    beforeCall() {assert.fail('approved');}}, () => {assert.fail('visited');}), error => error === failure);
+});
+
+test('cancellation during preparation preserves identity and prevents approval', async () => {
+  const controller = new AbortController();
+  const reason = new Error('cancel preparation');
+  await assert.rejects(executeLlmToolCalls({async: true, tools: [{name: 'one', inputSchema: {}, async prepare(context) {
+    assert.notEqual(context.signal, controller.signal);
+    controller.abort(reason);
+  }, implementation() {assert.fail('executed');}}], calls: [{name: 'one', arguments: {}}],
+    context: {fs: new MemoryFileSystem(), cwd: '/', signal: controller.signal}, beforeCall() {assert.fail('approved');}}, () => {assert.fail('visited');}), error => error === reason);
+});

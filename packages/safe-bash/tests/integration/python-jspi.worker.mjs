@@ -161,10 +161,29 @@ async function qualifyShells(backend, createExecutor) {
 }
 
 async function qualifyFunctionTools(backend, createExecutor) {
-  const cancellation = new AbortController();
+  let cancellation = new AbortController();
   let cancelRun = false;
   const source = 'import asyncio as _asyncio\n_state = 0\n_event = _asyncio.Event()\ndef add(value: int):\n global _state\n _state += value\n return _state\nasync def first():\n await _event.wait()\n return "first"\nasync def second():\n _event.set()\n return "second"\ndef unicode_text():\n return "😀" * 4096\n';
   await backend.writeFile('/work/functions.py', new TextEncoder().encode(source));
+  const toolbox = `import asyncio as _asyncio
+import llm as _llm
+from llm.plugins import pm as _pm
+class _Counter(_llm.Toolbox):
+ def __init__(self, start=0): self.value = start
+ def prepare(self): self.value += 10
+ async def prepare_async(self):
+  if self.value < 0: await _asyncio.Event().wait()
+  self.value += 100
+ def add(self, value: int):
+  self.value += value
+  return self.value
+ def peek(self): return self.value
+class _Plugin:
+ @_llm.hookimpl
+ def register_tools(self, register): register(_Counter, name="Counter")
+_pm.register(_Plugin(), name="fixture")
+`;
+  await backend.writeFile('/work/toolbox.py', new TextEncoder().encode(toolbox));
   const complete = async function* (request) {
     const results = request.messages?.filter(message => message.role === 'tool') ?? [];
     if (results.length) {
@@ -176,6 +195,8 @@ async function qualifyFunctionTools(backend, createExecutor) {
       yield values.join(','); return;
     }
     if (cancelRun) {setTimeout(()=>cancellation.abort(new Error('function cancelled')),50); return {toolCalls:[{id:'cancel',name:'first',arguments:{}}]};}
+    if (request.tools?.some(tool=>tool.name==='_Counter_add')) return {toolCalls:[{id:'a',name:'_Counter_add',arguments:{value:2}},{id:'b',name:'_Counter_peek',arguments:{}}]};
+    if (request.tools?.some(tool=>tool.name==='llm_version')) return {toolCalls:[{id:'version',name:'llm_version',arguments:{}}]};
     return {toolCalls: request.async ? [{id:'a',name:'first',arguments:{}},{id:'b',name:'second',arguments:{}}]
       : [{id:'a',name:'add',arguments:{value:2}},{id:'b',name:'add',arguments:{value:3}},{id:'c',name:'unicode_text',arguments:{}}]};
   };
@@ -186,13 +207,24 @@ async function qualifyFunctionTools(backend, createExecutor) {
     const listing = await shell.exec('llm tools list --functions functions.py --json');
     const serial = await shell.exec('llm hello --functions functions.py');
     const concurrent = await shell.exec('llm hello --async --functions functions.py');
+    const defaultTool = await shell.exec('llm hello -T llm_version');
+    const unknownTool = await shell.exec('llm hello -T missing_tool');
+    const brokenFunction = await shell.exec('llm hello --functions "def bad(:"');
+    const toolboxListing = await shell.exec('llm tools list --functions toolbox.py "Counter(3)" --json');
+    const toolboxSerial = await shell.exec('llm hello --functions toolbox.py -T "Counter(3)"');
+    const toolboxAsync = await shell.exec('llm hello --async --functions toolbox.py -T "Counter(3)"');
     cancelRun = true;
     let cancelled = false;
     try {await shell.exec('llm hello --async --functions functions.py',{signal:cancellation.signal});}
     catch(error) {cancelled = error === cancellation.signal.reason;}
-    return {listing,serial,concurrent,cancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    cancellation = new AbortController();
+    let preparationCancelled = false;
+    try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
+    catch(error) {preparationCancelled = error === cancellation.signal.reason;}
+    return {listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
+
 
 async function qualifyStandardLlm(backend, createExecutor, cancel = false, policy = false) {
   const calls = [];

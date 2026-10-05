@@ -207,17 +207,17 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   };
   const admitBuffered = (size: number): void => input.admit(size, true);
   const functionSessions = new Set<Awaited<ReturnType<NonNullable<LlmCommandsOptions['loadTools']>>>>();
-  const loadDefinitions = async (definitions: readonly string[]) => {
+  const loadDefinitions = async (definitions: readonly string[], toolNames: readonly string[] = [], discovery = false) => {
     if (!loadTools) throw new Error("Python tool loading is not configured");
     const diagnostic = operation.child(context.stderr).output;
-    const loaded = await operation.acquire(async () => {const value = await loadTools({definitions,
+    const loaded = await operation.acquire(async () => {const value = await loadTools({definitions, toolNames, discovery,
       context: {...context, signal, stdout: {write: bytes => write(bytes, true)}, stderr: {write: async bytes => {admitOutput(bytes.length); await writeOutput(diagnostic, bytes);}}},
       maxInputBytes: input.remaining(true), maxOutputBytes: limits?.maxOutputBytes ?? Infinity});
       let closing: Promise<void> | undefined;
-      return {tools: value.tools, close: () => closing ??= Promise.resolve().then(() => value.close())};
+      return {tools: value.tools, ...(value.toolboxes ? {toolboxes: value.toolboxes} : {}), close: () => closing ??= Promise.resolve().then(() => value.close())};
     }, value => value.close());
     functionSessions.add(loaded);
-    return loaded.tools;
+    return loaded;
   };
   const invocationLoaders = { ...templateLoaderOptions, get maxBytes() { return input.remaining(true); }, admitBytes: admitBuffered };
   try {
@@ -281,7 +281,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (argumentsValue.args[0] === 'tools') {
       argumentText(0);
       const tokens=Array.from({length:argumentsValue.args.length-1},(_,index)=>argumentText(index+1));
-      return {exitCode:await toolsCommand(tokens,tools,emitText,text=>writeDiagnostic(context.stderr,text,signal),step,signal,loadDefinitions)};
+      return {exitCode:await toolsCommand(tokens,tools,emitText,text=>writeDiagnostic(context.stderr,text,signal),step,signal,loadTools ? loadDefinitions : undefined)};
     }
     if (argumentsValue.args[0] === "fragments") {
       if (argumentsValue.args[1] !== "loaders") {
@@ -637,7 +637,27 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     let selectedTools;
     try {
       const definitions = [...(stored?.functions && Object.getOwnPropertyDescriptor(stored, "functionsTrusted")?.value !== false ? [stored.functions] : []), ...args.functions];
-      selectedTools = [...(definitions.length ? await loadDefinitions(definitions) : []), ...selectLlmTools(tools, [...stored?.tools ?? [], ...args.toolNames])];
+      const names = [...stored?.tools ?? [], ...args.toolNames];
+      const dynamicNames = names.filter(name => !tools.has(name));
+      const loaded = definitions.length || (loadTools && dynamicNames.length)
+        ? await loadDefinitions(definitions, dynamicNames) : {tools: []};
+      if (!loadTools) selectedTools = [...loaded.tools, ...selectLlmTools(tools, names)];
+      else {
+        selectedTools = loaded.tools.filter(tool => tool.selectionIndex === undefined);
+        const groups = new Map<number, typeof selectedTools>();
+        for (const tool of loaded.tools) if (tool.selectionIndex !== undefined) {
+          const group = groups.get(tool.selectionIndex) ?? [];
+          group.push(tool); groups.set(tool.selectionIndex, group);
+        }
+        let dynamicIndex = 0;
+        for (const name of names) {
+          if (tools.has(name)) selectedTools.push(tools.get(name)!);
+          else {
+            selectedTools.push(...groups.get(dynamicIndex) ?? []);
+            dynamicIndex++;
+          }
+        }
+      }
     }
     catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`); }
     attachments.push(...pluginAttachments);

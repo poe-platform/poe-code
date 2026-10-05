@@ -51,10 +51,16 @@ provider transport remain host-owned.
 
 Use `createPythonLlmToolLoader(pythonOptions)` from the public executor entrypoint
 as `llmCommands({ service, loadTools })`'s `loadTools` option to enable
-`llm --functions tools.py` and inline definitions. The configured executor must
+`llm --functions tools.py`, inline definitions, and `-T 'Counter(3)'` selections
+from registered Python toolboxes. `llm tools list` discovers built-in tools and
+registered tool-only plugins and shows toolbox methods. The configured executor must
 provide genuine `llm==0.27.1` and the standard host bridge. Each invocation owns
 one interpreter, shares the loader's configured worker capacity, and preserves
-function globals across calls. Result text and attachments use caller-backed
+function globals and toolbox instances across calls. Native constructor parsing,
+method schemas, plugin names and sync/async preparation are preserved. Tool-only,
+template-loader and fragment-loader hooks can register with the native plugin
+manager; additional model hooks and ambient entrypoint discovery remain blocked,
+so model transport and credentials stay platform-owned. Result text and attachments use caller-backed
 storage; close direct SDK sessions after consuming their borrowed results.
 Cancellation is cooperative for Python tasks; CPU-bound or cancellation-suppressing
 code still requires runtime-enforced interruption. No conversation history is stored.

@@ -1,5 +1,5 @@
 import { referenceJson } from "./reference-json.js";
-import { selectLlmTools, type LlmRegisteredTool } from "./tool-registry.js";
+import { selectLlmTools, type LlmRegisteredTool, type LlmToolboxDescription } from "./tool-registry.js";
 
 const usage = "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\n";
 const groupHelp =
@@ -29,7 +29,7 @@ export async function toolsCommand(
   diagnostic: (text: string) => Promise<void>,
   step: () => Promise<void>,
   signal: AbortSignal,
-  load?: (definitions: readonly string[]) => Promise<readonly LlmRegisteredTool[]>
+  load?: (definitions: readonly string[], names: readonly string[], discovery: boolean) => Promise<{readonly tools: readonly LlmRegisteredTool[]; readonly toolboxes?: readonly LlmToolboxDescription[]}>
 ): Promise<number> {
   let groupEager = false,
     separator = -1;
@@ -105,11 +105,15 @@ export async function toolsCommand(
     return 1;
   }
   let selected: ReadonlyMap<string, LlmRegisteredTool>;
+  let toolboxes: readonly LlmToolboxDescription[] = [];
   try {
-    const loaded = functions.length ? await load!(functions) : [];
+    const dynamicNames = names.filter(name => !registry.has(name));
+    const loaded = load && (!names.length || functions.length || dynamicNames.length)
+      ? await load(functions, dynamicNames, !names.length || dynamicNames.length > 0) : {tools: []};
+    toolboxes = [...loaded.toolboxes ?? []].sort((left, right) => compareNames(left.name, right.name));
     selected = new Map(names.length
-      ? [...loaded, ...selectLlmTools(registry, names)].map(tool => [tool.name, tool] as const)
-      : [...registry, ...loaded.map(tool => [tool.name, tool] as const)]);
+      ? [...loaded.tools, ...selectLlmTools(registry, load ? names.filter(name => registry.has(name)) : names)].map(tool => [tool.name, tool] as const)
+      : [...registry, ...loaded.tools.map(tool => [tool.registryKey ?? tool.name, tool] as const)]);
   } catch (failure) {
     await diagnostic("Error: " + (failure instanceof Error ? failure.message : String(failure)) + "\n");
     return 1;
@@ -122,35 +126,38 @@ export async function toolsCommand(
       arguments: tool.inputSchema,
       plugin: tool.plugin ?? null
     }));
-    for await (const bytes of referenceJson({ tools, toolboxes: [] }, signal, true)) {
+    for await (const bytes of referenceJson({ tools, toolboxes: toolboxes.map(box => ({name: box.name, tools: box.tools.map(tool => ({
+      name: tool.name, description: tool.description ?? null, arguments: tool.inputSchema
+    }))})) }, signal, true)) {
       await step();
       await output(new TextDecoder().decode(bytes));
     }
     await output("\n");
     return 0;
   }
-  for (const [, tool] of entries) {
+  const describe = async (tool: Pick<LlmRegisteredTool, "name" | "signature" | "description" | "plugin">, indent: string) => {
     await step();
-    await output(
-      tool.name +
-        (tool.signature ?? "()") +
-        (tool.plugin ? ` (plugin: ${tool.plugin})` : "") +
-        "\n\n"
-    );
+    await output(indent + tool.name + (tool.signature ?? "()") +
+      (tool.plugin ? ` (plugin: ${tool.plugin})` : "") + "\n\n");
     if (tool.description) {
       const description = tool.description.trim();
       let start = 0;
       while (start <= description.length) {
         await step();
-        const newline = description.indexOf("\n", start),
-          end = newline < 0 ? description.length : newline;
+        const newline = description.indexOf("\n", start), end = newline < 0 ? description.length : newline;
         const line = description.slice(start, end);
-        await output((line.trim() ? "  " : "") + line + "\n");
+        await output((line.trim() ? indent + "  " : "") + line + "\n");
         if (newline < 0) break;
         start = end + 1;
       }
       await output("\n");
     }
+  };
+  for (const [, tool] of entries) await describe(tool, "");
+  for (const box of toolboxes) {
+    await step();
+    await output(box.name + ":\n\n");
+    for (const tool of box.tools) await describe(tool, "  ");
   }
   return 0;
 }

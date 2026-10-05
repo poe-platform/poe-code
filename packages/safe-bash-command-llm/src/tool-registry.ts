@@ -4,6 +4,9 @@ import { validateJsonData } from "./json-data.js";
 
 /** Display metadata supplied by the host that registers the callable. */
 export interface LlmRegisteredTool extends LlmExecutableTool {
+  readonly registryKey?: string;
+  /** Index in the loader request’s toolNames, shared by expanded toolbox methods. */
+  readonly selectionIndex?: number;
   readonly plugin?: string;
   readonly signature?: string;
 }
@@ -23,11 +26,15 @@ export function createLlmToolRegistry(
       typeof tool.inputSchema !== "object"
     )
       throw new TypeError("Invalid LLM tool definition");
-    for (const value of [tool.description, tool.plugin, tool.signature])
+    for (const value of [tool.description, tool.plugin, tool.signature, tool.registryKey])
       if (value !== undefined && typeof value !== "string")
         throw new TypeError("Invalid LLM tool metadata");
     if (tool.implementation !== undefined && typeof tool.implementation !== "function")
       throw new TypeError("Invalid LLM tool implementation");
+    if (tool.selectionIndex !== undefined && (!Number.isSafeInteger(tool.selectionIndex) || tool.selectionIndex < 0))
+      throw new TypeError("Invalid LLM tool selection index");
+    if (tool.prepare !== undefined && typeof tool.prepare !== "function")
+      throw new TypeError("Invalid LLM tool preparation");
     if (tool.async !== undefined && typeof tool.async !== "boolean")
       throw new TypeError("Invalid LLM tool async declaration");
     validateJsonData(tool.inputSchema, "Tool schema must be finite JSON data");
@@ -52,11 +59,18 @@ export function selectLlmTools(
   return names.map((name) => registry.get(name)!);
 }
 
+export interface LlmToolboxDescription {
+  readonly name: string;
+  readonly tools: readonly Pick<LlmRegisteredTool, "name" | "description" | "inputSchema" | "signature">[];
+}
+
 /** An invocation-owned runtime for Python function definitions. The caller owns
  * canonical storage, transport and admission; closing retires all callables. */
 export type LlmToolLoader = (options: {
   readonly context: CommandContext;
   readonly definitions: readonly string[];
+  readonly toolNames?: readonly string[];
+  readonly discovery?: boolean;
   readonly maxInputBytes: number;
   readonly maxOutputBytes: number;
-}) => Promise<{readonly tools: readonly LlmRegisteredTool[]; close(): Promise<void>}>;
+}) => Promise<{readonly tools: readonly LlmRegisteredTool[]; readonly toolboxes?: readonly LlmToolboxDescription[]; close(): Promise<void>}>;

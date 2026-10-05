@@ -40,7 +40,7 @@ class Fixture(importlib.abc.MetaPathFinder, importlib.abc.Loader):
    module.DEFAULT_PLUGINS = ('unsafe',)
    module.LLM_LOAD_PLUGINS = 'unsafe'
    def load_plugins():
-    assert module.DEFAULT_PLUGINS == ()
+    assert module.DEFAULT_PLUGINS == ("llm.default_plugins.default_tools",)
     assert module.LLM_LOAD_PLUGINS == 'llm-safe-host'
     loaded.append('configured')
    module.load_plugins = load_plugins
@@ -90,7 +90,8 @@ os.environ['LLM_LOAD_PLUGINS'] = 'untrusted-plugin'
 import llm
 assert llm.plugins.pm.get_plugin('safe_host') is not None
 assert 'llm.default_plugins.openai_models' not in sys.modules
-assert 'llm.default_plugins.default_tools' not in sys.modules
+assert 'llm.default_plugins.default_tools' in sys.modules
+assert llm.get_tools()['llm_version'].implementation() == '0.27.1'
 for operation in (lambda: llm.plugins.pm.register(object()), lambda: llm.plugins.pm.load_setuptools_entrypoints('llm')):
  try: operation()
  except llm.ModelError: pass

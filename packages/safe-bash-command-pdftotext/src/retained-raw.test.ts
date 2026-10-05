@@ -216,3 +216,9 @@ for(const flags of [['-bbox'],['-bbox-layout'],['-layout','-bbox-layout'],['-col
   assert.equal(new TextDecoder().decode(joined(f.stdout)),expected.output);assert.equal(new TextDecoder().decode(joined(f.stderr)),expected.stderr);
   assert.deepEqual(f.counts(),{wholeReads:0,payloadWrites:0,published:0});await f.clean();
 });
+
+for(const flags of [[],['-remove-hyphens','no'],['-htmlmeta'],['-urls'],['-x','15','-W','90'],['-enc','UCS-2','-eol','dos']])test(`retained logical text preserves bytes: ${flags.join(' ')}`,async()=>{
+ const input=pdf(),args=[...flags,'input.pdf','-'],expected=await runPdftotextCli(args,new Map([['input.pdf',input]])),f=await fixture(input,args);
+ assert.equal((await createPdftotextCommand().execute(f.context)).exitCode,expected.exitCode);assert.deepEqual(joined(f.stdout),encoded(expected.output,flags.includes('UCS-2')?'UCS-2':'UTF-8'));assert.equal(new TextDecoder().decode(joined(f.stderr)),expected.stderr);
+ assert.deepEqual(f.counts(),{wholeReads:0,payloadWrites:0,published:0});await f.clean();
+});

@@ -1,7 +1,7 @@
 // Output failure statuses: qpdf 12.4.2, pdftk-java 3.3.3, Poppler 26.09.0.
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { Volume } from "memfs";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, cosArray, cosDict, cosName, cosString, cosStream, dictSet } from "@poe-code/pdf-ast";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { createPdftohtmlCommand, createPdftotextCommand } from "./index.js";
@@ -18,25 +18,25 @@ function fixture(name = "payload.txt") {
 }
 
 async function execute(command: ReturnType<typeof createPdftohtmlCommand>, args: string[], missing = false, attachment = "payload.txt") {
-  const volume = new Volume();
-  volume.mkdirSync("/work");
-  volume.writeFileSync("/work/in.pdf", fixture(attachment));
-  volume.writeFileSync("/work/-in.pdf", fixture(attachment));
-  for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) volume.writeFileSync(`/work/${name}`, new Uint8Array(10000));
+  const volume = createMemoryFileSystem();
+  await volume.mkdir("/work");
+  await volume.writeFile("/work/in.pdf", fixture(attachment));
+  await volume.writeFile("/work/-in.pdf", fixture(attachment));
+  for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) await volume.writeFile(`/work/${name}`, new Uint8Array(10000));
   const reads: string[] = [], errors: Uint8Array[] = [], output: Uint8Array[] = [];
   const carrier = createCommandArguments(args);
   const context = {
     command: command.name, args: carrier.args, argumentValues: carrier, cwd: "/work", env: {},
     signal: new AbortController().signal, registerCleanup() {},
-    stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
-    stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } },
-    fs: {
-      async readFile(path: string) { reads.push(path); return new Uint8Array(volume.readFileSync(path) as Buffer); },
-      async mkdir(path: string) { volume.mkdirSync(path, { recursive: true }); },
-      async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); }
-    }
+    stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes: Uint8Array) { output.push(bytes.slice()); } },
+    stderr: { async write(bytes: Uint8Array) { errors.push(bytes.slice()); } },
+    fs: new Proxy(Object.create(volume) as typeof volume,{get(_target,key){
+      if(key==='readFile')return async(path:string)=>{reads.push(path);return volume.readFile(path);};
+      if(key==='openReadFile')return async(...args:Parameters<NonNullable<typeof volume.openReadFile>>)=>{if(args[0].startsWith('/work/'))reads.push(args[0]);return volume.openReadFile(...args);};
+      const value=Reflect.get(volume,key);return typeof value==='function'?value.bind(volume):value;
+    }})
   } as unknown as CommandContext;
-  if (!missing && command.name === "pdfdetach") { volume.unlinkSync("/work/out"); volume.mkdirSync("/work/out"); }
+  if (!missing && command.name === "pdfdetach") { await volume.rm("/work/out"); await volume.mkdir("/work/out"); }
   const result = await command.execute(context);
   return { result, reads, volume, stdout: Buffer.concat(output), stderr: Buffer.concat(errors).toString() };
 }
@@ -51,7 +51,7 @@ it("Pdftohtml reports missing output parents without creating directories", asyn
   const { result, volume, stderr } = await execute(createPdftohtmlCommand(), ["in.pdf", "/missing/out.html"], true);
   assert.equal(result.exitCode, 0);
   assert.ok(stderr.length > 0);
-  assert.equal(volume.existsSync("/missing"), false);
+  await assert.rejects(()=>volume.stat("/missing"),{code:"ENOENT"});
 });
 
 it("normalizes dot segments before VFS access", async () => {
@@ -70,7 +70,7 @@ for (const encoding of ["Latin1", "UCS-2"]) {
   it(`writes ${encoding} bytes without UTF-8 re-encoding`, async () => {
     const { result, volume, stderr } = await execute(createPdftotextCommand(), ["-enc", encoding, "in.pdf", "out.txt"]);
     assert.equal(result.exitCode, 0, stderr);
-    const bytes = new Uint8Array(volume.readFileSync("/work/out.txt") as Buffer);
+    const bytes = await volume.readFile("/work/out.txt");
     if (encoding === "Latin1") {
       assert.ok(bytes.includes(0xe9));
       assert.equal(bytes.includes(0xc3), false);
@@ -85,7 +85,7 @@ it("pdftotext normalizes both input and output paths", async () => {
  const { result, reads, volume, stderr } = await execute(createPdftotextCommand(), ["missing/../in.pdf", "missing/../out.txt"]);
  assert.equal(result.exitCode, 0, stderr);
  assert.deepEqual(reads, ["/work/in.pdf"]);
- assert.ok(volume.existsSync("/work/out.txt"));
+ assert.equal((await volume.stat("/work/out.txt")).type,"file");
 });
 
 for (const encoding of ["UTF-8", "ASCII7", "Latin1", "UCS-2"]) {
@@ -94,11 +94,11 @@ for (const encoding of ["UTF-8", "ASCII7", "Latin1", "UCS-2"]) {
     const pipe = await execute(createPdftotextCommand(), ["-enc", encoding, "in.pdf", "-"]);
     assert.equal(file.result.exitCode, 0, file.stderr);
     assert.equal(pipe.result.exitCode, 0, pipe.stderr);
-    assert.deepEqual(pipe.stdout, file.volume.readFileSync("/work/out.txt"));
+    assert.deepEqual(pipe.stdout, Buffer.from(await file.volume.readFile("/work/out.txt")));
   });
 }
 it("pdftotext does not create missing output parents", async () => {
   const { result, volume } = await execute(createPdftotextCommand(), ["in.pdf", "/missing/out.txt"]);
   assert.equal(result.exitCode, 2);
-  assert.equal(volume.existsSync("/missing"), false);
+  await assert.rejects(()=>volume.stat("/missing"),{code:"ENOENT"});
 });

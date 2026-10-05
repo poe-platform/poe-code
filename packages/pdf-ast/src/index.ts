@@ -114,3 +114,5 @@ export { QpdfJsonDocument, type ApplyQpdfJsonOptions } from "./cos/qpdf-json-doc
 export type { RetainedAppendAttachment } from "./edit/retained-append-attachments.js";
 
 export { parseRetainedFormData } from "./edit/retained-form-data.js";
+
+export { streamLogicalTextChunks, type PdfLogicalTextOptions } from "./extract/logical-text-stream.js";

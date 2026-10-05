@@ -1,3 +1,4 @@
+import {streamLogicalTextChunks,type PdfLogicalTextOptions} from "./extract/logical-text-stream.js";
 import { walkRetainedFormFieldDetails, type PdfRetainedFormFieldDetails } from "./extract/retained-form-field-details.js";
 import { PdfArrayCursor } from "./content/array-cursor.js";
 import { StoredMetadataStack, readStoredRecord } from "./content/stored-record.js";
@@ -619,6 +620,15 @@ export class PdfRetainedPage {
     try { yield* streamRawTextChunks(glyphs(), shared, options); }
     catch (error) { failed = true; throw error; }
     finally { await owned?.close().catch(error => { if (!failed) throw error; }); }
+  }
+
+  /** Stream logical reading order from a caller-backed text index. */
+  async *streamLogicalText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextIndexOptions & PdfLogicalTextOptions = {}): AsyncGenerator<Uint8Array, void, void> {
+    const index = await this.indexText(storage,{...options,mode:"logical"});
+    let failed=false;
+    try { yield* streamLogicalTextChunks(index,options); }
+    catch(error){failed=true;throw error;}
+    finally { await index.close().catch(error=>{if(!failed)throw error;}); }
   }
 
   /** Preserve the original raw-order entry point. */

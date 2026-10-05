@@ -11,6 +11,7 @@ import { encodePopplerChunks } from "./output-encoding.js";
 
 interface RawTextPlan {
   readonly raw: boolean;
+  readonly removeHyphens: boolean;
   readonly layout: boolean;
   readonly colspacing?: number;
   readonly inputFile?: string;
@@ -143,14 +144,15 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
           continue;
         }
         const crop = geometry?.crop;
-        const raw = page.streamRawText(storage, { ...(crop ? { crop } : {}), rejoinHyphens: false, discardDiagonal: plan.nodiag, clipText: plan.clip, signal });
-        if (!plan.urls) yield* raw;
+        const textOptions={...(crop?{crop}:{}),rejoinHyphens:!plan.raw&&plan.removeHyphens,discardDiagonal:plan.nodiag,clipText:plan.clip,colSpacing:plan.colspacing,signal};
+        const raw = plan.raw?page.streamRawText(storage,textOptions):page.streamLogicalText(storage,textOptions);
+        let lastByte: number | undefined;
+        if (!plan.urls) { for await(const bytes of raw){lastByte=bytes.at(-1)??lastByte;yield bytes;} }
         else {
           const names = new PdfNameIndex(storage, Infinity, signal);
           let body: PdfFileSource | undefined, pageFailed = false;
           try {
             body = await PdfFileSource.fromStream(storage.fs, directory, raw, { signal });
-            let lastByte: number | undefined;
             for await (const bytes of body.stream(0, body.size, signal)) { lastByte = bytes.at(-1) ?? lastByte; yield bytes; }
             for await (const annotation of page.annotations()) {
               const uri = annotation.uri;
@@ -164,6 +166,7 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
             if (!pageFailed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
           }
         }
+        if(!plan.raw&&lastByte!==undefined){if(lastByte!==10)yield new Uint8Array([10]);yield new Uint8Array([10]);}
         if (!plan.nopgbrk) yield new Uint8Array([12]);
       }
       if (plan.bbox) yield encoder.encode("</doc>\n</body>\n</html>\n");

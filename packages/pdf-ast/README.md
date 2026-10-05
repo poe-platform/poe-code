@@ -203,6 +203,11 @@ to the current line and preserving original paragraph boundaries. `chunkBytes` b
 `maxWorkingBytes` admits formatter scratch before input is pulled. Page resource
 and rendering allocations still belong to the evaluator described above.
 
+`page.streamLogicalText(storage, options)` streams UTF-8 in logical reading order,
+with optional `crop`, `rejoinHyphens` and `chunkBytes`. It owns and closes its
+caller-backed text index. Use `streamLogicalTextChunks(index, options)` to format
+an existing index without transferring ownership.
+
 `page.indexText(storage, options)` retains logical-order blocks, lines, words and
 geometry on caller storage. Select `mode: "layout"`, `"bbox"` or `"raw"` to change
 ordering; `page.indexRawText()` preserves raw order. Geometric and logical sorts

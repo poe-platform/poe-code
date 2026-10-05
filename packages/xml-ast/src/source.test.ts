@@ -311,3 +311,27 @@ it('requires nonretained parsing for external namespace scopes', () => {
   const parser = parseXmlSourceSteps(4, { storeNamespaces: true });
   expect(() => parser.next()).toThrow('Stored XML namespaces require retainTree: false');
 });
+
+it('requires host completion of attribute appends', () => {
+  const input = '<r a="1"/>';
+  const parser = parseXmlSourceSteps(input.length, { retainTree: false, storeAttributes: true });
+  let step = parser.next();
+  while (!step.done) {
+    if (typeof step.value !== 'number') {
+      if ('attributeOperation' in step.value) {
+        expect(step.value.attributeOperation).toBe('append');
+        expect(() => parser.next()).toThrow('Incomplete XML attribute append');
+        return;
+      }
+      if (!('offset' in step.value)) throw new Error('unexpected request');
+      step.value.value = input.slice(step.value.offset, step.value.offset + step.value.length);
+    }
+    step = parser.next();
+  }
+  throw new Error('expected an attribute append request');
+});
+
+it('requires nonretained parsing for external attribute collections', () => {
+  const parser = parseXmlSourceSteps(4, { storeAttributes: true });
+  expect(() => parser.next()).toThrow('Stored XML attributes require retainTree: false');
+});

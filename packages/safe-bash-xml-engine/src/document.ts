@@ -1,6 +1,6 @@
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import { escape } from "./evaluate.js";
-import { StoredNamespaces } from "./stored-namespaces.js";
+import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
 import { StoredAttributes } from "./stored-attributes.js";
 import { StoredXmlDocument } from "./stored-document.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";

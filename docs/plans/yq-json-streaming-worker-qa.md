@@ -36,12 +36,14 @@ writes use only the injected external safe-fs, read/write windows stay at or bel
 16 KiB, and scratch descriptors close after success, sink failure and cancellation.
 Repeat with `--noblanks` and each supported `--encode` value, including UTF-16 BOM
 and non-ASCII text. Compare output with native xmllint. Record the fixed page-cache cost separately
-from the largest token and current attribute collection, which still reside in memory.
+from individual names and values, which still reside in memory.
 Stored document and canonical output scopes use persistent caller-backed
 namespace trees; check increasing namespace counts, shadowed prefixes, default
 namespace resets, and siblings reusing an inherited scope. Parser namespace scopes
-share the 64 KiB source/frame cache. Individual namespace tokens and parser attribute
-collections still need separate memory qualification.
+and attribute records share the 64 KiB source/frame cache. Increase the number of
+fixed-size attributes independently of value length; check late namespace declarations,
+duplicate raw/expanded names, slow attribute consumers, and cancellation during spill.
+Individual names, attribute values and namespace URIs still need token qualification.
 Parser ancestry uses linked backing records; check deep documents with
 a fixed namespace scope independently of source size. Also measure startup/first-byte latency; formatting validates
 the document before publishing output.

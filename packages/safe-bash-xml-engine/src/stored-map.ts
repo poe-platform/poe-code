@@ -1,13 +1,13 @@
 import type { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { XmlBudget } from "./limits.js";
 
-type Entry = { prefix: string; uri: string; left: number; right: number; height: number };
+type Entry = { key: string; value: string; left: number; right: number; height: number };
 
-/** Immutable AVL scopes share unchanged subtrees in caller storage. AVL ancestry
+/** Immutable AVL maps share unchanged subtrees in caller storage. AVL ancestry
  * is bounded by safe-integer storage addresses (fewer than 80 levels), rather
- * than XML depth or the number of declarations in a scope. Individual namespace
- * names and URIs still have the parser's token cost. */
-export class StoredNamespaces {
+ * than XML depth or the number of entries. Individual keys and values still have
+ * the parser's token cost. */
+export class StoredStringMap {
   constructor(private readonly storage: PagedStorage, private readonly budget: XmlBudget, readonly reference = 0) {}
 
   private async read(reference: number): Promise<Entry> {
@@ -40,13 +40,13 @@ export class StoredNamespaces {
     return reference;
   }
 
-  async get(prefix: string): Promise<string | undefined> {
+  async get(key: string): Promise<string | undefined> {
     let reference = this.reference;
     while (reference) {
       const entry = await this.read(reference);
-      const checkpoint = this.budget.tick(prefix.length + 1); if (checkpoint) await checkpoint;
-      if (prefix === entry.prefix) return entry.uri;
-      reference = prefix < entry.prefix ? entry.left : entry.right;
+      const checkpoint = this.budget.tick(key.length + 1); if (checkpoint) await checkpoint;
+      if (key === entry.key) return entry.value;
+      reference = key < entry.key ? entry.left : entry.right;
     }
     return undefined;
   }
@@ -80,25 +80,25 @@ export class StoredNamespaces {
     return this.updated(entry);
   }
 
-  async set(prefix: string, uri: string): Promise<StoredNamespaces> {
+  async set(key: string, value: string): Promise<StoredStringMap> {
     const insert = async (reference: number): Promise<number> => {
-      if (!reference) return this.write({ prefix, uri, left: 0, right: 0, height: 1 });
+      if (!reference) return this.write({ key, value, left: 0, right: 0, height: 1 });
       const entry = await this.read(reference);
-      const checkpoint = this.budget.tick(prefix.length + uri.length + 1); if (checkpoint) await checkpoint;
-      if (prefix === entry.prefix) return entry.uri === uri ? reference : this.write({ ...entry, uri });
-      const side = prefix < entry.prefix ? "left" : "right";
+      const checkpoint = this.budget.tick(key.length + value.length + 1); if (checkpoint) await checkpoint;
+      if (key === entry.key) return entry.value === value ? reference : this.write({ ...entry, value });
+      const side = key < entry.key ? "left" : "right";
       const child = await insert(entry[side]);
       return child === entry[side] ? reference : this.balance({ ...entry, [side]: child });
     };
-    return new StoredNamespaces(this.storage, this.budget, await insert(this.reference));
+    return new StoredStringMap(this.storage, this.budget, await insert(this.reference));
   }
 
   async *[Symbol.asyncIterator](): AsyncGenerator<readonly [string, string]> {
-    const visit = async function* (scope: StoredNamespaces, reference: number): AsyncGenerator<readonly [string, string]> {
+    const visit = async function* (scope: StoredStringMap, reference: number): AsyncGenerator<readonly [string, string]> {
       if (!reference) return;
       const entry = await scope.read(reference);
       yield* visit(scope, entry.left);
-      yield [entry.prefix, entry.uri];
+      yield [entry.key, entry.value];
       yield* visit(scope, entry.right);
     };
     yield* visit(this, this.reference);

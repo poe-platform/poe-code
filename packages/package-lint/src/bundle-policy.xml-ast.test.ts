@@ -11,7 +11,7 @@ it.each(["node", "browser"] as const)("keeps the XML AST implementation and type
   metafile.canonicalTypes["dist/types/safe-fs/core.d.ts"]!.push("../xml-ast/index.js");
   metafile.canonicalTypes["dist/types/xml-ast/index.d.ts"] = [];
   packed.add("dist/types/xml-ast/index.d.ts");
-  for (const module of ["stream", "errors", "characters", "source", "frames"]) {
+  for (const module of ["stream", "errors", "characters", "source", "frames", "attributes"]) {
     graph.metafile.inputs[`packages/xml-ast/src/${module}.ts`] = {};
     graph.metafile.outputs[chunk]!.inputs[`packages/xml-ast/src/${module}.ts`] = {};
     metafile.canonicalTypes["dist/types/xml-ast/index.d.ts"]!.push(`./${module}.js`);
@@ -31,7 +31,7 @@ it.each(["node", "browser"] as const)("keeps the XML AST implementation and type
   expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({external: "poe-code/safe-fs", reason: "invalid-canonical-types-path"});
 });
 
-it.each(["index", "stream", "errors", "characters", "source", "frames"])("refuses independently bundled XML %s code in a consumer", module => {
+it.each(["index", "stream", "errors", "characters", "source", "frames", "attributes"])("refuses independently bundled XML %s code in a consumer", module => {
   const {manifest, metafile, packed} = canonicalBundleFixture();
   metafile.inputs[`packages/xml-ast/src/${module}.ts`] = {};
   expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({external: "poe-code/safe-fs", reason: "duplicate-canonical-runtime"});
@@ -44,7 +44,7 @@ it("refuses a second packed XML runtime outside the canonical bundle", () => {
 });
 
 it.each((["node", "browser"] as const).flatMap(profile =>
-  ["index", "characters", "source", "frames"].map(module => ({ profile, module }))))("refuses duplicated XML $module code within the $profile canonical graph", ({ profile, module }) => {
+  ["index", "characters", "source", "frames", "attributes"].map(module => ({ profile, module }))))("refuses duplicated XML $module code within the $profile canonical graph", ({ profile, module }) => {
   const {manifest, metafile, packed} = canonicalBundleFixture();
   const graph = profile === "node" ? metafile.canonicalBundle : metafile.browserCanonicalBundle;
   const directory = `dist/shared/safe-js/${profile === "browser" ? "browser/" : ""}`;
@@ -62,6 +62,7 @@ it("collects emitted XML declarations for canonical closure inspection", async (
     "/repo/dist/types/xml-ast/characters.d.ts": "export declare function validCharacter(point: number): boolean;",
     "/repo/dist/types/xml-ast/source.d.ts": "export declare class XmlSource {}",
     "/repo/dist/types/xml-ast/frames.d.ts": 'import type { XmlElement } from "./index.js";',
+    "/repo/dist/types/xml-ast/attributes.d.ts": "export declare class XmlAttributes {}",
     "/repo/dist/types/xml-ast/unapproved.d.ts": "export {};",
   });
   const result = await collectCanonicalDeclarations("/repo", fs);
@@ -73,6 +74,7 @@ it("collects emitted XML declarations for canonical closure inspection", async (
     "dist/types/xml-ast/characters.d.ts": [],
     "dist/types/xml-ast/source.d.ts": [],
     "dist/types/xml-ast/frames.d.ts": ["./index.js"],
+    "dist/types/xml-ast/attributes.d.ts": [],
   });
 });
 

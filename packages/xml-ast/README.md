@@ -72,6 +72,17 @@ never changes ancestor scopes. In this mode event elements have an empty
 The codec remains filesystem-independent, and individual names, attribute values
 and namespace URIs still need a token storage strategy.
 
+Set `storeAttributes: true` to move current-tag attribute values, source order,
+and duplicate-name state behind `attributeOperation` requests (`has`, `append`,
+`read`, and `expanded`). Service the request's `found` or `result` field as described
+by `XmlAttributeRequest`, keeping records in caller-owned backing. With this flag,
+element `attributes` arrays are empty. Supply `onAttribute(attribute, element)` to
+receive resolved attributes in source order, after the open event and before any
+content or close event. The parser yields between attributes so a host can await
+storage or a consumer. Namespace declarations may follow prefixed attributes;
+resolution and duplicate-expanded-name validation still happen after the complete
+start tag. Individual attribute names and values retain their token cost.
+
 Pass `undefined` as the source length to parse incrementally. Such read requests
 have `streaming: true` and request at most 512 UTF-16 units. Return any nonempty
 prefix available without pulling more input; set `complete: true` only when that

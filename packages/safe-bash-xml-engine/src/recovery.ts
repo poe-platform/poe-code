@@ -1,10 +1,12 @@
-import { StoredNamespaces } from "./stored-namespaces.js";
+import { StoredParserAttributes } from "./parser-attributes.js";
+import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
 import { StoredXmlFrames } from "./frames.js";
-import { normalizeXmlChunks, parseXmlSourceSteps, type XmlElement } from "@poe-code/safe-fs/core";
+import { normalizeXmlChunks, parseXmlSourceSteps, type XmlElement, type XmlAttribute } from "@poe-code/safe-fs/core";
 import { PagedStorage, PagedStorageCache, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { XmlBudget } from "./limits.js";
 
-type XmlEvent = Parameters<NonNullable<NonNullable<Parameters<typeof parseXmlSourceSteps>[1]>["events"]>>[0];
+type XmlEvent = Parameters<NonNullable<NonNullable<Parameters<typeof parseXmlSourceSteps>[1]>["events"]>>[0]
+  | { type: "attribute"; attribute: XmlAttribute; element: XmlElement };
 
 /** Parse lazy input, or prevalidated recovery input, through a shared 64 KiB source/frame cache.
  * The parser retains only its current source window, tokens and the current frame. */
@@ -39,9 +41,10 @@ export async function parseStoredXml(
     if (recover) while (!sourceDone) await readNext();
     const queued: XmlEvent[] = [];
     const frames = new StoredXmlFrames(frameStorage);
+    const attributes = new StoredParserAttributes(frameStorage, budget);
     const parser = parseXmlSourceSteps(recover ? length : undefined, {
-      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, fragmentContent: true, compactDeclaration: true,
-      ...(recover ? { recover } : {}), ...(consume ? { events: (event: XmlEvent) => { queued.push(event); } } : {}),
+      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, storeAttributes: true, fragmentContent: true, compactDeclaration: true,
+      ...(recover ? { recover } : {}), ...(consume ? { events: (event: XmlEvent) => { queued.push(event); }, onAttribute: (attribute: XmlAttribute, element: XmlElement) => { queued.push({ type: "attribute", attribute, element }); } } : {}),
     });
     let step = parser.next();
     try {
@@ -51,6 +54,8 @@ export async function parseStoredXml(
         if (step.done) { await frameStorage.close(); await storage.close(); return step.value; }
         if (typeof step.value === "number") {
           const checkpoint = budget.tick(step.value); if (checkpoint) await checkpoint;
+        } else if ("attributeOperation" in step.value) {
+          await attributes.execute(step.value);
         } else if ("namespaceOperation" in step.value) {
           const request = step.value;
           const scope = new StoredNamespaces(frameStorage, budget, request.scope.reference);

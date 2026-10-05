@@ -1,7 +1,7 @@
 import { parseStoredXml } from "./recovery.js";
-import { parseXmlStream, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
+import { type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
-import { StoredNamespaces } from "./stored-namespaces.js";
+import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
 import { XmlBudget } from "./limits.js";
 
 // Fixed-size links are separate from the variable-size node metadata. Pointers
@@ -12,7 +12,7 @@ const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField
 const textFlag = 1, preserveSpaceFlag = 2;
 
 export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
-type XmlStreamEvent = Parameters<NonNullable<NonNullable<Parameters<typeof parseXmlStream>[1]>["events"]>>[0];
+type XmlStreamEvent = Parameters<NonNullable<Parameters<typeof parseStoredXml>[4]>>[0];
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
   kind: "element"; name: string; localName: string; namespace: string;
   declaration?: string;
@@ -43,6 +43,15 @@ export class StoredXmlDocument {
       await document.set(document.documentReference, namespacesField, namespaces.reference);
       let parent = document.documentReference, fragmentTail = 0;
       const consume = async (event: XmlStreamEvent): Promise<void> => {
+          if (event.type === "attribute") {
+            await document.append(parent, { kind: "attribute", value: event.attribute });
+            if (event.attribute.namespace === "http://www.w3.org/2000/xmlns/") {
+              const scope = await document.namespaceScope(parent);
+              const updated = await scope.set(event.attribute.name === "xmlns" ? "" : event.attribute.localName, event.attribute.value);
+              await document.set(parent, namespacesField, updated.reference);
+            }
+            return;
+          }
           if (event.type === "close") { parent = await document.field(parent, parentField); return; }
           let metadata: Metadata;
           if (event.type === "content") metadata = event.content;
@@ -56,13 +65,8 @@ export class StoredXmlDocument {
           if (continuation) await document.set(fragmentTail, fragmentField, reference);
           fragmentTail = reference;
           if (event.type === "open") {
-            let namespaces = await document.namespaceScope(parent);
-            for (const attribute of event.element.attributes) if (attribute.namespace === "http://www.w3.org/2000/xmlns/")
-              namespaces = await namespaces.set(attribute.name === "xmlns" ? "" : attribute.localName, attribute.value);
+            const namespaces = await document.namespaceScope(parent);
             await document.set(reference, namespacesField, namespaces.reference);
-            for (const attribute of event.element.attributes) {
-              await document.append(reference, { kind: "attribute", value: attribute });
-            }
             if (!document.rootReference) document.rootReference = reference;
             parent = reference;
           }
@@ -140,6 +144,7 @@ export class StoredXmlDocument {
     return new StoredNamespaces(this.storage, this.budget, await this.field(reference, namespacesField));
   }
 
+  /** Load scalar metadata only; attributes and namespace scopes have separate iterators. */
   async metadata(reference: number): Promise<XmlContent | StoredXmlAttribute> {
     const size = await this.field(reference, sizeField);
     const decoder = new TextDecoder();

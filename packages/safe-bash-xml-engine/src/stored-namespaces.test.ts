@@ -3,7 +3,7 @@ import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { XmlBudget, resolveXmlQueryLimits } from "./limits.js";
-import { StoredNamespaces } from "./stored-namespaces.js";
+import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
 
 for (const order of [1, -1, 73]) test(`stored namespace scopes preserve ancestors and shadowing (order=${order})`, async () => {
   const fs = createMemoryFileSystem(), signal = new AbortController().signal;

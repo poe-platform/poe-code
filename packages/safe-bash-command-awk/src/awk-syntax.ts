@@ -372,7 +372,8 @@ export class AwkParser {
     }
     if (token.kind === "name") {
       const name = this.name();
-      if (this.accept("(")) {
+      // Built-ins allow whitespace before arguments; user function calls require adjacency.
+      if ((Object.hasOwn(this.arities, name) || this.token.offset === token.offset + name.length) && this.accept("(")) {
         this.newlines();
         const args: Expression[] = [];
         if (!this.at(")")) do { this.newlines(); args.push(this.expression()); } while (this.accept(","));

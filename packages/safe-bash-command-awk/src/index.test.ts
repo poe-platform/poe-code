@@ -26,6 +26,19 @@ test("standalone awk works with only portable filesystem and command contracts",
   assert.equal(result.stdout, "right\n");
 });
 
+for (const [program, expected] of [
+  ['BEGIN { a = "hello"; b = a ("-") "world"; print b }', "hello-world\n"],
+  ['BEGIN { prefix = "value="; x = 2; print prefix (x + 1) }', "value=3\n"],
+  ['BEGIN { a = "left"; b = 1; c = "right"; print a (b ? "," : "") c }', "left,right\n"],
+  ['BEGIN { a = "hello"; print a\t("world") }', "helloworld\n"],
+  ['function wrap(x) { return "[" x "]" } BEGIN { print wrap("ok") }', "[ok]\n"],
+  ['BEGIN { print length ("abc"), substr ("abcd", 2, 2), sqrt (9) }', "3 bc 3\n"],
+] as const) test(`awk distinguishes concatenation from function calls: ${program}`, async () => {
+  const result = await run(createAwkCommand(), [program]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+});
+
 for (const redirect of ["", " > \"/dev/stdout\""]) {
   for (const [expression, expected] of [
     ['(OFS=":"), "b"', "::b\n"],

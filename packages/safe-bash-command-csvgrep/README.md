@@ -42,7 +42,7 @@ await csvgrep(context, { columns: 'name,city', match: 'York', any: true });
 
 Short flags may be grouped (`-ai`) and short-option values attached (`-cx,y`, `-ma`). Use `--` before a literal path beginning with a dash. The SDK uses `columns`, `match`, `file`, `regex`, `any`, `invert`, `headerless`, `lineNumbers`, `zero`, `names` and `filePath`; input settings live in `dialect` (`delimiter`, `tabs`, `quote`, `escape`, `doubleQuote`, `skipInitialSpace`, `quoting`, `skipLines`, `encoding`, `fieldCharacters`). Default decoding is UTF-8-sig.
 
-Accepts one optional CSV path; omission or `-` reads stdin. `-f -` also reads stdin. Long value options accept `--option=value`. There is no `--help`/`--version` flag. `-z`/`--maxfieldsize` limits field length in Unicode characters; `fieldBytes` independently limits storage. No selector-name trimming or open ranges.
+Accepts one optional CSV path; omission or `-` reads stdin. `-f -` also reads stdin. Long value options accept `--option=value`. `-h`/`--help` prints usage without reading input (SDK: `help: true`). There is no `--version` flag. `-z`/`--maxfieldsize` limits field length in Unicode characters; `fieldBytes` independently limits storage. No selector-name trimming or open ranges.
 
 ```sh
 csvgrep -c name -m Alice /input.csv

@@ -715,3 +715,12 @@ function retainedFixture(load: (path: string, options: { signal: AbortSignal; ma
     async readFile() { throw new Error('whole-file fallback must not run'); },
   } as unknown as CommandContext['fs'];
 }
+
+for (const flag of ["--help", "-h"]) test(`csvgrep ${flag} prints usage without reading input`, async () => {
+ const f = fixture([flag], "");
+ const result = await createCsvgrepCommand().execute(f.context);
+ assert.equal(result.exitCode, 0, f.error());
+ assert.ok(f.text().includes("usage: csvgrep"));
+ assert.equal(f.error(), "");
+ assert.equal(f.reads(), 0);
+});

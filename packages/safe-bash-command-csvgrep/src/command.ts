@@ -28,6 +28,7 @@ const sharedEncoder = new TextEncoder();
 const byteBuffer = Object.getOwnPropertyDescriptor(bytePrototype, "buffer")!.get!;
 const byteOffset = Object.getOwnPropertyDescriptor(bytePrototype, "byteOffset")!.get!;
 export interface CsvgrepOptions extends MatchOptions {
+  help?: boolean;
   columns?: string;
   any?: boolean;
   invert?: boolean;
@@ -52,6 +53,8 @@ export function parseCsvgrepArguments(args: readonly string[], b: CsvBudget): Cs
   let operand = false,
     ended = false;
   const boolean: Record<string, keyof CsvgrepOptions> = {
+    "-h": "help",
+    "--help": "help",
     "-a": "any",
     "--any-match": "any",
     "-i": "invert",
@@ -394,6 +397,11 @@ export async function csvgrep(
           }
         }
         options = parseCsvgrepArguments(context.args, b);
+      }
+      if (options.help) {
+        await write("usage: csvgrep [options] [file]\n  -c, --columns COLUMNS  Columns to search\n  -m, --match TEXT       Match text\n  -r, --regex PATTERN    Match a regular expression\n  -f, --file FILE        Read matching values from a file\n  -i, --invert-match     Select nonmatching rows\n  -a, --any-match        Match any selected column\n  -n, --names            List column names\n  -h, --help             Show this help\n");
+        await flushStdout();
+        return { exitCode: 0, accounting: Object.freeze({ ...b.accounting, retainedBytes: 0 }) };
       }
       if (!options.names) {
         if (!options.columns)

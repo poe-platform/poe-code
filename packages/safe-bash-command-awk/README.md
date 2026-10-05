@@ -1,5 +1,7 @@
 # awk
 
+Use `awk --help` (or `awk -h`) for command usage.
+
 Run `awk` against an injected virtual filesystem with portable byte streams. Regular expressions count UTF-8 characters by default and in UTF-8 locales; C/POSIX locales retain byte matching. Use `-b` or `--characters-as-bytes` to force byte matching. String indexes and other string operations remain byte-oriented.
 
 Transform text with `gensub`, sort arrays with `asort` and `asorti`, format epoch

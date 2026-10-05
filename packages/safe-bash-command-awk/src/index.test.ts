@@ -169,3 +169,10 @@ test("awk memory-file accumulation preserves large initial values across files",
     "/second.csv": "x,y,800000000\n".repeat(20),
   }), "34147483647 2147483687 3 x,y,800000000\n");
 });
+
+for (const flag of ["--help", "-h"]) test(`awk ${flag} prints usage`, async () => {
+ const result = await run(createAwkCommand(), [flag]);
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.ok(result.stdout.includes("Usage: awk"));
+ assert.equal(result.stderr, "");
+});

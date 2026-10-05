@@ -70,6 +70,11 @@ function executeAwkSlow(
     let index = 0;
     for (; index < context.args.length; index++) {
       const argument = context.args[index]!;
+      if (argument === "--help" || argument === "-h") {
+        const help = "Usage: awk [options] 'program' [file ...]\n  -F, --field-separator FS  Set the field separator\n  -v NAME=value            Assign a variable\n  -f, --file FILE           Read the program from a file\n  -e, --source PROGRAM      Add program text\n  -h, --help                Show this help\n";
+        if (help.length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+        return write(context, help).then(() => 0);
+      }
       if (argument === "--") { index++; break; }
       if (argument === "-" || !argument.startsWith("-")) break;
       if (argument === "--characters-as-bytes" || argument === "-b") { budget.regexByteMode = true; continue; }
@@ -141,6 +146,11 @@ function executeAwkSlow(
     index = 0;
     for (; index < context.args.length; index++) {
       const argument = context.args[index]!;
+      if (argument === "--help" || argument === "-h") {
+        const help = "Usage: awk [options] 'program' [file ...]\n  -F, --field-separator FS  Set the field separator\n  -v NAME=value            Assign a variable\n  -f, --file FILE           Read the program from a file\n  -e, --source PROGRAM      Add program text\n  -h, --help                Show this help\n";
+        if (help.length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+        return write(context, help).then(() => 0);
+      }
       if (argument === "--") { index++; break; }
       if (argument === "-" || !argument.startsWith("-")) break;
       if (argument === "--characters-as-bytes" || argument === "-b") { budget.regexByteMode = true; continue; }

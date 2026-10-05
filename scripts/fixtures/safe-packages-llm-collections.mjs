@@ -125,8 +125,8 @@ export async function verifyLlmCollections() {
   });
   if(importedBytes!==4194304)throw new Error('Large CSV field was truncated');
   let jsonBytes=0;
-  // Four-byte code points plus node/index pages exceed the catalog's 1 MiB cap.
-  await withJsonEmbeddingEntries({...options,directory:'/',maxFileBytes:32*1024*1024},{async *[Symbol.asyncIterator](){
+  // The 4 MiB payload is separate from the 1 MiB index limit.
+  await withJsonEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){
     yield new TextEncoder().encode('[{"id":1e0,"body":"');
     const chunk=new Uint8Array(4096).fill(120);for(let index=0;index<1024;index++)yield chunk;
     yield new TextEncoder().encode('"}]');

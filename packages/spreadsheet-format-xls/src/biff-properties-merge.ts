@@ -2,7 +2,7 @@ import { BiffMutablePropertyValues } from './biff-property-values.js';
 import { createBiffPropertyNameEncoder } from "./biff-property-name.js";
 import { readBiffPropertyText } from "./biff-property-text.js";
 import { stageWideBiffProperty } from './biff-property-transcode.js';
-import { stagePropertyBytes, propertyChunks } from './biff-property-bytes.js';
+import { stagePropertyBytes, propertyChunks, type BiffPropertyBytes } from './biff-property-bytes.js';
 import type { BiffPropertySource } from './biff-encrypted-properties-write.js';
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, UnsupportedRecord, Workbook } from "@poe-code/spreadsheet-ast";
@@ -127,15 +127,21 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
       yield { id, name, bytes: data.slice(start, at - start) };
     }
   };
-  const writeDictionary = async (section: Section, plan: { length: number; count: number; remove?: number; append?: BiffPropertyRange }) => {
+  const reserve = staged?.reserve ?? ((length: number) => {
+    charge(length);
+    if (length > 0xffffffff || length > context.limits.outputBytes)
+      throw new SsconvertError("resource-limit", "ssconvert BIFF property output bytes limit exceeded");
+    return length;
+  });
+  const writeDictionary = async (section: Section, plan: { length: number; count: number; remove?: number; append?: BiffPropertyBytes }) => {
     const output = { length: plan.length, async *chunks() {
       const header = new Uint8Array(4); new DataView(header.buffer).setUint32(0, plan.count, true); yield header;
       for await (const entry of dictionary(section, false)) if (entry.id !== plan.remove) { charge(entry.bytes.size); yield* chunks(entry.bytes); }
-      if (plan.append) { charge(plan.append.size); yield* chunks(plan.append); }
+      if (plan.append) { charge(plan.append.length); yield* propertyChunks(plan.append); }
     } };
     if (staged) {
-      staged.reserve(plan.length); const source = await stagePropertyBytes(output, context); temporarySources.push(source);
-      await section.values!.set(0, propertyRange(source, context));
+      staged.reserve(plan.length);
+      await section.values!.set(0, { size: plan.length, chunks: output.chunks });
     } else {
       const bytes = allocate(plan.length); let at = 0;
       for await (const part of output.chunks()) { bytes.set(part, at); at += part.length; }
@@ -234,26 +240,14 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
         view.setUint32(0, id, true); view.setUint32(4, text.length / (cp === 1200 ? 2 : 1), true); yield header;
         yield* propertyChunks(text); if (length > size) yield new Uint8Array(length - size);
       } };
-      let bytes: BiffPropertyRange;
-      if (staged) {
-        staged.reserve(length); const source = await stagePropertyBytes(entry, context); temporarySources.push(source);
-        bytes = propertyRange(source, context);
-      } else {
-        const data = allocate(length); let at = 0;
-        for (const part of entry.chunks()) { data.set(part, at); at += part.length; }
-        bytes = propertyRange(data, context);
-      }
-      await writeDictionary(target, { length: dictionaryLength + bytes.size, count: count + 1, append: bytes });
+      // Preserve admission for the entry while writing its chunks directly into
+      // the rebuilt dictionary, without a separate store per inserted name.
+      reserve(length);
+      await writeDictionary(target, { length: dictionaryLength + length, count: count + 1, append: entry });
     } else if (await values.get(id)) { await warn(property.key, "opaque property ID collision"); continue; }
     await values.set(id, await wide(value, target));
   }
 
-  const reserve = staged?.reserve ?? ((length: number) => {
-    charge(length);
-    if (length > 0xffffffff || length > context.limits.outputBytes)
-      throw new SsconvertError("resource-limit", "ssconvert BIFF property output bytes limit exceeded");
-    return length;
-  });
   type Output = { length: number; chunks(): AsyncIterable<Uint8Array> };
   const encodeSection = async (section: Section): Promise<Output> => {
     if (!section.values) return { length: section.bytes.size, chunks: () => chunks(section.bytes) };

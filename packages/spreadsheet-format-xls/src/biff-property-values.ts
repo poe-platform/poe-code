@@ -1,7 +1,7 @@
 import { IntegerTable } from '@poe-code/safe-fs/storage';
 import { SsconvertError, type CapabilityContext, type WorkingStorage } from '@poe-code/spreadsheet-engine/contracts';
 import { Binary, invalidBiff } from './biff-binary.js';
-import { BiffPropertyRange } from './biff-property-range.js';
+import { BiffPropertyRange, propertyRange } from './biff-property-range.js';
 
 /** Mutable insertion order with immutable payload snapshots. Deleted payloads remain
  * readable until close, so values can be moved between independently edited sections. */
@@ -52,17 +52,48 @@ export class BiffMutablePropertyValues {
     const record = new Binary(await this.read(Number(position), 32));
     return new BiffPropertyRange(this.root, record.f64(8), record.f64(16));
   }
-  async set(id: number, value: BiffPropertyRange): Promise<void> {
+  async set(id: number, value: BiffPropertyRange | { readonly size: number; chunks(): AsyncIterable<Uint8Array> }): Promise<void> {
     this.check();
-    if (this.fallback) { this.fallback.set(id, value); return; }
+    if (!(value instanceof BiffPropertyRange) && (!Number.isSafeInteger(value.size) || value.size < 0 || value.size > this.context.limits.outputBytes))
+      throw new SsconvertError('resource-limit', 'Invalid BIFF mutable property serialization size');
+    if (this.fallback && value instanceof BiffPropertyRange) { this.fallback.set(id, value); return; }
+    const chunks = async function* () {
+      if (!(value instanceof BiffPropertyRange)) { yield* value.chunks(); return; }
+      for (let at = 0; at < value.size;) {
+        const bytes = await value.read(at, Math.min(16384, value.size - at));
+        try { at += bytes.length; yield bytes; } finally { bytes.fill(0); }
+      }
+    };
+    if (this.fallback) {
+      const bytes = new Uint8Array(value.size); let at = 0;
+      for await (const part of chunks()) {
+        this.check();
+        if (part.length > bytes.length - at) invalidBiff('invalid mutable property serialization size');
+        bytes.set(part, at); at += part.length;
+      }
+      this.check();
+      if (at !== bytes.length) invalidBiff('truncated mutable property serialization');
+      this.fallback.set(id, propertyRange(bytes, this.context)); return;
+    }
     this.charge(value.size);
     if (!this.initialized) { this.allocate(8); this.initialized = true; }
     const existing = await this.index!.get(BigInt(id)); this.check();
     const data = this.allocate(value.size);
-    for (let at = 0; at < value.size;) {
-      const bytes = await value.read(at, Math.min(16384, value.size - at));
-      try { await this.write(data + at, bytes); at += bytes.length; } finally { bytes.fill(0); }
-    }
+    const buffer = new Uint8Array(Math.min(16384, value.size)); let written = 0, used = 0;
+    try {
+      for await (const part of chunks()) {
+        this.check();
+        if (part.length > value.size - written - used) invalidBiff('invalid mutable property serialization size');
+        for (let at = 0; at < part.length;) {
+          const count = Math.min(buffer.length - used, part.length - at);
+          buffer.set(part.subarray(at, at + count), used); used += count; at += count;
+          if (used === buffer.length) { await this.write(data + written, buffer); written += used; used = 0; }
+        }
+      }
+      this.check();
+      if (written + used !== value.size) invalidBiff('truncated mutable property serialization');
+      if (used) await this.write(data + written, buffer.subarray(0, used));
+    } finally { buffer.fill(0); }
     const record = new Uint8Array(32), view = new DataView(record.buffer);
     view.setFloat64(8, data, true); view.setFloat64(16, value.size, true); view.setUint32(24, id, true); view.setUint32(28, 1, true);
     if (existing) { await this.write(Number(existing) + 8, record.subarray(8, 24)); return; }

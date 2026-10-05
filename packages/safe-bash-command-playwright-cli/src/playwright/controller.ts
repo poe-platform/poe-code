@@ -895,6 +895,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       }
     };
     const retireForCommand = async (session: Session, force = false) => {
+      // A retiring lease no longer accepts trace reads; share its cleanup outcome.
+      if (session.releasing) return session.releasing;
       const errors: unknown[] = [];
       if (!force) try { await flushTrace(session); } catch (error) { errors.push(error); }
       try { await (force ? release(session) : checkpointAndRelease(session, local.signal)); } catch (error) { errors.push(error); }

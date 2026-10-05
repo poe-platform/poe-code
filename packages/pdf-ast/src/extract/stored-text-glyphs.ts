@@ -1,8 +1,14 @@
-import { decodeStoredPdfString, type PdfPlacedGlyph } from "../ast.js";
+import { decodeStoredPdfString, type PdfStoredBytes, type PdfPlacedGlyph } from "../ast.js";
 
-export async function* glyphText(glyph: PdfPlacedGlyph, signal: AbortSignal): AsyncGenerator<string, void, void> {
+export type PdfTextGlyph = PdfPlacedGlyph & {readonly storedUnicode?: PdfStoredBytes};
+
+export async function* glyphText(glyph: PdfTextGlyph, signal: AbortSignal): AsyncGenerator<string, void, void> {
   if (glyph.actualText === undefined && glyph.storedActualText) {
     yield* decodeStoredPdfString(glyph.storedActualText, signal);
+  } else if(glyph.actualText===undefined&&glyph.storedUnicode){
+    const source=glyph.storedUnicode;
+    if(!Number.isSafeInteger(source.byteLength)||source.byteLength<0||source.byteLength%2)throw new RangeError("Invalid stored glyph text length");
+    for(let at=0;at<source.byteLength;at+=4096){signal.throwIfAborted();const size=Math.min(4096,source.byteLength-at),bytes=await source.storage.read(source.position+at,size,{signal});if(bytes.length!==size)throw new Error("Incomplete stored glyph text");const view=new DataView(bytes.buffer,bytes.byteOffset,size),codes=new Uint16Array(size/2);for(let i=0;i<codes.length;i++)codes[i]=view.getUint16(i*2);yield String.fromCharCode(...codes);if(at&&at%65536===0)await new Promise<void>(resolve=>setTimeout(resolve,0));}
   } else {
     const text = glyph.actualText ?? glyph.unicode;
     for (let at = 0; at < text.length; at += 2048) {

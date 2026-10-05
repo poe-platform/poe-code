@@ -6,16 +6,17 @@ import { PdfRawTextIndex } from "./raw-text-index.js";
 function glyph(unicode: string, x: number, y: number, extra: Partial<PdfPlacedGlyph> = {}): PdfPlacedGlyph {
   return { unicode, charCode: 65, bbox: [x, y, x + 5, y + 10], baselineY: y, advanceWidth: 5, matrix: [1, 0, 0, 1, x, y], fontSize: 10, fontName: "Helvetica", color: { r: 0, g: 0, b: 0 }, ...extra };
 }
-const cases = [[], [glyph("a", 0, 80), glyph("b", 5, 80), glyph("next", 25, 80), glyph("line", 0, 65)],
+const generated=Array.from({length:257},(_,i)=>glyph(String.fromCharCode(65+i%26),(i*71)%200,(i*31)%120,{fontSize:8+i%12}));
+const cases = [generated,[glyph("right1",150,80),glyph("left1",0,80),glyph("right2",150,65),glyph("left2",0,65)], [], [glyph("a", 0, 80), glyph("b", 5, 80), glyph("next", 25, 80), glyph("line", 0, 65)],
   [glyph("Heading", 0, 100, { fontSize: 18 }), glyph("body", 0, 80), glyph("•", 0, 60), glyph("item", 20, 60)],
   [glyph(" ", 0, 80), glyph("right", 100, 80), glyph("left", -10, 80), glyph("next", -10, 65)],
   [glyph("x", 0, 80, { actualText: "replacement", mcid: 1 }), glyph("y", 5, 80, { actualText: "replacement", mcid: 1 }), glyph("z", 10, 80)],
   [glyph("\ud83d", 0, 80), glyph("\ude00", 5, 80), glyph("日本語", 10, 80), glyph("-", 0, 65), glyph("item", 25, 65)]];
-for (const [index, glyphs] of cases.entries()) it(`retains raw word/line/block geometry and text (${index})`, async () => {
+for (const mode of ["raw", "bbox", "logical", "layout"] as const) for (const [index, glyphs] of cases.entries()) it(`retains ${mode} word/line/block geometry and text (${index})`, async () => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
   const display: PdfDisplayList = { pageIndex: 0, width: 200, height: 200, rotation: 0, glyphs, paths: [], images: [], operations: [], annotations: [] };
-  const expected = extractPageFromDisplayList(display, { mode: "raw" });
-  const table = await PdfRawTextIndex.create(glyphs, { fs, directory: "/scratch" });
+  const expected = extractPageFromDisplayList(display, { mode });
+  const table = await PdfRawTextIndex.create(glyphs, { fs, directory: "/scratch" }, { mode, pageWidth: 200 });
   try {
     const blocks = [];
     for await (const block of table.blocks()) {
@@ -251,4 +252,16 @@ it("reads a shared stored replacement once for a long glyph run", async () => {
     for await (const block of table.blocks()) for await (const line of block.lines()) for await (const word of line.words()) for await (const part of word.text()) length += part.length;
     expect(length).toBe(100000); expect(reads).toBe(Math.ceil(100000 / 4096));
   } finally { await table.close(); }
+});
+
+it("charges coexisting text order caches before consuming the producer", async () => {
+  const fs=createMemoryFileSystem();await fs.mkdir('/scratch');let consumed=false;
+  function* source(){consumed=true;yield glyph('a',0,80);}
+  await expect(PdfRawTextIndex.create(source(),{fs,directory:'/scratch'},{mode:'bbox',maxWorkingBytes:81920})).rejects.toMatchObject({code:'E_LIMIT'});
+  expect(consumed).toBe(false);
+});
+it("charges all coexisting text storage owners to the same limit", async () => {
+  const fs=createMemoryFileSystem();await fs.mkdir('/scratch');
+  await expect(PdfRawTextIndex.create([glyph('a',0,80)],{fs,directory:'/scratch'},{mode:'bbox',maxStorageBytes:16384})).rejects.toMatchObject({code:'E_LIMIT'});
+  expect(await fs.readdir('/scratch')).toEqual([]);
 });

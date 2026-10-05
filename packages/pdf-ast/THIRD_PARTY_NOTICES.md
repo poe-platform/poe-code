@@ -601,3 +601,18 @@ uses the converted structure directly. Type1 parsing admits lexer token growth,
 decryption buffers, CID glyph/offset tables, fallback glyph copies, and every
 recursive charstring conversion before allocation. Skipped comments do not
 reserve token-sized buffers.
+
+# Python / V8 stable sorting
+
+`src/extract/text-sort.ts` adapts the TimSort implementation in V8
+14.6.202.34 (`third_party/v8/builtins/array-sort.tq`), derived from Python.
+Copyright (c) 2001–2018 Python Software Foundation; all rights reserved.
+V8 contributions are copyright the V8 project authors. See
+`licenses/PYTHON-PSF.txt` and `licenses/V8-BSD.txt` for the respective terms.
+
+The adaptation replaces resident work and temporary arrays with resumable
+record-read, record-write and comparison requests. Scalar run state and the
+comparison decisions are retained; allocation, I/O and cancellation belong to
+the driver.
+
+Source: https://github.com/v8/v8/blob/14.6.202.34/third_party/v8/builtins/array-sort.tq

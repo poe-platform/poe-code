@@ -10,6 +10,9 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { encodePopplerChunks } from "./output-encoding.js";
 
 interface RawTextPlan {
+  readonly raw: boolean;
+  readonly layout: boolean;
+  readonly colspacing?: number;
   readonly inputFile?: string;
   readonly outputFile?: string;
   readonly opw?: string;
@@ -65,7 +68,7 @@ async function publish(context: CommandContext, path: string, source: PdfFileSou
 }
 
 /** Keep raw command inputs and all-or-nothing output on caller-authorized
- * retained storage. Other extraction modes keep their existing command path. */
+ * retained storage. Ordered bbox output uses the same retained publication path. */
 export async function executeRetainedRawText(context: CommandContext, plan: RawTextPlan, stdout: ByteSink, signal: AbortSignal, maxInputBytes = Infinity): Promise<{ exitCode: number }> {
   const encoder = new TextEncoder(), inputPath = plan.inputFile ?? "-", outputPath = plan.outputFile ?? "-";
   const warning = plan.invalidEolWarning ? "Bad '-eol' value on command line\n" : "";

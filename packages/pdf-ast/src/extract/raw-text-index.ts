@@ -1,6 +1,8 @@
-import { glyphText, sameReplacement } from "./stored-text-glyphs.js";
+import {logicalTextGlyphs} from "./logical-text-glyphs.js";
+import {orderedTextGlyphs,type PdfOrderedTextGlyph} from "./ordered-text-glyphs.js";
+import { glyphText, sameReplacement, type PdfTextGlyph } from "./stored-text-glyphs.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import type { PdfPlacedGlyph, PdfRect } from "../ast.js";
+import type { PdfRect } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
 import { glyphDirection, mergeBBox } from "./text-glyphs.js";
@@ -8,13 +10,15 @@ import type { ExtractTextOptions } from "./text.js";
 
 /** Retained extraction may borrow replacement text from caller-owned storage.
  * An explicit actualText string takes precedence. Keep storage alive until create completes. */
-export type PdfRawTextGlyph = PdfPlacedGlyph;
+export type PdfRawTextGlyph = PdfTextGlyph;
 
-export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discardDiagonal" | "clipText"> {
+export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discardDiagonal" | "clipText" | "mode" | "colSpacing"> {
   /** Page-rounded high-water allocation, including records and UTF-16 text. */
   readonly maxStorageBytes?: number;
+  /** Required page geometry for logical column classification. */
+  readonly pageWidth?: number;
   /** Fixed scratch: 81920 bytes for string inputs, 131072 when decoding stored
-   * replacements. Caller-owned glyph strings are not included. */
+   * replacements, 327680 for geometric order, 409600 for logical column order (three caches and normalization). Caller-owned glyph strings are not included. */
   readonly maxWorkingBytes?: number;
   readonly maxWords?: number;
   readonly maxLines?: number;
@@ -50,18 +54,19 @@ export class PdfRawTextIndex {
   private readonly signal: AbortSignal;
   private readonly textBuffer = new Uint8Array(4096);
   private allocated = 8;
+  private orderStorage = 0;
   private firstBlock = 0;
   private blockCount = 0;
   private closed = false;
   private closing: Promise<void> | undefined;
-  private constructor(storage: PdfIndexStorage, private readonly options: PdfRawTextIndexOptions) {
+  private constructor(private readonly storage: PdfIndexStorage, private readonly options: PdfRawTextIndexOptions) {
     this.signal = options.signal ?? new AbortController().signal;
     this.backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal: this.signal }, 4);
   }
   static async create(glyphs: AsyncIterable<PdfRawTextGlyph> | Iterable<PdfRawTextGlyph>, storage: PdfIndexStorage,
     options: PdfRawTextIndexOptions = {}): Promise<PdfRawTextIndex> {
     for (const value of [options.maxStorageBytes, options.maxWorkingBytes, options.maxWords, options.maxLines, options.maxBlocks]) maximum(value);
-    if (maximum(options.maxWorkingBytes) < 81920) throw new PdfError("E_LIMIT", "PDF text index working byte limit exceeded");
+    if (maximum(options.maxWorkingBytes) < (options.mode !== undefined && options.mode !== "raw" ? (options.mode === "logical" ? 409600 : 327680) : 81920)) throw new PdfError("E_LIMIT", "PDF text index working byte limit exceeded");
     options.signal?.throwIfAborted();
     const table = new PdfRawTextIndex(storage, options);
     try { await table.build(glyphs); return table; }
@@ -71,7 +76,7 @@ export class PdfRawTextIndex {
   private allocate(length: number) {
     this.assertOpen();
     const end = this.allocated + length;
-    if (!Number.isSafeInteger(end) || Math.ceil(end / 16384) * 16384 > maximum(this.options.maxStorageBytes)) throw new PdfError("E_LIMIT", "PDF text index storage byte limit exceeded");
+    if (!Number.isSafeInteger(end) || Math.ceil(end / 16384) * 16384 + this.orderStorage > maximum(this.options.maxStorageBytes)) throw new PdfError("E_LIMIT", "PDF text index storage byte limit exceeded");
     const position = this.backing.allocate(length); this.allocated = end; return position;
   }
   private async writeRecord(position: number, values: readonly number[]) {
@@ -92,7 +97,16 @@ export class PdfRawTextIndex {
       await this.backing.write(position, this.textBuffer.subarray(0, count * 2)); at += count;
     }
   }
-  private async build(input: AsyncIterable<PdfRawTextGlyph> | Iterable<PdfRawTextGlyph>) {
+  private async build(source: AsyncIterable<PdfRawTextGlyph> | Iterable<PdfRawTextGlyph>) {
+    const ordered=this.options.mode!==undefined&&this.options.mode!=="raw";
+    const backing={allocate:(length:number)=>this.allocate(length),read:this.backing.read.bind(this.backing),write:this.backing.write.bind(this.backing)};
+    const orderOptions={...this.options,accountStorage:(delta:number)=>{
+      const total=this.orderStorage+delta;
+      if(total+Math.ceil(this.allocated/16384)*16384>maximum(this.options.maxStorageBytes))throw new PdfError("E_LIMIT","PDF text index storage byte limit exceeded");
+      this.orderStorage=total;
+    }};
+    const sorted=ordered?orderedTextGlyphs(source,backing,this.storage,orderOptions):undefined;
+    const input=sorted?(this.options.mode === "logical"?logicalTextGlyphs(sorted,backing,this.storage,this.options.pageWidth??0,orderOptions):sorted):source;
     type Box = [number, number, number, number];
     type Line = { direction: ReturnType<typeof glyphDirection>; referenceSize: number; baseline: number; firstWord: number; lastWord: number; count: number; bbox?: Box; fontSize: number; prefix: string; prefixStarted: boolean };
     type Block = { kind: number; firstLine: number; count: number; bbox: Box };
@@ -141,7 +155,7 @@ export class PdfRawTextIndex {
         const possibleSpace = part.value === " " || part.value === "\t";
         const next = possibleSpace ? await text.next() : undefined;
         const direction = glyphDirection(glyph);
-        if (line && !(line.direction.ux * direction.ux + line.direction.uy * direction.uy > 0.85 && Math.abs(direction.normal - line.direction.normal) <= Math.max(line.referenceSize, glyph.fontSize) * 0.45)) await flushLine();
+        if (line && (ordered ? (glyph as PdfOrderedTextGlyph).lineStart : !(line.direction.ux * direction.ux + line.direction.uy * direction.uy > 0.85 && Math.abs(direction.normal - line.direction.normal) <= Math.max(line.referenceSize, glyph.fontSize) * 0.45))) await flushLine();
         line ??= { direction, referenceSize: glyph.fontSize, baseline: glyph.baselineY, firstWord: 0, lastWord: 0, count: 0, fontSize: 12, prefix: "", prefixStarted: false };
         if (possibleSpace && next?.done) { await flushWord(); return; }
         if (previousGlyph && direction.along - (previousGlyph.along + previousGlyph.advance) > Math.max(previousGlyph.fontSize, glyph.fontSize) * 0.22) await flushWord();
@@ -171,6 +185,7 @@ export class PdfRawTextIndex {
         this.assertOpen(); if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0)); this.signal.throwIfAborted();
         const next = await iterator.next(); if (next.done) { complete = true; break; }
         const glyph = next.value;
+        if(ordered){await accept(glyph);continue;}
         if (glyph.actualText === undefined && glyph.storedActualText && maximum(this.options.maxWorkingBytes) < 131072) throw new PdfError("E_LIMIT", "PDF text index working byte limit exceeded");
         // Paint captures/outlines are irrelevant to text grouping. Do not retain
         // them with ActualText's one pending normalized glyph.

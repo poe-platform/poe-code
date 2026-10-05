@@ -203,8 +203,12 @@ to the current line and preserving original paragraph boundaries. `chunkBytes` b
 `maxWorkingBytes` admits formatter scratch before input is pulled. Page resource
 and rendering allocations still belong to the evaluator described above.
 
-`page.indexRawText(storage, options)` retains raw-order blocks, lines, words and
-geometry on caller storage. `PdfRawTextIndex.create(glyphs, storage, options)`
+`page.indexText(storage, options)` retains logical-order blocks, lines, words and
+geometry on caller storage. Select `mode: "layout"`, `"bbox"` or `"raw"` to change
+ordering; `page.indexRawText()` preserves raw order. Geometric and logical sorts
+keep identities and temporary arrays in caller backing, sharing storage admission
+with text records. Logical ordering detects two columns using the page width.
+`PdfRawTextIndex.create(glyphs, storage, options)`
 accepts an existing glyph stream, including `PdfRawTextGlyph` values with a
 `storedActualText` byte range on caller-owned storage. Stored replacements decode
 in bounded chunks and adjacent equal replacements collapse by decoded content,

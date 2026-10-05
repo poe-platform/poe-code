@@ -72,3 +72,14 @@ it.each(["plain", "compressed", "encrypted", "encrypted-compressed"])("streams n
   } finally { await document.close(); await source.close(); await backing.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it('indexes logical page columns through the retained SDK',async()=>{
+  const original=PdfDocument.create(),page=original.addPage({width:200,height:200});
+  dictSet(page.pageDict,'Resources',cosDict({Font:cosDict({F:cosDict({Type:cosName('Font'),Subtype:cosName('Type1'),BaseFont:cosName('Helvetica')})})}));
+  page.setRawContentStream('BT /F 10 Tf 1 0 0 1 150 80 Tm (R1) Tj 1 0 0 1 0 80 Tm (L1) Tj 1 0 0 1 150 65 Tm (R2) Tj 1 0 0 1 0 65 Tm (L2) Tj ET');
+  const fs=createMemoryFileSystem();await fs.mkdir('/scratch');await fs.writeFile('/input',original.save());
+  const storage={fs,directory:'/scratch'},source=await PdfFileSource.open(fs,'/input'),document=await PdfRetainedDocument.open(source,storage);
+  try{const retained=(await document.pages().next()).value!,index=await retained.indexText(storage);
+    try{const words:string[]=[];for await(const block of index.blocks())for await(const line of block.lines())for await(const word of line.words()){let text='';for await(const part of word.text())text+=part;words.push(text);}expect(words).toEqual(['L1','L2','R1','R2']);}finally{await index.close();}
+  }finally{await document.close();await source.close();}expect(await fs.readdir('/scratch')).toEqual([]);
+});

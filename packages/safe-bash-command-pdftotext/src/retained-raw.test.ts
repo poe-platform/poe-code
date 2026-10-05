@@ -207,3 +207,12 @@ for (const mode of ["-bbox", "-bbox-layout"]) for (const flags of [[], ["-r", "1
     assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: 1 }); await f.clean();
   });
 }
+
+for(const flags of [['-bbox'],['-bbox-layout'],['-layout','-bbox-layout'],['-colspacing','0.3','-bbox']])test(`retained ordered bounds preserve bytes: ${flags.join(' ')}`,async()=>{
+  const doc=PdfDocument.create(),page=doc.addPage({width:200,height:200});
+  page.drawText('R1',{x:150,y:80,size:10});page.drawText('L1',{x:0,y:80,size:10});page.drawText('R2',{x:150,y:65,size:10});page.drawText('L2',{x:0,y:65,size:10});
+  const input=doc.save(),args=[...flags,'input.pdf','-'],expected=await runPdftotextCli(args,new Map([['input.pdf',input]])),f=await fixture(input,args);
+  assert.equal((await createPdftotextCommand().execute(f.context)).exitCode,expected.exitCode);
+  assert.equal(new TextDecoder().decode(joined(f.stdout)),expected.output);assert.equal(new TextDecoder().decode(joined(f.stderr)),expected.stderr);
+  assert.deepEqual(f.counts(),{wholeReads:0,payloadWrites:0,published:0});await f.clean();
+});

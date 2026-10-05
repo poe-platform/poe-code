@@ -621,9 +621,14 @@ export class PdfRetainedPage {
     finally { await owned?.close().catch(error => { if (!failed) throw error; }); }
   }
 
-  /** Index raw-order text geometry and strings on caller storage. The caller
-   * closes the returned index after consuming its block/line/word iterators. */
+  /** Preserve the original raw-order entry point. */
   async indexRawText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextIndexOptions = {}): Promise<PdfRawTextIndex> {
+    return this.indexText(storage,{...options,mode:"raw"});
+  }
+
+  /** Index ordered text geometry and strings on caller storage. The caller
+   * closes the returned index after consuming its block/line/word iterators. */
+  async indexText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextIndexOptions = {}): Promise<PdfRawTextIndex> {
     const shared = new PdfStagingStorage(storage, options.maxStagingBytes);
     const owned = options.imageStorage || options.pathStorage ? undefined : new PagedStorage({ fs: shared.fs, cwd: shared.directory, env: {}, signal: options.signal ?? new AbortController().signal }, 4);
     const operations = this.evaluateSteps(shared, { ...options, ...(owned ? { pathStorage: owned } : {}), retainActualText: true });
@@ -632,7 +637,8 @@ export class PdfRetainedPage {
     }
     let index: PdfRawTextIndex | undefined;
     try {
-      index = await PdfRawTextIndex.create(glyphs(), shared, options);
+      const {mediaBox}=await this.attributes();
+      index = await PdfRawTextIndex.create(glyphs(), shared, {...options,mode:options.mode??"logical",pageWidth:Math.abs(mediaBox[2]-mediaBox[0])});
       await owned?.close();
       return index;
     } catch (error) {

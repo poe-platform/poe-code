@@ -39,7 +39,9 @@
         "./licenses/PDFIUM-BSD.txt",
         "./licenses/PYPDF-BSD.txt",
         "./licenses/AGG-2.3.txt",
-        "./licenses/MIT.txt"
+        "./licenses/MIT.txt",
+        "./licenses/V8-BSD.txt",
+        "./licenses/PYTHON-PSF.txt"
       ]
     }
   },

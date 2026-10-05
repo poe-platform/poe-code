@@ -350,8 +350,8 @@ fn glyph_edges(outline: &Outline, matrix: Matrix) -> Vec<Edge> {
     }
     edges
 }
-fn fonts() -> Result<&'static [Font<'static>; 4], &'static str> {
-    static FONTS: OnceLock<Result<[Font<'static>; 4], &'static str>> = OnceLock::new();
+fn fonts() -> Result<&'static [Font<'static>; 5], &'static str> {
+    static FONTS: OnceLock<Result<[Font<'static>; 5], &'static str>> = OnceLock::new();
     FONTS
         .get_or_init(|| {
             Ok([
@@ -359,6 +359,7 @@ fn fonts() -> Result<&'static [Font<'static>; 4], &'static str> {
                 Font::new(include_bytes!("../assets/jetbrains-mono-700-normal.ttf"))?,
                 Font::new(include_bytes!("../assets/jetbrains-mono-400-italic.ttf"))?,
                 Font::new(include_bytes!("../assets/jetbrains-mono-700-italic.ttf"))?,
+                Font::new(include_bytes!("../assets/terminal-glyph-fallback.ttf"))?,
             ])
         })
         .as_ref()
@@ -584,7 +585,12 @@ impl Canvas {
                         if let Some(y) = y.get(index) {
                             cursor.1 = *y;
                         }
-                        let face = usize::from(paint.bold) + if paint.italic { 2 } else { 0 };
+                        let mut face = usize::from(paint.bold) + if paint.italic { 2 } else { 0 };
+                        if fonts()?[face].glyph_index(ch as u32) == 0
+                            && fonts()?[4].glyph_index(ch as u32) != 0
+                        {
+                            face = 4;
+                        }
                         let font = &fonts()?[face];
                         let glyph = font.glyph_index(ch as u32);
                         let scale = paint.font_size / f64::from(font.units_per_em());

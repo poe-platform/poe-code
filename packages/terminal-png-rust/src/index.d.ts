@@ -33,6 +33,7 @@ export declare const JETBRAINS_MONO_BASE64: string;
 export declare const JETBRAINS_MONO_FONT_FILES: readonly [string, string, string, string];
 export declare const JETBRAINS_MONO_TTF_PATH: string;
 export declare const FONT_FACE_CSS: string;
+export declare const FALLBACK_FONT_PATH: string;
 export declare function renderPng(svg: string): Buffer;
 
 export interface TerminalPngOptions {padding?:number;window?:boolean;output?:string;}

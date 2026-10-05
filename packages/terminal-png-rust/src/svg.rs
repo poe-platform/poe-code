@@ -25,7 +25,12 @@ const FACES: [(&str, u16, &str); 4] = [
 ];
 pub fn font_face_css() -> &'static str {
     static CSS: OnceLock<String> = OnceLock::new();
-    CSS.get_or_init(||FACES.iter().map(|(base64,weight,style)|format!("@font-face {{\n  font-family: 'JetBrains Mono';\n  font-style: {style};\n  font-weight: {weight};\n  src: url('data:font/woff2;base64,{base64}') format('woff2');\n}}")).collect::<Vec<_>>().join("\n"))
+    CSS.get_or_init(|| {
+        let fallback = include_str!("../assets/terminal-glyph-fallback.base64");
+        let mut faces = vec![format!("@font-face {{\n  font-family: 'Terminal Glyph Fallback';\n  src: url('data:font/ttf;base64,{fallback}') format('truetype');\n}}")];
+        faces.extend(FACES.iter().map(|(base64,weight,style)|format!("@font-face {{\n  font-family: 'JetBrains Mono';\n  font-style: {style};\n  font-weight: {weight};\n  src: url('data:font/woff2;base64,{base64}') format('woff2');\n}}")));
+        faces.join("\n")
+    })
 }
 const ANSI16: [&str; 16] = [
     "#282a2e", "#D74E6F", "#31BB71", "#D3E561", "#8056FF", "#ED61D7", "#04D7D7", "#C5C8C6",
@@ -270,7 +275,7 @@ pub fn render(runs: &[Run], options: Options) -> String {
         text.push_str("</text>");
     }
     format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width:.2}\" height=\"{height:.2}\" viewBox=\"0 0 {width:.2} {height:.2}\"><defs><style><![CDATA[{}]]></style></defs><rect x=\"0\" y=\"0\" width=\"{width:.2}\" height=\"{height:.2}\" fill=\"{BACKGROUND}\" />{}<g font-family=\"JetBrains Mono\" font-size=\"14.00px\" fill=\"{FOREGROUND}\">{text}</g></svg>",
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width:.2}\" height=\"{height:.2}\" viewBox=\"0 0 {width:.2} {height:.2}\"><defs><style><![CDATA[{}]]></style></defs><rect x=\"0\" y=\"0\" width=\"{width:.2}\" height=\"{height:.2}\" fill=\"{BACKGROUND}\" />{}<g font-family=\"JetBrains Mono, Terminal Glyph Fallback\" font-size=\"14.00px\" fill=\"{FOREGROUND}\">{text}</g></svg>",
         font_face_css(),
         if options.window {
             "<circle cx=\"13.5\" cy=\"12\" r=\"5.5\" fill=\"#FF5A54\" /><circle cx=\"32.5\" cy=\"12\" r=\"5.5\" fill=\"#E6BF29\" /><circle cx=\"51.5\" cy=\"12\" r=\"5.5\" fill=\"#52C12B\" />"

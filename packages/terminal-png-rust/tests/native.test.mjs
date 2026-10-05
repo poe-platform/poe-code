@@ -12,6 +12,17 @@ test('native SVG matches SDK layout across styles, colors, Unicode and tabs',asy
  for(const input of ['hello','测│','👩‍💻│','🇺🇸│','e\u0301x','\u0301','A\tB','\x1b[1;3;4;9;31;48;5;42m<&>\x1b[0m','\x1b[7mselected\x1b[8mhidden','row\n\nnext'])for(const options of [{},{window:false},{padding:0,window:false},{padding:7}])assert.equal(own.renderSvg(own.parseAnsi(input),options),sdk.renderSvg(sdk.parseAnsi(input),options));
  for(let index=0;index<256;index++)assert.equal(own.renderSvg(own.parseAnsi(`\x1b[38;5;${index}mcolor`),{}),sdk.renderSvg(sdk.parseAnsi(`\x1b[38;5;${index}mcolor`),{}));
 });
+test('fallback glyphs preserve SDK raster output for every text style',async()=>{
+ const sdk=await import('../../terminal-png/dist/index.js'),{Resvg}=await import('@resvg/resvg-js'),{createRequire}=await import('node:module'),native=createRequire(import.meta.url)('../dist/terminal-png-rust.node');
+ for(const style of ['', '\x1b[1m', '\x1b[3m', '\x1b[1;3m']){
+  const svg=sdk.renderSvg(sdk.parseAnsi(style+'◐◑◒◓界'),{padding:0,window:false});
+  const reference=new Resvg(svg,{font:{defaultFontFamily:'JetBrains Mono',fontFiles:[...sdk.JETBRAINS_MONO_FONT_FILES,sdk.FALLBACK_FONT_PATH],loadSystemFonts:false},fitTo:{mode:'zoom',value:4}}).render().pixels;
+  const actual=native.terminalRasterRgba(svg);
+  assert.equal(actual.length,reference.length);
+  let error=0;for(let i=0;i<actual.length;i++)error+=Math.abs(actual[i]-reference[i]);
+  assert.ok(error/actual.length<3,`fallback mean channel difference ${error/actual.length}`);
+ }
+});
 test('std-only Deflate and PNG round-trip through Node zlib',async()=>{
  const {createRequire}=await import('node:module'),{inflateSync,crc32}=await import('node:zlib'),native=createRequire(import.meta.url)('../dist/terminal-png-rust.node');
  const inputs=[Buffer.alloc(0),Buffer.alloc(65536,42),Buffer.from(Array.from({length:65536},(_,i)=>i%256))];let state=77;inputs.push(Buffer.from(Array.from({length:32769},()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state>>>24;})));

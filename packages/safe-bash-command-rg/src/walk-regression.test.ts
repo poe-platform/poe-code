@@ -58,3 +58,48 @@ test('rg reads ignore rules and emits JSON paths without Buffer', async () => {
   assert.deepEqual(events.filter(event => event.type === 'begin').map(event => event.data.path.text), ['/d/ﬀ.txt', '/d/🚀.txt']);
   assert.equal(events.filter(event => event.type === 'match').length, 2);
 });
+
+test('recursive source scans use directory entries to avoid probing absent ignore files', async () => {
+  const memory = createMemoryFileSystem();
+  await memory.mkdir('/repo/.git', { recursive: true });
+  await memory.mkdir('/repo/packages/src', { recursive: true });
+  await memory.mkdir('/repo/packages/target', { recursive: true });
+  await memory.writeFile('/repo/.gitignore', new TextEncoder().encode('target/\n'));
+  await memory.writeFile('/repo/packages/src/.ignore', new TextEncoder().encode('skip/\n'));
+  await memory.mkdir('/repo/packages/src/skip');
+  await memory.writeFile('/repo/packages/src/skip/ignored.rs', new TextEncoder().encode('throw_syntax_error\n'));
+  await memory.writeFile('/repo/packages/src/lib.rs', new TextEncoder().encode('fn main() {}\n'));
+  await memory.writeFile('/repo/packages/src/unicode_categories.rs', new TextEncoder().encode('throw_syntax_error\n'));
+  await memory.writeFile('/repo/packages/target/generated.rs', new TextEncoder().encode('throw_syntax_error\n'));
+  const reads: string[] = [];
+  const listings: string[] = [];
+  // Exercise the generic filesystem path, as a disk or remote adapter does.
+  const fs = new Proxy(memory, {
+    get(target, key) {
+      if (key === 'readFile') return async (...args: Parameters<typeof memory.readFile>) => {
+        reads.push(args[0]);
+        return target.readFile(...args);
+      };
+      if (key === 'readdir') return async (...args: Parameters<typeof memory.readdir>) => {
+        listings.push(args[0]);
+        return target.readdir(...args);
+      };
+      const value = Reflect.get(target, key, target);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+  const values = createCommandArguments(['-n', 'throw_syntax_error', 'packages', '-g', '*.rs', '-g', '!unicode_categories.rs']);
+  let stdout = '', stderr = '';
+  const result = await createRgCommand().execute({
+    command: 'rg', args: values.args, argumentValues: values, cwd: '/repo', env: {}, fs,
+    stdin: toByteSource(''), signal: new AbortController().signal,
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  assert.equal(result.exitCode, 1, stderr);
+  assert.equal(stdout, '');
+  assert.equal(stderr, '');
+  assert.deepEqual(listings, ['/repo/packages', '/repo/packages/src']);
+  assert.deepEqual(reads.filter(path => path.startsWith('/repo/packages/')), ['/repo/packages/src/.ignore'],
+    'absent ignore files must not trigger backend reads for each visited directory');
+});

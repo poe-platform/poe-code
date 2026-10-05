@@ -513,11 +513,13 @@ export class Walker {
         this.uniformIgnoreAdmitted = true;
       }
       localRules = rules as IgnoreRule[];
-    } else if (this.args.ignore) {
+    } else if (this.args.ignore && canFastMemReaddir) {
       const loaded = await this.load(path, rules, repository);
       localRules = loaded.rules;
       localRepository = loaded.repository;
     }
+    // Disk and remote adapters already return entry names below. Defer loading
+    // ignore rules until then, avoiding failed reads and .git probes per directory.
     const maxEntries = this.limits.maxFiles - this.limits.files;
     let entries: DirectoryEntry[] | undefined;
     let fastNames: string[] | undefined;

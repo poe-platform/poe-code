@@ -518,12 +518,25 @@ export type MediaProbeRecords = Omit<MediaProbeResult, "packets" | "frames"> & {
   readonly frames?: Iterable<MediaProbeFrame> | undefined;
 };
 
+/** Replayable bounded string chunks. The caller keeps backing alive through all reads.
+ * CSV quoting may read a field twice. Each invocation must return the same text.
+ */
+export interface MediaProbeText {
+  readonly kind: 'text';
+  chunks(): Iterable<string> | AsyncIterable<string>;
+}
+export type MediaProbeSourceTags = Readonly<Record<string, string | MediaProbeText>>;
+export type MediaProbeSourceStream = Omit<MediaProbeStream, 'tags'> & { readonly tags?: MediaProbeSourceTags | undefined };
+export type MediaProbeSourceFormat = Omit<MediaProbeFormat, 'tags'> & { readonly tags?: MediaProbeSourceTags | undefined };
+export type MediaProbeSourceChapter = Omit<MediaProbeResult['chapters'][number], 'tags'> & { readonly tags: MediaProbeSourceTags };
+
 /** Caller-backed, one-shot record sources. Consume before retiring the input source. */
-export type MediaProbeSourceRecords = Omit<MediaProbeResult, "streams" | "chapters" | "packets" | "frames"> & {
+export type MediaProbeSourceRecords = Omit<MediaProbeResult, "format" | "streams" | "chapters" | "packets" | "frames"> & {
   /** Retire plugin-owned backing after all requested records, including unselected sections. */
   readonly close?: () => Promise<void>;
-  readonly streams: Iterable<MediaProbeStream> | AsyncIterable<MediaProbeStream>;
-  readonly chapters: Iterable<MediaProbeResult["chapters"][number]> | AsyncIterable<MediaProbeResult["chapters"][number]>;
+  readonly format: MediaProbeSourceFormat;
+  readonly streams: Iterable<MediaProbeSourceStream> | AsyncIterable<MediaProbeSourceStream>;
+  readonly chapters: Iterable<MediaProbeSourceChapter> | AsyncIterable<MediaProbeSourceChapter>;
   readonly packets?: Iterable<MediaProbePacket> | AsyncIterable<MediaProbePacket> | undefined;
   readonly frames?: Iterable<MediaProbeFrame> | AsyncIterable<MediaProbeFrame> | undefined;
 };

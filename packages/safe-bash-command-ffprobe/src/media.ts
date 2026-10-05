@@ -1,3 +1,4 @@
+import { formatProbeText, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
 import { PagedStorage, IntegerTable } from "@poe-code/safe-fs/storage";
 import { probeStoredOgg } from "./ogg-probe.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -261,9 +262,9 @@ type SyncProbeRows = Omit<MediaProbeRecords, "streams" | "chapters"> & {
   readonly streams: Iterable<MediaProbeStream>;
   readonly chapters: Iterable<MediaProbeResult["chapters"][number]>;
 };
-type FormatStep = string | {
+type FormatStep = ProbeOutputPart | {
   rows: Iterable<unknown> | AsyncIterable<unknown>;
-  render: (row: unknown, index: number) => Iterable<string>;
+  render: (row: unknown, index: number) => Iterable<ProbeOutputPart>;
 };
 
 function formatQualifiedAudio(probe: ProbeSourceRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput): string | undefined {
@@ -282,8 +283,12 @@ export function* formatFfprobeResultChunks(probe: SyncProbeRows, opts: FfprobeFo
   if (audio !== undefined) { yield audio; return; }
   for (const step of formatProbeSteps(probe, opts)) {
     if (typeof step === "string") { yield step; continue; }
+    if ("text" in step) throw new TypeError("Source text requires asynchronous formatting");
     let index = 0;
-    for (const row of step.rows as Iterable<unknown>) yield* step.render(row, index++);
+    for (const row of step.rows as Iterable<unknown>) for (const part of step.render(row, index++)) {
+      if (typeof part !== "string") throw new TypeError("Source text requires asynchronous formatting");
+      yield part;
+    }
   }
 }
 
@@ -295,6 +300,7 @@ export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: F
   for (const step of formatProbeSteps(probe, opts)) {
     signal?.throwIfAborted();
     if (typeof step === "string") { yield step; continue; }
+    if ("text" in step) { yield* formatProbeText(step, signal); continue; }
     const iterator = Symbol.asyncIterator in step.rows ? step.rows[Symbol.asyncIterator]() : step.rows[Symbol.iterator]();
     let index = 0, ended = false, failed = false;
     try {
@@ -303,7 +309,9 @@ export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: F
         const next = await iterator.next();
         signal?.throwIfAborted();
         if (next.done) { ended = true; break; }
-        yield* step.render(next.value, index++);
+        for (const part of step.render(next.value, index++)) {
+          if (typeof part === "string") yield part; else yield* formatProbeText(part, signal);
+        }
         if (index % 256 === 0) await yieldTurn(signal);
       }
     } catch (error) { failed = true; throw error; }
@@ -442,13 +450,11 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
           else if (section.name === "packets" || section.name === "frames") row = filterObject(row as Record<string, unknown>, section.name === "packets" ? "packet" : "frame");
           yield (firstRow ? "" : ",") + (compact ? "" : "\n    ");
           firstRow = false;
-          const text = JSON.stringify(row, null, compact ? undefined : 2) ?? "null";
-          yield compact ? text : text.replaceAll("\n", "\n    ");
+          yield* probeJsonSteps(row, compact, 2);
         } };
         yield (compact || firstRow ? "" : "\n  ") + "]";
       } else {
-        const text = JSON.stringify(section.value, null, compact ? undefined : 2)!;
-        yield compact ? text : text.replaceAll("\n", "\n  ");
+        yield* probeJsonSteps(section.value, compact, 1);
       }
     }
     yield (compact || firstSection ? "" : "\n") + "}\n";
@@ -466,7 +472,8 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     );
   }
 
-  function probeText(value: unknown, separator = "."): string {
+  function probeText(value: unknown, separator = "."): ProbeOutputPart {
+    if (isProbeText(value)) return { text: value, mode: fmt === "csv" || fmt === "flat" ? fmt : "compact", separator };
     if (fmt === "flat" && typeof value === "number") return String(value);
     const text = String(value);
     if (fmt === "csv") {
@@ -485,24 +492,25 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   }
 
   let streamIndex = 0;
-  function* render(section: Record<string, unknown>, name: string, index = 0): Generator<string> {
+  function* render(section: Record<string, unknown>, name: string, index = 0): Generator<ProbeOutputPart> {
     if (fmt === "csv" || fmt === "compact") {
       const sep = fmt === "csv" ? (paramMap.s ?? ",") : (paramMap.s ?? "|");
       const printSection = paramMap.p !== "0" && paramMap.print_section !== "0";
       let first = true;
       if (printSection) { yield name; first = false; }
       for (const [key, value] of probeEntries(section, "tag:")) {
-        if (value === undefined || typeof value === "object") continue;
+        if (value === undefined || typeof value === "object" && !isProbeText(value)) continue;
         if (!first) yield sep;
         first = false;
-        yield noKey || fmt === "csv" ? probeText(value, sep) : `${key}=${probeText(value, sep)}`;
+        if (!noKey && fmt !== "csv") yield `${key}=`;
+        yield probeText(value, sep);
       }
       yield "\n";
     } else if (fmt === "flat") {
       const sep = paramMap.s ?? ".", prefix = name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : name === "packet" || name === "frame" ? `${name}s${sep}${name}${sep}${index}${sep}` : `format${sep}`;
       for (const [key, value] of probeEntries(section, `tags${sep}`)) {
-        if (value === undefined || typeof value === "object") continue;
-        yield `${prefix}${key}=${probeText(value)}\n`;
+        if (value === undefined || typeof value === "object" && !isProbeText(value)) continue;
+        yield `${prefix}${key}=`; yield probeText(value); yield "\n";
       }
     } else {
       const wrapper = name.toUpperCase();
@@ -510,7 +518,10 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       for (const [key, value] of Object.entries(section)) {
         if (value === undefined) continue;
         if (key === "tags" && value && typeof value === "object") {
-          for (const [tag, text] of Object.entries(value)) yield (noKey ? String(text) : `TAG:${tag}=${String(text)}`) + "\n";
+          for (const [tag, text] of Object.entries(value)) {
+            if (!noKey) yield `TAG:${tag}=`;
+            yield isProbeText(text) ? { text, mode: "plain" } : String(text); yield "\n";
+          }
         } else if (typeof value !== "object") yield (noKey ? String(value) : `${key}=${String(value)}`) + "\n";
       }
       if (!noWrappers) yield `[/${wrapper}]\n`;

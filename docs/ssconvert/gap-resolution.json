@@ -180,7 +180,7 @@
       "source": "Gnumeric 1.12.61 src/print-info.c:395-408 supplies centered tab-name and page-number defaults. Explicit unprefixed BIFF text remains left-aligned; missing records are a separate case.",
       "inputSha256": "7811158128364b977007c0d3203317a323db6b2170a6b869b470a2b75f8f01f2",
       "reproduction": "Four original HEADER/FOOTER opcodes replaced by standalone CONTINUE records without changing lengths or CFB offsets. Native import ignores these records and yields centered defaults with zero diagnostics. The memory test failed before explicit center markers were added to the importer defaults.",
-      "verification": "2387 affected tests, owner lint/types and maintained selected ssconvert workspace build pass. Scoped SDK and command XLSX/BIFF8 exports match 48 native section attributes. Actual command screenshot inspected; its font lacks the emoji glyph, while exact UTF-8 output checks pass.",
+      "verification": "2387 affected tests, owner lint/types and maintained selected ssconvert workspace build pass. Scoped SDK and command XLSX/BIFF8 exports match 48 native section attributes. Actual command screenshot inspected.",
       "limits": "Exact25 XLSX and16 BIFF8 warnings include standalone CONTINUE interpretation/export diagnostics; they are retained, not suppressed. BIFF7 refuses automatic labels without output. This selected-workspace check does not claim fresh root/release verification or format-family closure."
     },
     "biffHeaderControls": {
@@ -210,7 +210,7 @@
       "source": "Native Gnumeric1.12.61 BIFF-to-XLSX preserves the four margin records as pageMargins. The same input produces identical native/product values despite raw-record loss warnings. BIFF stores inch doubles; portable PrintInformation stores points.",
       "inputSha256": "0fd308464532b3fe842e3e52b25c0beb16c357982425e051344fe3abb20ebfcd",
       "implementation": "Require exact kind/opcode, eight valid bytes encoding a finite nonnegative margin representable in points, and an explicit finite nonnegative canonical margin. Charge payload parsing and canonical lookup. Canonical edits win; malformed/missing/nonfinite/negative cases retain warnings.",
-      "verification": "Eight original memory failures repaired;166 XLSX tests, owner lint/types and full build pass. Four root/package SDK/command exports assert all21 remaining warnings.32 encoded margin values,32 Gnumeric readback values and32 Calc readback values match the independent native fixture. Actual command screenshot inspected; its font lacks the emoji glyph, while exact UTF-8 output checks pass.",
+      "verification": "Eight original memory failures repaired;166 XLSX tests, owner lint/types and full build pass. Four root/package SDK/command exports assert all21 remaining warnings.32 encoded margin values,32 Gnumeric readback values and32 Calc readback values match the independent native fixture. Actual command screenshot inspected.",
       "limits": "Checks cover left/right/top/bottom, not complete workbook equality. Gnumeric printOptions loss and other metadata warnings remain. Calc emits the exact javaldx startup warning. Broader format and19-family requirements remain open."
     },
     "biffPrintFlagValues": {
@@ -2150,7 +2150,7 @@
       "validation": "All 21 initial regressions failed before correction. All 40 expanded cases and seven group controls pass: original row/column/two-input tables, literal native record bytes, BIFF7/8 recalculated reexports, restored inputs, cached string ordering, malformed pointers/records, version bounds and retained unsupported flags. The BIFF2 unknown-option regression also failed before its correction. The surrounding cohort passed 65 files / 1655 tests before the final diagnostic-label and BIFF2-option corrections. Final maintained package lint/source/test/consumer types, selected build and compiled public probe all pass.",
       "publicValidation": "Sixty compiled SDK/command conversions across five input revisions, three modes and two output revisions retained 240 expected table values and original input values with zero diagnostics. Actual compiled command screenshot inspected. Native application readback was not performed for this change.",
       "remaining": "Unrepresented legacy options retain raw records/cached cells with explicit loss diagnostics. Broader table edits, native application readback, remaining BIFF tokens and all 19 gap families remain open.",
-      "reservedFlags": "MS-XLS requires BIFF8 reserved fields to be ignored; a one-variable table also ignores its second input coordinates. The earlier reader incorrectly rejected reserved bits and an unused second-input deletion flag. All 11 new memory regressions failed before correction; all 58 final table/group tests, maintained lint/source/test/consumer types and selected build pass. Six compiled SDK/command XLSX conversions retain 24 results and original inputs without diagnostics. The initial SDK probe used the wrong recalc option; correcting the probe required no product change. Actual command screenshot inspected; its font lacks the emoji glyph, while exact UTF-8 output checks pass.",
+      "reservedFlags": "MS-XLS requires BIFF8 reserved fields to be ignored; a one-variable table also ignores its second input coordinates. The earlier reader incorrectly rejected reserved bits and an unused second-input deletion flag. All 11 new memory regressions failed before correction; all 58 final table/group tests, maintained lint/source/test/consumer types and selected build pass. Six compiled SDK/command XLSX conversions retain 24 results and original inputs without diagnostics. The initial SDK probe used the wrong recalc option; correcting the probe required no product change. Actual command screenshot inspected.",
       "deletedInputs": {
         "sources": [
           {
@@ -2744,7 +2744,7 @@
             "destination": "unchanged"
           }
         },
-        "independent": "Original Python ZIP/XML fixture: 715 bytes. Eight compiled SDK/command exports cover strict and extended, original and edited inputs. Python independently verifies exact native formula text, named-expression and H8 base, and sixteen CSV readbacks: 7 before edits, 19 after. Actual command screenshot inspected; its font lacks the emoji glyph, while exact UTF-8 output checks pass. A conflicting Sales\u2192West rename fails with exit 1 and preserves the existing destination. An earlier QA argv included literal double quotes in the renamed text; corrected argv was rerun and XML checked. Native LibreOffice/ssconvert/Docker remain unavailable.",
+        "independent": "Original Python ZIP/XML fixture: 715 bytes. Eight compiled SDK/command exports cover strict and extended, original and edited inputs. Python independently verifies exact native formula text, named-expression and H8 base, and sixteen CSV readbacks: 7 before edits, 19 after. Actual command screenshot inspected. A conflicting Sales\u2192West rename fails with exit 1 and preserves the existing destination. An earlier QA argv included literal double quotes in the renamed text; corrected argv was rerun and XML checked. Native LibreOffice/ssconvert/Docker remain unavailable.",
         "remaining": "Native application readback; locale/transliteration/proximity profiles; ambiguous, empty/non-text/formula-generated and deleted label identities; mixed relative-sheet/live-label formulas; direct textual formula lifecycle; BIFF/radical/value-class labels and other format transports remain open. This resolves supported native ODF export profiles, not the complete family; all 19 families remain open. Cross-sheet label/data identity is now implemented; see reference.odfCrossSheetLabelRanges for the current source and qualification evidence.",
         "qa": "docs/plans/ssconvert-odf-label-metadata-qa.md",
         "formulaResultLabels": {
@@ -2990,7 +2990,7 @@
         "independentlyCheckedLinks": 64,
         "regeneratedAfterEdits": 32,
         "diagnostics": 0,
-        "description": "Python constructs the Gnumeric XML and independently reads all eight ZIP/XML packages. Six sheets, global/local Total destinations and eight link labels survive; second-cycle SDK/command edits force fresh hyperlink serialization. Actual command screenshot inspected; its font lacks the emoji glyph, while exact UTF-8 output checks pass."
+        "description": "Python constructs the Gnumeric XML and independently reads all eight ZIP/XML packages. Six sheets, global/local Total destinations and eight link labels survive; second-cycle SDK/command edits force fresh hyperlink serialization. Actual command screenshot inspected."
       },
       "remaining": "Native application navigation, ambiguous dotted global names versus sheet-scoped names, non-A1 marks and broader application/format qualification remain open. No hyperlink target executes or gains host authority.",
       "calcLocalNameImport": {
@@ -3016,7 +3016,7 @@
           "editedOdfExports": 4,
           "qualifiedLinkObservations": 18,
           "diagnostics": 0,
-          "description": "Python independently constructs ODF and inspects SDK/command XML plus subsequent strict/extended ODF. Three local Total targets remain qualified and are not replaced by fixed ranges or the distinct global Total=999. Actual command screenshot inspected; its font lacks the emoji glyph, while exact UTF-8 output checks pass."
+          "description": "Python independently constructs ODF and inspects SDK/command XML plus subsequent strict/extended ODF. Three local Total targets remain qualified and are not replaced by fixed ranges or the distinct global Total=999. Actual command screenshot inspected."
         },
         "remaining": "Native navigation and cross-application scoped-name export spelling remain unqualified: Calc UI marks and Gnumeric qualified-expression fragments are distinct profiles."
       },
@@ -4439,7 +4439,7 @@
         "repair": "SUM/PRODUCT preserve scalar grouping through local named definitions and aliases using the existing bounded recursive evaluator. Bare named sets retain aggregate iteration; grouped ranges retain implicit intersection. Cycle and missing-sheet errors remain intact.",
         "native": "Ten formulas and three data cells in the unchanged Gnumeric 1.12.61 glossary profile: five #VALUE! results, direct set SUM/PRODUCT 5/6, direct alias SUM 5, in-range grouped range results 2/3; no diagnostics.",
         "evidence": "out/ssconvert-continuation-1748/named-aggregate",
-        "validation": "Original memory regression failed before repair; 432 engine and 18681 command formula tests pass, as do engine lint/source/test types and normal root build. Root/package SDK and command XLSX/BIFF7/BIFF8 exports match all 208 cached/native comparisons without diagnostics. Actual command screenshot inspected; its font lacks the emoji glyph, while exact UTF-8 output checks pass. This does not qualify installed registry artifacts.",
+        "validation": "Original memory regression failed before repair; 432 engine and 18681 command formula tests pass, as do engine lint/source/test types and normal root build. Root/package SDK and command XLSX/BIFF7/BIFF8 exports match all 208 cached/native comparisons without diagnostics. Actual command screenshot inspected. This does not qualify installed registry artifacts.",
         "nativeLimitation": "Four separate formulas containing names inside union sets are rejected by the native parser (All entries in the set must be references); retained separately, not passing comparisons.",
         "remaining": "Broader BIFF, format and public registry qualification requirements remain open."
       },
@@ -4453,14 +4453,14 @@
       "mathAggregate": {
         "repair": "Math, bitwise, engineering and complex aggregate handlers request the existing bounded aggregate evaluator context. Explicit grouping remains scalar through names; bare sets retain iteration. Arithmetic and coercion implementations are unchanged.",
         "native": "Unchanged Gnumeric 1.12.61 glossary profile: 52 formulas and three data cells cover GCD, LCM, MULTINOMIAL, SUMSQ, SUMA, HYPOT, G_PRODUCT, INVSUMINV, BITAND, BITOR, BITXOR, IMSUM and IMPRODUCT. Grouped ranges, named groups and grouped unions produce 39 #VALUE! results; all thirteen bare named-set controls retain numeric results. No native diagnostics.",
-        "validation": "All thirteen original memory tests failed before the repair. Final 19,145 formula tests across 145 files, engine lint/source/test types and normal root build pass. Compiled root/package SDK and command cached/native XLSX/BIFF7/BIFF8 checks match all 880 values without diagnostics. Actual command screenshot inspected; its font lacks the emoji glyph, while exact UTF-8 output checks pass. Installed registry qualification remains separate.",
+        "validation": "All thirteen original memory tests failed before the repair. Final 19,145 formula tests across 145 files, engine lint/source/test types and normal root build pass. Compiled root/package SDK and command cached/native XLSX/BIFF7/BIFF8 checks match all 880 values without diagnostics. Actual command screenshot inspected. Installed registry qualification remains separate.",
         "evidence": "out/ssconvert-continuation-1748/math-aggregate",
         "remaining": "A separate current variadic-function cohort exposes 24 grouping mismatches in logical/text/ARRAY/SIMTABLE handlers. Broader compatibility and installed registry qualification remain open."
       },
       "variadicGrouping": {
         "repair": "Logical AND/OR/XOR, text CONCAT/CONCATENATE/TEXTJOIN, ARRAY and SIMTABLE request the existing bounded aggregate evaluator context. Grouped ranges and sets remain scalar through names; bare sets keep iteration and typed results.",
         "native": "Unchanged Gnumeric 1.12.61 glossary profile: 32 formulas and three data cells. All 24 grouped arguments produce #VALUE!; bare sets preserve booleans true/true/false, strings 23/23/2-3 and numeric ARRAY/SIMTABLE results 2/2. Native diagnostics are empty.",
-        "validation": "Eight original memory tests failed before repair. Final 19,153 formula tests across 146 files, engine lint/source/test types and normal root build pass. Root/package SDK and command XLSX/BIFF7/BIFF8 outputs match all 560 typed cached/native comparisons without diagnostics. Actual command screenshot inspected; its font lacks the emoji glyph, while exact UTF-8 output checks pass. Installed registry qualification remains separate.",
+        "validation": "Eight original memory tests failed before repair. Final 19,153 formula tests across 146 files, engine lint/source/test types and normal root build pass. Root/package SDK and command XLSX/BIFF7/BIFF8 outputs match all 560 typed cached/native comparisons without diagnostics. Actual command screenshot inspected. Installed registry qualification remains separate.",
         "evidence": "out/ssconvert-continuation-1748/variadic-grouping",
         "remaining": "A distinct BIFF-only nested explicit-set cohort exposes 15 calculation mismatches; diagnostic XLSX conversion also retains 20 metadata-loss warnings per route and is not passing transport qualification. Broader compatibility and registry requirements remain open."
       },

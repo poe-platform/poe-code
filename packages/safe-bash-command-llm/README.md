@@ -97,7 +97,10 @@ lines; `--plain` prints stored content and metadata. Control results with
 Query injected language and media models through the shared LLM service. Register `llmCommands({ providers, defaultModel })` with your shell. Providers own credentials and HTTP transport. `llm --version` reports the pinned CLI reference target, also available to SDK callers as `llmReferenceVersion`. Use `limits.maxInputBytes` and `limits.maxOutputBytes` to bound per-command byte accounting.
 
 SDK requests can supply declarative `tools: [{ name, description, inputSchema }]`
-to models declaring the `tools` capability. OpenAI chat providers send these
+to models declaring the `tools` capability. Find these models with
+`llm models --tools`; combine `--schemas`, `-q` or `-m` to narrow the list.
+`llm models --options` includes tool support in each model's features.
+OpenAI chat providers send these
 definitions in buffered and source requests; completed JSON/SSE responses expose
 `toolCalls: [{ id, name, arguments }]` in response metadata and the shared service's
 final `response` event. Calls preserve provider order, including interleaved

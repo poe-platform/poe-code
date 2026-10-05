@@ -1,0 +1,115 @@
+[
+  {
+    "argv": [
+      "models",
+      "--tools"
+    ],
+    "exitCode": 0,
+    "stdout": "FixtureModel: fixture-tools (aliases: tool)\nFixtureModel: fixture-both (aliases: both)\nDefault: fixture-plain\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "list",
+      "--tools"
+    ],
+    "exitCode": 0,
+    "stdout": "FixtureModel: fixture-tools (aliases: tool)\nFixtureModel: fixture-both (aliases: both)\nDefault: fixture-plain\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "--tools",
+      "--schemas"
+    ],
+    "exitCode": 0,
+    "stdout": "FixtureModel: fixture-both (aliases: both)\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "--tools",
+      "--options"
+    ],
+    "exitCode": 0,
+    "stdout": "FixtureModel: fixture-tools (aliases: tool)\n  Features:\n  - tools\nFixtureModel: fixture-both (aliases: both)\n  Features:\n  - schemas\n  - tools\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "--options"
+    ],
+    "exitCode": 0,
+    "stdout": "FixtureModel: fixture-plain (aliases: plain)\nFixtureModel: fixture-tools (aliases: tool)\n  Features:\n  - tools\nFixtureModel: fixture-both (aliases: both)\n  Features:\n  - schemas\n  - tools\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "--tools",
+      "-q",
+      "both"
+    ],
+    "exitCode": 0,
+    "stdout": "FixtureModel: fixture-both (aliases: both)\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "--tools",
+      "-m",
+      "tool"
+    ],
+    "exitCode": 0,
+    "stdout": "FixtureModel: fixture-tools (aliases: tool)\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "--tools",
+      "-m",
+      "plain"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "--tools",
+      "-q",
+      "missing"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "--tools",
+      "--async"
+    ],
+    "exitCode": 0,
+    "stdout": "Default: fixture-plain\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "models",
+      "--tools",
+      "--schemas",
+      "--options"
+    ],
+    "exitCode": 0,
+    "stdout": "FixtureModel: fixture-both (aliases: both)\n  Features:\n  - schemas\n  - tools\n",
+    "stderr": ""
+  }
+]

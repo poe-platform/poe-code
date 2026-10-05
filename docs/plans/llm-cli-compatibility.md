@@ -45,7 +45,7 @@ The LLM library must not own history or persistence, including through an option
 | `llm logs status` |  | Excluded: history belongs to the host |
 | `llm models` |  | incomplete |
 | `llm models default` | model | incomplete |
-| `llm models list` | --options; --async; --schemas; --tools; -q/--query (repeatable); -m/--model (repeatable) | incomplete |
+| `llm models list` | --options; --async; --schemas; --tools; -q/--query (repeatable); -m/--model (repeatable) | partial: tools/schema filtering, tool feature output and query/alias combinations have pinned fixtures; async catalog and broader metadata remain incomplete |
 | `llm models options` |  | incomplete |
 | `llm models options clear` | model; key (optional) | incomplete |
 | `llm models options list` |  | incomplete |

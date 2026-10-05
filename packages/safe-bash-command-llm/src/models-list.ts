@@ -76,7 +76,7 @@ export async function listLlmModels(context: CommandContext, service: LlmService
     const terms = [description, ...aliases].map(value => value.toLowerCase());
     if (!queries.every(query => terms.some(term => term.includes(query.toLowerCase())))) continue;
     if (selected.length && !selected.some(value => value === model.id || aliases.includes(value))) continue;
-    if (schemas && !model.capabilities?.includes("schema") || tools || asyncModels) continue;
+    if (schemas && !model.capabilities?.includes("schema") || tools && !model.capabilities?.includes("tools") || asyncModels) continue;
     let output = description + (aliases.length ? ` (aliases: ${aliases.join(", ")})` : "");
     if (model.outputType) output += `\n  Output type: ${model.outputType}`;
     if (options && Object.keys(model.options ?? {}).length) {
@@ -89,7 +89,11 @@ export async function listLlmModels(context: CommandContext, service: LlmService
       shownDescriptions.add(provider.name);
     }
     if (options && model.attachmentTypes?.length) output += `\n  Attachment types:\n    ${[...model.attachmentTypes].sort().join(", ")}`;
-    if (options && model.capabilities?.includes("schema")) output += "\n  Features:\n  - schemas";
+    const features = [
+      ...(model.capabilities?.includes("schema") ? ["schemas"] : []),
+      ...(model.capabilities?.includes("tools") ? ["tools"] : [])
+    ];
+    if (options && features.length) output += "\n  Features:\n" + features.map(feature => `  - ${feature}`).join("\n");
     await emit(output + "\n");
   }
   if (!queries.length && !selected.length && !schemas && !options) {

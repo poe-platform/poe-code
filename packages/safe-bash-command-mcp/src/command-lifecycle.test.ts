@@ -1,4 +1,4 @@
-import { expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import type { HttpTransportFetch } from "tiny-mcp-client";
 import { createRemoteMcpCommands, type RemoteMcpCommandOptions } from "./index.js";
@@ -26,7 +26,7 @@ function remote(messages: string[] | ((query: string) => string[]) = ["halfway"]
     if (request.method === "initialize") return rejectSetup ? new Response(null, { status: 503 }) : Response.json({
       jsonrpc: "2.0", id: request.id, result: { protocolVersion: "2025-03-26", capabilities: { tools: {} },
         serverInfo: { name: "tasks", version: "1" } }
-    });
+    }, { headers: { "Mcp-Session-Id": "test-session" } });
     const token = request.params._meta?.progressToken;
     calls.push({ token, query: request.params.arguments.query });
     const selected = typeof messages === "function" ? messages(request.params.arguments.query) : messages;
@@ -137,4 +137,112 @@ it("captures nonenumerable callback handles and limits before command generation
     maxProgressEvents: { value: 100 }, maxProgressMessageBytes: { value: 100 } });
   expect(await command.execute(invocation().context)).toEqual({ exitCode: 1 });
   expect(start).toHaveBeenCalledOnce(); expect(progress).toHaveBeenCalledOnce(); expect(replacement).not.toHaveBeenCalled();
+});
+
+
+// Native AbortSignal.timeout is not controlled by Vitest's fake clock.
+function fakeDeadlines() {
+  vi.useFakeTimers();
+  vi.spyOn(AbortSignal, "timeout").mockImplementation(milliseconds => {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new DOMException("Timed out", "TimeoutError")), milliseconds);
+    return controller.signal;
+  });
+}
+
+afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); });
+
+it.each(["none", "start", "slow start", "progress"])("keeps handshake and tool timeout budgets independent with %s observer", async observe => {
+  fakeDeadlines();
+  const f = remote(), initialized = Promise.withResolvers<void>(), called = Promise.withResolvers<void>();
+  const fetch: HttpTransportFetch = async (url, init) => {
+    const method = init?.method === "POST" ? JSON.parse(String(init.body)).method : undefined;
+    if (method === "initialize" || method === "tools/call") {
+      (method === "initialize" ? initialized : called).resolve();
+      await new Promise(resolve => setTimeout(resolve, 650));
+    }
+    return f.fetch(url, init);
+  };
+  const [command] = await createRemoteMcpCommands([server], { fetch, requestTimeoutMs: 1000,
+    ...(observe === "none" ? {} : observe === "progress" ? { onToolProgress: () => {} }
+      : { onToolStart: () => observe === "slow start" ? new Promise<void>(resolve => setTimeout(resolve, 650)) : undefined }) });
+  const pending = command.execute(invocation().context);
+  await initialized.promise;
+  await vi.advanceTimersByTimeAsync(observe === "slow start" ? 1300 : 650);
+  await called.promise;
+  await vi.advanceTimersByTimeAsync(650);
+  expect(await pending).toEqual({ exitCode: 0 });
+  expect(f.calls).toHaveLength(1);
+  expect(f.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
+});
+
+it.each(["initialize", "tools/call"])("retains the per-RPC deadline for %s with observers", async slowMethod => {
+  fakeDeadlines();
+  const f = remote(), entered = Promise.withResolvers<void>();
+  const fetch: HttpTransportFetch = async (url, init) => {
+    if (init?.method === "POST" && JSON.parse(String(init.body)).method === slowMethod) {
+      entered.resolve();
+      await new Promise((_, reject) => init.signal!.addEventListener("abort", () => reject(init.signal!.reason), { once: true }));
+    }
+    return f.fetch(url, init);
+  };
+  const [command] = await createRemoteMcpCommands([server], { fetch, requestTimeoutMs: 1000, onToolStart: () => {} });
+  const input = invocation(), pending = command.execute(input.context);
+  await entered.promise;
+  await vi.advanceTimersByTimeAsync(1000);
+  expect(await pending).toEqual({ exitCode: 1 });
+  expect(input.error()).toContain("timed out");
+  if (slowMethod === "tools/call")
+    expect(f.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
+});
+
+it.each(["start", "progress"])("bounds a pending %s callback independently after setup", async hook => {
+  fakeDeadlines();
+  const f = remote(), initialized = Promise.withResolvers<void>(), entered = Promise.withResolvers<void>();
+  const fetch: HttpTransportFetch = async (url, init) => {
+    if (init?.method === "POST" && JSON.parse(String(init.body)).method === "initialize") {
+      initialized.resolve();
+      await new Promise(resolve => setTimeout(resolve, 650));
+    }
+    return f.fetch(url, init);
+  };
+  let signal: AbortSignal | undefined;
+  const observer = async (owner: { signal: AbortSignal }) => {
+    signal = owner.signal; entered.resolve(); await new Promise(() => {});
+  };
+  const [command] = await createRemoteMcpCommands([server], { fetch, requestTimeoutMs: 1000,
+    ...(hook === "start" ? { onToolStart: observer } : { onToolProgress: (_progress, owner) => observer(owner) }) });
+  const pending = command.execute(invocation().context);
+  await initialized.promise;
+  await vi.advanceTimersByTimeAsync(650);
+  await entered.promise;
+  await vi.advanceTimersByTimeAsync(350);
+  expect(signal?.aborted).toBe(false);
+  await vi.advanceTimersByTimeAsync(650);
+  expect(await pending).toEqual({ exitCode: 1 });
+  expect(signal?.aborted).toBe(true);
+  expect(f.calls).toHaveLength(hook === "start" ? 0 : 1);
+  expect(f.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
+});
+
+
+it("propagates caller cancellation during the tool RPC and closes the session", async () => {
+  const f = remote(), entered = Promise.withResolvers<void>(), controller = new AbortController();
+  let requestSignal: AbortSignal | undefined;
+  const fetch: HttpTransportFetch = async (url, init) => {
+    if (init?.method === "POST" && JSON.parse(String(init.body)).method === "tools/call") {
+      requestSignal = init.signal!;
+      entered.resolve();
+      await new Promise((_, reject) => init.signal!.addEventListener("abort", () => reject(init.signal!.reason), { once: true }));
+    }
+    return f.fetch(url, init);
+  };
+  const [command] = await createRemoteMcpCommands([server], { fetch, onToolStart: () => {} });
+  const pending = command.execute(invocation(undefined, controller.signal).context);
+  const rejected = expect(pending).rejects.toThrow("caller cancelled RPC");
+  await entered.promise;
+  controller.abort(new Error("caller cancelled RPC"));
+  await rejected;
+  expect(requestSignal?.aborted).toBe(true);
+  expect(f.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);
 });

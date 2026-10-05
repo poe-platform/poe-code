@@ -13,6 +13,7 @@ export interface RemoteMcpToolInvocation {
 
 export type RemoteMcpToolProgress = Omit<ProgressParams, "progressToken">;
 
+/** Each callback is bounded separately by requestTimeoutMs; the caller signal bounds the invocation. */
 export interface RemoteMcpToolLifecycleOptions {
   /** Runs after input validation and connection setup, before invoking tools/call. */
   readonly onToolStart?: (invocation: RemoteMcpToolInvocation) => void | Promise<void>;
@@ -30,10 +31,7 @@ export async function callCommandTool(
   if (options.onToolStart === undefined && options.onToolProgress === undefined)
     return withRemoteMcpClient(server, options, client => client.callTool(params, { signal: options.signal }));
   const controller = new AbortController();
-  const signals = [options.signal, controller.signal];
-  if (options.requestTimeoutMs !== undefined && options.requestTimeoutMs !== Infinity)
-    signals.push(AbortSignal.timeout(options.requestTimeoutMs));
-  const signal = AbortSignal.any(signals);
+  const signal = AbortSignal.any([options.signal, controller.signal]);
   const invocation: RemoteMcpToolInvocation = Object.freeze({
     invocationId: Array.from(crypto.getRandomValues(new Uint32Array(4)), word => word.toString(16).padStart(8, "0")).join(""),
     serverName: server.name, toolName: params.name, signal
@@ -41,11 +39,13 @@ export async function callCommandTool(
   let events = 0;
   const observe = async (callback: () => void | Promise<void>): Promise<void> => {
     signal.throwIfAborted();
+    const deadline = options.requestTimeoutMs === undefined || options.requestTimeoutMs === Infinity ? undefined
+      : setTimeout(() => controller.abort(new DOMException("MCP tool lifecycle callback timed out", "TimeoutError")), options.requestTimeoutMs);
     try { await interruptible(Promise.resolve(callback()), signal); }
     catch {
       if (!signal.aborted) controller.abort(new Error("MCP tool lifecycle callback failed"));
       signal.throwIfAborted();
-    }
+    } finally { clearTimeout(deadline); }
     signal.throwIfAborted();
   };
   const onProgress = options.onToolProgress === undefined ? undefined : async (params: ProgressParams) => {

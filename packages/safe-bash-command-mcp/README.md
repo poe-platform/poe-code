@@ -131,6 +131,9 @@ discovery. Page, tool and byte budgets default to `Infinity`; request deadlines 
 `Infinity`. SDK budgets and CLI timeout/`--max-*` options accept explicit `Infinity`. The byte limit does not accumulate across
 the lifetime of a receive stream; keepalive comments and separate events remain
 usable. SDK `requestTimeoutMs: Infinity` disables the request deadline while retaining caller cancellation.
+For generated tool commands, `requestTimeoutMs` applies separately to each RPC and
+each lifecycle callback, with or without observers. Connection setup does not consume
+the tool RPC budget. Use the command context signal to bound the whole invocation.
 Finite request deadlines must not exceed 2,147,483,647 ms;
 larger values fail before setup because Node would reduce them to a 1 ms timer.
 Cyclic cursors and duplicate tools fail explicitly;

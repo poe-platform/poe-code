@@ -468,6 +468,27 @@ describe("prompts/primitives/spinner", () => {
     expect(output).toContain("\r\u001b[K\x1b[32m◆\x1b[0m  Done\n");
   });
 
+  it.each(["animated", "disabled", "non-tty"])(
+    "clears earlier timers when restarting in %s mode",
+    (mode) => {
+      const output = captureStdout(() => {
+        withOutputFormat("terminal", () => {
+          const s = spinner();
+          s.start("First");
+          vi.advanceTimersByTime(16);
+          if (mode === "disabled") process.env.POE_NO_SPINNER = "1";
+          if (mode === "non-tty") process.stdout.isTTY = false;
+          s.start("Second");
+          expect(vi.getTimerCount()).toBe(mode === "animated" ? 1 : 0);
+          s.stop("Done");
+          expect(vi.getTimerCount()).toBe(0);
+          vi.advanceTimersByTime(64);
+        });
+      });
+      expect(output.endsWith("  Done\n")).toBe(true);
+    }
+  );
+
   it("writes framed terminal start and stop lines when spinner fallback is enabled", () => {
     process.env.POE_NO_SPINNER = "1";
 

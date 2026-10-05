@@ -35,6 +35,7 @@ export function spinner(): SpinnerOptions {
 
   return {
     start(message = ""): void {
+      clearTimer();
       currentMessage = stripAnsi(message);
 
       if (format === "json") {

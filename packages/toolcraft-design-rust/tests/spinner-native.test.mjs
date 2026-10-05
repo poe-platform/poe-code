@@ -66,3 +66,25 @@ test("spinner preserves reentrant writer and timer callback ordering",async()=>{
   };
   assert.deepEqual(run(spinner,withOutputFormat,{},action),run(original,originalFormat,{},action));
 });
+
+
+test("restarting clears the previous interval and stopping leaves no rendering",async()=>{
+  const spinner=await load();
+  for(const [factory,scope] of [[original,originalFormat],[spinner,withOutputFormat]]){
+    for(const fallback of [false,true]){
+      const trace=run(factory,scope,{},(s,trace,timers)=>{
+        s.start("first");
+        if(fallback)process.env.POE_NO_SPINNER="1";
+        s.start("second");
+        trace.push(["active after restart",timers.size]);
+        s.stop("done");
+        const writes=trace.length;
+        for(const tick of timers.values())tick();
+        trace.push(["writes after stop",trace.length-writes]);
+      });
+      assert.ok(trace.some(entry=>Array.isArray(entry)&&entry[0]==="active after restart"&&entry[1]===(fallback?0:1)));
+      assert.deepEqual(trace.at(-2),["writes after stop",0]);
+      assert.deepEqual(trace.at(-1),["remaining timers",[]]);
+    }
+  }
+});

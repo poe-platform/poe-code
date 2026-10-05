@@ -11,6 +11,14 @@ pub fn run<H: Host>(
 ) -> Result<H::Value, H::Error> {
     match (operation, args) {
         ("start" | "message" | "stop", [state, message, code]) => {
+            if operation == "start" {
+                let timer = host.get(*state, "timer")?;
+                if predicate(host, "truthy", vec![timer])? {
+                    host.call("clear", vec![timer])?;
+                    let missing = host.call("undefined", vec![])?;
+                    host.call("timer", vec![*state, missing])?;
+                }
+            }
             let message = host.call("strip", vec![*message])?;
             host.call("current", vec![*state, message])?;
             let format = host.get(*state, "format")?;

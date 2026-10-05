@@ -1061,6 +1061,40 @@ function makeRgbaImage(width: number, height: number, data: Uint8Array) {
   };
 }
 
+/** Split at image-data boundaries; extension blocks belong to the following frame. */
+function gifPackets(bytes: Uint8Array): Uint8Array[] {
+  let at = 13 + ((bytes[10]! & 128) ? 3 * (1 << ((bytes[10]! & 7) + 1)) : 0);
+  let start = 0;
+  const packets: Uint8Array[] = [];
+  while (at < bytes.length) {
+    const marker = bytes[at++];
+    if (marker === 0x3b) break;
+    if (marker === 0x21) {
+      at++; // Extension label; all extensions use length-prefixed sub-blocks.
+    } else if (marker === 0x2c) {
+      if (at + 9 > bytes.length) throw new Error("Truncated GIF image descriptor");
+      const flags = bytes[at + 8]!;
+      at += 9 + ((flags & 128) ? 3 * (1 << ((flags & 7) + 1)) : 0);
+      at++; // LZW minimum code size.
+    } else {
+      throw new Error("Invalid GIF block");
+    }
+    while (true) {
+      if (at >= bytes.length) throw new Error("Truncated GIF data block");
+      const size = bytes[at++]!;
+      if (at + size > bytes.length) throw new Error("Truncated GIF data block");
+      at += size;
+      if (size === 0) break;
+    }
+    if (marker === 0x2c) {
+      packets.push(bytes.subarray(start, at));
+      start = at;
+    }
+  }
+  if (packets.length && start < bytes.length) packets[packets.length - 1] = bytes.subarray(start - packets[packets.length - 1]!.length);
+  return packets;
+}
+
 export function gifAst(): MediaAstPlugin {
   return {
     id: "gif",
@@ -1078,77 +1112,50 @@ export function gifAst(): MediaAstPlugin {
       return false;
     },
     parse(bytes) {
-      let width = 64;
-      let height = 64;
-      let rgba: Uint8Array = new Uint8Array(64 * 64 * 4).fill(200);
-      try {
-        const img = decodeImage(bytes);
-        width = img.width;
-        height = img.height;
-        rgba = img.data;
-      } catch {
-        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-        width = bytes.byteLength >= 10 ? view.getUint16(6, true) || 64 : 64;
-        height = bytes.byteLength >= 10 ? view.getUint16(8, true) || 64 : 64;
-        rgba = new Uint8Array(width * height * 4).fill(200);
+      const image = decodeImage(bytes, { animated: true });
+      const width = image.width, height = image.pageHeight ?? image.height;
+      const frameSize = width * height * 4;
+      const frames: MediaVideoFrame[] = [];
+      const samples: MediaSample[] = [];
+      const packets = gifPackets(bytes);
+      let duration = 0;
+      for (let index = 0; index < (image.pages ?? 1); index++) {
+        // GIF time is in centiseconds. Keep each frame's own presentation time.
+        const ticks = Math.round((image.delay?.[index] ?? 100) / 10);
+        frames.push({ width, height, data: image.data.subarray(index * frameSize, (index + 1) * frameSize),
+          ptsSeconds: duration / 100, durationSeconds: ticks / 100, keyframe: true });
+        const packet = packets[index]!;
+        samples.push({ data: packet, dts: duration, pts: duration, cts: 0,
+          duration: ticks, size: packet.byteLength, isKeyframe: index === 0, sampleDescriptionIndex: 1 });
+        duration += ticks;
       }
       return {
-        containerFormat: "gif",
-        timescale: 100,
-        duration: 100,
-        durationSeconds: 1.0,
-        tracks: [
-          {
-            id: 1,
-            type: "video",
-            handlerType: "vide",
-            timescale: 100,
-            duration: 100,
-            language: "und",
-            enabled: true,
-            width,
-            height,
-            codecDescriptions: [
-              {
-                formatFourCC: "gif ",
-                codecName: "gif",
-                width,
-                height,
-                pixFmt: "rgb8"
-              }
-            ],
-            samples: [
-              {
-                data: bytes,
-                dts: 0,
-                pts: 0,
-                cts: 0,
-                duration: 100,
-                size: bytes.byteLength,
-                isKeyframe: true,
-                sampleDescriptionIndex: 1
-              }
-            ],
-            decodedVideoFrames: [
-              {
-                width,
-                height,
-                data: rgba,
-                ptsSeconds: 0,
-                durationSeconds: 1.0,
-                keyframe: true
-              }
-            ]
-          }
-        ],
-        metadata: {},
-        byteLength: bytes.byteLength
+        containerFormat: "gif", timescale: 100, duration, durationSeconds: duration / 100,
+        tracks: [{ id: 1, type: "video", handlerType: "vide", timescale: 100, duration,
+          language: "und", enabled: true, width, height,
+          codecDescriptions: [{ formatFourCC: "gif ", codecName: "gif", width, height, pixFmt: "rgb8" }],
+          samples, decodedVideoFrames: frames }],
+        metadata: {}, byteLength: bytes.byteLength
       };
     },
     serialize(doc) {
       const { frames, width, height } = extractVideoFramesFromDoc(doc);
-      const first = frames[0]?.data ?? new Uint8Array(width * height * 4);
-      return encodeImage(makeRgbaImage(width, height, first), { format: "gif" }).data;
+      const count = Math.max(1, frames.length), frameSize = width * height * 4;
+      const data = new Uint8Array(frameSize * count);
+      const delays: number[] = [];
+      let elapsed = 0, previousTicks = 0;
+      for (let index = 0; index < frames.length; index++) {
+        const frame = frames[index]!;
+        data.set(frame.data, index * frameSize);
+        // Round cumulative time so rates such as 8 fps do not accumulate drift.
+        elapsed += frame.durationSeconds;
+        const ticks = Math.round(elapsed * 100);
+        delays.push((ticks - previousTicks) * 10);
+        previousTicks = ticks;
+      }
+      return encodeImage(makeRgbaImage(width, height * count, data), {
+        format: "gif", pageHeight: height, delay: delays
+      }).data;
     },
     probe(bytes, options) {
       const doc = this.parse(bytes, options);

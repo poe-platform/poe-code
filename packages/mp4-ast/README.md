@@ -1,6 +1,6 @@
 # @poe-code/mp4-ast
 
-Portable multimedia container and bitstream AST engine for MP4 (`ISOBMFF`), QuickTime (`MOV`), Fragmented MP4 (`fMP4`), Matroska (`MKV`), WebM (`WebM`), MPEG-TS (`.ts`), AVI (`.avi`), FLV (`.flv`), YUV4MPEG2 (`.y4m`), ADTS AAC (`.aac`), WAV, MP3, FLAC, OGG, GIF, and Image sequences.
+Portable multimedia container and bitstream AST engine for MP4 (`ISOBMFF`), QuickTime (`MOV`), Fragmented MP4 (`fMP4`), Matroska (`MKV`), WebM (`WebM`), MPEG-TS (`.ts`), AVI (`.avi`), FLV (`.flv`), YUV4MPEG2 (`.y4m`), ADTS AAC (`.aac`), WAV, MP3, FLAC, OGG, GIF, and Image sequences. Animated GIF parsing, probing, and encoding preserve frame counts and individual frame durations.
 
 `scanMp4Boxes({ size, read }, { signal, checkpoint, budget })` lazily emits box ranges using reads of at most 16 bytes, skipping media payloads. It preserves the resident parser's clipping, extended-size, UUID and QuickTime/FullBox metadata rules. Each span includes payload offsets and, for known containers, a `children` range that can be passed as the next scan's options. It scans siblings without collecting a box tree; callers own source lifetime, input admission and any traversal/index backing. The returned UUID bytes are owned. This is a range parser primitive; explicit document APIs still build resident models. Use `probeMp4Source` for native source-backed probe records.
 

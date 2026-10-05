@@ -1,5 +1,5 @@
 import { parseStoredXml } from "./recovery.js";
-import { type XmlName, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
+import { type XmlSourceSpan, type XmlName, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
 import { XmlBudget } from "./limits.js";
@@ -42,10 +42,10 @@ export class StoredXmlDocument {
       document.documentReference = await document.storage.append(new Uint8Array(headerBytes));
       const namespaces = await new StoredNamespaces(document.storage, budget).set("xml", "http://www.w3.org/XML/1998/namespace");
       await document.set(document.documentReference, namespacesField, namespaces.reference);
-      let parent = document.documentReference, fragmentTail = 0, attributeTail = 0;
+      let parent = document.documentReference, fragmentTail = 0, attributeTail = 0, targetReference: number | undefined;
       let pendingNamespace: { prefix: string; reference: number } | undefined;
       let tokens = new StoredNamespaces(document.storage, budget);
-      const consume = async (event: XmlStreamEvent, namespaceParts: (reference: number) => AsyncIterable<string>): Promise<void> => {
+      const consume = async (event: XmlStreamEvent, namespaceParts: (reference: number) => AsyncIterable<string>, sourceParts: (span: XmlSourceSpan) => AsyncIterable<string>): Promise<void> => {
           async function retainNamespace(reference: number): Promise<number> {
             const key = String(reference), previous = await tokens.lookup(key);
             if (previous !== undefined) return previous;
@@ -72,7 +72,14 @@ export class StoredXmlDocument {
           }
           if (event.type === "close") { parent = await document.field(parent, parentField); return; }
           let metadata: Metadata;
-          if (event.type === "content") metadata = event.content;
+          if (event.type === "content") {
+            metadata = event.content;
+            if (metadata.kind === "processing-instruction" && metadata.targetSource) {
+              if (!event.continuation) targetReference = await tokens.storeString(sourceParts(metadata.targetSource));
+              const { targetSource: ignoredSource, ...content } = metadata;
+              metadata = { ...content, targetReference: targetReference! };
+            }
+          }
           else {
             const element = event.element;
             metadata = { kind: "element", name: element.name, localName: element.localName, namespace: element.namespace,
@@ -90,7 +97,7 @@ export class StoredXmlDocument {
             parent = reference;
           }
       };
-      await parseStoredXml(source, context, budget, recover, consume, true);
+      await parseStoredXml(source, context, budget, recover, consume, { deferNamespaces: true, deferContentNames: true });
       return document;
     } catch (error) {
       try { await document.close(); }
@@ -173,7 +180,17 @@ export class StoredXmlDocument {
       const { namespaceReference: ignoredNamespaceReference, ...attribute } = value.value;
       return { ...value, value: { ...attribute, namespace, value: text } };
     }
+    if (value.kind === "processing-instruction" && value.targetReference !== undefined) {
+      let target = ""; for await (const part of this.targetText(value)) target += part;
+      const { targetReference: ignoredReference, ...content } = value;
+      return { ...content, target };
+    }
     return value;
+  }
+
+  async *targetText(content: Extract<XmlContent, { kind: "processing-instruction" }>): AsyncGenerator<string> {
+    if (content.targetReference === undefined) yield content.target;
+    else yield* new StoredNamespaces(this.storage, this.budget).valueParts(content.targetReference);
   }
 
   async *namespaceText(name: XmlName): AsyncGenerator<string> {

@@ -15,7 +15,7 @@ export * from "./fs/webdav/index.js";
 export * from "./bridge/index.js";
 export * from "./python/index.js";
 export { parseXml, parseXmlSteps, parseXmlSourceSteps, normalizeXmlChunks, parseXmlStream, XmlLimitError } from "./xml.js";
-export type { XmlName, XmlAttribute, XmlContent, XmlElement, XmlLimits, XmlParserFrame, XmlFrameRequest, XmlNamespaceScope, XmlNamespaceRequest, XmlSourceRead, XmlAttributeRequest, XmlAttributeRecord } from "./xml.js";
+export type { XmlName, XmlAttribute, XmlContent, XmlElement, XmlLimits, XmlParserFrame, XmlFrameRequest, XmlNamespaceScope, XmlNamespaceRequest, XmlSourceRead, XmlSourceSpan, XmlAttributeRequest, XmlAttributeRecord } from "./xml.js";
 export * from "./contracts/object.js";
 export { ObjectAuthority } from "./fs/object-authority.js";
 export * from "./fs/s3/index.js";

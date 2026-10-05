@@ -124,4 +124,12 @@ decoding replay bounded source windows before publishing a logical node, retaini
 its diagnostic and limit ordering. Numeric entity references are decoded without
 materializing the token. Set `compactDeclaration: true` to retain normalized declaration fields without
 copying long whitespace spans; validation always reads bounded windows. The
-buffered API keeps the original declaration spelling. Names and namespace declaration values still require their own memory budget.
+buffered API keeps the original declaration spelling.
+
+Combine `fragmentContent` with `deferContentNames: true` to validate long
+processing-instruction targets through source windows. Their events have an empty
+`target` and a `targetSource` span; replay that span before retiring the source.
+All body continuations carry the same target span. Short targets remain strings.
+The stored document engine transfers these spans to its own token store and
+streams targets during output. Element and attribute names still require their
+own memory budget.

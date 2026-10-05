@@ -1,3 +1,5 @@
+export interface XmlSourceSpan { readonly start: number; readonly end: number; }
+
 /** Fill value before advancing. Streaming reads may be short; mark complete at EOF. */
 export interface XmlSourceRead {
   readonly offset: number;

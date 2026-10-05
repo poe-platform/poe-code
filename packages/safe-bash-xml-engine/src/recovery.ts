@@ -1,7 +1,7 @@
 import { StoredParserAttributes } from "./parser-attributes.js";
 import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
 import { StoredXmlFrames } from "./frames.js";
-import { normalizeXmlChunks, parseXmlSourceSteps, type XmlElement, type XmlAttribute, type XmlSourceRead } from "@poe-code/safe-fs/core";
+import { normalizeXmlChunks, parseXmlSourceSteps, type XmlElement, type XmlAttribute, type XmlSourceRead, type XmlSourceSpan } from "@poe-code/safe-fs/core";
 import { PagedStorage, PagedStorageCache, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { XmlBudget } from "./limits.js";
 
@@ -15,8 +15,8 @@ export async function parseStoredXml(
   context: PagedStorageContext & { readonly registerCleanup?: (cleanup: () => Promise<void>) => void },
   budget: XmlBudget,
   recover?: (message: string) => void,
-  consume?: (event: XmlEvent, namespaceParts: (reference: number) => AsyncIterable<string>) => Promise<void>,
-  deferNamespaces = false,
+  consume?: (event: XmlEvent, namespaceParts: (reference: number) => AsyncIterable<string>, sourceParts: (span: XmlSourceSpan) => AsyncIterable<string>) => Promise<void>,
+  options: { deferNamespaces?: boolean; deferContentNames?: boolean } = {},
 ): Promise<XmlElement> {
   const cache = new PagedStorageCache(4);
   const storage = new PagedStorage(context, 4, cache);
@@ -50,17 +50,29 @@ export async function parseStoredXml(
       request.value = String.fromCharCode(...units);
       if (request.streaming) request.complete = sourceDone && request.offset + count === length;
     }
+    async function* sourceParts(span: XmlSourceSpan): AsyncGenerator<string> {
+      for (let offset = span.start; offset < span.end;) {
+        const request: XmlSourceRead = { offset, length: Math.min(512, span.end - offset) };
+        await completeSourceRead(request);
+        let part = request.value!;
+        const last = part.charCodeAt(part.length - 1);
+        if (offset + part.length < span.end && last >= 0xd800 && last <= 0xdbff) part = part.slice(0, -1);
+        if (!part.length) throw new TypeError("Incomplete XML name source span");
+        const checkpoint = budget.tick(part.length); if (checkpoint) await checkpoint;
+        yield part; offset += part.length;
+      }
+    }
     const queued: XmlEvent[] = [];
     const frames = new StoredXmlFrames(frameStorage);
     const attributes = new StoredParserAttributes(frameStorage, budget);
     const parser = parseXmlSourceSteps(recover ? length : undefined, {
-      ...budget.limits, deferNamespaces, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, storeAttributes: true, fragmentAttributes: true, fragmentContent: true, compactDeclaration: true,
+      ...budget.limits, ...options, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, storeAttributes: true, fragmentAttributes: true, fragmentContent: true, compactDeclaration: true,
       ...(recover ? { recover } : {}), ...(consume ? { events: (event: XmlEvent) => { queued.push(event); }, onAttribute: (attribute: XmlAttribute, element: XmlElement, continuation = false) => { queued.push({ type: "attribute", attribute, element, continuation }); } } : {}),
     });
     let step = parser.next();
     try {
       while (true) {
-        for (const event of queued) await consume!(event, reference => new StoredNamespaces(frameStorage, budget).valueParts(reference));
+        for (const event of queued) await consume!(event, reference => new StoredNamespaces(frameStorage, budget).valueParts(reference), sourceParts);
         queued.length = 0;
         if (step.done) { await frameStorage.close(); await storage.close(); return step.value; }
         if (typeof step.value === "number") {

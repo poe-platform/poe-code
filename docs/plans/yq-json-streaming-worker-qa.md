@@ -102,7 +102,13 @@ bodies preserve the buffered parser behavior (no trailing space before `?>`), wh
 differs from native xmllint. Repeat declaration validation and output with increasingly large whitespace spans
 and malformed oversized fields. Stored declarations now retain compact normalized
 fields; verify formatting, encoding and standalone behavior against native xmllint.
-Names, attributes and namespace scopes still need separate backing work.
+Increase PI target length separately from body size, including astral characters
+at source-window boundaries and qualified names. Long targets now validate and
+replay source spans, then use document-backed token references; metadata and body
+continuations must not duplicate complete names. Verify formatting, canonical
+output, buffered node results and XPath name functions. Inject reads, writes and
+cancellation during target transfer; source iterators and all scratch descriptors
+must close. Element/attribute names remain a separate backing gate.
 
 For recovery, repeat formatting, CDATA conversion and XPath with a missing final
 closing tag. Verify repaired output and diagnostics, paged node writes and cleanup

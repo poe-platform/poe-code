@@ -4,8 +4,8 @@ import { XmlFrames, bindNamespace, namespaceValue, namespaceMetadata, hasNamespa
 export type { XmlParserFrame, XmlFrameRequest, XmlNamespaceScope, XmlNamespaceRequest } from "./frames.js";
 import { validCharacter } from "./characters.js";
 export { normalizeXmlChunks } from "./characters.js";
-import { XmlSource, type XmlSourceStep } from "./source.js";
-export type { XmlSourceRead, XmlSourceStep } from "./source.js";
+import { XmlSource, type XmlSourceSpan, type XmlSourceStep } from "./source.js";
+export type { XmlSourceRead, XmlSourceSpan, XmlSourceStep } from "./source.js";
 import type { XmlStreamEvent } from "./stream.js";
 import { XmlLimitError } from "./errors.js";
 export { XmlLimitError } from "./errors.js";
@@ -18,7 +18,7 @@ export interface XmlName {
 }
 export interface XmlAttribute extends XmlName { readonly value: string; }
 export type XmlContent = XmlElement | { readonly kind: "text" | "cdata" | "comment"; readonly text: string }
-  | { readonly kind: "processing-instruction"; readonly target: string; readonly text: string };
+  | { readonly kind: "processing-instruction"; readonly target: string; readonly targetSource?: XmlSourceSpan; readonly targetReference?: number; readonly text: string };
 export interface XmlElement extends XmlName {
   readonly kind: "element";
   readonly children: XmlElement[];
@@ -110,6 +110,30 @@ function qualifiedNameSync(name: string, cache: QualifiedNameCache): [string, st
     cache.parts = parts;
   }
   return parts;
+}
+
+/** Validate a name span without retaining its spelling. */
+function* validateNameSpan(source: XmlSource, start: number, end: number): Generator<XmlSourceStep, void, void> {
+  let first = true, colon = false, work = 0;
+  for (let offset = start; offset < end;) {
+    let point = yield* source.charCodeAt(offset);
+    if (point >= 0xd800 && point <= 0xdbff && offset + 1 < end) {
+      const low = yield* source.charCodeAt(offset + 1);
+      if (low >= 0xdc00 && low <= 0xdfff) point = 0x10000 + (point - 0xd800) * 1024 + low - 0xdc00;
+    }
+    if (point === 58) {
+      if (colon || first) invalid("invalid qualified name");
+      colon = true; first = true;
+    } else {
+      if (!(first ? nameStart(point) : namePart(point))) invalid("invalid qualified name");
+      first = false;
+    }
+    const size = point > 0xffff ? 2 : 1;
+    offset += size; work += size;
+    if (work >= 512) { yield 512; work -= 512; }
+  }
+  if (first) invalid("invalid qualified name");
+  if (work) yield work;
 }
 
 function entity(source: string, start: number, end: number, recover?: (message: string) => void): Generator<number, string, void>;
@@ -295,6 +319,8 @@ export interface XmlSourceLimits extends XmlStepLimits {
   readonly storeNamespaces?: boolean;
   /** Carry host namespace token references in event metadata. Requires stored namespaces. */
   readonly deferNamespaces?: boolean;
+  /** Emit long processing-instruction targets as source spans. Requires fragmentContent. */
+  readonly deferContentNames?: boolean;
   /** Store attribute collections through host requests and emit resolved attributes individually. */
   readonly storeAttributes?: boolean;
   readonly fragmentAttributes?: boolean;
@@ -307,6 +333,7 @@ export function parseXmlSourceSteps(length: number | undefined, limits?: XmlStep
 export function parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits): Generator<XmlParseStep, XmlElement, void>;
 export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits = {}): Generator<XmlParseStep, XmlElement, void> {
   validateLimits(limits);
+  if (limits.deferContentNames && !limits.fragmentContent) throw new TypeError("Deferred XML content names require fragmentContent: true");
   if (limits.fragmentAttributes && !limits.storeAttributes) throw new TypeError("XML attribute fragments require storeAttributes: true");
   if (limits.storeFrames && limits.retainTree !== false) throw new TypeError("Stored XML frames require retainTree: false");
   if (limits.storeAttributes && limits.retainTree !== false) throw new TypeError("Stored XML attributes require retainTree: false");
@@ -359,7 +386,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     }
     return offset - start;
   };
-  const scanName = function* (): Generator<XmlSourceStep, [string, string, string]> {
+  const scanName = function* (defer = false): Generator<XmlSourceStep, [string, string, string, XmlSourceSpan?]> {
     const start = offset;
     while (yield* source.has(offset)) {
       const c = (yield* source.charCodeAt(offset));
@@ -368,6 +395,10 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       pendingWork++;
       if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
     }
+    if (defer && offset - start > 512) {
+      yield* validateNameSpan(source, start, offset);
+      return ["", "", "", { start, end: offset }];
+    }
     const name = (yield* source.slice(start, offset));
     pendingWork += offset - start;
     while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
@@ -375,7 +406,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     return [name, prefix, localName];
   };
   const rawContent = function* (kind: "cdata" | "comment" | "processing-instruction", start: number, end: number,
-    parent: XmlParserFrame | undefined, target = ""): Generator<XmlSourceStep, void, void> {
+    parent: XmlParserFrame | undefined, target = "", targetSource?: XmlSourceSpan): Generator<XmlSourceStep, void, void> {
     if (end - start > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
     textLength += end - start;
     admitContent();
@@ -387,7 +418,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
         if (last >= 0xd800 && last <= 0xdbff) finish--;
       }
       const text = yield* source.slice(cursor, finish);
-      const content: Exclude<XmlContent, XmlElement> = kind === "processing-instruction" ? { kind, target, text } : { kind, text };
+      const content: Exclude<XmlContent, XmlElement> = kind === "processing-instruction" ? { kind, target, text, ...(targetSource ? { targetSource } : {}) } : { kind, text };
       if (kind === "cdata" && retainTree) parent!.element.text += text;
       if (retain) (parent?.content ?? (root ? epilog : prolog)).push(content);
       limits.events?.({ type: "content", content, parent: parent?.element,
@@ -482,7 +513,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     } else if ((yield* source.startsWith("<?", offset))) {
       const start = offset;
       offset += 2;
-      const [target] = yield* scanName();
+      const [target, , , targetSource] = yield* scanName(limits.deferContentNames);
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       const end = yield* find(source, "?>", offset);
       if (end < 0) invalid("unterminated processing instruction");
@@ -500,7 +531,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
           if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         }
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-        yield* rawContent("processing-instruction", body, end, yield* stack.peek(), target);
+        yield* rawContent("processing-instruction", body, end, yield* stack.peek(), target, targetSource);
       }
       offset = end + 2;
     } else if ((yield* source.startsWith("<!", offset))) {
@@ -519,7 +550,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     } else {
       offset++;
       const repeated = previousEmpty && (yield* source.startsWith(previousEmpty.suffix, offset)) ? previousEmpty : undefined;
-      const [name, prefix, localName]: [string, string, string] = repeated
+      const [name, prefix, localName]: [string, string, string, XmlSourceSpan?] = repeated
         ? [repeated.name, repeated.prefix, repeated.localName]
         : (yield* scanName());
       if (repeated) offset += name.length;

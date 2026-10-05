@@ -340,3 +340,35 @@ it('requires host attribute storage for value fragments', () => {
   const parser = parseXmlSourceSteps(4, { retainTree: false, fragmentAttributes: true });
   expect(() => parser.next()).toThrow('XML attribute fragments require storeAttributes: true');
 });
+
+for (const streaming of [false, true]) it(`deferred PI targets never request a complete name slice (streaming=${streaming})`, () => {
+  const input = '<r><?' + 'a'.repeat(511) + '𐀀'.repeat(4000) + ' data?></r>';
+  const slice = XmlSource.prototype.slice;
+  const spy = vi.spyOn(XmlSource.prototype, 'slice').mockImplementation(function* (this: XmlSource, start: number, end = this.length) {
+    expect(end - start).toBeLessThanOrEqual(512);
+    return yield* slice.call(this, start, end);
+  });
+  let seen = false;
+  try {
+    const parser = parseXmlSourceSteps(streaming ? undefined : input.length, {
+      retainTree: false, fragmentContent: true, deferContentNames: true,
+      events(event) {
+        if (event.type !== 'content' || event.content.kind !== 'processing-instruction') return;
+        expect(event.content.target).toBe('');
+        expect(event.content.targetSource).toEqual({ start: 5, end: input.indexOf(' data') });
+        seen = true;
+      }
+    });
+    let step = parser.next();
+    while (!step.done) {
+      if (typeof step.value !== 'number') {
+        if (!('offset' in step.value)) throw new Error('Unexpected storage request');
+        const request = step.value;
+        request.value = input.slice(request.offset, request.offset + request.length);
+        if (request.streaming) request.complete = request.offset + request.value.length === input.length;
+      }
+      step = parser.next();
+    }
+    expect(seen).toBe(true);
+  } finally { spy.mockRestore(); }
+});

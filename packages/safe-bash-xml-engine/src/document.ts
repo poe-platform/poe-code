@@ -380,7 +380,8 @@ export async function* serializeDocument(
       yield "-->";
     }
     else if (current.kind === "processing-instruction") {
-      yield `<?${current.target}`;
+      yield "<?";
+      yield* typeof reference === "number" ? stored!.targetText(current) : [current.target];
       if (current.text) {
         yield " ";
         yield* typeof reference === "number" ? stored!.text(reference) : [current.text];

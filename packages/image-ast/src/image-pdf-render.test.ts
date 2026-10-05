@@ -48,12 +48,12 @@ it.each(["write","cancel"])("cleans PDF scratch after pixel %s failure",async ph
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
 
-it("backs inline font widths and encodings before decoding or inspecting PDF images",async()=>{
+it.each(["F", "Font"])("backs inline font %s widths and encodings before decoding or inspecting PDF images",async fontName=>{
  const {cosArray,cosDict,cosName,cosStream,PdfRetainedDocument}=await import("@poe-code/pdf-ast");
  const {tryPdfMetadata}=await import("./image-pdf.js");
  const original=PdfDocument.create(),page=original.addPage([32,24]);
- dictSet(page.pageDict,"Resources",cosDict({Font:cosDict({F:cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica"),FirstChar:cosNumber(0),Widths:cosArray(Array.from({length:2048},()=>cosNumber(500))),Encoding:cosDict({Differences:cosArray([cosNumber(65),...Array.from({length:1024},()=>cosName("B"))])})})})}));
- dictSet(page.pageDict,"Contents",original.cos.allocateObject(cosStream(new TextEncoder().encode("BT /F 12 Tf 2 8 Td (A) Tj ET"))));
+ dictSet(page.pageDict,"Resources",cosDict({Font:cosDict({[fontName]:cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica"),FirstChar:cosNumber(0),Widths:cosArray(Array.from({length:2048},()=>cosNumber(500))),Encoding:cosDict({Differences:cosArray([cosNumber(65),...Array.from({length:1024},()=>cosName("B"))])})})})}));
+ dictSet(page.pageDict,"Contents",original.cos.allocateObject(cosStream(new TextEncoder().encode(`BT /${fontName} 12 Tf 2 8 Td (A) Tj ET`))));
  const bytes=original.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
  const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
  const source={size:bytes.length,async read(at:number,n:number){return bytes.subarray(at,at+n);}};

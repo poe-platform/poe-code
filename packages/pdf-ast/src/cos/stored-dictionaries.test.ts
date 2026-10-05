@@ -110,3 +110,27 @@ it("merges appearance resources with stable insertion order, last destination va
   await expect(mergePdfResourceDictionaries(broken, undefined, {fs, directory: "/scratch"})).rejects.toBe(failure);
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+
+it.each([false, true])("keeps resource names opaque to dictionary selectors (indirect map=%s)", async root => {
+  const storage = backing();
+  const map = "<< /Font << /Subtype /Type3 /Resources << /Font << /Font << /Subtype /Type1 >> >> >> >> >>";
+  const {value} = await parseCosRangeValue(source(root ? map : `<< /Font ${map} >>`), 0,
+    {dictionaryStorage: storage, storedDictionaryKeys: ["Font"], storeRootDictionary: root});
+  if (value?.kind !== "dict") throw Error("dictionary expected");
+  const fonts = root ? value : dictGet(value, "Font");
+  if (fonts?.kind !== "dict") throw Error("font map expected");
+  expect(fonts.storedEntries?.length).toBe(1);
+  const font = await readPdfDictionaryValue(fonts, "Font");
+  if (font?.kind !== "dict") throw Error("font expected");
+  expect(font.storedEntries).toBeUndefined();
+  expect(dictGet(font, "Subtype")).toMatchObject({decoded: "Type3"});
+  const resources = dictGet(font, "Resources");
+  if (resources?.kind !== "dict") throw Error("resources expected");
+  const nested = dictGet(resources, "Font");
+  if (nested?.kind !== "dict") throw Error("nested font map expected");
+  expect(nested.storedEntries?.length).toBe(1);
+  const child = await readPdfDictionaryValue(nested, "Font");
+  expect(child).toMatchObject({entries: [{key: {decoded: "Subtype"}, value: {decoded: "Type1"}}]});
+  expect(child?.kind === "dict" && child.storedEntries).toBeUndefined();
+});

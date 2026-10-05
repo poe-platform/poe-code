@@ -6,6 +6,7 @@ import type { CosToken } from "./lexer.js";
 // is represented. The container/reference grammar is shared by both I/O paths.
 export interface ValueArrayStorage {
   readonly dictionaryStorage?: PdfPixelStorage;
+  /** Select resource maps; their entry names are data, not nested map selectors. */
   readonly storedDictionaryKeys?: readonly string[];
   readonly storeRootDictionary?: boolean;
   readonly arrayStorage?: PdfPixelStorage;
@@ -122,7 +123,7 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
         continue;
       }
       if (tok.kind === "dict-start") {
-        const backed = options.dictionaryStorage && (parent?.kind === "dict" && options.storedDictionaryKeys?.includes(parent.key!.decoded) || !parent && options.storeRootDictionary);
+        const backed = options.dictionaryStorage && (parent?.kind === "dict" && !parent.storedEntries && options.storedDictionaryKeys?.includes(parent.key!.decoded) || !parent && options.storeRootDictionary);
         yield* push({ kind: "dict", path:ancestorPath(parent), start: tok.span.start, entries: [], tail: -1,
           ...(backed ? {storedEntries: {storage: options.dictionaryStorage!, position: -1, length: 0}} : {}) });
         continue;

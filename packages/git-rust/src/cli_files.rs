@@ -71,6 +71,7 @@ pub(crate) struct DiffOptions {
     pub quiet: bool,
     pub exit_code: bool,
     pub reverse: bool,
+    pub check: bool,
 }
 impl Default for DiffOptions {
     fn default() -> Self {
@@ -80,6 +81,7 @@ impl Default for DiffOptions {
             quiet: false,
             exit_code: false,
             reverse: false,
+            check: false,
         }
     }
 }
@@ -131,6 +133,10 @@ pub fn diff(
         }
         let left = old.get(p).map(|(_, b)| b.as_slice()).unwrap_or_default();
         let right = new.get(p).map(|(_, b)| b.as_slice()).unwrap_or_default();
+        if options.check {
+            check_whitespace(p, left, right, &mut out);
+            continue;
+        }
         if matches!(
             options.mode,
             DiffMode::Stat | DiffMode::ShortStat | DiffMode::NumStat | DiffMode::DirStat
@@ -376,6 +382,50 @@ pub(crate) fn matching_lines(old: &[&str], new: &[&str], a: usize, b: usize, pai
     }
     for i in 0..suffix {
         pairs.push((a + left.len() + i, b + right.len() + i));
+    }
+}
+
+/// Check added lines only, using the same matching as patch generation.
+fn check_whitespace(path: &str, left: &[u8], right: &[u8], out: &mut String) {
+    if left.contains(&0) || right.contains(&0) {
+        return;
+    }
+    let a = String::from_utf8_lossy(left);
+    let b = String::from_utf8_lossy(right);
+    let old: Vec<_> = a.split_inclusive('\n').collect();
+    let new: Vec<_> = b.split_inclusive('\n').collect();
+    let mut pairs = Vec::new();
+    matching_lines(&old, &new, 0, 0, &mut pairs);
+    let mut unchanged = pairs.iter().map(|(_, j)| *j).peekable();
+    for (j, line) in new.iter().enumerate() {
+        if unchanged.peek() == Some(&j) {
+            unchanged.next();
+            continue;
+        }
+        let line = line.strip_suffix('\n').unwrap_or(line);
+        let number = j + 1;
+        if ["<<<<<<<", "=======", ">>>>>>>", "|||||||"].iter().any(|marker| {
+            line.strip_prefix(marker).is_some_and(|rest| rest.is_empty() || rest.starts_with([' ', '\t', '\r']))
+        }) {
+            out.push_str(&format!("{path}:{number}: leftover conflict marker\n"));
+        }
+        let mut errors = Vec::new();
+        if line.ends_with([' ', '\t', '\r']) {
+            errors.push("trailing whitespace");
+        }
+        let indent: String = line.chars().take_while(|c| matches!(c, ' ' | '\t')).collect();
+        if indent.contains(" \t") {
+            errors.push("space before tab in indent");
+        }
+        if !errors.is_empty() {
+            out.push_str(&format!("{path}:{number}: {}.\n+{}\n", errors.join(", "), line.trim_end_matches('\r')));
+        }
+    }
+    let blank = |line: &&&str| line.bytes().all(|b| matches!(b, b' ' | b'\t' | b'\r' | b'\n'));
+    let old_blanks = old.iter().rev().take_while(blank).count();
+    let new_blanks = new.iter().rev().take_while(blank).count();
+    if new_blanks > old_blanks {
+        out.push_str(&format!("{path}:{}: new blank line at EOF.\n", new.len() - new_blanks + 1));
     }
 }
 

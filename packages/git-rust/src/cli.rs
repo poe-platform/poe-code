@@ -1288,6 +1288,10 @@ pub fn execute_git_cli_with_input(
                                 options.quiet = true;
                                 continue;
                             }
+                            "--check" => {
+                                options.check = true;
+                                continue;
+                            }
                             "--exit-code" => {
                                 options.exit_code = true;
                                 continue;
@@ -1385,6 +1389,9 @@ pub fn execute_git_cli_with_input(
                             );
                         }
                     }
+                    if options.check && args.iter().any(|arg| matches!(*arg, "--name-only" | "--name-status")) {
+                        return CliResult::err(128, "fatal: options '--name-only', '--name-status', '--check', and '-s' cannot be used together\n");
+                    }
                     if revisions.len() > 2 {
                         return CliResult::err(
                             129,
@@ -1426,9 +1433,13 @@ pub fn execute_git_cli_with_input(
                         &options,
                     ) {
                         Ok((out, changed)) => {
+                            let check_failed = options.check && !out.is_empty();
                             let mut result = CliResult::ok(out);
+                            if check_failed {
+                                result.exit_code = 2;
+                            }
                             if changed && (options.quiet || options.exit_code) {
-                                result.exit_code = 1;
+                                result.exit_code |= 1;
                             }
                             result
                         }

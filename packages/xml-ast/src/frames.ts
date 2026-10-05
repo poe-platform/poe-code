@@ -52,6 +52,7 @@ export class XmlFrames {
 /** A host-owned immutable namespace scope; count includes the built-in xml prefix. */
 export interface XmlNamespaceScope { readonly reference: number; readonly size: number; }
 export type XmlNamespaceRequest =
+  | { readonly namespaceOperation: 'has'; readonly scope: XmlNamespaceScope; readonly prefix: string; found?: boolean }
   | { readonly namespaceOperation: 'get'; readonly scope: XmlNamespaceScope; readonly prefix: string; value?: string; complete?: true }
   | { readonly namespaceOperation: 'set'; readonly scope: XmlNamespaceScope; readonly prefix: string; readonly value: string | Generator<XmlSourceStep | string, void, void>; result?: XmlNamespaceScope };
 
@@ -61,6 +62,14 @@ export function* namespaceValue(scope: Map<string, string> | XmlNamespaceScope, 
   yield request;
   if (!request.complete) throw new TypeError('Incomplete XML namespace read');
   return request.value;
+}
+
+export function* hasNamespace(scope: Map<string, string> | XmlNamespaceScope, prefix: string): Generator<XmlNamespaceRequest, boolean, void> {
+  if (scope instanceof Map) return scope.has(prefix);
+  const request: XmlNamespaceRequest = { namespaceOperation: 'has', scope, prefix };
+  yield request;
+  if (request.found === undefined) throw new TypeError('Incomplete XML namespace membership lookup');
+  return request.found;
 }
 
 export function* bindNamespace(scope: Map<string, string> | XmlNamespaceScope, prefix: string, value: string | Generator<XmlSourceStep | string, void, void>): Generator<XmlNamespaceRequest, Map<string, string> | XmlNamespaceScope, void> {

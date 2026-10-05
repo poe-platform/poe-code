@@ -154,3 +154,38 @@ for (const fail of [false, true]) test(`stored map streams borrowed value chunks
   } finally { await storage.close(); }
   assert.deepEqual(await fs.readdir("/"), []);
 });
+
+for (const fail of [false, true]) test(`stored maps consume streamed keys with bounded comparisons (failure=${fail})`, async t => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const storage = new PagedStorage({ fs, cwd: "/", env: {}, signal }, 1);
+  const read = storage.read.bind(storage), append = storage.append.bind(storage);
+  t.mock.method(storage, "read", async (offset: number, length: number) => {
+    assert.ok(length <= 8192, `bounded token read: ${length}`); return read(offset, length);
+  });
+  t.mock.method(storage, "append", async (bytes: Uint8Array) => {
+    assert.ok(bytes.length <= 8192, `bounded token write: ${bytes.length}`); await Promise.resolve(); return append(bytes);
+  });
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const failure = new Error("key producer failed"), piece = "x".repeat(4095) + "😀";
+  let closed = false;
+  const key = (async function* () {
+    try { for (let i = 0; i < 25; i++) { yield piece; if (fail && i === 2) throw failure; } }
+    finally { closed = true; }
+  })();
+  try {
+    const original = await new StoredNamespaces(storage, budget).set("z", "ancestor");
+    const operation = original.set(key, "value");
+    if (fail) await assert.rejects(operation, error => error === failure);
+    else {
+      const map = await operation;
+      assert.equal(await map.get(piece.repeat(25)), "value");
+      const duplicate = await map.set((async function* () { for (let i = 0; i < 25; i++) yield piece; })(), "value");
+      assert.equal(duplicate.reference, map.reference);
+      const updated = await map.set((async function* () { for (let i = 0; i < 25; i++) yield piece; yield "a"; })(), "longer");
+      assert.equal(await updated.get(piece.repeat(25) + "a"), "longer");
+      assert.equal(await updated.get("z"), "ancestor");
+    }
+    assert.equal(closed, true); assert.equal(await original.get("z"), "ancestor");
+  } finally { await storage.close(); }
+  assert.deepEqual(await fs.readdir("/"), []);
+});

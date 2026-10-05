@@ -74,7 +74,7 @@ for (const recover of [false, true]) test(`namespace binding consumes a lazy val
   const { StoredStringMap } = await import("./stored-map.js");
   const original = StoredStringMap.prototype.set;
   let bound = false;
-  t.mock.method(StoredStringMap.prototype, "set", async function (this: InstanceType<typeof StoredStringMap>, key: string, value: Parameters<typeof original>[1]) {
+  t.mock.method(StoredStringMap.prototype, "set", async function (this: InstanceType<typeof StoredStringMap>, key: Parameters<typeof original>[0], value: Parameters<typeof original>[1]) {
     if (key === "p") {
       assert.notEqual(typeof value, "string", "namespace binding must not receive a full URI string");
       assert.ok(Symbol.asyncIterator in (value as object)); bound = true;
@@ -113,7 +113,7 @@ for (const recover of [false, true]) for (const outcome of ["read", "write", "ab
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("binding stopped");
   let binding = false, fragments = 0, opened = 0, closed = 0, sourceClosed = false;
   const original = StoredStringMap.prototype.set;
-  t.mock.method(StoredStringMap.prototype, "set", async function (this: InstanceType<typeof StoredStringMap>, key: string, value: Parameters<typeof original>[1]) {
+  t.mock.method(StoredStringMap.prototype, "set", async function (this: InstanceType<typeof StoredStringMap>, key: Parameters<typeof original>[0], value: Parameters<typeof original>[1]) {
     if (key !== "p") return original.call(this, key, value);
     assert.ok(typeof value === "object" && Symbol.asyncIterator in value);
     const parts = (async function* () {
@@ -153,5 +153,48 @@ for (const recover of [false, true]) for (const outcome of ["read", "write", "ab
   const source = (function* () { try { yield '<r xmlns:p="urn:'; for (let i = 0; i < 200; i++) yield piece; yield '"/>'; } finally { sourceClosed = true; } })();
   await assert.rejects(parseStoredXml(source, { fs: injected, cwd: "/", env: {}, signal: controller.signal }, new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {}), recover ? () => {} : undefined), error => error === failure);
   assert.equal(sourceClosed, true); assert.equal(opened, closed); assert.equal(binding, false);
+  assert.deepEqual(await fs.readdir("/"), []);
+});
+
+for (const recover of [false, true]) test(`expanded attribute validation uses backed URI keys (recover=${recover})`, async t => {
+  const { StoredStringMap } = await import("./stored-map.js");
+  const original = StoredStringMap.prototype.set;
+  t.mock.method(StoredStringMap.prototype, "set", async function (this: InstanceType<typeof StoredStringMap>, key: Parameters<typeof original>[0], value: Parameters<typeof original>[1]) {
+    if (typeof key === "string") assert.equal(key.includes("\0"), false, "expanded names must not concatenate namespace URI strings");
+    return original.call(this, key, value);
+  });
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const get = StoredStringMap.prototype.get;
+  t.mock.method(StoredStringMap.prototype, "get", async function (this: InstanceType<typeof StoredStringMap>, key: string) {
+    assert.ok(key !== "p" && key !== "q", "validation must not materialize namespace URIs");
+    return get.call(this, key);
+  });
+  const context = { fs, cwd: "/", env: {}, signal };
+  const source = (duplicate: boolean) => (function* () {
+    yield '<r xmlns:p="urn:'; for (let i = 0; i < 100; i++) yield "x".repeat(512);
+    yield '" xmlns:q="urn:'; for (let i = 0; i < 100; i++) yield "x".repeat(512);
+    yield duplicate ? '" p:a="1" q:a="2"/>' : '" p:a="1" q:b="2"/>';
+  })();
+  const budget = () => new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  await parseStoredXml(source(false), context, budget(), recover ? () => {} : undefined);
+  if (!recover) await assert.rejects(parseStoredXml(source(true), context, budget()), /duplicate expanded attribute/);
+  assert.deepEqual(await fs.readdir("/"), []);
+});
+
+for (const input of [
+  '<r xmlns="urn:same" xmlns:p="urn:same" a="1" p:a="2"/>',
+  '<r p:a="1" q:a="2" xmlns:p="urn:same" xmlns:q="urn:same"/>',
+  '<r p:a="1" q:a="2" xmlns:p="urn:one" xmlns:q="urn:two"/>',
+  '<r xmlns:p="urn:same"><r xmlns:p="urn:other" xmlns:q="urn:same" p:a="1" q:a="2"/></r>',
+  '<r xmlns:p="urn:ab" xmlns:q="urn:a" p:c="1" q:bc="2"/>',
+  '<r xmlns:p="urn:same" xmlns:q="urn:s&#97;me" p:a="1" q:a="2"/>',
+  '<r p:a="1"/>', '<p:r/>'
+]) test(`backed expanded-name diagnostics match buffered parsing: ${input}`, async () => {
+  let failure: Error | undefined;
+  try { parseXml(input); } catch (error) { failure = error as Error; }
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const operation = parseStoredXml([input], { fs, cwd: "/", env: {}, signal }, new XmlBudget(resolveXmlQueryLimits(), signal, async () => {}));
+  if (failure) await assert.rejects(operation, error => error instanceof Error && error.message === failure.message);
+  else await operation;
   assert.deepEqual(await fs.readdir("/"), []);
 });

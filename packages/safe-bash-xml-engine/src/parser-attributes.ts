@@ -40,10 +40,23 @@ export class StoredParserAttributes {
     if (request.attributeOperation === "has" || request.attributeOperation === "expanded") {
       const offset = request.attributeOperation === "has" ? 16 : 24;
       const values = new StoredStringMap(this.storage, this.budget, await this.number(store, offset));
-      request.found = await values.lookup(request.name) !== undefined;
-      if (request.attributeOperation === "expanded" && !request.found) {
-        const next = await values.set(request.name, "1");
-        await this.set(store, offset, next.reference);
+      if (request.attributeOperation === "expanded" && request.namespace) {
+        const { scope, prefix } = request.namespace;
+        const namespaces = new StoredStringMap(this.storage, this.budget, scope.reference);
+        const uri = prefix ? await namespaces.lookup(prefix) : undefined;
+        const parts = (async function* () {
+          if (uri !== undefined) yield* namespaces.valueParts(uri);
+          yield "\0"; yield request.name;
+        })();
+        const next = await values.set(parts, "1");
+        request.found = next.reference === values.reference;
+        if (!request.found) await this.set(store, offset, next.reference);
+      } else {
+        request.found = await values.lookup(request.name) !== undefined;
+        if (request.attributeOperation === "expanded" && !request.found) {
+          const next = await values.set(request.name, "1");
+          await this.set(store, offset, next.reference);
+        }
       }
       return;
     }

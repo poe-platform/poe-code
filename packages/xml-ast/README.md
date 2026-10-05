@@ -64,7 +64,8 @@ size cost. The default string and stream APIs retain their existing ancestry beh
 
 Also set `storeNamespaces: true` to resolve namespace scopes through host-backed
 immutable storage. `namespaceOperation: "get"` supplies a scope and prefix; fill
-`value` when present and set `complete: true`. For `"set"`, bind the supplied prefix
+`value` when present and set `complete: true`. For `"has"`, fill `found` using
+membership without reading the URI value. For `"set"`, bind the supplied prefix
 and value in a new scope, then fill `result` with its storage `reference` and the
 number of distinct bindings (`size`). Frames carry this scope handle so shadowing
 never changes ancestor scopes. In this mode event elements have an empty
@@ -76,7 +77,11 @@ fragment protocol below.
 Set `storeAttributes: true` to move current-tag attribute values, source order,
 and duplicate-name state behind `attributeOperation` requests (`has`, `append`,
 `read`, and `expanded`). Service the request's `found` or `result` field as described
-by `XmlAttributeRequest`, keeping records in caller-owned backing. With this flag,
+by `XmlAttributeRequest`, keeping records in caller-owned backing. When namespace
+storage is also enabled, `expanded` supplies the local name and a `namespace` scope
+and prefix. Check the pair of resolved URI and local name without joining them in
+memory; an empty prefix means no attribute namespace, regardless of the default
+element namespace. With this flag,
 element `attributes` arrays are empty. Supply `onAttribute(attribute, element)` to
 receive resolved attributes in source order, after the open event and before any
 content or close event. The parser yields between attributes so a host can await

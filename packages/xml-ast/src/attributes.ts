@@ -1,7 +1,8 @@
+import type { XmlNamespaceScope } from "./frames.js";
 export interface XmlAttributeRecord { name: string; prefix: string; localName: string; value: string; next: number; source?: { start: number; end: number }; }
 export interface XmlAttributeState { reference: number; first: number; length: number; size: number; }
 export type XmlAttributeRequest =
-  | { attributeOperation: 'has' | 'expanded'; state: XmlAttributeState; name: string; found?: boolean }
+  | { attributeOperation: 'has' | 'expanded'; state: XmlAttributeState; name: string; found?: boolean; namespace?: { scope: XmlNamespaceScope; prefix: string } }
   | { attributeOperation: 'append'; state: XmlAttributeState; attribute: Omit<XmlAttributeRecord, 'next'>; result?: XmlAttributeState }
   | { attributeOperation: 'read'; state: XmlAttributeState; reference: number; values: boolean; result?: XmlAttributeRecord };
 
@@ -49,11 +50,11 @@ export class XmlAttributes {
     return request.result;
   }
 
-  *expanded(name: string): Generator<XmlAttributeRequest, boolean, void> {
+  *expanded(name: string, namespace?: { scope: XmlNamespaceScope; prefix: string }): Generator<XmlAttributeRequest, boolean, void> {
     if (!this.external) {
       const found = this.expandedNames.has(name); this.expandedNames.add(name); return found;
     }
-    const request: XmlAttributeRequest = { attributeOperation: 'expanded', state: this.state, name };
+    const request: XmlAttributeRequest = { attributeOperation: 'expanded', state: this.state, name, ...(namespace ? { namespace } : {}) };
     yield request;
     if (request.found === undefined) throw new TypeError('Incomplete XML expanded attribute lookup');
     return request.found;

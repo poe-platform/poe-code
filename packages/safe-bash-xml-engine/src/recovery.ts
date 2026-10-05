@@ -69,7 +69,9 @@ export async function parseStoredXml(
         } else if ("namespaceOperation" in step.value) {
           const request = step.value;
           const scope = new StoredNamespaces(frameStorage, budget, request.scope.reference);
-          if (request.namespaceOperation === "get") {
+          if (request.namespaceOperation === "has") {
+            request.found = await scope.lookup(request.prefix) !== undefined;
+          } else if (request.namespaceOperation === "get") {
             const previous = await scope.get(request.prefix);
             if (previous !== undefined) request.value = previous;
             request.complete = true;

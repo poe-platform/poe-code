@@ -60,8 +60,11 @@ chunk boundaries. Parser binding now validates decoded URI fragments and supplie
 a lazy producer to caller-backed scopes. Interrupt nested source reads and writes
 while that producer is active; confirm its source is retired and error identity is
 preserved. Include reserved xml/xmlns URIs expressed through numeric entities and
-recovery diagnostics, which must not repeat on binding replay. Expanded-name
-lookups/metadata still buffer URI strings; individual names and resolved namespace
+recovery diagnostics, which must not repeat on binding replay. Namespace membership
+and duplicate-expanded-name validation use backed URI fragments and bounded key
+comparisons. Check different prefixes sharing a large URI, equal local names in
+different URIs, late declarations and default namespaces on unprefixed attributes.
+Expanded-name event metadata still buffers URI strings; individual names and resolved namespace
 URIs need end-to-end token work and qualification.
 Parser ancestry uses linked backing records; check deep documents with
 a fixed namespace scope independently of source size. Also measure startup/first-byte latency; formatting validates

@@ -41,21 +41,25 @@ export class StoredStringMap {
     return reference;
   }
 
-  private async compare(value: string, reference: number): Promise<number> {
+  private async compare(value: string | number, reference: number): Promise<number> {
     const header = await this.storage.read(reference, 8);
     const length = new DataView(header.buffer, header.byteOffset, 8).getFloat64(0, true);
-    const common = Math.min(length, value.length);
+    const valueHeader = typeof value === "number" ? await this.storage.read(value, 8) : undefined;
+    const valueLength = valueHeader ? new DataView(valueHeader.buffer, valueHeader.byteOffset, 8).getFloat64(0, true) : (value as string).length;
+    const common = Math.min(length, valueLength);
     for (let offset = 0; offset < common; offset += 4096) {
       const count = Math.min(4096, common - offset);
       const checkpoint = this.budget.tick(count); if (checkpoint) await checkpoint;
       const bytes = await this.storage.read(reference + 8 + offset * 2, count * 2);
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const other = typeof value === "number" ? await this.storage.read(value + 8 + offset * 2, count * 2) : undefined;
+      const otherView = other ? new DataView(other.buffer, other.byteOffset, other.byteLength) : undefined;
       for (let index = 0; index < count; index++) {
-        const difference = value.charCodeAt(offset + index) - view.getUint16(index * 2, true);
+        const difference = (otherView ? otherView.getUint16(index * 2, true) : (value as string).charCodeAt(offset + index)) - view.getUint16(index * 2, true);
         if (difference) return difference;
       }
     }
-    return value.length - length;
+    return valueLength - length;
   }
 
   async *valueParts(reference: number): AsyncGenerator<string> {
@@ -143,13 +147,14 @@ export class StoredStringMap {
     return this.updated(entry);
   }
 
-  async set(key: string, value: string | AsyncIterable<string> | { reference: number }): Promise<StoredStringMap> {
+  async set(key: string | AsyncIterable<string>, value: string | AsyncIterable<string> | { reference: number }): Promise<StoredStringMap> {
+    const storedKey = typeof key === "string" ? key : await this.storeString(key);
     const suppliedReference = typeof value === "string" ? undefined : "reference" in value ? value.reference : await this.storeString(value);
     const insert = async (reference: number): Promise<number> => {
-      if (!reference) return this.write({ key: await this.storeString([key]), value: suppliedReference ?? await this.storeString([value as string]), left: 0, right: 0, height: 1 });
+      if (!reference) return this.write({ key: typeof storedKey === "number" ? storedKey : await this.storeString([storedKey]), value: suppliedReference ?? await this.storeString([value as string]), left: 0, right: 0, height: 1 });
       const entry = await this.read(reference);
       const checkpoint = this.budget.tick(1); if (checkpoint) await checkpoint;
-      const order = await this.compare(key, entry.key);
+      const order = await this.compare(storedKey, entry.key);
       if (!order) return await this.equals(entry.value, suppliedReference ?? value as string) ? reference
         : this.write({ ...entry, value: suppliedReference ?? await this.storeString([value as string]) });
       const side = order < 0 ? "left" : "right";

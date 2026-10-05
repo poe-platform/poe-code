@@ -1,6 +1,6 @@
 import { XmlAttributes, type XmlAttributeRequest } from "./attributes.js";
 export type { XmlAttributeRequest, XmlAttributeRecord, XmlAttributeState } from "./attributes.js";
-import { XmlFrames, bindNamespace, namespaceValue, type XmlNamespaceRequest, type XmlFrameRequest, type XmlParserFrame } from "./frames.js";
+import { XmlFrames, bindNamespace, namespaceValue, hasNamespace, type XmlNamespaceRequest, type XmlFrameRequest, type XmlParserFrame } from "./frames.js";
 export type { XmlParserFrame, XmlFrameRequest, XmlNamespaceScope, XmlNamespaceRequest } from "./frames.js";
 import { validCharacter } from "./characters.js";
 export { normalizeXmlChunks } from "./characters.js";
@@ -603,16 +603,17 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
           const { name: attribute, prefix: attrPrefix, localName: attrLocal } = record;
           if (attribute === "xmlns" || attribute.startsWith("xmlns:")) continue;
           pendingWork += attribute.length;
-          if (attrPrefix && (yield* namespaceValue(namespaces, attrPrefix)) === undefined) invalid("unbound attribute prefix");
+          if (attrPrefix && !(yield* hasNamespace(namespaces, attrPrefix))) invalid("unbound attribute prefix");
           if (attributes.length > 1) {
-            const key = `${attrPrefix ? (yield* namespaceValue(namespaces, attrPrefix)) : ""}\0${attrLocal}`;
-            if (yield* attributes.expanded(key)) invalid("duplicate expanded attribute");
+            const backed = limits.storeAttributes && !(namespaces instanceof Map) ? namespaces : undefined;
+            const key = backed ? attrLocal : `${attrPrefix ? (yield* namespaceValue(namespaces, attrPrefix)) : ""}\0${attrLocal}`;
+            if (yield* attributes.expanded(key, backed ? { scope: backed, prefix: attrPrefix } : undefined)) invalid("duplicate expanded attribute");
           }
         }
       }
       pendingWork += name.length;
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-      if (prefix === "xmlns" || (prefix && (yield* namespaceValue(namespaces, prefix)) === undefined)) invalid("unbound element prefix");
+      if (prefix === "xmlns" || (prefix && !(yield* hasNamespace(namespaces, prefix)))) invalid("unbound element prefix");
       if (++nodes > maxNodes) throw new XmlLimitError("maxNodes", "XML resource limit exceeded");
       if (stack.length + 1 > maxDepth) throw new XmlLimitError("maxDepth", "XML resource limit exceeded");
       const namespace = (yield* namespaceValue(namespaces, prefix)) ?? "";

@@ -142,3 +142,5 @@ export async function packPackage(
 
 export { openRetainedPackageExtraction, type RetainedExtractedPackageMember, type RetainedPackageExtraction } from './retained-package-extraction.js';
 export { stageRetainedExtractionOutput } from './retained-extraction-output.js';
+
+export { stageRetainedPackage, type RetainedPackMember } from './retained-package-packing.js';

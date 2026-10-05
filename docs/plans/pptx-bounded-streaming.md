@@ -510,6 +510,26 @@ qualification or complete migration is claimed.
    reads or hidden in-memory spooling. Compare output semantics with existing
    presentation and native interoperability fixtures across supported operations.
 
+## Retained packing continuation
+
+`stageRetainedPackage` now accepts streamed descriptors and opens member byte
+sources only after complete namespace admission. Stored sort keys preserve the
+buffered writer's exact ZIP ordering. ZIP intermediates and final output use
+caller pages; digest, graph, kind, count and byte validation finish before output
+is exposed. Tests cover reused buffers, actual spills, bounded outstanding writes,
+slow consumption, source/storage failures, cancellation and iterator retirement.
+The 31 new packing cases and 61 archive/package regressions pass, as do the
+maintained engine lint/type checks and workspace build. Native python-pptx packing
+preserves all 41 chart-deck members, text, chart values and embedded workbook, with
+exact buffered ZIP bytes and empty scratch. This is an engine capability, not a
+migration of the default pack command; no Worker qualification is claimed.
+
+Next: replace the pack command's whole-manifest JSON parsing with caller-backed
+records, preserve duplicate-key/schema/path checks, store part-to-input bindings,
+and migrate its protected input identities without growing arrays or session maps.
+Wire staged archive and response publication for force/dry-run/binary stdout.
+Other mutations, richer reads and workbook intermediates also remain unfinished.
+
 ## Manual workerd / Cloudflare QA
 
 Execute these steps after the streaming engine path is implemented. Do not treat

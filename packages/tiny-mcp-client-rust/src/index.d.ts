@@ -559,10 +559,23 @@ export interface OAuthDiscoveryCache {
 }
 export interface OAuthMetadataDiscoveryOptions { fetch?: OAuthMetadataFetch; cache?: OAuthDiscoveryCache; }
 export interface OAuthMetadataLookupOptions { resourceMetadataUrl?: string | URL; signal?: AbortSignal; }
+export type OAuthMetadataFailureReason = "invalid-metadata" | "issuer-mismatch" | "pkce-unsupported"
+  | "response-type-unsupported" | "invalid-endpoint" | "invalid-json" | "http-error" | "network-error";
+export type OAuthMetadataFailureCategory = "validation" | "json" | "http" | "network";
+export interface OAuthMetadataFailure {
+  readonly phase: "protected-resource" | "authorization-server";
+  readonly category: OAuthMetadataFailureCategory;
+  readonly reason: OAuthMetadataFailureReason;
+  readonly status?: number;
+}
 export declare class OAuthMetadataError extends Error {
   readonly phase: "protected-resource" | "authorization-server";
   readonly status?: number;
-  constructor(phase: "protected-resource" | "authorization-server", message: string, status?: number);
+  readonly category: OAuthMetadataFailureCategory;
+  readonly reason: OAuthMetadataFailureReason;
+  readonly failures: readonly OAuthMetadataFailure[];
+  constructor(phase: "protected-resource" | "authorization-server", message: string, status?: number,
+    reason?: OAuthMetadataFailureReason, failures?: readonly OAuthMetadataFailure[]);
   static is(value: unknown): value is OAuthMetadataError;
 }
 export declare class OAuthMetadataDiscovery {

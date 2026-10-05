@@ -75,6 +75,16 @@ void discoveryToReference;
 void discoveryFromReference;
 void ownLookup;
 void referenceLookup;
+import { OAuthMetadataError } from "../dist/index.js";
+import type { OAuthMetadataFailure, OAuthMetadataFailureCategory, OAuthMetadataFailureReason } from "../dist/index.js";
+import { OAuthMetadataError as ReferenceMetadataError } from "tiny-mcp-client";
+const metadataErrorToReference: typeof ReferenceMetadataError = OAuthMetadataError;
+const metadataErrorFromReference: typeof OAuthMetadataError = ReferenceMetadataError;
+const metadataReason: OAuthMetadataFailureReason = "network-error";
+const metadataCategory: OAuthMetadataFailureCategory = "network";
+const metadataFailure: OAuthMetadataFailure = { phase: "authorization-server", category: metadataCategory, reason: metadataReason };
+const metadataError = new OAuthMetadataError("authorization-server", "unavailable", undefined, metadataReason, [metadataFailure]);
+void [metadataErrorToReference, metadataErrorFromReference, metadataError.failures];
 import {
   McpClient,
   StdioTransport,

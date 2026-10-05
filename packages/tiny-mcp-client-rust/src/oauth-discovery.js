@@ -7,13 +7,28 @@ export class OAuthMetadataError extends Error {
   static is(value) {
     return value instanceof Error && Object.getOwnPropertyDescriptor(value, metadataErrorBrand)?.value === true;
   }
-  constructor(phase, message, status) {
+  constructor(phase, message, status, reason = status === undefined ? "invalid-metadata" : "http-error", failures = []) {
     super(message);
     this.name = "OAuthMetadataError";
     this.phase = phase;
     this.status = status;
+    this.reason = reason;
+    this.failures = failures;
+    this.category = reason === "invalid-json" ? "json" : reason === "http-error" ? "http"
+      : reason === "network-error" ? "network" : "validation";
     Object.defineProperty(this, metadataErrorBrand, { value: true });
   }
+}
+
+function metadataFailure(error, phase, reason) {
+  return OAuthMetadataError.is(error) ? error : new OAuthMetadataError(phase,
+    error instanceof Error ? error.message : String(error), undefined, reason);
+}
+
+function aggregateMetadataFailures(phase, errors, message) {
+  const primary = errors.find(error => error.category === "validation") ?? errors[0];
+  const failures = errors.map(({ phase, category, reason, status }) => Object.freeze({ phase, category, reason, status }));
+  return new OAuthMetadataError(phase, message, primary.status, primary.reason, Object.freeze(failures));
 }
 
 function admitUrl(url, label, issuer = false) {
@@ -33,8 +48,12 @@ function metadataPolicy(command, input, expected, normalized) {
       throw new OAuthMetadataError("protected-resource", outcome.error);
     }
     if (command === "issuer" && outcome.error.startsWith("Authorization server metadata issuer mismatch")) {
-      throw new OAuthMetadataError("authorization-server", outcome.error);
+      throw new OAuthMetadataError("authorization-server", outcome.error, undefined, "issuer-mismatch");
     }
+    if (command === "endpoints") throw new OAuthMetadataError("authorization-server", outcome.error, undefined, "invalid-endpoint");
+    if (command === "arrays") throw new OAuthMetadataError("authorization-server", outcome.error, undefined,
+      outcome.error === "Authorization server metadata must include response_types_supported containing code"
+        ? "response-type-unsupported" : "pkce-unsupported");
     throw new Error(outcome.error);
   }
   return outcome.value;
@@ -86,8 +105,10 @@ function authorizationMetadata(value, issuer) {
     try {
       if (typeof endpoints[index] !== "string") throw new Error();
       endpoint = new URL(endpoints[index]);
-    } catch { throw new Error(`Authorization server metadata ${field} must be an absolute URL`); }
-    admitUrl(endpoint, `Authorization server metadata ${field}`);
+      admitUrl(endpoint, `Authorization server metadata ${field}`);
+    } catch (error) {
+      throw new OAuthMetadataError("authorization-server", `Authorization server metadata ${field} must be an absolute URL: ${error instanceof Error ? error.message : "invalid URL"}`, undefined, "invalid-endpoint");
+    }
   }
   metadataPolicy("arrays", value);
   return value;
@@ -97,16 +118,22 @@ async function fetchMetadata(fetchImpl, location, label, parentSignal) {
   parentSignal?.throwIfAborted();
   const deadline = AbortSignal.timeout(10_000);
   const signal = parentSignal === undefined ? deadline : AbortSignal.any([deadline, parentSignal]);
-  const response = await fetchMcpResponse(fetchImpl ?? globalThis.fetch, location, {
-    method: "GET", headers: { Accept: "application/json" }, signal
-  });
-  if (!response.ok) {
-    void response.body?.cancel().catch(() => undefined);
-    throw new OAuthMetadataError(label === "Protected resource metadata" ? "protected-resource" : "authorization-server", `${label} request failed (${`${response.status} ${response.statusText}`.trim()})`, response.status);
+  const phase = label === "Protected resource metadata" ? "protected-resource" : "authorization-server";
+  try {
+    const response = await fetchMcpResponse(fetchImpl ?? globalThis.fetch, location, {
+      method: "GET", headers: { Accept: "application/json" }, signal
+    });
+    if (!response.ok) {
+      void response.body?.cancel().catch(() => undefined);
+      throw new OAuthMetadataError(phase, `${label} request failed (${`${response.status} ${response.statusText}`.trim()})`, response.status);
+    }
+    const text = await readBoundedResponseText(response, 1024 * 1024, undefined, signal);
+    try { return JSON.parse(text); }
+    catch { throw new OAuthMetadataError(phase, `${label} response must be valid JSON`, undefined, "invalid-json"); }
+  } catch (error) {
+    parentSignal?.throwIfAborted();
+    throw metadataFailure(error, phase, "network-error");
   }
-  const text = await readBoundedResponseText(response, 1024 * 1024, undefined, signal);
-  try { return JSON.parse(text); }
-  catch { throw new Error(`${label} response must be valid JSON`); }
 }
 
 function cachedDiscovery(value, resource) {
@@ -170,31 +197,49 @@ export class OAuthMetadataDiscovery {
     if (resourceMetadataUrl === undefined) resourceLocations.add(new URL("/.well-known/oauth-protected-resource", resource).toString());
     let resourceMetadata;
     let resourceMetadataLocation;
-    let lastError;
+    const resourceErrors = [];
     for (const location of resourceLocations) {
       try {
         resourceMetadata = protectedMetadata(await fetchMetadata(this.#fetch, location, "Protected resource metadata", signal), resource);
         resourceMetadataLocation = location;
         break;
-      } catch (error) { signal?.throwIfAborted(); lastError = error; }
-    }
-    if (resourceMetadata === undefined) throw lastError;
-    const errors = [];
-    for (const advertisedIssuer of resourceMetadata.authorization_servers) {
-      const { issuer, locations } = issuerLocations(advertisedIssuer);
-      for (const location of locations) {
-        try {
-          const metadata = authorizationMetadata(await fetchMetadata(this.#fetch, location, "Authorization server metadata", signal), issuer);
-          const result = { resource: resourceMetadata.resource, resourceMetadataUrl: resourceMetadataLocation,
-            resourceMetadata, authorizationServer: issuer, authorizationServerMetadataUrl: location,
-            authorizationServerMetadata: metadata };
-          this.#retain(resource, result);
-          await waitForCache(this.#cache?.set(resource, structuredClone(result)), signal);
-          return result;
-        } catch (error) { signal?.throwIfAborted(); errors.push(`${location}: ${error instanceof Error ? error.message : String(error)}`); }
+      } catch (error) {
+        signal?.throwIfAborted();
+        resourceErrors.push(metadataFailure(error, "protected-resource", "invalid-metadata"));
       }
     }
-    throw new OAuthMetadataError("authorization-server", `Unable to load authorization server metadata for ${resource}: ${errors.join("; ")}`);
+    if (resourceMetadata === undefined) throw aggregateMetadataFailures("protected-resource", resourceErrors, resourceErrors.at(-1).message);
+    const errors = [];
+    const failures = [];
+    for (const advertisedIssuer of resourceMetadata.authorization_servers) {
+      let admitted;
+      try { admitted = issuerLocations(advertisedIssuer); }
+      catch (error) {
+        const failure = metadataFailure(error, "authorization-server", "invalid-metadata");
+        failures.push(failure);
+        errors.push(failure.message);
+        continue;
+      }
+      const { issuer, locations } = admitted;
+      for (const location of locations) {
+        let metadata;
+        try {
+          metadata = authorizationMetadata(await fetchMetadata(this.#fetch, location, "Authorization server metadata", signal), issuer);
+        } catch (error) {
+          signal?.throwIfAborted();
+          failures.push(metadataFailure(error, "authorization-server", "invalid-metadata"));
+          errors.push(`${location}: ${error instanceof Error ? error.message : String(error)}`);
+          continue;
+        }
+        const result = { resource: resourceMetadata.resource, resourceMetadataUrl: resourceMetadataLocation,
+          resourceMetadata, authorizationServer: issuer, authorizationServerMetadataUrl: location,
+          authorizationServerMetadata: metadata };
+        await waitForCache(this.#cache?.set(resource, structuredClone(result)), signal);
+        this.#retain(resource, result);
+        return result;
+      }
+    }
+    throw aggregateMetadataFailures("authorization-server", failures, `Unable to load authorization server metadata for ${resource}: ${errors.join("; ")}`);
   }
 }
 

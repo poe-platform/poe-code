@@ -106,6 +106,39 @@ test("default discovery fetch resolves the platform implementation at request ti
   } finally { globalThis.fetch = previous; }
 });
 
+for (const issuers of [["code", "relative"], ["code", "https://AUTH.test:443/issuer"]]) {
+  test(`discovery retains issuer admission diagnostics and later candidates: ${JSON.stringify(issuers)}`, async () => {
+    async function run(Discovery) {
+      const calls = [], writes = [];
+      const fetch = fixtureFetch(calls, {
+        "https://resource.test/.well-known/oauth-protected-resource/mcp": {
+          resource: "https://resource.test/mcp", authorization_servers: issuers
+        }
+      });
+      const discovery = new Discovery({ fetch, cache: { get: () => null, set: (key, value) => { writes.push({ key, value }); } } });
+      try { return { value: await discovery.discover("https://resource.test/mcp"), calls, writes }; }
+      catch (error) { return { error: { name: error.name, phase: error.phase, message: error.message }, calls, writes }; }
+    }
+    const result = await run(actual.OAuthMetadataDiscovery);
+    assert.deepEqual(result, await run(reference.OAuthMetadataDiscovery));
+    if (issuers[1] === "relative") {
+      assert.deepEqual(result.error, {
+        name: "OAuthMetadataError", phase: "authorization-server",
+        message: "Unable to load authorization server metadata for https://resource.test/mcp: Invalid URL; Invalid URL"
+      });
+      assert.deepEqual(result.calls.map(call => call.url), ["https://resource.test/.well-known/oauth-protected-resource/mcp"]);
+      assert.deepEqual(result.writes, []);
+    } else {
+      assert.deepEqual(result.calls.map(call => call.url), [
+        "https://resource.test/.well-known/oauth-protected-resource/mcp",
+        "https://auth.test/.well-known/oauth-authorization-server/issuer"
+      ]);
+      assert.equal(result.value.authorizationServer, issuers[1]);
+      assert.equal(result.writes.length, 1);
+    }
+  });
+}
+
 test("shared cached metadata preserves sparse arrays accepted by the original", async () => {
   const cached = {
     resource: "https://resource.test/mcp", resourceMetadataUrl: "https://resource.test/metadata",

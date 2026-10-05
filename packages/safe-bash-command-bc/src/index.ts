@@ -839,10 +839,11 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       return array;
     };
 
-    const getVar = async (name: string, indexExpr?: Expr): Promise<DecimalValue> => {
-      if (indexExpr) {
-        const idxVal = await evalExpr(indexExpr);
-        const key = truncToInt(idxVal).toString(10);
+    const resolveIndex = async (index?: Expr): Promise<string | undefined> =>
+      index ? truncToInt(await evalExpr(index)).toString(10) : undefined;
+
+    const getVar = (name: string, key?: string): DecimalValue => {
+      if (key !== undefined) {
         return getArray(name).get(key) ?? ZERO;
       }
       if (name === "scale") return { coeff: BigInt(scale), scale: 0 };
@@ -856,10 +857,8 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       return globals.get(name) ?? ZERO;
     };
 
-    const setVar = async (name: string, indexExpr: Expr | undefined, val: DecimalValue): Promise<DecimalValue> => {
-      if (indexExpr) {
-        const idxVal = await evalExpr(indexExpr);
-        const key = truncToInt(idxVal).toString(10);
+    const setVar = (name: string, key: string | undefined, val: DecimalValue): DecimalValue => {
+      if (key !== undefined) {
         getArray(name).set(key, val);
         return val;
       }
@@ -909,11 +908,12 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         case "array":
           throw new Error("array argument requires an array parameter");
         case "var":
-          return getVar(expr.name, expr.index);
+          return getVar(expr.name, await resolveIndex(expr.index));
         case "assign": {
+          const key = await resolveIndex(expr.target.index);
           const r = await evalExpr(expr.right);
-          if (expr.op === "=") return setVar(expr.target.name, expr.target.index, r);
-          const cur = await getVar(expr.target.name, expr.target.index);
+          if (expr.op === "=") return setVar(expr.target.name, key, r);
+          const cur = getVar(expr.target.name, key);
           let next: DecimalValue;
           if (expr.op === "+=") next = addDec(cur, r);
           else if (expr.op === "-=") next = subDec(cur, r);
@@ -921,14 +921,15 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           else if (expr.op === "/=") next = divDec(cur, r, scale);
           else if (expr.op === "%=") next = modDec(cur, r, scale);
           else next = await powDec(cur, r, scale, limits.maxExponent, tick);
-          return setVar(expr.target.name, expr.target.index, next);
+          return setVar(expr.target.name, key, next);
         }
         case "unary": {
           if (expr.op === "++" || expr.op === "--") {
             if (expr.arg.kind !== "var") throw new Error("invalid increment/decrement target");
-            const cur = await getVar(expr.arg.name, expr.arg.index);
+            const key = await resolveIndex(expr.arg.index);
+            const cur = getVar(expr.arg.name, key);
             const next = expr.op === "++" ? addDec(cur, ONE) : subDec(cur, ONE);
-            await setVar(expr.arg.name, expr.arg.index, next);
+            setVar(expr.arg.name, key, next);
             return expr.prefix ? next : cur;
           }
           const v = await evalExpr(expr.arg);

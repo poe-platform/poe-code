@@ -560,3 +560,33 @@ test("bc charges copied array entries to the work budget", async () => {
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /maximum step limit/);
 });
+
+for (const [mutation, value, result] of [
+  ["a[i++] = 3", 3, 3],
+  ["a[i++] += 3", 13, 13],
+  ["a[i++] -= 3", 7, 7],
+  ["a[i++] *= 3", 30, 30],
+  ["a[i++] /= 3", 3, 3],
+  ["a[i++] %= 3", 1, 1],
+  ["a[i++] ^= 3", 1000, 1000],
+  ["++a[i++]", 11, 11],
+  ["--a[i++]", 9, 9],
+  ["a[i++]++", 11, 10],
+  ["a[i++]--", 9, 10],
+] as const) {
+  test(`bc resolves array mutation indices once: ${mutation}`, async () => {
+    const program = `a[0]=10; i=0; r=(${mutation}); i; a[0]; a[1]; r`;
+    assert.deepEqual(await evaluate(program), {
+      exitCode: 0, stdout: `1\n${value}\n0\n${result}\n`, stderr: "",
+    });
+  });
+}
+
+for (const [program, stdout] of [
+  ["i=0; a[i++]=(i+=10); i; a[0]; a[10]", "11\n11\n0\n"],
+  ["i=0; a[0]=10; a[i++]+=(i+=3); i; a[0]; a[3]", "4\n14\n0\n"],
+] as const) {
+  test(`bc resolves assignment indices before the right operand: ${program}`, async () => {
+    assert.deepEqual(await evaluate(program), { exitCode: 0, stdout, stderr: "" });
+  });
+}

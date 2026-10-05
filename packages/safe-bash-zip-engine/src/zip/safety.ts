@@ -222,6 +222,11 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
   const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.parent, { signal }) ?? fs.capabilities);
   if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || !fs.createStagedFile || !fs.removeStagedFile) fail("ZIP temporary path requires atomic owned file staging");
   if (prepared.source && ((capabilities.atomicFileMutation !== true && capabilities.trustedOwnedStaging !== true) || !fs.writeFileConditional)) fail("ZIP temporary path requires atomic conditional writes");
+  // Caller-owned receipts can be opaque and immutable. Without retained
+  // writers, complete the bytes before creating the receipt so publication and
+  // cleanup receive exactly the object (and file version) the caller owns.
+  const buffered = prepared.source && capabilities.retainedStagingWrite !== true
+    ? await collectBytes(prepared.source, { signal, maxBytes: scope.limits.maxArchiveBytes }) : undefined;
   let staging: FileStaging | undefined;
   let failure: { reason: unknown } | undefined;
   const close = retainFileSystemCleanup(fs, async cleanup => {
@@ -239,7 +244,7 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
       if (path === prepared.reservedPath) continue;
       try {
         await scope.operation(async () => {
-          staging = await fs.createStagedFile!(path, "archive.zip", { type: "file", data: prepared.bytes ?? new Uint8Array() }, {
+          staging = await fs.createStagedFile!(path, "archive.zip", { type: "file", data: buffered ?? prepared.bytes ?? new Uint8Array() }, {
             signal, parent: prepared.parentStat, ...(capabilities.retainedStagingCleanup ? { retainCleanup: true } : {}), ...(prepared.existing ? { mode: prepared.existing.mode & 0o7777 } : {}),
             ...(prepared.mtimeMs === undefined ? {} : { mtimeMs: prepared.mtimeMs, atimeMs: prepared.mtimeMs }),
           });
@@ -251,7 +256,7 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
       }
     }
     if (!staging) fail("ZIP temporary directory attempt limit exceeded");
-    if (prepared.source) {
+    if (prepared.source && buffered === undefined) {
       for await (const chunk of readBytes(prepared.source, signal)) {
         try { await writeFileOutput(scope.context, chunk, bytes => scope.operation(async () => {
           if (staging!.writer) {

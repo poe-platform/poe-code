@@ -27,8 +27,11 @@ backed by your injected filesystem. Documents and the success summary share a
 256 KiB resident-page budget across all files. Long patch and target lines are matched and copied in blocks, including
 whitespace and Unicode normalization. Publication uses retained staging writes and
 atomic conditional replacement, preserving existing file identity and hardlinks.
-Backends need retained reads, retained staging cleanup/writes, atomic staged file
-mutation and confined mutations. Large workloads need external backing storage;
+Backends need retained reads and confined atomic mutations. Retained staging
+cleanup/writes and atomic staged file mutation enable streamed publication.
+Caller adapters exposing only atomic `writeFileConditional` remain supported;
+that compatibility path buffers one replacement within `maxFileBytes` before
+conditionally publishing it, preserving failure safety and file identity. Large workloads need external backing storage;
 a memory filesystem keeps spilled data in RAM. Line, anchor and hunk descriptors
 share a bounded page cache; matching replays them without collecting a pattern
 array. File paths and per-file planning metadata still buffer in memory, so this

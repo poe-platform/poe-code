@@ -1,6 +1,6 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import {
-  createOutputOperation, dirname, readBytes, writeBytes,
+  collectBytes, createOutputOperation, dirname, readBytes, writeBytes,
   type ByteSource, type CommandContext, type FileReadHandle, type FileStaging, type FileStat, type FileSystem,
 } from "safe-bash-contracts";
 import { settings, type ApplyPatchLimits } from "./options.js";
@@ -47,8 +47,8 @@ class Invocation {
     for (const file of files) for (const path of [file.path, file.destination]) {
       if (!path) continue;
       const capabilities = await this.work.fs(path, async () => await this.fs.capabilitiesFor?.(path, { signal: this.context.signal }) ?? this.fs.capabilities);
-      if (capabilities.atomicFileMutation !== true || capabilities.retainedStagingWrite !== true
-        || capabilities.retainedStagingCleanup !== true || capabilities.atomicStagedFileMutation !== true) throw new PatchError("filesystem does not support atomic conditional patch mutations");
+      if (capabilities.atomicFileMutation !== true || (!this.fs.writeFileConditional && (capabilities.retainedStagingWrite !== true
+        || capabilities.retainedStagingCleanup !== true || capabilities.atomicStagedFileMutation !== true))) throw new PatchError("filesystem does not support atomic conditional patch mutations");
       let parent = dirname(path);
       while (!await this.inspect(parent, false)) {
         await this.work.charge(1);
@@ -265,6 +265,17 @@ class Invocation {
   private async write(path: string, output: IndexedDocument, parent: FileStat, expected: FileStat | undefined): Promise<void> {
     let staging: FileStaging | undefined;
     const signal = this.context.signal;
+    const capabilities = await this.work.fs(path, async () => await this.fs.capabilitiesFor?.(path, { signal }) ?? this.fs.capabilities);
+    if (capabilities.retainedStagingWrite !== true || capabilities.retainedStagingCleanup !== true || capabilities.atomicStagedFileMutation !== true) {
+      // Older caller adapters expose atomic buffer writes, not staging handles.
+      // Assemble before mutation; the confined conditional write checks both
+      // ancestry and destination and preserves existing inode/hardlink identity.
+      const bytes = await collectBytes(output.range(0, output.size), { signal, maxBytes: this.work.limits.maxFileBytes });
+      await this.work.fs(path, () => this.fs.writeFileConditional!(path, bytes, {
+        parent, expected: expected ?? null, signal, ...(expected ? { mode: expected.mode & 0o7777 } : {}),
+      }));
+      return;
+    }
     try {
       await this.work.fs(path, async () => {
         staging = await this.fs.createStagedFile!(`${dirname(path) === "/" ? "" : dirname(path)}/.apply-patch-${globalThis.crypto.randomUUID()}`, "file",

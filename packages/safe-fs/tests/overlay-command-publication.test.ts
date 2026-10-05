@@ -93,12 +93,13 @@ test("overlay supports command output publication and archive extraction", async
     const lowerBeforePatch = await snapshot(lower);
     const upperBeforePatch = await snapshot(upper);
     const result = await shell.exec("apply_patch", { stdin: "*** Begin Patch\n*** Update File: /in.md\n@@\n-# Hello\n+# Updated\n*** End Patch\n" });
-    assert.equal(result.exitCode, 1);
-    assert.equal(result.stdout, "");
-    assert.equal(result.stderr, "apply_patch: filesystem does not support atomic conditional patch mutations\n");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "Success. Updated the following files:\nM /in.md\n");
+    assert.equal(result.stderr, "");
     assert.deepEqual(await snapshot(lower), lowerBeforePatch);
+    upperBeforePatch.set("/in.md", new TextEncoder().encode("# Updated\nworld\nline3\n"));
     assert.deepEqual(await snapshot(upper), upperBeforePatch);
-    assert.equal(new TextDecoder().decode(await fs.readFile("/in.md")), "# Hello\nworld\nline3\n");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/in.md")), "# Updated\nworld\nline3\n");
     assert.equal(new TextDecoder().decode(await lower.readFile("/in.md")), "# Hello\nworld\nline3\n");
   } finally { await shell.dispose(); }
 });

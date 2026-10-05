@@ -9,8 +9,8 @@ import ts from "typescript";
 import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
-it("resolves emitted presentation inspection types without checkout aliases", () => {
-  const filename = fileURLToPath(new URL("../packages/safe-bash-presentation-engine/dist/retained-inspection.d.ts", import.meta.url));
+it.each(["retained-inspection", "retained-diff"])("resolves emitted presentation %s types without checkout aliases", entry => {
+  const filename = fileURLToPath(new URL(`../packages/safe-bash-presentation-engine/dist/${entry}.d.ts`, import.meta.url));
   const specifiers: string[] = [];
   rewriteModuleSpecifiers(filename, readFileSync(filename, "utf8"), specifier => {
     specifiers.push(specifier);

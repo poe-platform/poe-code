@@ -35,7 +35,7 @@ export async function openRetainedDiff(left: ZipSource, right: ZipSource, option
   async function row(pointer: number) { check(); const bytes = await pages.read(pointer, 56), view = new DataView(bytes.buffer, bytes.byteOffset, 56); return Array.from({ length: 7 }, (_, n) => view.getFloat64(n * 8, true)); }
   async function write(pointer: number, numbers: number[]) { check(); const bytes = new Uint8Array(numbers.length * 8), view = new DataView(bytes.buffer); numbers.forEach((value, n) => view.setFloat64(n * 8, value, true)); await pages.write(pointer, bytes); }
   const range = (data: number[], offset: number): XmlRange => ({ start: data[offset]!, length: data[offset + 1]! });
-  const json = (value: XmlRange) => ({ [rawJson]: () => values.read(value) });
+  const json = (value: XmlRange) => ({ [rawJson]: (): ByteSource => values.read(value) });
   function entries(scope: string) {
     let head = 0, tail = 0;
     const find = async (key: () => ByteSource) => { const found = await values.find(scope, key); return found ? row(found.start) : undefined; };
@@ -178,9 +178,9 @@ export async function openRetainedDiff(left: ZipSource, right: ZipSource, option
         const second = await b.find(() => values.read(range(first, 1)));
         if (second && await equal(values.read(range(first, 3)), values.read(range(second, 3)))) continue;
         if (await suppressed(first)) continue;
-        yield { id: () => values.read(range(first, 1)), category, kind: second ? 'changed' : 'removed', before: json(range(first, 3)), after: second ? json(range(second, 3)) : null, left: json(range(first, 5)), right: second ? json(range(second, 5)) : null };
+        yield { id: (): ByteSource => values.read(range(first, 1)), category, kind: second ? 'changed' : 'removed', before: json(range(first, 3)), after: second ? json(range(second, 3)) : null, left: json(range(first, 5)), right: second ? json(range(second, 5)) : null };
       }
-      for await (const second of b.rows()) if (!await a.find(() => values.read(range(second, 1))) && !await suppressed(second)) yield { id: () => values.read(range(second, 1)), category, kind: 'added', before: null, after: json(range(second, 3)), left: null, right: json(range(second, 5)) };
+      for await (const second of b.rows()) if (!await a.find(() => values.read(range(second, 1))) && !await suppressed(second)) yield { id: (): ByteSource => values.read(range(second, 1)), category, kind: 'added', before: null, after: json(range(second, 3)), left: null, right: json(range(second, 5)) };
       }
     }
     let same = true; for await (const ignoredChange of changes()) { same = false; break; }

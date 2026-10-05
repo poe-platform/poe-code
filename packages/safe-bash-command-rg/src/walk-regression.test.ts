@@ -96,9 +96,14 @@ test('recursive source scans use directory entries to avoid probing absent ignor
   await memory.writeFile('/repo/packages/target/generated.rs', new TextEncoder().encode('throw_syntax_error\n'));
   const reads: string[] = [];
   const listings: string[] = [];
+  const capabilityQueries: string[] = [];
   // Exercise the generic filesystem path, as a disk or remote adapter does.
   const fs = new Proxy(memory, {
     get(target, key) {
+      if (key === 'capabilitiesFor') return async (path: string) => {
+        capabilityQueries.push(path);
+        return target.capabilities;
+      };
       if (key === 'readFile') return async (...args: Parameters<typeof memory.readFile>) => {
         reads.push(args[0]);
         return target.readFile(...args);
@@ -123,6 +128,10 @@ test('recursive source scans use directory entries to avoid probing absent ignor
   assert.equal(stdout, '');
   assert.equal(stderr, '');
   assert.deepEqual(listings, ['/repo/packages', '/repo/packages/src']);
+  assert.ok(!capabilityQueries.includes('/repo/packages/.gitignore'),
+    'known-absent ignore files must not trigger path capability resolution');
+  assert.ok(capabilityQueries.includes('/repo/packages/src/.ignore'),
+    'existing ignore files still require path capability admission');
   assert.deepEqual(reads.filter(path => path.startsWith('/repo/packages/')), ['/repo/packages/src/.ignore'],
     'absent ignore files must not trigger backend reads for each visited directory');
 });

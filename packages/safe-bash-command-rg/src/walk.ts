@@ -255,8 +255,9 @@ export class Walker {
         if ((entries && !entries.some(entry => entry.name === name)) || (memEntries !== undefined && !memEntries.has(name))) {
           if (!checkedIgnoreReq) {
             checkedIgnoreReq = true;
-            if (uniformNonDev) assertCommandRequirements(this.context, searchRequirements, ["ignore-file"]);
-            else await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [`${directory}/${name}`]);
+            // The directory listing already proves this file absent. Preserve
+            // mode admission without resolving a path we will never read.
+            assertCommandRequirements(this.context, searchRequirements, ["ignore-file"]);
           }
           continue;
         }

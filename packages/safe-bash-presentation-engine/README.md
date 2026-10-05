@@ -44,6 +44,14 @@ original field caches independently of compatibility-projected text.
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves
 mixed content and keeps its traversal spans in caller storage. Close the result
 after reading. `stageRetainedXmlPart` supplies the staged command formats.
+`openRetainedPackageExtraction` (also exported from `package-tools`) admits an
+immutable retained presentation input and optional `{ parts }` selection before
+exposing `members()`. Each member has a generated safe filename, part name, size,
+SHA-256, streamed `contentType()` and replayable `bytes()`. Ordering, descriptors
+and arbitrary content-type scalars use caller storage. Close the extraction to
+retire its archive and indexes; the input remains caller-owned. Keep the input
+and selection immutable until admission settles. This API does not publish files;
+the default `package extract` command still uses the buffered extraction API.
 `openRetainedXmlReplacement` (from `xml-parts`) admits a replacement byte stream
 for an exact existing presentation or slide part, including guarded child reorder
 and removal. It retains replacement bytes and comparison state in caller storage,

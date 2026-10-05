@@ -139,3 +139,5 @@ export async function packPackage(
   }
   return bytes;
 }
+
+export { openRetainedPackageExtraction, type RetainedExtractedPackageMember, type RetainedPackageExtraction } from './retained-package-extraction.js';

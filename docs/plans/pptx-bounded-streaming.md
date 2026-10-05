@@ -431,6 +431,36 @@ Next migrate richer text reads and remaining extraction/mutation operations;
 embedded workbook intermediates and the synchronous presentation model are still
 buffered. Preserve their complete supported behavior through the retained path.
 
+## Retained package extraction API
+
+`openRetainedPackageExtraction` is exported from the engine root and `package-tools`.
+It borrows an immutable retained input, owns archive/index/descriptor state, and
+admits the whole presentation graph and requested selection before exposing
+replayable member streams. Explicit selection keeps caller order; default
+selection uses stored JavaScript ordering. Case-folded duplicate detection,
+member descriptors, hashes, generated names and long MIME values use caller
+pages. Package XML and graph admission match buffered extraction, without reading
+whole member payloads. The optional readonly selection array is borrowed until
+admission settles, like the retained input.
+
+Verification: 24 focused extraction tests cover buffered byte/hash/type/order
+parity, no partial admission, malformed decks, unsafe/sparse/accessor selections,
+limits, source faults and iterator cleanup precedence, expired handles,
+generated member counts and large type scalars. Spies forbid whole-file reads,
+verify actual spills and at most 16 KiB outstanding writes, and check cancellation,
+slow consumers, reused input buffers and cleanup. Existing package-tools,
+retained inventory/inspection/validation tests, scoped lint/typechecks and build
+passed. Native python-pptx compared all 41 members of a chart/workbook deck,
+repacked them and confirmed unchanged text/chart/workbook behavior and no scratch.
+
+Next wire default `package extract` to this API. Its current multi-file output
+contract still builds arrays of complete member bytes. Add caller-backed streamed
+output descriptors/manifest staging and retained conditional multi-file publication
+before claiming the command bounded. Preserve all-or-nothing output, explicit
+partial-output policy, output limits, force/dry-run and protected inputs. Packing,
+other extraction/mutation, richer reads and workbook intermediates also remain.
+No Worker qualification or complete command migration is claimed here.
+
 ## Remaining implementation
 
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,

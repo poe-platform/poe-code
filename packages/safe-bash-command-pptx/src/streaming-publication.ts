@@ -6,11 +6,8 @@ import { sameRetainedIdentity } from "./streaming-inputs.js";
 export async function publishPptxSource(context: CommandContext, path: string, source: ByteSource,
   expected: FileStat | null, parent: FileStat, verify: () => Promise<void>): Promise<void> {
   const { fs, signal } = context;
-  const capabilities = await fs.capabilitiesFor?.(path, { signal, create: true, stagingAncestry: true }) ?? fs.capabilities;
-  if (!capabilities.atomicFileStaging || !capabilities.retainedStagingWrite || !capabilities.retainedStagingCleanup
-    || !capabilities.atomicStagingAncestry || !capabilities.guardedStagingPublication
-    || !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile) throw new FsError("ENOTSUP");
-  const resolution = await fs.prepareStagingResolution(path, { signal });
+  await assertPptxStreamPublication(context, path);
+  const resolution = await fs.prepareStagingResolution!(path, { signal });
   const directory = resolution.path.slice(0, resolution.path.lastIndexOf("/")) || "/";
   const current = resolution.destination;
   if ((expected === null) !== (current === null)) throw new FsError("EAGAIN");
@@ -19,7 +16,7 @@ export async function publishPptxSource(context: CommandContext, path: string, s
     || expected.nlink !== current.nlink || expected.mtimeMs !== current.mtimeMs || expected.ctimeMs !== current.ctimeMs
     || !sameRetainedIdentity(expected, current))) throw new FsError("EAGAIN");
   if (!sameRetainedIdentity(parent, resolution.parent)) throw new FsError("EAGAIN");
-  const staging = await fs.createStagedFile(`${directory}/.pptx-${crypto.randomUUID()}`, "output", { type: "file", data: new Uint8Array() },
+  const staging = await fs.createStagedFile!(`${directory}/.pptx-${crypto.randomUUID()}`, "output", { type: "file", data: new Uint8Array() },
     { parent: resolution.parent, retainCleanup: true, ...(expected ? { mode: expected.mode & 0o7777 } : {}), signal });
   let failure: { error: unknown } | undefined;
   try {
@@ -35,10 +32,21 @@ export async function publishPptxSource(context: CommandContext, path: string, s
     signal.throwIfAborted();
     const stat = await staging.writer.finish({ signal });
     await verify();
-    await fs.publishStagedFile({ ...staging, file: { ...staging.file, stat } }, resolution.path,
+    await fs.publishStagedFile!({ ...staging, file: { ...staging.file, stat } }, resolution.path,
       { parent: resolution.parent, destination: expected, ancestors: resolution.ancestors, commitGuard: resolution.validate, signal });
   } catch (error) { failure = { error }; }
   try { await staging.cleanup?.remove(); } catch (error) { failure ??= { error }; }
   try { await staging.cleanup?.close(); } catch (error) { failure ??= { error }; }
   if (failure) throw failure.error;
+}
+
+/** Validate staging support without creating output or consuming its source. */
+export async function assertPptxStreamPublication(context: CommandContext, path: string): Promise<void> {
+  const { fs, signal } = context;
+  signal.throwIfAborted();
+  const capabilities = await fs.capabilitiesFor?.(path, { signal, create: true, stagingAncestry: true }) ?? fs.capabilities;
+  if (!capabilities.atomicFileStaging || !capabilities.retainedStagingWrite || !capabilities.retainedStagingCleanup
+    || !capabilities.atomicStagingAncestry || !capabilities.guardedStagingPublication
+    || !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile) throw new FsError("ENOTSUP");
+  signal.throwIfAborted();
 }

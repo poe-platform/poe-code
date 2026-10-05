@@ -569,3 +569,4 @@ export type { ChartObjectUpdate } from "./chart-object-operations.js";
 export { stageRetainedXmlReplacement } from './retained-xml-publication.js';
 
 export { openRetainedPackageExtraction, type RetainedExtractedPackageMember, type RetainedPackageExtraction } from './retained-package-extraction.js';
+export { stageRetainedExtractionOutput } from './retained-extraction-output.js';

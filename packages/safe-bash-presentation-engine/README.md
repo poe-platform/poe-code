@@ -51,7 +51,12 @@ SHA-256, streamed `contentType()` and replayable `bytes()`. Ordering, descriptor
 and arbitrary content-type scalars use caller storage. Close the extraction to
 retire its archive and indexes; the input remains caller-owned. Keep the input
 and selection immutable until admission settles. This API does not publish files;
-the default `package extract` command still uses the buffered extraction API.
+the default `extract` command consumes these streams through staged publication.
+`stageRetainedExtractionOutput` stages its complete manifest and prefix boundaries
+in caller storage, admitting success and failure output limits before publication.
+Its `write(sink, failure?)` renders success or the exact completed prefix on failure;
+close it after use. Diagnostic storage survives publication cancellation so the
+completed prefix remains reportable. The borrowed extraction stays caller-owned.
 `openRetainedXmlReplacement` (from `xml-parts`) admits a replacement byte stream
 for an exact existing presentation or slide part, including guarded child reorder
 and removal. It retains replacement bytes and comparison state in caller storage,

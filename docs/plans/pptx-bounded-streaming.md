@@ -453,13 +453,40 @@ retained inventory/inspection/validation tests, scoped lint/typechecks and build
 passed. Native python-pptx compared all 41 members of a chart/workbook deck,
 repacked them and confirmed unchanged text/chart/workbook behavior and no scratch.
 
-Next wire default `package extract` to this API. Its current multi-file output
-contract still builds arrays of complete member bytes. Add caller-backed streamed
-output descriptors/manifest staging and retained conditional multi-file publication
-before claiming the command bounded. Preserve all-or-nothing output, explicit
-partial-output policy, output limits, force/dry-run and protected inputs. Packing,
-other extraction/mutation, richer reads and workbook intermediates also remain.
-No Worker qualification or complete command migration is claimed here.
+## Streamed package extraction command
+
+Default `extract` now uses retained presentation input, the retained extraction
+API and `stageRetainedExtractionOutput`. Member bytes never enter a publication
+array. Stored JSON manifest fragments and numeric prefix boundaries support
+success and exact partial-failure responses without full in-memory manifests.
+Success and the largest diagnostic are admitted before publication. Diagnostic
+storage accepts the operation's cancellation during admission, then detaches only
+after sealing so cancellation during publication can still report completed files.
+
+The streaming SDK accepts `publishOutputStreams(AsyncIterable<...>)` for a trusted
+all-or-nothing transaction and optional `preflightOutputStream`. The default
+adapter preserves its explicit `--allow-partial-output` requirement. All paths
+are preflighted before writes, including streamed staging capability admission;
+source identity, destination guards, force and nested output handling remain.
+Supplying only the legacy array publication/preflight callbacks explicitly keeps
+the buffering compatibility path. New stream callbacks avoid that path.
+
+Verification: 1,250 command and extraction tests passed, including 27 command
+streaming cases and seven large manifest/storage cases, scoped lint/typechecks
+and maintained build. Coverage includes exact human/JSON parity, transactions,
+partial failures, cancellation after one published member, preflight collisions,
+unsupported later destinations, force/protected inputs, nested directories,
+output limits before writes, sink/storage failures, real spills, reused chunks
+and at most 16 KiB outstanding writes. Native python-pptx verified all 41 members
+through the default adapter with whole-file reads forbidden, reconstructed the
+deck and confirmed text/chart/workbook parity and scratch cleanup.
+
+Next migrate `pack`: its JSON manifest parsing, member admission and complete
+archive collection remain buffered. Preserve duplicate-key rejection, explicit
+scoped paths, hash verification, complete graph checks, metadata policy,
+protected inputs and publication semantics. Other extraction/mutation paths,
+richer reads and embedded workbook intermediates remain too. No Worker runtime
+qualification or complete migration is claimed.
 
 ## Remaining implementation
 

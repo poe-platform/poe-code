@@ -1,3 +1,4 @@
+import { prepareRetainedExtraction } from "./command-extract-streaming.js";
 import { stageRetainedText } from "safe-bash-presentation-engine/retained-text";
 import { stageRetainedInspection, type StagedInspection } from "safe-bash-presentation-engine/retained-inspection";
 import { openPackageArchive } from "safe-bash-presentation-engine/retained-package";
@@ -234,6 +235,9 @@ export type PptxCommandRequest = PptxRequestBase & ({
   readonly publishOutput?: (publication: PptxPublicationRequest) => Promise<void>;
 } | {
   readonly streaming: import("./streaming-inputs.js").PptxStreamingIO;
+  /** Trusted transaction: consume all streamed publications and commit all or none. */
+  readonly publishOutputStreams?: (publications: AsyncIterable<PptxStreamPublicationRequest>) => Promise<void>;
+  readonly preflightOutputStream?: (publication: PptxStreamPublicationRequest) => Promise<void>;
   readonly publishOutput?: (publication: PptxPublicationRequest | PptxStreamPublicationRequest) => Promise<void>;
 });
 export interface PptxCommandOutput {
@@ -4052,6 +4056,7 @@ async function executeRequest(
     request.args[0].every((byte, index) => byte === [100, 105, 102, 102][index]))
     return executeDiffCommand(request, options);
   const output = { json: false, operation: "help" };
+  let retainedExtraction: Awaited<ReturnType<typeof prepareRetainedExtraction>> | undefined;
   let result: OfficeResult<unknown>;
   let exitCode = 0;
   let stagedOutput: StagedInspection | undefined;
@@ -4100,7 +4105,11 @@ async function executeRequest(
     output.json = args.json;
     output.operation = args.operation;
     const operation = args.operation;
-    if (args.operation === "xml.set" && request.streaming) {
+    if (args.operation === "extract" && request.streaming && (!request.publishOutputs || request.publishOutputStreams) && (!request.preflightOutput || request.preflightOutputStream)) {
+      retainedExtraction = await prepareRetainedExtraction(args, request, options);
+      owned.push(retainedExtraction);
+      result = success(operation, null);
+    } else if (args.operation === "xml.set" && request.streaming) {
       if (args.token) decodeSelectionToken(args.token);
       const streaming = request.streaming, context = { ...options.context, signal: request.signal, workingStorage: streaming.workingStorage };
       if (!context.validationLimits) throw new OfficeError("invalid-value", "XML operations require explicit validation limits.", "usage");
@@ -6799,6 +6808,7 @@ async function executeRequest(
     };
     human = `pptx: ${diagnostic.code}: ${diagnostic.message}\n`;
   }
+  if (retainedExtraction && result.ok) return retainedExtraction.publish();
   const { json, operation } = output;
   const encoded =
     (stagedOutput ? new Uint8Array() : binary) ??

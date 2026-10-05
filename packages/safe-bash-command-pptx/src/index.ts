@@ -1,4 +1,4 @@
-import { publishPptxSource } from "./streaming-publication.js";
+import { publishPptxSource, assertPptxStreamPublication } from "./streaming-publication.js";
 import { sameRetainedIdentity, createPptxInputSession, type PptxStreamingIO, type PptxRetainedInput } from "./streaming-inputs.js";
 export type { PptxStreamingIO, PptxRetainedInput } from "./streaming-inputs.js";
 import { verifyOriginalInput } from "./original-input.js";
@@ -115,6 +115,7 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
             signal.throwIfAborted();
             if (capabilities.readOnly === true || capabilities.write === false) throw new FsError("ENOTSUP");
             if (publication.bytes instanceof Uint8Array && ((!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging) || !fs.writeFileConditional)) throw new FsError("ENOTSUP");
+            if (!(publication.bytes instanceof Uint8Array)) await assertPptxStreamPublication(context, output);
             let destination: FileStat | null;
             try { destination = await fs.lstat(output, { signal }); }
             catch (error) {

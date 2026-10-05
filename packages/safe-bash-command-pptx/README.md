@@ -37,8 +37,14 @@ and `xml set` also stage edits, archive bytes and response metadata in caller
 storage before streamed atomic publication. XML replacement files use retained
 input snapshots and keep their protected input identity. Unchanged edits reuse the exact input
 bytes. Streaming engine requests accept source-based publication; requests without
-streaming retain the buffered publication contract. Other
-operations still use buffered document models during their streaming migration.
+streaming retain the buffered publication contract. `extract` also streams member
+bytes and keeps its complete manifest and partial-failure records in caller storage.
+Every destination is preflighted before writing. Use `publishOutputStreams` for a
+trusted all-or-nothing transaction over an async iterable, optionally with
+`preflightOutputStream`; otherwise extraction requires `--allow-partial-output`.
+Explicit legacy `publishOutputs`/`preflightOutput` callbacks retain the buffered
+compatibility path unless their stream counterparts are supplied. Other operations
+still use buffered document models during their streaming migration.
 
 The command owns PowerPoint argument parsing, schemas, discovery and execution.
 Shared presentation and byte operations remain internal engine APIs bundled with

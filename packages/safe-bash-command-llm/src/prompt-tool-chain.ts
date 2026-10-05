@@ -19,6 +19,7 @@ export async function* promptToolChain(options: {
   tools: readonly LlmExecutableTool[];
   chainLimit: number | bigint;
   beforeCall?: LlmToolExecutionOptions["beforeCall"];
+  debugWrite?: (bytes: Uint8Array) => Promise<void>;
   maxOutputBytes: number;
   remainingInput(): number;
   admitInput(size: number, materialized: boolean): void;
@@ -133,8 +134,14 @@ export async function* promptToolChain(options: {
       await options.beforeCall?.(tool, call, context);
     },
     async visit(result) {
-      messages.push({role: "tool", ...(result.call.id === undefined ? {} : {toolCallId: result.call.id}), content: await retain(result.output, true, true)});
-      nextAttachments.push(...await retainAttachments(result.attachments, true));
+      const content = await retain(result.output, true, true);
+      const attachments = await retainAttachments(result.attachments, true);
+      messages.push({role: "tool", ...(result.call.id === undefined ? {} : {toolCallId: result.call.id}), content});
+      nextAttachments.push(...attachments);
+      if (options.debugWrite) {
+        const {debugToolResult} = await import("./prompt-tool-debug.js");
+        await debugToolResult({context: {...context, signal}, result, output: content.spool, attachments, write: options.debugWrite});
+      }
     }
   });
 }

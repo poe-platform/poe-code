@@ -183,7 +183,12 @@ Use `--ta`/`--tools-approve` to approve each call through invocation stdin.
 Declined calls return a cancellation result to the model. Terminal input stays
 available for approval when a prompt is supplied; redirected stdin is consumed
 as prompt input first. SDK callers use `beforeCall` and `LlmCancelToolCall`.
-Python `--functions` loading, toolboxes and debug flags remain incomplete.
+Use `--td`/`--tools-debug` or `LLM_TOOLS_DEBUG=true` to print tool arguments,
+formatted results, exceptions and attachment details to stderr. Large diagnostics
+use temporary caller storage and bounded writes, with aggregate output admission.
+JSON keys and numeric tokens currently use the parser’s 64 KiB control-token
+limit; larger controls remain a compatibility gap. Python `--functions` loading,
+toolboxes and parallel async execution remain incomplete.
 
 Persist aliases, default models and default options in the caller’s filesystem using `llm aliases`, `llm models default`, and `llm models options`. Use `llm embed-models` (or `list`) with repeated `-q` queries to discover embedding models, and `llm embed-models default [MODEL]` or `--remove-default` to manage their separate default. SDK callers use `service.models` and `configuration.defaultModel("default_embedding_model.txt")` / `setDefaultModel(modelOrNull, "default_embedding_model.txt")`. Set `LLM_USER_PATH` to choose the virtual configuration directory. `createLlmConfiguration(context)` exposes these controls to structured frontends. Configuration controls require atomic publication. Configuration and remote templates default to unlimited bytes and accept explicit `Infinity`; set `limits.maxConfigurationBytes` (or the second argument to `createLlmConfiguration`) and `maxRemoteTemplateBytes` to impose finite quotas. Remote templates inherit `limits.maxInputBytes` when no separate quota is supplied. Remaining reference CLI workflows and bounded prompt/attachment preparation are still incomplete.
 

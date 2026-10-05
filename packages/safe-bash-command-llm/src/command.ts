@@ -1,5 +1,6 @@
 import { promptToolChain } from "./prompt-tool-chain.js";
 import { createToolApproval } from "./prompt-tool-approval.js";
+import { stripPythonWhitespace } from "./python-whitespace.js";
 import { selectLlmTools } from "./tool-registry.js";
 import { tokenInteger } from "./token-integer.js";
 import { fragmentLoaderCommand } from "./fragment-loader-command.js";
@@ -41,6 +42,7 @@ interface Arguments {
   toolNames: string[];
   chainLimit: number | bigint;
   toolsApprove?: boolean;
+  toolsDebug?: boolean;
   promptSupplied?: boolean;
   queries: string[];
   fragments: string[];
@@ -76,13 +78,14 @@ async function parse(length: number, text: (index: number) => string, step: () =
     for (let cursor = long ? 0 : 1; cursor < argument.length; cursor++) {
       await step();
       const flag = long ? argument.slice(0, equals < 0 ? undefined : equals) : "-" + argument[cursor];
-      const boolean = ["--ta", "--tools-approve", "--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
+      const boolean = ["--td", "--tools-debug", "--ta", "--tools-approve", "--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
       if (boolean) {
         if (long && equals >= 0) throw new LlmPromptUsageError(`Error: Option '${flag}' does not take a value.`);
         if (["-x", "--extract", "--xl", "--extract-last"].includes(flag)) { parsed.extract = flag === "--xl" || flag === "--extract-last" ? "last" : parsed.extract ?? "first"; parsed.noStream = true; }
         else if (flag === "-u" || flag === "--usage") parsed.usage = true;
         else if (flag === "--no-stream") parsed.noStream = true;
         else if (flag === "--ta" || flag === "--tools-approve") parsed.toolsApprove = true;
+        else if (flag === "--td" || flag === "--tools-debug") parsed.toolsDebug = true;
         if (long) break;
         continue;
       }
@@ -162,9 +165,12 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   let usageSpool: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
   let outputBytes = 0;
   let writing = false;
+  const admitOutput = (size: number): void => {
+    if (size > (limits?.maxOutputBytes ?? Infinity) - outputBytes) throw new FsError("EFBIG", { message: "llm output byte limit exceeded" });
+    outputBytes += size;
+  };
   const write = async (chunk: Uint8Array, immediate = false): Promise<void> => {
-    if (chunk.byteLength > (limits?.maxOutputBytes ?? Infinity) - outputBytes) throw new FsError("EFBIG", { message: "llm output byte limit exceeded" });
-    outputBytes += chunk.byteLength;
+    admitOutput(chunk.byteLength);
     if (outputSpool && !immediate) { await outputSpool.write(chunk); return; }
     writing = true;
     await operation.output.write(chunk);
@@ -323,6 +329,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     const promptOffset = argumentsValue.args[0] === "prompt" ? 1 : 0;
     const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
+    if (!args.toolsDebug && context.env.LLM_TOOLS_DEBUG) {
+      const raw = context.env.LLM_TOOLS_DEBUG, value = stripPythonWhitespace(raw).toLowerCase();
+      if (["1", "true", "t", "yes", "y", "on"].includes(value)) args.toolsDebug = true;
+      else if (!["", "0", "false", "f", "no", "n", "off"].includes(value)) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Invalid value for '--td' / '--tools-debug': '${raw}' is not a valid boolean. Recognized values: , 0, 1, f, false, n, no, off, on, t, true, y, yes`);
+    }
     const configuration = createLlmConfiguration(context, limits?.maxConfigurationBytes, invocationLoaders);
     if (args.model === undefined && args.queries.length) {
       try { args.model = (await selectLlmModelByQuery(service.models, args.queries, await configuration.aliases(), signal)).model.id; }
@@ -601,7 +612,9 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     signal.throwIfAborted();
     if (args.noStream) outputSpool = await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
     if (selectedTools.length) {
+      const debugOutput = args.toolsDebug ? operation.child(context.stderr).output : undefined;
       const events = promptToolChain({context: {...context, signal}, operation, service, streamed, tools: selectedTools,
+        ...(debugOutput ? {debugWrite: async (bytes: Uint8Array) => {admitOutput(bytes.length); writing = true; await debugOutput.write(bytes); writing = false;}} : {}),
         ...(args.toolsApprove ? {beforeCall: createToolApproval({context: {...context, signal}, openInput: () => openStdin(true), write: bytes => write(bytes, true), admitInput})} : {}),
         chainLimit: args.chainLimit, maxOutputBytes: limits?.maxOutputBytes ?? Infinity,
         remainingInput: () => input.remaining(!streamed), admitInput, textSource,
@@ -624,7 +637,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
               await usageSpool.write(Uint8Array.of(10));
             }
           }
-        } catch (error) {signal.throwIfAborted(); throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`);}
+        } catch (error) {signal.throwIfAborted(); if (writing) throw error; throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`);}
       })()[Symbol.asyncIterator]();
     } else if (streamed) {
       const events = service.streamSources!({ model: request.model, options: request.options, signal, stream: request.stream, prompt: composedPrompt ?? (promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt)),

@@ -5,6 +5,7 @@ import {yieldTurn} from "safe-bash-contracts/yield";
 import {LlmCancelToolCall, type LlmToolExecutionOptions} from "./tool-execution.js";
 import {waitForSource} from "./request-source.js";
 import {pythonRepr} from "./python-repr.js";
+import {isPythonWhitespace} from "./python-whitespace.js";
 
 /** The command's stdin is the only approval authority. No ambient host input. */
 export function createToolApproval(options: {
@@ -16,13 +17,12 @@ export function createToolApproval(options: {
   const {context, write, admitInput} = options, {signal} = context;
   const encoder = new TextEncoder();
   let iterator: AsyncIterator<Uint8Array> | undefined, pending: Uint8Array = new Uint8Array(0), position = 0, ended = false, skipLineFeed = false;
-  const whitespace = (char: string) => char !== "\ufeff" && (!char.trim() || ["\u001c", "\u001d", "\u001e", "\u001f", "\u0085"].includes(char));
   const answer = async (): Promise<string | undefined> => {
     const decoder = new TextDecoder("utf-8", {fatal: true});
     let value = "", seen = false, trailing = false, invalid = false, steps = 0;
     const accept = (text: string): void => {
       for (const char of text) {
-        if (whitespace(char)) {if (value) trailing = true;}
+        if (isPythonWhitespace(char)) {if (value) trailing = true;}
         else if (trailing || value.length >= 3) invalid = true;
         else value += char.toLowerCase();
       }

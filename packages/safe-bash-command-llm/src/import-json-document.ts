@@ -7,6 +7,9 @@ import {createPrivateSqliteStorage,withPrivateSqliteSession,withSqliteStatement}
 import {createLlmSpool} from './retained-spool.js';
 
 type NodeType='object'|'array'|'string'|'number'|'boolean'|'null';
+export class EmptyJsonDocumentError extends Error {
+ constructor(){super('JSON document is empty');}
+}
 export interface EmbeddingJsonNode {readonly id:number;readonly type:NodeType;readonly start:number;readonly end:number;readonly token:string;}
 export interface EmbeddingJsonDocument {
  readonly root:EmbeddingJsonNode;
@@ -62,7 +65,7 @@ export async function withEmbeddingJsonDocument<T>(options:{fs:FileSystem;direct
     for await(const bytes of spool.replay(async()=>({start:node.start,end:node.end}))){const values:number[]=[];for(const byte of bytes){unit+=byte*2**(count++*8);if(count===4){values.push(unit);unit=0;count=0;}}if(values.length)yield values;}
     if(count)throw new Error('Truncated JSON staging code point');
    }
-   if(!root)throw new Error('JSON document is empty');
+   if(!root)throw new EmptyJsonDocumentError();
    return await operation({root,async child(parent,after=-1){
     let child:{node:EmbeddingJsonNode;position:number;key:string|number;keyPoints?:number[]}|undefined;
     await withSqliteStatement(session.module,{...session,signal,sql:'SELECT n.id,n.type,n.start,n.end,n.token,c.position,c.key FROM children c JOIN nodes n ON n.id=c.node WHERE c.parent=? AND c.position>? ORDER BY c.position LIMIT 1'},async statement=>{

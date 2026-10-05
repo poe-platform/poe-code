@@ -214,3 +214,11 @@ it("preserves linearized copied-object layout without mutating the copy graph", 
   } finally { await copy.close(); await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+it.each([false,true])("overrides copied boxes after inheritance without editing the source (inherited=%s)",async inherited=>{
+ const bytes=input(inherited,false),original=PdfDocument.load(bytes),expected=PdfDocument.create();const indices=[1,0,1];
+ for(const index of indices){const [page]=expected.copyPagesFrom(original,[index]);if(index===1){dictSet(page!.pageDict,"MediaBox",cosArray([0,0,55,66].map(v=>cosNumber(v))));dictSet(page!.pageDict,"CropBox",cosArray([1,2,50,60].map(v=>cosNumber(v))));}}
+ const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",bytes);const storage={fs,directory:"/scratch"},source=await PdfFileSource.open(fs,"/input"),document=await PdfRetainedDocument.open(source,storage);let calls=0;
+ try{const chunks=[];for await(const chunk of copyRetainedPagesChunks(indices.map(index=>({document,indices:[index]})),storage,{metadata:{},pageBoxes(size,index){expect(size).toEqual({width:100,height:80});calls++;return index===1?{mediaBox:[0,0,55,66],cropBox:[1,2,50,60]}:undefined;}}))chunks.push(chunk);expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.save());expect(calls).toBe(3);expect(await fs.readFile("/input")).toEqual(bytes);}
+ finally{await document.close();await source.close();}expect(await fs.readdir("/scratch")).toEqual([]);
+});
+it("rejects nonfinite copied page boxes and releases backing",async()=>{const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",input(false,false));const storage={fs,directory:"/scratch"},source=await PdfFileSource.open(fs,"/input"),document=await PdfRetainedDocument.open(source,storage);try{const chunks=copyRetainedPagesChunks(document,[0],storage,{pageBoxes:()=>({cropBox:[0,0,NaN,10]})});await expect(chunks.next()).rejects.toThrow("Invalid copied page box");}finally{await document.close();await source.close();}expect(await fs.readdir("/scratch")).toEqual([]);});

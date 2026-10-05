@@ -1,4 +1,5 @@
 import { VALUE_FLAGS, CAIRO_VALUE_FLAGS, parsePdftoppmArgsSteps, parsePdftocairoArgsSteps } from "./parse.js";
+import { executeRetainedCairoPdf } from "./retained-cairo-pdf.js";
 import { executeRetainedRaster } from "./retained.js";
 import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
@@ -535,6 +536,11 @@ export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): C
     description: "Render PDF pages to PNG, JPEG, TIFF, PDF, PS, EPS, or SVG via @poe-code/pdf-ast",
     async execute(context: CommandContext) {
       const parsed = await drainSteps(parsePdftocairoArgsSteps(getCommandArguments(context).args, true), context.signal);
+      if ("inputPath" in parsed && parsed.format === "pdf") {
+        const invocation = createOutputOperation(context, { write: async () => {} });
+        try { return await executeRetainedCairoPdf(context, parsed, invocation.child(context.stdout).output, invocation.signal, maxInputBytes); }
+        finally { await invocation.close(); }
+      }
       if ("inputPath" in parsed && (parsed.format === "png" || parsed.format === "jpg" || parsed.format === "tif")) {
         const stem = parsed.inputPath.toLowerCase().endsWith(".pdf") ? parsed.inputPath.slice(0, -4) : parsed.inputPath;
         const positionals = parsed.positionals.length === 1 && parsed.inputPath !== "-" ? [parsed.inputPath, stem] : parsed.positionals;

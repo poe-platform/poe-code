@@ -41,8 +41,11 @@ staging in `TMPDIR` (default `/tmp`). All pages finish rendering before output
 publication, and each file is published atomically. Use an external filesystem
 backend for large documents. Decoded image pixels and resampling levels use a
 64 KiB cache with caller-backed spill storage, released after each page. Other
-resources and nested paint captures retain their current memory requirements. SVG, Cairo vector/PDF output, and the
-buffered convenience runners still use their existing execution paths. Cairo
+resources and nested paint captures retain their current memory requirements.
+Cairo PDF output copies selected pages through caller-backed storage, preserves
+metadata and page-box options, and streams the staged result to stdout or atomic
+file publication. Individual source COS values remain resident. SVG, PS/EPS, and
+the buffered convenience runners still use their existing execution paths. Cairo
 raster formats share the retained pipeline and preserve their output naming,
 color-conversion and error conventions.
 

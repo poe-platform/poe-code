@@ -1093,7 +1093,10 @@ references survive composition until the final save.
 `copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
 PDF for a synchronous or asynchronous iterable of zero-based page indices.
 Use `pageRotation(document, index)` to override a source rotation before
-indirect values are cloned. A selection can carry caller-backed `resourceState`
+indirect values are cloned. Use `pageBoxes(size, index)` to override copied
+`mediaBox` and/or `cropBox` after cloning; `size` is the unrotated source size,
+and returning `undefined` preserves both boxes. Each supplied box must contain
+four finite coordinates. A selection can carry caller-backed `resourceState`
 membership to preserve resource materialization across repeated batches.
 Order and repeated pages are preserved, along with shared resources, forms,
 optional content and document metadata. The single-page spelling

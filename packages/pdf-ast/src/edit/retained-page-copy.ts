@@ -3,7 +3,7 @@ import { PdfMergeOutlines } from "./retained-merge-outlines.js";
 import { PdfMergeLabels } from "./retained-merge-labels.js";
 import { PdfMergeAttachments } from "./retained-merge-attachments.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, dictSet, type PdfCosNode, type PdfCosDict } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, dictSet, type PdfCosNode, type PdfCosDict, type PdfRect } from "../ast.js";
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import { PdfReferenceSet } from "../cos/reference-set.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -19,6 +19,9 @@ export interface CopyRetainedPageOptions {
   /** Override a source page's rotation before cloning its indirect values.
    * Return undefined to preserve the source; angles must be quarter turns. */
   readonly pageRotation?: (document: PdfRetainedDocument, index: number) => number | undefined | Promise<number | undefined>;
+  /** Override copied page boxes after cloning. Source geometry is unrotated;
+   * indices refer to the source document. Returning undefined preserves boxes. */
+  readonly pageBoxes?: (size: { readonly width: number; readonly height: number }, index: number) => { readonly mediaBox?: PdfRect; readonly cropBox?: PdfRect } | undefined;
   /** Override copied metadata; an empty object keeps only the default producer. */
   readonly metadata?: Readonly<Record<string, string>>;
   /** Merge all source embedded files; the first occurrence of each name wins. */
@@ -239,6 +242,12 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
           if (value === 90 || value === 180 || value === 270) dictSet(page, "Rotate", cosNumber(value)); }
         for (const key of ["CropBox", "BleedBox", "TrimBox", "ArtBox"]) if (!dictGet(page, key)) {
           const value = await box(key); if (value[0] !== 0 || value[1] !== 0 || value[2] !== width || value[3] !== height) dictSet(page, key, cosArray(value.map(value => cosNumber(value))));
+        }
+        dictSet(page, "Parent", cosRef(2));
+        const boxes = options.pageBoxes?.({ width, height }, selection.index);
+        for (const [key, value] of [["MediaBox", boxes?.mediaBox], ["CropBox", boxes?.cropBox]] as const) if (value) {
+          if (value.length !== 4 || !value.every(Number.isFinite)) throw new RangeError("Invalid copied page box");
+          dictSet(page, key, cosArray(value.map(coordinate => cosNumber(coordinate))));
         }
         await store.set({ objectNumber: pageRef.objectNumber, generationNumber: 0, value: page });
       }

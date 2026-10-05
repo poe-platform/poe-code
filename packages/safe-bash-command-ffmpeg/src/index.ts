@@ -251,6 +251,9 @@ function* lavfiSteps(
   const frameCount = Math.max(1, Math.round(duration * fps));
   const color = parseColorRgba(kv.color ?? kv.c ?? kv._0 ?? "blue");
 
+  const top = [[191, 191, 191], [191, 191, 0], [0, 191, 191], [0, 191, 0], [191, 0, 191], [191, 0, 0], [0, 0, 191]];
+  const middle = [[0, 0, 191], [19, 19, 19], [191, 0, 191], [19, 19, 19], [0, 191, 191], [19, 19, 19], [191, 191, 191]];
+  const lower = [[0, 33, 76], [255, 255, 255], [50, 0, 106], [19, 19, 19], [9, 9, 9], [19, 19, 19], [29, 29, 29], [19, 19, 19]];
   const frames: MediaVideoFrame[] = [];
   for (let i = 0; i < frameCount; i++) {
     yield;
@@ -262,7 +265,16 @@ function* lavfiSteps(
         if (++work % 1024 === 0) yield;
 
         const idx = (y * width + x) * 4;
-        if (filterName.startsWith("testsrc") || filterName === "smptebars") {
+        if (filterName === "smptebars") {
+          const column = Math.min(6, Math.floor(x * 7 / width));
+          const bottomColumn = x < width * 5 / 7 ? Math.min(3, Math.floor(x * 28 / (width * 5)))
+            : x < width * 6 / 7 ? 4 + Math.min(2, Math.floor((x * 7 / width - 5) * 3)) : 7;
+          const pixel = y < height * 2 / 3 ? top[column]! : y < height * 3 / 4 ? middle[column]! : lower[bottomColumn]!;
+          rgba[idx] = pixel[0]!;
+          rgba[idx + 1] = pixel[1]!;
+          rgba[idx + 2] = pixel[2]!;
+          rgba[idx + 3] = 255;
+        } else if (filterName.startsWith("testsrc")) {
           const bar = Math.floor((x / Math.max(1, width)) * 7);
           const palette: [number, number, number][] = [
             [255, 255, 255],

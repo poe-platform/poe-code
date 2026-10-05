@@ -683,3 +683,38 @@ it("matches native ffprobe flat numeric and string field types", async () => {
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, 'streams.stream.0.codec_name="h264"\nstreams.stream.0.width=80\nstreams.stream.0.height=60\n');
 });
+
+
+describe("animated GIF and lavfi source regressions", () => {
+  it("encodes every filtered frame and probes animation timing", async () => {
+    const vfs = createTestVfs();
+    const source = await runCmd(createFfmpegCommand(), ["-f", "lavfi", "-i", "testsrc=size=16x12:rate=4:duration=1.5", "master.mp4"], vfs);
+    assert.equal(source.exitCode, 0, source.stderr);
+    const encode = await runCmd(createFfmpegCommand(), ["-i", "master.mp4", "-vf", "fps=8,scale=8:6", "-loop", "0", "preview.gif"], vfs);
+    assert.equal(encode.exitCode, 0, encode.stderr);
+    const probe = await runCmd(createFfprobeCommand(), ["-show_format", "-show_streams", "-show_frames", "-of", "json", "preview.gif"], vfs);
+    assert.equal(probe.exitCode, 0, probe.stderr);
+    const result = JSON.parse(probe.stdout);
+    assert.equal(result.streams[0].nb_frames, "12");
+    assert.equal(result.streams[0].width, 8);
+    assert.equal(result.streams[0].height, 6);
+    assert.equal(result.frames.length, 12);
+    assert.ok(Math.abs(Number(result.format.duration) - 1.5) <= 0.01);
+  });
+
+  it("renders static SMPTE bars with distinct upper, middle and lower bands", async () => {
+    const vfs = createTestVfs();
+    for (const name of ["smptebars", "testsrc"]) {
+      const result = await runCmd(createFfmpegCommand(), ["-f", "lavfi", "-i", `${name}=size=28x12:rate=2:duration=1`, `${name}_%d.ppm`], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    assert.notDeepEqual(vfs.store.get("/smptebars_1.ppm"), vfs.store.get("/testsrc_1.ppm"));
+    assert.deepEqual(vfs.store.get("/smptebars_1.ppm"), vfs.store.get("/smptebars_2.ppm"));
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    const image = decodeImage(vfs.store.get("/smptebars_1.ppm")!);
+    const pixel = (x: number, y: number) => [...image.data.slice((y * image.width + x) * 4, (y * image.width + x) * 4 + 3)];
+    assert.deepEqual(pixel(0, 0), [191, 191, 191]);
+    assert.deepEqual(pixel(0, 8), [0, 0, 191]);
+    assert.deepEqual(pixel(7, 11), [255, 255, 255]);
+  });
+});

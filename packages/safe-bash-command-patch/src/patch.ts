@@ -1,17 +1,17 @@
-import { IndexedDocument } from "safe-bash-diff-engine/document";
+import { IndexedDocument, closeDocumentResources } from "safe-bash-diff-engine/document";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { TargetDocuments, equalTargetLines, targetBytes } from "./stored-target.js";
 import { applyStoredHunks } from "./stored-hunks.js";
 import { unwrapPatch } from "./patch-envelope.js";
 import { parsePatch,type ParseProgress,type PatchFormat } from "./patch-formats.js";
 import { authorizeOutputs,authorizePaths,backupName,candidateStat,ensureParents,pruneDirectories,pruneParents,regular,rejectName,selectTarget,type AuthorizedPatch,type BackupOptions,type PathOptions } from "./patch-gnu-paths.js";
-import { rejectText } from "./patch-gnu-reject.js";
+import { rejectBytes } from "./patch-gnu-reject.js";
 import { safeTarget } from "./patch-path.js";
 import { PatchPublication } from "./patch-publication.js";
 import { reversePatch,type FilePatch,type HunkOutcome } from "./unified.js";
 import { FsError,dirname,pipeBytes,resolvePath,writeBytes,type CommandContext } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { Budget,ToolError,definition,host,inspect,integer,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
-import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
 
 interface PatchFlags extends BackupOptions { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; quiet: boolean; force: boolean; backup: boolean; alwaysBackup?: boolean; forward?: boolean; output?: string; directory?: string; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string; posix?: boolean; verbose?: boolean; ifdef?: string; merge?: "merge" | "diff3"; setTime?: "local" | "utc"; rejectFormat?: "unified" | "context"; readOnly?: "ignore" | "warn" | "fail"; quotingStyle?: string }
 
@@ -142,7 +142,7 @@ interface Prepared {
   readonly backupPath?: string;
   readonly backupMode?: number;
   readonly rejectPath?: string;
-  readonly reject?: string;
+  readonly reject?: IndexedDocument;
   readonly skipWrite?: boolean;
   readonly mtimeMs?: number;
   readonly parents: readonly string[];
@@ -214,7 +214,7 @@ async function unchanged(item: Prepared, budget: Budget, documents: TargetDocume
 async function publish(item: Prepared, budget: Budget, rejects: Set<string>, publication: PatchPublication, documents: TargetDocuments): Promise<void> {
   const context = budget.context;
   await unchanged(item, budget, documents);
-  const write = async (path: string, text: string | IndexedDocument, append = false, createParents = true, mode?: number, mtimeMs?: number) => {
+  const write = async (path: string, text: IndexedDocument, append = false, createParents = true, mode?: number, mtimeMs?: number) => {
     if (createParents) await ensureParents(path, budget);
     else if ((await inspect(budget, dirname(path)))?.type !== "directory") throw new ToolError(`reject parent does not exist: ${dirname(path)}`);
     const stat = await inspect(budget, path);
@@ -223,7 +223,6 @@ async function publish(item: Prepared, budget: Budget, rejects: Set<string>, pub
       await context.fs.capabilitiesFor?.(path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
     if (capabilities?.atomicStagingAncestry !== true && !(publication.trusted && capabilities?.trustedOwnedStaging === true)) throw new ToolError("filesystem does not support race-safe patch publication");
     const publicationMode = capabilities?.permissions === false ? undefined : mode ?? (stat ? stat.mode & 0o7777 : undefined);
-    if (typeof text === "string") text = await documents.load(targetBytes(text));
     if (append && stat) text = await documents.concat(await documents.read(path), text);
     await publication.write(path, text.range(0, text.size), stat, publicationMode, mtimeMs);
   };
@@ -278,6 +277,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     budget = new Budget(context, Object.fromEntries(Object.entries(budget.limits).filter(([, value]) => Number.isFinite(value))));
   }
   const documents = new TargetDocuments(budget);
+  const messages = new PagedStorage(budget.context, 16, documents.cache);
   try {
     const empty = await documents.load({ async *[Symbol.asyncIterator]() {} });
     const output = options.output === undefined ? undefined : safeTarget(options.output, 0, true);
@@ -328,18 +328,27 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const backupPaths = new Set<string>();
     const rejectPaths = new Set<string>();
     const parents = new Set<string>();
-    const messages: string[] = [];
+    let messageSize = 0, messagePosition = 0;
     let exitCode = 0;
     let committed = 0;
     let publishing = false;
     let activePath: string | undefined;
     let outputContents = empty;
     const statusSink = outputToStdout ? context.stderr : context.stdout;
-    const status = async (text: string) => {
+    const appendStatus = async (text: string) => {
       if (!text) return;
       budget.output(text);
-      if (options.atomic) messages.push(text);
-      else await writeBytes(statusSink, encodeBytes(text), context.signal);
+      for await (const bytes of targetBytes(text)) { await messages.append(bytes); messageSize += bytes.length; }
+    };
+    const flushStatus = async (final = false) => {
+      if (options.atomic && !final) return;
+      while (messagePosition < messageSize) {
+        const bytes = await messages.read(8 + messagePosition, Math.min(16384, messageSize - messagePosition));
+        await writeBytes(statusSink, bytes, context.signal); messagePosition += bytes.length;
+      }
+    };
+    const status = async (text: string) => {
+      await appendStatus(text); await flushStatus();
     };
     const applySection = async (authorizedPatch: AuthorizedPatch) => {
       const sourcePatch = authorizedPatch.patch;
@@ -375,7 +384,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
               const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;
               const outcomes = patch.hunks.map((hunk, index) => ({ hunk, index: index + 1, failed: true, misordered: false,
                 line: hunk.oldStart, outputOffset: 0, offset: 0, fuzz: 0 }));
-              const reject = await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, options.reverse, budget, options.rejectFormat);
+              const reject = await documents.load(rejectBytes(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, options.reverse, budget, options.rejectFormat));
               const original = await documents.read(path);
               publishing = true;
               await publish({ path, original, result: original, remove: false, skipWrite: true, rejectPath, reject, parents: [] }, budget, rejects, publication, documents);
@@ -418,7 +427,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const backupPath = backup === undefined ? prior?.backupPath : await backupName(path, budget, options);
       const rejectDestination = rejectName(outputToStdout ? "-" : name, paths);
       const rejectPath = !options.dryRun && !options.merge && failed.length && rejectDestination !== undefined ? resolvePath(context.cwd, rejectDestination) : undefined;
-      const rejected = rejectPath === undefined ? undefined : await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, reversed, budget, options.rejectFormat);
+      const rejected = rejectPath === undefined ? undefined : await documents.load(rejectBytes(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, reversed, budget, options.rejectFormat));
       await authorizeOutputs([outputPath, backupPath, rejectPath], targets, paths.input, budget);
       if ((backupPath !== undefined && rejectPaths.has(backupPath)) || (rejectPath !== undefined && backupPaths.has(rejectPath))) {
         throw new ToolError("reject path aliases another section's backup");
@@ -452,26 +461,26 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         ...(mtimeMs === undefined ? {} : { mtimeMs }),
         ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruning : [] };
       const displayName = quotePatchName(name, options.quotingStyle);
-      let message = options.quiet ? "" : `${options.dryRun ? "checking" : "patching"} file ${output === undefined ? displayName : `${quotePatchName(output, options.quotingStyle)} (read from ${displayName})`}\n`;
+      budget.outputLength(result.size);
+      if (backup !== undefined) budget.outputLength(backup.size);
       if (options.verbose) {
         const format = sourcePatch.format ?? "unified";
         const headers = sourcePatch.oldHeader === undefined ? "" : `|${format === "context" ? "***" : "---"} ${sourcePatch.oldHeader}\n|${format === "context" ? "---" : "+++"} ${sourcePatch.newHeader}\n`;
-        message = `Hmm...  Looks like a ${format} diff to me...\nThe text leading up to this was:\n--------------------------\n${headers}--------------------------\n` + message;
+        await appendStatus(`Hmm...  Looks like a ${format} diff to me...\nThe text leading up to this was:\n--------------------------\n${headers}--------------------------\n`);
       }
-      if (autoReversed) message += "Reversed (or previously applied) patch detected!  Assuming -R.\n";
+      if (!options.quiet) await appendStatus(`${options.dryRun ? "checking" : "patching"} file ${output === undefined ? displayName : `${quotePatchName(output, options.quotingStyle)} (read from ${displayName})`}\n`);
+      if (autoReversed) await appendStatus("Reversed (or previously applied) patch detected!  Assuming -R.\n");
       for (const outcome of outcomes) {
-        if (outcome.misordered) message += "misordered hunks! output would be garbled\n";
+        if (outcome.misordered) await appendStatus("misordered hunks! output would be garbled\n");
         if (options.quiet) continue;
-        if (outcome.failed && options.merge) message += `Hunk #${outcome.index} NOT MERGED at ${outcome.mergeRange?.[0] ?? outcome.line}-${outcome.mergeRange?.[1] ?? outcome.line}.\n`;
-        else if (outcome.failed) message += `Hunk #${outcome.index} FAILED at ${outcome.line}.\n`;
-        else if (options.verbose || outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${outcome.offset === 1 ? "line" : "lines"})` : ""}.\n`;
+        if (outcome.failed && options.merge) await appendStatus(`Hunk #${outcome.index} NOT MERGED at ${outcome.mergeRange?.[0] ?? outcome.line}-${outcome.mergeRange?.[1] ?? outcome.line}.\n`);
+        else if (outcome.failed) await appendStatus(`Hunk #${outcome.index} FAILED at ${outcome.line}.\n`);
+        else if (options.verbose || outcome.offset || outcome.fuzz) await appendStatus(`Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${outcome.offset === 1 ? "line" : "lines"})` : ""}.\n`);
       }
-      if (failed.length && !options.merge) message += `${failed.length} out of ${outcomes.length} ${outcomes.length === 1 ? "hunk" : "hunks"} FAILED${options.dryRun || rejectPath === undefined ? "" : ` -- saving rejects to file ${rejectDestination}`}\n`;
-      if (deletion && result.size !== 0) message += `Not deleting file ${name} as content differs from patch\n`;
-      message += timeMessage;
-      budget.outputLength(result.size);
-      if (backup !== undefined) budget.outputLength(backup.size);
-      await status(message);
+      if (failed.length && !options.merge) await appendStatus(`${failed.length} out of ${outcomes.length} ${outcomes.length === 1 ? "hunk" : "hunks"} FAILED${options.dryRun || rejectPath === undefined ? "" : ` -- saving rejects to file ${rejectDestination}`}\n`);
+      if (deletion && result.size !== 0) await appendStatus(`Not deleting file ${name} as content differs from patch\n`);
+      await appendStatus(timeMessage);
+      await flushStatus();
       touched.add(path);
       if (options.atomic) {
         if (outputToStdout) stdoutItems.push(item);
@@ -515,10 +524,10 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }
     if (!options.dryRun) await pruneDirectories(parents, budget);
     if (options.verbose) await status("done\n");
-    if (options.atomic && (!options.quiet || messages.length)) await writeBytes(statusSink, encodeBytes(messages.join("")), context.signal);
+    await flushStatus(true);
     if (progress?.error) throw progress.error;
     return exitCode;
-  } finally { await documents.close(); }
+  } finally { await closeDocumentResources([messages, documents]); }
 }
 
 export function patchCommand(options: DiffPatchOptions = {}) { return definition("patch", options, run); }

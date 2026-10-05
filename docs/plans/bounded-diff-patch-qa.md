@@ -13,7 +13,9 @@ Backreferences replay UTF-16 text and deduplicated search states in caller stora
 with a shared 256 KiB page cache. Directory metadata still needs migration. GNU patch
 target payloads, hunk application and publication now use caller-backed documents
 and retained staging writers, including merge/ifdef, backups, rejects and output
-concatenation. Target documents now share a 256 KiB aggregate page cache.
+concatenation. Target documents, rendered rejects and status output share a
+256 KiB aggregate page cache. Reject formatting walks the original hunk groups
+without assembling complete output strings; status writes are at most 16 KiB.
 Patch input parsing, hunk metadata, file maps and retained resource handles
 still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.

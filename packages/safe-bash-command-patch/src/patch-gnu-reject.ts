@@ -1,5 +1,7 @@
-import type { FilePatch,HunkOutcome,PatchLine } from "./unified.js";
+import type { FilePatch,HunkOutcome } from "./unified.js";
 import type { Budget } from "safe-bash-diff-engine/shared";
+import type { ByteSource } from "safe-bash-contracts";
+import { targetBytes } from "./stored-target.js";
 
 function timestamp(header: string | undefined): string {
   if (!header) return "";
@@ -15,60 +17,58 @@ function contextRange(start: number, count: number, offset: number): string {
   return count === 0 ? "0" : count === 1 ? `${start + offset}` : `${start + offset},${start + offset + count - 1}`;
 }
 
-export async function rejectText(patch: FilePatch, outcomes: readonly HunkOutcome[], oldName: string | undefined,
-  newName: string | undefined, indexName: string | undefined, reverse: boolean, budget: Budget, format?: "unified" | "context"): Promise<string> {
+export async function* rejectBytes(patch: FilePatch, outcomes: readonly HunkOutcome[], oldName: string | undefined,
+  newName: string | undefined, indexName: string | undefined, reverse: boolean, budget: Budget, format?: "unified" | "context"): ByteSource {
   const normal = patch.format === "normal";
   const context = format === undefined ? patch.format === "context" || normal : format === "context";
   const names = [normal ? "/dev/null" : oldName ?? "/dev/null", normal ? "/dev/null" : newName ?? "/dev/null"];
   const times = normal ? ["", ""] : [timestamp(patch.oldHeader), timestamp(patch.newHeader)];
   if (reverse) { names.reverse(); times.reverse(); }
-  const output: string[] = [];
-  const add = (text: string) => { budget.output(text); output.push(text); };
-  if (indexName !== undefined) add(`Index: ${indexName}\n`);
-  add(`${context ? "***" : "---"} ${names[0]}${times[0]}\n${context ? "---" : "+++"} ${names[1]}${times[1]}\n`);
+  const add = async function* (text: string): ByteSource { budget.output(text); yield* targetBytes(text); };
+  if (indexName !== undefined) yield* add(`Index: ${indexName}\n`);
+  yield* add(`${context ? "***" : "---"} ${names[0]}${times[0]}\n${context ? "---" : "+++"} ${names[1]}${times[1]}\n`);
   for (const outcome of outcomes) {
     if (!outcome.failed) continue;
     budget.step();
     { const c = budget.checkpoint(); if (c) await c; }
     const { hunk, outputOffset } = outcome;
     if (!context) {
-      add(`@@ -${unifiedRange(hunk.oldStart, hunk.oldCount, outputOffset)} +${unifiedRange(hunk.newStart, hunk.newCount, outputOffset)} @@${hunk.section ?? ""}\n`);
-      let group: PatchLine[] = [];
-      const flush = () => {
-        for (const kind of ["-", "+"]) for (const line of group) if (line.kind === kind) add(`${kind}${line.text}`);
-        group = [];
-      };
-      for (const line of hunk.lines) {
+      yield* add(`@@ -${unifiedRange(hunk.oldStart, hunk.oldCount, outputOffset)} +${unifiedRange(hunk.newStart, hunk.newCount, outputOffset)} @@${hunk.section ?? ""}\n`);
+      for (let start = 0; start < hunk.lines.length;) {
         budget.step();
         { const c = budget.checkpoint(); if (c) await c; }
-        if (line.kind === " ") { flush(); add(` ${line.text}`); }
-        else group.push(line);
-      }
-      flush();
-    } else {
-      add(`***************${hunk.section ?? ""}\n*** ${contextRange(hunk.oldStart, hunk.oldCount, outputOffset)}${normal ? "" : " ****"}\n`);
-      const oldLines: string[] = [];
-      const newLines: string[] = [];
-      let group: PatchLine[] = [];
-      const flush = () => {
-        const changed = !normal && group.some(line => line.kind === "-") && group.some(line => line.kind === "+");
-        for (const line of group) {
-          const text = `${changed ? "!" : line.kind} ${line.text}`;
-          (line.kind === "-" ? oldLines : newLines).push(text);
+        const line = hunk.lines[start]!;
+        if (line.kind === " ") { yield* add(" "); yield* add(line.text); start++; continue; }
+        let end = start;
+        while (end < hunk.lines.length && hunk.lines[end]!.kind !== " ") {
+          end++; budget.step(); const c = budget.checkpoint(); if (c) await c;
         }
-        group = [];
-      };
-      for (const line of hunk.lines) {
-        budget.step();
-        { const c = budget.checkpoint(); if (c) await c; }
-        if (line.kind === " ") { flush(); oldLines.push(`  ${line.text}`); newLines.push(`  ${line.text}`); }
-        else group.push(line);
+        for (const kind of ["-", "+"]) for (let index = start; index < end; index++) {
+          const line = hunk.lines[index]!;
+          if (line.kind === kind) { yield* add(kind); yield* add(line.text); }
+        }
+        start = end;
       }
-      flush();
-      for (const line of oldLines) add(line);
-      add(`--- ${contextRange(hunk.newStart, hunk.newCount, outputOffset)}${normal ? " -----" : " ----"}\n`);
-      for (const line of newLines) add(line);
+    } else {
+      yield* add(`***************${hunk.section ?? ""}\n*** ${contextRange(hunk.oldStart, hunk.oldCount, outputOffset)}${normal ? "" : " ****"}\n`);
+      for (const kind of ["-", "+"] as const) {
+        if (kind === "+") yield* add(`--- ${contextRange(hunk.newStart, hunk.newCount, outputOffset)}${normal ? " -----" : " ----"}\n`);
+        for (let start = 0; start < hunk.lines.length;) {
+          budget.step(); const c = budget.checkpoint(); if (c) await c;
+          const line = hunk.lines[start]!;
+          if (line.kind === " ") { yield* add("  "); yield* add(line.text); start++; continue; }
+          let end = start, removed = false, added = false;
+          while (end < hunk.lines.length && hunk.lines[end]!.kind !== " ") {
+            removed ||= hunk.lines[end]!.kind === "-"; added ||= hunk.lines[end]!.kind === "+";
+            end++; budget.step(); const c = budget.checkpoint(); if (c) await c;
+          }
+          for (let index = start; index < end; index++) if (hunk.lines[index]!.kind === kind) {
+            yield* add(`${!normal && removed && added ? "!" : kind} `);
+            yield* add(hunk.lines[index]!.text);
+          }
+          start = end;
+        }
+      }
     }
   }
-  return output.join("");
 }

@@ -63,10 +63,11 @@ export async function equalTargetLines(left: TargetLine, right: TargetLine, budg
 
 /** Owns caller-backed immutable targets for the duration of patch preflight/publication. */
 export class TargetDocuments {
+  readonly cache = new PagedStorageCache(16);
   private readonly documents = new Set<IndexedDocument>();
   private readonly documentBudget: DocumentBudget;
   constructor(readonly budget: Budget) {
-    this.documentBudget = { context: budget.context, documentCache: new PagedStorageCache(16),
+    this.documentBudget = { context: budget.context, documentCache: this.cache,
       step: budget.step.bind(budget), checkpoint: budget.checkpoint.bind(budget) };
   }
 

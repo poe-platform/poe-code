@@ -4723,20 +4723,20 @@
     {
       "id": "atl-last",
       "status": "open",
-      "currentFinding": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Complete remaining scheduling/watch lifecycle and installed/deployment profiles. See checkpoint20261004 for the next acceptance test and qualification blockers.",
+      "currentFinding": "Native FIFO splitting, writer reopen, tag rebinding and formula replacement/removal/restoration are qualified with compiled session and public conversion evidence. Explicit-host feed/close failures preserve established cleanup and error contracts. Remaining containing installed/deployment profiles are the next gate.",
       "checkpoint20261004": {
-        "qualified": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Session polling now unlinks old tags before actual formula evaluation, including conditional branches that no longer call ATL_LAST; direct/dependency-triggered deactivation and reactivation pass. Twelve native FIFO phases now qualify tag/value/newline splitting across reads, writer close/reopen after each fragment, and dynamic tag rebinding; 24 native values match the persistent compiled session and 24 SDK/command snapshots.",
+        "qualified": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Session polling now unlinks old tags before actual formula evaluation, including conditional branches that no longer call ATL_LAST; direct/dependency-triggered deactivation and reactivation pass. Twelve native FIFO phases now qualify tag/value/newline splitting across reads, writer close/reopen after each fragment, and dynamic tag rebinding; 24 native values match the persistent compiled session and 24 SDK/command snapshots. Four native formula replacement/removal/restoration phases match eight persistent-session values and eight public conversion snapshots. Eight SDK/command feed/close failure controls verify iterator retirement, awaited exactly-once cleanup, sanitized feed errors and original cancellation/close-error identities.",
         "evidence": [
           "#/currentQualification20261002/datasourceRecalculationCleanup",
           "#/datasourceConditionalUnlink",
-          "#/datasourceNativeSchedules"
+          "#/datasourceNativeSchedules",
+          "#/datasourceMutationAndClose"
         ],
-        "nextAcceptance": "Qualify remaining native formula replacement/deletion watcher mutation and abnormal feed/close ordering, then containing installed/deployment profiles. Retain the completed 12-phase split-read/writer-reopen/dynamic-tag cohort.",
-        "closureGate": "Complete remaining scheduling/watch lifecycle and installed/deployment profiles.",
+        "nextAcceptance": "Qualify the containing installed root/scoped datasource contracts and deployment profiles, including the conditional-unlink fix. Reuse the completed native schedule/mutation and feed/close cohorts.",
+        "closureGate": "Complete containing installed root/scoped datasource and deployment profiles; preserve qualified native and explicit-host lifecycle evidence.",
         "qualificationBlockers": [],
         "remainingAcceptance": [
-          "Remaining native formula replacement/deletion watcher mutation and abnormal feed/close ordering through SDK/command. Split records, writer reopen and dynamic tag rebinding are qualified in the retained 12-phase cohort; conditional session-poll deactivation/reactivation is repaired.",
-          "Remaining installed/deployment profiles; reuse the qualified eight-value normal/late/partial/completed record cohort."
+          "Containing installed root/scoped datasource and remaining deployment profiles, including conditional watcher unlinking. Reuse the qualified native schedules, formula mutation and explicit-host feed/close controls."
         ]
       }
     },
@@ -6759,6 +6759,26 @@
       "native.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "public.mjs": "4d8d9d06b37d1564f71c83362a1c67c9a01398cf926453d519b9b0698d75dfba",
       "results.json": "eb96f04335bb16491763fc46b039610225e68a747a22a9d0fde7d29c5ef38be4"
+    }
+  },
+  "datasourceMutationAndClose": {
+    "status": "Remaining bounded formula-mutation and abnormal host feed/close gate verified; installed/deployment acceptance remains open",
+    "native": "Same explicit49-plugin task profile and unchanged sample_datasource binary as datasourceNativeSchedules. Actual FIFO, workbook and event loop. Formula ATL_LAST(stock) yields7/8; replacement ATL_LAST(other) yields19/20 despite an old-tag update; replacing formula with constant42 yields42/43 after other20; restoring ATL_LAST(other) and feeding21 yields21/22. No activation error or stderr; FIFO absent after shutdown. Core dumps disabled and probe bounded by10seconds; no crash occurred.",
+    "nativeHashes": {
+      "probe": "fb54762c674b87d169858367468592ce717aa4b3027667874e4babd06adba337",
+      "plugin": "e6798be86f482b60b905e5cf0cf6c325bfc3043c94cb9833a6334a9f224227f6"
+    },
+    "product": "Persistent compiled session matches all8 native values and closes once.8SDK/command snapshots match16 native-derived values with one close each. Snapshot conversions consume cumulative prefixes and do not claim repeated polling of one conversion.",
+    "failures": "8SDK/command controls: batch rejection, iterator failure after first complete record, close rejection, and cancellation combined with close rejection. All8close calls settle before outcome, happen once and are not repeated by dispose. All6started iterators execute finally. Four feed failures publish0bytes; SDK exposes sanitized io errors and command returns exit1 with matching sanitized stderr. Two cancellations publish0bytes. SDK aggregate preserves the exact original cancellation reason and cleanup failure; command throws the original cancellation reason. Close-only failures expose the cleanup aggregate after the valid12-byte CSV1,2,3,23,24 has already been written.",
+    "verification": "50 maintained datasource lifecycle/numeric tests and selected workspace build pass. No runtime change. Initial harness incorrectly expected command feed errors to throw; source inspection confirmed maintained exit1/stderr behavior and assertions were corrected.",
+    "limits": "Bounded native mutation and explicit-host failures, not arbitrary OS failure emulation. Close-only failure is not transactional output rollback. Containing installed artifacts and deployment profiles remain open; preserve original cancellation identity according to each public route.",
+    "evidence": "Retained datasource-mutation-current/probe.c, native.stdout, native.stderr, public.mjs, results.json and build.log.",
+    "hashes": {
+      "probe.c": "37e6709189a0cb6458624f93e8c5e69c2c0fb2232f4246e325e8c956adb51d64",
+      "native.stdout": "0b7173326cfb397b81c2a01bb01e8b1cbc18ae192ca5324c381799d97c5d3665",
+      "native.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "public.mjs": "bb1bff7cb602e418f1b8f1fa832bc5f7fe5f14757244a15dd7b2df9d27c0f5bd",
+      "results.json": "d02f68ddddec7579f62735d76225ebdfb51de92cdc0b2a463d17216d6758b899"
     }
   }
 }

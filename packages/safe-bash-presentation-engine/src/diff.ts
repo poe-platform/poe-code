@@ -298,3 +298,5 @@ export async function comparePresentations(
     ])
   });
 }
+
+export { openRetainedDiff, stageRetainedDiff, type RetainedDiffMode } from "./retained-diff.js";

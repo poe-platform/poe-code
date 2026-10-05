@@ -599,6 +599,28 @@ A native python-pptx notes/chart/workbook deck matched native speaker text and
 exact buffered JSON through the default adapter, with retained input, no whole-file
 reads and empty scratch. No Worker runtime qualification is claimed.
 
+## Retained nonstructural comparison
+
+The default diff command now uses retained sources for raw, text, media and
+relationship modes. Snapshots keep ordered keys, serialized values, locations,
+media counts and exact-case owner/media lookups in caller pages. Comparison
+replays left entries followed by right-only entries, preserving overwrite and
+insertion semantics without a resident changes list. Raw member keys use stored
+sorting; text order remains an explicit compared value. Fingerprints read bounded
+ranges, and both input reads precede parsing to preserve command error precedence.
+Responses are completely staged before output. Sources remain caller-owned.
+
+Tests cover exact SDK/CLI JSON and human parity, stable replay, media multiplicity,
+Unicode relationship identifiers, member ordering, input limits/error precedence,
+real storage spills, reused read buffers, slow sinks, cancellation, storage
+read/write/close failures, sink failures and scratch cleanup. Native python-pptx
+chart/workbook/notes decks match exact buffered outputs through the public
+adapter in all four modes, with retained input and no whole-file reads.
+All 1,423 maintained command tests, 16 focused engine cases, scoped lint/type
+checks and the selected workspace build pass. Structural comparison, richer
+reads/extraction, most mutations and embedded workbook intermediates remain
+unfinished. No Worker qualification is claimed.
+
 ## Manual workerd / Cloudflare QA
 
 Execute these steps after the streaming engine path is implemented. Do not treat

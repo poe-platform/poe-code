@@ -5,7 +5,7 @@ import type {
 } from "./command-engine.js";
 import type { OfficeResult } from "safe-bash-presentation-engine/contracts";
 import { OfficeError } from "safe-bash-presentation-engine/errors";
-import { comparePresentations, type DiffMode } from "safe-bash-presentation-engine/diff";
+import { comparePresentations, stageRetainedDiff, type DiffMode } from "safe-bash-presentation-engine/diff";
 import { diffModes, diffUsage } from "./diff-schema.js";
 
 export async function executeDiffCommand(
@@ -18,6 +18,7 @@ export async function executeDiffCommand(
   let result: OfficeResult<unknown>;
   let human = "";
   let exitCode = 0;
+  let staged: Awaited<ReturnType<typeof stageRetainedDiff>> | undefined;
   const failure = (error: unknown): OfficeResult<unknown> => {
     const office = error instanceof OfficeError ? error : undefined;
     const code = request.signal.aborted
@@ -143,6 +144,19 @@ export async function executeDiffCommand(
           "usage"
         );
       const maxBytes = Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes);
+      if (request.streaming && mode !== 'structural') {
+        const left = await request.streaming.openInput(positionals[0]!, maxBytes);
+        request.signal.throwIfAborted();
+        const right = await request.streaming.openInput(positionals[1]!, maxBytes);
+        try {
+          staged = await stageRetainedDiff(left, right, { mode, json, maxOutputBytes }, { ...context, workingStorage: request.streaming.workingStorage });
+        } catch (error) {
+          if (error instanceof OfficeError && error.code === 'resource-limit' && error.phase === 'publish') throw new OfficeError('resource-limit', 'Comparison output limit exceeded.', 'admit');
+          throw error;
+        }
+        exitCode = staged.equal ? 0 : 1;
+        result = { version: 1, operation: 'diff', ok: true, data: null, affected: 0, warnings: [], errors: [], locations: [] };
+      } else {
       const left = await request.readInput(positionals[0]!, maxBytes);
       request.signal.throwIfAborted();
       const right = await request.readInput(positionals[1]!, maxBytes);
@@ -166,9 +180,17 @@ export async function executeDiffCommand(
               `${change.category} ${change.kind} ${change.id}\n  before: ${JSON.stringify(change.before)}\n  after: ${JSON.stringify(change.after)}\n`
           )
           .join("");
+      }
     }
   } catch (error) {
     result = failure(error);
+  }
+  if (staged) {
+    let failed = false;
+    try { await staged.output.write(request.streaming!.stdout); }
+    catch (error) { failed = true; throw error; }
+    finally { try { await staged.output.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
+    return { exitCode, stdout: new Uint8Array(), stderr: new Uint8Array() };
   }
   let bytes = encoder.encode(json ? JSON.stringify(result) + "\n" : human);
   if (bytes.length > maxOutputBytes) {

@@ -44,7 +44,7 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
     const file = propertyRange(bytes, context); accountWork(file.size);
     const sections = readPropertySectionRanges(file, admit, accountWork, context);
     let unknown = false;
-    const modeled: [number, number, string][] = [];
+    const modeled: [number, number, string][] | undefined = retained ? [] : undefined;
     for await (const { guid, offset, end } of sections) {
       if (!biffPropertyFields.has(guid) && guid !== custom) { unknown = true; continue; }
       await withPropertyValueRanges(file.slice(offset, end - offset), admit, accountWork, context, async values => {
@@ -99,14 +99,14 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
                 return keyword.slice(start, end);
               }).filter(Boolean);
             }
-            accountText(key); properties[key] = value; modeled.push([offset, id, key]);
+            accountText(key); properties[key] = value; modeled?.push([offset, id, key]);
             observe?.({ stream: streamName, section: offset, id, key, value });
           }
         });
         if (!supported) unknown = true;
       });
     }
-    if (unknown && retained) {
+    if (unknown && retained && modeled) {
       if (file.size * 2 > (context.limits.workbookTextBytes ?? context.limits.inputBytes * 2))
         throw new SsconvertError("resource-limit", "ssconvert BIFF property retention limit exceeded");
       let encoded = "";

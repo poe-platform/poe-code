@@ -549,6 +549,34 @@ it('merges retained values without a resident range map', async () => {
   expect(state.closed).toBe(state.acquired);
 });
 
+it.each([false, true])('replays property identities without transient arrays (legacy merge=%s)', async merge => {
+  const seed = { sheets: book.sheets, properties: { 'dc:title': 'original', A: 1, B: 2 } };
+  const fresh = await writeBiffProperties(seed, context), stream = '\u0005SummaryInformation', bytes = fresh.streams.get(stream)!;
+  const input = { ...seed, properties: { 'dc:title': 'edited', A: 3, B: 4, C: 5 }, unsupportedRecords: [{
+    source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+    data: { stream, bytes: Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('') }
+  }] };
+  const expected = await writeBiffProperties(input, context), { ctx, state } = fixture();
+  const push = Array.prototype.push;
+  let identityArrays = 0;
+  // Avoid a mock wrapper: Vitest itself uses Array#push while recording calls.
+  Array.prototype.push = function (...items) {
+    for (const item of items) if (Array.isArray(item) && item.length === 3 &&
+      typeof item[0] === 'number' && typeof item[1] === 'number' && typeof item[2] === 'string') identityArrays++;
+    return push.apply(this, items);
+  };
+  try {
+    if (merge) {
+      const actual = await writeBiffProperties(input, ctx, true);
+      try {
+        for (const [name, source] of actual.streams) expect(await source.read(0, source.size)).toEqual(expected.streams.get(name));
+      } finally { await actual.close(); }
+    } else expect(await readBiffProperties(fresh.streams, ctx, text => text, () => {}, undefined)).toEqual(seed.properties);
+  } finally { Array.prototype.push = push; }
+  expect(identityArrays).toBe(0);
+  expect(state.closed).toBe(state.acquired);
+});
+
 it('preserves mutable property insertion order and detached payloads beyond the index cache', async () => {
   const { ctx, state, cleanups } = fixture(), values = new BiffMutablePropertyValues(ctx, () => {});
   const range = (id: number) => { const bytes = new Uint8Array(4); new DataView(bytes.buffer).setUint32(0, id, true); return propertyRange(bytes, ctx); };

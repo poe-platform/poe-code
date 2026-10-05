@@ -174,20 +174,19 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
   };
   for (const [name, snapshot] of snapshots) {
     const seen = new Set<string>();
-    let modeled = snapshot.modeled;
-    if (!modeled) {
-      modeled = [];
+    function* modeled(): Iterable<ImportedValue> {
+      if (snapshot.modeled) { yield* snapshot.modeled; return; }
       // SummaryInformation is read first. A legacy document-only snapshot lacks
       // that earlier stream's ownership decisions: infer only unchanged values.
       for (const property of original.values()) {
         charge(1); if (property.stream !== name) continue;
         if (name === "\u0005SummaryInformation" || snapshots.has("\u0005SummaryInformation") ||
           Object.hasOwn(book.properties ?? {}, property.key) && same(property.value, book.properties?.[property.key])) {
-          admit(1); modeled.push([property.section, property.id, property.key]);
+          admit(1); yield [property.section, property.id, property.key];
         }
       }
     }
-    for (const entry of modeled) {
+    for (const entry of modeled()) {
       admit(1);
       if (!Array.isArray(entry) || entry.length !== 3 || typeof entry[0] !== "number" || typeof entry[1] !== "number" || typeof entry[2] !== "string")
         invalidBiff("invalid retained property identity");

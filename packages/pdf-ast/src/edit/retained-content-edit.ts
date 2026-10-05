@@ -35,6 +35,11 @@ export class RetainedContentEditor {
     await this.count(value, 1n);
     await this.store.set({ objectNumber: reference.objectNumber, generationNumber: reference.generationNumber, value, ...(stream ? { stream } : {}) });
   }
+  async setSerialized(reference: PdfCosRef, body: { length: number; chunks: AsyncIterable<Uint8Array> }, values: AsyncIterable<PdfCosNode>): Promise<void> {
+    const old = await this.store.get(reference.objectNumber); if (old) await this.count(old.value, -1n);
+    for await (const node of values) await this.count(node, 1n);
+    await this.store.setSerializedValue({ objectNumber: reference.objectNumber, generationNumber: reference.generationNumber, body });
+  }
   async replace(page: PdfRetainedPage, chunks: AsyncIterable<Uint8Array>, compress = true): Promise<void> {
     const source = compress ? await stageDeflatedPdf(chunks, this.storage, this.signal)
       : await PdfFileSource.fromStream(this.storage.fs, this.storage.directory, chunks, { signal: this.signal });

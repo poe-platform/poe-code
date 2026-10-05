@@ -1878,7 +1878,7 @@ async function executePdftk(context: CommandContext, retainedContext: CommandCon
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const parsed = await drainSteps(parsePdftkArgumentsSteps(argv), invocation.signal);
-    if (parsed.options && ((["output", "rotate", "attach_files"].includes(parsed.options.operation) && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
+    if (parsed.options && ((["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground"].includes(parsed.options.operation) && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
       return await executeRetainedPdftk({ ...retainedContext, signal: invocation.signal, stdout: invocation.child(context.stdout).output }, parsed.options);
     }
     const vfsFiles = new Map<string, Uint8Array>();

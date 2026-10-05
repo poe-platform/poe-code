@@ -1,19 +1,19 @@
 import { retainedRotations } from "./retained-rotate.js";
-import { editRetainedDocument, type RetainedAppendAttachment, PdfFileSource, PdfMutableObjectStore, PdfRetainedDocument, cosBool, dictDelete, dictGet, dictSet, encryptRetainedPdfChunks, retainedCosObjects, saveRetainedDocumentChunks, type PdfCosArray } from "@poe-code/pdf-ast";
+import { editRetainedDocument, type RetainedAppendAttachment, type RetainedStampInput, PdfFileSource, PdfMutableObjectStore, PdfRetainedDocument, cosBool, dictDelete, dictGet, dictSet, encryptRetainedPdfChunks, retainedCosObjects, saveRetainedDocumentChunks, type PdfCosArray } from "@poe-code/pdf-ast";
 import type { PdftkArguments } from "./arguments.js";
 
 type Storage = ConstructorParameters<typeof PdfMutableObjectStore>[0];
 
 /** Common PDF output flags; the caller retains input identities and publishes
  * the resulting chunks. Graph edits and encoded payloads use caller storage. */
-export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined, attachments: AsyncIterable<RetainedAppendAttachment>, attachmentPage: string | undefined): AsyncGenerator<Uint8Array> {
+export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined, attachments: AsyncIterable<RetainedAppendAttachment>, attachmentPage: string | undefined, stamps: Iterable<RetainedStampInput> | undefined): AsyncGenerator<Uint8Array> {
   const store = new PdfMutableObjectStore(storage, { signal });
   let edited: Awaited<ReturnType<typeof editRetainedDocument>> | undefined;
   let document: PdfRetainedDocument | undefined, plaintext: PdfFileSource | undefined, failed = false;
   try {
-    if (options.operation === "attach_files") {
+    if (options.operation === "attach_files" || stamps) {
       const pageIndex = attachmentPage !== undefined && pageCount! > 0 ? attachmentPage.toLowerCase() === "end" ? pageCount! - 1 : Math.max(0, Math.min(pageCount! - 1, (Number.parseInt(attachmentPage, 10) || 1) - 1)) : undefined;
-      edited = await editRetainedDocument(source, storage, { signal, appendAttachments: attachments, ...(pageIndex !== undefined ? { attachmentPageIndex: pageIndex } : {}) });
+      edited = await editRetainedDocument(source, storage, { signal, ...(options.operation === "attach_files" ? { appendAttachments: attachments } : {}), ...(stamps ? { stamps } : {}), ...(pageIndex !== undefined ? { attachmentPageIndex: pageIndex } : {}) });
     }
     const input = edited?.document ?? source;
     const pageReferences = edited ? { pageReferences: async function* () { for await (const page of input.pages()) if (page.reference) yield page.reference; } } : {};

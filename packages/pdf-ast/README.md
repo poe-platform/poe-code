@@ -988,6 +988,8 @@ The result exposes `pageCount` and `getPage(index)` for bounded indexed access
 without retaining a page array. Pass `stamps` as an iterable of
 `{ source, mode: "overlay" | "underlay", pages }`, where `source` is a retained
 document and `pages` yields zero-based `{ sourceIndex, targetIndex }` pairs.
+Set `preserveStreams: true` on a stamp to keep separate encoded content streams
+and apply all resource collision renames in one pass using caller backing.
 Keep each source open until its stamp is consumed. Stamps preserve pair order
 and duplicates, scale/center content to the target page, align rotations and
 rename conflicting resources. Content, page indexes and clone identities use

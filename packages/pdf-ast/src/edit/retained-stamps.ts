@@ -1,3 +1,4 @@
+import { preserveRetainedStamp } from "./retained-preserve-stamp.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosArray, cosDict, cosRef, dictGet, dictSet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import type { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
@@ -12,6 +13,8 @@ import { replaceRetainedPdfName } from "./retained-name-replacement.js";
 export interface RetainedStampInput {
   readonly source: PdfRetainedDocument;
   readonly mode: "overlay" | "underlay";
+  /** Preserve encoded content streams and apply collision renames simultaneously. */
+  readonly preserveStreams?: boolean;
   /** Zero-based page pairs, consumed in order; duplicates are applied repeatedly. */
   readonly pages: Iterable<{ sourceIndex: number; targetIndex: number }> | AsyncIterable<{ sourceIndex: number; targetIndex: number }>;
 }
@@ -34,7 +37,7 @@ export async function stampRetainedPages(document: PdfRetainedDocument, store: P
           // The compatibility clone resolves identities by object number.
           const identity = await source.document.crossReference.index.get(node.objectNumber, signal);
           const object = identity ? await source.document.objects.get(node.objectNumber, identity.generationNumber ?? 0) : undefined;
-          if (!object) return { kind: "null" };
+          if (!object) { if (!stamp.preserveStreams) return { kind: "null" }; const reference = await store.allocate(cosDict({})); await memo.set(BigInt(node.objectNumber), BigInt(reference.objectNumber)); return reference; }
           const reference = await store.allocate({ kind: "null" }); await memo.set(BigInt(node.objectNumber), BigInt(reference.objectNumber));
           const value = await clone(object.value, depth + 1);
           await editor.set(reference, value, object.stream ? { decoded: object.decoded ?? false, length: object.stream.end - object.stream.start,
@@ -44,6 +47,7 @@ export async function stampRetainedPages(document: PdfRetainedDocument, store: P
         if (node.kind === "array") { const items = []; for (const item of node.items) items.push(await clone(item, depth + 1)); return cosArray(items); }
         if (node.kind === "dict") {
           const entries = []; for (const entry of node.entries) if (entry.key.decoded !== "Parent") entries.push({ key: { ...entry.key }, value: await clone(entry.value, depth + 1) });
+          if (stamp.preserveStreams) { const dict = cosDict({}); for (const entry of entries) dictSet(dict, entry.key.decoded, entry.value); return dict; }
           return { kind: "dict", entries };
         }
         return node;
@@ -52,6 +56,7 @@ export async function stampRetainedPages(document: PdfRetainedDocument, store: P
         for await (const pair of stamp.pages) {
           await checkpoint();
           const page = await getPage(pair.targetIndex), other = await source.getPage(pair.sourceIndex);
+          if (stamp.preserveStreams) { await preserveRetainedStamp(document, source.document, page, other, store, editor, storage, clone, stamp.mode, signal); continue; }
           const target = await PdfFileSource.fromStream(storage.fs, storage.directory, page.streamContents(), { signal });
           let content: PdfFileSource | undefined, pageFailed = false;
           try {
@@ -93,35 +98,7 @@ export async function stampRetainedPages(document: PdfRetainedDocument, store: P
               }
             }
             for (const owner of owners.values()) await editor.set(owner.reference, owner.value);
-            const dstSize = { width: Math.abs(dstAttributes.mediaBox[2] - dstAttributes.mediaBox[0]), height: Math.abs(dstAttributes.mediaBox[3] - dstAttributes.mediaBox[1]) };
-            const srcSize = { width: Math.abs(srcAttributes.mediaBox[2] - srcAttributes.mediaBox[0]), height: Math.abs(srcAttributes.mediaBox[3] - srcAttributes.mediaBox[1]) };
-            const rotDiff = ((dstAttributes.rotation - srcAttributes.rotation) % 360 + 360) % 360;
-            let stampOpenStr = "q\n";
-            if (srcSize.width > 0 && srcSize.height > 0) {
-              const fmt6 = (n: number) => Number(n.toFixed(6));
-              const fmt4 = (n: number) => Number(n.toFixed(4));
-              if (rotDiff === 90) {
-                const s = Math.min(dstSize.height / srcSize.width, dstSize.width / srcSize.height);
-                const ox = (dstSize.height - srcSize.width * s) / 2;
-                const oy = (dstSize.width - srcSize.height * s) / 2;
-                stampOpenStr = `q\n0 ${fmt6(s)} ${fmt6(-s)} 0 ${fmt4(dstSize.width - oy)} ${fmt4(ox)} cm\n`;
-              } else if (rotDiff === 180) {
-                const s = Math.min(dstSize.width / srcSize.width, dstSize.height / srcSize.height);
-                const ox = (dstSize.width - srcSize.width * s) / 2;
-                const oy = (dstSize.height - srcSize.height * s) / 2;
-                stampOpenStr = `q\n${fmt6(-s)} 0 0 ${fmt6(-s)} ${fmt4(dstSize.width - ox)} ${fmt4(dstSize.height - oy)} cm\n`;
-              } else if (rotDiff === 270) {
-                const s = Math.min(dstSize.height / srcSize.width, dstSize.width / srcSize.height);
-                const ox = (dstSize.height - srcSize.width * s) / 2;
-                const oy = (dstSize.width - srcSize.height * s) / 2;
-                stampOpenStr = `q\n0 ${fmt6(-s)} ${fmt6(s)} 0 ${fmt4(oy)} ${fmt4(dstSize.height - ox)} cm\n`;
-              } else if (Math.abs(srcSize.width - dstSize.width) > 0.5 || Math.abs(srcSize.height - dstSize.height) > 0.5) {
-                const s = Math.min(dstSize.width / srcSize.width, dstSize.height / srcSize.height);
-                const tx = (dstSize.width - srcSize.width * s) / 2;
-                const ty = (dstSize.height - srcSize.height * s) / 2;
-                stampOpenStr = `q\n${fmt6(s)} 0 0 ${fmt6(s)} ${fmt4(tx)} ${fmt4(ty)} cm\n`;
-              }
-            }
+            const stampOpenStr = retainedStampTransform(dstAttributes, srcAttributes);
             const encoder = new TextEncoder(), stamped = content;
             async function* contents() {
               for (const isStamp of stamp.mode === "underlay" ? [true, false] : [false, true]) {
@@ -139,4 +116,37 @@ export async function stampRetainedPages(document: PdfRetainedDocument, store: P
     }
   } catch (error) { failed = true; throw error; }
   finally { await editor.close().catch(error => { if (!failed) throw error; }); }
+}
+
+export function retainedStampTransform(dstAttributes: { mediaBox: readonly [number, number, number, number]; rotation: number }, srcAttributes: { mediaBox: readonly [number, number, number, number]; rotation: number }): string {
+  const dstSize = { width: Math.abs(dstAttributes.mediaBox[2] - dstAttributes.mediaBox[0]), height: Math.abs(dstAttributes.mediaBox[3] - dstAttributes.mediaBox[1]) };
+  const srcSize = { width: Math.abs(srcAttributes.mediaBox[2] - srcAttributes.mediaBox[0]), height: Math.abs(srcAttributes.mediaBox[3] - srcAttributes.mediaBox[1]) };
+  const rotDiff = ((dstAttributes.rotation - srcAttributes.rotation) % 360 + 360) % 360;
+  let stampOpenStr = "q\n";
+  if (srcSize.width > 0 && srcSize.height > 0) {
+    const fmt6 = (n: number) => Number(n.toFixed(6));
+    const fmt4 = (n: number) => Number(n.toFixed(4));
+    if (rotDiff === 90) {
+      const s = Math.min(dstSize.height / srcSize.width, dstSize.width / srcSize.height);
+      const ox = (dstSize.height - srcSize.width * s) / 2;
+      const oy = (dstSize.width - srcSize.height * s) / 2;
+      stampOpenStr = `q\n0 ${fmt6(s)} ${fmt6(-s)} 0 ${fmt4(dstSize.width - oy)} ${fmt4(ox)} cm\n`;
+    } else if (rotDiff === 180) {
+      const s = Math.min(dstSize.width / srcSize.width, dstSize.height / srcSize.height);
+      const ox = (dstSize.width - srcSize.width * s) / 2;
+      const oy = (dstSize.height - srcSize.height * s) / 2;
+      stampOpenStr = `q\n${fmt6(-s)} 0 0 ${fmt6(-s)} ${fmt4(dstSize.width - ox)} ${fmt4(dstSize.height - oy)} cm\n`;
+    } else if (rotDiff === 270) {
+      const s = Math.min(dstSize.height / srcSize.width, dstSize.width / srcSize.height);
+      const ox = (dstSize.height - srcSize.width * s) / 2;
+      const oy = (dstSize.width - srcSize.height * s) / 2;
+      stampOpenStr = `q\n0 ${fmt6(-s)} ${fmt6(s)} 0 ${fmt4(oy)} ${fmt4(dstSize.height - ox)} cm\n`;
+    } else if (Math.abs(srcSize.width - dstSize.width) > 0.5 || Math.abs(srcSize.height - dstSize.height) > 0.5) {
+      const s = Math.min(dstSize.width / srcSize.width, dstSize.height / srcSize.height);
+      const tx = (dstSize.width - srcSize.width * s) / 2;
+      const ty = (dstSize.height - srcSize.height * s) / 2;
+      stampOpenStr = `q\n${fmt6(s)} 0 0 ${fmt6(s)} ${fmt4(tx)} ${fmt4(ty)} cm\n`;
+    }
+  }
+  return stampOpenStr;
 }

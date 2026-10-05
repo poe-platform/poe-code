@@ -163,6 +163,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
           return xml("v:shape", { type: "#_x0000_t202", fillcolor: "#ffffc0", style: Object.entries(style).map(([key, value]) => `${key}:${value};`).join("") },
             xml("x:ClientData", { ObjectType: "Note" }, xml("x:Anchor", {}, retained?.anchor ?? `${position.column + 1}, 15, ${position.row}, 10, ${position.column + 3}, 15, ${position.row + 4}, 4`) +
               (retained ? retained.flags.map(flag => xml(`x:${flag.name}`, {}, escapeXlsx(flag.text))).join("") : xml("x:MoveWithCells") + xml("x:SizeWithCells") + xml("x:AutoFill", {}, "False")) +
+              xml("x:PrintObject", {}, ["0", "false", "f"].includes((comment.attributes.Print ?? "1").toLowerCase()) ? "False" : "True") +
               xml("x:Row", {}, String(position.row)) + xml("x:Column", {}, String(position.column))));
         }).join("")) });
     if (objects.children.every(n => ["CellComment", "GnmCellComment"].includes(n.name))) handled.add("Objects");

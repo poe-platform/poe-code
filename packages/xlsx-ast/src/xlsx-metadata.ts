@@ -146,7 +146,26 @@ export function readXlsxMetadata(sheet: SourceNode): readonly UnsupportedRecord[
   return records;
 }
 
-export function readXlsxComments(comments: XmlElement, context: CapabilityContext): UnsupportedRecord {
+export function readXlsxComments(comments: XmlElement, context: CapabilityContext, drawings: readonly XmlElement[] = []): UnsupportedRecord {
+  const printing = new Map<string, number | undefined>();
+  const excel = "urn:schemas-microsoft-com:office:excel";
+  for (const drawing of drawings) for (const shape of drawing.children) {
+    context.signal.throwIfAborted();
+    if (shape.namespace !== "urn:schemas-microsoft-com:vml" || shape.localName !== "shape") continue;
+    for (const data of shape.children) {
+      if (data.namespace !== excel || data.localName !== "ClientData" || attribute(data, "ObjectType") !== "Note") continue;
+      const fields = data.children.filter(n => n.namespace === excel);
+      const rowText = fields.find(n => n.localName === "Row")?.text.trim(), columnText = fields.find(n => n.localName === "Column")?.text.trim();
+      if (!rowText || !columnText) continue;
+      const row = Number(rowText), column = Number(columnText);
+      if (!Number.isInteger(row) || row < 0 || row >= 1048576 || !Number.isInteger(column) || column < 0 || column >= 16384) continue;
+      const key = formatA1(row, column);
+      const flags = fields.filter(n => n.localName === "PrintObject");
+      const ambiguous = printing.has(key) || flags.length > 1 || fields.filter(n => n.localName === "Row").length > 1 || fields.filter(n => n.localName === "Column").length > 1;
+      const value = flags[0]?.text.trim().toLowerCase();
+      printing.set(key, ambiguous ? undefined : ["false", "f", "0"].includes(value ?? "") ? 0 : 1);
+    }
+  }
   const authors = comments.children.find(c => c.localName === "authors")?.children
     .filter(c => c.localName === "author").map(c => decodeXlsxString(c.text)) ?? [];
   const objects: ImportedValue[] = [];
@@ -154,13 +173,14 @@ export function readXlsxComments(comments: XmlElement, context: CapabilityContex
     context.signal.throwIfAborted();
     if (comment.localName !== "comment") continue;
     const ref = attribute(comment, "ref"); if (!ref) continue;
+    const position = parseA1(ref.split(":")[0]!);
     const author = authors[numeric(attribute(comment, "authorId"), 0)];
     const text = readXlsxString(comment.children.find(c => c.localName === "text"), context);
     // The Gnumeric markup codec cannot carry colon-bearing font names.
     // The original comments part retains those rich nodes for XLSX transport.
     const representable = text.richText?.every(run => typeof run.attributes.family !== "string" ||
       !run.attributes.family.includes(":"));
-    objects.push(gnode("CellComment", { ObjectBound: ref.split(":")[0]!, ObjectOffset: "1 0 1 0", Direction: 17, Print: 1,
+    objects.push(gnode("CellComment", { ObjectBound: ref.split(":")[0]!, ObjectOffset: "1 0 1 0", Direction: 17, Print: printing.get(formatA1(position.row, position.column)) ?? 1,
       ...(author !== undefined ? { Author: author } : {}), Text: text.value,
       ...(text.richText?.length && representable ? { TextFormat: writeGnumericRichText(text.richText) } : {}) }));
   }

@@ -801,7 +801,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       let comments = commentsPart ? await opc.document(commentsPart.target) : undefined;
       if (comments) comments = await recognize(comments, "xlsx_comments_dtd", context);
       records.push(...readXlsxMetadata(source));
-      if (comments) records.push(readXlsxComments(comments, context));
+      const noteDrawings: XmlElement[] = [];
       for (const extension of children(child(source, "extLst"), "ext")) {
         if (attr(extension, "uri") === undefined) await context.diagnostic?.({ severity: "warning", code: "xlsx-extension",
           message: `${name}!${formatA1(nextRow, cells.size ? (await cells.get(cells.size - 1))!.column + 1 : 0)} : Encountered uninterpretable "ext" extension with missing namespace` });
@@ -813,9 +813,13 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
         const referencedDrawing = ["drawing", "legacyDrawing", "legacyDrawingHF"].some(type => children(source, type)
           .some(node => attr(node, "id", relationships) === part.id));
         if (["comments", "pivotTable"].some(type => part.type === relationships + "/" + type)
-          || referencedDrawing && ["drawing", "vmlDrawing"].some(type => part.type === relationships + "/" + type))
-          records.push(record(await opc.document(part.target), part.target));
+          || referencedDrawing && ["drawing", "vmlDrawing"].some(type => part.type === relationships + "/" + type)) {
+          const document = await opc.document(part.target);
+          records.push(record(document, part.target));
+          if (part.type === relationships + "/vmlDrawing" && children(source, "legacyDrawing").some(node => attr(node, "id", relationships) === part.id)) noteDrawings.push(document);
+        }
       }
+      if (comments) records.push(readXlsxComments(comments, context, noteDrawings));
       const visibility = attr(sheetNode, "state");
       const sheetView = child(child(source, "sheetViews"), "sheetView");
       const viewAttributes: Record<string, ImportedValue> = {};

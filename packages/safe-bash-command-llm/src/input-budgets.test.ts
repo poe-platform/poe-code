@@ -136,3 +136,35 @@ for (const streamed of [false, true]) {
     assert.equal(calls,1);
   });
 }
+
+for (const budget of ['total', 'buffered', 'shell'] as const) {
+  test(`key stdin obeys ${budget} admission before storage and retires its source`, async () => {
+    const fs = new MemoryFileSystem();
+    let pulls = 0, retired = false, stderr = '';
+    const command = createLlmCommand({providers:[],limits:{
+      maxInputBytes:budget === 'total' ? 32 : 1024,
+      maxBufferedInputBytes:budget === 'buffered' ? 32 : 1024,
+    }});
+    const result = await command.execute({command:'llm',args:['keys','set','fixture'],fs,cwd:'/',env:{LLM_USER_PATH:'/settings'},signal:new AbortController().signal,
+      ...(budget === 'shell' ? {inputBudget:{maxBytes:32,check(size:number){if(size>32) throw new Error('shell input exceeded');}}} : {}),
+      stdin:{async *[Symbol.asyncIterator](){try{for(let index=0;index<3;index++){pulls++;yield new Uint8Array(64).fill(97);}}finally{retired=true;}}},
+      stdout:{async write(){}},stderr:{async write(bytes){stderr += new TextDecoder().decode(bytes);}}});
+    assert.equal(result.exitCode,1,stderr);
+    assert.match(stderr,budget === 'shell' ? /shell input exceeded/ : /input byte limit/);
+    assert.equal(pulls,1);
+    assert.equal(retired,true);
+    assert.deepEqual(await fs.readdir('/'),[],'rejected key must not create configuration');
+  });
+}
+
+test('key stdin charges raw UTF8 bytes once and preserves split characters', async () => {
+  const fs = new MemoryFileSystem(), charged:number[] = [];
+  const command = createLlmCommand({providers:[],limits:{maxInputBytes:18,maxBufferedInputBytes:18}});
+  const result = await command.execute({command:'llm',args:['keys','set','fixture'],fs,cwd:'/',env:{LLM_USER_PATH:'/settings'},signal:new AbortController().signal,
+    inputBudget:{maxBytes:4,check(size){charged.push(size);assert.ok(size<=4);}},
+    stdin:{async *[Symbol.asyncIterator](){yield Uint8Array.of(0xe2);yield Uint8Array.of(0x82,0xac,10);}},
+    stdout:{async write(){}},stderr:{async write(){}}});
+  assert.equal(result.exitCode,0);
+  assert.deepEqual(charged,[1,4]);
+  assert.equal(JSON.parse(new TextDecoder().decode(await fs.readFile('/settings/keys.json'))).fixture,'€');
+});

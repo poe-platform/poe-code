@@ -5,7 +5,7 @@ import type { LlmService } from "./service.js";
 
 export async function configurationCommand(
   context: CommandContext, service: LlmService, args: readonly string[],
-  output: (text: string) => Promise<void>, diagnostic: (text: string) => Promise<void>, maxConfigurationBytes = Infinity,
+  output: (text: string) => Promise<void>, diagnostic: (text: string) => Promise<void>, admitInput: (size: number, materialized: boolean) => void, maxConfigurationBytes = Infinity,
 ): Promise<boolean> {
   if (args.length === 1 && args[0] === "--version") { await output("llm, version 0.27.1\n"); return true; }
   const keysCmd = args[0] === "keys";
@@ -63,6 +63,7 @@ export async function configurationCommand(
         const decoder = new TextDecoder();
         for await (const chunk of context.stdin) {
           context.signal.throwIfAborted();
+          admitInput(chunk.byteLength, true);
           stdinText += decoder.decode(chunk, { stream: true });
         }
         stdinText += decoder.decode();

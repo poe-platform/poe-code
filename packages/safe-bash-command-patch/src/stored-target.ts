@@ -2,28 +2,20 @@ import { PagedStorage, PagedStorageCache } from "@poe-code/safe-fs/storage";
 import { IndexedDocument, closeDocumentResources, type DocumentBudget } from "safe-bash-diff-engine/document";
 import { Budget, ToolError, host } from "safe-bash-diff-engine/shared";
 import type { ByteSource } from "safe-bash-contracts";
+import { patchTextBytes, type PatchText } from "./patch-text.js";
 
-export type TargetLine = string | { document: IndexedDocument; index: number }
+export type TargetLine = PatchText | { document: IndexedDocument; index: number }
   | { storage: PagedStorage; start: number; end: number };
 
 export async function* targetBytes(line: TargetLine): ByteSource {
-  if (typeof line !== "string") {
-    if ("storage" in line) {
-      for (let offset = line.start; offset < line.end; offset += 16384)
-        yield await line.storage.read(offset, Math.min(16384, line.end - offset));
-      return;
-    }
-    const range = await line.document.line(line.index);
-    yield* line.document.range(range.start, range.end);
+  if (typeof line === "string" || "bytes" in line) { yield* patchTextBytes(line); return; }
+  if ("storage" in line) {
+    for (let offset = line.start; offset < line.end; offset += 16384)
+      yield await line.storage.read(offset, Math.min(16384, line.end - offset));
     return;
   }
-  for (let start = 0; start < line.length;) {
-    let end = Math.min(start + 4096, line.length);
-    const last = line.charCodeAt(end - 1);
-    if (end < line.length && last >= 0xd800 && last <= 0xdbff) end--;
-    yield new TextEncoder().encode(line.slice(start, end));
-    start = end;
-  }
+  const range = await line.document.line(line.index);
+  yield* line.document.range(range.start, range.end);
 }
 
 async function* normalized(line: TargetLine, whitespace: boolean): ByteSource {

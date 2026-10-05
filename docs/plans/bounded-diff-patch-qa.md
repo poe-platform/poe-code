@@ -28,7 +28,11 @@ common-only reconstruction when one half is omitted.
 Parsed body payloads and fixed-width line descriptors now share caller-backed
 pages. Matching, reversal views and reject rendering replay those records;
 buffered string parser APIs retain their array results for convenience.
-Individual decoded lines, hunk metadata, file maps
+Body lines now remain byte spans through grammar parsing and format conversion,
+including incomplete final lines, normalized CRLF transport and context equality.
+Discarded mail preamble/signature prose uses bounded prefix scans; normal-command
+admission scans arbitrarily long numeric prefixes without decoding them whole.
+Header text, hunk metadata, file maps
 and retained resource handles still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.
 Apply-patch payload parsing, target snapshots, matching and replacements use

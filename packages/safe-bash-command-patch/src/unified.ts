@@ -1,8 +1,10 @@
 import { decodeHeaderPath,isEpochHeader } from "./patch-path.js";
 import { Budget,ToolError,integer } from "safe-bash-diff-engine/shared";
 import { byteLength } from "safe-bash-io-engine/byte-encoding";
+import { materializeText, textSize, type PatchText } from "./patch-text.js";
 
 export interface PatchLine { readonly kind: " " | "+" | "-"; text: string }
+export interface ParsedPatchLine { readonly kind: PatchLine["kind"]; readonly text: PatchText }
 export interface Hunk<Lines = PatchLine[]> {
   readonly oldStart: number;
   readonly oldCount: number;
@@ -29,7 +31,12 @@ function header(line: string, prefix: string): string {
 
 export function startIndex(start: number, count: number): number { return count === 0 ? start : start - 1; }
 
-export interface PatchInput { readonly length: number; read(index: number): Promise<string | undefined> }
+export interface PatchInput {
+  readonly length: number;
+  read(index: number, prefix?: number): Promise<string | undefined>;
+  matches?(index: number, text: string): Promise<boolean>;
+  body?(index: number, skip: number, incomplete: boolean): Promise<PatchText>;
+}
 export interface UnifiedCursor { readonly lines: readonly string[]; index: number }
 export interface IndexedUnifiedCursor { readonly input: PatchInput; index: number }
 
@@ -52,11 +59,11 @@ export async function parseUnifiedSection(cursor: IndexedUnifiedCursor | Unified
   return patches;
 }
 
-export interface HunkLineBuilder<Lines> { readonly lines: Lines; append(line: PatchLine): void | Promise<void> }
+export interface HunkLineBuilder<Lines> { readonly lines: Lines; append(line: ParsedPatchLine): void | Promise<void> }
 
 function bufferedLines(): HunkLineBuilder<PatchLine[]> {
   const lines: PatchLine[] = [];
-  return { lines, append(line) { lines.push(line); } };
+  return { lines, async append(line) { lines.push({ kind: line.kind, text: await materializeText(line.text) }); } };
 }
 
 export async function parseUnifiedReader<Lines>(cursor: IndexedUnifiedCursor, budget: Budget, single: boolean,
@@ -107,19 +114,22 @@ export async function parseUnifiedReader<Lines>(cursor: IndexedUnifiedCursor, bu
       while (oldRead < oldCount || newRead < newCount) {
         budget.step();
         { const c = budget.checkpoint(); if (c) await c; }
-        const body = await physical.read(index++);
+        const bodyIndex = index++;
+        const body = await physical.read(bodyIndex, physical.body ? 1 : undefined);
         const kind = body === "" ? " " : body?.[0];
         if (body === undefined || (kind !== " " && kind !== "+" && kind !== "-")) throw new ToolError("truncated or malformed hunk body");
         if ((kind !== "+" && oldEnded) || (kind !== "-" && newEnded)) throw new ToolError("content follows an incomplete final line");
         if (kind !== "+") oldRead++;
         if (kind !== "-") newRead++;
         if (oldRead > oldCount || newRead > newCount) throw new ToolError("hunk line counts do not match header");
-        const entry: PatchLine = { kind, text: `${body.slice(1)}\n` };
+        const incomplete = physical.matches ? await physical.matches(index, "\\ No newline at end of file")
+          : (await physical.read(index)) === "\\ No newline at end of file";
+        const text = physical.body ? await physical.body(bodyIndex, 1, incomplete) : `${body.slice(1)}${incomplete ? "" : "\n"}`;
+        const entry: ParsedPatchLine = { kind, text };
         changed ||= kind !== " ";
-        if ((await physical.read(index)) === "\\ No newline at end of file") {
-          if (entry.text === "\n") throw new ToolError("empty incomplete line is not a valid text line");
+        if (incomplete) {
+          if (textSize(text) === 0) throw new ToolError("empty incomplete line is not a valid text line");
           index++;
-          entry.text = entry.text.slice(0, -1);
           if (kind !== "+") oldEnded = true;
           if (kind !== "-") newEnded = true;
         }

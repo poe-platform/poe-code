@@ -1,3 +1,4 @@
+import { readRetainedParagraphFormatting } from './retained-paragraph-formatting.js';
 import { readRetainedRunFormatting } from './retained-run-formatting.js';
 import { readRetainedFrameFormatting } from './retained-frame-formatting.js';
 import { stageRetainedOutput, streamJson, rawJson, type StagedOutput } from './retained-output.js';
@@ -54,7 +55,10 @@ export interface RetainedTextRun {
   readonly coordinateSystem: 'zero-based';
   readonly formatting: { readonly [rawJson]: () => ByteSource };
 }
+export type RetainedTextParagraphFormat = Omit<RetainedTextRun, 'run'>;
 export interface RetainedPresentationText {
+  readonly paragraphCount: number;
+  paragraphFormats(): AsyncGenerator<RetainedTextParagraphFormat>;
   readonly runCount: number;
   runs(): AsyncGenerator<RetainedTextRun>;
   readonly frameCount: number;
@@ -68,7 +72,7 @@ export interface RetainedPresentationText {
 // Fixed-width linked rows: no body, paragraph, inline, owner or traversal array
 // grows with the document. Text/attribute scalars live in caller-backed pages.
 enum B { Next, Owner, OwnerLength, Id, Paragraphs, LastParagraph, Row, Column, Format, FormatLength, Count }
-enum P { Next, Inlines, LastInline, Index, Count }
+enum P { Next, Inlines, LastInline, Index, Format, FormatLength, Count }
 enum I { Next, Kind, Text, TextLength, FieldId, FieldIdLength, FieldType, FieldTypeLength, FieldIndex, FieldText, FieldTextLength, Format, FormatLength, Run, Count }
 
 export async function openRetainedText(
@@ -76,20 +80,23 @@ export async function openRetainedText(
   fingerprint: string,
   options: ReadPresentationTextOptions & { readonly paragraph?: number; readonly run?: number },
   settings: RetainedPackageContext,
-  readingMode: 'text' | 'frames' | 'runs' = 'text'
+  readingMode: 'text' | 'frames' | 'runs' | 'paragraphs' = 'text'
 ): Promise<RetainedPresentationText> {
-  const { paragraph: selectedParagraph, run: selectedRun, ...readingOptions } = options;
+  if (readingMode !== 'runs' && readingMode !== 'paragraphs') validateTextReadingOptions(options);
+  const { paragraph: selectedParagraph, ...paragraphReading } = options;
+  const { run: selectedRun, ...readingOptions } = paragraphReading;
   if (readingMode === 'runs') {
     for (const value of [selectedParagraph, selectedRun]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) throw new OfficeError('invalid-value', 'Invalid run formatting options.', 'usage');
   }
-  validateTextReadingOptions(readingMode === 'runs' ? readingOptions : options);
+  if (readingMode === 'paragraphs' && selectedParagraph !== undefined && (!Number.isSafeInteger(selectedParagraph) || selectedParagraph < 0)) throw new OfficeError('invalid-value', 'Invalid paragraph formatting options.', 'usage');
+  if (readingMode === 'runs' || readingMode === 'paragraphs') validateTextReadingOptions(readingMode === 'runs' ? readingOptions : paragraphReading);
   const selection = options.select === undefined ? undefined : { ...options.select, ...(options.select.position ? { position: { ...options.select.position } } : {}) };
   const scope = options.scope ?? 'slides', shape = options.shape;
   const context = resourceContext(settings), working = { ...settings.workingStorage }, signal = context.signal ?? new AbortController().signal;
   const index = await openRetainedPresentationIndex(archive, fingerprint, { ...context, workingStorage: working });
   const pages = new PagedStorage({ fs: working.fs, cwd: working.directory, env: {}, signal }, (working.cacheBytes ?? 1024 * 1024) / 16384);
   const traversal = new PagedStorage({ fs: working.fs, cwd: working.directory, env: {}, signal }, (working.cacheBytes ?? 1024 * 1024) / 16384);
-  let closed = false, closing: Promise<void> | undefined, firstBody = 0, lastBody = 0, firstOwner = 0, lastOwner = 0, fieldCount = 0, frameCount = 0, runCount = 0;
+  let closed = false, closing: Promise<void> | undefined, firstBody = 0, lastBody = 0, firstOwner = 0, lastOwner = 0, fieldCount = 0, frameCount = 0, runCount = 0, paragraphCount = 0;
   let formattingError: OfficeError | undefined;
   const check = () => { if (closed) throw new OfficeError('invalid-handle', 'Text is closed.', 'select'); if (signal.aborted) throw new OfficeError('cancelled', 'Operation cancelled.', 'select'); };
   const failure = (error: unknown) => error instanceof OfficeError ? error : new OfficeError(signal.aborted ? 'cancelled' : 'io-failure', 'Text storage operation failed.', 'select');
@@ -185,8 +192,15 @@ export async function openRetainedText(
           const bodyPointer = pages.allocate(B.Count * 8), bodyRow = [0, ownerPart.start, ownerPart.length, id, 0, 0, cellRow, cellColumn, formatting.start, formatting.length]; let paragraphIndex = 0;
           for await (const paragraph of children(node, 'p', drawing)) {
             if (readingMode === 'frames') break;
-            const paragraphPointer = pages.allocate(P.Count * 8), paragraphRow = [0, 0, 0, paragraphIndex++]; let fieldInline = 0, runIndex = 0;
+            const paragraphPointer = pages.allocate(P.Count * 8), paragraphRow = [0, 0, 0, paragraphIndex++, 0, 0]; let fieldInline = 0, runIndex = 0;
+            if (readingMode === 'paragraphs' && (selectedParagraph === undefined || selectedParagraph === paragraphRow[P.Index]) && !formattingError) {
+              try {
+                const formatted = await readRetainedParagraphFormatting(document, paragraph), format = await values.store(streamJson(formatted));
+                paragraphRow[P.Format] = format.start; paragraphRow[P.FormatLength] = format.length; paragraphCount++;
+              } catch (error) { if (error instanceof OfficeError && error.code === 'invalid-xml') formattingError = error; else throw error; }
+            }
             for await (const inline of view!.children(paragraph)) {
+              if (readingMode === 'paragraphs') continue;
               const kind = await is(inline, 'br', drawing) ? 1 : await is(inline, 'r', drawing) ? 0 : await is(inline, 'fld', drawing) ? 2 : -1;
               if (readingMode === 'runs') {
                 let runNode = false;
@@ -254,6 +268,16 @@ export async function openRetainedText(
     }
     await index.close(); await traversal.close(); check();
     if (formattingError) throw formattingError;
+    async function* paragraphFormats(): AsyncGenerator<RetainedTextParagraphFormat> {
+      try {
+        for await (const body of rows(firstBody, B.Count)) {
+          const location: Location = { fingerprint, scope, owner: await name(range(body, B.Owner)), objectId: String(body[B.Id]), coordinateSystem: 'identity' };
+          for await (const paragraph of rows(body[B.Paragraphs]!, P.Count)) if (paragraph[P.Format]) yield {
+            location, paragraph: paragraph[P.Index]!, coordinateSystem: 'zero-based', formatting: { [rawJson]: () => values.read(range(paragraph, P.Format)) }
+          };
+        }
+      } catch (error) { throw failure(error); }
+    }
     async function* runs(): AsyncGenerator<RetainedTextRun> {
       try {
         for await (const body of rows(firstBody, B.Count)) {
@@ -299,7 +323,7 @@ export async function openRetainedText(
         }
       } catch (error) { throw failure(error); }
     }
-    return Object.freeze({ close, segments, runs, runCount, fields, fieldCount, frames, frameCount, async *text() { let separator = false; for await (const segment of segments()) { if (separator) yield* literal('\n'); separator = true; yield* segment.text(); } } });
+    return Object.freeze({ close, segments, paragraphFormats, paragraphCount, runs, runCount, fields, fieldCount, frames, frameCount, async *text() { let separator = false; for await (const segment of segments()) { if (separator) yield* literal('\n'); separator = true; yield* segment.text(); } } });
   } catch (error) { await close().catch(() => {}); throw failure(error); }
 }
 
@@ -309,18 +333,18 @@ export async function stageRetainedText(
   fingerprint: string,
   options: ReadPresentationTextOptions & { readonly paragraph?: number; readonly run?: number },
   settings: RetainedPackageContext,
-  output: { readonly json: boolean; readonly maxOutputBytes: number; readonly operation?: 'text.get' | 'fields.list' | 'fields.get' | 'text.frames.list' | 'text.frames.get' | 'text.runs.list' | 'text.runs.get' }
+  output: { readonly json: boolean; readonly maxOutputBytes: number; readonly operation?: 'text.get' | 'fields.list' | 'fields.get' | 'text.frames.list' | 'text.frames.get' | 'text.runs.list' | 'text.runs.get' | 'text.paragraphs.list' | 'text.paragraphs.get' }
 ): Promise<StagedOutput> {
   const format = { ...output }, operation = format.operation ?? 'text.get';
-  if (!['text.get', 'fields.list', 'fields.get', 'text.frames.list', 'text.frames.get', 'text.runs.list', 'text.runs.get'].includes(operation)) throw new OfficeError('invalid-value', 'Invalid retained text operation.', 'usage');
-  const runs = operation.startsWith('text.runs.'), frames = operation.startsWith('text.frames.'), fields = operation.startsWith('fields.');
-  const text = await openRetainedText(archive, fingerprint, options, settings, frames ? 'frames' : runs ? 'runs' : 'text').catch(error => {
+  if (!['text.get', 'fields.list', 'fields.get', 'text.frames.list', 'text.frames.get', 'text.runs.list', 'text.runs.get', 'text.paragraphs.list', 'text.paragraphs.get'].includes(operation)) throw new OfficeError('invalid-value', 'Invalid retained text operation.', 'usage');
+  const paragraphs = operation.startsWith('text.paragraphs.'), runs = operation.startsWith('text.runs.'), frames = operation.startsWith('text.frames.'), fields = operation.startsWith('fields.');
+  const text = await openRetainedText(archive, fingerprint, options, settings, frames ? 'frames' : runs ? 'runs' : paragraphs ? 'paragraphs' : 'text').catch(error => {
     if (frames && error instanceof SelectionError && error.code === 'missing-selection') return undefined;
     throw error;
   });
   async function* frameRecords() { if (text) yield* text.frames(); }
   let staged: StagedOutput | undefined;
-  async function* locations() { for await (const item of frames ? frameRecords() : runs ? text!.runs() : fields ? text!.fields() : text!.segments()) yield item.location; }
+  async function* locations() { for await (const item of frames ? frameRecords() : runs ? text!.runs() : paragraphs ? text!.paragraphFormats() : fields ? text!.fields() : text!.segments()) yield item.location; }
   async function* items() {
     for await (const field of text!.fields()) yield {
       location: field.location, kind: field.kind ?? 'unknown', name: field.fieldId,
@@ -335,13 +359,15 @@ export async function stageRetainedText(
   }
   async function* render(): ByteSource {
     if (format.json) {
-      yield* streamJson({ version: 1, operation, ok: true, data: frames ? { frames: frameRecords() } : runs ? { runs: text!.runs() } : fields ? { items: items() } : { text: text!.text, order: 'structural', segments: text!.segments() }, warnings: [], errors: [], affected: 0, locations: locations() }); yield* literal('\n');
+      yield* streamJson({ version: 1, operation, ok: true, data: frames ? { frames: frameRecords() } : runs ? { runs: text!.runs() } : paragraphs ? { paragraphs: text!.paragraphFormats() } : fields ? { items: items() } : { text: text!.text, order: 'structural', segments: text!.segments() }, warnings: [], errors: [], affected: 0, locations: locations() }); yield* literal('\n');
     } else if (frames) yield* streamJson(frameRecords());
     else if (runs) yield* streamJson(text!.runs());
+    else if (paragraphs) yield* streamJson(text!.paragraphFormats());
     else if (fields) yield* streamJson(text!.fields());
     else yield* text!.text();
   }
   try {
+    if (operation === 'text.paragraphs.get' && text!.paragraphCount !== 1) throw new SelectionError(text!.paragraphCount ? 'ambiguous-selection' : 'missing-selection');
     if (operation === 'text.runs.get' && text!.runCount !== 1) throw new SelectionError(text!.runCount ? 'ambiguous-selection' : 'missing-selection');
     if (operation === 'fields.get' && text!.fieldCount !== 1) throw new SelectionError(text!.fieldCount ? 'ambiguous-selection' : 'missing-selection');
     if (operation === 'text.frames.get' && text?.frameCount !== 1) throw new SelectionError(text?.frameCount ? 'ambiguous-selection' : 'missing-selection');

@@ -726,7 +726,7 @@ extraction, workbook or Worker runtime matrix.
 
 | Area | Remaining migration |
 | --- | --- |
-| Read operations | Paragraph formatting; other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
 | Extraction | Image/media and embedded/opaque object extraction, including manifests and multi-output publication; package extraction is migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |
@@ -800,3 +800,23 @@ buffers, slow sinks, output limits, cancellation, storage/sink failures and clea
 Native python-pptx output is compared through the built public adapter with whole
 file reads forbidden. This does not qualify the remaining operations or the Worker
 runtime; the operation matrix remains open.
+
+
+## Retained paragraph formatting reads
+
+The default `text paragraphs list/get` route now uses retained input, caller-backed
+formatting records and staged output. `openRetainedText` exposes a paragraphs mode,
+`paragraphFormats()` and `paragraphCount`, preserving zero-based selection, table
+cell and group order, arbitrary alignment/bullet strings, numeric token behavior,
+spacing, direct properties and exact cardinality. Tab lists stream from retained
+XML into caller pages rather than becoming arrays. Malformed selected formatting,
+including lazy tab values, is deferred until structural text admission completes;
+unselected formatting remains uninterpreted.
+
+Verification covers both DrawingML dialects, arbitrary and nonfinite numbering,
+percentage/numeric boundaries, large tab lists and bullet attributes, selected
+shape/table/group paragraphs, bounded outstanding writes, reused input chunks,
+slow sinks, output limits, cancellation, storage/sink errors and cleanup. Native
+python-pptx chart/workbook input is compared through the built public adapter with
+whole-file reads forbidden. Other reads, extraction, mutations, workbook processing
+and actual Worker runtime qualification remain in the open operation matrix.

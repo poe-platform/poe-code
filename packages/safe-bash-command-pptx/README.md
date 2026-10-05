@@ -33,9 +33,9 @@ The adapter writes bounded chunks to owned staging, rechecks in-place input,
 and publishes conditionally. Errors and cancellation retire staging without
 publishing partial output; dry-run does not consume the output source.
 
-The built-in `validate`, `inspect`, `text get`, `text frames list/get`, `text runs list/get`, `fields list`,
+The built-in `validate`, `inspect`, `text get`, `text frames list/get`, `text runs list/get`, `text paragraphs list/get`, `fields list`,
 `fields get`, `notes list/get`, `properties list/get`, `tags list/get`, `settings list/get`, `sections list/get`, `shows list/get`, `diff` (all supported modes) and `xml get` operations use retained input and caller-backed indexes.
-Inspection, text, frame, run, field, speaker-note, property and XML extraction stage complete responses before
+Inspection, text, frame, run, paragraph, field, speaker-note, property and XML extraction stage complete responses before
 writing stdout, so admission and output-limit failures expose no partial result. `slides set`
 and `xml set` also stage edits, archive bytes and response metadata in caller
 storage before streamed atomic publication. XML replacement files use retained

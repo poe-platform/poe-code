@@ -47,6 +47,10 @@ Pass `'runs'` to read `runs()` and `runCount`, with optional zero-based `paragra
 and `run` selectors. Run formatting is caller-backed admitted JSON, consumed by
 `streamJson` from `retained-output`; font, language and color strings never require
 collection. `stageRetainedText` provides `text.runs.list` and `text.runs.get`.
+Pass `'paragraphs'` for `paragraphFormats()` and `paragraphCount`, optionally
+selecting a zero-based `paragraph`. Paragraph formatting uses the same admitted
+JSON representation and streams tab lists. `stageRetainedText` supports
+`text.paragraphs.list` and `text.paragraphs.get`.
 `openRetainedNotes` (from `notes`) exposes a caller-backed `records()` iterator,
 with replayable part/master references, speaker text and body IDs. Close it after
 reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with

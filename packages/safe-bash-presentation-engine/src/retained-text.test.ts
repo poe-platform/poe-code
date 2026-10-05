@@ -87,3 +87,9 @@ for (const mode of ['success', 'read', 'write', 'cancel'] as const) it(`uses bou
   } else await expect(admission).rejects.toMatchObject({ code: mode === 'cancel' ? 'cancelled' : 'io-failure' });
   expect(handles).toBe(0); expect(await owner.readdir('/')).toEqual([]);
 });
+
+for (const mode of ['text', 'frames'] as const) for (const options of [null, undefined]) it(`rejects absent ${mode} options before archive admission: ${options}`, async () => {
+  const fs = createMemoryFileSystem(), archive = archiveOf(read(fixture()));
+  await expect(openRetainedText(archive, 'a'.repeat(64), options as unknown as ReadPresentationTextOptions, { workingStorage: { fs, directory: '/', cacheBytes: 16384 } }, mode)).rejects.toMatchObject({ code: 'invalid-value', phase: 'usage', message: 'Invalid text reading options.' });
+  expect(await fs.readdir('/')).toEqual([]);
+});

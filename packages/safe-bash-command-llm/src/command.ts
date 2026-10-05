@@ -172,7 +172,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   const admitBuffered = (size: number): void => input.admit(size, true);
   const invocationLoaders = { ...templateLoaderOptions, get maxBytes() { return input.remaining(true); }, admitBytes: admitBuffered };
   try {
-    const argumentsValue = getCommandArguments(context);
+    let argumentsValue = getCommandArguments(context);
     const argumentText = (index: number): string => {
       const value = argumentsValue.values[index];
       if (value === undefined) throw new Error("Missing option argument");
@@ -195,6 +195,18 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       argumentText(0);
       await emitText("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment, -u/--usage; -- ends options\n");
       return { exitCode: 0 };
+    }
+    // The root Click group consumes its own separator before dispatching the
+    // explicit or default subcommand. A later separator belongs to that command.
+    for (let index = 0; index < argumentsValue.args.length; index++) {
+      await step();
+      const token = argumentsValue.args[index]!;
+      if (token === "--") {
+        argumentText(index);
+        argumentsValue = argumentsValue.select(Array.from({length:argumentsValue.args.length-1},(_,position)=>position<index?position:position+1));
+        break;
+      }
+      if (!token.startsWith("-") || token === "-") break;
     }
     if (argumentsValue.args.length === 2 && argumentsValue.args[0] === "models" && ["--help", "-h"].includes(argumentsValue.args[1]!)) {
       argumentText(0);

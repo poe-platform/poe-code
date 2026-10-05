@@ -13,7 +13,7 @@ export async function readRetainedRunFormatting(document: RetainedXmlDocument, r
   }
   async function first(parent: RetainedXmlNode | undefined, local: string) { for await (const node of children(parent, local)) return node; return undefined; }
   async function attribute(parent: RetainedXmlNode | undefined, local: string) {
-    if (parent) for await (const node of document.attributes(parent)) if (await equal(document.namespace(node), literal('')) && await equal(document.raw(node.localName), literal(local))) return () => document.text(node);
+    if (parent) for await (const node of document.attributes(parent)) if (await equal(document.namespace(node), literal('')) && await equal(document.raw(node.localName), literal(local))) return () : ByteSource => document.text(node);
     return null;
   }
   async function token(source: (() => ByteSource) | null, tokens: readonly string[]) { if (source) for (const value of tokens) if (await equal(source(), literal(value))) return value; return undefined; }

@@ -654,7 +654,7 @@ export async function openRetainedMedia(
           for (let pointer = head; pointer; ) {
             const item = await row(pointer, 5);
             pointer = item[0]!;
-            yield { [rawJson]: () => output.read({ start: item[1]!, length: item[2]! }) };
+            yield { [rawJson]: (): ByteSource => output.read({ start: item[1]!, length: item[2]! }) };
           }
         } catch (error) {
           throw failure(error);
@@ -666,7 +666,7 @@ export async function openRetainedMedia(
           for (let pointer = mediaHead; pointer; ) {
             const item = await row(pointer, 3);
             pointer = item[0]!;
-            yield { [rawJson]: () => output.read({ start: item[1]!, length: item[2]! }) };
+            yield { [rawJson]: (): ByteSource => output.read({ start: item[1]!, length: item[2]! }) };
           }
         } catch (error) {
           throw failure(error);
@@ -688,8 +688,8 @@ export async function openRetainedMedia(
             yield {
               ...metadata,
               occurrence: item[1]!,
-              occurrenceId: () => values.read({ start: item[2]!, length: item[3]! }),
-              contentType: metadata.contentType ? () => values.read(metadata.contentType!) : null
+              occurrenceId: (): ByteSource => values.read({ start: item[2]!, length: item[3]! }),
+              contentType: metadata.contentType ? (): ByteSource => values.read(metadata.contentType!) : null
             };
           }
           check();
@@ -712,7 +712,7 @@ export async function openRetainedMedia(
               embedded: number;
               linked: number;
             };
-            yield { ...summary, name: summary.name ? () => values.read(summary.name!) : null };
+            yield { ...summary, name: summary.name ? (): ByteSource => values.read(summary.name!) : null };
           }
         } catch (error) {
           throw failure(error);
@@ -772,7 +772,7 @@ export async function stageRetainedMedia(
         yield* literal("Media occurrences: " + inventory.count + "\n");
         for await (const item of inventory.summaries()) {
           yield* literal(item.kind + " ");
-          yield* streamJson(item.name ?? (() => literal(item.sourcePart)));
+          yield* streamJson(item.name ?? ((): ByteSource => literal(item.sourcePart)));
           yield* literal(": " + item.embedded + " embedded, " + item.linked + " linked\n");
         }
         yield* literal(

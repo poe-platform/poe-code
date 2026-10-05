@@ -13,7 +13,7 @@ export async function readRetainedParagraphFormatting(document: RetainedXmlDocum
   }
   async function first(parent: RetainedXmlNode | undefined, keys: readonly string[]) { for await (const node of children(parent, keys)) return node; return undefined; }
   async function attr(parent: RetainedXmlNode | undefined, key: string) {
-    if (parent) for await (const node of document.attributes(parent)) if (await equal(document.namespace(node), literal('')) && await local(node, [key])) return () => document.text(node);
+    if (parent) for await (const node of document.attributes(parent)) if (await equal(document.namespace(node), literal('')) && await local(node, [key])) return () : ByteSource => document.text(node);
     return null;
   }
   let properties: RetainedXmlNode | undefined;

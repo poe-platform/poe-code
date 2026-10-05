@@ -1,3 +1,4 @@
+import type { ByteSource } from "./contracts.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { RetainedXmlDocument, RetainedXmlNode } from "./retained-xml-document.js";
 import type { RetainedPackageContext } from "./retained-package.js";
@@ -205,7 +206,7 @@ export async function openRetainedShapeGeometry(
         const data = await row(pointer);
         pointer = data[0];
         const id = data[2] ? await doc.node(data[2]) : null;
-        yield id ? () => doc.text(id) : null;
+        yield id ? (): ByteSource => doc.text(id) : null;
       }
       check();
     }

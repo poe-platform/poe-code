@@ -65,6 +65,6 @@ export async function openRetainedObjectExtraction(
         const metadata=JSON.parse(await text(value)) as Omit<RetainedExtractedObjectMember,'bytes'>;
         yield Object.freeze({...metadata,async *bytes(){try{check();yield* archive.read(metadata.part);check();}catch(error){throw failure(error);}}});
       }check();}catch(error){throw failure(error);}
-    },async *relationships(){try{check();for await(const value of edges.entries())yield {[rawJson]:()=>values.read(value)};check();}catch(error){throw failure(error);}}});
+    },async *relationships(){try{check();for await(const value of edges.entries())yield {[rawJson]:(): ByteSource =>values.read(value)};check();}catch(error){throw failure(error);}}});
   }catch(error){await close().catch(()=>{});throw failure(error);}
 }

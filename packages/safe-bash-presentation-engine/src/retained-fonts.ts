@@ -1,3 +1,4 @@
+import type { ByteSource } from "./contracts.js";
 import { PagedStorage } from '@poe-code/safe-fs/storage';
 import { OfficeError } from './errors.js';
 import type { RetainedPackageArchive, RetainedPackageContext } from './retained-package.js';
@@ -62,7 +63,7 @@ export async function openRetainedFonts(archive:Archive,settings:RetainedPackage
     }
     await graph.close();graph=undefined;check();
     return Object.freeze({close,fonts:inventory.objects.bind(undefined,'font'),async *summaries(){for await(const item of inventory.summaries())if(item.kind==='font')yield item;},async *declarations(){
-      try{check();for(let pointer=head;pointer;){const bytes=await pages.read(pointer,24),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);pointer=view.getFloat64(0,true);const value={start:view.getFloat64(8,true),length:view.getFloat64(16,true)};yield {[rawJson]:()=>values.read(value)};}check();}catch(error){throw failure(error);}
+      try{check();for(let pointer=head;pointer;){const bytes=await pages.read(pointer,24),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);pointer=view.getFloat64(0,true);const value={start:view.getFloat64(8,true),length:view.getFloat64(16,true)};yield {[rawJson]:(): ByteSource =>values.read(value)};}check();}catch(error){throw failure(error);}
     }});
   }catch(error){await close().catch(()=>{});throw failure(error);}
 }

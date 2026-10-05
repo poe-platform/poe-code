@@ -9,7 +9,7 @@ import ts from "typescript";
 import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
-it.each(["retained-inspection", "retained-diff"])("resolves emitted presentation %s types without checkout aliases", entry => {
+it.each(["retained-inspection", "retained-diff", "retained-media", "retained-fonts", "retained-object-extraction", "retained-run-formatting", "retained-paragraph-formatting", "retained-objects", "retained-shape-geometry"])("resolves emitted presentation %s types without checkout aliases", entry => {
   const filename = fileURLToPath(new URL(`../packages/safe-bash-presentation-engine/dist/${entry}.d.ts`, import.meta.url));
   const specifiers: string[] = [];
   rewriteModuleSpecifiers(filename, readFileSync(filename, "utf8"), specifier => {

@@ -62,6 +62,26 @@ function transform(node: XmlElement) {
     if (value !== undefined && !["true", "false", "1", "0"].includes(value)) invalid();
     return value === "true" || value === "1" ? -1 : 1;
   };
+  return {
+    x,
+    y,
+    w,
+    h,
+    integer,
+    map: shapeCoordinateMap(x, y, w, h, rotation, flip("flipH"), flip("flipV"))
+  };
+}
+
+/** Shared projection math; rounding belongs to the final slide-space result. */
+export function shapeCoordinateMap(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  rotation: number,
+  fx: number,
+  fy: number
+) {
   const angle = ((rotation % 21600000) + 21600000) % 21600000;
   const quarter = angle / 5400000;
   const cos = Number.isInteger(quarter)
@@ -70,19 +90,10 @@ function transform(node: XmlElement) {
   const sin = Number.isInteger(quarter)
     ? [0, 1, 0, -1][quarter]!
     : Math.sin(((angle / 60000) * Math.PI) / 180);
-  const fx = flip("flipH"),
-    fy = flip("flipV");
-  return {
-    x,
-    y,
-    w,
-    h,
-    integer,
-    map(px: number, py: number) {
-      const dx = (px - x - w / 2) * fx,
-        dy = (py - y - h / 2) * fy;
-      return { x: x + w / 2 + dx * cos - dy * sin, y: y + h / 2 + dx * sin + dy * cos };
-    }
+  return (px: number, py: number) => {
+    const dx = (px - x - w / 2) * fx,
+      dy = (py - y - h / 2) * fy;
+    return { x: x + w / 2 + dx * cos - dy * sin, y: y + h / 2 + dx * sin + dy * cos };
   };
 }
 
@@ -169,3 +180,5 @@ function prepareProjection(root: XmlElement, node: XmlElement) {
     }
   };
 }
+
+export { openRetainedShapeGeometry } from "./retained-shape-geometry.js";

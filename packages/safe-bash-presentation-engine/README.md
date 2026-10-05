@@ -81,6 +81,11 @@ function shares the same parser. Neither entry point decodes or validates pixels
 from one archive member stream. Sequential formats use a fixed lookback window;
 TIFF uses the supplied working storage for arbitrary offsets. It closes its member
 iterator and scratch before returning; the archive remains caller-owned.
+`openRetainedShapeGeometry` (from `shape-transforms`) projects four slide-space
+corners using caller-backed group links. Its `value` is ready for `streamJson`,
+including streamed group identifiers; close the reader after consuming it and
+keep the borrowed XML document open until then. Numeric XML values are parsed
+without collecting arbitrary padding or fractional precision.
 `openRetainedMedia` (from `media`) exposes `occurrences()` and `media()` as
 admitted JSON for `streamJson`, plus `summaries()`, `resources()`, `count` and `close()`.
 The resource iterator preserves occurrence and relationship order for extraction.

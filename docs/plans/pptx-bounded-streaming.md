@@ -992,3 +992,22 @@ match their expected dimensions/density and independent SHA-1 with short reused
 chunks; scratch is empty afterward. This is not Worker qualification. Default
 image command migration still needs retained occurrences, geometry and output;
 image extraction and the remaining matrix above remain incomplete.
+
+## Retained image geometry prerequisite
+
+`openRetainedShapeGeometry` now projects raw shape coordinates through group
+ancestry stored in caller pages. Four corners and one transform remain resident;
+group identifiers stream from the borrowed XML document. The reader owns its
+links until `close`, and its `value` can be passed directly to `streamJson`.
+Rotation/flip math is shared with the buffered reader. Intermediate coordinates
+remain unrounded; final EMU conversion and group identity error ordering match
+existing behavior. `readRetainedXmlScalar` supplies bounded OOXML integer,
+coordinate and percentage parsing, including unit conversion and long precision.
+
+Verification: 177 focused scalar/geometry/image cases, scoped lint and maintained
+PPTX build. Coverage includes strict namespaces, grouped scales and flips,
+invalid/duplicate/missing transforms, long identifiers, generated padding and
+precision, cancellation and cleanup. Native python-pptx grouped rotation matches
+independently calculated slide-space corners. Default image list/get still need
+retained occurrence traversal and output integration. Image extraction, the other
+remaining reader/mutation families, workbooks and Worker runtime QA remain open.

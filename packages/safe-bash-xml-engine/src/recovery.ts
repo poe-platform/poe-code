@@ -16,7 +16,7 @@ export async function parseStoredXml(
   budget: XmlBudget,
   recover?: (message: string) => void,
   consume?: (event: XmlEvent, namespaceParts: (reference: number) => AsyncIterable<string>, sourceParts: (span: XmlSourceSpan) => AsyncIterable<string>) => Promise<void>,
-  options: { deferNamespaces?: boolean; deferContentNames?: boolean } = {},
+  options: { deferNamespaces?: boolean; deferContentNames?: boolean; deferElementNames?: boolean } = {},
 ): Promise<XmlElement> {
   const cache = new PagedStorageCache(4);
   const storage = new PagedStorage(context, 4, cache);

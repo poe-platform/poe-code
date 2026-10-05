@@ -108,7 +108,12 @@ replay source spans, then use document-backed token references; metadata and bod
 continuations must not duplicate complete names. Verify formatting, canonical
 output, buffered node results and XPath name functions. Inject reads, writes and
 cancellation during target transfer; source iterators and all scratch descriptors
-must close. Element/attribute names remain a separate backing gate.
+must close. Long element local names now use source spans in parser frames and backed tokens
+in document metadata. Test opening/closing mismatches, recovery, default and named
+namespaces, canonical output, name()/local-name(), and xq repeated-name groups with
+increasing name sizes. Verify parser slices stay within 512 UTF-16 units and reads,
+writes and cancellation retire backing during name transfer. Attribute names and
+namespace prefixes exceeding 512 UTF-16 units remain a separate backing gate.
 
 For recovery, repeat formatting, CDATA conversion and XPath with a missing final
 closing tag. Verify repaired output and diagnostics, paged node writes and cleanup

@@ -372,3 +372,28 @@ for (const streaming of [false, true]) it(`deferred PI targets never request a c
     expect(seen).toBe(true);
   } finally { spy.mockRestore(); }
 });
+
+for (const streaming of [false, true]) it(`deferred element names compare closing spans with bounded slices (streaming=${streaming})`, () => {
+  const name = 'a'.repeat(511) + '𐀀'.repeat(4000);
+  const input = `<${name}><x/></${name}>`;
+  const slice = XmlSource.prototype.slice;
+  const spy = vi.spyOn(XmlSource.prototype, 'slice').mockImplementation(function* (this: XmlSource, start: number, end = this.length) {
+    expect(end - start).toBeLessThanOrEqual(512);
+    return yield* slice.call(this, start, end);
+  });
+  try {
+    const parser = parseXmlSourceSteps(streaming ? undefined : input.length, { retainTree: false, deferElementNames: true });
+    let step = parser.next();
+    while (!step.done) {
+      if (typeof step.value !== 'number') {
+        if (!('offset' in step.value)) throw new Error('Unexpected storage request');
+        const request = step.value;
+        request.value = input.slice(request.offset, request.offset + request.length);
+        if (request.streaming) request.complete = request.offset + request.value.length === input.length;
+      }
+      step = parser.next();
+    }
+    expect(step.value.name).toBe('');
+    expect(step.value.nameSource).toEqual({ start: 1, end: name.length + 1 });
+  } finally { spy.mockRestore(); }
+});

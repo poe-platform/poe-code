@@ -12,6 +12,11 @@ export { XmlLimitError } from "./errors.js";
 
 export interface XmlName {
   readonly name: string;
+  readonly nameSource?: XmlSourceSpan;
+  readonly nameReference?: number;
+  readonly localNameSource?: XmlSourceSpan;
+  readonly localNameReference?: number;
+  readonly prefix?: string;
   readonly namespace: string;
   readonly namespaceReference?: number;
   readonly localName: string;
@@ -113,8 +118,8 @@ function qualifiedNameSync(name: string, cache: QualifiedNameCache): [string, st
 }
 
 /** Validate a name span without retaining its spelling. */
-function* validateNameSpan(source: XmlSource, start: number, end: number): Generator<XmlSourceStep, void, void> {
-  let first = true, colon = false, work = 0;
+function* validateNameSpan(source: XmlSource, start: number, end: number): Generator<XmlSourceStep, number, void> {
+  let first = true, colon = -1, work = 0;
   for (let offset = start; offset < end;) {
     let point = yield* source.charCodeAt(offset);
     if (point >= 0xd800 && point <= 0xdbff && offset + 1 < end) {
@@ -122,8 +127,8 @@ function* validateNameSpan(source: XmlSource, start: number, end: number): Gener
       if (low >= 0xdc00 && low <= 0xdfff) point = 0x10000 + (point - 0xd800) * 1024 + low - 0xdc00;
     }
     if (point === 58) {
-      if (colon || first) invalid("invalid qualified name");
-      colon = true; first = true;
+      if (colon >= 0 || first) invalid("invalid qualified name");
+      colon = offset; first = true;
     } else {
       if (!(first ? nameStart(point) : namePart(point))) invalid("invalid qualified name");
       first = false;
@@ -134,6 +139,7 @@ function* validateNameSpan(source: XmlSource, start: number, end: number): Gener
   }
   if (first) invalid("invalid qualified name");
   if (work) yield work;
+  return colon;
 }
 
 function entity(source: string, start: number, end: number, recover?: (message: string) => void): Generator<number, string, void>;
@@ -321,6 +327,8 @@ export interface XmlSourceLimits extends XmlStepLimits {
   readonly deferNamespaces?: boolean;
   /** Emit long processing-instruction targets as source spans. Requires fragmentContent. */
   readonly deferContentNames?: boolean;
+  /** Defer long element local names; namespace prefixes retain their own token cost. */
+  readonly deferElementNames?: boolean;
   /** Store attribute collections through host requests and emit resolved attributes individually. */
   readonly storeAttributes?: boolean;
   readonly fragmentAttributes?: boolean;
@@ -333,6 +341,7 @@ export function parseXmlSourceSteps(length: number | undefined, limits?: XmlStep
 export function parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits): Generator<XmlParseStep, XmlElement, void>;
 export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits = {}): Generator<XmlParseStep, XmlElement, void> {
   validateLimits(limits);
+  if (limits.deferElementNames && limits.retainTree !== false) throw new TypeError("Deferred element names require retainTree: false");
   if (limits.deferContentNames && !limits.fragmentContent) throw new TypeError("Deferred XML content names require fragmentContent: true");
   if (limits.fragmentAttributes && !limits.storeAttributes) throw new TypeError("XML attribute fragments require storeAttributes: true");
   if (limits.storeFrames && limits.retainTree !== false) throw new TypeError("Stored XML frames require retainTree: false");
@@ -386,7 +395,21 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     }
     return offset - start;
   };
-  const scanName = function* (defer = false): Generator<XmlSourceStep, [string, string, string, XmlSourceSpan?]> {
+  const sameName = function* (left: XmlName, right: string, span?: XmlSourceSpan): Generator<XmlSourceStep, boolean, void> {
+    if (!left.nameSource && !span) return left.name === right;
+    const leftLength = left.nameSource ? left.nameSource.end - left.nameSource.start : left.name.length;
+    const rightLength = span ? span.end - span.start : right.length;
+    if (leftLength !== rightLength) return false;
+    for (let index = 0; index < leftLength; index += 512) {
+      const end = Math.min(leftLength, index + 512);
+      const a = left.nameSource ? yield* source.slice(left.nameSource.start + index, left.nameSource.start + end) : left.name.slice(index, end);
+      const b = span ? yield* source.slice(span.start + index, span.start + end) : right.slice(index, end);
+      yield end - index;
+      if (a !== b) return false;
+    }
+    return true;
+  };
+  const scanName = function* (defer?: "content" | "element"): Generator<XmlSourceStep, [string, string, string, XmlSourceSpan?, XmlSourceSpan?]> {
     const start = offset;
     while (yield* source.has(offset)) {
       const c = (yield* source.charCodeAt(offset));
@@ -396,8 +419,17 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
     }
     if (defer && offset - start > 512) {
-      yield* validateNameSpan(source, start, offset);
-      return ["", "", "", { start, end: offset }];
+      const colon = yield* validateNameSpan(source, start, offset);
+      if (defer === "content") return ["", "", "", { start, end: offset }];
+      if (colon < 0 || colon - start <= 512) {
+        const localStart = colon < 0 ? start : colon + 1;
+        const prefix = colon < 0 ? "" : yield* source.slice(start, colon);
+        const local = offset - localStart <= 512 ? yield* source.slice(localStart, offset) : "";
+        if (local) return ["", prefix, local, { start, end: offset }];
+        return ["", prefix, "", { start, end: offset }, { start: localStart, end: offset }];
+      }
+      const name = yield* source.slice(start, offset);
+      return [name, name.slice(0, colon - start), name.slice(colon - start + 1)];
     }
     const name = (yield* source.slice(start, offset));
     pendingWork += offset - start;
@@ -513,7 +545,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     } else if ((yield* source.startsWith("<?", offset))) {
       const start = offset;
       offset += 2;
-      const [target, , , targetSource] = yield* scanName(limits.deferContentNames);
+      const [target, , , targetSource] = yield* scanName(limits.deferContentNames ? "content" : undefined);
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       const end = yield* find(source, "?>", offset);
       if (end < 0) invalid("unterminated processing instruction");
@@ -538,11 +570,11 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       invalid("DTD and entity declarations are forbidden");
     } else if ((yield* source.charCodeAt(offset + 1)) === 47) {
       offset += 2;
-      const [name] = yield* scanName();
+      const [name, , , nameSource] = yield* scanName(limits.deferElementNames ? "element" : undefined);
       yield* skipWhitespace();
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       const closed = (yield* source.slice(offset++, offset)) === ">" ? (yield* stack.pop()) : undefined;
-      if (closed?.name !== name) {
+      if (!closed || !(yield* sameName(closed.element, name, nameSource))) {
         if (!limits.recover) invalid("mismatched closing tag");
         limits.recover("mismatched closing tag");
       }
@@ -550,9 +582,9 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     } else {
       offset++;
       const repeated = previousEmpty && (yield* source.startsWith(previousEmpty.suffix, offset)) ? previousEmpty : undefined;
-      const [name, prefix, localName]: [string, string, string, XmlSourceSpan?] = repeated
+      const [name, prefix, localName, nameSource, localNameSource]: [string, string, string, XmlSourceSpan?, XmlSourceSpan?] = repeated
         ? [repeated.name, repeated.prefix, repeated.localName]
-        : (yield* scanName());
+        : (yield* scanName(limits.deferElementNames ? "element" : undefined));
       if (repeated) offset += name.length;
       // Preserve scan/validation work while reusing the admitted spelling.
       if (repeated) pendingWork += name.length * 2;
@@ -652,7 +684,8 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       if (++nodes > maxNodes) throw new XmlLimitError("maxNodes", "XML resource limit exceeded");
       if (stack.length + 1 > maxDepth) throw new XmlLimitError("maxDepth", "XML resource limit exceeded");
       const namespace = yield* namespaceMetadata(namespaces, prefix, limits.deferNamespaces);
-      limits.onElement?.({ name, ...namespace, localName }, (yield* stack.peek())?.element, stack.length + 1);
+      const elementName = { name, localName, ...(nameSource ? { nameSource, prefix } : {}), ...(localNameSource ? { localNameSource } : {}) };
+      limits.onElement?.({ ...elementName, ...namespace }, (yield* stack.peek())?.element, stack.length + 1);
       admitContent();
       const retainedAttributes: XmlAttribute[] = [];
       if (retainContent) {
@@ -668,7 +701,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       }
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       const content: XmlContent[] | undefined = retain ? [] : undefined;
-      const element: XmlElement = { kind: "element", name, ...namespace, localName, children: [], text: "", content: content ?? emptyContent, attributes: retainContent ? retainedAttributes : emptyAttributes, namespaces: retainContent && namespaces instanceof Map ? namespaces : emptyNamespaces, ...(root === undefined && retainContent ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
+      const element: XmlElement = { kind: "element", ...elementName, ...namespace, children: [], text: "", content: content ?? emptyContent, attributes: retainContent ? retainedAttributes : emptyAttributes, namespaces: retainContent && namespaces instanceof Map ? namespaces : emptyNamespaces, ...(root === undefined && retainContent ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
       const parent = (yield* stack.peek());
       if (parent) { if (retainTree) { parent.element.children.push(element); parent.content?.push(element); } }
       else if (root) invalid("multiple root elements");
@@ -681,7 +714,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       }
       // Only cache compact, attribute-free spellings. Namespace resolution and
       // every admission counter still run for each distinct physical element.
-      if (empty && !attributes.length && name.length <= 512 && (yield* source.slice(offset - name.length - 3, offset)) === `<${name}/>`)
+      if (empty && !nameSource && !attributes.length && name.length <= 512 && (yield* source.slice(offset - name.length - 3, offset)) === `<${name}/>`)
         previousEmpty = { suffix: name + "/>", name, prefix, localName };
       limits.events?.({ type: "open", element, parent: parent?.element });
       if (limits.storeAttributes && limits.onAttribute && retainContent) {

@@ -15,7 +15,7 @@ export type StoredAttribute = XmlAttribute & { readonly valueReference?: number;
 export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
 type XmlStreamEvent = Parameters<NonNullable<Parameters<typeof parseStoredXml>[4]>>[0];
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
-  kind: "element"; name: string; localName: string; namespace: string; namespaceReference?: number;
+  kind: "element"; name: string; localName: string; namespace: string; namespaceReference?: number; nameReference?: number; localNameReference?: number; prefix?: string;
   declaration?: string;
 };
 
@@ -82,7 +82,12 @@ export class StoredXmlDocument {
           }
           else {
             const element = event.element;
+            const nameReference = element.nameSource ? await tokens.storeString(sourceParts(element.nameSource)) : undefined;
+            const localNameReference = element.localNameSource ? element.nameSource?.start === element.localNameSource.start
+              ? nameReference : await tokens.storeString(sourceParts(element.localNameSource)) : undefined;
             metadata = { kind: "element", name: element.name, localName: element.localName, namespace: element.namespace,
+              ...(nameReference === undefined ? {} : { nameReference, prefix: element.prefix! }),
+              ...(localNameReference === undefined ? {} : { localNameReference }),
               ...(element.namespaceReference === undefined ? {} : { namespaceReference: await retainNamespace(element.namespaceReference) }),
               ...(element.declaration === undefined ? {} : { declaration: element.declaration }) };
           }
@@ -97,7 +102,7 @@ export class StoredXmlDocument {
             parent = reference;
           }
       };
-      await parseStoredXml(source, context, budget, recover, consume, { deferNamespaces: true, deferContentNames: true });
+      await parseStoredXml(source, context, budget, recover, consume, { deferNamespaces: true, deferContentNames: true, deferElementNames: true });
       return document;
     } catch (error) {
       try { await document.close(); }
@@ -170,8 +175,11 @@ export class StoredXmlDocument {
       const namespaces = new Map<string, string>();
       for await (const [prefix, uri] of await this.namespaceScope(reference)) namespaces.set(prefix, uri);
       let namespace = ""; for await (const part of this.namespaceText(value)) namespace += part;
-      const { namespaceReference: ignoredNamespaceReference, ...element } = value;
-      return { ...element, namespace, attributes, namespaces };
+      let name = "", localName = "";
+      for await (const part of this.nameText(value)) name += part;
+      for await (const part of this.nameText(value, true)) localName += part;
+      const { namespaceReference: ignoredNamespaceReference, nameReference: ignoredNameReference, localNameReference: ignoredLocalReference, prefix: ignoredPrefix, ...element } = value;
+      return { ...element, name, localName, namespace, attributes, namespaces };
     }
     if (value.kind === "attribute") {
       let text = "";
@@ -186,6 +194,21 @@ export class StoredXmlDocument {
       return { ...content, target };
     }
     return value;
+  }
+
+  async *nameText(name: XmlName, local = false): AsyncGenerator<string> {
+    const reference = local ? name.localNameReference : name.nameReference;
+    if (reference === undefined) yield local ? name.localName : name.name;
+    else yield* new StoredNamespaces(this.storage, this.budget).valueParts(reference);
+  }
+
+  async nameEquals(name: XmlName, expected: string | XmlName, local = false): Promise<boolean> {
+    const reference = local ? name.localNameReference : name.nameReference;
+    const text = local ? name.localName : name.name;
+    const other = typeof expected === "string" ? expected : local ? expected.localNameReference ?? expected.localName : expected.nameReference ?? expected.name;
+    const tokens = new StoredNamespaces(this.storage, this.budget);
+    if (reference !== undefined) return tokens.equals(reference, other);
+    return typeof other === "string" ? text === other : tokens.equals(other, text);
   }
 
   async *targetText(content: Extract<XmlContent, { kind: "processing-instruction" }>): AsyncGenerator<string> {

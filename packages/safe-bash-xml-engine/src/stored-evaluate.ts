@@ -48,7 +48,7 @@ async function matches(node: Node, step: QueryStep, namespace: string | number, 
   if (step.kind === "text") return node.kind === "text" || node.kind === "cdata";
   if (node.kind !== step.kind) return false;
   return (node.kind === "element" || node.kind === "attribute") &&
-    (step.name === "*" || node.value.localName === localName && await document.namespaceEquals(node.value, namespace));
+    (step.name === "*" || await document.nameEquals(node.value, localName, true) && await document.namespaceEquals(node.value, namespace));
 }
 
 export class StoredXPath {

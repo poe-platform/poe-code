@@ -46,9 +46,9 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
     const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, value, true);
     await storage.write(reference + index * 8, bytes);
   }
-  async function hash(parent: number, name: string): Promise<bigint> {
+  async function hash(parent: number, name: XmlElement): Promise<bigint> {
     let value = 14695981039346656037n;
-    for (const part of [String(parent), ":", name]) for (const character of part) {
+    for await (const part of (async function* () { yield String(parent); yield ":"; yield* document.nameText(name); })()) for (const character of part) {
       const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
       value = BigInt.asUintN(64, (value ^ BigInt(character.codePointAt(0)!)) * 1099511628211n);
     }
@@ -60,13 +60,13 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
     if (entry.closing || entry.reference === document.root) continue;
     const current = await document.metadata(entry.reference);
     if (current.kind !== "element") continue;
-    const parent = await document.parent(entry.reference), key = await hash(parent, current.name);
+    const parent = await document.parent(entry.reference), key = await hash(parent, current);
     const bucket = Number(await hashes.get(key) ?? 0n);
     let group = bucket;
     while (group) {
       const value = await fields(group, 8);
       const checkpoint = budget.tick(current.name.length + 1); if (checkpoint) await checkpoint;
-      if (value[0] === parent && (await node(value[1]!)).name === current.name) break;
+      if (value[0] === parent && await document.nameEquals(await node(value[1]!), current)) break;
       group = value[6]!;
     }
     const member = await record([entry.reference, 0]);
@@ -108,7 +108,7 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
   }
   async function* output(): AsyncGenerator<string> {
     const root = await node(document.root);
-    yield "{"; yield* quoted([root.name]); yield ":";
+    yield "{"; yield* quoted(document.nameText(root)); yield ":";
     await push({ kind: "literal", value: "}" }); await push({ kind: "element", reference: document.root });
     while (true) {
       const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
@@ -128,7 +128,7 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
       }
       if (task.kind === "group") {
         const group = await fields(task.reference, 8);
-        yield* quoted([(await node(group[1]!)).name]); yield ":";
+        yield* quoted(document.nameText(await node(group[1]!))); yield ":";
         if (group[7] === 1) await push({ kind: "element", reference: group[1]! });
         else { yield "["; await push({ kind: "literal", value: "]" }); await push({ kind: "members", reference: group[2]! }); }
         continue;

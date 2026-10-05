@@ -61,7 +61,7 @@ async function attributes(
     if (prefix === "xml") continue;
     if (exclusive) {
       const colon = element.name.indexOf(":");
-      let used = prefix === (colon < 0 ? "" : element.name.slice(0, colon));
+      let used = prefix === (element.prefix ?? (colon < 0 ? "" : element.name.slice(0, colon)));
       for await (const attribute of source()) {
         const p = budget.tick(attribute.name.length + 1); if (p) await p;
         if (attribute.namespace === xmlns) continue;
@@ -336,7 +336,8 @@ export async function* serializeDocument(
       }
       let childNamespaces = frame.namespaces;
       let changed: Map<string, string> | undefined;
-      yield `<${current.name}`;
+      if (stored && current.nameReference !== undefined) { yield "<"; yield* stored.nameText(current); }
+      else yield `<${current.name}`;
       for await (const attribute of outputAttributes()) {
         if (canonical && attribute.namespace === xmlns) {
           if (childNamespaces instanceof StoredNamespaces) childNamespaces = await childNamespaces.set(attribute.localName,
@@ -364,7 +365,11 @@ export async function* serializeDocument(
           yield { ...childFrame, content: child.reference };
         }
         if (indent) for (const part of indentation(parentFrame.depth)) yield { ...parentFrame, content: part };
-        yield { ...parentFrame, content: `</${current.name}>` };
+        if (stored && current.nameReference !== undefined) {
+          yield { ...parentFrame, content: "</" };
+          for await (const part of stored.nameText(current)) yield { ...parentFrame, content: part };
+          yield { ...parentFrame, content: ">" };
+        } else yield { ...parentFrame, content: `</${current.name}>` };
       })());
     } else if (current.kind === "text" || (current.kind === "cdata" && canonical)) {
       for await (const part of typeof reference === "number" ? stored!.text(reference) : [current.text])

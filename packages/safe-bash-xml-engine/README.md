@@ -51,8 +51,8 @@ Stored formatting and canonicalization also place pending traversal frames in th
 caller-backed page store. Canonical namespace validation follows stored tree links;
 indentation is emitted in fixed windows. Namespace URI metadata and long
 processing-instruction targets use backed tokens, including canonical ordering
-and XPath name results. Element and attribute names still need bounded token
-storage; end-to-end Worker memory qualification remains separate.
+and XPath name results. Long element local names also stream through formatting, XPath and xq grouping.
+Attribute names and large namespace prefixes still need bounded token storage; end-to-end Worker memory qualification remains separate.
 
 `storedXmlToJson` streams the xmltodict mapping from a `StoredXmlDocument`, using
 paged repeated-name groups and traversal tasks. The legacy `xmlToJson` convenience

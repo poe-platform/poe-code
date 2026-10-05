@@ -131,5 +131,9 @@ processing-instruction targets through source windows. Their events have an empt
 `target` and a `targetSource` span; replay that span before retiring the source.
 All body continuations carry the same target span. Short targets remain strings.
 The stored document engine transfers these spans to its own token store and
-streams targets during output. Element and attribute names still require their
-own memory budget.
+streams targets during output. With `deferElementNames: true` and `retainTree: false`, long element local names
+also use `nameSource`/`localNameSource` spans. Closing tags compare source windows;
+element events retain the short `prefix` separately. Stored documents copy these
+names into token references for formatting, XPath and xq grouping. Attribute names
+and namespace prefixes longer than 512 UTF-16 units still retain their token cost;
+this option does not impose a name-length limit.

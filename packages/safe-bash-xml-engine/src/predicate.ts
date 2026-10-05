@@ -270,6 +270,8 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
             : selected?.kind === "processing-instruction" && instruction.name !== "namespace-uri" ? selected.value.kind === "processing-instruction" ? selected.value.target : "" : "";
           if (instruction.name === "namespace-uri" && selected?.stored && (selected.kind === "element" || selected.kind === "attribute"))
             result = await TextValue.create(selected.stored.document.namespaceText(selected.value), budget, storage);
+          else if (instruction.name !== "namespace-uri" && selected?.stored && (selected.kind === "element" || selected.kind === "attribute"))
+            result = await TextValue.create(selected.stored.document.nameText(selected.value, instruction.name === "local-name"), budget, storage);
           else if (instruction.name !== "namespace-uri" && selected?.stored && selected.kind === "processing-instruction" && selected.value.kind === "processing-instruction")
             result = await TextValue.create(selected.stored.document.targetText(selected.value), budget, storage);
           break;

@@ -76,8 +76,8 @@ for (const target of ["a".repeat(600), "p:" + "a".repeat(600), "a".repeat(511) +
     assert.deepEqual(await fs.readdir("/"), []);
   });
 
-for (const recover of [false, true]) for (const outcome of ["read", "write", "abort"]) test(`PI target copy cleans up on ${outcome} (recover=${recover})`, async t => {
-  const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("target copy stopped");
+for (const kind of ["PI", "element"]) for (const recover of [false, true]) for (const outcome of ["read", "write", "abort"]) test(`${kind} name copy cleans up on ${outcome} (recover=${recover})`, async t => {
+  const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("name copy stopped");
   let copying = false, fragments = 0, opened = 0, closed = 0, sourceClosed = false;
   const store = StoredStringMap.prototype.storeString;
   t.mock.method(StoredStringMap.prototype, "storeString", async function (this: StoredStringMap, parts: Parameters<typeof store>[0]) {
@@ -112,7 +112,7 @@ for (const recover of [false, true]) for (const outcome of ["read", "write", "ab
     return typeof value === "function" ? value.bind(target) : value;
   } });
   const source = (function* () {
-    try { yield "<r><?"; const piece = "a".repeat(4096); for (let i = 0; i < 80; i++) yield piece; yield " data?></r>"; }
+    try { yield kind === "PI" ? "<r><?" : "<"; const piece = "a".repeat(4096); for (let i = 0; i < 80; i++) yield piece; yield kind === "PI" ? " data?></r>" : "/>"; }
     finally { sourceClosed = true; }
   })();
   const budget = new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {});

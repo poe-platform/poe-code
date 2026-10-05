@@ -1,3 +1,5 @@
+import { SelectionError } from './selectors.js';
+import { stageRetainedOutput, streamJson, type StagedOutput } from './retained-output.js';
 import { PagedStorage } from '@poe-code/safe-fs/storage';
 import type { ByteSource } from './contracts.js';
 import { OfficeError } from './errors.js';
@@ -118,4 +120,25 @@ export async function openRetainedProperties(
       check();
     } });
   } catch (error) { await close().catch(() => {}); throw error instanceof OfficeError ? error : new OfficeError(signal.aborted ? 'cancelled' : 'io-failure', 'Property storage operation failed.', 'index'); }
+}
+
+/** Admit and stage complete property responses before a sink sees any bytes. */
+export async function stageRetainedProperties(
+  archive: Pick<RetainedPackageArchive, 'parts' | 'has' | 'read' | 'byteLength'>,
+  fingerprint: string,
+  query: { readonly name?: string },
+  settings: RetainedPackageContext,
+  output: { readonly operation: 'properties.list' | 'properties.get'; readonly json: boolean; readonly maxOutputBytes: number }
+): Promise<StagedOutput> {
+  const format = { ...output };
+  if (!['properties.list', 'properties.get'].includes(format.operation)) throw new OfficeError('invalid-value', 'Invalid property read operation.', 'usage');
+  const properties = await openRetainedProperties(archive, fingerprint, query, settings); let staged: StagedOutput | undefined;
+  try {
+    if (format.operation === 'properties.get') { let count = 0; for await (const ignoredRecord of properties.records()) count++; if (count !== 1) throw new SelectionError(count ? 'ambiguous-selection' : 'missing-selection'); }
+    async function* render(): ByteSource {
+      if (format.json) { yield* streamJson({ version: 1, operation: format.operation, ok: true, data: { properties: properties.records() }, affected: 0, warnings: [], errors: [], locations: [] }); yield* literal('\n'); }
+      else for await (const property of properties.records()) { yield* streamJson(property.name); yield* literal(': '); yield* streamJson(property.value); yield* literal('\n'); }
+    }
+    staged = await stageRetainedOutput(render(), settings, format.maxOutputBytes); await properties.close(); return staged;
+  } catch (error) { await Promise.allSettled([properties.close(), staged?.close()]); throw error; }
 }

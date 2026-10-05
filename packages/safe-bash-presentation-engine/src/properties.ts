@@ -474,3 +474,5 @@ export async function openPropertySession(
     }
   };
 }
+
+export { openRetainedProperties, stageRetainedProperties, type RetainedPropertyRecord } from "./retained-properties.js";

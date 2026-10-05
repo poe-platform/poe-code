@@ -1,3 +1,4 @@
+import { stageRetainedProperties } from 'safe-bash-presentation-engine/properties';
 import { stageRetainedNotes } from 'safe-bash-presentation-engine/notes';
 import { openRetainedPackManifest } from "./retained-pack-manifest.js";
 import { stageRetainedPackage } from "safe-bash-presentation-engine/package-tools";
@@ -4168,7 +4169,7 @@ async function executeRequest(
         publication = { inputPath: args.input!, outputPath: destination, bytes: staged.bytes(), originalBytes: input, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
       }
       result = success(operation, null);
-    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "text.frames.list" || args.operation === "text.frames.get" || args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "xml.get") && request.streaming) {
+    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "text.frames.list" || args.operation === "text.frames.get" || args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "properties.list" || args.operation === "properties.get" || args.operation === "xml.get") && request.streaming) {
       if (args.token && args.operation !== "notes.list" && args.operation !== "notes.get") decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const hash = sha256.create();
@@ -4178,7 +4179,9 @@ async function executeRequest(
       const archive = await openPackageArchive(input, context); let failed = false;
       try {
         const scope = args.operation === "notes.list" || args.operation === "notes.get" ? undefined : args.token ? decodeSelectionToken(args.token).scope : args.scope;
-        stagedOutput = args.operation === "notes.list" || args.operation === "notes.get"
+        stagedOutput = args.operation === "properties.list" || args.operation === "properties.get"
+          ? await stageRetainedProperties(archive, fingerprint, args.metadataName === undefined ? {} : { name: args.metadataName }, context, { operation: args.operation, json: args.json, maxOutputBytes: options.maxOutputBytes })
+          : args.operation === "notes.list" || args.operation === "notes.get"
           ? await stageRetainedNotes(archive, fingerprint, { selection: {
             kind: 'slide', ...(args.token ? { token: args.token } : {}),
             ...(args.slide === undefined ? {} : { position: { coordinateSystem: 'one-based', value: args.slide } }),

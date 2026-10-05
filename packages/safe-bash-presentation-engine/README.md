@@ -55,6 +55,12 @@ and change ordering use caller storage. The default diff command uses this path
 for every supported mode, including the default structural comparison. Structural
 metadata and geometry use caller-backed records and traversal rather than heap
 trees. Numeric property values preserve native binary64 rounding.
+`openRetainedProperties` (from `properties`) exposes replayable metadata records
+with streamed names, namespaces, parts and string values. Typed scalars retain
+the buffered reader’s conversion semantics; close the view after reading.
+`stageRetainedProperties` provides `properties.list` and `properties.get` output,
+including name filtering and exact-cardinality checks for get. The default
+command uses this retained path and stages output before writing stdout.
 `pptx xml get` also stages raw, JSON and pretty responses through caller storage.
 `openRetainedXmlPart` (from `xml-parts`) exposes replayable original bytes and
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves

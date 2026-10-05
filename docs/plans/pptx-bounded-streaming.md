@@ -648,11 +648,28 @@ buffered output in all five modes through the public adapter, including changed
 metadata, geometry and text, with no whole-file reads and empty scratch. This
 does not complete the remaining matrix or qualify a Worker runtime.
 
+## Retained property commands
+
+The default properties list/get commands now use retained inputs and the shared
+caller-backed metadata reader. Both formats stage output before writing stdout;
+name filtering, missing/ambiguous get selection, empty strings, unknown metadata,
+negative zero and malformed-root diagnostics match the buffered command. The SDK
+exports the reader and staged command formatter from the properties entry point.
+
+Tests cover file/stdin adapter invocation, reused chunks, slow sinks, large property
+values, storage spills and bounded outstanding writes, cancellation and injected
+read/write/close/sink failures. Native python-pptx properties match native values
+and exact buffered JSON through the public adapter, with retained reads, no
+whole-file reads, unchanged chart/workbook bytes and empty scratch. All 1,464
+maintained command tests, 71 focused engine checks, scoped lint/type checks and
+the selected workspace build pass.
+Other read families and the mutation/workbook/runtime matrix remain unfinished.
+
 ## Remaining operation matrix
 
 | Area | Remaining migration |
 | --- | --- |
-| Read operations | Paragraph/run formatting; standalone property/tag reads; other slide/settings, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Read operations | Paragraph/run formatting; standalone tag reads; other slide/settings, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
 | Extraction | Image/media and embedded/opaque object extraction, including manifests and multi-output publication; package extraction is migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |

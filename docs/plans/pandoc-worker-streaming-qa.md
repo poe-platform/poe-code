@@ -727,6 +727,14 @@ and diagnostic precedence parity, book metadata/navigation, cross-chapter notes,
 resources and final retained serialization. These acquisition tests do not prove
 end-to-end EPUB boundedness or a deployed memory plateau.
 
+Retained book mutation and note assembly are now available internally: metadata
+maps, independent text/node copies, caller-backed traversal continuations, note
+cycle membership, provenance and anchor pruning. Unit checks cover repeated and
+nested references, missing/recursive targets, finite budgets and long type tokens.
+These operations are not yet wired into the public EPUB reader. The saved public
+cross-chapter output regression must pass before claiming an integrated path.
+URI control strings remain a separately tracked memory boundary.
+
 The next complete path is EPUB to plain output, then the same retained book to
 JSON and the other retained writers. Its implementation must remove the XHTML
 DOM and chapter/note AST materialization, retain cross-chapter identity resolution,

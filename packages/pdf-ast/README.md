@@ -219,6 +219,11 @@ with optional `crop`, `rejoinHyphens` and `chunkBytes`. It owns and closes its
 caller-backed text index. Use `streamLogicalTextChunks(index, options)` to format
 an existing index without transferring ownership.
 
+`encodePostscriptPageChunks(index, pageNumber, options)` streams the text-only
+PostScript page representation from a retained index, escaping literal strings
+without collecting line text. The caller supplies the document header/trailer
+and keeps ownership of the index.
+
 `page.indexText(storage, options)` retains logical-order blocks, lines, words and
 geometry on caller storage. Select `mode: "layout"`, `"bbox"` or `"raw"` to change
 ordering; `page.indexRawText()` preserves raw order. Geometric and logical sorts

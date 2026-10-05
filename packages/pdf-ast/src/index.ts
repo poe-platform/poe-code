@@ -116,3 +116,5 @@ export type { RetainedAppendAttachment } from "./edit/retained-append-attachment
 export { parseRetainedFormData } from "./edit/retained-form-data.js";
 
 export { streamLogicalTextChunks, type PdfLogicalTextOptions } from "./extract/logical-text-stream.js";
+
+export { encodePostscriptPageChunks } from "./render/postscript.js";

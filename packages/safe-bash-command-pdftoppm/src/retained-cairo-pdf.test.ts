@@ -31,3 +31,18 @@ it("preserves existing output after a backing write failure",async()=>{
  f.context.fs=new Proxy(original,{get(owner,key){if(key==="createStagedFile")return async(...args:Parameters<NonNullable<typeof owner.createStagedFile>>)=>{const stage=await owner.createStagedFile!(...args);return {...stage,writer:stage.writer?{...stage.writer,write:async()=>{throw reason;}}:undefined};};const value=Reflect.get(owner,key);return typeof value==="function"?value.bind(owner):value;}});
  await expect(createPdftocairoCommand().execute(f.context)).rejects.toBe(reason);expect(new TextDecoder().decode(await f.fs.readFile("/out.pdf"))).toBe("old");expect(await f.fs.readdir("/scratch")).toEqual([]);
 });
+
+for(const format of ['ps','eps'])it.each([[],['-f','2','-l','3'],['-o'],['-e'],['-o','-e'],['-x','7','-y','8'],['-W','75','-H','80'],['-paper','A4'],['-f','8']].map(flags=>({flags})))(`retains Cairo ${format} $flags bytes`,async({flags})=>{
+ const bytes=input(),args=[`-${format}`,...flags,'in.pdf','out'],files=new Map([['in.pdf',bytes]]),expected=await runPdftocairoCli(args,files),f=await fixture(bytes,args);
+ expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(expected.exitCode);expect(f.error()).toBe(expected.stderr);if(files.has(`out.${format}`))expect(await f.fs.readFile(`/out.${format}`)).toEqual(files.get(`out.${format}`));expect(await f.fs.readdir('/scratch')).toEqual([]);
+});
+for(const format of ['ps','eps'])it(`streams ${format} from reused stdin and cleans sink failures`,async()=>{
+ const bytes=input(),args=[`-${format}`,'-','-'],expected=await runPdftocairoCli(args,new Map([['-',bytes]])),f=await fixture(bytes,args,true);
+ expect((await createPdftocairoCommand().execute(f.context)).exitCode).toBe(0);expect(new Uint8Array(Buffer.concat(f.stdout))).toEqual(expected.stdoutBytes);expect(await f.fs.readdir('/scratch')).toEqual([]);
+ const failure=await fixture(bytes,[`-${format}`,'in.pdf','-']),reason=new Error('sink failed');failure.context.stdout.write=async()=>{throw reason;};await expect(createPdftocairoCommand().execute(failure.context)).rejects.toBe(reason);expect(await failure.fs.readdir('/scratch')).toEqual([]);
+});
+it('preserves empty-document PostScript page errors',async()=>{
+ const bytes=PdfDocument.create().save(),args=['-ps','in.pdf','-'],f=await fixture(bytes,args);
+ await expect(runPdftocairoCli(args,new Map([['in.pdf',bytes]]))).rejects.toMatchObject({code:'E_CAPABILITY',message:'Page index out of bounds: 0'});
+ await expect(createPdftocairoCommand().execute(f.context)).rejects.toMatchObject({code:'E_CAPABILITY',message:'Page index out of bounds: 0'});expect(await f.fs.readdir('/scratch')).toEqual([]);
+});

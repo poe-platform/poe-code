@@ -1,5 +1,5 @@
-import { VALUE_FLAGS, CAIRO_VALUE_FLAGS, parsePdftoppmArgsSteps, parsePdftocairoArgsSteps } from "./parse.js";
-import { executeRetainedCairoPdf } from "./retained-cairo-pdf.js";
+import { VALUE_FLAGS, parsePdftoppmArgsSteps, parsePdftocairoArgsSteps } from "./parse.js";
+import { executeRetainedCairoDocument } from "./retained-cairo-pdf.js";
 import { executeRetainedRaster } from "./retained.js";
 import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
@@ -341,25 +341,6 @@ export function createPdftoppmCommand(options: PdftoppmCommandOptions = {}): Com
 
 export const pdftoppmCommand: CommandDefinition = createPdftoppmCommand();
 
-function extractPdftocairoPositionals(argv: readonly string[]): string[] {
-  const pos: string[] = [];
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "--") {
-        pos.push(...argv.slice(i + 1));
-        break;
-    }
-    if (CAIRO_VALUE_FLAGS.has(arg)) {
-      i++;
-      continue;
-    }
-    if (!arg.startsWith("-") || arg === "-") {
-      pos.push(arg);
-    }
-  }
-  return pos;
-}
-
 function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, options: {
     readonly signal?: AbortSignal;
     readonly onAllocateBytes?: (bytes: number) => void;
@@ -536,12 +517,17 @@ export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): C
     description: "Render PDF pages to PNG, JPEG, TIFF, PDF, PS, EPS, or SVG via @poe-code/pdf-ast",
     async execute(context: CommandContext) {
       const parsed = await drainSteps(parsePdftocairoArgsSteps(getCommandArguments(context).args, true), context.signal);
-      if ("inputPath" in parsed && parsed.format === "pdf") {
+      if (!("inputPath" in parsed)) {
+        const invocation=createOutputOperation(context,{write:async()=>{}});
+        try{if(parsed.stderr)await writeBytes(context.stderr,new TextEncoder().encode(parsed.stderr),invocation.signal);if(parsed.stdout)await writeBytes(invocation.child(context.stdout).output,new TextEncoder().encode(parsed.stdout),invocation.signal);return {exitCode:parsed.exitCode};}
+        finally{await invocation.close();}
+      }
+      if (parsed.format === "pdf" || parsed.format === "ps" || parsed.format === "eps") {
         const invocation = createOutputOperation(context, { write: async () => {} });
-        try { return await executeRetainedCairoPdf(context, parsed, invocation.child(context.stdout).output, invocation.signal, maxInputBytes); }
+        try { return await executeRetainedCairoDocument(context, parsed, invocation.child(context.stdout).output, invocation.signal, maxInputBytes); }
         finally { await invocation.close(); }
       }
-      if ("inputPath" in parsed && (parsed.format === "png" || parsed.format === "jpg" || parsed.format === "tif" || parsed.format === "svg")) {
+      {
         const stem = parsed.inputPath.toLowerCase().endsWith(".pdf") ? parsed.inputPath.slice(0, -4) : parsed.inputPath;
         const positionals = parsed.positionals.length === 1 && parsed.inputPath !== "-" ? [parsed.inputPath, stem] : parsed.positionals;
         const rawSvgOut=parsed.positionals[1]??(parsed.inputPath==="-"?"-":`${stem}.svg`);
@@ -563,91 +549,6 @@ export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): C
             name => ({ exitCode: 2, stderr: `Error opening output file ${name}\n` }));
         } finally { await invocation.close(); }
       }
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-  let cooperativeWork = 63;
-        const invocation = createOutputOperation(context, { write: async () => {} });
-try {
-        const carrier = getCommandArguments(context);
-        const argv = [...carrier.args];
-        const vfsFiles = new Map<string, Uint8Array>();
-        let accountedBytes = 0;
-        const chargeBytes = (delta: number) => {
-          if (delta > 0) {
-            accountedBytes += delta;
-            context.inputBudget?.check(accountedBytes);
-          }
-        };
-        let informational = false;
-        for (let i = 0; i < argv.length; i++) {
-          const arg = argv[i]!;
-          if (arg === "--") break;
-          if (CAIRO_VALUE_FLAGS.has(arg)) { i++; continue; }
-          if (["-h", "-help", "--help", "-?", "-v", "--version"].includes(arg)) { informational = true; break; }
-        }
-        const positionals = informational ? [] : extractPdftocairoPositionals(argv);
-        if (!informational && (positionals.length === 0 || positionals[0] === "-")) {
-          const chunks: Uint8Array[] = [];
-          let total = 0;
-          for await (const chunk of readBytes(context.stdin, invocation.signal)) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-            chunks.push(chunk);
-            total += chunk.byteLength;
-            chargeBytes(chunk.byteLength);
-          }
-          if (total > 0) {
-            const buf = new Uint8Array(total);
-            let off = 0;
-            for (const c of chunks) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-              buf.set(c, off);
-              off += c.byteLength;
-            }
-            vfsFiles.set("-", buf);
-          }
-        }
-        for (const token of positionals.slice(0, 1)) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-          if (token === "-") continue;
-          try {
-            const bytes = await context.fs.readFile(resolvePath(context.cwd, token), { signal: invocation.signal });
-            chargeBytes(bytes.byteLength);
-            vfsFiles.set(token, bytes);
-          } catch {
-            // Output file or prefix
-          }
-        }
-        context.inputBudget?.check(0);
-    const existingSnap = new Map(vfsFiles);
-        const res = await runPdftocairoCli(argv, vfsFiles, { signal: invocation.signal });
-        if (res.stderr) {
-          await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
-        }
-        if (res.stdoutBytes) {
-          const stdout = invocation.child(context.stdout);
-          await writeBytes(stdout.output, res.stdoutBytes, invocation.signal);
-        } else if (res.stdout) {
-          const stdout = invocation.child(context.stdout);
-          await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
-        }
-        for (const [key, val] of vfsFiles.entries()) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-          if (key !== "-" && existingSnap.get(key) !== val) {
-            const abs = resolvePath(context.cwd, key);
-            try {
-              await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
-            } catch (error) {
-              invocation.signal.throwIfAborted();
-              if (!(error instanceof Error) || !("code" in error)) throw error;
-              await writeBytes(context.stderr, new TextEncoder().encode(`Error opening output file ${key}\n`), invocation.signal);
-              return { exitCode: 2 };
-            }
-          }
-        }
-        return { exitCode: res.exitCode };
-      } finally {
-        await invocation.close();
-      }
-      });
     },
   });
 }

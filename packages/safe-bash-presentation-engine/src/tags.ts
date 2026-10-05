@@ -24,7 +24,7 @@ export interface TagOptions {
 type State = Awaited<ReturnType<typeof loadShared>>;
 const relns = "http://schemas.openxmlformats.org/package/2006/relationships";
 
-function validate(options: TagOptions, action?: string) {
+export function validateTagOptions(options: TagOptions, action?: string) {
   if (!options || ![Object.prototype, null].includes(Object.getPrototypeOf(options)) ||
     Object.keys(options).some((key) => !["scope", "selection", "name", "value", "allowEmpty"].includes(key)) ||
     (options.scope !== undefined && !["presentation", "slides"].includes(options.scope)) ||
@@ -90,7 +90,7 @@ function records(s: State, options: TagOptions): TagRecord[] {
   return token ? result.filter((r) => r.selector === options.selection!.token) : result;
 }
 export async function readTags(input: BinaryInput, options: TagOptions, context: SelectionContext): Promise<readonly TagRecord[]> {
-  validate(options);
+  validateTagOptions(options);
   return records(await loadShared(input, context, false), options);
 }
 function createAssociation(s: State, owner: string, context: SelectionContext) {
@@ -118,7 +118,7 @@ function createAssociation(s: State, owner: string, context: SelectionContext) {
 }
 export async function mutateTags(input: BinaryInput, action: "add" | "set" | "remove", options: TagOptions, context: SelectionContext): Promise<{ bytes: Uint8Array; affected: number; locations: readonly Location[] }> {
   if (!["add", "set", "remove"].includes(action)) invalid("Invalid tag action.");
-  validate(options, action);
+  validateTagOptions(options, action);
   if ((options.name?.length ?? 0) + (options.value?.length ?? 0) > context.xmlLimits.maxBytes) throw new OfficeError("resource-limit", "Tag exceeds XML limits.", "usage");
   if (!options.selection && options.scope !== "presentation") throw new SelectionError("missing-selection");
   const s = await loadShared(input, context);
@@ -158,3 +158,5 @@ export async function mutateTags(input: BinaryInput, action: "add" | "set" | "re
   const result = await s.finish(s.main, []);
   return { bytes: result.bytes, affected: locations.length, locations };
 }
+
+export { openRetainedTags, stageRetainedTags, type RetainedTagRecord } from './retained-tags.js';

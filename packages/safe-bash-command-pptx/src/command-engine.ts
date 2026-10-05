@@ -1,3 +1,4 @@
+import { stageRetainedTags, type TagOptions } from 'safe-bash-presentation-engine/tags';
 import { stageRetainedProperties } from 'safe-bash-presentation-engine/properties';
 import { stageRetainedNotes } from 'safe-bash-presentation-engine/notes';
 import { openRetainedPackManifest } from "./retained-pack-manifest.js";
@@ -4169,8 +4170,8 @@ async function executeRequest(
         publication = { inputPath: args.input!, outputPath: destination, bytes: staged.bytes(), originalBytes: input, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
       }
       result = success(operation, null);
-    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "text.frames.list" || args.operation === "text.frames.get" || args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "properties.list" || args.operation === "properties.get" || args.operation === "xml.get") && request.streaming) {
-      if (args.token && args.operation !== "notes.list" && args.operation !== "notes.get") decodeSelectionToken(args.token);
+    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "text.frames.list" || args.operation === "text.frames.get" || args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "properties.list" || args.operation === "properties.get" || args.operation === "tags.list" || args.operation === "tags.get" || args.operation === "xml.get") && request.streaming) {
+      if (args.token && args.operation !== "notes.list" && args.operation !== "notes.get" && args.operation !== "tags.list" && args.operation !== "tags.get") decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const hash = sha256.create();
       for await (const bytes of input.stream()) { request.signal.throwIfAborted(); hash.update(bytes); }
@@ -4178,8 +4179,15 @@ async function executeRequest(
       const context = { ...options.context, signal: request.signal, workingStorage: request.streaming.workingStorage };
       const archive = await openPackageArchive(input, context); let failed = false;
       try {
-        const scope = args.operation === "notes.list" || args.operation === "notes.get" ? undefined : args.token ? decodeSelectionToken(args.token).scope : args.scope;
-        stagedOutput = args.operation === "properties.list" || args.operation === "properties.get"
+        const scope = args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "tags.list" || args.operation === "tags.get" ? undefined : args.token ? decodeSelectionToken(args.token).scope : args.scope;
+        stagedOutput = args.operation === "tags.list" || args.operation === "tags.get"
+          ? await stageRetainedTags(archive, fingerprint, {
+            ...(args.scope === undefined ? {} : { scope: args.scope as NonNullable<TagOptions['scope']> }),
+            ...(args.token ? { selection: { token: args.token } } : args.slide === undefined
+              ? args.all ? { selection: { all: true } } : {}
+              : { selection: { kind: 'slide', position: { coordinateSystem: 'one-based', value: args.slide }, ...(args.all ? { all: true } : {}) } })
+          }, context, { operation: args.operation, json: args.json, maxOutputBytes: options.maxOutputBytes })
+          : args.operation === "properties.list" || args.operation === "properties.get"
           ? await stageRetainedProperties(archive, fingerprint, args.metadataName === undefined ? {} : { name: args.metadataName }, context, { operation: args.operation, json: args.json, maxOutputBytes: options.maxOutputBytes })
           : args.operation === "notes.list" || args.operation === "notes.get"
           ? await stageRetainedNotes(archive, fingerprint, { selection: {

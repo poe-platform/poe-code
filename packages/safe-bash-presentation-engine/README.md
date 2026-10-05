@@ -61,6 +61,11 @@ the buffered reader’s conversion semantics; close the view after reading.
 `stageRetainedProperties` provides `properties.list` and `properties.get` output,
 including name filtering and exact-cardinality checks for get. The default
 command uses this retained path and stages output before writing stdout.
+
+`openRetainedTags` (from `tags`) exposes replayable slide/presentation tag
+records with names and values streamed from caller storage. `stageRetainedTags`
+stages list/get responses and preserves opaque selectors and their locations.
+The default tag read commands use this path, including stdin input.
 `pptx xml get` also stages raw, JSON and pretty responses through caller storage.
 `openRetainedXmlPart` (from `xml-parts`) exposes replayable original bytes and
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves

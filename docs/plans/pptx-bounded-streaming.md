@@ -665,11 +665,29 @@ maintained command tests, 71 focused engine checks, scoped lint/type checks and
 the selected workspace build pass.
 Other read families and the mutation/workbook/runtime matrix remain unfinished.
 
+## Retained tag commands
+
+The default tags list/get commands now use retained inputs and caller-backed
+ordered tag records. Names and values remain streamed; owner/part/selector fields
+retain the ZIP-bounded schema. All selected owners are admitted before filtering
+opaque selectors, preserving exact selector identity, child positions, scope,
+get cardinality and malformed-association error precedence. SDK reader and staged
+formatter exports are available from the tags entry point.
+
+Deterministic tests cover strict/transitional documents, presentation/slide scopes,
+exact and reordered/stale selectors, empty/duplicate/malformed tag lists, file/stdin
+public adapters, slow sinks, reused chunks, actual spill writes, bounded outstanding
+IO, output limits, cancellation and read/write/close/sink failures with cleanup.
+Native python-pptx chart/workbook decks verify tag values and exact buffered JSON
+and human output through the built public adapter, with retained reads, unchanged
+input and empty scratch. Other read families and the mutation/workbook/runtime
+matrix remain unfinished; no Worker runtime qualification is claimed.
+
 ## Remaining operation matrix
 
 | Area | Remaining migration |
 | --- | --- |
-| Read operations | Paragraph/run formatting; standalone tag reads; other slide/settings, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Read operations | Paragraph/run formatting; other slide/settings, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
 | Extraction | Image/media and embedded/opaque object extraction, including manifests and multi-output publication; package extraction is migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |

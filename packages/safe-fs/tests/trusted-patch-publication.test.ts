@@ -159,17 +159,37 @@ test("patch still refuses a host without either publication contract", async () 
 });
 
 for (const mounted of [false, true]) for (const piped of [false, true]) {
-  test(`${mounted ? "mounted" : "direct"} Real patch ${piped ? "pipeline" : "input"} refuses unsupported retained staging`, async () => {
+  test(`${mounted ? "mounted" : "direct"} Real patch ${piped ? "pipeline" : "input"} publishes bounded trusted staging`, async () => {
     const { fs, backend, shell } = await fixture(mounted, false);
+    const revised = "n".repeat(16384) + "★\n";
+    await fs.writeFile("/work/new", bytes(revised));
+    await fs.writeFile("/work/change", bytes(`--- target\n+++ target\n@@ -1 +1 @@\n-old\n+${revised}`));
     const create = vi.spyOn(backend, "createStagedFile");
+    const write = vi.spyOn(backend, "writeFileConditional");
     const publish = vi.spyOn(backend, "publishStagedFile");
+    const remove = vi.spyOn(backend, "removeStagedFile");
     try {
+      const capabilities = await fs.capabilitiesFor?.("/work") ?? fs.capabilities;
+      expect(capabilities.trustedOwnedStaging).toBe(true);
+      expect(capabilities.atomicStagingAncestry).not.toBe(true);
+      expect(capabilities.retainedStagingCleanup).not.toBe(true);
+      expect(capabilities.retainedStagingWrite).not.toBe(true);
       const result = await shell.exec(piped ? "diff -u --label target --label target target new | patch" : "patch -i change", { cwd: "/work" });
-      expect(result.exitCode).toBe(2);
-      expect(result.stderr).toContain("retainedStagingCleanup");
-      expect(create).not.toHaveBeenCalled();
-      expect(publish).not.toHaveBeenCalled();
-      expect(await fs.readFile("/work/target")).toEqual(bytes("old\n"));
+      expect(result.exitCode, result.stderr).toBe(0);
+      expect(result.stderr).toBe("");
+      expect(create).toHaveBeenCalledOnce();
+      expect(create.mock.calls[0]![2]).toEqual({ type: "file", data: new Uint8Array() });
+      expect(create.mock.calls[0]![3].retainCleanup).not.toBe(true);
+      expect(write.mock.calls.length).toBeGreaterThan(1);
+      for (const [, chunk, options] of write.mock.calls) {
+        expect(chunk.byteLength).toBeLessThanOrEqual(16384);
+        expect(options.append).toBe(true);
+        expect(options.mode).toBe(0o751);
+        expect(options.expected).toMatchObject({ type: "file" });
+      }
+      expect(publish).toHaveBeenCalledOnce();
+      expect(remove).toHaveBeenCalledOnce();
+      expect(await fs.readFile("/work/target")).toEqual(bytes(revised));
       expect((await fs.lstat("/work/target")).mode & 0o777).toBe(0o751);
       expect((await fs.readdir("/work")).map(entry => entry.name).sort()).toEqual(["change", "new", "target"]);
     } finally { await shell.dispose(); }

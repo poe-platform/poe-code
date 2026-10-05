@@ -24,6 +24,8 @@ Parsed body text and line descriptors also use caller storage; matching, reversa
 and reject rendering replay them without retaining body arrays.
 Long body lines stay as byte spans through parsing, conversion and context
 comparison. Mail preambles and signatures use bounded prefix scans.
+Hunk outcomes, including reversal probes and merge replacements, share the page
+cache; status and reject decisions replay stored records.
 Header text, hunk/file metadata and retained resource
 handles still grow with the request; this is not a complete memory bound.
 

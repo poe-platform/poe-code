@@ -17,7 +17,7 @@ function contextRange(start: number, count: number, offset: number): string {
   return count === 0 ? "0" : count === 1 ? `${start + offset}` : `${start + offset},${start + offset + count - 1}`;
 }
 
-export async function* rejectBytes(patch: ReplayPatch, outcomes: readonly ReplayOutcome[], oldName: string | undefined,
+export async function* rejectBytes(patch: ReplayPatch, outcomes: Iterable<ReplayOutcome> | AsyncIterable<ReplayOutcome>, oldName: string | undefined,
   newName: string | undefined, indexName: string | undefined, reverse: boolean, budget: Budget, format?: "unified" | "context"): ByteSource {
   const normal = patch.format === "normal";
   const context = format === undefined ? patch.format === "context" || normal : format === "context";
@@ -29,7 +29,7 @@ export async function* rejectBytes(patch: ReplayPatch, outcomes: readonly Replay
   };
   if (indexName !== undefined) yield* add(`Index: ${indexName}\n`);
   yield* add(`${context ? "***" : "---"} ${names[0]}${times[0]}\n${context ? "---" : "+++"} ${names[1]}${times[1]}\n`);
-  for (const outcome of outcomes) {
+  for await (const outcome of outcomes) {
     if (!outcome.failed) continue;
     budget.step();
     { const c = budget.checkpoint(); if (c) await c; }

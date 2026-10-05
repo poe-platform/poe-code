@@ -8,7 +8,11 @@ export interface StoredPatchLines { readonly length: number; read(index: number)
 export type PatchLines = PatchLine[] | StoredPatchLines;
 export type ReplayPatch = FilePatch<PatchLines>;
 export type ReplayOutcome = HunkOutcome<PatchLines>;
-export type ReplayApplication = HunkApplication<PatchLines>;
+export interface OutcomeSink {
+  push(outcome: ReplayOutcome): number | Promise<void>;
+  pop(): ReplayOutcome | undefined | Promise<ReplayOutcome | undefined>;
+}
+export type ReplayApplication = Omit<HunkApplication<PatchLines>, "outcomes"> & { readonly outcomes?: OutcomeSink };
 
 export async function patchLine(hunk: Hunk<PatchLines>, index: number): Promise<StoredPatchLine> {
   return Array.isArray(hunk.lines) ? hunk.lines[index]! : hunk.lines.read(index);

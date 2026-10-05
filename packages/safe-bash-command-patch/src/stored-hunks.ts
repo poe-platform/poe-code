@@ -93,7 +93,7 @@ export async function applyStoredHunks(original: IndexedDocument, patch: ReplayP
       const matched = found;
       if (matched >= 0) offset = matched - startIndex(hunk.oldStart, hunk.oldCount);
       if (misordered) found = -1;
-      application.outcomes?.push({ hunk, index: hunkIndex + 1, failed: found < 0, misordered: found < 0 && misordered,
+      await application.outcomes?.push({ hunk, index: hunkIndex + 1, failed: found < 0, misordered: found < 0 && misordered,
         line: (matched < 0 ? startIndex(hunk.oldStart, hunk.oldCount) : matched) + 1 + outputOffset,
         outputOffset, offset: matched - startIndex(hunk.oldStart, hunk.oldCount), fuzz: usedFuzz });
       if (found < 0 && application.merge && !misordered) {
@@ -122,8 +122,8 @@ export async function applyStoredHunks(original: IndexedDocument, patch: ReplayP
         let identical = localLength === hunk.newCount;
         for (let index = 0; identical && index < localLength; index++) identical = await equalTargetLines(source.at(cursor + index)!, await indexedLine(newIndex, index), budget);
         if (identical) {
-          const last = application.outcomes?.pop();
-          if (last) application.outcomes!.push({ ...last, failed: false, fuzz: 0, offset: position - startIndex(hunk.oldStart, hunk.oldCount) });
+          const last = await application.outcomes?.pop();
+          if (last) await application.outcomes!.push({ ...last, failed: false, fuzz: 0, offset: position - startIndex(hunk.oldStart, hunk.oldCount) });
           for (let index = prefix; index < localLength - suffix; index++) await result.append(source.at(cursor + index)!);
         } else {
           await result.append("<<<<<<<\n");
@@ -135,8 +135,8 @@ export async function applyStoredHunks(original: IndexedDocument, patch: ReplayP
           await result.append("=======\n");
           for (let index = prefix; index < hunk.newCount - suffix; index++) await result.append(await indexedLine(newIndex, index));
           await result.append(">>>>>>>\n");
-          const last = application.outcomes?.pop();
-          if (last) application.outcomes!.push({ ...last, mergeRange: [mergeStart, result.length] });
+          const last = await application.outcomes?.pop();
+          if (last) await application.outcomes!.push({ ...last, mergeRange: [mergeStart, result.length] });
         }
         for (let index = localLength - suffix; index < localLength; index++) await result.append(source.at(cursor + index)!);
         cursor += localLength;

@@ -32,6 +32,8 @@ Body lines now remain byte spans through grammar parsing and format conversion,
 including incomplete final lines, normalized CRLF transport and context equality.
 Discarded mail preamble/signature prose uses bounded prefix scans; normal-command
 admission scans arbitrarily long numeric prefixes without decoding them whole.
+Application outcomes, reversal probes and merge replacements use fixed-width
+stored records in the shared cache. Status and reject decisions replay them.
 Header text, hunk metadata, file maps
 and retained resource handles still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.

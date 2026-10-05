@@ -1,9 +1,9 @@
-import { parseXmlRecovery } from "safe-bash-xml-engine";
+import { parseStoredXml } from "safe-bash-xml-engine";
 import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import { createXqCommand } from "safe-bash-command-xq";
 import { readXmlChunks, type XmlCommandRuntime } from "safe-bash-xml-engine/io";
-import { parseXmlStream, parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
+import { parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
 import {
   FsError,
   getCommandArguments,
@@ -163,16 +163,9 @@ async function executeDocument(
         options.recover ? message => { recoveryMessages.add(message); } : undefined);
       await stored.transform({ noblanks: options.noblanks ?? false, nocdata: options.nocdata ?? false });
       parsedRoot = await stored.node(stored.root) as XmlElement;
-    } else if (options.recover) {
-      parsedRoot = await parseXmlRecovery(readXmlChunks(context, file, budget, runtime), context, budget,
-        message => { recoveryMessages.add(message); });
     } else {
-      parsedRoot = await parseXmlStream(readXmlChunks(context, file, budget, runtime), {
-        ...limits,
-        maxContentNodes: limits.maxNodes,
-        expectedEncoding: "UTF-8",
-        retainTree: !(options.noout && options.query === undefined)
-      }, units => budget.tick(units));
+      parsedRoot = await parseStoredXml(readXmlChunks(context, file, budget, runtime), context, budget,
+        options.recover ? message => { recoveryMessages.add(message); } : undefined);
     }
     for (const message of recoveryMessages)
       await runtime.writeDiagnostic(context.stderr, `xmllint: ${message} (recovered)\n`, context.signal);

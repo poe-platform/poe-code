@@ -16,22 +16,22 @@ Incremental decoding preserves borrowed input bytes and consumer backpressure.
 For formatting and canonicalization, the stored document model writes node metadata
 and sibling links into the caller's safe-fs page store. Serialization walks sibling
 links incrementally instead of collecting them in an array. The default cache is
-1 MiB; XML tokens and active ancestry remain in memory. Use an external filesystem
+1 MiB; individual XML tokens and namespace scopes still have their own memory cost. Use an external filesystem
 backend for large workloads, since a memory backend retains its backing bytes in RAM.
 Stored XPath uses ordered, paged node references for selections, predicates and unions;
 small selection caches hold at most 128 references. It reads node metadata on demand
 and walks subtrees through stored parent/sibling links. Whitespace removal and CDATA
 conversion update those links; coalesced text stays in replayable token fragments.
-Recovery parsing writes repaired nodes into the same page store. It validates and
-normalizes input into a separate 64 KiB caller-backed source cache, then replays
-4 KiB UTF-16 windows through the same repair parser. Source backing is retired
-before output; the complete source string is never assembled. Recovery parser
-frames use linked records in that same cache, preserving namespace scopes while
-only the current frame is cached by the parser. Individual frame metadata still
-scales with attribute and namespace scope size.
+Input and linked parser frames share a separate 64 KiB caller-backed cache.
+Ordinary parsing requests at most 512 UTF-16 units at a time, accepting short chunks
+so limits and cancellation can stop the producer immediately. Recovery first
+validates normalized input, then replays 4 KiB windows through the same parser.
+Only the current frame is cached by the parser. Source and frame backing retire
+before output; no complete source string is assembled. Individual frame metadata
+still scales with attribute and namespace scope size.
 XPath string functions use a fixed small-value cache and paged code points for
 larger values. Searches and large translation maps also use caller-backed storage;
-scalar output replays bounded chunks. Individual parser tokens and parser ancestry
+scalar output replays bounded chunks. Individual parser tokens and namespace scopes
 still need bounded storage before arbitrary documents can be qualified.
 
 XML input also respects the shell execution input-byte limit for stdin and files.
@@ -44,7 +44,7 @@ Unprefixed names select nodes with no namespace. Use
 
 Stored formatting and canonicalization also place pending traversal frames in the
 caller-backed page store. Canonical namespace validation follows stored tree links;
-indentation is emitted in fixed windows. Parser ancestry and individual namespace
+indentation is emitted in fixed windows. Individual namespace
 metadata/tokens still require separate memory qualification.
 
 `storedXmlToJson` streams the xmltodict mapping from a `StoredXmlDocument`, using

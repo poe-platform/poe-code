@@ -22,8 +22,9 @@ filters and filenames must be valid, lossless UTF-8. XML input is decoded and
 parsed incrementally, so parser limits can stop further reads immediately. XML nodes and repeated-child groups use a shared 1 MiB page cache backed by the
 supplied filesystem; JSON conversion feeds jq in bounded chunks. Large inputs need
 an external backing provider, since a memory filesystem retains its contents in
-RAM. jq query values, individual XML tokens, and parser ancestry still remain in
-memory, so this is not yet a bounded-memory guarantee for arbitrary queries.
+RAM. XML source windows and linked parser frames share a separate 64 KiB
+caller-backed cache. jq query values, individual XML tokens, and namespace scopes
+still remain in memory, so this is not yet a bounded-memory guarantee for arbitrary queries.
 
 Pass `limits` to bound input/output bytes, filter bytes, XML depth/nodes/attributes,
 query steps, and results. Limits are opt-in; omitted limits retain the existing

@@ -4,8 +4,8 @@ import { createMemoryFileSystem } from '@poe-code/safe-fs';
 import { parseXmlRecovery } from './recovery.js';
 import { XmlBudget, resolveXmlQueryLimits } from './limits.js';
 
-for (const outcome of ['success', 'source', 'write', 'read', 'cancel', 'consumer', 'invalid'] as const)
-test(`recovery source uses bounded injected backing and retires it: ${outcome}`, async () => {
+for (const recovery of [true, false]) for (const outcome of ['success', 'source', 'write', 'read', 'cancel', 'consumer', 'invalid'] as const)
+test(`XML source uses bounded injected backing and retires it: recovery=${recovery}, ${outcome}`, async () => {
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error(outcome);
   let opened = 0, closed = 0, writes = 0, reads = 0, outstanding = 0, sourceClosed = false, elements = 0;
   const injected = new Proxy(fs, { get(target, key) {
@@ -47,25 +47,26 @@ test(`recovery source uses bounded injected backing and retires it: ${outcome}`,
       for (let index = 0; index < 256; index++) yield record;
       if (outcome === 'source') throw failure;
       if (outcome === 'invalid') yield '\uD800';
+      if (!recovery) yield '</r>';
     } finally { sourceClosed = true; }
   } };
   const messages: string[] = [];
   const operation = parseXmlRecovery(source, { fs: injected, cwd: '/', env: {}, signal: controller.signal },
-    new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {}), message => messages.push(message), async event => {
+    new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {}), recovery ? message => messages.push(message) : undefined, async event => {
       await Promise.resolve();
-      if (outcome === 'consumer') throw failure;
       if (event.type === 'open') elements++;
+      if (outcome === 'consumer' && (recovery || elements >= 201)) throw failure;
     });
   if (outcome === 'success') {
     const root = await operation;
     assert.equal(elements, 257);
     assert.deepEqual(root.children, []);
-    assert.deepEqual(messages, ['incomplete document']);
+    assert.deepEqual(messages, recovery ? ['incomplete document'] : []);
     assert.ok(reads > 0);
   } else if (outcome === 'invalid') await assert.rejects(operation, /invalid character/);
   else await assert.rejects(operation, error => error === failure);
   assert.ok(writes > 0);
-  assert.equal(opened, 1); assert.equal(closed, opened);
+  assert.ok(opened >= 1 && opened <= 2); assert.equal(closed, opened);
   assert.equal(outstanding, 0); assert.equal(sourceClosed, true);
   assert.deepEqual(await fs.readdir('/'), []);
 });

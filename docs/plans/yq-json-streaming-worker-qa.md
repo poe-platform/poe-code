@@ -36,8 +36,9 @@ writes use only the injected external safe-fs, read/write windows stay at or bel
 16 KiB, and scratch descriptors close after success, sink failure and cancellation.
 Repeat with `--noblanks` and each supported `--encode` value, including UTF-16 BOM
 and non-ASCII text. Compare output with native xmllint. Record the fixed page-cache cost separately
-from the largest token and active ancestry: those costs still grow with token size
-and nesting depth. Also measure startup/first-byte latency; formatting validates
+from the largest token and namespace scope: those costs still grow with token or
+scope size. Parser ancestry uses linked backing records; check deep documents with
+a fixed namespace scope independently of source size. Also measure startup/first-byte latency; formatting validates
 the document before publishing output.
 
 ## XML paged-query qualification
@@ -62,13 +63,13 @@ cache from document storage. Confirm source replay reads at most 4096 UTF-16 uni
 and retires its backing before output. Add deeply nested recovery input with short
 names and a fixed namespace scope, small enough that source text alone fits the
 cache; confirm linked parser frames spill and are restored in order. Interrupt a
-frame write and a frame read during unwinding and verify descriptor cleanup. Large
-individual tokens, namespace scopes and ordinary-parser ancestry still need separate measurements; do not qualify recovery as bounded end to end.
+frame write and a frame read during unwinding and verify descriptor cleanup. Repeat with ordinary parsing and confirm a node limit stops the producer before
+its next chunk. Large individual tokens and namespace scopes still need separate measurements; do not qualify recovery as bounded end to end.
 
 ## Remaining qualification scope
 
 Repeat with increasing *single-document* sizes, eval-all joins, YAML anchors/edits,
-jq slurp, giant XML parser tokens and deep ancestry after the remaining
+jq slurp, giant XML parser tokens and namespace scopes after the remaining
 safe-fs-backed value/parser storage lands. Those values are still memory-resident; the multi-document JSON and
 paged XML selection results cannot qualify them. A Node heap measurement cannot
 replace workerd/Cloudflare results. Store raw
@@ -92,8 +93,8 @@ above; local deterministic spill tests alone are not Worker qualification.
 ### Deep XML serialization
 
 Generate increasing nesting depths with formatting on/off and both canonical modes.
-Measure parser and serializer phases separately: parser ancestry remains resident,
-while pending serialization frames use the injected document backing. Verify frame
+Measure parser and serializer phases separately: both parser ancestry and pending
+serialization frames use injected backing with independent bounded caches. Verify frame
 allocations reach external storage, indentation chunks stay bounded, namespace
 rebindings match native xmllint, and backing failures/cancellation retire handles.
 Include wide sibling sets to capture traversal spill volume and first-byte cost.
@@ -107,5 +108,5 @@ filters through native jq. Use generated/reused chunks and slow sinks; verify XM
 node and group storage reaches the injected external backend and is retired on
 conversion failures, cancellation, and early query termination. Measure XML
 conversion separately from jq: jq still retains arbitrary query values, and XML
-parser tokens/ancestry still need bounded backing. Record Worker memory, CPU,
+parser tokens/namespace scopes still need bounded backing. Record Worker memory, CPU,
 first-byte latency, and concurrent-request behavior using the procedure above.

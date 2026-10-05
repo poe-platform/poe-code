@@ -39,3 +39,30 @@ for (const width of [1, 2, 511, 512]) it(`normalizes borrowed chunks in bounded 
   }
   expect(parseXml(normalized)).toEqual(parseXml(source));
 });
+
+it('streaming reads stop on a node limit before requesting the next input chunk', () => {
+  const parser = parseXmlSourceSteps(undefined, { maxNodes: 1 });
+  const first = parser.next();
+  expect(first.done).toBe(false);
+  if (typeof first.value !== 'object' || !('offset' in first.value)) throw new Error('expected source read');
+  expect(first.value.offset).toBe(0);
+  first.value.value = '<r><x/>';
+  expect(() => {
+    for (const step of parser) if (typeof step !== 'number') throw new Error('unexpected next input read');
+  }).toThrow('XML resource limit exceeded');
+});
+
+for (const width of [1, 7, 512]) it(`streams unknown-length source without overreading chunk boundaries (${width})`, () => {
+  const source = '<r><x a="value">text</x><!--comment--><![CDATA[tail]]></r>';
+  const parser = parseXmlSourceSteps(undefined);
+  let step = parser.next();
+  while (!step.done) {
+    if (typeof step.value !== 'number') {
+      const request = step.value;
+      request.value = source.slice(request.offset, request.offset + Math.min(width, request.length));
+      request.complete = request.offset + request.value.length === source.length;
+    }
+    step = parser.next();
+  }
+  expect(step.value).toEqual(parseXml(source));
+});

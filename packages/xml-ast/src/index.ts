@@ -224,9 +224,9 @@ export interface XmlSourceLimits extends XmlStepLimits {
 export type XmlParseStep = XmlSourceStep | XmlFrameRequest;
 
 /** Parse a validated, BOM-free, line-normalized UTF-16 source via bounded read requests. */
-export function parseXmlSourceSteps(length: number, limits?: XmlStepLimits & { readonly storeFrames?: false }): Generator<XmlSourceStep, XmlElement, void>;
-export function parseXmlSourceSteps(length: number, limits: XmlSourceLimits): Generator<XmlParseStep, XmlElement, void>;
-export function* parseXmlSourceSteps(length: number, limits: XmlSourceLimits = {}): Generator<XmlParseStep, XmlElement, void> {
+export function parseXmlSourceSteps(length: number | undefined, limits?: XmlStepLimits & { readonly storeFrames?: false }): Generator<XmlSourceStep, XmlElement, void>;
+export function parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits): Generator<XmlParseStep, XmlElement, void>;
+export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits = {}): Generator<XmlParseStep, XmlElement, void> {
   validateLimits(limits);
   if (limits.storeFrames && limits.retainTree !== false) throw new TypeError("Stored XML frames require retainTree: false");
   const source = new XmlSource(length);
@@ -265,7 +265,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlSourceLimits = {
   let pendingWork = 0;
   const skipWhitespace = function* (): Generator<XmlSourceStep, number> {
     const start = offset;
-    while (offset < source.length) {
+    while (yield* source.has(offset)) {
       const c = (yield* source.charCodeAt(offset));
       if (c !== 32 && c !== 9 && c !== 10 && c !== 13) break;
       offset++;
@@ -276,7 +276,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlSourceLimits = {
   };
   const scanName = function* (): Generator<XmlSourceStep, [string, string, string]> {
     const start = offset;
-    while (offset < source.length) {
+    while (yield* source.has(offset)) {
       const c = (yield* source.charCodeAt(offset));
       if (c === 32 || c === 9 || c === 13 || c === 10 || c === 47 || c === 61 || c === 62 || c === 63) break;
       offset++;
@@ -289,7 +289,7 @@ export function* parseXmlSourceSteps(length: number, limits: XmlSourceLimits = {
     const [prefix, localName] = qualifiedNameSync(name, qualifiedNames);
     return [name, prefix, localName];
   };
-  while (offset < source.length) {
+  while (yield* source.has(offset)) {
     pendingWork += 1;
     if (pendingWork >= 512) {
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }

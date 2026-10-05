@@ -6,7 +6,7 @@ export function validCharacter(point: number): boolean {
 }
 
 /** Validate scalar values and normalize XML line endings in fixed windows. */
-export async function* normalizeXmlChunks(source: AsyncIterable<string> | Iterable<string>): AsyncGenerator<string> {
+export async function* normalizeXmlChunks(source: AsyncIterable<string> | Iterable<string>, flushChunks = false): AsyncGenerator<string> {
   let first = true, afterCR = false, high = 0, output = '';
   for await (const chunk of source) {
     for (let index = 0; index < chunk.length; index++) {
@@ -24,6 +24,7 @@ export async function* normalizeXmlChunks(source: AsyncIterable<string> | Iterab
       }
       if (output.length >= 512) { yield output; output = ''; }
     }
+    if (flushChunks && output) { yield output; output = ''; }
   }
   if (high) throw new SyntaxError('Invalid XML: invalid character');
   if (output) yield output;

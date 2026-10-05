@@ -55,7 +55,7 @@ for (const fail of [false, true]) test(`XML node storage spills through injected
     } finally { await document.close(); }
   }
   assert.ok(writes > 1, "large input must reach the injected backing store");
-  assert.equal(opened, 1);
+  assert.ok(opened >= 1 && opened <= 3, "only source, ancestry and document backing may be opened");
   assert.equal(closed, opened);
   assert.deepEqual(await fs.readdir("/"), []);
 });
@@ -124,7 +124,7 @@ for (const cancel of [false, true]) test(`serializer retires stored frames after
   try {
     await assert.rejects(async () => { for await (const part of serializeDocument(document, "format", budget, false)) assert.ok(part.length <= 4096); }, error => error === failure);
   } finally { await document.close(); }
-  assert.equal(opened, 1); assert.equal(closed, opened);
+  assert.ok(opened >= 1 && opened <= 3, "only source, ancestry and document backing may be opened"); assert.equal(closed, opened);
   assert.deepEqual(await fs.readdir("/"), []);
 });
 
@@ -145,5 +145,31 @@ for (const width of [1, 7, 512]) test(`recovery reads chunked source with split 
     assert.equal(actualOutput, expectedOutput);
     assert.deepEqual(actualMessages, expectedMessages);
   } finally { await document.close(); }
+  assert.deepEqual(await fs.readdir('/'), []);
+});
+
+test('ordinary XML parser ancestry spills independently of document cache size', async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  let writes = 0;
+  const injected = new Proxy(fs, { get(target, key) {
+    if (key === 'open') return async (...args: Parameters<typeof fs.open>) => {
+      const handle = await fs.open(...args);
+      return new Proxy(handle, { get(descriptor, member) {
+        if (member === 'write') return async (...args: Parameters<typeof handle.write>) => { writes++; return handle.write(...args); };
+        const value = Reflect.get(descriptor, member, descriptor);
+        return typeof value === 'function' ? value.bind(descriptor) : value;
+      } });
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  } });
+  const source = { async *[Symbol.asyncIterator]() {
+    for (let index = 0; index < 600; index++) yield '<x>';
+    for (let index = 0; index < 600; index++) yield '</x>';
+  } };
+  const document = await StoredXmlDocument.parse(source, { fs: injected, cwd: '/', env: {}, signal },
+    new XmlBudget(resolveXmlQueryLimits(), signal, async () => {}));
+  try { assert.ok(writes > 0, 'small documents with deep ancestry must spill parser state'); }
+  finally { await document.close(); }
   assert.deepEqual(await fs.readdir('/'), []);
 });

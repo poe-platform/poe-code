@@ -62,7 +62,7 @@ for (const cancel of [false, true]) test(`XML formatting uses injected paged sto
     const expected = encoder.encode('<?xml version="1.0"?>\n<r></r>\n').length + records * (payload.length + 7);
     assert.equal(output, args.includes("--noout") ? 0 : args.includes("concat(/r, /r)") ? 2 * records * payload.length + 1 : args.includes("count(//x)") ? 3 : args.includes("//x[last()]") ? payload.length + 8 : args.includes("UTF-16") ? (expected + ' encoding="UTF-16"'.length) * 2 + 2 : expected);
   }
-  assert.equal(opened, args.includes("--recover") && !args.includes("--noout") ? 2 : 1);
+  assert.ok(opened >= 1 && opened <= 3, "only source, ancestry and document backing may be opened");
   assert.equal(closed, opened);
   assert.equal(outstanding, 0);
   assert.ok(written >= 1024 * 1024, "document data must reach the caller's backing store");

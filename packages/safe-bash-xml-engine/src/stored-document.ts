@@ -1,4 +1,4 @@
-import { parseXmlRecovery } from "./recovery.js";
+import { parseStoredXml } from "./recovery.js";
 import { parseXmlStream, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { XmlBudget } from "./limits.js";
@@ -58,10 +58,7 @@ export class StoredXmlDocument {
             parent = reference;
           }
       };
-      if (recover) await parseXmlRecovery(source, context, budget, recover, consume); else await parseXmlStream(source, {
-        ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false,
-        events: consume,
-      }, units => budget.tick(units));
+      await parseStoredXml(source, context, budget, recover, consume);
       return document;
     } catch (error) {
       try { await document.close(); }

@@ -25,10 +25,10 @@ for (const input of [
 
 for (const cancel of [false, true]) test(`XML JSON grouping spills beyond its bounded index cache (cancel=${cancel})`, async () => {
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("consumer stopped");
-  let writes = 0, active = 0, closed = 0;
+  let writes = 0, active = 0, closed = 0, opened = 0;
   const injected = new Proxy(fs, { get(target, key) {
     if (key === "open") return async (...args: Parameters<typeof fs.open>) => {
-      const handle = await fs.open(...args);
+      const handle = await fs.open(...args); opened++;
       return new Proxy(handle, { get(descriptor, member) {
         if (member === "write") return async (...args: Parameters<typeof handle.write>) => {
           assert.ok(args[0].length <= 16384); assert.equal(++active, 1);
@@ -65,5 +65,5 @@ for (const cancel of [false, true]) test(`XML JSON grouping spills beyond its bo
     }
     assert.ok(writes > before + 10, "grouping state must reach injected storage");
   } finally { await document.close(); }
-  assert.equal(active, 0); assert.equal(closed, 1); assert.deepEqual(await fs.readdir('/'), []);
+  assert.equal(active, 0); assert.ok(opened >= 1 && opened <= 3); assert.equal(closed, opened); assert.deepEqual(await fs.readdir('/'), []);
 });

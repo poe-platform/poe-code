@@ -93,10 +93,10 @@ test("paged XPath selections replay document order and deduplicate beyond the fi
 
 for (const cancellation of [false, true]) test(`stored XPath retires backing after a query read fails (cancellation=${cancellation})`, async () => {
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("query read failed");
-  let fail = false, closed = 0;
+  let fail = false, closed = 0, opened = 0;
   const injected = new Proxy(fs, { get(target, key) {
     if (key === "open") return async (...args: Parameters<typeof fs.open>) => {
-      const descriptor = await fs.open(...args);
+      const descriptor = await fs.open(...args); opened++;
       return new Proxy(descriptor, { get(handle, member) {
         if (member === "read") return async (...args: Parameters<typeof descriptor.read>) => {
           if (fail) {
@@ -123,7 +123,7 @@ for (const cancellation of [false, true]) test(`stored XPath retires backing aft
   fail = true;
   try { await assert.rejects(new StoredXPath(document, budget).scalar(query), error => error === failure); }
   finally { await document.close(); }
-  assert.equal(closed, 1);
+  assert.ok(opened >= 1 && opened <= 3); assert.equal(closed, opened);
   assert.deepEqual(await fs.readdir('/'), []);
 });
 

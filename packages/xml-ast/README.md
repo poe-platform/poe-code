@@ -61,3 +61,11 @@ The iterator also yields `frameOperation` requests: `push` saves the supplied fr
 metadata. Keep the host stack in bounded backing storage. The parser caches one
 current frame; individual frame metadata and namespace scopes still have their own
 size cost. The default string and stream APIs retain their existing ancestry behavior.
+
+Pass `undefined` as the source length to parse incrementally. Such read requests
+have `streaming: true` and request at most 512 UTF-16 units. Return any nonempty
+prefix available without pulling more input; set `complete: true` only when that
+read reaches EOF (an empty EOF read is valid). Earlier offsets may be requested
+again, so retain source spans in caller-backed storage. With `normalizeXmlChunks`,
+pass `true` as the second argument to flush at input-chunk boundaries and preserve
+early parser failures. The string parser and known-length protocol are unchanged.

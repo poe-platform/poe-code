@@ -41,6 +41,6 @@ for (const scenario of ["success", "cancel", "write", "early"] as const) test(`x
   else if (scenario === "early") { assert.equal((await result).exitCode, 0); assert.equal(output, ""); }
   else { await assert.rejects(result, error => error === failure); assert.equal(output, ""); }
   assert.ok(written > 1024 * 1024, "XML conversion must spill into caller backing");
-  assert.equal(opened, 1); assert.equal(closed, opened);
+  assert.ok(opened >= 1 && opened <= 3, "only source, ancestry and document backing may be opened"); assert.equal(closed, opened);
   assert.deepEqual(await fs.readdir("/"), []);
 });

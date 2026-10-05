@@ -85,8 +85,6 @@ function buildConfigTable(options: GetconfCommandsOptions): Record<string, strin
     _POSIX_PATH_MAX: "256",
     PAGE_SIZE: "4096",
     PAGESIZE: "4096",
-    _SC_PAGE_SIZE: "4096",
-    _SC_PAGESIZE: "4096",
     NPROCESSORS_ONLN: nproc,
     _NPROCESSORS_ONLN: nproc,
     NPROCESSORS_CONF: nproc,
@@ -241,9 +239,16 @@ export function createGetconfCommand(options: GetconfCommandsOptions = {}): Comm
       }
 
       const varName = operands[0]!;
-      const normalized = varName.startsWith("_CS_") ? varName.slice(4) : varName.startsWith("_PC_") ? varName.slice(4) : varName;
+      const normalized = ["_CS_", "_PC_", "_SC_"].some(prefix => varName.startsWith(prefix))
+        ? varName.slice(4)
+        : varName;
+      const isPathVariable = PATH_VARIABLES.has(normalized);
 
       if (operands.length === 2) {
+        if (!isPathVariable) {
+          await writeText(context.stderr, `getconf: ${varName} does not accept a pathname\n`);
+          return { exitCode: 1 };
+        }
         const pathArg = operands[1]!;
         const resolved = resolveVfsPath(context.cwd, pathArg);
         try {
@@ -252,8 +257,10 @@ export function createGetconfCommand(options: GetconfCommandsOptions = {}): Comm
           await writeText(context.stderr, `getconf: ${pathArg}: No such file or directory\n`);
           return { exitCode: 1 };
         }
-      } else if (PATH_VARIABLES.has(normalized) && normalized !== "NAME_MAX" && normalized !== "PATH_MAX" && normalized !== "PIPE_BUF") {
-        // Allow NAME_MAX, PATH_MAX, PIPE_BUF both with and without pathname for convenience
+      } else if (isPathVariable && normalized !== "NAME_MAX" && normalized !== "PATH_MAX" && normalized !== "PIPE_BUF") {
+        // NAME_MAX, PATH_MAX, and PIPE_BUF retain optional pathnames for convenience.
+        await writeText(context.stderr, `getconf: ${varName} requires a pathname\n`);
+        return { exitCode: 1 };
       }
 
       const value = table[varName] ?? table[normalized];

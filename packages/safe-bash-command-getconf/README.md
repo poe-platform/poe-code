@@ -8,8 +8,8 @@ Inspect system-wide and path-specific configuration variables expected by build 
 
 ## Features
 
-- `getconf SYSTEM_VAR` — Query `PAGESIZE`, `PAGE_SIZE`, `LONG_BIT`, `WORD_BIT`, `ARG_MAX`, `_NPROCESSORS_ONLN`, `GNU_LIBC_VERSION`, and more
-- `getconf PATH_VAR PATH` — Query `NAME_MAX`, `PATH_MAX`, `PIPE_BUF`, and `FILESIZEBITS`
+- `getconf SYSTEM_VAR` — Query `PAGESIZE`, `PAGE_SIZE`, `LONG_BIT`, `WORD_BIT`, `ARG_MAX`, `_NPROCESSORS_ONLN`, `GNU_LIBC_VERSION`, and more; `_SC_` aliases use the same configured values
+- `getconf PATH_VAR PATH` — Query `NAME_MAX`, `PATH_MAX`, `PIPE_BUF`, and `FILESIZEBITS`; path variables require a pathname except `NAME_MAX`, `PATH_MAX`, and `PIPE_BUF`, which also work without one. System variables reject pathnames
 - `-a` — Dump all known configuration variables and values
 
 ## Quick Start

@@ -4820,7 +4820,7 @@
         }
       },
       "checkpoint20261004": {
-        "qualified": "Scoped record/style/protection/theme, formula/name identity and rich-text repairs are delivered; registration of 48 directional services is not full format closure. Raw-NUL/control/literal-escape cell and defined-name formula transport is qualified through both current compiled XLSX editions, SDK/command conversion and edits;100 independent wire checks across10 archives pass. Retained note rectangle/anchor/visibility/movement flags survive both XLSX editions, SDK/command conversions and text edits; malformed/ambiguous source geometry is not reused. Comment print flags are qualified through independent VML input, both XLSX editions and public conversion/edit/readback; retained rectangle geometry remains unchanged.",
+        "qualified": "Scoped record/style/protection/theme, formula/name identity and rich-text repairs are delivered; registration of 48 directional services is not full format closure. Raw-NUL/control/literal-escape cell and defined-name formula transport is qualified through both current compiled XLSX editions, SDK/command conversion and edits;100 independent wire checks across10 archives pass. Retained note rectangle/anchor/visibility/movement flags survive both XLSX editions, SDK/command conversions and text edits; malformed/ambiguous source geometry is not reused. Comment print flags are qualified through independent VML input, both XLSX editions and public conversion/edit/readback; retained rectangle geometry remains unchanged. Explicit Locked/LockText note protection flags survive both XLSX editions, public conversion and text edits; valid boolean spellings retain their meaning.",
         "evidence": [
           "#/reference/xlsxAllocatedDefaultStyle",
           "#/reference/xlsxSelfContainedThemes",
@@ -4829,9 +4829,10 @@
           "#/reference/glossaryFilenameAndSaver",
           "#/xlsxFormulaNulTransport",
           "#/xlsxCommentGeometry",
-          "#/xlsxCommentPrint"
+          "#/xlsxCommentPrint",
+          "#/xlsxCommentProtection"
         ],
-        "nextAcceptance": "Continue remaining rich-comment metadata/geometry beyond retained note rectangles and print flags, native rendering and remaining directional-service semantics.",
+        "nextAcceptance": "Continue remaining rich-comment metadata/geometry beyond retained note rectangles, print and protection flags, native rendering and remaining directional-service semantics.",
         "closureGate": "Close applicable per-format/version/record semantics, diagnostics and installed public composition; require explicit loss outcomes for unsupported records.",
         "qualificationBlockers": [
           "Calc/Gnumeric lose selected original protection/comment fields; matching empty readbacks do not qualify preservation.",
@@ -4839,7 +4840,7 @@
           "Gnumeric1.12.61 passes raw formula XML text to xlsx_parse_expr and preserves ST_Xstring escape spelling; native readback does not prove decoded NUL/literal-escape identity."
         ],
         "remainingAcceptance": [
-          "Existing directional-service matrix: remaining rich-comment metadata/geometry beyond retained note rectangles and print flags, native rendering and independent edit/readback. Raw-NUL formula wire/public export is qualified; retain native Gnumeric escape-decoding limitations.",
+          "Existing directional-service matrix: remaining rich-comment metadata/geometry beyond retained note rectangles, print and protection flags, native rendering and independent edit/readback. Raw-NUL formula wire/public export is qualified; retain native Gnumeric escape-decoding limitations.",
           "Remaining formula/name/style/encoding/metadata/merge/chart/object/link semantics and installed composition; explicit loss diagnostics for unsupported records, not opaque-preservation claims."
         ]
       }
@@ -6904,5 +6905,11 @@
     "scopedValidation": "32 SDK/command conversions on Node22.22.2/26.10.0 produce17024 exact native binary64/error matches. Independent ZIP/XML extraction validates formula function/argument identity and exact cell counts before values. All992 warning observations exactly match retained diagnostics, including48 original and200 baseline warnings per route/runtime. No mismatches or conversion failures.",
     "rootOutcome": "Root17.0.41 first912-case SDK conversion was still running at120seconds with96.4percent CPU and no completed result; isolated process terminated with143. No output captured and no root pass claimed. Other root routes/cohorts were not run. Its gitHead c8851094da60e42b6c29fbd9da88351ef4dba270 predates bounded-series repair d0d1eac6e9; existing source repair remains on main. This run alone does not establish a new source defect.",
     "remaining": "Root containing publication and remaining independent domain/runtime/work-ceiling profiles; retain explicit Linux/Darwin libm/FMA distinctions and broader scope. No runtime implementation change or family closure."
+  },
+  "xlsxCommentProtection": {
+    "finding": "Both XLSX editions dropped retained VML Locked and LockText note protection fields. Two memory-only import/re-export regressions failed before repair.",
+    "implementation": "Retain these scalar boolean ClientData fields using the existing namespace, unique note identity, anchor and spelling validation. Arbitrary VML and relationships are not copied.",
+    "validation": "410 tests in38 owning-package files pass; changed source/test lint, package test types and selected20-workspace build pass. Four compiled SDK/command conversions and four note-text edited exports pass. Independent Python ZIP/XML checks on input plus8exports verify protection, print, geometry and text. Valid boolean spellings, foreign namespace, malformed flags, button, moved and duplicate identities are covered.",
+    "remaining": "Native application protection enforcement/rendering, other VML metadata and containing installed artifacts remain unqualified; all broader family gates stay open."
   }
 }

@@ -44,7 +44,7 @@ export function readCommentGeometry(roots: readonly (MetadataNode | undefined)[]
       else if (name === "z-index" && value && Number.isSafeInteger(Number(value))) style[name] = value;
     }
     const flags = [];
-    for (const name of ["MoveWithCells", "SizeWithCells", "Visible", "AutoFill"]) {
+    for (const name of ["MoveWithCells", "SizeWithCells", "Visible", "AutoFill", "Locked", "LockText"]) {
       const field = fields.get(name); if (!field) continue;
       const text = field.text.trim();
       if (["", "true", "false", "t", "f", "1", "0"].includes(text.toLowerCase())) flags.push({ name, text });

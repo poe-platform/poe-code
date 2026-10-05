@@ -62,3 +62,30 @@ it("does not copy relationships, executable styling or malformed anchors from re
   const malformed = await output("2008", "B2", shape.replace('2, 12, 3, 6, 5, 8, 9, 10', '2, bad, 3, 6, 5, 8, 9, 10'));
   expect(malformed).not.toContain('width:144pt');
 });
+
+for (const edition of ["2006", "2008"] as const) {
+  it(`retains explicit note protection flags through text edits and XLSX replay (${edition})`, async () => {
+    const protectedShape = shape.replace("<x:Visible/>", "<x:Visible/><x:Locked>False</x:Locked><x:LockText>True</x:LockText>");
+    const xml = await output(edition, "B2", protectedShape, true);
+    expect(xml).toContain("<x:Locked>False</x:Locked>");
+    expect(xml).toContain("<x:LockText>True</x:LockText>");
+  });
+}
+
+it("retains valid protection spellings without copying ambiguous or unrelated flags", async () => {
+  for (const value of ["", "true", "false", "t", "f", "1", "0"]) {
+    const source = shape.replace("<x:Visible/>", `<x:Visible/><x:Locked>${value}</x:Locked><x:LockText>${value}</x:LockText>`);
+    const xml = parseXml(await output("2008", "B2", source));
+    const data = xml.children.find(n => n.localName === "shape")!.children.find(n => n.localName === "ClientData")!;
+    for (const name of ["Locked", "LockText"]) expect(data.children.find(n => n.localName === name)?.text).toBe(value);
+  }
+  const flags = "<x:Locked>False</x:Locked><x:LockText>True</x:LockText>";
+  const source = shape.replace("<x:Visible/>", flags);
+  for (const candidate of [source + source, source.replace('ObjectType="Note"', 'ObjectType="Button"'),
+    shape.replace("<x:Visible/>", '<foreign:Locked xmlns:foreign="urn:foreign">False</foreign:Locked>'),
+    shape.replace("<x:Visible/>", '<x:Locked>invalid</x:Locked><x:LockText>invalid</x:LockText>')]) {
+    const xml = await output("2008", "B2", candidate);
+    expect(xml).not.toContain("<x:Locked"); expect(xml).not.toContain("<x:LockText");
+  }
+  expect(await output("2008", "C3", source)).not.toContain("<x:Locked");
+});

@@ -1,3 +1,4 @@
+import { BiffPropertyNames } from './biff-property-names.js';
 import { BiffOriginalProperties } from './biff-property-observations.js';
 import { BiffMutablePropertyValues } from './biff-property-values.js';
 import { createBiffPropertyNameEncoder } from "./biff-property-name.js";
@@ -182,7 +183,7 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     return propertyRange(bytes, context);
   };
   for (const [name, snapshot] of snapshots) {
-    const seen = new Set<string>();
+    const seen = new BiffPropertyNames(context, charge); temporarySources.push(seen);
     async function* modeled(): AsyncIterable<ImportedValue> {
       if (snapshot.modeled) { yield* snapshot.modeled; return; }
       // SummaryInformation is read first. A legacy document-only snapshot lacks
@@ -201,8 +202,8 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
         invalidBiff("invalid retained property identity");
       const [offset, id, key] = entry as [number, number, string];
       const property = await original.get(name, offset, id);
-      if (!property || property.key !== key || seen.has(key)) invalidBiff("invalid retained property identity");
-      seen.add(key);
+      if (!property || property.key !== key || await seen.has(key)) invalidBiff("invalid retained property identity");
+      await seen.add(key);
       charge(old.get(name)!.length);
       const section = old.get(name)!.find(section => section.offset === offset)!;
       const replacement = pending.get(key);
@@ -321,11 +322,11 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     }
     const snapshot = snapshots.get(name); if (snapshot) handled.add(snapshot.record);
   }
-  const exposed = new Set<string>();
-  await readBiffProperties(staged?.sources ?? streams, readContext, accountText, charge, undefined, property => {
-    admit(1); if (!Object.hasOwn(book.properties ?? {}, property.key)) exposed.add(property.key);
+  const exposed = new BiffPropertyNames(context, charge); temporarySources.push(exposed);
+  await readBiffProperties(staged?.sources ?? streams, readContext, accountText, charge, undefined, async property => {
+    admit(1); if (!Object.hasOwn(book.properties ?? {}, property.key)) await exposed.add(property.key);
   }, false);
-  for (const key of exposed) await warn(key, "opaque property exposes a field absent from the model");
+  for await (const key of exposed.values()) await warn(key, "opaque property exposes a field absent from the model");
   } catch (error) {
     try { await closeTemporary(); } catch (cleanup) { throw new AggregateError([error, cleanup], "BIFF property merge and cleanup failed"); }
     throw error;

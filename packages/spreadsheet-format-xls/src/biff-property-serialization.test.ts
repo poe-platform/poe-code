@@ -728,6 +728,45 @@ it('merges without retaining decoded property observations in maps', async () =>
   expect(state.closed).toBe(state.acquired);
 });
 
+it.each([false, true])('merges without resident name sets (exposed=%s)', async exposed => {
+  const seed = { sheets: book.sheets, properties: { 'dc:title': 'old' } };
+  const fresh = await writeBiffProperties(seed, context), stream = '\u0005SummaryInformation', bytes = fresh.streams.get(stream)!;
+  const input = { ...seed, properties: exposed ? {} : { 'dc:title': 'changed' }, unsupportedRecords: [{
+    source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+    data: { stream, ...(exposed ? { modeled: [] } : {}), bytes: Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('') }
+  }] };
+  const expected = await writeBiffProperties(input, context), freshReplacement = await writeBiffProperties({ sheets: input.sheets, properties: input.properties }, context);
+  const { ctx, state } = fixture(), add = Set.prototype.add, warnings: string[] = [];
+  const active: CapabilityContext = { ...ctx, diagnostic: async diagnostic => { warnings.push(diagnostic.message); } };
+  const replacements = new Map(freshReplacement.streams);
+  Set.prototype.add = function (value) {
+    if (value === 'dc:title') throw new Error('resident retained property name');
+    return add.call(this, value);
+  };
+  try {
+    await mergeBiffProperties(input, replacements, new Set(), active, () => {}, length => new Uint8Array(length));
+    expect(replacements).toEqual(expected.streams);
+  } finally { Set.prototype.add = add; }
+  expect(state.closed).toBe(state.acquired);
+  expect(warnings).toHaveLength(exposed ? 1 : 0);
+  if (exposed) expect(warnings[0]).toContain('dc:title');
+});
+
+it.each(['read', 'abort', 'close'])('rejects property-name replay after %s and retires storage', async mode => {
+  const { ctx, state, failure } = fixture(), controller = new AbortController();
+  const names = new BiffPropertyNames({ ...ctx, signal: controller.signal }, () => {});
+  await names.add('first'); await names.add('second');
+  const values = names.values()[Symbol.asyncIterator](); expect(await values.next()).toEqual({ done: false, value: 'first' });
+  if (mode === 'read') state.mode = 'read';
+  else if (mode === 'abort') controller.abort(failure);
+  else await names.close();
+  try {
+    if (mode === 'close') await expect(values.next()).rejects.toThrow('closed');
+    else await expect(values.next()).rejects.toBe(failure);
+  } finally { await names.close(); }
+  expect(state.closed).toBe(state.acquired);
+});
+
 it('preserves mutable property insertion order and detached payloads beyond the index cache', async () => {
   const { ctx, state, cleanups } = fixture(), values = new BiffMutablePropertyValues(ctx, () => {});
   const range = (id: number) => { const bytes = new Uint8Array(4); new DataView(bytes.buffer).setUint32(0, id, true); return propertyRange(bytes, ctx); };
@@ -802,11 +841,13 @@ it('closes mutable value storage once even when cleanup fails', async () => {
 
 it.each([false, true])('retains exact property-name identity beyond the bounded cache (stored=%s)', async stored => {
   const { ctx, state, cleanups } = fixture(), names = new BiffPropertyNames(stored ? ctx : context, () => {});
-  const input = ['', 'A', 'AB', 'a', 'A\0', 'A\0B', '😀', 'x'.repeat(50000), ...Array.from({ length: 300 }, (_, i) => `Name${i}`)];
+  const input = ['', 'A', 'AB', 'a', 'A\0', 'A\0B', '😀', '\ud800', 'x'.repeat(50000), ...Array.from({ length: 300 }, (_, i) => `Name${i}`)];
   try {
     for (const name of input) { expect(await names.has(name)).toBe(false); await names.add(name); }
     for (const name of input) { expect(await names.has(name)).toBe(true); await names.add(name); }
     for (const name of ['B', 'Ab', 'A\0C', 'Name301']) expect(await names.has(name)).toBe(false);
+    const replayed: string[] = []; for await (const name of names.values()) replayed.push(name);
+    expect(replayed).toEqual(input);
   } finally { await names.close(); for (const close of cleanups) await close(); }
   expect(state.closed).toBe(state.acquired); expect(state.acquired).toBe(stored ? 1 : 0);
   expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
@@ -818,6 +859,8 @@ it('compares exact names when their bounded hash keys collide', async () => {
     for (const name of ['', 'AB', 'AC', 'A\0', 'Longer']) await names.add(name);
     for (const name of ['', 'AB', 'AC', 'A\0', 'Longer']) expect(await names.has(name)).toBe(true);
     for (const name of ['A', 'AD', 'A\u0001', 'Longer!']) expect(await names.has(name)).toBe(false);
+    const replayed: string[] = []; for await (const name of names.values()) replayed.push(name);
+    expect(replayed).toEqual(['', 'AB', 'AC', 'A\0', 'Longer']);
   } finally { hash.mockRestore(); await names.close(); }
   expect(state.closed).toBe(state.acquired);
 });

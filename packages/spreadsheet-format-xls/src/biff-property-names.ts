@@ -9,6 +9,8 @@ export class BiffPropertyNames {
   private readonly index: IntegerTable | undefined;
   private readonly fallback: Set<string> | undefined;
   private initialized = false;
+  private first = 0;
+  private last = 0;
   private pending: Promise<unknown> = Promise.resolve();
   private closed = false;
   private closing: Promise<void> | undefined;
@@ -93,11 +95,35 @@ export class BiffPropertyNames {
         await this.io(() => this.storage!.write(start + at * 2, buffer.subarray(0, count * 2))); at += count;
       }
     } finally { buffer.fill(0); }
-    const record = new Uint8Array(24), descriptor = new DataView(record.buffer);
+    const record = new Uint8Array(32), descriptor = new DataView(record.buffer);
     descriptor.setFloat64(0, Number(head ?? 0n), true); descriptor.setFloat64(8, name.length, true); descriptor.setFloat64(16, start, true);
     const position = this.allocate(record.length);
     try { await this.io(() => this.storage!.write(position, record)); } finally { record.fill(0); }
     await this.index!.set(key, BigInt(position)); this.check();
+    if (this.last) {
+      const link = new Uint8Array(8); new DataView(link.buffer).setFloat64(0, position, true);
+      try { await this.io(() => this.storage!.write(this.last + 24, link)); } finally { link.fill(0); }
+    } else this.first = position;
+    this.last = position;
+  }
+  async *values(): AsyncIterable<string> {
+    this.check();
+    if (this.fallback) { for (const name of this.fallback) { this.check(); yield name; } return; }
+    let position = this.first;
+    while (position) {
+      const record = new DataView((await this.read(position, 32)).buffer);
+      const length = record.getFloat64(8, true), start = record.getFloat64(16, true);
+      position = record.getFloat64(24, true); this.charge(length + 1);
+      let name = '';
+      for (let at = 0; at < length;) {
+        const count = Math.min(8192, length - at), bytes = await this.read(start + at * 2, count * 2);
+        const view = new DataView(bytes.buffer), units = new Uint16Array(count);
+        for (let i = 0; i < count; i++) units[i] = view.getUint16(i * 2, true);
+        name += String.fromCharCode(...units); at += count;
+      }
+      yield name;
+    }
+    this.check();
   }
   close(): Promise<void> {
     this.closed = true; this.fallback?.clear();

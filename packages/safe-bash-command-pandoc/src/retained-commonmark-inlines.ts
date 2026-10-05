@@ -12,7 +12,8 @@ export async function parseRetainedCommonMarkInlines(
   syntax: RetainedCommonMarkSyntax, tape: PagedStorage, ast: RetainedRtfAst, context: AdapterContext,
   extensions: Readonly<Record<string, boolean>> = {},
   definition?: (label: string) => Promise<{destination: SourceRange; title: SourceRange} | undefined>,
-  counts: {lines: number; definitions: number} = {lines: 1, definitions: 0}
+  counts: {lines: number; definitions: number} = {lines: 1, definitions: 0},
+  imageTarget?: (target: RtfValue, offset: number) => Promise<void>
 ): Promise<RtfValue> {
   context.checkpoint(0);
   const size = syntax.range.end - syntax.range.start;
@@ -174,6 +175,7 @@ export async function parseRetainedCommonMarkInlines(
       const url = await ast.string(await ast.text.from(syntax.uri(syntax.decoded(target.url))));
       const title = await ast.string(await ast.text.from(syntax.decoded(target.title)));
       const value = await ast.tag(opener[2] ? "Image" : "Link", await ast.value([["", [], []], await ast.array(), [url, title]]));
+      if (opener[2]) await imageTarget?.(url, opener[1]! - syntax.range.start);
       await append(value, false, first); await removeNode(opener[0]!); if (!opener[2]) await deactivateLinks(); i = target.end; continue;
     }
     if (unit === "<" || extensions.autolink_bare_uris && !bracket) {

@@ -11,17 +11,42 @@ import type {SourceRange} from "./retained-source-text.js";
  * List-item and block continuations remain on the same caller-owned tape. */
 export async function assembleRetainedCommonMark(
   parser: RetainedCommonMarkBlocks, ast: RetainedRtfAst, tape: PagedStorage, context: AdapterContext,
-  extensions: Readonly<Record<string, boolean>>
+  extensions: Readonly<Record<string, boolean>>,
+  imageTarget?: (target: RtfValue, line: number) => Promise<void>
 ): Promise<RtfValue> {
   const source = parser.source, definitions = parser.lookup.bind(parser);
   const literal = async (range: SourceRange) => ast.string(await ast.text.from(source.chunks(range)));
-  const inline = async (range: SourceRange, lines = 1) => parseRetainedCommonMarkInlines(
-    new RetainedCommonMarkSyntax(source, range, context), tape, ast, context, extensions, definitions,
-    {lines, definitions: parser.definitionCount}
-  );
+  const inline = async (range: SourceRange, lines = 1, position?: number, sourceLine = 1) => {
+    // Line starts use fixed records on caller storage. Binary lookup also handles
+    // nested images, whose closing order is different from their source order.
+    let index = 0, count = 0;
+    if (imageTarget && position !== undefined) {
+      index = tape.allocate(lines * 16); let offset = 0, original = 0;
+      for await (const line of parser.lines(position)) original += line.range.end - line.range.start + 1;
+      const removed = original - 1 - (range.end - range.start);
+      for await (const line of parser.lines(position)) {
+        const bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
+        view.setFloat64(0, offset, true); view.setFloat64(8, line.line, true);
+        await tape.write(index + count * 16, bytes);
+        offset += line.range.end - line.range.start + 1 - (count ? 0 : removed); count++;
+      }
+    }
+    return parseRetainedCommonMarkInlines(
+      new RetainedCommonMarkSyntax(source, range, context), tape, ast, context, extensions, definitions,
+      {lines, definitions: parser.definitionCount}, imageTarget && (async (target, offset) => {
+        let low = 0, high = count;
+        while (low < high) {
+          const middle = Math.floor((low + high) / 2), bytes = await tape.read(index + middle * 16, 16);
+          const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+          if (view.getFloat64(0, true) <= offset) {sourceLine = view.getFloat64(8, true); low = middle + 1;} else high = middle;
+        }
+        await imageTarget(target, sourceLine);
+      })
+    );
+  };
   const attrs = () => ast.value(["", [], []]);
   const table = async (position: number) => {
-    const header = (await parser.node(position)).first, columns = await ast.array();
+    const block = await parser.node(position), header = block.first, columns = await ast.array();
     for await (const cell of parser.lines(header)) {
       const name = (["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter"] as const)[cell.alignment]!;
       await ast.push(columns, await ast.value([await ast.tag(name), await ast.tag("ColWidthDefault")]));
@@ -33,7 +58,7 @@ export async function assembleRetainedCommonMark(
         for (let i = 0; i < count; i++) {
           const cell = await iterator.next(), content = await ast.array();
           if (!cell.done && cell.value.range.end > cell.value.range.start) {
-            const inlines = await inline(cell.value.range); if (await ast.count(inlines)) await ast.push(content, await ast.tag("Plain", inlines));
+            const inlines = await inline(cell.value.range, 1, undefined, block.startLine); if (await ast.count(inlines)) await ast.push(content, await ast.tag("Plain", inlines));
           }
           await ast.push(cells, await ast.value([await attrs(), await ast.tag("AlignDefault"), 1, 1, content]));
         }
@@ -115,7 +140,7 @@ export async function assembleRetainedCommonMark(
           }
         })());
       } else range = await parser.joined(current);
-      let inlines = await inline(range, block.lineCount);
+      let inlines = await inline(range, block.lineCount, current);
       if (current === taskNode) {
         const content = await ast.array();
         await ast.push(content, await ast.tag("Span", await ast.value([["", ["task-list-marker"], [["checked", String(checked)]]], []])));

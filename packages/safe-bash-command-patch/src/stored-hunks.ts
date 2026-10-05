@@ -1,4 +1,5 @@
-import type { IndexedDocument } from "safe-bash-diff-engine/document";
+import { closeDocumentResources, type IndexedDocument } from "safe-bash-diff-engine/document";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { Budget, ToolError } from "safe-bash-diff-engine/shared";
 import { startIndex, type FilePatch, type HunkApplication } from "./unified.js";
 import { equalTargetLines, TargetDocuments, TargetOutput, type TargetLine } from "./stored-target.js";
@@ -9,13 +10,26 @@ export async function applyStoredHunks(original: IndexedDocument, patch: FilePat
   } };
   budget.countLines(source.length);
   const result = new TargetOutput(documents);
+  const indices = new PagedStorage(budget.context, 16, documents.cache);
   try {
     let cursor = 0;
     let offset = 0;
     let outputOffset = 0;
     for (const [hunkIndex, hunk] of patch.hunks.entries()) {
       budget.step();
-      const oldLines = hunk.lines.filter(line => line.kind !== "+");
+      const oldIndex = indices.allocate((hunk.oldCount + hunk.newCount) * 8), newIndex = oldIndex + hunk.oldCount * 8;
+      let oldPosition = oldIndex, newPosition = newIndex;
+      const cell = new Uint8Array(8), view = new DataView(cell.buffer);
+      for (let index = 0; index < hunk.lines.length; index++) {
+        view.setFloat64(0, index, true);
+        if (hunk.lines[index]!.kind !== "+") { await indices.write(oldPosition, cell); oldPosition += 8; }
+        if (hunk.lines[index]!.kind !== "-") { await indices.write(newPosition, cell); newPosition += 8; }
+        budget.step(); const pause = budget.checkpoint(); if (pause) await pause;
+      }
+      const indexedLine = async (base: number, index: number) => {
+        const bytes = await indices.read(base + index * 8, 8);
+        return hunk.lines[new DataView(bytes.buffer).getFloat64(0, true)]!.text;
+      };
       let leading = 0;
       let trailing = 0;
       while (leading < hunk.lines.length && hunk.lines[leading]!.kind === " ") leading++;
@@ -29,11 +43,11 @@ export async function applyStoredHunks(original: IndexedDocument, patch: FilePat
         budget.step();
         { const c = budget.checkpoint(); if (c) await c; }
         if (position < 0 || position > source.length - hunk.oldCount + suffixFuzz) return false;
-        for (let lineIndex = 0; lineIndex < oldLines.length; lineIndex++) {
-          if (lineIndex < prefixFuzz || lineIndex >= oldLines.length - suffixFuzz) continue;
+        for (let lineIndex = 0; lineIndex < hunk.oldCount; lineIndex++) {
+          if (lineIndex < prefixFuzz || lineIndex >= hunk.oldCount - suffixFuzz) continue;
           const actual = source.at(position + lineIndex);
           if (actual === undefined) return false;
-          const expectedLine = oldLines[lineIndex]!.text;
+          const expectedLine = await indexedLine(oldIndex, lineIndex);
           if (!await equalTargetLines(actual, expectedLine, budget, ignoreWhitespace)) return false;
           { const c = budget.checkpoint(); if (c) await c; }
         }
@@ -58,7 +72,7 @@ export async function applyStoredHunks(original: IndexedDocument, patch: FilePat
           if (found >= 0) break;
           continue;
         }
-        const retained = oldLines.length - Math.max(0, prefixFuzz) - suffixFuzz;
+        const retained = hunk.oldCount - Math.max(0, prefixFuzz) - suffixFuzz;
         if (retained === 0) {
           if (await matches(expected, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected; matchedPrefixFuzz = Math.max(0, prefixFuzz); matchedSuffixFuzz = suffixFuzz; break; }
           continue;
@@ -83,48 +97,47 @@ export async function applyStoredHunks(original: IndexedDocument, patch: FilePat
       if (found < 0 && application.merge && !misordered) {
         const position = Math.max(cursor, Math.min(source.length, expected));
         while (cursor < position) await result.append(source.at(cursor++)!);
-        let local = Array.from({ length: Math.min(hunk.oldCount, source.length - cursor) }, (_, index) => source.at(cursor + index)!);
+        let localLength = Math.min(hunk.oldCount, source.length - cursor);
         // Without an original anchor GNU inserts the conflict before local text.
         let anchored = false;
-        for (let index = 0; index < oldLines.length; index++) {
-          if (await equalTargetLines(oldLines[index]!.text, local[index] ?? "", budget)) { anchored = true; break; }
+        for (let index = 0; index < hunk.oldCount; index++) {
+          if (await equalTargetLines(await indexedLine(oldIndex, index), index < localLength ? source.at(cursor + index)! : "", budget)) { anchored = true; break; }
         }
-        if (!anchored) local = [];
-        const incoming = hunk.lines.filter(line => line.kind !== "-").map(line => line.text);
-        const base = oldLines.map(line => line.text);
+        if (!anchored) localLength = 0;
         let prefix = 0;
         let suffix = 0;
-        while (prefix < Math.min(local.length, incoming.length, base.length)
-          && await equalTargetLines(local[prefix]!, incoming[prefix]!, budget) && await equalTargetLines(local[prefix]!, base[prefix]!, budget)) prefix++;
-        while (suffix < Math.min(local.length, incoming.length, base.length) - prefix
-          && await equalTargetLines(local[local.length - suffix - 1]!, incoming[incoming.length - suffix - 1]!, budget)
-          && await equalTargetLines(local[local.length - suffix - 1]!, base[base.length - suffix - 1]!, budget)) suffix++;
+        while (prefix < Math.min(localLength, hunk.newCount, hunk.oldCount)
+          && await equalTargetLines(source.at(cursor + prefix)!, await indexedLine(newIndex, prefix), budget)
+          && await equalTargetLines(source.at(cursor + prefix)!, await indexedLine(oldIndex, prefix), budget)) prefix++;
+        while (suffix < Math.min(localLength, hunk.newCount, hunk.oldCount) - prefix
+          && await equalTargetLines(source.at(cursor + localLength - suffix - 1)!, await indexedLine(newIndex, hunk.newCount - suffix - 1), budget)
+          && await equalTargetLines(source.at(cursor + localLength - suffix - 1)!, await indexedLine(oldIndex, hunk.oldCount - suffix - 1), budget)) suffix++;
 
         { const c = budget.checkpoint(); if (c) await c; }
-        for (const line of local.slice(0, prefix)) await result.append(line);
+        for (let index = 0; index < prefix; index++) await result.append(source.at(cursor + index)!);
         const mergeStart = result.length + 1;
         // An already applied hunk is a clean merge, not a reversal.
-        let identical = local.length === incoming.length;
-        for (let index = 0; identical && index < local.length; index++) identical = await equalTargetLines(local[index]!, incoming[index]!, budget);
+        let identical = localLength === hunk.newCount;
+        for (let index = 0; identical && index < localLength; index++) identical = await equalTargetLines(source.at(cursor + index)!, await indexedLine(newIndex, index), budget);
         if (identical) {
           const last = application.outcomes?.pop();
           if (last) application.outcomes!.push({ ...last, failed: false, fuzz: 0, offset: position - startIndex(hunk.oldStart, hunk.oldCount) });
-          for (const line of local.slice(prefix, local.length - suffix)) await result.append(line);
+          for (let index = prefix; index < localLength - suffix; index++) await result.append(source.at(cursor + index)!);
         } else {
           await result.append("<<<<<<<\n");
-          for (const line of local.slice(prefix, local.length - suffix)) await result.append(line);
+          for (let index = prefix; index < localLength - suffix; index++) await result.append(source.at(cursor + index)!);
           if (application.merge === "diff3") {
             await result.append("|||||||\n");
-            for (const line of base.slice(prefix, base.length - suffix)) await result.append(line);
+            for (let index = prefix; index < hunk.oldCount - suffix; index++) await result.append(await indexedLine(oldIndex, index));
           }
           await result.append("=======\n");
-          for (const line of incoming.slice(prefix, incoming.length - suffix)) await result.append(line);
+          for (let index = prefix; index < hunk.newCount - suffix; index++) await result.append(await indexedLine(newIndex, index));
           await result.append(">>>>>>>\n");
           const last = application.outcomes?.pop();
           if (last) application.outcomes!.push({ ...last, mergeRange: [mergeStart, result.length] });
         }
-        for (const line of local.slice(local.length - suffix)) await result.append(line);
-        cursor += local.length;
+        for (let index = localLength - suffix; index < localLength; index++) await result.append(source.at(cursor + index)!);
+        cursor += localLength;
         outputOffset = result.length - cursor;
         continue;
       }
@@ -133,28 +146,34 @@ export async function applyStoredHunks(original: IndexedDocument, patch: FilePat
         throw new ToolError(`hunk ${hunkIndex + 1} does not match ${patch.oldPath}`, 1);
       }
       while (cursor < found + matchedPrefixFuzz) await result.append(source.at(cursor++)!);
-      let removed: TargetLine[] = [];
-      let added: string[] = [];
-      const flush = async () => {
-        if (!removed.length && !added.length) return;
+      let changeStart = matchedPrefixFuzz, changeCursor = cursor;
+      const flush = async (end: number) => {
+        let removed = 0, added = 0;
+        for (let index = changeStart; index < end; index++) {
+          if (hunk.lines[index]!.kind === "+") added++; else removed++;
+          budget.step(); const pause = budget.checkpoint(); if (pause) await pause;
+        }
+        if (!removed && !added) return;
         if (application.ifdef) {
-          await result.append(`#${removed.length ? "ifndef" : "ifdef"} ${application.ifdef}\n`);
-          for (const text of removed) await result.append(text);
-          if (removed.length && added.length) await result.append("#else\n");
-          for (const text of added) await result.append(text);
-          await result.append("#endif\n");
-        } else for (const text of added) await result.append(text);
-        removed = []; added = [];
+          await result.append(`#${removed ? "ifndef" : "ifdef"} ${application.ifdef}\n`);
+          let position = changeCursor;
+          for (let index = changeStart; index < end; index++) if (hunk.lines[index]!.kind === "-") await result.append(source.at(position++) ?? hunk.lines[index]!.text);
+          if (removed && added) await result.append("#else\n");
+        }
+        for (let index = changeStart; index < end; index++) if (hunk.lines[index]!.kind === "+") await result.append(hunk.lines[index]!.text);
+        if (application.ifdef) await result.append("#endif\n");
       };
-      for (const line of hunk.lines.slice(matchedPrefixFuzz, hunk.lines.length - matchedSuffixFuzz)) {
-        if (line.kind === "+") added.push(line.text);
-        else if (line.kind === " ") { await flush(); if (cursor < source.length) await result.append(source.at(cursor++)!); }
-        else { removed.push(source.at(cursor) ?? line.text); cursor++; }
+      for (let index = matchedPrefixFuzz; index < hunk.lines.length - matchedSuffixFuzz; index++) {
+        const line = hunk.lines[index]!;
+        if (line.kind === " ") {
+          await flush(index); if (cursor < source.length) await result.append(source.at(cursor++)!);
+          changeStart = index + 1; changeCursor = cursor;
+        } else if (line.kind === "-") cursor++;
       }
-      await flush();
+      await flush(hunk.lines.length - matchedSuffixFuzz);
       outputOffset = result.length - cursor;
     }
     while (cursor < source.length) await result.append(source.at(cursor++)!);
     return await result.finish();
-  } finally { await result.close(); }
+  } finally { await closeDocumentResources([result, indices]); }
 }

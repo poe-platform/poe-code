@@ -14,6 +14,8 @@ Use the command with a `CommandContext`, or install the plugin in a Safe Bash sh
 Target documents, rendered rejects and staged status messages share a 256 KiB
 page cache across all files and spill through the caller's filesystem. Status
 output uses awaited blocks of at most 16 KiB, preserving atomic-mode timing.
+Hunk matching uses stored line indexes; merge and conditional output replay ranges
+without copying complete line lists.
 Patch parsing, per-file metadata and retained resource
 handles still grow with the request; this is not a complete memory bound.
 

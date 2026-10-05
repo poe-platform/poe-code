@@ -3,17 +3,17 @@ import { Budget,ToolError,integer } from "safe-bash-diff-engine/shared";
 import { byteLength } from "safe-bash-io-engine/byte-encoding";
 
 export interface PatchLine { readonly kind: " " | "+" | "-"; text: string }
-export interface Hunk {
+export interface Hunk<Lines = PatchLine[]> {
   readonly oldStart: number;
   readonly oldCount: number;
   readonly newStart: number;
   readonly newCount: number;
-  readonly lines: PatchLine[];
+  readonly lines: Lines;
   readonly section?: string;
 }
-export interface FilePatch {
+export interface FilePatch<Lines = PatchLine[]> {
   readonly oldPath: string; readonly newPath: string;
-  readonly oldEpoch: boolean; readonly newEpoch: boolean; readonly hunks: Hunk[];
+  readonly oldEpoch: boolean; readonly newEpoch: boolean; readonly hunks: Hunk<Lines>[];
   readonly oldHeader?: string; readonly newHeader?: string;
   readonly indexPath?: string;
   readonly unlocated?: boolean;
@@ -36,25 +36,33 @@ export interface IndexedUnifiedCursor { readonly input: PatchInput; index: numbe
 export async function parseUnified(text: string | PatchInput, budget: Budget): Promise<FilePatch[]> {
   if (typeof text !== "string") {
     budget.countLines(text.length);
-    return parseUnifiedReader({ input: text, index: 0 }, budget, false);
+    return parseUnifiedReader({ input: text, index: 0 }, budget, false, bufferedLines);
   }
   if (text && !text.endsWith("\n")) throw new ToolError("patch is truncated: missing final LF");
   const lines = budget.split(text).map(line => line.slice(0, -1));
-  return parseUnifiedReader({ input: { length: lines.length, async read(index) { return lines[index]; } }, index: 0 }, budget, false);
+  return parseUnifiedReader({ input: { length: lines.length, async read(index) { return lines[index]; } }, index: 0 }, budget, false, bufferedLines);
 }
 
 export async function parseUnifiedSection(cursor: IndexedUnifiedCursor | UnifiedCursor, budget: Budget): Promise<FilePatch[]> {
-  if ("input" in cursor) return parseUnifiedReader(cursor, budget, true);
+  if ("input" in cursor) return parseUnifiedReader(cursor, budget, true, bufferedLines);
   const indexed: IndexedUnifiedCursor = { index: cursor.index,
     input: { length: cursor.lines.length, async read(index) { return cursor.lines[index]; } } };
-  const patches = await parseUnifiedReader(indexed, budget, true);
+  const patches = await parseUnifiedReader(indexed, budget, true, bufferedLines);
   cursor.index = indexed.index;
   return patches;
 }
 
-async function parseUnifiedReader(cursor: IndexedUnifiedCursor, budget: Budget, single: boolean): Promise<FilePatch[]> {
+export interface HunkLineBuilder<Lines> { readonly lines: Lines; append(line: PatchLine): void | Promise<void> }
+
+function bufferedLines(): HunkLineBuilder<PatchLine[]> {
+  const lines: PatchLine[] = [];
+  return { lines, append(line) { lines.push(line); } };
+}
+
+export async function parseUnifiedReader<Lines>(cursor: IndexedUnifiedCursor, budget: Budget, single: boolean,
+  createLines: () => HunkLineBuilder<Lines>): Promise<FilePatch<Lines>[]> {
   const physical = cursor.input;
-  const patches: FilePatch[] = [];
+  const patches: FilePatch<Lines>[] = [];
   let index = cursor.index;
   let pendingMetadata = false;
   while (index < physical.length) {
@@ -76,7 +84,7 @@ async function parseUnifiedReader(cursor: IndexedUnifiedCursor, budget: Budget, 
     const newEpoch = isEpochHeader((await physical.read(index))!);
     index++;
     budget.file();
-    const hunks: Hunk[] = [];
+    const hunks: Hunk<Lines>[] = [];
     let oldEnded = false;
     let newEnded = false;
     while (index < physical.length && (await physical.read(index))!.startsWith("@@")) {
@@ -94,7 +102,7 @@ async function parseUnifiedReader(cursor: IndexedUnifiedCursor, budget: Budget, 
       if ((oldEnded && oldCount) || (newEnded && newCount)) throw new ToolError("hunk follows an incomplete final line");
       let oldRead = 0;
       let newRead = 0;
-      const lines: PatchLine[] = [];
+      const bodyLines = createLines();
       let changed = false;
       while (oldRead < oldCount || newRead < newCount) {
         budget.step();
@@ -107,7 +115,6 @@ async function parseUnifiedReader(cursor: IndexedUnifiedCursor, budget: Budget, 
         if (kind !== "-") newRead++;
         if (oldRead > oldCount || newRead > newCount) throw new ToolError("hunk line counts do not match header");
         const entry: PatchLine = { kind, text: `${body.slice(1)}\n` };
-        lines.push(entry);
         changed ||= kind !== " ";
         if ((await physical.read(index)) === "\\ No newline at end of file") {
           if (entry.text === "\n") throw new ToolError("empty incomplete line is not a valid text line");
@@ -116,9 +123,10 @@ async function parseUnifiedReader(cursor: IndexedUnifiedCursor, budget: Budget, 
           if (kind !== "+") oldEnded = true;
           if (kind !== "-") newEnded = true;
         }
+        await bodyLines.append(entry);
       }
       if (!changed) throw new ToolError("hunk has no changes");
-      hunks.push({ oldStart, oldCount, newStart, newCount, lines, section: match[5] ?? "" });
+      hunks.push({ oldStart, oldCount, newStart, newCount, lines: bodyLines.lines, section: match[5] ?? "" });
     }
     if (!hunks.length) throw new ToolError("file patch has no hunks");
     patches.push({ oldPath, newPath, oldEpoch, newEpoch, oldHeader, newHeader, hunks });
@@ -143,19 +151,19 @@ export function reversePatch(patch: FilePatch): FilePatch {
   };
 }
 
-export interface HunkOutcome {
-  readonly hunk: Hunk; readonly index: number; readonly failed: boolean;
+export interface HunkOutcome<Lines = PatchLine[]> {
+  readonly hunk: Hunk<Lines>; readonly index: number; readonly failed: boolean;
   readonly mergeRange?: readonly [number, number];
   readonly misordered: boolean;
   readonly line: number; readonly outputOffset: number; readonly offset: number; readonly fuzz: number;
 }
 
-export interface HunkApplication {
+export interface HunkApplication<Lines = PatchLine[]> {
   readonly ifdef?: string;
   readonly merge?: "merge" | "diff3";
   readonly partial?: boolean;
   readonly rejectAll?: boolean;
-  readonly outcomes?: HunkOutcome[];
+  readonly outcomes?: HunkOutcome<Lines>[];
 }
 
 export async function applyHunks(original: string, patch: FilePatch, fuzz: number, budget: Budget, ignoreWhitespace = false, application: HunkApplication = {}): Promise<string> {

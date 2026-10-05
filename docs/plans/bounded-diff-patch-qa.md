@@ -25,8 +25,10 @@ Normal/context conversion streams into stored documents and replays their indexe
 it no longer assembles a complete converted string or physical-line array.
 Context halves retain scalar ranges/counts and replay physical records, including
 common-only reconstruction when one half is omitted.
-The string parser remains available as a convenience API. Parsed hunk bodies,
-individual decoded lines, hunk metadata, file maps
+Parsed body payloads and fixed-width line descriptors now share caller-backed
+pages. Matching, reversal views and reject rendering replay those records;
+buffered string parser APIs retain their array results for convenience.
+Individual decoded lines, hunk metadata, file maps
 and retained resource handles still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.
 Apply-patch payload parsing, target snapshots, matching and replacements use

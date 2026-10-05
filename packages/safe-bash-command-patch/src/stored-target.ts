@@ -3,10 +3,16 @@ import { IndexedDocument, closeDocumentResources, type DocumentBudget } from "sa
 import { Budget, ToolError, host } from "safe-bash-diff-engine/shared";
 import type { ByteSource } from "safe-bash-contracts";
 
-export type TargetLine = string | { document: IndexedDocument; index: number };
+export type TargetLine = string | { document: IndexedDocument; index: number }
+  | { storage: PagedStorage; start: number; end: number };
 
 export async function* targetBytes(line: TargetLine): ByteSource {
   if (typeof line !== "string") {
+    if ("storage" in line) {
+      for (let offset = line.start; offset < line.end; offset += 16384)
+        yield await line.storage.read(offset, Math.min(16384, line.end - offset));
+      return;
+    }
     const range = await line.document.line(line.index);
     yield* line.document.range(range.start, range.end);
     return;

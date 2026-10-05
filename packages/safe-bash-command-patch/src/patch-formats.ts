@@ -1,5 +1,5 @@
 import { decodeHeaderPath } from "./patch-path.js";
-import { parseUnified,parseUnifiedSection,type FilePatch,type PatchLine,type PatchInput } from "./unified.js";
+import { parseUnified,parseUnifiedSection,type FilePatch,type PatchLine,type PatchInput,type IndexedUnifiedCursor } from "./unified.js";
 import { Budget,ToolError,integer } from "safe-bash-diff-engine/shared";
 import { byteLength } from "safe-bash-io-engine/byte-encoding";
 
@@ -195,9 +195,26 @@ export interface ParseProgress { error?: unknown }
 
 export async function parsePatch(text: string | PatchInput, budget: Budget, format: PatchFormat | undefined, target: string | undefined, progress?: ParseProgress,
   convert?: (source: AsyncIterable<string>) => Promise<FilePatch[]>): Promise<FilePatch[]> {
+  return parsePatchWith(text, budget, format, target, {
+    unified: cursor => parseUnifiedSection(cursor, budget),
+    converted: convert ?? (async source => {
+      const chunks: string[] = [];
+      for await (const chunk of source) chunks.push(chunk);
+      return parseUnified(chunks.join(""), budget);
+    }),
+  }, progress);
+}
+
+export interface PatchParsers<Lines> {
+  unified(cursor: IndexedUnifiedCursor): Promise<FilePatch<Lines>[]>;
+  converted(source: AsyncIterable<string>): Promise<FilePatch<Lines>[]>;
+}
+
+export async function parsePatchWith<Lines>(text: string | PatchInput, budget: Budget, format: PatchFormat | undefined,
+  target: string | undefined, parsers: PatchParsers<Lines>, progress?: ParseProgress): Promise<FilePatch<Lines>[]> {
   if (typeof text === "string" && text && !text.endsWith("\n")) throw new ToolError("patch is truncated: missing final LF");
   const reader = new Reader(text, budget);
-  const patches: FilePatch[] = [];
+  const patches: FilePatch<Lines>[] = [];
   let convertedBytes = 0;
   while ((await reader.peek()) !== undefined) {
     try {
@@ -221,7 +238,7 @@ export async function parsePatch(text: string | PatchInput, budget: Budget, form
       if (format && detected !== format) throw new ToolError(`patch format is ${detected}, not requested ${format}`);
       if (detected === "unified") {
         reader.index = start;
-        patches.push(...(await parseUnifiedSection(reader, budget)).map(patch => ({ ...patch, ...(indexPath === undefined ? {} : { indexPath }) })));
+        patches.push(...(await parsers.unified(reader)).map(patch => ({ ...patch, ...(indexPath === undefined ? {} : { indexPath }) })));
       } else {
         if (detected === "context") reader.index = start;
         const source = detected === "normal" ? normal(reader, target ?? indexPath) : context(reader);
@@ -230,13 +247,7 @@ export async function parsePatch(text: string | PatchInput, budget: Budget, form
           // Complete format validation before reporting the converted-byte quota.
           if (convertedBytes > budget.limits.maxInputBytes * 2 + 16_384) throw new ToolError("converted patch byte limit exceeded");
         } };
-        let parsed: FilePatch[];
-        if (convert) parsed = await convert(converted);
-        else {
-          const chunks: string[] = [];
-          for await (const chunk of converted) chunks.push(chunk);
-          parsed = await parseUnified(chunks.join(""), budget);
-        }
+        const parsed = await parsers.converted(converted);
         patches.push(...parsed.map(patch => ({ ...patch, format: detected,
           ...(indexPath === undefined ? {} : { indexPath }),
           ...(detected === "normal" && target === undefined && indexPath === undefined ? { unlocated: true } : {}) })));

@@ -1,5 +1,5 @@
 import { safeTarget } from "./patch-path.js";
-import type { FilePatch } from "./unified.js";
+import type { FilePatch, PatchLine } from "./unified.js";
 import { FsError,basename,dirname,isFsError,resolvePath,type FileStat } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { Budget,ToolError,host,inspect } from "safe-bash-diff-engine/shared";
@@ -13,8 +13,8 @@ export interface PathOptions {
   readonly input: string | undefined;
 }
 
-export interface AuthorizedPatch {
-  readonly patch: FilePatch;
+export interface AuthorizedPatch<Lines = PatchLine[]> {
+  readonly patch: FilePatch<Lines>;
   readonly oldName: string | undefined;
   readonly newName: string | undefined;
   readonly indexName: string | undefined;
@@ -23,10 +23,10 @@ export interface AuthorizedPatch {
   readonly posix?: boolean;
 }
 
-interface SelectionState {
+interface SelectionState<Lines> {
   readonly reverse: boolean;
   readonly exists: (path: string) => Promise<boolean>;
-  readonly advance: (patch: AuthorizedPatch) => Promise<void>;
+  readonly advance: (patch: AuthorizedPatch<Lines>) => Promise<void>;
 }
 
 export function regular(stat: FileStat | undefined, path: string): void {
@@ -54,8 +54,8 @@ export function pruneParents(target: string, cwd: string): string[] {
   return parents;
 }
 
-export async function authorizePaths(patches: readonly FilePatch[], options: PathOptions, budget: Budget, state?: SelectionState): Promise<AuthorizedPatch[]> {
-  const result: AuthorizedPatch[] = [];
+export async function authorizePaths<Lines>(patches: readonly FilePatch<Lines>[], options: PathOptions, budget: Budget, state?: SelectionState<Lines>): Promise<AuthorizedPatch<Lines>[]> {
+  const result: AuthorizedPatch<Lines>[] = [];
   for (const patch of patches) {
     budget.step();
     { const c = budget.checkpoint(); if (c) await c; }
@@ -155,7 +155,7 @@ export async function candidateStat(path: string, budget: Budget): Promise<FileS
   catch (error) { if (isFsError(error, "ENOENT") || isFsError(error, "ENOTDIR") || isFsError(error, "ELOOP")) return undefined; throw error; }
 }
 
-export async function selectTarget(authorized: AuthorizedPatch, exists: (path: string) => Promise<boolean>, budget: Budget): Promise<string> {
+export async function selectTarget(authorized: AuthorizedPatch<unknown>, exists: (path: string) => Promise<boolean>, budget: Budget): Promise<string> {
   const present: string[] = [];
   for (const candidate of authorized.candidates) {
     budget.step();

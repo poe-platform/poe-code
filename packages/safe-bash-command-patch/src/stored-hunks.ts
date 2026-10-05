@@ -1,10 +1,11 @@
 import { closeDocumentResources, type IndexedDocument } from "safe-bash-diff-engine/document";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { Budget, ToolError } from "safe-bash-diff-engine/shared";
-import { startIndex, type FilePatch, type HunkApplication } from "./unified.js";
+import { startIndex } from "./unified.js";
+import { patchLine, type ReplayPatch, type ReplayApplication } from "./stored-patch.js";
 import { equalTargetLines, TargetDocuments, TargetOutput, type TargetLine } from "./stored-target.js";
 
-export async function applyStoredHunks(original: IndexedDocument, patch: FilePatch, fuzz: number, budget: Budget, ignoreWhitespace = false, application: HunkApplication, documents: TargetDocuments): Promise<IndexedDocument> {
+export async function applyStoredHunks(original: IndexedDocument, patch: ReplayPatch, fuzz: number, budget: Budget, ignoreWhitespace = false, application: ReplayApplication, documents: TargetDocuments): Promise<IndexedDocument> {
   const source = { length: original.length, at(index: number): TargetLine | undefined {
     return index >= 0 && index < original.length ? { document: original, index } : undefined;
   } };
@@ -22,18 +23,19 @@ export async function applyStoredHunks(original: IndexedDocument, patch: FilePat
       const cell = new Uint8Array(8), view = new DataView(cell.buffer);
       for (let index = 0; index < hunk.lines.length; index++) {
         view.setFloat64(0, index, true);
-        if (hunk.lines[index]!.kind !== "+") { await indices.write(oldPosition, cell); oldPosition += 8; }
-        if (hunk.lines[index]!.kind !== "-") { await indices.write(newPosition, cell); newPosition += 8; }
+        const line = await patchLine(hunk, index);
+        if (line.kind !== "+") { await indices.write(oldPosition, cell); oldPosition += 8; }
+        if (line.kind !== "-") { await indices.write(newPosition, cell); newPosition += 8; }
         budget.step(); const pause = budget.checkpoint(); if (pause) await pause;
       }
       const indexedLine = async (base: number, index: number) => {
         const bytes = await indices.read(base + index * 8, 8);
-        return hunk.lines[new DataView(bytes.buffer).getFloat64(0, true)]!.text;
+        return (await patchLine(hunk, new DataView(bytes.buffer).getFloat64(0, true))).text;
       };
       let leading = 0;
       let trailing = 0;
-      while (leading < hunk.lines.length && hunk.lines[leading]!.kind === " ") leading++;
-      while (trailing < hunk.lines.length - leading && hunk.lines[hunk.lines.length - trailing - 1]!.kind === " ") trailing++;
+      while (leading < hunk.lines.length && (await patchLine(hunk, leading)).kind === " ") leading++;
+      while (trailing < hunk.lines.length - leading && (await patchLine(hunk, hunk.lines.length - trailing - 1)).kind === " ") trailing++;
       const expected = startIndex(hunk.oldStart, hunk.oldCount) + offset;
       let found = -1;
       let misordered = false;
@@ -150,21 +152,21 @@ export async function applyStoredHunks(original: IndexedDocument, patch: FilePat
       const flush = async (end: number) => {
         let removed = 0, added = 0;
         for (let index = changeStart; index < end; index++) {
-          if (hunk.lines[index]!.kind === "+") added++; else removed++;
+          if ((await patchLine(hunk, index)).kind === "+") added++; else removed++;
           budget.step(); const pause = budget.checkpoint(); if (pause) await pause;
         }
         if (!removed && !added) return;
         if (application.ifdef) {
           await result.append(`#${removed ? "ifndef" : "ifdef"} ${application.ifdef}\n`);
           let position = changeCursor;
-          for (let index = changeStart; index < end; index++) if (hunk.lines[index]!.kind === "-") await result.append(source.at(position++) ?? hunk.lines[index]!.text);
+          for (let index = changeStart; index < end; index++) if ((await patchLine(hunk, index)).kind === "-") await result.append(source.at(position++) ?? (await patchLine(hunk, index)).text);
           if (removed && added) await result.append("#else\n");
         }
-        for (let index = changeStart; index < end; index++) if (hunk.lines[index]!.kind === "+") await result.append(hunk.lines[index]!.text);
+        for (let index = changeStart; index < end; index++) if ((await patchLine(hunk, index)).kind === "+") await result.append((await patchLine(hunk, index)).text);
         if (application.ifdef) await result.append("#endif\n");
       };
       for (let index = matchedPrefixFuzz; index < hunk.lines.length - matchedSuffixFuzz; index++) {
-        const line = hunk.lines[index]!;
+        const line = (await patchLine(hunk, index));
         if (line.kind === " ") {
           await flush(index); if (cursor < source.length) await result.append(source.at(cursor++)!);
           changeStart = index + 1; changeCursor = cursor;

@@ -3,12 +3,13 @@ import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { TargetDocuments, equalTargetLines, targetBytes } from "./stored-target.js";
 import { applyStoredHunks } from "./stored-hunks.js";
 import { StoredPatchInput, unwrapStoredPatch } from "./stored-input.js";
-import { parsePatch,type ParseProgress,type PatchFormat } from "./patch-formats.js";
+import { parsePatchWith,type ParseProgress,type PatchFormat } from "./patch-formats.js";
 import { authorizeOutputs,authorizePaths,backupName,candidateStat,ensureParents,pruneDirectories,pruneParents,regular,rejectName,selectTarget,type AuthorizedPatch,type BackupOptions,type PathOptions } from "./patch-gnu-paths.js";
 import { rejectBytes } from "./patch-gnu-reject.js";
 import { safeTarget } from "./patch-path.js";
 import { PatchPublication } from "./patch-publication.js";
-import { parseUnified,reversePatch,type FilePatch,type HunkOutcome } from "./unified.js";
+import { parseUnifiedReader } from "./unified.js";
+import { PatchBodyStore, reverseStoredPatch as reversePatch, type PatchLines, type ReplayPatch as FilePatch, type ReplayOutcome as HunkOutcome } from "./stored-patch.js";
 import { FsError,dirname,pipeBytes,resolvePath,writeBytes,type CommandContext } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { Budget,ToolError,definition,host,inspect,integer,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
@@ -277,6 +278,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     budget = new Budget(context, Object.fromEntries(Object.entries(budget.limits).filter(([, value]) => Number.isFinite(value))));
   }
   const documents = new TargetDocuments(budget);
+  const bodies = new PatchBodyStore(documents);
   const messages = new PagedStorage(budget.context, 16, documents.cache);
   try {
     const empty = await documents.load({ async *[Symbol.asyncIterator]() {} });
@@ -297,13 +299,18 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         : context.fs.readStream && inputCapabilities?.streamingRead !== false ? await documents.load(budget.streamSource(inputPath))
           : await documents.load(targetBytes(await budget.read(inputPath)));
     const progress: ParseProgress | undefined = options.atomic ? undefined : {};
-    const sections = await parsePatch(await unwrapStoredPatch(input, budget), budget, options.format, explicit, progress, async chunks => {
-      const converted = await documents.load({ async *[Symbol.asyncIterator]() {
-        for await (const chunk of chunks) yield* targetBytes(chunk);
-      } });
-      try { return await parseUnified(new StoredPatchInput(converted), budget); }
-      finally { await documents.release(converted); }
-    });
+    const sections = await parsePatchWith(await unwrapStoredPatch(input, budget), budget, options.format, explicit, {
+      unified: cursor => parseUnifiedReader(cursor, budget, true, () => bodies.begin()),
+      converted: async chunks => {
+        const converted = await documents.load({ async *[Symbol.asyncIterator]() {
+          for await (const chunk of chunks) yield* targetBytes(chunk);
+        } });
+        try {
+          budget.countLines(converted.length);
+          return await parseUnifiedReader({ input: new StoredPatchInput(converted), index: 0 }, budget, false, () => bodies.begin());
+        } finally { await documents.release(converted); }
+      },
+    }, progress);
     await documents.release(input);
     const parsed = options.format === "normal" ? sections : sections.filter(patch => !patch.unlocated);
     if (sections.length && !parsed.length) throw new ToolError("no identifiable patch; normal input requires a target, Index header, or -n");
@@ -363,7 +370,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const status = async (text: string) => {
       await appendStatus(text); await flushStatus();
     };
-    const applySection = async (authorizedPatch: AuthorizedPatch) => {
+    const applySection = async (authorizedPatch: AuthorizedPatch<PatchLines>) => {
       const sourcePatch = authorizedPatch.patch;
       if (sourcePatch.unlocated) {
         if (options.atomic) throw new ToolError("no file to patch; provide a target or Index header", 1);
@@ -540,7 +547,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     await flushStatus(true);
     if (progress?.error) throw progress.error;
     return exitCode;
-  } finally { await closeDocumentResources([messages, documents]); }
+  } finally { await closeDocumentResources([messages, documents, bodies]); }
 }
 
 export function patchCommand(options: DiffPatchOptions = {}) { return definition("patch", options, run); }

@@ -190,6 +190,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const lifetime = new AbortController();
   let generation = 0;
   let disposal: Promise<void> | undefined;
+  const pendingLeaseReleases = new Set<() => Promise<void>>();
   const sessionActionTimeout = (session?: Session) => playwrightNativeTimeout(session?.configuration?.timeouts?.action ?? actionTimeoutMs);
   const sessionSnapshotTimeout = (session?: Session) => playwrightNativeTimeout(session?.configuration?.timeouts?.snapshot ?? session?.configuration?.timeouts?.action ?? options.limits?.actionTimeoutMs);
   const sessionNavigationTimeout = (session?: Session) => playwrightNativeTimeout(session?.configuration?.timeouts?.navigation ?? options.limits?.actionTimeoutMs);
@@ -267,10 +268,20 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const callbacks = [...session.cleanups];
         session.cleanups.clear();
         const custom = callbacks.map(cleanup => Promise.resolve().then(cleanup));
+        const lease = session.lease;
+        const releaseLease = async () => {
+          try {
+            await lease?.release();
+            pendingLeaseReleases.delete(releaseLease);
+          } catch (error) {
+            pendingLeaseReleases.add(releaseLease);
+            throw error;
+          }
+        };
         const results = await Promise.allSettled([
           Promise.resolve().then(() => session.detachPage?.()), Promise.resolve().then(() => session.detachContext?.()), Promise.resolve().then(() => session.disposeCapabilities?.()), ...custom,
           session.snapshot.invalidate(true), Promise.resolve().then(() => session.unsubscribe?.()),
-          Promise.resolve().then(() => session.lease?.release()),
+          Promise.resolve().then(releaseLease),
           ...[...session.pendingActions ?? []].map(action => action.catch(() => {})),
           ...[...session.pendingInitializations ?? []].map(action => action.catch(() => {})),
         ]);
@@ -1700,13 +1711,22 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     if (disposal) return disposal;
     // Install shared completion before notifying potentially reentrant hosts.
     disposal = Promise.resolve().then(async () => {
-      const retirements = [...sessions.values()].filter(s => s.lease)
-        .map(session => checkpointAndRelease(session, new AbortController().signal));
+      // Snapshot prior failures before starting new retirements: each call makes
+      // at most one new attempt per failed lease, without replaying checkpoints.
+      const retirements = [
+        ...[...pendingLeaseReleases].map(release => release()),
+        ...[...sessions.values()].filter(s => s.lease)
+          .map(session => checkpointAndRelease(session, new AbortController().signal)),
+      ];
       await Promise.allSettled([...work]);
       const results = await Promise.allSettled(retirements);
       results.push(...await Promise.allSettled([...sessions.values()].map(release)));
       const errors = [...new Set(results.flatMap(result => result.status === 'rejected' ? [result.reason] : []))];
+      sessions.clear();
       if (errors.length) throw new AggregateError(errors, 'Playwright disposal failed');
+    }).catch(error => {
+      disposal = undefined;
+      throw error;
     });
     lifetime.abort(new Error('Playwright controller is disposed'));
     return disposal;

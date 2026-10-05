@@ -624,7 +624,7 @@ test('expired-session cleanup failure does not settle restoration before sibling
     assert.ok(outcome!.reason === cleanupFailure
       || outcome!.reason instanceof AggregateError && outcome!.reason.errors.includes(cleanupFailure));
   }
-  assert.equal(failed.calls.releases, 1);
+  assert.equal(failed.calls.releases, 2, 'disposal retries the previously failed expired lease');
   assert.equal(delayed.calls.releases, 1);
   assert.equal(acquisitions, 0);
 });

@@ -28,5 +28,10 @@ recovery policy; it does not replay other tabs in the background.
 Replacement requires `replace: true`; resource limits and supported Node/Cloudflare
 profiles remain those of the public controller API.
 
+Controller `dispose()` permanently retires its sessions and shares concurrent
+cleanup calls. If it rejects, call it again to retry failed provider lease releases.
+Successful releases and checkpoints are not replayed; retries require retaining
+the controller instance and do not survive a host restart.
+
 This internal workspace is bundled through the established Safe Bash exports.
 Consumers do not install it separately.

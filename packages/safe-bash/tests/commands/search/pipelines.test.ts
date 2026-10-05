@@ -73,3 +73,15 @@ test("memory-file async regex failure is owned before slow-path fallback", async
     assert.equal(requests, 1, "a failed asynchronous batch must not be redispatched");
   } finally { await shell.dispose(); }
 });
+
+test("file discovery and regex filtering complete when head stops after 35 matches", { timeout: 1000 }, async () => {
+  const names = Array.from({ length: 100 }, (_, index) => `tests/mapfile-${String(index).padStart(3, "0")}.ts`);
+  const fs = await makeFileSystem({ args: [], files: Object.fromEntries(names.map(name => [name, ""])) });
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands({ regexExecutor: createNodeRegexProvider() })).use(searchCommands({ regexExecutor: createNodeRegexProvider() }));
+  try {
+    const result = await shell.exec('rg --files tests | rg "(mapfile|local.*array|array.*local|function.*scope|scope.*function)" | head -35');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `${names.slice(0, 35).join("\n")}\n`);
+  } finally { await shell.dispose(); }
+});

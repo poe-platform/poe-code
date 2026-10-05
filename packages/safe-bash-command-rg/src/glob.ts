@@ -42,6 +42,14 @@ export class Glob {
     const folded = this.insensitive ? candidate.toLowerCase() : candidate;
     return folded.startsWith(prefix) && folded.endsWith(suffix);
   }
+  /** Conservative subtree rejection for ASCII paths after engine validation. */
+  mayMatchDescendant(directory: string): boolean {
+    const edges = this.literalEdges;
+    if (!edges?.anchored || !directory) return true;
+    for (let index = 0; index < directory.length; index++) if (directory.charCodeAt(index) > 127) return true;
+    const candidate = this.insensitive ? directory.toLowerCase() : directory;
+    return candidate.startsWith(edges.prefix) || edges.prefix.startsWith(`${candidate}/`);
+  }
   async matches(path: string, directory: boolean, session: RegexSession, ancestors = true): Promise<boolean> {
     return (await matchGlobs([this], [{ path, directory, ancestors }], session))[0]!;
   }

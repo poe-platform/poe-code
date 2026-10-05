@@ -42,3 +42,26 @@ test('basename globs do not send irrelevant ancestor paths to the matcher', asyn
     assert.equal(new TextDecoder('utf-16le').decode(run.mock.calls[2]!.arguments[1][0]!.bytes), unicodePath);
   } finally { await session.close(); }
 });
+
+
+test('subtree prefilter retains every possible descendant match', async () => {
+  const session = new RegexExecutor(createBoundedRegexProvider()).open(new AbortController().signal);
+  try {
+    for (const source of ['/docs/**/*.md', 'src/*.ts', '/src*/keep', '/src/**/keep', '**/keep', 'keep', '/[ab]*/keep', '/{src,lib}/keep', '/src\\*/keep']) {
+      const glob = new Glob(source);
+      await matchGlobs([glob], [], session);
+      for (const directory of ['src', 'src/deep', 'src-other', 'docs', 'lib', 'elsewhere']) {
+        for (const name of ['keep', 'file.ts', 'file.md', 'deep/keep']) {
+          if (await glob.matches(`${directory}/${name}`, false, session, false)) {
+            assert.equal(glob.mayMatchDescendant(directory), true, `${source}: ${directory}/${name}`);
+          }
+        }
+      }
+    }
+    assert.equal(new Glob('/docs/**/*.md').mayMatchDescendant('src'), false);
+    assert.equal(new Glob('/src/*.ts').mayMatchDescendant('src-extra'), false);
+    assert.equal(new Glob('/src/*.ts').mayMatchDescendant('src'), true);
+    assert.equal(new Glob('/SRC/*.ts', true).mayMatchDescendant('src'), true);
+    assert.equal(new Glob('/docs/*.md').mayMatchDescendant('café'), true);
+  } finally { await session.close(); }
+});

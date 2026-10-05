@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createRgCommand } from "./index.js";
+import { Glob } from "./glob.js";
 import { RegexSession } from "safe-bash-regex-engine/execution/portable";
 
 test('file discovery validates ignore patterns once but skips impossible matches', async (t) => {
@@ -134,4 +135,28 @@ test('recursive source scans use directory entries to avoid probing absent ignor
     'existing ignore files still require path capability admission');
   assert.deepEqual(reads.filter(path => path.startsWith('/repo/packages/')), ['/repo/packages/src/.ignore'],
     'absent ignore files must not trigger backend reads for each visited directory');
+});
+
+
+test('directory discovery drops ignore rules that cannot match its subtree', async (t) => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir('/repo/src/deep', { recursive: true });
+  await fs.writeFile('/repo/.ignore', new TextEncoder().encode('/docs/**/*.log\n/src/**/*.tmp\n'));
+  await fs.writeFile('/repo/src/deep/keep.ts', new Uint8Array());
+  await fs.writeFile('/repo/src/deep/café.ts', new Uint8Array());
+  await fs.writeFile('/repo/src/deep/skip.tmp', new Uint8Array());
+  const match = t.mock.method(Glob.prototype, 'mayMatch');
+  const values = createCommandArguments(['--files', 'src']);
+  let stdout = '', stderr = '';
+  const result = await createRgCommand().execute({
+    command: 'rg', args: values.args, argumentValues: values, cwd: '/repo', env: {}, fs,
+    stdin: toByteSource(''), signal: new AbortController().signal,
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(stdout, 'src/deep/café.ts\nsrc/deep/keep.ts\n');
+  const unrelated = match.mock.calls.filter(call => (call.this as Glob).source === '/docs/**/*.log');
+  assert.deepEqual(unrelated.map(call => call.arguments[0]), ['src/deep/café.ts'],
+    'only non-ASCII paths need the original rule set for engine validation');
 });

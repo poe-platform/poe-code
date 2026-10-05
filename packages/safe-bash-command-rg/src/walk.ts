@@ -118,6 +118,11 @@ const IGNORE_CANDIDATES_DOT_ONLY: readonly [string, number][] = [[".ignore", 2],
 const IGNORE_CANDIDATES_VCS_ONLY: readonly [string, number][] = [[".gitignore", 1]];
 const IGNORE_CANDIDATES_NONE: readonly [string, number][] = [];
 
+function isAsciiPath(path: string): boolean {
+  for (let index = 0; index < path.length; index++) if (path.charCodeAt(index) > 127) return false;
+  return true;
+}
+
 function compareEntryNames(left: string, right: string): number {
   const min = Math.min(left.length, right.length);
   for (let i = 0; i < min; i++) {
@@ -292,13 +297,20 @@ export class Walker {
     let include: boolean | undefined;
     if (rules.length) {
       let priority = -1;
+      let previousBase: string | undefined;
+      let relative = "";
+      let within = false;
       for (let offset = 0; offset < rules.length;) {
         const group: IgnoreRule[] = [];
         const groupPriority = rules[offset]!.priority;
         while (offset < rules.length && rules[offset]!.priority === groupPriority) {
           const rule = rules[offset++]!;
-          if (rule.priority >= priority && isPathWithin(rule.base, path)
-            && rule.glob.mayMatch(relativePath(rule.base, path), directory)) group.push(rule);
+          if (rule.base !== previousBase) {
+            previousBase = rule.base;
+            within = isPathWithin(rule.base, path);
+            relative = within ? relativePath(rule.base, path) : "";
+          }
+          if (rule.priority >= priority && within && rule.glob.mayMatch(relative, directory)) group.push(rule);
         }
         const matches = await matchGlobs(group.map(rule => rule.glob), group.map(rule => ({ path: relativePath(rule.base, path), directory, ancestors: false })), this.session);
         for (let index = 0; index < matches.length; index++) if (matches[index]) {
@@ -565,6 +577,20 @@ export class Walker {
       localRules = loaded.rules;
       localRepository = loaded.repository;
     }
+    // Keep the full rules for descendants and non-ASCII names: those still
+    // need the regex engine's scalar and case-folding validation.
+    const asciiDirectory = isAsciiPath(path);
+    let previousBase: string | undefined;
+    let relativeDirectory = "";
+    let within = false;
+    const asciiRules = asciiDirectory ? localRules.filter(rule => {
+      if (rule.base !== previousBase) {
+        previousBase = rule.base;
+        within = isPathWithin(rule.base, path);
+        relativeDirectory = within ? relativePath(rule.base, path) : "";
+      }
+      return !within || rule.glob.mayMatchDescendant(relativeDirectory);
+    }) : localRules;
     const totalEntries = fastSortedKeys ? memDirEntries!.size : fastNames ? fastNames.length : entries!.length;
     const entryIter = fastSortedKeys ? memDirEntries!.entries() : undefined;
     for (let entryIdx = 0; entryIdx < totalEntries; entryIdx++) {
@@ -600,9 +626,10 @@ export class Walker {
           }
         }
         const isDir = type === "directory";
-        const accepted = (this.globs.length === 0 && localRules.length === 0 && (isDir || this.typeGlobs.length === 0))
+        const candidateRules = asciiRules !== localRules && isAsciiPath(entryName) ? asciiRules : localRules;
+        const accepted = (this.globs.length === 0 && candidateRules.length === 0 && (isDir || this.typeGlobs.length === 0))
           ? (this.args.hidden || !entryName.startsWith("."))
-          : await this.accepted(child, entryName, isDir, localRules);
+          : await this.accepted(child, entryName, isDir, candidateRules);
         if (!accepted) continue;
         if (isDir) {
           if (!await this.walkDirectory(child, display, depth + 1, ancestors, localRules, localRepository, onTarget)) return false;

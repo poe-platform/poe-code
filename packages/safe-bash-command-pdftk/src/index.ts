@@ -116,11 +116,15 @@ export interface ExpandedPageSelection {
   readonly rotation?: RotationSpec | undefined;
 }
 
-export function parsePdftkRangeToken(
+export function parsePdftkRangeToken(token: string, handles: ReadonlyMap<string, { readonly pageCount: number }>, defaultHandle: string): ExpandedPageSelection[] {
+  return Array.from(iteratePdftkRangeToken(token, handles, defaultHandle));
+}
+
+export function* iteratePdftkRangeToken(
   token: string,
-  handles: ReadonlyMap<string, PdfDocument>,
+  handles: ReadonlyMap<string, { readonly pageCount: number }>,
   defaultHandle: string
-): ExpandedPageSelection[] {
+): Generator<ExpandedPageSelection> {
   let work = token.trim();
   let handle = defaultHandle;
 
@@ -187,24 +191,11 @@ export function parsePdftkRangeToken(
     }
   }
 
-  const pages: number[] = [];
-  if (startPage <= endPage) {
-    for (let p = startPage; p <= endPage; p++) pages.push(p);
-  } else {
-    for (let p = startPage; p >= endPage; p--) pages.push(p);
+  const step = startPage <= endPage ? 1 : -1;
+  for (let pageNumber = startPage; step > 0 ? pageNumber <= endPage : pageNumber >= endPage; pageNumber += step) {
+    if (qualifier === "even" && pageNumber % 2 !== 0 || qualifier === "odd" && pageNumber % 2 !== 1) continue;
+    yield { handle, pageNumber, rotation };
   }
-
-  const filtered = pages.filter(p => {
-    if (qualifier === "even") return p % 2 === 0;
-    if (qualifier === "odd") return p % 2 === 1;
-    return true;
-  });
-
-  return filtered.map(pageNumber => ({
-    handle,
-    pageNumber,
-    rotation,
-  }));
 }
 
 function encodePdftkText(str: string, utf8: boolean): string {
@@ -1887,7 +1878,7 @@ async function executePdftk(context: CommandContext, retainedContext: CommandCon
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const parsed = await drainSteps(parsePdftkArgumentsSteps(argv), invocation.signal);
-    if (parsed.options && ((parsed.options.operation === "output" && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
+    if (parsed.options && ((["output", "rotate"].includes(parsed.options.operation) && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
       return await executeRetainedPdftk({ ...retainedContext, signal: invocation.signal, stdout: invocation.child(context.stdout).output }, parsed.options);
     }
     const vfsFiles = new Map<string, Uint8Array>();

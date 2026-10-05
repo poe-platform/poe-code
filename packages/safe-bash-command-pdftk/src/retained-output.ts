@@ -1,3 +1,4 @@
+import { retainedRotations } from "./retained-rotate.js";
 import { PdfFileSource, PdfMutableObjectStore, PdfRetainedDocument, cosBool, dictDelete, dictGet, dictSet, encryptRetainedPdfChunks, retainedCosObjects, saveRetainedDocumentChunks, type PdfCosArray } from "@poe-code/pdf-ast";
 import type { PdftkArguments } from "./arguments.js";
 
@@ -5,7 +6,7 @@ type Storage = ConstructorParameters<typeof PdfMutableObjectStore>[0];
 
 /** Common PDF output flags; the caller retains input identities and publishes
  * the resulting chunks. Graph edits and encoded payloads use caller storage. */
-export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal): AsyncGenerator<Uint8Array> {
+export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined): AsyncGenerator<Uint8Array> {
   const store = new PdfMutableObjectStore(storage, { signal });
   let document: PdfRetainedDocument | undefined, plaintext: PdfFileSource | undefined, failed = false;
   try {
@@ -24,7 +25,7 @@ export async function* retainedOutput(source: PdfRetainedDocument, storage: Stor
       }
       await store.set({ objectNumber: root.reference.objectNumber, generationNumber: root.reference.generationNumber, value: root.value });
     }
-    const chunks = saveRetainedDocumentChunks(document, storage, { signal, removeMetadata: options.dropXmp, streamMode: options.uncompressStreams ? "uncompress" : options.compressStreams ? "compress" : "preserve" });
+    const chunks = saveRetainedDocumentChunks(document, storage, { signal, ...(options.operation === "rotate" ? { rotations: retainedRotations(options.opArgs, handles, options.inputs[0]!.handle, pageCount!, storage, signal) } : {}), removeMetadata: options.dropXmp, streamMode: options.uncompressStreams ? "uncompress" : options.compressStreams ? "compress" : "preserve" });
     if (!options.userPassword && !options.ownerPassword) { yield* chunks; return; }
     plaintext = await PdfFileSource.fromStream(storage.fs, storage.directory, chunks, { signal });
     const allow = options.allowPermissions, all = allow.has("allfeatures");

@@ -19,6 +19,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
   let idInput = handles.values().next().value!;
   if (options.keepFinalId) for (const input of handles.values()) idInput = input;
   let selectedId: PdfCosArray | undefined;
+  const counts = new Map<PdftkArguments["inputs"][number], number>();
   const inputs = new Map<string, PdfFileSource | undefined>();
   let document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, total = 0, failed = false;
   const diagnostic = async (message: string) => { await writeBytes(context.stderr, new TextEncoder().encode(message), signal); return { exitCode: 1 }; };
@@ -48,7 +49,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
         document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "strict", ...(input.password ? { password: input.password } : {}) });
         if (input === idInput) selectedId = document.crossReference.idArray;
         for await (const object of retainedCosObjects(document, storage, { signal })) if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
-        for await (const ignored of document.pages()) void ignored;
+        let count = 0; for await (const ignored of document.pages()) { void ignored; count++; } counts.set(input, count);
       } catch (error) {
         signal.throwIfAborted();
         if (!(error instanceof PdfError) || error.code === "E_LIMIT" || error.code === "E_CANCELLED") throw error;
@@ -67,7 +68,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
       }
       return { exitCode: 0 };
     }
-    output = await PdfFileSource.fromStream(context.fs, storage.directory, (options.operation === "output" ? retainedOutput(document, storage, options, selectedId, signal) : options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
+    output = await PdfFileSource.fromStream(context.fs, storage.directory, (["output", "rotate"].includes(options.operation) ? retainedOutput(document, storage, options, selectedId, signal, new Map([...handles].map(([handle, input]) => [handle, { pageCount: counts.get(input)! }])), counts.get(primary)) : options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
     const destination = options.outputTarget;
     if (!destination || destination === "-") for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
     else {

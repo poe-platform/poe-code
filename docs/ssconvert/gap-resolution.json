@@ -4679,18 +4679,19 @@
       "status": "open",
       "currentFinding": "Explicit frozen Unicode 15.0/15.1/16.0 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell profiles match independent CPython casing/context cases; Chrome page/module-worker evidence covers all three selected versions; typed split errors, NUL, malformed-host and resource boundaries remain covered. The activated Python 3.13.5/Unicode 15.1 sample profile now matches 11637 current compiled SDK/command observations with no diagnostics; custom-error XLSX quoting is repaired. See pythonCapwordsActivated. Other optional profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal.",
       "checkpoint20261004": {
-        "qualified": "Frozen Unicode15.0/15.1/16.0 selection and 11637 activated observations are qualified with scoped browser and diagnostic controls.",
+        "qualified": "Frozen Unicode15.0/15.1/16.0 selection and 11637 activated observations are qualified with scoped browser and diagnostic controls. Installed root17.0.41/scoped0.1.815 SDK/command casing is qualified on Node22/26 without native PATH:11637 formula identities match, scoped values match native, and root has only2 custom-error wire differences per route/runtime. All3 Unicode selections, immutable bindings and absent/replaced namespaces pass; scoped typed-error wire values match.",
         "evidence": [
           "#/reference/pythonUnicodeProfiles",
-          "#/currentQualification20261002/pythonCapwordsActivated"
+          "#/currentQualification20261002/pythonCapwordsActivated",
+          "#/capwordsRegistryProfiles"
         ],
-        "nextAcceptance": "Requalify the selected-version casing/context and typed-error contracts through current installed root/scoped SDK and command artifacts.",
+        "nextAcceptance": "Qualify a root publication containing existing custom XLSX error-cache quoting; retain the completed11637-case cohort and selected-version/namespace controls. Continue remaining optional-runtime and diagnostic profiles.",
         "closureGate": "Complete other optional-runtime and wider diagnostic profiles with registry evidence.",
         "qualificationBlockers": [
           "Malformed native UTF-8 probes crash; retain the portable refusal and classify the native failure."
         ],
         "remainingAcceptance": [
-          "Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts.",
+          "Root containing publication for custom-error XLSX quoting; scoped0.1.815 and root17.0.41 selected-version casing/context and namespace contracts are qualified on Node22/26. Retain11637 native cases and all3 Unicode-profile controls.",
           "Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash."
         ]
       }
@@ -6911,5 +6912,13 @@
     "implementation": "Retain these scalar boolean ClientData fields using the existing namespace, unique note identity, anchor and spelling validation. Arbitrary VML and relationships are not copied.",
     "validation": "410 tests in38 owning-package files pass; changed source/test lint, package test types and selected20-workspace build pass. Four compiled SDK/command conversions and four note-text edited exports pass. Independent Python ZIP/XML checks on input plus8exports verify protection, print, geometry and text. Valid boolean spellings, foreign namespace, malformed flags, button, moved and duplicate identities are covered.",
     "remaining": "Native application protection enforcement/rendering, other VML metadata and containing installed artifacts remain unqualified; all broader family gates stay open."
+  },
+  "capwordsRegistryProfiles": {
+    "status": "Scoped installed casing and typed errors qualified; root containing error-cache publication and broader profiles remain open.",
+    "artifacts": "Isolated registry poe-code17.0.41 (gitHead c8851094da60e42b6c29fbd9da88351ef4dba270) and @poe-platform/safe-bash0.1.815; Node22.22.2/26.10.0, PATH=/nonexistent. Exact lock integrity and input/native/output hashes retained.",
+    "nativeCohort": "Eight SDK/command conversions of11637 retained activated-native cases yield93096 values. Formula identities and counts match. Scoped46548 values exact; root46540/46548 exact. Eight deviations are two float/bool custom-error caches per route/runtime, unquoted by its older XLSX writer. No casing mismatches.",
+    "controls": "24 conversions/240 values cover all3 Unicode versions, added-case mappings, sharp-s, final sigma, dotted-I, whitespace, boolean/number/blank errors and NA. Scoped120 values exact; root36 custom-error wire differences.16 more public conversions verify absent/replaced namespaces;12 invalid profiles refuse. Mutating factory options does not alter bindings. All48 conversions succeed without diagnostics.",
+    "validation": "196 maintained Unicode/loader/custom-error tests pass. Strict TypeScript5.9.3 NodeNext consumer with negative profile types passes in the isolated directory without skipLibCheck. Independent Python ZIP/XML checks values and formula strings, normalizing only namespace prefixes and TRUE() spelling. Initial tsc launched from another cwd missed consumer ambient types; corrected cwd passes.",
+    "remaining": "Root must contain b12beb5bb28b3ad760294592f072aa1028e69f0c, already on remote main. Remaining optional-runtime/diagnostic profiles and malformed-native-UTF8 limitations stay open. No current-source runtime defect found."
   }
 }

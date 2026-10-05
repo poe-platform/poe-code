@@ -137,7 +137,11 @@ pub fn normalize_path(raw_path: &str) -> String {
     if raw_path.is_empty() {
         return ".".to_string();
     }
-    let path = raw_path.replace('\\', "/");
+    let path = if get_windows_drive_prefix(raw_path).is_some() {
+        raw_path.replace('\\', "/")
+    } else {
+        raw_path.to_string()
+    };
     let drive_prefix = get_windows_drive_prefix(&path);
     let is_absolute = path.starts_with('/')
         || (drive_prefix.is_some() && path.as_bytes().get(2) == Some(&b'/'));
@@ -188,7 +192,11 @@ pub fn join(args: &[&str]) -> String {
     }
     let mut joined: Option<String> = None;
     for raw in args {
-        let arg = raw.replace('\\', "/");
+        let arg = if get_windows_drive_prefix(raw).is_some() {
+            raw.replace('\\', "/")
+        } else {
+            raw.to_string()
+        };
         if arg.is_empty() {
             continue;
         }

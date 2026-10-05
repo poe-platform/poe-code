@@ -123,7 +123,7 @@ impl GitIndex {
                 return Err(GitError::internal("Got a path length of 0"));
             }
             let path = String::from_utf8_lossy(&buffer[pos..pos + nul_rel]).to_string();
-            if path.contains("..\\") || path.contains("../") {
+            if path.split('/').any(|component| component == "..") {
                 return Err(GitError::unsafe_filepath(&path));
             }
             pos += nul_rel;

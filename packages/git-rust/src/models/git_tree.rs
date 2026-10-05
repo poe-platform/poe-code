@@ -164,7 +164,6 @@ pub fn validate_tree_entry_name(path: &str) -> Result<(), GitError> {
     };
 
     if path.is_empty()
-        || path.contains('\\')
         || path.contains('/')
         || hfs_clean == "."
         || hfs_clean == ".."

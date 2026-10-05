@@ -357,6 +357,8 @@ fn test_git_tree_entry_name_validation() {
         "git~10",
         "git~0",
         "normal.txt",
+        r"back\slash",
+        r"..\literal",
         ".gitignore",
     ] {
         let tree = GitTree::from_bytes(&make_entry("100644", good)).unwrap();

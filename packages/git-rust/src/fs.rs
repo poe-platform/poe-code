@@ -146,7 +146,8 @@ impl MemoryFs {
     }
 
     fn clean_abs_path(path: &str) -> String {
-        let p = path.replace('\\', "/");
+        // Virtual filesystem paths use POSIX separators, including on Windows.
+        let p = path.to_string();
         let with_leading = if p.starts_with('/') {
             p
         } else {

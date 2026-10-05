@@ -728,8 +728,8 @@ fn make_tree_entry_bytes(mode: &str, name: &str) -> Vec<u8> {
         assert_eq!(GitTree::from_bytes(&make_tree_entry_bytes("100644", bad)).unwrap_err().code, ErrorCode::UnsafeFilepathError);
     }
 }
-#[test] fn git_tree_rejects_backslash_separator() {
-    assert_eq!(GitTree::from_bytes(&make_tree_entry_bytes("100644", "a\\b")).unwrap_err().code, ErrorCode::UnsafeFilepathError);
+#[test] fn git_tree_preserves_literal_backslash() {
+    assert_eq!(GitTree::from_bytes(&make_tree_entry_bytes("100644", "a\\b")).unwrap().entries()[0].path, "a\\b");
 }
 
 // ============================================================================
@@ -1055,7 +1055,7 @@ dual_test!(normalize_committer_undefined_when_missing, normalize_committer_undef
 dual_test!(utils_join_paths, utils_join_paths_sub, "test-empty", {
     assert_eq!(join(&["a", "b", "c"]), "a/b/c");
     assert_eq!(join(&["/a/b/", "/c/d"]), "/a/b/c/d");
-    assert_eq!(join(&["a\\b", "c\\d"]), "a/b/c/d");
+    assert_eq!(join(&["a\\b", "c\\d"]), "a\\b/c\\d");
     assert_eq!(join(&["a", ".", "b", "..", "c"]), "a/c");
 });
 

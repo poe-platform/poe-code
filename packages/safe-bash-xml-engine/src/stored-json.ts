@@ -4,7 +4,7 @@ import type { XmlBudget } from "./limits.js";
 import type { StoredXmlDocument } from "./stored-document.js";
 
 type Task = { kind: "element" | "group" | "members"; reference: number }
-  | { kind: "attribute"; reference: number; index: number }
+  | { kind: "attribute"; reference: number }
   | { kind: "text"; reference: number; first: number; last: number }
   | { kind: "literal"; value: string };
 
@@ -28,7 +28,7 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
   let cached: { reference: number; value: XmlElement } | undefined;
   async function node(reference: number): Promise<XmlElement> {
     if (cached?.reference === reference) return cached.value;
-    const value = await document.node(reference);
+    const value = await document.metadata(reference);
     if (value.kind !== "element") throw new TypeError("XML JSON conversion expected an element");
     cached = { reference, value };
     return value;
@@ -58,7 +58,7 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
   // sibling group, hash-collision chain, member count. Member: node, next.
   for await (const entry of document.walk(document.root)) {
     if (entry.closing || entry.reference === document.root) continue;
-    const current = await document.node(entry.reference);
+    const current = await document.metadata(entry.reference);
     if (current.kind !== "element") continue;
     const parent = await document.parent(entry.reference), key = await hash(parent, current.name);
     const bucket = Number(await hashes.get(key) ?? 0n);
@@ -85,7 +85,7 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
   async function* directText(reference: number, first = 0, last = Infinity): AsyncGenerator<string> {
     let offset = 0;
     for await (const child of document.children(reference)) {
-      const value = await document.node(child);
+      const value = await document.metadata(child);
       if (value.kind !== "text" && value.kind !== "cdata") continue;
       for await (const part of document.text(child)) {
         const end = offset + part.length;
@@ -115,7 +115,9 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
       const task = await pop(); if (!task) break;
       if (task.kind === "literal") { yield task.value; continue; }
       if (task.kind === "attribute") {
-        const attribute = (await node(task.reference)).attributes[task.index]!;
+        const value = await document.metadata(task.reference);
+        if (value.kind !== "attribute") throw new TypeError("Expected XML attribute");
+        const attribute = value.value;
         yield* quoted(["@" + attribute.name]); yield ":"; yield* quoted([attribute.value]); continue;
       }
       if (task.kind === "text") { yield* quoted(directText(task.reference, task.first, task.last)); continue; }
@@ -131,7 +133,7 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
         else { yield "["; await push({ kind: "literal", value: "]" }); await push({ kind: "members", reference: group[2]! }); }
         continue;
       }
-      const current = await node(task.reference);
+      const hasAttributes = !(await document.attributeReferences(task.reference).next()).done;
       let first = -1, last = 0, offset = 0;
       for await (const part of directText(task.reference)) for (const character of part) {
         const checkpoint = budget.tick(); if (checkpoint) await checkpoint;
@@ -139,7 +141,7 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
         offset += character.length;
       }
       const owner = Number(await parents.get(BigInt(task.reference)) ?? 0n);
-      if (!owner && !current.attributes.length) {
+      if (!owner && !hasAttributes) {
         if (first < 0) yield "null"; else yield* quoted(directText(task.reference, first, last));
         continue;
       }
@@ -153,13 +155,15 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
         while (group) {
           const value = await fields(group, 8);
           await push({ kind: "group", reference: group });
-          if (value[4] || current.attributes.length) await push({ kind: "literal", value: "," });
+          if (value[4] || hasAttributes) await push({ kind: "literal", value: "," });
           group = value[4]!;
         }
       }
-      for (let index = current.attributes.length - 1; index >= 0; index--) {
-        await push({ kind: "attribute", reference: task.reference, index });
-        if (index) await push({ kind: "literal", value: "," });
+      let following = false;
+      for await (const reference of document.attributeReferences(task.reference, true)) {
+        if (following) await push({ kind: "literal", value: "," });
+        await push({ kind: "attribute", reference });
+        following = true;
       }
     }
     yield "\n";

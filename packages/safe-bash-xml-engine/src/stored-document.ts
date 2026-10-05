@@ -13,7 +13,7 @@ export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
 type XmlStreamEvent = Parameters<NonNullable<NonNullable<Parameters<typeof parseXmlStream>[1]>["events"]>>[0];
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
   kind: "element"; name: string; localName: string; namespace: string;
-  attributes: XmlElement["attributes"]; namespaces: [string, string][]; declaration?: string;
+  namespaces: [string, string][]; declaration?: string;
 };
 
 /** XML node state in the caller's paged filesystem storage. Metadata is loaded
@@ -45,7 +45,7 @@ export class StoredXmlDocument {
           else {
             const element = event.element;
             metadata = { kind: "element", name: element.name, localName: element.localName, namespace: element.namespace,
-              attributes: element.attributes, namespaces: [...element.namespaces],
+              namespaces: [...element.namespaces],
               ...(element.declaration === undefined ? {} : { declaration: element.declaration }) };
           }
           const continuation = event.type === "content" && event.continuation === true;
@@ -54,8 +54,7 @@ export class StoredXmlDocument {
           fragmentTail = reference;
           if (event.type === "open") {
             for (const attribute of event.element.attributes) {
-              if (attribute.namespace !== "http://www.w3.org/2000/xmlns/")
-                await document.append(reference, { kind: "attribute", value: attribute });
+              await document.append(reference, { kind: "attribute", value: attribute });
             }
             if (!document.rootReference) document.rootReference = reference;
             parent = reference;
@@ -110,13 +109,25 @@ export class StoredXmlDocument {
     const firstLink = metadata.kind === "attribute" ? firstAttributeField : firstField;
     const lastLink = metadata.kind === "attribute" ? lastAttributeField : lastField;
     const last = await this.field(parent, lastLink);
+    if (metadata.kind === "attribute") await this.set(reference, lastField, last);
     if (last) await this.set(last, nextField, reference);
     else await this.set(parent, firstLink, reference);
     await this.set(parent, lastLink, reference);
     return reference;
   }
 
+  /** Buffering convenience API; engine traversal uses metadata and attribute links. */
   async node(reference: number): Promise<XmlContent | StoredXmlAttribute> {
+    const value = await this.metadata(reference);
+    if (value.kind === "element") {
+      const attributes: XmlAttribute[] = [];
+      for await (const attribute of this.attributes(reference)) attributes.push(attribute);
+      return { ...value, attributes };
+    }
+    return value;
+  }
+
+  async metadata(reference: number): Promise<XmlContent | StoredXmlAttribute> {
     const size = await this.field(reference, sizeField);
     const decoder = new TextDecoder();
     const parts: string[] = [];
@@ -130,7 +141,7 @@ export class StoredXmlDocument {
     if (metadata.kind === "cdata" && (await this.field(reference, flagsField) & textFlag))
       return { kind: "text", text: metadata.text };
     return metadata.kind === "element"
-      ? { ...metadata, namespaces: new Map(metadata.namespaces), children: [], content: [], text: "" }
+      ? { ...metadata, attributes: [], namespaces: new Map(metadata.namespaces), children: [], content: [], text: "" }
       : metadata;
   }
 
@@ -139,7 +150,7 @@ export class StoredXmlDocument {
   async *text(reference: number): AsyncGenerator<string> {
     let fragment = reference;
     while (fragment) {
-      const node = await this.node(fragment);
+      const node = await this.metadata(fragment);
       if (node.kind === "element" || node.kind === "attribute") throw new TypeError("Expected XML content node");
       yield node.text;
       fragment = await this.field(fragment, fragmentField);
@@ -152,24 +163,24 @@ export class StoredXmlDocument {
     if (!options.noblanks && !options.nocdata) return;
     for await (const event of this.walk(this.root)) {
       if (event.closing) continue;
-      const element = await this.node(event.reference);
+      const element = await this.metadata(event.reference);
       if (element.kind !== "element") continue;
       let preserve = (await this.field(await this.parent(event.reference), flagsField) & preserveSpaceFlag) !== 0;
-      for (const attribute of element.attributes) {
+      for await (const attribute of this.attributes(event.reference)) {
         if (attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === "space")
           preserve = attribute.value === "preserve";
       }
       await this.set(event.reference, flagsField, preserve ? preserveSpaceFlag : 0);
       let current = await this.field(event.reference, firstField), previous = 0, mixed = false;
       while (current) {
-        let child = await this.node(current);
+        let child = await this.metadata(current);
         let next = await this.field(current, nextField);
         if (options.nocdata && (child.kind === "text" || child.kind === "cdata")) {
           await this.set(current, flagsField, textFlag);
           let tail = current;
           for (let fragment = await this.field(tail, fragmentField); fragment; fragment = await this.field(tail, fragmentField)) tail = fragment;
           while (next) {
-            const adjacent = await this.node(next);
+            const adjacent = await this.metadata(next);
             if (adjacent.kind !== "text" && adjacent.kind !== "cdata") break;
             await this.set(tail, fragmentField, next);
             tail = next;
@@ -201,11 +212,29 @@ export class StoredXmlDocument {
     }
   }
 
+  async *attributeReferences(reference: number, reverse = false): AsyncGenerator<number> {
+    let attribute = await this.field(reference, reverse ? lastAttributeField : firstAttributeField);
+    while (attribute) {
+      const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
+      yield attribute;
+      attribute = await this.field(attribute, reverse ? lastField : nextField);
+    }
+  }
+
+  async *attributes(reference: number): AsyncGenerator<XmlAttribute> {
+    for await (const attribute of this.attributeReferences(reference)) {
+      const value = await this.metadata(attribute);
+      if (value.kind !== "attribute") throw new TypeError("Expected XML attribute");
+      yield value.value;
+    }
+  }
+
   async *children(reference: number, attributes = false): AsyncGenerator<number> {
     let child = await this.field(reference, attributes ? firstAttributeField : firstField);
     while (child) {
       const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
-      yield child;
+      const value = attributes ? await this.metadata(child) : undefined;
+      if (value?.kind !== "attribute" || value.value.namespace !== "http://www.w3.org/2000/xmlns/") yield child;
       child = await this.field(child, nextField);
     }
   }

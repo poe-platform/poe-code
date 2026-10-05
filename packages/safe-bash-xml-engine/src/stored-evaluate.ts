@@ -58,7 +58,7 @@ export class StoredXPath {
   async node(reference: number): Promise<Node> {
     const stored = { document: this.document, reference };
     if (reference === this.document.document) return { kind: "document", children: [], stored };
-    const value = await this.document.node(reference);
+    const value = await this.document.metadata(reference);
     if (value.kind === "attribute") return { ...value, stored };
     if (value.kind === "element") return { kind: "element", value, children: [], attributes: [], stored };
     return { kind: value.kind, value, stored };
@@ -71,7 +71,7 @@ export class StoredXPath {
   }
 
   async select(query: Query, context = this.document.document): Promise<StoredSelection> {
-    const root = await this.document.node(this.document.root) as XmlElement;
+    const root = await this.document.metadata(this.document.root) as XmlElement;
     const union = new StoredSelection(this);
     for (const path of query.paths) {
       let contexts = new StoredSelection(this);

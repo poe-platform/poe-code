@@ -38,12 +38,13 @@ function declaration(source: string | undefined): string {
 
 async function attributes(
   element: XmlElement,
+  source: () => AsyncIterable<XmlAttribute>,
   inherited: ReadonlyMap<string, string>,
   budget: XmlBudget,
   exclusive: boolean
 ): Promise<XmlAttribute[]> {
   const selected: XmlAttribute[] = [];
-  for (const attribute of element.attributes) {
+  for await (const attribute of source()) {
     { const _p = budget.tick(); if (_p) await _p; }
     if (attribute.namespace !== xmlns) selected.push(attribute);
   }
@@ -53,7 +54,7 @@ async function attributes(
     if (exclusive) {
       const colon = element.name.indexOf(":");
       let used = prefix === (colon < 0 ? "" : element.name.slice(0, colon));
-      for (const attribute of element.attributes) {
+      for await (const attribute of source()) {
         const p = budget.tick(attribute.name.length + 1); if (p) await p;
         if (attribute.namespace === xmlns) continue;
         const at = attribute.name.indexOf(":");
@@ -166,13 +167,17 @@ export async function* serializeDocument(
   const stored = source instanceof StoredXmlDocument ? source : undefined;
   const rootReference: Reference = stored ? stored.root : source as XmlElement;
   const load = async (reference: Reference): Promise<XmlContent> => {
-    const node = typeof reference === "number" ? await stored!.node(reference) : reference;
+    const node = typeof reference === "number" ? await stored!.metadata(reference) : reference;
     if (node.kind === "attribute") throw new TypeError("Attribute used as XML content");
     return node;
   };
   async function* children(reference: Reference): AsyncGenerator<Reference> {
     if (typeof reference === "number") yield* stored!.children(reference);
     else if (reference.kind === "element") yield* reference.content;
+  }
+  async function* elementAttributes(reference: Reference): AsyncGenerator<XmlAttribute> {
+    if (typeof reference === "number") yield* stored!.attributes(reference);
+    else if (reference.kind === "element") yield* reference.attributes;
   }
   const root = await load(rootReference) as XmlElement;
   const canonical = mode !== "format";
@@ -283,7 +288,7 @@ export async function* serializeDocument(
     if (current.kind === "element") {
       let preserveSpace = frame.preserveSpace;
       let preserveBlanks = frame.preserveBlanks;
-      for (const attribute of current.attributes) {
+      for await (const attribute of elementAttributes(reference)) {
         { const p = budget.tick(); if (p) await p; }
         if (attribute.namespace === xml && attribute.localName === "space") {
           preserveBlanks = attribute.value === "preserve";
@@ -293,15 +298,16 @@ export async function* serializeDocument(
       }
       let count = 0, mixed = false;
       for await (const child of selectedChildren(reference, preserveSpace, preserveBlanks)) { count++; mixed = child.mixed; }
-      const ordered = canonical ? await attributes(current, frame.namespaces, budget, mode === "exc-c14n") : [];
-      if (!canonical) {
-        for (const namespace of [true, false]) for (const attribute of current.attributes) {
-          { const p = budget.tick(); if (p) await p; }
-          if ((attribute.namespace === xmlns) === namespace) ordered.push(attribute);
+      const ordered = canonical ? await attributes(current, () => elementAttributes(reference), frame.namespaces, budget, mode === "exc-c14n") : [];
+      async function* outputAttributes(): AsyncGenerator<XmlAttribute> {
+        if (canonical) yield* ordered;
+        else for (const namespace of [true, false]) for await (const attribute of elementAttributes(reference)) {
+          const p = budget.tick(); if (p) await p;
+          if ((attribute.namespace === xmlns) === namespace) yield attribute;
         }
       }
       yield `<${current.name}`;
-      for (const attribute of ordered) {
+      for await (const attribute of outputAttributes()) {
         { const p = budget.tick(); if (p) await p; }
         yield ` ${attribute.name}="`;
         yield* escape(attribute.value, true, budget, escaping);

@@ -214,7 +214,7 @@ export async function* stringValue(
     const { document, reference } = node.stored;
     for await (const event of document.walk(node.kind === "document" ? document.root : reference)) {
       if (event.closing) continue;
-      const value = await document.node(event.reference);
+      const value = await document.metadata(event.reference);
       if (value.kind === "text" || value.kind === "cdata") yield* document.text(event.reference);
     }
     return;
@@ -261,13 +261,13 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
     const { document, reference } = node.stored;
     if (node.kind === "document") yield '<?xml version="1.0" encoding="UTF-8"?>\n';
     for await (const event of document.walk(node.kind === "document" ? document.root : reference)) {
-      const value = await document.node(event.reference);
+      const value = await document.metadata(event.reference);
       if (value.kind === "element") {
         let hasChildren = false;
         for await (const ignored of document.children(event.reference)) { hasChildren = true; break; }
         if (event.closing) { if (hasChildren) yield `</${value.name}>`; continue; }
         yield `<${value.name}`;
-        for (const attribute of value.attributes) {
+        for await (const attribute of document.attributes(event.reference)) {
           const p = budget.tick(); if (p) await p;
           yield ` ${attribute.name}="`;
           yield* escape(attribute.value, true, budget);

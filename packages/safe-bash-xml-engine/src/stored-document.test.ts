@@ -220,3 +220,42 @@ test(`declaration metadata stays bounded with injected backing (${recover}, ${ou
   assert.ok(writes > 0);
   assert.deepEqual(await fs.readdir("/"), []);
 });
+
+test("stored query and serialization paths avoid the buffered element loader", async () => {
+  const { StoredXPath } = await import("./stored-evaluate.js");
+  const { parseQuery } = await import("./query.js");
+  const { serialize } = await import("./evaluate.js");
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const attributes = Array.from({ length: 500 }, (_, index) => ` a${index}="v${index}"`).join("");
+  const input = `<r xmlns:p="urn:p"${attributes}><p:x/></r>`;
+  const document = await StoredXmlDocument.parse([input], { fs, cwd: "/", env: {}, signal }, budget, 1);
+  try {
+    const buffered = await document.node(document.root);
+    assert.equal(buffered.kind, "element");
+    if (buffered.kind !== "element") assert.fail();
+    assert.equal(buffered.attributes.length, 501);
+    document.node = async () => assert.fail("mandatory operations must not reload all attributes");
+    const metadata = await document.metadata(document.root);
+    assert.equal(metadata.kind, "element");
+    if (metadata.kind !== "element") assert.fail();
+    assert.deepEqual(metadata.attributes, []);
+    const { storedXmlToJson } = await import("./stored-json.js");
+    let json = "";
+    for await (const bytes of storedXmlToJson(document, budget)) json += new TextDecoder().decode(bytes);
+    const expected = { "@xmlns:p": "urn:p", ...Object.fromEntries(Array.from({ length: 500 }, (_, index) => [`@a${index}`, `v${index}`])), "p:x": null };
+    assert.equal(json, JSON.stringify({ r: expected }) + "\n");
+    await document.transform({ noblanks: true, nocdata: true });
+    const xpath = new StoredXPath(document, budget);
+    assert.equal(await xpath.scalar(await parseQuery("count(/r/@*)", budget)), "500");
+    const selection = await xpath.select(await parseQuery("/r/@a499", budget));
+    for await (const node of selection.nodes()) {
+      let output = "";
+      for await (const part of serialize(node, budget)) output += part;
+      assert.equal(output, ' a499="v499"');
+    }
+    let output = "";
+    for await (const part of serializeDocument(document, "format", budget, false)) output += part;
+    assert.equal(output, '<?xml version="1.0"?>\n' + input + '\n');
+  } finally { await document.close(); }
+});

@@ -162,7 +162,7 @@ async function executeDocument(
       stored = await StoredXmlDocument.parse(source, context, budget, 64,
         options.recover ? message => { recoveryMessages.add(message); } : undefined);
       await stored.transform({ noblanks: options.noblanks ?? false, nocdata: options.nocdata ?? false });
-      parsedRoot = await stored.node(stored.root) as XmlElement;
+      parsedRoot = await stored.metadata(stored.root) as XmlElement;
     } else {
       parsedRoot = await parseStoredXml(readXmlChunks(context, file, budget, runtime), context, budget,
         options.recover ? message => { recoveryMessages.add(message); } : undefined);

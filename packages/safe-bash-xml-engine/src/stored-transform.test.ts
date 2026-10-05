@@ -17,8 +17,8 @@ test("CDATA coalescing stores one logical text node without joining its token bo
     for (let index = 0; index < 80; index++) yield token;
     yield "</r>";
   })(), { fs, cwd: "/", env: {}, signal }, budget, 1);
-  const load = document.node.bind(document);
-  document.node = async reference => {
+  const load = document.metadata.bind(document);
+  document.metadata = async reference => {
     const node = await load(reference);
     if (node.kind === "text" || node.kind === "cdata") assert.ok(node.text.length <= payload.length, "node metadata must never contain the joined text");
     return node;
@@ -85,8 +85,8 @@ for (const recovery of [false, true]) test(`a large CDATA section stays one page
     for (let index = 0; index < repetitions; index++) yield chunk;
     yield "]]><![CDATA[]]></r>";
   })(), { fs, cwd: "/", env: {}, signal }, budget, 1, recovery ? () => {} : undefined);
-  const load = document.node.bind(document);
-  document.node = async reference => {
+  const load = document.metadata.bind(document);
+  document.metadata = async reference => {
     const node = await load(reference);
     if (node.kind === "cdata") assert.ok(node.text.length <= 512);
     return node;
@@ -141,8 +141,8 @@ for (const recovery of [false, true]) test(`large entity-bearing text stays one 
     for (let index = 0; index < repetitions; index++) yield chunk;
     yield "</r>";
   })(), { fs: injected, cwd: "/", env: {}, signal }, budget, 1, recovery ? () => {} : undefined);
-  const load = document.node.bind(document);
-  document.node = async reference => {
+  const load = document.metadata.bind(document);
+  document.metadata = async reference => {
     const node = await load(reference);
     if (node.kind === "text") assert.ok(node.text.length <= 512);
     return node;
@@ -178,8 +178,8 @@ test(`large ${kind} bodies preserve delimiters and node identity (recovery=${rec
     for (let index = 0; index < repetitions; index++) yield chunk;
     yield close + "<x/>" + open + close + "</r>";
   })(), { fs, cwd: "/", env: {}, signal }, budget, 1, recovery ? () => {} : undefined);
-  const load = document.node.bind(document);
-  document.node = async reference => {
+  const load = document.metadata.bind(document);
+  document.metadata = async reference => {
     const node = await load(reference);
     if (node.kind === kind) assert.ok(node.text.length <= 512);
     return node;

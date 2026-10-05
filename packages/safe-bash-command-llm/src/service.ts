@@ -1,3 +1,4 @@
+import { jsonValue } from "./json-value.js";
 import { validateAttachmentUrl } from "./url-attachment.js";
 import { requestAttachments } from "./request-attachments.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -65,6 +66,13 @@ async function textByteLength(text: string, signal: AbortSignal, maxBytes: numbe
 }
 
 function validateMetadata(value: LlmResponseMetadata): void {
+  if (value.toolCalls !== undefined) {
+    if (!Array.isArray(value.toolCalls)) throw new TypeError('Invalid LLM tool calls');
+    for (const call of value.toolCalls) {
+      if (!call || typeof call.name !== 'string' || !call.name || call.id !== undefined && typeof call.id !== 'string') throw new TypeError('Invalid LLM tool call');
+      validateOptions({arguments:call.arguments});
+    }
+  }
   for (const field of [value.usage, value.metadata]) {
     if (field !== undefined && (!field || typeof field !== "object" || Array.isArray(field))) throw new TypeError("Invalid LLM response metadata");
   }
@@ -98,6 +106,16 @@ function validateOptions(options: Readonly<Record<string, LlmOption>>): void {
   }
 }
 
+function validateTools(request: Pick<LlmRequest, 'tools'>, model: LlmModel): void {
+  if (request.tools === undefined) return;
+  if (!Array.isArray(request.tools)) throw new TypeError('Invalid LLM tools');
+  if (request.tools.length && !model.capabilities?.includes('tools')) throw new Error(`Model ${model.id} does not support tools`);
+  for (const tool of request.tools) {
+    if (!tool || typeof tool.name !== 'string' || !tool.name || tool.description != null && typeof tool.description !== 'string' || !tool.inputSchema || typeof tool.inputSchema !== 'object' || Array.isArray(tool.inputSchema)) throw new TypeError('Invalid LLM tool definition');
+    validateOptions(tool.inputSchema);
+  }
+}
+
 async function* streamResult(completion: () => AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>, model: LlmModel, request: { readonly signal: AbortSignal; readonly maxOutputBytes?: number }): AsyncGenerator<LlmStreamEvent> {
       const limit = request.maxOutputBytes ?? Infinity;
       if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError("Invalid LLM output limit");
@@ -115,7 +133,11 @@ async function* streamResult(completion: () => AsyncIterable<string | Uint8Array
             if (metadata !== undefined && (!metadata || typeof metadata !== "object" || Array.isArray(metadata))) throw new TypeError("Invalid LLM response metadata");
             const details = metadata as LlmResponseMetadata | undefined;
             if (details) validateMetadata(details);
-            yield { type: "response", response: { model: model.id, ...(details?.usage ? { usage: details.usage } : {}), ...(details?.metadata ? { metadata: details.metadata } : {}) } };
+            if (details?.toolCalls) for await (const bytes of jsonValue(details.toolCalls, request.signal)) {
+              size += bytes.byteLength;
+              if (size > limit) throw new RangeError('LLM output byte limit exceeded');
+            }
+            yield { type: "response", response: { model: model.id, ...(details?.toolCalls ? {toolCalls:details.toolCalls} : {}), ...(details?.usage ? { usage: details.usage } : {}), ...(details?.metadata ? { metadata: details.metadata } : {}) } };
             return;
           }
           const chunk = result.value;
@@ -190,6 +212,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       validateOptions(request.options);
       if (typeof request.prompt !== "string" || request.system !== undefined && typeof request.system !== "string") throw new TypeError("Invalid LLM prompt");
       const entry = this.resolve(request.model);
+      validateTools(request, entry.model);
       if (request.messages?.length && !entry.model.capabilities?.includes("messages")) throw new Error(`Model ${entry.model.id} does not support messages`);
       if (request.messages?.some(message => !["system", "user", "assistant"].includes(message.role) || typeof message.content !== "string")) throw new TypeError("Invalid LLM message");
       if (request.schema !== undefined) {
@@ -228,6 +251,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
         const entry = this.resolve(request.model);
         if (!entry.provider.completeSources || entry.model.inputSources === false) throw new Error(`Model ${entry.model.id} does not support streamed inputs`);
         for (const source of sources) if (!source || typeof source.dispose !== "function" || typeof source.bytes?.[Symbol.asyncIterator] !== "function") throw new TypeError("Invalid LLM input source");
+        validateTools(request, entry.model);
         if (request.messages?.length && !entry.model.capabilities?.includes("messages")) throw new Error(`Model ${entry.model.id} does not support messages`);
         if (request.messages?.some(message => !["system", "user", "assistant"].includes(message.role))) throw new TypeError("Invalid LLM message");
         if (request.schema !== undefined) {

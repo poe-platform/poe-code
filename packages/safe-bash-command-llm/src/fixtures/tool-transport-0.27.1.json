@@ -1,0 +1,552 @@
+[
+  {
+    "stream": false,
+    "response": {
+      "id": "response_1",
+      "model": "fixture",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "call_1",
+                "type": "function",
+                "function": {
+                  "name": "weather",
+                  "arguments": "{\"city\":\"Paris\"}"
+                }
+              }
+            ]
+          },
+          "finish_reason": "tool_calls"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2,
+        "completion_tokens": 3,
+        "total_tokens": 5
+      }
+    },
+    "events": [],
+    "request": {
+      "model": "fixture",
+      "stream": false,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Question"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "weather",
+            "description": "Look up weather",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ]
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "clock",
+            "description": null,
+            "parameters": {}
+          }
+        }
+      ]
+    },
+    "text": "",
+    "toolCalls": [
+      {
+        "name": "weather",
+        "arguments": {
+          "city": "Paris"
+        },
+        "tool_call_id": "call_1"
+      }
+    ]
+  },
+  {
+    "stream": false,
+    "response": {
+      "id": "response_1",
+      "model": "fixture",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Checking",
+            "tool_calls": [
+              {
+                "id": "call_b",
+                "type": "function",
+                "function": {
+                  "name": "weather",
+                  "arguments": "{\"city\":\"Z\u00fcrich\"}"
+                }
+              },
+              {
+                "id": "call_a",
+                "type": "function",
+                "function": {
+                  "name": "clock",
+                  "arguments": "{}"
+                }
+              }
+            ]
+          },
+          "finish_reason": "tool_calls"
+        },
+        {
+          "index": 1,
+          "message": {
+            "role": "assistant",
+            "content": "ignored",
+            "tool_calls": [
+              {
+                "id": "ignored",
+                "type": "function",
+                "function": {
+                  "name": "clock",
+                  "arguments": "{}"
+                }
+              }
+            ]
+          },
+          "finish_reason": "tool_calls"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2,
+        "completion_tokens": 3,
+        "total_tokens": 5
+      }
+    },
+    "events": [],
+    "request": {
+      "model": "fixture",
+      "stream": false,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Question"
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "weather",
+            "description": "Look up weather",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ]
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "clock",
+            "description": null,
+            "parameters": {}
+          }
+        }
+      ]
+    },
+    "text": "Checking",
+    "toolCalls": [
+      {
+        "name": "weather",
+        "arguments": {
+          "city": "Z\u00fcrich"
+        },
+        "tool_call_id": "call_b"
+      },
+      {
+        "name": "clock",
+        "arguments": {},
+        "tool_call_id": "call_a"
+      }
+    ]
+  },
+  {
+    "stream": true,
+    "response": {
+      "id": "response_1",
+      "model": "fixture",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "call_1",
+                "type": "function",
+                "function": {
+                  "name": "weather",
+                  "arguments": "{\"city\":\"Paris\"}"
+                }
+              }
+            ]
+          },
+          "finish_reason": "tool_calls"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2,
+        "completion_tokens": 3,
+        "total_tokens": 5
+      }
+    },
+    "events": [
+      {
+        "id": "response_1",
+        "model": "fixture",
+        "choices": [
+          {
+            "index": 0,
+            "delta": {
+              "role": "assistant",
+              "content": null,
+              "tool_calls": [
+                {
+                  "index": 0,
+                  "id": "call_1",
+                  "type": "function",
+                  "function": {
+                    "name": "weather",
+                    "arguments": "{\"ci"
+                  }
+                }
+              ]
+            },
+            "finish_reason": null
+          }
+        ]
+      },
+      {
+        "id": "response_1",
+        "model": "fixture",
+        "choices": [
+          {
+            "index": 0,
+            "delta": {
+              "tool_calls": [
+                {
+                  "index": 0,
+                  "function": {
+                    "arguments": "ty\":\"Paris\"}"
+                  }
+                }
+              ]
+            },
+            "finish_reason": null
+          }
+        ]
+      },
+      {
+        "id": "response_1",
+        "model": "fixture",
+        "choices": [],
+        "usage": {
+          "prompt_tokens": 2,
+          "completion_tokens": 3,
+          "total_tokens": 5
+        }
+      }
+    ],
+    "request": {
+      "model": "fixture",
+      "stream": true,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Question"
+        }
+      ],
+      "stream_options": {
+        "include_usage": true
+      },
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "weather",
+            "description": "Look up weather",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ]
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "clock",
+            "description": null,
+            "parameters": {}
+          }
+        }
+      ]
+    },
+    "text": "",
+    "toolCalls": [
+      {
+        "name": "weather",
+        "arguments": {
+          "city": "Paris"
+        },
+        "tool_call_id": "call_1"
+      }
+    ]
+  },
+  {
+    "stream": true,
+    "response": {
+      "id": "response_1",
+      "model": "fixture",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Checking",
+            "tool_calls": [
+              {
+                "id": "call_b",
+                "type": "function",
+                "function": {
+                  "name": "weather",
+                  "arguments": "{\"city\":\"Z\u00fcrich\"}"
+                }
+              },
+              {
+                "id": "call_a",
+                "type": "function",
+                "function": {
+                  "name": "clock",
+                  "arguments": "{}"
+                }
+              }
+            ]
+          },
+          "finish_reason": "tool_calls"
+        },
+        {
+          "index": 1,
+          "message": {
+            "role": "assistant",
+            "content": "ignored",
+            "tool_calls": [
+              {
+                "id": "ignored",
+                "type": "function",
+                "function": {
+                  "name": "clock",
+                  "arguments": "{}"
+                }
+              }
+            ]
+          },
+          "finish_reason": "tool_calls"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2,
+        "completion_tokens": 3,
+        "total_tokens": 5
+      }
+    },
+    "events": [
+      {
+        "id": "response_1",
+        "model": "fixture",
+        "choices": [
+          {
+            "index": 0,
+            "delta": {
+              "role": "assistant",
+              "content": "Checking",
+              "tool_calls": [
+                {
+                  "index": 0,
+                  "id": "call_b",
+                  "type": "function",
+                  "function": {
+                    "name": "weather",
+                    "arguments": "{\"ci"
+                  }
+                },
+                {
+                  "index": 1,
+                  "id": "call_a",
+                  "type": "function",
+                  "function": {
+                    "name": "clock",
+                    "arguments": "{}"
+                  }
+                }
+              ]
+            },
+            "finish_reason": null
+          },
+          {
+            "index": 1,
+            "delta": {
+              "content": "ignored",
+              "tool_calls": [
+                {
+                  "index": 0,
+                  "id": "ignored",
+                  "type": "function",
+                  "function": {
+                    "name": "clock",
+                    "arguments": "{}"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "response_1",
+        "model": "fixture",
+        "choices": [
+          {
+            "index": 0,
+            "delta": {
+              "tool_calls": [
+                {
+                  "index": 1,
+                  "function": {
+                    "arguments": ""
+                  }
+                }
+              ]
+            },
+            "finish_reason": null
+          }
+        ]
+      },
+      {
+        "id": "response_1",
+        "model": "fixture",
+        "choices": [
+          {
+            "index": 0,
+            "delta": {
+              "tool_calls": [
+                {
+                  "index": 0,
+                  "function": {
+                    "arguments": "ty\":\"Z\u00fcrich\"}"
+                  }
+                }
+              ]
+            },
+            "finish_reason": null
+          }
+        ]
+      },
+      {
+        "id": "response_1",
+        "model": "fixture",
+        "choices": [],
+        "usage": {
+          "prompt_tokens": 2,
+          "completion_tokens": 3,
+          "total_tokens": 5
+        }
+      }
+    ],
+    "request": {
+      "model": "fixture",
+      "stream": true,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Question"
+        }
+      ],
+      "stream_options": {
+        "include_usage": true
+      },
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "weather",
+            "description": "Look up weather",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "city"
+              ]
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "clock",
+            "description": null,
+            "parameters": {}
+          }
+        }
+      ]
+    },
+    "text": "Checking",
+    "toolCalls": [
+      {
+        "name": "weather",
+        "arguments": {
+          "city": "Z\u00fcrich"
+        },
+        "tool_call_id": "call_b"
+      },
+      {
+        "name": "clock",
+        "arguments": {},
+        "tool_call_id": "call_a"
+      }
+    ]
+  }
+]

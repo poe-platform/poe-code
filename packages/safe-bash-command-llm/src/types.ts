@@ -4,8 +4,20 @@ import type { LlmService } from "./service.js";
 import type { LlmTemplateLoader } from "./templates.js";
 import type {LlmCollectionCommands} from './collections-command-types.js';
 export type LlmOption = string | number | boolean | null | readonly LlmOption[] | { readonly [key: string]: LlmOption };
-export type LlmCapability = "messages" | "schema" | "embed" | "embed-binary" | "embed-mixed";
+export type LlmCapability = "messages" | "schema" | "tools" | "embed" | "embed-binary" | "embed-mixed";
+/** Declarative tools only. Execution and retention belong to the caller. */
+export interface LlmTool {
+  readonly name: string;
+  readonly description?: string | null;
+  readonly inputSchema: Readonly<Record<string, LlmOption>>;
+}
+export interface LlmToolCall {
+  readonly id?: string;
+  readonly name: string;
+  readonly arguments: LlmOption;
+}
 export interface LlmResponseMetadata {
+  readonly toolCalls?: readonly LlmToolCall[];
   readonly usage?: Readonly<Record<string, unknown>>;
   readonly metadata?: Readonly<Record<string, unknown>>;
 }
@@ -63,6 +75,7 @@ export type LlmSourceAttachment = { readonly mimeType: string; readonly id?: str
   { readonly source: LlmInputSource; readonly url?: never } | { readonly url: string; readonly source?: never }
 );
 export interface LlmRequest {
+  tools?: readonly LlmTool[];
   model: string;
   prompt: string;
   system?: string;

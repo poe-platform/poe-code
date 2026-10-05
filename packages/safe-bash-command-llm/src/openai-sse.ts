@@ -1,3 +1,4 @@
+import {OpenAiToolCalls} from "./openai-tools.js";
 import { openAiUsage } from "./openai-usage.js";
 import type { LlmResponseMetadata } from "./types.js";
 import type { ByteSource } from "safe-bash-contracts";
@@ -33,12 +34,16 @@ async function* events(source: ByteSource, signal: AbortSignal, limit: number, r
   throw new Error("OpenAI chat stream ended before [DONE]");
 }
 
-export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit = Infinity, responseLimit = Infinity): AsyncGenerator<string, LlmResponseMetadata> {
+export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit = Infinity, responseLimit = Infinity, toolLimit = Infinity): AsyncGenerator<string, LlmResponseMetadata> {
+  const calls = new OpenAiToolCalls(toolLimit);
   let usage: Readonly<Record<string, unknown>> | undefined;
   const metadata: Record<string, unknown> = {};
   for await (const data of events(source, signal, limit, responseLimit)) {
     signal.throwIfAborted();
-    if (data.trim() === "[DONE]") return { ...(usage ? { usage } : {}), ...(Object.keys(metadata).length ? { metadata } : {}) };
+    if (data.trim() === "[DONE]") {
+      const toolCalls = calls.finish();
+      return { ...(toolCalls ? {toolCalls} : {}), ...(usage ? { usage } : {}), ...(Object.keys(metadata).length ? { metadata } : {}) };
+    }
     let parsed: unknown;
     try { parsed = JSON.parse(data); }
     catch { throw new Error("OpenAI returned malformed SSE JSON"); }
@@ -52,9 +57,10 @@ export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit
       if (parsed[key] !== undefined) metadata[key] = parsed[key];
     }
     if (!Array.isArray(parsed.choices)) throw new Error("OpenAI SSE event has no choices");
-    for (const choice of parsed.choices) {
+    for (const choice of parsed.choices.slice(0, 1)) {
       signal.throwIfAborted();
       if (!openAiRecord(choice) || !openAiRecord(choice.delta)) throw new Error("OpenAI SSE event has a malformed delta");
+      calls.add(choice.delta.tool_calls, true);
       const content = choice.delta.content;
       if (content != null && typeof content !== "string") throw new Error("OpenAI SSE delta.content is not text");
       if (typeof content === "string" && content.length > 0) yield content;

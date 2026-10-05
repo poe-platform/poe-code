@@ -2,6 +2,8 @@ import type { ByteSource } from "safe-bash-contracts/io";
 import type { HttpHeaders } from "safe-bash-contracts/http";
 
 export interface LlmProviderLimits {
+  /** Aggregate retained tool names, IDs and JSON arguments across response deltas. */
+  readonly maxToolCallBytes: number;
   readonly maxRequestBytes: number;
   readonly maxResponseBytes: number;
   readonly maxEventBytes: number;
@@ -10,7 +12,7 @@ export interface LlmProviderLimits {
 }
 
 export function providerLimits(input: Partial<LlmProviderLimits> = {}): LlmProviderLimits {
-  const limits = { maxRequestBytes: Infinity, maxResponseBytes: Infinity, maxEventBytes: Infinity, maxPolls: Infinity, pollIntervalMs: 1000, ...input };
+  const limits = { maxToolCallBytes: Infinity, maxRequestBytes: Infinity, maxResponseBytes: Infinity, maxEventBytes: Infinity, maxPolls: Infinity, pollIntervalMs: 1000, ...input };
   for (const name of Object.keys(limits) as (keyof LlmProviderLimits)[]) {
     if (limits[name] === undefined) limits[name] = name === "pollIntervalMs" ? 1000 : Infinity;
   }

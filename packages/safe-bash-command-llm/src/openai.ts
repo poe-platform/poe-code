@@ -1,3 +1,4 @@
+import {openAiTools, OpenAiToolCalls} from "./openai-tools.js";
 import { validateAttachmentUrl } from "./url-attachment.js";
 import { openAiAttachmentKind } from './openai-attachment.js';
 import { attachmentBytesId, getLlmAttachmentUrlId } from './attachment-id.js';
@@ -113,7 +114,7 @@ function job(value: Record<string, unknown>, expectedId?: string): { id: string;
   return { id: value.id, status: value.status };
 }
 
-function openAiChatJsonResult(value: Record<string, unknown>, signal: AbortSignal): { content?: string; details?: LlmResponseMetadata } {
+function openAiChatJsonResult(value: Record<string, unknown>, signal: AbortSignal, toolLimit: number): { content?: string; details?: LlmResponseMetadata } {
   signal.throwIfAborted();
   if (value.error != null) throw new Error(`OpenAI: ${openAiError(value.error) ?? "chat completion failed"}`);
   if (!Array.isArray(value.choices) || value.choices.length === 0) throw new Error("OpenAI chat response has no choices");
@@ -125,7 +126,11 @@ function openAiChatJsonResult(value: Record<string, unknown>, signal: AbortSigna
   if (typeof value.id === "string") metadata.id = value.id;
   if (typeof value.model === "string") metadata.model = value.model;
   if (typeof first.finish_reason === "string") metadata.finish_reason = first.finish_reason;
+  const calls = new OpenAiToolCalls(toolLimit);
+  calls.add(first.message.tool_calls, false);
+  const toolCalls = calls.finish();
   const details: LlmResponseMetadata = {
+    ...(toolCalls ? {toolCalls} : {}),
     ...(openAiRecord(value.usage) ? { usage: openAiUsage(value.usage) } : {}),
     ...(Object.keys(metadata).length ? { metadata } : {}),
   };
@@ -198,6 +203,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       request.signal.throwIfAborted();
       const model = byId.get(request.model);
       if (!model || model.endpoint !== "chat") throw new Error(`Model ${request.model} does not support streamed inputs`);
+      if (request.tools?.length && !model.capabilities?.includes("tools")) throw new Error(`Model ${model.id} does not support tools`);
       const body = chatJson({ ...request, options: openAiChatOptions(jsonOptions(request.options, "chat")) }, limits.maxRequestBytes);
       let details: LlmResponseMetadata | undefined;
       for await (const response of openAiResponse(transport, {
@@ -205,11 +211,11 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         headers: [["authorization", `Bearer ${request.key ? credential(request.key) : apiKey}`], ["content-type", "application/json"]], body,
       }, limits.maxResponseBytes)) {
         if (request.stream === false) {
-          const parsed = openAiChatJsonResult(await openAiJson(response, request.signal, limits.maxResponseBytes), request.signal);
+          const parsed = openAiChatJsonResult(await openAiJson(response, request.signal, limits.maxResponseBytes), request.signal, limits.maxToolCallBytes);
           if (parsed.content !== undefined) yield parsed.content;
           details = parsed.details;
         } else {
-          details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
+          details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes, limits.maxToolCallBytes);
         }
       }
       return details;
@@ -232,10 +238,11 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         } else attachmentBytes += attachment.bytes.byteLength;
         if (attachmentBytes > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
       }
+      if (request.tools?.length && (model.endpoint !== "chat" || !model.capabilities?.includes("tools"))) throw new Error(`Model ${model.id} does not support tools`);
       if (model.endpoint === "videos" && request.attachments.length > 1) throw new Error("OpenAI videos accepts only one input_reference image");
       if (model.endpoint !== "chat" && request.system !== undefined) throw new TypeError("System prompts are supported only by chat models");
       if (request.schema !== undefined && request.options.response_format !== undefined) throw new TypeError("OpenAI option response_format conflicts with request schema");
-      const reserved = model.endpoint === "chat" ? ["model", "messages", "stream", "stream_options"]
+      const reserved = model.endpoint === "chat" ? ["model", "messages", "stream", "stream_options", "tools"]
         : model.endpoint === "images" ? ["model", "prompt", "image", "image[]"] : ["model", "prompt", "input_reference"];
       for (const key of Object.keys(request.options)) {
         if (reserved.includes(key)) throw new Error(`OpenAI option ${key} is controlled by the provider`);
@@ -268,13 +275,13 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         }
         let details: LlmResponseMetadata | undefined;
         const stream = request.stream !== false;
-        for await (const response of send("/chat/completions", "POST", jsonBody({ ...openAiChatOptions(jsonOptions(request.options, "chat")), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream, ...(stream ? { stream_options: { include_usage: true } } : {}) }, limits.maxRequestBytes))) {
+        for await (const response of send("/chat/completions", "POST", jsonBody({ ...openAiTools(request.tools), ...openAiChatOptions(jsonOptions(request.options, "chat")), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream, ...(stream ? { stream_options: { include_usage: true } } : {}) }, limits.maxRequestBytes))) {
           if (!stream) {
-            const parsed = openAiChatJsonResult(await openAiJson(response, request.signal, limits.maxResponseBytes), request.signal);
+            const parsed = openAiChatJsonResult(await openAiJson(response, request.signal, limits.maxResponseBytes), request.signal, limits.maxToolCallBytes);
             if (parsed.content !== undefined) yield parsed.content;
             details = parsed.details;
           } else {
-            details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
+            details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes, limits.maxToolCallBytes);
           }
         }
         return details;

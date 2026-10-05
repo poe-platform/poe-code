@@ -118,3 +118,18 @@ it("rejects invalid entities in overwritten keys but ignores an empty key value"
   const updates = []; for await (const update of retainedInfoUpdates(empty(), new AbortController().signal, { fs, directory: "/scratch" })) updates.push(update);
   expect(updates).toEqual([]); expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("preserves exact style matching, whitespace and overwritten oversized styles", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  async function* chunks() {
+    yield new TextEncoder().encode("PageLabelBegin\nPageLabelNumStyle: UppercaseLetters");
+    for (let i = 0; i < 32; i++) yield new Uint8Array(4096).fill(120);
+    yield new TextEncoder().encode("\nPageLabelBegin\nPageLabelNumStyle: \tLowercaseRomanNumerals \r\nPageLabelBegin\nPageLabelNumStyle: invalid\nPageLabelNumStyle: DecimalArabicNumerals\n");
+  }
+  const styles = [];
+  for await (const update of retainedInfoUpdates(chunks(), new AbortController().signal, { fs, directory: "/scratch" })) {
+    if (update.kind === "label") styles.push(update.style);
+  }
+  expect(styles).toEqual([undefined, "r", "D"]);
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

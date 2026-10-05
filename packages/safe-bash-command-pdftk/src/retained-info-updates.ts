@@ -1,3 +1,4 @@
+import { parsePdftkStyleChunks } from "./info-style-stream.js";
 import { parsePdftkGeometryChunks } from "./info-geometry-stream.js";
 import { parsePdftkIntegerChunks } from "./info-integer-stream.js";
 import { decodePdftkEntityChunks } from "./info-entity-stream.js";
@@ -10,7 +11,7 @@ const integerFields = ["BookmarkLevel:", "BookmarkPageNumber:", "PageLabelNewInd
 
 const geometryFields = ["PageMediaRect:", "PageMediaDimensions:", "PageMediaCropBox:", "PageMediaCropRect:"] as const;
 
-async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { geometry: typeof geometryFields[number]; result: Awaited<ReturnType<typeof parsePdftkGeometryChunks>> } | { integer: typeof integerFields[number]; value: number } | { field: "BookmarkTitle:" | "PageLabelPrefix:" | "InfoValue:" | "InfoKey:"; text: () => AsyncGenerator<string, void, void> }> {
+async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { style: string } | { geometry: typeof geometryFields[number]; result: Awaited<ReturnType<typeof parsePdftkGeometryChunks>> } | { integer: typeof integerFields[number]; value: number } | { field: "BookmarkTitle:" | "PageLabelPrefix:" | "InfoValue:" | "InfoKey:"; text: () => AsyncGenerator<string, void, void> }> {
   async function* decoded() {
     const decoder = new TextDecoder();
     for await (const bytes of chunks) for (let at = 0; at < bytes.length; at += 4096) {
@@ -71,6 +72,8 @@ async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, si
         yield { integer, value: await parsePdftkIntegerChunks(field(integer.length), signal) };
       } else if (geometry) {
         yield { geometry, result: await parsePdftkGeometryChunks(field(geometry.length), signal) };
+      } else if (head.startsWith("PageLabelNumStyle:")) {
+        yield { style: await parsePdftkStyleChunks(field("PageLabelNumStyle:".length), signal) };
       } else {
         // Unknown lines are ignored without collecting their contents. The
         // remaining scalar update fields keep their existing conversion rules.
@@ -137,6 +140,10 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
 
   for await (const raw of lines(chunks, texts, signal)) {
     if (typeof raw !== "string") {
+      if ("style" in raw) {
+        if (mode === "pagelabel") plStyle = raw.style;
+        continue;
+      }
       if ("geometry" in raw) {
         if (mode !== "pagemedia") continue;
         const { values, count, finite } = raw.result;
@@ -197,8 +204,6 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
     } else if (line.startsWith("PdfID1:")) {
       yield { kind: "id", index: 1, bytes: hexToBytes(line.slice("PdfID1:".length)) };
 
-    } else if (mode === "pagelabel" && line.startsWith("PageLabelNumStyle:")) {
-      plStyle = line.slice("PageLabelNumStyle:".length).trim();
     }
   }
   flushStanza();

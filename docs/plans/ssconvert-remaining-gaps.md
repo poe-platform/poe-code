@@ -192,6 +192,15 @@ reference limitation. Companion absence/authority is now also complete
 agree on the exact warning and preserved unaffected value; cancellation publishes
 nothing. Actual companion content/index semantics remain open. Proceed to the
 PERL_DATE installed-artifact gate without restarting these cohorts.
+Genuine pxlib-generated DB/MB payloads now validate the default-reading contract
+(`paradoxCompanionContent`):16 compiled public controls preserve the unaffected
+short value, exact warning and cancellation atomicity without reading companions.
+Explicit native attachment recovers the89-byte plaintext memo byte-exact. For the
+native-generated encrypted pair, pxlib returns success and length89 but a null
+payload; the corrected evidence harness reports that limitation without
+dereferencing it. Gnumeric/GSF still refuses the genuine table at header loading.
+These results qualify neither implicit companion loading nor encrypted external
+memo parity. Primary-index content and the wider remaining profiles stay open.
 PERL_DATE takes no arguments: the activated sample and eight compiled public
 routes match all ten scalar/error/reference/array rejection and valid-call
 controls in C/C.UTF-8 (`perlDateArgumentLocale`). Broader locale/runtime profiles

@@ -68,7 +68,7 @@ test("supports stdin-only, arguments-only, empty prompts, and explicit end of op
 
 test("supports attached flag values and last-option-wins", async () => {
   const fake = provider();
-  const run = await fixture(["--model=missing", "-mchat", "--system=one", "-stwo", "--option=key", "first", "-okey", "second"], { provider: fake });
+  const run = await fixture(["prompt", "--model=missing", "-mchat", "--system=one", "-stwo", "--option=key", "first", "-okey", "second"], { provider: fake });
   assert.equal((await run.execute()).exitCode, 0);
   assert.equal(fake.requests[0]!.system, "two");
   assert.equal(fake.requests[0]!.options.key, "second");

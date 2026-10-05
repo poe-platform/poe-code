@@ -1,0 +1,140 @@
+[
+  {
+    "args": [
+      "-n",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--unknown",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "-mfixture",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--model=fixture",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--version",
+      "--version=x"
+    ],
+    "exit_code": 2,
+    "output": "Error: Option '--version' does not take a value.\n"
+  },
+  {
+    "args": [
+      "--version=x",
+      "--version"
+    ],
+    "exit_code": 2,
+    "output": "Error: Option '--version' does not take a value.\n"
+  },
+  {
+    "args": [
+      "--version",
+      "--help=x"
+    ],
+    "exit_code": 2,
+    "output": "Error: Option '--help' does not take a value.\n"
+  },
+  {
+    "args": [
+      "--help=x",
+      "--version"
+    ],
+    "exit_code": 2,
+    "output": "Error: Option '--help' does not take a value.\n"
+  },
+  {
+    "args": [
+      "--version",
+      "--",
+      "--help=x"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--version",
+      "prompt",
+      "--help=x"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--version",
+      "-h"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--version",
+      "-nh"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--version",
+      "--unknown=x"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--version",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "-o",
+      "--version"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--version",
+      "-m"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  },
+  {
+    "args": [
+      "--version",
+      "-h=x"
+    ],
+    "exit_code": 0,
+    "output": "llm, version 0.27.1\n"
+  }
+]

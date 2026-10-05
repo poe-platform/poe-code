@@ -181,32 +181,47 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (!bytes) throw new Error("Missing option argument");
       return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     };
-    if (argumentsValue.args[0] === "--version") {
-      argumentText(0);
-      await emitText(`llm, version ${llmReferenceVersion}\n`);
-      return { exitCode: 0 };
-    }
-    if (argumentsValue.args[0]?.startsWith("--version=")) {
-      argumentText(0);
-      await writeDiagnostic(context.stderr, "Error: Option '--version' does not take a value.\n", signal);
-      return { exitCode: 2 };
-    }
-    if (argumentsValue.args.length === 1 && ["--help", "-h"].includes(argumentsValue.args[0]!)) {
-      argumentText(0);
-      await emitText("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment, -u/--usage; -- ends options\n");
-      return { exitCode: 0 };
-    }
-    // The root Click group consumes its own separator before dispatching the
-    // explicit or default subcommand. A later separator belongs to that command.
+    // Click parses the root options before running eager callbacks. Unknown
+    // options are forwarded to the default command, but do not stop this scan.
+    let eager: "help" | "version" | undefined;
+    let separator: number | undefined;
     for (let index = 0; index < argumentsValue.args.length; index++) {
       await step();
       const token = argumentsValue.args[index]!;
-      if (token === "--") {
-        argumentText(index);
-        argumentsValue = argumentsValue.select(Array.from({length:argumentsValue.args.length-1},(_,position)=>position<index?position:position+1));
-        break;
-      }
+      if (token === "--") { separator = index; break; }
       if (!token.startsWith("-") || token === "-") break;
+      if (token.startsWith("--")) {
+        const equals = token.indexOf("=");
+        const flag = equals < 0 ? token : token.slice(0, equals);
+        if (flag !== "--version" && flag !== "--help") continue;
+        argumentText(index);
+        if (equals >= 0) {
+          await writeDiagnostic(context.stderr, `Error: Option '${flag}' does not take a value.\n`, signal);
+          return { exitCode: 2 };
+        }
+        eager ??= flag === "--version" ? "version" : "help";
+      } else {
+        for (let cursor = 1; cursor < token.length; cursor++) {
+          await step();
+          if (token[cursor] !== "h") continue;
+          argumentText(index);
+          eager ??= "help";
+          break;
+        }
+      }
+    }
+    if (eager === "version") {
+      await emitText(`llm, version ${llmReferenceVersion}\n`);
+      return { exitCode: 0 };
+    }
+    if (eager === "help") {
+      await emitText("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment, -u/--usage; -- ends options\n");
+      return { exitCode: 0 };
+    }
+    // A later separator belongs to the explicit or default subcommand.
+    if (separator !== undefined) {
+      argumentText(separator);
+      argumentsValue = argumentsValue.select(Array.from({length:argumentsValue.args.length-1},(_,position)=>position<separator?position:position+1));
     }
     if (argumentsValue.args.length === 2 && argumentsValue.args[0] === "models" && ["--help", "-h"].includes(argumentsValue.args[1]!)) {
       argumentText(0);

@@ -3,12 +3,9 @@ import { describe, it } from "node:test";
 import vm from "node:vm";
 import { sb, withE2EHarness } from "./harness.js";
 import {
-  safeJsCommands,
-  type SafeJsHostFunction,
-  type SafeJsModule,
-  type SafeJsRunOptions,
-  type SafeJsRuntime,
-} from "@poe-platform/safe-bash/commands/safejs";
+  nodeCommands,
+  type NodeSafeJsCommandOptions,
+} from "@poe-platform/safe-bash/commands/node";
 import {
   createPythonExecutorPool,
   pythonCommands,
@@ -24,17 +21,15 @@ interface MockBudget {
   readonly dataSize?: number;
 }
 
+type SafeJsRuntime = NodeSafeJsCommandOptions<MockBudget>["runtime"];
+
 function createInMemorySafeJsRuntime(
-  meta?: SafeJsRuntime<MockBudget>["node"]
-): SafeJsRuntime<MockBudget> {
+  meta?: SafeJsRuntime["node"]
+): SafeJsRuntime {
   const decoder = new TextDecoder("utf-8", { fatal: false });
   const encoder = new TextEncoder();
 
-  const declareHostOperation = <Operation extends SafeJsHostFunction>(
-    operation: Operation,
-    _policy: "read-side-effect",
-    _options?: { readonly awaitResult?: boolean }
-  ): Operation => operation;
+  const declareHostOperation: SafeJsRuntime["declareHostOperation"] = operation => operation;
 
   const normalizeRealmValue = (val: unknown): unknown => {
     if (val === null || val === undefined || typeof val !== "object") return val;
@@ -114,9 +109,9 @@ function createInMemorySafeJsRuntime(
             isDirectory: () => st.type === "directory",
           };
         },
-      } as unknown as SafeJsModule;
+      } as unknown as ReturnType<SafeJsRuntime["makeFsModule"]>;
     },
-    async run(source: string, options: SafeJsRunOptions<MockBudget>) {
+    async run(source, options) {
       options.signal.throwIfAborted();
       if (
         options.budget.maxSteps !== undefined &&
@@ -615,13 +610,13 @@ SQL
     );
   });
 
-  it("12. safeJsCommands registers node with custom version and bash completion options", async () => {
+  it("12. nodeCommands registers node with custom version and bash completion options", async () => {
     const runtime = createInMemorySafeJsRuntime({
       version: "v22.11.0-zero-dep",
       options: { "--zero-dep-flag": "boolean", "--heap-limit": "value" },
     });
     await withE2EHarness(
-      { plugins: [safeJsCommands({ runtime, replace: true })] },
+      { plugins: [nodeCommands({ runtime, replace: true })] },
       async (h) => {
         const r = await h.exec(`
           node -v

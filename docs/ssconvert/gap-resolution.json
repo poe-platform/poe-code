@@ -4584,7 +4584,7 @@
       "status": "open",
       "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained.",
       "checkpoint20261004": {
-        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3\u201315 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen. Companion-absence authority and diagnostics pass 16 plaintext/encrypted SDK/command controls, with/without MB/PX sentinels and cancellation; native pxlib matches the missing-blob warning and unaffected short value. Genuine pxlib-generated DB/MB pairs now validate the same default-reading authority contract in16 public controls; explicit native attachment independently recovers the89-byte plaintext memo. Alpha exports now stop at NUL before encoding and warning admission;12 public plaintext/encrypted outputs pass independent pxlib field-byte checks. Eight ASCII application readbacks pass with a documented process-local GSF callback correction. BCD export now skips non-digit fractional characters until precision or NUL;16 public plaintext/encrypted outputs match bounded native field/decode controls and adapted-GSF application readbacks. Native300-record/two-block primary indexes now pass16 public CSV/XLSX routes with signed/null trailers and8 independent XLSX application readbacks. All65 retained version inputs/exports additionally pass application readback under the explicit GSF callback adapter.",
+        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3–15 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen. Companion-absence authority and diagnostics pass 16 plaintext/encrypted SDK/command controls, with/without MB/PX sentinels and cancellation; native pxlib matches the missing-blob warning and unaffected short value. Genuine pxlib-generated DB/MB pairs now validate the same default-reading authority contract in16 public controls; explicit native attachment independently recovers the89-byte plaintext memo. Alpha exports now stop at NUL before encoding and warning admission;12 public plaintext/encrypted outputs pass independent pxlib field-byte checks. Eight ASCII application readbacks pass with a documented process-local GSF callback correction. BCD export now skips non-digit fractional characters until precision or NUL;16 public plaintext/encrypted outputs match bounded native field/decode controls and adapted-GSF application readbacks. Native300-record/two-block primary indexes now pass16 public CSV/XLSX routes with signed/null trailers and8 independent XLSX application readbacks. All65 retained version inputs/exports additionally pass application readback under the explicit GSF callback adapter. All12 retained alpha exports, including CP1252 café before NUL, now pass native application readback without diagnostics under an isolated pinned-upstream iconv plugin and explicit GSF callback adapter.",
         "evidence": [
           "#/paradoxInlineMemoUtf8",
           "#/paradoxMemoNulCapacity",
@@ -4593,7 +4593,8 @@
           "#/paradoxCompanionContent",
           "#/paradoxAlphaNulBoundary",
           "#/paradoxBcdFractionDigits",
-          "#/paradoxIndexApplicationReadback"
+          "#/paradoxIndexApplicationReadback",
+          "#/paradoxIconvApplicationReadback"
         ],
         "nextAcceptance": "Retain the completed version, genuine-memo default-reading, alpha/BCD and300-record primary-index checkpoints. Remaining Paradox acceptance is wider field/key/block/record profiles, password/truncation/work/cleanup and installed artifacts. Adapted GSF application evidence is now available; retain the separate native writer/encoding/external-memo limitations.",
         "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
@@ -7166,5 +7167,44 @@
       "version-readback.py": "fc5c453bf995e0838341b17b3d447d62a17968009bac134879cd15448543e954",
       "versions-adapted-gsf.json": "c830a7deb7b3638628a136cde66ee29855395283b5e7995be5e15d8cd60f1484"
     }
+  },
+  "paradoxIconvApplicationReadback": {
+    "reference": {
+      "platform": "Linux arm64; isolated Gnumeric1.12.61 plugin, upstream pxlib with libc iconv",
+      "pxlibCommit": "e32d17611e5ee353c4e3ce04e61b0b38feb95855",
+      "sourceArchiveSha256": "ba96e9808f93e6ad2bffdc68c2daa60a33340d6c47767d4c5ca71a39188de11c",
+      "pxlibSha256": "0fe15ce3a04342904819c7d564d3371aff19faac06caaf36c736e5f6ebcbbac9",
+      "pluginSourceSha256": "70933d8b124417e65edfdc5f9b06cd8e711d4bbf9ea26794d4709ee9b91530c6",
+      "pluginSha256": "faf7a9028e558f6b51e1fbd5dc9eadd6f2b69070bc670051c7b07e60f532f073",
+      "adapterSha256": "67474edf04bd84c0f3274fb3f6892edc04b36d255c1e75a37000220e724e1c06",
+      "ssconvertSha256": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+      "activation": "Unmodified upstream source built with CMake Iconv, explicit libgsf flags/HAVE_GSF. Unmodified Gnumeric plugin source rebuilt against generated headers and isolated library rpath. Plugin XML ID changed to Gnumeric_paradox_iconv to avoid installed-plugin shadowing. Process-local GSF byte-count adapter rebuilt against matching headers; installed binaries unchanged. Generated PX_USE_ICONV=1, dynamic iconv symbols and resolved library path verified."
+    },
+    "verification": {
+      "publicExports": 12,
+      "nativeReadbacks": 12,
+      "routes": [
+        "SDK",
+        "command"
+      ],
+      "encryption": [
+        "plaintext",
+        "password test"
+      ],
+      "inputs": [
+        "ab\u0000cd",
+        "café\u0000😀",
+        "\u0000ignored text"
+      ],
+      "results": [
+        "ab",
+        "café",
+        "empty cell; native CSV omits trailing empty row"
+      ],
+      "diagnostics": "All public and native routes have empty diagnostics/stderr. Fresh public output hashes equal retained native inputs.",
+      "focusedTests": 80,
+      "build": "Selected ssconvert workspace build passed before cohort; engine and command source trees unchanged through rebase."
+    },
+    "scope": "Completes retained alpha NUL/CP1252 application readback only. Adapted GSF profile is distinct from the original Debian no-reencoding profile; original limitations retained. No new runtime change. Wider family acceptance remains open."
   }
 }

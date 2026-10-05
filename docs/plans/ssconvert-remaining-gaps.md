@@ -317,6 +317,13 @@ ACOS differences per route/runtime. Its bundle still calls Math.acos; scoped
 uses capturedAcos. The source fix is already on main. Root containing
 publication and remaining declared runtime-library profiles stay open.
 
+The retained12 alpha NUL exports now pass independent application readback,
+including CP1252 café, with empty stderr (`paradoxIconvApplicationReadback`).
+This uses an isolated pinned-upstream iconv plugin and the explicit GSF callback
+adapter; installed reference binaries remain unchanged. The original Debian
+no-reencoding profile remains separately classified. Wider Paradox acceptance
+and all other family gates remain open.
+
 ## 4. Interfaces and test plan
 
 Use existing `createEngine`, `readWorkbook`, `writeWorkbook`, `convert` and

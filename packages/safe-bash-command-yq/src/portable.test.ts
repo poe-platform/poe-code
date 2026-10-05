@@ -6,6 +6,15 @@ import { createMikeYqCommand } from "./mike.js";
 import { createYqCommand } from "./query.js";
 
 for (const [command, args, input, expected, diagnostic = ""] of [
+  [createYqCommand, ["-o", "json", "-c", "."], "msg: hello, world\n", "{\"msg\":\"hello, world\"}\n"],
+  [createYqCommand, ["-o", "json", "-c", "."], "expr: arr[0]\n", "{\"expr\":\"arr[0]\"}\n"],
+  [createYqCommand, ["-o", "json", "-c", "."], "tpl: prefix-{name}\n", "{\"tpl\":\"prefix-{name}\"}\n"],
+  [createYqCommand, ["-o", "json", "-c", "."], "hello, [world] {name}\n", "\"hello, [world] {name}\"\n"],
+  [createYqCommand, ["-o", "json", "-c", "."], "- arr[0]\n- prefix-{name}\n- unmatched]},{[\n", "[\"arr[0]\",\"prefix-{name}\",\"unmatched]},{[\"]\n"],
+  [createYqCommand, ["-o", "json", "-c", "."], "msg: &message hello, world\ncopy: *message\n", "{\"msg\":\"hello, world\",\"copy\":\"hello, world\"}\n"],
+  [createYqCommand, ["-o", "json", "-c", "."], "msg: !!str hello, world # comment\n", "{\"msg\":\"hello, world\"}\n"],
+  [createYqCommand, ["-o", "json", "-c", "."], "values: [hello, world, {name: value}]\n", "{\"values\":[\"hello\",\"world\",{\"name\":\"value\"}]}\n"],
+  [createYqCommand, ["-o", "json", "-c", "."], "msg: foo:,bar\n", "{\"msg\":\"foo:,bar\"}\n"],
   [createYqCommand, ["-o", "json", "-r", ".b"], "a: 1\nb: héllo😀\n", "héllo😀\n"],
   [createYqCommand, ["-o", "json", "-c", ".[]"], "[1, 2, 3, 4]\n", "1\n2\n3\n4\n"],
   [createYqCommand, ["-p", "toml", "-o", "json", "-r", ".b"], 'b = "héllo"\n', "héllo\n"],

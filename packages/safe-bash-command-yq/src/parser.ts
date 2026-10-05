@@ -558,17 +558,17 @@ class FlowParser {
     return n0;
   }
 
-  #node(keyMode = false): ParsedNode | Promise<ParsedNode> {
+  #node(keyMode = false, inFlow = false): ParsedNode | Promise<ParsedNode> {
     this.#space();
     const c0 = this.source[this.#position];
     if (c0 !== "!" && c0 !== "&" && c0 !== "*" && c0 !== undefined) {
       if (c0 === '"' || c0 === "'") return this.#quoted();
-      if (c0 !== "[" && c0 !== "{") return this.#plain(keyMode);
+      if (c0 !== "[" && c0 !== "{") return this.#plain(keyMode, inFlow);
     }
-    return this.#nodeSlow(keyMode);
+    return this.#nodeSlow(keyMode, inFlow);
   }
 
-  async #nodeSlow(keyMode = false): Promise<ParsedNode> {
+  async #nodeSlow(keyMode = false, inFlow = false): Promise<ParsedNode> {
     let tag: string | undefined;
     let anchor: string | undefined;
     while (true) {
@@ -611,7 +611,7 @@ class FlowParser {
         if (s) await s;
         parsed = { value: null, style: "plain", raw: "" };
       }
-    } else { const p = this.#plain(keyMode); parsed = p instanceof Promise ? await p : p; }
+    } else { const p = this.#plain(keyMode, inFlow); parsed = p instanceof Promise ? await p : p; }
     parsed = this.composer.applyTag(parsed, tag);
     if (record) this.composer.completeAnchor(record, parsed.value);
     return { ...parsed, ...(tag === undefined ? {} : { explicitTag: tag }) };
@@ -633,7 +633,7 @@ class FlowParser {
         this.composer.member(result.length + 1);
         this.composer.member(1);
         const start = this.#position;
-        const v0 = this.#node();
+        const v0 = this.#node(false, true);
         let value = v0 instanceof Promise ? await v0 : v0;
         this.#space();
         if (this.source[this.#position] === ":") {
@@ -641,7 +641,7 @@ class FlowParser {
           this.#position++;
           this.composer.enterCollection();
           try {
-            const m0 = this.#node();
+            const m0 = this.#node(false, true);
             const mapped = m0 instanceof Promise ? await m0 : m0;
             { const n = this.composer.node(); if (n) await n; }
             this.composer.collection();
@@ -682,12 +682,12 @@ class FlowParser {
       }
       while (true) {
         this.composer.member(++members);
-        const k0 = this.#node(true);
+        const k0 = this.#node(true, true);
         const key = k0 instanceof Promise ? await k0 : k0;
         this.#space();
         if (this.source[this.#position] !== ":") throw syntax(this.line, this.#position + 1);
         this.#position++;
-        const v0 = this.#node();
+        const v0 = this.#node(false, true);
         const value = v0 instanceof Promise ? await v0 : v0;
         this.composer.mappingEntry(result, key, value.value, true, true);
         this.#space();
@@ -739,19 +739,16 @@ class FlowParser {
     return { value: await this.composer.alias(match[1]!) };
   }
 
-  #plain(keyMode: boolean): ParsedNode | Promise<ParsedNode> {
+  #plain(keyMode: boolean, inFlow: boolean): ParsedNode | Promise<ParsedNode> {
     const start = this.#position;
-    let depth = 0;
+    if (",[]{}".includes(this.source[start] ?? "\0")) throw syntax(this.line, start + 1);
     while (this.#position < this.source.length) {
       const character = this.source[this.#position]!;
-      if (character === "#" && /[ \t\r\n]/u.test(this.source[this.#position - 1] ?? "")) break;
-      if (character === "[" || character === "{") depth++;
-      if (character === "]" || character === "}") {
-        if (depth === 0) break;
-        depth--;
-      }
-      if (depth === 0 && (character === "," || character === "]" || character === "}")) break;
-      if (depth === 0 && character === ":" && (keyMode || /[\s,\]}]/u.test(this.source[this.#position + 1] ?? ""))) break;
+      if (character === "#" && " \t\r\n".includes(this.source[this.#position - 1] ?? "\0")) break;
+      if (inFlow && ",[]{}".includes(character)) break;
+      const next = this.source[this.#position + 1];
+      if (character === ":" && (keyMode || (next !== undefined &&
+        (" \t\r\n".includes(next) || (inFlow && ",[]{}".includes(next)))))) break;
       this.#position++;
     }
     const projectedBytes = projectPlainBytes(this.source, start, this.#position);

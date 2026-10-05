@@ -651,6 +651,51 @@ test("private workspace export declarations share one nominal owner without chan
   assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), specimen.tsconfig);
 });
 
+for (const count of [0, 33, 128, 129]) for (const config of ["tsconfig.json", "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json"]) {
+  test(`private declarations retain a bounded explicit export graph: ${count} routes, ${config}`, () => {
+    const specimen = privateWorkspaceFixture();
+    const manifestPath = "/safe-bash-command-fixture/package.json";
+    const manifest = JSON.parse(specimen.fileSystem.readFileSync(manifestPath, "utf8"));
+    manifest.exports = Object.fromEntries(Array.from({ length: count }, (_, index) => [index === 0 ? "./adapter" : `./controller-${index}`,
+      { types: "./dist/adapter.d.ts", import: "./dist/adapter.js" }]));
+    specimen.fileSystem.writeFileSync(manifestPath, JSON.stringify(manifest));
+    if (config !== "tsconfig.json") {
+      specimen.fileSystem.mkdirSync(dirname(join(root, config)), { recursive: true });
+      specimen.fileSystem.writeFileSync(join(root, config), JSON.stringify({ extends: "../../../../tsconfig.json" }));
+    }
+    if (count === 0 || count > 128) {
+      assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries, config }), { message: "private workspace has bounded explicit exports" });
+      return;
+    }
+    const result = checkHistoricalSources(root, { ...specimen, boundaries, config });
+    assert.equal(result.status, 0, ts.formatDiagnostics(result.diagnostics, specimen.baseHost));
+    const paths = result.program.getCompilerOptions().paths;
+    assert.equal(Object.keys(paths).length, count + 2);
+    for (const route of Object.keys(manifest.exports)) {
+      assert.deepEqual(paths[`safe-bash-command-fixture${route.slice(1)}`], ["/safe-bash-command-fixture/dist/adapter.d.ts"]);
+    }
+    assert.equal(result.program.getSourceFiles().some(source => source.fileName.includes("/src/")), false);
+  });
+}
+
+for (const [route, types, message] of [
+  ["outside", "./dist/adapter.d.ts", "private export route must be relative"],
+  ["./*", "./dist/adapter.d.ts", "nonliteral input path: *"],
+  ["./../outside", "./dist/adapter.d.ts", "nonliteral input path: ../outside"],
+  ["./last", "./src/adapter.d.ts", "private workspace declarations must remain below dist"],
+  ["./last", "./dist/../src/adapter.d.ts", "nonliteral input path: dist/../src/adapter.d.ts"],
+  ["./last", "./dist/*.d.ts", "nonliteral input path: dist/*.d.ts"],
+]) test(`larger private export graphs still reject invalid route or declaration: ${route}, ${types}`, () => {
+  const specimen = privateWorkspaceFixture();
+  const manifestPath = "/safe-bash-command-fixture/package.json";
+  const manifest = JSON.parse(specimen.fileSystem.readFileSync(manifestPath, "utf8"));
+  manifest.exports = Object.fromEntries(Array.from({ length: 127 }, (_, index) => [`./controller-${index}`,
+    { types: "./dist/adapter.d.ts", import: "./dist/adapter.js" }]));
+  manifest.exports[route] = { types, import: "./dist/adapter.js" };
+  specimen.fileSystem.writeFileSync(manifestPath, JSON.stringify(manifest));
+  assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries }), { message });
+});
+
 for (const portable of [false, true]) test(`private declaration selection honors conditional types for portable=${portable}`, () => {
   const specimen = privateWorkspaceFixture();
   const manifestPath = "/safe-bash-command-fixture/package.json";

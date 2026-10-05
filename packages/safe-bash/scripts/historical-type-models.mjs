@@ -243,7 +243,7 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
     // may cross this workspace's compiler boundary.
     for (const specifier of Object.keys(paths)) if (specifier === name || specifier.startsWith(name + "/")) delete paths[specifier];
     const routes = Object.entries(implementation.exports ?? {});
-    assert.ok(routes.length > 0 && routes.length <= 32, "private workspace has bounded explicit exports");
+    assert.ok(routes.length > 0 && routes.length <= 128, "private workspace has bounded explicit exports");
     for (const [route, target] of routes) {
       assert.ok(route === "." || route.startsWith("./"), "private export route must be relative");
       if (route !== ".") assertLiteralInputPath(route.slice(2));

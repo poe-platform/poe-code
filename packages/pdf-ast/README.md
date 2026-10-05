@@ -101,7 +101,7 @@ loading its value or stream. Fresh reads and output iterators omit it; previousl
 returned snapshots remain readable until the store closes. Deleting an absent
 object returns `false`, and later allocation does not reuse deleted identities.
 
-`serializeRetainedCosNodeChunks(value, options)` writes caller-backed strings, arrays and dictionaries without expanding them. It yields owned chunks, enforces output and recursion limits, and borrows backing until iteration finishes. Mutable object writes use this path too.
+`serializeRetainedCosNodeChunks(value, options)` writes caller-backed strings, arrays and dictionaries without expanding them. It yields owned chunks, enforces output and recursion limits, and borrows backing until iteration finishes. Mutable object writes use this path too. Set `preserveStringEncoding` to retain parsed literal/hexadecimal encodings. Retained info updates accept a string or an async string-producing callback for each value, preserving other metadata in caller backing.
 
 `editRetainedDocument(input, storage, { appendAttachments })` accepts an async
 sequence of `{ filename, chunks }` attachments. Payloads are compressed through

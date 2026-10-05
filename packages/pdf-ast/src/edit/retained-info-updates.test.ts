@@ -94,3 +94,59 @@ it("serializes streamed page label prefixes with buffered byte parity", async ()
   } finally { await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("updates streamed info values while retaining existing metadata", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const original = PdfDocument.create(); original.addPage(); original.setTitle("before"); original.setAuthor("Å".repeat(32768)); await fs.writeFile("/input", original.save());
+  const source = await PdfFileSource.open(fs, "/input"), storage = { fs, directory: "/scratch" }, document = await PdfRetainedDocument.open(source, storage);
+  async function* title() { for (let i = 0; i < 32; i++) yield "value(\\)".repeat(256); yield "😀"; }
+  let expected = ""; for await (const part of title()) expected += part;
+  try {
+    const edited = await editRetainedDocument(document, storage, { infoUpdates: [{ kind: "info", key: "Title", value: title }, { kind: "info", key: "Subject", value: "last" }] });
+    try {
+      for (const [key, expectedValue] of [["Title", expected], ["Author", "Å".repeat(32768)], ["Subject", "last"]]) {
+        let actual = ""; for await (const text of edited.document.streamInfoValue(key!)) actual += text; expect(actual).toBe(expectedValue);
+      }
+    } finally { await edited.close(); }
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("cleans caller backing when a streamed metadata value fails", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const original = PdfDocument.create(); original.addPage(); await fs.writeFile("/input", original.save());
+  const source = await PdfFileSource.open(fs, "/input"), storage = { fs, directory: "/scratch" }, document = await PdfRetainedDocument.open(source, storage), reason = new Error("metadata producer failed");
+  const baseline = await fs.readdir("/scratch"); let closed = false;
+  async function* value() { try { yield "value"; throw reason; } finally { closed = true; } }
+  try {
+    await expect(editRetainedDocument(document, storage, { infoUpdates: [{ kind: "info", key: "Title", value }] })).rejects.toBe(reason);
+    expect(closed).toBe(true); expect(await fs.readdir("/scratch")).toEqual(baseline);
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("replaces only the last duplicate metadata key without rewriting other values", async () => {
+  const { cosArray, cosName, cosString, dictSet } = await import("../ast.js");
+  const { serializeCosNodeBytes } = await import("../cos/writer.js");
+  const { serializeRetainedCosNodeChunks } = await import("../cos/retained-node-writer.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const original = PdfDocument.create(); original.addPage(); original.setTitle("first");
+  const info = original.cos.resolveDict(original.cos.infoRef!)!;
+  info.entries.push({ key: cosName("Title"), value: cosString("second") });
+  dictSet(info, "Custom", cosArray([cosString("😀"), cosString("literal")]));
+  await fs.writeFile("/input", original.save());
+  const source = await PdfFileSource.open(fs, "/input"), storage = { fs, directory: "/scratch" }, document = await PdfRetainedDocument.open(source, storage);
+  try {
+    // The initial mutable copy uses the parsed COS representation. Compare
+    // against that established byte representation, including nested strings.
+    const parsed = (await document.lookup(document.crossReference.infoRef))!.value;
+    if (parsed.kind !== "dict") throw new Error("expected info dictionary");
+    const expected = { ...parsed, entries: [...parsed.entries] };
+    dictSet(expected, "Title", cosString("replacement"));
+    const edited = await editRetainedDocument(document, storage, { infoUpdates: [{ kind: "info", key: "Title", value: async function* () { yield "replacement"; } }] });
+    try {
+      const actual = (await edited.document.lookup(edited.document.crossReference.infoRef))!.value, parts = [];
+      for await (const part of serializeRetainedCosNodeChunks(actual, { preserveStringEncoding: true })) parts.push(part);
+      expect(Buffer.concat(parts)).toEqual(Buffer.from(serializeCosNodeBytes(expected)));
+    } finally { await edited.close(); }
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

@@ -7,7 +7,7 @@ import { serializeCosNodeBytes, serializeCosNodeChunks, type SerializeCosNodeOpt
 /** Serialize borrowed caller-backed values without expanding containers or
  * strings. The caller retains backing until iteration finishes. Traversal depth
  * follows maxRecursionDepth, as with the synchronous convenience writer. */
-export async function* serializeRetainedCosNodeChunks(node: PdfCosNode, options: SerializeCosNodeOptions & { readonly streamLength?: number } = {}): AsyncGenerator<Uint8Array> {
+export async function* serializeRetainedCosNodeChunks(node: PdfCosNode, options: SerializeCosNodeOptions & { readonly streamLength?: number; readonly preserveStringEncoding?: boolean } = {}): AsyncGenerator<Uint8Array> {
   const capacity = options.chunkBytes ?? 16384, maximum = options.maxOutputBytes ?? Infinity, maxDepth = options.maxRecursionDepth ?? Infinity;
   if (!Number.isSafeInteger(capacity) || capacity < 1) throw new RangeError("Invalid PDF output chunk size");
   if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid PDF output limit");
@@ -28,7 +28,9 @@ export async function* serializeRetainedCosNodeChunks(node: PdfCosNode, options:
     yield ">>";
   }
   async function* parts(value: PdfCosNode, depth: number): AsyncGenerator<string | Uint8Array> {
-    await checkpoint(); if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF object graph nesting depth exceeded");
+    await checkpoint();
+    if (options.preserveStringEncoding && value.kind === "string" && !value.format && value.encoding) value = { ...value, format: value.encoding };
+    if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF object graph nesting depth exceeded");
     if (value.kind === "string" && value.storedBytes) {
       const source = value.storedBytes, hex = value.format === "hex";
       if (!Number.isSafeInteger(source.byteLength) || source.byteLength < 0 || !Number.isSafeInteger(source.position) || source.position < 0 || !Number.isSafeInteger(source.position + source.byteLength)) throw new RangeError("Invalid stored PDF string range");

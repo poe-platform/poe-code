@@ -71,3 +71,12 @@ it("observes cancellation between emitted chunks of an ordinary stream", async (
   expect((await iterator.next()).done).toBe(false); controller.abort(reason);
   await expect(iterator.next()).rejects.toBe(reason);
 });
+
+it("optionally preserves parsed string encodings through backed traversal", async () => {
+  const bytes = Uint8Array.of(0, 65, 255), storage = { allocate: () => 0, write: async () => {}, read: async (position: number, length: number) => bytes.subarray(position, position + length) };
+  const value: PdfCosNode = { kind: "string", encoding: "hex", bytes: new Uint8Array(), storedBytes: { storage, position: 0, byteLength: 3 } };
+  for (const preserveStringEncoding of [false, true]) {
+    const parts = []; for await (const part of serializeRetainedCosNodeChunks(value, { preserveStringEncoding })) parts.push(part);
+    expect(Buffer.concat(parts)).toEqual(Buffer.from(serializeCosNodeBytes({ kind: "string", bytes, format: preserveStringEncoding ? "hex" : "literal" })));
+  }
+});

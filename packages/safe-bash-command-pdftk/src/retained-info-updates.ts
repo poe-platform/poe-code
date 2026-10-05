@@ -10,7 +10,7 @@ const integerFields = ["BookmarkLevel:", "BookmarkPageNumber:", "PageLabelNewInd
 
 const geometryFields = ["PageMediaRect:", "PageMediaDimensions:", "PageMediaCropBox:", "PageMediaCropRect:"] as const;
 
-async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { geometry: typeof geometryFields[number]; result: Awaited<ReturnType<typeof parsePdftkGeometryChunks>> } | { integer: typeof integerFields[number]; value: number } | { field: "BookmarkTitle:" | "PageLabelPrefix:"; text: () => AsyncGenerator<string, void, void> }> {
+async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { geometry: typeof geometryFields[number]; result: Awaited<ReturnType<typeof parsePdftkGeometryChunks>> } | { integer: typeof integerFields[number]; value: number } | { field: "BookmarkTitle:" | "PageLabelPrefix:" | "InfoValue:"; text: () => AsyncGenerator<string, void, void> }> {
   async function* decoded() {
     const decoder = new TextDecoder();
     for await (const bytes of chunks) for (let at = 0; at < bytes.length; at += 4096) {
@@ -52,7 +52,7 @@ async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, si
       }
       const geometry = geometryFields.find(name => head.startsWith(name));
       const integer = integerFields.find(name => head.startsWith(name));
-      const streamed = head.startsWith("BookmarkTitle:") ? "BookmarkTitle:" : head.startsWith("PageLabelPrefix:") ? "PageLabelPrefix:" : undefined;
+      const streamed = head.startsWith("BookmarkTitle:") ? "BookmarkTitle:" : head.startsWith("PageLabelPrefix:") ? "PageLabelPrefix:" : head.startsWith("InfoValue:") ? "InfoValue:" : undefined;
       if (streamed) {
         let body = start + streamed.length;
         for await (const part of texts.text(id, body)) {
@@ -165,6 +165,9 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
         // Validate now, including prefixes overwritten later in the stanza.
         for await (const part of raw.text()) { signal.throwIfAborted(); void part; }
         plPrefix = raw.text;
+      } else if (mode === "info" && curKey && raw.field === "InfoValue:") {
+        for await (const part of raw.text()) { signal.throwIfAborted(); void part; }
+        yield { kind: "info", key: curKey, value: raw.text }; mode = "none"; curKey = "";
       }
       continue;
     }
@@ -192,12 +195,6 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
       yield { kind: "id", index: 1, bytes: hexToBytes(line.slice("PdfID1:".length)) };
     } else if (mode === "info" && line.startsWith("InfoKey:")) {
       curKey = decodePdftkEntities(line.slice("InfoKey:".length).trim());
-    } else if (mode === "info" && line.startsWith("InfoValue:") && curKey) {
-      const val = decodePdftkEntities(line.slice("InfoValue:".length).trim());
-      yield { kind: "info", key: curKey, value: val };
-      mode = "none";
-      curKey = "";
-
     } else if (mode === "pagelabel" && line.startsWith("PageLabelNumStyle:")) {
       plStyle = line.slice("PageLabelNumStyle:".length).trim();
     }

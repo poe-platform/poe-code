@@ -1,3 +1,6 @@
+import { readRawPdfDictionaryEntries } from "../content/stored-dictionary.js";
+import { serializeRetainedCosNodeChunks } from "../cos/retained-node-writer.js";
+import type { ValueArrayStorage } from "../cos/value-parser.js";
 import { PdfTextStore } from "../cos/text-store.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosArray, cosDict, cosHexString, cosName, cosNumber, cosString, dictSet, type PdfCosArray, type PdfCosRef } from "../ast.js";
@@ -8,7 +11,7 @@ import { serializeCosNodeChunks } from "../cos/writer.js";
 import { setRetainedBookmarks, type RetainedBookmark } from "./retained-bookmarks.js";
 
 export type RetainedInfoUpdate =
-  | { readonly kind: "info"; readonly key: string; readonly value: string }
+  | { readonly kind: "info"; readonly key: string; readonly value: string | (() => AsyncIterable<string>) }
   | { readonly kind: "id"; readonly index: 0 | 1; readonly bytes: Uint8Array }
   | { readonly kind: "page"; readonly pageNumber: number; readonly property: "rotation" | "dimensions" | "media" | "crop"; readonly values: readonly number[] }
   | { readonly kind: "label"; readonly index: number; readonly start: number; readonly prefix?: string | (() => AsyncIterable<string>); readonly style?: string }
@@ -19,7 +22,8 @@ export type RetainedInfoUpdate =
 export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, store: PdfMutableObjectStore, storage: PdfIndexStorage, count: number, getPage: (index: number) => Promise<PdfRetainedPage>, updates: Iterable<RetainedInfoUpdate> | AsyncIterable<RetainedInfoUpdate>, signal: AbortSignal, maxDepth?: number): Promise<{ infoRef: PdfCosRef | undefined; idArray: PdfCosArray | undefined }> {
   const pages = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const base = pages.allocate(count * 4 * 48), heads = [-1, -1, -1, -1], tails = [-1, -1, -1, -1];
-  const titles = new PdfTextStore(storage, { signal });
+  const texts = new PdfTextStore(storage, { signal });
+  const values: ValueArrayStorage = { dictionaryStorage: pages, arrayStorage: pages, stringStorage: pages, containerStorage: pages, storeRootDictionary: true, deferDictionaryValues: true, deferArrayValues: true };
   const labels = new PdfMutableObjectStore(storage, { signal }), bookmarks = new PdfMutableObjectStore(storage, { signal });
   let infoRef = document.crossReference.infoRef, idArray = document.crossReference.idArray, labelCount = 0, work = 0, failed = false;
   const rootRef = document.crossReference.rootRef;
@@ -30,15 +34,32 @@ export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, st
       await checkpoint();
       if (update.kind === "info") {
         const standard = ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"].includes(update.key);
-        let info = infoRef ? await store.get(infoRef.objectNumber) : undefined;
+        let info = infoRef ? await store.get(infoRef.objectNumber, values) : undefined;
         if (infoRef && info?.value.kind !== "dict") {
-          const resolved = await document.lookup(infoRef);
-          if (resolved?.value.kind === "dict" && resolved.reference) info = await store.get(resolved.reference.objectNumber);
+          const resolved = await document.lookup(infoRef, values);
+          if (resolved?.value.kind === "dict" && resolved.reference) info = await store.get(resolved.reference.objectNumber, values);
         }
         if (!infoRef || (standard && info?.value.kind !== "dict")) {
-          infoRef = await store.allocate(cosDict(!standard ? { Title: cosString("") } : {})); info = await store.get(infoRef.objectNumber);
+          infoRef = await store.allocate(cosDict(!standard ? { Title: cosString("") } : {})); info = await store.get(infoRef.objectNumber, values);
         }
-        if (info?.value.kind === "dict") { dictSet(info.value, update.key, cosString(update.value)); await store.set(info); }
+        if (info?.value.kind === "dict") {
+          const key = update.key, dictionary = info.value, text = await texts.append(typeof update.value === "string" ? update.value : update.value());
+          let selected = -1, index = 0;
+          for await (const entry of readRawPdfDictionaryEntries(dictionary, signal)) { if (entry.key.decoded === update.key) selected = index; index++; }
+          async function* chunks() {
+            const encoder = new TextEncoder(); yield encoder.encode("<<\n"); let index = 0;
+            for await (const entry of readRawPdfDictionaryEntries(dictionary, signal)) {
+              await checkpoint(); yield* serializeCosNodeChunks(entry.key, { signal }); yield encoder.encode(" ");
+              if (index === selected) yield* texts.serialized(text);
+              else yield* serializeRetainedCosNodeChunks(entry.value, { signal, preserveStringEncoding: true, maxRecursionDepth: maxDepth ?? Infinity });
+              yield encoder.encode("\n"); index++;
+            }
+            if (selected < 0) { yield* serializeCosNodeChunks(cosName(key), { signal }); yield encoder.encode(" "); yield* texts.serialized(text); yield encoder.encode("\n"); }
+            yield encoder.encode(">>");
+          }
+          let length = 0; for await (const bytes of chunks()) length += bytes.length;
+          await store.setSerializedValue({ objectNumber: info.objectNumber, generationNumber: info.generationNumber, body: { length, chunks: chunks() } });
+        }
       } else if (update.kind === "id") {
         if (idArray === document.crossReference.idArray) {
           const first = await document.lookup(idArray?.items[0]), second = await document.lookup(idArray?.items[1]);
@@ -63,13 +84,13 @@ export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, st
       } else if (update.kind === "label") {
         const value = cosDict({ St: cosNumber(update.start) });
         if (update.prefix) {
-          const id = await titles.append(typeof update.prefix === "string" ? update.prefix : update.prefix());
-          let nonempty = false; for await (const part of titles.text(id)) { if (part.length) { nonempty = true; break; } }
+          const id = await texts.append(typeof update.prefix === "string" ? update.prefix : update.prefix());
+          let nonempty = false; for await (const part of texts.text(id)) { if (part.length) { nonempty = true; break; } }
           if (nonempty) dictSet(value, "P", cosNumber(id));
         }
         if (update.style) dictSet(value, "S", cosName(update.style));
         await labels.allocate(cosArray([cosNumber(update.index), value])); labelCount++;
-      } else await bookmarks.allocate(cosArray([cosNumber(await titles.append(typeof update.title === "string" ? update.title : update.title())), cosNumber(update.level), cosNumber(update.pageNumber)]));
+      } else await bookmarks.allocate(cosArray([cosNumber(await texts.append(typeof update.title === "string" ? update.title : update.title())), cosNumber(update.level), cosNumber(update.pageNumber)]));
     }
     for (let group = 0; group < 4; group++) for (let index = heads[group]!; index >= 0;) {
       await checkpoint();
@@ -95,7 +116,7 @@ export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, st
             yield* serializeCosNodeChunks(index, { signal }); yield encoder.encode(" <<\n");
             for (const entry of value.entries) {
               yield* serializeCosNodeChunks(entry.key, { signal }); yield encoder.encode(" ");
-              if (entry.key.decoded === "P" && entry.value.kind === "number") yield* titles.serialized(entry.value.value);
+              if (entry.key.decoded === "P" && entry.value.kind === "number") yield* texts.serialized(entry.value.value);
               else yield* serializeCosNodeChunks(entry.value, { signal });
               yield encoder.encode("\n");
             }
@@ -112,11 +133,11 @@ export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, st
         await checkpoint(); const value = object.value;
         if (value.kind !== "array" || value.items[0]?.kind !== "number" || value.items[1]?.kind !== "number" || value.items[2]?.kind !== "number") throw new Error("Invalid bookmark record");
         const title = value.items[0].value;
-        yield { title: () => titles.text(title), level: value.items[1].value, pageNumber: value.items[2].value };
+        yield { title: () => texts.text(title), level: value.items[1].value, pageNumber: value.items[2].value };
       }
     }
     await setRetainedBookmarks(store, storage, rootRef, count, async index => (await getPage(index)).reference!, outlineUpdates(), signal, maxDepth);
     return { infoRef, idArray };
   } catch (error) { failed = true; throw error; }
-  finally { const results = await Promise.allSettled([pages.close(), labels.close(), bookmarks.close(), titles.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+  finally { const results = await Promise.allSettled([pages.close(), labels.close(), bookmarks.close(), texts.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

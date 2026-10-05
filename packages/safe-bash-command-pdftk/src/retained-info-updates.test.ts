@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { retainedInfoUpdates } from "./retained-info-updates.js";
 
-it.each(["bookmark", "label"])("spills a %s line before its producer reaches the delimiter", async kind => {
+it.each(["bookmark", "label", "info"])("spills a %s line before its producer reaches the delimiter", async kind => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); let writes = 0;
   const guarded = new Proxy(fs, { get(owner, key) {
     if (key === "open") return async (...args: Parameters<NonNullable<typeof fs.open>>) => {
@@ -15,15 +15,15 @@ it.each(["bookmark", "label"])("spills a %s line before its producer reaches the
     const value = Reflect.get(owner, key); return typeof value === "function" ? value.bind(owner) : value;
   } });
   async function* chunks() {
-    yield new TextEncoder().encode(kind === "bookmark" ? "BookmarkBegin\nBookmarkTitle: " : "PageLabelBegin\nPageLabelPrefix: ");
+    yield new TextEncoder().encode(kind === "bookmark" ? "BookmarkBegin\nBookmarkTitle: " : kind === "label" ? "PageLabelBegin\nPageLabelPrefix: " : "InfoBegin\nInfoKey: Title\nInfoValue: ");
     const bytes = new Uint8Array(4096).fill(65);
     for (let i = 0; i < 128; i++) { if (i === 96) expect(writes).toBeGreaterThan(0); yield bytes; }
     yield new TextEncoder().encode(" &#x1F600;\nBookmarkLevel: 1\nBookmarkPageNumber: 1\n");
   }
   let found = 0;
   for await (const update of retainedInfoUpdates(chunks(), new AbortController().signal, { fs: guarded, directory: "/scratch" })) {
-    if (update.kind !== "bookmark" && update.kind !== "label") continue;
-    const text = update.kind === "bookmark" ? update.title : update.prefix;
+    if (update.kind !== "bookmark" && update.kind !== "label" && update.kind !== "info") continue;
+    const text = update.kind === "bookmark" ? update.title : update.kind === "label" ? update.prefix : update.value;
     expect(typeof text).toBe("function"); if (typeof text !== "function") throw new Error("text was collected");
     let length = 0, tail = "";
     for await (const part of text()) { expect(part.length).toBeLessThanOrEqual(4096); length += part.length; tail = (tail + part).slice(-3); }
@@ -85,4 +85,16 @@ it("retains large geometry spellings and preserves rectangle versus dimension va
     { kind: "page", pageNumber: 1, property: "crop", values: [0, 0, 16, 2] },
   ]);
   expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("streams decoded info values and consumes only the first value in a stanza", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  async function* chunks() { yield new TextEncoder().encode("InfoBegin\nInfoKey: Title\nInfoValue: value&#x1F600;\nInfoValue: &#1114112;\n"); }
+  let count = 0;
+  for await (const update of retainedInfoUpdates(chunks(), new AbortController().signal, { fs, directory: "/scratch" })) {
+    if (update.kind !== "info") throw new Error("expected info");
+    expect(typeof update.value).toBe("function"); if (typeof update.value !== "function") throw new Error("value was collected");
+    let value = ""; for await (const part of update.value()) value += part; expect(value).toBe("value😀"); count++;
+  }
+  expect(count).toBe(1); expect(await fs.readdir("/scratch")).toEqual([]);
 });

@@ -18,7 +18,9 @@ one restart, so spill acquisition cannot invalidate the new snapshot. Pending
 traversal/ancestry metadata and array-only directory backends remain. Exclusion
 files, descriptors and compiled byte glob instructions now use caller storage
 with one shared 256 KiB cache. Matching uses scalar state instead of input-sized
-regex state; actual input and explicit exclusion quotas remain enforced.
+regex state; actual input and explicit exclusion quotas remain enforced. Inspection
+receipts are scoped to the current operand pair or exclusion source and its
+ancestors, rather than every previously visited file.
 GNU patch
 target payloads, hunk application and publication now use caller-backed documents
 and retained staging writers, including merge/ifdef, backups, rejects and output

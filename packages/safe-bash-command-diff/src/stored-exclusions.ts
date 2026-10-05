@@ -46,6 +46,8 @@ export class StoredExclusions {
       } finally { await document.close(); }
     }
     for (const { path, ignoreCase } of options.excludeFiles) {
+      // Each source is fully staged and closed before admitting the next one.
+      this.budget.inspected.clear();
       if (path !== "-") await inspect(this.budget, path, "follow");
       const document = this.document();
       try {

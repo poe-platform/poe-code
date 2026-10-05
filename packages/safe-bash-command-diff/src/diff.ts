@@ -165,6 +165,8 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
   interface Pair { left: string; right: string; nested: boolean; leftParents: DirectoryIdentity[]; rightParents: DirectoryIdentity[]; leftEntry?: boolean; rightEntry?: boolean }
   const pending: Pair[] = pairs.reverse().map(pair => ({ ...pair, nested: false, leftParents: [], rightParents: [] }));
   while (pending.length) {
+    // Previous pair sources are retired; only the current pair needs receipts.
+    budget.inspected.clear();
     encoding = "utf8";
     inspectionFailed = false;
     budget.file();

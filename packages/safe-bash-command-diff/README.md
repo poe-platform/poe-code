@@ -60,5 +60,6 @@ restarting enumeration once, avoiding changes to a live directory snapshot.
 Exclusion files, pattern descriptors and compiled byte globs share another
 256 KiB cache backed by caller storage. Matching does not allocate regex state
 against the input-byte quota; source bytes and exclusion quotas remain enforced.
-Pending traversal and ancestry metadata, array-only directory backends and special-file
+Inspection receipts are released between operand pairs and exclusion sources;
+only the current paths and their ancestors remain. Pending traversal and ancestry metadata, array-only directory backends and special-file
 backends without streaming reads still have buffered paths; this is not a general bounded-memory guarantee for every diff option.

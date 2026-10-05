@@ -556,6 +556,27 @@ members), made no whole-file reads, preserved exact members/text/chart/workbook
 values and left scratch empty. Other mutations, richer reads, other extraction
 operations and mandatory embedded-workbook intermediates remain unfinished.
 
+## Retained frame reads
+
+The default `text frames list/get` path now admits retained input and stores
+fixed-schema formatting records in caller-backed pages. It shares frame schema
+validation with buffered SDK readers. Numeric XML tokens are parsed incrementally
+without retaining padding or long leading-zero sequences; unknown attributes are
+not collected. Shape/group/scope selection, strict namespaces, raw body property
+semantics, table exclusion, signed zero and exact human/JSON formats are preserved.
+Missing selections and exact-cardinality errors match the existing reader.
+
+Deterministic parity tests cover retained lifetimes, reused source chunks, slow
+sinks, actual storage spills, bounded outstanding writes, cancellation, storage
+and sink failures, output budgets and scratch cleanup. All 1,332 command tests,
+42 focused engine cases, scoped lint/type checks and the maintained workspace
+build passed. A native python-pptx chart/workbook deck matched exact buffered
+output and native frame properties through the default adapter, with retained
+input, no whole-file reads and empty scratch. This is another read-path
+migration; paragraph/run reads, other extraction, most mutations and mandatory
+embedded-workbook intermediates remain unfinished. No Worker runtime measurement
+or completed release is claimed.
+
 ## Manual workerd / Cloudflare QA
 
 Execute these steps after the streaming engine path is implemented. Do not treat

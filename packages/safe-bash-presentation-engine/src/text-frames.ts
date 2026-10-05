@@ -172,6 +172,16 @@ export function readFrameFormatting(body: XmlElement) {
   const p = bodyProperties(body);
   const attr = (key: string) =>
     p?.attributes.find((a) => !a.name.namespace && a.name.localName === key)?.value ?? null;
+  const fits =
+    p?.children.filter(
+      (n) =>
+        n.name.namespace === p.name.namespace &&
+        ["noAutofit", "normAutofit", "spAutoFit"].includes(n.name.localName)
+    ) ?? [];
+  return readFramePropertyValues(attr, fits.map(node => node.name.localName));
+}
+/** Shared schema checks for buffered XML and bounded retained property readers. */
+export function readFramePropertyValues(attr: (key: string) => string | null, fits: readonly string[]) {
   const number = (key: string, scale: number) => {
     const raw = attr(key);
     if (raw === null) return null;
@@ -189,12 +199,6 @@ export function readFrameFormatting(body: XmlElement) {
     anchor = attr("anchor"),
     vertical = attr("vert");
   if (wrap !== null && !["square", "none"].includes(wrap)) malformed();
-  const fits =
-    p?.children.filter(
-      (n) =>
-        n.name.namespace === p.name.namespace &&
-        ["noAutofit", "normAutofit", "spAutoFit"].includes(n.name.localName)
-    ) ?? [];
   if (fits.length > 1) malformed();
   const result = {
     marginLeft: number("lIns", 12700),
@@ -211,7 +215,7 @@ export function readFrameFormatting(body: XmlElement) {
     rotation: number("rot", 60000),
     autofit: fits.length
       ? ({ noAutofit: "none", spAutoFit: "shape", normAutofit: "text" } as const)[
-          fits[0]!.name.localName as "noAutofit" | "spAutoFit" | "normAutofit"
+          fits[0] as "noAutofit" | "spAutoFit" | "normAutofit"
         ]
       : null
   };

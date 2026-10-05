@@ -4167,7 +4167,7 @@ async function executeRequest(
         publication = { inputPath: args.input!, outputPath: destination, bytes: staged.bytes(), originalBytes: input, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
       }
       result = success(operation, null);
-    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "xml.get") && request.streaming) {
+    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "text.frames.list" || args.operation === "text.frames.get" || args.operation === "xml.get") && request.streaming) {
       if (args.token) decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const hash = sha256.create();

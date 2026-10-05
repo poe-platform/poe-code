@@ -38,7 +38,11 @@ iterators; consume each nested iterator before advancing its parent. Close the
 result after reading. Its `fields()` iterator streams field IDs, types and cached
 text; `fieldCount` supports exact-selection checks. `stageRetainedText` provides
 the staged `text.get`, `fields.list` and `fields.get` command formats, preserving
-original field caches independently of compatibility-projected text.
+original field caches independently of compatibility-projected text. Pass `'frames'`
+as the fifth `openRetainedText` argument to read `frames()` and `frameCount` instead
+of text/field contents. Frame formatting records stay in caller storage; numeric
+properties are parsed incrementally, including arbitrarily padded values.
+`stageRetainedText` also supports `text.frames.list` and `text.frames.get`.
 `pptx xml get` also stages raw, JSON and pretty responses through caller storage.
 `openRetainedXmlPart` (from `xml-parts`) exposes replayable original bytes and
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves

@@ -204,3 +204,56 @@ it('text fragmentation preserves text-limit precedence and publishes no partial 
     expect(events).toBe(0);
   }
 });
+
+for (const kind of ['comment', 'processing-instruction'] as const) for (const body of ['', 'x😀&'.repeat(3000)])
+it(`fragments ${kind} bodies without adding nodes (${body.length})`, () => {
+  const input = kind === 'comment' ? `<r><!--${body}--></r>` : `<r><?target ${body}?></r>`;
+  let actual = '', events = 0;
+  const parser = parseXmlSourceSteps(input.length, {
+    retainTree: false, fragmentContent: true, maxContentNodes: 2,
+    events(event) {
+      if (event.type !== 'content') return;
+      expect(event.content.kind).toBe(kind);
+      expect(event.content.text.length).toBeLessThanOrEqual(512);
+      expect(event.continuation === true).toBe(events > 0);
+      actual += event.content.text;
+      events++;
+    },
+  });
+  let step = parser.next();
+  while (!step.done) {
+    if (typeof step.value !== 'number') {
+      if (!('offset' in step.value)) throw new Error('unexpected frame request');
+      step.value.value = input.slice(step.value.offset, step.value.offset + step.value.length);
+    }
+    step = parser.next();
+  }
+  expect(actual).toBe(body);
+  expect(events).toBeGreaterThan(0);
+});
+
+for (const input of [
+  '<r><!--' + 'a'.repeat(511) + '--b--></r>',
+  '<r><!--' + 'a'.repeat(511) + '---></r>',
+  '<r><!--unterminated</r>', '<r><?target=bad?></r>', '<r><?target missing</r>',
+]) it(`fragmented raw content preserves rejection before events (${input.slice(-30)})`, () => {
+  let expected: unknown, actual: unknown, events = 0;
+  try { parseXml(input); } catch (error) { expected = error; }
+  const parser = parseXmlSourceSteps(input.length, {
+    retainTree: false, fragmentContent: true,
+    events(event) { if (event.type === 'content') events++; },
+  });
+  try {
+    let step = parser.next();
+    while (!step.done) {
+      if (typeof step.value !== 'number') {
+        if (!('offset' in step.value)) throw new Error('unexpected frame request');
+        step.value.value = input.slice(step.value.offset, step.value.offset + step.value.length);
+      }
+      step = parser.next();
+    }
+  } catch (error) { actual = error; }
+  expect(expected).toBeInstanceOf(SyntaxError);
+  expect(actual).toEqual(expected);
+  expect(events).toBe(0);
+});

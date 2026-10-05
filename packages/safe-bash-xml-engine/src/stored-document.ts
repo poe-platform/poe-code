@@ -134,13 +134,13 @@ export class StoredXmlDocument {
       : metadata;
   }
 
-  /** Logical text may span many original parser tokens after CDATA conversion.
-   * Replay their bodies without making a concatenated node value. */
+  /** Content bodies may span parser fragments or coalesced text tokens.
+   * Replay them without making a concatenated node value. */
   async *text(reference: number): AsyncGenerator<string> {
     let fragment = reference;
     while (fragment) {
       const node = await this.node(fragment);
-      if (node.kind !== "text" && node.kind !== "cdata") throw new TypeError("Expected XML text node");
+      if (node.kind === "element" || node.kind === "attribute") throw new TypeError("Expected XML content node");
       yield node.text;
       fragment = await this.field(fragment, fragmentField);
     }

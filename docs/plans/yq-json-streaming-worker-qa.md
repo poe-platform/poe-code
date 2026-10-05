@@ -62,8 +62,12 @@ serialization and canonical output, bounded node metadata, and cleanup when a
 fragment consumer fails. Repeat with one large ordinary text node, many predefined
 entities and numeric references with long leading-zero spans; verify error precedence
 and that recovery messages are not duplicated by replay. Text and CDATA bodies now
-use 512-unit fragments; comments, attributes and namespace scopes still need
-separate backing work.
+use 512-unit fragments. Repeat with large comments and processing-instruction
+bodies inside and outside the root, including empty bodies and malformed delimiter
+boundaries. These bodies now use the same bounded fragments. Whitespace-only PI
+bodies preserve the buffered parser behavior (no trailing space before `?>`), which
+differs from native xmllint. Names, attributes, namespace scopes and declarations
+still need separate backing work.
 
 For recovery, repeat formatting, CDATA conversion and XPath with a missing final
 closing tag. Verify repaired output and diagnostics, paged node writes and cleanup

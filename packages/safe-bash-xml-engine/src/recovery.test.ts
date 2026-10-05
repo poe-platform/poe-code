@@ -124,15 +124,15 @@ for (const outcome of ['success', 'cancel', 'read'] as const) test(`recovery anc
   assert.deepEqual(await fs.readdir('/'), []);
 });
 
-for (const kind of ["text", "cdata"]) for (const recover of [false, true]) test(`${kind} fragment consumer failure retires backing (recover=${recover})`, async () => {
+for (const kind of ["text", "cdata", "comment", "processing-instruction"]) for (const recover of [false, true]) test(`${kind} fragment consumer failure retires backing (recover=${recover})`, async () => {
   const fs = createMemoryFileSystem(), signal = new AbortController().signal;
   const failure = new Error('fragment stopped');
   let events = 0;
   const operation = parseXmlRecovery((function* () {
-    yield kind === 'cdata' ? '<r><![CDATA[' : '<r>';
+    yield kind === 'cdata' ? '<r><![CDATA[' : kind === 'comment' ? '<r><!--' : kind === 'processing-instruction' ? '<r><?target ' : '<r>';
     const chunk = 'a'.repeat(512);
     for (let index = 0; index < 160; index++) yield chunk;
-    yield kind === 'cdata' ? ']]></r>' : '</r>';
+    yield kind === 'cdata' ? ']]></r>' : kind === 'comment' ? '--></r>' : kind === 'processing-instruction' ? '?></r>' : '</r>';
   })(), { fs, cwd: '/', env: {}, signal }, new XmlBudget(resolveXmlQueryLimits(), signal, async () => {}),
   recover ? () => {} : undefined, async event => {
     if (event.type !== 'content') return;

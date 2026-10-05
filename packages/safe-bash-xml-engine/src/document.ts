@@ -334,10 +334,17 @@ export async function* serializeDocument(
       yield* typeof reference === "number" ? stored!.text(reference) : [current.text];
       yield "]]>";
     }
-    else if (current.kind === "comment") { yield "<!--"; yield current.text; yield "-->"; }
+    else if (current.kind === "comment") {
+      yield "<!--";
+      yield* typeof reference === "number" ? stored!.text(reference) : [current.text];
+      yield "-->";
+    }
     else if (current.kind === "processing-instruction") {
       yield `<?${current.target}`;
-      if (current.text) { yield " "; yield current.text; }
+      if (current.text) {
+        yield " ";
+        yield* typeof reference === "number" ? stored!.text(reference) : [current.text];
+      }
       yield "?>";
     }
   }

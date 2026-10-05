@@ -166,3 +166,48 @@ for (const recovery of [false, true]) test(`large entity-bearing text stays one 
   assert.ok(writes > 0); assert.equal(closed, opened);
   assert.deepEqual(await fs.readdir("/"), []);
 });
+
+for (const kind of ["comment", "processing-instruction"] as const) for (const recovery of [false, true])
+test(`large ${kind} bodies preserve delimiters and node identity (recovery=${recovery})`, async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const chunk = "x😀&".repeat(128), repetitions = 100;
+  const open = kind === "comment" ? "<!--" : "<?target ", close = kind === "comment" ? "-->" : "?>";
+  const document = await StoredXmlDocument.parse((function* () {
+    yield "<r>" + open;
+    for (let index = 0; index < repetitions; index++) yield chunk;
+    yield close + "<x/>" + open + close + "</r>";
+  })(), { fs, cwd: "/", env: {}, signal }, budget, 1, recovery ? () => {} : undefined);
+  const load = document.node.bind(document);
+  document.node = async reference => {
+    const node = await load(reference);
+    if (node.kind === kind) assert.ok(node.text.length <= 512);
+    return node;
+  };
+  try {
+    let children = 0;
+    for await (const ignored of document.children(document.root)) children++;
+    assert.equal(children, 3);
+    const empty = kind === "comment" ? "<!---->" : "<?target?>";
+    const body = chunk.repeat(repetitions);
+    const expected = `<r>${open}${body}${close}<x/>${empty}</r>`;
+    for (const mode of ["format", "c14n", "exc-c14n"] as const) {
+      let output = "";
+      for await (const part of serializeDocument(document, mode, budget, false)) {
+        assert.ok(part.length <= 512); output += part; await Promise.resolve();
+      }
+      assert.equal(output, mode === "format" ? `<?xml version="1.0"?>\n${expected}\n` : expected.replace("<x/>", "<x></x>"));
+    }
+    const xpath = new StoredXPath(document, budget);
+    const selected = await xpath.select(await parseQuery("/r", budget));
+    for await (const node of selected.nodes()) {
+      let output = "";
+      for await (const part of serialize(node, budget)) output += part;
+      assert.equal(output, expected);
+      let text = "";
+      for await (const part of stringValue(node, budget)) text += part;
+      assert.equal(text, "", "comments and PI bodies must not become element string content");
+    }
+  } finally { await document.close(); }
+  assert.deepEqual(await fs.readdir("/"), []);
+});

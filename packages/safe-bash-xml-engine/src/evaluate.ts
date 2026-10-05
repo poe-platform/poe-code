@@ -281,7 +281,15 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
           yield "<![CDATA[";
           yield* document.text(event.reference);
           yield "]]>";
-        } else yield* serialize({ kind: value.kind, value }, budget);
+        } else if (value.kind === "comment") {
+          yield "<!--";
+          yield* document.text(event.reference);
+          yield "-->";
+        } else if (value.kind === "processing-instruction") {
+          yield `<?${value.target}`;
+          if (value.text) { yield " "; yield* document.text(event.reference); }
+          yield "?>";
+        }
       }
     }
     if (node.kind === "document") yield "\n";

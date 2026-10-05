@@ -20,7 +20,8 @@ links incrementally instead of collecting them in an array. The default cache is
 backend for large workloads, since a memory backend retains its backing bytes in RAM.
 Stored XPath uses ordered, paged node references for selections, predicates and unions;
 small selection caches hold at most 128 references. It reads node metadata on demand
-and walks subtrees through stored parent/sibling links. Text and CDATA bodies use bounded fragments while keeping each logical node intact.
+and walks subtrees through stored parent/sibling links. Text, CDATA, comment and processing-instruction bodies use bounded fragments
+while keeping each logical node and its serialization delimiters intact.
 Text entity references are decoded directly from bounded source windows.
 Whitespace removal and CDATA
 conversion update those links; coalesced text stays in replayable token fragments.

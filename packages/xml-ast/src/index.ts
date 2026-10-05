@@ -1,4 +1,4 @@
-import { XmlFrames, type XmlFrameRequest } from "./frames.js";
+import { XmlFrames, type XmlFrameRequest, type XmlParserFrame } from "./frames.js";
 export type { XmlParserFrame, XmlFrameRequest } from "./frames.js";
 import { validCharacter } from "./characters.js";
 export { normalizeXmlChunks } from "./characters.js";
@@ -272,7 +272,7 @@ function validateLimits(limits: XmlStepLimits): void {
 }
 
 export interface XmlSourceLimits extends XmlStepLimits {
-  /** Emit text and CDATA in bounded fragments, marking continuations of the same logical
+  /** Emit content bodies in bounded fragments, marking continuations of the same logical
    * node. Requires retainTree: false; consumers must preserve fragment identity. */
   readonly fragmentContent?: boolean;
   /** Store active parser frames through host-serviced requests. Requires retainTree: false. */
@@ -347,6 +347,29 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     const [prefix, localName] = qualifiedNameSync(name, qualifiedNames);
     return [name, prefix, localName];
   };
+  const rawContent = function* (kind: "cdata" | "comment" | "processing-instruction", start: number, end: number,
+    parent: XmlParserFrame | undefined, target = ""): Generator<XmlSourceStep, void, void> {
+    if (end - start > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
+    textLength += end - start;
+    admitContent();
+    let cursor = start, continuation = false;
+    do {
+      let finish = limits.fragmentContent ? Math.min(end, cursor + 512) : end;
+      if (finish < end) {
+        const last = yield* source.charCodeAt(finish - 1);
+        if (last >= 0xd800 && last <= 0xdbff) finish--;
+      }
+      const text = yield* source.slice(cursor, finish);
+      const content: Exclude<XmlContent, XmlElement> = kind === "processing-instruction" ? { kind, target, text } : { kind, text };
+      if (kind === "cdata" && retainTree) parent!.element.text += text;
+      if (retain) (parent?.content ?? (root ? epilog : prolog)).push(content);
+      limits.events?.({ type: "content", content, parent: parent?.element,
+        ...(continuation ? { continuation: true } : {}) });
+      if (limits.fragmentContent) yield Math.max(1, text.length);
+      continuation = true;
+      cursor = finish;
+    } while (cursor < end);
+  };
   while (yield* source.has(offset)) {
     pendingWork += 1;
     if (pendingWork >= 512) {
@@ -419,41 +442,15 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       offset = endPos;
     } else if ((yield* source.startsWith("<!--", offset))) {
       const end = yield* find(source, "-->", offset + 4);
-      const text = end < 0 ? "" : yield* source.slice(offset + 4, end);
-      if (end < 0 || (yield* find(text, "--", 0)) >= 0 || text.endsWith("-")) {
-        invalid("malformed comment");
-      }
-      const parent = (yield* stack.peek());
-      admitText(text);
-      admitContent();
-      if (retain) { (parent?.content ?? (root ? epilog : prolog)).push({ kind: "comment", text }); }
-      limits.events?.({ type: "content", content: { kind: "comment", text }, parent: parent?.element });
+      if (end < 0 || (yield* source.indexOf("--", offset + 4, end)) >= 0
+        || (end > offset + 4 && (yield* source.charCodeAt(end - 1)) === 45)) invalid("malformed comment");
+      yield* rawContent("comment", offset + 4, end, yield* stack.peek());
       offset = end + 3;
     } else if ((yield* source.startsWith("<![CDATA[", offset))) {
       if (!stack.length) invalid("CDATA outside root");
       const end = yield* find(source, "]]>", offset + 9);
       if (end < 0) invalid("unterminated CDATA");
-      if (end - offset - 9 > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
-      const parent = (yield* stack.peek())!;
-      admitContent();
-      let cursor = offset + 9, continuation = false;
-      do {
-        let finish = limits.fragmentContent ? Math.min(end, cursor + 512) : end;
-        if (finish < end) {
-          const last = yield* source.charCodeAt(finish - 1);
-          if (last >= 0xd800 && last <= 0xdbff) finish--;
-        }
-        const text = yield* source.slice(cursor, finish);
-        admitText(text);
-        if (retainTree) parent.element.text += text;
-        if (retain) parent.content!.push({ kind: "cdata", text });
-        limits.events?.({ type: "content", content: { kind: "cdata", text }, parent: parent.element,
-          ...(continuation ? { continuation: true } : {}) });
-        // Let external consumers persist each fragment before producing another.
-        if (limits.fragmentContent) yield Math.max(1, text.length);
-        continuation = true;
-        cursor = finish;
-      } while (cursor < end);
+      yield* rawContent("cdata", offset + 9, end, yield* stack.peek());
       offset = end + 3;
     } else if ((yield* source.startsWith("<?", offset))) {
       const start = offset;
@@ -462,27 +459,21 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       const end = yield* find(source, "?>", offset);
       if (end < 0) invalid("unterminated processing instruction");
-      const content = (yield* source.slice(offset, end));
       if (target.length === 3 && target.toLowerCase() === "xml") {
+        const content = yield* source.slice(offset, end);
         if (start !== 0 || target !== "xml"
-          || !(yield* validDeclaration(content, limits.expectedEncoding))) {
-          invalid("unsupported XML declaration");
+          || !(yield* validDeclaration(content, limits.expectedEncoding))) invalid("unsupported XML declaration");
+        if (retainContent) declaration = yield* source.slice(start, end + 2);
+      } else {
+        if (offset < end && !" \t\n\r".includes(yield* source.slice(offset, offset + 1))) invalid("invalid processing instruction");
+        let body = offset;
+        while (body < end && " \t\n\r".includes(yield* source.slice(body, body + 1))) {
+          body++;
+          pendingWork++;
+          if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         }
-        if (retainContent) declaration = (yield* source.slice(start, end + 2));
-      } else if (content && !" \t\n\r".includes(content[0]!)) invalid("invalid processing instruction");
-      if (!(target.length === 3 && target.toLowerCase() === "xml")) {
-        const parent = (yield* stack.peek());
-        let wsStart = 0;
-        while (wsStart < content.length && " \t\n\r".includes(content[wsStart]!)) wsStart++;
-        pendingWork += wsStart;
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-        const text = content.slice(wsStart);
-        admitText(text);
-        admitContent();
-        if (retain) {
-          (parent?.content ?? (root ? epilog : prolog)).push({ kind: "processing-instruction", target, text });
-        }
-        limits.events?.({ type: "content", content: { kind: "processing-instruction", target, text }, parent: parent?.element });
+        yield* rawContent("processing-instruction", body, end, yield* stack.peek(), target);
       }
       offset = end + 2;
     } else if ((yield* source.startsWith("<!", offset))) {

@@ -997,3 +997,49 @@ test("sqlite3 conditional projection values reach command stdout", async () => {
     "SELECT COALESCE(1, 2), COALESCE(NULL, 'fallback'), IFNULL(NULL, 9), IIF(10 > 5, 'yes', 'no');"]);
   assert.deepEqual(result, { code: 0, stdout: "1|fallback|9|yes\n", stderr: "" });
 });
+
+for (const end of ["COMMIT", "ROLLBACK"]) {
+  test(`sqlite3 sync and async imports accept dot commands inside BEGIN TRANSACTION with ${end}`, async () => {
+    const fs = createMemoryFileSystem();
+    const csv = new TextEncoder().encode("1,first\n2,second\n");
+    await fs.writeFile("/rows.csv", csv);
+    const script = [
+      "CREATE TABLE t(id INTEGER PRIMARY KEY, value TEXT);",
+      "CREATE TABLE audit(id INTEGER);",
+      "CREATE TRIGGER imported AFTER INSERT ON t BEGIN",
+      "INSERT INTO audit VALUES(new.id);",
+      "END;",
+      "BEGIN TRANSACTION;",
+      ".mode csv",
+      ".import /rows.csv t",
+      ".mode list",
+      "SELECT count(*) FROM t;",
+      `${end};`,
+      "SELECT count(*) FROM t;",
+      "SELECT count(*) FROM audit;"
+    ].join("\n");
+    const expected = end === "COMMIT" ? "2\n2\n2\n" : "2\n0\n0\n";
+    const result = await runSqlite3(fs, [":memory:"], script);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [":memory:"], () => csv), expected);
+  });
+}
+
+test("sqlite3 imports 25000 primary keys in sync and async transactions", async () => {
+  const fs = createMemoryFileSystem();
+  const csv = new TextEncoder().encode(Array.from({ length: 25000 }, (_, i) => `${i},value${i}\n`).join(""));
+  await fs.writeFile("/rows.csv", csv);
+  const script = [
+    "CREATE TABLE t(id INTEGER PRIMARY KEY, value TEXT);",
+    "BEGIN TRANSACTION;", ".mode csv", ".import /rows.csv t", "COMMIT;", ".mode list",
+    "SELECT count(*), min(id), max(id) FROM t;",
+    "INSERT OR IGNORE INTO t VALUES(24999, 'duplicate');",
+    "SELECT value FROM t WHERE id = 24999;"
+  ].join("\n");
+  const expected = "25000|0|24999\nvalue24999\n";
+  const result = await runSqlite3(fs, [":memory:"], script);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+  assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [":memory:"], () => csv), expected);
+});

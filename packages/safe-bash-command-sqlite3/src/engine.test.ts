@@ -527,3 +527,21 @@ for (const expression of [
       [["b"], ["c"], ["a"]]);
   });
 }
+
+test("primary-key inserts inspect existing rows linearly rather than quadratically", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(id INTEGER PRIMARY KEY, value TEXT)");
+  const table = db.findTable("t")!;
+  let rowReads = 0;
+  table.rows = new Proxy(table.rows, {
+    get(target, key, receiver) {
+      if (typeof key === "string" && Number.isInteger(Number(key))) rowReads++;
+      return Reflect.get(target, key, receiver);
+    }
+  });
+  const count = 1000;
+  db.exec(`INSERT INTO t VALUES ${Array.from({ length: count }, (_, i) => `(${i}, 'value')`).join(",")}`);
+  assert.equal(table.rows.length, count);
+  assert.ok(rowReads < count * 10, `expected linear row access, observed ${rowReads} reads`);
+  assert.throws(() => db.exec("INSERT INTO t VALUES(999, 'duplicate')"), /UNIQUE constraint failed/);
+});

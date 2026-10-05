@@ -336,6 +336,14 @@ Paradox schema specifications and table names now stop at NUL
 readbacks and four invalid-schema authority/publication controls verify the
 repair. Wider Paradox and other family acceptance remains open.
 
+The Paradox mixed-record checkpoint now covers11 field types across100 rows
+and four blocks (`paradoxMixedRecordReadback`). All32 public exports preserve
+native values:16 CSV outputs match exactly and16 XLSX readbacks retain959
+typed cells each. Both original unterminated and bounded terminated memo
+inputs pass product routes; native unterminated memo overread remains classified
+separately. Continue remaining key/password, truncation/work/cleanup and installed
+profiles without repeating this completed mixed-record cohort.
+
 ## 4. Interfaces and test plan
 
 Use existing `createEngine`, `readWorkbook`, `writeWorkbook`, `convert` and

@@ -1,18 +1,16 @@
 import { decodePdftkEntities, hexToBytes } from "./info-text.js";
 import { formatBurstFilename } from "./burst-filename.js";
 import { executeRetainedPdftk } from "./retained.js";
-import { PDFTK_OPERATIONS, parsePdftkArgumentsSteps } from "./arguments.js";
-import { resolvePath } from "safe-bash-contracts/path";
-import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
+import { parsePdftkArgumentsSteps } from "./arguments.js";
+import { drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
-import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
   type CommandContext,
   type CommandDefinition,
 } from "safe-bash-contracts/command";
-import { readBytes, writeBytes } from "safe-bash-contracts/io";
+import { writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
@@ -1801,109 +1799,15 @@ export function runPdftkCliSync(argv: readonly string[], files: Map<string, Uint
 }
 
 async function executePdftk(context: CommandContext, retainedContext: CommandContext = context): Promise<{ exitCode: number }> {
-  let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
-    const carrier = getCommandArguments(context);
-    const argv = [...carrier.args];
-    const parsed = await drainSteps(parsePdftkArgumentsSteps(argv), invocation.signal);
-    if (parsed.options && ((["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground", "burst", "update_info", "update_info_utf8", "cat", "shuffle", "fill_form"].includes(parsed.options.operation) && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
-      return await executeRetainedPdftk({ ...retainedContext, signal: invocation.signal, stdout: invocation.child(context.stdout).output }, parsed.options);
-    }
-    const vfsFiles = new Map<string, Uint8Array>();
-    let accountedBytes = 0;
-    const chargeBytes = (delta: number) => {
-      if (delta > 0) {
-        accountedBytes += delta;
-        context.inputBudget?.check(accountedBytes);
-      }
-    };
-
-    const inputPaths: string[] = [];
-    let operandIndex = 0;
-    while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) {
-      const token = argv[operandIndex++]!;
-      const eq = token.indexOf("=");
-      inputPaths.push(eq > 0 ? token.slice(eq + 1) : token);
-    }
-    while (argv[operandIndex]?.toLowerCase() === "input_pw") {
-      operandIndex++;
-      while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) operandIndex++;
-    }
-    const operation = argv[operandIndex++]?.toLowerCase();
-    if (["update_info", "update_info_utf8", "fill_form", "background", "multibackground", "stamp", "multistamp"].includes(operation ?? "")) {
-      const operand = argv[operandIndex];
-      inputPaths.push(operand && !PDFTK_OPERATIONS.has(operand.toLowerCase()) ? operand : "-");
-    } else if (operation === "attach_files") {
-      while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) {
-        const token = argv[operandIndex++]!;
-        if (token.toLowerCase() === "to_page") operandIndex++;
-        else inputPaths.push(token);
-      }
-    }
-    if (inputPaths.includes("-")) {
-      const chunks: Uint8Array[] = [];
-      let total = 0;
-      for await (const chunk of readBytes(context.stdin, invocation.signal)) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-        chunks.push(chunk);
-        total += chunk.byteLength;
-        chargeBytes(chunk.byteLength);
-      }
-      const buf = new Uint8Array(total);
-      let off = 0;
-      for (const c of chunks) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-        buf.set(c, off);
-        off += c.byteLength;
-      }
-      vfsFiles.set("-", buf);
-    }
-
-    for (const filePath of new Set(inputPaths)) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (filePath === "-") continue;
-      try {
-        const bytes = await context.fs.readFile(resolvePath(context.cwd, filePath), { signal: invocation.signal });
-        chargeBytes(bytes.byteLength);
-        vfsFiles.set(filePath, bytes);
-      } catch {
-        // Non-existing output file or operation keyword
-      }
-    }
-
+    const parsed = await drainSteps(parsePdftkArgumentsSteps([...getCommandArguments(context).args]), invocation.signal);
+    if (parsed.options) return await executeRetainedPdftk({ ...retainedContext, signal: invocation.signal, stdout: invocation.child(context.stdout).output }, parsed.options);
     context.inputBudget?.check(0);
-    const existingSnap = new Map(vfsFiles);
-    const res = await runPdftkCli(argv, vfsFiles, invocation.signal);
-    if (res.stderr) {
-      await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
-    }
-    if (res.stdoutBytes) {
-      const stdout = invocation.child(context.stdout);
-      await writeBytes(stdout.output, res.stdoutBytes, invocation.signal);
-    } else if (res.stdout) {
-      const outBytes = new TextEncoder().encode(res.stdout);
-      const stdout = invocation.child(context.stdout);
-      await writeBytes(stdout.output, outBytes, invocation.signal);
-    }
-    for (const [key, val] of vfsFiles.entries()) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (key !== "-" && existingSnap.get(key) !== val) {
-        const abs = resolvePath(context.cwd, key);
-        try {
-          await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
-        } catch (error) {
-          invocation.signal.throwIfAborted();
-          if (!(error instanceof Error) || !("code" in error)) throw error;
-          await writeBytes(context.stderr, new TextEncoder().encode(`Error: Failed to open output file '${key}': ${error.code}.\n`), invocation.signal);
-          return { exitCode: 1 };
-        }
-      }
-    }
-    return { exitCode: res.exitCode };
-  } finally {
-    await invocation.close();
-  }
+    if (parsed.result.stderr) await writeBytes(context.stderr, new TextEncoder().encode(parsed.result.stderr), invocation.signal);
+    if (parsed.result.stdout) await writeBytes(invocation.child(context.stdout).output, new TextEncoder().encode(parsed.result.stdout), invocation.signal);
+    return { exitCode: parsed.result.exitCode };
+  } finally { await invocation.close(); }
 }
 
 export function createPdftkCommand(options: PdftkCommandOptions = {}): CommandDefinition {

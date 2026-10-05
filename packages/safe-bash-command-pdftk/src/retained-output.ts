@@ -8,13 +8,14 @@ type Storage = ConstructorParameters<typeof PdfMutableObjectStore>[0];
  * the resulting chunks. Graph edits and encoded payloads use caller storage. */
 export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined, attachments: AsyncIterable<RetainedAppendAttachment>, attachmentPage: string | undefined, stamps: Iterable<RetainedStampInput> | undefined, info?: { updates: AsyncIterable<RetainedInfoUpdate>; useUpdatedId: boolean }, formData?: PdfFileSource): AsyncGenerator<Uint8Array> {
   const infoUpdates = info?.updates;
+  const flattenForms = options.operation === "flatten" || (options.shouldFlatten && ["output", "fill_form", "cat", "shuffle", "stamp", "multistamp", "background", "multibackground"].includes(options.operation));
   const store = new PdfMutableObjectStore(storage, { signal });
   let edited: Awaited<ReturnType<typeof editRetainedDocument>> | undefined;
   let document: PdfRetainedDocument | undefined, plaintext: PdfFileSource | undefined, failed = false;
   try {
-    if (options.operation === "attach_files" || stamps || infoUpdates || formData) {
+    if (options.operation === "attach_files" || stamps || infoUpdates || formData || flattenForms) {
       const pageIndex = attachmentPage !== undefined && pageCount! > 0 ? attachmentPage.toLowerCase() === "end" ? pageCount! - 1 : Math.max(0, Math.min(pageCount! - 1, (Number.parseInt(attachmentPage, 10) || 1) - 1)) : undefined;
-      edited = await editRetainedDocument(source, storage, { signal, ...(formData ? { formUpdates: parseRetainedFormData(formData, storage, { signal }) } : {}), ...(infoUpdates ? { infoUpdates } : {}), ...(options.operation === "attach_files" ? { appendAttachments: attachments } : {}), ...(stamps ? { stamps } : {}), ...(pageIndex !== undefined ? { attachmentPageIndex: pageIndex } : {}) });
+      edited = await editRetainedDocument(source, storage, { signal, flattenForms, ...(formData ? { formUpdates: parseRetainedFormData(formData, storage, { signal }) } : {}), ...(infoUpdates ? { infoUpdates } : {}), ...(options.operation === "attach_files" ? { appendAttachments: attachments } : {}), ...(stamps ? { stamps } : {}), ...(pageIndex !== undefined ? { attachmentPageIndex: pageIndex } : {}) });
     }
     const input = edited?.document ?? source;
     const pageReferences = edited ? { pageReferences: async function* () { for await (const page of input.pages()) if (page.reference) yield page.reference; } } : {};
@@ -34,7 +35,7 @@ export async function* retainedOutput(source: PdfRetainedDocument, storage: Stor
       const form = await document.lookup(dictGet(root.value, "AcroForm"));
       if (form?.value.kind === "dict" && !form.stream) {
         if (options.dropXfa) dictDelete(form.value, "XFA");
-        if (formData || options.needAppearances) dictSet(form.value, "NeedAppearances", cosBool(options.needAppearances));
+        if (!options.shouldFlatten && (formData || options.needAppearances)) dictSet(form.value, "NeedAppearances", cosBool(options.needAppearances));
         if (form.reference) await store.set({ objectNumber: form.reference.objectNumber, generationNumber: form.reference.generationNumber, value: form.value });
         else dictSet(root.value, "AcroForm", form.value);
       }

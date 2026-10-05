@@ -1047,6 +1047,11 @@ of qpdf `--linearize`. Pass `pageLabels` as an iterable or async iterable of
 `{ index, style?, start?, prefix? }` entries to replace page labels. Indices are
 zero-based; entry order and duplicates are preserved, and an empty iterable
 creates an empty label tree. Labels take precedence over `removePageLabels`.
+Set `flattenForms: true` to bake form widgets after field updates and appearance
+generation. Encoded appearances stream unchanged into isolated Form resources;
+field traversal and baked identities use caller storage. Fallback text and form
+clearing preserve PDFtk behavior. Individual COS containers and field values
+remain resident.
 Pass `removeAttachments` as an iterable of keys and `attachments` as an iterable
 of `{ key, filename, length, chunks, description?, replace? }` inputs to edit
 embedded files. Payload chunks stream into caller storage; `length` must match

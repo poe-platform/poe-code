@@ -1,4 +1,4 @@
-import { materializeResourceValue, readPdfDictionaryValue } from "./stored-dictionary.js";
+import { readPdfDictionaryValue } from "./stored-dictionary.js";
 import { StoredReferenceMembership } from "./stored-reference-membership.js";
 import { storeDashArray } from "./stored-dash.js";
 import { readStoredRecord } from "./stored-record.js";
@@ -76,9 +76,6 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
   }
   async function decodeImage(image: Pick<PdfRetainedImage, "dict" | "resources" | "contents">,
     fillColor: { r: number; g: number; b: number; alpha: number } | undefined): Promise<DecodedDisplayImage | (Omit<DecodedDisplayImage, "rgba"> & {readonly storedRgba: import("../ast.js").PdfStoredPixels})> {
-    // The image decoder consumes an ordinary metadata snapshot. Form streams
-    // stay backed; only an image selected for decoding needs this snapshot.
-    if (image.dict.storedEntries) image = {...image, dict: await materializeResourceValue({...image.dict, deferred:true}, signal) as PdfCosDict};
     const owner = await PdfRetainedDecodedImage.open(document, image, shared, {
       chunkBytes, maxOutputBytes: options.maxImageBytes ?? Infinity, maxStagingBytes: options.maxStagingBytes ?? Infinity,
       onAllocation: charge, fillColor, ...(signal ? { signal } : {}),

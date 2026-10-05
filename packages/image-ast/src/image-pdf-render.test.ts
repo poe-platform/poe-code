@@ -403,3 +403,23 @@ it.each(["form","group","matrix","bbox"].flatMap(location=>(location==="form"?["
  finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["image","soft-mask","explicit-mask","color-key","matte"].flatMap(location=>[false,true].map(encrypted=>({location,encrypted}))))("keeps unused $location image metadata backed (encrypted=$encrypted)",async({location,encrypted})=>{
+ const {cosArray,cosDict,cosName,cosStream}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([12,12]),unused=()=>cosArray(Array.from({length:256},()=>cosNumber(779)));
+ const dict=cosDict({Subtype:cosName("Image"),Width:cosNumber(2),Height:cosNumber(2),BitsPerComponent:cosNumber(8),ColorSpace:cosName("DeviceRGB"),Decode:cosArray([0,1,0,1,0,1].map(value=>cosNumber(value))),...(location==="image"?{Unused:unused()}:{})});
+ if(location==="color-key")dictSet(dict,"Mask",doc.cos.allocateObject(cosArray([...([1,1,2,2,3,3].map(value=>cosNumber(value))),...unused().items])));
+ if(location!=="image"&&location!=="color-key"){
+  const explicit=location==="explicit-mask",mask=cosDict({Subtype:cosName("Image"),Width:cosNumber(2),Height:cosNumber(2),BitsPerComponent:cosNumber(explicit?1:8),ColorSpace:cosName("DeviceGray"),...(explicit?{ImageMask:{kind:"boolean" as const,value:true}}:{Matte:location==="matte"?doc.cos.allocateObject(cosArray([...([0,0,0,1].map(value=>cosNumber(value))),...unused().items])):cosArray([0,0,0].map(value=>cosNumber(value)))}),...(location==="matte"?{}:{Unused:unused()})});
+  dictSet(dict,explicit?"Mask":"SMask",doc.cos.allocateObject(cosStream(mask,new Uint8Array(explicit?[128,64]:[255,128,64,0]))));
+ }
+ const image=doc.cos.allocateObject(cosStream(dict,new Uint8Array([255,0,0,0,255,0,0,0,255,128,64,32])));
+ dictSet(page.pageDict,"Resources",cosDict({XObject:cosDict({Selected:image})}));page.setRawContentStream("12 0 0 12 0 0 cm /Selected Do");
+ const bytes=encrypted?doc.save({encrypt:{revision:3}}):doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ expect(expected.data.some((value,index)=>index%4!==3&&value<255)).toBe(true);
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4),push=Array.prototype.push;
+ Array.prototype.push=function<T>(this:T[],...values:T[]):number{if(this.length>=64&&values.some(value=>(value as {kind?:string;value?:number})?.kind==="number"&&(value as {value:number}).value===779))throw Error("unused image metadata became resident");return push.apply(this,values);};
+ try{const actual=await tryPdfDecode({size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}},storage,fs,"/scratch",signal);expect(await storage.read(actual!.position,actual!.width*actual!.height*4)).toEqual(expected.data);}
+ finally{Array.prototype.push=push;await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

@@ -1,3 +1,5 @@
+import { readStoredItems } from "../content/stored-record.js";
+import { readPdfDictionaryValue } from "../content/stored-dictionary.js";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import { cosDict, dictGet, type PdfCosDict, type PdfCosNode } from "../ast.js";
 import { decodePdfStreamChunks, pdfImageCodec } from "../cos/filter-stream.js";
@@ -88,31 +90,50 @@ export class PdfRetainedDecodedImage {
         const source = await PdfFileSource.fromStream(storage.fs, storage.directory, admitted(), { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: stagingLimit, ...(signal ? { signal } : {}) }); sources.add(source); return source;
       } catch (error) { budget.staged -= written; budget.working -= chunkBytes * 4; owned -= chunkBytes * 4; throw error; }
     }
-    async function resolve(node: PdfCosNode | undefined) { signal?.throwIfAborted(); return (await document.lookup(node))?.value; }
+    const valueStorage = image.dict.storedEntries?.storage;
+    const backedValues = valueStorage ? {
+      dictionaryStorage:valueStorage, arrayStorage:valueStorage, stringStorage:valueStorage, containerStorage:valueStorage,
+      deferDictionaryValues:true, deferArrayValues:true, storeRootArray:true,
+    } : undefined;
+    async function resolve(node: PdfCosNode | undefined, preserveBacking = false) {
+      signal?.throwIfAborted();
+      return (await document.lookup(node, preserveBacking ? backedValues : undefined, undefined, preserveBacking))?.value;
+    }
+    async function prefix(node: PdfCosNode | undefined, count: number): Promise<PdfCosNode[] | undefined> {
+      const value = await resolve(node, true);
+      if (value?.kind !== "array") return undefined;
+      if (!value.storedItems) return value.items.slice(0, count);
+      const result: PdfCosNode[] = [];
+      for await (const item of readStoredItems<PdfCosNode>(value.storedItems, signal)) {
+        result.push(item);
+        if (result.length === count) break;
+      }
+      return result;
+    }
     async function number(node: PdfCosNode | undefined, fallback: number) { const value = await resolve(node); return value?.kind === "number" ? value.value : fallback; }
     async function pairs(dict: PdfCosDict) {
-      const value = await resolve(dictGet(dict, "Decode") ?? dictGet(dict, "D")); if (value?.kind !== "array") return undefined;
+      const value = await resolve((await readPdfDictionaryValue(dict, "Decode", signal)) ?? (await readPdfDictionaryValue(dict, "D", signal))); if (value?.kind !== "array") return undefined;
       charge(value.items.length * 16); const result: [number, number][] = [];
       for (let i = 0; i + 1 < value.items.length; i += 2) { const low = await resolve(value.items[i]), high = await resolve(value.items[i + 1]); if (low?.kind === "number" && high?.kind === "number") result.push([low.value, high.value]); }
       return result.length ? result : undefined;
     }
     try {
-      const dict = image.dict; let width = Math.max(1, Math.round(await number(dictGet(dict, "Width") ?? dictGet(dict, "W"), 1)));
-      let height = Math.max(1, Math.round(await number(dictGet(dict, "Height") ?? dictGet(dict, "H"), 1)));
+      const dict = image.dict; let width = Math.max(1, Math.round(await number((await readPdfDictionaryValue(dict, "Width", signal)) ?? (await readPdfDictionaryValue(dict, "W", signal)), 1)));
+      let height = Math.max(1, Math.round(await number((await readPdfDictionaryValue(dict, "Height", signal)) ?? (await readPdfDictionaryValue(dict, "H", signal)), 1)));
       function admitOutput() { if (!Number.isSafeInteger(width * height) || width * height > Math.floor(outputLimit / 4)) throw new PdfError("E_LIMIT", "PDF image output byte limit exceeded"); }
       admitOutput();
-      const maskNode = await resolve(dictGet(dict, "ImageMask") ?? dictGet(dict, "IM")); const stencil = maskNode?.kind === "boolean" && maskNode.value;
-      let bitsPerComponent = await number(dictGet(dict, "BitsPerComponent") ?? dictGet(dict, "BPC"), stencil ? 1 : 8);
-      const filterNode = await resolve(dictGet(dict, "Filter") ?? dictGet(dict, "F")); const filters: string[] = [];
+      const maskNode = await resolve((await readPdfDictionaryValue(dict, "ImageMask", signal)) ?? (await readPdfDictionaryValue(dict, "IM", signal))); const stencil = maskNode?.kind === "boolean" && maskNode.value;
+      let bitsPerComponent = await number((await readPdfDictionaryValue(dict, "BitsPerComponent", signal)) ?? (await readPdfDictionaryValue(dict, "BPC", signal)), stencil ? 1 : 8);
+      const filterNode = await resolve((await readPdfDictionaryValue(dict, "Filter", signal)) ?? (await readPdfDictionaryValue(dict, "F", signal))); const filters: string[] = [];
       for (const node of filterNode?.kind === "array" ? filterNode.items : filterNode ? [filterNode] : []) { const value = await resolve(node); if (value?.kind === "name") { charge(value.decoded.length * 2 + 32); filters.push(value.decoded); } }
       const index = filters.findIndex(filter => pdfImageCodec(filter)); const encoding = index < 0 ? "image" : pdfImageCodec(filters[index]!)!;
       const native = encoding !== "image" && encoding !== "ccitt";
-      const parameters = await resolve(dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP"));
+      const parameters = await resolve((await readPdfDictionaryValue(dict, "DecodeParms", signal)) ?? (await readPdfDictionaryValue(dict, "DP", signal)));
       const parameter = parameters?.kind === "array" ? await resolve(parameters.items[index]) : parameters;
       const masks: { source: PdfFileSource; width: number; height: number; mode: "soft" | "explicit"; matte?: [number, number, number] }[] = [];
       for (const key of ["SMask", "Mask"] as const) {
         if (key === "Mask" && !native && stencil && options.fillColor) continue;
-        const value = await document.lookup(dictGet(dict, key)); if (!value?.stream || value.value.kind !== "dict" || !value.reference) continue;
+        const value = await document.lookup(await readPdfDictionaryValue(dict, key, signal, {preserveDeferred:true}), backedValues, undefined, true); if (!value?.stream || value.value.kind !== "dict" || !value.reference) continue;
         const ref = value.reference;
         const child = await this.decode(document, { dict: value.value, resources: image.resources, contents: selected => document.objects.decodeStream(ref.objectNumber, ref.generationNumber, { raw: selected?.raw ?? false, stopBeforeImageCodec: selected?.native ?? false }) }, storage,
           { ...options, fillColor: undefined }, budget, depth + 1);
@@ -120,15 +141,15 @@ export class PdfRetainedDecodedImage {
         try { source = await stage(child.rows()); } catch (error) { try { await child.close(); } catch { /* Preserve staging failure. */ } throw error; }
         await child.close();
         let matte: [number, number, number] | undefined;
-        const matteNode = key === "SMask" ? await resolve(dictGet(value.value, "Matte")) : undefined;
-        if (matteNode?.kind === "array" && matteNode.items.length) {
-          const nums: number[] = []; for (const item of matteNode.items.slice(0, 4)) nums.push(await number(item, 0));
+        const matteValues = key === "SMask" ? await prefix(await readPdfDictionaryValue(value.value, "Matte", signal, {preserveDeferred:true}), 4) : undefined;
+        if (matteValues?.length) {
+          const nums: number[] = []; for (const item of matteValues) nums.push(await number(item, 0));
           matte = nums.length >= 4 ? [Math.round((1 - nums[0]!) * (1 - nums[3]!) * 255), Math.round((1 - nums[1]!) * (1 - nums[3]!) * 255), Math.round((1 - nums[2]!) * (1 - nums[3]!) * 255)]
             : nums.length >= 3 ? [Math.round(nums[0]! * 255), Math.round(nums[1]! * 255), Math.round(nums[2]! * 255)] : [Math.round(nums[0]! * 255), Math.round(nums[0]! * 255), Math.round(nums[0]! * 255)];
         }
         masks.push({ source, width: child.width, height: child.height, mode: key === "SMask" ? "soft" : "explicit", ...(matte ? { matte } : {}) });
       }
-      const colorNode = dictGet(dict, "ColorSpace") ?? dictGet(dict, "CS");
+      const colorNode = (await readPdfDictionaryValue(dict, "ColorSpace", signal)) ?? (await readPdfDictionaryValue(dict, "CS", signal));
       if(!stencil)colorOwner = await openRetainedImageColor(document, colorNode, image.resources, storage,
         { maxWorkingBytes: workingLimit - budget.working, maxStagingBytes: stagingLimit - budget.staged, chunkBytes, onAllocation: charge, onStaging(bytes){if(bytes>stagingLimit-budget.staged)throw new PdfError("E_LIMIT","PDF image staging byte limit exceeded");budget.staged+=bytes;colorStaged+=bytes;}, ...(signal ? { signal } : {}) });
       let color:ResolvedColorSpace=colorOwner?.color??{colorSpace:"gray",components:1};
@@ -181,7 +202,7 @@ export class PdfRetainedDecodedImage {
         const storedOptions={...codecOptions,maxWorkingBytes:workingLimit-budget.working,
           coefficientStorage:{allocate(length:number){if(length>stagingLimit-budget.staged)throw new PdfError("E_LIMIT","PDF image staging byte limit exceeded");const position=backing.allocate(length);budget.staged+=length;codecStaged+=length;return position;},read:backing.read.bind(backing),write:backing.write.bind(backing)}};
         if (encoding === "jbig2") {
-          const globalsValue = parameter?.kind === "dict" ? await document.lookup(dictGet(parameter, "JBIG2Globals")) : undefined;
+          const globalsValue = parameter?.kind === "dict" ? await document.lookup(dictGet(parameter, "JBIG2Globals"), undefined, undefined, true) : undefined;
           if (globalsValue?.stream && globalsValue.reference) globals = await stage(document.objects.decodeStream(globalsValue.reference.objectNumber, globalsValue.reference.generationNumber));
           codec = await PdfRetainedJbig2.open(samples, width, height, { ...codecOptions, bitmapStorage: storedOptions.coefficientStorage, maxWorkingBytes: workingLimit - budget.working, ...(globals ? { globals } : {}) });
         } else codec=encoding==="jpeg"
@@ -194,8 +215,8 @@ export class PdfRetainedDecodedImage {
       const maskScratch = masks.reduce((sum, mask) => sum + width * 8 + mask.width * 4 + Math.min(chunkBytes, mask.width * 4), 0);
       const pixelScratch = codec ? width * 12 + 32 : width * (color.components * 2 + 4) + chunkBytes + color.components * 8;
       charge(maskScratch + pixelScratch + (color.colorSpace === "index" ? width : 0));
-      let bounds: number[] | undefined; const key = await resolve(dictGet(dict, "Mask"));
-      if (!native && !(stencil && options.fillColor) && key?.kind === "array" && key.items.length >= 2) { bounds = []; charge(48); for (const node of key.items.slice(0, 6)) bounds.push(await number(node, 0)); }
+      let bounds: number[] | undefined; const key = await prefix(await readPdfDictionaryValue(dict, "Mask", signal, {preserveDeferred:true}), 6);
+      if (!native && !(stencil && options.fillColor) && key && key.length >= 2) { bounds = []; charge(48); for (const node of key) bounds.push(await number(node, 0)); }
       const currentCodec = codec;
       async function* produce(): AsyncGenerator<Uint8Array> {
         let rows: AsyncIterable<Uint8Array> = currentCodec ? currentCodec.rows() : decodeRetainedSampleRows(samples, width, height, bitsPerComponent, color, { maxWorkingBytes: pixelScratch, maxOutputBytes: outputLimit, ...(decode ? { decode } : {}), ...(signal ? { signal } : {}) });

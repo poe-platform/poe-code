@@ -45,8 +45,9 @@ and keep the same numeric fallbacks. Stream decoding also
 reads filter and encryption fields from backed root dictionaries without expanding
 unrelated metadata. Form XObjects and soft-mask Forms read individual fields from
 backing, including transparency-group fields; matrices and bounding boxes read
-only their six and four consumed values. Selected image XObjects still supply
-the image decoder with its ordinary metadata snapshot. Blend-mode,
+only their six and four consumed values. Selected image and mask dictionaries
+also read individual metadata fields instead of expanding unused fields. Matte
+and color-key arrays read only their four and six consumed values. Blend-mode,
 font and dash arrays read only their consumed prefix; unused tails and ignored
 array-valued numeric fields stay in caller backing. Root-array lookups preserve
 the document’s nested-value backing policy, including font widths. Retained fonts

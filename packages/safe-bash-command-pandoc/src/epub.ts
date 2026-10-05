@@ -1,3 +1,4 @@
+import {validateEpubFallbacks} from "./epub-fallbacks.js";
 import {identity, resolve, uriPart} from "./epub-uri.js";
 import {EpubManifest, type ManifestItem} from "./epub-manifest.js";
 import {BackedText} from "./backed-text.js";
@@ -82,29 +83,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       if (item.overlay || item.media === "application/smil+xml") warn(item.part, "Unsupported EPUB media overlay synchronization loss");
       await manifest.add(item);
     }
-    // One epoch mark per manifest entry, reused across traversals. Caller-backed
-    // reads avoid retaining a path-sized Set for each fallback chain. Keep the
-    // original traversal order and depth/work checks, including error precedence.
-    const visits = storage?.allocate(manifest.size * 8);
-    for await (const item of manifest.values()) {
-      const seen = storage ? undefined : new Set<string>();
-      let current: ManifestItem | undefined = item, depth = 0;
-      while (current?.fallback) {
-        ctx.checkpoint(); ctx.bound("depth", ++depth);
-        if (storage) {
-          const position = visits! + current.ordinal * 8, bytes = await storage.read(position, 8);
-          const mark = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-          if (mark.getFloat64(0, true) === item.ordinal + 1) fail(current.part, "Recursive EPUB fallback dependency");
-          mark.setFloat64(0, item.ordinal + 1, true); await storage.write(position, bytes);
-        } else {
-          if (seen!.has(current.id)) fail(current.part, "Recursive EPUB fallback dependency");
-          seen!.add(current.id);
-        }
-        const next: ManifestItem | undefined = await manifest.get(current.fallback);
-        if (!next) fail(current.part, "Missing EPUB fallback item");
-        current = next;
-      }
-    }
+    await validateEpubFallbacks(manifest, storage, ctx);
     const spine = children(opf, "spine");
     if (spine.length !== 1) fail(packagePart, "Missing or ambiguous EPUB spine");
     const bookLanguage = children(meta, "language", ns.dc)[0];

@@ -129,15 +129,18 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   decoding, root traversal rejection, fragment identity and exact output. The
   Worker fixture covers a 2048-pair redundant path through SDK and command;
   unit cases also reject encoded separators/controls and malformed escapes.
-  Normalized archive-key strings and the EPUB DOM/AST remain resident boundaries.
-  Fallback-graph membership now uses one eight-byte epoch mark per manifest
-  entry in caller storage, reusing the records across traversals. Grow chain size
-  independently; compare success, cycles, missing targets and finite depth errors
-  against the buffered reader. Inject cancellation/storage failure during marking
-  and require empty scratch. The public SDK/command Worker fixture forbids a
-  resident fallback-ID Set across a 96-entry chain. XML trees
-  and chapter ASTs still need retained representations; this is not whole-reader
-  qualification and does not change the graph's existing traversal complexity.
+  Normalized archive-key strings remain resident boundaries; EPUB output pairs
+  outside the retained writer set also still materialize document trees.
+  Fallback validation now memoizes completed suffix lengths in caller storage.
+  Each edge is followed at most twice, with no resident traversal stack. Grow
+  chains and shared suffixes independently; compare cycles, missing targets and
+  exact finite-depth errors with a simple reference traversal, including manifest
+  orderings that encounter short suffixes before longer prefixes. Inject
+  cancellation/storage failure during marking and require empty scratch. Both
+  public readers must stay within a linear manifest-lookup bound; the 96-entry
+  regression previously made 4,658 lookups. The public SDK/command Worker fixture
+  also forbids a resident fallback-ID Set across that chain. This remains a
+  converter checkpoint, not whole-format or deployed memory/CPU qualification.
   Anchor IDs, note definitions and the expanding note-reference queue now use
   collision-checked caller-backed text sets, with a backed insertion-order chain.
   Active note expansion membership also uses caller storage instead of copying

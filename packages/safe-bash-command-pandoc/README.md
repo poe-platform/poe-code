@@ -327,9 +327,10 @@ ODT or JSON with `workingFiles`, XML trees,
 chapter/note ASTs, publication metadata and navigation use caller backing storage;
 media stays replayable from the archive. Cross-chapter notes, finite budgets and
 streamed JSON/Lua filters use that retained route. EPUB property, note, navigation
-and relation token lists are scanned with a fixed control vocabulary. Individual
-URI/manifest identity and other control values still use strings. Language and direction survive filters and reach the
-writers; JSON rejects these fields as in the convenience API. Other EPUB output
+and relation token lists are scanned with a fixed control vocabulary. Fallback
+chains share validated suffixes in caller storage, avoiding repeated chain walks.
+Individual URI/manifest identity and other control values still use strings.
+Language and direction survive filters and reach the writers; JSON rejects these fields as in the convenience API. Other EPUB output
 pairs and buffering convenience APIs still materialize trees and resources.
 
 CSV/TSV also feeds the retained filter and writer pipeline, including multiple

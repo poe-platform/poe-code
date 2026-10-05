@@ -1,3 +1,4 @@
+import {validateEpubFallbacks} from "./epub-fallbacks.js";
 import {selectEpubTokens} from "./epub-control-tokens.js";
 import type {RetainedXmlDocument, RetainedXmlNode} from "@poe-code/office-xml/retained-xml-document";
 import {equal, literal} from "@poe-code/office-xml/retained-values";
@@ -102,18 +103,7 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
       if (item.overlay || item.media === "application/smil+xml") warn(item.part, "Unsupported EPUB media overlay synchronization loss");
       await manifest.add(item);
     }
-    const visits = new IntegerTable(storage);
-    for await (const item of manifest.values()) {
-      let current: ManifestItem | undefined = item, depth = 0;
-      while (current?.fallback) {
-        ctx.checkpoint(); ctx.bound("depth", ++depth);
-        if (await visits.get(BigInt(current.ordinal)) === BigInt(item.ordinal + 1)) fail(current.part, "Recursive EPUB fallback dependency");
-        await visits.set(BigInt(current.ordinal), BigInt(item.ordinal + 1));
-        const next: ManifestItem | undefined = await manifest.get(current.fallback);
-        if (!next) fail(current.part, "Missing EPUB fallback item");
-        current = next;
-      }
-    }
+    await validateEpubFallbacks(manifest, storage, ctx);
     let spine: RetainedXmlNode | undefined;
     for await (const node of children(opf, opf.root, "spine", ns.opf)) {if (spine) fail(packagePart, "Missing or ambiguous EPUB spine"); spine = node;}
     if (!spine) return fail(packagePart, "Missing or ambiguous EPUB spine");

@@ -1,3 +1,4 @@
+import {EpubManifest} from "./epub-manifest.js";
 import * as epubXml from "./epub-xml.js";
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
@@ -128,4 +129,19 @@ it("scans long EPUB control token lists without resident token arrays", async ()
     expect(expected.kind).toBe("text"); if (expected.kind === "text") expect(output).toBe(expected.text);
     expect(actual.diagnostics).toEqual(expected.diagnostics);
   } finally {guard.mockRestore(); expect(await fs.readdir("/")).toEqual([]);}
+});
+
+it.each(["buffered", "retained"])("validates EPUB fallback chains with linear manifest lookups (%s)", async mode => {
+  const files = parts(), count = 96;
+  const items = Array.from({length: count}, (_, i) => '<item id="fallback-' + i + '" href="fallback-' + i + '.bin" media-type="application/octet-stream" fallback="' + (i + 1 < count ? "fallback-" + (i + 1) : "one") + '"/>').join("");
+  files["book.opf"] = files["book.opf"]!.replace("<manifest>", "<manifest>" + items);
+  const bytes = await archive(files), fs = new MemoryFileSystem();
+  const get = vi.spyOn(EpubManifest.prototype, "get");
+  const options = {from: "epub", to: "plain"};
+  const context = {yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384}};
+  try {
+    if (mode === "buffered") await convert([{bytes}], options, context);
+    else await convertToOutput([{bytes}], options, {...context, output: {async write() {}, async close() {}, async abort() {}}});
+    expect(get.mock.calls.length).toBeLessThanOrEqual(count * 2 + 16);
+  } finally {get.mockRestore(); expect(await fs.readdir("/")).toEqual([]);}
 });

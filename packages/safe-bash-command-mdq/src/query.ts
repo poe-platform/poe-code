@@ -140,7 +140,11 @@ export function parseQuery(query: string, budget: MdqBudget): Selector[] {
       }
       s.matcher = string("|");
     }
-    skip(); if (at < query.length && query[at] !== "|") invalid();
+    skip();
+    if (at < query.length && query[at] !== "|") {
+      if (s.kind === "code") queryError(query, at, "expected end of input");
+      invalid();
+    }
     result.push(s);
   }
   return result;

@@ -19,38 +19,45 @@ function floatText(value: number): string {
   const text = String(value);
   return text.includes(".") ? text : text + ".0";
 }
-function pythonText(profile: PythonUnicodeProfile, value: PythonValue, repr: boolean, ascii: boolean, host: FunctionHost, precision?: number): string {
+function* pythonText(profile: PythonUnicodeProfile, value: PythonValue, repr: boolean, ascii: boolean, host: FunctionHost): Generator<string> {
   host.tick();
-  if (value === null) return "None";
-  if (typeof value === "number") return floatText(value);
-  if (typeof value === "boolean") return value ? "True" : "False";
+  if (value === null) { yield* "None"; return; }
+  if (typeof value === "number") { yield* floatText(value); return; }
+  if (typeof value === "boolean") { yield* value ? "True" : "False"; return; }
   if (typeof value === "object") {
     if ("range" in value) {
-      // The native default repr includes an address. Precision can exclude
-      // every address digit while retaining a portable, source-defined prefix.
-      const prefix = "<RangeRef object at 0x";
-      if (precision !== undefined && precision <= prefix.length) return prefix.slice(0, precision);
+      // Precision may stop before the address, whose native bytes are unstable.
+      yield* "<RangeRef object at 0x";
       throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Python RangeRef object representation");
     }
-    return "[" + value.columns.map(column => "[" + column.map(cell => pythonText(profile, cell, true, ascii, host)).join(", ") + "]").join(", ") + "]";
+    yield "[";
+    for (let column = 0; column < value.columns.length; column++) {
+      if (column) yield* ", ";
+      yield "[";
+      const cells = value.columns[column]!;
+      for (let row = 0; row < cells.length; row++) {
+        if (row) yield* ", ";
+        yield* pythonText(profile, cells[row]!, true, ascii, host);
+      }
+      yield "]";
+    }
+    yield "]"; return;
   }
-  if (!repr) return value;
+  if (!repr) { yield* value; return; }
   const quote = value.includes("'") && !value.includes('"') ? '"' : "'";
-  let result = quote;
+  yield quote;
   for (const char of value) {
     host.tick(); const code = char.codePointAt(0)!;
-    if (char === quote || char === "\\") result += "\\" + char;
-    else if (char === "\n") result += "\\n";
-    else if (char === "\r") result += "\\r";
-    else if (char === "\t") result += "\\t";
+    if (char === quote || char === "\\") yield* "\\" + char;
+    else if (char === "\n") yield* "\\n";
+    else if (char === "\r") yield* "\\r";
+    else if (char === "\t") yield* "\\t";
     else if (ascii && code > 127 || inUnicodeRanges(code, nonPrintable) || inUnicodeRanges(code, profile.nonPrintable))
-      result += code <= 255 ? "\\x" + code.toString(16).padStart(2, "0") : code <= 65535 ?
+      yield* code <= 255 ? "\\x" + code.toString(16).padStart(2, "0") : code <= 65535 ?
         "\\u" + code.toString(16).padStart(4, "0") : "\\U" + code.toString(16).padStart(8, "0");
-    else result += char;
-    if (result.length > host.context.limits.outputBytes)
-      throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+    else yield char;
   }
-  return result + quote;
+  yield quote;
 }
 function pythonValue(value: Value | undefined, host: FunctionHost, argument = true): PythonValue {
   host.tick();
@@ -175,12 +182,16 @@ export function pythonPrintf(profile: PythonUnicodeProfile, args: readonly (Valu
       const value = take();
       let text: string, sign = "", prefix = "", numeric = false;
       if ("sra".includes(conversion)) {
-        text = pythonText(profile, value, conversion !== "s", conversion === "a", host, precision);
-        if (precision !== undefined) {
-          let count = 0, truncated = "";
-          for (const char of text) { host.tick(); if (count++ >= precision) break; truncated += char; }
-          text = truncated;
-        }
+        const representation = pythonText(profile, value, conversion !== "s", conversion === "a", host);
+        text = "";
+        try {
+          for (let count = 0; precision === undefined || count < precision; count++) {
+            host.tick(); const next = representation.next();
+            if (next.done) break;
+            text += next.value;
+            if (text.length > limit) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+          }
+        } finally { representation.return(undefined); }
       } else if (conversion === "c") {
         if (typeof value === "boolean") text = String.fromCodePoint(Number(value));
         else if (typeof value === "string" && Array.from(value).length === 1) text = value;

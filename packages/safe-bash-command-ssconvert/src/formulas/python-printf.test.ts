@@ -86,3 +86,26 @@ it.each([
   ] }] }, { ...context, runtimeFunctions: createPythonSampleFunctions({ unicodeVersion }) }))
     .toThrow("Native byte-string Unicode rendering is not qualified");
 });
+
+it.each([
+  ['=PY_PRINTF("%.3r",A2)', "'aa", 'a'],
+  ['=PY_PRINTF("%.3a",A2)', "'\\x", 'é'],
+  ['=PY_PRINTF("%.2r",A2)', "'😀", '😀'],
+  ['=PY_PRINTF("%.2s",TRANSPOSE(A2:A3))', "[[", 'a'],
+  ['=PY_PRINTF("%.0r",A2)', "", 'a']
+])("admits only the precision-limited representation for %s", (formula, expected, character) => {
+  const result = recalculateWorkbook({ sheets: [{ id: "s", name: "Sheet1", cells: [
+    { row: 0, column: 0, formula, formulaDirty: true, value: { kind: "blank" } },
+    { row: 1, column: 0, value: { kind: "string", value: character!.repeat(1000) } },
+    { row: 2, column: 0, value: { kind: "string", value: "tail" } }
+  ] }] }, { ...context, limits: { ...context.limits, outputBytes: 8 } });
+  expect(result.sheets[0]!.cells[0]!.value).toEqual({ kind: "string", value: expected });
+});
+
+it.each([
+  ['=PY_PRINTF("%r","aaaaaaaaaaaaaaaa")', 8],
+  ['=PY_PRINTF("%.2r","😀")', 4],
+  ['=PY_PRINTF("%9.1r","a")', 8]
+] as const)("still bounds emitted representation and padding for %s", (formula, outputBytes) => {
+  expect(() => calculate(formula, { limits: { ...context.limits, outputBytes } })).toThrow("text limit");
+});

@@ -222,6 +222,11 @@ Unicode rendering guard instead of formatting their internal hexadecimal storage
 array members across all three profiles; RangeRef and installed-profile gates
 remain open.
 
+Precision-limited Python scalar/array representations now stop before allocating
+unused suffixes (`pythonPrintfPrecisionAdmission`). Five formerly refused short
+outputs fit their eight-byte limit; genuine UTF-8 and padding overflow still
+fails. This does not qualify unstable RangeRef addresses or installed profiles.
+
 ## 4. Interfaces and test plan
 
 Use existing `createEngine`, `readWorkbook`, `writeWorkbook`, `convert` and

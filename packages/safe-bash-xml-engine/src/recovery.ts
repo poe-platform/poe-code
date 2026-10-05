@@ -82,18 +82,19 @@ export async function parseStoredXml(
         } else if ("namespaceOperation" in step.value) {
           const request = step.value;
           const scope = new StoredNamespaces(frameStorage, budget, request.scope.reference);
+          const key = request.prefixSource ? await scope.storeString(sourceParts(request.prefixSource)) : request.prefix;
           if (request.namespaceOperation === "reference") {
-            const reference = await scope.lookup(request.prefix);
+            const reference = await scope.lookup(key);
             if (reference !== undefined) request.reference = reference;
             request.complete = true;
           } else if (request.namespaceOperation === "has") {
-            request.found = await scope.lookup(request.prefix) !== undefined;
+            request.found = await scope.lookup(key) !== undefined;
           } else if (request.namespaceOperation === "get") {
-            const previous = await scope.get(request.prefix);
+            const previous = await scope.get(key);
             if (previous !== undefined) request.value = previous;
             request.complete = true;
           } else {
-            const previous = await scope.lookup(request.prefix);
+            const previous = await scope.lookup(key);
             const value = request.value;
             const parts = typeof value === "string" ? value : (async function* () {
               for (const part of value) {
@@ -102,7 +103,7 @@ export async function parseStoredXml(
                 else await completeSourceRead(part);
               }
             })();
-            const next = await scope.set(request.prefix, parts);
+            const next = await scope.set(key, parts);
             request.result = { reference: next.reference, size: request.scope.size + (previous === undefined ? 1 : 0) };
           }
         } else if ("frameOperation" in step.value) {

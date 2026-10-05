@@ -164,15 +164,20 @@ export class StoredStringMap {
     return new StoredStringMap(this.storage, this.budget, await insert(this.reference));
   }
 
-  async *references(): AsyncGenerator<readonly [string, number]> {
-    const visit = async function* (scope: StoredStringMap, reference: number): AsyncGenerator<readonly [string, number]> {
+  /** Traverse both token handles without materializing namespace prefixes. */
+  async *tokenReferences(): AsyncGenerator<readonly [number, number]> {
+    const visit = async function* (scope: StoredStringMap, reference: number): AsyncGenerator<readonly [number, number]> {
       if (!reference) return;
       const entry = await scope.read(reference);
       yield* visit(scope, entry.left);
-      yield [await scope.string(entry.key), entry.value];
+      yield [entry.key, entry.value];
       yield* visit(scope, entry.right);
     };
     yield* visit(this, this.reference);
+  }
+
+  async *references(): AsyncGenerator<readonly [string, number]> {
+    for await (const [key, value] of this.tokenReferences()) yield [await this.string(key), value];
   }
   async *[Symbol.asyncIterator](): AsyncGenerator<readonly [string, string]> {
     for await (const [key, reference] of this.references()) yield [key, await this.string(reference)];

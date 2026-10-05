@@ -56,28 +56,34 @@ async function attributes(
       if (Array.isArray(selected)) selected.push(attribute); else await selected.append(attribute);
     }
   }
-  for await (const [prefix, uri] of namespaces instanceof StoredNamespaces ? namespaces.references() : namespaces) {
-    { const _p = budget.tick((typeof uri === "string" ? uri.length : 1) + prefix.length + 1); if (_p) await _p; }
-    if (prefix === "xml") continue;
+  for await (const [prefix, uri] of namespaces instanceof StoredNamespaces ? namespaces.tokenReferences() : namespaces) {
+    { const _p = budget.tick((typeof uri === "string" ? uri.length : 1) + (typeof prefix === "string" ? prefix.length : 1) + 1); if (_p) await _p; }
+    if (typeof prefix === "number" ? await (namespaces as StoredNamespaces).equals(prefix, "xml") : prefix === "xml") continue;
     if (exclusive) {
       const colon = element.name.indexOf(":");
-      let used = prefix === (element.prefix ?? (colon < 0 ? "" : element.name.slice(0, colon)));
+      let used = stored ? await stored.prefixEquals(element, prefix) : prefix === (element.prefix ?? (colon < 0 ? "" : element.name.slice(0, colon)));
       for await (const attribute of source()) {
         const p = budget.tick(attribute.name.length + 1); if (p) await p;
         if (attribute.namespace === xmlns) continue;
         const at = attribute.name.indexOf(":");
-        if ((attribute.prefix ?? (at > 0 ? attribute.name.slice(0, at) : "")) === prefix) used = true;
+        if (stored ? await stored.prefixEquals(attribute, prefix) : (attribute.prefix ?? (at > 0 ? attribute.name.slice(0, at) : "")) === prefix) used = true;
       }
       if (!used) continue;
     }
     if (typeof uri === "number" && namespaces instanceof StoredNamespaces) {
-      const previous = inherited instanceof StoredNamespaces ? await inherited.lookup(prefix) : await inherited.get(prefix);
+      const previous = inherited instanceof StoredNamespaces ? await inherited.lookup(prefix) : await inherited.get(prefix as string);
       if (await namespaces.equals(uri, previous ?? "")) continue;
-    } else if (uri === ((await inherited.get(prefix)) ?? "")) continue;
-    const attribute = {
-      name: prefix ? `xmlns:${prefix}` : "xmlns",
+    } else if (uri === ((await inherited.get(prefix as string)) ?? "")) continue;
+    const emptyPrefix = typeof prefix === "number" ? await (namespaces as StoredNamespaces).equals(prefix, "") : !prefix;
+    const nameReference = typeof prefix === "number" && !emptyPrefix ? await (namespaces as StoredNamespaces).storeString((async function* () {
+      yield "xmlns:"; yield* (namespaces as StoredNamespaces).valueParts(prefix);
+    })()) : undefined;
+    const attribute: XmlAttribute & { namespaceValueReference?: number } = {
+      name: nameReference !== undefined ? "" : emptyPrefix ? "xmlns" : `xmlns:${prefix}`,
+      ...(nameReference === undefined ? {} : { nameReference }),
+      ...(typeof prefix === "number" && !emptyPrefix ? { localNameReference: prefix } : {}),
       namespace: xmlns,
-      localName: prefix,
+      localName: typeof prefix === "string" ? prefix : "",
       value: typeof uri === "string" ? uri : "",
       ...(typeof uri === "number" ? { namespaceValueReference: uri } : {})
     };
@@ -96,7 +102,7 @@ async function attributes(
       await budget.tick((attribute.namespace.length + attribute.localName.length + 1) * comparisons);
     selected.sort(ordering);
   } else await selected.sort(async (left, right) => {
-    if (left.namespace === xmlns || right.namespace === xmlns) return ordering(left, right);
+    if ((left.namespace === xmlns) !== (right.namespace === xmlns)) return left.namespace === xmlns ? -1 : 1;
     const tokens = new StoredNamespaces(stored!.storage, budget);
     const leftReference = left.namespaceReference, rightReference = right.namespaceReference;
     const order = rightReference !== undefined ? await tokens.compare(leftReference ?? left.namespace, rightReference)
@@ -225,8 +231,8 @@ export async function* serializeDocument(
       if (element.kind !== "element") continue;
       { const p = budget.tick(); if (p) await p; }
       const scope = await namespaceScope(reference, element);
-      for await (const [prefix, uri] of scope instanceof StoredNamespaces ? scope.references() : scope) {
-        { const p = budget.tick(prefix.length + 1); if (p) await p; }
+      for await (const [prefix, uri] of scope instanceof StoredNamespaces ? scope.tokenReferences() : scope) {
+        { const p = budget.tick(typeof prefix === "string" ? prefix.length + 1 : 1); if (p) await p; }
         const parts = typeof uri === "number" && scope instanceof StoredNamespaces ? scope.valueParts(uri) : [uri as string];
         let length = 0, absolute = false;
         scan: for await (const part of parts) {
@@ -342,7 +348,7 @@ export async function* serializeDocument(
       else yield `<${current.name}`;
       for await (const attribute of outputAttributes()) {
         if (canonical && attribute.namespace === xmlns) {
-          if (childNamespaces instanceof StoredNamespaces) childNamespaces = await childNamespaces.set(attribute.localName,
+          if (childNamespaces instanceof StoredNamespaces) childNamespaces = await childNamespaces.set(attribute.localNameReference ?? attribute.localName,
             attribute.namespaceValueReference === undefined ? attribute.value : { reference: attribute.namespaceValueReference });
           else {
             changed ??= new Map(childNamespaces);

@@ -43,8 +43,8 @@ export class StoredXmlDocument {
       const namespaces = await new StoredNamespaces(document.storage, budget).set("xml", "http://www.w3.org/XML/1998/namespace");
       await document.set(document.documentReference, namespacesField, namespaces.reference);
       let parent = document.documentReference, fragmentTail = 0, attributeTail = 0, targetReference: number | undefined;
-      let attributeNames: Pick<XmlName, "nameReference" | "localNameReference"> = {};
-      let pendingNamespace: { prefix: string; reference: number } | undefined;
+      let attributeNames: Pick<XmlName, "nameReference" | "localNameReference" | "prefixReference"> = {};
+      let pendingNamespace: { prefix: string | number; reference: number } | undefined;
       let tokens = new StoredNamespaces(document.storage, budget);
       const consume = async (event: XmlStreamEvent, namespaceParts: (reference: number) => AsyncIterable<string>, sourceParts: (span: XmlSourceSpan) => AsyncIterable<string>): Promise<void> => {
           async function retainNamespace(reference: number): Promise<number> {
@@ -66,9 +66,10 @@ export class StoredXmlDocument {
               const local = event.attribute.localNameSource;
               const nameReference = full ? await tokens.storeString(sourceParts(full)) : undefined;
               const localNameReference = local ? local.start === full?.start ? nameReference : await tokens.storeString(sourceParts(local)) : undefined;
-              attributeNames = { ...(nameReference === undefined ? {} : { nameReference }), ...(localNameReference === undefined ? {} : { localNameReference }) };
+              const prefixReference = event.attribute.prefixSource ? await tokens.storeString(sourceParts(event.attribute.prefixSource)) : undefined;
+              attributeNames = { ...(prefixReference === undefined ? {} : { prefixReference }), ...(nameReference === undefined ? {} : { nameReference }), ...(localNameReference === undefined ? {} : { localNameReference }) };
             }
-            const { nameSource: ignoredNameSource, localNameSource: ignoredLocalSource, ...original } = event.attribute;
+            const { nameSource: ignoredNameSource, localNameSource: ignoredLocalSource, prefixSource: ignoredPrefixSource, ...original } = event.attribute;
             const retained = { ...original, ...attributeNames };
             const attribute = event.attribute.namespaceReference === undefined ? retained : {
               ...retained, namespaceReference: await retainNamespace(event.attribute.namespaceReference)
@@ -77,7 +78,7 @@ export class StoredXmlDocument {
             if (event.continuation) await document.set(attributeTail, fragmentField, reference);
             attributeTail = reference;
             if (!event.continuation && event.attribute.namespace === "http://www.w3.org/2000/xmlns/")
-              pendingNamespace = { prefix: event.attribute.name === "xmlns" ? "" : event.attribute.localName, reference };
+              pendingNamespace = { prefix: attribute.name === "xmlns" ? "" : attribute.localNameReference ?? attribute.localName, reference };
             return;
           }
           if (event.type === "close") { parent = await document.field(parent, parentField); return; }
@@ -92,10 +93,11 @@ export class StoredXmlDocument {
           }
           else {
             const element = event.element;
+            const prefixReference = element.prefixSource ? await tokens.storeString(sourceParts(element.prefixSource)) : undefined;
             const nameReference = element.nameSource ? await tokens.storeString(sourceParts(element.nameSource)) : undefined;
             const localNameReference = element.localNameSource ? element.nameSource?.start === element.localNameSource.start
               ? nameReference : await tokens.storeString(sourceParts(element.localNameSource)) : undefined;
-            metadata = { kind: "element", name: element.name, localName: element.localName, namespace: element.namespace,
+            metadata = { kind: "element", ...(prefixReference === undefined ? {} : { prefixReference }), name: element.name, localName: element.localName, namespace: element.namespace,
               ...(nameReference === undefined ? {} : { nameReference, prefix: element.prefix! }),
               ...(localNameReference === undefined ? {} : { localNameReference }),
               ...(element.namespaceReference === undefined ? {} : { namespaceReference: await retainNamespace(element.namespaceReference) }),
@@ -182,7 +184,7 @@ export class StoredXmlDocument {
         complete.name = ""; complete.localName = "";
         for await (const part of this.nameText(attribute)) complete.name += part;
         for await (const part of this.nameText(attribute, true)) complete.localName += part;
-        delete complete.nameReference; delete complete.localNameReference; delete complete.prefix;
+        delete complete.nameReference; delete complete.localNameReference; delete complete.prefix; delete complete.prefixReference;
         delete complete.namespaceReference;
         attributes.push(complete);
       }
@@ -192,7 +194,7 @@ export class StoredXmlDocument {
       let name = "", localName = "";
       for await (const part of this.nameText(value)) name += part;
       for await (const part of this.nameText(value, true)) localName += part;
-      const { namespaceReference: ignoredNamespaceReference, nameReference: ignoredNameReference, localNameReference: ignoredLocalReference, prefix: ignoredPrefix, ...element } = value;
+      const { namespaceReference: ignoredNamespaceReference, nameReference: ignoredNameReference, localNameReference: ignoredLocalReference, prefix: ignoredPrefix, prefixReference: ignoredPrefixReference, ...element } = value;
       return { ...element, name, localName, namespace, attributes, namespaces };
     }
     if (value.kind === "attribute") {
@@ -202,7 +204,7 @@ export class StoredXmlDocument {
       let name = "", localName = "";
       for await (const part of this.nameText(value.value)) name += part;
       for await (const part of this.nameText(value.value, true)) localName += part;
-      const { namespaceReference: ignoredNamespaceReference, nameReference: ignoredName, localNameReference: ignoredLocal, prefix: ignoredPrefix, ...attribute } = value.value;
+      const { namespaceReference: ignoredNamespaceReference, nameReference: ignoredName, localNameReference: ignoredLocal, prefix: ignoredPrefix, prefixReference: ignoredPrefixReference, ...attribute } = value.value;
       return { ...value, value: { ...attribute, name, localName, namespace, value: text } };
     }
     if (value.kind === "processing-instruction" && value.targetReference !== undefined) {
@@ -211,6 +213,14 @@ export class StoredXmlDocument {
       return { ...content, target };
     }
     return value;
+  }
+
+  async prefixEquals(name: XmlName, expected: string | number): Promise<boolean> {
+    const colon = name.name.indexOf(":");
+    const prefix = name.prefixReference ?? name.prefix ?? (colon < 0 ? "" : name.name.slice(0, colon));
+    const tokens = new StoredNamespaces(this.storage, this.budget);
+    return typeof prefix === "number" ? tokens.equals(prefix, expected)
+      : typeof expected === "number" ? tokens.equals(expected, prefix) : prefix === expected;
   }
 
   async *nameText(name: XmlName, local = false): AsyncGenerator<string> {

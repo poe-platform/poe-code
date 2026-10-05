@@ -112,8 +112,9 @@ must close. Long element local names now use source spans in parser frames and b
 in document metadata. Test opening/closing mismatches, recovery, default and named
 namespaces, canonical output, name()/local-name(), and xq repeated-name groups with
 increasing name sizes. Verify parser slices stay within 512 UTF-16 units and reads,
-writes and cancellation retire backing during name transfer. Attribute names and
-namespace prefixes exceeding 512 UTF-16 units remain a separate backing gate.
+writes and cancellation retire backing during name transfer. Attribute names and namespace prefixes also use source spans and token handles.
+Check namespace shadowing, default resets, exclusive prefix membership and
+canonical prefix ordering without materializing map keys.
 
 For recovery, repeat formatting, CDATA conversion and XPath with a missing final
 closing tag. Verify repaired output and diagnostics, paged node writes and cleanup
@@ -175,4 +176,5 @@ Increase one local name independently of attribute count and value size; include
 late namespace declarations, duplicate raw names, equal expanded names through
 URI aliases, canonical ordering, XPath attribute/node serialization and xq keys.
 Check failure and cancellation during name copying and fragment continuation.
-Namespace declarations with long prefixes still require their separate backing gate.
+Namespace declarations with long prefixes now retain backed names and map keys;
+measure increasing prefix lengths independently of scope size.

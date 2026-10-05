@@ -42,9 +42,10 @@ export class StoredParserAttributes {
       const values = new StoredStringMap(this.storage, this.budget, await this.number(store, offset));
       const sourceParts = this.sourceParts;
       if (request.attributeOperation === "expanded" && request.namespace) {
-        const { scope, prefix } = request.namespace;
+        const { scope, prefix, prefixSource } = request.namespace;
         const namespaces = new StoredStringMap(this.storage, this.budget, scope.reference);
-        const uri = prefix ? await namespaces.lookup(prefix) : undefined;
+        const key = prefixSource ? await namespaces.storeString(sourceParts(prefixSource)) : prefix;
+        const uri = prefix || prefixSource ? await namespaces.lookup(key) : undefined;
         const parts = (async function* () {
           if (uri !== undefined) yield* namespaces.valueParts(uri);
           yield "\0";

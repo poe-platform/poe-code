@@ -45,7 +45,7 @@ test('PDF serializer hashes a single pass while emitting bounded chunks',async()
  const bytes=Uint8Array.from({length:131073},(_,index)=>index%251);let acquisitions=0,disposed=0;
  const input:llm.LlmInputSource={async dispose(){disposed++;},bytes:{async *[Symbol.asyncIterator](){assert.equal(++acquisitions,1);yield bytes;}}};
  let text='';for await(const part of llm.serializeOpenAiChatRequest({model:'pdf',prompt:source(new Uint8Array()),attachments:[{mimeType:'application/pdf',source:input}],options:{},signal},Infinity)){assert.ok(part.length<=16384);text+=new TextDecoder().decode(part);}
- const part=JSON.parse(text).messages[0].content[1];
+ const [part]=JSON.parse(text).messages[0].content;
  assert.equal(part.file.filename,createHash('sha256').update(bytes).digest('hex')+'.pdf');assert.equal(part.file.file_data,'data:application/pdf;base64,'+Buffer.from(bytes).toString('base64'));
  assert.equal(disposed,0);assert.equal(acquisitions,1);
 });
@@ -53,7 +53,7 @@ test('PDF serializer hashes a single pass while emitting bounded chunks',async()
 test('PDF caller messages and current attachments retain explicit source identities',async()=>{
  const row=fixture.cases.find(row=>row.id!==undefined)!;
  let text='';for await(const bytes of llm.serializeOpenAiChatRequest({model:'pdf',prompt:source(new Uint8Array()),messages:[{role:'user',content:source(new Uint8Array()),attachments:[{mimeType:'application/pdf',id:row.id!,source:source(Uint8Array.from(row.bytes))}]}],attachments:[{mimeType:'application/pdf',id:row.id!,source:source(Uint8Array.from(row.bytes))}],options:{},signal},Infinity))text+=new TextDecoder().decode(bytes);
- for(const message of JSON.parse(text).messages)assert.deepEqual(message.content[1],row.part);
+ for(const message of JSON.parse(text).messages)assert.deepEqual(message.content,[row.part]);
 });
 
 test('PDF wire overflow retires input and shared service releases its leases',async()=>{

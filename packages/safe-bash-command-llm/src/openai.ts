@@ -281,7 +281,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
             ...(message.toolCallId === undefined ? {} : {tool_call_id:message.toolCallId}),
             ...(toolCalls.length ? {tool_calls:toolCalls} : {}),
             ...toolCalls.length && !message.content && !attachments.length ? {} : {content: attachments.length === 0 ? message.content : [
-            { type: "text", text: message.content },
+            ...message.content ? [{ type: "text", text: message.content }] : [],
             ...parts,
           ] } });
         }

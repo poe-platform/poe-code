@@ -81,6 +81,6 @@ test('SDK remote input sources reproduce pinned URL audio provider parts',async(
   const signal=new AbortController().signal;let calls=0;
   const source=llm.createLlmUrlSource({url:row.url,signal,fetch:async(url,init)=>{calls++;assert.equal(url,row.url);assert.equal(init?.method,'GET');return new Response(Uint8Array.from(row.bytes));}});
   let text='';for await(const bytes of llm.serializeOpenAiChatRequest({model:'audio',prompt:{bytes:{async *[Symbol.asyncIterator](){}},async dispose(){}},attachments:[{mimeType:row.mimeType,source}],options:{},signal},Infinity))text+=new TextDecoder().decode(bytes);
-  assert.deepEqual(JSON.parse(text).messages[0].content[1],row.part);assert.equal(calls,1);await source.dispose();
+  assert.deepEqual(JSON.parse(text).messages[0].content,[row.part]);assert.equal(calls,1);await source.dispose();
  }
 });

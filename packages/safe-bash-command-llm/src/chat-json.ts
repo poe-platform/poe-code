@@ -59,10 +59,11 @@ export function chatJson(request: OpenAiChatSourceRequest, limit: number): Async
         if (ended && message === current && toolContinuation && !attachments.length) continue;
         yield text((first ? "" : ",") + '{"role":' + JSON.stringify(message.role));
         first = false;
+        const textPart = !ended;
         const hasContent = !ended || !message.toolCalls?.length || attachments.length;
         if (hasContent) {
           yield text(',"content":');
-          if (attachments.length) yield text('[{"type":"text","text":');
+          if (attachments.length) {yield text("["); if (textPart) yield text('{"type":"text","text":');}
           const content = async function* (): AsyncIterable<Uint8Array> {
             if (!head.done) yield head.value;
             while (!ended) {
@@ -71,28 +72,30 @@ export function chatJson(request: OpenAiChatSourceRequest, limit: number): Async
               yield next.value;
             }
           };
-          yield* jsonString(content(), request.signal);
+          if (!attachments.length || textPart) yield* jsonString(content(), request.signal);
         }
         if (attachments.length) {
-          yield text("}");
+          if (textPart) yield text("}");
+          let firstPart = !textPart;
           for (const attachment of attachments) {
             request.signal.throwIfAborted();
+            if (!firstPart) yield text(",");
+            firstPart = false;
             const kind = openAiAttachmentKind(attachment.mimeType);
             if (kind === 'pdf' && attachment.source !== undefined) {
-              yield text(',');
               yield* pdfJson(attachment.source, attachment.id, request.signal);
               continue;
             }
             if (attachment.url !== undefined) {
               validateAttachmentUrl(attachment.url);
-              yield text(',{"type":"image_url","image_url":{"url":');
+              yield text('{"type":"image_url","image_url":{"url":');
               yield* jsonValue(attachment.url, request.signal);
               yield text('}}');
               continue;
             }
             yield text(kind === 'image'
-              ? ',{"type":"image_url","image_url":{"url":' + JSON.stringify(`data:${attachment.mimeType};base64,`).slice(0, -1)
-              : ',{"type":"input_audio","input_audio":{"data":"');
+              ? '{"type":"image_url","image_url":{"url":' + JSON.stringify(`data:${attachment.mimeType};base64,`).slice(0, -1)
+              : '{"type":"input_audio","input_audio":{"data":"');
             for await (const part of base64Stream(attachment.source.bytes, request.signal)) yield text(part);
             yield text(kind === 'image' ? '"}}' : `","format":"${kind}"}}`);
           }

@@ -93,7 +93,7 @@ it.each([16385, 262145])("rejects a %i-byte EPUB mimetype without a whole-member
   } finally {await runtime.dispose();}
 }, 60000);
 
-it.each(["sdk", "command"])("retains EPUB anchor and fallback membership and resolves long chapter URIs through the public %s in workerd", async mode => {
+it.each(["sdk", "command"])("retains EPUB manifest, anchor and fallback membership and resolves long chapter URIs through the public %s in workerd", async mode => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -128,6 +128,8 @@ it.each(["sdk", "command"])("retains EPUB anchor and fallback membership and res
         if (key === 'readStream') return async function* (path) {const object = await env.PAGES.get(path); yield* object.body;};
         const value = Reflect.get(target, key); return typeof value === 'function' ? value.bind(target) : value;
       }});
+      const originalMapSet = Map.prototype.set;
+      Map.prototype.set = function(key, value) {if (value && typeof value === 'object' && typeof value.id === 'string' && value.id.startsWith('fallback-id-')) throw new Error('Resident manifest record forbidden'); return originalMapSet.call(this, key, value);};
       const originalAdd = Set.prototype.add;
       Set.prototype.add = function(value) {if (typeof value === 'string' && (value.startsWith('fallback-id-') || value.startsWith('chapter.xhtml#'))) throw new Error('Resident fallback membership forbidden'); return originalAdd.call(this, value);};
       const originalSplit = String.prototype.split;
@@ -139,7 +141,7 @@ it.each(["sdk", "command"])("retains EPUB anchor and fallback membership and res
         else {
           result = await api.createPandocCommand().execute({command: 'pandoc', args: ['-f', 'epub', '-t', 'plain', '/input.epub'], cwd: '/', env: {TMPDIR: '/spill'}, fs, signal, stdin: (async function* () {})(), stdout, stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}});
         }
-      } finally {String.prototype.split = originalSplit; Set.prototype.add = originalAdd;}
+      } finally {String.prototype.split = originalSplit; Set.prototype.add = originalAdd; Map.prototype.set = originalMapSet;}
       await env.PAGES.delete('/input.epub');
       return Response.json({output, errors, exitCode: result?.exitCode ?? 0, events,
         remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});

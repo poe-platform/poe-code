@@ -135,7 +135,7 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   independently; compare success, cycles, missing targets and finite depth errors
   against the buffered reader. Inject cancellation/storage failure during marking
   and require empty scratch. The public SDK/command Worker fixture forbids a
-  resident fallback-ID Set across a 96-entry chain. Manifest objects, XML trees
+  resident fallback-ID Set across a 96-entry chain. XML trees
   and chapter ASTs still need retained representations; this is not whole-reader
   qualification and does not change the graph's existing traversal complexity.
   Anchor IDs, note definitions and the expanding note-reference queue now use
@@ -148,6 +148,17 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   across 96 IDs. Current individual identity strings, XML/AST traversal frames,
   chapter membership, note-block Maps and copied note ASTs remain resident; this
   bookkeeping change does not qualify the entire EPUB reader as bounded.
+  Manifest records now share an ordered caller-backed record chain with bounded
+  ID/path indexes. Attribute text is stored in linked UTF-16 chunks and only one
+  current item is decoded during iteration/lookup; cover/navigation selection no
+  longer collects manifest-wide arrays. Test growing item counts independently of
+  single-attribute width, including IDs above 65536 units, Unicode and unpaired
+  surrogates. Preserve admission order, duplicate ID/path rejection, fallback and
+  cover/navigation ambiguity diagnostics. Inject failure/cancellation during
+  record admission and require scratch cleanup. The public SDK/command Worker
+  fixture rejects resident manifest objects across 96 fallback entries. The OPF
+  XML tree still holds source attributes and chapter records still reference their
+  own items; this is not a claim of a retained XML reader or memory plateau.
 - Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
   independently of input bytes and document nesting. JSON and CSV/TSV to plain

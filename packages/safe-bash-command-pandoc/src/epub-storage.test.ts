@@ -372,3 +372,62 @@ it("visits new note-document dependencies discovered at the tail of the backed r
   expect(JSON.stringify(expected.blocks)).toContain("Final");
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it.each([8, 96])("backs %i EPUB manifest records and both identity indexes", async count => {
+  const manifest = Array.from({length: count}, (_, index) => `<item id="stored-manifest-${index}" href="extra-${index}.bin" media-type="application/octet-stream"/>`).join("");
+  const bytes = await publication(32768, "<p>Stored manifest.</p>", undefined, manifest);
+  const expected = await readDocument({bytes}, {from: "epub"}, {yield: async () => {}});
+  const fs = new MemoryFileSystem(), original = Map.prototype.set;
+  const set = vi.spyOn(Map.prototype, "set").mockImplementation(function(this: Map<unknown, unknown>, key: unknown, value: unknown) {
+    if (value && typeof value === "object" && "id" in value && typeof value.id === "string" && value.id.startsWith("stored-manifest-")) throw new Error("Resident manifest record forbidden");
+    return original.call(this, key, value);
+  });
+  try {
+    expect(await readDocument({chunks: [bytes]}, {from: "epub"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}})).toEqual(expected);
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {set.mockRestore();}
+});
+
+it("preserves manifest IDs longer than the ZIP index's default key limit", async () => {
+  const id = "long-id-" + "x".repeat(65536);
+  const bytes = await publication(0, "<p>Wide identity.</p>", undefined, `<item id="${id}" href="unused.bin" media-type="application/octet-stream"/>`);
+  const expected = await readDocument({bytes}, {from: "epub"}, {yield: async () => {}});
+  const fs = new MemoryFileSystem();
+  expect(await readDocument({chunks: [bytes]}, {from: "epub"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}})).toEqual(expected);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each(["cancel", "storage"])("cleans up when EPUB manifest admission encounters %s failure", async mode => {
+  const bytes = await publication(32768);
+  const fs = new MemoryFileSystem(), controller = new AbortController();
+  const original = PagedStorage.prototype.append;
+  let attempts = 0;
+  const append = vi.spyOn(PagedStorage.prototype, "append").mockImplementation(async function(this: PagedStorage, bytes: Uint8Array) {
+    if (bytes.length === 160) {
+      attempts++;
+      if (mode === "cancel") controller.abort();
+      else throw new Error("Manifest backing failed");
+    }
+    return original.call(this, bytes);
+  });
+  try {
+    await expect(readDocument({chunks: [bytes]}, {from: "epub"}, {signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}})).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
+    expect(attempts).toBe(1);
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {append.mockRestore();}
+});
+
+it.each([
+  '<item id="chapter" href="other.xhtml" media-type="application/xhtml+xml"/>',
+  '<item id="other" href="chapter.xhtml" media-type="application/xhtml+xml"/>',
+  '<item id="other" href="chapter.xhtml#fragment" media-type="application/xhtml+xml"/>',
+  '<item id="nav-a" href="nav-a.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="nav-b" href="nav-b.xhtml" media-type="application/xhtml+xml" properties="nav"/>',
+  '<item id="cover-a" href="a.png" media-type="image/png" properties="cover-image"/><item id="cover-b" href="b.png" media-type="image/png" properties="cover-image"/>'
+])("preserves manifest admission and ambiguity diagnostics for %s", async manifest => {
+  const bytes = await publication(0, "<p>Book.</p>", undefined, manifest);
+  const error = await readDocument({bytes}, {from: "epub"}, {yield: async () => {}}).catch(error => error) as Error & {code: string; location: string};
+  expect(error).toBeInstanceOf(Error);
+  const fs = new MemoryFileSystem();
+  await expect(readDocument({chunks: [bytes]}, {from: "epub"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}})).rejects.toMatchObject({code: error.code, message: error.message, location: error.location});
+  expect(await fs.readdir("/")).toEqual([]);
+});

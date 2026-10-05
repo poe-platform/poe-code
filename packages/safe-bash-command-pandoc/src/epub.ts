@@ -1,3 +1,4 @@
+import {EpubManifest, type ManifestItem} from "./epub-manifest.js";
 import {BackedText} from "./backed-text.js";
 import {BackedTextSet} from "./backed-text-set.js";
 import {PandocError} from "./errors.js";
@@ -9,15 +10,6 @@ import { htmlTreeDocument } from "./html.js";
 import type { Attr, Block, Inline, MetaValue } from "./ast-types.js";
 import type { AdapterContext, Document, Input, StreamingInput, ReaderCapability, Resource } from "./types.js";
 
-interface ManifestItem {
-  ordinal: number;
-  id: string;
-  part: string;
-  media: string;
-  properties: string[];
-  fallback: string;
-  overlay: string;
-}
 interface Chapter {item: ManifestItem; linear: string; xml: XmlElement; blocks: readonly Block[]; language: string}
 const tokens = (s: string) => s.split(" ").filter(Boolean);
 function* uriComponents(path: string): Generator<string> {
@@ -230,25 +222,28 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       if (node.uri === ns.opf && node.name === "meta" && a(node, "name") === "fixed-layout" && a(node, "content") === "true") fail(packagePart, "Fixed-layout EPUB2 cannot be faithfully converted to reflow");
       if (node.uri === ns.opf && node.name === "meta" && a(node, "property").startsWith("rendition:") && a(node, "property") !== "rendition:layout") warn(packagePart, `Unsupported EPUB layout metadata: ${a(node, "property")}`);
     }
-    const manifest = new Map<string, ManifestItem>();
-    const admitted = new Map<string, ManifestItem>();
-    for (const n of children(opf, "manifest").flatMap(m => children(m, "item"))) {
-      const id = a(n, "id");
-      const href = a(n, "href");
-      if (!id || !href || manifest.has(id)) fail(packagePart, "Invalid or duplicate EPUB manifest ID");
-      const target = resolve(href, packagePart, ctx);
-      if (target.fragment || admitted.has(target.part)) fail(packagePart, "Ambiguous EPUB manifest part identity");
-      const item: ManifestItem = {ordinal: manifest.size, id, part: target.part, media: a(n, "media-type"), properties: tokens(a(n, "properties")), fallback: a(n, "fallback"), overlay: a(n, "media-overlay")};
-      if (item.properties.includes("rendition:layout-pre-paginated")) fail(item.part, "Fixed-layout EPUB spine is unsupported");
-      if (item.media === "text/css") warn(item.part, "Unsupported EPUB CSS styling/layout loss");
-      if (item.overlay || item.media === "application/smil+xml") warn(item.part, "Unsupported EPUB media overlay synchronization loss");
-      manifest.set(id, item); admitted.set(item.part, item);
+    const manifest = new EpubManifest(storage, async () => ctx.cooperate());
+    for (const group of opf.children) {
+      if (typeof group === "string" || group.uri !== opf.uri || group.name !== "manifest") continue;
+      for (const n of group.children) {
+        if (typeof n === "string" || n.uri !== group.uri || n.name !== "item") continue;
+        const id = a(n, "id");
+        const href = a(n, "href");
+        if (!id || !href || await manifest.has(id)) fail(packagePart, "Invalid or duplicate EPUB manifest ID");
+        const target = resolve(href, packagePart, ctx);
+        if (target.fragment || await manifest.hasPart(target.part)) fail(packagePart, "Ambiguous EPUB manifest part identity");
+        const item: ManifestItem = {ordinal: manifest.size, id, part: target.part, media: a(n, "media-type"), properties: tokens(a(n, "properties")), fallback: a(n, "fallback"), overlay: a(n, "media-overlay")};
+        if (item.properties.includes("rendition:layout-pre-paginated")) fail(item.part, "Fixed-layout EPUB spine is unsupported");
+        if (item.media === "text/css") warn(item.part, "Unsupported EPUB CSS styling/layout loss");
+        if (item.overlay || item.media === "application/smil+xml") warn(item.part, "Unsupported EPUB media overlay synchronization loss");
+        await manifest.add(item);
+      }
     }
     // One epoch mark per manifest entry, reused across traversals. Caller-backed
     // reads avoid retaining a path-sized Set for each fallback chain. Keep the
     // original traversal order and depth/work checks, including error precedence.
     const visits = storage?.allocate(manifest.size * 8);
-    for (const item of manifest.values()) {
+    for await (const item of manifest.values()) {
       const seen = storage ? undefined : new Set<string>();
       let current: ManifestItem | undefined = item, depth = 0;
       while (current?.fallback) {
@@ -262,7 +257,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
           if (seen!.has(current.id)) fail(current.part, "Recursive EPUB fallback dependency");
           seen!.add(current.id);
         }
-        const next: ManifestItem | undefined = manifest.get(current.fallback);
+        const next: ManifestItem | undefined = await manifest.get(current.fallback);
         if (!next) fail(current.part, "Missing EPUB fallback item");
         current = next;
       }
@@ -275,7 +270,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     const chapters: Chapter[] = [];
     const chapterParts = new Set<string>();
     for (const ref of children(spine[0]!, "itemref")) {
-      const item = manifest.get(a(ref, "idref"));
+      const item = await manifest.get(a(ref, "idref"));
       if (!item || !await hasPart(item.part)) fail(packagePart, "Missing EPUB spine item");
       if (a(ref, "properties").includes("rendition:layout-pre-paginated")) fail(item.part, "Fixed-layout EPUB spine is unsupported");
       if (item.media !== "application/xhtml+xml") fail(item.part, "Unsupported EPUB spine media type");
@@ -321,7 +316,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     for await (const key of noteRefs) {
       const part = decodeURIComponent(key.split("#")[0]!);
       if (loadedParts.has(part)) continue;
-      const item = admitted.get(part);
+      const item = await manifest.getPart(part);
       if (!item || item.media !== "application/xhtml+xml") fail(part, "Unadmitted EPUB note document");
       ctx.charge("includes", 1);
       loadedParts.add(part);
@@ -332,7 +327,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     const bag = new Map<string, Resource>();
     const media = async (part: string): Promise<boolean> => {
       if (bag.has(part)) return true;
-      const item = admitted.get(part);
+      const item = await manifest.getPart(part);
       if (!item || !await hasPart(part)) {warn(part, "Missing admitted EPUB media resource", "W_RESOURCE_MISSING"); return false;}
       if (!["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"].includes(item.media)) {warn(part, `Unsupported EPUB media type: ${item.media}`); return false;}
       if (item.media === "image/svg+xml") {warn(part, "Unsupported EPUB SVG media rendering loss"); return false;}
@@ -347,17 +342,20 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       return true;
     };
     const legacyCover = children(meta, "meta").find(n => a(n, "name") === "cover");
-    const coverItems = [...manifest.values()].filter(i => i.properties.includes("cover-image"));
-    if (coverItems.length > 1) fail(packagePart, "Ambiguous EPUB cover image");
-    const cover = coverItems[0] ?? manifest.get(legacyCover ? a(legacyCover, "content") : "");
+    let cover: ManifestItem | undefined;
+    for await (const item of manifest.values()) if (item.properties.includes("cover-image")) {
+      if (cover) fail(packagePart, "Ambiguous EPUB cover image");
+      cover = item;
+    }
+    cover ??= await manifest.get(legacyCover ? a(legacyCover, "content") : "");
     if (legacyCover && !cover) warn(packagePart, "Missing legacy EPUB cover manifest item", "W_RESOURCE_MISSING");
     if (cover && await loadMedia(cover.part)) metadata["cover-image"] = {t: "MetaString", c: cover.part};
     for (const ref of children(opf, "guide").flatMap(g => children(g, "reference"))) if (tokens(a(ref, "type")).includes("cover")) {
       const target = resolve(a(ref, "href"), packagePart, ctx);
-      if (!admitted.has(target.part) || !await hasPart(target.part)) fail(packagePart, "Missing EPUB guide cover page");
+      if (!await manifest.hasPart(target.part) || !await hasPart(target.part)) fail(packagePart, "Missing EPUB guide cover page");
       metadata["epub-cover-page"] = {t: "MetaString", c: target.part};
     }
-    for (const item of manifest.values()) if (item.media.startsWith("image/")) await loadMedia(item.part);
+    for await (const item of manifest.values()) if (item.media.startsWith("image/")) await loadMedia(item.part);
     const noteBlocks = new Map<string, readonly Block[]>();
     // Rewrite all AST identities first so notes can be resolved across chapters.
     const rewrite = async (value: unknown, part: string): Promise<void> => {
@@ -389,7 +387,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
           else Object.assign(node, {t: "Span", c: [node.c[0], node.c[1]]});
         } else if (!target.includes(":") && !target.startsWith("//")) {
           const ref = resolve(target, part, ctx);
-          if (!admitted.has(ref.part)) fail(part, "Link to unadmitted EPUB resource");
+          if (!await manifest.hasPart(ref.part)) fail(part, "Link to unadmitted EPUB resource");
           if (ref.fragment && loadedParts.has(ref.part) && !await ids.has(identity(ref.part, ref.fragment))) warn(part, `Missing EPUB link fragment: ${identity(ref.part, ref.fragment)}`);
           if (loadedParts.has(ref.part)) (node.c[2] as [string, string])[0] = `#${encodeURI(identity(ref.part, ref.fragment))}`;
           else (node.c[2] as [string, string])[0] = uriPart(ref.part) + (ref.fragment ? `#${encodeURIComponent(ref.fragment)}` : "");
@@ -464,7 +462,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
         const landmarks = inLandmarks || (!ncx && node.uri === ns.xhtml && node.name === "nav" && tokens(a(node, "type", ns.epub)).includes("landmarks"));
         if (landmarks && node.uri === ns.xhtml && node.name === "a" && tokens(a(node, "type", ns.epub)).includes("cover")) {
           const ref = resolve(a(node, "href"), item.part, ctx);
-          if (!admitted.has(ref.part) || !await hasPart(ref.part)) fail(item.part, "Missing EPUB landmark cover page");
+          if (!await manifest.hasPart(ref.part) || !await hasPart(ref.part)) fail(item.part, "Missing EPUB landmark cover page");
           metadata["epub-cover-page"] = {t: "MetaString", c: ref.part};
         }
         let nextDestination = destination;
@@ -474,7 +472,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
           if (anchor) consumed.add(anchor);
           const target = ncx ? a(children(entry, "content")[0] ?? entry, "src") : a(entry, "href");
           const ref = resolve(target, item.part, ctx);
-          if (!admitted.has(ref.part) || !await hasPart(ref.part)) fail(item.part, "Navigation target is missing or not admitted");
+          if (!await manifest.hasPart(ref.part) || !await hasPart(ref.part)) fail(item.part, "Navigation target is missing or not admitted");
           const label = ncx ? children(entry, "navLabel").map(xmlText).join("") : xmlText(entry);
           const nested: MetaValue[] = [];
           const link = chapterParts.has(ref.part) ? `#${encodeURI(identity(ref.part, ref.fragment))}` : identity(ref.part, ref.fragment);
@@ -486,17 +484,20 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       await walk(root, false, false, toc);
     };
     const ncxId = a(spine[0]!, "toc");
-    const nav = [...manifest.values()].filter(i => i.properties.includes("nav"));
-    if (nav.length > 1) fail(packagePart, "Ambiguous EPUB navigation");
-    if (a(opf, "version") === "3.0" && nav[0]) {
-      if (nav[0].media !== "application/xhtml+xml") fail(packagePart, "Unsupported EPUB navigation media type");
-      await navigation(nav[0], false);
+    let nav: ManifestItem | undefined;
+    for await (const item of manifest.values()) if (item.properties.includes("nav")) {
+      if (nav) fail(packagePart, "Ambiguous EPUB navigation");
+      nav = item;
+    }
+    if (a(opf, "version") === "3.0" && nav) {
+      if (nav.media !== "application/xhtml+xml") fail(packagePart, "Unsupported EPUB navigation media type");
+      await navigation(nav, false);
     } else if (ncxId) {
-      const item = manifest.get(ncxId);
+      const item = await manifest.get(ncxId);
       if (!item || item.media !== "application/x-dtbncx+xml") fail(packagePart, "Missing EPUB NCX item");
       await navigation(item, true);
     } else {
-      if (nav[0]) await navigation(nav[0], false);
+      if (nav) await navigation(nav, false);
     }
     if (toc.length) metadata["epub-toc"] = {t: "MetaList", c: toc};
     return {blocks: chapters.map(chapter => {

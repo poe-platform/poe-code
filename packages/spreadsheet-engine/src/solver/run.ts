@@ -5,7 +5,7 @@ import { loadSolverParameters, validateSolverParametersSteps, selectSolverAlgori
 import { SolverBudget, solveLinearSteps } from "./linear.js";
 import { SolverProgram } from "./program.js";
 import { solveNonlinearSteps } from "./nonlinear.js";
-import { linearSensitivity, type Sensitivity } from "./sensitivity.js";
+import { linearSensitivitySteps, type Sensitivity } from "./sensitivity.js";
 import { createProgramReport, createSensitivityReport } from "./report.js";
 export const solverAlgorithms: readonly SolverAlgorithm[] = Object.freeze([
   Object.freeze({ id: 'glpk', modelType: 'linear', available: true }),
@@ -43,7 +43,7 @@ export async function runSolverValidation(book: Workbook, context: CapabilityCon
       if (result.quality === 'limit') { await warning('Solver reached time or iteration limit'); quality = solution ? 'Feasible' : undefined; }
       else if (result.quality === 'optimal') {
         quality = algorithm.id === 'glpk' && model.domains.every(d => d === 'continuous') ? 'Feasible' : 'Optimal';
-        if (model.options.sensitivityReport && solution && model.domains.every(d => d === 'continuous')) sensitivity = linearSensitivity(linear.rows, linear.objective, solution, budget);
+        if (model.options.sensitivityReport && solution && model.domains.every(d => d === 'continuous')) sensitivity = await runCooperatively(linearSensitivitySteps(linear.rows, linear.objective, solution, budget), context.signal);
       }
     }
   } catch (error) {

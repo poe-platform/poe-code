@@ -4882,13 +4882,17 @@
       "status": "open",
       "currentFinding": "Qualified linear/nonlinear models and reports match native CSV effects. Report diagnostics, independent solver factories, wider sensitivity/nonlinear/analysis behavior and layout remain open.",
       "checkpoint20261004": {
-        "qualified": "Qualified linear/nonlinear models and report CSV effects have retained native comparisons.",
-        "evidence": [],
-        "nextAcceptance": "Compare report diagnostics and layout for independent solver factories, including sensitivity and nonlinear boundary models, through SDK/command.",
+        "qualified": "Qualified linear/nonlinear models and report CSV effects have retained native comparisons. Degenerate continuous-LP sensitivity now uses a dual-feasible active basis. Independent lp_solve confirms the bounded model; both public profiles and objective directions preserve correct optima/report intervals with shared work and cancellation.",
+        "evidence": [
+          "#/solverDegenerateSensitivity"
+        ],
+        "nextAcceptance": "Continue independent solver/report and nonlinear boundary profiles beyond the verified degenerate dual-basis repair. Preserve basis-dependent GLPK limits and native reversed minimization intervals as classified differences, not exact parity.",
         "closureGate": "Complete remaining solver/analysis numerical, report and layout profiles with independent native evidence.",
-        "qualificationBlockers": [],
+        "qualificationBlockers": [
+          "Retained native GLPK selects another valid basis at the degenerate optimum and displays reversed minimization RHS limits [1,0]; do not turn these observations into parity passes."
+        ],
         "remainingAcceptance": [
-          "Independent solver factories: report diagnostics/layout, sensitivity and nonlinear boundary models through SDK/command against known solutions and native results.",
+          "Independent solver factories: report diagnostics/layout, sensitivity and nonlinear boundary models through SDK/command against known solutions and native results. Retain the completed degenerate dual-basis and max/min public controls with classified native differences.",
           "Remaining solver/analysis numerical/error/lifecycle and installed profiles; program installation alone is not qualification."
         ]
       }
@@ -6920,5 +6924,13 @@
     "controls": "24 conversions/240 values cover all3 Unicode versions, added-case mappings, sharp-s, final sigma, dotted-I, whitespace, boolean/number/blank errors and NA. Scoped120 values exact; root36 custom-error wire differences.16 more public conversions verify absent/replaced namespaces;12 invalid profiles refuse. Mutating factory options does not alter bindings. All48 conversions succeed without diagnostics.",
     "validation": "196 maintained Unicode/loader/custom-error tests pass. Strict TypeScript5.9.3 NodeNext consumer with negative profile types passes in the isolated directory without skipLibCheck. Independent Python ZIP/XML checks values and formula strings, normalizing only namespace prefixes and TRUE() spelling. Initial tsc launched from another cwd missed consumer ambient types; corrected cwd passes.",
     "remaining": "Root must contain b12beb5bb28b3ad760294592f072aa1028e69f0c, already on remote main. Remaining optional-runtime/diagnostic profiles and malformed-native-UTF8 limitations stay open. No current-source runtime defect found."
+  },
+  "solverDegenerateSensitivity": {
+    "finding": "Three failing-before regressions showed a degenerate optimum selecting independent active rows with negative dual multipliers. The resulting coefficient ranges excluded the unchanged objective and shadow prices violated dual feasibility.",
+    "implementation": "Preserve a valid original basis. Otherwise solve A-transpose*lambda=c with nonnegative multipliers using the existing bounded simplex kernel, prioritize its positive support and extend to an independent active basis. Recheck dual feasibility; return unavailable sensitivity if recovery cannot qualify. Conversion awaits cooperative recovery and shares original cancellation, work and iteration accounting.",
+    "verification": "126 solver tests in13 files plus final9 focused regressions pass; source/test lint, engine source and command test types, selected20-workspace build pass. Eight compiled SDK/command XLSX conversions cover GLPK/lpsolve and max/min. All retain the exact single Solver-record loss warning and create both report sheets; independent XML checks optima, report cell identities and bounds. Public output screenshot inspected.",
+    "independent": "Unmodified lp_solve -S4 confirms x=1,y=0, objective1 and coefficient limits x:[1,infinity],y:[-infinity,1]. Native Gnumeric max/min XLSX agree on original model and program report values; lpsolve profile has its expected Optimal versus GLPK Feasible status. Native GLPK chooses a different valid basis, yielding two different variable-limit cells per report. Its min report additionally shows six reversed RHS-limit cells [1,0], while product keeps [0,1]. These are recorded differences, not native parity.",
+    "fixtureCorrection": "Initial minimal SheetNameIndex created an empty active native S1 sheet, causing Invalid solver target. Removing that incorrect index and using established Solver-before-Cells/absolute inputs yielded successful native models. All final public/native outputs use the corrected fixture.",
+    "remaining": "Other sensitivity bases, numerical/layout/nonlinear/analysis and installed-artifact profiles remain open. Native report source gnm-solver.c1895-1940 resets cidx per constraint; glpk/gnm-glpk.c425-441 copies human-report low/high fields. No reference binary/source changes."
   }
 }

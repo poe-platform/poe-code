@@ -1,40 +1,66 @@
-import type { LinearRow, SolverBudget } from "./linear.js";
+import { simplexSteps, type LinearRow, type SolverBudget } from "./linear.js";
 export interface SensitivityEntry { readonly low: number; readonly high: number; readonly shadow: number }
 export interface Sensitivity { readonly variables: readonly SensitivityEntry[]; readonly constraints: readonly SensitivityEntry[] }
 /** Active-basis sensitivity for continuous linear programs, with shared bounded arithmetic. */
-export function linearSensitivity(rows: readonly LinearRow[], objective: readonly number[], solution: readonly number[], budget: SolverBudget): Sensitivity {
+export function* linearSensitivitySteps(rows: readonly LinearRow[], objective: readonly number[], solution: readonly number[], budget: SolverBudget): Generator<void, Sensitivity> {
   const n = objective.length;
   budget.tick(n * n + rows.length * n);
-  const basis: number[] = [], echelon: number[][] = [];
-  for (let i = 0; i < rows.length && basis.length < n; i++) {
-    const row = rows[i]!;
-    const activity = row.coefficients.reduce((sum, v, j) => sum + v * solution[j]!, 0);
-    if (Math.abs(activity - row.upper) > 1e-7 * Math.max(1, Math.abs(row.upper))) continue;
-    const vector = [...row.coefficients];
-    for (const b of echelon) {
-      const pivot = b.findIndex(v => Math.abs(v) > 1e-10), multiplier = vector[pivot]!;
-      for (let j = 0; j < n; j++) { budget.tick(); vector[j] = vector[j]! - multiplier * b[j]!; }
-    }
-    const pivot = vector.findIndex(v => Math.abs(v) > 1e-10);
-    if (pivot === -1) continue;
-    const scale = vector[pivot]!;
-    echelon.push(vector.map(v => v / scale)); basis.push(i);
-  }
   const missing = (): SensitivityEntry => ({ low: NaN, high: NaN, shadow: NaN });
-  if (basis.length !== n) return { variables: objective.map(missing), constraints: rows.map(missing) };
-  const inverse = basis.map((i, j) => [...rows[i]!.coefficients, ...objective.map((_, k) => Number(j === k))]);
-  for (let j = 0; j < n; j++) {
-    let pivot = j;
-    for (let i = j + 1; i < n; i++) if (Math.abs(inverse[i]![j]!) > Math.abs(inverse[pivot]![j]!)) pivot = i;
-    [inverse[j], inverse[pivot]] = [inverse[pivot]!, inverse[j]!];
-    const divisor = inverse[j]![j]!;
-    for (let k = 0; k < n * 2; k++) { budget.tick(); inverse[j]![k] = inverse[j]![k]! / divisor; }
-    for (let i = 0; i < n; i++) if (i !== j) {
-      const multiplier = inverse[i]![j]!;
-      for (let k = 0; k < n * 2; k++) { budget.tick(); inverse[i]![k] = inverse[i]![k]! - multiplier * inverse[j]![k]!; }
+  const unavailable = (): Sensitivity => ({ variables: objective.map(missing), constraints: rows.map(missing) });
+  const active = rows.flatMap((row, i) => {
+    const activity = row.coefficients.reduce((sum, v, j) => sum + v * solution[j]!, 0);
+    return Math.abs(activity - row.upper) <= 1e-7 * Math.max(1, Math.abs(row.upper)) ? [i] : [];
+  });
+  const makeBasis = (order: readonly number[]) => {
+    const basis: number[] = [], echelon: number[][] = [];
+    for (const i of order) {
+      if (basis.length === n) break;
+      const vector = [...rows[i]!.coefficients];
+      for (const b of echelon) {
+        const pivot = b.findIndex(v => Math.abs(v) > 1e-10), multiplier = vector[pivot]!;
+        for (let j = 0; j < n; j++) { budget.tick(); vector[j] = vector[j]! - multiplier * b[j]!; }
+      }
+      const pivot = vector.findIndex(v => Math.abs(v) > 1e-10);
+      if (pivot === -1) continue;
+      const scale = vector[pivot]!;
+      echelon.push(vector.map(v => v / scale)); basis.push(i);
     }
+    if (basis.length !== n) return undefined;
+    budget.tick(n * n * 2);
+    const inverse = basis.map((i, j) => [...rows[i]!.coefficients, ...objective.map((_, k) => Number(j === k))]);
+    for (let j = 0; j < n; j++) {
+      let pivot = j;
+      for (let i = j + 1; i < n; i++) if (Math.abs(inverse[i]![j]!) > Math.abs(inverse[pivot]![j]!)) pivot = i;
+      [inverse[j], inverse[pivot]] = [inverse[pivot]!, inverse[j]!];
+      const divisor = inverse[j]![j]!;
+      for (let k = 0; k < n * 2; k++) { budget.tick(); inverse[j]![k] = inverse[j]![k]! / divisor; }
+      for (let i = 0; i < n; i++) if (i !== j) {
+        const multiplier = inverse[i]![j]!;
+        for (let k = 0; k < n * 2; k++) { budget.tick(); inverse[i]![k] = inverse[i]![k]! - multiplier * inverse[j]![k]!; }
+      }
+    }
+    const dual = basis.map((_, i) => objective.reduce((sum, c, j) => sum + c * inverse[j]![n + i]!, 0));
+    return { basis, inverse, dual };
+  };
+  let selected = makeBasis(active);
+  if (!selected) return unavailable();
+  if (!selected.dual.every(value => Number.isFinite(value) && value >= -1e-10)) {
+    // A degenerate vertex can have independent active rows whose dual is
+    // infeasible. Find nonnegative multipliers A' * lambda = c, then extend
+    // their independent support with zero-multiplier active rows.
+    budget.tick(2 * n * active.length);
+    const equations = objective.flatMap((value, column) => {
+      const coefficients = active.map(i => rows[i]!.coefficients[column]!);
+      return [{ coefficients, upper: value }, { coefficients: coefficients.map(v => -v), upper: -value }];
+    });
+    const feasible = yield* simplexSteps(equations, active.map(() => 0), budget);
+    if (feasible.quality !== 'optimal' || !feasible.solution) return unavailable();
+    const positive = active.filter((_, i) => feasible.solution![i]! > 0);
+    const zero = active.filter((_, i) => feasible.solution![i]! <= 0);
+    selected = makeBasis([...positive, ...zero]);
+    if (!selected || !selected.dual.every(value => Number.isFinite(value) && value >= -1e-10)) return unavailable();
   }
-  const dual = basis.map((_, i) => objective.reduce((sum, c, j) => sum + c * inverse[j]![n + i]!, 0));
+  const { basis, inverse, dual } = selected;
   const variables = objective.map((c, j) => {
     let low = -Infinity, high = Infinity;
     for (let i = 0; i < n; i++) {
@@ -59,4 +85,12 @@ export function linearSensitivity(rows: readonly LinearRow[], objective: readonl
     return { low: r.upper + low, high: r.upper + high, shadow: dual[index]! };
   });
   return { variables, constraints };
+}
+
+/** Synchronous sensitivity inspection; conversions use the cooperative steps. */
+export function linearSensitivity(...args: Parameters<typeof linearSensitivitySteps>): Sensitivity {
+  const steps = linearSensitivitySteps(...args);
+  let result = steps.next();
+  while (!result.done) result = steps.next();
+  return result.value;
 }

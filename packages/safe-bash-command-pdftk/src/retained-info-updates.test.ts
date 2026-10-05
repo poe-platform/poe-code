@@ -70,3 +70,19 @@ it("preserves integer defaults, clamping and decimal suffix rules with retained 
   ]);
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("retains large geometry spellings and preserves rectangle versus dimension validation", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  async function* chunks() {
+    yield new TextEncoder().encode("PageMediaBegin\nPageMediaNumber: 1\nPageMediaDimensions: 1");
+    for (let i = 0; i < 32; i++) yield new Uint8Array(4096).fill(48);
+    yield new TextEncoder().encode("e-131072 2 invalid\nPageMediaRect: 0 0 3 4\nPageMediaRect: 0 0 5 6 invalid\nPageMediaCropBox: 0 0 0x10 0b10\n");
+  }
+  const records = []; for await (const update of retainedInfoUpdates(chunks(), new AbortController().signal, { fs, directory: "/scratch" })) records.push(update);
+  expect(records).toEqual([
+    { kind: "page", pageNumber: 1, property: "media", values: [0, 0, 3, 4] },
+    { kind: "page", pageNumber: 1, property: "dimensions", values: [1, 2] },
+    { kind: "page", pageNumber: 1, property: "crop", values: [0, 0, 16, 2] },
+  ]);
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

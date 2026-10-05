@@ -1,3 +1,4 @@
+import { parsePdftkGeometryChunks } from "./info-geometry-stream.js";
 import { parsePdftkIntegerChunks } from "./info-integer-stream.js";
 import { decodePdftkEntityChunks } from "./info-entity-stream.js";
 import { PdfTextStore, type PdfIndexStorage, type RetainedInfoUpdate } from "@poe-code/pdf-ast";
@@ -7,7 +8,9 @@ const styles: Readonly<Record<string, string>> = { DecimalArabicNumerals: "D", U
 
 const integerFields = ["BookmarkLevel:", "BookmarkPageNumber:", "PageLabelNewIndex:", "PageLabelStart:", "PageMediaNumber:", "PageMediaRotation:"] as const;
 
-async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { integer: typeof integerFields[number]; value: number } | { field: "BookmarkTitle:" | "PageLabelPrefix:"; text: () => AsyncGenerator<string, void, void> }> {
+const geometryFields = ["PageMediaRect:", "PageMediaDimensions:", "PageMediaCropBox:", "PageMediaCropRect:"] as const;
+
+async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { geometry: typeof geometryFields[number]; result: Awaited<ReturnType<typeof parsePdftkGeometryChunks>> } | { integer: typeof integerFields[number]; value: number } | { field: "BookmarkTitle:" | "PageLabelPrefix:"; text: () => AsyncGenerator<string, void, void> }> {
   async function* decoded() {
     const decoder = new TextDecoder();
     for await (const bytes of chunks) for (let at = 0; at < bytes.length; at += 4096) {
@@ -47,6 +50,8 @@ async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, si
           position += part.length; if (position >= end) break;
         }
       }
+      const geometry = geometryFields.find(name => head.startsWith(name));
+      const integer = integerFields.find(name => head.startsWith(name));
       const streamed = head.startsWith("BookmarkTitle:") ? "BookmarkTitle:" : head.startsWith("PageLabelPrefix:") ? "PageLabelPrefix:" : undefined;
       if (streamed) {
         let body = start + streamed.length;
@@ -62,9 +67,10 @@ async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, si
         }
         yield { field: streamed, text: () => decodePdftkEntityChunks(readText, signal) };
       }
-      else if (integerFields.some(name => head.startsWith(name))) {
-        const integer = integerFields.find(name => head.startsWith(name))!;
+      else if (integer) {
         yield { integer, value: await parsePdftkIntegerChunks(field(integer.length), signal) };
+      } else if (geometry) {
+        yield { geometry, result: await parsePdftkGeometryChunks(field(geometry.length), signal) };
       } else {
         // Unknown lines are ignored without collecting their contents. The
         // remaining scalar update fields keep their existing conversion rules.
@@ -131,6 +137,18 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
 
   for await (const raw of lines(chunks, texts, signal)) {
     if (typeof raw !== "string") {
+      if ("geometry" in raw) {
+        if (mode !== "pagemedia") continue;
+        const { values, count, finite } = raw.result;
+        if (raw.geometry === "PageMediaDimensions:") {
+          if (count >= 2 && Number.isFinite(values[0]) && Number.isFinite(values[1])) pmDimensions = [values[0]!, values[1]!];
+        } else if (count >= 4 && finite) {
+          const rectangle: [number, number, number, number] = [values[0]!, values[1]!, values[2]!, values[3]!];
+          if (raw.geometry === "PageMediaRect:") pmMediaRect = rectangle;
+          else pmCropBox = rectangle;
+        }
+        continue;
+      }
       if ("integer" in raw) {
         if (mode === "bookmark" && raw.integer === "BookmarkLevel:") bmLevel = raw.value || 1;
         else if (mode === "bookmark" && raw.integer === "BookmarkPageNumber:") bmPage = raw.value || 1;
@@ -182,25 +200,6 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
 
     } else if (mode === "pagelabel" && line.startsWith("PageLabelNumStyle:")) {
       plStyle = line.slice("PageLabelNumStyle:".length).trim();
-    } else if (mode === "pagemedia" && line.startsWith("PageMediaRect:")) {
-      const parts = line.slice("PageMediaRect:".length).trim().split(" ").filter(Boolean).map(Number);
-      if (parts.length >= 4 && parts.every(Number.isFinite)) {
-        pmMediaRect = [parts[0]!, parts[1]!, parts[2]!, parts[3]!];
-      }
-    } else if (mode === "pagemedia" && line.startsWith("PageMediaDimensions:")) {
-      const parts = line.slice("PageMediaDimensions:".length).trim().split(" ").filter(Boolean).map(Number);
-      if (parts.length >= 2 && Number.isFinite(parts[0]) && Number.isFinite(parts[1])) {
-        pmDimensions = [parts[0]!, parts[1]!];
-      }
-    } else if (
-      mode === "pagemedia" &&
-      (line.startsWith("PageMediaCropBox:") || line.startsWith("PageMediaCropRect:"))
-    ) {
-      const prefix = line.startsWith("PageMediaCropRect:") ? "PageMediaCropRect:" : "PageMediaCropBox:";
-      const parts = line.slice(prefix.length).trim().split(" ").filter(Boolean).map(Number);
-      if (parts.length >= 4 && parts.every(Number.isFinite)) {
-        pmCropBox = [parts[0]!, parts[1]!, parts[2]!, parts[3]!];
-      }
     }
   }
   flushStanza();

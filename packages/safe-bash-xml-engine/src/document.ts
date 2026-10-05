@@ -1,5 +1,6 @@
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import { escape } from "./evaluate.js";
+import { StoredAttributes } from "./stored-attributes.js";
 import { StoredXmlDocument } from "./stored-document.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
 
@@ -41,12 +42,15 @@ async function attributes(
   source: () => AsyncIterable<XmlAttribute>,
   inherited: ReadonlyMap<string, string>,
   budget: XmlBudget,
-  exclusive: boolean
-): Promise<XmlAttribute[]> {
-  const selected: XmlAttribute[] = [];
+  exclusive: boolean,
+  stored?: StoredXmlDocument
+): Promise<Iterable<XmlAttribute> | AsyncIterable<XmlAttribute>> {
+  const selected = stored ? new StoredAttributes(stored.storage, budget) : [] as XmlAttribute[];
   for await (const attribute of source()) {
     { const _p = budget.tick(); if (_p) await _p; }
-    if (attribute.namespace !== xmlns) selected.push(attribute);
+    if (attribute.namespace !== xmlns) {
+      if (Array.isArray(selected)) selected.push(attribute); else await selected.append(attribute);
+    }
   }
   for (const [prefix, uri] of element.namespaces) {
     { const _p = budget.tick(uri.length + prefix.length + 1); if (_p) await _p; }
@@ -63,24 +67,27 @@ async function attributes(
       if (!used) continue;
     }
     if (uri === (inherited.get(prefix) ?? "")) continue;
-    selected.push({
+    const attribute = {
       name: prefix ? `xmlns:${prefix}` : "xmlns",
       namespace: xmlns,
       localName: prefix,
       value: uri
-    });
+    };
+    if (Array.isArray(selected)) selected.push(attribute); else await selected.append(attribute);
   }
-  // Admit comparison work before sorting; names are bounded by the XML input cap.
-  const comparisons = Math.ceil(Math.log2(selected.length + 1));
-  for (const attribute of selected)
-    await budget.tick((attribute.namespace.length + attribute.localName.length + 1) * comparisons);
-  selected.sort((left, right) => {
+  const ordering = (left: XmlAttribute, right: XmlAttribute): number => {
     if (left.namespace === xmlns || right.namespace === xmlns) {
       if (left.namespace !== right.namespace) return left.namespace === xmlns ? -1 : 1;
       return compare(left.localName, right.localName);
     }
     return compare(left.namespace, right.namespace) || compare(left.localName, right.localName);
-  });
+  };
+  if (Array.isArray(selected)) {
+    const comparisons = Math.ceil(Math.log2(selected.length + 1));
+    for (const attribute of selected)
+      await budget.tick((attribute.namespace.length + attribute.localName.length + 1) * comparisons);
+    selected.sort(ordering);
+  } else await selected.sort(ordering);
   return selected;
 }
 
@@ -298,7 +305,7 @@ export async function* serializeDocument(
       }
       let count = 0, mixed = false;
       for await (const child of selectedChildren(reference, preserveSpace, preserveBlanks)) { count++; mixed = child.mixed; }
-      const ordered = canonical ? await attributes(current, () => elementAttributes(reference), frame.namespaces, budget, mode === "exc-c14n") : [];
+      const ordered = canonical ? await attributes(current, () => elementAttributes(reference), frame.namespaces, budget, mode === "exc-c14n", stored) : [];
       async function* outputAttributes(): AsyncGenerator<XmlAttribute> {
         if (canonical) yield* ordered;
         else for (const namespace of [true, false]) for await (const attribute of elementAttributes(reference)) {
@@ -306,8 +313,15 @@ export async function* serializeDocument(
           if ((attribute.namespace === xmlns) === namespace) yield attribute;
         }
       }
+      let childNamespaces = frame.namespaces;
+      let changed: Map<string, string> | undefined;
       yield `<${current.name}`;
       for await (const attribute of outputAttributes()) {
+        if (canonical && attribute.namespace === xmlns) {
+          changed ??= new Map(frame.namespaces);
+          changed.set(attribute.localName, attribute.value);
+          childNamespaces = changed;
+        }
         { const p = budget.tick(); if (p) await p; }
         yield ` ${attribute.name}="`;
         yield* escape(attribute.value, true, budget, escaping);
@@ -316,12 +330,6 @@ export async function* serializeDocument(
       if (!count && !canonical) { yield "/>"; continue; }
       yield ">";
       const indent = !canonical && format && !frame.inline && !mixed && count > 0;
-      let childNamespaces = frame.namespaces;
-      if (canonical && ordered.some(attribute => attribute.namespace === xmlns)) {
-        const changed = new Map(frame.namespaces);
-        for (const attribute of ordered) if (attribute.namespace === xmlns) changed.set(attribute.localName, attribute.value);
-        childNamespaces = changed;
-      }
       const childFrame = { depth: frame.depth + 1, namespaces: childNamespaces, preserveSpace, preserveBlanks, inline: frame.inline || mixed };
       const parentFrame = frame;
       await push((async function* (): AsyncGenerator<Frame> {

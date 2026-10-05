@@ -257,5 +257,17 @@ test("stored query and serialization paths avoid the buffered element loader", a
     let output = "";
     for await (const part of serializeDocument(document, "format", budget, false)) output += part;
     assert.equal(output, '<?xml version="1.0"?>\n' + input + '\n');
+    const { parseXml } = await import("@poe-code/safe-fs/core");
+    const allocate = document.storage.allocate.bind(document.storage);
+    let allocated = 0;
+    document.storage.allocate = length => { allocated += length; return allocate(length); };
+    for (const mode of ["c14n", "exc-c14n"] as const) {
+      const before = allocated;
+      let actual = "", expected = "";
+      for await (const part of serializeDocument(document, mode, budget)) actual += part;
+      for await (const part of serializeDocument(parseXml(input), mode, budget)) expected += part;
+      assert.equal(actual, expected);
+      assert.ok(allocated - before > input.length, "canonical attribute order must live in caller-backed records");
+    }
   } finally { await document.close(); }
 });

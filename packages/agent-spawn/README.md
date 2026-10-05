@@ -56,12 +56,34 @@ host supporting bubblewrap and the required sandbox policy.
 
 When a failed Codex command reports esbuild's `The service was stopped` with an
 esbuild stack trace, the CLI and SDK event stream retain the original output and
-suggest comparing a minimal transform under Bun and Node on the failing host.
-This error alone does not identify a sandbox denial or the cause of child-service
-termination. Record runtime versions and child stderr/exit status; a successful
-`esbuild --version` does not exercise the service pipe lifecycle, and a macOS pass
-does not verify Linux. Any comparison outside the sandbox requires the existing
-approval flow. Build prerequisite failures remain separate from application tests.
+explain a verified Linux failure: Codex's restricted-network sandbox can reject
+Bun's `sendto` on the `AF_UNIX` socket used for child stdin with `EPERM`. esbuild
+then reads EOF and exits successfully; Bun reports the generic service error.
+For Node-compatible build scripts, use Node in the same directory and sandbox.
+Poe Code does not switch runtimes or change sandbox permissions automatically.
+
+This boundary was reproduced on Linux arm64 (Ubuntu 24.04, kernel 6.8) with
+Codex 0.157.1, Bun 1.4.2 and esbuild 0.27.7. A minimal esbuild transform and build
+failed under sandboxed Bun and passed under sandboxed Node 18.19.1. The same Bun
+probe passed outside the sandbox and in a separately configured network-enabled
+test sandbox. A socket-pair control isolated the difference: `socket.send` failed
+with `EPERM` under restricted networking while `os.write` on the same socket
+succeeded. External syscall tracing showed:
+
+```text
+socketpair(AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0, [7, 8]) = 0
+sendto(8, ..., 155, MSG_DONTWAIT|MSG_NOSIGNAL, NULL, 0) = -1 EPERM
+# esbuild child:
+read(0, "", 16384) = 0
+exit_group(0)
+```
+
+The generic error alone does not prove this cause on another host. Compare a
+minimal transform under Bun and Node and capture the failing child's syscalls;
+`esbuild --version` does not exercise its service socket. Tracing inside the
+sandbox may itself be prohibited, so an external tracer requires host approval.
+Any comparison outside the sandbox requires the existing approval flow. Keep
+build prerequisite failures separate from application test failures.
 
 When Codex reports that the active permission policy prohibits granting escalation,
 Poe Code preserves the denial and recommends normal sandbox execution with

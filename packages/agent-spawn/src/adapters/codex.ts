@@ -217,9 +217,12 @@ export async function* adaptCodex(
             event: "error",
             message: `${item.aggregated_output.trim()}
 esbuild's child service stopped; this message alone does not establish a sandbox denial.
-On the failing host, compare a minimal esbuild transform under Bun and Node in the
-same directory and sandbox, recording runtime versions and child stderr/exit status.
-A successful esbuild --version does not verify the service pipe lifecycle.
+On Linux, Codex's restricted-network sandbox can reject Bun's sendto on an AF_UNIX
+child-service socket with EPERM. esbuild then reads EOF and exits without a useful error.
+For Node-compatible build scripts, try Node in the same directory and same sandbox.
+To confirm this boundary, capture child syscalls and check for sendto(..., NULL, 0) = -1 EPERM;
+compare a minimal esbuild transform under Bun and Node on the failing Linux host.
+A successful esbuild --version does not verify the service socket lifecycle.
 If session policy permits, request the exact failing probe through the existing approval reviewer
 with sandbox_permissions: "require_escalated" to compare execution outside the sandbox.
 Do not retry automatically or bypass a denial. A passing macOS probe does not verify Linux.

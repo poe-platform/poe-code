@@ -868,7 +868,12 @@ describe("adaptCodex", () => {
     expect(diagnostic).toEqual({ event: "error", message: expect.stringContaining(item.aggregated_output.trim()) });
     if (diagnostic?.event !== "error") throw new Error("Missing esbuild diagnostic");
     expect(diagnostic.message).toContain("does not establish a sandbox denial");
-    expect(diagnostic.message).toContain("Node");
+    expect(diagnostic.message).toContain("AF_UNIX");
+    expect(diagnostic.message).toContain("sendto");
+    expect(diagnostic.message).toContain("EPERM");
+    expect(diagnostic.message).toContain("Node-compatible");
+    expect(diagnostic.message).toContain("same sandbox");
+    expect(diagnostic.message).not.toContain("network_access=true");
     expect(diagnostic.message).toContain("same directory");
     expect(diagnostic.message).toContain("existing approval reviewer");
     expect(diagnostic.message).toContain("Do not retry automatically");

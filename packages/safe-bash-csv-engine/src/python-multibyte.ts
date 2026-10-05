@@ -10,9 +10,11 @@ export interface PythonMultibyteTable {
  readonly hangul?:boolean;
  readonly hangulRanges?:string;
  readonly johab?:boolean;
+ readonly codepoints?:string;
+ readonly gb18030?:string;
 }
 type Range=readonly [number,number,number];
-interface ExpandedTable {prefixes:ReadonlySet<number>;native:Range[];ranges:Range[];hangul:Range[];}
+interface ExpandedTable {prefixes:ReadonlySet<number>;native:Range[];ranges:Range[];hangul:Range[];codepoints:Range[];gb18030:Range[];}
 const expandedTables=new WeakMap<PythonMultibyteTable,ExpandedTable>();
 // Signed varints encode start deltas, flagged lengths, and distinct target deltas.
 // These are fixed codec metadata, never buffers derived from caller payloads.
@@ -59,7 +61,7 @@ export class PythonMultibyteDecoder {
  private readonly native:TextDecoder;
  constructor(private readonly table:PythonMultibyteTable){
   let maps=expandedTables.get(table);
-  if(!maps){maps={prefixes:new Set(unpack(table.prefixes).flatMap(([start,end])=>Array.from({length:end-start+1},(_,i)=>start+i))),native:unpack(table.native),ranges:unpack(table.ranges),hangul:unpack(table.hangulRanges??'')};expandedTables.set(table,maps);}
+  if(!maps){maps={prefixes:new Set(unpack(table.prefixes).flatMap(([start,end])=>Array.from({length:end-start+1},(_,i)=>start+i))),native:unpack(table.native),ranges:unpack(table.ranges),hangul:unpack(table.hangulRanges??''),codepoints:unpack(table.codepoints??''),gb18030:unpack(table.gb18030??'')};expandedTables.set(table,maps);}
   this.maps=maps;this.native=new TextDecoder(table.nativeEncoding,{fatal:true,ignoreBOM:true});
  }
  decode(bytes:Uint8Array=new Uint8Array(),options:{stream?:boolean}={}):string{
@@ -69,6 +71,14 @@ export class PythonMultibyteDecoder {
   if(bytes.length)this.pending=[];
   for(const byte of bytes){
    pending.push(byte);
+   if(this.table.gb18030&&pending.length>=2&&pending[1]!>=0x30&&pending[1]!<=0x39){
+    // CPython buffers all four bytes before validating the lead and tail.
+    if(pending.length<4)continue;
+    const [a,b,c,d]=pending as [number,number,number,number];
+    const point=a>=0x81&&a<=0xfe&&c>=0x81&&c<=0xfe&&d>=0x30&&d<=0x39?lookup(this.maps.gb18030,((a-0x81)*10+b-0x30)*1260+(c-0x81)*10+d-0x30):undefined;
+    if(point===undefined)throw new PythonTextDecodeError('Invalid multibyte input');
+    output+=String.fromCodePoint(point);pending=[];continue;
+   }
    if(this.table.hangul&&pending.length>=2&&pending[0]===0xa4&&pending[1]===0xd4){
     // Python defers validation of all trailing bytes until the eighth arrives.
     if(pending.length<8)continue;
@@ -78,7 +88,9 @@ export class PythonMultibyteDecoder {
    }
    let key=0;for(const value of pending)key=key*256+value;
    const native=lookup(this.maps.native,key),literal=lookup(this.maps.ranges,key),hangul=lookup(this.maps.hangul,key),johab=this.table.johab?johabPoint(key):undefined;
-   if(johab!==undefined){output+=String.fromCodePoint(johab);pending=[];}
+   const codepoint=lookup(this.maps.codepoints,key);
+   if(codepoint!==undefined){output+=String.fromCodePoint(codepoint);pending=[];}
+   else if(johab!==undefined){output+=String.fromCodePoint(johab);pending=[];}
    else if(native!==undefined){
     const raw=native>65535?Uint8Array.of(native>>>16,native>>>8,native):native>255?Uint8Array.of(native>>>8,native):Uint8Array.of(native);
     output+=this.native.decode(raw);pending=[];

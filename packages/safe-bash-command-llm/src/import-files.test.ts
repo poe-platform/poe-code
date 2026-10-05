@@ -161,3 +161,17 @@ test('multibyte file imports cross read boundaries and clean up rejected input',
   assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['korean']);
  }
 });
+
+test('GB18030 file imports preserve split supplementary characters and reject incomplete files',async()=>{
+ const fs=new MemoryFileSystem();
+ for(const suffix of [[0x90,0x30,0x81,0x30,0xa8,0xbc,13,10],[0x90,0x30,0x81]]){
+  const bytes=new Uint8Array(4095+suffix.length);bytes.fill(65,0,4095);bytes.set(suffix,4095);
+  await fs.writeFile('/chinese',bytes);const values:string[]=[],warnings:string[]=[];
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:['gb18030'],undecodable(path){warnings.push(path);}},{async *[Symbol.asyncIterator](){yield {path:'/chinese',id:'one'};}},async entries=>{
+   for await(const entry of entries){let text='';const decoder=new TextDecoder();for await(const bytes of entry.input.bytes)text+=decoder.decode(bytes,{stream:true});values.push(text+decoder.decode());}
+  });
+  assert.deepEqual(values,suffix.length===8?['A'.repeat(4095)+'\u{10000}\ue7c7\n']:[]);
+  assert.deepEqual(warnings,suffix.length===8?[]:['/chinese']);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['chinese']);
+ }
+});

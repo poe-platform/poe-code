@@ -278,6 +278,12 @@ export async function verifyLlmCollections() {
     const koreanRows=await cliShell.exec('llm similar korean -c query -d /cli.db');
     if(koreanRows.exitCode!==0||JSON.parse(koreanRows.stdout).content!=='각\n')throw new Error('EUC-KR CLI stored content changed');
     await fs.unlink('/file-inputs/korean.txt');
+    await fs.writeFile('/file-inputs/chinese.txt',Uint8Array.of(0x90,0x30,0x81,0x30,0xa8,0xbc,13,10));
+    const chineseImport=await cliShell.exec('llm embed-multi chinese --files /file-inputs chinese.txt --encoding gb18030 --store -m embed -d /cli.db');
+    if(chineseImport.exitCode!==0||chineseImport.stdout!=='Embedding\n')throw new Error('GB18030 CLI import failed: '+chineseImport.stderr);
+    const chineseRows=await cliShell.exec('llm similar chinese -c query -d /cli.db');
+    if(chineseRows.exitCode!==0||JSON.parse(chineseRows.stdout).content!=='\u{10000}\ue7c7\n')throw new Error('GB18030 CLI stored content changed');
+    await fs.unlink('/file-inputs/chinese.txt');
     await fs.writeFile('/file-inputs/ebcdic.txt',Uint8Array.of(0xc1,0x0d,0x25));
     const ebcdicImport=await cliShell.exec('llm embed-multi ebcdic --files /file-inputs ebcdic.txt --encoding ibm037 --store -m embed -d /cli.db');
     if(ebcdicImport.exitCode!==0||ebcdicImport.stdout!=='Embedding\n')throw new Error('EBCDIC CLI import failed: '+ebcdicImport.stderr);

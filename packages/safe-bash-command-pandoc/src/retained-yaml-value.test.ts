@@ -65,6 +65,7 @@ it.each([
   "a: &x value\nb: &base {key: *x}\nc: { !!merge <<: [" + "*base, ".repeat(40) + "] }\n",
   "base: &base {a: &x value, b: *x}\nc: { !!merge <<: [" + "*base, ".repeat(40) + "] }\n",
   "base: &base {__proto__: value, constructor: yes}\nc: { !!merge <<: *base }\n",
+  "a: !!set {x: null, # moved\n y}\n",
   "a: !!set {x, y}\n", "a: !!set {x: null, y: ~}\n", "a: !!set {x: !!null null}\n", "a: !!set {x: value}\n",
   "a: !!omap [x: one, y: two]\n", "a: !!omap [x: one, x: two]\n", "a: !!omap [.nan: one, .NaN: two]\n",
   "a: !!omap [one, two]\n", "a: !!pairs [one, {x: y}, {}]\n", "a: !!pairs [{x: y, z: w}]\n",

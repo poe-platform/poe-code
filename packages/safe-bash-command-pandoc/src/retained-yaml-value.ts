@@ -15,12 +15,12 @@
  * THIS SOFTWARE.
  */
 import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
-import {BackedText, type TextRange} from "./backed-text.js";
+import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import {BackedTextSet} from "./backed-text-set.js";
 import type {RetainedSourceText, SourceRange} from "./retained-source-text.js";
-import {RetainedYamlCst} from "./retained-yaml-cst.js";
+import {RetainedYamlCst, type YamlCstNode} from "./retained-yaml-cst.js";
 import {RetainedYamlParser} from "./retained-yaml-parser.js";
-import {resolveRetainedYamlProps, resolveRetainedYamlEnd, yamlCstSourceLength} from "./retained-yaml-props.js";
+import {resolveRetainedYamlProps, resolveRetainedYamlEnd, retainedYamlCommentChunks, yamlCstSourceLength} from "./retained-yaml-props.js";
 import {resolveRetainedYamlCollection, type RetainedYamlChild} from "./retained-yaml-collection.js";
 import {decodeRetainedYamlScalar, decodeRetainedYamlBlock, resolveRetainedYamlScalar, RetainedYamlSyntaxError} from "./retained-yaml-scalar.js";
 import {resolveRetainedYamlTag, type RetainedYamlTag} from "./retained-yaml-tag.js";
@@ -40,7 +40,20 @@ export interface RetainedYamlValue {
   count?: number;
   aliasCount?: number;
   tag?: RetainedYamlTag;
-  decorated?: boolean;
+}
+interface PresentationRecord {
+  token?: number | undefined;
+  anchor?: number | undefined;
+  tag?: number | undefined;
+  commentBefore: TextRange;
+  comment: TextRange;
+  spaceBefore: boolean;
+  pair: boolean;
+}
+export interface RetainedYamlPresentation extends Omit<PresentationRecord, "token" | "anchor" | "tag"> {
+  token?: YamlCstNode;
+  anchor?: SourceRange;
+  tag?: SourceRange;
 }
 interface Entry {key?: number; value?: number; next: number; previous: number}
 
@@ -50,8 +63,9 @@ export class RetainedYamlValues {
   readonly text: BackedText;
   private readonly tree: RetainedYamlCst;
   private readonly names: BackedTextSet;
+  private readonly presentations: IntegerTable;
   constructor(private readonly storage: PagedStorage, private readonly cooperate: (units?: number) => Promise<void>) {
-    this.text = new BackedText(storage, cooperate); this.tree = new RetainedYamlCst(storage, cooperate); this.names = new BackedTextSet(storage, this.text);
+    this.text = new BackedText(storage, cooperate); this.tree = new RetainedYamlCst(storage, cooperate); this.names = new BackedTextSet(storage, this.text); this.presentations = new IntegerTable(storage, 64);
   }
   private async read(ref: number, size: number): Promise<number[]> {
     const bytes = await this.storage.read(ref, size * 8), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
@@ -61,15 +75,44 @@ export class RetainedYamlValues {
     const bytes = new Uint8Array(values.length * 8), view = new DataView(bytes.buffer);
     values.forEach((value, i) => view.setFloat64(i * 8, value, true)); await this.storage.write(ref, bytes); await this.cooperate();
   }
+  private async presentationRecord(ref: number): Promise<PresentationRecord> {
+    const saved = Number(await this.presentations.get(BigInt(ref)) ?? 0n);
+    if (!saved) return {commentBefore: emptyText(), comment: emptyText(), spaceBefore: false, pair: false};
+    const [token, anchor, tag, bf, bl, bu, cf, cl, cu, spaceBefore, pair] = await this.read(saved, 11);
+    return {token: token || undefined, anchor: anchor || undefined, tag: tag || undefined,
+      commentBefore: {first: bf!, last: bl!, units: bu!}, comment: {first: cf!, last: cl!, units: cu!}, spaceBefore: !!spaceBefore, pair: !!pair};
+  }
+  private async putPresentation(ref: number, value: PresentationRecord): Promise<void> {
+    let saved = Number(await this.presentations.get(BigInt(ref)) ?? 0n);
+    if (!saved) {saved = this.storage.allocate(88); await this.presentations.set(BigInt(ref), BigInt(saved));}
+    await this.write(saved, [value.token ?? 0, value.anchor ?? 0, value.tag ?? 0, value.commentBefore.first, value.commentBefore.last, value.commentBefore.units,
+      value.comment.first, value.comment.last, value.comment.units, Number(value.spaceBefore), Number(value.pair)]);
+  }
+  /** Fixed-size presentation snapshot; text and original token spans stay in
+   * caller storage, separate from the converted JavaScript value graph. */
+  async presentation(ref: number): Promise<RetainedYamlPresentation> {
+    const {token, anchor, tag, ...value} = await this.presentationRecord(ref);
+    return {...value, ...(token ? {token: await this.tree.get(token)} : {}),
+      ...(anchor ? {anchor: (await this.tree.get(anchor)).source as SourceRange} : {}),
+      ...(tag ? {tag: (await this.tree.get(tag)).source as SourceRange} : {})};
+  }
+  private async addComment(ref: number, field: "comment" | "commentBefore", text: TextRange, prepend = false, replace = false): Promise<void> {
+    if (!text.units) return;
+    const presentation = await this.presentationRecord(ref), previous = presentation[field], output = this.text;
+    presentation[field] = !previous.units || replace ? text : await output.from((async function* () {
+      yield* output.chunks(prepend ? text : previous); yield "\n"; yield* output.chunks(prepend ? previous : text);
+    })());
+    await this.putPresentation(ref, presentation);
+  }
   async get(ref: number): Promise<RetainedYamlValue> {
-    const [kind, first, last, units, value, head, tail, anchor, target, count, aliasCount, tag, decorated] = await this.read(ref, 13);
-    return {kind: kinds[kind!]!, text: {first: first!, last: last!, units: units!}, value: value!, first: head!, last: tail!, anchor: anchor!, target: target!, count: count!, aliasCount: aliasCount!, tag: tags[tag!]!, decorated: !!decorated};
+    const [kind, first, last, units, value, head, tail, anchor, target, count, aliasCount, tag] = await this.read(ref, 12);
+    return {kind: kinds[kind!]!, text: {first: first!, last: last!, units: units!}, value: value!, first: head!, last: tail!, anchor: anchor!, target: target!, count: count!, aliasCount: aliasCount!, tag: tags[tag!]!};
   }
   private async put(ref: number, node: RetainedYamlValue): Promise<void> {
     await this.write(ref, [kinds.indexOf(node.kind), node.text?.first ?? 0, node.text?.last ?? 0, node.text?.units ?? 0, node.value ?? 0,
-      node.first ?? 0, node.last ?? 0, node.anchor ?? 0, node.target ?? 0, node.count ?? 1, node.aliasCount ?? 0, tags.indexOf(node.tag ?? "implicit"), Number(!!node.decorated)]);
+      node.first ?? 0, node.last ?? 0, node.anchor ?? 0, node.target ?? 0, node.count ?? 1, node.aliasCount ?? 0, tags.indexOf(node.tag ?? "implicit")]);
   }
-  private async create(node: RetainedYamlValue): Promise<number> {const ref = this.storage.allocate(104); await this.put(ref, node); return ref;}
+  private async create(node: RetainedYamlValue): Promise<number> {const ref = this.storage.allocate(96); await this.put(ref, node); return ref;}
   private async append(ref: number, key: number | undefined, value: number | undefined): Promise<void> {
     const node = await this.get(ref), entry = this.storage.allocate(32);
     await this.write(entry, [key ?? 0, value ?? 0, 0, node.last ?? 0]);
@@ -132,7 +175,8 @@ export class RetainedYamlValues {
       if (node.kind === "map" && node.tag === "set") {
         for await (const entry of this.entries(node)) if (entry.value) {
           const value = await this.get(entry.value);
-          if (value.kind !== "null" || value.tag !== "implicit" || value.decorated) throw new RetainedYamlSyntaxError(0);
+          const presentation = await this.presentationRecord(entry.value);
+          if (value.kind !== "null" || value.tag !== "implicit" || presentation.comment.units || presentation.commentBefore.units) throw new RetainedYamlSyntaxError(0);
         }
         node.kind = "set"; await this.put(ref, node);
       } else if (node.kind === "seq" && (node.tag === "pairs" || node.tag === "omap")) {
@@ -146,9 +190,16 @@ export class RetainedYamlValues {
             const pair = (await this.entries(child).next()).value;
             key = pair?.key || await this.create({kind: "null"}); value = pair?.value;
           } else key = entry.value!;
+          if (child.kind === "map" || child.kind === "set") {
+            const presentation = await this.presentationRecord(entry.value!);
+            await this.addComment(key, "commentBefore", presentation.commentBefore, true);
+            await this.addComment(value ?? key, "comment", presentation.comment, true);
+          }
           if (node.kind === "omap") await this.append(ref, key, value);
           else {
-            const pair = await this.create({kind: "map"}); await this.append(pair, key, value); await this.append(ref, undefined, pair);
+            const pair = await this.create({kind: "map"});
+            await this.putPresentation(pair, {commentBefore: emptyText(), comment: emptyText(), spaceBefore: false, pair: true});
+            await this.append(pair, key, value); await this.append(ref, undefined, pair);
           }
         }
       }
@@ -335,10 +386,19 @@ export class RetainedYamlValues {
   }
 
   async compose(source: RetainedSourceText, range: SourceRange): Promise<number> {
-    const tree = this.tree, pending = await tree.list(), duplicateKeys = new BackedTextSet(this.storage, this.text);
+    const tree = this.tree, pending = await tree.list(), commentActions = await tree.list(), duplicateKeys = new BackedTextSet(this.storage, this.text);
     const make = async ({token: ref, props}: RetainedYamlChild): Promise<number> => {
       const token = ref !== undefined && ref >= 0 ? await tree.get(ref) : {type: "scalar" as const, offset: props.end, source: {start: props.end, end: props.end}};
       const offset = token.offset!, span = token.source && typeof token.source !== "string" ? token.source : {start: offset, end: offset};
+      const presentation: PresentationRecord = {token: ref !== undefined && ref >= 0 ? ref : undefined, anchor: props.anchor, tag: props.tag,
+        commentBefore: await this.text.from(retainedYamlCommentChunks(source, tree, props.commentTokens, props.commentSkip)), comment: emptyText(), spaceBefore: !!props.spaceBefore, pair: false};
+      const create = async (node: RetainedYamlValue) => {
+        const output = await this.create(node);
+        if (token.type === "scalar" && span.start === span.end && presentation.commentBefore.units) {
+          presentation.comment = presentation.commentBefore; presentation.commentBefore = emptyText();
+        }
+        await this.putPresentation(output, presentation); return output;
+      };
       let anchor = 0, tag: RetainedYamlTag = "implicit";
       if (props.anchor) {
         const property = (await tree.get(props.anchor)).source as SourceRange;
@@ -348,9 +408,9 @@ export class RetainedYamlValues {
       if (props.tag) tag = await resolveRetainedYamlTag(source, (await tree.get(props.tag)).source as SourceRange, this.cooperate);
       if (token.type === "alias") {
         if (anchor || props.tag || span.end - span.start <= 1) throw new RetainedYamlSyntaxError(offset);
-        await resolveRetainedYamlEnd(tree, token.end, span.end, true);
+        presentation.comment = await this.text.from(retainedYamlCommentChunks(source, tree, (await resolveRetainedYamlEnd(tree, token.end, span.end, true)).commentTokens));
         const identity = await this.names.intern(() => source.chunks({start: span.start + 1, end: span.end}));
-        return this.create({kind: "alias", anchor: identity, text: await this.text.from(source.chunks({start: span.start + 1, end: span.end}))});
+        return create({kind: "alias", anchor: identity, text: await this.text.from(source.chunks({start: span.start + 1, end: span.end}))});
       }
       if (token.type === "block-map" || token.type === "block-seq" || token.type === "flow-collection") {
         if (token.type === "block-seq" && (props.anchor || props.tag)) {
@@ -358,25 +418,27 @@ export class RetainedYamlValues {
           if (!props.newlineAfterProp || (await tree.get(props.newlineAfterProp)).offset! < latest) throw new RetainedYamlSyntaxError(latest);
         }
         const map = token.type === "block-map" || token.type === "flow-collection" && (await tree.get(token.start!)).type === "flow-map-start";
-        const output = await this.create({kind: map ? "map" : "seq", anchor, tag});
+        const output = await create({kind: map ? "map" : "seq", anchor, tag});
         await tree.push(pending, await tree.create({key: output, value: ref!})); return output;
       }
       let text: TextRange;
       if (token.type === "block-scalar") {
         const header = await tree.at(token.props!, 0), start = (await tree.get(header!)).offset!;
+        for await (const property of tree.values(token.props!)) {
+          const part = await tree.get(property);
+          if (part.type === "comment") {const span = part.source as SourceRange; presentation.comment = await this.text.from(source.chunks({start: span.start + 1, end: span.end}));}
+        }
         text = await decodeRetainedYamlBlock(source, {start, end: span.end}, token.indent!, this.text, this.cooperate);
       } else {
         text = await decodeRetainedYamlScalar(source, span, this.text, this.cooperate);
-        await resolveRetainedYamlEnd(tree, token.end, offset + yamlCstSourceLength(token), true);
+        presentation.comment = await this.text.from(retainedYamlCommentChunks(source, tree, (await resolveRetainedYamlEnd(tree, token.end, offset + yamlCstSourceLength(token), true)).commentTokens));
       }
-      if (tag === "binary") return this.create({kind: "binary", text: await decodeRetainedYamlBinary(this.text, text), anchor, tag});
-      if (tag === "timestamp") return this.create({kind: "date", value: await resolveRetainedYamlTimestamp(this.text, text), text, anchor, tag});
-      if (tag === "merge") return this.create({kind: "merge", text, anchor, tag});
-      let decorated = props.comment;
-      for (const list of [token.end, token.props]) if (list) for await (const ref of tree.values(list)) if ((await tree.get(ref)).type === "comment") decorated = true;
+      if (tag === "binary") return create({kind: "binary", text: await decodeRetainedYamlBinary(this.text, text), anchor, tag});
+      if (tag === "timestamp") return create({kind: "date", value: await resolveRetainedYamlTimestamp(this.text, text), text, anchor, tag});
+      if (tag === "merge") return create({kind: "merge", text, anchor, tag});
       const expected = tag === "int" || tag === "float" || tag === "bool" || tag === "null" ? tag : undefined;
       const value = expected || tag === "implicit" && token.type === "scalar" ? await resolveRetainedYamlScalar(this.text, text, this.cooperate, expected) : {kind: "string" as const, text};
-      return this.create({kind: value.kind, text, ...(value.kind === "string" ? {} : {value: value.value === null ? 0 : Number(value.value)}), anchor, tag, decorated});
+      return create({kind: value.kind, text, ...(value.kind === "string" ? {} : {value: value.value === null ? 0 : Number(value.value)}), anchor, tag});
     };
     let root: number | undefined;
     for await (const ref of new RetainedYamlParser(source, range, tree, this.cooperate).parse()) {
@@ -390,8 +452,17 @@ export class RetainedYamlValues {
     root ??= await this.create({kind: "null"});
     while (await tree.count(pending)) {
       const job = await tree.get((await tree.pop(pending))!), parent = await this.get(job.key!);
+      let previous = 0;
       for await (const entry of resolveRetainedYamlCollection(source, tree, job.value!)) {
+        if (entry.comment) {
+          const event = entry.comment;
+          if (event.target === "previous") await tree.push(commentActions, await tree.create({key: previous, value: event.tokens}));
+          else await this.addComment(job.key!, "comment", await this.text.from(retainedYamlCommentChunks(source, tree, event.tokens)), false, !!event.replace);
+          continue;
+        }
         const key = entry.key ? await make(entry.key) : undefined, value = entry.value ? await make(entry.value) : undefined;
+        if (entry.keyComment && key) await tree.push(commentActions, await tree.create({key, value: entry.keyComment}));
+        previous = value ?? key ?? 0;
         if (parent.kind === "map" && key) {
           const node = await this.get(key);
           if (["string", "number", "boolean", "null"].includes(node.kind) && !(node.kind === "number" && Number.isNaN(node.value))) {
@@ -405,9 +476,15 @@ export class RetainedYamlValues {
           }
         }
         if (parent.kind === "seq" && key) {
-          const pair = await this.create({kind: "map"}); await this.append(pair, key, value); await this.append(job.key!, undefined, pair);
+          const pair = await this.create({kind: "map"}); await this.append(pair, key, value); await this.append(job.key!, undefined, pair); previous = pair;
         } else await this.append(job.key!, key, value);
       }
+    }
+    // Parent-level comments follow the child's own ending. Collection work is
+    // iterative, so apply these after all children have composed their endings.
+    for await (const ref of tree.values(commentActions)) {
+      const action = await tree.get(ref);
+      await this.addComment(action.key!, "comment", await this.text.from(retainedYamlCommentChunks(source, tree, action.value)));
     }
     await this.normalizeCollections(root);
     await this.resolveAliases(root); return root;

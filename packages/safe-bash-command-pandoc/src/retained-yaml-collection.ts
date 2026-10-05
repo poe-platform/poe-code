@@ -20,7 +20,12 @@ import {resolveRetainedYamlEnd, resolveRetainedYamlProps, yamlCstSourceLength, t
 import {RetainedYamlSyntaxError} from "./retained-yaml-scalar.js";
 
 export interface RetainedYamlChild {token?: number | undefined; props: RetainedYamlProps}
-export interface RetainedYamlEntry {key?: RetainedYamlChild; value?: RetainedYamlChild}
+export interface RetainedYamlEntry {
+  key?: RetainedYamlChild;
+  value?: RetainedYamlChild;
+  keyComment?: number;
+  comment?: {target: "collection" | "previous"; tokens: number; replace?: boolean};
+}
 const present = (ref: number | undefined): ref is number => ref !== undefined && ref >= 0;
 const block = (node: YamlCstNode | undefined) => node?.type === "block-map" || node?.type === "block-seq";
 
@@ -88,6 +93,7 @@ export async function* resolveRetainedYamlCollection(source: RetainedSourceText,
     if (!flow && !map) {
       if (!props.found) {
         if (props.anchor || props.tag || value) throw new RetainedYamlSyntaxError(offset);
+        if (props.commentTokens) yield {comment: {target: "collection", tokens: props.commentTokens, replace: true}};
         offset = props.end; continue;
       }
       yield {value: {token: item.value, props}};
@@ -96,14 +102,29 @@ export async function* resolveRetainedYamlCollection(source: RetainedSourceText,
     if (flow) {
       if (!props.found && !props.anchor && !props.tag && !item.sep && !value) {
         if (index === 0 && props.comma || index < count - 1) throw new RetainedYamlSyntaxError(props.start);
+        if (props.commentTokens) yield {comment: {target: "collection", tokens: props.commentTokens}};
         offset = props.end; index++; continue;
       }
       if (index === 0 ? props.comma !== undefined : props.comma === undefined) throw new RetainedYamlSyntaxError(props.start);
+      if (index > 0 && props.commentTokens && item.start) for await (const tokenRef of tree.values(item.start)) {
+        const token = await tree.get(tokenRef);
+        if (token.type === "comma" || token.type === "space") continue;
+        if (token.type === "comment" && yamlCstSourceLength(token) > 1) {
+          yield {comment: {target: "previous", tokens: await tree.list(tokenRef)}};
+          // Native composition strips the moved comment plus one separator code
+          // unit, even when the separator is CRLF or is absent.
+          props.commentSkip = yamlCstSourceLength(token);
+        }
+        break;
+      }
       if (!map && !props.found && await containsNewline(source, tree, item.key)) throw new RetainedYamlSyntaxError(props.start);
       if (block(key) || block(value)) throw new RetainedYamlSyntaxError(props.start);
     } else if (!props.found) {
       if (key?.type === "block-seq" || key?.indent !== undefined && key.indent !== collection.indent) throw new RetainedYamlSyntaxError(offset);
-      if (!props.anchor && !props.tag && !item.sep) {offset = props.end; continue;}
+      if (!props.anchor && !props.tag && !item.sep) {
+        if (props.commentTokens) yield {comment: {target: "collection", tokens: props.commentTokens}};
+        offset = props.end; continue;
+      }
       if (props.newlineAfterProp || await containsNewline(source, tree, item.key)) throw new RetainedYamlSyntaxError(props.start);
     } else if ((await tree.get(props.found)).indent !== collection.indent) throw new RetainedYamlSyntaxError(offset);
     if (flow && !map && !item.sep && !props.found) {
@@ -125,7 +146,7 @@ export async function* resolveRetainedYamlCollection(source: RetainedSourceText,
           }
         }
       } else if (flow ? !!value : !props.found) throw new RetainedYamlSyntaxError(valueProps.start);
-      yield {key: {token: present(item.key) ? item.key : undefined, props}, ...(value || valueProps.found ? {value: {token: item.value, props: valueProps}} : {})};
+      yield {key: {token: present(item.key) ? item.key : undefined, props}, ...(value || valueProps.found ? {value: {token: item.value, props: valueProps}} : valueProps.commentTokens ? {keyComment: valueProps.commentTokens} : {})};
       offset = await retainedYamlTokenEnd(tree, item.value, valueProps.end);
     }
     index++;
@@ -134,6 +155,7 @@ export async function* resolveRetainedYamlCollection(source: RetainedSourceText,
     const closeRef = collection.end ? await tree.at(collection.end, 0) : undefined;
     const close = closeRef === undefined ? undefined : await tree.get(closeRef);
     if (close?.type !== (map ? "flow-map-end" : "flow-seq-end")) throw new RetainedYamlSyntaxError(offset);
-    await resolveRetainedYamlEnd(tree, collection.end, close.offset! + 1, true, 1);
+    const end = await resolveRetainedYamlEnd(tree, collection.end, close.offset! + 1, true, 1);
+    if (end.commentTokens) yield {comment: {target: "collection", tokens: end.commentTokens}};
   }
 }

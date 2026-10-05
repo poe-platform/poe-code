@@ -27,6 +27,7 @@ export interface RetainedYamlProps {
   hasNewline: boolean;
   comment: boolean;
   commentTokens?: number;
+  commentSkip?: number;
   spaceBefore?: boolean;
   start: number;
   end: number;
@@ -123,13 +124,16 @@ export async function resolveRetainedYamlEnd(tree: RetainedYamlCst, tokens: numb
 
 /** Native YAML strips one #, substitutes a space for an empty comment, and
  * preserves newline tokens (including CRLF) between composed comment pieces. */
-export async function* retainedYamlCommentChunks(source: RetainedSourceText, tree: RetainedYamlCst, tokens: number | undefined): AsyncGenerator<string> {
+export async function* retainedYamlCommentChunks(source: RetainedSourceText, tree: RetainedYamlCst, tokens: number | undefined, skip = 0): AsyncGenerator<string> {
   if (!tokens) return;
   for await (const ref of tree.values(tokens)) {
     const token = await tree.get(ref), span = token.source;
     if (!span || typeof span === "string") throw new Error("YAML comment source span required");
     const start = span.start + Number(token.type === "comment");
+    const units = Math.max(Number(token.type === "comment"), span.end - start);
+    if (skip >= units) {skip -= units; continue;}
     if (start === span.end && token.type === "comment") yield " ";
-    else yield* source.chunks({start, end: span.end});
+    else yield* source.chunks({start: start + skip, end: span.end});
+    skip = 0;
   }
 }

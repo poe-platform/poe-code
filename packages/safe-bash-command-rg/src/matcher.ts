@@ -43,6 +43,7 @@ export class Matcher {
   private vm: ErgonomicVmMatcher | undefined;
   private byteSubjectVm: (() => ErgonomicVmMatcher) | undefined;
   private captureVm: ErgonomicVmMatcher | undefined;
+  private emptyPattern = false;
   crossLine!: boolean;
   literalAsciiBytes: Uint8Array | undefined;
   constructor(patterns: readonly string[], args: Arguments, private session: RegexSession, ergonomic = true, literalOnly = false) {
@@ -52,6 +53,7 @@ export class Matcher {
     this.session = session;
     this.captureVm = undefined;
     this.byteSubjectVm = undefined;
+    this.emptyPattern = !args.whole && patterns.length === 1 && patterns[0] === "";
     if (ergonomic && !literalOnly && patterns.length > 0) {
       let vm: ErgonomicVmMatcher | undefined;
       const config = {
@@ -169,12 +171,22 @@ export class Matcher {
     return [];
   }
   batchSync(rows: readonly Row[]): Match[][] | Promise<Match[][]> {
-    if (this.vm && rows.length > 0) return this.vm.batchSync(rows);
     // The bounded delegated profile requires non-NUL UTF-8. The scalar VM
     // skips invalid bytes without changing output bytes or match offsets.
     // Keep injected providers authoritative and retain the ASCII fast path.
-    if (this.byteSubjectVm && rows.some(row => row.bytes.some(byte => byte === 0 || byte >= 128))) {
-      return this.byteSubjectVm().batchSync(rows);
+    const vm = this.vm ?? (this.byteSubjectVm && rows.some(row => row.bytes.some(byte => byte === 0 || byte >= 128))
+      ? this.byteSubjectVm() : undefined);
+    if (vm && rows.length > 0) {
+      const results = vm.batchSync(rows);
+      if (this.emptyPattern) {
+        // Match the delegated rg profile: an empty pattern visits each input
+        // byte, but EOF contributes a position only for a terminated record.
+        for (let index = 0; index < rows.length; index++) {
+          const row = rows[index]!;
+          if (!row.terminated && results[index]!.at(-1)?.start === row.bytes.length) results[index]!.pop();
+        }
+      }
+      return results;
     }
     trustedInputRows.add(rows);
     try {

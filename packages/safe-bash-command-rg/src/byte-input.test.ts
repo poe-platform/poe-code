@@ -15,6 +15,13 @@ const cases: readonly [string[], Uint8Array, Uint8Array, number][] = [
   [["-o", "."], Buffer.from([255, 195, 169, 10]), Buffer.from("é\n"), 0],
   [["-o", "[^x]"], Buffer.from([255, 195, 169, 10]), Buffer.from("é\n"), 0],
   [["-x", "x"], Buffer.from([255, 120, 10]), Buffer.from(""), 1],
+  [["--count-matches", ""], Buffer.from("é🦊"), Buffer.from("6\n"), 0],
+  [["--count-matches", ""], Buffer.from("é🦊\n"), Buffer.from("7\n"), 0],
+  [["--count-matches", "-F", ""], Buffer.from("é🦊"), Buffer.from("6\n"), 0],
+  [["--count-matches", ""], Buffer.from("abc"), Buffer.from("3\n"), 0],
+  [["--count-matches", ""], Buffer.from("abc\n"), Buffer.from("4\n"), 0],
+  [["--count-matches", ""], Buffer.from(""), Buffer.from(""), 1],
+  [["--count-matches", "$"], Buffer.from("é🦊"), Buffer.from("1\n"), 0],
 ];
 
 for (const [args, input, expected, exitCode] of cases) test(`rg searches arbitrary stdin bytes: ${JSON.stringify(args)} ${Buffer.from(input).toString("hex")}`, async () => {

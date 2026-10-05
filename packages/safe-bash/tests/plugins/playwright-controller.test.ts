@@ -712,8 +712,12 @@ test('acquisition and cleanup failures retain both causes', async () => {
   };
   await assert.rejects(f.run(['open']), error => error instanceof AggregateError && error.errors[0] === failure && error.errors[1] === cleanup);
   const disposal = f.controller.dispose();
-  await assert.rejects(disposal);
   assert.equal(disposal, f.controller.dispose());
+  await assert.rejects(disposal, error => error instanceof AggregateError && error.errors[0] === cleanup);
+  const retry = f.controller.dispose();
+  assert.notEqual(retry, disposal);
+  assert.equal(retry, f.controller.dispose());
+  await assert.rejects(retry, error => error instanceof AggregateError && error.errors[0] === cleanup);
 });
 
 test('close-all drains an open admitted before its acquiring record is created', async () => {

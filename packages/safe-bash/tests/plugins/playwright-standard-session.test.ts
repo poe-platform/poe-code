@@ -208,14 +208,15 @@ test('cold list includes only owner resumable profiles without restoring a brows
 test('delete-data purges persisted state after an earlier failed retirement', async () => {
   let deleted = false;
   const f = fixture({ async restore() { return undefined; }, async checkpoint() {}, async delete() { deleted = true; } });
+  await f.run('open');
+  const context = f.context, close = context.close;
   try {
-    await f.run('open');
-    f.context.close = async () => { throw new Error('prior cleanup failed'); };
+    context.close = async () => { throw new Error('prior cleanup failed'); };
     await assert.rejects(f.run('close'), /prior cleanup failed/);
     await f.run('delete-data');
     assert.equal(deleted, true);
     await f.run('open');
-  } finally { await f.controller.dispose(); }
+  } finally { context.close = close; await f.controller.dispose(); }
 });
 
 test('selectors retain native strictness, click options and cleanup; fill submit presses Enter', async () => {

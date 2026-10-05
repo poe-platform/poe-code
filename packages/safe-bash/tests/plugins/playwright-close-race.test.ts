@@ -122,7 +122,7 @@ async function retire(options: {
   else state.hostFinished.resolve();
   const [result] = await outcome;
   assert.ok(result);
-  assert.equal(release(), completion);
+  if (options.boundary === 'lease' || result.status === 'fulfilled') assert.equal(release(), completion);
   assert.equal(state.calls.filter(call => call === 'context.close').length, 1);
   assert.equal(state.calls.filter(call => call === 'resource.release').length, 1);
   assert.ok(state.calls.indexOf('context.close') < state.calls.indexOf('resource.release'));
@@ -140,10 +140,20 @@ async function retire(options: {
   }
   state.confirm('context-close');
   state.confirm('browser-disconnected');
-  assert.equal(release(), completion);
-  const [repeated] = await Promise.allSettled([release()]);
+  const retry = release();
+  if (options.boundary === 'controller' && result.status === 'rejected') assert.notEqual(retry, completion);
+  else assert.equal(retry, completion);
+  assert.equal(release(), retry);
+  const [repeated] = await Promise.allSettled([retry]);
   assert.equal(repeated?.status, result.status);
-  if (result.status === 'rejected' && repeated?.status === 'rejected') assert.equal(repeated.reason, result.reason);
+  if (result.status === 'rejected' && repeated?.status === 'rejected') {
+    if (options.boundary === 'controller') {
+      assert.ok(repeated.reason instanceof AggregateError);
+      assert.equal(repeated.reason.message, result.reason.message);
+      assert.equal(repeated.reason.errors.length, result.reason.errors.length);
+      repeated.reason.errors.forEach((error, index) => assert.equal(error, result.reason.errors[index]));
+    } else assert.equal(repeated.reason, result.reason);
+  }
   if (options.boundary === 'lease') assert.equal(notifications, 1);
   if (options.expectedErrors.length === 0) {
     assert.equal(result.status, 'fulfilled', 'confirmed target closure must not reject completed retirement');

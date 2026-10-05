@@ -3,6 +3,12 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 
 for (const [name, source, expected] of [
+  ["assignment subscript whitespace", 'a[1 + 1]=two; a[2\t+ 1]=three; say "${a[2]} ${a[3]}"', "two three\n"],
+  ["assignment subscript parentheses", 'a[(1+2)*3]=nine; say "${a[9]}"', "nine\n"],
+  ["assignment subscript shift", 'a[1<<2]=four; say "${a[4]}"', "four\n"],
+  ["assignment subscript bitwise operators", 'a[1 | 2]=three; a[1 & 2]=zero; a[8 >> 1]=four; say "${a[3]} ${a[0]} ${a[4]}"', "three zero four\n"],
+  ["append subscript parentheses", 'a[9]=nine; a[(1+2)*3]+=more; say "${a[9]}"', "ninemore\n"],
+  ["compound subscript metacharacters", 'a=([2 + 3]=five [(1+2)*3]=nine [1<<2]=four); say "${a[5]} ${a[9]} ${a[4]}"', "five nine four\n"],
   ["expansion reads", 'a=(10 20 30); say "$((a[1]+5))"', "25\n"],
   ["condition reads", 'a=(10 20); i=1; if ((a[i]>0)); then say yes; fi', "yes\n"],
   ["RHS mutates sibling", 'a=(10 20); a[1]="$((a[0]+=5))"; say "${a[@]}"', "15 15\n"],

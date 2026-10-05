@@ -1740,7 +1740,8 @@ class Parser {
       this.newlines();
       if (!this.is("{")) this.error("Expected brace function body");
       this.hasFunction = true; command = { kind: "function", name, body: this.command(), redirects: [] };
-    } else if (this.current.kind === "word" && (this.lookahead !== undefined || this.lexer.source.includes("(", this.current.end)) && this.peek().value === "(" && !compoundHead(this.current.word!, this.budget)) {
+    // Bracketed words must reach assignment scanning before interpreting a following parenthesis.
+    } else if (this.current.kind === "word" && !this.current.value.includes("[") && (this.lookahead !== undefined || this.lexer.source.includes("(", this.current.end)) && this.peek().value === "(" && !compoundHead(this.current.word!, this.budget)) {
       const name = this.advance().value;
       if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Invalid function name");
       this.expect("(");

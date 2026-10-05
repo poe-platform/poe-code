@@ -3,6 +3,29 @@ import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createRgCommand } from "./index.js";
+import { RegexSession } from "safe-bash-regex-engine/execution/portable";
+
+test('file discovery validates ignore patterns once but skips impossible matches', async (t) => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir('/repo/src', { recursive: true });
+  await fs.writeFile('/repo/.ignore', new TextEncoder().encode('node_modules/\n/dist/\n*.log\n!keep.log\n'));
+  for (const name of ['index.ts', 'skip.log', 'keep.log']) await fs.writeFile(`/repo/src/${name}`, new Uint8Array());
+  const run = t.mock.method(RegexSession.prototype, 'run');
+  const values = createCommandArguments(['--files', 'src']);
+  let stdout = '', stderr = '';
+  const result = await createRgCommand().execute({
+    command: 'rg', args: values.args, argumentValues: values, cwd: '/repo', env: {}, fs,
+    stdin: toByteSource(''), signal: new AbortController().signal,
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(stdout, 'src/index.ts\nsrc/keep.log\n');
+  const requests = run.mock.calls.map(call => call.arguments);
+  assert.ok(requests.some(([descriptor, rows]) => descriptor.kind === 'glob' && rows.length === 0 && descriptor.patterns.includes('node_modules/')));
+  assert.ok(requests.every(([descriptor, rows]) => descriptor.kind !== 'glob' || rows.length === 0 || !descriptor.patterns.includes('node_modules/')),
+    'unrelated ignore patterns must not be compiled and matched for each entry');
+});
 
 for (const sorted of [false, true]) {
   for (const depth of [0, 1, 2]) {

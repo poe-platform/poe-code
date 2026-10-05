@@ -296,7 +296,8 @@ export class Walker {
         const groupPriority = rules[offset]!.priority;
         while (offset < rules.length && rules[offset]!.priority === groupPriority) {
           const rule = rules[offset++]!;
-          if (rule.priority >= priority && isPathWithin(rule.base, path)) group.push(rule);
+          if (rule.priority >= priority && isPathWithin(rule.base, path)
+            && rule.glob.mayMatch(relativePath(rule.base, path), directory)) group.push(rule);
         }
         const matches = await matchGlobs(group.map(rule => rule.glob), group.map(rule => ({ path: relativePath(rule.base, path), directory, ancestors: false })), this.session);
         for (let index = 0; index < matches.length; index++) if (matches[index]) {

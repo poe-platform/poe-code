@@ -6,10 +6,41 @@ import { SearchError } from "./options.js";
 
 export class Glob {
   readonly basenameOnly: boolean;
+  private readonly literalEdges?: { prefix: string; suffix: string; anchored: boolean };
   constructor(readonly source: string, readonly insensitive = false, readonly literalUnclosedClass = false) {
     const pattern = source.endsWith("/") ? source.slice(0, -1) : source;
     this.basenameOnly = pattern.length > 0 && !pattern.includes("/") && !pattern.includes("**")
       && !pattern.includes("\\") && !pattern.includes("[") && !pattern.includes("{");
+    // Only simple ASCII patterns have literal edges we can safely recognize
+    // without duplicating the glob parser (escapes, classes and braces included).
+    if ([...pattern].every(character => character.charCodeAt(0) < 128 && !"\\[]{}".includes(character))) {
+      const anchored = source.startsWith("/") || source.slice(0, -1).includes("/");
+      const body = pattern.startsWith("/") ? pattern.slice(1) : pattern;
+      let first = 0;
+      while (first < body.length && body[first] !== "*" && body[first] !== "?") first++;
+      let last = body.length;
+      while (last > first && body[last - 1] !== "*" && body[last - 1] !== "?") last--;
+      const prefix = body.slice(0, first);
+      // A **/ segment can consume zero directories, including its separator.
+      const suffix = body.slice(Math.max(last, body.lastIndexOf("/") + 1));
+      // Unanchored ** may consume separators; basename trimming is unsafe.
+      if (anchored || this.basenameOnly) this.literalEdges = {
+        prefix: insensitive ? prefix.toLowerCase() : prefix,
+        suffix: insensitive ? suffix.toLowerCase() : suffix,
+        anchored,
+      };
+    }
+  }
+  /** Conservative rejection only, after engine validation and without ancestors. */
+  mayMatch(path: string, directory: boolean): boolean {
+    if (!this.literalEdges) return true;
+    // Preserve the engine's scalar validation and ASCII case-folding errors.
+    for (let index = 0; index < path.length; index++) if (path.charCodeAt(index) > 127) return true;
+    if (!directory && this.source.endsWith("/")) return false;
+    const { prefix, suffix, anchored } = this.literalEdges;
+    const candidate = anchored ? path : path.slice(path.lastIndexOf("/") + 1);
+    const folded = this.insensitive ? candidate.toLowerCase() : candidate;
+    return folded.startsWith(prefix) && folded.endsWith(suffix);
   }
   async matches(path: string, directory: boolean, session: RegexSession, ancestors = true): Promise<boolean> {
     return (await matchGlobs([this], [{ path, directory, ancestors }], session))[0]!;

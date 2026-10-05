@@ -4,6 +4,28 @@ import { RegexExecutor } from 'safe-bash-regex-engine/execution/portable';
 import { createBoundedRegexProvider } from 'safe-bash-regex-engine/execution/bounded-provider';
 import { Glob, matchGlobs } from './glob.js';
 
+test('validated glob prefilter rejects impossible paths without rejecting engine matches', async () => {
+  const session = new RegexExecutor(createBoundedRegexProvider()).open(new AbortController().signal);
+  try {
+    for (const source of ['node_modules/', '*.log', '/output/**/cache/', 'docs/*.md', '**/foo', 'a?c', '**foo*', '[ab]*', '{foo,bar}', 'foo\\*']) {
+      const glob = new Glob(source);
+      await matchGlobs([glob], [], session);
+      for (const path of ['packages/src/index.ts', 'node_modules', 'a/node_modules', 'a.log', 'docs/a.md', 'output/a/cache', 'abc', 'foo', 'bar', 'é.txt']) {
+        for (const directory of [false, true]) {
+          const matched = await glob.matches(path, directory, session, false);
+          if (matched) assert.equal(glob.mayMatch(path, directory), true, `${source}: ${path}`);
+        }
+      }
+    }
+    assert.equal(new Glob('node_modules/').mayMatch('packages/src', true), false);
+    assert.equal(new Glob('*.log').mayMatch('packages/src/index.ts', false), false);
+    assert.equal(new Glob('/output/**/cache/').mayMatch('packages/src', true), false);
+    assert.equal(new Glob('*.log').mayMatch('café/index.ts', false), true);
+    assert.equal(new Glob('*.log').mayMatch('bad\ud800/index.ts', false), true);
+    assert.equal(new Glob('README*', true).mayMatch('readme.md', false), true);
+  } finally { await session.close(); }
+});
+
 test('basename globs do not send irrelevant ancestor paths to the matcher', async (t) => {
   const session = new RegexExecutor(createBoundedRegexProvider()).open(new AbortController().signal);
   const run = t.mock.method(session, 'run');

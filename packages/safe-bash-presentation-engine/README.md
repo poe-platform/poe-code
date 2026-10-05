@@ -77,6 +77,10 @@ caller-owned `{ size, read(offset, length) }` source with an optional abort sign
 Its pure codec uses a 16 KiB owned range cache and skips pixel payloads; TIFF/Exif
 pointers may seek within the source. The buffering `imageMetadata` convenience
 function shares the same parser. Neither entry point decodes or validates pixels.
+`readRetainedImageMetadata` (from `images`) returns dimensions, density and SHA-1
+from one archive member stream. Sequential formats use a fixed lookback window;
+TIFF uses the supplied working storage for arbitrary offsets. It closes its member
+iterator and scratch before returning; the archive remains caller-owned.
 `openRetainedMedia` (from `media`) exposes `occurrences()` and `media()` as
 admitted JSON for `streamJson`, plus `summaries()`, `resources()`, `count` and `close()`.
 The resource iterator preserves occurrence and relationship order for extraction.

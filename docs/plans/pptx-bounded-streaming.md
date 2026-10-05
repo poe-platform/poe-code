@@ -972,3 +972,23 @@ Sparse 1 GiB PNG and TIFF tests exercise skipped payloads and distant pointers;
 short reused buffers, invalid range results, source errors and cancellation are
 covered. This supplies the codec prerequisite only: the default image inventory
 and extraction paths still require retained traversal, geometry and publication.
+
+## Streamed image metadata and hashing prerequisite
+
+`readRetainedImageMetadata` (exported from `images`) consumes one borrowed archive
+member stream and returns dimensions, density and SHA-1. PNG/JPEG/GIF/BMP/WMF
+and opaque types use an 80 KiB lookback window plus the pure codec's 16 KiB cache;
+JPEG's 16-bit segment length bounds Exif backtracking. They perform no scratch IO.
+TIFF uses caller-authorized PagedStorage for arbitrary directory/rational offsets,
+with the caller's resident cache limit and bounded awaited writes. No payload-wide
+buffer or private filesystem is introduced. Iterators and scratch retire on
+success, source/backing failures, length mismatches and cancellation.
+
+Verification: 70 focused metadata cases including generated 1/4 MiB reused PNG
+streams with all filesystem operations forbidden, maximum-length JPEG Exif
+backtracking, TIFF seek parity and slow/failing backing handles. Scoped lint and
+the maintained PPTX build closure pass. Native Pillow PNG/JPEG/GIF/BMP/TIFF files
+match their expected dimensions/density and independent SHA-1 with short reused
+chunks; scratch is empty afterward. This is not Worker qualification. Default
+image command migration still needs retained occurrences, geometry and output;
+image extraction and the remaining matrix above remain incomplete.

@@ -342,3 +342,5 @@ export async function readImages(
   }
   return { occurrences, media };
 }
+
+export { readRetainedImageMetadata } from "./retained-image-metadata.js";

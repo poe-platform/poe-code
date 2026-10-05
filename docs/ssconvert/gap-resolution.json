@@ -4700,19 +4700,20 @@
       "status": "open",
       "currentFinding": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup. Resolve wider providers/types, native CLI failure and installed/cross-runtime qualification. See checkpoint20261004 for the next acceptance test and qualification blockers.",
       "checkpoint20261004": {
-        "qualified": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup.",
+        "qualified": "Darwin and exact Linux GDA API profiles now qualify typed/empty recordsets, explicit SQLite hosts, read-only enforcement and settled cleanup. Real SQLite3.51.2 query callbacks now qualify in-flight cancellation, read-only transaction commit/rollback, explicit provider credential rejection and exactly-once retirement through SDK/command.",
         "evidence": [
           "#/reference/databaseLive",
-          "#/currentQualification20261002/gdaIndexEmpty"
+          "#/currentQualification20261002/gdaIndexEmpty",
+          "#/databaseInflightLifecycle"
         ],
-        "nextAcceptance": "Qualify real in-flight query cancellation and transaction/authentication lifecycle on an explicit provider; assert original cancellation reason, exactly-once close and no destination publication.",
+        "nextAcceptance": "Investigate the retained four large untyped native integer failures and tiny numeric discrepancy using explicit provider/type controls; qualify remaining installed/cross-runtime profiles without repeating the completed SQLite lifecycle cohort.",
         "closureGate": "Resolve wider providers/types, native CLI failure and installed/cross-runtime qualification.",
         "qualificationBlockers": [
           "The unmodified native CLI crashes when its plugin opens GTK without initialization; API/dialog evidence does not qualify that CLI path.",
           "Four large untyped native integers fail and one tiny numeric result differs from the explicit SQLite host."
         ],
         "remainingAcceptance": [
-          "Real in-flight query cancellation, transactions/authentication and connection retirement on an explicit provider; original cancellation reason, exactly-once close and zero publication.",
+          "Explicit in-memory SQLite in-flight cancellation, read-only transactions, provider credential admission and connection retirement are qualified. Extend only to remaining provider-specific lifecycle profiles; preserve original cancellation identity and zero publication.",
           "Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and integer/tiny-number discrepancies as unresolved outcomes."
         ]
       }
@@ -6614,6 +6615,19 @@
       "native.json": "2fa8c5cf29f3fde8169f837484f20fda6b922e0d876b7a2d2397155777f39163",
       "public.mjs": "78b077429e63e949c1a33142468e7b063bbdd4b4261ddafc1f98f1c017c2396f",
       "public-results.json": "59bd21286c52570f80238438a6c5f3560625d30c5408734ff5223b17201aca9a"
+    }
+  },
+  "databaseInflightLifecycle": {
+    "status": "Bounded explicit SQLite lifecycle gate verified; wider providers and family remain open",
+    "runtimeChanges": false,
+    "provider": "Node22.22.2 node:sqlite DatabaseSync with SQLite3.51.2, each connection in memory. Explicit capability validates synthetic DSN/username/password before acquisition, registers cleanup before acquisition, seeds one value42, enables PRAGMA query_only, and begins a transaction. No ambient DSN, file, network, native GDA or database-server authentication claim.",
+    "controls": "Six scenarios through SDK and command: successful recursive CTE with20 callback invocations, cancellation at the third callback during actual SQLite execution, wrong DSN/user/password and rejected INSERT. Host cooperative callback checks restore the original cancellation reason after SQLite wraps callback exceptions.",
+    "results": "12 conversions pass. Both cancellations retain the exact original object, roll back once, close once and perform zero destination writes. Four successful-query connections commit; six cancelled/denied-query connections roll back. All10 connections close exactly once before completion and stay closed after engine disposal; saved statements fail after retirement. Each retains seeded value42. Six credential-failure conversions acquire zero connections. Successful output210 and quoted custom error CSV match exactly; product stderr is empty.",
+    "validation": "79 maintained database capability/type/format/precision tests and selected command workspace build pass. Public acquisition/transaction/retirement traces are retained. Initial expected error CSV omitted its established custom-error quotes; correcting that harness expectation required no runtime change. Node emits its standard experimental SQLite warning outside product stderr.",
+    "limits": "SQLite has no built-in username/password authentication in this profile: credential admission belongs to the explicit host. Cancellation is cooperative inside a real query callback, not an externally interrupted blocked socket. Wider server authentication, provider transactions, native GDA CLI crash and retained type discrepancies remain open.",
+    "hashes": {
+      "public.mjs": "d9ea1a5b8403cee67dc31f88780078cffe47083deb0d2d3db32f256f9ab7e6b6",
+      "results.json": "c6022457341ab4322f582061342835ade3961310bf715c196ef3a0909c60a877"
     }
   }
 }

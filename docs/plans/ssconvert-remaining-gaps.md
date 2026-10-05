@@ -150,7 +150,7 @@ delivered root/scoped fixture separation `61baed7701`.
 | PERL_SED | 1. Retained corpus classification and bounded 12-case Unicode/raw-byte/NUL transport are complete. Preserve native atomic state limitations and malformed-byte XML exclusions; remaining grammar and installed-runtime scope stays open. 2. Remaining bounded grammar, Unicode/raw bytes, malformed inputs and lifecycle through activated and installed routes; keep original interpreter goldens. |
 | PY_PRINTF | 1. Address-bearing RangeRef/sheet representation semantics, remaining coercion and diagnostic cases; compare structure rather than unstable addresses. 2. Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting. |
 | PY_CAPWORDS | 1. Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts. 2. Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash. |
-| Database functions | 1. Real in-flight query cancellation, transactions/authentication and connection retirement on an explicit provider; original cancellation reason, exactly-once close and zero publication. 2. Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and integer/tiny-number discrepancies as unresolved outcomes. |
+| Database functions | 1. Explicit in-memory SQLite in-flight cancellation, read-only transactions, provider credential admission and connection retirement are qualified. Extend only to remaining provider-specific lifecycle profiles; preserve original cancellation identity and zero publication. 2. Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and integer/tiny-number discrepancies as unresolved outcomes. |
 | ATL_LAST | 1. FIFO split reads, watcher mutation, feed/close ordering and rebinding: values, dependent recalculation, diagnostics and exactly-once cleanup through SDK/command. 2. Remaining installed/deployment profiles; reuse the qualified eight-value normal/late/partial/completed record cohort. |
 | LN1P/log1p/acos | 1. Independent binary64 boundary/holdout inputs for LN1P/log1p/acos on declared runtimes, including signed zero, subnormals, poles, NaN/infinity and overflow; exact values and diagnostics through both routes. 2. Remaining runtime-library and installed profiles; distinguish rounding/profile differences from algorithm accuracy. |
 | Higher-q Bessel | 1. Current installed artifacts against retained native Bessel cohorts; independent uncovered fractional/near-integer and high-order boundaries. 2. Remaining domain/runtime profiles, warnings/errors and work ceilings; retain explained Darwin libm/FMA differences and all 3296 qualified matches per route. |
@@ -226,6 +226,13 @@ Precision-limited Python scalar/array representations now stop before allocating
 unused suffixes (`pythonPrintfPrecisionAdmission`). Five formerly refused short
 outputs fit their eight-byte limit; genuine UTF-8 and padding overflow still
 fails. This does not qualify unstable RangeRef addresses or installed profiles.
+
+The explicit SQLite lifecycle gate is complete (`databaseInflightLifecycle`):
+12 SDK/command conversions verify in-query cancellation, transactions, provider
+credential admission and retirement of all ten acquired connections. This uses
+cooperative SQLite callbacks and host credentials, not server authentication or
+blocked-socket interruption. Retained native type discrepancies and remaining
+provider/runtime profiles are the next database acceptance gate.
 
 ## 4. Interfaces and test plan
 

@@ -66,8 +66,10 @@ use 512-unit fragments. Repeat with large comments and processing-instruction
 bodies inside and outside the root, including empty bodies and malformed delimiter
 boundaries. These bodies now use the same bounded fragments. Whitespace-only PI
 bodies preserve the buffered parser behavior (no trailing space before `?>`), which
-differs from native xmllint. Names, attributes, namespace scopes and declarations
-still need separate backing work.
+differs from native xmllint. Repeat declaration validation and output with increasingly large whitespace spans
+and malformed oversized fields. Stored declarations now retain compact normalized
+fields; verify formatting, encoding and standalone behavior against native xmllint.
+Names, attributes and namespace scopes still need separate backing work.
 
 For recovery, repeat formatting, CDATA conversion and XPath with a missing final
 closing tag. Verify repaired output and diagnostics, paged node writes and cleanup

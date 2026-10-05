@@ -257,3 +257,44 @@ for (const input of [
   expect(actual).toEqual(expected);
   expect(events).toBe(0);
 });
+
+it('keeps declaration validation and metadata bounded when requested', () => {
+  const gap = ' '.repeat(20000);
+  const input = `<?xml${gap}version${gap}=${gap}'1.0'${gap}encoding='UTF-8'${gap}standalone='yes'${gap}?><r/>`;
+  const slices = vi.spyOn(XmlSource.prototype, 'slice');
+  try {
+    const parser = parseXmlSourceSteps(input.length, { compactDeclaration: true });
+    let step = parser.next();
+    while (!step.done) {
+      if (typeof step.value !== 'number') {
+        if (!('offset' in step.value)) throw new Error('unexpected frame request');
+        step.value.value = input.slice(step.value.offset, step.value.offset + step.value.length);
+      }
+      step = parser.next();
+    }
+    expect(step.value.declaration?.length).toBeLessThan(100);
+    expect(step.value.declaration).toBe('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+    expect(slices.mock.calls.every(([start, end]) => end !== undefined && end - start <= 512)).toBe(true);
+  } finally { slices.mockRestore(); }
+  expect(parseXml(input).declaration).toBe(input.slice(0, input.indexOf('?>') + 2));
+});
+
+for (const field of ["version", "encoding", "standalone"]) it(`rejects oversized declaration ${field} without copying it`, () => {
+  const prefix = field === 'version' ? '' : "version='1.0' ";
+  const input = `<?xml ${prefix}${field}='${'x'.repeat(10000)}'?><r/>`;
+  const slices = vi.spyOn(XmlSource.prototype, 'slice');
+  try {
+    const parser = parseXmlSourceSteps(input.length, { compactDeclaration: true });
+    expect(() => {
+      let step = parser.next();
+      while (!step.done) {
+        if (typeof step.value !== 'number') {
+          if (!('offset' in step.value)) throw new Error('unexpected frame request');
+          step.value.value = input.slice(step.value.offset, step.value.offset + step.value.length);
+        }
+        step = parser.next();
+      }
+    }).toThrow('unsupported XML declaration');
+    expect(slices.mock.calls.every(([start, end]) => end !== undefined && end - start <= 512)).toBe(true);
+  } finally { slices.mockRestore(); }
+});

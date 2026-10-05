@@ -173,3 +173,50 @@ test('ordinary XML parser ancestry spills independently of document cache size',
   finally { await document.close(); }
   assert.deepEqual(await fs.readdir('/'), []);
 });
+
+for (const recover of [false, true]) for (const outcome of ["success", "cancel", "write"])
+test(`declaration metadata stays bounded with injected backing (${recover}, ${outcome})`, async () => {
+  const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error(outcome);
+  let writes = 0;
+  const injected = new Proxy(fs, { get(target, key) {
+    if (key === "readFile" || key === "writeFile") return () => assert.fail("declarations must use bounded descriptor I/O");
+    if (key === "open") return async (...args: Parameters<typeof fs.open>) => {
+      const handle = await fs.open(...args);
+      return new Proxy(handle, { get(descriptor, member) {
+        if (member === "write") return async (...values: Parameters<typeof handle.write>) => {
+          assert.ok(values[0].byteLength <= 16384); writes++;
+          if (outcome === "write") throw failure;
+          if (outcome === "cancel") controller.abort(failure);
+          await Promise.resolve();
+          return handle.write(...values);
+        };
+        const value = Reflect.get(descriptor, member, descriptor);
+        return typeof value === "function" ? value.bind(descriptor) : value;
+      } });
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const budget = new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {});
+  const operation = StoredXmlDocument.parse((function* () {
+    yield "<?xml";
+    const gap = " ".repeat(512);
+    for (let index = 0; index < 160; index++) yield gap;
+    yield "version='1.0' encoding = 'UTF-8' standalone='yes'?><r/>";
+  })(), { fs: injected, cwd: "/", env: {}, signal: controller.signal }, budget, 1, recover ? () => {} : undefined);
+  if (outcome !== "success") await assert.rejects(operation, error => error === failure);
+  else {
+    const document = await operation;
+    try {
+      const root = await document.node(document.root);
+      assert.equal(root.kind, "element");
+      if (root.kind !== "element") assert.fail();
+      assert.equal(root.declaration, '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+      let output = "";
+      for await (const part of serializeDocument(document, "format", budget, false)) output += part;
+      assert.equal(output, root.declaration + "\n<r/>\n");
+    } finally { await document.close(); }
+  }
+  assert.ok(writes > 0);
+  assert.deepEqual(await fs.readdir("/"), []);
+});

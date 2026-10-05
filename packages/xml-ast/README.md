@@ -77,5 +77,7 @@ node; store their bodies separately and retain one node identity. Yielded steps
 let the host await each fragment before parsing more. Text validation and entity
 decoding replay bounded source windows before publishing a logical node, retaining
 its diagnostic and limit ordering. Numeric entity references are decoded without
-materializing the token. Names, attribute values, namespace scopes and XML
-declarations still require their own memory budget.
+materializing the token. Set `compactDeclaration: true` to retain normalized declaration fields without
+copying long whitespace spans; validation always reads bounded windows. The
+buffered API keeps the original declaration spelling. Names, attribute values
+and namespace scopes still require their own memory budget.

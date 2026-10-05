@@ -22,7 +22,9 @@ Stored XPath uses ordered, paged node references for selections, predicates and 
 small selection caches hold at most 128 references. It reads node metadata on demand
 and walks subtrees through stored parent/sibling links. Text, CDATA, comment and processing-instruction bodies use bounded fragments
 while keeping each logical node and its serialization delimiters intact.
-Text entity references are decoded directly from bounded source windows.
+Text entity references are decoded directly from bounded source windows. XML
+declarations retain only normalized version, encoding and standalone fields, so
+large declaration whitespace does not inflate document metadata.
 Whitespace removal and CDATA
 conversion update those links; coalesced text stays in replayable token fragments.
 Input and linked parser frames share a separate 64 KiB caller-backed cache.

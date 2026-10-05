@@ -207,52 +207,56 @@ function* entities(text: string, recover?: (message: string) => void): Generator
   return result;
 }
 
-function* validDeclaration(content: string, expectedEncoding: XmlLimits["expectedEncoding"]): Generator<number, boolean, void> {
-  let offset = 0;
-  const whitespace = function* (): Generator<number, number, void> {
+function* readDeclaration(source: XmlSource, offset: number, end: number,
+  expectedEncoding: XmlLimits["expectedEncoding"]): Generator<XmlSourceStep, string | undefined, void> {
+  const whitespace = function* (): Generator<XmlSourceStep, number, void> {
     const start = offset;
-    while (offset < content.length && " \t\n\r".includes(content[offset]!)) {
+    while (offset < end && " \t\n\r".includes(yield* source.slice(offset, offset + 1))) {
       offset++;
       if ((offset - start) % 512 === 0) yield 512;
     }
     if ((offset - start) % 512) yield (offset - start) % 512;
     return offset - start;
   };
-  const field = function* (name: string): Generator<number, string | undefined, void> {
-    if (content.slice(offset, offset + name.length) !== name) return undefined;
+  const field = function* (name: string, maxLength: number): Generator<XmlSourceStep, string | undefined, void> {
+    if ((yield* source.slice(offset, Math.min(end, offset + name.length))) !== name) return undefined;
     offset += name.length;
     yield name.length;
     yield* whitespace();
-    if (content[offset++] !== "=") return undefined;
+    if (offset >= end || (yield* source.charCodeAt(offset++)) !== 61) return undefined;
     yield* whitespace();
-    const quote = content[offset++];
+    if (offset >= end) return undefined;
+    const quote = yield* source.slice(offset++, offset);
     if (quote !== "'" && quote !== '"') return undefined;
     const start = offset;
-    while (offset < content.length && content[offset] !== quote) {
+    while (offset < end && (yield* source.slice(offset, offset + 1)) !== quote) {
       offset++;
       if ((offset - start) % 512 === 0) yield 512;
     }
     if ((offset - start) % 512) yield (offset - start) % 512;
-    if (offset >= content.length) return undefined;
-    return content.slice(start, offset++);
+    if (offset >= end || offset - start > maxLength) return undefined;
+    return yield* source.slice(start, offset++);
   };
-  if (!(yield* whitespace()) || (yield* field("version")) !== "1.0") return false;
+  if (!(yield* whitespace()) || (yield* field("version", 3)) !== "1.0") return undefined;
+  let result = '<?xml version="1.0"';
   let spacing = yield* whitespace();
-  if (content.slice(offset, offset + 8) === "encoding") {
-    if (!spacing) return false;
-    const encoding = yield* field("encoding");
-    if (encoding === undefined || encoding.length > 8 || !["utf-8", "utf-16", "utf-16le", "utf-16be"].includes(encoding.toLowerCase())) return false;
+  if ((yield* source.slice(offset, Math.min(end, offset + 8))) === "encoding") {
+    if (!spacing) return undefined;
+    const encoding = yield* field("encoding", 8);
+    if (encoding === undefined || !["utf-8", "utf-16", "utf-16le", "utf-16be"].includes(encoding.toLowerCase())) return undefined;
     if (expectedEncoding !== undefined && encoding.toLowerCase() !== expectedEncoding.toLowerCase()
-      && !(encoding.toLowerCase() === "utf-16" && (expectedEncoding === "UTF-16LE" || expectedEncoding === "UTF-16BE"))) return false;
+      && !(encoding.toLowerCase() === "utf-16" && (expectedEncoding === "UTF-16LE" || expectedEncoding === "UTF-16BE"))) return undefined;
+    result += ` encoding="${encoding}"`;
     spacing = yield* whitespace();
   }
-  if (content.slice(offset, offset + 10) === "standalone") {
-    if (!spacing) return false;
-    const standalone = yield* field("standalone");
-    if (standalone === undefined || standalone.length > 3 || !["yes", "no"].includes(standalone)) return false;
+  if ((yield* source.slice(offset, Math.min(end, offset + 10))) === "standalone") {
+    if (!spacing) return undefined;
+    const standalone = yield* field("standalone", 3);
+    if (standalone === undefined || !["yes", "no"].includes(standalone)) return undefined;
+    result += ` standalone="${standalone}"`;
     yield* whitespace();
   }
-  return offset === content.length;
+  return offset === end ? result + "?>" : undefined;
 }
 
 export interface XmlStepLimits extends XmlLimits {
@@ -272,6 +276,8 @@ function validateLimits(limits: XmlStepLimits): void {
 }
 
 export interface XmlSourceLimits extends XmlStepLimits {
+  /** Keep normalized declaration fields instead of the complete source spelling. */
+  readonly compactDeclaration?: boolean;
   /** Emit content bodies in bounded fragments, marking continuations of the same logical
    * node. Requires retainTree: false; consumers must preserve fragment identity. */
   readonly fragmentContent?: boolean;
@@ -460,10 +466,10 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       const end = yield* find(source, "?>", offset);
       if (end < 0) invalid("unterminated processing instruction");
       if (target.length === 3 && target.toLowerCase() === "xml") {
-        const content = yield* source.slice(offset, end);
-        if (start !== 0 || target !== "xml"
-          || !(yield* validDeclaration(content, limits.expectedEncoding))) invalid("unsupported XML declaration");
-        if (retainContent) declaration = yield* source.slice(start, end + 2);
+        if (start !== 0 || target !== "xml") invalid("unsupported XML declaration");
+        const parsed = yield* readDeclaration(source, offset, end, limits.expectedEncoding);
+        if (parsed === undefined) invalid("unsupported XML declaration");
+        if (retainContent) declaration = limits.compactDeclaration ? parsed : yield* source.slice(start, end + 2);
       } else {
         if (offset < end && !" \t\n\r".includes(yield* source.slice(offset, offset + 1))) invalid("invalid processing instruction");
         let body = offset;

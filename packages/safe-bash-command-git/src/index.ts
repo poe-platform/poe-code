@@ -1,6 +1,7 @@
 import { commandRuntimeIdentity, readBytes, writeBytes, type CommandDefinition, type VirtualShellPlugin } from 'safe-bash-contracts';
 import type { FileSystem } from '@poe-code/safe-fs/core';
 import { gitModule } from '#git-wasm';
+import { isCleanDiff } from './clean-diff.js';
 
 export interface GitLimits { readonly maxEntries: number; readonly maxBytes: number; readonly maxDepth: number; readonly maxHttpRequests: number; readonly maxHttpBytes: number }
 export interface GitHttpRequest { readonly url: string; readonly method: string; readonly headers: Readonly<Record<string,string>>; readonly body: Uint8Array; readonly signal: AbortSignal }
@@ -526,6 +527,11 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
       let stdin: string | undefined;
       const env = {...context.env, POE_GIT_TIMESTAMP: String(Math.floor(Date.now()/1000))};
       const isVersionOnly = context.args.length === 1 && (context.args[0] === "--version" || context.args[0] === "-v" || context.args[0] === "version");
+      if (context.args[0] === 'diff' && !options.wasmModule &&
+          limits.maxEntries === Infinity && limits.maxBytes === Infinity && limits.maxDepth === Infinity) {
+        const root = await resolveAsyncScopedRepoRoot(context.fs, context.cwd, context.args, env, context.signal);
+        if (root && await isCleanDiff(context.fs, root, context.args, context.signal)) return { exitCode: 0 };
+      }
       const before = isVersionOnly ? [] : await snapshot(context.fs,limits,context.signal,context.cwd,context.args,env);
       const customExports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : undefined;
       const responses: {status:number;headers:Readonly<Record<string,string>>;body:string}[]=[];

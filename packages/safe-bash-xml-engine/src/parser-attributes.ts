@@ -51,7 +51,7 @@ export class StoredParserAttributes {
       const reference = store || await this.storage.append(new Uint8Array(32));
       const values = new StoredStringMap(this.storage, this.budget, await this.number(reference, 16));
       const existing = await values.lookup(request.attribute.name);
-      const updated = await values.set(request.attribute.name, request.attribute.value);
+      const updated = await values.set(request.attribute.name, request.attribute.source ? "" : request.attribute.value);
       const { value: ignoredValue, ...metadata } = request.attribute;
       const attribute = await this.append(metadata);
       const last = await this.number(reference, 8);
@@ -71,7 +71,7 @@ export class StoredParserAttributes {
       parts.push(decoder.decode());
       const metadata = JSON.parse(parts.join("")) as Omit<XmlAttributeRecord, "next" | "value">;
       const values = new StoredStringMap(this.storage, this.budget, await this.number(store, 16));
-      const value = request.values ? await values.get(metadata.name) : "";
+      const value = request.values && !metadata.source ? await values.get(metadata.name) : "";
       if (value === undefined) throw new TypeError("Missing stored XML attribute value");
       request.result = { ...metadata, value, next: await this.number(request.reference) };
     }

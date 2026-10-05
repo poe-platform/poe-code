@@ -11,7 +11,7 @@ const namespacesField = 72;
 const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32, firstAttributeField = 40, lastAttributeField = 48, flagsField = 56, fragmentField = 64;
 const textFlag = 1, preserveSpaceFlag = 2;
 
-export type StoredAttribute = XmlAttribute & { readonly valueReference?: number };
+export type StoredAttribute = XmlAttribute & { readonly valueReference?: number; readonly namespaceValueReference?: number };
 export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
 type XmlStreamEvent = Parameters<NonNullable<Parameters<typeof parseStoredXml>[4]>>[0];
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
@@ -43,16 +43,20 @@ export class StoredXmlDocument {
       const namespaces = await new StoredNamespaces(document.storage, budget).set("xml", "http://www.w3.org/XML/1998/namespace");
       await document.set(document.documentReference, namespacesField, namespaces.reference);
       let parent = document.documentReference, fragmentTail = 0, attributeTail = 0;
+      let pendingNamespace: { prefix: string; reference: number } | undefined;
       const consume = async (event: XmlStreamEvent): Promise<void> => {
+          if (pendingNamespace && !(event.type === "attribute" && event.continuation)) {
+            const scope = await document.namespaceScope(parent);
+            const updated = await scope.set(pendingNamespace.prefix, document.text(pendingNamespace.reference));
+            await document.set(parent, namespacesField, updated.reference);
+            pendingNamespace = undefined;
+          }
           if (event.type === "attribute") {
             const reference = await document.append(parent, { kind: "attribute", value: event.attribute }, event.continuation);
             if (event.continuation) await document.set(attributeTail, fragmentField, reference);
             attributeTail = reference;
-            if (event.attribute.namespace === "http://www.w3.org/2000/xmlns/") {
-              const scope = await document.namespaceScope(parent);
-              const updated = await scope.set(event.attribute.name === "xmlns" ? "" : event.attribute.localName, event.attribute.value);
-              await document.set(parent, namespacesField, updated.reference);
-            }
+            if (!event.continuation && event.attribute.namespace === "http://www.w3.org/2000/xmlns/")
+              pendingNamespace = { prefix: event.attribute.name === "xmlns" ? "" : event.attribute.localName, reference };
             return;
           }
           if (event.type === "close") { parent = await document.field(parent, parentField); return; }
@@ -261,7 +265,8 @@ export class StoredXmlDocument {
   }
 
   async *attributeText(attribute: StoredAttribute): AsyncGenerator<string> {
-    if (attribute.valueReference === undefined) yield attribute.value;
+    if (attribute.namespaceValueReference !== undefined) yield* new StoredNamespaces(this.storage, this.budget).valueParts(attribute.namespaceValueReference);
+    else if (attribute.valueReference === undefined) yield attribute.value;
     else yield* this.text(attribute.valueReference);
   }
 

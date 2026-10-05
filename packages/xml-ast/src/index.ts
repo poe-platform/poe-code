@@ -572,7 +572,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
           while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
           admitText(value);
         }
-        yield* attributes.append(attribute, attrPrefix, attrLocal, value, fragmented ? { start: offset, end } : undefined);
+        yield* attributes.append(attribute, attrPrefix, attrLocal, value, limits.fragmentAttributes ? { start: offset, end } : undefined);
         offset = end + 1;
         if (attribute === "xmlns" || attribute.startsWith("xmlns:")) {
           const nsPrefix = attribute === "xmlns" ? "" : attribute.slice(6);

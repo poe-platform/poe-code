@@ -56,8 +56,8 @@ async function attributes(
       if (Array.isArray(selected)) selected.push(attribute); else await selected.append(attribute);
     }
   }
-  for await (const [prefix, uri] of namespaces) {
-    { const _p = budget.tick(uri.length + prefix.length + 1); if (_p) await _p; }
+  for await (const [prefix, uri] of namespaces instanceof StoredNamespaces ? namespaces.references() : namespaces) {
+    { const _p = budget.tick((typeof uri === "string" ? uri.length : 1) + prefix.length + 1); if (_p) await _p; }
     if (prefix === "xml") continue;
     if (exclusive) {
       const colon = element.name.indexOf(":");
@@ -70,12 +70,16 @@ async function attributes(
       }
       if (!used) continue;
     }
-    if (uri === ((await inherited.get(prefix)) ?? "")) continue;
+    if (typeof uri === "number" && namespaces instanceof StoredNamespaces) {
+      const previous = inherited instanceof StoredNamespaces ? await inherited.lookup(prefix) : await inherited.get(prefix);
+      if (await namespaces.equals(uri, previous ?? "")) continue;
+    } else if (uri === ((await inherited.get(prefix)) ?? "")) continue;
     const attribute = {
       name: prefix ? `xmlns:${prefix}` : "xmlns",
       namespace: xmlns,
       localName: prefix,
-      value: uri
+      value: typeof uri === "string" ? uri : "",
+      ...(typeof uri === "number" ? { namespaceValueReference: uri } : {})
     };
     if (Array.isArray(selected)) selected.push(attribute); else await selected.append(attribute);
   }
@@ -211,15 +215,21 @@ export async function* serializeDocument(
       const element = await load(reference);
       if (element.kind !== "element") continue;
       { const p = budget.tick(); if (p) await p; }
-      for await (const [prefix, uri] of await namespaceScope(reference, element)) {
-        { const p = budget.tick(uri.length + prefix.length + 1); if (p) await p; }
-        if (!uri) continue;
-        const colon = uri.indexOf(":");
-        let absolute = colon > 0 && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(uri[0]!);
-        for (let index = 1; index < colon; index++) {
-          if (!"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+.-".includes(uri[index]!)) absolute = false;
+      const scope = await namespaceScope(reference, element);
+      for await (const [prefix, uri] of scope instanceof StoredNamespaces ? scope.references() : scope) {
+        { const p = budget.tick(prefix.length + 1); if (p) await p; }
+        const parts = typeof uri === "number" && scope instanceof StoredNamespaces ? scope.valueParts(uri) : [uri as string];
+        let length = 0, absolute = false;
+        scan: for await (const part of parts) {
+          { const p = budget.tick(part.length); if (p) await p; }
+          for (const character of part) {
+            if (character === ":") { absolute = length > 0; if (!absolute) length++; break scan; }
+            const allowed = length === 0 ? "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" : "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+.-";
+            if (!allowed.includes(character)) throw new XmlQueryError("Failed to canonicalize: relative namespace URI", 6);
+            length++;
+          }
         }
-        if (!absolute) throw new XmlQueryError("Failed to canonicalize: relative namespace URI", 6);
+        if (length && !absolute) throw new XmlQueryError("Failed to canonicalize: relative namespace URI", 6);
       }
     }
   } else yield declaration(documentDeclaration);
@@ -322,7 +332,8 @@ export async function* serializeDocument(
       yield `<${current.name}`;
       for await (const attribute of outputAttributes()) {
         if (canonical && attribute.namespace === xmlns) {
-          if (childNamespaces instanceof StoredNamespaces) childNamespaces = await childNamespaces.set(attribute.localName, attribute.value);
+          if (childNamespaces instanceof StoredNamespaces) childNamespaces = await childNamespaces.set(attribute.localName,
+            attribute.namespaceValueReference === undefined ? attribute.value : { reference: attribute.namespaceValueReference });
           else {
             changed ??= new Map(childNamespaces);
             changed.set(attribute.localName, attribute.value);

@@ -25,17 +25,19 @@ export class StoredStringMap {
     return this.storage.append(bytes);
   }
 
-  private async storeString(value: string): Promise<number> {
-    const header = new Uint8Array(8); new DataView(header.buffer).setFloat64(0, value.length, true);
-    const reference = await this.storage.append(header);
-    // UTF-16 units preserve JS ordering and lone surrogates without a second full string.
-    for (let offset = 0; offset < value.length; offset += 4096) {
+  private async storeString(parts: Iterable<string> | AsyncIterable<string>): Promise<number> {
+    const header = new Uint8Array(8), reference = await this.storage.append(header);
+    let size = 0;
+    // Consume one borrowed fragment at a time; tree records retain only this handle.
+    for await (const value of parts) for (let offset = 0; offset < value.length; offset += 4096) {
       const length = Math.min(4096, value.length - offset), bytes = new Uint8Array(length * 2);
       const view = new DataView(bytes.buffer);
       const checkpoint = this.budget.tick(length); if (checkpoint) await checkpoint;
       for (let index = 0; index < length; index++) view.setUint16(index * 2, value.charCodeAt(offset + index), true);
-      await this.storage.append(bytes);
+      await this.storage.append(bytes); size += length;
     }
+    new DataView(header.buffer).setFloat64(0, size, true);
+    await this.storage.write(reference, header);
     return reference;
   }
 
@@ -56,19 +58,43 @@ export class StoredStringMap {
     return value.length - length;
   }
 
-  private async string(reference: number): Promise<string> {
+  async *valueParts(reference: number): AsyncGenerator<string> {
     const header = await this.storage.read(reference, 8);
     const length = new DataView(header.buffer, header.byteOffset, 8).getFloat64(0, true);
-    const parts: string[] = [];
-    for (let offset = 0; offset < length; offset += 4096) {
-      const count = Math.min(4096, length - offset);
+    for (let offset = 0; offset < length;) {
+      let count = Math.min(4096, length - offset);
       const checkpoint = this.budget.tick(count); if (checkpoint) await checkpoint;
       const bytes = await this.storage.read(reference + 8 + offset * 2, count * 2);
-      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), units = new Uint16Array(count);
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const last = view.getUint16((count - 1) * 2, true);
+      if (offset + count < length && last >= 0xd800 && last <= 0xdbff) count--;
+      const units = new Uint16Array(count);
       for (let index = 0; index < count; index++) units[index] = view.getUint16(index * 2, true);
-      parts.push(String.fromCharCode(...units));
+      yield String.fromCharCode(...units);
+      offset += count;
     }
+  }
+
+  private async string(reference: number): Promise<string> {
+    const parts: string[] = [];
+    for await (const part of this.valueParts(reference)) parts.push(part);
     return parts.join("");
+  }
+
+  /** Compare handles from this storage, or a short literal, without buffered values. */
+  async equals(reference: number, other: number | string): Promise<boolean> {
+    if (typeof other === "string") return (await this.compare(other, reference)) === 0;
+    if (reference === other) return true;
+    const leftHeader = await this.storage.read(reference, 8), rightHeader = await this.storage.read(other, 8);
+    const length = new DataView(leftHeader.buffer, leftHeader.byteOffset, 8).getFloat64(0, true);
+    if (length !== new DataView(rightHeader.buffer, rightHeader.byteOffset, 8).getFloat64(0, true)) return false;
+    for (let offset = 0; offset < length * 2; offset += 8192) {
+      const size = Math.min(8192, length * 2 - offset);
+      const checkpoint = this.budget.tick(size); if (checkpoint) await checkpoint;
+      const left = await this.storage.read(reference + 8 + offset, size), right = await this.storage.read(other + 8 + offset, size);
+      for (let index = 0; index < size; index++) if (left[index] !== right[index]) return false;
+    }
+    return true;
   }
 
   /** Locate a value without loading it; callers testing membership need only its reference. */
@@ -117,13 +143,15 @@ export class StoredStringMap {
     return this.updated(entry);
   }
 
-  async set(key: string, value: string): Promise<StoredStringMap> {
+  async set(key: string, value: string | AsyncIterable<string> | { reference: number }): Promise<StoredStringMap> {
+    const suppliedReference = typeof value === "string" ? undefined : "reference" in value ? value.reference : await this.storeString(value);
     const insert = async (reference: number): Promise<number> => {
-      if (!reference) return this.write({ key: await this.storeString(key), value: await this.storeString(value), left: 0, right: 0, height: 1 });
+      if (!reference) return this.write({ key: await this.storeString([key]), value: suppliedReference ?? await this.storeString([value as string]), left: 0, right: 0, height: 1 });
       const entry = await this.read(reference);
       const checkpoint = this.budget.tick(1); if (checkpoint) await checkpoint;
       const order = await this.compare(key, entry.key);
-      if (!order) return (await this.compare(value, entry.value)) === 0 ? reference : this.write({ ...entry, value: await this.storeString(value) });
+      if (!order) return await this.equals(entry.value, suppliedReference ?? value as string) ? reference
+        : this.write({ ...entry, value: suppliedReference ?? await this.storeString([value as string]) });
       const side = order < 0 ? "left" : "right";
       const child = await insert(entry[side]);
       return child === entry[side] ? reference : this.balance({ ...entry, [side]: child });
@@ -131,14 +159,18 @@ export class StoredStringMap {
     return new StoredStringMap(this.storage, this.budget, await insert(this.reference));
   }
 
-  async *[Symbol.asyncIterator](): AsyncGenerator<readonly [string, string]> {
-    const visit = async function* (scope: StoredStringMap, reference: number): AsyncGenerator<readonly [string, string]> {
+  async *references(): AsyncGenerator<readonly [string, number]> {
+    const visit = async function* (scope: StoredStringMap, reference: number): AsyncGenerator<readonly [string, number]> {
       if (!reference) return;
       const entry = await scope.read(reference);
       yield* visit(scope, entry.left);
-      yield [await scope.string(entry.key), await scope.string(entry.value)];
+      yield [await scope.string(entry.key), entry.value];
       yield* visit(scope, entry.right);
     };
     yield* visit(this, this.reference);
   }
+  async *[Symbol.asyncIterator](): AsyncGenerator<readonly [string, string]> {
+    for await (const [key, reference] of this.references()) yield [key, await this.string(reference)];
+  }
+
 }

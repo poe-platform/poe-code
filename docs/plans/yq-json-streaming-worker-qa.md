@@ -52,7 +52,12 @@ XPath string/selection output, xml:space, transforms and xq output without joini
 its body. Compare whitespace normalization and numeric entities with native output;
 recoverable diagnostics must not repeat during replay. Inject source-spill reads,
 writes, consumer errors and cancellation between attribute fragments.
-Individual names and namespace URIs still need end-to-end token qualification.
+Namespace declaration events now use the same fragments. Document namespace maps
+consume those fragments, and canonical URI validation, inheritance comparisons and
+emission use value references and bounded replay. Check empty/default resets, URI
+schemes crossing replay windows, namespace shadowing and astral URI characters at
+chunk boundaries. Parsing bindings and expanded-name metadata still buffer URIs;
+individual names and namespace URIs need end-to-end token work and qualification.
 Parser ancestry uses linked backing records; check deep documents with
 a fixed namespace scope independently of source size. Also measure startup/first-byte latency; formatting validates
 the document before publishing output.

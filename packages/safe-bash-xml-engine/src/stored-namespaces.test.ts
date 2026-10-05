@@ -119,3 +119,38 @@ test("stored map tokens preserve UTF-16 ordering, empty values and immutable rep
   } finally { await storage.close(); }
   assert.deepEqual(await fs.readdir("/"), []);
 });
+
+for (const fail of [false, true]) test(`stored map streams borrowed value chunks and retires producers (failure=${fail})`, async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const storage = new PagedStorage({ fs, cwd: "/", env: {}, signal }, 1);
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {}), failure = new Error("value stopped");
+  const original = await new StoredNamespaces(storage, budget).set("p", "original");
+  let closed = false;
+  const piece = "x".repeat(4095) + "😀";
+  const parts = (async function* () {
+    try { for (let i = 0; i < 25; i++) { yield piece; if (fail && i === 2) throw failure; } }
+    finally { closed = true; }
+  })();
+  try {
+    const operation = original.set("p", parts);
+    if (fail) await assert.rejects(operation, error => error === failure);
+    else {
+      const updated = await operation, reference = (await updated.lookup("p"))!;
+      let actual = "";
+      for await (const part of updated.valueParts(reference)) {
+        assert.ok(part.length <= 4096);
+        const last = part.charCodeAt(part.length - 1);
+        assert.ok(last < 0xd800 || last > 0xdbff, "must not split surrogate pairs");
+        actual += part; await Promise.resolve();
+      }
+      assert.equal(actual, piece.repeat(25));
+      const shared = await updated.set("q", { reference });
+      assert.equal(await shared.lookup("q"), reference);
+      const copied = await shared.set("s", updated.valueParts(reference));
+      assert.equal(await copied.equals((await copied.lookup("s"))!, reference), true);
+      assert.equal(await copied.equals(reference, "other"), false);
+    }
+    assert.equal(await original.get("p"), "original"); assert.equal(closed, true);
+  } finally { await storage.close(); }
+  assert.deepEqual(await fs.readdir("/"), []);
+});

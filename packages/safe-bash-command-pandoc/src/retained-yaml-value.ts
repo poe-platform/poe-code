@@ -27,7 +27,7 @@ import {resolveRetainedYamlTag, type RetainedYamlTag} from "./retained-yaml-tag.
 
 import {decodeRetainedYamlBinary, resolveRetainedYamlTimestamp} from "./retained-yaml-special.js";
 
-const kinds = ["null", "string", "number", "boolean", "map", "seq", "alias", "binary", "date", "merge", "set", "omap"] as const;
+const kinds = ["null", "string", "number", "boolean", "map", "seq", "alias", "binary", "date", "merge", "set", "omap", "undefined"] as const;
 const tags: RetainedYamlTag[] = ["implicit", "str", "int", "float", "bool", "null", "map", "seq", "binary", "timestamp", "merge", "omap", "pairs", "set", "unknown"];
 export interface RetainedYamlValue {
   kind: typeof kinds[number];
@@ -89,11 +89,12 @@ export class RetainedYamlValues {
       if (entry.key) await this.tree.push(stack, entry.key);
     }
   }
-  private async aliasWeight(ref: number): Promise<number> {
+  private async aliasWeight(ref: number, converted: IntegerTable): Promise<number> {
     const stack = await this.tree.list(ref); let maximum = 0;
     while (await this.tree.count(stack)) {
       const node = await this.get((await this.tree.pop(stack))!);
       if (node.kind === "alias") {
+        if (await converted.get(BigInt(node.target!)) === undefined) continue;
         const target = await this.get(node.target!); maximum = Math.max(maximum, target.count! * target.aliasCount!);
       } else if (["map", "seq", "set", "omap"].includes(node.kind)) await this.enqueueChildren(node, stack);
       else maximum = Math.max(maximum, 1);
@@ -113,23 +114,11 @@ export class RetainedYamlValues {
         await this.enqueueChildren(node, stack);
       }
     }
-    await this.validateOrderedMaps(root);
-    // Conversion visits aliases once; their targets are shared, not expanded.
-    await this.tree.push(stack, root);
-    while (await this.tree.count(stack)) {
-      const node = await this.get((await this.tree.pop(stack))!);
-      if (node.kind === "alias") {
-        const target = await this.get(node.target!); target.count!++;
-        await this.put(node.target!, target);
-        if (!target.aliasCount) target.aliasCount = await this.aliasWeight(node.target!);
-        if (target.count! * target.aliasCount > 32) throw new RetainedYamlSyntaxError(0);
-        await this.put(node.target!, target);
-      } else await this.enqueueChildren(node, stack);
-    }
   }
+
   private async scalarIdentity(ref: number): Promise<string | TextRange> {
     const node = await this.get(ref);
-    if (node.kind !== "string") return ["null", "boolean", "number"].includes(node.kind) ? `${node.kind}:${node.value}` : `node:${ref}`;
+    if (node.kind !== "string") return ["null", "undefined", "boolean", "number"].includes(node.kind) ? `${node.kind}:${node.value}` : `node:${ref}`;
     const text = this.text;
     return text.from((async function* () {yield "string:"; yield* text.chunks(node.text!);})());
   }
@@ -165,22 +154,186 @@ export class RetainedYamlValues {
       }
     }
   }
-  private async validateOrderedMaps(root: number): Promise<void> {
-    const pending = await this.tree.list(root);
-    while (await this.tree.count(pending)) {
-      const node = await this.get((await this.tree.pop(pending))!);
-      if (node.kind === "omap") {
-        const keys = new BackedTextSet(this.storage, this.text);
-        for await (const pair of this.entries(node)) {
-          const key = await this.get(pair.key!);
-          const identity = await this.scalarIdentity(key.kind === "alias" ? key.target! : pair.key!);
-          if (await keys.has(identity)) throw new RetainedYamlSyntaxError(0);
-          await keys.add(identity);
+  /** JavaScript property coercion used by merge insertion. Ordinary collection
+   * keys use YAML presentation instead, supplied by the renderer callback. */
+  private async *jsKeyChunks(ref: number): AsyncGenerator<string> {
+    const pending = await this.tree.list(await this.tree.create({value: ref})), active = new IntegerTable(this.storage, 64);
+      while (await this.tree.count(pending)) {
+        const job = await this.tree.get((await this.tree.pop(pending))!);
+        if (job.key === 1) {await active.set(BigInt(job.value!), 0n); continue;}
+        if (job.key === 2) {yield ","; continue;}
+        const value = await this.get(job.value!);
+        switch (value.kind) {
+          case "string": yield* this.text.chunks(value.text!); break;
+          case "null": if (!job.indent) yield "null"; break;
+          case "undefined": if (!job.indent) yield "undefined"; break;
+          case "boolean": yield value.value ? "true" : "false"; break;
+          case "number": yield String(value.value); break;
+          case "merge": if (job.indent) throw new RetainedYamlSyntaxError(0); yield "Symbol(<<)"; break;
+          case "date": yield new Date(value.value!).toString(); break;
+          case "map": yield "[object Object]"; break;
+          case "omap": yield "[object Map]"; break;
+          case "set": yield "[object Set]"; break;
+          case "binary": {
+            let buffer = "", first = true;
+            for await (const chunk of this.text.chunks(value.text!)) for (let index = 0; index < chunk.length; index++) {
+              buffer += (first ? "" : ",") + chunk.charCodeAt(index); first = false;
+              if (buffer.length >= 4096) {yield buffer; buffer = "";}
+            }
+            if (buffer) yield buffer; break;
+          }
+          case "seq": {
+            if (await active.get(BigInt(job.value!))) break;
+            await active.set(BigInt(job.value!), 1n);
+            await this.tree.push(pending, await this.tree.create({key: 1, value: job.value!}));
+            for await (const entry of this.entries(value, true)) {
+              await this.tree.push(pending, await this.tree.create({value: entry.value!, indent: 1}));
+              if (entry.previous) await this.tree.push(pending, await this.tree.create({key: 2}));
+            }
+            break;
+          }
+          default: throw new RetainedYamlSyntaxError(0);
         }
       }
-      await this.enqueueChildren(node, pending);
-    }
   }
+
+  /** Convert YAML nodes into a backed JS-value graph. Collections are copied on
+   * each real visit; aliases share the last converted anchor result. Merge-source
+   * aliases resolve without consuming the ordinary alias budget, matching YAML's
+   * toJS path. The callback renders a collection key with YAML presentation. */
+  async convert(root: number, renderKey: (ref: number) => Promise<TextRange>): Promise<number> {
+    const converted = new IntegerTable(this.storage, 64), merging = new IntegerTable(this.storage, 64);
+    const identities = new BackedTextSet(this.storage, this.text), properties = new IntegerTable(this.storage, 64);
+    const nil = await this.create({kind: "null"}), missing = await this.create({kind: "undefined"});
+    const result = this.storage.allocate(8); let top = 0;
+    const push = async (op: number, a = 0, b = 0, c = 0, d = 0, e = 0) => {
+      const ref = this.storage.allocate(56); await this.write(ref, [top, op, a, b, c, d, e]); top = ref;
+    };
+    const saved = async (slot: number) => (await this.read(slot, 1))[0]!;
+    const insert = async (parent: number, key: number, value: number, onlyMissing = false, rejectDuplicate = false) => {
+      const identity = await this.scalarIdentity(key), text = this.text;
+      const name = await identities.intern(() => (async function* () {yield `${parent}:`; if (typeof identity === "string") yield identity; else yield* text.chunks(identity);})());
+      const prior = Number(await properties.get(BigInt(name)) ?? 0n);
+      if (prior) {
+        if (rejectDuplicate) throw new RetainedYamlSyntaxError(0);
+        if (!onlyMissing) await this.write(prior + 8, [value]);
+      } else {
+        await this.append(parent, key, value);
+        await properties.set(BigInt(name), BigInt((await this.get(parent)).last!));
+      }
+    };
+    const alias = async (ref: number, slot: number) => {
+      const node = await this.get(ref), target = await this.get(node.target!);
+      target.count!++; await this.put(node.target!, target);
+      if (!target.aliasCount) target.aliasCount = await this.aliasWeight(node.target!, converted);
+      if (target.count! * target.aliasCount > 32) throw new RetainedYamlSyntaxError(0);
+      await this.put(node.target!, target);
+      await this.write(slot, [Number(await converted.get(BigInt(node.target!))!)]);
+    };
+    await push(0, root, result);
+    while (top) {
+      const [previous, op, a, b, c, d, e] = await this.read(top, 7); top = previous!;
+      switch (op) {
+        case 0: { // Convert source a into slot b; c selects direct toJSON(Map).
+          const node = await this.get(a!);
+          if (node.kind === "alias") {
+            if (await converted.get(BigInt(node.target!)) !== undefined) await alias(a!, b!);
+            else {await push(6, a!, b!); await push(0, node.target!, b!);}
+            break;
+          }
+          const collection = ["map", "seq", "set", "omap"].includes(node.kind);
+          const output = collection ? await this.create({kind: c && node.kind === "map" ? "omap" : node.kind}) : a!;
+          await this.write(b!, [output]);
+          if (!c && node.anchor) {
+            node.count = 1; node.aliasCount = 0; await this.put(a!, node); await converted.set(BigInt(a!), BigInt(output));
+          }
+          if (collection) await push(1, a!, output, node.first!);
+          break;
+        }
+        case 1: { // Visit the next collection entry, in conversion order.
+          if (!c) break;
+          const parent = await this.get(a!), [keyRef, valueRef, next] = await this.read(c!, 4);
+          await push(1, a!, b!, next!);
+          if (parent.kind === "map" && keyRef && (await this.get(keyRef)).kind === "merge") {await push(3, valueRef || nil, b!); break;}
+          const key = parent.kind === "seq" ? 0 : this.storage.allocate(8), value = parent.kind === "set" ? 0 : this.storage.allocate(8);
+          await push(2, a!, b!, key, value, keyRef || nil);
+          if (parent.kind !== "set") await push(0, valueRef || nil, value);
+          if (parent.kind !== "seq") await push(0, keyRef || nil, key);
+          break;
+        }
+        case 2: { // Install a converted key/value pair or sequence element.
+          const source = await this.get(a!), output = await this.get(b!), keyRef = c ? await saved(c) : nil, value = d ? await saved(d) : nil;
+          if (output.kind === "seq") {await this.append(b!, undefined, value); break;}
+          let key = keyRef;
+          if (output.kind === "map") {
+            const node = await this.get(key), original = await this.get(e!);
+            let rendered: TextRange;
+            if (["map", "seq", "set", "omap", "date", "binary"].includes(node.kind) && original.kind === "alias") {
+              const text = this.text;
+              rendered = await text.from((async function* () {yield "*"; yield* text.chunks(original.text!);})());
+            } else if (["map", "seq", "set", "omap"].includes(node.kind)) rendered = await renderKey(e!);
+            else rendered = node.kind === "null" ? await this.text.from([""]) : await this.text.from(this.jsKeyChunks(key));
+            key = await this.create({kind: "string", text: rendered});
+          }
+          await insert(b!, key, value, false, source.kind === "omap"); break;
+        }
+        case 3: { // Resolve merge sources without visiting their alias nodes.
+          let ref = a!, node = await this.get(ref);
+          if (node.kind === "alias") {ref = node.target!; node = await this.get(ref);}
+          if (node.kind === "seq") {
+            for await (const entry of this.entries(node, true)) await push(4, entry.value || nil, b!);
+          } else if (node.kind === "omap") {
+            if (node.first) throw new RetainedYamlSyntaxError(0);
+          } else await push(4, ref, b!);
+          break;
+        }
+        case 4: { // Merge a map's direct toJSON(Map) conversion.
+          let ref = a!, node = await this.get(ref);
+          if (node.kind === "alias") {ref = node.target!; node = await this.get(ref);}
+          if (node.kind !== "map" && node.kind !== "set" || await merging.get(BigInt(ref))) throw new RetainedYamlSyntaxError(0);
+          await merging.set(BigInt(ref), 1n);
+          const slot = this.storage.allocate(8); await push(5, slot, b!, ref); await push(0, ref, slot, 1); break;
+        }
+        case 5: { // Copy missing own properties; earlier merge sources win.
+          const source = await this.get(await saved(a!)), target = await this.get(b!);
+          for await (const entry of this.entries(source)) {
+            let key = entry.key!, value = entry.value || missing;
+            if (source.kind === "set") {
+              const item = await this.get(key); key = missing; value = missing;
+              if (item.kind === "string") {
+                let index = 0;
+                outer: for await (const chunk of this.text.unicodeChunks(item.text!)) for (const char of chunk) {
+                  const part = await this.create({kind: "string", text: await this.text.from([char])});
+                  if (!index++) key = part; else {value = part; break outer;}
+                }
+              } else if (item.kind === "binary") {
+                let index = 0;
+                outer: for await (const chunk of this.text.chunks(item.text!)) for (let at = 0; at < chunk.length; at++) {
+                  const part = await this.create({kind: "number", value: chunk.charCodeAt(at)});
+                  if (!index++) key = part; else {value = part; break outer;}
+                }
+              } else if (["seq", "set", "omap"].includes(item.kind)) {
+                let index = 0;
+                for await (const part of this.entries(item)) {
+                  let element = item.kind === "set" ? part.key! : part.value!;
+                  if (item.kind === "omap") {
+                    element = await this.create({kind: "seq"}); await this.append(element, undefined, part.key!); await this.append(element, undefined, part.value || nil);
+                  }
+                  if (!index++) key = element; else {value = element; break;}
+                }
+              } else throw new RetainedYamlSyntaxError(0);
+            }
+            if (target.kind === "map" && (await this.get(key)).kind !== "merge") key = await this.create({kind: "string", text: await this.text.from(this.jsKeyChunks(key))});
+            await insert(b!, key, value, true);
+          }
+          await merging.set(BigInt(c!), 0n); break;
+        }
+        case 6: await alias(a!, b!); break;
+      }
+    }
+    return saved(result);
+  }
+
   async compose(source: RetainedSourceText, range: SourceRange): Promise<number> {
     const tree = this.tree, pending = await tree.list(), duplicateKeys = new BackedTextSet(this.storage, this.text);
     const make = async ({token: ref, props}: RetainedYamlChild): Promise<number> => {
@@ -197,7 +350,7 @@ export class RetainedYamlValues {
         if (anchor || props.tag || span.end - span.start <= 1) throw new RetainedYamlSyntaxError(offset);
         await resolveRetainedYamlEnd(tree, token.end, span.end, true);
         const identity = await this.names.intern(() => source.chunks({start: span.start + 1, end: span.end}));
-        return this.create({kind: "alias", anchor: identity});
+        return this.create({kind: "alias", anchor: identity, text: await this.text.from(source.chunks({start: span.start + 1, end: span.end}))});
       }
       if (token.type === "block-map" || token.type === "block-seq" || token.type === "flow-collection") {
         if (token.type === "block-seq" && (props.anchor || props.tag)) {

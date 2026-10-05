@@ -20,7 +20,6 @@ const emptyBuffer = filledBytes(0);
 const OUT_BUFFER_SIZE = 64 * 1024;
 const sharedOutBuf = new Uint8Array(OUT_BUFFER_SIZE);
 let sharedOutBufInUse = false;
-export let sharedOutBufGeneration = 0;
 
 export class Limits {
   declare maxOutputBytes: number;
@@ -118,7 +117,6 @@ export class Limits {
     if (!buf) {
       if (!sharedOutBufInUse) {
         sharedOutBufInUse = true;
-        sharedOutBufGeneration = (sharedOutBufGeneration + 1) | 0;
         this.usingSharedBuf = true;
         buf = this.outBuf = sharedOutBuf;
       } else {
@@ -175,13 +173,6 @@ export class Limits {
     } else {
       this.releaseOutBuf();
     }
-  }
-  flushCachedSharedSync(len: number): boolean {
-    if (sharedOutBufInUse) return false;
-    const syncSink = this.context.stdout as { writeRangeSync?: (src: Uint8Array, len: number) => boolean };
-    if (typeof syncSink.writeRangeSync !== "function") return false;
-    (this._signal ?? this.context.signal).throwIfAborted();
-    return syncSink.writeRangeSync(sharedOutBuf, len) === true;
   }
   flushSyncOrAsync(): Promise<void> | undefined {
     if (this.outPos > 0 && this.outBuf) {

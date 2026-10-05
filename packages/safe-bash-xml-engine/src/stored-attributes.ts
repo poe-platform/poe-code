@@ -1,4 +1,4 @@
-import type { XmlAttribute } from "@poe-code/safe-fs/core";
+import type { StoredAttribute as XmlAttribute } from "./stored-document.js";
 import type { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { XmlBudget } from "./limits.js";
 

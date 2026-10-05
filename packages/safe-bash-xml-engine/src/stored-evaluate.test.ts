@@ -168,3 +168,25 @@ test("stored scalar functions replay paged strings across expression operations"
     }
   } finally { await document.close(); }
 });
+
+
+test("paged XPath streams large attribute values through scalar and node results", async () => {
+  const input = '<r a="' + 'é😀&amp;&#x9;'.repeat(1000) + '"/>';
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const document = await StoredXmlDocument.parse([input], { fs, cwd: "/", env: {}, signal }, budget, 1);
+  try {
+    const evaluator = new StoredXPath(document, budget), buffered = parseXml(input);
+    for (const expression of ['count(/r/@a)', 'string-length(/r/@a)', 'contains(/r/@a, "😀&")', 'substring(/r/@a, 511, 10)', 'string(/r/@a)', '/r/@a', '/r']) {
+      const query = await parseQuery(expression, budget);
+      if (query.expression) assert.equal(await evaluator.scalar(query), await evaluateScalar(query, buffered, budget), expression);
+      else {
+        let actual = "", expected = "";
+        for await (const node of (await evaluator.select(query)).nodes()) for await (const part of serialize(node, budget)) actual += part;
+        for (const node of await evaluate(query, buffered, budget)) for await (const part of serialize(node, budget)) expected += part;
+        assert.equal(actual, expected, expression);
+      }
+    }
+  } finally { await document.close(); }
+  assert.deepEqual(await fs.readdir("/"), []);
+});

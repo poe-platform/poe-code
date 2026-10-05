@@ -6,7 +6,7 @@ import { PagedStorage, PagedStorageCache, type PagedStorageContext } from "@poe-
 import { XmlBudget } from "./limits.js";
 
 type XmlEvent = Parameters<NonNullable<NonNullable<Parameters<typeof parseXmlSourceSteps>[1]>["events"]>>[0]
-  | { type: "attribute"; attribute: XmlAttribute; element: XmlElement };
+  | { type: "attribute"; attribute: XmlAttribute; element: XmlElement; continuation?: boolean };
 
 /** Parse lazy input, or prevalidated recovery input, through a shared 64 KiB source/frame cache.
  * The parser retains only its current source window, tokens and the current frame. */
@@ -43,8 +43,8 @@ export async function parseStoredXml(
     const frames = new StoredXmlFrames(frameStorage);
     const attributes = new StoredParserAttributes(frameStorage, budget);
     const parser = parseXmlSourceSteps(recover ? length : undefined, {
-      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, storeAttributes: true, fragmentContent: true, compactDeclaration: true,
-      ...(recover ? { recover } : {}), ...(consume ? { events: (event: XmlEvent) => { queued.push(event); }, onAttribute: (attribute: XmlAttribute, element: XmlElement) => { queued.push({ type: "attribute", attribute, element }); } } : {}),
+      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, storeAttributes: true, fragmentAttributes: true, fragmentContent: true, compactDeclaration: true,
+      ...(recover ? { recover } : {}), ...(consume ? { events: (event: XmlEvent) => { queued.push(event); }, onAttribute: (attribute: XmlAttribute, element: XmlElement, continuation = false) => { queued.push({ type: "attribute", attribute, element, continuation }); } } : {}),
     });
     let step = parser.next();
     try {

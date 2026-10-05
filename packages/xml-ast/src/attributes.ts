@@ -1,4 +1,4 @@
-export interface XmlAttributeRecord { name: string; prefix: string; localName: string; value: string; next: number; }
+export interface XmlAttributeRecord { name: string; prefix: string; localName: string; value: string; next: number; source?: { start: number; end: number }; }
 export interface XmlAttributeState { reference: number; first: number; length: number; size: number; }
 export type XmlAttributeRequest =
   | { attributeOperation: 'has' | 'expanded'; state: XmlAttributeState; name: string; found?: boolean }
@@ -26,13 +26,13 @@ export class XmlAttributes {
     return request.found;
   }
 
-  *append(name: string, prefix: string, localName: string, value: string): Generator<XmlAttributeRequest, void, void> {
+  *append(name: string, prefix: string, localName: string, value: string, source?: { start: number; end: number }): Generator<XmlAttributeRequest, void, void> {
     if (!this.external) {
       this.names.set(name, value); this.records.push({ name, prefix, localName });
       this.state = { reference: 0, first: 1, length: this.records.length, size: this.names.size };
       return;
     }
-    const request: XmlAttributeRequest = { attributeOperation: 'append', state: this.state, attribute: { name, prefix, localName, value } };
+    const request: XmlAttributeRequest = { attributeOperation: 'append', state: this.state, attribute: { name, prefix, localName, value, ...(source ? { source } : {}) } };
     yield request;
     if (!request.result) throw new TypeError('Incomplete XML attribute append');
     this.state = request.result;

@@ -335,3 +335,8 @@ it('requires nonretained parsing for external attribute collections', () => {
   const parser = parseXmlSourceSteps(4, { storeAttributes: true });
   expect(() => parser.next()).toThrow('Stored XML attributes require retainTree: false');
 });
+
+it('requires host attribute storage for value fragments', () => {
+  const parser = parseXmlSourceSteps(4, { retainTree: false, fragmentAttributes: true });
+  expect(() => parser.next()).toThrow('XML attribute fragments require storeAttributes: true');
+});

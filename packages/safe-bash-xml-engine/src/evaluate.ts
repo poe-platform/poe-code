@@ -207,7 +207,8 @@ export async function* stringValue(
 ): AsyncGenerator<string> {
   if (node === undefined) return;
   if (node.kind === "attribute") {
-    yield node.value.value;
+    if (node.stored) yield* node.stored.document.text(node.stored.reference);
+    else yield node.value.value;
     return;
   }
   if (node.stored) {
@@ -253,7 +254,7 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
   }
   if (node.kind === "attribute") {
     yield ` ${node.value.name}="`;
-    yield* escape(node.value.value, true, budget);
+    for await (const part of stringValue(node, budget)) yield* escape(part, true, budget);
     yield '"';
     return;
   }
@@ -270,7 +271,7 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
         for await (const attribute of document.attributes(event.reference)) {
           const p = budget.tick(); if (p) await p;
           yield ` ${attribute.name}="`;
-          yield* escape(attribute.value, true, budget);
+          for await (const part of document.attributeText(attribute)) yield* escape(part, true, budget);
           yield '"';
         }
         yield hasChildren ? ">" : "/>";

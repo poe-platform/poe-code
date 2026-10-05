@@ -45,8 +45,14 @@ fixed-size attributes independently of value length; check late namespace declar
 duplicate raw/expanded names, slow attribute consumers, and cancellation during spill.
 Map traversal and rotations now use fixed-size records with separate UTF-16 token
 bodies; check missing-key and membership lookups beside giant values, and updates
-that must not copy inherited token bodies. Individual names, attribute values and
-namespace URIs still need end-to-end token qualification.
+that must not copy inherited token bodies. Ordinary attribute values now replay
+source spans as 512-unit fragments into linked document bodies. Increase a single
+attribute independently of attribute count; verify formatting, canonical sorting,
+XPath string/selection output, xml:space, transforms and xq output without joining
+its body. Compare whitespace normalization and numeric entities with native output;
+recoverable diagnostics must not repeat during replay. Inject source-spill reads,
+writes, consumer errors and cancellation between attribute fragments.
+Individual names and namespace URIs still need end-to-end token qualification.
 Parser ancestry uses linked backing records; check deep documents with
 a fixed namespace scope independently of source size. Also measure startup/first-byte latency; formatting validates
 the document before publishing output.

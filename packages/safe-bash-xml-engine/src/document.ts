@@ -1,4 +1,5 @@
-import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
+import type { StoredAttribute as XmlAttribute } from "./stored-document.js";
+import type { XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import { escape } from "./evaluate.js";
 import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
 import { StoredAttributes } from "./stored-attributes.js";
@@ -299,9 +300,11 @@ export async function* serializeDocument(
       for await (const attribute of elementAttributes(reference)) {
         { const p = budget.tick(); if (p) await p; }
         if (attribute.namespace === xml && attribute.localName === "space") {
-          preserveBlanks = attribute.value === "preserve";
-          if (attribute.value === "preserve") preserveSpace = true;
-          else if (attribute.value === "default") preserveSpace = false;
+          const preserve = stored ? await stored.attributeEquals(attribute, "preserve") : attribute.value === "preserve";
+          const normal = stored ? await stored.attributeEquals(attribute, "default") : attribute.value === "default";
+          preserveBlanks = preserve;
+          if (preserve) preserveSpace = true;
+          else if (normal) preserveSpace = false;
         }
       }
       let count = 0, mixed = false;
@@ -328,7 +331,8 @@ export async function* serializeDocument(
         }
         { const p = budget.tick(); if (p) await p; }
         yield ` ${attribute.name}="`;
-        yield* escape(attribute.value, true, budget, escaping);
+        if (stored) for await (const part of stored.attributeText(attribute)) yield* escape(part, true, budget, escaping);
+        else yield* escape(attribute.value, true, budget, escaping);
         yield '"';
       }
       if (!count && !canonical) { yield "/>"; continue; }

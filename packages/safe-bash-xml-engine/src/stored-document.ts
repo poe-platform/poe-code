@@ -11,6 +11,7 @@ const namespacesField = 72;
 const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32, firstAttributeField = 40, lastAttributeField = 48, flagsField = 56, fragmentField = 64;
 const textFlag = 1, preserveSpaceFlag = 2;
 
+export type StoredAttribute = XmlAttribute & { readonly valueReference?: number };
 export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
 type XmlStreamEvent = Parameters<NonNullable<Parameters<typeof parseStoredXml>[4]>>[0];
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
@@ -41,10 +42,12 @@ export class StoredXmlDocument {
       document.documentReference = await document.storage.append(new Uint8Array(headerBytes));
       const namespaces = await new StoredNamespaces(document.storage, budget).set("xml", "http://www.w3.org/XML/1998/namespace");
       await document.set(document.documentReference, namespacesField, namespaces.reference);
-      let parent = document.documentReference, fragmentTail = 0;
+      let parent = document.documentReference, fragmentTail = 0, attributeTail = 0;
       const consume = async (event: XmlStreamEvent): Promise<void> => {
           if (event.type === "attribute") {
-            await document.append(parent, { kind: "attribute", value: event.attribute });
+            const reference = await document.append(parent, { kind: "attribute", value: event.attribute }, event.continuation);
+            if (event.continuation) await document.set(attributeTail, fragmentField, reference);
+            attributeTail = reference;
             if (event.attribute.namespace === "http://www.w3.org/2000/xmlns/") {
               const scope = await document.namespaceScope(parent);
               const updated = await scope.set(event.attribute.name === "xmlns" ? "" : event.attribute.localName, event.attribute.value);
@@ -132,10 +135,20 @@ export class StoredXmlDocument {
     const value = await this.metadata(reference);
     if (value.kind === "element") {
       const attributes: XmlAttribute[] = [];
-      for await (const attribute of this.attributes(reference)) attributes.push(attribute);
+      for await (const attribute of this.attributes(reference)) {
+        const { valueReference: ignoredReference, ...complete } = attribute;
+        complete.value = "";
+        for await (const part of this.attributeText(attribute)) complete.value += part;
+        attributes.push(complete);
+      }
       const namespaces = new Map<string, string>();
       for await (const [prefix, uri] of await this.namespaceScope(reference)) namespaces.set(prefix, uri);
       return { ...value, attributes, namespaces };
+    }
+    if (value.kind === "attribute") {
+      let text = "";
+      for await (const part of this.text(reference)) text += part;
+      return { ...value, value: { ...value.value, value: text } };
     }
     return value;
   }
@@ -169,8 +182,8 @@ export class StoredXmlDocument {
     let fragment = reference;
     while (fragment) {
       const node = await this.metadata(fragment);
-      if (node.kind === "element" || node.kind === "attribute") throw new TypeError("Expected XML content node");
-      yield node.text;
+      if (node.kind === "element") throw new TypeError("Expected XML value node");
+      yield node.kind === "attribute" ? node.value.value : node.text;
       fragment = await this.field(fragment, fragmentField);
     }
   }
@@ -186,7 +199,7 @@ export class StoredXmlDocument {
       let preserve = (await this.field(await this.parent(event.reference), flagsField) & preserveSpaceFlag) !== 0;
       for await (const attribute of this.attributes(event.reference)) {
         if (attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === "space")
-          preserve = attribute.value === "preserve";
+          preserve = await this.attributeEquals(attribute, "preserve");
       }
       await this.set(event.reference, flagsField, preserve ? preserveSpaceFlag : 0);
       let current = await this.field(event.reference, firstField), previous = 0, mixed = false;
@@ -239,12 +252,26 @@ export class StoredXmlDocument {
     }
   }
 
-  async *attributes(reference: number): AsyncGenerator<XmlAttribute> {
+  async *attributes(reference: number): AsyncGenerator<StoredAttribute> {
     for await (const attribute of this.attributeReferences(reference)) {
       const value = await this.metadata(attribute);
       if (value.kind !== "attribute") throw new TypeError("Expected XML attribute");
-      yield value.value;
+      yield { ...value.value, valueReference: attribute };
     }
+  }
+
+  async *attributeText(attribute: StoredAttribute): AsyncGenerator<string> {
+    if (attribute.valueReference === undefined) yield attribute.value;
+    else yield* this.text(attribute.valueReference);
+  }
+
+  async attributeEquals(attribute: StoredAttribute, expected: string): Promise<boolean> {
+    let offset = 0;
+    for await (const part of this.attributeText(attribute)) {
+      if (part.length > expected.length - offset || expected.slice(offset, offset + part.length) !== part) return false;
+      offset += part.length;
+    }
+    return offset === expected.length;
   }
 
   async *children(reference: number, attributes = false): AsyncGenerator<number> {

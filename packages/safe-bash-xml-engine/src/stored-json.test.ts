@@ -7,6 +7,7 @@ import { XmlBudget, resolveXmlQueryLimits } from "./limits.js";
 import { StoredXmlDocument } from "./stored-document.js";
 
 for (const input of [
+  '<r a="' + 'é😀&amp;&#x9;'.repeat(1000) + '"/>',
   '<r/>', '<r> \t\n </r>', '<r>  a<![CDATA[b]]> c  </r>',
   '<r a="1"><x>first</x><y/><x>second</x><z/><x a="last"/> tail </r>',
   '<r xmlns:p="urn:p"><p:x a="&quot;&amp;">é😀</p:x><p:x/><x>\u00a0 text \ufeff</x></r>',

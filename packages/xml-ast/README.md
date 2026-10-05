@@ -81,7 +81,14 @@ receive resolved attributes in source order, after the open event and before any
 content or close event. The parser yields between attributes so a host can await
 storage or a consumer. Namespace declarations may follow prefixed attributes;
 resolution and duplicate-expanded-name validation still happen after the complete
-start tag. Individual attribute names and values retain their token cost.
+start tag. With `fragmentAttributes: true`, ordinary values are validated and
+stored as source spans on attribute records, then replayed in at most 512 UTF-16
+units. Hosts must preserve the optional `source` field in append/read requests.
+The third `onAttribute` argument is `true` for continuations of the same logical
+attribute; await each fragment before requesting the next step. Empty attributes
+still emit once. Entity diagnostics are emitted during validation, not replay.
+This mode requires `storeAttributes: true`. Namespace declaration values and
+individual names still retain their token cost.
 
 Pass `undefined` as the source length to parse incrementally. Such read requests
 have `streaming: true` and request at most 512 UTF-16 units. Return any nonempty
@@ -100,5 +107,4 @@ decoding replay bounded source windows before publishing a logical node, retaini
 its diagnostic and limit ordering. Numeric entity references are decoded without
 materializing the token. Set `compactDeclaration: true` to retain normalized declaration fields without
 copying long whitespace spans; validation always reads bounded windows. The
-buffered API keeps the original declaration spelling. Names, attribute values
-and namespace scopes still require their own memory budget.
+buffered API keeps the original declaration spelling. Names and namespace declaration values still require their own memory budget.

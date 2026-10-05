@@ -257,8 +257,8 @@ pub fn run<H: Host>(
                     method!(modifiers, "push", l!(key));
                 }
             }
-            let normalized = if p!("same", name, l!("return")) {
-                l!("return")
+            let normalized = if p!("same", name, l!(" ")) {
+                l!("space")
             } else {
                 method!(name, "toLowerCase")
             };

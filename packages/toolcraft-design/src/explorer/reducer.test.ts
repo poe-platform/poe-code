@@ -40,6 +40,17 @@ describe("explorer reducer", () => {
     expect(moved.effects).toEqual([{ type: "renderDetail", rowId: "two", token: 2 }]);
   });
 
+  it("accepts literal Space from the legacy parser without changing text entry", () => {
+    const state = { ...loaded({ multiSelect: true }), cursor: 1 };
+    const event = { type: "key" as const, key: key(" ") };
+    const selected = step(state, event).state;
+    expect([...selected.selected]).toEqual(["two"]);
+    expect(selected.filter).toBe("");
+    expect([...step(selected, event).state.selected]).toEqual([]);
+    expect(step({ ...state, filterFocused: true, filter: "two" }, event).state.filter).toBe("two ");
+    expect(step({ ...state, modal: { kind: "input", title: "Input", label: "Text", value: "two", resolver: vi.fn() } }, event).state.modal).toMatchObject({ value: "two " });
+  });
+
   it("supports Home, End, pages, and Ctrl half-pages", () => {
     expect(step(loaded(), { type: "key", key: key("\u001b[F") }).state.cursor).toBe(2);
     const atEnd = { ...loaded(), cursor: 2 };

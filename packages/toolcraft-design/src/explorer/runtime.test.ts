@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TerminalBuffer } from "terminal-pilot";
+import { createInputParser } from "../terminal/input.js";
 import { parseKeypress } from "../dashboard/terminal.js";
 import { FakeTerminalDriver } from "./runtime.test-helpers.js";
 import type { ExplorerConfig, Row } from "./state.js";
@@ -22,6 +23,32 @@ afterEach(() => {
 });
 
 describe("runExplorer", () => {
+  it.each([true, false])("handles parsed Space and pasted spaces with multiSelect=%s", async (multiSelect) => {
+    const handler = vi.fn();
+    const events = vi.spyOn(driver(), "onEvent");
+    const result = runExplorer(config({ multiSelect, actions: [{ id: "inspect", label: "Inspect", accelerator: "e", handler }] }));
+    const parser = createInputParser();
+    try {
+      await waitFor(() => screen().includes("One"));
+      const send = (text: string) => {
+        for (const event of parser.feed(Buffer.from(text))) events.mock.calls[0]![0](event);
+      };
+      send("\u001b[B ");
+      driver().press(ctrl("e"));
+      await waitFor(() => handler.mock.calls.length === 1);
+      expect(handler.mock.calls[0]![0].row.id).toBe("two");
+      expect(handler.mock.calls[0]![0].filter).toBe("");
+      expect(handler.mock.calls[0]![0].rows.map((row: Row) => row.id)).toEqual(["two"]);
+      await new Promise<void>(resolve => setImmediate(resolve));
+      send("\u001b[200~two words\u001b[201~");
+      await waitFor(() => screen().includes("two words"));
+    } finally {
+      parser.destroy();
+      driver().press(ctrl("c"));
+      await result;
+    }
+  });
+
   it("scrolls prepared wrapped content without repeating the user callback", async () => {
     mockTerminal.driver = new FakeTerminalDriver(70, 14);
     const words = Array.from({ length: 24 }, (_, index) => `word${String(index + 1).padStart(2, "0")}-${"x".repeat(43)}`);

@@ -135,7 +135,7 @@ pub fn run<H: Host>(
         }
         "pasteChar" => {
             dispatch!(
-                obj!("type"=>l!("key"),"key"=>obj!("ch"=>args[1],"name"=>args[1],"ctrl"=>no,"meta"=>no,"shift"=>no))
+                obj!("type"=>l!("key"),"key"=>obj!("ch"=>args[1],"name"=>l!("paste"),"ctrl"=>no,"meta"=>no,"shift"=>no))
             );
         }
         "resize" => {

@@ -1222,7 +1222,7 @@ function isBackspace(key: ExplorerKeypressEvent): boolean {
 }
 
 function isSelectionSpace(key: ExplorerKeypressEvent): boolean {
-  return key.name === "space" || key.ch === " ";
+  return key.name !== "paste" && (key.name === "space" || key.ch === " ");
 }
 
 function isConfirmYes(key: ExplorerKeypressEvent): boolean {

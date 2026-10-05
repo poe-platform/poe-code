@@ -1451,7 +1451,8 @@ pub fn run<H: Host>(
         }
         ("isSelectionSpace", [key]) => {
             return Ok(boolean!(
-                eq!(g!(*key, "name"), l!("space")) || eq!(g!(*key, "ch"), l!(" "))
+                !eq!(g!(*key, "name"), l!("paste"))
+                    && (eq!(g!(*key, "name"), l!("space")) || eq!(g!(*key, "ch"), l!(" ")))
             ));
         }
         ("isConfirmYes", [key]) => {

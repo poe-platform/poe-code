@@ -128,6 +128,6 @@ function canonical(value: string): string { return value.trim().toLowerCase().re
 function eventKey(event: Key): string {
   const name = event.name ?? event.ch ?? "";
   const modifiers = [event.ctrl ? "ctrl" : "", event.meta ? "meta" : "", event.shift ? "shift" : ""].filter(Boolean);
-  const normalized = name === "return" ? "return" : name.toLowerCase();
+  const normalized = name === " " ? "space" : name.toLowerCase();
   return [...modifiers, normalized].join("+");
 }

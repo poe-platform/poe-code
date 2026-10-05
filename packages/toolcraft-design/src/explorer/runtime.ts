@@ -129,7 +129,8 @@ class ExplorerRuntime<R> {
         for (const ch of event.text.replaceAll("\n", "").replaceAll("\r", "")) {
           this.dispatch({
             type: "key",
-            key: { ch, name: ch, ctrl: false, meta: false, shift: false }
+            // Pasted characters are text, even when they have a key binding.
+            key: { ch, name: "paste", ctrl: false, meta: false, shift: false }
           });
         }
         return;

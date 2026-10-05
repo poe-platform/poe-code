@@ -70,7 +70,7 @@ export async function openRetainedObjects(archive: Archive, settings: RetainedPa
       await write(pointer,[0,json.start,json.length,metadata.start,metadata.length]); if(tail) await write(tail,[pointer]); else head=pointer; tail=pointer;
     }
     await types.close(); types=undefined; await graph.close(); check();
-    return Object.freeze({close,count, async *objects() { try { check(); for(let pointer=head;pointer;) { const item=await row(pointer,5); pointer=item[0]!; const value={start:item[1]!,length:item[2]!}; yield {[rawJson]:()=>values.read(value)}; } check(); } catch(error) {throw failure(error);} },
+    return Object.freeze({close,count, async *objects(kind?: OpaqueObjectKind) { try { check(); for(let pointer=head;pointer;) { const item=await row(pointer,5); pointer=item[0]!; if (kind && (JSON.parse(await text({start:item[3]!,length:item[4]!})) as {kind:OpaqueObjectKind}).kind !== kind) continue; const value={start:item[1]!,length:item[2]!}; yield {[rawJson]:()=>values.read(value)}; } check(); } catch(error) {throw failure(error);} },
       async *summaries() { try { check(); for(let pointer=head;pointer;) {const item=await row(pointer,5);pointer=item[0]!;yield JSON.parse(await text({start:item[3]!,length:item[4]!})) as {part:string;kind:OpaqueObjectKind;bytes:number;activeContent:boolean};} check();} catch(error) {throw failure(error);} } });
   } catch(error) { await close().catch(()=>{}); throw failure(error); }
 }

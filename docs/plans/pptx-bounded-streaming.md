@@ -726,7 +726,7 @@ extraction, workbook or Worker runtime matrix.
 
 | Area | Remaining migration |
 | --- | --- |
-| Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation, font, animation and accessibility readers; opaque-object inventory is migrated. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation, animation and accessibility readers; opaque-object and font inventories are migrated. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
 | Extraction | Image/media extraction, including manifests and multi-output publication; package and opaque/embedded-object extraction are migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |
@@ -875,3 +875,22 @@ python-pptx deck yields byte-identical extracted workbook data and exact command
 output; openpyxl independently reads the expected exported chart cells. Other
 reads, image/media extraction, mutations, workbook processing and runtime Worker
 qualification remain unfinished.
+
+
+## Retained font inventory
+
+The default `fonts list` command uses retained opaque inventory and caller-backed
+embedded-font declarations. Typeface/charset/pitch strings, repeated variant records
+and relationship identities stream; missing or external bindings preserve buffered
+semantics. Font bytes remain opaque and no installation or interpretation occurs.
+The reader accepts both OOXML dialects and preserves all declaration order.
+
+Parity cases cover long typefaces, large declaration lists, duplicate/missing/foreign
+metadata, missing presentation roots and variant targets. Default file/stdin paths,
+reused input chunks, observed bounded spill writes, output limits, slow sinks,
+cancellation and storage failures exercise admission/staging cleanup. A native
+chart/workbook deck with independently inserted opaque font declarations matches
+exact human/JSON output through the public adapter; source bytes and scratch cleanup
+are verified. This checks metadata, not font installation or rendering. Other read
+families, image/media extraction, mutations, workbook processing and Worker runtime
+qualification remain open.

@@ -56,7 +56,8 @@ JSON representation and streams tab lists. `stageRetainedText` supports
 slide selection and timing validation while keeping records in caller storage.
 `stageRetainedTransitions` provides staged `transitions.list/get` output.
 `openRetainedObjects` (from `opaque-objects`) exposes `objects()`, `summaries()`,
-`count` and `close()`. Pass its admitted JSON objects to `streamJson` from
+`count` and `close()`. `objects(kind)` optionally filters by opaque kind.
+Pass its admitted JSON objects to `streamJson` from
 `retained-output`; dependency queues, sorted references and arbitrary strings
 remain in caller storage. Payloads are hashed without activation or recursive
 parsing. `stageRetainedObjects` stages the default `objects list` response.
@@ -66,6 +67,11 @@ returns replayable `members()` and `relationships()` iterators, `count` and
 streams, including the selected dependency closure and original relationship
 parts. `stageRetainedExtractionOutput` supports `operation: 'objects.extract'`
 with `dryRun`, preserving completed-file manifests after publication failures.
+`openRetainedFonts` (from `opaque-objects`) provides `declarations()` and `fonts()`
+as admitted JSON for `streamJson`, plus bounded `summaries()` for human listings.
+Typeface/variant strings and ordered declarations stay in caller storage; font
+payloads are never installed or interpreted. Close the reader when finished.
+`stageRetainedFonts` supplies the default `fonts list` response.
 `openRetainedNotes` (from `notes`) exposes a caller-backed `records()` iterator,
 with replayable part/master references, speaker text and body IDs. Close it after
 reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with

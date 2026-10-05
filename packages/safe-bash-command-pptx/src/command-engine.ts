@@ -1,5 +1,5 @@
 import { prepareRetainedObjectExtraction } from "./command-object-extraction-streaming.js";
-import { stageRetainedObjects } from "safe-bash-presentation-engine/opaque-objects";
+import { stageRetainedObjects, stageRetainedFonts } from "safe-bash-presentation-engine/opaque-objects";
 import { stageRetainedTransitions } from 'safe-bash-presentation-engine/transitions';
 import { stageRetainedMemberships } from 'safe-bash-presentation-engine/memberships';
 import { stageRetainedPresentationSettings } from 'safe-bash-presentation-engine/presentation-settings';
@@ -4163,11 +4163,11 @@ async function executeRequest(
         publication = { inputPath: args.input!, outputPath: destination, bytes: staged.bytes(), originalBytes: input, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
       }
       result = success(operation, null);
-    } else if (args.operation === "objects.list" && request.streaming) {
+    } else if ((args.operation === "objects.list" || args.operation === "fonts.list") && request.streaming) {
       const context = { ...options.context, signal: request.signal, workingStorage: request.streaming.workingStorage };
       const input = await request.streaming.openInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));
       const archive = await openPackageArchive(input, context); let failed = false;
-      try { stagedOutput = await stageRetainedObjects(archive, context, { json: args.json, maxOutputBytes: options.maxOutputBytes }); }
+      try { stagedOutput = await (args.operation === "fonts.list" ? stageRetainedFonts : stageRetainedObjects)(archive, context, { json: args.json, maxOutputBytes: options.maxOutputBytes }); }
       catch (error) { failed = true; throw error; }
       finally { try { await archive.close(); } catch (error) { if (!failed) { await stagedOutput?.close().catch(() => {}); await Promise.reject(error); } } }
       owned.push(stagedOutput!);

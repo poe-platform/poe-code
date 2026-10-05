@@ -291,3 +291,4 @@ export async function readFonts(
 export { openRetainedObjects, stageRetainedObjects } from "./retained-objects.js";
 export { openRetainedObjectExtraction, type RetainedExtractedObjectMember } from "./retained-object-extraction.js";
 export { stageRetainedExtractionOutput } from "./retained-extraction-output.js";
+export { openRetainedFonts, stageRetainedFonts } from "./retained-fonts.js";

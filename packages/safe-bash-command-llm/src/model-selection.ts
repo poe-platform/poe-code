@@ -22,7 +22,7 @@ export async function selectLlmModelByQuery(
     signal?.throwIfAborted();
     if (signal && index && index % 256 === 0) await yieldTurn(signal);
     const entry = models[index]!;
-    const terms = [`${entry.provider.name}: ${entry.model.id}`, ...getLlmModelAliases(entry, configuredAliases)].map(value => value.toLowerCase());
+    const terms = [(entry.model.displayName ?? `${entry.provider.name}: ${entry.model.id}`), ...getLlmModelAliases(entry, configuredAliases), ...(entry.model.asyncModel ? [entry.model.id] : [])].map(value => value.toLowerCase());
     if (normalized.every(query => terms.some(term => term.includes(query))) &&
         (!selected || [...entry.model.id].length < [...selected.model.id].length)) selected = entry;
   }

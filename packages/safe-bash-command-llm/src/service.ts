@@ -162,7 +162,7 @@ function validateEmbeddingResponse(result: LlmEmbeddingResponse, model: string, 
 export interface LlmService {
   readonly version: 1;
   readonly models: readonly LlmServiceModel[];
-  resolve(model?: string): LlmServiceModel;
+  resolve(model?: string, options?: {readonly async?: boolean}): LlmServiceModel;
   complete(request: LlmServiceRequest): AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>;
   stream(request: LlmServiceRequest): AsyncIterable<LlmStreamEvent>;
   streamSources?(request: LlmServiceSourceRequest): AsyncIterable<LlmStreamEvent>;
@@ -170,25 +170,39 @@ export interface LlmService {
   embed(request: Omit<LlmEmbeddingRequest, "model"> & { readonly model?: string }): Promise<LlmEmbeddingResponse>;
 }
 
+function snapshotModel(declared: LlmModel): LlmModel {
+  return Object.freeze({ ...declared,
+    ...(declared.options ? { options: Object.freeze(Object.fromEntries(Object.entries(declared.options).map(([name, rule]) => [name, Object.freeze({ ...rule })]))) } : {}),
+    ...(declared.capabilities ? { capabilities: Object.freeze([...declared.capabilities]) } : {}),
+    ...(declared.aliases ? { aliases: Object.freeze([...declared.aliases]) } : {}),
+    ...(declared.attachmentTypes ? { attachmentTypes: Object.freeze([...declared.attachmentTypes]) } : {}),
+  });
+}
+
 export function createLlmService(options: LlmServiceOptions): LlmService {
   const models: LlmServiceModel[] = [];
   const lookup = new Map<string, LlmServiceModel>();
+  const asyncLookup = new Map<string, LlmServiceModel>();
   const defaultModel = options.defaultModel;
   for (const provider of options.providers) {
     if (!provider.name || typeof provider.complete !== "function") throw new TypeError("Providers require a name and complete function");
     for (const declared of provider.models) {
       if (!declared.id) throw new TypeError("Models require a nonempty id");
-      const model: LlmModel = Object.freeze({ ...declared,
-        ...(declared.options ? { options: Object.freeze(Object.fromEntries(Object.entries(declared.options).map(([name, rule]) => [name, Object.freeze({ ...rule })]))) } : {}),
-        ...(declared.capabilities ? { capabilities: Object.freeze([...declared.capabilities]) } : {}),
-        ...(declared.aliases ? { aliases: Object.freeze([...declared.aliases]) } : {}),
-        ...(declared.attachmentTypes ? { attachmentTypes: Object.freeze([...declared.attachmentTypes]) } : {}),
+      const {asyncModel: asyncDeclaration, ...syncDeclaration} = declared;
+      if (asyncDeclaration !== undefined && (!asyncDeclaration || typeof asyncDeclaration !== "object" || Array.isArray(asyncDeclaration)
+        || ["id", "aliases", "asyncModel"].some(key => key in asyncDeclaration))) throw new TypeError("Invalid paired async model definition");
+      const paired = asyncDeclaration === undefined ? undefined : snapshotModel({
+        ...syncDeclaration, displayName: `${provider.name} (async): ${declared.id}`, ...asyncDeclaration
       });
+      const {id: ignoredId, aliases: ignoredAliases, ...pairedMetadata} = paired ?? {id: declared.id};
+      const model = snapshotModel({...syncDeclaration, ...(paired ? {asyncModel: Object.freeze(pairedMetadata)} : {})});
       const entry = Object.freeze({ provider, model });
+      const asyncEntry = paired ? Object.freeze({provider, model: paired}) : undefined;
       for (const name of new Set([model.id, `${provider.name}/${model.id}`, ...model.aliases ?? []])) {
         if (!name) throw new TypeError("Model aliases must not be empty");
         if (lookup.has(name)) throw new Error(`Duplicate model id or alias: ${name}`);
         lookup.set(name, entry);
+        if (asyncEntry) asyncLookup.set(name, asyncEntry);
       }
       models.push(entry);
     }
@@ -196,18 +210,19 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
   return Object.freeze({
     version: 1 as const,
     models: Object.freeze(models),
-    resolve(model?: string): LlmServiceModel {
+    resolve(model?: string, mode?: {readonly async?: boolean}): LlmServiceModel {
       const selected = model ?? defaultModel;
       if (selected === undefined) throw new Error("No model selected; use --model or configure defaultModel");
-      const entry = lookup.get(selected);
-      if (!entry) throw new Error(`Unknown model: ${selected}`);
+      const entry = (mode?.async ? asyncLookup : lookup).get(selected);
+      if (!entry) throw new Error(mode?.async && lookup.has(selected)
+        ? `Unknown async model (sync model exists): ${selected}` : `Unknown model: ${selected}`);
       return entry;
     },
     complete(request: LlmServiceRequest): AsyncIterable<string | Uint8Array, LlmResponseMetadata | void> {
       request.signal.throwIfAborted();
       validateOptions(request.options);
       if (typeof request.prompt !== "string" || request.system !== undefined && typeof request.system !== "string") throw new TypeError("Invalid LLM prompt");
-      const entry = this.resolve(request.model);
+      const entry = this.resolve(request.model, request);
       validateTools(request, entry.model);
       if (request.messages?.length && !entry.model.capabilities?.includes("messages")) throw new Error(`Model ${entry.model.id} does not support messages`);
       validateMessages(request.messages, entry.model);
@@ -230,7 +245,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       return entry.provider.complete({ ...input, model: entry.model.id, options: validateModelOptions(entry.model, request.options) });
     },
     async *stream(request: LlmServiceRequest): AsyncGenerator<LlmStreamEvent> {
-      const entry = this.resolve(request.model);
+      const entry = this.resolve(request.model, request);
       yield* streamResult(() => this.complete(request), entry.model, request);
     },
     async *streamSources(request: LlmServiceSourceRequest): AsyncGenerator<LlmStreamEvent> {
@@ -245,7 +260,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       try {
         request.signal.throwIfAborted();
         validateOptions(request.options);
-        const entry = this.resolve(request.model);
+        const entry = this.resolve(request.model, request);
         if (!entry.provider.completeSources || entry.model.inputSources === false) throw new Error(`Model ${entry.model.id} does not support streamed inputs`);
         for (const source of sources) if (!source || typeof source.dispose !== "function" || typeof source.bytes?.[Symbol.asyncIterator] !== "function") throw new TypeError("Invalid LLM input source");
         validateTools(request, entry.model);

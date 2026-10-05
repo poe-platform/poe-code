@@ -47,6 +47,11 @@ export interface LlmModelOption {
   readonly nullable?: boolean;
 }
 export interface LlmModel {
+  /** Optional reference display text, independent of transport/provider identity. */
+  readonly displayName?: string;
+  /** Paired async definition. Omitted fields inherit the sync metadata; IDs and
+   * aliases are shared. The provider receives request.async for dispatch. */
+  readonly asyncModel?: Partial<Omit<LlmModel, "id" | "aliases" | "asyncModel">>;
   /** Maximum inputs accepted in one embedding request for this model. */
   readonly embeddingBatchSize?: number;
   /** Source input support for this model; otherwise inferred from the provider hook. */
@@ -85,6 +90,8 @@ export type LlmSourceAttachment = { readonly mimeType: string; readonly id?: str
   { readonly source: LlmInputSource; readonly url?: never } | { readonly url: string; readonly source?: never }
 );
 export interface LlmRequest {
+  /** Select the registered async model definition before request admission. */
+  readonly async?: boolean;
   tools?: readonly LlmTool[];
   model: string;
   prompt: string;

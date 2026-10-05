@@ -69,15 +69,16 @@ export async function listLlmModels(context: CommandContext, service: LlmService
   const configuration = createLlmConfiguration(context, maxConfigurationBytes);
   const configuredAliases = await configuration.aliases();
   const shownDescriptions = new Set<string>();
-  for (const { provider, model } of service.models) {
+  for (const { provider, model: syncModel } of service.models) {
     await step();
-    const aliases = getLlmModelAliases({ provider, model }, configuredAliases);
-    const description = `${provider.name}: ${model.id}`;
-    const terms = [description, ...aliases].map(value => value.toLowerCase());
+    const aliases = getLlmModelAliases({ provider, model: syncModel }, configuredAliases);
+    const description = syncModel.displayName ?? `${provider.name}: ${syncModel.id}`;
+    const terms = [description, ...aliases, ...(syncModel.asyncModel ? [syncModel.id] : [])].map(value => value.toLowerCase());
     if (!queries.every(query => terms.some(term => term.includes(query.toLowerCase())))) continue;
-    if (selected.length && !selected.some(value => value === model.id || aliases.includes(value))) continue;
-    if (schemas && !model.capabilities?.includes("schema") || tools && !model.capabilities?.includes("tools") || asyncModels) continue;
-    let output = description + (aliases.length ? ` (aliases: ${aliases.join(", ")})` : "");
+    if (selected.length && !selected.some(value => value === syncModel.id || aliases.includes(value))) continue;
+    if (schemas && !syncModel.capabilities?.includes("schema") || tools && !syncModel.capabilities?.includes("tools") || asyncModels && !syncModel.asyncModel) continue;
+    const model = asyncModels ? service.resolve(syncModel.id, {async: true}).model : syncModel;
+    let output = (model.displayName ?? `${provider.name}: ${model.id}`) + (aliases.length ? ` (aliases: ${aliases.join(", ")})` : "");
     if (model.outputType) output += `\n  Output type: ${model.outputType}`;
     if (options && Object.keys(model.options ?? {}).length) {
       output += "\n  Options:";
@@ -91,7 +92,8 @@ export async function listLlmModels(context: CommandContext, service: LlmService
     if (options && model.attachmentTypes?.length) output += `\n  Attachment types:\n    ${[...model.attachmentTypes].sort().join(", ")}`;
     const features = [
       ...(model.capabilities?.includes("schema") ? ["schemas"] : []),
-      ...(model.capabilities?.includes("tools") ? ["tools"] : [])
+      ...(model.capabilities?.includes("tools") ? ["tools"] : []),
+      ...(syncModel.asyncModel ? ["async"] : [])
     ];
     if (options && features.length) output += "\n  Features:\n" + features.map(feature => `  - ${feature}`).join("\n");
     await emit(output + "\n");

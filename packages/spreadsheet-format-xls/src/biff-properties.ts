@@ -1,3 +1,4 @@
+import { BiffPropertyNames } from './biff-property-names.js';
 import { visitBiffPropertyDictionary } from './biff-property-dictionary.js';
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, UnsupportedRecord } from "@poe-code/spreadsheet-ast";
@@ -23,17 +24,21 @@ export function isBiffKeywordSpace(code: number): boolean {
   return code > 0 && code <= 32 || code >= 0x2000 && code <= 0x200b || code === 0x2028 || code === 0x2029;
 }
 
-/** Property offsets are section-relative; dictionaries have no variant header. */
+/** Property offsets are section-relative; dictionaries have no variant header.
+ * With collect=false, await observations without retaining a result record; exact
+ * duplicate-name checks use bounded caller storage when available. */
 export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array | RangeSource>, context: CapabilityContext,
   accountText: (text: string) => string, accountWork: (amount: number) => void,
-  retained: UnsupportedRecord[] | undefined, observe?: (property: { stream: string; section: number; id: number; key: string; value: ImportedValue }) => void): Promise<Readonly<Record<string, ImportedValue>>> {
+  retained: UnsupportedRecord[] | undefined, observe?: (property: { stream: string; section: number; id: number; key: string; value: ImportedValue }) => void | Promise<void>, collect = true): Promise<Readonly<Record<string, ImportedValue>>> {
   const properties: Record<string, ImportedValue> = Object.create(null);
+  let names: BiffPropertyNames | undefined;
   let nodes = 0;
   const admit = (count: number) => {
     accountWork(count); nodes += count;
     if (nodes > (context.limits.workbookNodes ?? context.limits.inputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF property node limit exceeded");
   };
+  try {
   for (const target of ["\u0005SummaryInformation", "\u0005DocumentSummaryInformation"]) {
     let streamName = target, bytes = streams.get(target);
     if (!bytes) for (const [name, data] of streams) {
@@ -55,7 +60,7 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
           for await (const [id, data] of values.entries()) {
             context.signal.throwIfAborted(); if (id < 2) continue;
             const key = guid === custom ? await getName(id) : biffPropertyFields.get(guid)?.get(id);
-            if (key === undefined || Object.hasOwn(properties, key)) { unknown = true; continue; }
+            if (key === undefined || (collect ? Object.hasOwn(properties, key) : await (names ??= new BiffPropertyNames(context, accountWork)).has(key))) { unknown = true; continue; }
             let value: ImportedValue | undefined;
             const type = await data.u32(0);
             try {
@@ -99,8 +104,10 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
                 return keyword.slice(start, end);
               }).filter(Boolean);
             }
-            accountText(key); properties[key] = value; modeled?.push([offset, id, key]);
-            observe?.({ stream: streamName, section: offset, id, key, value });
+            accountText(key);
+            if (collect) properties[key] = value; else await names!.add(key);
+            modeled?.push([offset, id, key]);
+            await observe?.({ stream: streamName, section: offset, id, key, value });
           }
         });
         if (!supported) unknown = true;
@@ -119,5 +126,9 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
       await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `BIFF property stream ${streamName.slice(1)} retained with uninterpreted values` });
     }
   }
-  return properties;
+  } catch (error) {
+    try { await names?.close(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'BIFF property observation cleanup failed'); }
+    throw error;
+  }
+  await names?.close(); return properties;
 }

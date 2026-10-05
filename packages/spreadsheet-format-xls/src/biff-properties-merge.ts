@@ -101,8 +101,8 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
   const readContext = { ...context, limits: { ...context.limits, inputBytes: context.limits.outputBytes } };
   // Reuse scalar decoding, but do not create another retained hexadecimal copy.
   await readBiffProperties(new Map([...snapshots].map(([name, value]) => [name, value.bytes])), readContext, accountText, charge,
-    undefined, property => { admit(1); original.set(identity(property), property); });
-  await readBiffProperties(streams, readContext, accountText, charge, undefined, property => { admit(1); pending.set(property.key, property); });
+    undefined, property => { admit(1); original.set(identity(property), property); }, false);
+  await readBiffProperties(streams, readContext, accountText, charge, undefined, property => { admit(1); pending.set(property.key, property); }, false);
 
   const chunks = async function* (source: BiffPropertyRange): AsyncIterable<Uint8Array> {
     for (let at = 0; at < source.size;) { const bytes = await source.read(at, source.size - at); at += bytes.length; yield bytes; }
@@ -320,7 +320,7 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
   const exposed = new Set<string>();
   await readBiffProperties(staged?.sources ?? streams, readContext, accountText, charge, undefined, property => {
     admit(1); if (!Object.hasOwn(book.properties ?? {}, property.key)) exposed.add(property.key);
-  });
+  }, false);
   for (const key of exposed) await warn(key, "opaque property exposes a field absent from the model");
   } catch (error) {
     try { await closeTemporary(); } catch (cleanup) { throw new AggregateError([error, cleanup], "BIFF property merge and cleanup failed"); }

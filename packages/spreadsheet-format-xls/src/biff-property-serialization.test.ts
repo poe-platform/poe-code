@@ -1,3 +1,4 @@
+import { BiffPropertyNames } from './biff-property-names.js';
 import { BiffMutablePropertyValues } from './biff-property-values.js';
 import { visitBiffPropertyDictionary } from './biff-property-dictionary.js';
 import { encryptedBiffPropertyStream } from './biff-encrypted-properties.js';
@@ -694,6 +695,17 @@ it('replays merged sections without retaining output plans', async () => {
   expect(state.closed).toBe(state.acquired);
 });
 
+it('observes properties sequentially without materializing a returned property record', async () => {
+  const seed = { sheets: book.sheets, properties: { 'dc:title': 'Title', A: 1, AB: 2, a: 3 } };
+  const fresh = await writeBiffProperties(seed, context), { ctx, state } = fixture();
+  const observed: Record<string, unknown> = {}; let pending = 0;
+  const result = await readBiffProperties(fresh.streams, ctx, text => text, () => {}, undefined, async property => {
+    expect(++pending).toBe(1); await Promise.resolve(); observed[property.key] = property.value; pending--;
+  }, false);
+  expect(result).toEqual({}); expect(observed).toEqual(seed.properties); expect(pending).toBe(0);
+  expect(state.closed).toBe(state.acquired);
+});
+
 it('preserves mutable property insertion order and detached payloads beyond the index cache', async () => {
   const { ctx, state, cleanups } = fixture(), values = new BiffMutablePropertyValues(ctx, () => {});
   const range = (id: number) => { const bytes = new Uint8Array(4); new DataView(bytes.buffer).setUint32(0, id, true); return propertyRange(bytes, ctx); };
@@ -764,4 +776,76 @@ it('closes mutable value storage once even when cleanup fails', async () => {
   await values.set(2, propertyRange(new Uint8Array(4), active));
   await expect(values.close()).rejects.toBe(failure); await expect(values.close()).rejects.toBe(failure);
   expect(state.closed).toBe(1); await expect(values.get(2)).rejects.toThrow('closed');
+});
+
+it.each([false, true])('retains exact property-name identity beyond the bounded cache (stored=%s)', async stored => {
+  const { ctx, state, cleanups } = fixture(), names = new BiffPropertyNames(stored ? ctx : context, () => {});
+  const input = ['', 'A', 'AB', 'a', 'A\0', 'A\0B', '😀', 'x'.repeat(50000), ...Array.from({ length: 300 }, (_, i) => `Name${i}`)];
+  try {
+    for (const name of input) { expect(await names.has(name)).toBe(false); await names.add(name); }
+    for (const name of input) { expect(await names.has(name)).toBe(true); await names.add(name); }
+    for (const name of ['B', 'Ab', 'A\0C', 'Name301']) expect(await names.has(name)).toBe(false);
+  } finally { await names.close(); for (const close of cleanups) await close(); }
+  expect(state.closed).toBe(state.acquired); expect(state.acquired).toBe(stored ? 1 : 0);
+  expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
+});
+it('compares exact names when their bounded hash keys collide', async () => {
+  const { ctx, state } = fixture(), names = new BiffPropertyNames(ctx, () => {});
+  const hash = vi.spyOn(names as unknown as { fingerprint(name: string): bigint }, 'fingerprint').mockReturnValue(1n);
+  try {
+    for (const name of ['', 'AB', 'AC', 'A\0', 'Longer']) await names.add(name);
+    for (const name of ['', 'AB', 'AC', 'A\0', 'Longer']) expect(await names.has(name)).toBe(true);
+    for (const name of ['A', 'AD', 'A\u0001', 'Longer!']) expect(await names.has(name)).toBe(false);
+  } finally { hash.mockRestore(); await names.close(); }
+  expect(state.closed).toBe(state.acquired);
+});
+it.each(['allocate', 'write', 'read', 'abort'])('closes the property-name index after %s failure', async mode => {
+  const { ctx, state, failure, cleanups } = fixture(), controller = new AbortController();
+  const names = new BiffPropertyNames({ ...ctx, signal: controller.signal }, () => {});
+  if (mode === 'abort') state.hold = async () => { controller.abort(failure); };
+  else state.mode = mode;
+  try {
+    await expect((async () => { await names.add('Name'); await names.has('Name'); })()).rejects.toBe(failure);
+  } finally { await names.close(); for (const close of cleanups) await close(); }
+  expect(state.closed).toBe(state.acquired);
+});
+it('waits for async observer failures before cleaning observation indexes', async () => {
+  const fresh = await writeBiffProperties({ sheets: book.sheets, properties: { A: 1 } }, context), { ctx, state, failure } = fixture();
+  await expect(readBiffProperties(fresh.streams, ctx, text => text, () => {}, undefined, async () => {
+    await Promise.resolve(); throw failure;
+  }, false)).rejects.toBe(failure);
+  expect(state.closed).toBe(state.acquired);
+});
+
+it('waits for an in-flight name write during disposal', async () => {
+  const { ctx, state, cleanups } = fixture(), names = new BiffPropertyNames(ctx, () => {});
+  let entered!: () => void, resume!: () => void;
+  const writing = new Promise<void>(resolve => { entered = resolve; });
+  state.hold = () => { entered(); return new Promise<void>(resolve => { resume = resolve; }); };
+  const adding = names.add('Name'); await writing;
+  const closing = names.close(); expect(state.closed).toBe(0); resume();
+  await expect(adding).rejects.toThrow('closed'); await closing;
+  for (const close of cleanups) await close();
+  expect(state.closed).toBe(1); expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
+});
+
+it.each([false, true])('keeps first supported duplicate-name ownership during observation (unsupported first=%s)', async unsupported => {
+  const fresh = await writeBiffProperties({ sheets: book.sheets, properties: { A: 1, B: 2 } }, context);
+  const bytes = fresh.streams.get('\u0005DocumentSummaryInformation')!;
+  const section = readBiffPropertySections(bytes, () => {}, () => {}).at(-1)!;
+  const values = readBiffPropertyValues(new Binary(bytes.subarray(section.offset, section.end)), () => {}, () => {});
+  const dictionary = values.get(0)!.bytes, view = new DataView(dictionary.buffer, dictionary.byteOffset, dictionary.byteLength);
+  let at = 4;
+  for (let i = 0; i < view.getUint32(0, true); i++) {
+    if (dictionary[at + 8] === 66) dictionary[at + 8] = 65;
+    at += 8 + view.getUint32(at + 4, true);
+  }
+  if (unsupported) {
+    const value = values.get(2)!.bytes; new DataView(value.buffer, value.byteOffset, value.byteLength).setUint32(0, 0xffff, true);
+  }
+  const { ctx, state } = fixture(), observed: unknown[] = [];
+  expect(await readBiffProperties(fresh.streams, ctx, text => text, () => {}, undefined, property => {
+    observed.push([property.key, property.value]);
+  }, false)).toEqual({});
+  expect(observed).toEqual([['A', unsupported ? 2 : 1]]); expect(state.closed).toBe(state.acquired);
 });

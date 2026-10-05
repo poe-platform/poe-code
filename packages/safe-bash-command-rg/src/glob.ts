@@ -5,7 +5,12 @@ import type { GlobDescriptor, Row } from "safe-bash-regex-engine/execution/proto
 import { SearchError } from "./options.js";
 
 export class Glob {
-  constructor(readonly source: string, readonly insensitive = false, readonly literalUnclosedClass = false) {}
+  readonly basenameOnly: boolean;
+  constructor(readonly source: string, readonly insensitive = false, readonly literalUnclosedClass = false) {
+    const pattern = source.endsWith("/") ? source.slice(0, -1) : source;
+    this.basenameOnly = pattern.length > 0 && !pattern.includes("/") && !pattern.includes("**")
+      && !pattern.includes("\\") && !pattern.includes("[") && !pattern.includes("{");
+  }
   async matches(path: string, directory: boolean, session: RegexSession, ancestors = true): Promise<boolean> {
     return (await matchGlobs([this], [{ path, directory, ancestors }], session))[0]!;
   }
@@ -21,10 +26,20 @@ export async function matchGlobs(globs: readonly Glob[], candidates: readonly { 
     while (offset < globs.length && batch.length < 128) {
       const glob = globs[offset]!;
       const candidate = candidates[offset];
-      const size = 48 + glob.source.length * 2 + (candidate ? 32 + candidate.path.length * 2 : 0);
+      let path = candidate?.path;
+      // Plain basename globs cannot match across separators. Keep complex globs,
+      // ancestor matching and non-ASCII validation on the full-path engine route.
+      if (path !== undefined && candidate!.ancestors === false && glob.basenameOnly) {
+        let ascii = true;
+        for (let index = 0; index < path.length; index++) {
+          if (path.charCodeAt(index) > 127) { ascii = false; break; }
+        }
+        if (ascii) path = path.slice(path.lastIndexOf("/") + 1);
+      }
+      const size = 48 + glob.source.length * 2 + (candidate ? 32 + path!.length * 2 : 0);
       if (batch.length && bytes + size > 64 * 1024) break;
       batch.push(glob);
-      if (candidate) rows.push({ bytes: bytesFrom(candidate.path, "utf16le"), all: false, terminated: true, directory: candidate.directory, ancestors: candidate.ancestors ?? true });
+      if (candidate) rows.push({ bytes: bytesFrom(path!, "utf16le"), all: false, terminated: true, directory: candidate.directory, ancestors: candidate.ancestors ?? true });
       bytes += size;
       offset++;
     }

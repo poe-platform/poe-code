@@ -106,3 +106,26 @@ it.each(["xmlNodes", "xmlDepth", "attributes", "text", "nodes", "depth", "refere
     } else {expect(result).toHaveProperty("value"); expect(close).toHaveBeenCalledOnce();}
   } finally {buffered.mockRestore(); expect(await fs.readdir("/")).toEqual([]);}
 });
+
+it("scans long EPUB control token lists without resident token arrays", async () => {
+  const files = parts(), ignored = "ignored-epub-control-" + "x".repeat(8192);
+  files["book.opf"] = files["book.opf"]!.replace('properties="nav"', 'properties="' + ignored + ' nav ' + ignored + '"');
+  files["one.xhtml"] = files["one.xhtml"]!.replace('epub:type="noteref"', 'epub:type="' + ignored + ' noteref ' + ignored + '"');
+  files["two.xhtml"] = files["two.xhtml"]!.replace('epub:type="footnote"', 'epub:type="' + ignored + ' footnote ' + ignored + '"');
+  files["nav.xhtml"] = files["nav.xhtml"]!.replace('epub:type="toc"', 'epub:type="' + ignored + ' toc ' + ignored + '"').replace('</body>', '<nav epub:type="' + ignored + ' landmarks"><a epub:type="' + ignored + ' cover" href="one.xhtml">Cover</a></nav></body>');
+  files["book.opf"] = files["book.opf"]!.replace('</package>', '<guide><reference type="' + ignored + ' cover" href="one.xhtml"/></guide></package>');
+  files["one.xhtml"] = files["one.xhtml"]!.replace('</body>', '<link rel="' + ignored + ' stylesheet" href="style.css"/></body>');
+  const bytes = await archive(files), options = {from: "epub", to: "plain"};
+  const expected = await convert([{bytes}], options, {yield: async () => {}});
+  const split = String.prototype.split;
+  const guard = vi.spyOn(String.prototype, "split").mockImplementation(function (this: string, separator: Parameters<typeof split>[0], limit?: number) {
+    if (this.includes("ignored-epub-control-")) throw new Error("Resident control tokens forbidden");
+    return split.call(this, separator, limit);
+  });
+  const fs = new MemoryFileSystem(); let output = "";
+  try {
+    const actual = await convertToOutput([{bytes}], options, {yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}});
+    expect(expected.kind).toBe("text"); if (expected.kind === "text") expect(output).toBe(expected.text);
+    expect(actual.diagnostics).toEqual(expected.diagnostics);
+  } finally {guard.mockRestore(); expect(await fs.readdir("/")).toEqual([]);}
+});

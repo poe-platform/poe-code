@@ -718,6 +718,11 @@ The public regression forbids the buffered XML parser and whole-file reads,
 poisons reused input chunks, and exercises a slow sink, cancellation, sink failure
 and finite reference/retained-byte budgets. Differential book tests compare spine,
 metadata, navigation/NCX, notes, media, diagnostics and malformed input behavior.
+Control token lists are scanned directly from XML bytes with fixed-size match
+state; unknown and duplicate tokens do not form resident strings or arrays.
+Generated-token tests cover token boundaries, whitespace, Unicode, cancellation,
+and note/navigation/guide/stylesheet semantics. The public workerd fixture rejects
+resident control-token splitting as well as resident XML collections.
 
 This is not complete EPUB qualification. EPUB/PDF/DOCX/PPTX output pairs still use the
 buffered route. URI/manifest control values and some diagnostic strings still

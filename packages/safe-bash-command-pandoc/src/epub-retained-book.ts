@@ -1,3 +1,4 @@
+import {selectEpubTokens} from "./epub-control-tokens.js";
 import type {RetainedXmlDocument, RetainedXmlNode} from "@poe-code/office-xml/retained-xml-document";
 import {equal, literal} from "@poe-code/office-xml/retained-values";
 import {ZipDirectoryIndex} from "@poe-code/office-package/zip";
@@ -30,10 +31,10 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
     const decoder = new TextDecoder(); for await (const chunk of source) yield decoder.decode(chunk, {stream: true}); const tail = decoder.decode(); if (tail) yield tail;
   })()));
   const named = async (xml: RetainedXmlDocument, node: RetainedXmlNode, name: string, uri: string) => node.kind === "element" && await equal(xml.raw(node.localName), literal(name)) && await equal(xml.namespace(node), literal(uri));
-  const attr = async (xml: RetainedXmlDocument, node: RetainedXmlNode, name: string, uri = "") => {
-    for await (const a of xml.attributes(node)) if (await equal(xml.raw(a.localName), literal(name)) && await equal(xml.namespace(a), literal(uri))) return text(xml.text(a));
-    return "";
+  const attrSource = async function* (xml: RetainedXmlDocument, node: RetainedXmlNode, name: string, uri = "") {
+    for await (const a of xml.attributes(node)) if (await equal(xml.raw(a.localName), literal(name)) && await equal(xml.namespace(a), literal(uri))) {yield* xml.text(a); return;}
   };
+  const attr = async (xml: RetainedXmlDocument, node: RetainedXmlNode, name: string, uri = "") => text(attrSource(xml, node, name, uri));
   const children = async function* (xml: RetainedXmlDocument, node: RetainedXmlNode, name: string, uri: string) {
     for await (const child of xml.children(node)) if (await named(xml, child, name, uri)) yield child;
   };
@@ -43,7 +44,6 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
     if (!record) return fail(part, "Missing required EPUB part");
     return openEpubXml(record instanceof Uint8Array ? [record] : archive.partChunks(record), part, ctx);
   };
-  const tokens = (value: string) => value.split(" ").filter(Boolean);
   const metadata = await ast.object(), metaIndex = new ZipDirectoryIndex(storage, {maximumKeyLength: Number.MAX_SAFE_INTEGER});
   const putMeta = async (key: string, value: RtfValue, append = false) => {
     const pointer = await metaIndex.get(key);
@@ -96,7 +96,7 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
       if (!id || !href || await manifest.has(id)) fail(packagePart, "Invalid or duplicate EPUB manifest ID");
       const target = resolve(href, packagePart, ctx);
       if (target.fragment || await manifest.hasPart(target.part)) fail(packagePart, "Ambiguous EPUB manifest part identity");
-      const item: ManifestItem = {ordinal: manifest.size, id, part: target.part, media: await attr(opf, node, "media-type"), properties: tokens(await attr(opf, node, "properties")), fallback: await attr(opf, node, "fallback"), overlay: await attr(opf, node, "media-overlay")};
+      const item: ManifestItem = {ordinal: manifest.size, id, part: target.part, media: await attr(opf, node, "media-type"), properties: await selectEpubTokens(attrSource(opf, node, "properties"), ["nav", "cover-image", "rendition:layout-pre-paginated"], async () => ctx.cooperate()), fallback: await attr(opf, node, "fallback"), overlay: await attr(opf, node, "media-overlay")};
       if (item.properties.includes("rendition:layout-pre-paginated")) fail(item.part, "Fixed-layout EPUB spine is unsupported");
       if (item.media === "text/css") warn(item.part, "Unsupported EPUB CSS styling/layout loss");
       if (item.overlay || item.media === "application/smil+xml") warn(item.part, "Unsupported EPUB media overlay synchronization loss");
@@ -129,7 +129,7 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
         if (node.kind !== "element" || depth > foreignDepth) continue;
         foreignDepth = Infinity;
         if (!await equal(document.namespace(node), literal(ns.xhtml))) {foreignDepth = depth; continue;}
-        const id = await attr(document, node, "id"), type = tokens(await attr(document, node, "type", ns.epub));
+        const id = await attr(document, node, "id"), type = await selectEpubTokens(attrSource(document, node, "type", ns.epub), ["footnote", "endnote", "noteref"], async () => ctx.cooperate());
         if (id) {
           const key = identity(part, id);
           if (await ids.has(key)) fail(part, "Duplicate XHTML fragment identity");
@@ -138,7 +138,7 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
         }
         if (type.includes("noteref")) {const target = resolve(await attr(document, node, "href"), part, ctx); const key = identity(target.part, target.fragment); await noteRefs.add(key); await notes.reference(key);}
         const name = await text(document.raw(node.localName));
-        if (name === "style" || await attr(document, node, "style") || name === "link" && tokens(await attr(document, node, "rel")).includes("stylesheet")) warn(part, "Unsupported EPUB CSS styling/layout loss");
+        if (name === "style" || await attr(document, node, "style") || name === "link" && (await selectEpubTokens(attrSource(document, node, "rel"), ["stylesheet"], async () => ctx.cooperate())).includes("stylesheet")) warn(part, "Unsupported EPUB CSS styling/layout loss");
         if (["audio", "video", "object", "embed", "svg", "math"].includes(name)) warn(part, `Unsupported EPUB media loss: ${name}`);
         if (name === "script" || await attr(document, node, "onload") || await attr(document, node, "onclick")) warn(part, "EPUB script content ignored");
         if (await attr(document, node, "base", "http://www.w3.org/XML/1998/namespace")) fail(part, "Unsupported XHTML xml:base resource identity");
@@ -193,7 +193,7 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
     cover ??= await manifest.get(legacyCover ?? "");
     if (legacyCover !== undefined && !cover) warn(packagePart, "Missing legacy EPUB cover manifest item", "W_RESOURCE_MISSING");
     if (cover && await media(cover.part, true)) await putMeta("cover-image", await ast.tag("MetaString", await ast.value(cover.part)));
-    for await (const group of children(opf, opf.root, "guide", ns.opf)) for await (const ref of children(opf, group, "reference", ns.opf)) if (tokens(await attr(opf, ref, "type")).includes("cover")) {
+    for await (const group of children(opf, opf.root, "guide", ns.opf)) for await (const ref of children(opf, group, "reference", ns.opf)) if ((await selectEpubTokens(attrSource(opf, ref, "type"), ["cover"], async () => ctx.cooperate())).includes("cover")) {
       const target = resolve(await attr(opf, ref, "href"), packagePart, ctx);
       if (!await manifest.hasPart(target.part) || !await archive.hasPart(target.part)) fail(packagePart, "Missing EPUB guide cover page");
       await putMeta("epub-cover-page", await ast.tag("MetaString", await ast.value(target.part)));
@@ -258,10 +258,10 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
         while (await ast.count(jobs)) {
           const job = (await ast.edge(jobs, true))!; await ast.remove(jobs, true);
           const node = await document.node(Number(await valueText((await ast.at(job, 0))!))), destination = (await ast.at(job, 3))!;
-          const isNav = !ncx && await named(document, node, "nav", ns.xhtml), types = isNav ? tokens(await attr(document, node, "type", ns.epub)) : [];
+          const isNav = !ncx && await named(document, node, "nav", ns.xhtml), types = isNav ? await selectEpubTokens(attrSource(document, node, "type", ns.epub), ["toc", "landmarks"], async () => ctx.cooperate()) : [];
           const inside = !!await valueText((await ast.at(job, 1))!) || isNav && types.includes("toc");
           const landmarks = !!await valueText((await ast.at(job, 2))!) || isNav && types.includes("landmarks");
-          if (landmarks && await named(document, node, "a", ns.xhtml) && tokens(await attr(document, node, "type", ns.epub)).includes("cover")) {
+          if (landmarks && await named(document, node, "a", ns.xhtml) && (await selectEpubTokens(attrSource(document, node, "type", ns.epub), ["cover"], async () => ctx.cooperate())).includes("cover")) {
             const ref = resolve(await attr(document, node, "href"), item.part, ctx);
             if (!await manifest.hasPart(ref.part) || !await archive.hasPart(ref.part)) fail(item.part, "Missing EPUB landmark cover page");
             await putMeta("epub-cover-page", await ast.tag("MetaString", await ast.value(ref.part)));

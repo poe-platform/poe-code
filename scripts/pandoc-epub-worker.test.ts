@@ -121,6 +121,10 @@ it.each(["sdk", "command"].flatMap(mode => ["plain", "html5"].map(to => ({mode, 
       files['chapter.xhtml'] = files['chapter.xhtml'].replace('<html ', '<html xmlns:epub="http://www.idpf.org/2007/ops" ').replace('</body>', '<p><a epub:type="noteref" href="notes.xhtml#note">1</a></p></body>');
       files['notes.xhtml'] = '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><body><aside id="note" epub:type="footnote"><p>External note.</p></aside></body></html>';
       files['package.opf'] = files['package.opf'].replace('</manifest>', '<item id="notes" href="notes.xhtml" media-type="application/xhtml+xml"/></manifest>');
+      const controlPadding = 'ignored-epub-control '.repeat(64);
+      files['package.opf'] = files['package.opf'].replace('id="chapter"', 'id="chapter" properties="' + controlPadding + '"');
+      files['chapter.xhtml'] = files['chapter.xhtml'].replace('epub:type="noteref"', 'epub:type="' + controlPadding + 'noteref"');
+      files['notes.xhtml'] = files['notes.xhtml'].replace('epub:type="footnote"', 'epub:type="' + controlPadding + 'footnote"');
       const entries = [];
       for (const [name, value] of Object.entries(files)) entries.push(await zip.makeZipEntry(name, new TextEncoder().encode(value), {modified: new Date('1980-01-01T00:00:00Z'), mode: 0o100644, directory: false, symlink: false, compression: 'store'}, limits, signal));
       await env.PAGES.put('/input.epub', await zip.writeZipArchive({entries, comment: new Uint8Array()}, limits, signal));
@@ -138,7 +142,7 @@ it.each(["sdk", "command"].flatMap(mode => ["plain", "html5"].map(to => ({mode, 
       const originalAdd = Set.prototype.add;
       Set.prototype.add = function(value) {if (typeof value === 'string' && (value.startsWith('fallback-id-') || value.startsWith('chapter.xhtml#'))) throw new Error('Resident fallback membership forbidden'); return originalAdd.call(this, value);};
       const originalSplit = String.prototype.split;
-      String.prototype.split = function(...args) {if (String(this).includes('unused/../')) throw new Error('Whole URI component array forbidden'); return originalSplit.apply(this, args);};
+      String.prototype.split = function(...args) {if (String(this).includes('ignored-epub-control')) throw new Error('Resident control tokens forbidden'); if (String(this).includes('unused/../')) throw new Error('Whole URI component array forbidden'); return originalSplit.apply(this, args);};
       let output = '', errors = '', result;
       const stdout = {async write(bytes) {await Promise.resolve(); output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}};
       try {

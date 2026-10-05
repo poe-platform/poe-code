@@ -69,3 +69,65 @@ for (const [name, input] of [...independentFixtures.map(([name, input]) => [name
     } finally { await storage.close(); }
   });
 }
+
+test("edge sibling selectors do not rescan the full parent for every candidate", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const options = { signal: new AbortController().signal };
+  const storage = new PagedStorage({ fs, cwd: "/scratch", env: {}, ...options }, 2);
+  let checking = false, reads = 0;
+  const tree = new DocumentStore(storage, () => { if (checking && ++reads > 20000) throw new Error("Quadratic sibling scan"); });
+  const text = new TextStore(storage), name = await text.from("p"), root = await tree.create("document");
+  let first = 0, last = 0;
+  try {
+    for (let i = 0; i < 256; i++) {
+      const node = await tree.create("element", { name }); await tree.attach(root, node);
+      if (!first) first = node; last = node;
+      await tree.attach(root, await tree.create("comment"));
+    }
+    checking = true;
+    for (const [selector, expected] of [["p:first-child", first], ["p:last-child", last], ["p:first-of-type", first], ["p:last-of-type", last], ["p:only-child", 0], ["p:only-of-type", 0], ["p:nth-child(256)", last], ["p:nth-last-child(256)", first], ["p:nth-of-type(256)", last], ["p:nth-last-of-type(256)", first]] as const) {
+      reads = 0;
+      const actual = [];
+      for await (const node of selectStoredHtml(root, selector, tree, text, storage, options)) actual.push(node);
+      assert.deepEqual(actual, expected ? [expected] : []);
+      assert.ok(reads < 256 * 30, `${selector}: ${reads} reads`);
+    }
+  } finally { await storage.close(); }
+});
+
+test("stored sibling ranks follow mutations during live selection", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const options = { signal: new AbortController().signal };
+  const storage = new PagedStorage({ fs, cwd: "/scratch", env: {}, ...options }, 2);
+  const tree = new DocumentStore(storage), text = new TextStore(storage);
+  const root = await tree.create("document"), nodes = [];
+  try {
+    for (let i = 0; i < 4; i++) {
+      const node = await tree.create("element", { name: await text.from("p") });
+      nodes.push(node); await tree.attach(root, node);
+    }
+    const selected = selectStoredHtml(root, ":nth-child(2n+1)", tree, text, storage, options);
+    assert.equal((await selected.next()).value, nodes[0]);
+    await tree.detach(nodes[1]!);
+    assert.equal((await selected.next()).value, nodes[3]);
+    assert.equal((await selected.next()).done, true);
+  } finally { await storage.close(); }
+});
+
+test("stored type ranks distinguish namespaces, equal ropes and colliding names", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const options = { signal: new AbortController().signal };
+  const storage = new PagedStorage({ fs, cwd: "/scratch", env: {}, ...options }, 2);
+  const tree = new DocumentStore(storage), text = new TextStore(storage);
+  const root = await tree.create("document"), expected = [];
+  const long = "x".repeat(2050);
+  try {
+    for (const [name, namespace, second] of [[long, "html", false], [long, "svg", false], [long, "html", true], [long, "svg", true], ["costarring", "html", false], ["liquid", "html", false], ["costarring", "html", true], ["liquid", "html", true]] as const) {
+      const node = await tree.create("element", { name: await text.from(name), namespace });
+      await tree.attach(root, node); if (second) expected.push(node);
+    }
+    const actual = [];
+    for await (const node of selectStoredHtml(root, ":nth-of-type(2)", tree, text, storage, options)) actual.push(node);
+    assert.deepEqual(actual, expected);
+  } finally { await storage.close(); }
+});

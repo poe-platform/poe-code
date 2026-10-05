@@ -23,6 +23,8 @@ export interface StoredHtmlAttribute {
 /** Fixed-width DOM records. Text fields are references to caller-backed text;
  * node identity is its storage offset, with no resident node registry. */
 export class DocumentStore {
+  private mutations = 0;
+  get revision(): number { return this.mutations; }
   private readonly nodes = new Map<number, StoredHtmlNode>();
   get residentNodes(): number { return this.nodes.size; }
   private retain(node: StoredHtmlNode): void {
@@ -60,6 +62,7 @@ export class DocumentStore {
     view.setFloat64(8, namespaces.indexOf(node.namespace), true);
     for (const [index, field] of fields.entries()) view.setFloat64(16 + index * 8, node[field], true);
     this.nodes.delete(id);
+    this.mutations++;
     await this.storage.write(id, bytes);
     this.retain(node);
   }

@@ -1,4 +1,4 @@
-import type { PagedStorage } from "@poe-code/safe-fs/storage";
+import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import type { TextStore } from "safe-bash-command-html-to-markdown/stored-text";
 import { HtmlBudget, type HtmlOptions } from "./contracts.js";
 import { DocumentStore, StoredSequence, type StoredHtmlNode } from "./document-store.js";
@@ -13,8 +13,13 @@ function lower(value: string): string {
 /** Comparisons retain only rope windows and the caller-supplied selector text. */
 export class StoredQueries {
   private readonly pending: StoredSequence;
-  constructor(readonly tree: DocumentStore, readonly text: TextStore, storage: PagedStorage, readonly budget: HtmlBudget) {
+  private revision = -1;
+  private ranks: IntegerTable;
+  private rankParents: IntegerTable;
+  constructor(readonly tree: DocumentStore, readonly text: TextStore, private readonly storage: PagedStorage, readonly budget: HtmlBudget) {
     this.pending = new StoredSequence(storage);
+    this.ranks = new IntegerTable(storage, 64);
+    this.rankParents = new IntegerTable(storage, 64);
   }
 
   async literal(root: number, expected: string, insensitive = false, prefix = false): Promise<boolean> {
@@ -95,6 +100,65 @@ export class StoredQueries {
     return false;
   }
 
+  /** Build sibling ordinals once per parent; type totals are shared stored
+   * counters. Mutation invalidates indexes, while both resident caches stay fixed. */
+  private async rank(node: StoredHtmlNode, typed: boolean): Promise<readonly [number, number]> {
+    if (!node.parent) return [0, 0];
+    if (this.revision !== this.tree.revision) {
+      this.ranks = new IntegerTable(this.storage, 64);
+      this.rankParents = new IntegerTable(this.storage, 64);
+      this.revision = this.tree.revision;
+    }
+    const flag = BigInt(Number(typed)), parentKey = BigInt(node.parent) * 2n + flag;
+    let total = await this.rankParents.get(parentKey);
+    if (total === undefined) {
+      let count = 0;
+      const families = new IntegerTable(this.storage, 64);
+      for await (const id of this.tree.children(node.parent)) {
+        this.budget.charge("work", 1);
+        const child = await this.tree.read(id);
+        if (child.kind !== "element") continue;
+        count++;
+        let position = count;
+        if (typed) {
+          let hash = 2166136261;
+          for await (const chunk of this.text.chunks(child.name)) {
+            this.budget.charge("work", chunk.length);
+            for (let i = 0; i < chunk.length; i++) hash = Math.imul(hash ^ chunk.charCodeAt(i), 16777619) >>> 0;
+          }
+          const key = BigInt(hash) * 4n + BigInt(child.namespace === "html" ? 0 : child.namespace === "svg" ? 1 : 2);
+          const first = Number(await families.get(key) ?? 0n);
+          let counter = first, ordinal = 1;
+          while (counter) {
+            const bytes = await this.storage.read(counter, 24), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+            if (await this.equal(child.name, view.getFloat64(8, true))) { ordinal = view.getFloat64(16, true) + 1; break; }
+            counter = view.getFloat64(0, true);
+          }
+          if (!counter) {
+            const bytes = new Uint8Array(24), view = new DataView(bytes.buffer);
+            view.setFloat64(0, first, true); view.setFloat64(8, child.name, true); view.setFloat64(16, 1, true);
+            counter = await this.storage.append(bytes); await families.set(key, BigInt(counter));
+          } else {
+            const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, ordinal, true);
+            await this.storage.write(counter + 16, bytes);
+          }
+          const bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
+          view.setFloat64(0, ordinal, true); view.setFloat64(8, counter + 16, true);
+          position = await this.storage.append(bytes);
+        }
+        this.budget.charge("retainedBytes", typed ? 48 : 16);
+        await this.ranks.set(BigInt(id) * 2n + flag, BigInt(position));
+      }
+      total = BigInt(count); await this.rankParents.set(parentKey, total);
+    }
+    const position = await this.ranks.get(BigInt(node.id) * 2n + flag);
+    if (position === undefined) return [0, 0];
+    if (!typed) return [Number(position), Number(total)];
+    const bytes = await this.storage.read(Number(position), 16), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const count = await this.storage.read(view.getFloat64(8, true), 8);
+    return [view.getFloat64(0, true), new DataView(count.buffer, count.byteOffset, count.byteLength).getFloat64(0, true)];
+  }
+
   private async previous(id: number): Promise<number> {
     let n = (await this.tree.read(id)).previous;
     while (n) {
@@ -144,12 +208,23 @@ export class StoredQueries {
       return true;
     }
     if (["visited", "active", "focus", "hover", "enabled", "disabled", "checked", "indeterminate"].includes(p)) return false;
-    let index = 0, count = 0;
-    if (node.parent) for await (const child of this.tree.children(node.parent)) {
-      budget.charge("work", 1); const n = await this.tree.read(child);
-      if (n.kind !== "element" || p.includes("of-type") && (n.namespace !== node.namespace || !await this.equal(n.name, node.name))) continue;
-      count++; if (child === node.id) index = count;
+    if (!p.includes("of-type") && (p.startsWith("first-") || p.startsWith("last-") || p.startsWith("only-"))) {
+      if (!node.parent) return false;
+      const sibling = async (direction: "previous" | "next"): Promise<boolean> => {
+        for (let id = node[direction]; id;) {
+          budget.charge("work", 1);
+          const other = await this.tree.read(id);
+          if (other.kind === "element") return true;
+          id = other[direction];
+        }
+        return false;
+      };
+      if (p.startsWith("first-")) return !await sibling("previous");
+      if (p.startsWith("last-")) return !await sibling("next");
+      return !await sibling("previous") && !await sibling("next");
     }
+    const [ordinal, count] = await this.rank(node, p.includes("of-type"));
+    let index = ordinal;
     if (!index) return false;
     if (p.startsWith("first-")) return index === 1;
     if (p.startsWith("last-")) return index === count;

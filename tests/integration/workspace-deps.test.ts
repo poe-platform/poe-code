@@ -106,20 +106,14 @@ describe("workspace dependency completeness", () => {
     });
   });
 
-  it("all packages with tests are listed in root dependencies", () => {
-    const rootPkg = readJson(path.join(ROOT, "package.json")) as {
-      dependencies: Record<string, string>;
-      devDependencies: Record<string, string>;
-    };
-    const rootDeps = new Set([...Object.keys(rootPkg.dependencies), ...Object.keys(rootPkg.devDependencies)]);
-    const packagesWithTests = getWorkspacePackagesWithTests();
-    const missing = packagesWithTests.filter((name) => !rootDeps.has(name));
-
-    expect(missing, [
-      "These workspace packages have test files but are not in root dependencies.",
-      "Turbo's ^build for //#test:unit only builds packages listed as root dependencies.",
-      "Add them to devDependencies in the root package.json:",
-      ...missing.map((name) => `  "${name}": "*"`)
-    ].join("\n")).toEqual([]);
+  it("schedules each package with tests once through its declared unit task", () => {
+    const scheduled = sharedVitestStages(plan).flatMap(stage => stage.event === "test:unit:shared"
+      ? stage.phases.map(phase => phase.name)
+      : [stage.name]);
+    for (const name of getWorkspacePackagesWithTests()) {
+      expect(scheduled.filter(owner => owner === name),
+        `Expected one maintained unit task for ${name}; declare test:unit in its workspace package.json.`
+      ).toEqual([name]);
+    }
   });
 });

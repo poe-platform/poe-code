@@ -3,9 +3,9 @@ import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosRef, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { PdfError } from "../errors.js";
 import type { PdfIndexStorage } from "./object-index.js";
-import { pdfOutputStreamDictionary, type PdfSerializedOutputObject, type PdfRetainedOutputObject } from "./retained-writer.js";
+import { type PdfSerializedOutputObject, type PdfRetainedOutputObject } from "./retained-writer.js";
 import { parseCosRangeValue, type ParseCosRangeOptions } from "./range-parser.js";
-import { serializeCosNodeChunks } from "./writer.js";
+import { serializeRetainedCosNodeChunks } from "./retained-node-writer.js";
 
 // Outside the safe integer range used by backing offsets; valid in IntegerTable.
 const DELETED_OBJECT = 0xfffffffffffffffen;
@@ -129,7 +129,7 @@ export class PdfMutableObjectStore {
     // Admit the declared payload before traversing or consuming it.
     if (length + 64 > this.maxBytes - this.reserved) throw new PdfError("E_LIMIT", "PDF mutable backing byte limit exceeded");
     const recordAt = this.reserve(64), valueAt = this.reserve(0); let valueLength = 0, work = 0;
-    for (const bytes of serializeCosNodeChunks(object.value, { chunkBytes: 16384, maxRecursionDepth: this.options.maxRecursionDepth ?? Infinity, signal: this.signal })) {
+    for await (const bytes of serializeRetainedCosNodeChunks(object.value, { chunkBytes: 16384, maxOutputBytes: this.maxBytes - this.reserved - length, maxRecursionDepth: this.options.maxRecursionDepth ?? Infinity, signal: this.signal })) {
       const at = this.reserve(bytes.length); await this.backing.write(at, bytes); valueLength += bytes.length;
       if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
     }
@@ -147,7 +147,7 @@ export class PdfMutableObjectStore {
     let outputValueAt = valueAt, outputValueLength = valueLength;
     if (object.stream) {
       outputValueAt = this.reserve(0); outputValueLength = 0;
-      for (const bytes of serializeCosNodeChunks(pdfOutputStreamDictionary(object.value, length), { chunkBytes: 16384, maxRecursionDepth: this.options.maxRecursionDepth ?? Infinity, signal: this.signal })) {
+      for await (const bytes of serializeRetainedCosNodeChunks(object.value, { streamLength: length, chunkBytes: 16384, maxOutputBytes: this.maxBytes - this.reserved, maxRecursionDepth: this.options.maxRecursionDepth ?? Infinity, signal: this.signal })) {
         await this.backing.write(this.reserve(bytes.length), bytes); outputValueLength += bytes.length;
         if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
       }

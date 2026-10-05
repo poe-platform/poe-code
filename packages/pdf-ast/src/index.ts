@@ -122,3 +122,5 @@ export { streamLogicalTextChunks, type PdfLogicalTextOptions } from "./extract/l
 export { encodePostscriptPageChunks } from "./render/postscript.js";
 
 export { CompactPdfNumber } from "./cos/compact-number.js";
+
+export { serializeRetainedCosNodeChunks } from "./cos/retained-node-writer.js";

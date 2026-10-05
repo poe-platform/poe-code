@@ -248,13 +248,10 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
   }
 
   type Output = { length: number; chunks(): AsyncIterable<Uint8Array> };
-  const encodeSection = async (section: Section): Promise<Output> => {
+  const encodeSection = (section: Section): Output => {
     if (!section.values) return { length: section.bytes.size, chunks: () => chunks(section.bytes) };
     const values = section.values;
-    let length = 8 + values.size * 8;
-    for await (const [, value] of values.entries()) length += Math.ceil(value.size / 4) * 4;
-    // Buffered output charges the section size here, as the old allocation did.
-    reserve(length);
+    const length = values.serializedSize;
     return { length, async *chunks() {
       const header = new Uint8Array(8), view = new DataView(header.buffer);
       view.setUint32(0, length, true); view.setUint32(4, values.size, true); yield header;
@@ -273,30 +270,43 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
   };
   for (const name of new Set([...streams.keys(), ...snapshots.keys()])) {
     for (const section of fresh.get(name) ?? []) charge(1 + section.values!.size);
-    const remaining: Section[] = [];
-    for (const section of fresh.get(name) ?? []) {
-      for await (const [id] of section.values!.entries()) if (id >= 2) { remaining.push(section); break; }
+    const remaining = async function* (): AsyncIterable<Section> {
+      for (const section of fresh.get(name) ?? []) {
+        charge(1);
+        for await (const [id] of section.values!.entries()) {
+          charge(1); if (id >= 2) { yield section; break; }
+        }
+      }
+    };
+    let custom = false, document = false;
+    if (!old.has(name)) for await (const section of remaining()) {
+      custom ||= section.guid === biffPropertyFormats.custom;
+      document ||= section.guid === biffPropertyFormats.document;
     }
-    if (!old.has(name) && remaining.some(section => section.guid === biffPropertyFormats.custom) &&
-      !remaining.some(section => section.guid === biffPropertyFormats.document)) {
-      const builtin = fresh.get(name)?.find(section => section.guid === biffPropertyFormats.document);
-      if (builtin) remaining.unshift(builtin);
+    const builtin = custom && !document ? fresh.get(name)?.find(section => section.guid === biffPropertyFormats.document) : undefined;
+    const sections = async function* (): AsyncIterable<Section> {
+      yield* old.get(name) ?? [];
+      if (builtin) yield builtin;
+      yield* remaining();
+    };
+    let count = 0, length = 28;
+    for await (const section of sections()) {
+      charge(1); count++;
+      const size = section.values?.serializedSize ?? section.bytes.size;
+      if (section.values) reserve(size);
+      length += 20 + size;
     }
-    const sections = [...old.get(name) ?? [], ...remaining];
-    if (!sections.length) { streams.delete(name); continue; }
-    const bodies: Output[] = [];
-    for (const section of sections) bodies.push(await encodeSection(section));
-    const length = 28 + sections.length * 20 + bodies.reduce((sum, body) => sum + body.length, 0);
+    if (!count) { streams.delete(name); continue; }
     const originalHeader = await (snapshots.get(name)?.bytes ?? propertyRange(streams.get(name)!, context)).read(0, 28);
     const output: Output = { length, async *chunks() {
-      const header = new Uint8Array(originalHeader); new DataView(header.buffer).setUint32(24, sections.length, true); yield header;
-      let at = 28 + sections.length * 20;
-      for (let i = 0; i < sections.length; i++) {
+      const header = new Uint8Array(originalHeader); new DataView(header.buffer).setUint32(24, count, true); yield header;
+      let at = 28 + count * 20;
+      for await (const section of sections()) {
         charge(1); const entry = new Uint8Array(20), view = new DataView(entry.buffer);
-        for (let j = 0; j < 16; j++) entry[j] = parseInt(sections[i]!.guid.slice(j * 2, j * 2 + 2), 16);
-        view.setUint32(16, at, true); yield entry; at += bodies[i]!.length;
+        for (let j = 0; j < 16; j++) entry[j] = parseInt(section.guid.slice(j * 2, j * 2 + 2), 16);
+        view.setUint32(16, at, true); yield entry; at += section.values?.serializedSize ?? section.bytes.size;
       }
-      for (const body of bodies) yield* body.chunks();
+      for await (const section of sections()) yield* encodeSection(section).chunks();
     } };
     if (staged) {
       reserve(length); staged.sources.set(name, await stagePropertyBytes(output, context));

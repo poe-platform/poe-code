@@ -655,6 +655,45 @@ it.each([false, true])('streams borrowed property fragments into atomic payload 
   expect(state.closed).toBe(state.acquired);
 });
 
+it.each([false, true])('tracks serialized property sizes through replacement, deletion and failed producers (stored=%s)', async stored => {
+  const { ctx, state } = fixture(), active = stored ? ctx : context;
+  const values = new BiffMutablePropertyValues(active, () => {});
+  try {
+    expect(values.serializedSize).toBe(8);
+    await values.set(1, propertyRange(new Uint8Array(3), active)); expect(values.serializedSize).toBe(20);
+    await values.set(2, propertyRange(new Uint8Array(9), active)); expect(values.serializedSize).toBe(40);
+    await values.set(1, propertyRange(new Uint8Array(5), active)); expect(values.serializedSize).toBe(44);
+    await expect(values.set(1, { size: 20, async *chunks() { yield new Uint8Array(1); } })).rejects.toThrow('serialization');
+    expect(values.serializedSize).toBe(44);
+    await values.delete(2); expect(values.serializedSize).toBe(24);
+    await values.delete(2); expect(values.serializedSize).toBe(24);
+    await values.set(2, propertyRange(new Uint8Array(0), active)); expect(values.serializedSize).toBe(32);
+    await values.set(1, { size: 1, async *chunks() { yield new Uint8Array(1); } }); expect(values.serializedSize).toBe(28);
+  } finally { await values.close(); }
+  expect(state.closed).toBe(state.acquired);
+});
+
+it('replays merged sections without retaining output plans', async () => {
+  const seed = { sheets: book.sheets, properties: { 'dc:title': 'old' } }, stream = '\u0005SummaryInformation';
+  const fresh = await writeBiffProperties(seed, context), bytes = fresh.streams.get(stream)!;
+  const input = { ...seed, properties: { 'dc:title': 'new', Custom: 3 }, unsupportedRecords: [{
+    source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+    data: { stream, bytes: Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('') }
+  }] };
+  const expected = await writeBiffProperties(input, context), { ctx, state } = fixture(), push = Array.prototype.push;
+  Array.prototype.push = function (this: unknown[], ...items: unknown[]) {
+    for (const item of items) if (item && typeof item === 'object' && 'length' in item && 'chunks' in item &&
+      typeof item.length === 'number' && typeof item.chunks === 'function') throw new Error('resident section output plans');
+    return push.apply(this, items);
+  };
+  try {
+    const actual = await writeBiffProperties(input, ctx, true);
+    try { for (const [name, source] of actual.streams) expect(await source.read(0, source.size)).toEqual(expected.streams.get(name)); }
+    finally { await actual.close(); }
+  } finally { Array.prototype.push = push; }
+  expect(state.closed).toBe(state.acquired);
+});
+
 it('preserves mutable property insertion order and detached payloads beyond the index cache', async () => {
   const { ctx, state, cleanups } = fixture(), values = new BiffMutablePropertyValues(ctx, () => {});
   const range = (id: number) => { const bytes = new Uint8Array(4); new DataView(bytes.buffer).setUint32(0, id, true); return propertyRange(bytes, ctx); };
@@ -670,7 +709,7 @@ it('preserves mutable property insertion order and detached payloads beyond the 
       ids.push(id); expect(await value.u32(0)).toBe(id === 5 ? 55 : id === 2 ? 22 : id);
     }
     expect(ids).toEqual([...Array.from({ length: 300 }, (_, i) => i).filter(id => id !== 2), 2]);
-    expect(values.size).toBe(300);
+    expect(values.size).toBe(300); expect(values.serializedSize).toBe(3608);
     const first = (await values.get(0))!, last = (await values.get(299))!;
     expect(await Promise.all([first.u32(0), last.u32(0)])).toEqual([0, 299]);
     await values.close(); await expect(first.u32(0)).rejects.toThrow('closed');

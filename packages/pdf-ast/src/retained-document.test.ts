@@ -315,3 +315,21 @@ it("bounds generator depth while resolving annotation page numbers", async () =>
   try{expect(await f.doc.annotationPageNumber(cosRef(depth+3))).toBe(2);expect(await f.doc.annotationPageNumber(cosRef(9999))).toBeUndefined();expect(peak).toBeLessThan(32);expect(peakArray).toBeLessThanOrEqual(128);}
   finally{prototype.next=next;Array.prototype.push=push;await f.close();}
 });
+
+it("retains styled text font names through page evaluation", async () => {
+  const bytes = inheritedPdf(), expected = PdfDocument.load(bytes).getPage(0).extractPage();
+  const f = await fixture(bytes);
+  try {
+    for await (const page of f.doc.pages()) {
+      const index = await page.indexText({ fs: f.fs, directory: "/scratch" }, { mode: "layout", retainFontNames: true });
+      try {
+        const names: string[] = [];
+        for await (const block of index.blocks()) for await (const line of block.lines()) for await (const word of line.words()) {
+          let name = ""; for await (const part of word.fontName!()) name += part; names.push(name);
+        }
+        expect(names).toEqual(expected.blocks.flatMap(block => block.lines.flatMap(line => line.words.map(word => word.fontName))));
+        expect(names.length).toBeGreaterThan(0);
+      } finally { await index.close(); }
+    }
+  } finally { await f.close(); }
+});

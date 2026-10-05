@@ -265,3 +265,51 @@ it("charges all coexisting text storage owners to the same limit", async () => {
   await expect(PdfRawTextIndex.create([glyph('a',0,80)],{fs,directory:'/scratch'},{mode:'bbox',maxStorageBytes:16384})).rejects.toMatchObject({code:'E_LIMIT'});
   expect(await fs.readdir('/scratch')).toEqual([]);
 });
+for(const mode of ['raw','layout','logical'] as const)it(`retains first-word font names in bounded caller storage (${mode})`,async()=>{
+ const fs=createMemoryFileSystem();await fs.mkdir('/scratch');const fontName='BoldItalic😀'.repeat(8192);
+ const index=await PdfRawTextIndex.create([glyph('first',0,80,{fontName}),glyph('second',100,80,{fontName:'Other'})],{fs,directory:'/scratch'},{mode,retainFontNames:true,pageWidth:200});
+ try{const names:string[]=[];for await(const block of index.blocks())for await(const line of block.lines())for await(const word of line.words()){let name='';expect(word.fontName).toBeTypeOf('function');for await(const part of word.fontName!()){expect(part.length).toBeLessThanOrEqual(2049);name+=part;await Promise.resolve();}names.push(name);}expect(names).toEqual([fontName,'Other']);}finally{await index.close();}expect(await fs.readdir('/scratch')).toEqual([]);
+});
+
+for (const mode of ["raw", "layout", "logical"] as const) it(`streams backed font names and retires their storage (${mode})`, async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  let reads = 0;
+  const storedFontName = { position: 0, byteLength: 131072, storage: {
+    allocate() { throw new Error("read-only"); }, async write() { throw new Error("read-only"); },
+    async read(_at: number, length: number) {
+      reads++; expect(length).toBeLessThanOrEqual(4096);
+      const bytes = new Uint8Array(length);
+      for (let i = 1; i < length; i += 2) bytes[i] = 65;
+      return bytes;
+    }
+  } };
+  const index = await PdfRawTextIndex.create([{ ...glyph("word", 0, 80), storedFontName }], { fs, directory: "/scratch" }, { mode, retainFontNames: true });
+  let saved: import("./raw-text-index.js").PdfStoredTextWord | undefined;
+  try {
+    for await (const block of index.blocks()) for await (const line of block.lines()) for await (const word of line.words()) {
+      saved = word; let length = 0;
+      for await (const part of word.fontName!()) { expect(part).toBe("A".repeat(part.length)); length += part.length; }
+      expect(length).toBe(65536);
+    }
+    expect(reads).toBe(32);
+  } finally { await index.close(); }
+  await expect(saved!.fontName!().next()).rejects.toThrow("closed");
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("charges retained font bytes before storage writes and closes the source on failure", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); let retired = false;
+  async function* source() { try { yield glyph("word", 0, 80, { fontName: "A".repeat(65536) }); } finally { retired = true; } }
+  await expect(PdfRawTextIndex.create(source(), { fs, directory: "/scratch" }, { retainFontNames: true, maxStorageBytes: 16384 })).rejects.toMatchObject({ code: "E_LIMIT" });
+  expect(retired).toBe(true); expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it.each([-1, 0.5, Number.MAX_SAFE_INTEGER])("rejects an invalid retained font range before reading (%s)", async position => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); let read = false;
+  const storedFontName = { position, byteLength: 2, storage: {
+    allocate() { throw new Error("read-only"); }, async write() { throw new Error("read-only"); },
+    async read() { read = true; return new Uint8Array([0, 65]); }
+  } };
+  await expect(PdfRawTextIndex.create([{ ...glyph("word", 0, 80), storedFontName }], { fs, directory: "/scratch" }, { retainFontNames: true })).rejects.toThrow("Invalid stored glyph text range");
+  expect(read).toBe(false); expect(await fs.readdir("/scratch")).toEqual([]);
+});

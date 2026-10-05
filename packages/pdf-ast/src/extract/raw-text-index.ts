@@ -1,7 +1,7 @@
 import {PdfTextRecordOrder} from "./text-record-order.js";
 import {logicalTextGlyphs} from "./logical-text-glyphs.js";
 import {orderedTextGlyphs,type PdfOrderedTextGlyph} from "./ordered-text-glyphs.js";
-import { glyphText, sameReplacement, type PdfTextGlyph } from "./stored-text-glyphs.js";
+import { glyphText, glyphFontName, sameReplacement, type PdfTextGlyph } from "./stored-text-glyphs.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { PdfRect } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -18,6 +18,8 @@ export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discar
   readonly maxStorageBytes?: number;
   /** Required page geometry for logical column classification. */
   readonly pageWidth?: number;
+  /** Retain first-glyph font names on each word for styled extraction. */
+  readonly retainFontNames?:boolean;
   /** Fixed scratch: 81920 bytes for string inputs, 131072 when decoding stored
    * replacements, 327680 for geometric order, 409600 for logical column order (three caches and normalization). Caller-owned glyph strings are not included. */
   readonly maxWorkingBytes?: number;
@@ -27,6 +29,7 @@ export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discar
   readonly signal?: AbortSignal;
 }
 export interface PdfStoredTextWord {
+  fontName?():AsyncGenerator<string,void,void>;
   readonly bbox: PdfRect;
   readonly fontSize: number;
   text(): AsyncGenerator<string, void, void>;
@@ -81,7 +84,7 @@ export class PdfRawTextIndex {
     const position = this.backing.allocate(length); this.allocated = end; return position;
   }
   private async writeRecord(position: number, values: readonly number[]) {
-    const bytes = new Uint8Array(64), view = new DataView(bytes.buffer);
+    const bytes = new Uint8Array(values.length*8), view = new DataView(bytes.buffer);
     values.forEach((value, index) => view.setFloat64(index * 8, value)); await this.backing.write(position, bytes);
   }
   private async link(position: number, next: number) {
@@ -112,12 +115,12 @@ export class PdfRawTextIndex {
     type Line = { direction: ReturnType<typeof glyphDirection>; referenceSize: number; baseline: number; firstWord: number; lastWord: number; count: number; bbox?: Box; fontSize: number; prefix: string; prefixStarted: boolean };
     type Block = { kind: number; firstLine: number; count: number; bbox: Box };
     let line: Line | undefined, block: Block | undefined, previousLine: { bbox: Box; baseline: number; fontSize: number } | undefined;
-    let word: { position: number; start: number; units: number; bbox: Box; fontSize: number } | undefined;
+    let word: { position: number; start: number; units: number; bbox: Box; fontSize: number; fontPosition:number; fontUnits:number } | undefined;
     let previousGlyph: { along: number; advance: number; fontSize: number } | undefined;
     let wordCount = 0, lineCount = 0, lastLine = 0, lastBlock = 0, work = 0;
     const flushWord = async () => {
       if (!word || !line) return;
-      await this.writeRecord(word.position, [0, word.start, word.units, ...word.bbox, word.fontSize]);
+      await this.writeRecord(word.position, [0, word.start, word.units, ...word.bbox, word.fontSize,...(this.options.retainFontNames?[word.fontPosition,word.fontUnits]:[])]);
       await this.link(line.lastWord, word.position); line.firstWord ||= word.position; line.lastWord = word.position;
       if (!line.count++) line.fontSize = word.fontSize;
       line.bbox = line.bbox ? mergeBBox(line.bbox, word.bbox) : word.bbox; word = undefined; previousGlyph = undefined;
@@ -166,7 +169,9 @@ export class PdfRawTextIndex {
         };
         if (!word) {
           if (wordCount >= maximum(this.options.maxWords)) throw new PdfError("E_LIMIT", "PDF text word limit exceeded");
-          const position = this.allocate(64); word = { position, start: position + 64, units: 0, bbox: [...glyph.bbox], fontSize: glyph.fontSize }; wordCount++;
+          let fontPosition=0,fontUnits=0;
+          if(this.options.retainFontNames){fontPosition=this.allocate(0);for await(const part of glyphFontName(glyph,this.signal)){await this.appendText(part);fontUnits+=part.length;}}
+          const recordBytes=this.options.retainFontNames?80:64,position = this.allocate(recordBytes); word = { position, start: position + recordBytes, units: 0, bbox: [...glyph.bbox], fontSize: glyph.fontSize,fontPosition,fontUnits }; wordCount++;
           if (line.count) observe(" ");
         }
         let lookahead = next;
@@ -191,7 +196,8 @@ export class PdfRawTextIndex {
         // Paint captures/outlines are irrelevant to text grouping. Do not retain
         // them with ActualText's one pending normalized glyph.
         const projected: PdfRawTextGlyph = { charCode: glyph.charCode, unicode: glyph.unicode, bbox: [...glyph.bbox], baselineY: glyph.baselineY,
-          advanceWidth: glyph.advanceWidth, matrix: [...glyph.matrix], fontSize: glyph.fontSize, fontName: "", color: { r: 0, g: 0, b: 0 },
+          advanceWidth: glyph.advanceWidth, matrix: [...glyph.matrix], fontSize: glyph.fontSize, fontName: this.options.retainFontNames?glyph.fontName:"", color: { r: 0, g: 0, b: 0 },
+          ...(this.options.retainFontNames&&glyph.storedFontName?{storedFontName:{...glyph.storedFontName}}:{}),
           ...(glyph.actualText !== undefined ? { actualText: glyph.actualText } : {}), ...(glyph.storedActualText ? { storedActualText: { ...glyph.storedActualText } } : {}), ...(glyph.mcid !== undefined ? { mcid: glyph.mcid } : {}),
           ...(glyph.clipRect ? { clipRect: [...glyph.clipRect] } : {}) };
         if (pending && pending.mcid === projected.mcid && await sameReplacement(pending, projected, this.signal)) {
@@ -208,11 +214,11 @@ export class PdfRawTextIndex {
     } catch (error) { failed = true; throw error; }
     finally { if (!complete) try { await iterator.return?.(); } catch (error) { if (!failed) await Promise.reject(error); } }
   }
-  private async *records(position: number, count: number): AsyncGenerator<number[], void, void> {
+  private async *records(position: number, count: number,recordBytes=64): AsyncGenerator<number[], void, void> {
     for (let i = 0; i < count; i++) {
       if ((i + 1) % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
-      this.assertOpen(); const bytes = await this.backing.read(position, 64), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-      const values = Array.from({ length: 8 }, (_, index) => view.getFloat64(index * 8)); position = values[0]!; yield values;
+      this.assertOpen(); const bytes = await this.backing.read(position, recordBytes), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const values = Array.from({ length: recordBytes/8 }, (_, index) => view.getFloat64(index * 8)); position = values[0]!; yield values;
     }
   }
   private async *text(position: number, units: number): AsyncGenerator<string, void, void> {
@@ -230,7 +236,7 @@ export class PdfRawTextIndex {
     if (high) yield high;
   }
   private async *words(position: number, count: number): AsyncGenerator<PdfStoredTextWord, void, void> {
-    for await (const word of this.records(position, count)) yield { bbox: bounds(word), fontSize: word[7]!, text: () => this.text(word[1]!, word[2]!) };
+    for await (const word of this.records(position, count,this.options.retainFontNames?80:64)) yield {...(this.options.retainFontNames?{fontName:()=>this.text(word[8]!,word[9]!)}:{}), bbox: bounds(word), fontSize: word[7]!, text: () => this.text(word[1]!, word[2]!) };
   }
   private async *lines(position: number, count: number): AsyncGenerator<PdfStoredTextLine, void, void> {
     for await (const line of this.records(position, count)) yield { bbox: bounds(line), baselineY: line[7]!, words: () => this.words(line[1]!, line[2]!) };

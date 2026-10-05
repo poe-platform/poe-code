@@ -230,6 +230,9 @@ geometry on caller storage. Select `mode: "layout"`, `"bbox"` or `"raw"` to chan
 ordering; `page.indexRawText()` preserves raw order. Geometric and logical sorts
 keep identities and temporary arrays in caller backing, sharing storage admission
 with text records. Logical ordering detects two columns using the page width.
+Set `retainFontNames: true` to expose each word’s `fontName()` as a repeatable,
+bounded string stream backed by the same caller storage. Names come from the
+word’s first glyph and stay available until the index closes.
 `PdfRawTextIndex.create(glyphs, storage, options)`
 accepts an existing glyph stream, including `PdfRawTextGlyph` values with a
 `storedActualText` byte range on caller-owned storage. Stored replacements decode

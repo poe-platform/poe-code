@@ -1,3 +1,4 @@
+import { svgPathSegment } from "./svg-path-stream.js";
 import { operationEffects, readStoredOperations } from "../content/stored-operations.js";
 import { readStoredClips } from "../content/stored-clips.js";
 import { storedStrokeDash } from "./stored-dash.js";
@@ -1523,26 +1524,13 @@ function *svgImageSteps(image: PdfEvaluatedImage, pageHeight: number): Generator
 
 function *svgPathDataSteps(segments: readonly PdfPathSegment[], height: number, matrix?: readonly number[]): Generator<void, string, void> {
   let work = 0;
-  const dParts: string[] = [];
-  const point = (x: number, y: number) => matrix
-    ? `${matrix[0]! * x + matrix[2]! * y + matrix[4]!} ${height - matrix[1]! * x - matrix[3]! * y - matrix[5]!}`
-    : `${x} ${height - y}`;
-  for (const seg of segments) {
+  const parts: string[] = [];
+  for (const segment of segments) {
     if (++work % 16384 === 0) yield;
-    if (seg.kind === "move") {
-      dParts.push(`M ${point(seg.x, seg.y)}`);
-    } else if (seg.kind === "line") {
-      dParts.push(`L ${point(seg.x, seg.y)}`);
-    } else if (seg.kind === "cubic") {
-      dParts.push(`C ${point(seg.x1, seg.y1)} ${point(seg.x2, seg.y2)} ${point(seg.x, seg.y)}`);
-    } else if (seg.kind === "rect") {
-      if (matrix) dParts.push(`M ${point(seg.x, seg.y)} L ${point(seg.x + seg.width, seg.y)} L ${point(seg.x + seg.width, seg.y + seg.height)} L ${point(seg.x, seg.y + seg.height)} Z`);
-      else dParts.push(`M ${seg.x} ${height - seg.y} h ${seg.width} v ${-seg.height} h ${-seg.width} Z`);
-    } else if (seg.kind === "close") {
-      dParts.push("Z");
-    }
+    const part = svgPathSegment(segment, height, matrix);
+    if (part !== undefined) parts.push(part);
   }
-  return dParts.join(" ");
+  return parts.join(" ");
 }
 
 export function *renderDisplayListToSvgSteps(

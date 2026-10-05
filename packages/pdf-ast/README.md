@@ -649,6 +649,14 @@ backpressure to the input iterator; failed or cancelled spooling cleans up
 without replacing the original error. The injected backend must support retained
 staging writes and cleanup. This primitive does not publish output destinations.
 
+`encodeSvgPathDataChunks(segmentsOrStoredPath, pageHeight, options)` streams
+SVG path `d` attribute bytes from a segment iterable or caller-backed
+`PdfStoredPath`. It preserves buffered coordinate spelling and accepts an optional
+`matrix` transform. `chunkBytes`, `maxSegments`, and `maxOutputBytes` control
+output and admission; cancellation and early return retire the source iterator.
+The serializer retains one segment and a fixed output buffer instead of a whole
+path string. The caller keeps ownership of backing storage.
+
 `encodeSvgImageChunks(image, pageHeight, storage, options)` streams an SVG
 `<image>` element, including its PNG data URL, from `decodedRgba` or caller-backed
 `storedRgba` pixels. It preserves the buffered SVG encoder's RGBA PNG bytes and

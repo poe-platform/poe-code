@@ -93,7 +93,7 @@ test("explicit unlimited patch limits preserve the ordinary replacement", async 
 
 test("atomic extension bounded work-limit sweep covers preflight, partial-commit and success states", { timeout: 10000 }, async () => {
   const states = new Set<string>();
-  for (let limit = 1; limit <= 512; limit++) {
+  for (let limit = 1; limit <= 1024 && !states.has("success"); limit++) {
     const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
     const observed = instrument(backing);
     const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input: replacement("first") + replacement("second") + replacement("third"), options: { maxWork: limit } });

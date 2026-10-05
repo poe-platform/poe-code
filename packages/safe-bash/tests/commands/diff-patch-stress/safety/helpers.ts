@@ -67,7 +67,10 @@ export function instrument(backing: MemoryFileSystem, hooks: Hooks = {}) {
     return result;
   }
   const fs: FileSystem = {
-    capabilities: { ...backing.capabilities, open: false, streamingRead: hooks.streaming ?? false },
+    capabilities: { ...backing.capabilities, streamingRead: hooks.streaming ?? false },
+    open: (path, options) => perform("open", path, options, () => backing.open(path, options)),
+    removeFileConditional: (path, options) => perform("removeFileConditional", path, options,
+      () => backing.removeFileConditional(path, options)),
     readFile: (path, options) => perform("readFile", path, options, () => backing.readFile(path, options)),
     async openReadFile(path, options) {
       const handle = await perform("openReadFile", path, options, () => backing.openReadFile(path, options));

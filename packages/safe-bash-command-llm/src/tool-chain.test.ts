@@ -183,3 +183,19 @@ test("invalid limits fail before opening a response", async () => {
   for (const limits of [{chainLimit: Infinity}, {chainLimit: 1.5}, {maxToolOutputBytes: -1}, {maxOutputBytes: NaN}])
     await assert.rejects(drain(options({...limits, openResponse() {assert.fail("must validate before dispatch");}})), RangeError);
 });
+
+test("empty response events yield cooperatively for cancellation", async () => {
+  const controller = new AbortController(); let pulled = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await assert.rejects(drain(options({
+      context: {fs: new MemoryFileSystem(), cwd: "/", signal: controller.signal},
+      async *openResponse() {
+        timer = setTimeout(() => controller.abort(new Error("cancel empty stream")), 0);
+        for (; pulled < 4096; pulled++) yield {type: "text", text: ""};
+        yield {type: "response", response: {model: "fixture"}};
+      }
+    })), {message: "cancel empty stream"});
+    assert.ok(pulled < 4096);
+  } finally {clearTimeout(timer);}
+});

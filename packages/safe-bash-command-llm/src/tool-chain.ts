@@ -54,9 +54,11 @@ export async function* streamLlmToolChain(options: LlmToolChainOptions): AsyncGe
       await yieldTurn(signal);
       const iterator = options.openResponse(index, signal)[Symbol.asyncIterator]();
       let ended = false;
+      let events = 0;
       let response: Extract<LlmStreamEvent, {type: "response"}> | undefined;
       try {
         while (true) {
+          if (++events % 256 === 0) await yieldTurn(signal);
           const next = await waitForSource(() => iterator.next(), signal);
           if (next.done) { ended = true; break; }
           const event = next.value;

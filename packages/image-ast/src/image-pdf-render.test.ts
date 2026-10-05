@@ -339,3 +339,21 @@ it.each(["font", "descriptor", "encoding", "descendant", "matrix", "glyphs"].fla
  }finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["Alpha","Luminosity"].flatMap(subtype=>["inline","indirect","encrypted"].map(mode=>({subtype,mode}))))("keeps unused $subtype soft-mask fields backed ($mode)",async({subtype,mode})=>{
+ const {cosArray,cosDict,cosName,cosStream}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([12,12]);
+ const form=doc.cos.allocateObject(cosStream(cosDict({Subtype:cosName("Form"),BBox:cosArray([0,0,12,12].map(value=>cosNumber(value))),Group:cosDict({S:cosName("Transparency"),CS:cosName("DeviceRGB")})}),new TextEncoder().encode(".5 g 0 0 6 12 re f")));
+ const mask=cosDict({S:cosName(subtype),G:form,BC:cosArray([.2,.3,.4].map(value=>cosNumber(value))),TR:cosDict({FunctionType:cosNumber(2),Domain:cosArray([cosNumber(0),cosNumber(1)]),C0:cosArray([cosNumber(0)]),C1:cosArray([cosNumber(1)]),N:cosNumber(1)}),Unused:cosArray(Array.from({length:256},()=>cosNumber(761)))});
+ dictSet(page.pageDict,"Resources",cosDict({ExtGState:cosDict({Selected:cosDict({SMask:mode==="inline"?mask:doc.cos.allocateObject(mask)})})}));
+ page.setRawContentStream("/Selected gs 1 0 0 rg 0 0 12 12 re f");
+ const bytes=mode==="encrypted"?doc.save({encrypt:{revision:3}}):doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ expect(expected.data.some((value,index)=>index%4===1&&value>0)).toBe(true);
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const push=Array.prototype.push;Array.prototype.push=function<T>(this:T[],...values:T[]):number{if(this.length>=64&&values.some(value=>(value as {kind?:string;value?:number})?.kind==="number"&&(value as {value:number}).value===761))throw Error("unused selected soft-mask field became resident");return push.apply(this,values);};
+ try{
+  const image=await tryPdfDecode({size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}},storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+ }finally{Array.prototype.push=push;await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

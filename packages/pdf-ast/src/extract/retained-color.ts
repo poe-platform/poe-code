@@ -338,7 +338,8 @@ async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage
       options.signal?.throwIfAborted();
       const request = step.value;
       let result: unknown;
-      if (request.kind === "resolve") result = await resolve(request.node);
+      if (request.kind === "dictionary-value") result = await readPdfDictionaryValue(request.dict, request.key, options.signal);
+      else if (request.kind === "resolve") result = await resolve(request.node);
       else if (request.kind === "resource") result = await resource(request);
       else if (request.kind === "decode") result = await decode(request.stream, request.length, request.start);
       else if (request.kind === "calibrated") result = createCalibratedColorSpace(context, request.family, await snapshot(request.parameters));

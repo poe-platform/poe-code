@@ -297,7 +297,7 @@ function* resolveColorNode(node: PdfCosNode | undefined, kind?: PdfCosNode["kind
   return kind && value?.kind !== kind ? undefined : value;
 }
 
-export type PdfMaskParameterRequest = PdfColorRequest | { readonly kind: "transfer"; readonly node: PdfCosNode };
+export type PdfMaskParameterRequest = PdfColorRequest | {readonly kind:"dictionary-value";readonly dict:PdfCosDict;readonly key:string} | { readonly kind: "transfer"; readonly node: PdfCosNode };
 
 function runColorProgram<T>(doc:ParsedCosDocument|undefined,program:Generator<PdfMaskParameterRequest,T,unknown>):T{
   const work=runColorProgramSteps(doc,program),result=work.next();
@@ -310,7 +310,8 @@ function* runColorProgramSteps<T>(doc: ParsedCosDocument | undefined, work: Gene
     let step = work.next();
     while (!step.done) {
       const request = step.value;
-      if (request.kind === "resolve") step = work.next(doc?.resolve(request.node));
+      if (request.kind === "dictionary-value") step = work.next(dictGet(request.dict, request.key));
+      else if (request.kind === "resolve") step = work.next(doc?.resolve(request.node));
       else if (request.kind === "resource") {
         const map = doc?.resolveDict(dictGet(request.resources, request.category));
         step = work.next(map ? dictGet(map, request.name) : undefined);
@@ -971,7 +972,7 @@ export function* evaluateMaskTransferSteps(doc:ParsedCosDocument,transfer:PdfCos
 export function* resolveMaskParameterSteps(mask: PdfCosDict, form: PdfCosStream, activeResources: PdfCosDict | undefined): Generator<PdfMaskParameterRequest, Pick<PdfSoftMask, "backdrop" | "transferMap">, unknown> {
   const group = yield* resolveColorNode(dictGet(form.dict, "Group"), "dict");
   const colorSpace = group ? dictGet(group, "CS") : undefined;
-  const bc = yield* resolveColorNode(dictGet(mask, "BC"), "array");
+  const bc = yield* resolveColorNode((yield {kind:"dictionary-value",dict:mask,key:"BC"}) as PdfCosNode | undefined, "array");
   let components: number[] | undefined;
   if (bc) {
     components = [];
@@ -981,7 +982,7 @@ export function* resolveMaskParameterSteps(mask: PdfCosDict, form: PdfCosStream,
     }
   }
   const [r, g, b] = components ? yield* convertContentColorSteps(true, colorSpace, "DeviceRGB", components, activeResources) : [0, 0, 0];
-  const transfer = yield* resolveColorNode(dictGet(mask, "TR"));
+  const transfer = yield* resolveColorNode((yield {kind:"dictionary-value",dict:mask,key:"TR"}) as PdfCosNode | undefined);
   const transferMap = transfer?.kind === "dict" || transfer?.kind === "stream"
     ? (yield { kind: "transfer", node: transfer }) as Uint8Array
     : undefined;
@@ -1423,12 +1424,12 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"), ["Resources", "ExtGState"]);
       const gsDict = extDict ? yield* resolveEvaluationDict(yield* lookupEvaluationDictionary(extDict, ops[0].decoded, true), ["Resources", "ExtGState", ops[0].decoded], true) : undefined;
       if (gsDict) {
-        const mask = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "SMask"));
+        const mask = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "SMask", true), false, undefined, true);
         if (mask?.kind === "name" && mask.decoded === "None") {
           st.softMask = undefined;
         } else if (mask?.kind === "dict") {
-          const subtype = yield* resolveEvaluationNode(dictGet(mask, "S"));
-          const form = yield* resolveEvaluationNode(dictGet(mask, "G"));
+          const subtype = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(mask, "S"));
+          const form = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(mask, "G"));
           if (form?.kind === "stream" && subtype?.kind === "name" && (subtype.decoded === "Alpha" || subtype.decoded === "Luminosity")) {
             if (depth >= 8) throw new PdfError("E_LIMIT", "Soft-mask nesting exceeds the form depth limit");
             const parentOperations = capturedOperations;

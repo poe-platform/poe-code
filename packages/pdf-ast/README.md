@@ -642,6 +642,15 @@ backpressure to the input iterator; failed or cancelled spooling cleans up
 without replacing the original error. The injected backend must support retained
 staging writes and cleanup. This primitive does not publish output destinations.
 
+`encodeSvgImageChunks(image, pageHeight, storage, options)` streams an SVG
+`<image>` element, including its PNG data URL, from `decodedRgba` or caller-backed
+`storedRgba` pixels. It preserves the buffered SVG encoder's RGBA PNG bytes and
+matrix transform. `chunkBytes` bounds reads and emitted allocations;
+`maxOutputBytes` includes markup and base64, and `maxStagingBytes` bounds PNG
+staging. Keep source pixel storage alive until consumption ends. Cancellation,
+early return and failures release the encoder's scratch storage. This is an
+image serializer; full-page SVG rendering still uses its existing execution path.
+
 `encodeRetainedPng(width, height, rgbaChunks, storage, options)` preserves the
 buffered PNG byte layout while staging pixels and compressed bytes through the
 injected filesystem. It detects opaque input automatically; `alpha: "rgba"`

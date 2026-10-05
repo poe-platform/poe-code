@@ -4607,19 +4607,22 @@
       "status": "open",
       "currentFinding": "Source-derived signed years, astronomical eras and clock-limit TimeClip repair are delivered. Authenticated activated Linux captures match final compiled and installed root/scoped SDK/Shell at d492e1ddd5 for all 92 cases across five zones, including BCE/year zero, rollover/leap day, DST and both clock extrema. The installed Node, Chrome page/Worker and workerd profiles also match. Broader signatures/coercion, locales, arrays/errors, other native runtime profiles and registry qualification remain open.",
       "checkpoint20261004": {
-        "qualified": "The 92-case five-zone activated cohort matches compiled and installed runtime profiles, including BCE, DST and clock extrema. Zero-argument registration and rejection of extra scalar/error/reference/array/multiple arguments now match the activated native sample in C and C.UTF-8 locales through compiled SDK/command for both product Perl profiles.",
+        "qualified": "The 92-case five-zone activated cohort matches compiled and installed runtime profiles, including BCE, DST and clock extrema. Zero-argument registration and rejection of extra scalar/error/reference/array/multiple arguments now match the activated native sample in C and C.UTF-8 locales through compiled SDK/command for both product Perl profiles. Registry-installed poe-code@17.0.41 default provider and safe-bash@0.1.812 profiles 5.34.1/5.40.1 match 120 argument/locale results through SDK/command with native tools absent from PATH; strict public consumer types pass.",
         "evidence": [
           "#/reference/perlDateEra",
           "#/reference/clockExtrema",
           "#/reference/perlActivatedLinux",
-          "#/perlDateArgumentLocale"
+          "#/perlDateArgumentLocale",
+          "#/perlDateRegistry"
         ],
-        "nextAcceptance": "Qualify the retained zero-argument/date and argument-rejection cohorts through current installed root/scoped artifacts. Wider declared locale/runtime profiles remain separate; there is no supported PERL_DATE argument-coercion signature.",
+        "nextAcceptance": "Qualify a containing root publication with explicit Perl profile selection; preserve this 120-result installed argument/locale receipt and the earlier 92 date-boundary cases. Complete remaining declared locale/runtime profiles.",
         "closureGate": "Complete remaining signature/locale/runtime and registry qualification; keep already-passing date cohorts as receipts.",
-        "qualificationBlockers": [],
+        "qualificationBlockers": [
+          "Published poe-code@17.0.41 predates createPerlSampleFunctions; current source already exports it. Containing root publication remains pending."
+        ],
         "remainingAcceptance": [
           "Zero-argument signature and scalar/error/reference/array/multiple-argument rejection are qualified in C/C.UTF-8. Complete remaining declared locale/runtime profiles; do not invent supported argument coercions.",
-          "Current installed SDK/Shell and remaining runtime profiles; reuse the qualified 92-case five-zone date cohort."
+          "Containing root publication with explicit profile selection and remaining installed runtime profiles; retain the 120 registry argument/locale results and qualified 92-case five-zone date cohort."
         ]
       }
     },
@@ -5653,7 +5656,7 @@
       "finding": "An XLSX inlineStr cell without an is payload became an empty string and allocated row geometry. Keeping a synthetic blank cell after that correction also introduced a clipboard Cell record absent from native output.",
       "implementation": "Create an inline string only when its payload exists; omit an absent-payload cell when it has no formula or style. Preserve explicit empty strings and dirty formulas with missing caches.",
       "nativeSource": "Unmodified Gnumeric1.12.61 xlsx-read.c xlsx_cell_inline_begin/end and xlsx_cell_end. Four independent fixtures cover missing, empty and populated payloads plus a formula with a missing inline cache.",
-      "validation": "Original missing-payload value/height regression and subsequent clipboard regression failed before repair.591focused XLSX tests and73finalregressions pass; selected19-workspace build,owner lint/types,changed-test ESLint and package test types pass.32compiled package SDK/command exports have no diagnostics.24native workbook/XLSX readbacks plus independent clipboard references match1200row scalars and40cell projections including formula/cache values. Delivered 5583dd32d7 root/package regeneration produces64exports; all32 package baseline hashes and32 root/package pairs are exact. Both entrypoints pass1200row and40cell comparisons. Saved root build completes; resumed maintained package lint/types exits0. Current remote main contains the delivery.",
+      "validation": "Original missing-payload value/height regression and subsequent clipboard regression failed before repair.591focused XLSX tests and73finalregressions pass; selected19-workspace build,owner lint/types,changed-test ESLint and package test types pass.32compiled package SDK/command exports have no diagnostics.24native workbook/XLSX readbacks plus independent clipboard references match 1200row scalars and40cell projections including formula/cache values. Delivered 5583dd32d7 root/package regeneration produces64exports; all32 package baseline hashes and32 root/package pairs are exact. Both entrypoints pass1200row and40cell comparisons. Saved root build completes; resumed maintained package lint/types exits0. Current remote main contains the delivery.",
       "visual": "Inspected native/product screenshots identical SHA2566adfcb999fb9384780e9dc68705ee49e6e7cb6e2d029fda59b3de925d5cb7d23, with50pt row geometry. Owned viewers/display stopped.",
       "remaining": "Other empty/styled-cell and ordered cell-value records, broader format qualification and all19families remain open."
     },
@@ -6513,12 +6516,36 @@
     },
     "controls": "10 formulas: PERL_DATE(), seven extra-argument forms (number, text, boolean, division error, cell reference, array, two arguments), conditional use and LEN. Native C and C.UTF-8 runs return date20261004, seven #N/A values, date20261004 and length8; exit0 and no stderr. Product injects UTC noon of the observed native date; no new clock-boundary claim.",
     "public": "Two locales x2 product profiles(5.34.1/5.40.1) x2 compiled SDK/command routes:80 exact native-matching formula results with zero diagnostics. Signature is empty; arguments are rejected rather than coerced. Maintained selected workspace build and106 timezone/Perl profile regression tests pass.",
-    "remaining": "Current installed root/scoped consumers and broader declared locale/runtime profiles. Retain earlier92 date-boundary captures; do not restart them or claim a new boundary/native5.34 qualification from these observations.",
+    "remaining": "Current installed root/scoped consumers and broader declared locale/runtime profiles. Retain earlier 92 date-boundary captures; do not restart them or claim a new boundary/native5.34 qualification from these observations.",
     "hashes": {
       "input.gnumeric": "ed0c18c992baa2aec6eeb23eea3e15fa0c91fcad5b27fe58d433c500c7a1bc08",
       "formulas.json": "175d33c9a05268726f38e56a83404927644b3f5949f2b2a405587a5bd9da6ccf",
       "native-results.json": "516255630ff0da57082f4a18bf2aa5c1810c9fb35f5cda1ad14656b423dd085b",
       "public-results.json": "0c76d0a9446a55b5257fd24b0e0dd8eb90017e960d27e19b0e299b8121968629"
+    }
+  },
+  "perlDateRegistry": {
+    "status": "Bounded published-package argument/locale gate verified; containing root publication remains open",
+    "runtimeChanges": false,
+    "packages": {
+      "poe-code": {
+        "version": "17.0.41",
+        "integrity": "sha512-YNCqf86Hy5/O6OIeGW7H16fLRLPEpyW8GMkmtaSIp5E4FI5aLfLSLD9yAmWQfOB9jRnzaJNG39PlXV0in0aYPQ=="
+      },
+      "@poe-platform/safe-bash": {
+        "version": "0.1.812",
+        "integrity": "sha512-T6SfEgTvGjdHhWBlj9Gjw8pj7ZEzcXatRG0FX9oTp2w5bNvzli0UqRTRScsHnFHFYaqk5s6QMIo5+zqubYIU+Q=="
+      }
+    },
+    "rootGitHead": "c8851094da60e42b6c29fbd9da88351ef4dba270",
+    "scopedGitHead": "Not supplied by registry metadata",
+    "verification": "Isolated registry installation outside repository; public poe-code/ssconvert and @poe-platform/safe-bash/commands/ssconvert imports resolve inside that installation. PATH=/nonexistent. Root default provider: 40 results; scoped 5.34.1/5.40.1: 80 results. SDK and command, C/C.UTF-8, ten formulas from perlDateArgumentLocale: 120 exact native CSV results, exit 0, no diagnostics. TypeScript 5.9.3 strict NodeNext public consumer passes.",
+    "limits": "Injected UTC noon 2026-10-04 matches retained native current-day observation; no new date-boundary, native 5.34, browser, lifecycle or cancellation qualification. Root 17.0.41 lacks createPerlSampleFunctions; current source already exports it, so no duplicate runtime fix. Containing root/scoped release qualification and broader declared profiles remain open.",
+    "hashes": {
+      "check.mjs": "4fd82a7df8f3ed5fc4eef0a6bad2bf1131dcc7c06fc2c9769e1e6636a81c21ba",
+      "consumer.mts": "c1937f5f5ebdaa294be78e47ae379e8dfb5caa8f92b25eda93faa9cf7dc35ec9",
+      "results.json": "da72767e066f492c3b00cc90b42f222be327b25124d62882d06bd25050f958e0",
+      "package-lock.json": "a04a748508d0879849c0a03dd507719ca42f88220220ebd7ba4117431c377416"
     }
   }
 }

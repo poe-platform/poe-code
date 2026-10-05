@@ -16,7 +16,7 @@ acceptance test, the family closure gate and qualification blockers. Use that
 checkpoint before expanding a cohort; historical receipts are not current registry
 or universal profile qualification. Each family now has a finite `remainingAcceptance`
 list; completed cohorts remain evidence, not new work. Native limitations stay
-separate from product passes. The next execution gate is current installed PERL_DATE artifact qualification.
+separate from product passes. The next PERL_DATE gate requires a containing root publication with explicit profile selection.
 The zero-argument/rejected-argument C/C.UTF-8 checkpoint is complete. Retain completed Paradox version and
 companion-absence controls; actual external companion content remains open.
 
@@ -146,7 +146,7 @@ delivered root/scoped fixture separation `61baed7701`.
 | Encrypted BIFF | 1. Remaining version/password/encoding and ancillary-stream profiles, including truncation, resource ceilings and cleanup; classify Calc CryptoAPI refusals/property loss separately. 2. Containing installed root/scoped artifacts through SDK/command; retain the completed 27-profile command cohort and POI metadata/edit evidence. |
 | Encrypted ODF | 1. Remaining password/encoding, package/path, truncation/tampering and application profiles with bounded KDF/work, cleanup and no invalid plaintext publication. 2. Containing installed artifacts; retain six-algorithm command evidence and classify Calc CFB8/empty-password limitations separately. Legacy prefix checksums are not full authentication. |
 | Encrypted Paradox | 1. Companion-file and wider block/record/version profiles through SDK and command export; native reopen must preserve schema/records and exact diagnostics. 2. Remaining password, truncation, work/cleanup and installed-artifact controls; do not claim authenticated encryption. |
-| PERL_DATE | 1. Zero-argument signature and scalar/error/reference/array/multiple-argument rejection are qualified in C/C.UTF-8. Complete remaining declared locale/runtime profiles; do not invent supported argument coercions. 2. Current installed SDK/Shell and remaining runtime profiles; reuse the qualified 92-case five-zone date cohort. |
+| PERL_DATE | 1. Zero-argument signature and scalar/error/reference/array/multiple-argument rejection are qualified in C/C.UTF-8. Complete remaining declared locale/runtime profiles; do not invent supported argument coercions. 2. Containing root publication with explicit profile selection and remaining installed runtime profiles; retain the 120 registry argument/locale results and qualified 92-case five-zone date cohort. |
 | PERL_SED | 1. Classify the retained 4150-case corpus using isolated and ordered native calls; repair product differences and preserve exact warnings. 2. Remaining bounded grammar, Unicode/raw bytes, malformed inputs and lifecycle through activated and installed routes; keep original interpreter goldens. |
 | PY_PRINTF | 1. Address-bearing RangeRef/sheet representation semantics, remaining coercion and diagnostic cases; compare structure rather than unstable addresses. 2. Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting. |
 | PY_CAPWORDS | 1. Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts. 2. Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash. |
@@ -197,6 +197,13 @@ routes match all ten scalar/error/reference/array rejection and valid-call
 controls in C/C.UTF-8 (`perlDateArgumentLocale`). Broader locale/runtime profiles
 remain separate. The native loader required task-local libtool relocation; its
 binary and sample source were unchanged.
+Registry-installed `poe-code@17.0.41` (default provider) and
+`@poe-platform/safe-bash@0.1.812` (both Perl profiles) now match 120
+SDK/command results with native tools absent from PATH; strict public consumer
+types pass (`perlDateRegistry`). The root release predates the profile factory
+already exported by current source. Qualify that containing publication next;
+retain these results and the earlier 92 date-boundary cases. No new runtime
+fix, clock-boundary or lifecycle qualification is claimed.
 
 ## 4. Interfaces and test plan
 

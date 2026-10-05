@@ -1,9 +1,20 @@
 import assert from "node:assert/strict";
+import { isBuiltin } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
+
+export const rejectNodeImports = {
+  name: "reject-node-imports",
+  setup(builder) {
+    builder.onResolve({ filter: /.*/ }, ({ path: specifier }) => {
+      if (specifier.startsWith("node:") || isBuiltin(specifier))
+        return { errors: [{ text: "Node builtin forbidden: " + specifier }] };
+    });
+  },
+};
 
 const shell = `import { Shell } from "@poe-platform/safe-bash/shell";
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";`;
@@ -229,33 +240,55 @@ export default { async fetch() {
 
 export async function verifySafeBashPortableCommands(consumer) {
   consumer = path.resolve(consumer);
-  const fixture = await readFile(new URL("./fixtures/safe-packages-network-safejs.mjs", import.meta.url), "utf8");
-  for (const conditions of [["workerd"], ["workerd", "worker", "browser"]]) {
-    const result = await build({
-      absWorkingDir: consumer,
-      stdin: { contents: fixture + `\nexport default { async fetch() {
-        try { return Response.json(await verifyNetworkAndSafeJs()); }
-        catch (error) { return new Response(error.stack ?? String(error), { status: 500 }); }
-      } };`, resolveDir: consumer, sourcefile: "portable-commands.mjs" },
-      bundle: true, format: "esm", platform: "neutral", conditions, write: false,
-      mainFields: ["module", "main"], metafile: true,
-      outdir: path.join(consumer, "portable-commands"), loader: { ".wasm": "copy", ".bin": "copy" },
-    });
-    for (const input of Object.keys(result.metafile.inputs))
-      assert.ok(path.resolve(consumer, input).startsWith(path.join(consumer, "node_modules") + path.sep) || input === "portable-commands.mjs", "Worker input escaped installed consumer: " + input);
-    const outputs = [...result.outputFiles].sort((left, right) => Number(right.path.endsWith("/stdin.js")) - Number(left.path.endsWith("/stdin.js")));
-    const modules = outputs.map(output => ({ path: output.path,
-      type: output.path.endsWith(".js") ? "ESModule" : output.path.endsWith(".wasm") ? "CompiledWasm" : "Data",
-      contents: output.path.endsWith(".js") ? output.text : output.contents,
-    }));
-    const worker = new Miniflare({ modules, modulesRoot: path.join(consumer, "portable-commands"), compatibilityDate: "2026-07-01" });
-    try {
-      const response = await worker.dispatchFetch("https://portable.test", { signal: AbortSignal.timeout(30_000) });
-      const body = await response.text();
-      assert.equal(response.status, 200, body);
-      assert.deepEqual(JSON.parse(body), { networkEntries: 3, nodeEntries: 3, safeJsEntries: 1 });
-      console.log(JSON.stringify({ profile: "network-safejs", conditions, ...JSON.parse(body) }));
-    } finally { await worker.dispose(); }
+  // Keep every public export, including lazy engines, in the qualification graph.
+  for (const condition of ["browser", "workerd"]) {
+    for (const route of ["commands/sips", "commands/pandoc", "commands/shuf", "sharp", "image-ast"]) {
+      const result = await build({
+        absWorkingDir: consumer,
+        stdin: { contents: `export * from "@poe-platform/safe-bash/${route}";`, resolveDir: consumer },
+        bundle: true, splitting: true, format: "esm", platform: "neutral", conditions: [condition],
+        mainFields: ["module", "main"], write: false, metafile: true, plugins: [rejectNodeImports],
+        outdir: path.join(consumer, "portable-exports"), loader: { ".wasm": "copy", ".bin": "copy" },
+      });
+      for (const [filename, output] of Object.entries(result.metafile.outputs))
+        assert.ok(output.imports.every(entry => !entry.external), `${route}: unresolved import in ${filename}`);
+      for (const input of Object.keys(result.metafile.inputs))
+        assert.ok(input === "<stdin>" || path.resolve(consumer, input).startsWith(path.join(consumer, "node_modules") + path.sep), "Export escaped installed consumer: " + input);
+      console.log(JSON.stringify({ profile: "portable-export", route, condition, inputs: Object.keys(result.metafile.inputs).length }));
+    }
+  }
+  for (const [filename, verify, expected] of [
+    ["safe-packages-network-safejs.mjs", "verifyNetworkAndSafeJs", { networkEntries: 3, nodeEntries: 3, safeJsEntries: 1 }],
+    ["safe-packages-image-pandoc-shuf.mjs", "verifyImagePandocShuf", { image: true, lua: true, entropy: true }],
+  ]) {
+    const fixture = await readFile(new URL("./fixtures/" + filename, import.meta.url), "utf8");
+    for (const conditions of [["workerd"], ["workerd", "worker", "browser"]]) {
+      const result = await build({
+        absWorkingDir: consumer,
+        stdin: { contents: fixture + `\nexport default { async fetch() {
+          try { return Response.json(await ${verify}()); }
+          catch (error) { return new Response(error.stack ?? String(error), { status: 500 }); }
+        } };`, resolveDir: consumer, sourcefile: "portable-commands.mjs" },
+        bundle: true, format: "esm", platform: "neutral", conditions, write: false,
+        mainFields: ["module", "main"], metafile: true, plugins: [rejectNodeImports],
+        outdir: path.join(consumer, "portable-commands"), loader: { ".wasm": "copy", ".bin": "copy" },
+      });
+      for (const input of Object.keys(result.metafile.inputs))
+        assert.ok(path.resolve(consumer, input).startsWith(path.join(consumer, "node_modules") + path.sep) || input === "portable-commands.mjs", "Worker input escaped installed consumer: " + input);
+      const outputs = [...result.outputFiles].sort((left, right) => Number(right.path.endsWith("/stdin.js")) - Number(left.path.endsWith("/stdin.js")));
+      const modules = outputs.map(output => ({ path: output.path,
+        type: output.path.endsWith(".js") ? "ESModule" : output.path.endsWith(".wasm") ? "CompiledWasm" : "Data",
+        contents: output.path.endsWith(".js") ? output.text : output.contents,
+      }));
+      const worker = new Miniflare({ modules, modulesRoot: path.join(consumer, "portable-commands"), compatibilityDate: "2026-07-01" });
+      try {
+        const response = await worker.dispatchFetch("https://portable.test", { signal: AbortSignal.timeout(30_000) });
+        const body = await response.text();
+        assert.equal(response.status, 200, body);
+        assert.deepEqual(JSON.parse(body), expected);
+        console.log(JSON.stringify({ profile: filename, conditions, ...JSON.parse(body) }));
+      } finally { await worker.dispose(); }
+    }
   }
 }
 

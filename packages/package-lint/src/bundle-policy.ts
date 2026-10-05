@@ -134,7 +134,7 @@ export const canonicalXml = {
   workspace: "@poe-code/xml-ast",
   specifier: "poe-code/safe-fs/core",
   source: "packages/xml-ast/src/index.ts",
-  modules: ["index", "stream", "errors"],
+  modules: ["index", "stream", "errors", "characters", "source", "frames"],
   types: "dist/types/xml-ast/index.d.ts"
 } as const;
 

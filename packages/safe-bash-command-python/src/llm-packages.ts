@@ -48,8 +48,57 @@ export function installPythonLlmPackages(runtime: {
   runtime.FS.writeFile(metadata + '/entry_points.txt', new TextEncoder().encode('[llm]\nsafe_host = llm_safe_host\n'));
   runtime.globals.set('_safe_llm_wheel_paths', JSON.stringify(paths));
   try {
-    // Select the host provider before guest code can influence plugin discovery.
-    runtime.runPython('import json, sys; sys.path.extend(json.loads(_safe_llm_wheel_paths)); import llm.plugins; llm.plugins.DEFAULT_PLUGINS = (); llm.plugins.LLM_LOAD_PLUGINS = "llm-safe-host"; llm.plugins.load_plugins(); from llm_safe_host import restrict_providers; restrict_providers()');
+    // Configure the genuine package on first import, before returning it to guest
+    // code. Unrelated Python programs need not retain LLM's dependency graph.
+    runtime.runPython(String.raw`
+import json, sys
+sys.path.extend(json.loads(_safe_llm_wheel_paths))
+def _install_safe_llm_import():
+    if any(getattr(finder, "_safe_llm_provider", False) for finder in sys.meta_path):
+        return
+    def configure_plugins(module):
+        module.DEFAULT_PLUGINS = ()
+        module.LLM_LOAD_PLUGINS = "llm-safe-host"
+
+    def configure_provider(module):
+        configure_plugins(module.plugins)
+        module.plugins.load_plugins()
+        from llm_safe_host import restrict_providers
+        restrict_providers()
+
+    class HostLlmFinder:
+        _safe_llm_provider = True
+        def find_spec(self, fullname, path=None, target=None):
+            if fullname not in ("llm", "llm.plugins"):
+                return None
+            for finder in tuple(sys.meta_path):
+                if finder is self:
+                    continue
+                spec = finder.find_spec(fullname, path, target)
+                if spec is None:
+                    continue
+                original = spec.loader
+                class HostLlmLoader:
+                    def create_module(self, spec):
+                        return original.create_module(spec)
+                    def exec_module(self, module):
+                        original.exec_module(module)
+                        if fullname == "llm.plugins":
+                            configure_plugins(module)
+                        else:
+                            configure_provider(module)
+                    def __getattr__(self, name):
+                        return getattr(original, name)
+                spec.loader = HostLlmLoader()
+                return spec
+            return None
+
+    sys.meta_path.insert(0, HostLlmFinder())
+    if "llm" in sys.modules:
+        configure_provider(sys.modules["llm"])
+_install_safe_llm_import()
+del _install_safe_llm_import
+`);
   } finally {
     runtime.globals.delete('_safe_llm_wheel_paths');
   }

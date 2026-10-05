@@ -1,3 +1,4 @@
+import { createLlmFragmentSource } from "./fragments.js";
 import { resolveUrlAttachment } from "./url-attachment.js";
 import { createLlmUrlSource } from './url-source.js';
 import { attachmentBytesId, getLlmAttachmentUrlId } from './attachment-id.js';
@@ -29,6 +30,8 @@ export const llmReferenceVersion = "0.27.1";
 
 interface Arguments {
   queries: string[];
+  fragments: string[];
+  systemFragments: string[];
   schema?: string;
   schemaMulti?: string;
   model?: string;
@@ -46,7 +49,7 @@ interface Arguments {
 }
 
 async function parse(length: number, text: (index: number) => string, step: () => Promise<void>, admitBytes: (size: number) => void): Promise<Arguments> {
-  const parsed: Arguments = { prompt: "", queries: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
+  const parsed: Arguments = { prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
   let ended = false;
   for (let index = 0; index < length; index++) {
@@ -66,9 +69,11 @@ async function parse(length: number, text: (index: number) => string, step: () =
       if (++index >= length) throw new Error(`Option ${flag} requires an argument`);
       return text(index);
     };
-    if (!["-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+    if (!["-f", "--fragment", "--sf", "--system-fragment", "-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
     const value = attached ?? take();
-    if (flag === "-q" || flag === "--query") parsed.queries.push(value);
+    if (flag === "-f" || flag === "--fragment") parsed.fragments.push(value);
+    else if (flag === "--sf" || flag === "--system-fragment") parsed.systemFragments.push(value);
+    else if (flag === "-q" || flag === "--query") parsed.queries.push(value);
     else if (flag === "-t" || flag === "--template") parsed.template = value;
     else if (flag === "--schema") parsed.schema = value;
     else if (flag === "--schema-multi") parsed.schemaMulti = value;
@@ -329,6 +334,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         ...(args.extract === "last" ? { extract_last: true } : args.extract === "first" ? { extract: true } : {}),
         ...(Object.keys(args.params).length ? { defaults: args.params } : {}),
         ...(Object.keys(args.options).length ? { options: args.options } : {}),
+        ...(args.fragments.length ? { fragments: args.fragments } : {}),
+        ...(args.systemFragments.length ? { system_fragments: args.systemFragments } : {}),
         ...(attachments.length ? { attachments } : {}),
         ...(attachmentTypes.length ? { attachment_types: attachmentTypes } : {}),
       };
@@ -370,6 +377,37 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         }
       } },
     });
+    let composedPrompt: LlmInputSource | undefined, composedSystem: LlmInputSource | undefined;
+    const loadFragments = async function* (paths: readonly string[]): AsyncIterable<LlmInputSource> {
+      for (const reference of paths) {
+        await step();
+        // The reference reads fragments after consuming ordinary prompt stdin.
+        if (reference === "-") { yield textSource(""); continue; }
+        const path = pathOf(context, reference);
+        let source: LlmInputSource;
+        try { source = await operation.acquire(() => fileSource({fs:context.fs,path,signal,maxBytes:input.remaining(!streamed)}), value=>value.dispose()); }
+        catch(error) { if(error instanceof FsError && error.code === "ENOENT") throw new Error(`Error: Fragment '${reference}' not found`); throw error; }
+        yield source;
+      }
+    };
+    const compose = async (paths: readonly string[], tail: LlmInputSource, system: boolean): Promise<LlmInputSource> => operation.acquire(
+      () => createLlmFragmentSource({fs:context.fs,directory:context.cwd,signal,fragments:loadFragments(paths),tail,system,normalizeNewlines:true,
+        admitBytes:size=>admitInput(size,!streamed),admitSeparator:size=>input.admit(size,!streamed)}),value=>value.dispose());
+    const promptFragments = [...stored?.fragments ?? [], ...args.fragments];
+    const systemFragments = [...stored?.system_fragments ?? [], ...args.systemFragments];
+    const materialize = async (source: LlmInputSource): Promise<string> => {
+      const decoder = new TextDecoder("utf-8",{fatal:true,ignoreBOM:true}); let result = "";
+      for await (const bytes of source.bytes) result += decoder.decode(bytes,{stream:true});
+      return result + decoder.decode();
+    };
+    if (promptFragments.length) {
+      composedPrompt = await compose(promptFragments,promptSpool ? {bytes:promptSpool.replay(),dispose:promptSpool.close} : textSource(prompt),false);
+      if (!streamed) prompt = await materialize(composedPrompt);
+    }
+    if (systemFragments.length) {
+      composedSystem = await compose(systemFragments,textSource(args.system ?? ""),true);
+      if (!streamed) args.system = await materialize(composedSystem);
+    }
     for (const attachment of args.attachments) {
       await step();
       if (attachment.path.includes("://")) {
@@ -448,9 +486,9 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     signal.throwIfAborted();
     if (args.noStream) outputSpool = await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
     if (streamed) {
-      const events = service.streamSources!({ model: request.model, options: request.options, signal, stream: request.stream, prompt: promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt),
+      const events = service.streamSources!({ model: request.model, options: request.options, signal, stream: request.stream, prompt: composedPrompt ?? (promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt)),
         ...(schema === undefined ? {} : { schema }),
-        ...(args.system === undefined ? {} : { system: textSource(args.system) }),
+        ...(composedSystem ? {system:composedSystem} : args.system === undefined ? {} : { system: textSource(args.system) }),
         ...(resolvedKey === undefined ? {} : { key: resolvedKey }),
         attachments: sourceAttachments });
       iterator = (async function* () {

@@ -22,3 +22,5 @@ export { openAiChatOptions } from "./openai-chat-options.js";
 export { createLlmUrlSource, type LlmUrlSourceOptions } from './url-source.js';
 export { resolveUrlAttachment as resolveLlmUrlAttachment } from './url-attachment.js';
 export { getLlmAttachmentUrlId } from './attachment-id.js';
+
+export { createLlmFragmentSource, type LlmFragmentSourceOptions } from "./fragments.js";

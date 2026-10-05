@@ -43,7 +43,10 @@ namespace resets, and siblings reusing an inherited scope. Parser namespace scop
 and attribute records share the 64 KiB source/frame cache. Increase the number of
 fixed-size attributes independently of value length; check late namespace declarations,
 duplicate raw/expanded names, slow attribute consumers, and cancellation during spill.
-Individual names, attribute values and namespace URIs still need token qualification.
+Map traversal and rotations now use fixed-size records with separate UTF-16 token
+bodies; check missing-key and membership lookups beside giant values, and updates
+that must not copy inherited token bodies. Individual names, attribute values and
+namespace URIs still need end-to-end token qualification.
 Parser ancestry uses linked backing records; check deep documents with
 a fixed namespace scope independently of source size. Also measure startup/first-byte latency; formatting validates
 the document before publishing output.

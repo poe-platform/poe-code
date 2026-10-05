@@ -68,3 +68,54 @@ for (const cancel of [false, true]) test(`namespace updates preserve storage fai
   } finally { inject = false; await storage.close(); }
   assert.equal(active, 0); assert.deepEqual(await fs.readdir("/"), []);
 });
+
+for (const operation of ["lookup", "update", "key-lookup", "membership"]) test(`stored maps do not materialize unrelated large tokens during ${operation}`, async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const storage = new PagedStorage({ fs, cwd: "/", env: {}, signal }, 1);
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  let readBytes = 0, appendedBytes = 0;
+  const tracked = new Proxy(storage, { get(target, key) {
+    if (key === "read") return async (offset: number, length: number) => { readBytes += length; return target.read(offset, length); };
+    if (key === "append") return async (bytes: Uint8Array) => { appendedBytes += bytes.length; return target.append(bytes); };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  try {
+    const key = operation === "key-lookup" ? "m".repeat(128 * 1024) : "m";
+    const original = await new StoredNamespaces(tracked, budget).set(key, "v".repeat(128 * 1024));
+    readBytes = 0; appendedBytes = 0;
+    if (operation === "update") {
+      const updated = await original.set("a", "new");
+      assert.equal(await updated.get("a"), "new");
+      assert.equal(await original.get("a"), undefined);
+    } else if (operation === "membership") assert.notEqual(await original.lookup(key), undefined);
+    else assert.equal(await original.get("a"), undefined);
+    assert.ok(readBytes < 16 * 1024, `unrelated token reads: ${readBytes}`);
+    assert.ok(appendedBytes < 4096, `unrelated token rewrites: ${appendedBytes}`);
+  } finally { await storage.close(); }
+  assert.deepEqual(await fs.readdir("/"), []);
+});
+
+test("stored map tokens preserve UTF-16 ordering, empty values and immutable replacements", async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const storage = new PagedStorage({ fs, cwd: "/", env: {}, signal }, 1);
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const keys = ["", "\u0000", "a", "a\u0000", "\ud800", "\ud800\udc00", "\udfff", "\uffff", "x".repeat(4095) + "😀", "x".repeat(4096) + "z"];
+  let map = new StoredNamespaces(storage, budget);
+  try {
+    for (const key of keys) map = await map.set(key, key + "\u0000\ud800");
+    const previous = map;
+    map = await map.set("a", "");
+    const same = await map.set("a", "");
+    assert.equal(same.reference, map.reference);
+    assert.equal(await previous.get("a"), "a\u0000\ud800");
+    assert.equal(await map.get("a"), "");
+    const actual: string[] = [];
+    for await (const [key, value] of map) {
+      actual.push(key);
+      assert.equal(value, key === "a" ? "" : key + "\u0000\ud800");
+    }
+    assert.deepEqual(actual, [...keys].sort());
+  } finally { await storage.close(); }
+  assert.deepEqual(await fs.readdir("/"), []);
+});

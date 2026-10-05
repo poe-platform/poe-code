@@ -40,7 +40,7 @@ export class StoredParserAttributes {
     if (request.attributeOperation === "has" || request.attributeOperation === "expanded") {
       const offset = request.attributeOperation === "has" ? 16 : 24;
       const values = new StoredStringMap(this.storage, this.budget, await this.number(store, offset));
-      request.found = await values.get(request.name) !== undefined;
+      request.found = await values.lookup(request.name) !== undefined;
       if (request.attributeOperation === "expanded" && !request.found) {
         const next = await values.set(request.name, "1");
         await this.set(store, offset, next.reference);
@@ -50,7 +50,7 @@ export class StoredParserAttributes {
     if (request.attributeOperation === "append") {
       const reference = store || await this.storage.append(new Uint8Array(32));
       const values = new StoredStringMap(this.storage, this.budget, await this.number(reference, 16));
-      const existing = await values.get(request.attribute.name);
+      const existing = await values.lookup(request.attribute.name);
       const updated = await values.set(request.attribute.name, request.attribute.value);
       const { value: ignoredValue, ...metadata } = request.attribute;
       const attribute = await this.append(metadata);

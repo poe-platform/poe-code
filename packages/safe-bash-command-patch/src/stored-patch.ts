@@ -1,3 +1,4 @@
+import type { PatchText } from "./patch-text.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { closeDocumentResources } from "safe-bash-diff-engine/document";
 import { targetBytes, type TargetDocuments, type TargetLine } from "./stored-target.js";
@@ -6,24 +7,24 @@ import type { FilePatch, Hunk, HunkApplication, HunkBuilder, HunkLineBuilder, Hu
 export interface StoredPatchLine { readonly kind: PatchLine["kind"]; readonly text: TargetLine }
 export interface StoredPatchLines { readonly length: number; read(index: number): Promise<StoredPatchLine> }
 export type PatchLines = PatchLine[] | StoredPatchLines;
-export interface StoredPatchHunks { readonly length: number; read(index: number): Promise<Hunk<PatchLines>> }
-export type ReplayPatch = FilePatch<PatchLines, Hunk<PatchLines>[] | StoredPatchHunks>;
-export type ReplayOutcome = HunkOutcome<PatchLines>;
+export interface StoredPatchHunks { readonly length: number; read(index: number): Promise<Hunk<PatchLines, PatchText>> }
+export type ReplayPatch = FilePatch<PatchLines, Hunk<PatchLines, PatchText>[] | StoredPatchHunks>;
+export type ReplayOutcome = HunkOutcome<PatchLines, PatchText>;
 export interface OutcomeSink {
   push(outcome: ReplayOutcome): number | Promise<void>;
   pop(): ReplayOutcome | undefined | Promise<ReplayOutcome | undefined>;
 }
 export type ReplayApplication = Omit<HunkApplication<PatchLines>, "outcomes"> & { readonly outcomes?: OutcomeSink };
 
-export async function patchLine(hunk: Hunk<PatchLines>, index: number): Promise<StoredPatchLine> {
+export async function patchLine(hunk: Hunk<PatchLines, PatchText>, index: number): Promise<StoredPatchLine> {
   return Array.isArray(hunk.lines) ? hunk.lines[index]! : hunk.lines.read(index);
 }
 
-export async function patchHunk(patch: ReplayPatch, index: number): Promise<Hunk<PatchLines>> {
+export async function patchHunk(patch: ReplayPatch, index: number): Promise<Hunk<PatchLines, PatchText>> {
   return Array.isArray(patch.hunks) ? patch.hunks[index]! : patch.hunks.read(index);
 }
 
-export async function* patchHunks(patch: ReplayPatch): AsyncGenerator<readonly [number, Hunk<PatchLines>]> {
+export async function* patchHunks(patch: ReplayPatch): AsyncGenerator<readonly [number, Hunk<PatchLines, PatchText>]> {
   for (let index = 0; index < patch.hunks.length; index++) yield [index, await patchHunk(patch, index)];
 }
 
@@ -78,13 +79,15 @@ export class PatchBodyStore {
           const bytes = await this.hunks.read(start + index * 64, 64), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
           const lines = new BodyLines(view.getFloat64(32, true), this.records, this.data);
           lines.length = view.getFloat64(40, true);
-          const decoder = new TextDecoder();
-          let section = "";
-          for (let position = view.getFloat64(48, true), end = view.getFloat64(56, true); position < end;) {
-            const part = await this.data.read(position, Math.min(16384, end - position));
-            section += decoder.decode(part, { stream: true }); position += part.length;
-          }
-          section += decoder.decode();
+          const sectionStart = view.getFloat64(48, true), sectionEnd = view.getFloat64(56, true), data = this.data;
+          const section: PatchText = { size: sectionEnd - sectionStart, terminated: false, bytes: {
+            async *[Symbol.asyncIterator]() {
+              for (let position = sectionStart; position < sectionEnd;) {
+                const bytes = await data.read(position, Math.min(16384, sectionEnd - position));
+                yield bytes; position += bytes.length;
+              }
+            },
+          } };
           return { oldStart: view.getFloat64(0, true), oldCount: view.getFloat64(8, true),
             newStart: view.getFloat64(16, true), newCount: view.getFloat64(24, true), lines, section };
         },

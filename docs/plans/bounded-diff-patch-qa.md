@@ -35,7 +35,9 @@ admission scans arbitrarily long numeric prefixes without decoding them whole.
 Application outcomes, reversal probes and merge replacements use fixed-width
 stored records in the shared cache. Status and reject decisions replay them.
 Hunk descriptors and body locations now use stored records, with lazy reversal
-views. Individual header/section decoding remains proportional to that line.
+views. Unified/context hunk sections remain stored spans through grammar validation,
+conversion and reject rendering. Filename headers and coordinate prefixes still
+decode in full.
 Header text, file maps
 and retained resource handles still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.

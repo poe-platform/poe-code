@@ -1,3 +1,4 @@
+import { validateSection } from "./hunk-section.js";
 import { decodeHeaderPath } from "./patch-path.js";
 import { parseUnified,parseUnifiedSection,type FilePatch,type Hunk,type ParsedPatchLine,type PatchInput,type IndexedUnifiedCursor } from "./unified.js";
 import { Budget,ToolError,integer } from "safe-bash-diff-engine/shared";
@@ -145,9 +146,11 @@ async function* context(reader: Reader): AsyncGenerator<PatchText> {
     if (!next.startsWith("--- ")) throw new ToolError("expected new context file header");
     yield `--- ${header.slice(4)}\n+++ ${next.slice(4)}\n`;
     let hunks = 0;
-    while ((await reader.peek())?.startsWith("***************")) {
-      const delimiter = await reader.take();
-      if (!/^\*{15}(?: .*)?$/u.test(delimiter)) throw new ToolError("malformed context hunk separator");
+    while ((await reader.peek(16))?.startsWith("***************")) {
+      const position = reader.index;
+      const delimiter = await reader.take(reader.input.body ? 16 : undefined);
+      const section = reader.input.body ? await reader.input.body(position, 15, true) : delimiter.slice(15);
+      await validateSection(section, reader.budget, "malformed context hunk separator");
       if (++hunks > reader.budget.limits.maxHunks) throw new ToolError("hunk limit exceeded");
       const oldRange = await contextRange(reader, true);
       let oldLines = await contextSide(reader, true, oldRange);
@@ -163,7 +166,8 @@ async function* context(reader: Reader): AsyncGenerator<PatchText> {
       }
       const oldCount = contextCount(oldRange, oldLines);
       const newCount = contextCount(newRange, newLines);
-      yield `@@ -${oldRange.start},${oldCount} +${newRange.start},${newCount} @@${delimiter.slice(15)}\n`;
+      yield `@@ -${oldRange.start},${oldCount} +${newRange.start},${newCount} @@`;
+      yield section; yield "\n";
       const oldIterator = contextLines(reader, oldLines), newIterator = contextLines(reader, newLines);
       try {
         let oldLine = await oldIterator.next(), newLine = await newIterator.next();

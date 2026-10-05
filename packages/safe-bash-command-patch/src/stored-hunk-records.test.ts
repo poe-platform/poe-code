@@ -1,3 +1,4 @@
+import { materializeText } from "./patch-text.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { toByteSource, type CommandContext } from "safe-bash-contracts";
@@ -48,7 +49,7 @@ for (const failure of ["none", "write", "cancel"]) test(`stored hunk records rep
       for (const index of [0, 1, 255, 256, 4095, 8191]) {
         const hunk = await patchHunk(reverse, index);
         assert.equal(hunk.oldStart, index + 3); assert.equal(hunk.newStart, index + 1);
-        assert.equal(hunk.section, section(index));
+        assert.equal(await materializeText(hunk.section!), section(index));
         for (const lineIndex of [0, 1]) {
           const line = await patchLine(hunk, lineIndex);
           assert.equal(line.kind, lineIndex === 0 ? "+" : "-");
@@ -61,7 +62,7 @@ for (const failure of ["none", "write", "cancel"]) test(`stored hunk records rep
       await body.append({ kind: "+", text: "separate\n" });
       await second.append({ oldStart: 0, oldCount: 0, newStart: 1, newCount: 1, lines: body.lines });
       assert.equal(second.hunks.length, 1); assert.equal(builder.hunks.length, 8192);
-      assert.equal((await builder.hunks.read(8191)).section, section(8191));
+      assert.equal(await materializeText((await builder.hunks.read(8191)).section!), section(8191));
       await assert.rejects(second.hunks.read(1), RangeError);
     }
   } finally { await store.close(); await documents.close(); }

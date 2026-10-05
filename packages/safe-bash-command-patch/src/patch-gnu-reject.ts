@@ -35,7 +35,8 @@ export async function* rejectBytes(patch: ReplayPatch, outcomes: Iterable<Replay
     { const c = budget.checkpoint(); if (c) await c; }
     const { hunk, outputOffset } = outcome;
     if (!context) {
-      yield* add(`@@ -${unifiedRange(hunk.oldStart, hunk.oldCount, outputOffset)} +${unifiedRange(hunk.newStart, hunk.newCount, outputOffset)} @@${hunk.section ?? ""}\n`);
+      yield* add(`@@ -${unifiedRange(hunk.oldStart, hunk.oldCount, outputOffset)} +${unifiedRange(hunk.newStart, hunk.newCount, outputOffset)} @@`);
+      yield* add(hunk.section ?? ""); yield* add("\n");
       for (let start = 0; start < hunk.lines.length;) {
         budget.step();
         { const c = budget.checkpoint(); if (c) await c; }
@@ -52,7 +53,8 @@ export async function* rejectBytes(patch: ReplayPatch, outcomes: Iterable<Replay
         start = end;
       }
     } else {
-      yield* add(`***************${hunk.section ?? ""}\n*** ${contextRange(hunk.oldStart, hunk.oldCount, outputOffset)}${normal ? "" : " ****"}\n`);
+      yield* add("***************"); yield* add(hunk.section ?? "");
+      yield* add(`\n*** ${contextRange(hunk.oldStart, hunk.oldCount, outputOffset)}${normal ? "" : " ****"}\n`);
       for (const kind of ["-", "+"] as const) {
         if (kind === "+") yield* add(`--- ${contextRange(hunk.newStart, hunk.newCount, outputOffset)}${normal ? " -----" : " ----"}\n`);
         for (let start = 0; start < hunk.lines.length;) {

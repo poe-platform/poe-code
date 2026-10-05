@@ -27,7 +27,8 @@ comparison. Mail preambles and signatures use bounded prefix scans.
 Hunk outcomes, including reversal probes and merge replacements, share the page
 cache; status and reject decisions replay stored records.
 Hunk descriptors and their body locations use stored records; reversal is a
-replayable view. Individual headers and hunk sections still decode in full.
+replayable view. Hunk sections stay as byte spans through unified/context parsing
+and reject rendering. Filename headers and coordinate prefixes still decode in full.
 Header text, per-file metadata and retained resource
 handles still grow with the request; this is not a complete memory bound.
 

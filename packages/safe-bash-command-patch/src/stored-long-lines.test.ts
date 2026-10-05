@@ -7,6 +7,29 @@ import { equalPatchText } from "./patch-text.js";
 import { StoredPatchInput } from "./stored-input.js";
 import { filesystem, run } from "./helpers.test.js";
 
+for (const format of ["unified", "context"]) test(`${format} hunk sections stream into rejects without full-line decoding`, async t => {
+  const read = StoredPatchInput.prototype.read;
+  t.mock.method(StoredPatchInput.prototype, "read", async function(this: StoredPatchInput, index: number, prefix?: number) {
+    if (index >= 0 && index < this.length) {
+      const line = await this.document.line(this.start + index);
+      if (line.end - line.start > 16384) assert.ok(prefix !== undefined && prefix <= 128, "decoded a full hunk section");
+    }
+    return Reflect.apply(read, this, [index, prefix]);
+  });
+  const encode = (text: string) => new TextEncoder().encode(text), block = encode("🦀".repeat(4096));
+  const result = await run("patch", ["--force", "--quiet"], { files: { target: "different\n" }, input: {
+    async *[Symbol.asyncIterator]() {
+      yield encode(format === "unified" ? "--- target\n+++ target\n@@ -1 +1 @@ " : "*** target\n--- target\n*************** ");
+      for (let index = 0; index < 8; index++) yield block;
+      yield encode(format === "unified" ? "\n-old\n+new\n" : "\n*** 1 ****\n! old\n--- 1 ----\n! new\n");
+      block.fill(0);
+    },
+  } });
+  assert.equal(result.exitCode, 1, result.stderr);
+  const reject = new TextDecoder().decode(await result.fs.readFile("/work/target.rej"));
+  assert.ok(reject.includes("🦀".repeat(32768)));
+});
+
 for (const format of ["unified", "normal", "context"]) for (const transport of ["lf", "crlf", "incomplete"]) {
   test(`${format} ${transport} body lines replay without full-line decoding`, async t => {
     const fs = await filesystem(), encode = (text: string) => new TextEncoder().encode(text);

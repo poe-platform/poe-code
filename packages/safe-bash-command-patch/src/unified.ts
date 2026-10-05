@@ -1,3 +1,4 @@
+import { unifiedHeader, validateSection } from "./hunk-section.js";
 import { decodeHeaderPath,isEpochHeader } from "./patch-path.js";
 import { Budget,ToolError,integer } from "safe-bash-diff-engine/shared";
 import { byteLength } from "safe-bash-io-engine/byte-encoding";
@@ -5,13 +6,13 @@ import { materializeText, textSize, type PatchText } from "./patch-text.js";
 
 export interface PatchLine { readonly kind: " " | "+" | "-"; text: string }
 export interface ParsedPatchLine { readonly kind: PatchLine["kind"]; readonly text: PatchText }
-export interface Hunk<Lines = PatchLine[]> {
+export interface Hunk<Lines = PatchLine[], Section = string> {
   readonly oldStart: number;
   readonly oldCount: number;
   readonly newStart: number;
   readonly newCount: number;
   readonly lines: Lines;
-  readonly section?: string;
+  readonly section?: Section;
 }
 export interface FilePatch<Lines = PatchLine[], Hunks = Hunk<Lines>[]> {
   readonly oldPath: string; readonly newPath: string;
@@ -66,11 +67,11 @@ function bufferedLines(): HunkLineBuilder<PatchLine[]> {
   return { lines, async append(line) { lines.push({ kind: line.kind, text: await materializeText(line.text) }); } };
 }
 
-export interface HunkBuilder<Lines, Hunks> { readonly hunks: Hunks; append(hunk: Hunk<Lines>): void | Promise<void> }
+export interface HunkBuilder<Lines, Hunks> { readonly hunks: Hunks; append(hunk: Hunk<Lines, PatchText>): void | Promise<void> }
 
 function bufferedHunks<Lines>(): HunkBuilder<Lines, Hunk<Lines>[]> {
   const hunks: Hunk<Lines>[] = [];
-  return { hunks, append(hunk) { hunks.push(hunk); } };
+  return { hunks, async append(hunk) { hunks.push({ ...hunk, section: await materializeText(hunk.section ?? "") }); } };
 }
 
 export function parseUnifiedReader<Lines>(cursor: IndexedUnifiedCursor, budget: Budget, single: boolean,
@@ -107,10 +108,12 @@ export async function parseUnifiedReader<Lines, Hunks extends { readonly length:
     const hunks = hunkBuilder.hunks;
     let oldEnded = false;
     let newEnded = false;
-    while (index < physical.length && (await physical.read(index))!.startsWith("@@")) {
+    while (index < physical.length && (await physical.read(index, 2))!.startsWith("@@")) {
       budget.hunk();
-      const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@( .*)?$/u.exec((await physical.read(index++))!);
+      const { header: hunkHeader, section } = await unifiedHeader(physical, index++, budget);
+      const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@$/u.exec(hunkHeader);
       if (!match) throw new ToolError("malformed unified hunk header");
+      await validateSection(section, budget, "malformed unified hunk header");
       const oldStart = integer(match[1]!, "old start");
       const oldCount = integer(match[2] ?? "1", "old count");
       const newStart = integer(match[3]!, "new start");
@@ -149,7 +152,7 @@ export async function parseUnifiedReader<Lines, Hunks extends { readonly length:
         await bodyLines.append(entry);
       }
       if (!changed) throw new ToolError("hunk has no changes");
-      await hunkBuilder.append({ oldStart, oldCount, newStart, newCount, lines: bodyLines.lines, section: match[5] ?? "" });
+      await hunkBuilder.append({ oldStart, oldCount, newStart, newCount, lines: bodyLines.lines, section });
     }
     if (!hunks.length) throw new ToolError("file patch has no hunks");
     patches.push({ oldPath, newPath, oldEpoch, newEpoch, oldHeader, newHeader, hunks });
@@ -174,8 +177,8 @@ export function reversePatch(patch: FilePatch): FilePatch {
   };
 }
 
-export interface HunkOutcome<Lines = PatchLine[]> {
-  readonly hunk: Hunk<Lines>; readonly index: number; readonly failed: boolean;
+export interface HunkOutcome<Lines = PatchLine[], Section = string> {
+  readonly hunk: Hunk<Lines, Section>; readonly index: number; readonly failed: boolean;
   readonly mergeRange?: readonly [number, number];
   readonly misordered: boolean;
   readonly line: number; readonly outputOffset: number; readonly offset: number; readonly fuzz: number;

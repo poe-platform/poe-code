@@ -1,3 +1,4 @@
+import { BiffOriginalProperties } from './biff-property-observations.js';
 import { BiffPropertyNames } from './biff-property-names.js';
 import { BiffMutablePropertyValues } from './biff-property-values.js';
 import { visitBiffPropertyDictionary } from './biff-property-dictionary.js';
@@ -706,6 +707,27 @@ it('observes properties sequentially without materializing a returned property r
   expect(state.closed).toBe(state.acquired);
 });
 
+it('merges without retaining decoded property observations in maps', async () => {
+  const seed = { sheets: book.sheets, properties: { 'dc:title': 'old', A: 'value', B: 3 } };
+  const fresh = await writeBiffProperties(seed, context), stream = '\u0005SummaryInformation', bytes = fresh.streams.get(stream)!;
+  const input = { ...seed, properties: { ...seed.properties, 'dc:title': 'new' }, unsupportedRecords: [{
+    source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+    data: { stream, bytes: Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('') }
+  }] };
+  const expected = await writeBiffProperties(input, context), { ctx, state } = fixture(), set = Map.prototype.set;
+  Map.prototype.set = function (key, value) {
+    if (value && typeof value === 'object' && 'stream' in value && 'section' in value && 'id' in value && 'key' in value && 'value' in value)
+      throw new Error('resident decoded property observations');
+    return set.call(this, key, value);
+  };
+  try {
+    const actual = await writeBiffProperties(input, ctx, true);
+    try { for (const [name, source] of actual.streams) expect(await source.read(0, source.size)).toEqual(expected.streams.get(name)); }
+    finally { await actual.close(); }
+  } finally { Map.prototype.set = set; }
+  expect(state.closed).toBe(state.acquired);
+});
+
 it('preserves mutable property insertion order and detached payloads beyond the index cache', async () => {
   const { ctx, state, cleanups } = fixture(), values = new BiffMutablePropertyValues(ctx, () => {});
   const range = (id: number) => { const bytes = new Uint8Array(4); new DataView(bytes.buffer).setUint32(0, id, true); return propertyRange(bytes, ctx); };
@@ -848,4 +870,48 @@ it.each([false, true])('keeps first supported duplicate-name ownership during ob
     observed.push([property.key, property.value]);
   }, false)).toEqual({});
   expect(observed).toEqual([['A', unsupported ? 2 : 1]]); expect(state.closed).toBe(state.acquired);
+});
+
+it.each([false, true])('replays original identities beyond bounded caches with exact UTF-16 keys (stored=%s)', async stored => {
+  const { ctx, state, cleanups } = fixture(), originals = new BiffOriginalProperties(stored ? ctx : context, () => {});
+  const streams = ['\u0005SummaryInformation', '\u0005DocumentSummaryInformation'];
+  const records = Array.from({ length: 300 }, (_, i) => ({ stream: streams[i % 2]!, section: 0xffffff00 + Math.floor(i / 2),
+    id: 0xffffffff, key: i === 0 ? 'A\0😀\ud800'.repeat(5000) : `Key${i}`, unchanged: i % 3 === 0 }));
+  try {
+    for (const record of records) await originals.add(record);
+    await expect(originals.add(records[0]!)).rejects.toThrow('Duplicate');
+    for (const record of records) expect(await originals.get(record.stream, record.section, record.id)).toEqual(record);
+    let at = 0;
+    for await (const record of originals.values()) expect(record).toEqual(records[at++]);
+    expect(at).toBe(records.length);
+    for (const id of [-1, 0.5, NaN, Infinity, 0x100000000]) expect(await originals.get(streams[0]!, 10, id)).toBeUndefined();
+    expect(await originals.get('other', 1, 2)).toBeUndefined();
+    expect(await originals.get(streams[0]!, 0xffffff00, 3)).toBeUndefined();
+  } finally { await originals.close(); for (const close of cleanups) await close(); }
+  await expect(originals.get(streams[0]!, 1, 2)).rejects.toThrow('closed');
+  expect(state.closed).toBe(state.acquired); expect(state.acquired).toBe(stored ? 1 : 0);
+  expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
+});
+it.each(['allocate', 'write', 'read', 'abort'])('cleans original identity storage after %s failure', async mode => {
+  const { ctx, state, failure, cleanups } = fixture(), controller = new AbortController();
+  const originals = new BiffOriginalProperties({ ...ctx, signal: controller.signal }, () => {});
+  if (mode === 'abort') state.hold = async () => { controller.abort(failure); }; else state.mode = mode;
+  try {
+    await expect((async () => {
+      await originals.add({ stream: '\u0005SummaryInformation', section: 48, id: 2, key: 'Name', unchanged: true });
+      await originals.get('\u0005SummaryInformation', 48, 2);
+    })()).rejects.toBe(failure);
+  } finally { await originals.close(); for (const close of cleanups) await close(); }
+  expect(state.closed).toBe(state.acquired);
+});
+it('waits for original identity writes during disposal', async () => {
+  const { ctx, state, cleanups } = fixture(), originals = new BiffOriginalProperties(ctx, () => {});
+  let entered!: () => void, resume!: () => void;
+  const writing = new Promise<void>(resolve => { entered = resolve; });
+  state.hold = () => { entered(); return new Promise<void>(resolve => { resume = resolve; }); };
+  const adding = originals.add({ stream: '\u0005SummaryInformation', section: 48, id: 2, key: 'Name', unchanged: true });
+  await writing; const closing = originals.close(); expect(state.closed).toBe(0); resume();
+  await expect(adding).rejects.toThrow('closed'); await closing;
+  for (const close of cleanups) await close();
+  expect(state.closed).toBe(1); expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
 });

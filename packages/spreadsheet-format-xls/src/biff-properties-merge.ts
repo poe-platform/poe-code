@@ -1,3 +1,4 @@
+import { BiffOriginalProperties } from './biff-property-observations.js';
 import { BiffMutablePropertyValues } from './biff-property-values.js';
 import { createBiffPropertyNameEncoder } from "./biff-property-name.js";
 import { readBiffPropertyText } from "./biff-property-text.js";
@@ -11,7 +12,7 @@ import { biffPropertyFields, biffPropertyFormats, readBiffProperties } from "./b
 import { propertyRange, readPropertySectionRanges, withPropertyValueRanges, type BiffPropertyRange } from "./biff-property-range.js";
 
 interface Section { guid: string; offset: number; bytes: BiffPropertyRange; values?: BiffMutablePropertyValues; }
-interface Property { stream: string; section: number; id: number; key: string; value: ImportedValue; }
+interface Property { stream: string; section: number; id: number; key: string; }
 interface Snapshot { record: UnsupportedRecord; bytes: BiffPropertyRange; modeled: ImportedValue[] | undefined; }
 
 /** Rebuild offsets around original opaque spans. Never transcode their codepage. */
@@ -96,13 +97,20 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     for (let at = 0; at < bytes.length;) { const part = await source.read(at, bytes.length - at); bytes.set(part, at); at += part.length; }
     return new Binary(bytes);
   };
-  const original = new Map<string, Property>(), pending = new Map<string, Property>();
-  const identity = (property: Pick<Property, "stream" | "section" | "id">) => `${property.stream}:${property.section}:${property.id}`;
+  const same = (a: ImportedValue, b: ImportedValue | undefined) => {
+    if (!Array.isArray(a) || !Array.isArray(b)) return Object.is(a, b);
+    charge(a.length + b.length); return a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
+  };
+  const original = new BiffOriginalProperties(context, charge), pending = new Map<string, Property>();
+  temporarySources.push(original);
   const readContext = { ...context, limits: { ...context.limits, inputBytes: context.limits.outputBytes } };
   // Reuse scalar decoding, but do not create another retained hexadecimal copy.
   await readBiffProperties(new Map([...snapshots].map(([name, value]) => [name, value.bytes])), readContext, accountText, charge,
-    undefined, property => { admit(1); original.set(identity(property), property); }, false);
-  await readBiffProperties(streams, readContext, accountText, charge, undefined, property => { admit(1); pending.set(property.key, property); }, false);
+    undefined, async property => {
+      admit(1); const { stream, section, id, key } = property;
+      await original.add({ stream, section, id, key, unchanged: same(property.value, book.properties?.[key]) });
+    }, false);
+  await readBiffProperties(streams, readContext, accountText, charge, undefined, property => { admit(1); const { stream, section, id, key } = property; pending.set(key, { stream, section, id, key }); }, false);
 
   const chunks = async function* (source: BiffPropertyRange): AsyncIterable<Uint8Array> {
     for (let at = 0; at < source.size;) { const bytes = await source.read(at, source.size - at); at += bytes.length; yield bytes; }
@@ -173,37 +181,33 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     for (let i = 0; i < value.length; i++) view.setUint16(8 + i * 2, value.charCodeAt(i), true);
     return propertyRange(bytes, context);
   };
-  const same = (a: ImportedValue, b: ImportedValue | undefined) => {
-    if (!Array.isArray(a) || !Array.isArray(b)) return Object.is(a, b);
-    charge(a.length + b.length); return a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
-  };
   for (const [name, snapshot] of snapshots) {
     const seen = new Set<string>();
-    function* modeled(): Iterable<ImportedValue> {
+    async function* modeled(): AsyncIterable<ImportedValue> {
       if (snapshot.modeled) { yield* snapshot.modeled; return; }
       // SummaryInformation is read first. A legacy document-only snapshot lacks
       // that earlier stream's ownership decisions: infer only unchanged values.
-      for (const property of original.values()) {
+      for await (const property of original.values()) {
         charge(1); if (property.stream !== name) continue;
         if (name === "\u0005SummaryInformation" || snapshots.has("\u0005SummaryInformation") ||
-          Object.hasOwn(book.properties ?? {}, property.key) && same(property.value, book.properties?.[property.key])) {
+          Object.hasOwn(book.properties ?? {}, property.key) && property.unchanged) {
           admit(1); yield [property.section, property.id, property.key];
         }
       }
     }
-    for (const entry of modeled()) {
+    for await (const entry of modeled()) {
       admit(1);
       if (!Array.isArray(entry) || entry.length !== 3 || typeof entry[0] !== "number" || typeof entry[1] !== "number" || typeof entry[2] !== "string")
         invalidBiff("invalid retained property identity");
       const [offset, id, key] = entry as [number, number, string];
-      const property = original.get(identity({ stream: name, section: offset, id }));
+      const property = await original.get(name, offset, id);
       if (!property || property.key !== key || seen.has(key)) invalidBiff("invalid retained property identity");
       seen.add(key);
       charge(old.get(name)!.length);
       const section = old.get(name)!.find(section => section.offset === offset)!;
-      const value = book.properties?.[key], replacement = pending.get(key);
+      const replacement = pending.get(key);
       if (!Object.hasOwn(book.properties ?? {}, key)) await remove(section, id);
-      else if (same(property.value, value)) { preserved.add(key); if (replacement) await take(replacement); }
+      else if (property.unchanged) { preserved.add(key); if (replacement) await take(replacement); }
       else if (replacement) await section.values!.set(id, await wide(await take(replacement), section));
     }
   }

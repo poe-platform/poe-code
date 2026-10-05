@@ -4631,22 +4631,23 @@
       "status": "open",
       "currentFinding": "Bounded grammar, captures, lookbehind, classes and raw-byte results are implemented for qualified cases. Capture/assertion conditionals, branch-reset numbering, numeric-condition bounds, alphabetic lookaround/atomic forms and explicit backreference spellings are delivered. All 4738 focused tests pass. Standalone Perl comparisons cover 81 outputs through the rebuilt root SDK/command and 19 later outputs through the command package (see perlPatternGrammar). Earlier compiled SDK/Shell match 625 PERL_SED rows within the 633-row activated Linux cohort, excluding 13 malformed UTF-8 outputs; that cohort does not qualify the new grammar. Wider grammar, Unicode, diagnostics, lifecycle, activated runtime, installed artifacts and publication remain open.",
       "checkpoint20261004": {
-        "qualified": "Bounded grammar, captures, assertions, branch reset and explicit backreferences have scoped implementation and comparison receipts. Version profiles, match reset and experimental-warning behavior have delivered receipts. Fresh harness controls classify all 18 retained activated atomic-lookbehind mismatches as context-dependent reference limitations.",
+        "qualified": "Bounded grammar, captures, assertions, branch reset and explicit backreferences have scoped implementation and comparison receipts. Version profiles, match reset and experimental-warning behavior have delivered receipts. Fresh harness controls classify all 18 retained activated atomic-lookbehind mismatches as context-dependent reference limitations. Twelve activated-loader byte cases now match both product profiles; public raw SDK exports and valid-text XML SDK/command routes pass, as do cancellation and output-admission controls.",
         "evidence": [
           "#/reference/perlPatternGrammar",
           "#/reference/perlExperimentalWarnings",
           "#/currentQualification20261002/perlReferenceStateDefect",
           "#/reference/perlRuntimeProfiles",
           "#/reference/perlMatchReset",
-          "#/perlAtomicHarnessClassification"
+          "#/perlAtomicHarnessClassification",
+          "#/perlByteTransport"
         ],
-        "nextAcceptance": "Qualify bounded Unicode/raw-byte/NUL transport and lifecycle through activated SDK/command routes; preserve the completed 4150-case classification and warning receipts. Containing installed consumers remain separate.",
+        "nextAcceptance": "Containing installed profiles and remaining bounded grammar/runtime acceptance; do not restart the classified4150-case corpus, warning/match-reset cohorts or12-case byte transport. Malformed-byte XML admission remains excluded.",
         "closureGate": "Close wider grammar/Unicode/diagnostics/lifecycle and installed-runtime profiles with the original reference retained.",
         "qualificationBlockers": [
           "Perl5.40.1 has a warning-sensitive atomic-lookbehind state defect; diagnostic patched-interpreter results are not replacement goldens."
         ],
         "remainingAcceptance": [
-          "Retained corpus classification is complete: all 18 activated atomic-lookbehind discrepancies vary with the native harness. Preserve them as reference limitations, not passes; complete bounded Unicode/raw-byte/NUL transport and lifecycle qualification.",
+          "Retained corpus classification and bounded 12-case Unicode/raw-byte/NUL transport are complete. Preserve native atomic state limitations and malformed-byte XML exclusions; remaining grammar and installed-runtime scope stays open.",
           "Remaining bounded grammar, Unicode/raw bytes, malformed inputs and lifecycle through activated and installed routes; keep original interpreter goldens."
         ]
       }
@@ -6567,6 +6568,24 @@
       "expanded-probe.py": "d271228c90623db5b3757b04c2007f6eaeb583cf3f7725018188c5f556c9f11c",
       "results.json": "d112cc710f3a7f9419a082a83c80a9363b9aa9e7900d70d15fcedc515dc61de5",
       "summary.json": "f4a777771974a75215c3860c8b7d0bebd635c4e6f8b682740b2599f5cbe8bbe4"
+    }
+  },
+  "perlByteTransport": {
+    "status": "Bounded byte transport and lifecycle controls verified; wider family remains open",
+    "runtimeChanges": false,
+    "native": "Unmodified Gnumeric1.12.61 Perl loader with task-local relocated loader metadata from perlDateArgumentLocale. Real worksheet cells and PERL_SED(A1,B1,C1), workbook_recalc_all.12 inputs cover interior/leading NUL in each argument, UTF-8 dot/literal matching, malformed bytes/result, NUL after malformed byte and empty input. Native C-string bridge uses strlen on arguments; workbook canonical text already matches. No matcher repair required.",
+    "validation": "24 memory-only regressions (12 cases x2 profiles);286 related profile/warning/match-reset/transport tests pass. Selected command workspace build, new-test ESLint and owner test TypeScript check pass.",
+    "public": "Both profiles:12 raw result exports through adopted public SDK workbooks (24 values), plus9 XML-admissible inputs through SDK/command conversion (36 values). All byte-exact to native; zero product diagnostics. NULs are canonicalized before XML transport; no embedded-NUL XML claim. Three malformed-byte argument cases use workbook values/raw SDK export only.",
+    "lifecycle": "Eight public controls:2 profiles x2 routes x cancellation/output-byte admission. Pre-aborted cancellation retains original object identity; output limit yields resource-limit SDK error or command exit1 with exact calculation-text-limit message. No destination writes; engines disposed. Existing in-flight work/cancellation regressions pass in related cohort.",
+    "nativeLimits": "Malformed-byte worksheet values produce Pango invalid-UTF8 warnings during native cell display; retained as reference diagnostics, not Perl matcher errors or claimed product diagnostic parity. Initial direct function_call_with_values probe lacked the loader function-expression context and crashed; corrected worksheet probe exits0. Initial test fixtures incorrectly represented valid UTF-8/NUL as byte-string and were rejected by existing canonical validation; those are harness errors, not product regressions.",
+    "remaining": "Containing registry artifacts and remaining grammar/runtime acceptance. Native atomic-reference limitations stay explicit; no full family closure.",
+    "hashes": {
+      "probe.c": "610e788b30a953787d2ee07ffe854da4ba0970790fc4ad398f63e8285f546482",
+      "cases.json": "479d25c2e50304a5da5978fe0d8e0de9a54b5d5bc72ca18975f4e2c857e7ba62",
+      "native.stdout": "cb9cc9d5b8863ef60779b7da75a732a40ffae2e32e89f07ca1f7ec87be5201c3",
+      "native.stderr": "3602e7a6a0939a67457e186205f9350e216fa46826421f9d6ce3e4c13f7a9d9c",
+      "public-results.json": "cd6499ffc504fc025e9863f69bae9fed35beab829cb6130f5efedccfc99582a6",
+      "lifecycle-results.json": "7ed0ef28e63b16eaa62770da1c8dcfda65b7716959e50cd5bd3855b3c97561d1"
     }
   }
 }

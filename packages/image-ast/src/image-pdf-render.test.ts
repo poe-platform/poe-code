@@ -1,8 +1,7 @@
-import { readPdfDictionaryValue } from "../../pdf-ast/src/content/stored-dictionary.js";
 import {expect,it,vi} from "vitest";
 import {createMemoryFileSystem} from "@poe-code/safe-fs";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
-import {PdfDocument,cosNumber,dictSet} from "@poe-code/pdf-ast";
+import {PdfDocument,cosNumber,dictSet,readPdfDictionaryValue} from "@poe-code/pdf-ast";
 import {decodeImage} from "./codecs/index.js";
 import {tryPdfDecode,tryPdfMetadata} from "./image-pdf.js";
 import sharp from "./index.js";

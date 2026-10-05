@@ -1,21 +1,12 @@
 import { execFileSync } from "node:child_process";
-import { accessSync, constants, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
+import { resolveCargoTargetDirectory } from "../../mcp-protocol-rust/scripts/cargo-target.mjs";
 import process from "node:process";
 const root = new URL("../", import.meta.url);
-function resolveTargetRoot() {
-  if (typeof process === "undefined" || !process.env || process.env.CI) return new URL("../git-rust/target/", root);
-  const preferred = process.env.CARGO_TARGET_DIR ?? path.join(process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "poe-code", "git-rust-target");
-  try {
-    mkdirSync(preferred, { recursive: true });
-    accessSync(preferred, constants.W_OK);
-    return new URL(`file://${preferred}/`);
-  } catch {
-    return new URL(`file://${path.join(os.tmpdir(), "poe-code", "git-rust-target")}/`);
-  }
-}
-const targetRoot = resolveTargetRoot();
+const targetRoot = pathToFileURL(resolveCargoTargetDirectory(fileURLToPath(new URL("../../", root))) + path.sep);
 const env = typeof process !== "undefined" && process.env ? { ...process.env, PATH: `${process.env.CARGO_HOME ? `${process.env.CARGO_HOME}/bin` : `${process.env.HOME ?? ""}/.cargo/bin`}:${os.homedir()}/.cargo/bin:${process.env.PATH ?? ""}` } : undefined;
 const installed = execFileSync("rustup", ["target", "list", "--installed", "--toolchain", "stable"], { encoding: "utf8", env }).split(/\r?\n/);
 if (!installed.includes("wasm32-unknown-unknown")) {

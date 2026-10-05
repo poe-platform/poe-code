@@ -1,12 +1,12 @@
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync, copyFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { homedir } from "node:os";
+import { resolveCargoTargetDirectory } from "../../mcp-protocol-rust/scripts/cargo-target.mjs";
 import path from "node:path";
 
 const directory = fileURLToPath(new URL("..", import.meta.url));
 const operation = process.argv[2];
-const target = process.env.CARGO_TARGET_DIR ?? path.join(process.env.XDG_CACHE_HOME ?? path.join(homedir(), ".cache"), "poe-code", "rust-mcp-target");
+const target = resolveCargoTargetDirectory(path.resolve(directory, "../.."));
 const rustc = spawnSync("rustup", ["which", "--toolchain", "stable", "rustc"], { encoding: "utf8" });
 if (rustc.error) throw rustc.error;
 if (rustc.status !== 0) throw new Error(rustc.stderr);

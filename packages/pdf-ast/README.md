@@ -985,7 +985,12 @@ ordered relative edits accumulate without collecting the selection.
 information/metadata/structure/form/label removals to a caller-backed editable
 graph. Use its `document` for subsequent copies and close the result when done.
 The result exposes `pageCount` and `getPage(index)` for bounded indexed access
-without retaining a page array. Pass `stamps` as an iterable of
+without retaining a page array. Pass `bookmarks` as an iterable or async iterable
+of `{ title, level, pageNumber }` to replace outlines in order. Levels and page
+numbers are one-based integers; destinations clamp to the available pages and
+level jumps descend through the last child. Empty input or a document without
+pages preserves existing outlines. Hierarchy frames and sibling state use caller
+storage, with depth bounded by `maxRecursionDepth` when configured. Pass `stamps` as an iterable of
 `{ source, mode: "overlay" | "underlay", pages }`, where `source` is a retained
 document and `pages` yields zero-based `{ sourceIndex, targetIndex }` pairs.
 Set `preserveStreams: true` on a stamp to keep separate encoded content streams

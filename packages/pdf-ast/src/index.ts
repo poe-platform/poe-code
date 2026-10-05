@@ -95,7 +95,7 @@ export { retainedCosObjects, type PdfRetainedObjectsOptions } from "./cos/retain
 
 export { saveRetainedDocumentChunks, type SaveRetainedDocumentOptions, type RetainedPageRotation } from "./edit/retained-save.js";
 
-export { editRetainedDocument, PdfDuplicateAttachment, type RetainedAttachmentInput, type EditRetainedDocumentOptions, type RetainedStampInput, type RetainedPageLabel } from "./edit/retained-graph.js";
+export { editRetainedDocument, PdfDuplicateAttachment, type RetainedAttachmentInput, type EditRetainedDocumentOptions, type RetainedBookmark, type RetainedStampInput, type RetainedPageLabel } from "./edit/retained-graph.js";
 
 export { copyRetainedAttachments } from "./edit/retained-attachment-copies.js";
 

@@ -1,3 +1,4 @@
+import type {RetainedDocumentSidecars} from "./retained-json.js";
 import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {backedJsonOrder} from "./backed-json-order.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
@@ -13,7 +14,7 @@ import {readRtfFontSize, RtfFontSizeError} from "./rtf-font-size.js";
 
 
 type ListSpec = {id: number; level: number; nfc: number; start: number; delim: string};
-type Paragraph = {indent: number; marker?: string | undefined; style?: number; cell?: string; list?: ListSpec};
+type Paragraph = {indent: number; direction: "ltr" | "rtl"; marker?: string | undefined; style?: number; cell?: string; list?: ListSpec};
 type Job = {op: string; node: number; path: number; cursor?: number; end?: number; index?: number; mode?: string; value?: string;
   depth?: number; state?: Paragraph; columns?: number; width?: number; start?: number; style?: string; delim?: string};
 export type RetainedRtfImage = {size: number; width: number; height: number; encoding: "png" | "jpeg"; chunks: AsyncIterable<Uint8Array>};
@@ -34,7 +35,7 @@ class RtfTape {
   constructor(private readonly tree: BackedJson, private readonly storage: PagedStorage,
     private readonly context: ExecutionContext, private readonly options: ConversionOptions,
     private readonly order: Awaited<ReturnType<typeof backedJsonOrder>>,
-    private readonly image: (node: number) => Promise<RetainedRtfImage>, private readonly validateResources?: () => Promise<void>) {
+    private readonly image: (node: number) => Promise<RetainedRtfImage>, private readonly validateResources?: () => Promise<void>, private readonly sidecars?: RetainedDocumentSidecars) {
     this.text = new BackedText(storage, units => context.cooperate(units));
     this.fonts = new BackedTextOrder(storage, this.text); this.colors = new BackedTextOrder(storage, this.text);
     this.fontRanks = new IntegerTable(storage, 64); this.colorRanks = new IntegerTable(storage, 64);
@@ -197,7 +198,7 @@ class RtfTape {
   private async paragraph(state: Paragraph, attr?: number): Promise<void> {
     await this.add("{\\pard\\plain\\s" + (state.style ?? 0));
     if (state.style) await this.add("\\b\\fs" + (40 - state.style * 2));
-    await this.add("\\li" + state.indent + "\\fi" + (state.marker ? -360 : 0) + "\\ltrpar");
+    await this.add("\\li" + state.indent + "\\fi" + (state.marker ? -360 : 0) + (state.direction === "rtl" ? "\\rtlpar" : "\\ltrpar"));
     if (state.cell) await this.add("\\intbl\\" + alignments[state.cell]);
     if (attr !== undefined) await this.attrs(attr, true);
     if (state.marker && state.list) await this.add("\\tx" + state.indent + "\\ls" + state.list.id + "\\ilvl" + state.list.level);
@@ -268,7 +269,8 @@ class RtfTape {
       for (let i = 1; i <= this.listCount; i++) await this.add("{\\listoverride\\listid" + i + "\\listoverridecount0\\ls" + i + "}");
       await this.add("}\n");
     }
-    await this.push(this.list(blocks, 0, "block", {state: {indent: 0}}));
+    if (this.sidecars?.direction === "auto") await this.fail("Automatic RTF direction unsupported; declare ltr or rtl");
+    await this.push(this.list(blocks, 0, "block", {state: {indent: 0, direction: this.sidecars?.direction === "rtl" ? "rtl" : "ltr"}}));
     while (this.top) {
       await this.context.cooperate();
       const frame = await this.read<{parent: number; job: Job}>(this.top); this.top = frame.parent; const job = frame.job;
@@ -434,11 +436,11 @@ class RtfTape {
   }
 }
 
-export async function writeRetainedRtf(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, order: Awaited<ReturnType<typeof backedJsonOrder>>, image: (node: number) => Promise<RetainedRtfImage>, validateResources?: () => Promise<void>): Promise<void> {
+export async function writeRetainedRtf(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, order: Awaited<ReturnType<typeof backedJsonOrder>>, image: (node: number) => Promise<RetainedRtfImage>, validateResources?: () => Promise<void>, sidecars?: RetainedDocumentSidecars): Promise<void> {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close()); let failure: {reason: unknown} | undefined;
   try {
-    const writer = new RtfTape(tree, storage, context, options, order, image, validateResources), result = await writer.render();
+    const writer = new RtfTape(tree, storage, context, options, order, image, validateResources, sidecars), result = await writer.render();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {const first = diagnostics[0]!; throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);}
     await reserveRetainedOutput(() => writer.text.unicodeChunks(result), context, options.eol);

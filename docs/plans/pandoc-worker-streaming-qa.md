@@ -693,7 +693,7 @@ admission in `engine.ts`; a retained default pair is not complete option coverag
 | HTML | `html.ts`, parse5 tree and mapper arrays | Retained HTML recovery tree and retained Pandoc mapping |
 | RST | `rst.ts`, source lines, definitions, jobs, notes and tables | Retained parsing/resolution including includes and substitutions |
 | LaTeX | `latex.ts`, syntax/expansion state and AST | Retained macro expansion and mapping with existing diagnostics |
-| EPUB | `epub-retained-book.ts` still materializes URI/manifest control values; other output pairs use `epub.ts` trees and ASTs | Qualify public plain output, remove remaining control-value materialization, and connect every output pair |
+| EPUB | `epub-retained-book.ts` still materializes URI/manifest control values; EPUB/PDF/DOCX/PPTX output pairs use `epub.ts` trees and ASTs | Qualify public plain output, remove remaining control-value materialization, and connect remaining output pairs |
 | DOCX | `docx.ts`, imported document/AST conversion | Stream package resources and retain imported document and Pandoc nodes |
 | ODT | `odt.ts`, package bytes, XML/styles and AST | Retained package/XML/style resolution and mapping |
 | PPTX | `pptx.ts`, presentation selection/text/format/note/image results | Retained presentation traversal and mapping |
@@ -710,14 +710,16 @@ checks. Runtime coordination retains Lua/IDNA/citeproc ownership separately.
 
 The retained EPUB book owner now connects XML acquisition, XHTML mapping,
 metadata/navigation, scoped anchors, independent note expansion and replayable
-archive media to the public EPUB-to-plain output route. XML part caches
+archive media to public retained plain, HTML, Markdown, RST, LaTeX, RTF, ODT
+and JSON output routes. Language and direction remain outside the filter wire
+format and survive document generations. XML part caches
 retire serially; chapter trees, metadata maps and note worklists use caller pages.
 The public regression forbids the buffered XML parser and whole-file reads,
 poisons reused input chunks, and exercises a slow sink, cancellation, sink failure
 and finite reference/retained-byte budgets. Differential book tests compare spine,
 metadata, navigation/NCX, notes, media, diagnostics and malformed input behavior.
 
-This is not complete EPUB qualification. Other EPUB output pairs still use the
+This is not complete EPUB qualification. EPUB/PDF/DOCX/PPTX output pairs still use the
 buffered route. URI/manifest control values and some diagnostic strings still
 cross whole-string interfaces; budget/diagnostic precedence needs broader
 comparison, and deployed memory/CPU/concurrency measurements remain required.
@@ -726,9 +728,10 @@ conversions and includes an external note; its transfer/cleanup evidence does no
 replace deployed measurements or prove every option/filter combination.
 
 The next qualification path completes EPUB-to-plain control-value and XML
-budget/error parity, then connects the same retained book to JSON and the other
-retained writers. Preserve document language/direction sidecars, resource identity
-and filter behavior when adding those output pairs. Keep XHTML, chapter/note trees
+budget/error parity and resource/option coverage across retained output pairs.
+Differential tests cover language/direction, metadata overrides, finite budgets,
+and Lua/JSON identity filters. Preserve resource identity and filter behavior
+when connecting remaining output pairs. Keep XHTML, chapter/note trees
 and intermediate serialization in caller storage; do not introduce another
 whole-document serialization boundary.
 The next Worker measurement must include generated multi-chapter books, increasing

@@ -1,3 +1,4 @@
+import type {RetainedDocumentSidecars} from "./retained-json.js";
 import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {backedJsonOrder} from "./backed-json-order.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
@@ -37,7 +38,7 @@ class LatexTape {
   private listDepth = 0;
   private heading = 0;
   constructor(private readonly tree: BackedJson, private readonly storage: PagedStorage,
-    private readonly context: ExecutionContext, private readonly options: ConversionOptions, private readonly order: Awaited<ReturnType<typeof backedJsonOrder>>) {
+    private readonly context: ExecutionContext, private readonly options: ConversionOptions, private readonly order: Awaited<ReturnType<typeof backedJsonOrder>>, private readonly sidecars?: RetainedDocumentSidecars) {
     this.text = new BackedText(storage, units => context.cooperate(units));
     this.keys = new BackedTextSet(storage, this.text);
     this.labels = new IntegerTable(storage, 64); this.targets = new IntegerTable(storage, 64); this.counts = new IntegerTable(storage, 64);
@@ -290,15 +291,17 @@ class LatexTape {
     await this.reserve(blocks); await this.reserve(meta);
     const lang = await this.tree.property(meta, "lang"), dir = await this.tree.property(meta, "dir"), langPath = await this.path(0, "$.metadata.lang");
     if (lang !== undefined && await this.tag(lang) !== "MetaString") await this.fail("lang metadata must be a string", langPath, "E_OPTION");
-    const language = lang === undefined ? "en" : await this.tree.smallText((await this.tree.property(lang, "c"))!, 8);
+    let fallback = "en";
+    if (lang === undefined && this.sidecars?.language) {fallback = ""; for await (const chunk of this.sidecars.language()) {if (fallback.length + chunk.length > 8) {fallback = ""; break;} fallback += chunk;}}
+    const language = lang === undefined ? fallback : await this.tree.smallText((await this.tree.property(lang, "c"))!, 8);
     if (!language || !languages[language]) await this.fail("Unsupported LaTeX language", langPath, "E_OPTION");
-    if (dir !== undefined && (await this.tag(dir) !== "MetaString" || await this.tree.smallText((await this.tree.property(dir, "c"))!, 3) !== "ltr")) await this.fail("Unsupported LaTeX direction", await this.path(0, "$.metadata.dir"), "E_OPTION");
+    if (this.sidecars?.direction && this.sidecars.direction !== "ltr" || dir !== undefined && (await this.tag(dir) !== "MetaString" || await this.tree.smallText((await this.tree.property(dir, "c"))!, 3) !== "ltr")) await this.fail("Unsupported LaTeX direction", await this.path(0, "$.metadata.dir"), "E_OPTION");
     if (this.options.standalone) {
       await this.add("\\documentclass{article}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n");
       await this.add("\\usepackage[" + languages[language!] + "]{babel}\n");
       await this.add("\\usepackage{amsmath,amssymb}\n\\usepackage{graphicx}\n\\usepackage{array,longtable,multirow}\n\\usepackage{enumitem}\n\\usepackage[normalem]{ulem}\n\\usepackage{hyperref}\n");
       await this.push(this.literal("\\end{document}\n"));
-    } else if (lang !== undefined) {
+    } else if (lang !== undefined || this.sidecars?.language) {
       await this.add("\\begin{otherlanguage}{" + languages[language!] + "}\n"); await this.push(this.literal("\\end{otherlanguage}\n"));
     }
     await this.push({op: "flushNotes", node: 0, path: 0});
@@ -562,11 +565,11 @@ class LatexTape {
   }
 }
 
-export async function writeRetainedLatex(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, order: Awaited<ReturnType<typeof backedJsonOrder>>): Promise<void> {
+export async function writeRetainedLatex(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, order: Awaited<ReturnType<typeof backedJsonOrder>>, sidecars?: RetainedDocumentSidecars): Promise<void> {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close()); let failure: {reason: unknown} | undefined;
   try {
-    const writer = new LatexTape(tree, storage, context, options, order), result = await writer.render();
+    const writer = new LatexTape(tree, storage, context, options, order, sidecars), result = await writer.render();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {const first = diagnostics[0]!; throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);}
     await reserveRetainedOutput(() => writer.text.unicodeChunks(result), context, options.eol);

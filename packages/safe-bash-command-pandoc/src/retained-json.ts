@@ -129,3 +129,9 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
   }
   return result!;
 }
+
+/** Document fields outside the Pandoc JSON filter wire format. */
+export interface RetainedDocumentSidecars {
+  language?: () => AsyncIterable<string>;
+  direction?: "ltr" | "rtl" | "auto";
+}

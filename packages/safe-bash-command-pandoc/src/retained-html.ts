@@ -1,3 +1,4 @@
+import type {RetainedDocumentSidecars} from "./retained-json.js";
 import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {RetainedOptions} from "./retained-options.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
@@ -35,7 +36,7 @@ class HtmlTape {
   private noteCount = 0;
   private readonly counters = [0, 0, 0, 0, 0, 0];
   constructor(private readonly tree: BackedJson, private readonly storage: PagedStorage,
-    private readonly context: ExecutionContext, private readonly options: ConversionOptions, private readonly resource?: HtmlResource) {
+    private readonly context: ExecutionContext, private readonly options: ConversionOptions, private readonly resource?: HtmlResource, private readonly sidecars?: RetainedDocumentSidecars) {
     this.text = new BackedText(storage, units => context.cooperate(units));
     this.reserved = new BackedTextSet(storage, this.text); this.headings = new BackedTextSet(storage, this.text);
     this.sectionByNode = new IntegerTable(storage, 64); this.sections = new IntegerTable(storage, 64); this.notes = new IntegerTable(storage, 64);
@@ -475,7 +476,7 @@ class HtmlTape {
       }
       position = header.kind === "array" || header.kind === "object" ? position + 32 : header.end;
     }
-    const title = await this.meta(metadata, "title") ?? emptyText(), lang = await this.meta(metadata, "lang"), dir = await this.meta(metadata, "dir");
+    const title = await this.meta(metadata, "title") ?? emptyText(), lang = await this.meta(metadata, "lang") ?? (this.sidecars?.language ? await this.text.from(this.sidecars.language()) : undefined), dir = await this.meta(metadata, "dir") ?? (this.sidecars?.direction ? await this.text.from([this.sidecars.direction]) : undefined);
     if (dir) {
       let value = "";
       if (dir.units <= 4) for await (const chunk of this.text.chunks(dir)) value += chunk;
@@ -504,12 +505,12 @@ class HtmlTape {
   }
 }
 
-export async function writeRetainedHtml(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions, resource?: HtmlResource): Promise<void> {
+export async function writeRetainedHtml(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions, resource?: HtmlResource, sidecars?: RetainedDocumentSidecars): Promise<void> {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close());
   let failure: {reason: unknown} | undefined;
   try {
-    const writer = new HtmlTape(tree, storage, context, options, resource), result = await writer.render();
+    const writer = new HtmlTape(tree, storage, context, options, resource, sidecars), result = await writer.render();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {
       const first = diagnostics[0]!;

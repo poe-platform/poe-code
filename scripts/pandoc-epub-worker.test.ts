@@ -93,7 +93,7 @@ it.each([16385, 262145])("rejects a %i-byte EPUB mimetype without a whole-member
   } finally {await runtime.dispose();}
 }, 60000);
 
-it.each(["sdk", "command"])("retains EPUB XML, chapter/note ASTs, manifest records and fallback membership and resolves long chapter URIs through the public %s in workerd", async mode => {
+it.each(["sdk", "command"].flatMap(mode => ["plain", "html5"].map(to => ({mode, to}))))("retains EPUB XML, chapter/note ASTs, manifest records and fallback membership and resolves long chapter URIs through the public $mode ($to) in workerd", async ({mode, to}) => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -111,7 +111,7 @@ it.each(["sdk", "command"])("retains EPUB XML, chapter/note ASTs, manifest recor
       const files = {
         mimetype: 'application/epub+zip',
         'META-INF/container.xml': '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>',
-        'package.opf': '<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Book</dc:title></metadata><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="chapter"/></spine></package>',
+        'package.opf': '<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Book</dc:title><dc:language>fr</dc:language></metadata><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/></manifest><spine page-progression-direction="rtl"><itemref idref="chapter"/></spine></package>',
         'chapter.xhtml': '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Book</title></head><body><p id="book"><a href="' + 'unused/../'.repeat(2048) + 'chapter.xhtml#book">Book.</a></p></body></html>',
         'unused.bin': 'x'.repeat(32768)
       };
@@ -142,9 +142,9 @@ it.each(["sdk", "command"])("retains EPUB XML, chapter/note ASTs, manifest recor
       let output = '', errors = '', result;
       const stdout = {async write(bytes) {await Promise.resolve(); output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}};
       try {
-        if (${JSON.stringify(mode)} === 'sdk') await api.convertToOutput([{chunks: fs.readStream('/input.epub')}], {from: 'epub', to: 'plain'}, {workingFiles: {fs, directory: '/spill', cacheBytes: 16384}, output: stdout});
+        if (${JSON.stringify(mode)} === 'sdk') await api.convertToOutput([{chunks: fs.readStream('/input.epub')}], {from: 'epub', to: ${JSON.stringify(to)}, ...${JSON.stringify(to === "html5" ? {standalone: true} : {})}}, {workingFiles: {fs, directory: '/spill', cacheBytes: 16384}, output: stdout});
         else {
-          result = await api.createPandocCommand().execute({command: 'pandoc', args: ['-f', 'epub', '-t', 'plain', '/input.epub'], cwd: '/', env: {TMPDIR: '/spill'}, fs, signal, stdin: (async function* () {})(), stdout, stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}});
+          result = await api.createPandocCommand().execute({command: 'pandoc', args: ['-f', 'epub', '-t', ${JSON.stringify(to)}, ...${JSON.stringify(to === 'html5' ? ['--standalone'] : [])}, '/input.epub'], cwd: '/', env: {TMPDIR: '/spill'}, fs, signal, stdin: (async function* () {})(), stdout, stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}});
         }
       } finally {String.prototype.split = originalSplit; Set.prototype.add = originalAdd; Map.prototype.set = originalMapSet; Array.prototype.push = originalPush;}
       await env.PAGES.delete('/input.epub');
@@ -158,6 +158,7 @@ it.each(["sdk", "command"])("retains EPUB XML, chapter/note ASTs, manifest recor
     const result = await response.json() as {output: string; events: {opened: number; closed: number; largestTransfer: number}};
     expect(result).toMatchObject({errors: "", exitCode: 0, remaining: 0, namespace: []});
     expect(result.output).toContain("Book."); expect(result.output).toContain("External note.");
+    if (to === "html5") expect(result.output).toContain('<html lang="fr" dir="rtl">');
     if (mode === "sdk") expect(result.events.opened).toBeGreaterThan(0);
     expect(result.events.closed).toBe(result.events.opened); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
   } finally {await runtime.dispose();}

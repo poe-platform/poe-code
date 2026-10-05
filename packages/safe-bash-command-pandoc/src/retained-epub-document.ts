@@ -68,6 +68,7 @@ export async function readRetainedEpubDocument(input: InputSource, context: Exec
       if (!record || record instanceof Uint8Array) throw new PandocError("E_IO", "convert", "Missing retained EPUB media");
       return {identity: record.position, chunks: () => book!.archive.partChunks(record)};
     };
-    return {document, resources: {count: book.resourceCount, maxIdLength: book.maxIdLength, reserve, get}, close};
+    const sidecars = {...(book.language ? {language: async function* () {yield* book!.ast.text.chunks(await book!.ast.range(book!.language!));}} : {}), ...(book.direction ? {direction: book.direction} : {})};
+    return {document, sidecars, resources: {count: book.resourceCount, maxIdLength: book.maxIdLength, reserve, get}, close};
   } catch (error) {await close().catch(() => {}); throw error;}
 }

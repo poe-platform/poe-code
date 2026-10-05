@@ -19,7 +19,7 @@ import {transformRetainedJson} from "./retained-transforms.js";
 import {RetainedOrigins} from "./retained-origins.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {assertRetainedPlainMath, writeRetainedPlain} from "./retained-plain.js";
-import {readRetainedJson} from "./retained-json.js";
+import {type RetainedDocumentSidecars, readRetainedJson} from "./retained-json.js";
 import {PandocError} from "./errors.js";
 import type {BackedJson} from "./backed-json.js";
 import type {ExecutionContext} from "./execution.js";
@@ -51,7 +51,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>> & {referencesAggregated?: boolean; origins?: RetainedOrigins; originFor?: (source: number) => ResourceOrigin; resources?: Awaited<ReturnType<typeof readRetainedRtfDocument>>["resources"]; closeResources?: () => Promise<void>}>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>> & {sidecars?: RetainedDocumentSidecars; referencesAggregated?: boolean; origins?: RetainedOrigins; originFor?: (source: number) => ResourceOrigin; resources?: Awaited<ReturnType<typeof readRetainedRtfDocument>>["resources"]; closeResources?: () => Promise<void>}>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
   let closeResources: (() => Promise<void>) | undefined;
   let originStorage:PagedStorage | undefined, origins:RetainedOrigins | undefined;
   let releaseOrigins:(()=>void) | undefined;
@@ -79,6 +79,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     }
     const loaded = await load();
     origins = loaded.origins ?? origins;
+    const sidecars = loaded.sidecars;
     const inputResources = loaded.resources, resourceCount = inputResources?.count ?? 0;
     closeResources = loaded.closeResources;
     document = loaded;
@@ -175,23 +176,23 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     if (target === "rtf" || target === "odt" || target === "html5" && options.embedResources) {
       const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, options, origins ? async node=>{const source=await origins!.source(node);return source ? loaded.originFor?.(source) ?? origin ?? {} : {};} : options.filters?.length ? undefined : origin, inputResources);
       let writerFailure: {reason: unknown} | undefined;
-      try {if (target === "html5") await writeRetainedHtml(document.tree, context, working, {...options, standalone: includes ? includes.standalone : options.standalone || options.embedResources === true}, includes, resources.html);
+      try {if (target === "html5") await writeRetainedHtml(document.tree, context, working, {...options, standalone: includes ? includes.standalone : options.standalone || options.embedResources === true}, includes, resources.html, sidecars);
       else if (target === "odt") await writeRetainedOdt(document.tree, context, working, options, resources);
       else await writeRetainedRtf(document.tree, context, working, options, document.order, async node => {
         const image = await resources.image(node);
         return {...await inspectRetainedRtfPicture(image.source, image.storage, context), size: image.source.size, chunks: image.chunks};
-      }, resources.assertReferenced);}
+      }, resources.assertReferenced, sidecars);}
       catch (reason) {writerFailure = {reason};}
       try {await resources.close();} catch (reason) {writerFailure ??= {reason};}
       if (writerFailure) throw writerFailure.reason;
     }
     else if (target === "plain") await writeRetainedPlain(document.tree, context, working, options);
-    else if (target === "latex") await writeRetainedLatex(document.tree, context, working, options, document.order);
+    else if (target === "latex") await writeRetainedLatex(document.tree, context, working, options, document.order, sidecars);
     else if (target === "rst") await writeRetainedRst(document.tree, context, working, options);
-    else if (target === "html5") await writeRetainedHtml(document.tree, context, working, includes ? {...options, standalone: includes.standalone} : options, includes);
+    else if (target === "html5") await writeRetainedHtml(document.tree, context, working, includes ? {...options, standalone: includes.standalone} : options, includes, undefined, sidecars);
     else if (target === "commonmark" || target === "gfm") await writeRetainedMarkdown(document.tree, context, working, options, createFormatRegistry().resolve(options.to, "write"));
     else {
-      if (resourceCount) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent resources, language or direction document fields", "json", "$");
+      if (resourceCount || sidecars?.language !== undefined || sidecars?.direction !== undefined) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent resources, language or direction document fields", "json", "$");
       if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) await preflight(() => document!.chunks(), options.eol);
       else await preflight(() => document!.chunks(options.eol));
       await emitRetainedOutput(document.chunks(options.eol), context);

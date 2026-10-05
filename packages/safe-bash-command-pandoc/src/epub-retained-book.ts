@@ -293,7 +293,7 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
     else if (nav) await navigation(nav, false);
     if (await ast.count(toc)) await putMeta("epub-toc", await ast.tag("MetaList", toc));
     await opf.close(); opf = undefined;
-    return {ast, blocks: chapters, metadata, language, direction: direction === "ltr" || direction === "rtl" ? direction : undefined,
+    return {ast, blocks: chapters, metadata, language, direction: direction === "ltr" ? "ltr" as const : direction === "rtl" ? "rtl" as const : undefined,
       archive, mediaParts, resourceCount, maxIdLength};
   } catch (error) {await opf?.close().catch(() => {}); opf = undefined; await archive.close().catch(() => {}); throw error;}
   finally {await opf?.close();}

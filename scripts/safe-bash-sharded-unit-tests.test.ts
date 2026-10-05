@@ -9,6 +9,8 @@ import {
 
 function createSafeBashFixture() {
   const volume = Volume.fromJSON({
+    "/repo/package.json": JSON.stringify({ workspaces: ["packages/*"] }),
+    "/repo/turbo.json": JSON.stringify({ tasks: { build: { dependsOn: ["^build"] } } }),
     "/repo/packages/safe-bash/package.json": JSON.stringify({
       name: "@poe-platform/safe-bash",
       version: "0.0.1"
@@ -18,6 +20,7 @@ function createSafeBashFixture() {
     }),
     "/repo/packages/safe-bash/integration-boundaries.json": JSON.stringify({
       version: 1,
+      heldSourceFiles: [],
       fixtureDirectories: [],
       heldEvidenceDirectories: [],
       records: []
@@ -37,6 +40,125 @@ function createSafeBashFixture() {
 }
 
 describe("safe-bash sharded unit runner", () => {
+  it.each([
+    ["command", "src/index.ts"],
+    ["pdf-engine", "src/index.ts"],
+    ["shared-storage", "src/index.ts"],
+    ["shared-storage", "package.json"],
+    ["pdf-engine", "tsconfig.json"],
+    ["pdf-engine", "scripts/build.mjs"],
+    ["shared-storage", "vendor/data.json"],
+    ["shared-storage", "native/codec.c"],
+    ["shared-storage", "tools/generate.mjs"],
+    ["shared-storage", "Cargo.toml"]
+  ])("invalidates shard and file keys for declared workspace input %s/%s", (directory, filename) => {
+    const fileSystem = createSafeBashFixture();
+    const root = "/repo/packages/safe-bash";
+    fileSystem.writeFileSync(`${root}/package.json`, JSON.stringify({
+      name: "@poe-platform/safe-bash", version: "0.0.1",
+      devDependencies: { "safe-bash-command-widget": "*", "@poe-code/pdf-ast": "*" },
+      poeCode: { integration: { privateWorkspaces: {
+        "safe-bash-command-widget": { version: "0.0.1" },
+        "@poe-code/pdf-ast": { version: "0.0.1" }
+      } } }
+    }));
+    for (const [dir, name, dependencies] of [
+      ["command", "safe-bash-command-widget", { "@poe-code/storage": "*" }],
+      ["pdf-engine", "@poe-code/pdf-ast", { "@poe-code/storage": "*" }],
+      ["shared-storage", "@poe-code/storage", {}]
+    ] as const) {
+      const workspace = `/repo/packages/${dir}`;
+      fileSystem.mkdirSync(`${workspace}/src`, { recursive: true });
+      for (const subdirectory of ["scripts", "native", "vendor", "tools"]) fileSystem.mkdirSync(`${workspace}/${subdirectory}`, { recursive: true });
+      fileSystem.writeFileSync(`${workspace}/package.json`, JSON.stringify({ name, version: "0.0.1", dependencies }));
+      fileSystem.writeFileSync(`${workspace}/src/index.ts`, "export const value = 1;\n");
+      fileSystem.writeFileSync(`${workspace}/vendor/data.json`, "{}");
+      fileSystem.writeFileSync(`${workspace}/native/codec.c`, "int value = 1;");
+      fileSystem.writeFileSync(`${workspace}/tools/generate.mjs`, "export const value = 1;");
+      fileSystem.writeFileSync(`${workspace}/Cargo.toml`, "[package]\nname = 'engine'");
+      fileSystem.writeFileSync(`${workspace}/tsconfig.json`, JSON.stringify({ compilerOptions: { strict: true } }));
+      fileSystem.writeFileSync(`${workspace}/scripts/build.mjs`, "export const target = 'es2022';\n");
+    }
+    const shards = partitionSafeBashTestShards(root, ["src/a.test.ts", "src/b.test.ts"], { fileSystem });
+    const before = computeSafeBashShardKeys(root, shards, { fileSystem, env: {} });
+    const target = `/repo/packages/${directory}/${filename}`;
+    const text = fileSystem.readFileSync(target, "utf8") as string;
+    fileSystem.writeFileSync(target, filename.endsWith(".json")
+      ? JSON.stringify({ ...JSON.parse(text), changed: true }) : text + "export const changed = true;\n");
+    const after = computeSafeBashShardKeys(root, shards, { fileSystem, env: {} });
+    expect(after[0].key).not.toBe(before[0].key);
+    for (const file of shards[0].files) expect(after[0].fileKeys[file]).not.toBe(before[0].fileKeys[file]);
+  });
+
+  it.each(["SAFE_BASH_TEST_BASH", "SAFE_BASH_TEST_BASH_SHA256"])("includes native oracle identity %s in both cache levels", key => {
+    const fileSystem = createSafeBashFixture();
+    const root = "/repo/packages/safe-bash";
+    const shards = partitionSafeBashTestShards(root, ["src/a.test.ts"], { fileSystem });
+    const before = computeSafeBashShardKeys(root, shards, { fileSystem, env: {} });
+    const configured = computeSafeBashShardKeys(root, shards, { fileSystem, env: { [key]: "first" } });
+    const changed = computeSafeBashShardKeys(root, shards, { fileSystem, env: { [key]: "second" } });
+    expect(configured[0].key).not.toBe(before[0].key);
+    expect(changed[0].key).not.toBe(configured[0].key);
+    expect(configured[0].fileKeys["src/a.test.ts"]).not.toBe(before[0].fileKeys["src/a.test.ts"]);
+    expect(changed[0].fileKeys["src/a.test.ts"]).not.toBe(configured[0].fileKeys["src/a.test.ts"]);
+  });
+
+  it("does not enter or read held source directories while hashing active inputs", () => {
+    const fileSystem = createSafeBashFixture();
+    const root = "/repo/packages/safe-bash";
+    fileSystem.writeFileSync(`${root}/integration-boundaries.json`, JSON.stringify({
+      version: 1, heldSourceFiles: [], heldEvidenceDirectories: ["src/commands/held"], fixtureDirectories: []
+    }));
+    fileSystem.mkdirSync(`${root}/src/commands/held`, { recursive: true });
+    fileSystem.writeFileSync(`${root}/src/commands/held/evidence.ts`, "held payload");
+    const guarded = new Proxy(fileSystem, { get(target, property) {
+      if (property !== "readdirSync" && property !== "readFileSync") return Reflect.get(target, property);
+      const original = Reflect.get(target, property) as (...args: unknown[]) => unknown;
+      return (...args: unknown[]) => {
+        if (String(args[0]).startsWith(`${root}/src/commands/held`)) throw new Error("held payload accessed");
+        return original.apply(target, args);
+      };
+    } });
+    const shards = [{ index: 0, isolate: false, files: ["src/a.test.ts"] }];
+    expect(() => computeSafeBashShardKeys(root, shards, { fileSystem: guarded, env: {} })).not.toThrow();
+  });
+
+  it.each([
+    ["null", null, "Invalid private workspace declarations"],
+    ["array", ["missing"], "Invalid private workspace declarations"],
+    ["missing package", { missing: {} }, "Missing private workspace: missing"]
+  ])("rejects incomplete cache inputs for %s", (_label, privateWorkspaces, message) => {
+    const fileSystem = createSafeBashFixture();
+    const root = "/repo/packages/safe-bash";
+    fileSystem.writeFileSync(`${root}/package.json`, JSON.stringify({
+      name: "@poe-platform/safe-bash", version: "0.0.1", poeCode: { integration: { privateWorkspaces } }
+    }));
+    expect(() => computeSafeBashShardKeys(root, [], { fileSystem, env: {} })).toThrow(message);
+  });
+
+  it.each(["/repo/package-lock.json", "/repo/packages/safe-bash/scripts/run-sharded-unit-tests.mjs"])("invalidates both cache levels when tooling input %s changes", input => {
+    const fileSystem = createSafeBashFixture();
+    const root = "/repo/packages/safe-bash";
+    fileSystem.writeFileSync(input, "before");
+    const shards = [{ index: 0, isolate: false, files: ["src/a.test.ts"] }];
+    const before = computeSafeBashShardKeys(root, shards, { fileSystem, env: {} });
+    fileSystem.writeFileSync(input, "after");
+    const after = computeSafeBashShardKeys(root, shards, { fileSystem, env: {} });
+    expect(after[0].key).not.toBe(before[0].key);
+    expect(after[0].fileKeys["src/a.test.ts"]).not.toBe(before[0].fileKeys["src/a.test.ts"]);
+  });
+
+  it("runs uncached tests without inspecting cache-only workspace inputs", () => {
+    const fileSystem = createSafeBashFixture();
+    const root = "/repo/packages/safe-bash";
+    fileSystem.writeFileSync(`${root}/package.json`, "not valid JSON");
+    const calls: string[][] = [];
+    expect(runSafeBashShardedUnitTests({ root, fileSystem, env: { POE_CHECK_CACHE: "0" }, files: ["src/a.test.ts"],
+      spawn: (_command: string, args: string[]) => { calls.push(args); return { status: 0 }; }
+    })).toBe(0);
+    expect(calls).toHaveLength(1);
+  });
+
   it("partitions shared and isolated test files into bounded serial shards", () => {
     const fileSystem = createSafeBashFixture();
     const shards = partitionSafeBashTestShards(

@@ -1,9 +1,12 @@
 import { spawnSync } from "node:child_process";
+import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { createCheckCache } from "../../../scripts/check-cache.mjs";
+import { createWorkspaceBuildPlan } from "../../../scripts/build-workspaces.mjs";
 import { discoverTests, loadBoundaries } from "./integration-inputs.mjs";
+import { isHeldInputPath } from "./typecheck-integration-inputs.mjs";
 import { planTestShards } from "./test-shards.mjs";
 function defaultReporterArguments(args) {
   if (args.some(argument => argument === "--test-reporter" || argument.startsWith("--test-reporter=") || argument === "--test-reporter-destination" || argument.startsWith("--test-reporter-destination="))) return [];
@@ -23,27 +26,27 @@ const ISOLATED_TEST_FILES = new Set([
 ]);
 const SCOPED_SAFE_BASH_ENV_KEYS = [
   "SAFE_BASH_TEST_RG",
+  "SAFE_BASH_TEST_BASH",
+  "SAFE_BASH_TEST_BASH_SHA256",
   "SAFEJS_LOCAL_ROOT",
   "S3_HTTP_EXPORTS_REVISION",
   "FULL_GATE_ROOT"
 ];
 
-function walkFiles(fileSystem, baseDir, relDir = "", results = []) {
+function walkFiles(fileSystem, baseDir, relDir = "", boundaries, results = []) {
   const fullDir = relDir ? path.join(baseDir, relDir) : baseDir;
   if (!fileSystem.existsSync || !fileSystem.existsSync(fullDir)) return results;
-  let entries;
-  try {
-    entries = fileSystem
-      .readdirSync(fullDir, { withFileTypes: true })
-      .sort((a, b) => a.name.localeCompare(b.name));
-  } catch {
-    return results;
-  }
+  const entries = fileSystem.readdirSync(fullDir, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name));
   for (const entry of entries) {
-    if (entry.name === "node_modules" || entry.name === "dist" || entry.name === ".git") continue;
+    if (["node_modules", "dist", ".git", ".turbo", ".cache", "out", "target", "coverage"].includes(entry.name)) continue;
+    if (entry.isDirectory() && ["tests", "test", "fixtures", "benchmarks", "docs", "examples", "integration", "conformance", "stress"].includes(entry.name)) continue;
+    if (entry.name.endsWith(".tsbuildinfo") || [".test.ts", ".test.mjs", ".spec.ts", ".schema-test.ts"].some(suffix => entry.name.endsWith(suffix))) continue;
     const relPath = relDir ? path.posix.join(relDir, entry.name) : entry.name;
+    if (boundaries && isHeldInputPath(relPath, boundaries)) continue;
+    assert.ok(!entry.isSymbolicLink(), `Symlink cache input: ${path.join(baseDir, relPath)}`);
     if (entry.isDirectory()) {
-      walkFiles(fileSystem, baseDir, relPath, results);
+      walkFiles(fileSystem, baseDir, relPath, boundaries, results);
     } else if (entry.isFile()) {
       results.push(relPath);
     }
@@ -91,57 +94,48 @@ export function partitionSafeBashTestShards(
 
 export function computeSafeBashBaseDigest(root, { fileSystem = fs, env = process.env } = {}) {
   const baseHash = crypto.createHash("sha256");
-  baseHash.update(`safe-bash-unit-shard-v1\0${process.version}\0`);
+  baseHash.update(`safe-bash-unit-shard-v2\0${process.version}\0${process.platform}\0${process.arch}\0`);
   for (const key of SCOPED_SAFE_BASH_ENV_KEYS) {
     if (Object.hasOwn(env, key)) {
       baseHash.update(`env:${key}=${env[key] ?? ""}\0`);
     }
   }
 
-  const rootFiles = [
-    "package.json",
-    "tsconfig.json",
-    "integration-boundaries.json",
-    "integration-type-inputs.json",
-    ...walkFiles(fileSystem, root, "src").filter(file => !file.endsWith(".test.ts")),
-    ...walkFiles(fileSystem, root, "scripts").filter(
-      file => !file.endsWith(".test.mjs") && !file.startsWith("scripts/run-sharded-unit-tests")
-    )
-  ].sort();
-
-  for (const rel of rootFiles) {
-    const fullPath = path.join(root, rel);
-    if (!fileSystem.existsSync || !fileSystem.existsSync(fullPath)) continue;
-    baseHash.update(rel);
-    baseHash.update("\0");
-    baseHash.update(fileSystem.readFileSync(fullPath));
-    baseHash.update("\0");
+  const repositoryRoot = path.resolve(root, "../..");
+  const plan = createWorkspaceBuildPlan(repositoryRoot, fileSystem);
+  const workspaces = new Map(plan.workspaces.map(workspace => [workspace.name, workspace]));
+  const owner = plan.workspaces.find(workspace => path.join(repositoryRoot, workspace.path) === path.resolve(root));
+  assert.ok(owner, `Missing test workspace: ${root}`);
+  const boundaries = loadBoundaries(root, fileSystem);
+  const privateDeclaration = owner.manifest.poeCode?.integration?.privateWorkspaces;
+  const privateWorkspaces = privateDeclaration === undefined ? {} : privateDeclaration;
+  assert.ok(privateWorkspaces && typeof privateWorkspaces === "object" && !Array.isArray(privateWorkspaces), "Invalid private workspace declarations");
+  const selected = new Set([owner.name, ...Object.keys(privateWorkspaces)]);
+  const dependencies = new Map(plan.workspaces.map(workspace => [workspace.name, []]));
+  for (const edge of plan.edges) dependencies.get(edge.from).push(edge.to);
+  for (const name of selected) {
+    assert.ok(workspaces.has(name), `Missing private workspace: ${name}`);
+    for (const dependency of dependencies.get(name)) selected.add(dependency);
   }
 
-  try {
-    const manifestPath = path.join(root, "package.json");
-    if (fileSystem.existsSync && fileSystem.existsSync(manifestPath)) {
-      const manifest = JSON.parse(fileSystem.readFileSync(manifestPath, "utf8"));
-      const privateWorkspaces = manifest?.poeCode?.integration?.privateWorkspaces ?? [];
-      const packagesRoot = path.resolve(root, "..");
-      for (const wsName of [...privateWorkspaces].sort()) {
-        const wsRoot = path.join(packagesRoot, wsName);
-        if (!fileSystem.existsSync(wsRoot)) continue;
-        const wsFiles = [
-          "package.json",
-          ...walkFiles(fileSystem, wsRoot, "src").filter(file => !file.endsWith(".test.ts"))
-        ].sort();
-        for (const rel of wsFiles) {
-          const fullPath = path.join(wsRoot, rel);
-          if (!fileSystem.existsSync(fullPath)) continue;
-          baseHash.update(`ws:${wsName}:${rel}\0`);
-          baseHash.update(fileSystem.readFileSync(fullPath));
-          baseHash.update("\0");
-        }
-      }
-    }
-  } catch {
-    // Ignore optional workspace manifest errors in synthetic fixtures.
+  const inputs = new Set([
+    "package.json", "package-lock.json", "tsconfig.json", "turbo.json",
+    "scripts/build-workspaces.mjs", "scripts/check-cache.mjs", "scripts/package-export-target.mjs",
+    "scripts/guard-package-dist.mjs", "scripts/set-bin-executable.mjs",
+    "packages/mcp-protocol-rust/scripts/cargo.mjs"
+  ]);
+  for (const name of selected) {
+    const workspace = workspaces.get(name);
+    const directory = path.join(repositoryRoot, workspace.path);
+    const files = walkFiles(fileSystem, directory, "", name === owner.name ? boundaries : undefined);
+    for (const file of files) inputs.add(path.posix.join(workspace.path, file));
+  }
+  for (const file of [...inputs].sort()) {
+    const fullPath = path.join(repositoryRoot, file);
+    if (!fileSystem.existsSync(fullPath)) continue;
+    baseHash.update(`${file}\0`);
+    baseHash.update(fileSystem.readFileSync(fullPath));
+    baseHash.update("\0");
   }
 
   return baseHash.digest("hex");
@@ -234,7 +228,7 @@ export function runSafeBashShardedUnitTests({
     sharedShardSize,
     isolatedShardSize
   });
-  const shards = computeSafeBashShardKeys(root, rawShards, { fileSystem, env });
+  const shards = store ? computeSafeBashShardKeys(root, rawShards, { fileSystem, env }) : rawShards;
   const repArgs = defaultReporterArguments([]);
 
   for (const shard of shards) {

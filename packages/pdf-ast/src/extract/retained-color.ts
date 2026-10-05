@@ -1,3 +1,4 @@
+import { readStoredItems } from "../content/stored-record.js";
 import { readPdfDictionaryValue, type PdfResourceRequest } from "../content/stored-dictionary.js";
 import { compileStoredPostScript } from "../content/stored-postscript.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
@@ -79,11 +80,11 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
     options.onAllocation?.(bytes);
     used += bytes;
   }
-  async function resolve(value: PdfCosNode | undefined, path?: readonly string[]): Promise<PdfCosNode | undefined> {
+  async function resolve(value: PdfCosNode | undefined, path?: readonly string[], storeRootDictionary=false): Promise<PdfCosNode | undefined> {
     options.signal?.throwIfAborted();
     if (++nodes > maxNodes) throw new PdfError("E_LIMIT", "PDF color node limit exceeded");
     charge(64);
-    const resolved = await document.lookup(value, undefined, path);
+    const resolved = await document.lookup(value, undefined, path, storeRootDictionary);
     options.signal?.throwIfAborted();
     if (!resolved) return undefined;
     if (resolved.stream && resolved.reference && resolved.value.kind === "dict") {
@@ -168,22 +169,22 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
   }
   async function snapshotFunction(node: PdfCosNode | undefined, depth = 0): Promise<PdfCosNode | undefined> {
     if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF function state depth limit exceeded");
-    const value = await resolve(node);
+    const value = await resolve(node, undefined, true);
     if (value?.kind === "array") {
       const items: PdfCosNode[] = [];
-      for (const item of value.items) items.push(await snapshotFunction(item, depth + 1) ?? { kind: "null" });
+      for await (const item of value.storedItems ? readStoredItems<PdfCosNode>(value.storedItems, options.signal) : value.items) items.push(await snapshotFunction(item, depth + 1) ?? { kind: "null" });
       return cosArray(items);
     }
     const dict = value?.kind === "stream" ? value.dict : value?.kind === "dict" ? value : undefined;
     if (!dict) return value;
-    const type = await resolve(dictGet(dict, "FunctionType"));
+    const type = await resolve(await readPdfDictionaryValue(dict, "FunctionType", options.signal));
     const kind = type?.kind === "number" ? type.value : 2;
     const keys = kind === 0 && value?.kind === "stream" ? ["Domain", "Range", "Size", "BitsPerSample", "Encode", "Decode"]
       : kind === 3 ? ["Domain", "Range", "Functions", "Bounds", "Encode", "C0", "C1", "N"]
         : kind === 4 && value?.kind === "stream" ? ["Domain", "Range"] : ["Domain", "Range", "C0", "C1", "N"];
     const selected = cosDict({ FunctionType: cosNumber(kind) });
     for (const key of keys) {
-      const item = dictGet(dict, key);
+      const item = await readPdfDictionaryValue(dict, key, options.signal, {preserveDeferred:key === "Functions"});
       if (!item) continue;
       charge(64);
       const field = key === "Functions" ? await snapshotFunction(item, depth + 1) : await snapshotNumbers(item);
@@ -338,8 +339,8 @@ async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage
       options.signal?.throwIfAborted();
       const request = step.value;
       let result: unknown;
-      if (request.kind === "dictionary-value") result = await readPdfDictionaryValue(request.dict, request.key, options.signal);
-      else if (request.kind === "resolve") result = await resolve(request.node);
+      if (request.kind === "dictionary-value") result = await readPdfDictionaryValue(request.dict, request.key, options.signal, {preserveDeferred:request.preserveDeferred ?? false});
+      else if (request.kind === "resolve") result = await resolve(request.node, undefined, request.storeRootDictionary);
       else if (request.kind === "resource") result = await resource(request);
       else if (request.kind === "decode") result = await decode(request.stream, request.length, request.start);
       else if (request.kind === "calibrated") result = createCalibratedColorSpace(context, request.family, await snapshot(request.parameters));

@@ -1,7 +1,8 @@
+import { readPdfDictionaryValue } from "../content/stored-dictionary.js";
 import { PdfReferenceSet, type PdfReferencePath } from "./reference-set.js";
 import type { PdfIndexStorage } from "./object-index.js";
 import { readStoredItems } from "../content/stored-record.js";
-import type { PdfCosDict, PdfCosNode, PdfCosRef } from "../ast.js";
+import { cosName, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { PdfError } from "../errors.js";
 
 export async function resolvePdfStreamDictionary(dict: PdfCosDict, lookup: (reference: PdfCosRef, path: PdfReferencePath) => Promise<{ value: PdfCosNode } | undefined>,
@@ -57,6 +58,15 @@ export async function resolvePdfStreamDictionary(dict: PdfCosDict, lookup: (refe
     }
   };
   const entries = [];
+  // Decoders consume only filter/encryption metadata. Do not expand the rest
+  // of a caller-backed stream dictionary just to reconstruct this view.
+  if (dict.storedEntries) {
+    for (const key of ["Filter", "F", "DecodeParms", "DP", "Type"]) {
+      const value = await readPdfDictionaryValue(dict, key, options.signal).catch(error => { options.onBackingError?.(error); throw error; });
+      if (value) entries.push({ key: cosName(key), value: await resolve(value, 0) });
+    }
+    return { kind: "dict", entries };
+  }
   for (const entry of dict.entries) entries.push(["Filter", "F", "DecodeParms", "DP", "Type"].includes(entry.key.decoded) ? { ...entry, value: await resolve(entry.value, 0) } : entry);
   return { ...dict, entries };
 }

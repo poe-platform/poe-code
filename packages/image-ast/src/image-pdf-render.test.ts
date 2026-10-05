@@ -357,3 +357,26 @@ it.each(["Alpha","Luminosity"].flatMap(subtype=>["inline","indirect","encrypted"
  }finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["Alpha","Luminosity"].flatMap(subtype=>["inline","indirect","encrypted","sampled","postscript","encrypted-sampled","encrypted-postscript","stitched","encrypted-stitched"].map(mode=>({subtype,mode}))))("keeps unused $subtype soft-mask transfer fields backed ($mode)",async({subtype,mode})=>{
+ const {cosArray,cosDict,cosName,cosStream}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([12,12]);
+ const form=doc.cos.allocateObject(cosStream(cosDict({Subtype:cosName("Form"),BBox:cosArray([0,0,12,12].map(value=>cosNumber(value))),Group:cosDict({S:cosName("Transparency"),CS:cosName("DeviceRGB")})}),new TextEncoder().encode(".5 g 0 0 6 12 re f")));
+ const transfer=cosDict({FunctionType:cosNumber(2),Domain:cosArray([cosNumber(0),cosNumber(1)]),C0:cosArray([cosNumber(0)]),C1:cosArray([cosNumber(1)]),N:cosNumber(1),Unused:cosArray(Array.from({length:256},()=>cosNumber(763)))});
+ let functionValue: import("@poe-code/pdf-ast").PdfCosNode=transfer;
+ if(mode.includes("sampled")){dictSet(transfer,"FunctionType",cosNumber(0));dictSet(transfer,"Size",cosArray([cosNumber(2)]));dictSet(transfer,"BitsPerSample",cosNumber(8));dictSet(transfer,"Range",cosArray([cosNumber(0),cosNumber(1)]));dictSet(transfer,"Filter",doc.cos.allocateObject(cosName("ASCIIHexDecode")));functionValue=cosStream(transfer,new TextEncoder().encode("00ff>"));}
+ if(mode.includes("postscript")){dictSet(transfer,"FunctionType",cosNumber(4));dictSet(transfer,"Range",cosArray([cosNumber(0),cosNumber(1)]));functionValue=cosStream(transfer,new TextEncoder().encode("{ }"));}
+ if(mode.includes("stitched"))functionValue=cosDict({FunctionType:cosNumber(3),Domain:cosArray([cosNumber(0),cosNumber(1)]),Functions:cosArray([transfer]),Bounds:cosArray([]),Encode:cosArray([cosNumber(0),cosNumber(1)])});
+ const mask=cosDict({S:cosName(subtype),G:form,BC:cosArray([.2,.3,.4].map(value=>cosNumber(value))),TR:mode==="inline"?functionValue:doc.cos.allocateObject(functionValue)});
+ dictSet(page.pageDict,"Resources",cosDict({ExtGState:cosDict({Selected:cosDict({SMask:mode==="inline"?mask:doc.cos.allocateObject(mask)})})}));
+ page.setRawContentStream("/Selected gs 1 0 0 rg 0 0 12 12 re f");
+ const bytes=mode.startsWith("encrypted")?doc.save({encrypt:{revision:3}}):doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ expect(expected.data.some((value,index)=>index%4===1&&value>0)).toBe(true);
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const push=Array.prototype.push;Array.prototype.push=function<T>(this:T[],...values:T[]):number{if(this.length>=64&&values.some(value=>(value as {kind?:string;value?:number})?.kind==="number"&&(value as {value:number}).value===763))throw Error("unused selected transfer field became resident");return push.apply(this,values);};
+ try{
+  const image=await tryPdfDecode({size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}},storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+ }finally{Array.prototype.push=push;await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

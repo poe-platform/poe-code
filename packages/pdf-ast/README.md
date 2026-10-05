@@ -37,7 +37,10 @@ Named lookup expands only the selected definition; pass `{preserveDeferred: true
 as its fourth argument to read fields individually from that definition. Retained
 graphics-state evaluation uses this path, including indirect definitions and
 selected soft-mask dictionaries. Mask subtype, form, backdrop and transfer fields
-are read individually; unused fields remain backed. Blend-mode,
+are read individually; unused fields remain backed. Transfer functions select only
+their function fields, including nested stitching functions. Stream decoding also
+reads filter and encryption fields from backed root dictionaries without expanding
+unrelated metadata. Blend-mode,
 font and dash arrays read only their consumed prefix; unused tails and ignored
 array-valued numeric fields stay in caller backing. Root-array lookups preserve
 the document’s nested-value backing policy, including font widths. Retained fonts

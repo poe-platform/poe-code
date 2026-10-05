@@ -96,7 +96,8 @@ export class PdfObjectReader {
   async *decodeStream(objectNumber: number, generationNumber = 0, options: Pick<PdfStreamDecodeOptions, "stopBeforeImageCodec" | "raw"> = {}): AsyncGenerator<Uint8Array, void, void> {
     integer(objectNumber, "objectNumber"); integer(generationNumber, "generationNumber");
     const { object, dict } = await this.enqueue(async () => {
-      const object = await this.load(objectNumber, generationNumber, new Set());
+      const arrays = this.options.valueArrays;
+      const object = await this.load(objectNumber, generationNumber, new Set(), arrays?.dictionaryStorage ? {...arrays, storeRootDictionary:true} : arrays);
       if (object?.value.kind !== "dict" || !object.stream) throw new PdfError("E_PARSE", "Expected an indexed PDF stream");
       const active = new Set([objectNumber]);
       return { object, dict: await this.resolveStreamDictionary(object.value, active) };

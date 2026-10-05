@@ -283,7 +283,7 @@ function kClamp(v: number): number {
   return Math.max(0, Math.min(1, v));
 }
 
-export type PdfColorRequest = PdfResourceRequest | { readonly kind: "resolve"; readonly node: PdfCosNode | undefined }
+export type PdfColorRequest = PdfResourceRequest | { readonly kind: "resolve"; readonly node: PdfCosNode | undefined; readonly storeRootDictionary?: boolean }
   | { readonly kind: "decode"; readonly stream: PdfCosStream; readonly start: number; readonly length: number }
   | { readonly kind: "calibrated"; readonly family: "CalGray" | "CalRGB" | "Lab"; readonly parameters: PdfCosNode | undefined }
   | { readonly kind: "function"; readonly node: PdfCosNode | undefined; readonly components: readonly number[] };
@@ -297,7 +297,7 @@ function* resolveColorNode(node: PdfCosNode | undefined, kind?: PdfCosNode["kind
   return kind && value?.kind !== kind ? undefined : value;
 }
 
-export type PdfMaskParameterRequest = PdfColorRequest | {readonly kind:"dictionary-value";readonly dict:PdfCosDict;readonly key:string} | { readonly kind: "transfer"; readonly node: PdfCosNode };
+export type PdfMaskParameterRequest = PdfColorRequest | {readonly kind:"dictionary-value";readonly dict:PdfCosDict;readonly key:string;readonly preserveDeferred?:boolean} | { readonly kind: "transfer"; readonly node: PdfCosNode };
 
 function runColorProgram<T>(doc:ParsedCosDocument|undefined,program:Generator<PdfMaskParameterRequest,T,unknown>):T{
   const work=runColorProgramSteps(doc,program),result=work.next();
@@ -982,7 +982,8 @@ export function* resolveMaskParameterSteps(mask: PdfCosDict, form: PdfCosStream,
     }
   }
   const [r, g, b] = components ? yield* convertContentColorSteps(true, colorSpace, "DeviceRGB", components, activeResources) : [0, 0, 0];
-  const transfer = yield* resolveColorNode((yield {kind:"dictionary-value",dict:mask,key:"TR"}) as PdfCosNode | undefined);
+  const transferNode = (yield { kind: "dictionary-value", dict: mask, key: "TR", preserveDeferred: true }) as PdfCosNode | undefined;
+  const transfer = (yield { kind: "resolve", node: transferNode, storeRootDictionary: true }) as PdfCosNode | undefined;
   const transferMap = transfer?.kind === "dict" || transfer?.kind === "stream"
     ? (yield { kind: "transfer", node: transfer }) as Uint8Array
     : undefined;

@@ -1,3 +1,4 @@
+import { formatBurstFilename } from "./burst-filename.js";
 import { executeRetainedPdftk } from "./retained.js";
 import { PDFTK_OPERATIONS, parsePdftkArgumentsSteps } from "./arguments.js";
 import { resolvePath } from "safe-bash-contracts/path";
@@ -1211,43 +1212,6 @@ function unpackFilesFromDocument(
   }
 }
 
-function formatBurstFilename(pattern: string, pageNum: number): string {
-  let out = "";
-  let replaced = false;
-  for (let i = 0; i < pattern.length; i++) {
-    if (pattern[i] !== "%") {
-      out += pattern[i]!;
-      continue;
-    }
-    if (pattern[i + 1] === "%") {
-      out += "%";
-      i++;
-      continue;
-    }
-    if (!replaced) {
-      let j = i + 1;
-      let zeroPad = false;
-      if (pattern[j] === "0") {
-        zeroPad = true;
-        j++;
-      }
-      let widthStr = "";
-      while (j < pattern.length && pattern[j]! >= "0" && pattern[j]! <= "9") {
-        widthStr += pattern[j]!;
-        j++;
-      }
-      if (pattern[j] === "d") {
-        const width = widthStr ? Number.parseInt(widthStr, 10) : 1;
-        out += zeroPad ? String(pageNum).padStart(width, "0") : String(pageNum);
-        replaced = true;
-        i = j;
-        continue;
-      }
-    }
-    out += "%";
-  }
-  return out;
-}
 
 function cloneCosSubgraphInto(
   srcDoc: PdfDocument,
@@ -1878,7 +1842,7 @@ async function executePdftk(context: CommandContext, retainedContext: CommandCon
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const parsed = await drainSteps(parsePdftkArgumentsSteps(argv), invocation.signal);
-    if (parsed.options && ((["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground"].includes(parsed.options.operation) && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
+    if (parsed.options && ((["output", "rotate", "attach_files", "stamp", "multistamp", "background", "multibackground", "burst"].includes(parsed.options.operation) && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
       return await executeRetainedPdftk({ ...retainedContext, signal: invocation.signal, stdout: invocation.child(context.stdout).output }, parsed.options);
     }
     const vfsFiles = new Map<string, Uint8Array>();

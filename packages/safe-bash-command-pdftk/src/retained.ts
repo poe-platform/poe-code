@@ -1,3 +1,4 @@
+import { retainedBurst } from "./retained-burst.js";
 import { retainedOutput } from "./retained-output.js";
 import { retainedUnpack } from "./retained-unpack.js";
 import { retainedFdf } from "./retained-fdf.js";
@@ -76,8 +77,9 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
       for await (const ignored of overlayDocument.pages()) { void ignored; overlayPages++; }
     }
     async function* stampPages() { if (overlayPages) for (let targetIndex = 0; targetIndex < counts.get(primary)!; targetIndex++) yield { targetIndex, sourceIndex: options.operation.startsWith("multi") ? Math.min(targetIndex, overlayPages - 1) : 0 }; }
-    if (options.operation === "unpack_files") {
-      for await (const file of retainedUnpack(document, storage, options.outputTarget ?? ".", inputs.keys(), signal)) {
+    if (options.operation === "unpack_files" || options.operation === "burst") {
+      const files = options.operation === "burst" ? retainedBurst(document, storage, options, counts.get(primary)!, signal) : retainedUnpack(document, storage, options.outputTarget ?? ".", inputs.keys(), signal);
+      for await (const file of files) {
         try { await publish(context, resolvePath(context.cwd, file.path), file.chunks); }
         catch (error) {
           signal.throwIfAborted(); if (!(error instanceof Error) || !("code" in error)) throw error;

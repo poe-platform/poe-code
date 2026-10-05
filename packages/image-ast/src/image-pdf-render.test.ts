@@ -344,7 +344,8 @@ it.each(["Alpha","Luminosity"].flatMap(subtype=>["inline","indirect","encrypted"
  const {cosArray,cosDict,cosName,cosStream}=await import("@poe-code/pdf-ast");
  const doc=PdfDocument.create(),page=doc.addPage([12,12]);
  const form=doc.cos.allocateObject(cosStream(cosDict({Subtype:cosName("Form"),BBox:cosArray([0,0,12,12].map(value=>cosNumber(value))),Group:cosDict({S:cosName("Transparency"),CS:cosName("DeviceRGB")})}),new TextEncoder().encode(".5 g 0 0 6 12 re f")));
- const mask=cosDict({S:cosName(subtype),G:form,BC:cosArray([.2,.3,.4].map(value=>cosNumber(value))),TR:cosDict({FunctionType:cosNumber(2),Domain:cosArray([cosNumber(0),cosNumber(1)]),C0:cosArray([cosNumber(0)]),C1:cosArray([cosNumber(1)]),N:cosNumber(1)}),Unused:cosArray(Array.from({length:256},()=>cosNumber(761)))});
+ const backdrop=cosArray([...[.2,.3,.4].map(value=>cosNumber(value)),...Array.from({length:256},()=>cosNumber(761))]);
+ const mask=cosDict({S:cosName(subtype),G:form,BC:mode==="inline"?backdrop:doc.cos.allocateObject(backdrop),TR:cosDict({FunctionType:cosNumber(2),Domain:cosArray([cosNumber(0),cosNumber(1)]),C0:cosArray([cosNumber(0)]),C1:cosArray([cosNumber(1)]),N:cosNumber(1)}),Unused:cosArray(Array.from({length:256},()=>cosNumber(761)))});
  dictSet(page.pageDict,"Resources",cosDict({ExtGState:cosDict({Selected:cosDict({SMask:mode==="inline"?mask:doc.cos.allocateObject(mask)})})}));
  page.setRawContentStream("/Selected gs 1 0 0 rg 0 0 12 12 re f");
  const bytes=mode==="encrypted"?doc.save({encrypt:{revision:3}}):doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");

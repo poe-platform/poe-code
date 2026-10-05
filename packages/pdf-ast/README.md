@@ -36,7 +36,8 @@ string and container storage to defer resource definitions during parsing.
 Named lookup expands only the selected definition; pass `{preserveDeferred: true}`
 as its fourth argument to read fields individually from that definition. Retained
 graphics-state evaluation uses this path, including indirect definitions and
-selected soft-mask dictionaries. Mask subtype, form, backdrop and transfer fields
+selected soft-mask dictionaries. Device-color mask backdrops read at most four
+components from caller backing; custom color-space component arrays still materialize. Mask subtype, form, backdrop and transfer fields
 are read individually; unused fields remain backed. Transfer functions select only
 their function fields, including nested stitching functions. Indirect function
 arrays read one entry at a time, preserving backing for inline child definitions.

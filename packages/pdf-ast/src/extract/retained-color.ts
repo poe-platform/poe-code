@@ -344,6 +344,19 @@ async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage
       const request = step.value;
       let result: unknown;
       if (request.kind === "dictionary-value") result = await readPdfDictionaryValue(request.dict, request.key, options.signal, {preserveDeferred:request.preserveDeferred ?? false});
+      else if (request.kind === "numeric-array") {
+        const valueStorage = request.owner.storedEntries?.storage;
+        const value = await resolve(request.node, undefined, Boolean(valueStorage), valueStorage);
+        if (value?.kind === "array") {
+          const numbers: number[] = [];
+          for await (const item of value.storedItems ? readStoredItems<PdfCosNode>(value.storedItems, options.signal) : value.items) {
+            const number = await resolve(item, undefined, Boolean(valueStorage), valueStorage);
+            numbers.push(number?.kind === "number" ? number.value : 0);
+            if (numbers.length === request.count) break;
+          }
+          result = numbers;
+        }
+      }
       else if (request.kind === "resolve") result = await resolve(request.node, undefined, request.storeRootDictionary);
       else if (request.kind === "resource") result = await resource(request);
       else if (request.kind === "decode") result = await decode(request.stream, request.length, request.start);

@@ -297,7 +297,7 @@ function* resolveColorNode(node: PdfCosNode | undefined, kind?: PdfCosNode["kind
   return kind && value?.kind !== kind ? undefined : value;
 }
 
-export type PdfMaskParameterRequest = PdfColorRequest | {readonly kind:"dictionary-value";readonly dict:PdfCosDict;readonly key:string;readonly preserveDeferred?:boolean} | { readonly kind: "transfer"; readonly node: PdfCosNode };
+export type PdfMaskParameterRequest = PdfColorRequest | { readonly kind: "numeric-array"; readonly node: PdfCosNode | undefined; readonly owner: PdfCosDict; readonly count: number } | {readonly kind:"dictionary-value";readonly dict:PdfCosDict;readonly key:string;readonly preserveDeferred?:boolean} | { readonly kind: "transfer"; readonly node: PdfCosNode };
 
 function runColorProgram<T>(doc:ParsedCosDocument|undefined,program:Generator<PdfMaskParameterRequest,T,unknown>):T{
   const work=runColorProgramSteps(doc,program),result=work.next();
@@ -311,6 +311,10 @@ function* runColorProgramSteps<T>(doc: ParsedCosDocument | undefined, work: Gene
     while (!step.done) {
       const request = step.value;
       if (request.kind === "dictionary-value") step = work.next(dictGet(request.dict, request.key));
+      else if (request.kind === "numeric-array") {
+        const array = doc?.resolveArray(request.node);
+        step = work.next(array?.items.slice(0, request.count).map(item => { const value = doc?.resolve(item); return value?.kind === "number" ? value.value : 0; }));
+      }
       else if (request.kind === "resolve") step = work.next(doc?.resolve(request.node));
       else if (request.kind === "resource") {
         const map = doc?.resolveDict(dictGet(request.resources, request.category));
@@ -974,15 +978,11 @@ export function* resolveMaskParameterSteps(mask: PdfCosDict, form: PdfCosStream,
   const resolvedGroup = (yield {kind:"resolve",node:groupNode,storeRootDictionary:true}) as PdfCosNode | undefined;
   const group = resolvedGroup?.kind === "stream" ? resolvedGroup.dict : resolvedGroup?.kind === "dict" ? resolvedGroup : undefined;
   const colorSpace = group ? (yield {kind:"dictionary-value",dict:group,key:"CS"}) as PdfCosNode | undefined : undefined;
-  const bc = yield* resolveColorNode((yield {kind:"dictionary-value",dict:mask,key:"BC"}) as PdfCosNode | undefined, "array");
-  let components: number[] | undefined;
-  if (bc) {
-    components = [];
-    for (const item of bc.items) {
-      const value = yield* resolveColorNode(item);
-      components.push(value?.kind === "number" ? value.value : 0);
-    }
-  }
+  // Device spaces consume at most four components. Keep custom tint-function
+  // inputs intact until their own evaluator can consume backed component state.
+  const device = !colorSpace || colorSpace.kind === "name" && ["DeviceGray", "G", "DeviceRGB", "RGB", "DeviceCMYK", "CMYK"].includes(colorSpace.decoded);
+  const bc = (yield {kind:"dictionary-value",dict:mask,key:"BC",preserveDeferred:true}) as PdfCosNode | undefined;
+  const components = (yield {kind:"numeric-array",node:bc,owner:mask,count:device ? 4 : Infinity}) as number[] | undefined;
   const [r, g, b] = components ? yield* convertContentColorSteps(true, colorSpace, "DeviceRGB", components, activeResources) : [0, 0, 0];
   const transferNode = (yield { kind: "dictionary-value", dict: mask, key: "TR", preserveDeferred: true }) as PdfCosNode | undefined;
   const transfer = (yield { kind: "resolve", node: transferNode, storeRootDictionary: true }) as PdfCosNode | undefined;

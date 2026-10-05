@@ -55,7 +55,7 @@ export interface CommandsFromSpecOptions {
   config?: ToolcraftConfig;
 }
 
-export type DefineClientFromSpecOptions<TServices extends object = Record<string, never>> = Omit<
+export type DefineClientFromSpecOptions<TServices extends object = object> = Omit<
   DefineClientOptions<TServices>,
   "baseUrl" | "commands"
 > &
@@ -94,7 +94,7 @@ export async function commandsFromSpec(
   return commands;
 }
 
-export async function defineClientFromSpec<TServices extends object = Record<string, never>>(
+export async function defineClientFromSpec<TServices extends object = object>(
   spec: OpenApiDocumentSource,
   options: DefineClientFromSpecOptions<TServices>
 ): Promise<DefinedClient<TServices>> {

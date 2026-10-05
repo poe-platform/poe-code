@@ -457,10 +457,10 @@ describe("generate", () => {
       import { defineClient, type DefineClientOptions } from "toolcraft-openapi";
       import { generatedCommands } from "./index.js";
 
-      export type GeneratedClientOptions = Omit<DefineClientOptions<object>, "commands">;
+      export type GeneratedClientOptions = Omit<DefineClientOptions, "commands">;
 
       export function defineGeneratedClient(options: GeneratedClientOptions) {
-        return defineClient<object>({
+        return defineClient({
           ...options,
           commands: [...generatedCommands],
         });

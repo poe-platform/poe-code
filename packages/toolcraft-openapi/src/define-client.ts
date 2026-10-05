@@ -8,7 +8,7 @@ export interface OpenApiClientServices {
   tokenSource: TokenSource;
 }
 
-export interface DefineClientOptions<TServices extends object = Record<string, never>> {
+export interface DefineClientOptions<TServices extends object = object> {
   name: string;
   baseUrl: string;
   auth: AuthProvider;
@@ -16,7 +16,7 @@ export interface DefineClientOptions<TServices extends object = Record<string, n
   handwrittenCommands?: CommandNode<OpenApiClientServices & TServices>[];
 }
 
-export interface DefinedClient<TServices extends object = Record<string, never>> {
+export interface DefinedClient<TServices extends object = object> {
   name: string;
   mcpPrefix: string;
   root: Group<OpenApiClientServices & TServices>;
@@ -27,7 +27,7 @@ type CommandSource = "generated" | "handwritten" | "auth";
 
 const CLI_SCOPE: Scope[] = ["cli"];
 
-export function defineClient<TServices extends object = Record<string, never>>(
+export function defineClient<TServices extends object = object>(
   options: DefineClientOptions<TServices>
 ): DefinedClient<TServices> {
   validateClientName(options.name);

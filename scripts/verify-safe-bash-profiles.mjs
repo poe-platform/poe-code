@@ -125,17 +125,17 @@ export const safeBashProfileBaselines = {
   "csv": 3570816,
   "csvXlsx": 3878506,
   "git": 7045654,
-  // Registries include retained archive, copy, XML, diff and line-ending commands.
-  "baseRegistry": 6437743,
-  "registryWithRegex": 6437780,
+  // Registries also retain bounded Unicode hostname processing and IDNA data.
+  "baseRegistry": 6721017,
+  "registryWithRegex": 6721054,
   // Full yq includes streamed input/output and caller-backed in-place output.
-  "enabledConsumer": 6925045,
+  "enabledConsumer": 7213453,
   // Full also selects document/media engines, Pandoc and the CSV Python worker.
   "full": 73465105,
   "rootPythonLlm": 1956498,
   "splitCore": 1711634,
   "splitPythonLlm": 1950980,
-  "splitEnabledConsumer": 6836666,
+  "splitEnabledConsumer": 7125253,
   "splitFull": 73026105
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)

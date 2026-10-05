@@ -67,6 +67,25 @@ Source moves are not counted as added functionality. In particular, the HarfBuzz
 
 The PDF help-path correction reduces a source command bundle but does not reduce these installed profile totals; no installed saving is claimed. Two independent runs of the ordinary installed verifier passed all 17 Worker profiles and both portable network/SafeJS conditions, without budget bypasses, bundler exclusions, aliases or consumer rewrites.
 
+### October 4 bounded-hostname qualification
+
+A clean build of `832bb112f0` was packed and installed in an isolated consumer. The unchanged verifier reproduced the registry rejection: 6,721,017 bytes exceeded its 6,566,498-byte cap. Only these four profiles exceeded their previous total budgets:
+
+| Profile | Static bytes | Delta from core |
+| --- | ---: | ---: |
+| baseRegistry | 6,721,017 | 5,007,525 |
+| registryWithRegex | 6,721,054 | 5,007,562 |
+| enabledConsumer | 7,213,453 | 5,499,961 |
+| splitEnabledConsumer | 7,125,253 | 5,411,761 |
+
+Core measured 1,713,492 bytes. The other thirteen baselines remain unchanged, including the stricter PDF, Git and full-profile baselines. The 2% total and 5% incremental tolerances and 16 KiB minimum allowance are unchanged; these remain regression budgets, not deployment limits.
+
+The main new contributor is bounded Unicode hostname processing in HTML-to-Markdown. Comparing that command's source at the previously qualified `0f945f4c80` and `832bb112f0`, with identical browser/ES2022 minification and shared dependencies external, gives 59,174 and 310,240 bytes respectively. The current source metafile attributes 166,349 bytes to the UTS #46 mapping table and 73,102 to its validation expressions. New stored destination validation, IDNA, normalization and Punycode modules preserve processing through caller-backed text with bounded native probes. The same interval also adds retained patch, diff and XML command paths.
+
+Those command-only figures are attribution evidence, not an exact decomposition of the installed registry delta: packaging and consumer tree shaking select a different graph. The installed metafiles retain one HTML-to-Markdown input in each selecting profile (291,804 bytes in baseRegistry, 291,764 in enabledConsumer and 291,698 in splitEnabledConsumer), with no separate tr46 input. Core retains neither HTML-to-Markdown nor tr46. No functionality, imports or assets were excluded to fit the budgets.
+
+The ordinary verifier passed all 17 installed Worker profiles and both portable network/SafeJS conditions with the four measured baselines. Engine exclusions, the exact command inventory, duplicate-runtime and shared-PDF checks, Git asset ownership and all Worker behavior assertions remain unchanged.
+
 ## Git asset audit
 
 The historical Git Wasm grew from 2,878,331 to 5,310,726 bytes. Changes between the containing source revisions include signing (Ed25519/OpenSSH SSHSIG/OpenPGP), hooks/core.hooksPath, SSH transport and known_hosts, server hooks, standalone native host filesystem and credentials, upload-pack/receive-pack and SSH-to-HTTPS fallback. The packaging script selects the `git_rust.wasm` library artifact, not the separate `git-rust` executable. Native host filesystem/process/credential-helper adapters live in `src/main.rs`; their presence in the source diff is not evidence that those adapters caused library Wasm growth. The library includes portable crypto, hooks, SSH and wire modules. These are supported features, not demonstrated duplicate copies. This change preserves them. Core and unrelated profiles must carry zero Git assets; the selected Git profile must carry exactly one Wasm and execute repository initialization/status. The initial packed asset was 5,338,726 bytes; after integrating upstream Git changes, the verified packed asset is 5,338,654 bytes, with one copy in Git/full and zero in unrelated profiles. Native-only code splitting would need a separate behavior-qualified compiler change.

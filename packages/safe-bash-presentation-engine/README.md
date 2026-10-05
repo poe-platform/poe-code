@@ -55,6 +55,11 @@ JSON representation and streams tab lists. `stageRetainedText` supports
 `close()` for ordered slide transition metadata. It preserves unsupported effects,
 slide selection and timing validation while keeping records in caller storage.
 `stageRetainedTransitions` provides staged `transitions.list/get` output.
+`openRetainedObjects` (from `opaque-objects`) exposes `objects()`, `summaries()`,
+`count` and `close()`. Pass its admitted JSON objects to `streamJson` from
+`retained-output`; dependency queues, sorted references and arbitrary strings
+remain in caller storage. Payloads are hashed without activation or recursive
+parsing. `stageRetainedObjects` stages the default `objects list` response.
 `openRetainedNotes` (from `notes`) exposes a caller-backed `records()` iterator,
 with replayable part/master references, speaker text and body IDs. Close it after
 reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with

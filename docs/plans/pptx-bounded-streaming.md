@@ -726,7 +726,7 @@ extraction, workbook or Worker runtime matrix.
 
 | Area | Remaining migration |
 | --- | --- |
-| Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation, font, animation and accessibility readers; opaque-object inventory is migrated. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
 | Extraction | Image/media and embedded/opaque object extraction, including manifests and multi-output publication; package extraction is migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |
@@ -838,3 +838,21 @@ failure and cleanup. A native two-slide python-pptx chart/workbook deck verifies
 exact output parity through the built public adapter with whole-file reads forbidden.
 Transition mutations, the other operation families and Worker qualification remain
 unfinished; this delivery does not change the remaining qualification matrix.
+
+
+## Retained opaque-object inventory
+
+The default `objects list` command uses retained input and caller-backed inventory
+records. Classification shares the buffered engine’s MIME/relationship tables;
+signatures use a fixed eight-byte window and payload hashes stream. Dependency
+queues, cycle/duplicate tracking, owner/dependency/missing sorting and external
+relationship strings stay in caller storage. Complete JSON or human output is
+staged before stdout; payloads are never activated or recursively parsed.
+
+Focused parity covers typed and unlabelled objects, cyclic and missing dependencies,
+long external targets, generated dependency graphs, reused chunks, bounded
+outstanding writes, slow sinks, cancellation, source/storage failures and cleanup.
+A native python-pptx chart/workbook deck matches exact human/JSON output through
+the public adapter with retained reads, unchanged input and empty scratch.
+Opaque extraction, font declarations and the other unfinished operation families
+remain in the matrix; this does not claim Worker runtime qualification.

@@ -27,7 +27,8 @@ function getWorkspacePackagesWithTests(): string[] {
     const hasTests = findTestFiles(srcDir);
     if (hasTests) {
       const pkg = readJson(pkgPath) as { name: string };
-      result.push(pkg.name);
+      // The optional E2E workspace intentionally has no maintained unit task.
+      if (pkg.name !== "safe-bash-e2e") result.push(pkg.name);
     }
   }
 
@@ -106,7 +107,17 @@ describe("workspace dependency completeness", () => {
     });
   });
 
-  it("schedules each package with tests once through its declared unit task", () => {
+  it("keeps the optional safe-bash E2E suite out of maintained unit tasks", () => {
+    expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-e2e/**");
+    expect(plan.testStages.some(stage => stage.name === "safe-bash-e2e")).toBe(false);
+    const manifest = readJson(path.join(PACKAGES_DIR, "safe-bash-e2e", "package.json")) as {
+      scripts: Record<string, string>;
+    };
+    expect(manifest.scripts["test:unit"]).toBeUndefined();
+    expect(manifest.scripts["test:e2e"]).toBeDefined();
+  });
+
+  it("schedules each package with unit tests once through its declared unit task", () => {
     const scheduled = sharedVitestStages(plan).flatMap(stage => stage.event === "test:unit:shared"
       ? stage.phases.map(phase => phase.name)
       : [stage.name]);

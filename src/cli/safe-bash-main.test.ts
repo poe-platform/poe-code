@@ -4,6 +4,45 @@ import { MemoryFileSystem } from "@poe-platform/safe-bash";
 import { parseSafeBashCliArgs, runSafeBashCli } from "./safe-bash-main.js";
 
 describe("safe-bash CLI and workspace backend", () => {
+  it("persists writes through both macOS temporary-directory aliases across invocations", async () => {
+    const workspaceBackend = new MemoryFileSystem();
+    for (const workspaceRoot of ["/private/tmp/project", "/tmp/project"]) {
+      const options = { workspaceRoot, cwd: workspaceRoot, workspaceBackend, homeDir: "/Users/test" };
+      expect(await runSafeBashCli(["-c", "printf persisted > /tmp/project/value.txt"], options)).toBe(0);
+      const output: Uint8Array[] = [];
+      expect(await runSafeBashCli(["-c", "cat /private/tmp/project/value.txt"], {
+        ...options,
+        stdout: (bytes) => { output.push(bytes); }
+      })).toBe(0);
+      expect(Buffer.concat(output).toString()).toBe("persisted");
+      expect(new TextDecoder().decode(await workspaceBackend.readFile("/value.txt"))).toBe("persisted");
+    }
+  });
+
+  it.each([
+    ["sed in-place mutation", "sed -i 's/before/after/' value.txt && cat value.txt", "after\n"],
+    ["diff ancestry", "diff -u value.txt value.txt", ""],
+    ["rg parent capabilities", "rg --files", "value.txt\n"],
+    ["exec builtin", "exec /bin/bash -c 'printf snapshot-ok'; printf unreachable", "snapshot-ok"],
+    ["snapshot wrapper", "__CODEX_SNAPSHOT_OVERRIDE_SET_0=1\nexec /Users/test/.local/bin/safe-bash-bin/bash -c 'printf snapshot-ok'", "snapshot-ok"]
+  ])("supports %s under a nested temporary mount", async (_name, command, expected) => {
+    const workspaceBackend = new MemoryFileSystem();
+    await workspaceBackend.writeFile("/value.txt", new TextEncoder().encode("before\n"));
+    const stdout: Uint8Array[] = [];
+    const stderr: Uint8Array[] = [];
+    const status = await runSafeBashCli(["-lc", command], {
+      workspaceRoot: "/private/tmp/project",
+      cwd: "/private/tmp/project",
+      homeDir: "/Users/test",
+      workspaceBackend,
+      stdout: (bytes) => { stdout.push(bytes); },
+      stderr: (bytes) => { stderr.push(bytes); }
+    });
+    expect(Buffer.concat(stderr).toString()).toBe("");
+    expect(status).toBe(0);
+    expect(Buffer.concat(stdout).toString()).toBe(expected);
+  });
+
   it("keeps --safe-bash strictly opt-in in CLI runtime options", () => {
     expect(pickRuntimeOptions({})).toEqual({});
     expect(pickRuntimeOptions({ safeBash: false })).toEqual({});

@@ -301,6 +301,10 @@ export async function createWorkspaceFileSystem(
   }
 
   const memoryRoot = new MemoryFileSystem();
+  // Real directory entries give mount ancestors stable identities for retained reads.
+  for (const mountPath of Object.keys(mounts)) {
+    await memoryRoot.mkdir(path.posix.dirname(mountPath), { recursive: true });
+  }
   await seedHostGitAndSshMetadata(
     memoryRoot,
     homeDir,

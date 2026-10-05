@@ -52,5 +52,13 @@
   },
   "bin": {
     "tiny-http-mcp-oauth-test-server-rust": "dist/cli.js"
+  },
+  "imports": {
+    "#tiny-mcp-spawn": {
+      "workerd": "./dist/http/client/spawn.browser.js",
+      "browser": "./dist/http/client/spawn.browser.js",
+      "worker": "./dist/http/client/spawn.browser.js",
+      "default": "./dist/http/client/spawn.node.js"
+    }
   }
 }

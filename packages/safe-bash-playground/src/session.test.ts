@@ -5,8 +5,8 @@ import { executeInWorker } from "./execution.js";
 // Keep the real in-memory filesystem and quota behavior without bundling the
 // browser command registry. Browser compatibility lives in session.integration.ts.
 vi.mock("./engine/index.js", async () => {
-  const { createMemoryFileSystem } = await import("../../safe-fs/src/fs/memory/index.js");
-  const { withFileSystemQuota } = await import("../../safe-fs/src/fs/quota/index.js");
+  const { createMemoryFileSystem } = await import("@poe-code/safe-fs/fs/memory");
+  const { withFileSystemQuota } = await import("@poe-code/safe-fs/fs/quota");
   return {
     createMemoryFileSystem,
     withFileSystemQuota,

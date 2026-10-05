@@ -17,7 +17,7 @@ export async function validateSection(section: PatchText, budget: Budget, messag
   decoder.decode();
 }
 
-export async function unifiedHeader(input: PatchInput, index: number, budget: Budget): Promise<{ header: string; section: PatchText }> {
+export async function unifiedHeader(input: PatchInput, index: number, budget: Budget): Promise<{ header: string; section: PatchText; invalidCoordinate?: string }> {
   if (!input.body) {
     const text = (await input.read(index))!;
     const end = text.indexOf("@@", 2);
@@ -25,19 +25,44 @@ export async function unifiedHeader(input: PatchInput, index: number, budget: Bu
     return { header: text.slice(0, end + 2), section: text.slice(end + 2) };
   }
   const source = await input.body(index, 0, true);
-  const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-  let header = "";
+  const fields = Array.from({ length: 4 }, () => ({ value: 0, prefix: "", digits: 0 }));
+  let field = 0, literal = "@@ -", literalIndex = 0, position = 0;
+  const malformed = () => new ToolError("malformed unified hunk header");
   for await (const bytes of patchTextBytes(source)) {
-    const previous = header.length;
-    header += decoder.decode(bytes, { stream: true });
-    const end = header.indexOf("@@", Math.max(2, previous - 1));
-    if (end >= 0) {
-      header = header.slice(0, end + 2);
-      // A valid coordinate prefix is ASCII, so its code-unit and byte offsets agree.
-      if (!/^@@ -\d+(?:,\d+)? \+\d+(?:,\d+)? @@$/u.test(header)) throw new ToolError("malformed unified hunk header");
-      return { header, section: await input.body(index, header.length, true) };
-    }
     budget.step(bytes.length); const pause = budget.checkpoint(); if (pause) await pause;
+    for (const byte of bytes) {
+      position++;
+      if (literalIndex < literal.length) {
+        if (byte !== literal.charCodeAt(literalIndex++)) throw malformed();
+        if (literalIndex === literal.length && literal === "@@") {
+          const names = ["old start", "old count", "new start", "new count"];
+          const invalid = fields.findIndex(value => !Number.isSafeInteger(value.value));
+          const value = (index: number) => {
+            const part = fields[index]!;
+            // Short spellings remain unchanged; leading zeros need no retained copy.
+            return !Number.isSafeInteger(part.value) ? "0" : part.digits <= 1001 ? part.prefix : String(part.value);
+          };
+          const header = `@@ -${value(0)}${fields[1]!.digits ? `,${value(1)}` : ""} +${value(2)}${fields[3]!.digits ? `,${value(3)}` : ""} @@`;
+          return { header, section: await input.body(index, position, true),
+            ...(invalid < 0 ? {} : { invalidCoordinate: `invalid ${names[invalid]}: ${fields[invalid]!.prefix}` }) };
+        }
+        continue;
+      }
+      const part = fields[field]!;
+      if (byte >= 48 && byte <= 57) {
+        part.digits++;
+        if (part.prefix.length < 1001) part.prefix += String.fromCharCode(byte);
+        part.value = part.value * 10 + (byte - 48);
+        if (!Number.isSafeInteger(part.value)) part.value = Infinity;
+      } else {
+        if (!part.digits) throw malformed();
+        if (byte === 44 && (field === 0 || field === 2)) field++;
+        else if (byte === 32) {
+          literal = field < 2 ? "+" : "@@"; literalIndex = 0;
+          field = field < 2 ? 2 : 4;
+        } else throw malformed();
+      }
+    }
   }
-  return { header: header + decoder.decode(), section: "" };
+  throw malformed();
 }

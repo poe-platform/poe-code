@@ -110,10 +110,11 @@ export async function parseUnifiedReader<Lines, Hunks extends { readonly length:
     let newEnded = false;
     while (index < physical.length && (await physical.read(index, 2))!.startsWith("@@")) {
       budget.hunk();
-      const { header: hunkHeader, section } = await unifiedHeader(physical, index++, budget);
+      const { header: hunkHeader, section, invalidCoordinate } = await unifiedHeader(physical, index++, budget);
       const match = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@$/u.exec(hunkHeader);
       if (!match) throw new ToolError("malformed unified hunk header");
       await validateSection(section, budget, "malformed unified hunk header");
+      if (invalidCoordinate !== undefined) throw new ToolError(invalidCoordinate);
       const oldStart = integer(match[1]!, "old start");
       const oldCount = integer(match[2] ?? "1", "old count");
       const newStart = integer(match[3]!, "new start");

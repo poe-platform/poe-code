@@ -28,9 +28,9 @@ Hunk outcomes, including reversal probes and merge replacements, share the page
 cache; status and reject decisions replay stored records.
 Hunk descriptors and their body locations use stored records; reversal is a
 replayable view. Hunk sections stay as byte spans through unified/context parsing
-and reject rendering. Unified coordinates scan in bounded blocks, including long leading zeros; overflow
-diagnostics retain only their displayed prefix. Filename headers and normal/context
-coordinate prefixes still decode in full.
+and reject rendering. Unified, normal and context coordinates scan in bounded blocks, including long
+leading zeros; overflow diagnostics retain only their displayed prefix. Filename
+headers still decode in full.
 Header text, per-file metadata and retained resource
 handles still grow with the request; this is not a complete memory bound.
 

@@ -3,6 +3,7 @@ import test from "node:test";
 import { toByteSource, type CommandContext } from "safe-bash-contracts";
 import { Budget } from "safe-bash-diff-engine/shared";
 import { unifiedHeader, validateSection } from "./hunk-section.js";
+import { StoredPatchInput } from "./stored-input.js";
 import { materializeText } from "./patch-text.js";
 import { contents, filesystem, run } from "./helpers.test.js";
 
@@ -105,6 +106,24 @@ test("unified coordinate scanning preserves the largest safe integer", async () 
   const fs = await filesystem({ target: "old\n" });
   const result = await run("patch", ["--quiet"], { fs,
     input: "--- target\n+++ target\n@@ -9007199254740991,1 +1,1 @@\n-old\n+new\n" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(fs, "target"), "new\n");
+});
+
+for (const format of ["normal", "context"]) test(`${format} coordinates avoid full-line decoding`, async t => {
+  const fs = await filesystem({ target: "old\n" });
+  const read = StoredPatchInput.prototype.read;
+  t.mock.method(StoredPatchInput.prototype, "read", async function(this: StoredPatchInput, index: number, prefix?: number) {
+    if (prefix === undefined) {
+      const begin = await read.call(this, index, 8);
+      assert.ok(!/^(?:\d|(?:\*\*\* |--- )\d)/u.test(begin ?? ""), "decoded complete coordinate line");
+    }
+    return read.call(this, index, prefix);
+  });
+  const number = "0".repeat(32768) + "1";
+  const input = format === "normal" ? `${number},${number}c${number},${number}\n< old\n---\n> new\n`
+    : `*** target\n--- target\n***************\n*** ${number},${number} ****\n! old\n--- ${number},${number} ----\n! new\n`;
+  const result = await run("patch", ["--quiet", "target"], { fs, input });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(await contents(fs, "target"), "new\n");
 });

@@ -1,7 +1,8 @@
+import { coordinateLine, type Coordinate } from "./coordinate-line.js";
 import { validateSection } from "./hunk-section.js";
 import { decodeHeaderPath } from "./patch-path.js";
 import { parseUnified,parseUnifiedSection,type FilePatch,type Hunk,type ParsedPatchLine,type PatchInput,type IndexedUnifiedCursor } from "./unified.js";
-import { Budget,ToolError,integer } from "safe-bash-diff-engine/shared";
+import { Budget,ToolError } from "safe-bash-diff-engine/shared";
 import { equalPatchText, materializeText, terminated, textSize, type PatchText } from "./patch-text.js";
 
 export type PatchFormat = "unified" | "normal" | "context";
@@ -26,8 +27,9 @@ class Reader {
     if (line === undefined) throw new ToolError("truncated patch");
     return line;
   }
-  number(value: string): number {
-    const result = integer(value, "patch range");
+  number(coordinate: Coordinate): number {
+    const result = coordinate.value;
+    if (!Number.isSafeInteger(result)) throw new ToolError(`invalid patch range: ${coordinate.prefix}`);
     if (result > this.budget.limits.maxLines) throw new ToolError("hunk coordinate exceeds line limit");
     return result;
   }
@@ -55,15 +57,17 @@ function* encoded(line: ParsedPatchLine): Generator<PatchText> {
 async function* normal(reader: Reader, target: string | undefined): AsyncGenerator<PatchText> {
   const quoted = JSON.stringify(target ?? "/dev/null");
   yield `--- ${quoted}\n+++ ${quoted}\n`;
-  while ((await reader.peek()) !== undefined) {
-    if ((await reader.peek()) === "") { await reader.take(); continue; }
-    if (!/^\d/u.test((await reader.peek())!)) break;
-    const command = /^(\d+)(?:,(\d+))?([acd])(\d+)(?:,(\d+))?$/u.exec(await reader.take());
+  while ((await reader.peek(1)) !== undefined) {
+    if ((await reader.peek(1)) === "") { await reader.take(); continue; }
+    if (!/^\d/u.test((await reader.peek(1))!)) break;
+    const coordinates = await coordinateLine(reader.input, reader.index++, reader.budget);
+    const command = /^(\d+)(?:,(\d+))?([acd])(\d+)(?:,(\d+))?$/u.exec(coordinates.shape);
     if (!command) throw new ToolError("malformed normal patch command");
-    const oldStart = reader.number(command[1]!);
-    const oldLast = reader.number(command[2] ?? command[1]!);
-    const newStart = reader.number(command[4]!);
-    const newLast = reader.number(command[5] ?? command[4]!);
+    let field = 0;
+    const oldStart = reader.number(coordinates.fields[field++]!);
+    const oldLast = command[2] === undefined ? oldStart : reader.number(coordinates.fields[field++]!);
+    const newStart = reader.number(coordinates.fields[field++]!);
+    const newLast = command[5] === undefined ? newStart : reader.number(coordinates.fields[field++]!);
     const operation = command[3]!;
     if (oldLast < oldStart || newLast < newStart || (operation === "a" && command[2] !== undefined)
       || (operation === "d" && command[5] !== undefined)) throw new ToolError("invalid normal patch range");
@@ -80,11 +84,12 @@ interface ContextLine { readonly kind: " " | "!" | "-" | "+"; readonly text: Pat
 interface Range { readonly start: number; readonly last: number; readonly multiple: boolean }
 
 async function contextRange(reader: Reader, old: boolean): Promise<Range> {
-  const line = await reader.take();
-  const match = (old ? /^\*\*\* (\d+)(?:,(\d+))? \*\*\*\*$/u : /^--- (\d+)(?:,(\d+))? ----$/u).exec(line);
+  if (reader.index >= reader.input.length) throw new ToolError("truncated patch");
+  const coordinates = await coordinateLine(reader.input, reader.index++, reader.budget);
+  const match = (old ? /^\*\*\* (\d+)(?:,(\d+))? \*\*\*\*$/u : /^--- (\d+)(?:,(\d+))? ----$/u).exec(coordinates.shape);
   if (!match) throw new ToolError("malformed context range");
-  const start = reader.number(match[1]!);
-  const last = reader.number(match[2] ?? match[1]!);
+  const start = reader.number(coordinates.fields[0]!);
+  const last = match[2] === undefined ? start : reader.number(coordinates.fields[1]!);
   if (last < start || (match[2] !== undefined && start === 0)) throw new ToolError("invalid context range");
   return { start, last, multiple: match[2] !== undefined };
 }
@@ -101,7 +106,7 @@ async function contextSide(reader: Reader, old: boolean, range: Range): Promise<
   while ((await reader.peek(2)) !== undefined && length < count) {
     const kind = (await reader.peek(2)) === "" ? " " : (await reader.peek(2))![0];
     if (kind !== " " && kind !== "!" && kind !== (old ? "-" : "+")) break;
-    if (old && (await reader.peek(2))?.startsWith("--") && /^--- \d+(?:,\d+)? ----$/u.test((await reader.peek())!)) break;
+    if (old && (await reader.peek(2))?.startsWith("--") && /^--- \d+(?:,\d+)? ----$/u.test((await coordinateLine(reader.input, reader.index, reader.budget)).shape)) break;
     const text = await reader.content(kind);
     incomplete = !terminated(text);
     length++;
@@ -137,7 +142,7 @@ function contextCount(range: Range, lines: ContextSide): number {
 }
 
 async function* context(reader: Reader): AsyncGenerator<PatchText> {
-  while ((await reader.peek()) !== undefined) {
+  while ((await reader.peek(1)) !== undefined) {
     const header = await reader.take();
     if (header === "") continue;
     if (/^diff -[^ ]+ /u.test(header)) { yield `${header}\n`; continue; }
@@ -230,24 +235,24 @@ export async function parsePatchWith<Lines, Hunks = Hunk<Lines>[]>(text: string 
   const reader = new Reader(text, budget);
   const patches: FilePatch<Lines, Hunks>[] = [];
   let convertedBytes = 0;
-  while ((await reader.peek()) !== undefined) {
+  while ((await reader.peek(1)) !== undefined) {
     try {
-      if ((await reader.peek()) === "") { await reader.take(); continue; }
-      if (!progress && patches.length && (await reader.peek())!.startsWith("-") && !(await reader.peek())!.startsWith("---")) {
+      if ((await reader.peek(1)) === "") { await reader.take(); continue; }
+      if (!progress && patches.length && (await reader.peek(8))!.startsWith("-") && !(await reader.peek(8))!.startsWith("---")) {
         throw new ToolError("unexpected deletion outside a patch hunk");
       }
-      if (patches.length && !/^(?:Index: |diff |index |---|\*\*\*|@@|[+\\<>]|\d)/u.test((await reader.peek())!)) {
+      if (patches.length && !/^(?:Index: |diff |index |---|\*\*\*|@@|[+\\<>]|\d)/u.test((await reader.peek(8))!)) {
         await reader.take();
         continue;
       }
       let indexPath: string | undefined;
-      if ((await reader.peek())?.startsWith("Index: ")) {
+      if ((await reader.peek(8))?.startsWith("Index: ")) {
         indexPath = decodeHeaderPath((await reader.take()).slice(7));
-        if (/^=+$/u.test((await reader.peek()) ?? "")) await reader.take();
+        if ((await reader.peek(1)) === "=" && /^=+$/u.test((await reader.peek()) ?? "")) await reader.take();
       }
       const start = reader.index;
-      while (/^diff /u.test((await reader.peek()) ?? "")) await reader.take();
-      const first = (await reader.peek()) ?? "";
+      while (/^diff /u.test((await reader.peek(8)) ?? "")) await reader.take();
+      const first = (await reader.peek(8)) ?? "";
       const detected: PatchFormat = first.startsWith("*** ") ? "context" : /^\d/u.test(first) ? "normal" : "unified";
       if (format && detected !== format) throw new ToolError(`patch format is ${detected}, not requested ${format}`);
       if (detected === "unified") {

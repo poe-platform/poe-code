@@ -45,9 +45,9 @@ Application outcomes, reversal probes and merge replacements use fixed-width
 stored records in the shared cache. Status and reject decisions replay them.
 Hunk descriptors and body locations now use stored records, with lazy reversal
 views. Unified/context hunk sections remain stored spans through grammar validation,
-conversion and reject rendering. Unified coordinates use bounded numeric scans, including arbitrarily long leading
-zeros and overflow diagnostics. Filename headers and normal/context coordinates
-still decode in full.
+conversion and reject rendering. Unified, normal and context coordinates use bounded numeric scans, including
+arbitrarily long leading zeros and overflow diagnostics. Format detection reads
+bounded prefixes; filename headers still decode in full.
 Header text, file maps
 and retained resource handles still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.

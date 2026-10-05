@@ -1,5 +1,5 @@
 import { selectConditionalTarget } from "./package-export-target.mjs";
-import { privateExportStarsPlugin } from "./private-export-stars.mjs";
+import { privateExportStarsPlugin, rewritePrivateExportStars } from "./private-export-stars.mjs";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { builtinModules } from "node:module";
@@ -314,6 +314,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     }
     const bundled = new Map();
     const effectfulBundles = new Set();
+    const runtimeExports = new Map();
     if (name === "safe-js") {
       const graph = await resolveBundleGraph(rootDir, workspaces, files);
       const alias = Object.fromEntries(Object.entries(graph.alias).map(([specifier, target]) => [specifier, publicSpecifier(specifier) !== specifier ? publicSpecifier(specifier) : target]));
@@ -375,12 +376,13 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       }
       recipes.push(...resolveCommandExportBuilds(rootDir, source, root, workspaces, { alias, external }));
       if (source.sideEffects?.includes("./dist/portable-buffer.js")) recipes.push(resolvePortableBufferBuild(rootDir));
-      const runtimeExports = new Map();
       for (const recipe of recipes) {
         const result = await bundle({ ...recipe, metafile: true, sourcemap: false, plugins: [privateExportStarsPlugin(runtimeExports, files, path.join(packageDir, "src")), canonicalFileSystemImports, ...(recipe.plugins ?? [])] });
-        for (const metadata of Object.values(result.metafile?.outputs ?? {})) {
+        for (const [filename, metadata] of Object.entries(result.metafile?.outputs ?? {})) {
           if (!metadata.entryPoint || !metadata.exports?.length) continue;
-          const entry = path.resolve(rootDir, metadata.entryPoint);
+          // Recipes may enter src/*.ts or prebuilt dist/*.js. Public routes
+          // identify the emitted file, not either kind of build input.
+          const entry = path.resolve(rootDir, filename);
           for (const { dir, pkg } of workspaces) {
             if (!Object.hasOwn(source.poeCode?.integration?.privateWorkspaces ?? {}, pkg.name) || source.poeCode.integration.privateWorkspaces[pkg.name].publicAlias) continue;
             for (const [route, target] of Object.entries(pkg.exports ?? {})) {
@@ -637,6 +639,12 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       let contents = bundled.has(filename) ? Buffer.from(bundled.get(filename)) : await files.readFile(await exists(filename) ? filename : filename.replace("/dist/", "/src/"));
       if (filename.endsWith(".js") || filename.endsWith(".mjs") || filename.endsWith(".ts")) {
         const declaration = filename.endsWith(".d.ts") || filename.endsWith(".d.mts");
+        // Copied command facades bypass the browser build plugin. Expand their
+        // private stars too, before specifiers become relative: otherwise a
+        // consumer's lazy core import can strand the static command initializer.
+        if (!declaration && runtimeExports.size) {
+          contents = rewritePrivateExportStars(filename, contents.toString(), runtimeExports);
+        }
         // A bare URL is relative to this module, not an npm dependency. Generated
         // runtimes can retain fallback URLs even when their payload is embedded.
         // Copy existing assets; preserve unresolved fallback/external URLs as authored.

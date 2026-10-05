@@ -2512,6 +2512,30 @@ it('rewrites imports in deeply nested generated expressions without consuming th
     .toBe(prefix + 'import("@poe-platform/safe-fs");\n');
 });
 
+it("makes copied private command facades explicit for mixed static and lazy imports", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-htmlq";
+  const owner = `/repo/packages/${name}`;
+  const metadata = readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), "utf8");
+  volume.mkdirSync(owner + "/dist", { recursive: true });
+  volume.writeFileSync(owner + "/package.json", metadata);
+  volume.writeFileSync(owner + "/LICENSE", "Fixture license\n");
+  const command = 'const defaults = { inputBytes: 100 }; export function htmlqCommands() { return Object.keys(defaults); }';
+  volume.writeFileSync(owner + "/dist/index.js", command);
+  volume.writeFileSync(owner + "/dist/index.d.ts", "export declare function htmlqCommands(): string[];");
+  const facade = "/repo/packages/safe-bash/dist/commands/htmlq/index.js";
+  volume.writeFileSync(facade, `export * from "${name}";`);
+  await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
+    if (settings.outdir !== "/repo/packages") return options.bundle(settings);
+    const filename = owner + "/dist/index.js";
+    return { outputFiles: [{ path: filename, contents: Buffer.from(command) }], metafile: { inputs: {}, outputs: {
+      [filename]: { entryPoint: owner + "/src/index.ts", inputs: {}, exports: ["htmlqCommands"] },
+    } } };
+  } });
+  const published = volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/htmlq/index.js", "utf8").toString();
+  expect(published).toBe('export { "htmlqCommands" } from "../../../safe-bash-command-htmlq/index.js";');
+});
+
 it("carries declared Buffer initialization into generated chunks while pruning unused facades", async () => {
   const { volume, options } = optionalLeftovers();
   volume.writeFileSync("/repo/packages/safe-bash/dist/core.js", 'import "./portable-buffer.js"; export {};\n');

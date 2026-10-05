@@ -4,6 +4,15 @@ import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
 
 const consumer = resolve(process.argv[2] ?? ".");
+// Run alone: the broad browser fixture eagerly imports core and would mask
+// missing initialization on a static command beside an uncalled lazy core.
+await build({
+  absWorkingDir: consumer,
+  entryPoints: ["safe-packages-htmlq-mixed.mjs"],
+  bundle: true, platform: "browser", conditions: ["workerd", "browser"],
+  format: "esm", loader: { ".wasm": "binary" }, outfile: "htmlq-mixed.mjs",
+});
+await import(pathToFileURL(resolve(consumer, "htmlq-mixed.mjs")).href);
 await build({
   absWorkingDir: consumer,
   entryPoints: ["safe-packages-browser.mjs"],

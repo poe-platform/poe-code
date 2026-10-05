@@ -44,7 +44,7 @@ backend for large documents. Decoded image pixels and resampling levels use a
 resources and nested paint captures retain their current memory requirements.
 Cairo PDF output copies selected pages through caller-backed storage, preserves
 metadata and page-box options, and streams the staged result to stdout or atomic
-file publication. Individual source COS values remain resident. SVG, PS/EPS, and
+file publication. Individual source COS values remain resident. PS/EPS and
 the buffered convenience runners still use their existing execution paths. Cairo
 raster formats share the retained pipeline and preserve their output naming,
 color-conversion and error conventions.
@@ -52,3 +52,8 @@ color-conversion and error conventions.
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 
 Unknown options, missing option values, invalid numeric values, and extra operands return exit code `99`. Omit the input filename or use `-` to read stdin. Empty PDF input returns exit code `1`.
+
+SVG output in both commands uses retained input and streams paths, glyphs, clips,
+images and transparency groups through caller-backed storage. Soft masks and
+backdrop-dependent groups use tiled rasterization; ordinary paints remain vectors.
+Output naming, page selection and atomic publication match the existing commands.

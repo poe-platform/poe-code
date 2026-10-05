@@ -237,6 +237,8 @@ export interface PdfStoredOperations {
 
 /** A transparency-group mask evaluated in page coordinates at the gs operator. */
 export interface PdfSoftMask {
+  /** Identity within one retained page evaluation, preserved across capture records. */
+  readonly retainedId?: number;
   readonly subtype: "Alpha" | "Luminosity";
   readonly operations: readonly PdfPaintOperation[];
   readonly storedOperations?: PdfStoredOperations | undefined;

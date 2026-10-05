@@ -329,7 +329,7 @@ export function createPdftoppmCommand(options: PdftoppmCommandOptions = {}): Com
     description: "Render PDF pages to PNG, PPM, PGM, PBM, or SVG via @poe-code/pdf-ast",
     async execute(context: CommandContext) {
       const parsed = await drainSteps(parsePdftoppmArgsSteps(getCommandArguments(context).args, true), context.signal);
-      if ("inputPath" in parsed && parsed.format !== "svg") {
+      if ("inputPath" in parsed) {
         const invocation = createOutputOperation(context, { write: async () => {} });
         try { return await executeRetainedRaster(context, parsed, invocation.child(context.stdout).output, invocation.signal, maxInputBytes); }
         finally { await invocation.close(); }
@@ -541,10 +541,13 @@ export function createPdftocairoCommand(options: PdftoppmCommandOptions = {}): C
         try { return await executeRetainedCairoPdf(context, parsed, invocation.child(context.stdout).output, invocation.signal, maxInputBytes); }
         finally { await invocation.close(); }
       }
-      if ("inputPath" in parsed && (parsed.format === "png" || parsed.format === "jpg" || parsed.format === "tif")) {
+      if ("inputPath" in parsed && (parsed.format === "png" || parsed.format === "jpg" || parsed.format === "tif" || parsed.format === "svg")) {
         const stem = parsed.inputPath.toLowerCase().endsWith(".pdf") ? parsed.inputPath.slice(0, -4) : parsed.inputPath;
         const positionals = parsed.positionals.length === 1 && parsed.inputPath !== "-" ? [parsed.inputPath, stem] : parsed.positionals;
-        let plan = await drainSteps(parsePdftoppmArgsSteps([...parsed.forwardedArgs, "--", ...positionals], true), context.signal);
+        const rawSvgOut=parsed.positionals[1]??(parsed.inputPath==="-"?"-":`${stem}.svg`);
+        const svgRoot=rawSvgOut.toLowerCase().endsWith(".svg")?rawSvgOut.slice(0,-4):rawSvgOut;
+        const argumentsForRaster=parsed.format==="svg"?["-svg","-singlefile",...parsed.forwardedArgs,"--",parsed.inputPath,svgRoot]:[...parsed.forwardedArgs,"--",...positionals];
+        let plan = await drainSteps(parsePdftoppmArgsSteps(argumentsForRaster, true), context.signal);
         const invocation = createOutputOperation(context, { write: async () => {} });
         try {
           if (!("inputPath" in plan)) {

@@ -1126,7 +1126,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     return undefined;
   }
   let capturedOperations: PdfPaintOperation[] | StoredOperationsWriter | undefined;
-  let insideSoftMask = false;
+  let insideSoftMask = false, maskIdentity = 0;
   function* emit(operation: PdfPaintOperation): EvaluationWork {
     const { clipPaths, storedClipPaths, clipImages, softMask } = curState();
     if (clipPaths || storedClipPaths || clipImages || softMask) operation = { ...operation, value: { ...operation.value,
@@ -1457,7 +1457,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             }
             const parameters = yield { kind: "mask-parameters", mask, form, resources: activeResources };
             if (!parameters || !("kind" in parameters) || parameters.kind !== "mask-parameters") throw new TypeError("Expected PDF soft-mask parameters");
-            st.softMask = { subtype: subtype.decoded, operations: captured instanceof StoredOperationsWriter ? [] : captured, ...(captured instanceof StoredOperationsWriter ? {storedOperations:captured.snapshot()} : {}), ...parameters.value };
+            st.softMask = { ...(params.geometryStorage ? {retainedId: maskIdentity++} : {}), subtype: subtype.decoded, operations: captured instanceof StoredOperationsWriter ? [] : captured, ...(captured instanceof StoredOperationsWriter ? {storedOperations:captured.snapshot()} : {}), ...parameters.value };
           }
         }
         const bmNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "BM", true), true);

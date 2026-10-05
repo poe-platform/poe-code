@@ -1,5 +1,5 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, PdfStagingStorage, renderRetainedPagePixels, getDisplayListCropBox,
+import { PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, PdfStagingStorage, renderRetainedPageToSvg, renderRetainedPagePixels, getDisplayListCropBox,
   encodeRetainedPng, encodeRetainedTiff, encodeJpegChunks, encodePortableBitmapChunks, type PdfOutputEntry } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
@@ -61,6 +61,12 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
         else {
           if (plan.scaleToX > 0) { dpiX = plan.scaleToX * 72 / Math.max(ptW, 1); if (plan.scaleToY < 0) dpiY = dpiX; }
           if (plan.scaleToY > 0) { dpiY = plan.scaleToY * 72 / Math.max(ptH, 1); if (plan.scaleToX < 0) dpiX = dpiY; }
+        }
+        if(plan.format === "svg") {
+          yield {name:name(number),chunks:renderRetainedPageToSvg(page,storage,{dpiX,dpiY,useCropBox:plan.useCropBox,hideAnnotations:plan.hideAnnotations,transparent:plan.transparent,signal,
+            ...(plan.hasCrop?{cropRect:{x:plan.cropX,y:plan.cropY,width:plan.cropW,height:plan.cropH}}:{})})};
+          if(plan.singleFile)break;
+          continue;
         }
         const imageStorage = new PagedStorage({ fs: context.fs, cwd: directory, env: {}, signal }, 4);
         let pageFailed = false;

@@ -673,7 +673,7 @@ preserves stroke transforms, hairlines, zero-length dash outlines, opacity and
 glyph labels. `chunkBytes`, `maxSegments`, `maxDashEntries`, `maxOutputBytes` and
 `signal` bound output, record admission and cancellation; `scale` controls stroke
 resolution. The caller owns source storage and enclosing clip/mask/blend wrappers.
-This leaf serializer does not replace the full-page SVG execution path.
+Use `renderRetainedPageToSvg` for full-page composition.
 
 `encodeSvgImageChunks(image, pageHeight, storage, options)` streams an SVG
 `<image>` element, including its PNG data URL, from `decodedRgba` or caller-backed
@@ -681,8 +681,25 @@ This leaf serializer does not replace the full-page SVG execution path.
 matrix transform. `chunkBytes` bounds reads and emitted allocations;
 `maxOutputBytes` includes markup and base64, and `maxStagingBytes` bounds PNG
 staging. Keep source pixel storage alive until consumption ends. Cancellation,
-early return and failures release the encoder's scratch storage. This is an
-image serializer; full-page SVG rendering still uses its existing execution path.
+early return and failures release the encoder's scratch storage. Use `renderRetainedPageToSvg` to compose a complete page.
+
+`encodeSvgSoftMaskChunks(mask, pageGeometry, storage, options)` streams a mask
+image using bounded raster tiles and caller-backed pixel staging. Alpha and
+luminosity masks retain backdrop and transfer-function behavior. `tileSize` and
+`maxPixelWorkingBytes` bound tile/range-driver scratch; nested compositor surfaces
+and source resources have separate ownership. `maxStagingBytes` covers concurrent
+tile, PNG pixel and compression staging. Cancellation, early return and failures
+release owned scratch.
+
+`renderRetainedPageToSvg(page, storage, options)` streams a complete SVG from a
+`PdfRetainedPage`, including glyphs, images, clips, transparency groups and masks.
+It preserves vector output and uses tiled raster composition only for groups that
+need the page backdrop. Page rotation, crop boxes, DPI and pixel crops match the
+buffered renderer. Paint records and mask IDs use bounded caches on caller backing;
+`maxOperations` bounds paint admission and `maxOutputBytes` includes all markup.
+The function owns its evaluation backing and cleans it on completion, cancellation
+or early return. Fonts, resource metadata and nested compositor surfaces retain
+their own budgets; this API does not establish an aggregate resident-memory bound.
 
 `encodeRetainedPng(width, height, rgbaChunks, storage, options)` preserves the
 buffered PNG byte layout while staging pixels and compressed bytes through the

@@ -28,7 +28,7 @@ async function fixture(input: Uint8Array, args: string[], stdin = false) {
   };
   return { fs, context, controller, stdout, stderr, counts: () => ({ reads, writes, published }), async clean() { assert.deepEqual(await fs.readdir("/scratch"), []); } };
 }
-for (const flags of [[], ["-gray"], ["-mono"], ["-png"], ["-jpeg"], ["-tiff"], ["-png", "-gray"], ["-tiff", "-tiffcompression", "lzw"], ["-rx", "90", "-ry", "47", "-x", "2", "-W", "9"]]) {
+for (const flags of [["-svg"], [], ["-gray"], ["-mono"], ["-png"], ["-jpeg"], ["-tiff"], ["-png", "-gray"], ["-tiff", "-tiffcompression", "lzw"], ["-rx", "90", "-ry", "47", "-x", "2", "-W", "9"]]) {
   test(`retained rendering matches bytes without whole input or output: ${flags.join(" ")}`, async () => {
     const input = pdf(), args = [...flags, "in.pdf", "out"], files = new Map([["in.pdf", input]]); const expected = await runPdftoppmCli(args, files);
     const f = await fixture(input, args); assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, expected.exitCode);
@@ -142,3 +142,6 @@ for (const cairo of [false, true]) for (const failure of ["none", "write", "canc
   assert.ok(spills > 0, "decoded images must spill through injected safe-fs"); assert.equal(closed, spills);
   assert.ok(largestWrite <= 16384); await f.clean();
 });
+
+for(const args of [["-svg","in.pdf"],["-svg","in.pdf","custom.SVG"],["-svg","-","-"],["-svg","-f","2","in.pdf","out"]])test(`retained Cairo SVG preserves bytes ${args.join(" ")}`,async()=>{const input=pdf(),files=new Map([[args.includes("-")?"-":"in.pdf",input]]),expected=await runPdftocairoCli(args,files),f=await fixture(input,args,args.includes("-"));assert.equal((await createPdftocairoCommand().execute(f.context)).exitCode,expected.exitCode);for(const [name,bytes] of files)if(name!=="in.pdf"&&name!=="-")assert.deepEqual(await f.fs.readFile("/"+name),bytes);if(expected.stdoutBytes)assert.deepEqual(new Uint8Array(Buffer.concat(f.stdout)),expected.stdoutBytes);assert.deepEqual(f.counts().reads,0);await f.clean();});
+for(const cairo of [false,true])test(`SVG preserves sink failure identity and removes all staging Cairo=${cairo}`,async()=>{const f=await fixture(pdf(),['-svg','in.pdf','-']),reason=new Error('SVG sink failed');f.context.stdout.write=async()=>{throw reason;};await assert.rejects(async()=> (cairo?createPdftocairoCommand():createPdftoppmCommand()).execute(f.context),error=>error===reason);assert.deepEqual(f.counts(),{reads:0,writes:0,published:0});await f.clean();});

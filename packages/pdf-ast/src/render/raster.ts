@@ -1,3 +1,11 @@
+import {PagedStorage,IntegerTable} from "@poe-code/safe-fs/storage";
+import type {PdfRetainedPage} from "../retained-document.js";
+import {renderRetainedPagePixels,type PdfRetainedPixelOptions} from "./retained-page-pixels.js";
+import {PdfFileSource} from "../source.js";
+import {PdfStagingStorage} from "../staging-budget.js";
+import type {PdfIndexStorage} from "../cos/object-index.js";
+import {encodeSvgImageChunks} from "./svg-image-stream.js";
+import type {PdfRetainedPngOptions} from "./retained-png.js";
 import {PdfError} from "../errors.js";
 import { encodeSvgPathDataChunks, svgPathSegment } from "./svg-path-stream.js";
 import { operationEffects, readStoredOperations } from "../content/stored-operations.js";
@@ -999,11 +1007,15 @@ function paintOperations(displayList: PdfDisplayList): readonly PdfPaintOperatio
 // PDF.js _prepareSMaskCanvas/_bakeSMaskCanvas: composite the group's backdrop
 // before converting luminosity, then apply the 256-entry transfer function.
 function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number, window?: PdfCropRect, images?: RasterImageInput): Generator<void, RgbaBitmap, void> {
-  let work = 0;
   const bitmap = (yield* renderDisplayListLayerSteps({
     ...displayList, rotation: 0, glyphs: [], paths: [], images: [], operations: mask.operations,
   }, { scale, transparent: true }, scale, undefined, window, undefined, images, mask.storedOperations));
-  const { data } = bitmap;
+  yield* applySoftMaskPixelsSteps(mask, bitmap.data);
+  return bitmap;
+}
+
+function *applySoftMaskPixelsSteps(mask: PdfSoftMask, data: Uint8Array): Generator<void, void, void> {
+  let work = 0;
   for (let i = 0; i < data.length; i += 4) {
     if (++work % 16384 === 0) yield;
     let value = data[i + 3]!;
@@ -1017,7 +1029,6 @@ function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, sc
     data[i] = data[i + 1] = data[i + 2] = 0;
     data[i + 3] = mask.transferMap?.[value] ?? value;
   }
-  return bitmap;
 }
 
 // PDF.js Page.view: visible bounds are the normalized CropBox/MediaBox
@@ -1534,21 +1545,8 @@ function *svgPathDataSteps(segments: readonly PdfPathSegment[], height: number, 
   return parts.join(" ");
 }
 
-export function *renderDisplayListToSvgSteps(
-  displayList: PdfDisplayList,
-  options: RenderToPngOptions = {}
-): Generator<void, string, void> {
-  const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1);
-  if (containsBackdropGroup(paintOperations(displayList))) {
-    // SVG opacity/mask groups cannot reproduce PDF backdrop removal. Use the
-    // bitmap compositor when non-isolated inner blends need the parent page.
-    const bitmap = (yield* renderDisplayListToBitmapSteps(displayList, { ...options, scale: baseScale }));
-    const embedded = (yield* svgImageSteps({
-      name: "PageComposite", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
-      matrix: [bitmap.width, 0, 0, bitmap.height, 0, 0], colorSpace: "DeviceRGB", bitsPerComponent: 8,
-    }, bitmap.height));
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${bitmap.width}" height="${bitmap.height}" viewBox="0 0 ${bitmap.width} ${bitmap.height}">${embedded}</svg>\n`;
-  }
+function svgPageStart(displayList:Pick<PdfDisplayList,"width"|"height"|"origin"|"rotation"|"cropBox">,options:RenderToPngOptions){
+  const baseScale=options.scale??(options.dpi?options.dpi/72:1);
   const scaleX = options.dpiX !== undefined ? options.dpiX / 72 : baseScale;
   const scaleY = options.dpiY !== undefined ? options.dpiY / 72 : baseScale;
   const [originX, originY] = displayList.origin ?? [0, 0];
@@ -1601,6 +1599,25 @@ export function *renderDisplayListToSvgSteps(
     const [a, b, c, d, e, f] = viewport.transform;
     parts.push(`<g transform="matrix(${a} ${b} ${-c} ${-d} ${e + c * displayList.height} ${f + d * displayList.height})">`);
   }
+  return {parts,scaleX,scaleY,originX,originY};
+}
+
+export function *renderDisplayListToSvgSteps(
+  displayList: PdfDisplayList,
+  options: RenderToPngOptions = {}
+): Generator<void, string, void> {
+  const baseScale = options.scale ?? (options.dpi ? options.dpi / 72 : 1);
+  if (containsBackdropGroup(paintOperations(displayList))) {
+    // SVG opacity/mask groups cannot reproduce PDF backdrop removal. Use the
+    // bitmap compositor when non-isolated inner blends need the parent page.
+    const bitmap = (yield* renderDisplayListToBitmapSteps(displayList, { ...options, scale: baseScale }));
+    const embedded = (yield* svgImageSteps({
+      name: "PageComposite", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
+      matrix: [bitmap.width, 0, 0, bitmap.height, 0, 0], colorSpace: "DeviceRGB", bitsPerComponent: 8,
+    }, bitmap.height));
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${bitmap.width}" height="${bitmap.height}" viewBox="0 0 ${bitmap.width} ${bitmap.height}">${embedded}</svg>\n`;
+  }
+  const {parts,scaleX,scaleY,originX,originY}=svgPageStart(displayList,options);
   let clipId = 0;
   const softMaskIds = new Map<PdfSoftMask, string>();
   const appendOperations = (operations: readonly PdfPaintOperation[]): void => {
@@ -2023,4 +2040,136 @@ export async function* encodeSvgPathPaintChunks(original: Extract<PdfPaintOperat
     }}finally{iterator.return?.();}
     if(started)yield* text(`" fill="${stroke}" fill-opacity="${p.strokeAlpha??1}"/>`);
   }
+}
+
+export interface PdfSvgSoftMaskOptions extends Omit<PdfRetainedPngOptions,"alpha"> {
+  readonly scale?: number;
+  readonly tileSize?: number;
+  /** Tile and range-driver scratch; nested compositor surfaces have separate ownership. */
+  readonly maxPixelWorkingBytes?: number;
+}
+
+/** Encode an SVG mask image without a page-sized resident surface. Retain mask
+ * operations in caller backing, rasterize bounded windows, and translate linear
+ * PNG reads to the staged tile layout. The caller owns input operation storage. */
+export async function* encodeSvgSoftMaskChunks(mask:PdfSoftMask,page:Pick<PdfDisplayList,"width"|"height"|"origin">,
+  storage:PdfIndexStorage,options:PdfSvgSoftMaskOptions={}):AsyncGenerator<Uint8Array,void,void>{
+  const {signal}=options;signal?.throwIfAborted();
+  const scale=options.scale??1,tileSize=options.tileSize??128,chunkBytes=options.chunkBytes??65536,maximum=options.maxPixelWorkingBytes??Infinity;
+  if(!Number.isFinite(scale)||scale<=0||!Number.isSafeInteger(tileSize)||tileSize<1||!Number.isSafeInteger(chunkBytes)||chunkBytes<1
+    ||(maximum!==Infinity&&(!Number.isSafeInteger(maximum)||maximum<0)))throw new RangeError("Invalid SVG soft mask limits");
+  const width=Math.max(1,Math.round(page.width*scale)),height=Math.max(1,Math.round(page.height*scale)),scratch=tileSize*tileSize*4+chunkBytes*6;
+  if(![width,height,width*height*4,scratch].every(Number.isSafeInteger)||scratch>maximum)throw new PdfError("E_LIMIT","SVG soft mask working byte limit exceeded");
+  const shared=new PdfStagingStorage(storage,options.maxStagingBytes);let source:PdfFileSource|undefined,failed=false;
+  if(width*height*4>shared.maxBytes)throw new PdfError("E_LIMIT","SVG soft mask staging byte limit exceeded");
+  async function* tiles(){
+    let work=0;
+    for(let y=0;y<height;y+=tileSize)for(let x=0;x<width;x+=tileSize){
+      signal?.throwIfAborted();if(++work%32===0)await new Promise<void>(resolve=>setTimeout(resolve,0));
+      const bitmap=await renderOperationStreamWindow(page,async function*(){
+        if(mask.storedOperations)yield* readStoredOperations(mask.storedOperations,signal);else yield* mask.operations;
+      },{x,y,width:Math.min(tileSize,width-x),height:Math.min(tileSize,height-y)},{scale,transparent:true,...(signal?{signal}:{})});
+      for(const ignored of applySoftMaskPixelsSteps(mask,bitmap.data)){void ignored;await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}
+      yield bitmap.data;
+    }
+  }
+  try{
+    source=await PdfFileSource.fromStream(shared.fs,shared.directory,tiles(),{chunkBytes,cacheBytes:chunkBytes,...(signal?{signal}:{})});
+    const pixels={allocate(){throw new Error("Read-only SVG mask pixels");},async write(){throw new Error("Read-only SVG mask pixels");},async read(position:number,length:number){
+      signal?.throwIfAborted();const result=new Uint8Array(length);let used=0;
+      while(used<length){
+        signal?.throwIfAborted();const pixel=Math.floor((position+used)/4),channel=(position+used)%4,x=pixel%width,y=Math.floor(pixel/width),tx=Math.floor(x/tileSize)*tileSize,ty=Math.floor(y/tileSize)*tileSize;
+        const tw=Math.min(tileSize,width-tx),th=Math.min(tileSize,height-ty),offset=(ty*width+tx*th+(y-ty)*tw+x-tx)*4+channel,take=Math.min(length-used,(tx+tw-x)*4-channel);
+        const data=await source!.read(offset,take,signal);if(data.length!==take)throw new PdfError("E_PARSE","Incomplete staged SVG mask pixels");result.set(data,used);used+=take;
+      }
+      return result;
+    }};
+    const [originX,originY]=page.origin??[0,0];
+    yield* encodeSvgImageChunks({name:"SoftMask",width,height,storedRgba:{storage:pixels,position:0},matrix:[page.width,0,0,page.height,originX,originY],colorSpace:"DeviceGray",bitsPerComponent:8},page.height,shared,options);
+  }catch(error){failed=true;throw error;}
+  finally{try{await source?.close();}catch(error){if(!failed)await Promise.reject(error);}}
+}
+
+export interface PdfRetainedSvgOptions extends Omit<PdfRetainedPixelOptions,"imageStorage"|"pathStorage">, Omit<PdfSvgPathPaintOptions,"scale"> {
+  readonly maxOperations?: number;
+}
+
+/** Full retained SVG composition. Geometry, clips, group captures, masks and
+ * image pixels remain caller-backed; only the current paint is resident. */
+export async function* renderRetainedPageToSvg(page:PdfRetainedPage,storage:PdfIndexStorage,
+  options:PdfRetainedSvgOptions={}):AsyncGenerator<Uint8Array,void,void>{
+  const {signal}=options;signal?.throwIfAborted();const chunkBytes=options.chunkBytes??16384,maximum=options.maxOutputBytes??Infinity,maxOperations=options.maxOperations??Infinity;
+  if(!Number.isSafeInteger(chunkBytes)||chunkBytes<1)throw new RangeError("Invalid retained SVG chunk size");
+  for(const n of [maximum,maxOperations])if(n!==Infinity&&(!Number.isSafeInteger(n)||n<0))throw new RangeError("Invalid retained SVG limit");
+  const shared=new PdfStagingStorage(storage,options.maxStagingBytes),attributes=await page.attributes(),[x0,y0,x1,y1]=attributes.mediaBox;
+  const geometry={width:Math.abs(x1-x0),height:Math.abs(y1-y0),origin:[Math.min(x0,x1),Math.min(y0,y1)] as const,rotation:attributes.rotation,
+    cropBox:[attributes.cropBox[0]-Math.min(x0,x1),attributes.cropBox[1]-Math.min(y0,y1),attributes.cropBox[2]-Math.min(x0,x1),attributes.cropBox[3]-Math.min(y0,y1)] as const};
+  const frame=svgPageStart(geometry,options),scale=Math.max(frame.scaleX,frame.scaleY);
+  if(!Number.isFinite(scale)||scale<=0)throw new RangeError("Invalid retained SVG scale");
+  let backing=new PagedStorage({fs:shared.fs,cwd:shared.directory,env:{},signal:signal??new AbortController().signal},4),ids=new IntegerTable(backing,128);
+  const evaluation={...options,imageStorage:backing};let failed=false,emitted=0,operations=0,clipId=0;
+  const encoder=new TextEncoder();
+  function* emit(bytes:Uint8Array){if(bytes.length>maximum-emitted||!Number.isSafeInteger(emitted+bytes.length))throw new PdfError("E_LIMIT","SVG output byte limit exceeded");emitted+=bytes.length;for(let at=0;at<bytes.length;at+=chunkBytes){signal?.throwIfAborted();yield bytes.slice(at,at+chunkBytes);}}
+  function* text(value:string){yield* emit(encoder.encode(value));}
+  function* line(value:string){yield* text(`\n${value}`);}
+  async function* paints(){for await(const event of page.evaluateSteps(shared,evaluation)){signal?.throwIfAborted();if(!event.captured)yield event.operation;}}
+  async function* paintStream(input:AsyncIterable<PdfPaintOperation>|Iterable<PdfPaintOperation>):AsyncGenerator<Uint8Array,void,void>{
+    for await(const original of input){
+      signal?.throwIfAborted();if(++operations>maxOperations)throw new PdfError("E_LIMIT","SVG paint operation limit exceeded");if(operations%64===0)await new Promise<void>(resolve=>setTimeout(resolve,0));
+      if(original.kind==="glyph"&&(original.value.renderMode===3||(!original.value.outline&&!original.value.unicode.trim())))continue;
+      const blend=pdfBlendModeToCss(original.value.blendMode),mask=original.value.softMask;let wrappers=0;
+      if(blend){yield* line(`<g style="mix-blend-mode:${blend}">`);wrappers++;}
+      if(mask){
+        if(mask.retainedId===undefined)throw new PdfError("E_PARSE","Retained mask omitted its evaluation identity");
+        let id=await ids.get(BigInt(mask.retainedId));
+        if(id===undefined){id=BigInt(clipId++);await ids.set(BigInt(mask.retainedId),id);
+          yield* line(`<defs><mask id="soft-mask-${id}" maskUnits="userSpaceOnUse" x="${frame.originX}" y="${-frame.originY}" width="${geometry.width}" height="${geometry.height}" style="mask-type:alpha">`);
+          for await(const bytes of encodeSvgSoftMaskChunks(mask,geometry,shared,{...options,scale,chunkBytes}))yield* emit(bytes);
+          yield* text('</mask></defs>');
+        }
+        yield* line(`<g mask="url(#soft-mask-${id})">`);wrappers++;
+      }
+      async function* clips(){yield* original.value.clipPaths??[];if(original.value.storedClipPaths)yield* readStoredClips(original.value.storedClipPaths,signal);}
+      for await(const clip of clips()){
+        const id=clipId++,record="segments" in clip?clip:{segments:clip,fillRule:"nonzero" as const};
+        yield* line(`<defs><clipPath id="text-clip-${id}" clipPathUnits="userSpaceOnUse"><path d="`);
+        for await(const bytes of encodeSvgPathDataChunks("storedSegments" in record&&record.storedSegments?record.storedSegments:record.segments,geometry.height,options))yield* emit(bytes);
+        yield* text(`" clip-rule="${record.fillRule}"/></clipPath></defs><g clip-path="url(#text-clip-${id})">`);wrappers++;
+      }
+      for(const image of original.value.clipImages??[]){const id=clipId++;
+        yield* line(`<defs><mask id="image-clip-${id}" maskUnits="userSpaceOnUse" x="${frame.originX}" y="${-frame.originY}" width="${geometry.width}" height="${geometry.height}" style="mask-type:alpha">`);
+        for await(const bytes of encodeSvgImageChunks(image,geometry.height,shared,options))yield* emit(bytes);
+        yield* text(`</mask></defs><g mask="url(#image-clip-${id})">`);wrappers++;
+      }
+      if(original.kind==="group"){
+        yield* line(`<g opacity="${original.value.alpha}" style="isolation:isolate">`);
+        yield* paintStream(original.value.storedOperations?readStoredOperations(original.value.storedOperations,signal):original.value.operations);
+        yield* line('</g>');
+      }else if(original.kind==="image"){
+        yield* line('  ');for await(const bytes of encodeSvgImageChunks(original.value,geometry.height,shared,options))yield* emit(bytes);
+      }else{let first=true;for await(const bytes of encodeSvgPathPaintChunks(original,geometry.height,{...options,scale})){if(first){yield* text('\n');first=false;}yield* emit(bytes);}}
+      for(let i=0;i<wrappers;i++)yield* line('</g>');
+    }
+  }
+  try{
+    let backdrop=false;
+    let inspected=0;
+    for await(const operation of paints()){if(++inspected>maxOperations)throw new PdfError("E_LIMIT","SVG paint operation limit exceeded");if(operationEffects(operation)&4){backdrop=true;break;}if(inspected%64===0){await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}}
+    await backing.close();backing=new PagedStorage({fs:shared.fs,cwd:shared.directory,env:{},signal:signal??new AbortController().signal},4);ids=new IntegerTable(backing,128);evaluation.imageStorage=backing;
+    if(backdrop){
+      const image=await renderRetainedPagePixels(page,shared,{...evaluation,scale:options.scale??(options.dpi?options.dpi/72:1)});
+      let pixels:PdfFileSource|undefined,pixelFailed=false;
+      try{
+        pixels=await PdfFileSource.fromStream(shared.fs,shared.directory,image.pixels,{chunkBytes,cacheBytes:chunkBytes,...(signal?{signal}:{})});
+        yield* text(`<svg xmlns="http://www.w3.org/2000/svg" width="${image.width}" height="${image.height}" viewBox="0 0 ${image.width} ${image.height}">`);
+        for await(const bytes of encodeSvgImageChunks({name:"PageComposite",width:image.width,height:image.height,storedRgba:{position:0,storage:{allocate(){throw Error("Read-only composite pixels");},async write(){throw Error("Read-only composite pixels");},read:(position,length)=>pixels!.read(position,length,signal)}},matrix:[image.width,0,0,image.height,0,0],colorSpace:"DeviceRGB",bitsPerComponent:8},image.height,shared,options))yield* emit(bytes);
+        yield* text('</svg>\n');
+      }catch(error){pixelFailed=true;throw error;}finally{try{await pixels?.close();}catch(error){if(!pixelFailed)await Promise.reject(error);}}
+      return;
+    }
+    yield* text(frame.parts.join('\n'));yield* paintStream(paints());
+    if(geometry.rotation||frame.originX||frame.originY)yield* line('</g>');
+    yield* line('</g>');yield* line('</svg>\n');
+  }catch(error){failed=true;throw error;}
+  finally{try{await backing.close();}catch(error){if(!failed)await Promise.reject(error);}}
 }

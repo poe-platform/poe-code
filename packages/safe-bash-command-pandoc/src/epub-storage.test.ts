@@ -9,13 +9,14 @@ import {createPandocCommand} from "./command.js";
 const encoder = new TextEncoder();
 const zip = createZipCodec({compression: createCompressionCodec(), yieldTurn: async () => {}, fail(message) {throw new Error(message);}});
 const zipLimits = {maxArchiveBytes: 8 * 1024 * 1024, maxEntryBytes: 8 * 1024 * 1024, maxTotalBytes: 8 * 1024 * 1024, maxMembers: 20, maxPathBytes: 1024, maxDepth: 16, maxPaxBytes: 1024, maxTextBytes: 1024, chunkSize: 4096};
-async function publication(size = 256 * 1024, content = "<p>Streamed book.</p>", mimetype = encoder.encode("application/epub+zip"), extraManifest = "") {
+async function publication(size = 256 * 1024, content = "<p>Streamed book.</p>", mimetype = encoder.encode("application/epub+zip"), extraManifest = "", extraFiles: Record<string, Uint8Array> = {}) {
   const files = {
     mimetype,
     "META-INF/container.xml": encoder.encode('<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>'),
     "package.opf": encoder.encode('<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Stored book</dc:title></metadata><manifest>' + extraManifest + '<item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="chapter"/></spine></package>'),
     "chapter.xhtml": encoder.encode(`<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Chapter</title></head><body>${content}</body></html>`),
-    "unused.bin": new Uint8Array(size).fill(91)
+    "unused.bin": new Uint8Array(size).fill(91),
+    ...extraFiles
   };
   const signal = new AbortController().signal;
   const entries = await Promise.all(Object.entries(files).map(([name, bytes]) => zip.makeZipEntry(name, bytes, {modified: new Date("1980-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: "store"}, zipLimits, signal)));
@@ -301,5 +302,73 @@ it.each(["cancel", "storage"])("cleans EPUB fallback backing after %s failure", 
     })).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
     expect(marks).toBe(1);
   } finally {write.mockRestore();}
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each([8, 96])("backs %i EPUB anchor and note identities without resident membership sets", async count => {
+  const content = Array.from({length: count}, (_, i) => `<p id="anchor-${i}"><a href="#note-${i}" epub:type="noteref">ref</a></p><aside id="note-${i}" epub:type="footnote"><p>Note ${i}</p></aside>`).join("");
+  const bytes = await publication(32768, `<section xmlns:epub="http://www.idpf.org/2007/ops">${content}</section>`);
+  const expected = await readDocument({bytes}, {from: "epub"}, {yield: async () => {}});
+  const fs = new MemoryFileSystem();
+  const original = Set.prototype.add;
+  const add = vi.spyOn(Set.prototype, "add").mockImplementation(function(this: Set<unknown>, key: unknown) {
+    if (typeof key === "string" && (key.startsWith("chapter.xhtml#anchor-") || key.startsWith("chapter.xhtml#note-"))) throw new Error("Resident EPUB identity set");
+    return original.call(this, key);
+  });
+  try {
+    expect(await readDocument({chunks: [bytes]}, {from: "epub"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}})).toEqual(expected);
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {add.mockRestore();}
+});
+
+it.each([
+  '<p id="same">First</p><p id="same">Duplicate</p>',
+  '<p><a href="#missing">link</a></p>',
+  '<p><a epub:type="noteref" href="#missing">note</a></p>',
+  '<aside epub:type="footnote" id="loop"><a epub:type="noteref" href="#loop">loop</a></aside>',
+  '<p><a epub:type="noteref" href="#a">first</a><a epub:type="noteref" href="#a">repeated</a></p><aside epub:type="footnote" id="a"><p>A<a epub:type="noteref" href="#b">nested</a></p></aside><aside epub:type="footnote" id="b"><p>B</p></aside>'
+])("preserves backed EPUB identity diagnostics and nested note semantics for %s", async content => {
+  const bytes = await publication(0, `<section xmlns:epub="http://www.idpf.org/2007/ops">${content}</section>`);
+  const outcome = async (workingFiles?: {fs: MemoryFileSystem; directory: string; cacheBytes: number}) => {
+    try {return await convert([{bytes}], {from: "epub", to: "plain"}, {...(workingFiles ? {workingFiles} : {}), yield: async () => {}});}
+    catch (error) {const e = error as Error & {code: string; location: string}; return {code: e.code, message: e.message, location: e.location};}
+  };
+  const expected = await outcome(), fs = new MemoryFileSystem();
+  expect(await outcome({fs, directory: "/", cacheBytes: 16384})).toEqual(expected);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each(["cancel", "storage"])("cleans up when EPUB identity insertion encounters %s failure", async mode => {
+  const bytes = await publication(32768, '<p id="anchor">text</p>');
+  const fs = new MemoryFileSystem(), controller = new AbortController();
+  const original = PagedStorage.prototype.append;
+  let attempts = 0;
+  const append = vi.spyOn(PagedStorage.prototype, "append").mockImplementation(async function(this: PagedStorage, bytes: Uint8Array) {
+    // BackedTextSet records have a 40-byte membership/insertion header.
+    if (bytes.length === 40) {
+      attempts++;
+      if (mode === "cancel") controller.abort();
+      else throw new Error("Identity backing failed");
+    }
+    return original.call(this, bytes);
+  });
+  try {
+    await expect(readDocument({chunks: [bytes]}, {from: "epub"}, {signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}})).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
+    expect(attempts).toBe(1);
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {append.mockRestore();}
+});
+
+it("visits new note-document dependencies discovered at the tail of the backed reference queue", async () => {
+  const xhtml = (body: string) => encoder.encode(`<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>Notes</title></head><body>${body}</body></html>`);
+  const bytes = await publication(32768, '<p xmlns:epub="http://www.idpf.org/2007/ops"><a epub:type="noteref" href="notes-a.xhtml#a">first</a></p>', undefined,
+    '<item id="notes-a" href="notes-a.xhtml" media-type="application/xhtml+xml"/><item id="notes-b" href="notes-b.xhtml" media-type="application/xhtml+xml"/>', {
+      "notes-a.xhtml": xhtml('<aside epub:type="footnote" id="a"><p>A<a epub:type="noteref" href="notes-b.xhtml#b">second</a></p></aside>'),
+      "notes-b.xhtml": xhtml('<aside epub:type="footnote" id="b"><p>Final note</p></aside>')
+    });
+  const expected = await readDocument({bytes}, {from: "epub"}, {yield: async () => {}});
+  const fs = new MemoryFileSystem();
+  expect(await readDocument({chunks: [bytes]}, {from: "epub"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}})).toEqual(expected);
+  expect(JSON.stringify(expected.blocks)).toContain("Final");
   expect(await fs.readdir("/")).toEqual([]);
 });

@@ -54,3 +54,23 @@ it("interns replayable keys without duplicate storage, including equal-length ha
   } finally {await storage.close();}
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it("iterates unique strings in insertion order, including additions during iteration", async () => {
+  const fs = new MemoryFileSystem(), storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1);
+  const set = new BackedTextSet(storage, new BackedText(storage, async () => {}));
+  try {
+    for (const value of ["", "6Y9t8bYY", "a6ocHS7q", "\ud800", "x".repeat(20000)]) await set.add(value);
+    const extent = storage.allocate(0);
+    expect(await set.has("missing")).toBe(false);
+    expect(await set.has("6Y9t8bYY")).toBe(true);
+    await set.add("6Y9t8bYY");
+    expect(storage.allocate(0)).toBe(extent);
+    const seen: string[] = [];
+    for await (const value of set) {
+      seen.push(value);
+      if (value === "x".repeat(20000)) {await set.add("discovered"); await set.add("");}
+    }
+    expect(seen).toEqual(["", "6Y9t8bYY", "a6ocHS7q", "\ud800", "x".repeat(20000), "discovered"]);
+  } finally {await storage.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});

@@ -138,6 +138,16 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   resident fallback-ID Set across a 96-entry chain. Manifest objects, XML trees
   and chapter ASTs still need retained representations; this is not whole-reader
   qualification and does not change the graph's existing traversal complexity.
+  Anchor IDs, note definitions and the expanding note-reference queue now use
+  collision-checked caller-backed text sets, with a backed insertion-order chain.
+  Active note expansion membership also uses caller storage instead of copying
+  ancestor Sets. Compare duplicate/missing anchors, recursive/repeated notes and
+  dependencies discovered in non-spine note documents against buffered results.
+  Inject cancellation and storage errors during identity insertion; require empty
+  scratch and the original error. The Worker fixture forbids resident anchor Sets
+  across 96 IDs. Current individual identity strings, XML/AST traversal frames,
+  chapter membership, note-block Maps and copied note ASTs remain resident; this
+  bookkeeping change does not qualify the entire EPUB reader as bounded.
 - Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
   independently of input bytes and document nesting. JSON and CSV/TSV to plain

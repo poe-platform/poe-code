@@ -1,3 +1,5 @@
+import {BackedText} from "./backed-text.js";
+import {BackedTextSet} from "./backed-text-set.js";
 import {PandocError} from "./errors.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import { createZipCodec, ZipDirectoryIndex, type ZipLimits, type ZipSource, type ZipEntry, type ZipStreamEntry } from "@poe-code/office-package/zip";
@@ -286,10 +288,11 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       chapterParts.add(item.part);
     }
     if (!chapters.length) fail(packagePart, "Empty EPUB spine");
-    const ids = new Set<string>();
-    const notes = new Set<string>();
-    const noteRefs = new Set<string>();
-    const scan = (node: XmlElement, part: string): void => {
+    const identityText = storage && new BackedText(storage, async () => ctx.cooperate());
+    const ids = storage ? new BackedTextSet(storage, identityText!) : new Set<string>();
+    const notes = storage ? new BackedTextSet(storage, identityText!) : new Set<string>();
+    const noteRefs = storage ? new BackedTextSet(storage, identityText!) : new Set<string>();
+    const scan = async (node: XmlElement, part: string): Promise<void> => {
       ctx.checkpoint();
       // The XHTML mapper drops foreign subtrees; they cannot define AST anchors
       // or introduce note dependencies in the assembled document.
@@ -297,25 +300,25 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       const id = a(node, "id");
       if (id) {
         const key = identity(part, id);
-        if (ids.has(key)) fail(part, "Duplicate XHTML fragment identity");
-        ids.add(key);
-        if (tokens(a(node, "type", ns.epub)).some(t => t === "footnote" || t === "endnote")) notes.add(key);
+        if (await ids.has(key)) fail(part, "Duplicate XHTML fragment identity");
+        await ids.add(key);
+        if (tokens(a(node, "type", ns.epub)).some(t => t === "footnote" || t === "endnote")) await notes.add(key);
       }
       if (tokens(a(node, "type", ns.epub)).includes("noteref")) {
         const target = resolve(a(node, "href"), part, ctx);
-        noteRefs.add(identity(target.part, target.fragment));
+        await noteRefs.add(identity(target.part, target.fragment));
       }
       if (node.name === "style" || a(node, "style") || (node.name === "link" && tokens(a(node, "rel")).includes("stylesheet"))) warn(part, "Unsupported EPUB CSS styling/layout loss");
       if (["audio", "video", "object", "embed", "svg", "math"].includes(node.name)) warn(part, `Unsupported EPUB media loss: ${node.name}`);
       if (node.name === "script" || a(node, "onload") || a(node, "onclick")) warn(part, "EPUB script content ignored");
       if (a(node, "base", "http://www.w3.org/XML/1998/namespace")) fail(part, "Unsupported XHTML xml:base resource identity");
-      for (const child of node.children) if (typeof child !== "string") scan(child, part);
+      for (const child of node.children) if (typeof child !== "string") await scan(child, part);
     };
-    for (const chapter of chapters) scan(chapter.xml, chapter.item.part);
+    for (const chapter of chapters) await scan(chapter.xml, chapter.item.part);
     const noteDocuments = new Map<string, readonly Block[]>();
     const loadedParts = new Set(chapterParts);
     // Set iteration visits newly discovered dependencies, each part only once.
-    for (const key of noteRefs) {
+    for await (const key of noteRefs) {
       const part = decodeURIComponent(key.split("#")[0]!);
       if (loadedParts.has(part)) continue;
       const item = admitted.get(part);
@@ -323,7 +326,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       ctx.charge("includes", 1);
       loadedParts.add(part);
       const root = await xml(part);
-      scan(root, part);
+      await scan(root, part);
       noteDocuments.set(part, (await htmlTreeDocument(xhtmlTree(root, ctx, part), ctx)).blocks);
     }
     const bag = new Map<string, Resource>();
@@ -387,7 +390,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
         } else if (!target.includes(":") && !target.startsWith("//")) {
           const ref = resolve(target, part, ctx);
           if (!admitted.has(ref.part)) fail(part, "Link to unadmitted EPUB resource");
-          if (ref.fragment && loadedParts.has(ref.part) && !ids.has(identity(ref.part, ref.fragment))) warn(part, `Missing EPUB link fragment: ${identity(ref.part, ref.fragment)}`);
+          if (ref.fragment && loadedParts.has(ref.part) && !await ids.has(identity(ref.part, ref.fragment))) warn(part, `Missing EPUB link fragment: ${identity(ref.part, ref.fragment)}`);
           if (loadedParts.has(ref.part)) (node.c[2] as [string, string])[0] = `#${encodeURI(identity(ref.part, ref.fragment))}`;
           else (node.c[2] as [string, string])[0] = uriPart(ref.part) + (ref.fragment ? `#${encodeURIComponent(ref.fragment)}` : "");
         }
@@ -396,26 +399,27 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     };
     for (const chapter of chapters) await rewrite(chapter.blocks, chapter.item.part);
     for (const [part, blocks] of noteDocuments) await rewrite(blocks, part);
-    const collect = (value: unknown): void => {
+    const collect = async (value: unknown): Promise<void> => {
       ctx.checkpoint();
       if (!value || typeof value !== "object") return;
       if ("t" in value && value.t === "Div") {
         const block = value as Extract<Block, {t: "Div"}>;
-        if (notes.has(block.c[0][0])) noteBlocks.set(block.c[0][0], block.c[1]);
+        if (await notes.has(block.c[0][0])) noteBlocks.set(block.c[0][0], block.c[1]);
       }
-      for (const child of Object.values(value)) collect(child);
+      for (const child of Object.values(value)) await collect(child);
     };
-    for (const chapter of chapters) collect(chapter.blocks);
-    for (const blocks of noteDocuments.values()) collect(blocks);
-    for (const key of noteRefs) if (!noteBlocks.has(key)) fail(key, "Missing EPUB note target");
-    const expand = (value: unknown, active: Set<string>, depth: number): void => {
+    for (const chapter of chapters) await collect(chapter.blocks);
+    for (const blocks of noteDocuments.values()) await collect(blocks);
+    for await (const key of noteRefs) if (!noteBlocks.has(key)) fail(key, "Missing EPUB note target");
+    const active = storage ? new ZipDirectoryIndex(storage) : new Set<string>();
+    const expand = async (value: unknown, depth: number): Promise<void> => {
       ctx.checkpoint(); ctx.bound("depth", depth);
       if (!value || typeof value !== "object") return;
       if ("t" in value && value.t === "Link") {
         const node = value as Extract<Inline, {t: "Link" | "Image"}>;
         if (node.c[0][2].some(([k, v]) => k === "data-epub-type" && tokens(v).includes("noteref"))) {
           const key = decodeURIComponent(node.c[2][0].slice(1));
-          if (active.has(key)) fail(key, "Recursive EPUB note dependency");
+          if (active instanceof Set ? active.has(key) : await active.get(key)) fail(key, "Recursive EPUB note dependency");
           const original = noteBlocks.get(key);
           if (!original) fail(key, "Missing EPUB note target");
           const reserve = (v: unknown): void => {
@@ -425,28 +429,29 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
           };
           reserve(original);
           const copy = structuredClone(original);
-          const next = new Set(active); next.add(key);
-          expand(copy, next, depth + 1);
+          if (active instanceof Set) active.add(key); else await active.set(key, 1);
+          await expand(copy, depth + 1);
+          if (active instanceof Set) active.delete(key); else await active.set(key, 0);
           const provenance: Attr = ["", [], [["data-epub-source", decodeURIComponent(key.split("#")[0]!)]]];
           Object.assign(node, {t: "Note", c: [{t: "Div", c: [provenance, copy]}]});
           return;
         }
       }
-      for (const child of Object.values(value)) expand(child, active, depth + 1);
+      for (const child of Object.values(value)) await expand(child, depth + 1);
     };
-    for (const chapter of chapters) expand(chapter.blocks, new Set(), 0);
+    for (const chapter of chapters) await expand(chapter.blocks, 0);
     // Keep the original target anchor, but render referenced note prose only in Note.
-    const prune = (value: unknown): void => {
+    const prune = async (value: unknown): Promise<void> => {
       ctx.checkpoint();
       if (!value || typeof value !== "object") return;
       if ("t" in value && value.t === "Note") return;
       if ("t" in value && value.t === "Div") {
         const block = value as Extract<Block, {t: "Div"}>;
-        if (noteRefs.has(block.c[0][0])) {(block.c as [Attr, readonly Block[]])[1] = []; return;}
+        if (await noteRefs.has(block.c[0][0])) {(block.c as [Attr, readonly Block[]])[1] = []; return;}
       }
-      for (const child of Object.values(value)) prune(child);
+      for (const child of Object.values(value)) await prune(child);
     };
-    for (const chapter of chapters) prune(chapter.blocks);
+    for (const chapter of chapters) await prune(chapter.blocks);
     const toc: MetaValue[] = [];
     const navigation = async (item: ManifestItem, ncx: boolean) => {
       const root = await xml(item.part);

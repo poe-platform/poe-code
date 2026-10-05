@@ -3,6 +3,7 @@ import test from "node:test";
 import type {FilterRequest} from "safe-bash-command-pandoc";
 import {Shell} from "../../src/shell/index.js";
 import {MemoryFileSystem} from "../../src/fs/memory/index.js";
+import {agentCommands} from "../../src/plugins/index.js";
 import {FsError, readBytes} from "../../src/contracts/index.js";
 import {createPandocCommand, createPandocCommands, pandocCommands} from "../../src/commands/pandoc/index.js";
 
@@ -369,11 +370,15 @@ test("pandoc resolves table-of-contents aliases before defaults and CLI override
 
 for (const profile of ["aggregate", "explicit"] as const) {
 test(`pandoc ${profile} plugin profile executes local Lua filters, citeproc flags, and registered interpreter JSON filters`, async () => {
-  const {shell, volume} = fixture();
+  // Lua backing storage needs handles and conditional removal on the same FS.
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({fs, cwd: "/work"}).use(agentCommands());
   if (profile === "explicit") shell.use(pandocCommands({replace: true}));
-  volume.writeFileSync("/work/sample.md", "Hello\n");
-  volume.writeFileSync("/work/uppercase.lua", "function Str(el) el.text = string.upper(el.text); return el end\n");
-  volume.writeFileSync("/work/identity.py", "#!/usr/bin/python3\nimport json, sys\njson.dump(json.load(sys.stdin),sys.stdout)\n");
+  const encoder = new TextEncoder();
+  await fs.writeFile("/work/sample.md", encoder.encode("Hello\n"));
+  await fs.writeFile("/work/uppercase.lua", encoder.encode("function Str(el) el.text = string.upper(el.text); return el end\n"));
+  await fs.writeFile("/work/identity.py", encoder.encode("#!/usr/bin/python3\nimport json, sys\njson.dump(json.load(sys.stdin),sys.stdout)\n"));
   try {
     for (const cmd of [
       "pandoc -f commonmark -t html --lua-filter=uppercase.lua sample.md",
@@ -417,6 +422,8 @@ test(`pandoc ${profile} plugin profile executes local Lua filters, citeproc flag
     const revoked = await shell.exec("pandoc -f commonmark -t html -F ./identity.py sample.md");
     assert.notEqual(revoked.exitCode, 0);
     assert.ok(revoked.stderr.includes("E_CAPABILITY"), revoked.stderr);
+    assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["identity.py", "sample.md", "uppercase.lua"]);
+    assert.deepEqual(await fs.readFile("/work/sample.md"), encoder.encode("Hello\n"));
   } finally {
     await shell.dispose();
   }

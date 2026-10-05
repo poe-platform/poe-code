@@ -477,11 +477,23 @@ test("quota refusal preserves original bytes without a giant allocation", async 
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("a: 1\n"));
   const create = fs.createStagedFile.bind(fs);
+  let quotaRefusals = 0;
   context.mock.method(fs, "createStagedFile", async (...args: Parameters<typeof create>) => {
-    if (args[2].type === "file" && args[2].data.length > 8) throw new FsError("ENOSPC");
-    return create(...args);
+    assert.equal(args[2].type, "file");
+    assert.ok(args[2].type === "file" && args[2].data.length === 0);
+    const staging = await create(...args);
+    const writer = staging.writer;
+    assert.ok(writer);
+    let written = 0;
+    return { ...staging, writer: { ...writer, async write(...[bytes, options]: Parameters<typeof writer.write>) {
+      assert.ok(bytes.length <= 16384, "staging writes stay bounded");
+      if (bytes.length > 8 - written) { quotaRefusals++; throw new FsError("ENOSPC"); }
+      await writer.write(bytes, options);
+      written += bytes.length;
+    } } };
   });
   assert.equal((await run(["-i", '.a = "longer"', "/input"], "", { fs })).status, 1);
+  assert.equal(quotaRefusals, 1);
   assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "a: 1\n");
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input"]);
 });

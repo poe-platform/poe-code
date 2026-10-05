@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Composer, Document, Lexer } from "yaml";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { type InvocationCleanup, type ByteSource } from "../../../src/contracts/index.js";
+import { FsError, type InvocationCleanup, type ByteSource } from "../../../src/contracts/index.js";
 import { createMikeYqCommand } from "safe-bash-command-yq/mike";
 import { run } from "./helpers.js";
 
@@ -286,22 +286,34 @@ test("in-place conditional publication preserves a replaced target", async conte
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input", "old"]);
 });
 
-test("in-place pins ancestors above the parent through publication and cleanup", async context => {
+test("in-place refuses replaced ancestors and cleans retained staging", async context => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/visible/child", { recursive: true });
   await fs.mkdir("/private/child", { recursive: true });
   await fs.writeFile("/visible/child/input", Buffer.from("a: 1\n"));
   await fs.writeFile("/private/child/input", Buffer.from("a: 9\n"));
   const publish = fs.publishStagedFile.bind(fs);
+  let refused = 0;
   context.mock.method(fs, "publishStagedFile", async (...args: Parameters<typeof publish>) => {
     await fs.rename("/visible", "/old"); await fs.symlink("/private", "/visible");
-    return publish(...args);
+    try { await publish(...args); }
+    catch (error) {
+      assert.ok(error instanceof FsError);
+      assert.equal(error.code, "EAGAIN");
+      refused++;
+      throw error;
+    }
   });
-  // Cleanup also refuses the substituted namespace instead of deleting through it.
-  await assert.rejects(run(["-i", ".a = 2", "/visible/child/input"], "", { fs }));
+  // Retained cleanup removes only owned staging in the original directory.
+  const result = await run(["-i", ".a = 2", "/visible/child/input"], "", { fs });
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(refused, 1);
   assert.equal(Buffer.from(await fs.readFile("/private/child/input")).toString(), "a: 9\n");
   assert.equal(Buffer.from(await fs.readFile("/old/child/input")).toString(), "a: 1\n");
   assert.deepEqual((await fs.readdir("/private/child")).map(entry => entry.name), ["input"]);
+  assert.deepEqual((await fs.readdir("/old/child")).map(entry => entry.name), ["input"]);
+  assert.equal((await fs.lstat("/visible")).type, "symlink");
 });
 
 test("in-place reads the captured symlink target after the alias is replaced", async context => {

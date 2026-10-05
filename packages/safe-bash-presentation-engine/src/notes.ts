@@ -451,3 +451,5 @@ export async function mutateNotes(
     locations
   };
 }
+
+export { openRetainedNotes, stageRetainedNotes, type RetainedNotes, type RetainedNotesRecord } from './retained-notes.js';

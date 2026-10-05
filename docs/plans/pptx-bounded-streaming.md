@@ -577,6 +577,28 @@ migration; paragraph/run reads, other extraction, most mutations and mandatory
 embedded-workbook intermediates remain unfinished. No Worker runtime measurement
 or completed release is claimed.
 
+## Retained speaker-note reads
+
+The default `notes list/get` path now admits retained input, validates the complete
+presentation graph and stores ordered note descriptors, body IDs and speaker text
+in caller-backed pages. Raw part/master references and arbitrary speaker text are
+replayable streams. The API borrows its archive and owns its record storage.
+Selection admission, missing-note versus null/empty-body distinctions, strict
+namespaces, raw compatibility semantics and diagnostic ordering are preserved.
+Both human and JSON responses are completely staged before the sink sees bytes.
+
+Parity tests include malformed graphs/structures, opaque selectors, empty/multiple
+slides, nested text, field caches, breaks, ignorable foreign markup, handle expiry,
+reused input chunks, slow sinks, actual page spills, bounded outstanding writes,
+output limits, cancellation and failures. This is a read-path migration only;
+paragraph/run reads, other extraction, most mutations and embedded-workbook
+intermediates remain unfinished. The maintained command suite passed 1,392 tests;
+additional regressions cover input-versus-token precedence and read/close failures.
+The 35 engine notes cases, scoped lint/type checks and workspace build passed.
+A native python-pptx notes/chart/workbook deck matched native speaker text and
+exact buffered JSON through the default adapter, with retained input, no whole-file
+reads and empty scratch. No Worker runtime qualification is claimed.
+
 ## Manual workerd / Cloudflare QA
 
 Execute these steps after the streaming engine path is implemented. Do not treat

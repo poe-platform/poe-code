@@ -43,6 +43,11 @@ as the fifth `openRetainedText` argument to read `frames()` and `frameCount` ins
 of text/field contents. Frame formatting records stay in caller storage; numeric
 properties are parsed incrementally, including arbitrarily padded values.
 `stageRetainedText` also supports `text.frames.list` and `text.frames.get`.
+`openRetainedNotes` (from `notes`) exposes a caller-backed `records()` iterator,
+with replayable part/master references, speaker text and body IDs. Close it after
+reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with
+complete graph validation and raw speaker-body semantics; the get format retains
+its historical selection-before-validation ordering.
 `pptx xml get` also stages raw, JSON and pretty responses through caller storage.
 `openRetainedXmlPart` (from `xml-parts`) exposes replayable original bytes and
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves

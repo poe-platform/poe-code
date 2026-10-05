@@ -222,3 +222,25 @@ it.each([false,true])("overrides copied boxes after inheritance without editing 
  finally{await document.close();await source.close();}expect(await fs.readdir("/scratch")).toEqual([]);
 });
 it("rejects nonfinite copied page boxes and releases backing",async()=>{const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",input(false,false));const storage={fs,directory:"/scratch"},source=await PdfFileSource.open(fs,"/input"),document=await PdfRetainedDocument.open(source,storage);try{const chunks=copyRetainedPagesChunks(document,[0],storage,{pageBoxes:()=>({cropBox:[0,0,NaN,10]})});await expect(chunks.next()).rejects.toThrow("Invalid copied page box");}finally{await document.close();await source.close();}expect(await fs.readdir("/scratch")).toEqual([]);});
+
+for (const override of [false, true]) it(`copies long metadata without collecting the source information map (${override})`, async () => {
+  const original = PdfDocument.create(); original.addPage();
+  original.setMetadata({ title: "abc".repeat(4096) + "😀", author: "café\n()\\".repeat(2048), subject: "", producer: "" });
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
+  const storage = { fs, directory: "/scratch" }, source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+  document.info = async () => { throw new Error("full information map forbidden"); };
+  try {
+    const chunks = []; for await (const bytes of copyRetainedPagesChunks(document, [0], storage, override ? { metadataSource: key => document.streamInfoValue(key) } : {})) chunks.push(bytes);
+    const copied = PdfDocument.load(new Uint8Array(Buffer.concat(chunks)));
+    expect(copied.getMetadata()).toMatchObject({ title: original.getMetadata().title, author: original.getMetadata().author, producer: "@poe-code/pdf-ast" });
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("cleans metadata staging when a repeatable field stream fails", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const failure = new Error("metadata unavailable");
+  async function* metadataSource() { yield "A".repeat(8192); throw failure; }
+  await expect((async () => { for await (const bytes of copyRetainedPagesChunks([], { fs, directory: "/scratch" }, { metadataSource })) void bytes; })()).rejects.toBe(failure);
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

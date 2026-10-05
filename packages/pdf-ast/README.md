@@ -1200,6 +1200,9 @@ references survive composition until the final save.
 
 `copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
 PDF for a synchronous or asynchronous iterable of zero-based page indices.
+Metadata fields stream from the first source. Use `metadataSource(key)` with a
+repeatable async string iterable to choose another source without collecting its
+information map; it takes precedence over the convenience `metadata` object.
 Use `pageRotation(document, index)` to override a source rotation before
 indirect values are cloned. Use `pageBoxes(size, index)` to override copied
 `mediaBox` and/or `cropBox` after cloning; `size` is the unrotated source size,

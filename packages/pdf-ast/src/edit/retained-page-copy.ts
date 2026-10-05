@@ -7,7 +7,7 @@ import { cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, dict
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import { PdfReferenceSet } from "../cos/reference-set.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
-import { serializeCosNodeChunks } from "../cos/writer.js";
+import { serializeCosNodeBytes, serializeCosNodeChunks } from "../cos/writer.js";
 import { serializeRetainedCosDocumentChunks } from "../cos/retained-writer.js";
 import { PdfFileSource } from "../source.js";
 import { PdfError } from "../errors.js";
@@ -24,6 +24,8 @@ export interface CopyRetainedPageOptions {
   readonly pageBoxes?: (size: { readonly width: number; readonly height: number }, index: number) => { readonly mediaBox?: PdfRect; readonly cropBox?: PdfRect } | undefined;
   /** Override copied metadata; an empty object keeps only the default producer. */
   readonly metadata?: Readonly<Record<string, string>>;
+  /** Repeatable bounded chunks override metadata without collecting field values. */
+  readonly metadataSource?: (key: string) => AsyncIterable<string>;
   /** Merge all source embedded files; the first occurrence of each name wins. */
   readonly includeAttachments?: boolean;
   /** Merge source page labels, offset by preceding copied pages; use with full-document selections. */
@@ -81,7 +83,7 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
   type ReferenceList = { first: number; last: number; count: number };
   const pages: ReferenceList = { first: 0, last: 0, count: 0 }, formFields: ReferenceList = { first: 0, last: 0, count: 0 };
   let mayLinearize = false;
-  let work = 0, pageCount = 0, copiedMetadata = options.metadata !== undefined, formRef: ReturnType<typeof cosRef> | undefined;
+  let work = 0, pageCount = 0, copiedMetadata = options.metadata !== undefined || options.metadataSource !== undefined, formRef: ReturnType<typeof cosRef> | undefined;
   let opened: Promise<PdfRetainedDocument> | undefined, closing: Promise<void> | undefined;
   function close(): Promise<void> {
     return closing ??= (async () => {
@@ -94,6 +96,40 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
     const info = cosDict({ Producer: cosString("@poe-code/pdf-ast") });
     for (const key of ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"]) if (metadata[key]) dictSet(info, key, cosString(metadata[key]!));
     return info;
+  }
+  async function saveInformation(read: (key: string) => AsyncIterable<string>) {
+    async function* body() {
+      const encoder = new TextEncoder();
+      yield encoder.encode("<<\n");
+      for (const key of ["Producer", "Title", "Author", "Subject", "Keywords", "Creator"]) {
+        let present = false, utf16 = false;
+        for await (const part of read(key)) {
+          await checkpoint(); present ||= part.length > 0;
+          for (let at = 0; at < part.length; at += 2048) utf16 ||= cosString(part.slice(at, at + 2048)).format === "hex";
+        }
+        if (!present) {
+          if (key === "Producer") yield encoder.encode("/Producer (@poe-code/pdf-ast)\n");
+          continue;
+        }
+        yield encoder.encode(`/${key} ${utf16 ? "<FEFF" : "("}`);
+        for await (const part of read(key)) for (let at = 0; at < part.length; at += 2048) {
+          await checkpoint(); const text = part.slice(at, at + 2048);
+          if (utf16) {
+            let hex = ""; for (let index = 0; index < text.length; index++) hex += text.charCodeAt(index).toString(16).padStart(4, "0").toUpperCase();
+            yield encoder.encode(hex);
+          } else {
+            const bytes = serializeCosNodeBytes(cosString(text)); yield bytes.subarray(1, bytes.length - 1);
+          }
+        }
+        yield encoder.encode(utf16 ? ">\n" : ")\n");
+      }
+      yield encoder.encode(">>");
+    }
+    const source = await PdfFileSource.fromStream(storage.fs, storage.directory, body(), { signal });
+    let failed = false;
+    try { await store.setSerializedValue({ objectNumber: 3, generationNumber: 0, body: { length: source.size, chunks: source.stream(0, source.size, signal) } }); }
+    catch (error) { failed = true; throw error; }
+    finally { await source.close().catch(error => { if (!failed) throw error; }); }
   }
   async function checkpoint(depth = 0) {
     signal.throwIfAborted(); if (depth > maximumDepth) throw new PdfError("E_LIMIT", "PDF page copy depth limit exceeded");
@@ -169,7 +205,7 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
     }
     try {
       if (!copiedMetadata) {
-        await store.set({ objectNumber: 3, generationNumber: 0, value: information(await document.info()) }); copiedMetadata = true;
+        await saveInformation(key => document.streamInfoValue(key)); copiedMetadata = true;
       }
       for await (const index of typeof pageIndices === "number" ? [pageIndices] : pageIndices) {
         await checkpoint();
@@ -315,6 +351,7 @@ export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterab
   try {
     await store.allocate(catalog); await store.allocate(cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }));
     await store.allocate(information(options.metadata));
+    if (options.metadataSource) await saveInformation(options.metadataSource);
     for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await labels?.append(source.document, pageCount); await outlines?.append(source.document, pageCount); await append(source.document, source.indices, source.resourceState); }
     await outlines?.finish(store, catalog, pageCount, async index => cosRef(Number(await pageReferences!.get(BigInt(index)))));
     const attachmentNames = await attachments?.finish(store, catalog);

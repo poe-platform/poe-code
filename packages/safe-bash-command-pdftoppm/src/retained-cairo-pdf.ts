@@ -29,7 +29,7 @@ export async function executeRetainedCairoDocument(context:CommandContext,plan:P
   async function* selections(){for(let page=plan.firstPage;page<=last;page++){await yieldTurn(signal);if(plan.oddOnly&&page%2===0||plan.evenOnly&&page%2===1)continue;yield {document:retained,indices:[page-1]};}}
   if(plan.format==="pdf"){
   const paper=!plan.origPageSizes&&plan.paperW>0&&plan.paperH>0;
-  copy=await createRetainedPageCopy(selections(),storage,{signal,metadata:await document.info(),...(paper||plan.hasCrop?{pageBoxes:({width,height}:{width:number;height:number})=>{const box:PdfRect=[0,0,paper?plan.paperW:plan.cropW>0?plan.cropW:Math.max(1,width-plan.cropX),paper?plan.paperH:plan.cropH>0?plan.cropH:Math.max(1,height-plan.cropY)];return {mediaBox:box,cropBox:box};}}:{})});
+  copy=await createRetainedPageCopy(selections(),storage,{signal,metadataSource:key=>document!.streamInfoValue(key),...(paper||plan.hasCrop?{pageBoxes:({width,height}:{width:number;height:number})=>{const box:PdfRect=[0,0,paper?plan.paperW:plan.cropW>0?plan.cropW:Math.max(1,width-plan.cropX),paper?plan.paperH:plan.cropH>0?plan.cropH:Math.max(1,height-plan.cropY)];return {mediaBox:box,cropBox:box};}}:{})});
   result=await PdfFileSource.fromStream(storage.fs,directory,copy.chunks(),{signal});
   }else{
    const selected=(page:number)=>page>=plan.firstPage&&page<=last&&!(plan.oddOnly&&page%2===0||plan.evenOnly&&page%2===1);

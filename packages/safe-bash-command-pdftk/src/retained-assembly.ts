@@ -84,7 +84,7 @@ export async function assembleRetainedPdftk(primary: PdfRetainedDocument, storag
     }
   }
   try {
-    copy = await createRetainedPageCopy(sources(), storage, { signal, metadata: await primary.info() });
+    copy = await createRetainedPageCopy(sources(), storage, { signal, metadataSource: key => primary.streamInfoValue(key) });
     for (const input of used) {
       await checkpoint(); const source = await document(input);
       for await (const file of retainedUnpack(source, storage, ".", [], signal, true)) {

@@ -370,7 +370,7 @@ export declare function defineCommand<
   TSecrets extends SecretDeclarations | undefined = undefined,
   TResult = unknown,
   TOwnScope extends ScopeInput = undefined,
-  TOwnHumanInLoop extends HumanInLoopConfig<TParamsSchema> | null | undefined = undefined
+  TOwnHumanInLoop extends { mode: HumanInLoopMode } | null | undefined = undefined
 >(
   config: Omit<
     CommandConfig<TServices, TParamsSchema, TSecrets, TResult>,
@@ -378,7 +378,10 @@ export declare function defineCommand<
   > & {
     name: TName;
     scope?: TOwnScope;
-    humanInLoop?: TOwnHumanInLoop;
+    // Reverse mapping infers mode before contextually typing callbacks; the direct
+    // branch preserves inference for null opt-outs and pretyped configurations.
+    humanInLoop?: (TOwnHumanInLoop | { [K in keyof TOwnHumanInLoop]: TOwnHumanInLoop[K] }) &
+      (HumanInLoopConfig<TParamsSchema> | null);
   }
 ): Command<TServices, TParamsSchema, TSecrets, TResult> &
   TypedCommandMetadata<

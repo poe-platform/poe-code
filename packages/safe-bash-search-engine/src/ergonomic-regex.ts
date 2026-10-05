@@ -18,6 +18,7 @@ export interface ErgonomicRegexConfig {
   readonly multilineDotall?: boolean | undefined;
   readonly captures?: boolean;
   readonly binaryText?: boolean;
+  readonly forceVm?: boolean;
 }
 
 export type PreparedErgonomicRegex =
@@ -1042,7 +1043,7 @@ export function prepareErgonomicRegex(
     if (!multiline && hasNewline) {
       throw new SearchError("literal newline in pattern requires --multiline (-U)");
     }
-    if ((multiline && hasNewline) || config.binaryText) {
+    if ((multiline && hasNewline) || config.binaryText || config.forceVm) {
       const branches: AstNode[] = patterns.map(p => {
         const hasUpper = /[A-Z]/u.test(p);
         const insensitive = config.caseMode === "insensitive" || (config.caseMode === "smart" && !hasUpper);
@@ -1058,7 +1059,7 @@ export function prepareErgonomicRegex(
 
   const translated: string[] = [];
   const branches: AstNode[] = [];
-  let anyNeedsVm = Boolean(config.captures || config.binaryText);
+  let anyNeedsVm = Boolean(config.captures || config.binaryText || config.forceVm);
   let anyCrossLine = false;
   let captureCount = 0;
   const captureNames = new Map<string, number>();

@@ -41,6 +41,7 @@ const DUMMY_LITERAL_DESCRIPTOR: SearchDescriptor = Object.freeze({
 export class Matcher {
   private descriptor!: SearchDescriptor;
   private vm: ErgonomicVmMatcher | undefined;
+  private byteSubjectVm: (() => ErgonomicVmMatcher) | undefined;
   private captureVm: ErgonomicVmMatcher | undefined;
   crossLine!: boolean;
   literalAsciiBytes: Uint8Array | undefined;
@@ -50,6 +51,23 @@ export class Matcher {
   resetForRun(patterns: readonly string[], args: Arguments, session: RegexSession, ergonomic = true, literalOnly = false): void {
     this.session = session;
     this.captureVm = undefined;
+    this.byteSubjectVm = undefined;
+    if (ergonomic && !literalOnly && patterns.length > 0) {
+      let vm: ErgonomicVmMatcher | undefined;
+      const config = {
+        kind: "rg" as const, fixed: args.fixed, caseMode: args.case,
+        whole: args.whole, word: args.word, nullData: args.nullData,
+        multiline: args.multiline, multilineDotall: args.multilineDotall,
+        captures: args.replacement?.includes("$") ?? false,
+        binaryText: args.binary === "text", forceVm: true,
+      };
+      this.byteSubjectVm = () => {
+        if (vm) return vm;
+        const prepared = prepareErgonomicRegex(patterns, config);
+        if (prepared.mode !== "vm") throw new SearchError("byte subject matcher unavailable");
+        return vm = prepared.vm;
+      };
+    }
     if (patterns.length === 0) {
       this.literalAsciiBytes = undefined;
       this.vm = undefined;
@@ -152,6 +170,12 @@ export class Matcher {
   }
   batchSync(rows: readonly Row[]): Match[][] | Promise<Match[][]> {
     if (this.vm && rows.length > 0) return this.vm.batchSync(rows);
+    // The bounded delegated profile requires non-NUL UTF-8. The scalar VM
+    // skips invalid bytes without changing output bytes or match offsets.
+    // Keep injected providers authoritative and retain the ASCII fast path.
+    if (this.byteSubjectVm && rows.some(row => row.bytes.some(byte => byte === 0 || byte >= 128))) {
+      return this.byteSubjectVm().batchSync(rows);
+    }
     trustedInputRows.add(rows);
     try {
       const res = this.session.runSync(this.descriptor, rows);

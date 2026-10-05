@@ -39,6 +39,7 @@ for (const security of [
     const bytes = storedArchive([...parts].map(([name, payload]) => ({ name, bytes: payload })));
     const volume = Volume.fromJSON({ "/work/orchard deck.pptx": Buffer.from(bytes) });
     const fs = new MemoryFileSystem();
+    fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
     fs.readStream = async function* (path, options) { options?.signal?.throwIfAborted(); yield new Uint8Array(volume.readFileSync(path) as Buffer); };
     const shell = new Shell({ fs, cwd: "/work" }).use(pptxCommands({ engine: createPptxCommandEngine({ context, maxArgumentBytes: 65536, maxOutputBytes: 262144 }) }));
     try {
@@ -64,6 +65,7 @@ test("pptx properties and tags retain SDK values through shell quoting, schemas 
   const volume = Volume.fromJSON({ "/work": null });
   volume.writeFileSync("/work/field deck.pptx", bytes);
   const fs = new MemoryFileSystem();
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
   fs.readStream = async function* (path, options) { options?.signal?.throwIfAborted(); yield new Uint8Array(volume.readFileSync(path) as Buffer); };
   const shell = new Shell({ fs, cwd: "/work" }).use(pptxCommands({ engine: createPptxCommandEngine({ context, maxArgumentBytes: 65536, maxOutputBytes: 262144 }) }));
   try {

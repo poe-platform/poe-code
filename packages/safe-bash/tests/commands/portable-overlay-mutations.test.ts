@@ -47,16 +47,19 @@ for (const keepDate of [false, true]) test(`file commands preserve lower files o
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
   try {
     Reflect.deleteProperty(globalThis, "Buffer");
-    // Overlay publication cannot preserve existing identity through staged writes.
+    // Memory-backed overlays support conditional writes without changing lower files.
     const patch = await shell.exec("apply_patch", { stdin: patchInput });
-    assert.equal(patch.exitCode, 1);
-    assert.equal(patch.stdout, "");
-    assert.equal(patch.stderr, "apply_patch: filesystem does not support atomic conditional patch mutations\n");
-    assert.deepEqual(await fs.readdir("/"), originalEntries);
+    assert.equal(patch.exitCode, 0, patch.stderr);
+    assert.equal(patch.stdout, "Success. Updated the following files:\nM /patch.txt\nA /added.txt\n");
+    assert.equal(patch.stderr, "");
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["added.txt", "dos.txt", "lines.txt", "patch.txt", "unix.txt"]);
     assert.deepEqual(await lower.readdir("/"), originalEntries);
-    assert.deepEqual(await upper.readdir("/"), []);
+    assert.deepEqual((await upper.readdir("/")).map(entry => entry.name).sort(), ["added.txt", "patch.txt"]);
+    assert.deepEqual(await fs.readFile("/added.txt"), encoder.encode("added\n"));
+    assert.deepEqual(await upper.readFile("/added.txt"), encoder.encode("added\n"));
+    assert.deepEqual(await upper.readFile("/patch.txt"), encoder.encode("new\n"));
     for (const [path, text] of Object.entries(originals)) {
-      assert.deepEqual(await fs.readFile(path), encoder.encode(text), path);
+      assert.deepEqual(await fs.readFile(path), encoder.encode(path === "/patch.txt" ? "new\n" : text), path);
       assert.deepEqual(await lower.readFile(path), encoder.encode(text), path);
     }
     for (const [script, stdin] of [
@@ -69,7 +72,7 @@ for (const keepDate of [false, true]) test(`file commands preserve lower files o
       assert.equal(result.exitCode, 0, `${script}: ${result.stderr}`);
     }
     for (const [path, text] of Object.entries({
-      "/patch.txt": "old\n", "/split_aa": "one\n", "/split_ab": "---\n", "/split_ac": "two\n",
+      "/patch.txt": "new\n", "/added.txt": "added\n", "/split_aa": "one\n", "/split_ab": "---\n", "/split_ac": "two\n",
       "/xx00": "one\n", "/xx01": "---\ntwo\n", "/dos.txt": "one\ntwo\n", "/unix.txt": "one\r\ntwo\r\n",
     })) assert.equal(decoder.decode(await fs.readFile(path)), text, path);
     for (const [path, text] of Object.entries(originals)) assert.equal(decoder.decode(await lower.readFile(path)), text, path);

@@ -123,11 +123,13 @@ await cp(
   path.join(distDir, "templates", "terminal-pilot.md")
 );
 
-await copyTerminalPngAssets(
-  fs,
-  path.join(rootDir, "packages", "terminal-png", "assets"),
-  path.join(packageDir, "assets")
-);
+for (const directory of new Set(entryPoints.map(entryPoint => path.dirname(path.relative(srcDir, entryPoint))))) {
+  await copyTerminalPngAssets(
+    fs,
+    path.join(rootDir, "packages", "terminal-png", "assets"),
+    path.resolve(distDir, directory, "../assets")
+  );
+}
 
 // Verify every bare import in the bundle is declared in package.json deps.
 // Without this, transitive workspace npm deps (e.g. yaml, jose) get externalized

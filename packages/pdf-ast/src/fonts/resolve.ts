@@ -1,3 +1,4 @@
+import { PdfDictionaryCursor, type PdfDictionaryEntryRequest } from "../content/dictionary-cursor.js";
 import type { StoredFontEncoding } from "./stored-encoding.js";
 import { StoredFontWidths } from "./stored-widths.js";
 import type { StoredCffFont } from "./stored-cff.js";
@@ -17,15 +18,15 @@ import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = {kind:"font-encoding";array:PdfCosArray} | {kind:"font-label";lookup:(code:number)=>Promise<string|undefined>;code:number} | {kind:"array-item"; items:PdfStoredItems; position:number} | {kind:"font-width-set";widths:StoredFontWidths;first:number;width:number;last?:number} | {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined; storeRootArray?:boolean } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; storedEncoding?:StoredFontEncoding; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
+export type FontResolutionRequest = PdfDictionaryEntryRequest | {kind:"font-encoding";array:PdfCosArray} | {kind:"font-label";lookup:(code:number)=>Promise<string|undefined>;code:number} | {kind:"array-item"; items:PdfStoredItems; position:number} | {kind:"font-width-set";widths:StoredFontWidths;first:number;width:number;last?:number} | {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined; storeRootArray?:boolean; storeRootDictionary?:boolean } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; storedEncoding?:StoredFontEncoding; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
 export type FontResolutionResult = StoredFontEncoding | StoredCffFont | StoredTrueTypeFont | PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
-function* resolve(node: PdfCosNode | undefined, storeRootArray = false): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
-  const value = yield { kind: "resolve", node, storeRootArray };
+function* resolve(node: PdfCosNode | undefined, storeRootArray = false, storeRootDictionary = false): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
+  const value = yield { kind: "resolve", node, storeRootArray, storeRootDictionary };
   if (value && !("kind" in value)) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
   return value;
 }
-function* resolveDict(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosDict | undefined, FontResolutionResult> {
-  const value = yield* resolve(node); return value?.kind === "dict" ? value : value?.kind === "stream" ? value.dict : undefined;
+function* resolveDict(node: PdfCosNode | undefined, backed = false): Generator<FontResolutionRequest, PdfCosDict | undefined, FontResolutionResult> {
+  const value = yield* resolve(node, false, backed); return value?.kind === "dict" ? value : value?.kind === "stream" ? value.dict : undefined;
 }
 function* resolveArray(node: PdfCosNode | undefined, backed = false): Generator<FontResolutionRequest, PdfCosArray | undefined, FontResolutionResult> {
   const value = yield* resolve(node, backed); return value?.kind === "array" ? value : undefined;
@@ -82,12 +83,15 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
     const catalog = (yield* resolveDict(rootRef));
     const acroForm = catalog ? (yield* resolveDict(dictGet(catalog, "AcroForm"))) : undefined;
     const drDict = acroForm ? (yield* resolveDict(dictGet(acroForm, "DR"))) : undefined;
-    const drFontDict = drDict ? (yield* resolveDict(dictGet(drDict, "Font"))) : undefined;
-    const pageFontDict = resourcesDict ? (yield* resolveDict(dictGet(resourcesDict, "Font"))) : undefined;
-    function* entries() { if (drFontDict)
-        yield* drFontDict.entries; if (pageFontDict)
-        yield* pageFontDict.entries; }
-    for (const entry of entries()) {
+    const drFontDict = drDict ? (yield* resolveDict(dictGet(drDict, "Font"), true)) : undefined;
+    const pageFontDict = resourcesDict ? (yield* resolveDict(dictGet(resourcesDict, "Font"), true)) : undefined;
+    for (const dictionary of [drFontDict, pageFontDict]) {
+      if (!dictionary) continue;
+      const cursor = new PdfDictionaryCursor(dictionary);
+      for (;;) {
+        const item = yield* cursor.next();
+        if (item.done) break;
+        const entry = item.value;
         const fName = entry.key.decoded;
         if (selectedName !== undefined && fName !== selectedName)
             continue;
@@ -377,6 +381,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             standardOutlines,
         });
     }
+    }
     return fonts;
 }
 
@@ -386,7 +391,7 @@ export function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDi
   let step = steps.next();
   while (!step.done) {
     let value: FontResolutionResult;
-    try { if(step.value.kind==="font-encoding" || step.value.kind==="font-label" || step.value.kind==="array-item" || step.value.kind==="truetype-map" || step.value.kind==="font-width-set")throw new TypeError("Stored font requires asynchronous evaluation"); value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
+    try { if(step.value.kind==="dictionary-entry" || step.value.kind==="font-encoding" || step.value.kind==="font-label" || step.value.kind==="array-item" || step.value.kind==="truetype-map" || step.value.kind==="font-width-set")throw new TypeError("Stored font requires asynchronous evaluation"); value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
     catch (error) { step = steps.throw(error); continue; }
     step = steps.next(value);
   }

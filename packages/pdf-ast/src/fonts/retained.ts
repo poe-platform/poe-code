@@ -46,7 +46,7 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
       if (++requests % 32 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
       let value: FontResolutionResult;
       if (step.value.kind === "resolve") {
-        const retained = await document.lookup(step.value.node, options.resourceStorage ? {arrayStorage:options.resourceStorage,storedArrayKeys:["Widths","W","Differences"],storeRootArray:step.value.storeRootArray ?? false} : {});
+        const retained = await document.lookup(step.value.node, options.resourceStorage ? {dictionaryStorage:options.resourceStorage,storedDictionaryKeys:["Font"],storeRootDictionary:step.value.storeRootDictionary ?? false,arrayStorage:options.resourceStorage,storedArrayKeys:["Widths","W","Differences"],storeRootArray:step.value.storeRootArray ?? false} : {});
         value = retained?.value;
         if (retained?.stream) {
           if (retained.value.kind !== "dict" || !retained.reference) throw new PdfError("E_PARSE", "Font stream has no retained identity");
@@ -54,6 +54,9 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
           const stream: PdfCosStream = { kind: "stream", dict: retained.value, rawBytes: new Uint8Array() };
           identities.set(stream, retained.reference); value = stream;
         }
+      } else if (step.value.kind === "dictionary-entry") {
+        const record = await readStoredRecord<import("../ast.js").PdfDictEntry>(step.value.entries.storage, step.value.position, signal);
+        value = cosArray([record.value.key, record.value.value, cosNumber(record.next)]);
       } else if(step.value.kind==="font-encoding") {
         const array=step.value.array;
         value=await StoredFontEncoding.create(()=>array.storedItems?readStoredItems<import("../ast.js").PdfCosNode>(array.storedItems,signal):array.items,options.resourceStorage!,{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});

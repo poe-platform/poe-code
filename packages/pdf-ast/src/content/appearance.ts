@@ -2,7 +2,7 @@ import { PdfArrayCursor } from "./array-cursor.js";
 import { cosDict, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfContentNode, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { optionalContentVisibilitySteps } from "./evaluator.js";
 
-export type PdfAppearanceRequest = { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayPathPrefix?: readonly string[] }
+export type PdfAppearanceRequest = { readonly kind: "dictionary-merge"; readonly destination: PdfCosDict; readonly source?: PdfCosDict } | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayPathPrefix?: readonly string[] }
   | { readonly kind: "array-reference"; readonly items: import("../ast.js").PdfStoredItems; readonly objectNumber: number }
   | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number }
   | { readonly kind: "catalog" }
@@ -43,8 +43,8 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
     const sub = (yield* resolveDict(entry.value, [entry.key.decoded]));
     if (sub) {
       onAllocation?.(64 + sub.entries.length * 64);
-      const clonedSub = cosDict({});
-      for (const se of sub.entries) dictSet(clonedSub, se.key.decoded, se.value);
+      const clonedSub = sub.storedEntries ? (yield {kind: "dictionary-merge", destination: sub}) as PdfCosDict : cosDict({});
+      if (!sub.storedEntries) for (const se of sub.entries) dictSet(clonedSub, se.key.decoded, se.value);
       dictSet(evalResourcesDict, entry.key.decoded, clonedSub);
     } else {
       dictSet(evalResourcesDict, entry.key.decoded, entry.value);
@@ -101,6 +101,11 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
                 onAllocation?.(64);
                 dstSub = cosDict({});
                 dictSet(evalResourcesDict, subKey, dstSub);
+              }
+              if (srcSub.storedEntries || dstSub.storedEntries) {
+                const merged = (yield {kind: "dictionary-merge", destination: dstSub, source: srcSub}) as PdfCosDict;
+                dictSet(evalResourcesDict, subKey, merged);
+                continue;
               }
               for (const se of srcSub.entries) {
                 if (!dictGet(dstSub, se.key.decoded)) {

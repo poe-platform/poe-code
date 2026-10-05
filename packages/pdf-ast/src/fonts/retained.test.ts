@@ -184,3 +184,30 @@ it.each(["simple", "indirect", "cid", "encrypted"])("reads %s source width array
     }
   } finally {await document.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
 });
+
+it.each([false, true])("resolves selected fonts from caller-backed resource dictionaries (indirect=%s)", async indirect => {
+  const {dictGet, dictSet} = await import("../ast.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const document = PdfDocument.create(), page = document.addPage();
+  const fonts = cosDict({Good: cosDict({Subtype: cosName("Type1"), BaseFont: cosName("Helvetica"), Encoding: cosDict({Differences: cosArray([cosNumber(65), cosName("B")])})})});
+  for (let i = 0; i < 512; i++) dictSet(fonts, `Unused${i}`, cosNumber(731));
+  dictSet(page.pageDict, "Resources", cosDict({Font: indirect ? document.cos.allocateObject(fonts) : fonts}));
+  await fs.writeFile("/input", document.save({encrypt: {userPassword: "secret", revision: 3}}));
+  const bytes = new Uint8Array(2_000_000); let end = 0;
+  const storage = {allocate(n: number) {const at = end; end += n; return at;}, async read(at: number, n: number) {return bytes.subarray(at, at + n);}, async write(at: number, data: Uint8Array) {bytes.set(data, at);}};
+  const source = await PdfFileSource.open(fs, "/input");
+  const retained = await PdfRetainedDocument.open(source, {fs, directory: "/scratch"}, {password: "secret", valueArrays: {arrayStorage: storage, storedArrayKeys: ["Differences"], dictionaryStorage: storage, storedDictionaryKeys: ["Font"]}});
+  try {
+    for await (const retainedPage of retained.pages()) {
+      const {resources} = await retainedPage.attributes();
+      if (!indirect) expect(dictGet(resources, "Font")).toMatchObject({entries: [], storedEntries: {length: 513}});
+      const font = await resolveRetainedFont(retained, {fs, directory: "/scratch"}, resources, "Good", {resourceStorage: storage});
+      expect(font?.baseFont).toBe("Helvetica");
+      expect(await font?.storedEncoding?.glyphName(65)).toBe("B");
+      expect(await font?.storedEncoding?.unicode(65)).toBe("B");
+      expect(font?.standardOutlines?.getGlyphOutline(65).length).toBeGreaterThan(0);
+      expect(await resolveRetainedFont(retained, {fs, directory: "/scratch"}, resources, "Missing", {resourceStorage: storage})).toBeUndefined();
+    }
+  } finally {await retained.close(); await source.close();}
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

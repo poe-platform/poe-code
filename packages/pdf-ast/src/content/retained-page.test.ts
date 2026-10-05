@@ -31,7 +31,7 @@ async function fixture(hideAnnotations = false, backed?: "inline" | "indirect") 
   } });
   const source = await PdfFileSource.open(guarded, "/input", { chunkBytes: 32, cacheBytes: 64 });
   const storage = { fs: guarded, directory: "/scratch" }; const backing=backed?new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal},2):undefined;
-  const document = await PdfRetainedDocument.open(source, storage, backing?{valueArrays:{arrayStorage:backing,storedArrayKeys:["Annots"]}}:{});
+  const document = await PdfRetainedDocument.open(source, storage, backing?{valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Font"],arrayStorage:backing,storedArrayKeys:["Annots"]}}:{});
   const retained = (await document.pages().next()).value!;
   return { expected, document, retained, storage, readFile, async close() { await document.close(); await source.close(); await backing?.close(); expect(await fs.readdir("/scratch")).toEqual([]); } };
 }

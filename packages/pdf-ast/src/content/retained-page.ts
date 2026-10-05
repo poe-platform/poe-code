@@ -1,3 +1,4 @@
+import { mergePdfResourceDictionaries } from "./stored-dictionary.js";
 import { StoredReferenceMembership } from "./stored-reference-membership.js";
 import { readStoredRecord } from "./stored-record.js";
 import { cosBool, cosArray, cosNumber, cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
@@ -51,6 +52,7 @@ export async function prepareRetainedPageContent(document: PdfRetainedDocument, 
         options.signal?.throwIfAborted();
         const request = step.value; let result: PdfAppearanceResult;
         if (request.kind === "resolve" || request.kind === "catalog") result = await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node, request.kind === "resolve" ? request.arrayPathPrefix : undefined);
+        else if (request.kind === "dictionary-merge") result = await mergePdfResourceDictionaries(request.destination, request.source, storage, options.signal);
         else if (request.kind === "array-reference") result = cosBool(await memberships.has(request.items, request.objectNumber));
         else if (request.kind === "array-item") {
           const record = await readStoredRecord<PdfCosNode>(request.items.storage, request.position, options.signal);

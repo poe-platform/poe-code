@@ -112,9 +112,9 @@ async function readValue(lexer: CosRangeLexer, depth: number, nodes: number, opt
     while (!step.done) {
       signal?.throwIfAborted();
       const request = step.value;
-      if (request && request !== "token" && request.kind === "array-append") {
+      if (request && request !== "token" && (request.kind === "array-append" || request.kind === "dictionary-append")) {
         let position: number;
-        try { position = await appendStoredRecord(options.arrayStorage!, request.node, request.previous, signal); }
+        try { position = await appendStoredRecord(request.kind === "array-append" ? options.arrayStorage! : options.dictionaryStorage!, request.kind === "array-append" ? request.node : request.entry, request.previous, signal); }
         catch (error) { options.onBackingError?.(error); throw error; }
         step = work.next(position);
       } else if(request && request !== "token" && (request.kind === "container-push" || request.kind === "container-pop")) {

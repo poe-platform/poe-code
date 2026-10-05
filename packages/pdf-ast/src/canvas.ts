@@ -771,7 +771,7 @@ export class PdfPage {
       const request = step.value;
       if (request.kind === "resolve" || request.kind === "catalog") {
         step = work.next(this.cosDoc.resolve(request.kind === "catalog" ? this.cosDoc.rootRef : request.node));
-      } else if (request.kind === "array-reference" || request.kind === "array-item") throw new TypeError("Stored visibility requires asynchronous evaluation");
+      } else if (request.kind === "dictionary-merge" || request.kind === "array-reference" || request.kind === "array-item") throw new TypeError("Stored visibility requires asynchronous evaluation");
       else if (request.kind === "appearance-content") {
         appearance = parseContentStream(this.cosDoc.decodeStream(request.stream));
         step = work.next(appearance.length > 0);

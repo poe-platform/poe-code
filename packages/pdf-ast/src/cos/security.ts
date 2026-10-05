@@ -1,3 +1,4 @@
+import { readPdfDictionaryEntries } from "../content/stored-dictionary.js";
 import { appendStoredRecord, readStoredItems } from "../content/stored-record.js";
 import { readBytes } from "@poe-code/safe-fs/contracts";
 import { decodePdfStreamChunks, pdfImageCodec, type PdfStreamDecodeOptions, type PdfStreamInput } from "./filter-stream.js";
@@ -304,9 +305,23 @@ export async function decryptPdfObjectStrings(
     }
     if (node.kind === "dict") {
       const entries: PdfCosDict["entries"] = [];
-      const signature = isSignatureDictionary(node);
-      for (const entry of node.entries) entries.push({key:entry.key, value:signature && entry.key.decoded === "Contents" ? entry.value : await transform(entry.value)});
-      return {...node, entries};
+      let signatureDict = node;
+      if (node.storedEntries) {
+        signatureDict = {kind: "dict", entries: []};
+        for await (const entry of readPdfDictionaryEntries(node, options.signal)) {
+          if (["Type", "FT", "ByteRange", "Filter"].includes(entry.key.decoded)) dictSet(signatureDict, entry.key.decoded, entry.value);
+        }
+      }
+      const signature = isSignatureDictionary(signatureDict);
+      let position = -1, tail = -1;
+      for await (const entry of readPdfDictionaryEntries(node, options.signal)) {
+        const transformed = {key:entry.key, value:signature && entry.key.decoded === "Contents" ? entry.value : await transform(entry.value)};
+        if (node.storedEntries) {
+          tail = await appendStoredRecord(node.storedEntries.storage, transformed, tail, options.signal);
+          if (position === -1) position = tail;
+        } else entries.push(transformed);
+      }
+      return {...node, entries, ...(node.storedEntries ? {storedEntries: {...node.storedEntries, position}} : {})};
     }
     return drainWorkAsync(transformNodeStringsAndStreamsSteps(node, bytes => decryptPdfBuffer(state, objectNumber, generationNumber, bytes)), options.signal);
   }

@@ -26,7 +26,7 @@ it.each([false, true])("preserves transformed appearances, resource precedence a
   while (!step.done) {
     await Promise.resolve(); const request = step.value;
     if (request.kind === "resolve" || request.kind === "catalog") step = work.next(doc.cos.resolve(request.kind === "catalog" ? doc.cos.rootRef : request.node));
-    else if (request.kind === "array-reference" || request.kind === "array-item") throw new TypeError("Stored visibility requires asynchronous evaluation");
+    else if (request.kind === "dictionary-merge" || request.kind === "array-reference" || request.kind === "array-item") throw new TypeError("Stored visibility requires asynchronous evaluation");
       else if (request.kind === "appearance-content") { appearance = parseContentStream(doc.cos.decodeStream(request.stream)); step = work.next(appearance.length > 0); }
     else {
       nodes.push(request.stream ? { kind: "graphics-group", ops: [...request.nodes, ...appearance] } : request.nodes[0]!);

@@ -5,6 +5,9 @@ import type { CosToken } from "./lexer.js";
 // Drivers supply tokens and decide how a completed dictionary's optional stream
 // is represented. The container/reference grammar is shared by both I/O paths.
 export interface ValueArrayStorage {
+  readonly dictionaryStorage?: PdfPixelStorage;
+  readonly storedDictionaryKeys?: readonly string[];
+  readonly storeRootDictionary?: boolean;
   readonly arrayStorage?: PdfPixelStorage;
   /** Back suspended parser containers; selected descriptors must share this storage. */
   readonly containerStorage?: PdfPixelStorage;
@@ -22,9 +25,10 @@ export interface ValueArrayStorage {
 }
 export type ValueContainer = (
   | { kind: "array"; start: number; items: PdfCosNode[]; storedItems?: PdfStoredItems; tail: number }
-  | { kind: "dict"; start: number; entries: PdfDictEntry[]; key?: PdfDictEntry["key"] }
+  | { kind: "dict"; start: number; entries: PdfDictEntry[]; storedEntries?: PdfStoredItems; tail: number; key?: PdfDictEntry["key"] }
 ) & { path: readonly (string | null)[] };
 export type ValueWork<T> = Generator<void | "token" | PdfCosDict
+  | {kind: "dictionary-append"; entry: PdfDictEntry; previous: number}
   | {kind: "array-append"; node: PdfCosNode; previous: number}
   | {kind: "container-push"; container: ValueContainer}
   | {kind: "container-pop"}, T, CosToken | PdfCosNode | ValueContainer | number | undefined>;
@@ -94,7 +98,7 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
     } else if (parent?.kind === "dict" && !parent.key) {
       if (tok.kind === "dict-end") {
         yield* pop();
-        node = (yield { kind: "dict", entries: parent.entries, span: { start: parent.start, end: tok.span.end } }) as PdfCosNode;
+        node = (yield { kind: "dict", entries: parent.entries, ...(parent.storedEntries ? {storedEntries: parent.storedEntries} : {}), span: { start: parent.start, end: tok.span.end } }) as PdfCosNode;
       } else if (tok.kind === "name") {
         charge();
         parent.key = { kind: "name", rawBytes: tok.rawBytes, decoded: tok.decoded, span: tok.span };
@@ -118,7 +122,9 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
         continue;
       }
       if (tok.kind === "dict-start") {
-        yield* push({ kind: "dict", path:ancestorPath(parent), start: tok.span.start, entries: [] });
+        const backed = options.dictionaryStorage && (parent?.kind === "dict" && options.storedDictionaryKeys?.includes(parent.key!.decoded) || !parent && options.storeRootDictionary);
+        yield* push({ kind: "dict", path:ancestorPath(parent), start: tok.span.start, entries: [], tail: -1,
+          ...(backed ? {storedEntries: {storage: options.dictionaryStorage!, position: -1, length: 0}} : {}) });
         continue;
       }
       node = yield* parseLeafFromToken(tok, lexer);
@@ -133,7 +139,12 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
       } else container.items.push(node);
     }
     else {
-      container.entries.push({ key: container.key!, value: node });
+      const entry = { key: container.key!, value: node };
+      if (container.storedEntries) {
+        const position = (yield {kind: "dictionary-append", entry, previous: container.tail}) as number;
+        container.storedEntries = {...container.storedEntries, position: container.tail === -1 ? position : container.storedEntries.position, length: container.storedEntries.length + 1};
+        container.tail = position;
+      } else container.entries.push(entry);
       delete container.key;
     }
   }

@@ -22,6 +22,13 @@ cancellation. This avoids collecting a page display list; individual evaluated
 paths, decoded resources and nested captures still retain their existing memory
 ownership.
 
+Retained source parsing can keep wide resource maps in caller backing with
+`valueArrays: { dictionaryStorage, storedDictionaryKeys: ["Font"] }`. Font
+resolution visits one entry at a time, including indirect and encrypted maps.
+Use `readPdfDictionaryEntries` or `readPdfDictionaryValue` for these dictionaries;
+synchronous dictionary helpers require ordinary in-memory entries. The caller
+keeps the backing alive until all dictionary consumers finish.
+
 Pass `imageStorage` to retained page evaluation to keep decoded image pixels in
 caller-owned random-access backing. Parser and evaluated path segments also use
 fixed-size blocks in that backing; fill, clipping and pattern bounds replay

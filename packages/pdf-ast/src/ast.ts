@@ -61,6 +61,8 @@ export interface PdfDictEntry {
 }
 
 export interface PdfCosDict {
+  /** Caller-backed ordered entries; entries is empty when this descriptor is present. */
+  readonly storedEntries?: PdfStoredItems;
   readonly kind: "dict";
   readonly entries: PdfDictEntry[];
   readonly span?: ByteSpan | undefined;
@@ -601,6 +603,7 @@ export function cosStream(
 }
 
 export function dictGet(dict: PdfCosDict, key: string): PdfCosNode | undefined {
+  if (dict.storedEntries) throw new TypeError("Stored dictionary requires asynchronous access");
   // Last key wins per PDF recovery rules
   for (let i = dict.entries.length - 1; i >= 0; i--) {
     if (dict.entries[i]!.key.decoded === key) {
@@ -611,6 +614,7 @@ export function dictGet(dict: PdfCosDict, key: string): PdfCosNode | undefined {
 }
 
 export function dictSet(dict: PdfCosDict, key: string, value: PdfCosNode): void {
+  if (dict.storedEntries) throw new TypeError("Stored dictionary requires asynchronous access");
   for (let i = dict.entries.length - 1; i >= 0; i--) {
     if (dict.entries[i]!.key.decoded === key) {
       dict.entries[i] = { key: cosName(key), value };
@@ -621,6 +625,7 @@ export function dictSet(dict: PdfCosDict, key: string, value: PdfCosNode): void 
 }
 
 export function dictDelete(dict: PdfCosDict, key: string): void {
+  if (dict.storedEntries) throw new TypeError("Stored dictionary requires asynchronous access");
   for (let i = dict.entries.length - 1; i >= 0; i--) {
     if (dict.entries[i]!.key.decoded === key) {
       dict.entries.splice(i, 1);

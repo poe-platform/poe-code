@@ -81,3 +81,19 @@ for (const kind of ["expr-match", "bre-search"] as const) {
  }
 }
 }
+
+test("speculative UTF-8 validation reports one worker error without an unhandled rejection", async context => {
+  const executor = new RegexExecutor(createBoundedRegexProvider());
+  context.after(() => executor.dispose());
+  const session = executor.open(new AbortController().signal);
+  context.after(() => session.close());
+  const descriptor = { kind: "rg" as const, patterns: ["x"], fixed: true, case: "sensitive" as const, whole: false, word: false, nullData: false };
+  const warmup = [{ bytes: Uint8Array.of(120), all: false, terminated: true }];
+  trustedInputRows.add(warmup);
+  await session.runSync(descriptor, warmup);
+  const invalid = [{ bytes: Uint8Array.of(255), all: false, terminated: true }];
+  trustedInputRows.add(invalid);
+  await assert.rejects(async () => session.runSync(descriptor, invalid), /UTF-8/);
+  // Let abandoned speculative promises surface in the test runner.
+  await new Promise<void>(resolve => setImmediate(resolve));
+});

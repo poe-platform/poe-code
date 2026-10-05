@@ -913,9 +913,9 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
       }
       if (!ascii) {
         if (batchWork > 0) { ledger.chargeWork(batchWork, signal); batchWork = 0; }
-        const pendingUtf8 = validateUtf8(row.bytes, ledger, signal);
-        if (pendingUtf8) return undefined;
-        if ((selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
+        // Validation of non-ASCII input is asynchronous. Let the slow path
+        // own and await it instead of abandoning a possibly rejected promise.
+        return undefined;
       } else {
         batchWork += rLen;
       }

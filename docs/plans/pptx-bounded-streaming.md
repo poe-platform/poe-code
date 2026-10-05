@@ -683,11 +683,29 @@ and human output through the built public adapter, with retained reads, unchange
 input and empty scratch. Other read families and the mutation/workbook/runtime
 matrix remain unfinished; no Worker runtime qualification is claimed.
 
+## Retained presentation settings reads
+
+The default settings list/get commands now use retained input, graph admission,
+streamed numeric conversion and caller-backed print/view XML. Print subtrees
+preserve inherited namespace declaration order, escaping and local overrides;
+standalone XML limits and scalar-error precedence match the buffered API. Human
+pretty JSON and compact machine output are completely staged before sink writes.
+The SDK exposes the retained reader, streamed value type and staged formatter.
+
+Tests cover strict/transitional settings, large padded numbers and namespaces,
+invalid dimensions/numbering/loop/modes, absent or malformed related parts, exact
+SDK/command output parity, file/stdin public adapters, reused chunks, slow sinks,
+actual spill writes, bounded outstanding IO, output limits, cancellation and
+storage/sink failures with cleanup. Native python-pptx chart/workbook decks match
+native canvas dimensions and exact buffered output, including standalone print
+XML, through the built public adapter without whole-file reads or leftover scratch.
+Other families and Worker runtime qualification remain unfinished.
+
 ## Remaining operation matrix
 
 | Area | Remaining migration |
 | --- | --- |
-| Read operations | Paragraph/run formatting; other slide/settings, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Read operations | Paragraph/run formatting; other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
 | Extraction | Image/media and embedded/opaque object extraction, including manifests and multi-output publication; package extraction is migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |

@@ -66,6 +66,11 @@ command uses this retained path and stages output before writing stdout.
 records with names and values streamed from caller storage. `stageRetainedTags`
 stages list/get responses and preserves opaque selectors and their locations.
 The default tag read commands use this path, including stdin input.
+
+`openRetainedPresentationSettings` (from `presentation-settings`) reads canvas,
+notes and slideshow settings with replayable print/view XML streams.
+`stageRetainedPresentationSettings` stages list/get output for the default command,
+including inherited namespace declarations in standalone print XML.
 `pptx xml get` also stages raw, JSON and pretty responses through caller storage.
 `openRetainedXmlPart` (from `xml-parts`) exposes replayable original bytes and
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves

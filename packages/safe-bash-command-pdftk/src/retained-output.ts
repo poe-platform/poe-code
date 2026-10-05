@@ -1,19 +1,26 @@
 import { retainedRotations } from "./retained-rotate.js";
-import { PdfFileSource, PdfMutableObjectStore, PdfRetainedDocument, cosBool, dictDelete, dictGet, dictSet, encryptRetainedPdfChunks, retainedCosObjects, saveRetainedDocumentChunks, type PdfCosArray } from "@poe-code/pdf-ast";
+import { editRetainedDocument, type RetainedAppendAttachment, PdfFileSource, PdfMutableObjectStore, PdfRetainedDocument, cosBool, dictDelete, dictGet, dictSet, encryptRetainedPdfChunks, retainedCosObjects, saveRetainedDocumentChunks, type PdfCosArray } from "@poe-code/pdf-ast";
 import type { PdftkArguments } from "./arguments.js";
 
 type Storage = ConstructorParameters<typeof PdfMutableObjectStore>[0];
 
 /** Common PDF output flags; the caller retains input identities and publishes
  * the resulting chunks. Graph edits and encoded payloads use caller storage. */
-export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined): AsyncGenerator<Uint8Array> {
+export async function* retainedOutput(source: PdfRetainedDocument, storage: Storage, options: PdftkArguments, selectedId: PdfCosArray | undefined, signal: AbortSignal, handles: ReadonlyMap<string, { readonly pageCount: number }>, pageCount: number | undefined, attachments: AsyncIterable<RetainedAppendAttachment>, attachmentPage: string | undefined): AsyncGenerator<Uint8Array> {
   const store = new PdfMutableObjectStore(storage, { signal });
+  let edited: Awaited<ReturnType<typeof editRetainedDocument>> | undefined;
   let document: PdfRetainedDocument | undefined, plaintext: PdfFileSource | undefined, failed = false;
   try {
-    for await (const object of retainedCosObjects(source, storage, { signal })) await store.set(object);
+    if (options.operation === "attach_files") {
+      const pageIndex = attachmentPage !== undefined && pageCount! > 0 ? attachmentPage.toLowerCase() === "end" ? pageCount! - 1 : Math.max(0, Math.min(pageCount! - 1, (Number.parseInt(attachmentPage, 10) || 1) - 1)) : undefined;
+      edited = await editRetainedDocument(source, storage, { signal, appendAttachments: attachments, ...(pageIndex !== undefined ? { attachmentPageIndex: pageIndex } : {}) });
+    }
+    const input = edited?.document ?? source;
+    const pageReferences = edited ? { pageReferences: async function* () { for await (const page of input.pages()) if (page.reference) yield page.reference; } } : {};
+    for await (const object of retainedCosObjects(input, storage, { signal })) await store.set(object);
     const reference = source.crossReference;
     const idArray = options.keepFinalId || options.keepFirstId ? selectedId ?? reference.idArray : reference.idArray ?? selectedId;
-    document = await PdfRetainedDocument.openStore(store, storage, { rootRef: reference.rootRef, version: reference.version, ...(reference.infoRef ? { infoRef: reference.infoRef } : {}), ...(idArray ? { idArray } : {}), signal });
+    document = await PdfRetainedDocument.openStore(store, storage, { rootRef: reference.rootRef, version: reference.version, ...pageReferences, ...(reference.infoRef ? { infoRef: reference.infoRef } : {}), ...(idArray ? { idArray } : {}), signal });
     const root = await document.lookup(reference.rootRef);
     if (root?.value.kind === "dict" && !root.stream && root.reference) {
       const form = await document.lookup(dictGet(root.value, "AcroForm"));
@@ -33,7 +40,7 @@ export async function* retainedOutput(source: PdfRetainedDocument, storage: Stor
       ...(allow.size ? { permissions: { print: all || allow.has("printing") || allow.has("degradedprinting"), modify: all || allow.has("modifycontents"), copy: all || allow.has("copycontents"), addNotes: all || allow.has("modifyannotations"), fillForms: all || allow.has("fillin") || allow.has("modifyannotations"), extractAccessibility: all || allow.has("screenreaders"), assemble: all || allow.has("assembly") || allow.has("modifycontents"), printHighRes: all || allow.has("printing") } } : {}) });
   } catch (error) { failed = true; throw error; }
   finally {
-    const results = await Promise.allSettled([document?.close(), plaintext?.close(), store.close()]);
+    const results = await Promise.allSettled([document?.close(), plaintext?.close(), store.close(), edited?.close()]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
   }
 }

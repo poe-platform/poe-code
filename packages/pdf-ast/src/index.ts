@@ -107,3 +107,5 @@ export { replaceRetainedPdfName } from "./edit/retained-name-replacement.js";
 export { QpdfJsonValues } from "./cos/qpdf-json-values.js";
 
 export { QpdfJsonDocument, type ApplyQpdfJsonOptions } from "./cos/qpdf-json-document.js";
+
+export type { RetainedAppendAttachment } from "./edit/retained-append-attachments.js";

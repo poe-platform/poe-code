@@ -65,12 +65,12 @@ for (const args of [["A=in.pdf", "input_pw", "secret", "cat", "A1", "output", "o
   it(`reads pdftk input operands: ${args.join(" ")}`, async () => {
     const { result, reads, stderr } = await execute(createPdftkCommand(), args);
     assert.equal(result.exitCode, 0, stderr);
-    assert.deepEqual(reads, ["/work/in.pdf"]);
+    assert.deepEqual(reads.filter(path => !path.startsWith("/tmp/")), ["/work/in.pdf"]);
   });
 }
 
 it("normalizes dot segments before VFS access", async () => {
   const { result, reads, stderr } = await execute(createPdftkCommand(), ["missing/../in.pdf", "cat", "missing/../output", "missing/../out.pdf"]);
   assert.equal(result.exitCode, 0, stderr);
-  assert.deepEqual(reads, ["/work/in.pdf"]);
+  assert.deepEqual(reads.filter(path => !path.startsWith("/tmp/")), ["/work/in.pdf"]);
 });

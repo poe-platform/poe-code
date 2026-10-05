@@ -58,6 +58,11 @@ loading its value or stream. Fresh reads and output iterators omit it; previousl
 returned snapshots remain readable until the store closes. Deleting an absent
 object returns `false`, and later allocation does not reuse deleted identities.
 
+`editRetainedDocument(input, storage, { appendAttachments })` accepts an async
+sequence of `{ filename, chunks }` attachments. Payloads are compressed through
+caller storage; existing name-tree structure and duplicate names are preserved.
+Set `attachmentPageIndex` to add PushPin annotations to a zero-based page.
+
 `editRetainedDocument(input, storage, { generateAppearances: true })` regenerates
 form appearances using caller-backed traversal and streamed text operators. It
 preserves text, choice, button, password and comb fields, including existing

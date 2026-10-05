@@ -21,16 +21,24 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
   let selectedId: PdfCosArray | undefined;
   const counts = new Map<PdftkArguments["inputs"][number], number>();
   const inputs = new Map<string, PdfFileSource | undefined>();
+  const attachmentPaths: string[] = []; let attachmentPage: string | undefined;
+  if (options.operation === "attach_files") for (let i = 0; i < options.opArgs.length; i++) {
+    if (options.opArgs[i]!.toLowerCase() === "to_page") attachmentPage = options.opArgs[++i];
+    else attachmentPaths.push(options.opArgs[i]!);
+  }
+  async function* attachments() {
+    for (const path of attachmentPaths) { const source = inputs.get(path); if (source) yield { filename: path.slice(path.lastIndexOf("/") + 1), chunks: source.stream(0, source.size, signal) }; }
+  }
   let document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, total = 0, failed = false;
   const diagnostic = async (message: string) => { await writeBytes(context.stderr, new TextEncoder().encode(message), signal); return { exitCode: 1 }; };
   try {
     await context.fs.mkdir(storage.directory, { recursive: true, signal });
     const maximum = context.inputBudget?.maxBytes ?? Infinity;
-    if (options.inputs.some(input => input.file === "-")) {
+    if (options.inputs.some(input => input.file === "-") || attachmentPaths.includes("-")) {
       const source = await PdfFileSource.fromStream(context.fs, storage.directory, context.stdin, { signal, maxInputBytes: maximum });
       inputs.set("-", source); total += source.size; context.inputBudget?.check(total);
     }
-    for (const input of options.inputs) {
+    for (const input of [...options.inputs, ...attachmentPaths.map(file => ({ file }))]) {
       if (inputs.has(input.file)) continue;
       let source: PdfFileSource;
       try { source = await PdfFileSource.open(context.fs, resolvePath(context.cwd, input.file), { signal, maxInputBytes: maximum - total }); }
@@ -68,7 +76,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
       }
       return { exitCode: 0 };
     }
-    output = await PdfFileSource.fromStream(context.fs, storage.directory, (["output", "rotate"].includes(options.operation) ? retainedOutput(document, storage, options, selectedId, signal, new Map([...handles].map(([handle, input]) => [handle, { pageCount: counts.get(input)! }])), counts.get(primary)) : options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
+    output = await PdfFileSource.fromStream(context.fs, storage.directory, (["output", "rotate", "attach_files"].includes(options.operation) ? retainedOutput(document, storage, options, selectedId, signal, new Map([...handles].map(([handle, input]) => [handle, { pageCount: counts.get(input)! }])), counts.get(primary), attachments(), attachmentPage) : options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
     const destination = options.outputTarget;
     if (!destination || destination === "-") for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
     else {

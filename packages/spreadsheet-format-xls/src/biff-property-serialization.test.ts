@@ -1,4 +1,4 @@
-import { BiffPropertyRange, propertyRange, readPropertyValueRanges } from './biff-property-range.js';
+import { BiffPropertyRange, propertyRange, readPropertyValueRanges, readPropertySectionRanges } from './biff-property-range.js';
 import { Binary } from './biff-binary.js';
 import { readBiffPropertySections, readBiffPropertyValues } from './biff-properties-layout.js';
 import * as mergeProperties from './biff-properties-merge.js';
@@ -321,5 +321,66 @@ it.each([false, true])('preserves index close failures alongside parse failures=
     expect(error).toBeInstanceOf(AggregateError); expect(error.errors[0].message).toContain('invalid property offset');
     expect(error.errors[1]).toBe(failure);
   } else await expect(result).rejects.toBe(failure);
+  expect(state.closed).toBe(1);
+});
+
+it.each([270, 300])('replays sorted property sections from bounded storage and closes after %s entries', async stop => {
+  const { ctx, state } = fixture(), count = 300, bytes = new Uint8Array(28 + count * 28), view = new DataView(bytes.buffer);
+  view.setUint16(0, 0xfffe, true); view.setUint32(24, count, true);
+  for (let i = 0; i < count; i++) {
+    const offset = 28 + count * 20 + (count - i - 1) * 8;
+    view.setUint32(28 + i * 20, i, true); view.setUint32(44 + i * 20, offset, true); view.setUint32(offset, 8, true);
+  }
+  let seen = 0;
+  for await (const section of readPropertySectionRanges(propertyRange(bytes, ctx), () => {}, () => {}, ctx)) {
+    expect(section.offset).toBe(28 + count * 20 + seen * 8);
+    expect(section.end).toBe(section.offset + 8);
+    const id = new Uint8Array(16); new DataView(id.buffer).setUint32(0, count - seen - 1, true);
+    expect(section.guid).toBe(Array.from(id, byte => byte.toString(16).padStart(2, '0')).join(''));
+    if (++seen === stop) break;
+  }
+  expect(seen).toBe(stop); expect(state.acquired).toBe(1); expect(state.closed).toBe(1);
+});
+
+it.each(['allocate', 'write', 'read', 'abort', 'duplicate', 'overlap'])('rejects property section %s before yielding and cleans storage', async mode => {
+  const { ctx, state, failure } = fixture(), controller = new AbortController(), count = 300;
+  const bytes = new Uint8Array(28 + count * 28 + 4), view = new DataView(bytes.buffer);
+  view.setUint16(0, 0xfffe, true); view.setUint32(24, count, true);
+  for (let i = 0; i < count; i++) {
+    const offset = 28 + count * 20 + i * 8;
+    view.setUint32(44 + i * 20, offset, true); view.setUint32(offset, mode === 'overlap' && i === count - 2 ? 12 : 8, true);
+  }
+  if (mode === 'duplicate') view.setUint32(44 + (count - 1) * 20, 28 + count * 20 + (count - 2) * 8, true);
+  state.mode = mode;
+  if (mode === 'abort') state.hold = async () => { controller.abort(failure); };
+  const active = { ...ctx, signal: controller.signal }; let yielded = 0;
+  const consume = async () => {
+    for await (const section of readPropertySectionRanges(propertyRange(bytes, active), () => {}, () => {}, active)) {
+      yielded++; expect(section.end).toBeGreaterThan(section.offset);
+    }
+  };
+  if (mode === 'duplicate' || mode === 'overlap') await expect(consume()).rejects.toThrow('overlapping property sections');
+  else await expect(consume()).rejects.toBe(failure);
+  expect(yielded).toBe(0); expect(state.acquired).toBe(1); expect(state.closed).toBe(1);
+});
+
+it.each([false, true])('reports section index close errors with malformed input=%s', async malformed => {
+  const { ctx, state, failure } = fixture(), bytes = new Uint8Array(56), view = new DataView(bytes.buffer);
+  view.setUint16(0, 0xfffe, true); view.setUint32(24, 1, true);
+  view.setUint32(44, malformed ? 28 : 48, true); view.setUint32(48, 8, true);
+  const active = { ...ctx, createWorkingStorage() {
+    const storage = ctx.createWorkingStorage!();
+    return { ...storage, async close() { await storage.close(); throw failure; } };
+  } };
+  const consume = async () => {
+    for await (const section of readPropertySectionRanges(propertyRange(bytes, active), () => {}, () => {}, active)) {
+      expect(section.offset).toBe(48);
+    }
+  };
+  if (malformed) {
+    const error = await consume().catch(error => error) as AggregateError;
+    expect(error).toBeInstanceOf(AggregateError); expect(error.errors[0].message).toContain('invalid property section offset');
+    expect(error.errors[1]).toBe(failure);
+  } else await expect(consume()).rejects.toBe(failure);
   expect(state.closed).toBe(1);
 });

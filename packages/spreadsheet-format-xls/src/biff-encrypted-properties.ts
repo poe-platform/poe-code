@@ -28,7 +28,7 @@ export async function encryptedBiffPropertyStream(streams: ReadonlyMap<string, U
     if (!file.size) continue;
     if (key === "\u0005SUMMARYINFORMATION") invalidBiff("ambiguous plaintext document properties");
     charge(file.size);
-    for (const section of await readPropertySectionRanges(file, admit, charge)) {
+    for await (const section of readPropertySectionRanges(file, admit, charge, context)) {
       if (![biffPropertyFormats.document, biffPropertyFormats.custom].includes(section.guid)) invalidBiff("ambiguous plaintext document properties");
       const values = await readPropertyValueRanges(file.slice(section.offset, section.end - section.offset), admit, charge, context);
       for (const [id, value] of values) if (id > 1 || id === 0 && (await value.u32(0)) !== 0 || id === 1 && (await value.u32(0)) !== 2)

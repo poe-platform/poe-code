@@ -41,10 +41,10 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
     }
     if (!bytes) continue;
     const file = propertyRange(bytes, context); accountWork(file.size);
-    const sections = await readPropertySectionRanges(file, admit, accountWork);
+    const sections = readPropertySectionRanges(file, admit, accountWork, context);
     let unknown = false;
     const modeled: [number, number, string][] = [];
-    for (const { guid, offset, end } of sections) {
+    for await (const { guid, offset, end } of sections) {
       if (!biffPropertyFields.has(guid) && guid !== custom) { unknown = true; continue; }
       const values = await readPropertyValueRanges(file.slice(offset, end - offset), admit, accountWork, context);
       const cp = values.get(1); let codepage = 1252;

@@ -128,26 +128,28 @@ const engineMarkers = {
 export const safeBashProfileBaselines = {
   "core": 1715877,
   "rootCore": 1717280,
-  "pythonLlm": 1954948,
+  // Tool diagnostics parse retained JSON through the selected SQLite runtime.
+  "pythonLlm": 4433241,
   // Canonical PDF graph includes caller-backed parsing, fonts, editing and output.
-  "pdf": 3170868,
+  "pdf": 3234703,
   "multiplePdf": 3442346,
   // One spreadsheet engine with streamed formats and caller-backed workbook storage.
   "csv": 3570816,
   "csvXlsx": 3878506,
-  "git": 7045654,
+  // Portable revision date filters retain gix-date and Jiff parsing.
+  "git": 7845428,
   // Registries also retain bounded Unicode hostname processing and IDNA data.
   "baseRegistry": 6721017,
   "registryWithRegex": 6721054,
   // Full yq includes streamed input/output and caller-backed in-place output.
   "enabledConsumer": 7213453,
   // Full also selects document/media engines, Pandoc and the CSV Python worker.
-  "full": 73465105,
-  "rootPythonLlm": 1956498,
+  "full": 77435707,
+  "rootPythonLlm": 4434336,
   "splitCore": 1711634,
-  "splitPythonLlm": 1950980,
+  "splitPythonLlm": 4426539,
   "splitEnabledConsumer": 7125253,
-  "splitFull": 73026105
+  "splitFull": 76982332
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

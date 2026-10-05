@@ -96,6 +96,40 @@ The installed `pdf` and `multiplePdf` graphs each retain one canonical `pdf-ast/
 
 The ordinary verifier passed all 17 installed Worker profiles and both portable network/SafeJS conditions with this single measured baseline update, without bypasses, aliases or consumer rewrites. These measurements qualify the captured source above; subsequent integrated changes remain subject to the unchanged CI guards.
 
+
+### October 5 Python/LLM and selected-engine qualification
+
+The clean source `7af6b95cce` was built with the maintained Safe Bash and Cloudflare workspace closures, packaged by `scripts/package-safe.mjs`, npm-packed and installed into a fresh consumer with the release workflow's ordinary install flags. The unchanged verifier failed at `pythonLlm`: 4,433,241 bytes exceeded the 1,994,047-byte cap. This is a newer graph than the earlier 2,043,312-byte CI failure at `6f2ee4950f`.
+
+The reviewed update changes only the seven exceeded total baselines:
+
+| Profile | Prior baseline | Installed static bytes | Delta from core |
+| --- | ---: | ---: | ---: |
+| pythonLlm | 1,954,948 | 4,433,241 | 2,718,168 |
+| rootPythonLlm | 1,956,498 | 4,434,336 | 2,719,263 |
+| splitPythonLlm | 1,950,980 | 4,426,539 | 2,711,466 |
+| pdf | 3,170,868 | 3,234,703 | 1,519,630 |
+| git | 7,045,654 | 7,845,428 | 6,130,355 |
+| full | 73,465,105 | 77,435,707 | 75,720,634 |
+| splitFull | 73,026,105 | 76,982,332 | 75,267,259 |
+
+Core is 1,715,073 bytes. Ten stricter baselines remain unchanged. All emitted JavaScript, split chunks and Wasm assets count. The 2% total and 5% incremental limits, 16 KiB minimum allowance, engine exclusions, shared-runtime assertions and Worker smoke checks remain unchanged.
+
+The Python/LLM increase has two distinct sources:
+
+- Comparing the `llmCommands` source graph at the original baseline revision `04f444c87f` and the captured source, with identical browser ESM minification and package imports external, gives 79,079 and 142,283 bytes. Prompt routing, embeddings, URL/file/plugin fragments, tool execution, approval, diagnostics and Python-compatible formatting are supported additions. URL fragments also select the shared single-byte character tables and codec aliases. These source-only figures support attribution; they are not an exact decomposition of installed bytes.
+- `338f8647f6` connects tool-debug output to `withEmbeddingJsonDocument`. That parser deliberately stages and indexes JSON in caller-backed SQLite so diagnostics can format large results without collecting the whole document. The installed Python/LLM variants each contain one 2,256,849-byte SQLite module and one 37-byte callback module, plus their JavaScript loader. This is a direct runtime dependency of supported diagnostics, not a second copy of the engine or an unused PDF dependency. Keeping this implementation adds a substantial cost even to consumers that do not invoke diagnostics; the independent baseline review explicitly accepted that cost to preserve supported, bounded diagnostic behavior. Replacing its backing store is a separate implementation alternative, not a reason to omit those bytes from measurement.
+
+The Git profile retains exactly one 6,110,078-byte Wasm asset. Since the previous qualification, `eb359b7257` adds portable revision date filters through `gix-date` and Jiff; other changes cover whitespace validation, path handling and scoped reads. The library Wasm, not a native CLI executable, is selected. The full profiles include both this asset and the SQLite assets above. These measurements do not claim that the source-level dependency additions are an exact byte decomposition of the Wasm growth.
+
+PDF grew through caller-backed metadata, outline titles, font names and mutable writes since the prior PDF qualification. Its 3,234,703-byte measurement exceeds the old 3,234,286-byte cap by 417 bytes. `multiplePdf` remains within its stricter prior budget. The shared-decoder assertion and unused-engine checks still apply.
+
+The ordinary verifier passed all 17 installed Worker profiles, all 10 portable-export bundles, and all 12 portable Worker scenarios, including remote storage and both Markdown file-scope modes. Verifier lint, syntax and diff checks passed. No consumer imports, emitted assets or runtime assertions were bypassed.
+
+Independent review checked the installed metafile totals, asset counts, source dependency paths and unchanged gates, and accepted all seven measured baselines. An additional installed Worker check executed tool diagnostics with duplicate JSON keys and Unicode output, confirming the selected SQLite path works and cleans its staging files.
+
+This update records local installed-artifact qualification only. Public publication and provenance are separate requirements; a queued release is not verified delivery.
+
 ## Git asset audit
 
 The historical Git Wasm grew from 2,878,331 to 5,310,726 bytes. Changes between the containing source revisions include signing (Ed25519/OpenSSH SSHSIG/OpenPGP), hooks/core.hooksPath, SSH transport and known_hosts, server hooks, standalone native host filesystem and credentials, upload-pack/receive-pack and SSH-to-HTTPS fallback. The packaging script selects the `git_rust.wasm` library artifact, not the separate `git-rust` executable. Native host filesystem/process/credential-helper adapters live in `src/main.rs`; their presence in the source diff is not evidence that those adapters caused library Wasm growth. The library includes portable crypto, hooks, SSH and wire modules. These are supported features, not demonstrated duplicate copies. This change preserves them. Core and unrelated profiles must carry zero Git assets; the selected Git profile must carry exactly one Wasm and execute repository initialization/status. The initial packed asset was 5,338,726 bytes; after integrating upstream Git changes, the verified packed asset is 5,338,654 bytes, with one copy in Git/full and zero in unrelated profiles. Native-only code splitting would need a separate behavior-qualified compiler change.

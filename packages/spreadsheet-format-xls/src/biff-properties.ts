@@ -1,9 +1,8 @@
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, UnsupportedRecord } from "@poe-code/spreadsheet-ast";
 import { invalidBiff } from "./biff-binary.js";
-import { propertyRange, readPropertySectionRanges, readPropertyValueRanges, type BiffPropertyRange } from "./biff-property-range.js";
-import { biffDbcsTables } from "@poe-code/spreadsheet-engine/encoding/biff-dbcs-tables";
-import { biffDecode } from "./biff-strings.js";
+import { propertyRange, readPropertySectionRanges, readPropertyValueRanges } from "./biff-property-range.js";
+import { readBiffPropertyText } from "./biff-property-text.js";
 
 // OLE property-set layout and IDs: LibreOffice oleprops.cxx/.hxx at
 // bce0998afefdbc355585ca324285661a2170ba77; source receipts are in the gap ledger.
@@ -34,44 +33,6 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
     if (nodes > (context.limits.workbookNodes ?? context.limits.inputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF property node limit exceeded");
   };
-  const text = async (data: BiffPropertyRange, offset: number, codepage: number): Promise<{ value: string; end: number }> => {
-    const count = await data.u32(offset), width = codepage === 1200 ? 2 : 1, size = count * width;
-    if (!count) invalidBiff("empty property string buffer");
-    data.check(offset + 4, size);
-    // Admit the maximum UTF-8 expansion before allocating a decoded string.
-    if ((count - 1) * 3 > (context.limits.workbookTextBytes ?? context.limits.inputBytes))
-      throw new SsconvertError("resource-limit", "ssconvert BIFF property text limit exceeded");
-    accountWork(size);
-    const end = offset + 4 + size;
-    if ((await data.read(end - width, width)).some(Boolean)) invalidBiff("unterminated property string");
-    let value = "";
-    const unicode = codepage === 1200 || codepage === 65001;
-    const decoder = unicode ? new TextDecoder(codepage === 1200 ? "utf-16le" : "utf-8", { fatal: true, ignoreBOM: true }) : undefined;
-    const multibyte = biffDbcsTables[codepage]; let lead: number | undefined;
-    if (!unicode && !multibyte) biffDecode(new Uint8Array(), codepage);
-    for (let at = offset + 4; at < end - width;) {
-      const bytes = await data.read(at, Math.min(16384, end - width - at)); at += bytes.length;
-      if (decoder) {
-        try { value += decoder.decode(bytes, { stream: true }); } catch { invalidBiff("invalid property string encoding"); }
-      } else if (multibyte) {
-        const characters: string[] = [];
-        for (const byte of bytes) {
-          if (lead !== undefined) {
-            const character = multibyte.double[lead]?.[byte];
-            if (character === undefined || character === "\uffff") invalidBiff("invalid or truncated DBCS character");
-            characters.push(character); lead = undefined;
-          } else {
-            const character = multibyte.single[byte]!;
-            if (character === "\uffff") lead = byte; else characters.push(character);
-          }
-        }
-        value += characters.join("");
-      } else value += biffDecode(bytes, codepage);
-    }
-    if (lead !== undefined) invalidBiff("invalid or truncated DBCS character");
-    if (decoder) try { value += decoder.decode(); } catch { invalidBiff("invalid property string encoding"); }
-    return { value: accountText(value), end: width === 2 ? Math.ceil(end / 4) * 4 : end };
-  };
   for (const target of ["\u0005SummaryInformation", "\u0005DocumentSummaryInformation"]) {
     let streamName = target, bytes = streams.get(target);
     if (!bytes) for (const [name, data] of streams) {
@@ -94,7 +55,7 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
           const length = await dictionary.u32(0); dictionary.check(4, length * 9); admit(length);
           let at = 4;
           for (let i = 0; i < length; i++) {
-            const id = await dictionary.u32(at), entry = await text(dictionary, at + 4, codepage);
+            const id = await dictionary.u32(at), entry = await readBiffPropertyText(dictionary, at + 4, codepage, context, accountText, accountWork);
             if (id < 2 || names.has(id) || !entry.value) invalidBiff("invalid property dictionary entry");
             names.set(id, entry.value); at = entry.end;
           }
@@ -110,7 +71,7 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
         let value: ImportedValue | undefined;
         const type = await data.u32(0);
         try {
-          if (type === 30 || type === 31) value = (await text(data, 4, type === 31 ? 1200 : codepage)).value;
+          if (type === 30 || type === 31) value = (await readBiffPropertyText(data, 4, type === 31 ? 1200 : codepage, context, accountText, accountWork)).value;
           else if (type === 3) value = (await data.u32(4)) | 0;
           else if (type === 5) { value = await data.f64(4); if (!Number.isFinite(value)) invalidBiff("nonfinite property value"); }
           else if (type === 11) value = (await data.u16(4)) !== 0;

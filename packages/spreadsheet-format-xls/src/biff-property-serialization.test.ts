@@ -205,3 +205,33 @@ it.each(['success', 'transcode-write', 'output-write', 'output-read', 'abort'])(
   } finally { spy.mockRestore(); for (const cleanup of cleanups) await cleanup(); }
   expect(state.closed).toBe(state.acquired);
 });
+
+it.each(['success', 'dictionary-write', 'dictionary-read', 'output-write', 'abort'])('edits retained dictionaries with bounded payloads and cleanup (%s)', async mode => {
+  const seed = { sheets: book.sheets, properties: { Remove: 2, ['K'.repeat(18000)]: 1 } };
+  const fresh = await writeBiffProperties(seed, context), stream = '\u0005DocumentSummaryInformation';
+  const original = fresh.streams.get(stream)!;
+  const input = { ...seed, unsupportedRecords: [{ source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+    data: { stream, bytes: Array.from(original, byte => byte.toString(16).padStart(2, '0')).join('') } }] };
+  const expected = await writeBiffProperties(input, context), { ctx, state, failure, cleanups } = fixture();
+  const controller = new AbortController(), runContext = { ...ctx, signal: controller.signal };
+  if (mode === 'dictionary-read') state.mode = 'read';
+  state.hold = async () => {
+    if (mode === 'dictionary-write' && state.acquired === 1 || mode === 'output-write' && state.acquired === 3) throw failure;
+    if (mode === 'abort' && state.acquired === 1) controller.abort(failure);
+  };
+  const sources = new Map<string, BiffPropertySource>();
+  try {
+    const merging = mergeBiffProperties(input, new Map(fresh.streams), new Set(), runContext, () => {}, length => {
+      expect(length).toBeLessThanOrEqual(16384); return new Uint8Array(length);
+    }, { sources, reserve: length => length });
+    if (mode !== 'success') await expect(merging).rejects.toBe(failure);
+    else {
+    await merging;
+    for (const [name, source] of sources) {
+      const bytes = expected.streams.get(name)!; expect(source.size).toBe(bytes.length);
+      for (let at = 0; at < source.size;) { const part = await source.read(at, source.size); expect(part).toEqual(bytes.subarray(at, at + part.length)); at += part.length; }
+    }
+    }
+  } finally { for (const cleanup of cleanups) await cleanup(); }
+  expect(state.closed).toBe(state.acquired);
+});

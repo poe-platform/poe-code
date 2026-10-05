@@ -16,6 +16,17 @@ function createShell(fs = createMemoryFileSystem()) {
 }
 
 const cases = [
+  ...["for i in 1 2", "for ((i=1; i<=2; i++))"].flatMap(loop => [
+    "(( x = i + 1 ))",
+    "(( x = i - 2 ))",
+    "[[ $i -gt 0 ]]",
+    "[[ $i -lt 0 ]]",
+    "(( x = i + 1 )); [[ $x -gt 0 ]]",
+    "x=$((i + 1)); (( x += 1 ))",
+    "(( x = i + 1 )); x=$((i + 2))",
+    "x=$((i + 1)); [[ $x -gt 0 ]]",
+    "[[ $i -gt 0 ]]; x=$((i + 1))",
+  ].map(body => `echo seed; ${loop}; do ${body}; done; printf '<%s>:%s\\n' "$_" "$?"`)),
   ...["/", "//", "/#", "/%"].map(operator =>
     'v="]a]b"; for i in 1 2; do echo "${v' + operator + '[]a]/X}" "${v' + operator + '[!]]/X}" "${v' + operator + '[^]]/X}"; done'),
   ...[

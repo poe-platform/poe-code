@@ -67,6 +67,8 @@ prefix ordinary relative paths with `./`. `--format` and execution substitute
 Execution dispatches literal arguments through the Shell registry, sequentially;
 batch execution permits one replacement token. Quote the terminating `';'` when
 writing shell source. `-l` invokes the registered virtual `ls -ld` command.
+With `-C`, listings and executed commands use the selected base directory.
+`--max-results N` requires a positive integer; omitting it leaves results unlimited.
 Normal empty searches succeed; quiet searches return 1 if no result exists.
 Command failures and filesystem errors return a nonzero status. Entry-limit
 exhaustion and broken output pipes stop the entire search, including later roots.

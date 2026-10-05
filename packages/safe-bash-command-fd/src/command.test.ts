@@ -222,3 +222,41 @@ test('prune never reads selected directories and explicit ignore reads enforce l
   assert.equal(limited.exitCode, 1);
   assert.equal(limited.stdout, '');
 });
+
+for (const base of ['sub', '/work/sub'])
+for (const mode of ['-l', '-x', '-X']) test(`base directory ${base} applies to ${mode} child invocation`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/work/sub', { recursive: true });
+  await fs.writeFile('/work/sub/hello.txt', new TextEncoder().encode('world'));
+  let calls = 0;
+  const result = await createFdCommandWithMatcher(async (_context, run) => run(matcher)).execute({
+    command: 'fd', args: ['-I', '-C', base, mode, ...(mode === '-l' ? [] : ['cat'])],
+    cwd: '/work', env: {}, fs, signal: new AbortController().signal,
+    stdin: (async function*(){})(), stdout: { async write() {} }, stderr: { async write() {} },
+    async invoke(command, args, options) {
+      calls++;
+      assert.equal(options?.cwd, '/work/sub');
+      assert.equal(command, mode === '-l' ? 'ls' : 'cat');
+      assert.deepEqual(args, mode === '-l' ? ['-ld', './hello.txt'] : ['./hello.txt']);
+      await fs.stat(options.cwd + '/' + args[args.length - 1]);
+      return { exitCode: 0 };
+    },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(calls, 1);
+});
+
+test('zero result limit fails before traversal or execution', async () => {
+  const fs = new MemoryFileSystem();
+  fs.stat = async () => { assert.fail('must not traverse'); };
+  let stderr = '';
+  const result = await createFdCommandWithMatcher(async (_context, run) => run(matcher)).execute({
+    command: 'fd', args: ['--max-results', '0', '-x', 'cat'], cwd: '/', env: {}, fs,
+    signal: new AbortController().signal, stdin: (async function*(){})(),
+    stdout: { async write() { assert.fail('must not emit matches'); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    async invoke() { assert.fail('must not execute'); },
+  });
+  assert.equal(result.exitCode, 2);
+  assert.ok(stderr.includes('--max-results must be greater than zero'));
+});

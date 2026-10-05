@@ -117,7 +117,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
       if (has) for (const path of paths) command.push(formatFdPath(token,path)); else command.push(formatFdPath(token,''));
     }
     if (!placeholder) command.push(...paths);
-    const result=context.invoke ? await context.invoke(command[0]!,command.slice(1),{stdin:(async function*(){})(),stdinIsDefault:true,signal}) : execute ? await execute({...context,command:command[0]!,args:command.slice(1),stdin:(async function*(){})()}) : (()=>{throw new Error('command invocation is unavailable');})();
+    const result=context.invoke ? await context.invoke(command[0]!,command.slice(1),{cwd:context.cwd,stdin:(async function*(){})(),stdinIsDefault:true,signal}) : execute ? await execute({...context,command:command[0]!,args:command.slice(1),stdin:(async function*(){})()}) : (()=>{throw new Error('command invocation is unavailable');})();
     executionFailed ||= result.exitCode!==0;
   };
   const readRules = async (path: string, base: string, priority: number): Promise<Rule[]> => {
@@ -237,7 +237,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
   if (a.batch && matches.length) await invoke(matches);
   if (a.details && matches.length) {
     if (!context.invoke) throw new Error('detailed listings require command invocation');
-    const result=await context.invoke('ls',['-ld',...matches],{signal});
+    const result=await context.invoke('ls',['-ld',...matches],{cwd:context.cwd,signal});
     executionFailed ||= result.exitCode!==0;
   }
   return {exitCode: a.quiet ? found ? 0 : 1 : executionFailed || failed ? 1 : 0};

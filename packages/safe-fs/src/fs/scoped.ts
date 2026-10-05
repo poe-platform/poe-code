@@ -37,7 +37,7 @@ export function retargetScopedFileSystem(
 const operations = new Set<keyof FileSystem>([
   "prepareDirectoryAncestry", "prepareStagingResolution", "publishStagedFileSet",
   "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
-  "confineExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
+  "confineExtraction", "confineTrustedExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir", "iterateDirectory",
   "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "unlink", "stat", "symlink", "truncate", "utimes",
   "writeFile", "writeStream",
@@ -447,7 +447,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
             };
           } catch (error) { controls.signal?.throwIfAborted(); throw error; }
         }
-        : property === "confineExtraction"
+        : (property === "confineExtraction" || property === "confineTrustedExtraction")
         ? async (...args: unknown[]) => scopeFileSystem(await dispatch(...args) as FileSystem, charge, signal, cleanupCharge, options)
         : property === "open"
         ? async (path: string, options: OpenFileOptions) => {

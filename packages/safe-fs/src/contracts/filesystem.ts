@@ -88,6 +88,8 @@ export interface FileSystemCapabilities {
   readonly retainedStagingWrite?: boolean;
   /** Atomically verifies every supplied root-to-parent directory identity at publication. */
   readonly atomicStagingAncestry?: boolean;
+  /** Full ancestry validation serialized with publication on an externally isolated host. */
+  readonly trustedStagingAncestry?: boolean;
   /** Prepares directory guards that validate without yielding or mutating state. */
   readonly synchronousDirectoryValidation?: boolean;
   /** Captures a followed destination path with a synchronous commit validator. */
@@ -359,12 +361,19 @@ export interface ConditionalFilePublicationOptions extends FsOptions {
   readonly mtimeMs?: number;
 }
 
+export interface ExtractionOptions extends FsOptions {
+  /** Validate outer mount bindings synchronously at every mutation; reject unsupported guards. */
+  readonly commitGuard?: () => true;
+}
+
 export interface FileSystem {
   /** Retain each extraction root and enforce no-symlink ancestry atomically with
    * every mutation (including metadata and both hardlink paths). Returned views
    * must refuse unsupported mutations; no check-then-write emulation is allowed.
    * Roots and their ancestors must remain the retained directories. */
-  confineExtraction?(roots: readonly string[], options?: FsOptions): Promise<FileSystem>;
+  confineExtraction?(roots: readonly string[], options?: ExtractionOptions): Promise<FileSystem>;
+  /** Trusted-host counterpart; requires external tree isolation, and never promises OS-atomic confinement. */
+  confineTrustedExtraction?(roots: readonly string[], options?: ExtractionOptions): Promise<FileSystem>;
   /** Explicit retained-object capability for qualified byte-path backends. */
   readonly objects?: ObjectFileSystem;
   /** Consume the complete source privately, then atomically compare/publish.

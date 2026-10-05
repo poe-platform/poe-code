@@ -1,3 +1,4 @@
+import type { ExtractionOptions } from "../../contracts/filesystem.js";
 import { FsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
@@ -857,8 +858,9 @@ export class MemoryFileSystem implements FileSystem {
     return resolveMissingTarget(owner.root, path || ".", options.signal, this.ledger.limits);
   }
 
-  async confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
+  async confineExtraction(roots: readonly string[], options: ExtractionOptions = {}): Promise<FileSystem> {
     options.signal?.throwIfAborted();
+    const commitGuard = options.commitGuard;
     const retained = new Map<string, MemoryNode>();
     for (const root of roots) {
       this.validatePath(root, "confineExtraction");
@@ -876,6 +878,7 @@ export class MemoryFileSystem implements FileSystem {
     const allowed = new Set(["mkdir", "rm", "rmdir", "rename", "symlink", "link", "chmod", "utimes", "writeFile", "appendFile", "writeStream", "writeFileConditional", "removeFileConditional", "removeEntryConditional", "prepareDirectory", "createStagedFile", "publishStagedFile", "removeStagedFile"]);
     const reads = new Set(["access", "capabilitiesFor", "compareEntry", "lstat", "stat", "readFile", "readStream", "readdir", "readlink", "realpath"]);
     const check = (path: string, followFinal: boolean): void => {
+      if (commitGuard) runStagingGuard(commitGuard);
       if (!roots.some(root => root === "/" || path === root || path.startsWith(`${root}/`))) this.fail("EPERM", "confineExtraction", path);
       const components = path.split("/").filter(Boolean);
       if (components.some(component => component === "." || component === "..")) this.fail("EINVAL", "confineExtraction", path);

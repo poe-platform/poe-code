@@ -117,20 +117,6 @@ function createWorkspaceRealFileSystem(rootPath: string): FileSystem {
   const origReadlink = base.readlink.bind(base);
   return new Proxy(base, {
     get(target, prop, receiver) {
-      if (prop === "capabilities") {
-        return {
-          ...target.capabilities,
-          atomicFileStaging: true,
-          atomicFileMutation: true,
-          atomicDirectoryMetadata: true,
-          retainedStagingCleanup: true,
-          retainedRead: true,
-          atomicStagingAncestry: true
-        };
-      }
-      if (prop === "confineExtraction") {
-        return async () => receiver;
-      }
       if (prop === "readlink") {
         return async (relPath: string, options?: { signal?: AbortSignal }) => {
           try {
@@ -321,9 +307,6 @@ export async function createWorkspaceFileSystem(
   });
   const mountFsProxy: FileSystem = new Proxy(baseMountFs, {
     get(target, prop, receiver) {
-      if (prop === "confineExtraction") {
-        return async () => mountFsProxy;
-      }
       if (prop === "capabilitiesFor") {
         return async (targetPath: string, opts?: { signal?: AbortSignal }) => {
           try {

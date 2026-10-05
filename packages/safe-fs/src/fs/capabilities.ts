@@ -149,7 +149,7 @@ export function quotaCapabilities(capabilities: FileSystemCapabilities): FileSys
   const streamingWrite = requireCapabilities(capabilities.write, capabilities.append, capabilities.streamingAppend, !capabilities.readOnly);
   const streamingAppend = requireCapabilities(capabilities.append, capabilities.streamingAppend, !capabilities.readOnly);
   const { streamingWrite: ignoredWrite, streamingAppend: ignoredAppend, ...rest } = capabilities;
-  return Object.freeze({ ...rest, synchronousStagingResolution: false, synchronousFollowedStagingResolution: false, retainedStagingCleanup: false, retainedStagingWrite: false, atomicStagingAncestry: false, synchronousDirectoryValidation: false, guardedStagingPublication: false, atomicFilePublication: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicStagedFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+  return Object.freeze({ ...rest, synchronousStagingResolution: false, synchronousFollowedStagingResolution: false, retainedStagingCleanup: false, retainedStagingWrite: false, atomicStagingAncestry: false, trustedStagingAncestry: false, synchronousDirectoryValidation: false, guardedStagingPublication: false, atomicFilePublication: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicStagedFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
     ...(streamingWrite === undefined ? {} : { streamingWrite }),
     ...(streamingAppend === undefined ? {} : { streamingAppend }),
   });
@@ -175,7 +175,7 @@ export function ownedMutationCapabilities(filesystem: FileSystem, capabilities =
   if (capabilities.synchronousDirectoryValidation === true && typeof filesystem.prepareDirectoryAncestry !== "function") (unavailable ??= {}).synchronousDirectoryValidation = false;
   if (capabilities.synchronousStagingResolution === true && (capabilities.readOnly === true || typeof filesystem.prepareStagingResolution !== "function")) (unavailable ??= {}).synchronousStagingResolution = false;
   if (capabilities.synchronousFollowedStagingResolution === true && (capabilities.synchronousStagingResolution !== true || unavailable?.synchronousStagingResolution === false)) (unavailable ??= {}).synchronousFollowedStagingResolution = false;
-  if (capabilities.guardedStagingPublication === true && (capabilities.atomicFileStaging !== true || unavailable?.atomicFileStaging === false)) (unavailable ??= {}).guardedStagingPublication = false;
+  if (capabilities.guardedStagingPublication === true && ((capabilities.atomicFileStaging !== true || unavailable?.atomicFileStaging === false) && capabilities.trustedOwnedStaging !== true)) (unavailable ??= {}).guardedStagingPublication = false;
   if (capabilities.atomicDirectoryMetadata === true && (capabilities.readOnly === true || typeof filesystem.prepareDirectory !== "function")) (unavailable ??= {}).atomicDirectoryMetadata = false;
   if (capabilities.trustedOwnedStaging === true) {
     let missing = capabilities.readOnly === true;
@@ -184,7 +184,7 @@ export function ownedMutationCapabilities(filesystem: FileSystem, capabilities =
         if (typeof filesystem[TRUSTED_OWNED_STAGING_METHODS[i]!] !== "function") { missing = true; break; }
       }
     }
-    if (missing) (unavailable ??= {}).trustedOwnedStaging = false;
+    if (missing) { (unavailable ??= {}).trustedOwnedStaging = false; unavailable.trustedStagingAncestry = false; unavailable.guardedStagingPublication = false; }
   }
   return unavailable ? { ...capabilities, ...unavailable } : capabilities;
 }
@@ -196,7 +196,7 @@ export async function requireOwnedMutation(filesystem: FileSystem, path: string,
     const query = create ? { ...options, create: true } : options;
     const capabilities = ownedMutationCapabilities(filesystem, await filesystem.capabilitiesFor?.(path, capability === "atomicStagingAncestry" ? { ...query, stagingAncestry: true } : query) ?? filesystem.capabilities);
     options.signal?.throwIfAborted();
-    if (capabilities[capability] !== true && !(capabilities.trustedOwnedStaging === true && ["atomicFileStaging", "atomicFileMutation", "atomicDirectoryMetadata"].includes(capability))) throw new FsError("ENOTSUP", { path, syscall: capability });
+    if (capabilities[capability] !== true && !(capability === "atomicStagingAncestry" && capabilities.trustedStagingAncestry === true && capabilities.trustedOwnedStaging === true) && !(capabilities.trustedOwnedStaging === true && ["atomicFileStaging", "atomicFileMutation", "atomicDirectoryMetadata"].includes(capability))) throw new FsError("ENOTSUP", { path, syscall: capability });
   } catch (error) {
     options.signal?.throwIfAborted();
     if (capability === "atomicStagingAncestry" && "ancestors" in options && options.ancestors !== undefined

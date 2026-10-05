@@ -1,8 +1,9 @@
+import type { ExtractionOptions } from "../../contracts/filesystem.js";
 import { plainDevicePathResolvers } from "../devices/plain-path.js";
 import { platform } from "#safe-fs-platform";
 import { snapshotStagingCreation } from "../staging-cleanup.js";
 import { snapshotConditionalChmod } from "../conditional-chmod.js";
-import { runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
+import { directoryAncestryPaths, runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
 import { constants, type Stats, type BigIntStats } from "node:fs";
 import * as immediate from "node:fs";
 import * as native from "node:fs/promises";
@@ -149,6 +150,7 @@ export class RealFileSystem implements FileSystem {
 
   private readonly configuredRoot: string;
   private readonly renameNoReplace: RealFileSystemOptions["renameNoReplace"];
+  private extractionGuard?: (path: string) => void;
   private rootPromise: Promise<string> | undefined;
 
   constructor(options: RealFileSystemOptions | string) {
@@ -331,6 +333,48 @@ export class RealFileSystem implements FileSystem {
   // These critical sections contain no await. They serialize with all JavaScript
   // callers, under this adapter's existing trusted-host (externally isolated tree)
   // boundary. They deliberately do not advertise the stronger atomic capabilities.
+  async confineTrustedExtraction(roots: readonly string[], options: ExtractionOptions = {}): Promise<FileSystem> {
+    if (!platform.nativeFileSystem.trustedOwnedStaging || !roots.length) throw new FsError("ENOTSUP");
+    const root = await this.root(options);
+    const retained = new Map<string, FileStat>();
+    const captured = [...roots];
+    const commitGuard = options.commitGuard;
+    for (const path of captured) {
+      for (const ancestor of directoryAncestryPaths(path)) {
+        const host = join(root, ancestor.slice(1));
+        const stat = this.stagingSnapshot(host);
+        if (stat?.type !== "directory") throw new FsError("ENOTDIR", { path: ancestor });
+        this.expectStaging(host, stat, true);
+        retained.set(host, stat);
+      }
+    }
+    options.signal?.throwIfAborted();
+    const view = new RealFileSystem({ root });
+    Object.defineProperty(view, "capabilities", { value: Object.freeze({ ...view.capabilities, trustedStagingAncestry: true, guardedStagingPublication: true, synchronousDirectoryValidation: true }) });
+    view.extractionGuard = host => {
+      if (commitGuard) runStagingGuard(commitGuard);
+      const path = `/${relative(root, host)}`;
+      if (!captured.some(base => base === "/" || path === base || path.startsWith(`${base}/`))) throw new FsError("EPERM");
+      for (const [entry, stat] of retained) view.expectStaging(entry, stat, true);
+      for (const ancestor of directoryAncestryPaths(dirname(path))) {
+        const entry = join(root, ancestor.slice(1));
+        if (view.stagingSnapshot(entry)?.type !== "directory") throw new FsError("EAGAIN");
+        if (immediate.realpathSync(entry) !== entry) throw new FsError("EAGAIN");
+      }
+    };
+    const reads = new Set(["access", "capabilitiesFor", "lstat", "stat", "readFile", "readStream", "openReadFile", "readdir", "readlink", "realpath", "prepareDirectoryAncestry"]);
+    const mutations = new Set(["prepareDirectory", "createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "link"]);
+    return new Proxy(view, {
+      get(target, property) {
+        if (property === "confineTrustedExtraction" || property === "confineExtraction") return undefined;
+        const value: unknown = Reflect.get(target, property);
+        if (typeof value !== "function") return value;
+        if (reads.has(String(property)) || mutations.has(String(property))) return value.bind(target);
+        return () => { throw new FsError("ENOTSUP", { syscall: String(property) }); };
+      },
+    });
+  }
+
   private stagingSnapshot(path: string): FileStat | null {
     try { return fileStat(immediate.lstatSync(path, { bigint: true })); }
     catch (error) { if (nativeError(error).code === "ENOENT") return null; throw error; }
@@ -393,6 +437,7 @@ export class RealFileSystem implements FileSystem {
       options.signal?.throwIfAborted();
       this.protectTerminal(directoryPath);
       this.expectStaging(dirname(directory), options.parent, true);
+      this.extractionGuard?.(directory);
       immediate.mkdirSync(directory, { mode: 0o700 });
       const file = join(directory, name);
       try {
@@ -437,7 +482,10 @@ export class RealFileSystem implements FileSystem {
     if (options.preserveIdentity) throw new FsError("ENOTSUP", { path: destination });
     return this.operation("publishStagedFile", staging.file.path, options, async () => {
       options.signal?.throwIfAborted();
-      if (options.ancestors !== undefined || options.commitGuard !== undefined) throw new FsError("ENOTSUP");
+      if (!this.extractionGuard && (options.ancestors !== undefined || options.commitGuard !== undefined)) throw new FsError("ENOTSUP");
+      const ancestors = options.ancestors === undefined ? undefined : snapshotDirectoryAncestry(options.ancestors);
+      if (ancestors && ancestors.at(-1)!.path !== dirname(destination)) throw new FsError("EINVAL");
+      const root = await this.root(options);
       const paths = await this.stagingPaths(staging, options);
       const target = await this.path(destination, { ...options, followFinal: false, missing: "final" });
       options.signal?.throwIfAborted();
@@ -449,6 +497,9 @@ export class RealFileSystem implements FileSystem {
       if (existing && existing.dev === staging.file.stat.dev && existing.ino === staging.file.stat.ino
         || target === paths.file || target === paths.directory || dirname(target) === paths.directory) throw new FsError("EINVAL");
       if (existing && existing.type !== "file") throw new FsError("EAGAIN");
+      if (ancestors) for (const entry of ancestors) this.expectStaging(join(root, entry.path.slice(1)), entry.stat, true);
+      if (options.commitGuard) runStagingGuard(options.commitGuard);
+      this.extractionGuard?.(target);
       immediate.renameSync(paths.file, target);
     }, destination, true);
   }
@@ -462,6 +513,7 @@ export class RealFileSystem implements FileSystem {
       if (file) this.expectStaging(paths.file, staging.file.stat);
       const children = immediate.readdirSync(paths.directory);
       if (children.length !== (file ? 1 : 0) || file && children[0] !== basename(paths.file)) throw new FsError("ENOTEMPTY");
+      this.extractionGuard?.(paths.directory);
       if (file) immediate.unlinkSync(paths.file);
       immediate.rmdirSync(paths.directory);
     });
@@ -477,6 +529,7 @@ export class RealFileSystem implements FileSystem {
       this.expectStaging(dirname(target), options.parent, true);
       const existing = this.expectStaging(target, options.expected);
       if (existing && existing.type !== "file") throw new FsError("EAGAIN");
+      this.extractionGuard?.(target);
       const fd = immediate.openSync(target, constants.O_WRONLY | constants.O_NOFOLLOW | (existing ? 0 : constants.O_CREAT | constants.O_EXCL), options.mode ?? 0o666);
       try {
         if (!options.append) immediate.ftruncateSync(fd, 0);
@@ -504,6 +557,7 @@ export class RealFileSystem implements FileSystem {
       this.expectStaging(dirname(target), options.parent, true);
       const file = this.expectStaging(target, options.expected);
       if (file?.type !== "file" || file.nlink !== 1) throw new FsError("EAGAIN");
+      this.extractionGuard?.(target);
       immediate.unlinkSync(target);
     });
   }
@@ -518,6 +572,7 @@ export class RealFileSystem implements FileSystem {
       this.expectStaging(dirname(target), options.parent, true);
       const existing = this.expectStaging(target, options.expected, true);
       if (existing && existing.type !== "directory") throw new FsError("EAGAIN");
+      this.extractionGuard?.(target);
       if (!existing) immediate.mkdirSync(target, { mode: options.mode ?? 0o777 });
       if (options.mode !== undefined) immediate.chmodSync(target, options.mode);
       if (options.atimeMs !== undefined || options.mtimeMs !== undefined) {
@@ -823,7 +878,12 @@ export class RealFileSystem implements FileSystem {
       const source = await this.path(existingPath, { ...options, followFinal: false });
       const destination = await this.path(newPath, { ...options, followFinal: false, missing: "final" });
       options.signal?.throwIfAborted();
-      await native.link(source, destination);
+      if (this.extractionGuard) {
+        this.extractionGuard(source);
+        this.extractionGuard(destination);
+        if (this.stagingSnapshot(source)?.type !== "file") throw new FsError("EAGAIN");
+        immediate.linkSync(source, destination);
+      } else await native.link(source, destination);
     }, newPath);
   }
 

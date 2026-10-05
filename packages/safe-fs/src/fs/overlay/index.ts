@@ -1,3 +1,4 @@
+import type { ExtractionOptions } from "../../contracts/filesystem.js";
 import { OverlayMemoryPublication } from "./memory-publication.js";
 import { platform } from "#safe-fs-platform";
 import { openRetainedReadFile, requireCapabilities, retainedReadCapabilities } from "../capabilities.js";
@@ -200,7 +201,8 @@ export class OverlayFileSystem implements FileSystem {
     Object.defineProperty(this, "capabilities", { writable: false, configurable: false });
   }
 
-  confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
+  confineExtraction(roots: readonly string[], options: ExtractionOptions = {}): Promise<FileSystem> {
+    if (options.commitGuard !== undefined) return Promise.reject(new FsError("ENOTSUP"));
     return this.run(options, async () => this.publication.confine(roots, options,
       (options, operation) => this.run(options, operation, false), this, this.maxBufferBytes), false);
   }

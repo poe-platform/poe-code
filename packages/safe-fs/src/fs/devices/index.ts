@@ -1,3 +1,4 @@
+import type { ExtractionOptions } from "../../contracts/filesystem.js";
 import { snapshotStagingCreation } from "../staging-cleanup.js";
 import { FsError, isFsError } from "../../contracts/errors.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
@@ -804,7 +805,14 @@ export class DeviceFileSystem implements FileSystem {
     await this.#filesystem.symlink(target, path, options);
   }
 
-  async confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
+  async confineTrustedExtraction(roots: readonly string[], options: ExtractionOptions = {}): Promise<FileSystem> {
+    options.signal?.throwIfAborted();
+    const operation = this.#filesystem.confineTrustedExtraction ?? this.#filesystem.confineExtraction;
+    if (!operation) throw new FsError("ENOTSUP", { syscall: "confineTrustedExtraction" });
+    return operation.call(this.#filesystem, roots, options);
+  }
+
+  async confineExtraction(roots: readonly string[], options: ExtractionOptions = {}): Promise<FileSystem> {
     options.signal?.throwIfAborted();
     if (!this.#filesystem.confineExtraction) throw new FsError("ENOTSUP", { syscall: "confineExtraction" });
     // Extraction uses only the backing namespace; synthetic devices must never

@@ -1621,3 +1621,19 @@ the retained roots and the current file binding, so a renamed or replaced
 stream destination stops further writes. Accepted earlier chunks and members
 remain; this is not a transaction or rollback. Unsupported backends refuse
 filesystem extraction, while archive listing and stdout extraction still work.
+
+
+`confineTrustedExtraction(roots)` is the explicitly trusted-host counterpart of
+`confineExtraction`. It retains extraction roots, rejects symlink ancestors and
+unsupported mutations, and checks retained identities within each synchronous
+mutation section. It requires external isolation of the host tree, just like
+`trustedOwnedStaging`; it does not promise OS-atomic confinement. A returned view
+may advertise `trustedStagingAncestry` with `trustedOwnedStaging` and
+`guardedStagingPublication`: publication validates the complete ordered
+root-to-parent receipts and invokes the synchronous commit guard before rename.
+It must not advertise `atomicFileStaging` or `atomicStagingAncestry` on that basis.
+Cleanup preserves foreign entries and refuses changed staging ancestry.
+
+Both confinement methods accept an optional synchronous `commitGuard`. Every
+mutation in the returned view must invoke it at commit; unsupported backends
+reject it. Mount views use this to retain ancestry above a selected backend.

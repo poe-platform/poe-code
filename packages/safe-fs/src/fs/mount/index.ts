@@ -1,3 +1,4 @@
+import type { ExtractionOptions } from "../../contracts/filesystem.js";
 import { FsError, isFsError, toFsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
@@ -200,34 +201,62 @@ export class MountFileSystem implements FileSystem {
     });
   }
 
-  async confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
-    options.signal?.throwIfAborted();
-    const root = this.select("/").backend;
-    const captured = [...roots];
-    for (const path of captured) {
+  private async confineArchive(roots: readonly string[], options: ExtractionOptions, trusted: boolean): Promise<FileSystem> {
+    const callerGuard = options.commitGuard;
+    const groups = new Map<Mount, string[]>();
+    for (const path of [...roots]) {
       validatePath(path);
       if (normalizePath(globalPath(path)) !== path) fail("EINVAL");
-      // A backing confinement retains its own root-to-destination ancestry.
-      // It cannot retain directories belonging to another mounted backend.
-      if (this.select(path).path !== "/") fail("ENOTSUP");
+      const location = await this.resolve(path, options, { followFinal: false, entry: true });
+      if (location.path !== path || location.stat?.type !== "directory" || location.synthetic) fail("ENOTSUP");
+      const paths = groups.get(location.mount) ?? [];
+      paths.push(location.local);
+      groups.set(location.mount, paths);
     }
-    if (!root.confineExtraction) fail("ENOTSUP");
-    const confined = await root.confineExtraction(captured, options);
+    const confined = new Map<Mount, FileSystem>();
+    for (const mount of this.mounts) {
+      const paths = groups.get(mount);
+      const backend = mount.backend;
+      const operation = trusted ? backend.confineTrustedExtraction ?? backend.confineExtraction : backend.confineExtraction;
+      if (paths && !operation) fail("ENOTSUP");
+      let outerGuard: (() => true) | undefined;
+      if (paths && mount.path !== "/") {
+        const parent = mount.path.slice(0, mount.path.lastIndexOf("/")) || "/";
+        const ancestors = await Promise.all(directoryAncestryPaths(parent).map(async path => ({ path, stat: await this.lstat(path, options) })));
+        outerGuard = await this.prepareAncestry(ancestors, options);
+      }
+      const controls: ExtractionOptions = { ...options, ...(outerGuard || callerGuard ? { commitGuard: () => {
+        if (callerGuard) runStagingGuard(callerGuard);
+        if (outerGuard) runStagingGuard(outerGuard);
+        return true as const;
+      } } : {}) };
+      const view = paths ? await operation!.call(backend, paths, controls) : createReadOnlyFileSystem(backend);
+      const observations = paths ? view : backend;
+      confined.set(mount, new Proxy(view, {
+        get(target, property) {
+          if (property === "capabilities") return { ...target.capabilities, synchronousDirectoryValidation: observations.capabilities.synchronousDirectoryValidation };
+          if (property === "capabilitiesFor") return async (path: string, query: CapabilityQueryOptions = {}) => ({
+            ...await target.capabilitiesFor?.(path, query) ?? target.capabilities,
+            synchronousDirectoryValidation: (await observations.capabilitiesFor?.(path, query) ?? observations.capabilities).synchronousDirectoryValidation,
+          });
+          const owner = property === "prepareDirectoryAncestry" ? observations : target;
+          const value: unknown = Reflect.get(owner, property);
+          return typeof value === "function" ? value.bind(owner) : value;
+        },
+      }));
+    }
     options.signal?.throwIfAborted();
-    const observations = new Set<PropertyKey>(["prepareDirectoryAncestry", "prepareStagingResolution"]);
-    const backing = new Proxy(confined, {
-      get(target, key) {
-        // These only capture/validate bindings. Mutations must always use the
-        // backend's confined view, including creation, metadata and hardlinks.
-        const owner = observations.has(key) ? root : target;
-        const value: unknown = Reflect.get(owner, key);
-        return typeof value === "function" ? value.bind(owner) : value;
-      },
-    });
-    return new MountFileSystem({ root: backing, mounts: Object.fromEntries(
-      this.mounts.filter(mount => mount.path !== "/").map(mount => [mount.path,
-        mount.backend.capabilities.readOnly === true ? mount.backend : createReadOnlyFileSystem(mount.backend)]),
+    return new MountFileSystem({ root: confined.get(this.select("/"))!, mounts: Object.fromEntries(
+      this.mounts.filter(mount => mount.path !== "/").map(mount => [mount.path, confined.get(mount)!]),
     ) });
+  }
+
+  confineTrustedExtraction(roots: readonly string[], options: ExtractionOptions = {}): Promise<FileSystem> {
+    return this.confineArchive(roots, options, true);
+  }
+
+  confineExtraction(roots: readonly string[], options: ExtractionOptions = {}): Promise<FileSystem> {
+    return this.confineArchive(roots, options, false);
   }
 
   private select(path: string): Mount {
@@ -270,7 +299,7 @@ export class MountFileSystem implements FileSystem {
           && await this.supportsDirectoryValidation(location.path.slice(0, location.path.lastIndexOf("/")) || "/", options, true)
         : this.capabilities.conditionalChmod;
       const { synchronousDirectoryValidation: ignoredValidation, synchronousStagingResolution: ignoredResolution, synchronousFollowedStagingResolution: ignoredFollowedResolution, ...ordinary } = resize;
-      const withOpen = { ...ordinary, ...(conditionalChmod === undefined ? {} : { conditionalChmod }), ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution, ...(options.followFinalSymlink === true ? {synchronousFollowedStagingResolution: resolution} : {}) }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
+      const withOpen = { ...ordinary, ...(conditionalChmod === undefined ? {} : { conditionalChmod }), ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution, ...(options.followFinalSymlink === true ? {synchronousFollowedStagingResolution: resolution} : {}) }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry && resize.atomicStagingAncestry === true, trustedStagingAncestry: ancestry && resize.trustedStagingAncestry === true, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
       const capabilities = location.synthetic ? { ...withOpen, open: false, retainedRead: false }
         : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, withOpen));
       if (location.synthetic) return readOnlyCapabilities(capabilities);
@@ -288,7 +317,7 @@ export class MountFileSystem implements FileSystem {
   private async supportsStagingAncestry(target: Location, capabilities: FileSystemCapabilities, options: FsOptions): Promise<boolean> {
     options.signal?.throwIfAborted();
     if (target.synthetic || target.stat !== undefined && (target.stat.type !== "file" || compareIdentity(target.stat, target.stat) !== "same")
-      || capabilities.atomicFileStaging !== true || capabilities.atomicStagingAncestry !== true
+      || (capabilities.atomicFileStaging !== true || capabilities.atomicStagingAncestry !== true) && (capabilities.trustedOwnedStaging !== true || capabilities.trustedStagingAncestry !== true)
       || capabilities.guardedStagingPublication !== true || capabilities.readOnly === true) return false;
     const parent = target.path.slice(0, target.path.lastIndexOf("/")) || "/";
     return this.supportsDirectoryValidation(parent, options);

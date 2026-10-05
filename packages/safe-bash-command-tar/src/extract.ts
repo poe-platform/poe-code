@@ -144,7 +144,7 @@ let stagingSerial = 0;
 async function stageEntry(context: CommandContext, path: string, source: ByteSource, existing: FileStat | undefined, entry: ReadEntry, options: TarOptions, budget: Budget, preparedAncestors?: FileStagingEntry[]): Promise<void> {
   const { fs, signal } = context;
   const capabilities = await fs.capabilitiesFor?.(path, { signal, create: true, stagingAncestry: true }) ?? fs.capabilities;
-  if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || capabilities.atomicStagingAncestry !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic staging and ancestry verification");
+  if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || (capabilities.atomicStagingAncestry !== true && !(capabilities.trustedOwnedStaging === true && capabilities.trustedStagingAncestry === true)) || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic staging and ancestry verification");
   let ancestors: FileStagingEntry[];
   if (preparedAncestors) {
     ancestors = preparedAncestors;
@@ -263,8 +263,9 @@ export interface ArchiveVisitor {
 
 export async function readArchive(context: CommandContext, source: ByteSource, options: TarOptions, budget: Budget, visitor?: ArchiveVisitor): Promise<void> {
   if (options.mode === "x" && !options.toStdout && !visitor) {
-    if (!context.fs.confineExtraction) fail("filesystem does not support race-safe archive extraction");
-    const fs = await operation(context, () => context.fs.confineExtraction!(
+    const confine = context.fs.confineTrustedExtraction ?? context.fs.confineExtraction;
+    if (!confine) fail("filesystem does not support race-safe archive extraction");
+    const fs = await operation(context, () => confine.call(context.fs,
       [...new Set([options.cwd, ...options.operands.map(operand => operand.cwd)].map(root => resolvePath(root)))],
       { signal: context.signal },
     ));

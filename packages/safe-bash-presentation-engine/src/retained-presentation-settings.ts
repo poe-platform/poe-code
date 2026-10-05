@@ -43,40 +43,6 @@ async function numeric(document: Document, node: Node | undefined, name: string)
   if (!digits) invalid('Invalid numeric presentation setting.');
   return negative ? -number : number;
 }
-async function* escaped(source: ByteSource): ByteSource {
-  let buffer = '';
-  for await (const character of characters(source)) {
-    buffer += ({ '&': '&amp;', '<': '&lt;', '"': '&quot;', '\t': '&#9;', '\n': '&#10;', '\r': '&#13;' } as Record<string, string>)[character] ?? character;
-    if (buffer.length >= 2048) { yield* literal(buffer); buffer = ''; }
-  }
-  if (buffer) yield* literal(buffer);
-}
-// Print properties are a direct child of the admitted properties root. Root
-// declarations provide all inherited bindings, in original insertion order.
-async function* standalone(document: Document, node: Node, maxCharacters: number): ByteSource {
-  async function* declarations(): ByteSource {
-    if (node === document.root) return;
-    for await (const inherited of document.declarations(document.root)) {
-      if (await equal(document.raw(inherited.name), literal('xmlns:xml'))) continue;
-      let local = false;
-      for await (const own of document.declarations(node)) if (await equal(document.raw(own.name), document.raw(inherited.name))) { local = true; break; }
-      if (local) continue;
-      yield* literal(' '); yield* document.raw(inherited.name); yield* literal('="'); yield* escaped(document.text(inherited)); yield* literal('"');
-    }
-  }
-  async function* markup(): ByteSource {
-    let remaining = node.name.length + 1;
-    for await (const bytes of document.markup(node)) {
-      if (remaining) { const size = Math.min(remaining, bytes.length); yield bytes.subarray(0, size); remaining -= size; if (!remaining) yield* declarations(); if (size < bytes.length) yield bytes.subarray(size); }
-      else yield bytes;
-    }
-  }
-  let count = 0; const decoder = new TextDecoder();
-  for await (const bytes of markup()) { count += decoder.decode(bytes, { stream: true }).length; if (count > maxCharacters) throw new OfficeError('resource-limit', 'XML resource limit exceeded.', 'parse'); yield bytes; }
-  count += decoder.decode().length;
-  if (count > maxCharacters) throw new OfficeError('resource-limit', 'XML resource limit exceeded.', 'parse');
-}
-
 /** Retained presentation settings; arbitrary print/view XML stays in caller storage. */
 export async function openRetainedPresentationSettings(
   archive: Pick<RetainedPackageArchive, 'parts' | 'has' | 'read' | 'byteLength'>,
@@ -112,7 +78,7 @@ export async function openRetainedPresentationSettings(
     }
     const properties = await related('presProps'), view = await related('viewProps');
     // Admit XML serialization before scalar settings, preserving eager error order.
-    const viewXml = view ? () => standalone(view.document, view.document.root, context.xmlLimits.maxBytes) : undefined;
+    const viewXml = view ? () => view.document.markup(view.document.root, true) : undefined;
     if (viewXml) for await (const ignored of viewXml()) check();
     const print = properties && await child(properties.document, properties.document.root, 'prnPr');
     const slide = await child(main, main.root, 'sldSz'), notes = await child(main, main.root, 'notesSz');
@@ -128,7 +94,7 @@ export async function openRetainedPresentationSettings(
     if (count > 1) invalid('Ambiguous slideshow mode.');
     const slideNumberStart = await numeric(main, main.root, 'firstSlideNum') ?? 1;
     if (slideNumberStart < -2147483648 || slideNumberStart > 2147483647) invalid('Invalid slide numbering value.');
-    const printXml = print ? () => standalone(properties!.document, print, context.xmlLimits.maxBytes) : undefined;
+    const printXml = print ? () => properties!.document.markup(print, true) : undefined;
     if (printXml) for await (const ignored of printXml()) check();
     const value: RetainedPresentationSettingsValue = { width, height, orientation: width === null || height === null ? null : width >= height ? 'landscape' : 'portrait', notesWidth, notesHeight,
       notesOrientation: notesWidth === null || notesHeight === null ? null : notesWidth >= notesHeight ? 'landscape' : 'portrait', slideNumberStart, loop: loop === '1' || loop === 'true', showType: mode === 'browse' ? 'window' : mode === 'kiosk' ? 'kiosk' : 'speaker',

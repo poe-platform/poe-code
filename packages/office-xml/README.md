@@ -37,6 +37,8 @@ order (including `root`) using stored links rather than an additional traversal
 stack. `markup(element)` streams the original decoded UTF-8 element, preserving
 quotes, entities and line endings. `shell(element)` removes only its direct
 element children while retaining text, comments, CDATA and instructions. These
-streams do not inject inherited namespace declarations; `declarations(element)`
+streams preserve their source declarations. Use `markup(element, true)` for a
+standalone fragment with inherited namespaces in original declaration order;
+namespace scope and deduplication use caller storage. `declarations(element)`
 exposes local `xmlns` attributes in source order, and `resolveNamespace` resolves
 inherited bindings. All node handles and streams expire when the document closes.

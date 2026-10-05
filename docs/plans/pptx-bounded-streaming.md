@@ -894,3 +894,18 @@ exact human/JSON output through the public adapter; source bytes and scratch cle
 are verified. This checks metadata, not font installation or rendering. Other read
 families, image/media extraction, mutations, workbook processing and Worker runtime
 qualification remain open.
+
+## Standalone retained XML fragments
+
+`RetainedXmlDocument.markup(element, true)` now reconstructs inherited namespace
+bindings across arbitrary ancestor depth, retaining parent ordering and prefix
+identity in caller storage. It preserves first-declaration order through rebinding,
+local declarations, escaping, original lexical markup and UTF-16 output limits.
+Presentation settings use this shared path in place of the direct-child helper.
+
+Verification includes 168 XML/engine/public settings cases, scoped lint/build,
+bounded namespace spill writes, early retirement, cancellation, storage failure,
+and an independent Python XML namespace/Unicode round-trip. This is a prerequisite
+for rich media/animation metadata; media reads and extraction are not yet migrated.
+Other outstanding readers, mutations, workbook processing and Worker qualification
+remain in the operation matrix above.

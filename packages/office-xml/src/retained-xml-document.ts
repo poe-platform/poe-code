@@ -1,6 +1,6 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { ZipDirectoryIndex } from "@poe-code/office-package/zip";
-import { literal, equal, digest, characters as streamCharacters } from "./retained-values.js";
+import { RetainedValues, literal, equal, digest, characters as streamCharacters } from "./retained-values.js";
 import type { ByteSource } from "@poe-code/office-package";
 import { OfficeError } from "./office-errors.js";
 import { openRetainedXml, type XmlRange } from "./retained-xml.js";
@@ -29,8 +29,8 @@ export interface RetainedXmlDocument {
   declarations(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
   /** Element-only document order, including the selected root, without a heap stack. */
   elements(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
-  /** Exact decoded UTF-8 source markup; neither standalone namespace injection nor normalization. */
-  markup(node: RetainedXmlNode): ByteSource;
+  /** Exact decoded UTF-8 markup, optionally with inherited namespace bindings. */
+  markup(node: RetainedXmlNode, standalone?: boolean): ByteSource;
   /** Source markup with direct element children removed; retains text, comments and instructions. */
   shell(node: RetainedXmlNode): ByteSource;
   namespace(node: RetainedXmlNode): ByteSource;
@@ -382,11 +382,70 @@ export async function openRetainedXmlDocument(source: ByteSource, settings: Reta
           check();
         } catch (error) { throw failure(error); }
       },
-      async *markup(node) {
+      async *markup(node, standalone = false) {
+        let scratch: PagedStorage | undefined;
         try {
           const { values } = await element(node), start = values[F.Name]! - 1;
-          yield* xml.read({ start, length: values[F.End]! - start }); check();
+          if (!standalone) { yield* xml.read({ start, length: values[F.End]! - start }); check(); return; }
+          scratch = new PagedStorage({ fs: working.fs, cwd: working.directory, env: {}, signal },
+            (working.cacheBytes ?? 1024 * 1024) / 16384);
+          const retained = new RetainedValues(scratch, check, signal);
+          // Reverse the backed parent chain; neither depth nor namespace count
+          // adds a payload-sized JS collection.
+          let head = 0;
+          for (let parent = values[F.Parent]!; parent !== document;) {
+            const bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
+            view.setFloat64(0, head, true); view.setFloat64(8, parent, true);
+            head = scratch.allocate(16); await scratch.write(head, bytes);
+            parent = (await row(parent))[F.Parent]!;
+          }
+          const backing = scratch;
+          async function* declarations(): ByteSource {
+            for (let entry = head; entry;) {
+              const bytes = await backing.read(entry, 16), view = new DataView(bytes.buffer, bytes.byteOffset, 16);
+              const owner = await row(view.getFloat64(8, true));
+              entry = view.getFloat64(0, true);
+              for (let attribute = owner[F.Attrs]!; attribute;) {
+                const declaration = await row(attribute); attribute = declaration[F.Next]!;
+                if (declaration[F.Namespace] !== -2) continue;
+                const prefix = declaredPrefix(declaration);
+                if (await matches(prefix, "xml") || await retained.find("seen", () => xml.read(prefix))) continue;
+                const key = await retained.store(xml.read(prefix));
+                await retained.insert("seen", key, key);
+                let local = false;
+                for (let own = values[F.Attrs]!; own;) {
+                  const binding = await row(own); own = binding[F.Next]!;
+                  if (binding[F.Namespace] === -2 && await equal(xml.read(prefix), xml.read(declaredPrefix(binding)))) { local = true; break; }
+                }
+                if (local) continue;
+                const namespace = await api.resolveNamespace(node, () => xml.read(prefix));
+                yield* literal(" "); yield* xml.read(range(declaration, F.Name)); yield* literal('="');
+                let buffer = "";
+                for await (const character of streamCharacters(namespace!)) {
+                  buffer += ({ "&": "&amp;", "<": "&lt;", '"': "&quot;", "\t": "&#9;", "\n": "&#10;", "\r": "&#13;" } as Record<string, string>)[character] ?? character;
+                  if (buffer.length >= 2048) { yield* literal(buffer); buffer = ""; }
+                }
+                yield* literal(buffer); yield* literal('"');
+              }
+            }
+          }
+          async function* markup(): ByteSource {
+            const split = values[F.Name]! + values[F.NameLength]!;
+            yield* xml.read({ start, length: split - start });
+            yield* declarations();
+            yield* xml.read({ start: split, length: values[F.End]! - split });
+          }
+          let count = 0; const decoder = new TextDecoder();
+          for await (const bytes of markup()) {
+            check(); count += decoder.decode(bytes, { stream: true }).length;
+            if (count > context.xmlLimits.maxBytes) throw new OfficeError("resource-limit", "XML resource limit exceeded.", "parse");
+            yield bytes;
+          }
+          count += decoder.decode().length;
+          if (count > context.xmlLimits.maxBytes) throw new OfficeError("resource-limit", "XML resource limit exceeded.", "parse");
+          check();
         } catch (error) { throw failure(error); }
+        finally { await scratch?.close(); }
       },
       async *shell(node) {
         try {

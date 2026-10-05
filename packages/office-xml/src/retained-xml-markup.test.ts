@@ -109,3 +109,77 @@ it('walks document-level and nested nodes in order with backed parent links', as
   await expect(doc.nodes().next()).rejects.toMatchObject({code: 'invalid-handle'});
   expect(await fs.readdir('/')).toEqual([]);
 });
+
+it('reconstructs standalone namespace scope in first declaration order across nested rebinding', async () => {
+  const fs = createMemoryFileSystem();
+  const doc = await openRetainedXmlDocument(source('<r xmlns="urn:r" xmlns:a="urn:old" xmlns:b="urn:b"><s xmlns:a="urn:new&amp;&quot;&#9;&#10;&#13;&lt;" xmlns:c="urn:c"><t xmlns="" xmlns:b="urn:local"><a:child/></t></s></r>'), {workingStorage: {fs, directory: '/', cacheBytes: 16384}});
+  try {
+    const s = (await doc.children(doc.root).next()).value!;
+    const t = (await doc.children(s).next()).value!;
+    expect(await collect(doc.markup(t, true))).toBe('<t xmlns:a="urn:new&amp;&quot;&#9;&#10;&#13;&lt;" xmlns:c="urn:c" xmlns="" xmlns:b="urn:local"><a:child/></t>');
+    const child = (await doc.children(t).next()).value!;
+    expect(await collect(doc.markup(child, true))).toBe('<a:child xmlns="" xmlns:a="urn:new&amp;&quot;&#9;&#10;&#13;&lt;" xmlns:b="urn:local" xmlns:c="urn:c"/>');
+    expect(await collect(doc.markup(doc.root, true))).toBe(await collect(doc.markup(doc.root)));
+  } finally {await doc.close();}
+  expect(await fs.readdir('/')).toEqual([]);
+});
+
+for (const mode of ['success', 'retire', 'cancel', 'storage'] as const) it(`bounds standalone namespace storage and cleans up after ${mode}`, async () => {
+  const owner = createMemoryFileSystem(), controller = new AbortController();
+  let admission = true, written = 0, outstanding = 0, peak = 0;
+  const fs = new Proxy(owner, {get(target, key) {
+    if (key === 'readFile') return async () => {throw new Error('payload read forbidden');};
+    if (key === 'open') return async (...args: Parameters<NonNullable<typeof owner.open>>) => {
+      const handle = await owner.open!(...args);
+      return new Proxy(handle, {get(target, key) {
+        if (key === 'write') return async (...args: Parameters<typeof handle.write>) => {
+          if (!admission && mode === 'storage') throw new Error('injected namespace spill failure');
+          outstanding += args[0].length; peak = Math.max(peak, outstanding);
+          try {await Promise.resolve(); if (!admission) written += args[0].length; return await handle.write(...args);}
+          finally {outstanding -= args[0].length;}
+        };
+        const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value;
+      }});
+    };
+    const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  async function* declarations() {
+    for (let i = 0; i < 40; i++) yield encode(` xmlns:p${i}${'x'.repeat(4096)}="urn:${'y'.repeat(4096)}"`);
+  }
+  async function* input() {yield encode('<root'); yield* declarations(); yield encode('><child/></root>');}
+  const doc = await openRetainedXmlDocument(input(), {signal: controller.signal, workingStorage: {fs, directory: '/', cacheBytes: 16384}});
+  const child = (await doc.children(doc.root).next()).value!;
+  admission = false;
+  const expected = sha256.create(); expected.update(encode('<child'));
+  for await (const bytes of declarations()) expected.update(bytes);
+  expected.update(encode('/>'));
+  try {
+    const actual = sha256.create();
+    let total = 0;
+    const consume = async () => {
+      for await (const bytes of doc.markup(child, true)) {
+        expect(bytes.length).toBeLessThanOrEqual(16384); actual.update(bytes); total += bytes.length;
+        await Promise.resolve();
+        if (total > 20000 && mode === 'retire') break;
+        if (total > 20000 && mode === 'cancel') controller.abort();
+      }
+    };
+    if (mode === 'cancel' || mode === 'storage') await expect(consume()).rejects.toMatchObject({code: mode === 'cancel' ? 'cancelled' : 'io-failure'});
+    else {await consume(); if (mode === 'success') {expect(actual.digest()).toEqual(expected.digest()); expect(written).toBeGreaterThan(16384);}}
+    expect(peak).toBeLessThanOrEqual(16384);
+    expect(outstanding).toBe(0);
+    if (mode === 'retire') expect(await collect(doc.markup(child))).toBe('<child/>');
+  } finally {await doc.close();}
+  expect(await fs.readdir('/')).toEqual([]);
+});
+
+it('applies the standalone UTF-16 output limit after namespace escaping', async () => {
+  const fs = createMemoryFileSystem(), markup = "<r xmlns:a='" + '"'.repeat(100) + "'><c>" + 'x'.repeat(400) + '</c></r>';
+  const doc = await openRetainedXmlDocument(source(markup), {xmlLimits: {maxBytes: encode(markup).length}, workingStorage: {fs, directory: '/', cacheBytes: 16384}});
+  try {
+    const child = (await doc.children(doc.root).next()).value!;
+    // Escaping the decoded namespace increases output beyond the admitted input.
+    await expect(collect(doc.markup(child, true))).rejects.toMatchObject({code: 'resource-limit'});
+  } finally {await doc.close();}
+  expect(await fs.readdir('/')).toEqual([]);
+});

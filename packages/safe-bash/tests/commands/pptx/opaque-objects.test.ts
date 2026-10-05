@@ -14,6 +14,7 @@ function setup() {
   const fixture = opaqueDeck();
   const volume = Volume.fromJSON({ "/work/deck.pptx": Buffer.from(fixture.bytes) });
   const fs = new MemoryFileSystem();
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
   fs.readStream = async function* (path, options) {
     options?.signal?.throwIfAborted();
     yield new Uint8Array(volume.readFileSync(path) as Buffer);
@@ -53,6 +54,7 @@ test("pptx identifies parameterized active media types through an unknown relati
   const volume = Volume.fromJSON({ "/work/deck.pptx": Buffer.from(bytes) });
   const fs = new MemoryFileSystem();
   const reads: string[] = [];
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
   fs.readStream = async function* (path, options) {
     options?.signal?.throwIfAborted();
     reads.push(path);

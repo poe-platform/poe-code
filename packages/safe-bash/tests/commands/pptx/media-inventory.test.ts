@@ -63,6 +63,7 @@ function fixture(embedded = false) {
   const volume = Volume.fromJSON({ "/work/harbor deck.pptx": Buffer.from(bytes) });
   const reads: string[] = [];
   const fs = new MemoryFileSystem();
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
   fs.readStream = async function* (path, options) {
     options?.signal?.throwIfAborted();
     reads.push(path);

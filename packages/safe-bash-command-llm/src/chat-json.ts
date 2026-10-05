@@ -1,4 +1,6 @@
-import {openAiTools} from "./openai-tools.js";
+import {sourceBytes} from "./request-source.js";
+import {yieldTurn} from 'safe-bash-contracts/yield';
+import {openAiTools, openAiToolCallsJson} from "./openai-tools.js";
 import { validateAttachmentUrl } from "./url-attachment.js";
 import { openAiAttachmentKind } from './openai-attachment.js';
 import { pdfJson } from './pdf-json.js';
@@ -6,7 +8,7 @@ import { requestAttachments } from "./request-attachments.js";
 import { jsonString } from "./json-string.js";
 import { base64Stream } from "./base64-stream.js";
 import { jsonValue } from "./json-value.js";
-import type { LlmSourceRequest } from "./types.js";
+import type { LlmSourceRequest, LlmMessage, LlmInputSource, LlmSourceAttachment } from "./types.js";
 /** Sources are borrowed; the caller owns their leases and provider admission. */
 export type OpenAiChatSourceRequest = Omit<LlmSourceRequest, "options"> & {
   readonly options: Readonly<Record<string, unknown>>;
@@ -38,39 +40,81 @@ export function chatJson(request: OpenAiChatSourceRequest, limit: number): Async
     // The final object delimiter is replaced by the streamed message fields.
     yield text(',"messages":[');
     let first = true;
-    for (const message of [...(request.system === undefined ? [] : [{ role: "system", content: request.system, attachments: [] }]), ...(request.messages ?? []), { role: "user", content: request.prompt, attachments: request.attachments }]) {
+    const current: LlmMessage<LlmInputSource, LlmSourceAttachment> = {role:'user',content:request.prompt,attachments:request.attachments};
+    const messages: readonly LlmMessage<LlmInputSource, LlmSourceAttachment>[] = [...(request.system === undefined ? [] : [{ role: 'system' as const, content: request.system, attachments: [] }]), ...(request.messages ?? []), current];
+    const toolContinuation = request.messages?.some(message=>message.role === 'tool');
+    for (const message of messages) {
       request.signal.throwIfAborted();
-      yield text((first ? "" : ",") + '{"role":' + JSON.stringify(message.role) + ',"content":');
-      first = false;
       const attachments = message.attachments ?? [];
-      if (attachments.length) yield text('[{"type":"text","text":');
-      yield* jsonString(message.content.bytes, request.signal);
-      if (attachments.length) {
-        yield text("}");
-        for (const attachment of attachments) {
-          request.signal.throwIfAborted();
-          const kind = openAiAttachmentKind(attachment.mimeType);
-          if (kind === 'pdf' && attachment.source !== undefined) {
-            yield text(',');
-            yield* pdfJson(attachment.source, attachment.id, request.signal);
-            continue;
-          }
-          if (attachment.url !== undefined) {
-            validateAttachmentUrl(attachment.url);
-            yield text(',{"type":"image_url","image_url":{"url":');
-            yield* jsonValue(attachment.url, request.signal);
-            yield text('}}');
-            continue;
-          }
-          yield text(kind === 'image'
-            ? ',{"type":"image_url","image_url":{"url":' + JSON.stringify(`data:${attachment.mimeType};base64,`).slice(0, -1)
-            : ',{"type":"input_audio","input_audio":{"data":"');
-          for await (const part of base64Stream(attachment.source.bytes, request.signal)) yield text(part);
-          yield text(kind === 'image' ? '"}}' : `","format":"${kind}"}}`);
+      const reader = sourceBytes(message.content.bytes, request.signal)[Symbol.asyncIterator]();
+      let ended = false, failed = false;
+      try {
+        let head = await reader.next();
+        let emptyChunks = 0;
+        while (!head.done && !head.value.length) {
+          if (++emptyChunks % 256 === 0) await yieldTurn(request.signal);
+          head = await reader.next();
         }
-        yield text("]");
+        ended = head.done === true;
+        if (ended && message === current && toolContinuation && !attachments.length) continue;
+        yield text((first ? "" : ",") + '{"role":' + JSON.stringify(message.role));
+        first = false;
+        const hasContent = !ended || !message.toolCalls?.length || attachments.length;
+        if (hasContent) {
+          yield text(',"content":');
+          if (attachments.length) yield text('[{"type":"text","text":');
+          const content = async function* (): AsyncIterable<Uint8Array> {
+            if (!head.done) yield head.value;
+            while (!ended) {
+              const next = await reader.next();
+              if (next.done) { ended = true; break; }
+              yield next.value;
+            }
+          };
+          yield* jsonString(content(), request.signal);
+        }
+        if (attachments.length) {
+          yield text("}");
+          for (const attachment of attachments) {
+            request.signal.throwIfAborted();
+            const kind = openAiAttachmentKind(attachment.mimeType);
+            if (kind === 'pdf' && attachment.source !== undefined) {
+              yield text(',');
+              yield* pdfJson(attachment.source, attachment.id, request.signal);
+              continue;
+            }
+            if (attachment.url !== undefined) {
+              validateAttachmentUrl(attachment.url);
+              yield text(',{"type":"image_url","image_url":{"url":');
+              yield* jsonValue(attachment.url, request.signal);
+              yield text('}}');
+              continue;
+            }
+            yield text(kind === 'image'
+              ? ',{"type":"image_url","image_url":{"url":' + JSON.stringify(`data:${attachment.mimeType};base64,`).slice(0, -1)
+              : ',{"type":"input_audio","input_audio":{"data":"');
+            for await (const part of base64Stream(attachment.source.bytes, request.signal)) yield text(part);
+            yield text(kind === 'image' ? '"}}' : `","format":"${kind}"}}`);
+          }
+          yield text("]");
+        }
+        if (message.toolCallId !== undefined) {
+          yield text(',"tool_call_id":');
+          yield* jsonValue(message.toolCallId, request.signal);
+        }
+        if (message.toolCalls?.length) {
+          yield text(',"tool_calls":');
+          yield* openAiToolCallsJson(message.toolCalls, request.signal);
+        }
+        yield text("}");
+      } catch (error) { failed = true; throw error; }
+      finally {
+        if (!ended) {
+          const closing = Promise.resolve().then(()=>reader.return?.());
+          if (request.signal.aborted) void closing.catch(()=>undefined);
+          else await closing.catch(error=>{if (!failed) throw error;});
+        }
       }
-      yield text("}");
     }
     request.signal.throwIfAborted();
     yield text(`],"stream":${request.stream !== false}}`);

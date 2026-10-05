@@ -1,5 +1,5 @@
 export { serializeLlmTokenUsage } from "./usage.js";
-export type { LlmTool, LlmToolCall } from "./types.js";
+export type { LlmTool, LlmToolCall, LlmMessage } from "./types.js";
 export { createLlmInputBudget, type LlmInputLimits } from "./input-budget.js";
 export * from "./provider-serialization.js";
 export { llmReferenceVersion, createLlmCommand, createLlmCommands, llmCommands } from "./command.js";

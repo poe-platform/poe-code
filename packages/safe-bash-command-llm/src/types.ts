@@ -16,6 +16,15 @@ export interface LlmToolCall {
   readonly name: string;
   readonly arguments: LlmOption;
 }
+/** Caller-owned messages for one request. Tool results use toolCallId; only
+ * assistant messages may carry toolCalls. Tool output content can be a source. */
+export interface LlmMessage<Content = string, Attachment = LlmAttachment> {
+  readonly role: 'system' | 'user' | 'assistant' | 'tool';
+  readonly content: Content;
+  readonly attachments?: readonly Attachment[];
+  readonly toolCalls?: readonly LlmToolCall[];
+  readonly toolCallId?: string;
+}
 export interface LlmResponseMetadata {
   readonly toolCalls?: readonly LlmToolCall[];
   readonly usage?: Readonly<Record<string, unknown>>;
@@ -79,7 +88,7 @@ export interface LlmRequest {
   model: string;
   prompt: string;
   system?: string;
-  messages?: readonly { readonly role: "system" | "user" | "assistant"; readonly content: string; readonly attachments?: LlmRequest["attachments"] }[];
+  messages?: readonly LlmMessage[];
   schema?: Readonly<Record<string, unknown>>;
   attachments: readonly LlmAttachment[];
   options: Readonly<Record<string, LlmOption>>;
@@ -115,6 +124,6 @@ export interface LlmInputSource {
 export interface LlmSourceRequest extends Omit<LlmRequest, "prompt" | "system" | "messages" | "attachments"> {
   readonly prompt: LlmInputSource;
   readonly system?: LlmInputSource;
-  readonly messages?: readonly { readonly role: "system" | "user" | "assistant"; readonly content: LlmInputSource; readonly attachments?: LlmSourceRequest["attachments"] }[];
+  readonly messages?: readonly LlmMessage<LlmInputSource, LlmSourceAttachment>[];
   readonly attachments: readonly LlmSourceAttachment[];
 }

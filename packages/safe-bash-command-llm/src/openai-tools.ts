@@ -1,5 +1,26 @@
 import {openAiRecord} from './openai-http.js';
 import type {LlmTool, LlmToolCall, LlmOption} from './types.js';
+import {jsonString} from './json-string.js';
+import {jsonValue} from './json-value.js';
+import {referenceJson} from './reference-json.js';
+
+/** Serialize nested JSON arguments without collecting their escaped wire form. */
+export async function* openAiToolCallsJson(calls: readonly LlmToolCall[], signal: AbortSignal): AsyncIterable<Uint8Array> {
+  const encoder=new TextEncoder();
+  yield encoder.encode('[');
+  for (let index=0;index<calls.length;index++) {
+    signal.throwIfAborted();
+    const call=calls[index]!;
+    yield encoder.encode((index?',':'')+'{"type":"function","id":');
+    yield* jsonValue(call.id ?? null,signal);
+    yield encoder.encode(',"function":{"name":');
+    yield* jsonValue(call.name,signal);
+    yield encoder.encode(',"arguments":');
+    yield* jsonString(referenceJson(call.arguments,signal),signal);
+    yield encoder.encode('}}');
+  }
+  yield encoder.encode(']');
+}
 
 export function openAiTools(tools: readonly LlmTool[] | undefined): Record<string, unknown> {
   return tools?.length ? {tools:tools.map(tool=>({type:'function',function:{name:tool.name,description:tool.description || null,parameters:tool.inputSchema}}))} : {};

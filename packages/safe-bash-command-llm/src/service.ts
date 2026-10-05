@@ -4,7 +4,7 @@ import { requestAttachments } from "./request-attachments.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { validateModelOptions } from "./model-options.js";
 import { acceptsMimeType } from "./mime.js";
-import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddingSourceRequest, LlmEmbeddingResponse, LlmOption, LlmResponseMetadata, LlmSourceRequest, LlmInputSource } from "./types.js";
+import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddingSourceRequest, LlmEmbeddingResponse, LlmOption, LlmResponseMetadata, LlmSourceRequest, LlmInputSource, LlmMessage } from "./types.js";
 
 export interface LlmServiceOptions {
   readonly providers: readonly LlmProvider[];
@@ -103,6 +103,22 @@ function validateOptions(options: Readonly<Record<string, LlmOption>>): void {
   for (const [key, value] of Object.entries(options)) {
     if (!key) throw new TypeError("Invalid model option: empty name");
     visit(value, key);
+  }
+}
+
+function validateMessages(messages: readonly LlmMessage<unknown, unknown>[] | undefined, model: LlmModel): void {
+  for (const message of messages ?? []) {
+    if (!['system', 'user', 'assistant', 'tool'].includes(message.role)) throw new TypeError('Invalid LLM message');
+    if (message.role === 'tool' || message.toolCalls?.length) {
+      if (!model.capabilities?.includes('tools')) throw new Error(`Model ${model.id} does not support tools`);
+    }
+    if (message.role === 'tool') {
+      if (typeof message.toolCallId !== 'string' || !message.toolCallId || message.attachments?.length) throw new TypeError('Invalid LLM tool result message');
+    } else if (message.toolCallId !== undefined) throw new TypeError('toolCallId requires a tool message');
+    if (message.toolCalls !== undefined) {
+      if (message.role !== 'assistant') throw new TypeError('toolCalls requires an assistant message');
+      validateMetadata({toolCalls:message.toolCalls});
+    }
   }
 }
 
@@ -214,7 +230,8 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       const entry = this.resolve(request.model);
       validateTools(request, entry.model);
       if (request.messages?.length && !entry.model.capabilities?.includes("messages")) throw new Error(`Model ${entry.model.id} does not support messages`);
-      if (request.messages?.some(message => !["system", "user", "assistant"].includes(message.role) || typeof message.content !== "string")) throw new TypeError("Invalid LLM message");
+      validateMessages(request.messages, entry.model);
+      if (request.messages?.some(message => typeof message.content !== "string")) throw new TypeError("Invalid LLM message");
       if (request.schema !== undefined) {
         if (!entry.model.capabilities?.includes("schema")) throw new Error(`Model ${entry.model.id} does not support schema`);
         if (!request.schema || typeof request.schema !== "object" || Array.isArray(request.schema)) throw new TypeError("Invalid LLM schema");
@@ -253,7 +270,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
         for (const source of sources) if (!source || typeof source.dispose !== "function" || typeof source.bytes?.[Symbol.asyncIterator] !== "function") throw new TypeError("Invalid LLM input source");
         validateTools(request, entry.model);
         if (request.messages?.length && !entry.model.capabilities?.includes("messages")) throw new Error(`Model ${entry.model.id} does not support messages`);
-        if (request.messages?.some(message => !["system", "user", "assistant"].includes(message.role))) throw new TypeError("Invalid LLM message");
+        validateMessages(request.messages, entry.model);
         if (request.schema !== undefined) {
           if (!entry.model.capabilities?.includes("schema")) throw new Error(`Model ${entry.model.id} does not support schema`);
           if (!request.schema || typeof request.schema !== "object" || Array.isArray(request.schema)) throw new TypeError("Invalid LLM schema");

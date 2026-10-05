@@ -105,8 +105,14 @@ streaming deltas. Set provider `limits.maxToolCallBytes` to bound aggregate
 retained call controls; it defaults to `Infinity`, like the other provider quotas.
 Tool controls also count toward the service's `maxOutputBytes`. Tool definitions
 and parsed arguments are JSON control values held in memory. This transport does
-not execute tools or retain responses. Tool-result messages, execution chains,
-CLI tool selection and Python tool bridging remain incomplete.
+not execute tools or retain responses. Supply prior calls in assistant messages
+using `toolCalls`, and results as `{ role: "tool", toolCallId, content }` messages.
+Both require the model's `messages` and `tools` capabilities. An empty current
+prompt is omitted when tool results are supplied, so a continuation can consist
+entirely of caller-provided messages. `streamSources()` accepts input leases for
+tool-result content and releases them with the other request inputs. Nested call
+arguments and result content are encoded in bounded chunks on this path.
+Execution chains, CLI tool selection and Python tool bridging remain incomplete.
 
 Persist aliases, default models and default options in the caller’s filesystem using `llm aliases`, `llm models default`, and `llm models options`. Use `llm embed-models` (or `list`) with repeated `-q` queries to discover embedding models, and `llm embed-models default [MODEL]` or `--remove-default` to manage their separate default. SDK callers use `service.models` and `configuration.defaultModel("default_embedding_model.txt")` / `setDefaultModel(modelOrNull, "default_embedding_model.txt")`. Set `LLM_USER_PATH` to choose the virtual configuration directory. `createLlmConfiguration(context)` exposes these controls to structured frontends. Configuration controls require atomic publication. Configuration and remote templates default to unlimited bytes and accept explicit `Infinity`; set `limits.maxConfigurationBytes` (or the second argument to `createLlmConfiguration`) and `maxRemoteTemplateBytes` to impose finite quotas. Remote templates inherit `limits.maxInputBytes` when no separate quota is supplied. Remaining reference CLI workflows and bounded prompt/attachment preparation are still incomplete.
 

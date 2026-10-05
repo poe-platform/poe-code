@@ -1,3 +1,4 @@
+import { referenceJson } from "./reference-json.js";
 import {openAiTools, OpenAiToolCalls} from "./openai-tools.js";
 import { validateAttachmentUrl } from "./url-attachment.js";
 import { openAiAttachmentKind } from './openai-attachment.js';
@@ -203,7 +204,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       request.signal.throwIfAborted();
       const model = byId.get(request.model);
       if (!model || model.endpoint !== "chat") throw new Error(`Model ${request.model} does not support streamed inputs`);
-      if (request.tools?.length && !model.capabilities?.includes("tools")) throw new Error(`Model ${model.id} does not support tools`);
+      if ((request.tools?.length || request.messages?.some(message=>message.role === "tool" || message.toolCalls?.length)) && !model.capabilities?.includes("tools")) throw new Error(`Model ${model.id} does not support tools`);
       const body = chatJson({ ...request, options: openAiChatOptions(jsonOptions(request.options, "chat")) }, limits.maxRequestBytes);
       let details: LlmResponseMetadata | undefined;
       for await (const response of openAiResponse(transport, {
@@ -238,7 +239,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         } else attachmentBytes += attachment.bytes.byteLength;
         if (attachmentBytes > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
       }
-      if (request.tools?.length && (model.endpoint !== "chat" || !model.capabilities?.includes("tools"))) throw new Error(`Model ${model.id} does not support tools`);
+      if ((request.tools?.length || request.messages?.some(message=>message.role === "tool" || message.toolCalls?.length)) && (model.endpoint !== "chat" || !model.capabilities?.includes("tools"))) throw new Error(`Model ${model.id} does not support tools`);
       if (model.endpoint === "videos" && request.attachments.length > 1) throw new Error("OpenAI videos accepts only one input_reference image");
       if (model.endpoint !== "chat" && request.system !== undefined) throw new TypeError("System prompts are supported only by chat models");
       if (request.schema !== undefined && request.options.response_format !== undefined) throw new TypeError("OpenAI option response_format conflicts with request schema");
@@ -254,7 +255,9 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       if (model.endpoint === "chat") {
         const messages: unknown[] = [];
         if (request.system !== undefined) messages.push({ role: "system", content: request.system });
-        for (const message of [...request.messages ?? [], { role: "user", content: request.prompt, attachments: request.attachments }]) {
+        const toolContinuation = request.messages?.some(message=>message.role === 'tool');
+        const current: NonNullable<LlmRequest['messages']>[number] = { role: 'user', content: request.prompt, attachments: request.attachments };
+        for (const message of [...request.messages ?? [], ...toolContinuation && !request.prompt && !request.attachments.length ? [] : [current]]) {
           const attachments = message.attachments ?? [];
           const parts: unknown[] = [];
           for (const attachment of attachments) {
@@ -268,10 +271,19 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
               ? { type: 'image_url', image_url: { url: attachment.url ?? `data:${attachment.mimeType};base64,${base64(attachment.bytes!)}` } }
               : { type: 'input_audio', input_audio: { data: base64(attachment.bytes!), format: kind } });
           }
-          messages.push({ role: message.role, content: attachments.length === 0 ? message.content : [
+          const toolCalls = [];
+          for (const call of message.toolCalls ?? []) {
+            let argumentsText = '';
+            for await (const bytes of referenceJson(call.arguments, request.signal)) argumentsText += new TextDecoder().decode(bytes);
+            toolCalls.push({type:'function',id:call.id ?? null,function:{name:call.name,arguments:argumentsText}});
+          }
+          messages.push({ role: message.role,
+            ...(message.toolCallId === undefined ? {} : {tool_call_id:message.toolCallId}),
+            ...(toolCalls.length ? {tool_calls:toolCalls} : {}),
+            ...toolCalls.length && !message.content && !attachments.length ? {} : {content: attachments.length === 0 ? message.content : [
             { type: "text", text: message.content },
             ...parts,
-          ] });
+          ] } });
         }
         let details: LlmResponseMetadata | undefined;
         const stream = request.stream !== false;

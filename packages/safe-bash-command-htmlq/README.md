@@ -144,8 +144,11 @@ accounting; depth/token values are high-water bounds. Allocation accounting is
 conservative cumulative admission, not a measurement of live heap bytes.
 Standalone engine calls own separate budgets; one behavior/command invocation
 shares its ledger across parsing, matching, mutations and projections.
-Output files require atomic conditional VFS publication or byte mutation;
-byte-only providers use bounded spooling before commit. Input is fully read
+Output files use atomic conditional VFS publication or retained atomic staging
+with at most 16 KiB outstanding write data. Staging preserves existing file identity
+and checks destination and ancestry conflicts at commit. Byte-only atomic providers
+remain compatible but buffer the complete result; use a streaming or retained-staging
+backend for bounded output memory. Input is fully read
 before publication, including same/aliased input/output; failed projections do
 not publish partial files. stdout streams can expose an admitted prefix before
 failure. Status is 0 for success, 2 for argument errors and 1 for engine/VFS

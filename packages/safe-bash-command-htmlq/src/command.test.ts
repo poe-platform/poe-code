@@ -431,7 +431,7 @@ test("late read completion cannot call parent budgets after invocation cleanup",
   await new Promise<void>((done) => setImmediate(done));
   assert.equal(checks, 0);
 });
-test("atomic byte-write VFS supports output with bounded spooling and preserves failed projections", async () => {
+test("atomic byte-write VFS supports buffered output and preserves failed projections", async () => {
   const f = fixture(["p", "-t", "-f", "in", "-o", "in"]);
   const fs = {
     ...f.context.fs,

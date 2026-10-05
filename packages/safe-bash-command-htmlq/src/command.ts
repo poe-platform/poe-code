@@ -23,6 +23,7 @@ import {
 import { parseHtmlqArguments, type HtmlqArguments } from "./arguments.js";
 import { projectHtmlq } from "./behavior.js";
 import { htmlqInformation } from "./information.js";
+import { publishStagedHtmlq } from "./staged-output.js";
 export interface HtmlqCommandOptions {
   readonly limits?: Partial<HtmlLimits>;
   readonly replace?: boolean;
@@ -258,13 +259,18 @@ export async function htmlq(
       } else {
         const path = args.output.startsWith("/") ? args.output : `${context.cwd}/${args.output}`;
         const caps =
-          (await context.fs.capabilitiesFor?.(path, { signal: options.signal })) ??
+          (await context.fs.capabilitiesFor?.(path, { signal: options.signal, stagingResolution: true })) ??
           context.fs.capabilities;
         const streaming = caps.atomicFilePublication
           ? context.fs.publishFileConditional
           : undefined;
+        const staged = caps.atomicFileStaging && caps.atomicStagedFileMutation && caps.atomicStagingAncestry
+          && caps.retainedStagingWrite && caps.retainedStagingCleanup
+          && caps.synchronousStagingResolution && caps.guardedStagingPublication
+          && context.fs.prepareStagingResolution && context.fs.createStagedFile
+          && context.fs.publishStagedFile && context.fs.removeStagedFile;
         const buffered = (caps.atomicFileMutation || caps.trustedOwnedStaging) ? context.fs.writeFileConditional : undefined;
-        if (caps.write === false || caps.readOnly || (!streaming && !buffered))
+        if (caps.write === false || caps.readOnly || (!streaming && !staged && !buffered))
           throw new HtmlError(
             "E_UNSUPPORTED",
             "Output requires atomic conditional VFS publication"
@@ -287,6 +293,8 @@ export async function htmlq(
             signal: options.signal,
             maxBytes: options.limits.outputBytes
           });
+        } else if (staged) {
+          await publishStagedHtmlq(context.fs, path, rendered, options.signal);
         } else {
           // A byte-only atomic provider receives a fully admitted projection.
           // Never use a stat/unconditional write fallback or publish a prefix.

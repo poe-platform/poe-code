@@ -39,6 +39,13 @@ the same tree recovery state machine as `parseHtmlSync`. Token framing still
 materializes individual tokens, and the tree remains in memory. `selectors.ts`
 traverses this tree, and removal operations snapshot selections before mutation. Migration must preserve HTML5 recovery, selector behavior and
 original-source serialization. It cannot reuse the Markdown subset parser.
+Output publication now prefers direct streaming publication, then retained atomic
+staging with one awaited write of at most 16 KiB. Deterministic tests cover reused
+chunks, slow writes, cancellation, destination conflicts, aliased input/output,
+identity preservation and combined source/cleanup errors. These use a memory
+filesystem and do not establish external-storage or Worker qualification. The
+byte-only compatibility fallback still buffers output and is unsuitable for a
+bounded-memory Worker path; qualification must use a capable injected backend.
 
 ## Deterministic prerequisites
 

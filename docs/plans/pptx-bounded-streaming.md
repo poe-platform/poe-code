@@ -955,3 +955,20 @@ The synthetic opaque clip verifies extraction fidelity, not playback. Caller IO,
 source protection, force, nested destinations, capability failures, partial output,
 cancellation and cleanup are exercised. Image extraction, remaining readers and
 mutations, embedded workbook processing and Worker runtime qualification remain.
+
+
+## Bounded image metadata codec prerequisite
+
+Image dimensions and density now share a field-request parser between the
+buffering convenience API and `readImageMetadata`, a filesystem-independent
+range API with an owned 16 KiB cache. PNG/JPEG container metadata can skip pixel
+payloads; TIFF/Exif pointers remain range requests for the caller to satisfy from
+authorized storage. No host or private-memory spool is introduced.
+
+Verification includes 204 focused metadata/image read/extraction/edit cases,
+scoped lint/build, 28,000 deterministic signature/truncation comparisons against
+the previous codec, and native Pillow PNG/JPEG/GIF/BMP/TIFF dimensions/density.
+Sparse 1 GiB PNG and TIFF tests exercise skipped payloads and distant pointers;
+short reused buffers, invalid range results, source errors and cancellation are
+covered. This supplies the codec prerequisite only: the default image inventory
+and extraction paths still require retained traversal, geometry and publication.

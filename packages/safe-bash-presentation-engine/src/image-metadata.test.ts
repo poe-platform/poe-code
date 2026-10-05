@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { imageMetadata, normalizeImageDpi } from "./image-metadata.js";
+import { imageMetadata, normalizeImageDpi, readImageMetadata } from "./image-metadata.js";
 
 it.each([
   [
@@ -300,3 +300,150 @@ it("reads a square JPEG frame with absent density", () => {
     dpiY: 72
   });
 });
+
+for (const [type, bytes] of [
+  ["image/tiff", tiff(true)],
+  ["image/tiff", tiff(false)],
+  [
+    "image/png",
+    Uint8Array.from([
+      137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 1, 44, 0, 0, 0, 150, 8, 2,
+      0, 0, 0, 0, 0, 0, 0
+    ])
+  ],
+  ["image/gif", Uint8Array.from([71, 73, 70, 56, 57, 97, 44, 1, 150, 0, 0, 0, 0])],
+  [
+    "image/jpeg",
+    Uint8Array.from([
+      255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0, 1, 2, 2, 0, 40, 0, 20, 0, 0, 255, 194, 0, 11, 8,
+      0, 25, 0, 50, 1, 1, 17, 0, 255, 218
+    ])
+  ],
+  ["image/bmp", new Uint8Array(54)],
+  ["image/x-wmf", new Uint8Array(22)],
+  ["image/svg+xml", new Uint8Array(100)]
+] as const)
+  it(`reads ${type} metadata through short reused ranges`, async () => {
+    const reuse = new Uint8Array(7);
+    let outstanding = 0;
+    const result = await readImageMetadata(
+      {
+        size: bytes.length,
+        async read(offset, length) {
+          expect(length).toBeLessThanOrEqual(16384);
+          expect(outstanding++).toBe(0);
+          await Promise.resolve();
+          const size = Math.min(length, reuse.length, bytes.length - offset);
+          reuse.fill(255);
+          reuse.set(bytes.subarray(offset, offset + size));
+          outstanding--;
+          return reuse.subarray(0, size);
+        }
+      },
+      type
+    );
+    expect(result).toEqual(imageMetadata(bytes, type));
+    expect(outstanding).toBe(0);
+  });
+
+it("reads distant TIFF rational metadata without collecting a sparse gigabyte image", async () => {
+  const header = tiff(true).slice(0, 74),
+    pointer = 2 ** 30,
+    view = new DataView(header.buffer);
+  view.setUint32(10 + 2 * 12 + 8, pointer, true);
+  view.setUint32(10 + 3 * 12 + 8, pointer + 8, true);
+  const rational = tiff(true).slice(74);
+  let reads = 0,
+    total = 0;
+  const result = await readImageMetadata(
+    {
+      size: pointer + 16,
+      async read(offset, length) {
+        reads++;
+        total += length;
+        expect(length).toBeLessThanOrEqual(16384);
+        const bytes = new Uint8Array(length);
+        for (const [start, data] of [
+          [0, header],
+          [pointer, rational]
+        ] as const) {
+          const a = Math.max(start, offset),
+            b = Math.min(start + data.length, offset + length);
+          if (a < b) bytes.set(data.subarray(a - start, b - start), a - offset);
+        }
+        return bytes;
+      }
+    },
+    "image/tiff"
+  );
+  expect(result).toEqual({ pixelWidth: 300, pixelHeight: 150, dpiX: 42, dpiY: 24 });
+  expect(reads).toBeLessThan(12);
+  expect(total).toBeLessThan(16384 * 12);
+});
+
+it("skips a sparse gigabyte PNG pixel chunk while reading later density metadata", async () => {
+  const gap = 2 ** 30,
+    header = new Uint8Array(41),
+    view = new DataView(header.buffer);
+  header.set([137, 80, 78, 71, 13, 10, 26, 10]);
+  view.setUint32(8, 13);
+  header.set([73, 72, 68, 82], 12);
+  view.setUint32(16, 300);
+  view.setUint32(20, 150);
+  view.setUint32(33, gap - 45);
+  header.set([73, 68, 65, 84], 37);
+  const ending = new Uint8Array(33),
+    tail = new DataView(ending.buffer);
+  tail.setUint32(0, 9);
+  ending.set([112, 72, 89, 115], 4);
+  tail.setUint32(8, 3780);
+  tail.setUint32(12, 1890);
+  ending[16] = 1;
+  ending.set([73, 69, 78, 68], 25);
+  let reads = 0;
+  const actual = await readImageMetadata(
+    {
+      size: gap + ending.length,
+      async read(offset, length) {
+        reads++;
+        expect(length).toBeLessThanOrEqual(16384);
+        const bytes = new Uint8Array(length);
+        for (const [start, data] of [
+          [0, header],
+          [gap, ending]
+        ] as const) {
+          const a = Math.max(offset, start),
+            b = Math.min(offset + length, start + data.length);
+          if (a < b) bytes.set(data.subarray(a - start, b - start), a - offset);
+        }
+        return bytes;
+      }
+    },
+    "image/png"
+  );
+  expect(actual).toEqual({ pixelWidth: 300, pixelHeight: 150, dpiX: 96, dpiY: 48 });
+  expect(reads).toBe(2);
+});
+
+for (const mode of ["empty", "oversized", "failure", "cancel"] as const)
+  it(`retires range parsing on ${mode}`, async () => {
+    const controller = new AbortController(),
+      failure = new Error("source failed");
+    let reads = 0;
+    const promise = readImageMetadata(
+      {
+        size: 100,
+        async read() {
+          reads++;
+          if (mode === "failure") throw failure;
+          if (mode === "cancel") controller.abort(failure);
+          return new Uint8Array(mode === "oversized" ? 101 : mode === "empty" ? 0 : 100);
+        }
+      },
+      "image/png",
+      controller.signal
+    );
+    if (mode === "failure" || mode === "cancel") await expect(promise).rejects.toBe(failure);
+    else await expect(promise).rejects.toThrow("Invalid image metadata range result.");
+    expect(reads).toBe(1);
+  });

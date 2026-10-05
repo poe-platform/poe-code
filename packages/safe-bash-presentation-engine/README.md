@@ -72,6 +72,11 @@ as admitted JSON for `streamJson`, plus bounded `summaries()` for human listings
 Typeface/variant strings and ordered declarations stay in caller storage; font
 payloads are never installed or interpreted. Close the reader when finished.
 `stageRetainedFonts` supplies the default `fonts list` response.
+`readImageMetadata` (from `image-metadata`) reads dimensions and density from a
+caller-owned `{ size, read(offset, length) }` source with an optional abort signal.
+Its pure codec uses a 16 KiB owned range cache and skips pixel payloads; TIFF/Exif
+pointers may seek within the source. The buffering `imageMetadata` convenience
+function shares the same parser. Neither entry point decodes or validates pixels.
 `openRetainedMedia` (from `media`) exposes `occurrences()` and `media()` as
 admitted JSON for `streamJson`, plus `summaries()`, `resources()`, `count` and `close()`.
 The resource iterator preserves occurrence and relationship order for extraction.

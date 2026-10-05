@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
-import { Volume } from "memfs";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument } from "@poe-code/pdf-ast";
-import { createCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
+import { createCommandArguments, type CommandContext, type CommandDefinition, type InvocationCleanup } from "safe-bash-contracts/command";
 import { parseCsvRecords } from "../../packages/safe-bash-command-csvcut/src/engine.js";
 import { createCsvcutCommand } from "../../packages/safe-bash-command-csvcut/src/index.js";
 import { createEnvsubstCommand } from "../../packages/safe-bash-command-envsubst/src/index.js";
@@ -39,22 +39,20 @@ const cases: [string, () => CommandDefinition, string[], string, Record<string, 
 ];
 
 for (const [name, factory, args, input, initial] of cases) for (const cancel of [false, true]) test(`${name} ${cancel ? "cancels at a turn" : "cooperates"} with frozen clocks and no setImmediate`, async () => {
-  const volume = Volume.fromJSON(Object.fromEntries(Object.entries(initial).map(([path, value]) => [path, typeof value === "string" ? value : Buffer.from(value)])));
+  const fs = createMemoryFileSystem();
+  for (const [path, value] of Object.entries(initial)) await fs.writeFile(path, typeof value === "string" ? encoder.encode(value) : value);
+  const open = vi.spyOn(fs, "open");
   const carrier = createCommandArguments(args);
   const controller = new AbortController();
   let stdout = "", stderr = "", turns = 0, writesAfterAbort = 0;
-  const cleanups: (() => Promise<void>)[] = [];
-  const stat = async (path: string) => { const result = volume.statSync(path); return { type: result.isFile() ? "file" : "directory", size: result.size, mode: result.mode, mtime: result.mtimeMs }; };
-  const context = { command: name, args: carrier.args, argumentValues: carrier, cwd: "/", env: { NAME: "hello" },
-    signal: controller.signal, stdinIsDefault: false, registerCleanup(cleanup: () => Promise<void>) { cleanups.push(cleanup); },
+  const cleanups: InvocationCleanup[] = [];
+  const context: CommandContext = { command: name, args: carrier.args, argumentValues: carrier, cwd: "/", env: { NAME: "hello" },
+    signal: controller.signal, stdinIsDefault: false, registerCleanup(cleanup) { cleanups.push(cleanup); },
     stdin: { async *[Symbol.asyncIterator]() { yield encoder.encode(input); } },
     stdout: { async write(bytes: Uint8Array) { if (controller.signal.aborted) writesAfterAbort++; stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
-    fs: { stat, lstat: stat, async readFile(path: string) { return new Uint8Array(volume.readFileSync(path) as Buffer); },
-      readStream(path: string) { return { async *[Symbol.asyncIterator]() { yield new Uint8Array(volume.readFileSync(path) as Buffer); } }; },
-      async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
-      async mkdir(path: string) { volume.mkdirSync(path, { recursive: true }); } }
-  } as unknown as CommandContext;
+    fs
+  };
   const timeout = globalThis.setTimeout;
   vi.stubGlobal("setImmediate", undefined);
   vi.stubGlobal("setTimeout", ((callback: (...values: unknown[]) => void, delay?: number, ...values: unknown[]) => {
@@ -75,8 +73,13 @@ for (const [name, factory, args, input, initial] of cases) for (const cancel of 
     const result = await factory().execute(context);
     expect(result.exitCode, stderr).toBe(0);
     expect(turns, `${name}: stdout=${stdout.slice(0, 100)}`).toBeGreaterThanOrEqual(2);
+    if (name === "htmlq") {
+      expect(open).toHaveBeenCalled();
+      expect(stdout).toBe("<p>hello</p>\n".repeat(2000));
+    }
   } finally {
     await Promise.all(cleanups.map(cleanup => cleanup()));
     vi.restoreAllMocks(); vi.unstubAllGlobals();
+    if (name === "htmlq") expect(await fs.readdir("/")).toEqual([]);
   }
 });

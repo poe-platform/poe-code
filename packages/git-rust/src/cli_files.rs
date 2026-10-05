@@ -6,12 +6,13 @@ use std::collections::{BTreeMap, BTreeSet};
 
 type Snapshot = BTreeMap<String, (String, Vec<u8>)>;
 
-fn snapshot(fs: &MemoryFs, root: &str, gitdir: &str, source: &str) -> Result<Snapshot, GitError> {
+fn snapshot(fs: &MemoryFs, root: &str, gitdir: &str, source: &str, paths: &[String]) -> Result<Snapshot, GitError> {
     if source == ":index" {
         return GitIndexManager::acquire(fs, gitdir, |index| {
             index
                 .entries()
                 .into_iter()
+                .filter(|e| crate::cli_history::matches_path(&e.path, paths))
                 .map(|e| {
                     Ok((
                         e.path,
@@ -27,6 +28,7 @@ fn snapshot(fs: &MemoryFs, root: &str, gitdir: &str, source: &str) -> Result<Sna
     if source == ":worktree" {
         return list_files(fs, gitdir, None)?
             .into_iter()
+            .filter(|p| crate::cli_history::matches_path(p, paths))
             .filter_map(|p| {
                 let full = join(&[root, &p]);
                 let stat = fs.lstat(&full).ok()?;
@@ -46,6 +48,7 @@ fn snapshot(fs: &MemoryFs, root: &str, gitdir: &str, source: &str) -> Result<Sna
     let mut tree = BTreeMap::new();
     collect_tree_map(fs, gitdir, &oid, "", &mut tree)?;
     tree.into_iter()
+        .filter(|(p, _)| crate::cli_history::matches_path(p, paths))
         .map(|(p, e)| Ok((p, (e.mode, read_blob(fs, gitdir, &e.oid, None)?.blob))))
         .collect()
 }
@@ -91,8 +94,8 @@ pub fn diff(
     options: &DiffOptions,
 ) -> Result<(String, bool), GitError> {
     let (before, after) = if options.reverse { (after, before) } else { (before, after) };
-    let old = snapshot(fs, root, gitdir, before)?;
-    let new = snapshot(fs, root, gitdir, after)?;
+    let old = snapshot(fs, root, gitdir, before, paths)?;
+    let new = snapshot(fs, root, gitdir, after, paths)?;
     let names: BTreeSet<_> = old.keys().chain(new.keys()).collect();
     let mut out = String::new();
     let mut changed = false;
@@ -550,7 +553,7 @@ pub fn restore(
         resolved = crate::cli_history::resolve(fs, gitdir, source)?;
         &resolved
     };
-    let tree = snapshot(fs, root, gitdir, source)?;
+    let tree = snapshot(fs, root, gitdir, source, &[])?;
     let tracked = list_files(fs, gitdir, None)?;
     let names: BTreeSet<_> = tree.keys().cloned().chain(tracked).collect();
     let selected: Vec<_> = names

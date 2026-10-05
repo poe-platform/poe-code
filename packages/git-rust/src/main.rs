@@ -161,11 +161,23 @@ fn find_host_repo_root(start: &Path) -> Option<PathBuf> {
     }
 }
 
+fn admit_snapshot_path(path: &Path, tracked: &BTreeSet<PathBuf>, tracked_only: bool) -> bool {
+    if tracked.range(path.to_path_buf()..).next().is_some_and(|p| p.starts_with(path)) {
+        return true;
+    }
+    if tracked_only {
+        return false;
+    }
+    !matches!(path.file_name().and_then(|s| s.to_str()),
+        Some("node_modules" | "target" | "rr-cache" | "lost-found" | "logs"))
+}
+
 fn load_host_dir_into_vfs(
     host_dir: &Path,
     vfs_dir: &str,
     fs: &MemoryFs,
     tracked_files: &mut BTreeSet<String>,
+    admission: Option<(&Path, &BTreeSet<PathBuf>, bool)>,
 ) {
     let _ = fs.mkdir(vfs_dir);
     let Ok(entries) = stdfs::read_dir(host_dir) else {
@@ -173,7 +185,13 @@ fn load_host_dir_into_vfs(
     };
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
-        if name == "node_modules" || name == "target" || name == "rr-cache" || name == "lost-found" || name == "logs" {
+        let admitted = match admission {
+            Some((root, tracked, only)) if !entry.path().starts_with(root.join(".git")) => {
+                admit_snapshot_path(&entry.path(), tracked, only)
+            }
+            _ => admit_snapshot_path(&entry.path(), &BTreeSet::new(), false),
+        };
+        if !admitted {
             continue;
         }
         let host_path = entry.path();
@@ -192,7 +210,7 @@ fn load_host_dir_into_vfs(
                 tracked_files.insert(vfs_path);
             }
         } else if meta.is_dir() {
-            load_host_dir_into_vfs(&host_path, &vfs_path, fs, tracked_files);
+            load_host_dir_into_vfs(&host_path, &vfs_path, fs, tracked_files, admission);
         } else if meta.is_file() {
             #[cfg(unix)]
             let mode = meta.permissions().mode();
@@ -269,7 +287,7 @@ fn load_home_ssh_and_gitconfig(fs: &MemoryFs, repo_gitdir: Option<&str>) {
     let ssh_dir = home.join(".ssh");
     if ssh_dir.is_dir() {
         let mut ignored = BTreeSet::new();
-        load_host_dir_into_vfs(&ssh_dir, "/home/user/.ssh", fs, &mut ignored);
+        load_host_dir_into_vfs(&ssh_dir, "/home/user/.ssh", fs, &mut ignored, None);
     }
     let gitconfig = home.join(".gitconfig");
     if let Ok(global_cfg) = stdfs::read_to_string(&gitconfig) {
@@ -312,7 +330,7 @@ fn load_argument_path(
 ) {
     let cand_str = cand.to_string_lossy().to_string();
     if cand.exists() && !synced_roots.iter().any(|r| path_is_within(&cand_str, r)) {
-        load_host_dir_into_vfs(cand, &cand_str, fs, initial_files);
+        load_host_dir_into_vfs(cand, &cand_str, fs, initial_files, None);
         synced_roots.push(cand_str);
     } else if !cand.exists() {
         synced_roots.push(cand_str);
@@ -398,6 +416,21 @@ fn main() {
     let repo_root_path =
         find_host_repo_root(&effective_cwd).unwrap_or_else(|| effective_cwd.clone());
     let repo_root_str = repo_root_path.to_string_lossy().to_string();
+    // Read the index before walking the worktree: ignored build/cache names can
+    // still contain tracked files. A diff needs no untracked worktree entries.
+    let dot_git = repo_root_path.join(".git");
+    let index_dir = if dot_git.is_file() {
+        stdfs::read_to_string(&dot_git).ok().and_then(|text| {
+            text.trim().strip_prefix("gitdir:").map(|dir| repo_root_path.join(dir.trim()))
+        })
+    } else {
+        Some(dot_git)
+    };
+    let index = index_dir.and_then(|dir| stdfs::read(dir.join("index")).ok())
+        .and_then(|bytes| git_rust::models::GitIndex::from_buffer(&bytes).ok());
+    let indexed_paths: BTreeSet<PathBuf> = index.as_ref().map(|index| {
+        index.entries().into_iter().map(|entry| repo_root_path.join(entry.path)).collect()
+    }).unwrap_or_default();
     let _ = fs.mkdir(&repo_root_str);
     let _ = fs.mkdir(&effective_cwd.to_string_lossy());
     if repo_root_path.exists() {
@@ -405,7 +438,7 @@ fn main() {
             let dot_git = repo_root_path.join(".git");
             let dot_git_vfs = format!("{}/.git", repo_root_str.trim_end_matches('/'));
             if dot_git.is_dir() {
-                load_host_dir_into_vfs(&dot_git, &dot_git_vfs, &fs, &mut initial_files);
+                load_host_dir_into_vfs(&dot_git, &dot_git_vfs, &fs, &mut initial_files, None);
                 synced_roots.push(dot_git_vfs);
             } else if dot_git.is_file()
                 && let Ok(bytes) = stdfs::read(&dot_git)
@@ -414,11 +447,12 @@ fn main() {
                 initial_files.insert(dot_git_vfs.clone());
                 synced_roots.push(dot_git_vfs);
             } else if repo_root_path.join("HEAD").is_file() {
-                load_host_dir_into_vfs(&repo_root_path, &repo_root_str, &fs, &mut initial_files);
+                load_host_dir_into_vfs(&repo_root_path, &repo_root_str, &fs, &mut initial_files, None);
                 synced_roots.push(repo_root_str.clone());
             }
         } else {
-            load_host_dir_into_vfs(&repo_root_path, &repo_root_str, &fs, &mut initial_files);
+            load_host_dir_into_vfs(&repo_root_path, &repo_root_str, &fs, &mut initial_files,
+                Some((&repo_root_path, &indexed_paths, subcmd == "diff" && index.is_some())));
             synced_roots.push(repo_root_str.clone());
         }
     } else {
@@ -439,14 +473,14 @@ fn main() {
         };
         let gd_str = resolved_gd.to_string_lossy().to_string();
         if resolved_gd.exists() {
-            load_host_dir_into_vfs(&resolved_gd, &gd_str, &fs, &mut initial_files);
+            load_host_dir_into_vfs(&resolved_gd, &gd_str, &fs, &mut initial_files, None);
             synced_roots.push(gd_str.clone());
         }
         if let Some(common_parent) = resolved_gd.parent().and_then(|p| p.parent())
             && common_parent.exists()
         {
             let cp_str = common_parent.to_string_lossy().to_string();
-            load_host_dir_into_vfs(common_parent, &cp_str, &fs, &mut initial_files);
+            load_host_dir_into_vfs(common_parent, &cp_str, &fs, &mut initial_files, None);
             for shared in ["objects", "refs", "packed-refs", "config", "hooks", "info"] {
                 let target = format!("{cp_str}/{shared}");
                 let link_path = format!("{gd_str}/{shared}");
@@ -511,7 +545,7 @@ fn main() {
                 {
                     let p_str = p.to_string_lossy().to_string();
                     if !synced_roots.iter().any(|r| path_is_within(&p_str, r)) {
-                        load_host_dir_into_vfs(&p, &p_str, &fs, &mut initial_files);
+                        load_host_dir_into_vfs(&p, &p_str, &fs, &mut initial_files, None);
                         synced_roots.push(p_str);
                     }
                 }
@@ -573,6 +607,29 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn snapshot_admits_tracked_paths_below_excluded_names() {
+        for name in ["node_modules", "target", "rr-cache", "lost-found", "logs"] {
+            for prefix in ["/repo", "/repo/nested"] {
+                let dir = PathBuf::from(format!("{prefix}/{name}"));
+                let file = dir.join("tracked.txt");
+                let tracked = BTreeSet::from([file.clone()]);
+                assert!(admit_snapshot_path(&dir, &tracked, false), "{dir:?}");
+                assert!(admit_snapshot_path(&file, &tracked, false));
+                assert!(!admit_snapshot_path(&dir, &BTreeSet::new(), false));
+            }
+        }
+    }
+
+    #[test]
+    fn tracked_snapshot_avoids_unrelated_worktree_entries() {
+        let tracked = BTreeSet::from([PathBuf::from("/repo/src/file")]);
+        assert!(admit_snapshot_path(Path::new("/repo/src"), &tracked, true));
+        assert!(admit_snapshot_path(Path::new("/repo/src/file"), &tracked, true));
+        assert!(!admit_snapshot_path(Path::new("/repo/src/untracked"), &tracked, true));
+        assert!(!admit_snapshot_path(Path::new("/repo/other"), &tracked, true));
+    }
 
     #[test]
     fn missing_argument_paths_only_register_potential_outputs() {

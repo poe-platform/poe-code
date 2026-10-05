@@ -110,3 +110,38 @@ test("stored scalar offsets distinguish UTF-16 width across rope leaves", () => 
     assert.equal(await text.pointOffset(root, index), [...value].slice(0, index).join("").length);
   }
 }));
+
+test("incremental text construction writes linear rope metadata", async () => {
+  const fs = new MemoryFileSystem();
+  const storage = new PagedStorage({ fs, cwd: "/", env: {}, signal: new AbortController().signal }, 2);
+  let records = 0;
+  const text = new TextStore({
+    read: storage.read.bind(storage),
+    append(bytes) { if (bytes.length === 56) records++; return storage.append(bytes); }
+  });
+  try {
+    const builder = text.builder(), chunk = "x".repeat(2048);
+    for (let i = 0; i < 512; i++) await builder.write(chunk);
+    const root = await builder.finish();
+    assert.equal((await text.info(root)).length, 512 * chunk.length);
+    assert.ok(records <= 512 * 3, `Repeated spine copying: ${records} records`);
+    let bytes = 0;
+    await text.write(root, { async write(value) { assert.ok(value.every(byte => byte === 120)); bytes += value.length; } });
+    assert.equal(bytes, 512 * chunk.length);
+  } finally { await storage.close(); }
+});
+
+test("builder snapshots stay immutable across mixed rope and Unicode appends", () => fixture(async text => {
+  const builder = text.builder();
+  let expected = "";
+  const snapshots: [number, string][] = [];
+  for (let i = 0; i < 20; i++) {
+    const value = (i % 2 ? "😀" : "é").repeat(i * 127 + 1);
+    if (i % 3) await builder.write(value);
+    else await builder.append(await text.from(value));
+    expected += value;
+    if (i % 4 === 0) snapshots.push([await builder.finish(), expected]);
+  }
+  assert.equal(await collect(text, await builder.finish()), expected);
+  for (const [root, value] of snapshots) assert.equal(await collect(text, root), value);
+}));

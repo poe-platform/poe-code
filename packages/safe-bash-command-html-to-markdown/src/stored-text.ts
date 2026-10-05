@@ -212,30 +212,52 @@ export class TextStore {
 
 /** The only mutable text buffer is at most 2048 UTF-16 code units. */
 export class TextBuilder {
-  private root = 0;
+  // Strictly decreasing AVL heights. Safe-integer text lengths bound this
+  // frontier to fewer than 80 references, independent of payload size.
+  private readonly parts: { root: number; height: number }[] = [];
   private pending = "";
+  private snapshot: number | undefined;
   constructor(private readonly text: TextStore) {}
+  private async add(root: number): Promise<void> {
+    if (!root) return;
+    this.snapshot = undefined;
+    let height = (await this.text.info(root)).height;
+    while (this.parts.length && this.parts.at(-1)!.height <= height) {
+      root = await this.text.concat(this.parts.pop()!.root, root);
+      height = (await this.text.info(root)).height;
+    }
+    this.parts.push({ root, height });
+  }
   async write(value: string): Promise<void> {
+    if (value) this.snapshot = undefined;
     for (let offset = 0; offset < value.length;) {
       const count = Math.min(2048 - this.pending.length, value.length - offset);
       this.pending += value.slice(offset, offset + count);
       offset += count;
       if (this.pending.length === 2048) {
         const last = this.pending.charCodeAt(2047), keep = last >= 0xd800 && last <= 0xdbff;
-        this.root = await this.text.concat(this.root, await this.text.from(keep ? this.pending.slice(0, -1) : this.pending));
+        await this.add(await this.text.from(keep ? this.pending.slice(0, -1) : this.pending));
         this.pending = keep ? this.pending.at(-1)! : "";
       }
     }
   }
-  async append(root: number): Promise<void> {
-    if (!root) return;
-    this.root = await this.text.concat(await this.finish(), root);
-  }
-  async finish(): Promise<number> {
+  private async flush(): Promise<void> {
     if (this.pending) {
-      this.root = await this.text.concat(this.root, await this.text.from(this.pending));
+      await this.add(await this.text.from(this.pending));
       this.pending = "";
     }
-    return this.root;
+  }
+  async append(root: number): Promise<void> {
+    if (!root) return;
+    await this.flush();
+    await this.add(root);
+  }
+  async finish(): Promise<number> {
+    if (this.snapshot !== undefined) return this.snapshot;
+    await this.flush();
+    let root = 0;
+    for (let index = this.parts.length - 1; index >= 0; index--)
+      root = await this.text.concat(this.parts[index]!.root, root);
+    return this.snapshot = root;
   }
 }

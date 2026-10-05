@@ -39,9 +39,10 @@ for (const clustered of [false, true]) {
   });
 
   test(`public Shell ${clustered ? "clustered" : "separate"} positionals avoid repeated full admission`, async context => {
-    const totals: { count: number; charCodes: number; argumentBytes: number; argumentReads: number }[] = [];
+    const totals: { count: number; charCodes: number; argumentCharCodes: number; argumentBytes: number; argumentReads: number }[] = [];
     let active = false;
     let charCodes = 0;
+    let argumentCharCodes = 0;
     let argumentBytes = 0;
     let argumentReads = 0;
     let observed = new WeakSet<string[]>();
@@ -50,7 +51,10 @@ for (const clustered of [false, true]) {
     const byteLength = Buffer.byteLength;
     const builtin = Runtime.prototype.builtin;
     context.mock.method(String.prototype, "charCodeAt", function (this: string, index: number) {
-      if (active) charCodes++;
+      if (active) {
+        charCodes++;
+        if (this === argument) argumentCharCodes++;
+      }
       return charCodeAt.call(this, index);
     });
     context.mock.method(Buffer, "byteLength", (value: Parameters<typeof Buffer.byteLength>[0], encoding?: BufferEncoding) => {
@@ -80,6 +84,7 @@ for (const clustered of [false, true]) {
       // Exercise owned-input admission; unlimited execution may use the sync scanner.
       const { shell } = setup({ limits: { maxExpansionBytes: 4096 } });
       charCodes = 0;
+      argumentCharCodes = 0;
       argumentBytes = 0;
       argumentReads = 0;
       observed = new WeakSet();
@@ -88,17 +93,18 @@ for (const clustered of [false, true]) {
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stderr, "");
         assert.equal(result.stdout, `${clustered ? 2 : count + 1}\n`);
-        totals.push({ count, charCodes, argumentBytes, argumentReads });
+        totals.push({ count, charCodes, argumentCharCodes, argumentBytes, argumentReads });
       } finally { await shell.dispose(); }
     }
     context.diagnostic(JSON.stringify({ clustered, totals }));
     for (const [index, total] of totals.entries()) {
-      assert.ok(total.charCodes > 0, `character-work instrumentation is active: ${JSON.stringify(total)}`);
+      assert.ok(total.argumentCharCodes > 0, `argument character-work instrumentation is active: ${JSON.stringify(total)}`);
       const previous = totals[index - 1];
       if (previous) {
-        // Runtime bookkeeping can change the slope; repeated full admission grows quadratically.
+        // OPTIND arithmetic changes decimal width; measure the positional text
+        // itself so repeated admission still fails the linear-work bound.
         assert.equal(total.count, 2 * previous.count);
-        assert.ok(total.charCodes <= 2 * previous.charCodes + 32, `doubling positionals must not exceed linear character-work growth: ${JSON.stringify({ previous, total })}`);
+        assert.ok(total.argumentCharCodes <= 2 * previous.argumentCharCodes + 32, `doubling positionals must not exceed linear character-work growth: ${JSON.stringify({ previous, total })}`);
       }
       assert.ok(total.argumentBytes <= 8 * total.count + 32, `runtime admission bytes must be linear: ${JSON.stringify(total)}`);
       assert.equal(total.argumentReads, clustered ? 1 : total.count, `unchanged positionals are copied exactly once: ${JSON.stringify(total)}`);

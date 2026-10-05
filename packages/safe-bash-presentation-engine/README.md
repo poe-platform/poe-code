@@ -50,8 +50,12 @@ and removal. It retains replacement bytes and comparison state in caller storage
 checks package-wide mutation guards, and validates the candidate presentation.
 Pass its `replacement` method to `archive.rewrite` to preserve unrelated members;
 when `changed` is false, reuse the exact original archive bytes. Close the returned
-view after rewriting. The archive remains owned by the caller. The default
-`xml set` command still uses its buffered publication path.
+view after rewriting. The archive remains owned by the caller.
+`stageRetainedXmlReplacement` accepts an immutable retained presentation input, a
+replacement byte source and selection options. It stages the rewritten archive and
+human/JSON/binary response, exposes `bytes()` for publication and `output.write(sink)`
+for the admitted response, and owns its staging until `close()`. The default
+`xml set` command uses this path, including in-place and dry-run modes.
 `openRetainedSlideSettings` (from `slides`) applies label and visibility changes
 to a caller-backed part view, preserving mutation guards and validating the result.
 It borrows the archive and returns `changed`, `affected`, original target locations,

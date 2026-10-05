@@ -198,7 +198,7 @@ import {
   mutatePresentationSettings,
   type MutatePresentationSettingsOptions
 } from "safe-bash-presentation-engine/presentation-settings";
-import { getXmlPart, stageRetainedXmlPart, replaceXmlPart } from "safe-bash-presentation-engine/xml-parts";
+import { getXmlPart, stageRetainedXmlPart, stageRetainedXmlReplacement, replaceXmlPart } from "safe-bash-presentation-engine/xml-parts";
 import { validatePresentation, openRetainedPresentationValidation, type ValidationLimits } from "safe-bash-presentation-engine/validation";
 import { readPackage } from "safe-bash-presentation-engine/package-reader";
 import { resourceContext, type ResourceContext } from "safe-bash-presentation-engine/resource-limits";
@@ -4100,7 +4100,26 @@ async function executeRequest(
     output.json = args.json;
     output.operation = args.operation;
     const operation = args.operation;
-    if (args.operation === "slides.set" && request.streaming) {
+    if (args.operation === "xml.set" && request.streaming) {
+      if (args.token) decodeSelectionToken(args.token);
+      const streaming = request.streaming, context = { ...options.context, signal: request.signal, workingStorage: streaming.workingStorage };
+      if (!context.validationLimits) throw new OfficeError("invalid-value", "XML operations require explicit validation limits.", "usage");
+      const input = await streaming.openInput(args.input!, Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes));
+      const maxReplacementBytes = Math.min(context.validationLimits.maxBytes, context.archiveLimits.maxEntryBytes), file = args.file!;
+      async function* replacement() { const source = await streaming.openInput(file, maxReplacementBytes); yield* source.stream(); }
+      const destination = args.inPlace ? args.input! : args.output, dryRun = args.dryRun ?? false;
+      const staged = await stageRetainedXmlReplacement(input, replacement(), {
+        ...(args.token === undefined ? {} : { token: args.token }), ...(args.slide === undefined ? {} : { slide: args.slide }),
+        ...(args.shape === undefined ? {} : { shape: args.shape }), ...(args.part === undefined ? {} : { part: args.part }),
+        ...(args.scope === undefined ? {} : { scope: args.scope }), ...(args.all === undefined ? {} : { all: args.all })
+      }, context, { json: args.json, dryRun, ...(destination === undefined ? {} : { destination }), maxOutputBytes: options.maxOutputBytes });
+      owned.push(staged); stagedOutput = staged.output;
+      if (destination && destination !== "-") {
+        if (!request.publishOutput) throw Object.assign(new Error("Output publication capability is unavailable."), { code: "publication-unsupported" });
+        publication = { inputPath: args.input!, outputPath: destination, bytes: staged.bytes(), originalBytes: input, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
+      }
+      result = success(operation, null);
+    } else if (args.operation === "slides.set" && request.streaming) {
       if (args.token) decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const destination = args.inPlace ? args.input! : args.output;

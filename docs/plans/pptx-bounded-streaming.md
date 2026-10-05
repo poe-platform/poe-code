@@ -372,7 +372,7 @@ standalone namespace context, fixed children and movable subtrees; do not silent
 limit `xml set` to same-structure edits. Package-wide signature/macro/protection
 and relationship guards, XML aggregate limits, candidate semantic validation,
 selection, retained replacement input and streamed publication must all remain.
-Default `xml set` is still buffered pending that complete integration.
+The completed command integration is described below.
 
 ## Retained XML replacement admission
 
@@ -405,14 +405,31 @@ verified text replacement and shape removal on a chart deck, unchanged chart and
 embedded workbook, exact replacement part bytes, ZIP CRCs and scratch cleanup.
 No runtime Worker qualification is claimed.
 
-Next integrate this view into default `xml set`: reuse retained input snapshots
-for both presentation and replacement file; preserve selector/metadata behavior,
-original-fingerprint result locations and human/JSON/binary output; stage the
-archive and response before publication with retained identity and force/dry-run
-policy. Factor shared archive staging from `stageRetainedSlideSettings` so the
-publication path remains consistent. The command is still buffered until that
-wiring is complete. Other mutations, richer reads, extraction and workbook
-migration remain as well.
+## XML replacement command publication
+
+Default `xml set` now uses `stageRetainedXmlReplacement` (engine root and
+`xml-parts` exports). Both presentation and replacement files use immutable
+retained input. It shares selection with XML reads, preserving the existing
+mutation rejection of metadata targets, and shares caller-backed archive staging
+with slide settings. Result locations retain the original fingerprint. No-op
+edits reuse exact input bytes. The full response is admitted before publication;
+existing force/dry-run, protected input and stale-original guarantees still apply.
+Sources are borrowed, while archives, mutation views, staged bytes and responses
+are owned and retired together on every exit.
+
+Verification includes human/JSON/binary parity, token/part selection, lexical
+text and structural removal, metadata/malformed rejection, exact no-op identity,
+default-adapter in-place/force/dry-run/limit/protected-input/stale/write-failure
+cases, and source/storage/sink/cancellation cleanup. Storage spies enforce real
+caller spills and at most 16 KiB outstanding writes, including replacement
+sources that reuse and overwrite chunks. Native python-pptx validates text and
+shape removal, unchanged chart values/workbooks and all unrelated ZIP members,
+exact replacement bytes, CRCs and scratch cleanup. Scoped lint/typechecks and
+workspace build cover both changed packages. No Worker qualification is claimed.
+
+Next migrate richer text reads and remaining extraction/mutation operations;
+embedded workbook intermediates and the synchronous presentation model are still
+buffered. Preserve their complete supported behavior through the retained path.
 
 ## Remaining implementation
 

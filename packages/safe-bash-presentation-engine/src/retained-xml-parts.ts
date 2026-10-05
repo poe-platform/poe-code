@@ -100,12 +100,12 @@ export async function openRetainedXmlPart(archive: Archive, requested: string, s
   } catch (error) { await close().catch(() => {}); throw error; }
 }
 
-export async function stageRetainedXmlPart(archive: Archive, fingerprint: string, selection: RetainedInspectionSelection, settings: RetainedXmlPartContext, output: { readonly json: boolean; readonly pretty?: boolean; readonly maxOutputBytes: number }): Promise<StagedOutput> {
-  const options = { ...selection }, format = { ...output }, index = await openRetainedPresentationIndex(archive, fingerprint, settings);
-  let xml: RetainedXmlPart | undefined, staged: StagedOutput | undefined;
+export async function selectRetainedXmlPart(archive: Archive, fingerprint: string, selection: RetainedInspectionSelection, settings: RetainedXmlPartContext, allowMetadata = true) {
+  const options = { ...selection }, index = await openRetainedPresentationIndex(archive, fingerprint, settings);
+  let failed = false;
   try {
     let metadata = false;
-    if (options.scope === 'shared' && options.part) {
+    if (allowMetadata && options.scope === 'shared' && options.part) {
       metadata = options.part === '/[Content_Types].xml' || options.part === packageUri('/').relsUri;
       if (!metadata) for await (const record of index.records.records('part')) if (packageUri(record.part).relsUri === options.part) { metadata = true; break; }
     }
@@ -123,6 +123,16 @@ export async function stageRetainedXmlPart(archive: Archive, fingerprint: string
     if (!metadata) { for await (const item of selected()) { record = item; count++; } if (count !== 1 || record!.kind === 'object') throw new SelectionError('invalid-selection'); }
     const part = metadata ? options.part! : record!.part;
     const location: Location = metadata ? { fingerprint, scope: 'shared', owner: part, objectId: part, coordinateSystem: 'identity' } : record!.location;
+    return { part, location };
+  } catch (error) { failed = true; throw error; }
+  finally { try { await index.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
+}
+
+export async function stageRetainedXmlPart(archive: Archive, fingerprint: string, selection: RetainedInspectionSelection, settings: RetainedXmlPartContext, output: { readonly json: boolean; readonly pretty?: boolean; readonly maxOutputBytes: number }): Promise<StagedOutput> {
+  const format = { ...output };
+  let xml: RetainedXmlPart | undefined, staged: StagedOutput | undefined;
+  try {
+    const { part, location } = await selectRetainedXmlPart(archive, fingerprint, selection, settings);
     xml = await openRetainedXmlPart(archive, part, settings, { pretty: format.pretty ?? false });
     const data = xml;
     async function* render(): ByteSource {
@@ -131,6 +141,6 @@ export async function stageRetainedXmlPart(archive: Archive, fingerprint: string
       else yield* data.bytes();
     }
     staged = await stageRetainedOutput(render(), settings, format.maxOutputBytes);
-    await xml.close(); await index.close(); return staged;
-  } catch (error) { await Promise.allSettled([xml?.close(), index.close(), staged?.close()]); throw error; }
+    await xml.close(); return staged;
+  } catch (error) { await Promise.allSettled([xml?.close(), staged?.close()]); throw error; }
 }

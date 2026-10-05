@@ -381,3 +381,5 @@ export function validateXmlPartReplacement(
 export { openRetainedXmlPart, stageRetainedXmlPart, type RetainedXmlPart, type RetainedXmlPartContext } from './retained-xml-parts.js';
 
 export { openRetainedXmlReplacement, type RetainedXmlReplacement } from "./retained-xml-replacement.js";
+
+export { stageRetainedXmlReplacement } from './retained-xml-publication.js';

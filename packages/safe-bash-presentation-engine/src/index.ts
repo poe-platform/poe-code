@@ -565,3 +565,5 @@ export { CategoryChartData, ChartData, XyChartData, BubbleChartData } from "./ch
 export * as chartData from "./chart-data-model.js";
 export * as chart from "./chart-objects.js";
 export type { ChartObjectUpdate } from "./chart-object-operations.js";
+
+export { stageRetainedXmlReplacement } from './retained-xml-publication.js';

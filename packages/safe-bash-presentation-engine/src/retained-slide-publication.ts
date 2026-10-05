@@ -1,7 +1,6 @@
-import { PagedStorage } from '@poe-code/safe-fs/storage';
+import { stageRetainedArchive } from './retained-archive-staging.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import type { ByteSource } from './contracts.js';
-import { OfficeError } from './errors.js';
 import { openPackageArchive, type RetainedPackageContext } from './retained-package.js';
 import { openRetainedSlideSettings } from './retained-slide-settings.js';
 import type { MutateSlidesOptions } from './slides.js';
@@ -21,35 +20,16 @@ export async function stageRetainedSlideSettings(input: RetainedSlideSource, opt
   const hex = (bytes: Uint8Array) => Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
   const before = hex(hash.digest());
   const archive = await openPackageArchive(input, settings);
-  let mutation: Awaited<ReturnType<typeof openRetainedSlideSettings>> | undefined, pages: PagedStorage | undefined, response: StagedOutput | undefined;
-  let closed = false, closing: Promise<void> | undefined;
-  const check = () => { if (closed) throw new OfficeError('invalid-handle', 'Slide output is closed.', 'publish'); signal.throwIfAborted(); };
-  const close = () => { closed = true; return closing ??= (async () => {
-    const results = await Promise.allSettled([response?.close(), mutation?.close(), pages?.close(), archive.close()]);
+  let mutation: Awaited<ReturnType<typeof openRetainedSlideSettings>> | undefined, staged: Awaited<ReturnType<typeof stageRetainedArchive>> | undefined, response: StagedOutput | undefined;
+  let closing: Promise<void> | undefined;
+  const close = () => { return closing ??= (async () => {
+    const results = await Promise.allSettled([response?.close(), mutation?.close(), staged?.close(), archive.close()]);
     for (const result of results) if (result.status === 'rejected') throw result.reason;
   })(); };
   try {
     mutation = await openRetainedSlideSettings(archive, before, options, settings);
-    let size = input.size, fingerprint = before, start = 0;
-    if (mutation.changed) {
-      const working = settings.workingStorage;
-      pages = new PagedStorage({ fs: working.fs, cwd: working.directory, env: {}, signal }, (working.cacheBytes ?? 1024 * 1024) / 16384);
-      start = pages.allocate(0); size = 0; const digest = sha256.create();
-      await archive.rewrite({ async write(bytes) {
-        check();
-        for (let offset = 0; offset < bytes.length; offset += 16384) {
-          check(); const owned = new Uint8Array(bytes.subarray(offset, offset + 16384));
-          await pages!.append(owned); digest.update(owned); size += owned.length;
-        }
-      } }, { replace: mutation.replacement, sourceOrder: 'name' });
-      fingerprint = hex(digest.digest());
-    }
-    async function* bytes(): ByteSource {
-      check();
-      if (!pages) { yield* input.stream(); check(); return; }
-      for (let offset = 0; offset < size; offset += 16384) { check(); yield await pages.read(start + offset, Math.min(16384, size - offset)); }
-      check();
-    }
+    staged = await stageRetainedArchive(input, before, archive, mutation, settings);
+    const { bytes, size, fingerprint } = staged;
     async function* locations() { for await (const location of mutation!.targets()) yield { ...location, fingerprint }; }
     async function* effects() { if (fingerprint !== before) for await (const location of locations()) yield { location, action: 'update', feature: 'F07' }; }
     const dryRun = output.dryRun;

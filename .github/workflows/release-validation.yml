@@ -387,6 +387,8 @@ jobs:
           printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
           npm --workspace=safe-bash-contracts run build
+          printf 'POE_SAFE_BASH_VERIFIED_BUILD_REUSE=%s:%s:%s\n' \
+            "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_SHA" >> "$GITHUB_ENV"
       - uses: ./.github/actions/setup-bash-oracle
       - name: Identify cache runtime
         run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"

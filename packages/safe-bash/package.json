@@ -3785,7 +3785,7 @@
     "postbuild": "node scripts/build-optional-cli.mjs",
     "test:csvpy-runtime": "node --import tsx --conditions=poe-code-source --test tests/integration/csvpy-runtime/*.test.mjs",
     "test:workerd": "node --test scripts/workerd.test.mjs",
-    "pretest:unit": "npm --prefix ../.. run build --workspaces=false"
+    "pretest:unit": "node ../../scripts/prepare-safe-bash-unit-build.mjs"
   },
   "version": "0.0.0",
   "files": [

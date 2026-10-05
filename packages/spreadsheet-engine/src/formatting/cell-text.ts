@@ -4,7 +4,7 @@ import { cellValueFormat } from "../workbook/value-format.js";
 import type { FormattingCapability, FormatOptions, TextFormatMode } from "../formatting.js";
 import { formatText, type FormatHost } from "./number-format.js";
 import { parseFormatSections, selectFormatSection } from "./sections.js";
-import { formatGeneralNumber } from "../rendering/print/general-number.js";
+import { formatGeneralNumber } from "./general-number.js";
 import { scanFormat } from "./numeric.js";
 import { formattingLocale, localizedValueText } from "./locale.js";
 

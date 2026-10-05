@@ -1,6 +1,6 @@
-import {SsconvertError} from "../../contracts.js";
-import {fixedNumber} from "../../formatting/number-format.js";
-import {formattingLocale} from "../../formatting/locale.js";
+import {SsconvertError} from "../contracts.js";
+import {fixedNumber} from "./number-format.js";
+import {formattingLocale} from "./locale.js";
 
 /** Native General precision selection, measured in the caller's font units. */
 export function formatGeneralNumber(value: number, initial: string, width: number,

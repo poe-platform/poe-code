@@ -1,5 +1,5 @@
 import {expect, it} from "vitest";
-import {rendered} from "../../formulas/values.js";
+import {rendered} from "../formulas/values.js";
 import {formatGeneralNumber} from "./general-number.js";
 
 // GOffice0.10.61 go_render_general, native measure_strlen and unit-width metrics.

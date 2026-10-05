@@ -55,6 +55,8 @@ export interface E2EHarnessOptions {
   readonly memoryFsOptions?: ConstructorParameters<typeof sb.MemoryFileSystem>[0];
   readonly mountDev?: boolean;
   readonly shellExtensions?: boolean;
+  readonly bareShell?: boolean;
+  readonly warmBeforeExec?: boolean;
   readonly includeExtendedCommands?: boolean;
   readonly plugins?: readonly sb.VirtualShellPlugin[];
   readonly benchmarkRecorder?: BenchmarkRecorder;
@@ -102,17 +104,20 @@ export class SafeBashE2EHarness {
   readonly memoryFs: sb.MemoryFileSystem | undefined;
   readonly shell: sb.Shell;
   readonly recorder: BenchmarkRecorder;
+  private readonly warmBeforeExec: boolean;
 
   private constructor(
     fs: sb.FileSystem,
     memoryFs: sb.MemoryFileSystem | undefined,
     shell: sb.Shell,
     recorder: BenchmarkRecorder,
+    warmBeforeExec = false,
   ) {
     this.fs = fs;
     this.memoryFs = memoryFs;
     this.shell = shell;
     this.recorder = recorder;
+    this.warmBeforeExec = warmBeforeExec;
   }
 
   static async create(options: E2EHarnessOptions = {}): Promise<SafeBashE2EHarness> {
@@ -180,17 +185,21 @@ export class SafeBashE2EHarness {
       fs: shellFs,
       ...(options.mountDev && memoryFs ? { deviceView: "provided" as const } : {}),
       cwd: options.cwd ?? "/workspace",
-      env: {
-        HOME: "/home/user",
-        USER: "e2e",
-        PATH: "/usr/local/bin:/usr/bin:/bin",
-        LANG: "C",
-        LC_ALL: "C",
-        ...options.env,
-      },
+      ...(options.bareShell && !options.env
+        ? {}
+        : {
+            env: {
+              HOME: "/home/user",
+              USER: "e2e",
+              PATH: "/usr/local/bin:/usr/bin:/bin",
+              LANG: "C",
+              LC_ALL: "C",
+              ...options.env,
+            },
+          }),
       limits: options.limits,
       backgroundJobs: options.backgroundJobs,
-      ...(options.shellExtensions !== false
+      ...(options.shellExtensions !== false && !options.bareShell
         ? {
             extensions: [
               readExtension(),
@@ -263,15 +272,25 @@ export class SafeBashE2EHarness {
       shell.use(plugin);
     }
 
-    return new SafeBashE2EHarness(shellFs, memoryFs, shell, recorder);
+    return new SafeBashE2EHarness(shellFs, memoryFs, shell, recorder, options.warmBeforeExec ?? Boolean(options.bareShell));
   }
 
   async exec(
     script: string,
-    options?: sb.ShellExecOptions & { label?: string },
+    options?: sb.ShellExecOptions & { label?: string; allowStderr?: boolean },
   ): Promise<E2EExecResult> {
+    let shellOptions: sb.ShellExecOptions | undefined;
+    if (options !== undefined) {
+      const { label: _l, allowStderr: _a, ...rest } = options;
+      if (Object.keys(rest).length > 0) {
+        shellOptions = rest;
+      }
+    }
+    if (this.warmBeforeExec && shellOptions === undefined) {
+      await this.shell.exec("");
+    }
     const { result, metrics } = await measureSingleExec(
-      () => this.shell.exec(script, options),
+      () => (shellOptions === undefined ? this.shell.exec(script) : this.shell.exec(script, shellOptions)),
       (res) => ({
         stdoutBytes: res.stdoutBytes.byteLength,
         stderrBytes: res.stderrBytes.byteLength,

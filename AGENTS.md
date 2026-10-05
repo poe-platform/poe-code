@@ -105,6 +105,11 @@ The whole point of the test command is to test spawn and not work around it.
 
 Whenever making changes to agent definitions, use test command quickly verify
 
+### safe-bash E2E Tests (Optional)
+
+- `packages/safe-bash-e2e` is an optional, on-demand end-to-end and benchmark suite (`npm --workspace=safe-bash-e2e test` or `TSX_TSCONFIG_PATH=packages/safe-bash-e2e/tsconfig.json node --import tsx --test <file>`).
+- Do not wire `safe-bash-e2e` into `test:unit`, `npm test`, or release/CI pipelines; run it only ad-hoc when you feel it is useful.
+
 ### Spot testing
 
 `npm run dev -- <command> <args>`

@@ -66,7 +66,7 @@ test("BenchmarkRecorder.measureScenario computes p50, p95, p99, opsPerSec, and g
   assert.match(md, /micro-pipeline/);
 });
 
-test("runStandardBenchmarkSuite executes all 24 E2E workloads and produces complete metrics", async () => {
+test("runStandardBenchmarkSuite executes all 26 E2E workloads and produces complete metrics", async () => {
   const run = await runStandardBenchmarkSuite({
     runId: "test-suite-check",
     label: "Test Suite Check",
@@ -75,7 +75,7 @@ test("runStandardBenchmarkSuite executes all 24 E2E workloads and produces compl
     iterations: 1,
   });
 
-  assert.equal(run.scenarios.length, 24);
+  assert.equal(run.scenarios.length, 26);
   for (const s of run.scenarios) {
     assert.ok(s.p50Ms >= 0, `Scenario ${s.name} should have non-negative p50Ms`);
     assert.ok(s.opsPerSec > 0, `Scenario ${s.name} should have positive opsPerSec`);
@@ -96,12 +96,12 @@ test("stored baseline benchmark runs in benchmarks/ load cleanly and compare wit
   });
 
   for (const run of loaded) {
-    assert.equal(run.scenarios.length, 24);
+    assert.equal(run.scenarios.length, 26);
     assert.ok(run.summary.geometricMeanMs > 0);
   }
 
   const comparison = compareBenchmarkRuns(loaded[1]!, loaded[0]!);
-  assert.equal(comparison.scenarios.length, 24);
+  assert.equal(comparison.scenarios.length, 26);
   assert.ok(comparison.overallGeometricMeanSpeedup > 0);
 
   const md = formatComparisonMarkdown(comparison);

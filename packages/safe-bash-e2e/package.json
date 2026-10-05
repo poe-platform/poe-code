@@ -7,9 +7,9 @@
   "description": "End-to-end test harness, in-memory VFS fixture suite, and performance benchmark comparator for safe-bash",
   "main": "src/index.ts",
   "scripts": {
-    "test": "node --import tsx --test src/*.test.ts",
-    "test:unit": "node --import tsx --test src/*.test.ts",
-    "bench": "node --import tsx src/bench-cli.ts",
+    "test": "TSX_TSCONFIG_PATH=tsconfig.json node --import tsx --test src/*.test.ts",
+    "test:e2e": "TSX_TSCONFIG_PATH=tsconfig.json node --import tsx --test src/*.test.ts",
+    "bench": "TSX_TSCONFIG_PATH=tsconfig.json node --import tsx src/bench-cli.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {},

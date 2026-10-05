@@ -504,6 +504,49 @@ export async function runStandardBenchmarkSuite(
       },
       { category: "structured-data", warmup, iterations },
     );
+
+    // 25. PDF & ImageMagick Document Publishing Pipeline (wkhtmltopdf -> qpdf -> pdftotext + magick -> exiftool)
+    await recorder.measureScenario(
+      "pdf-imagemagick-wkhtmltopdf-publishing",
+      async () => {
+        const res = await h.exec(
+          [
+            "rm -rf /tmp/pdf_bench && mkdir -p /tmp/pdf_bench",
+            "printf '<h1>Release Report</h1><p>All 40 E2E suites verified.</p>' > /tmp/pdf_bench/page1.html",
+            "printf '<h1>Metrics Appendix</h1><p>Zero external dependencies.</p>' > /tmp/pdf_bench/page2.html",
+            "wkhtmltopdf /tmp/pdf_bench/page1.html /tmp/pdf_bench/page2.html /tmp/pdf_bench/full.pdf",
+            "qpdf /tmp/pdf_bench/full.pdf --pages . z,1 -- /tmp/pdf_bench/reordered.pdf",
+            "pdftotext /tmp/pdf_bench/reordered.pdf - | wc -w",
+            "magick -size 32x32 xc:steelblue /tmp/pdf_bench/badge.png",
+            "exiftool -Artist=\"Safe-Bash Bench\" /tmp/pdf_bench/badge.png >/dev/null",
+            "identify -format \"%m %wx%h\\n\" /tmp/pdf_bench/badge.png",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "document-media", warmup, iterations },
+    );
+
+    // 26. Shell Builtins, Parameter Transforms, Namerefs & Getopts Intensive Script
+    await recorder.measureScenario(
+      "shell-builtins-parameter-transforms-arrays",
+      async () => {
+        const res = await h.exec(
+          [
+            "declare -A assoc=([alpha]=\"hello_world\" [beta]=\"line1\\nline2\" [gamma]=\"mixed_Case\")",
+            "declare -a sparse=([1]=\"one\" [4]=\"four\" [9]=\"nine\")",
+            "declare -n ref=assoc",
+            "parse_flags() { local OPTIND=1 opt; while getopts \":ab:\" opt \"$@\"; do case \"$opt\" in a) printf \"A:\";; b) printf \"B(%s):\" \"$OPTARG\";; esac; done; }",
+            "parse_flags -a -b \"${ref[alpha]^^}\"",
+            "printf \"%s|%s|%d\\n\" \"${assoc[beta]@E}\" \"${sparse[*]/#f/F}\" \"${#sparse[@]}\"",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "shell-grammar", warmup, iterations },
+    );
   } finally {
     await h.dispose();
   }

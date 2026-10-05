@@ -119,5 +119,5 @@ packages/safe-bash-rust/
    - Fuzz parser inputs, deep recursion, fork-bomb function loops, infinite streams (`/dev/zero | ...`), zip/tar bombs, symlink cycles, path traversal attempts, and concurrent cancellation to verify deterministic bounded termination.
 
 ### 4. `safe-bash-e2e` Parity & Performance Benchmark Suite
-- Maintain a dedicated workspace `packages/safe-bash-e2e` with an in-memory VFS fixture builder, multi-stage shell/pipeline scenario runner, and high-resolution performance profiler.
+- Maintain a dedicated workspace `packages/safe-bash-e2e` (100 E2E test suites / 2,008 scenarios) with an in-memory VFS fixture builder, multi-stage shell/pipeline scenario runner, and high-resolution performance profiler.
 - Record structured benchmark results across runs, backends (TypeScript `safe-bash`, hybrid `safe-bash-rust`, native zero-dep Rust, and Wasm), and optimization passes (tracking p50/p95/mean latency, ops/sec, throughput MB/s, and heap delta) so regressions and speedups are measurable at every step.

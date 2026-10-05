@@ -4,7 +4,7 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
 
 ## What This Package Covers
 
-1. **36 End-to-End Integration Suites (704 Scenarios)**:
+1. **100 End-to-End Integration Suites (2,008 Scenarios)**:
    - `shell-grammar-expansion.test.ts` — POSIX & Bash grammar, parameter expansions, indexed/associative arrays, functions, traps, arithmetic, `read`/`mapfile`, background jobs.
    - `pipelines-redirections-streams.test.ts` — Multi-stage pipelines, `PIPESTATUS`, FD duplication, heredocs, `/dev/null` & `/dev/zero`, `tee`, `sponge`, `split`, `paste`, `join`, `comm`, `diff`, `patch`.
    - `search-find-xargs-refactor.test.ts` — `rg`, `grep`, `find`, `fd`, `xargs`, `locate` across realistic multi-package TypeScript + Rust monorepo trees.
@@ -15,7 +15,7 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
    - `vfs-isolation-mounts-overlays.test.ts` — `OverlayFileSystem` copy-on-write, `MountFileSystem`, `ReadOnlyFileSystem`, symlinks, hardlinks, `chmod`, `umask`, `stat`, `du`, `df`, `tree`, `pathchk`, `mktemp`.
    - `math-system-utilities.test.ts` — `bc -l`, `expr`, `factor`, `seq`, `numfmt`, `envsubst`, `iconv`, `dos2unix`/`unix2dos`, `cal`, `date`, `timeout`, `getopt`, `id`, `uname`, `env`.
    - `budgets-cancellation-chaos.test.ts` — `ShellLimits` enforcement, `AbortSignal` cancellation, VFS byte quotas (`ENOSPC`), fork-bomb/expansion-bomb defense, and adversarial filename safety.
-   - `benchmark-suite.test.ts` — Verification of the 24 end-to-end benchmark workloads and multi-run comparison report generator.
+   - `benchmark-suite.test.ts` — Verification of the 26 end-to-end benchmark workloads and multi-run comparison report generator.
    - `diff-patch-merge-workflows.test.ts` — `diff`, `diff3`, `patch`, `comm`, `cmp`, and 3-way merge conflict resolution workflows.
    - `csv-data-science-csvkit-mlr.test.ts` — `csvcut`, `csvgrep`, `csvstat`, `csvsort`, `csvjoin`, `csvstack`, `csvsql`, `csvjson`, `in2csv`, `sql2csv`, `xan`, and `mlr`.
    - `html-xml-web-scraping.test.ts` — `htmlq`, `html-to-markdown`, `xmllint`, `xpath`, and `xq` scraping and structured extraction pipelines.
@@ -41,10 +41,20 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
    - `archive-tar-zip-compression-formats.test.ts` — `tar` (`--sort=name`, `-z`/`-j`/`-J`/`-a`, `--strip-components`, `--exclude`, `-X`, `--wildcards`, `--transform`, `--null -T -`, `-O`, `-r`/`-u`/`--delete`/`-A`, `-d`, `-h`, `-p`, `-k`, `--exclude-caches`, `--format=ustar`/`pax`), `zip`/`unzip` (`-r`, `-sf`, `-l`, `-d`, `-p`, `-t`, `-j`, `-x`, `-u`/`-f`/`-d`/`-m`, `-T`, `-n`/`-o`, `-z`, `-s` multi-volume splits), `gzip`/`gunzip`/`zcat`, `bzip2`/`bunzip2`/`bzcat`, and `xz`/`unxz`/`xzcat`.
    - `node-python-safejs-sandboxes.test.ts` — `node` (`nodeCommands` with `SafeJsRuntime` & `NodeRuntimeProvider` / `NODE_PROFILE`: `-e`, `-p`, `--env-file`, `--require`, `--check`, `node:fs/promises`, `Buffer`, timers, capability confinement), `safeJsCommands`, `python`/`python3` (`pythonCommands` with VFS descriptor bridge, streaming stdio, `createPythonExecutorPool`, `inspectPythonCapabilities`), and `playwright-cli` (`createPlaywrightCli` sessions, custom abilities, `--raw`/`--json`, `screenshot`).
    - `filesystem-bridges-s3-webdav-virtual-devices.test.ts` — `S3FileSystem`, `MockS3Client`, `createS3Transport`, `createS3HttpTransport` (SigV4 signing), `WebDavFileSystem` (RFC 4918 `PROPFIND`/`GET`/`PUT`/`MKCOL`/`COPY`/`MOVE`/`DELETE`), `createDeviceFileSystem` (`/dev/null`, `/dev/zero`, `/dev/random`, `/dev/urandom`), `OverlayFileSystem`, `MountFileSystem`, `ReadOnlyFileSystem`, and `df` multi-mount topologies.
+   - `docx-pptx-pdf-imagemagick-deep-workflows.test.ts` — `docxCommands` (`createDocxCommand`), `pptxCommands` (`createPptxCommands` conditional atomic publication, `stale-input`, `protectedInputPaths`), `makeSafeJsShellModule`/`makeSafeJsFsModule`, `wkhtmltopdf`, `qpdf`, `pdftk`, `pdfinfo`, `pdftotext`, `pdftoppm`, `pdfimages`, `magick`/`convert`/`identify`, `sips`, `exiftool`, `mmdc`, `unrtf`, and `html-to-markdown`.
+   - `shell-builtins-redirections-process-substitution-edge-cases.test.ts` — Parameter transformations (`@Q`, `@E`, `@a`, `@A`, `@K`, `@k`, `@u`, `@U`, `@L`), case modification (`^`, `^^`, `,`, `,,`), substring/pattern slicing, indirect expansion (`!ref`, `!prefix*`), `declare`/`local`/`readonly`/`export` attributes (`-i`, `-l`, `-u`, `-f`, `-F`), namerefs (`declare -n`), `getopts`, `getopt`, `select` menus, `PIPESTATUS`, FD manipulation (`3>&1 1>&2 2>&3`), `set -C` (`noclobber`), `shopt`, `pushd`/`popd`/`dirs`, `hash`/`type`/`command`/`which`, `umask`, `let`/`(( ))`, `source`/`eval`, `dos2unix`/`unix2dos`, and `timeout`.
+   - `shell-middleware-plugins-capabilities-command-limits.test.ts` — `Shell.use(middleware)` onion chains, `Shell.register` binary `CommandArguments`, `ShellCommandContext.invoke` (`argv0`, `externalInvocation`, `replaceEnv`), `registerFileSystem`/`createFileSystem`, `predicateIdentity` (`-O`/`-G`), `CommandFamilyLimits`, `ShellSessionHooks` (`beforeExec`/`afterExec`), streaming `ByteSource`/`ByteSink`, `mediaCommands`, `pagerCommands` (`less`/`more`), `timeout -k` worker quota refusal, `ShellLimits`, `Shell.dispose()`, `pr`, `csplit`, `tsort`, `factor`, `iconv`, `file`, `tree`, `column`, and `expr`.
+   - `posix-gnu-oracle-differential-parity.test.ts` — Differential parity suite verified against GNU Bash 5.3 across `IFS` splitting, nested quoting, sparse arrays, `case ;& ;;&` fallthrough, C-style arithmetic & base-64 literals, zero-padded brace ranges, `<<-` heredocs, dynamic `local` scoping, `read`/`mapfile`, `[[ =~ ]]` `BASH_REMATCH`, `printf %b %*.*s`, `awk`, `sed`, `tr`, `cut`, `sort`, `uniq`, `join`, `comm`, `paste`, `<(...)`, `find -prune`, and `jq`.
+
+   - `tar-gzip-bzip2-xz-zstd-zip-unzip-sha512sum-archive-integrity-matrix.test.ts` — Multi-format archive & compression roundtrips (`tar`, `gzip`, `bzip2`, `xz`, `zstd`, `zip`, `unzip`) verified with `sha512sum`, `sha256sum`, `md5sum`, and `cksum`.
+   - `csvkit-csvcut-csvgrep-csvstat-csvjoin-csvsort-csvsql-xan-tabular-matrix.test.ts` — Full `csvkit` (`in2csv`, `csvcut`, `csvgrep`, `csvsort`, `csvjoin`, `csvstack`, `csvstat`, `csvsql`, `sql2csv`, `csvjson`, `csvlook`), `xan`, `mlr`, and `sqlite3` analytics matrix.
+   - `posix-system-env-cal-pathchk-getconf-locale-df-id-uname-less-fd-matrix.test.ts` — POSIX system introspection (`env`, `printenv`, `cal`, `pathchk`, `getconf`, `locale`, `df`, `du`, `id`, `uname`, `less`/`more`, `fd`, `realpath`, `stat`, `mktemp`, `timeout`).
+   - `sponge-htmlq-exiftool-jq-yq-rg-structured-media-pipeline-matrix.test.ts` — Zero-dependency `sponge`, `htmlq`, `exiftool`, `jq`, `yq`, `rg`, `xmllint`, `convert`, `sips`, `mmdc`, and `wkhtmltopdf` structured/media pipelines.
+   - `git-diff-patch-sed-awk-grep-find-xargs-end-to-end-repo-refactoring.test.ts` — 36-scenario repository refactoring, 3-way merge (`diff3 -m`), `diff -ru`, `patch -R`, `apply_patch`, `sed -i`, `awk`, `rg`, `fd`, and `xargs` release workflows.
 
 2. **Performance Benchmarking & Multi-Run Comparison (`benchmarks/`)**:
    - High-resolution per-exec metrics (`durationMs`, `cpuUserUs`, `cpuSystemUs`, `heapDeltaBytes`, `stdoutBytes`).
-   - 24 multi-iteration E2E benchmark workloads (`p50`, `p95`, `p99`, `mean`, `stddev`, `opsPerSec`, geometric mean).
+   - 26 multi-iteration E2E benchmark workloads (`p50`, `p95`, `p99`, `mean`, `stddev`, `opsPerSec`, geometric mean).
    - Stored baselines across optimization profiles (`ts-baseline-warm-memory-fastpath`, `ts-baseline-overlay-cow-fs`, `ts-baseline-strict-budgets-mount-dev`) and side-by-side comparison tables in `benchmarks/COMPARISON_REPORT.md`.
 
 ## Commands

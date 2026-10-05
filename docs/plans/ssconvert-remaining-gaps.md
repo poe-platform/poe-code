@@ -216,6 +216,12 @@ Malformed-byte arguments use workbook values and raw SDK export; the XML
 conversion subset has nine valid-text cases. Containing installed profiles and
 remaining grammar/runtime acceptance stay open.
 
+PY_PRINTF now refuses malformed byte-string arguments through the existing
+Unicode rendering guard instead of formatting their internal hexadecimal storage
+(`pythonPrintfByteAdmission`). This covers format strings, scalar arguments and
+array members across all three profiles; RangeRef and installed-profile gates
+remain open.
+
 ## 4. Interfaces and test plan
 
 Use existing `createEngine`, `readWorkbook`, `writeWorkbook`, `convert` and

@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import proof from "../../../../docs/ssconvert/python-printf-gap-proof.json" with { type: "json" };
 import type { CapabilityContext } from "../contracts.js";
 import { recalculateWorkbook } from "./evaluator.js";
-import { pythonSampleFunctions } from "./optional-providers.js";
+import { createPythonSampleFunctions, pythonSampleFunctions } from "./optional-providers.js";
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   runtimeFunctions: pythonSampleFunctions, environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 1000000, outputBytes: 1000000, cells: 100, sheets: 4, operations: 1000 } };
@@ -69,4 +69,20 @@ it("charges formatting work and stops when a loader diagnostic cancels the invoc
     { row: 0, column: 0, formula: '=PY_PRINTF("%s",NA())', formulaDirty: true, value: { kind: "blank" } }
   ] }] }, { ...context, signal: controller.signal }, true, () => { controller.abort(reason); }))
     .toThrow(reason);
+});
+
+for (const unicodeVersion of ["15.0.0", "15.1.0", "16.0.0"] as const)
+it.each([
+  '=PY_PRINTF(A2)',
+  '=PY_PRINTF("%s",A2)',
+  '=PY_PRINTF("%r",A2)',
+  '=PY_PRINTF("%a",A2)',
+  '=PY_PRINTF("%s",TRANSPOSE(A2:A3))'
+])(`${unicodeVersion} refuses malformed native bytes instead of formatting their hex: %s`, formula => {
+  expect(() => recalculateWorkbook({ sheets: [{ id: "s", name: "Sheet1", cells: [
+    { row: 0, column: 0, formula, formulaDirty: true, value: { kind: "blank" } },
+    { row: 1, column: 0, value: { kind: "byte-string", value: "ff" } },
+    { row: 2, column: 0, value: { kind: "string", value: "valid" } }
+  ] }] }, { ...context, runtimeFunctions: createPythonSampleFunctions({ unicodeVersion }) }))
+    .toThrow("Native byte-string Unicode rendering is not qualified");
 });

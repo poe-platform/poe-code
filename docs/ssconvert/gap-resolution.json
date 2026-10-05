@@ -4657,9 +4657,10 @@
       "status": "open",
       "currentFinding": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired. Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences. See checkpoint20261004 for the next acceptance test and qualification blockers.",
       "checkpoint20261004": {
-        "qualified": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired.",
+        "qualified": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired. Malformed byte-string format/scalar/array arguments now use the existing Unicode rendering refusal instead of leaking internal hexadecimal storage as text; all three Python profiles and both public routes are covered.",
         "evidence": [
-          "#/currentQualification20261002/pythonPrintfActivated"
+          "#/currentQualification20261002/pythonPrintfActivated",
+          "#/pythonPrintfByteAdmission"
         ],
         "nextAcceptance": "Qualify address-bearing RangeRef/sheet representations and remaining diagnostic/coercion cases without comparing unstable addresses as literal goldens.",
         "closureGate": "Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences.",
@@ -6586,6 +6587,18 @@
       "native.stderr": "3602e7a6a0939a67457e186205f9350e216fa46826421f9d6ce3e4c13f7a9d9c",
       "public-results.json": "cd6499ffc504fc025e9863f69bae9fed35beab829cb6130f5efedccfc99582a6",
       "lifecycle-results.json": "7ed0ef28e63b16eaa62770da1c8dcfda65b7716959e50cd5bd3855b3c97561d1"
+    }
+  },
+  "pythonPrintfByteAdmission": {
+    "status": "Malformed byte coercion fixed; broader Python formatting family remains open",
+    "problem": "pythonValue treated byte-string.value as ordinary text. PY_PRINTF formatted internal hex storage instead of respecting the existing unqualified Unicode-rendering refusal. This affected the format argument, scalar s/r/a conversions and nested array members.",
+    "fix": "Route text-bearing CellValues through the existing rendered function before C-string truncation. Valid strings keep the same behavior; malformed native bytes raise the established unsupported-feature error. No invented native Unicode replacement or crash parity.",
+    "verification": "15 failing-before regressions across Unicode15.0/15.1/16.0;1044 Python formatting/profile/load tests pass. Selected command workspace build, changed-file ESLint, engine source and command test types pass. Type checks were rerun successfully after building workspace dependency declarations.",
+    "public": "Current compiled SDK and command:30 refusals (5 argument positions x3 profiles x2 routes), each with zero output. Malformed value generated losslessly through PERL_SED on valid XML text, not injected internal hex as text. SDK preserves unsupported-feature; command exits1 with the exact established Unicode-rendering message. Six valid Unicode controls return \u00e9.",
+    "limits": "Native malformed-UTF8 bridge crashes remain recorded reference limitations; no new malformed native parity claimed. RangeRef/sheet representations, other coercions and containing installed profiles remain open.",
+    "hashes": {
+      "public.mjs": "67ce6f49119ebd1c2ffadf7caffbe68d7a9aa0b1056fb0bf76f6858cd42f2acb",
+      "public-results.json": "311f44bfdf86ddcfbc3808052070c536597a97cb8c821818f88fef89b142aa25"
     }
   }
 }

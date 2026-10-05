@@ -1,6 +1,7 @@
 import { SsconvertError } from "../../contracts.js";
 import type { CellValue } from "@poe-code/spreadsheet-ast";
 import { boundedText } from "./common.js";
+import { rendered } from "../values.js";
 import type { FunctionHost, Value } from "./types.js";
 import { nonPrintable } from "./python-printf-profile.js";
 import { inUnicodeRanges, type PythonUnicodeProfile } from "./python-unicode-profile.js";
@@ -67,7 +68,7 @@ function pythonValue(value: Value | undefined, host: FunctionHost, argument = tr
       rows.map(row => pythonValue(row[column], host, false))) };
   }
   // Both Python C-string acquisition and returned Gnumeric strings stop at NUL.
-  return typeof value.value === "string" ? value.value.split("\0", 1)[0]! : value.value;
+  return typeof value.value === "string" ? rendered(value).split("\0", 1)[0]! : value.value;
 }
 function decimalRatio(value: number): readonly [bigint, bigint] {
   const view = new DataView(new ArrayBuffer(8)); view.setFloat64(0, value);

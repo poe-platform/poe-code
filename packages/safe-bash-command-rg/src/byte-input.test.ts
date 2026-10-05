@@ -6,6 +6,12 @@ import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createRgCommand } from "./index.js";
 
 const cases: readonly [string[], Uint8Array, Uint8Array, number][] = [
+  [["✓|FAIL"], Buffer.from("check ✓\n"), Buffer.from("check ✓\n"), 0],
+  [["✓|FAIL"], Buffer.from("FAIL\n"), Buffer.from("FAIL\n"), 0],
+  [["✓|FAIL"], Buffer.from("pass\n"), Buffer.from(""), 1],
+  [["-o", "🦀+|FAIL"], Buffer.from("check 🦀🦀\n"), Buffer.from("🦀🦀\n"), 0],
+  [["-ni", "commander"], Buffer.from("commander 🦀\n"), Buffer.from("1:commander 🦀\n"), 0],
+  [["-ni", "detach|consume|encodepng"], Buffer.from("Consume 🦀\n"), Buffer.from("1:Consume 🦀\n"), 0],
   [["x"], Uint8Array.of(255), Buffer.from(""), 1],
   [["x"], Buffer.from([255, 120, 10]), Buffer.from([255, 120, 10]), 0],
   [["x+"], Buffer.from([255, 120, 120, 10]), Buffer.from([255, 120, 120, 10]), 0],

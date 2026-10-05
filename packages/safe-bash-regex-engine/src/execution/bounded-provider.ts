@@ -681,6 +681,7 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
     return undefined;
   }
   const programs = cache.ere.programs;
+  if (!programs.every(canFastSyncEreProgram)) return undefined;
   const unboundedLedger =
     ledger.limits.work === Infinity &&
     ledger.limits.states === Infinity &&
@@ -1048,7 +1049,7 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: bo
         await ledger.checkpoint(signal);
       }
     }
-    if (selected.kind === "rg" && (selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
+    if (selected.kind === "rg" && selected.word && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching supports ASCII subjects only");
     if (row.all) {
       ledger.charge("allocationUnits", programs.length * 2, signal);
       const finders = programs.map(program => async (from: number): Promise<Span | undefined> => {
@@ -1139,7 +1140,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal, cache: WorkerCa
       fragments.unshift({ text: "^(", literal: false });
       fragments.push({ text: ")$", literal: false });
     }
-    programs.push(await compileEre(fragments, ledger, signal, fold));
+    programs.push(await compileEre(fragments, ledger, signal, fold, undefined, selected.kind === "rg"));
   }
   const snapAfterEre = ereKey !== undefined ? ledger.usage : undefined;
   const unboundedLedger =
@@ -1195,7 +1196,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal, cache: WorkerCa
         }
       }
     }
-    if (selected.kind === "rg" && (selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
+    if (selected.kind === "rg" && selected.word && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching supports ASCII subjects only");
     const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal, selected.kind === "rg", selected.word);
     if (row.all) {
       ledger.charge("allocationUnits", programs.length + 1, signal);

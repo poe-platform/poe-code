@@ -40,6 +40,7 @@ export interface EreNoMatch {
 export type EreResult = EreMatch | EreNoMatch;
 
 export interface EreProgram {
+  readonly ascii: boolean;
   readonly pattern: string;
   readonly groups: number;
 }

@@ -210,8 +210,8 @@ export async function warmEreProgram(program: EreProgram): Promise<void> {
   await prepareInitialCharacters(root, warmLedger);
 }
 
-export function canFastSyncEreProgram(_program: EreProgram): boolean {
-  return true;
+export function canFastSyncEreProgram(program: EreProgram): boolean {
+  return program.ascii;
 }
 
 export function tryMatchEreAsciiRangeSync(
@@ -225,6 +225,7 @@ export function tryMatchEreAsciiRangeSync(
   word = false,
   skipPerRowLedgerCharge = false,
 ): EreSpan | undefined | null {
+  if (!canFastSyncEreProgram(program)) return null;
   const root = resolveEreProgramUnchecked(program);
   if (program.groups !== 0) {
     if (
@@ -634,7 +635,7 @@ async function prepareInitialCharacters(root: EreNode, ledger: EreLedger, signal
   if (root.nullable) return undefined;
   const cached = initialCharacters.get(root);
   if (cached) return cached;
-  // ASCII codes plus the normalized non-ASCII subject value (128). This table
+  // ASCII codes plus a conservative bucket for all Unicode scalars (128). This table
   // belongs to the program's ledger and is reused across rows and cursors.
   ledger.charge("work", 129, signal);
   ledger.charge("allocationUnits", 133, signal);
@@ -647,7 +648,7 @@ async function prepareInitialCharacters(root: EreNode, ledger: EreLedger, signal
     const node = pending.pop()!;
     switch (node.kind) {
       case "literal": {
-        codes[node.code] = true;
+        codes[Math.min(node.code, 128)] = true;
         const folded = foldAscii(node.code);
         if (node.insensitive && folded >= 97 && folded <= 122) {
           codes[folded] = codes[folded - 32] = true;
@@ -1112,9 +1113,16 @@ export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger
     ledger.charge("work", width, signal);
     { const c = ledger.checkpoint(signal); if (c) await c; }
     offsets.push(offset);
-    // ASCII patterns cannot distinguish non-ASCII byte/scalar values. U+0080 is
-    // private matcher input, never reconstructed output or user-visible text.
-    characters.push(String.fromCharCode(first < 0x80 ? first : 128));
+    if (leftmostFirst && !word) {
+      let code = width === 1 ? first : first & (0x7f >> width);
+      for (let index = 1; index < width; index++) code = (code << 6) | (owned[offset + index]! & 0x3f);
+      characters.push(String.fromCodePoint(code));
+      // Match cursors use UTF-16 positions; both halves belong to one scalar.
+      if (code > 65535) offsets.push(offset);
+    } else {
+      // C-locale matching only distinguishes ASCII from other byte/scalar values.
+      characters.push(String.fromCharCode(first < 0x80 ? first : 128));
+    }
     offset += width;
   }
   offsets.push(owned.length);
@@ -1175,13 +1183,13 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
     ledger.charge("allocationUnits", 5, signal);
     pending.push({ position, task: next, captures, histories });
   };
-  for (let start = from; start <= subject.length; start++) {
+  for (let start = from; start <= subject.length; start += subject.codePointAt(start)! > 65535 ? 2 : 1) {
     seen?.clear();
     if (initial) {
       ledger.charge("work", 1, signal);
       const pendingCheck = ledger.checkpoint(signal);
       if (pendingCheck) await pendingCheck;
-      if (!initial[subject.charCodeAt(start)]) continue;
+      if (!initial[Math.min(subject.codePointAt(start) ?? NaN, 128)]) continue;
     }
     if (word) {
       ledger.charge("work", 1, signal);
@@ -1236,9 +1244,9 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
         case "dot":
         case "literal":
         case "set": {
-          const code = subject.charCodeAt(state.position);
+          const code = subject.codePointAt(state.position)!;
           if (state.position < subject.length && (node.kind === "dot" && (!leftmostFirst || code !== 10) || node.kind === "literal" && (node.insensitive ? foldAscii(node.code) === foldAscii(code) : node.code === code) || node.kind === "set" && (code < 128 ? node.members[code] : node.nonAscii))) {
-            push(state.position + 1, current.next, state.captures, state.histories);
+            push(state.position + (code > 65535 ? 2 : 1), current.next, state.captures, state.histories);
           }
           break;
         }

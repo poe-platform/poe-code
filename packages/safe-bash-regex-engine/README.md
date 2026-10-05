@@ -2,7 +2,9 @@
 
 The internal regex engine supplies the shared text/query matcher and ERE
 algorithms used by Safe Bash commands. It preserves capture behavior, explicit
-work limits and cooperative cancellation without executing host utilities.
+work limits and cooperative cancellation without executing host utilities. Rg alternations and repetitions accept Unicode
+literals, preserve UTF-8 byte offsets, and retain work limits and cancellation.
+ASCII case-insensitive searches also accept Unicode subjects.
 Replacement buffers preserve Unicode with finite or unlimited limits and do not
 require the Node.js `Buffer` global. Sed, awk and query patterns accept shorthand
 classes (`\d`, `\s`, `\w` and their uppercase complements) inside brackets.

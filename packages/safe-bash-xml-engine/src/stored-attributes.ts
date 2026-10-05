@@ -51,7 +51,7 @@ export class StoredAttributes {
     return JSON.parse(parts.join("")) as XmlAttribute;
   }
 
-  async sort(compare: (left: XmlAttribute, right: XmlAttribute) => number): Promise<void> {
+  async sort(compare: (left: XmlAttribute, right: XmlAttribute) => number | Promise<number>): Promise<void> {
     for (let width = 1; this.head; width *= 2) {
       let left = this.head, head = 0, tail = 0, merges = 0;
       while (left) {
@@ -69,7 +69,7 @@ export class StoredAttributes {
               rightValue ??= await this.value(right);
               const work = this.budget.tick(leftValue.namespace.length + leftValue.localName.length + rightValue.namespace.length + rightValue.localName.length + 1);
               if (work) await work;
-              takeLeft = compare(leftValue, rightValue) <= 0;
+              takeLeft = await compare(leftValue, rightValue) <= 0;
             }
           }
           let selected: number;

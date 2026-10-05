@@ -15,7 +15,8 @@ export async function parseStoredXml(
   context: PagedStorageContext & { readonly registerCleanup?: (cleanup: () => Promise<void>) => void },
   budget: XmlBudget,
   recover?: (message: string) => void,
-  consume?: (event: XmlEvent) => Promise<void>,
+  consume?: (event: XmlEvent, namespaceParts: (reference: number) => AsyncIterable<string>) => Promise<void>,
+  deferNamespaces = false,
 ): Promise<XmlElement> {
   const cache = new PagedStorageCache(4);
   const storage = new PagedStorage(context, 4, cache);
@@ -53,13 +54,13 @@ export async function parseStoredXml(
     const frames = new StoredXmlFrames(frameStorage);
     const attributes = new StoredParserAttributes(frameStorage, budget);
     const parser = parseXmlSourceSteps(recover ? length : undefined, {
-      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, storeAttributes: true, fragmentAttributes: true, fragmentContent: true, compactDeclaration: true,
+      ...budget.limits, deferNamespaces, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, storeAttributes: true, fragmentAttributes: true, fragmentContent: true, compactDeclaration: true,
       ...(recover ? { recover } : {}), ...(consume ? { events: (event: XmlEvent) => { queued.push(event); }, onAttribute: (attribute: XmlAttribute, element: XmlElement, continuation = false) => { queued.push({ type: "attribute", attribute, element, continuation }); } } : {}),
     });
     let step = parser.next();
     try {
       while (true) {
-        for (const event of queued) await consume!(event);
+        for (const event of queued) await consume!(event, reference => new StoredNamespaces(frameStorage, budget).valueParts(reference));
         queued.length = 0;
         if (step.done) { await frameStorage.close(); await storage.close(); return step.value; }
         if (typeof step.value === "number") {
@@ -69,7 +70,11 @@ export async function parseStoredXml(
         } else if ("namespaceOperation" in step.value) {
           const request = step.value;
           const scope = new StoredNamespaces(frameStorage, budget, request.scope.reference);
-          if (request.namespaceOperation === "has") {
+          if (request.namespaceOperation === "reference") {
+            const reference = await scope.lookup(request.prefix);
+            if (reference !== undefined) request.reference = reference;
+            request.complete = true;
+          } else if (request.namespaceOperation === "has") {
             request.found = await scope.lookup(request.prefix) !== undefined;
           } else if (request.namespaceOperation === "get") {
             const previous = await scope.get(request.prefix);

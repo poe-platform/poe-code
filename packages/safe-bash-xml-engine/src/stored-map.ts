@@ -25,7 +25,7 @@ export class StoredStringMap {
     return this.storage.append(bytes);
   }
 
-  private async storeString(parts: Iterable<string> | AsyncIterable<string>): Promise<number> {
+  async storeString(parts: Iterable<string> | AsyncIterable<string>): Promise<number> {
     const header = new Uint8Array(8), reference = await this.storage.append(header);
     let size = 0;
     // Consume one borrowed fragment at a time; tree records retain only this handle.
@@ -41,7 +41,7 @@ export class StoredStringMap {
     return reference;
   }
 
-  private async compare(value: string | number, reference: number): Promise<number> {
+  async compare(value: string | number, reference: number): Promise<number> {
     const header = await this.storage.read(reference, 8);
     const length = new DataView(header.buffer, header.byteOffset, 8).getFloat64(0, true);
     const valueHeader = typeof value === "number" ? await this.storage.read(value, 8) : undefined;

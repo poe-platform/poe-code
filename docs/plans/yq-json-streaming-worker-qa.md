@@ -64,8 +64,12 @@ recovery diagnostics, which must not repeat on binding replay. Namespace members
 and duplicate-expanded-name validation use backed URI fragments and bounded key
 comparisons. Check different prefixes sharing a large URI, equal local names in
 different URIs, late declarations and default namespaces on unprefixed attributes.
-Expanded-name event metadata still buffers URI strings; individual names and resolved namespace
-URIs need end-to-end token work and qualification.
+Stored-document execution now carries URI references through parser frames,
+metadata, canonical attribute ordering, and XPath matching/namespace-uri output.
+Check large shared URIs, shadowing, default resets, namespace-uri predicates, and
+read/write/cancellation failures during transfer into document backing. Buffering
+convenience APIs reconstruct namespace strings; individual names still need
+end-to-end token work and qualification.
 Parser ancestry uses linked backing records; check deep documents with
 a fixed namespace scope independently of source size. Also measure startup/first-byte latency; formatting validates
 the document before publishing output.

@@ -95,7 +95,14 @@ async function attributes(
     for (const attribute of selected)
       await budget.tick((attribute.namespace.length + attribute.localName.length + 1) * comparisons);
     selected.sort(ordering);
-  } else await selected.sort(ordering);
+  } else await selected.sort(async (left, right) => {
+    if (left.namespace === xmlns || right.namespace === xmlns) return ordering(left, right);
+    const tokens = new StoredNamespaces(stored!.storage, budget);
+    const leftReference = left.namespaceReference, rightReference = right.namespaceReference;
+    const order = rightReference !== undefined ? await tokens.compare(leftReference ?? left.namespace, rightReference)
+      : leftReference !== undefined ? -await tokens.compare(right.namespace, leftReference) : compare(left.namespace, right.namespace);
+    return order || compare(left.localName, right.localName);
+  });
   return selected;
 }
 

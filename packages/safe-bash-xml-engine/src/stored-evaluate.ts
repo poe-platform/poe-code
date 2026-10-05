@@ -43,12 +43,12 @@ class StoredSelection implements NodeSelection {
   }
 }
 
-function matches(node: Node, step: QueryStep, namespace: string, localName: string): boolean {
+async function matches(node: Node, step: QueryStep, namespace: string | number, localName: string, document: StoredXmlDocument): Promise<boolean> {
   if (step.kind === "self" || step.kind === "parent") return true;
   if (step.kind === "text") return node.kind === "text" || node.kind === "cdata";
   if (node.kind !== step.kind) return false;
   return (node.kind === "element" || node.kind === "attribute") &&
-    (step.name === "*" || node.value.namespace === namespace && node.value.localName === localName);
+    (step.name === "*" || node.value.localName === localName && await document.namespaceEquals(node.value, namespace));
 }
 
 export class StoredXPath {
@@ -78,7 +78,7 @@ export class StoredXPath {
       for (const step of path) {
         const colon = step.name.indexOf(":");
         const prefix = colon < 0 ? "" : step.name.slice(0, colon);
-        const namespace = colon < 0 ? "" : await namespaces.get(prefix);
+        const namespace = colon < 0 ? "" : await namespaces.lookup(prefix);
         if (namespace === undefined) throw new XmlQueryError(`undefined XPath namespace prefix: ${prefix}`, 10);
         const localName = colon < 0 ? step.name : step.name.slice(colon + 1);
         const parents = new StoredSelection(this);
@@ -96,7 +96,7 @@ export class StoredXPath {
             : step.kind === "parent" ? parent === this.document.document ? [] : [await this.document.parent(parent)]
             : this.children(parent, step.kind === "attribute");
           for await (const candidate of candidates) {
-            if (matches(await this.node(candidate), step, namespace, localName)) await matched.add(candidate);
+            if (await matches(await this.node(candidate), step, namespace, localName, this.document)) await matched.add(candidate);
           }
           for (const predicate of step.predicates) {
             const filtered = new StoredSelection(this);

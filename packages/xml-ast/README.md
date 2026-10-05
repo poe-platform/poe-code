@@ -70,9 +70,13 @@ and value in a new scope, then fill `result` with its storage `reference` and th
 number of distinct bindings (`size`). Frames carry this scope handle so shadowing
 never changes ancestor scopes. In this mode event elements have an empty
 `namespaces` map; their names and attributes still carry resolved namespace URIs.
-The codec remains filesystem-independent. Individual names and resolved namespace
-URI metadata still need a token storage strategy; attribute values can use the
-fragment protocol below.
+The codec remains filesystem-independent. With `deferNamespaces: true`, resolved
+URI metadata uses optional `namespaceReference` handles instead of complete strings.
+Service `namespaceOperation: "reference"` by supplying the token `reference` when
+present and setting `complete: true`. These handles belong to the host scope store;
+retain or stream them before retiring that store. Built-in xml/xmlns names keep
+their short namespace strings. Individual names still retain their token cost;
+attribute values can use the fragment protocol below.
 
 Set `storeAttributes: true` to move current-tag attribute values, source order,
 and duplicate-name state behind `attributeOperation` requests (`has`, `append`,
@@ -99,8 +103,9 @@ request's `value` may then be a generator: strings are decoded value fragments,
 numbers are work checkpoints, and objects are source-read requests. Service each
 step before advancing, consume the complete value before filling `result`, and
 close the producer if storage fails. Reserved URI checks preserve their diagnostic
-order without joining fragments. Expanded-name resolution still returns complete
-namespace URI strings; individual names also retain their token cost.
+order without joining fragments. Expanded-name events return complete URI strings
+unless deferred namespace metadata is enabled; individual names still retain
+their token cost.
 
 Pass `undefined` as the source length to parse incrementally. Such read requests
 have `streaming: true` and request at most 512 UTF-16 units. Return any nonempty

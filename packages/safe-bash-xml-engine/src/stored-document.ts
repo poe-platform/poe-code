@@ -1,5 +1,5 @@
 import { parseStoredXml } from "./recovery.js";
-import { type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
+import { type XmlName, type XmlAttribute, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
 import { XmlBudget } from "./limits.js";
@@ -15,7 +15,7 @@ export type StoredAttribute = XmlAttribute & { readonly valueReference?: number;
 export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
 type XmlStreamEvent = Parameters<NonNullable<Parameters<typeof parseStoredXml>[4]>>[0];
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
-  kind: "element"; name: string; localName: string; namespace: string;
+  kind: "element"; name: string; localName: string; namespace: string; namespaceReference?: number;
   declaration?: string;
 };
 
@@ -44,7 +44,15 @@ export class StoredXmlDocument {
       await document.set(document.documentReference, namespacesField, namespaces.reference);
       let parent = document.documentReference, fragmentTail = 0, attributeTail = 0;
       let pendingNamespace: { prefix: string; reference: number } | undefined;
-      const consume = async (event: XmlStreamEvent): Promise<void> => {
+      let tokens = new StoredNamespaces(document.storage, budget);
+      const consume = async (event: XmlStreamEvent, namespaceParts: (reference: number) => AsyncIterable<string>): Promise<void> => {
+          async function retainNamespace(reference: number): Promise<number> {
+            const key = String(reference), previous = await tokens.lookup(key);
+            if (previous !== undefined) return previous;
+            const retained = await tokens.storeString(namespaceParts(reference));
+            tokens = await tokens.set(key, { reference: retained });
+            return retained;
+          }
           if (pendingNamespace && !(event.type === "attribute" && event.continuation)) {
             const scope = await document.namespaceScope(parent);
             const updated = await scope.set(pendingNamespace.prefix, document.text(pendingNamespace.reference));
@@ -52,7 +60,10 @@ export class StoredXmlDocument {
             pendingNamespace = undefined;
           }
           if (event.type === "attribute") {
-            const reference = await document.append(parent, { kind: "attribute", value: event.attribute }, event.continuation);
+            const attribute = event.attribute.namespaceReference === undefined ? event.attribute : {
+              ...event.attribute, namespaceReference: await retainNamespace(event.attribute.namespaceReference)
+            };
+            const reference = await document.append(parent, { kind: "attribute", value: attribute }, event.continuation);
             if (event.continuation) await document.set(attributeTail, fragmentField, reference);
             attributeTail = reference;
             if (!event.continuation && event.attribute.namespace === "http://www.w3.org/2000/xmlns/")
@@ -65,6 +76,7 @@ export class StoredXmlDocument {
           else {
             const element = event.element;
             metadata = { kind: "element", name: element.name, localName: element.localName, namespace: element.namespace,
+              ...(element.namespaceReference === undefined ? {} : { namespaceReference: await retainNamespace(element.namespaceReference) }),
               ...(element.declaration === undefined ? {} : { declaration: element.declaration }) };
           }
           const continuation = event.type === "content" && event.continuation === true;
@@ -78,7 +90,7 @@ export class StoredXmlDocument {
             parent = reference;
           }
       };
-      await parseStoredXml(source, context, budget, recover, consume);
+      await parseStoredXml(source, context, budget, recover, consume, true);
       return document;
     } catch (error) {
       try { await document.close(); }
@@ -143,18 +155,36 @@ export class StoredXmlDocument {
         const { valueReference: ignoredReference, ...complete } = attribute;
         complete.value = "";
         for await (const part of this.attributeText(attribute)) complete.value += part;
+        complete.namespace = "";
+        for await (const part of this.namespaceText(attribute)) complete.namespace += part;
+        delete complete.namespaceReference;
         attributes.push(complete);
       }
       const namespaces = new Map<string, string>();
       for await (const [prefix, uri] of await this.namespaceScope(reference)) namespaces.set(prefix, uri);
-      return { ...value, attributes, namespaces };
+      let namespace = ""; for await (const part of this.namespaceText(value)) namespace += part;
+      const { namespaceReference: ignoredNamespaceReference, ...element } = value;
+      return { ...element, namespace, attributes, namespaces };
     }
     if (value.kind === "attribute") {
       let text = "";
       for await (const part of this.text(reference)) text += part;
-      return { ...value, value: { ...value.value, value: text } };
+      let namespace = ""; for await (const part of this.namespaceText(value.value)) namespace += part;
+      const { namespaceReference: ignoredNamespaceReference, ...attribute } = value.value;
+      return { ...value, value: { ...attribute, namespace, value: text } };
     }
     return value;
+  }
+
+  async *namespaceText(name: XmlName): AsyncGenerator<string> {
+    if (name.namespaceReference === undefined) yield name.namespace;
+    else yield* new StoredNamespaces(this.storage, this.budget).valueParts(name.namespaceReference);
+  }
+
+  async namespaceEquals(name: XmlName, expected: string | number): Promise<boolean> {
+    const tokens = new StoredNamespaces(this.storage, this.budget);
+    if (name.namespaceReference !== undefined) return tokens.equals(name.namespaceReference, expected);
+    return typeof expected === "string" ? name.namespace === expected : tokens.equals(expected, name.namespace);
   }
 
   async namespaceScope(reference: number): Promise<StoredNamespaces> {

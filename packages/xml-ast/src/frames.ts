@@ -1,5 +1,5 @@
 import type { XmlSourceStep } from './source.js';
-import type { XmlContent, XmlElement } from './index.js';
+import type { XmlContent, XmlElement, XmlName } from './index.js';
 
 export interface XmlParserFrame {
   element: XmlElement;
@@ -52,6 +52,7 @@ export class XmlFrames {
 /** A host-owned immutable namespace scope; count includes the built-in xml prefix. */
 export interface XmlNamespaceScope { readonly reference: number; readonly size: number; }
 export type XmlNamespaceRequest =
+  | { readonly namespaceOperation: 'reference'; readonly scope: XmlNamespaceScope; readonly prefix: string; reference?: number; complete?: true }
   | { readonly namespaceOperation: 'has'; readonly scope: XmlNamespaceScope; readonly prefix: string; found?: boolean }
   | { readonly namespaceOperation: 'get'; readonly scope: XmlNamespaceScope; readonly prefix: string; value?: string; complete?: true }
   | { readonly namespaceOperation: 'set'; readonly scope: XmlNamespaceScope; readonly prefix: string; readonly value: string | Generator<XmlSourceStep | string, void, void>; result?: XmlNamespaceScope };
@@ -62,6 +63,15 @@ export function* namespaceValue(scope: Map<string, string> | XmlNamespaceScope, 
   yield request;
   if (!request.complete) throw new TypeError('Incomplete XML namespace read');
   return request.value;
+}
+
+export function* namespaceMetadata(scope: Map<string, string> | XmlNamespaceScope, prefix: string, deferred = false): Generator<XmlNamespaceRequest, Pick<XmlName, 'namespace' | 'namespaceReference'>, void> {
+  if (!deferred || scope instanceof Map) return { namespace: (yield* namespaceValue(scope, prefix)) ?? '' };
+  if (prefix === 'xml') return { namespace: 'http://www.w3.org/XML/1998/namespace' };
+  const request: XmlNamespaceRequest = { namespaceOperation: 'reference', scope, prefix };
+  yield request;
+  if (!request.complete) throw new TypeError('Incomplete XML namespace reference lookup');
+  return { namespace: '', ...(request.reference === undefined ? {} : { namespaceReference: request.reference }) };
 }
 
 export function* hasNamespace(scope: Map<string, string> | XmlNamespaceScope, prefix: string): Generator<XmlNamespaceRequest, boolean, void> {

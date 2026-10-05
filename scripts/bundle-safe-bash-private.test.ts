@@ -415,3 +415,12 @@ it.each([
     !entry.path.startsWith("safe-bash-contracts/"))).toEqual([]);
   expect(Object.keys(result.metafile!.inputs)).toHaveLength(1);
 });
+
+it("keeps SQLite out of the stateless LLM command graph", async () => {
+  const result = await build({
+    stdin: { contents: 'export { llmCommands } from "./packages/safe-bash-command-llm/src/index.ts";', resolveDir: process.cwd() },
+    bundle: true, format: "esm", platform: "browser", packages: "external", write: false, metafile: true,
+  });
+  const imports = Object.values(result.metafile.outputs).flatMap(output => output.imports);
+  expect(imports.filter(entry => entry.path.startsWith("safe-bash-sqlite-engine"))).toEqual([]);
+});

@@ -29,3 +29,35 @@ test('JSON staging retains distinct raw-surrogate and scalar object keys',async(
  });
  assert.deepEqual(await fs.readdir('/'),[]);
 });
+
+test('paged JSON indexing preserves insertion order through spills, collisions and duplicate replacements',async()=>{
+ const fs=new MemoryFileSystem();
+ const keys=['key-31ot-3682751805','key-345l-404067065',...Array.from({length:320},(_,index)=>String(320-index))];
+ const input='{'+keys.map((key,index)=>JSON.stringify(key)+':'+index).join(',')+','+keys.map((key,index)=>JSON.stringify(key)+':'+(-index)).join(',')+',"nested":{"key-31ot-3682751805":41,"key-345l-404067065":42},"payload":"'+'🙂'.repeat(20000)+'"}';
+ await withEmbeddingJsonDocument({fs,directory:'/',signal,maxFileBytes:8*1024*1024,maxOpenFiles:1},{async *[Symbol.asyncIterator](){const bytes=new TextEncoder().encode(input);for(let offset=0;offset<bytes.length;offset+=997)yield bytes.subarray(offset,offset+997);}},async document=>{
+  let position=-1;
+  for(let index=0;index<keys.length;index++){
+   const child=await document.child(document.root.id,position);assert.ok(child);
+   assert.equal(child.key,keys[index]);assert.equal(child.node.token,String(-index));position=child.position;
+  }
+  const nested=await document.child(document.root.id,position);assert.ok(nested);
+  const first=await document.child(nested.node.id);assert.ok(first);assert.equal(first.node.token,'41');
+  const second=await document.child(nested.node.id,first.position);assert.ok(second);assert.equal(second.node.token,'42');
+  const payload=await document.child(document.root.id,nested.position);assert.ok(payload);
+  let count=0;for await(const points of document.points(payload.node)){assert.ok(points.length<=4096);assert.ok(points.every(point=>point===0x1f642));count+=points.length;}
+  assert.equal(count,20000);assert.equal(await document.child(document.root.id,payload.position),undefined);
+ });
+ assert.deepEqual(await fs.readdir('/'),[]);
+});
+
+for(const outcome of ['abort','callback','malformed','limit'] as const)test('paged JSON staging retires storage after '+outcome,async()=>{
+ const fs=new MemoryFileSystem(),controller=new AbortController(),failure=new Error(outcome);let entered=false,retired=false;
+ const input={async *[Symbol.asyncIterator](){try{
+  yield new TextEncoder().encode('["');
+  for(let index=0;index<24;index++)yield new Uint8Array(2048).fill(120);
+  if(outcome==='abort')controller.abort(failure);
+  yield new TextEncoder().encode(outcome==='malformed'?'",]':'"]');
+ }finally{retired=true;}}};
+ await assert.rejects(withEmbeddingJsonDocument({fs,directory:'/',signal:controller.signal,maxFileBytes:outcome==='limit'?65536:1048576,maxOpenFiles:1},input,async()=>{entered=true;throw failure;}),error=>outcome==='abort'||outcome==='callback'?error===failure:error instanceof Error);
+ assert.equal(entered,outcome==='callback');assert.equal(retired,true);assert.deepEqual(await fs.readdir('/'),[]);
+});

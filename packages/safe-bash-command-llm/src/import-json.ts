@@ -70,10 +70,10 @@ export async function withEmbeddingJsonRows<T>(options:Parameters<typeof withJso
   const entries={async *[Symbol.asyncIterator]():AsyncGenerator<LlmCollectionBatchEntry>{
    let position=-1;
    while(true){
-    const row=singleRow||document.root.type==='object'?(position<0?document.root:undefined):(await document.child(document.root.id,position))?.node;
+    const child=singleRow||document.root.type==='object'?undefined:await document.child(document.root.id,position);
+    const row=singleRow||document.root.type==='object'?(position<0?document.root:undefined):child?.node;
     if(!row)break;
-    // Child positions are their first node ID; row IDs are unique array entries.
-    position=row.id;
+    position=child?.position??row.id;
     if(row.type!=='object')throw new TypeError(`'${row.type==='array'?'list':row.type==='null'?'NoneType':row.type==='boolean'?'bool':row.type==='string'?'str':floating(row.token)?'float':'int'}' object has no attribute 'values'`);
     const first=await document.child(row.id);if(!first)throw new RangeError('list index out of range');
     invalidId=false;

@@ -196,6 +196,7 @@ as prompt input first. SDK callers use `beforeCall` and `LlmCancelToolCall`.
 Use `--td`/`--tools-debug` or `LLM_TOOLS_DEBUG=true` to print tool arguments,
 formatted results, exceptions and attachment details to stderr. Large diagnostics
 use temporary caller storage and bounded writes, with aggregate output admission.
+JSON result formatting keeps a fixed page cache and spills large inputs to the caller’s filesystem.
 JSON keys and numeric tokens currently use the parser’s 64 KiB control-token
 limit; larger controls remain a compatibility gap. Python `--functions` loading,
 toolboxes remain incomplete. Async results and attachments are staged in caller storage and assembled in original call order; approval prompts and debug records are serialized. A debug sink failure cancels sibling execution and cleans staged inputs. The pinned reference crashes on async tool chains with `--usage`; this implementation reports per-response usage instead. Exact async callback/EOF scheduling remains a compatibility gap.

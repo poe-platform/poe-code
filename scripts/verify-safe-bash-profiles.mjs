@@ -33,7 +33,7 @@ import { llmCommands } from "@poe-platform/safe-bash/commands/llm";`,
     setup: `shell.use(pythonExecutorCommands({ createExecutor: () => ({ async run(start) { start.onReady(); return 0; }, terminate() {} }) }));
 shell.use(llmCommands({ defaultModel: "fixture", providers: [{ name: "fixture", models: [{ id: "fixture" }], async *complete() { yield "hello"; } }] }));`,
     smoke: `check((await shell.exec("python -c pass")).exitCode === 0, "python executor");
-check((await shell.exec("llm prompt")).stdout === "hello\\n", "LLM streaming");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
+check((await shell.exec("llm prompt")).stdout === "hello\\n", "LLM streaming");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"], forbiddenInputs: ["/safe-bash-sqlite-engine/"] },
   pdf: { imports: shell + pdf, setup: "shell.use(pdfinfoCommands());", smoke: 'check((await shell.exec("pdfinfo --help")).exitCode === 0, "PDF command");', forbidden: ["spreadsheet", "ffmpeg", "git", "op"] },
   multiplePdf: { imports: shell + pdf + `
 import { pdftotextCommands } from "@poe-platform/safe-bash/commands/pdftotext";
@@ -128,8 +128,8 @@ const engineMarkers = {
 export const safeBashProfileBaselines = {
   "core": 1715877,
   "rootCore": 1717280,
-  // Tool diagnostics parse retained JSON through the selected SQLite runtime.
-  "pythonLlm": 4433241,
+  // Tool diagnostics use bounded caller-backed pages without selecting SQLite.
+  "pythonLlm": 2094016,
   // Canonical PDF graph includes caller-backed parsing, fonts, editing and output.
   "pdf": 3234703,
   "multiplePdf": 3442346,
@@ -144,12 +144,12 @@ export const safeBashProfileBaselines = {
   // Full yq includes streamed input/output and caller-backed in-place output.
   "enabledConsumer": 7213453,
   // Full also selects document/media engines, Pandoc and the CSV Python worker.
-  "full": 77435707,
-  "rootPythonLlm": 4434336,
+  "full": 75086998,
+  "rootPythonLlm": 2095122,
   "splitCore": 1711634,
-  "splitPythonLlm": 4426539,
+  "splitPythonLlm": 2090714,
   "splitEnabledConsumer": 7125253,
-  "splitFull": 76982332
+  "splitFull": 74639465
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));
@@ -191,6 +191,9 @@ export default { async fetch() {
     const javascript = result.outputFiles.filter(output => output.path.endsWith(".js")).map(output => output.text).join("\n");
     const contributing = Object.values(result.metafile.outputs).flatMap(output => Object.entries(output.inputs)
       .filter(([, input]) => input.bytesInOutput > 0).map(([filename]) => filename));
+    for (const forbidden of profile.forbiddenInputs ?? []) {
+      assert.ok(!contributing.some(filename => filename.includes(forbidden)), `${name}: unselected engine ${forbidden}`);
+    }
     if (name === "enabledConsumer" || name === "splitEnabledConsumer") {
       assert.ok(!contributing.some(filename => filename.endsWith("/safe-bash/shell/runtime.js")),
         `${name}: duplicate unbundled shell runtime`);

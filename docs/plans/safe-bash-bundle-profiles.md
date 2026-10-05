@@ -99,36 +99,30 @@ The ordinary verifier passed all 17 installed Worker profiles and both portable 
 
 ### October 5 Python/LLM and selected-engine qualification
 
-The clean source `7af6b95cce` was built with the maintained Safe Bash and Cloudflare workspace closures, packaged by `scripts/package-safe.mjs`, npm-packed and installed into a fresh consumer with the release workflow's ordinary install flags. The unchanged verifier failed at `pythonLlm`: 4,433,241 bytes exceeded the 1,994,047-byte cap. This is a newer graph than the earlier 2,043,312-byte CI failure at `6f2ee4950f`.
+The installed Python/LLM profile grew from its original 1,954,948-byte baseline to 2,043,312 bytes at `6f2ee4950f`, then 4,433,241 bytes at `7af6b95cce`. Two source changes explain the growth:
 
-The reviewed update changes only the seven exceeded total baselines:
+- Comparing the `llmCommands` source graph at `04f444c87f` and `7af6b95cce`, with identical browser ESM minification and external package imports, gives 79,079 and 142,283 bytes. Prompt routing, embeddings, fragments, tools, approval, diagnostics and Python-compatible formatting are supported additions. URL fragments also select shared character tables and codec aliases. These source figures support attribution, but are not an exact decomposition of installed bytes.
+- `338f8647f6` connects tool diagnostics to JSON document indexing backed by SQLite. Each installed Python/LLM variant retained a 2,256,849-byte SQLite module, a 37-byte callback module and their JavaScript loader even when diagnostics were unused. An initial baseline update accepted this dependency; the implementation below supersedes that decision by removing the retention.
 
-| Profile | Prior baseline | Installed static bytes | Delta from core |
+JSON document indexing now uses caller-backed paged records and a radix key index. Its resident caches are fixed at four 16 KiB pages, 64 value entries and 128 radix branch pointers. Parent links replace a resident nesting stack; child links retain first-key insertion order while duplicate keys replace their values. The existing parser, decimal tokens, code-point representation and parser controls remain in use. Physical page allocations enforce the file limit, cancellation propagates, and the single backing descriptor closes on success and failure.
+
+Fresh installed tarballs built with the maintained workspace closure and `scripts/package-safe.mjs` produce these totals:
+
+| Profile | Previous baseline | Installed static bytes | Delta from core |
 | --- | ---: | ---: | ---: |
-| pythonLlm | 1,954,948 | 4,433,241 | 2,718,168 |
-| rootPythonLlm | 1,956,498 | 4,434,336 | 2,719,263 |
-| splitPythonLlm | 1,950,980 | 4,426,539 | 2,711,466 |
-| pdf | 3,170,868 | 3,234,703 | 1,519,630 |
-| git | 7,045,654 | 7,845,428 | 6,130,355 |
-| full | 73,465,105 | 77,435,707 | 75,720,634 |
-| splitFull | 73,026,105 | 76,982,332 | 75,267,259 |
+| pythonLlm | 4,433,241 | 2,094,016 | 378,943 |
+| rootPythonLlm | 4,434,336 | 2,095,122 | 380,049 |
+| splitPythonLlm | 4,426,539 | 2,090,714 | 375,641 |
+| full | 77,435,707 | 75,087,520 | 73,372,447 |
+| splitFull | 76,982,332 | 74,639,992 | 72,924,919 |
 
-Core is 1,715,073 bytes. Ten stricter baselines remain unchanged. All emitted JavaScript, split chunks and Wasm assets count. The 2% total and 5% incremental limits, 16 KiB minimum allowance, engine exclusions, shared-runtime assertions and Worker smoke checks remain unchanged.
+Core is 1,715,073 bytes. After integrating `1cc50bf358`, full profiles grew by 522 and 527 bytes; the stricter reviewed baselines remain 75,086,998 and 74,639,465 bytes. Python/LLM saves 2,339,225 bytes relative to its previous baseline, with no emitted assets. Independent review accepted the remaining 139,068-byte (7.11%) increase over the original Python/LLM baseline for the supported LLM additions and bounded paged index. The three Python/LLM variants now reject contributing SQLite implementation modules in addition to the existing unused-engine exclusions. A source graph regression test independently rejects SQLite imports. All static JavaScript, split chunks and assets remain included in totals; the 2% total and 5% incremental tolerances and 16 KiB allowance are unchanged.
 
-The Python/LLM increase has two distinct sources:
+The separately reviewed PDF baseline remains 3,234,703 bytes: caller-backed metadata, outline titles, font names and mutable writes explain its growth beyond the former cap by 417 bytes. The Git baseline remains 7,845,428 bytes with exactly one 6,110,078-byte library Wasm asset. Portable revision date filters through `gix-date` and Jiff, whitespace validation, path handling and scoped reads were added since its earlier qualification. These are source attributions, not an exact byte decomposition of Wasm growth. Other stricter baselines and shared-runtime assertions remain intact.
 
-- Comparing the `llmCommands` source graph at the original baseline revision `04f444c87f` and the captured source, with identical browser ESM minification and package imports external, gives 79,079 and 142,283 bytes. Prompt routing, embeddings, URL/file/plugin fragments, tool execution, approval, diagnostics and Python-compatible formatting are supported additions. URL fragments also select the shared single-byte character tables and codec aliases. These source-only figures support attribution; they are not an exact decomposition of installed bytes.
-- `338f8647f6` connects tool-debug output to `withEmbeddingJsonDocument`. That parser deliberately stages and indexes JSON in caller-backed SQLite so diagnostics can format large results without collecting the whole document. The installed Python/LLM variants each contain one 2,256,849-byte SQLite module and one 37-byte callback module, plus their JavaScript loader. This is a direct runtime dependency of supported diagnostics, not a second copy of the engine or an unused PDF dependency. Keeping this implementation adds a substantial cost even to consumers that do not invoke diagnostics; the independent baseline review explicitly accepted that cost to preserve supported, bounded diagnostic behavior. Replacing its backing store is a separate implementation alternative, not a reason to omit those bytes from measurement.
+Validation covers 902 LLM tests, 40 bundling tests, package and verifier lint, and an independent stress review of spilled JSON, randomized duplicate keys, Unicode, cancellation and cleanup. An installed Worker executes 150 KB JSON tool diagnostics and checks duplicate-key output, Unicode escaping and staging cleanup. The normal qualification route verifies all 17 installed Worker profiles, 10 portable-export bundles and 12 portable Worker scenarios; no engine or runtime check is bypassed.
 
-The Git profile retains exactly one 6,110,078-byte Wasm asset. Since the previous qualification, `eb359b7257` adds portable revision date filters through `gix-date` and Jiff; other changes cover whitespace validation, path handling and scoped reads. The library Wasm, not a native CLI executable, is selected. The full profiles include both this asset and the SQLite assets above. These measurements do not claim that the source-level dependency additions are an exact byte decomposition of the Wasm growth.
-
-PDF grew through caller-backed metadata, outline titles, font names and mutable writes since the prior PDF qualification. Its 3,234,703-byte measurement exceeds the old 3,234,286-byte cap by 417 bytes. `multiplePdf` remains within its stricter prior budget. The shared-decoder assertion and unused-engine checks still apply.
-
-The ordinary verifier passed all 17 installed Worker profiles, all 10 portable-export bundles, and all 12 portable Worker scenarios, including remote storage and both Markdown file-scope modes. Verifier lint, syntax and diff checks passed. No consumer imports, emitted assets or runtime assertions were bypassed.
-
-Independent review checked the installed metafile totals, asset counts, source dependency paths and unchanged gates, and accepted all seven measured baselines. An additional installed Worker check executed tool diagnostics with duplicate JSON keys and Unicode output, confirming the selected SQLite path works and cleans its staging files.
-
-This update records local installed-artifact qualification only. Public publication and provenance are separate requirements; a queued release is not verified delivery.
+This records local installed-artifact qualification only. Public publication and provenance remain separate requirements; a queued release is not verified delivery.
 
 ## Git asset audit
 

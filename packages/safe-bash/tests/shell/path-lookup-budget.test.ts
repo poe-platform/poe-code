@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test, type TestContext } from "node:test";
 import { CommandRegistry, FsError, type FsOptions } from "../../src/contracts/index.js";
 import { createWhichCommand } from "../../src/commands/which/index.js";
+import { basicCommands } from "../../src/commands/basic.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { resolveLimits } from "../../src/shell/runtime.js";
@@ -237,10 +238,12 @@ test("PATH invalidation restores earlier candidates and observes shell redirecti
   assert.equal(result.exitCode, 0, result.stderr);
 });
 
-test("PATH caching resumes after shell output finalization", async context => {
-  const { fs, shell } = fixture(context, "/");
+for (const output of [": > /created", "true > /created", "echo ready > /created", "printf %s ready > /created", "target=/created; echo ready > \"$target\""]) test(`PATH caching resumes after shell output finalization: ${output}`, async context => {
+  const { fs, commands, shell } = fixture(context, "/");
+  for (const command of basicCommands()) commands.register(command);
   const stat = context.mock.method(fs, "stat");
-  assert.equal((await shell.exec("command -v missing; : > /created; command -v missing; command -v missing")).exitCode, 1);
+  assert.equal((await shell.exec(`command -v missing; ${output}; command -v missing; command -v missing`)).exitCode, 1);
+  assert.equal((await fs.stat("/created")).type, "file");
   assert.equal(stat.mock.calls.filter(call => call.arguments[0] === "/missing").length, 2);
 });
 

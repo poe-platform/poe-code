@@ -570,6 +570,11 @@ export class Budget {
     this.cpuCheckpoint();
     this.fileSystemCleanupOperation();
   }
+  fileSystemMutation(): void {
+    // Synchronous memory writes have no output scope to invalidate PATH metadata.
+    this._pathLookup?.invalidateSync();
+    this.fileSystemOperation();
+  }
   fileSystemCleanupOperation(): void {
     if (this._fileSystemOperations >= this.maxFileSystemOperationsSmi && this._fileSystemOperations >= this.limits.maxFileSystemOperations) this.fail("maxFileSystemOperations");
     this._fileSystemOperations++;

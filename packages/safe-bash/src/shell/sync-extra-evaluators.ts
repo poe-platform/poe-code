@@ -4467,7 +4467,7 @@ const syncExtraRuntimeMethods = {
                 try {
                   writeSucceeded = tryWriteMemoryFileSync( this.backingFs, path, encoded, r0.operator === ">>", mode, this.commandSignal, );
                   if (writeSucceeded) {
-                    this.budget.fileSystemOperation();
+                    this.budget.fileSystemMutation();
                     this.budget.bytes += byteLength;
                   }
                 } catch {
@@ -9654,7 +9654,7 @@ const syncExtraRuntimeMethods = {
         }
         const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();
-        this.budget.fileSystemOperation();
+        this.budget.fileSystemMutation();
         this.budget.bytes += byteLength;
         rawState.substitutionStatus = 0;
         if (rawState.variables._ !== undefined) delete rawState.variables._;
@@ -9735,7 +9735,8 @@ const syncExtraRuntimeMethods = {
       }
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
-      this.budget.fileSystemOperation();
+      if (path === "/dev/null") this.budget.fileSystemOperation();
+      else this.budget.fileSystemMutation();
       this.budget.bytes += byteLength;
       rawState.substitutionStatus = 0;
       if (rawState.variables._ !== undefined) delete rawState.variables._;
@@ -9810,7 +9811,7 @@ const syncExtraRuntimeMethods = {
         const targetPlain = r0.target.plain;
         if ((r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">|" || r0.operator === ">>") && targetPlain && targetPlain.startsWith("/") && !targetPlain.startsWith("/dev/") && (!rawState.noclobber || r0.operator !== ">") && this.canFastMemoryRedirect && this.budget.canRedirect1 && this.budget.canFileSystemOperation() && (!this._fileWrites || this._fileWrites.size === 0) && (!this._outputFiles || this._outputFiles.size === 0)) {
           if (tryWriteMemoryFileSync(this.backingFs, targetPlain, emptyByteArray, r0.operator === ">>", 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal)) {
-            this.budget.fileSystemOperation();
+            this.budget.fileSystemMutation();
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
             rawState.substitutionStatus = 0;

@@ -48,11 +48,13 @@ with replayable part/master references, speaker text and body IDs. Close it afte
 reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with
 complete graph validation and raw speaker-body semantics; the get format retains
 its historical selection-before-validation ordering.
-`stageRetainedDiff` (from `diff`) compares two retained sources in `raw`, `text`,
-`media` or `relationships` mode and returns `{ equal, output }`. Write the staged
+`stageRetainedDiff` (from `diff`) compares two retained sources in `structural`,
+`raw`, `text`, `media` or `relationships` mode and returns `{ equal, output }`. Write the staged
 output to a byte sink and close it afterward. Keys, media counts, snapshot values
 and change ordering use caller storage. The default diff command uses this path
-for these four modes; structural comparison still uses the buffered API.
+for every supported mode, including the default structural comparison. Structural
+metadata and geometry use caller-backed records and traversal rather than heap
+trees. Numeric property values preserve native binary64 rounding.
 `pptx xml get` also stages raw, JSON and pretty responses through caller storage.
 `openRetainedXmlPart` (from `xml-parts`) exposes replayable original bytes and
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves

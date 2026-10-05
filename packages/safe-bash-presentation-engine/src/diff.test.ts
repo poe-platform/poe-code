@@ -1,12 +1,26 @@
+import { createMemoryFileSystem } from '@poe-code/safe-fs';
+import { openRetainedDiff } from './retained-diff.js';
+import { streamJson } from './retained-output.js';
 import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
 import { createPresentation } from "./creation.js";
-import { comparePresentations } from "./diff.js";
+import { comparePresentations as compareBuffered } from "./diff.js";
 import { parseXmlPart } from "./xml.js";
 import { inspectZip } from "../tests/zip-reader.js";
 import { storedArchive } from "../tests/fixtures/archive.js";
+
+async function comparePresentations(...args: Parameters<typeof compareBuffered>) {
+  const expected = await compareBuffered(...args);
+  const fs = createMemoryFileSystem();
+  const source = (bytes: Uint8Array) => ({ size: bytes.length, async read(offset: number, length: number) { return bytes.slice(offset, offset + length); } });
+  const view = await openRetainedDiff(source(args[0] as Uint8Array), source(args[1] as Uint8Array), { mode: (args[2].mode ?? 'structural') as Exclude<NonNullable<typeof args[2]['mode']>, 'effective-formatting'> }, { ...args[3], workingStorage: { fs, directory: '/', cacheBytes: 16384 } });
+  try { const chunks = []; for await (const bytes of streamJson(view.data)) chunks.push(Buffer.from(bytes)); expect(JSON.parse(Buffer.concat(chunks).toString())).toEqual(expected); }
+  finally { await view.close(); }
+  expect(await fs.readdir('/')).toEqual([]);
+  return expected;
+}
 
 const context = {
   limits: { maxBytes: 1000000, maxReads: 1000, chunkBytes: 4096 },

@@ -621,6 +621,49 @@ checks and the selected workspace build pass. Structural comparison, richer
 reads/extraction, most mutations and embedded workbook intermediates remain
 unfinished. No Worker qualification is claimed.
 
+## Retained structural comparison
+
+The default structural diff now uses retained input, complete presentation/metadata
+admission and caller-backed snapshots in every category. Slide insertion/removal
+suppresses incidental position/visibility changes; metadata keys retain stable
+sort/overwrite order; raw geometry retains namespace, attribute and child order.
+Geometry sorting and traversal frames live in caller storage without recursive
+generator stacks. Nonmedia hashes preserve conservative unsupported-content
+reporting. All supported comparison modes now use the retained command path.
+
+The internal retained property reader stores arbitrary names, namespaces and
+string values, including unknown declared types. Typed numeric conversion reuses
+the backed JSON parser's bounded binary64 rounding and validates the wider native
+Number grammar (padding, radix and exponent forms). Date fractions stream with
+bounded precision, while the existing calendar/date decoder remains shared.
+Returned values preserve negative zero and null versus string distinctions.
+
+Coverage includes existing comparison regressions with exact retained parity,
+strict metadata dialects, typed/unknown properties, scalar edge cases, large
+names/values, deep/wide geometry, storage spills, reused buffers, slow sinks,
+source/storage/sink failures, cancellation and cleanup. The 189 focused engine
+cases, all 1,435 maintained command cases, scoped lint/type checks and selected
+workspace build pass. Native python-pptx chart/workbook/notes decks match exact
+buffered output in all five modes through the public adapter, including changed
+metadata, geometry and text, with no whole-file reads and empty scratch. This
+does not complete the remaining matrix or qualify a Worker runtime.
+
+## Remaining operation matrix
+
+| Area | Remaining migration |
+| --- | --- |
+| Read operations | Paragraph/run formatting; standalone property/tag reads; other slide/settings, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Extraction | Image/media and embedded/opaque object extraction, including manifests and multi-output publication; package extraction is migrated. |
+| Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
+| Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |
+| Drawing mutations | Shape/path/group, connector, table, image/media, chart, equation, opaque-object, animation/transition and accessibility edits. |
+| Embedded workbooks | Chart workbook reading/editing, indexes, ZIP intermediates and publication through caller storage. |
+| Public runtime qualification | Complete operation parity plus increasing-size external-backend workerd/Cloudflare memory, CPU, first-byte and concurrency measurements, cancellation/identity/publication checks. |
+
+Keep this matrix open until each operation family is traced through the default
+adapter and its transitive engine calls. Buffering convenience APIs and the
+synchronous presentation model must not remain mandatory Worker execution paths.
+
 ## Manual workerd / Cloudflare QA
 
 Execute these steps after the streaming engine path is implemented. Do not treat

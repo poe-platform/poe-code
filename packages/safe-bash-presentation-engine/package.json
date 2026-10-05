@@ -398,7 +398,8 @@
     "@noble/hashes": "2.4.0",
     "@poe-code/safe-fs": "*",
     "safe-bash-contracts": "*",
-    "@poe-code/office-xml": "*"
+    "@poe-code/office-xml": "*",
+    "@poe-code/json-ast": "*"
   },
   "devDependencies": {
     "toolcraft-schema": "*"

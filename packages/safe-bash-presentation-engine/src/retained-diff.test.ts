@@ -7,7 +7,7 @@ import { streamJson } from './retained-output.js';
 import { resourceContext } from './resource-limits.js';
 async function collect(source: AsyncIterable<Uint8Array>) { const chunks = []; for await (const bytes of source) chunks.push(Buffer.from(bytes)); return Buffer.concat(chunks).toString(); }
 const source = (bytes: Uint8Array) => ({ size: bytes.length, async read(offset: number, length: number) { return bytes.slice(offset, offset + length); } });
-for (const mode of ['raw', 'text', 'media', 'relationships'] as const) it(`retains ${mode} comparison with exact SDK output and lifetime`, async () => {
+for (const mode of ['structural', 'raw', 'text', 'media', 'relationships'] as const) it(`retains ${mode} comparison with exact SDK output and lifetime`, async () => {
   const context = resourceContext({}), fs = createMemoryFileSystem();
   const left = await createPresentation({ slides: [{ shapes: [{ text: 'Before <&😀', name: 'One', x: 0, y: 0, width: 1, height: 1 }] }] }, context);
   const right = await createPresentation({ slides: [{ shapes: [{ text: 'After', name: 'One', x: 0, y: 0, width: 1, height: 1 }] }, {}] }, context);

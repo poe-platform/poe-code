@@ -1,3 +1,4 @@
+import { decodePropertyValue } from "./property-value.js";
 import { SaxesParser } from "saxes";
 import type { BinaryInput } from "./contracts.js";
 import { OfficeError } from "./errors.js";
@@ -26,7 +27,7 @@ export interface MutatePropertyOptions {
   readonly value?: string | number | boolean;
   readonly type?: PropertyType;
 }
-const core: Readonly<Record<string, readonly [string, string, PropertyType]>> = Object.freeze({
+export const corePropertyDefinitions: Readonly<Record<string, readonly [string, string, PropertyType]>> = Object.freeze({
   author: [dc, "creator", "string"],
   category: [cp, "category", "string"],
   comments: [dc, "description", "string"],
@@ -44,7 +45,7 @@ const core: Readonly<Record<string, readonly [string, string, PropertyType]>> = 
   version: [cp, "version", "string"]
 });
 export function coreDefinition(name: string) {
-  return Object.hasOwn(core, name) ? core[name] : undefined;
+  return Object.hasOwn(corePropertyDefinitions, name) ? corePropertyDefinitions[name] : undefined;
 }
 function text(doc: XmlPart, node: XmlElement) {
   let value = "";
@@ -96,54 +97,6 @@ export function validatePropertyValue(name: string, type: PropertyType, value: u
       invalid("Invalid UTC date.");
   }
 }
-function decode(type: PropertyType | "unknown", value: string): string | number | boolean | null {
-  if (type === "number")
-    return value.trim() !== "" && Number.isFinite(Number(value)) ? Number(value) : null;
-  if (type === "boolean")
-    return value === "true" || value === "1"
-      ? true
-      : value === "false" || value === "0"
-        ? false
-        : null;
-  if (type === "date") {
-    const segments = value.split("T");
-    if (segments.length > 2) return null;
-    const calendar = segments[0]!.split("-");
-    if (
-      calendar.length > 3 ||
-      calendar[0]?.length !== 4 ||
-      calendar.some(
-        (v, i) => v.length !== (i === 0 ? 4 : 2) || [...v].some((c) => c < "0" || c > "9")
-      )
-    )
-      return null;
-    const year = Number(calendar[0]),
-      month = Number(calendar[1] ?? 1),
-      day = Number(calendar[2] ?? 1);
-    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-    if (
-      year < 1 ||
-      month < 1 ||
-      month > 12 ||
-      day < 1 ||
-      day > [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]!
-    )
-      return null;
-    if (
-      segments.length === 2 &&
-      (calendar.length !== 3 ||
-        !(value.endsWith("Z") || value.slice(19).includes("+") || value.slice(19).includes("-")))
-    )
-      return null;
-    const date = new Date(
-      segments.length === 1
-        ? `${calendar[0]}-${calendar[1] ?? "01"}-${calendar[2] ?? "01"}T00:00:00Z`
-        : value
-    );
-    return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 19) + "Z" : null;
-  }
-  return value;
-}
 type State = Awaited<ReturnType<typeof loadShared>>;
 function parts(s: State) {
   return s.index.inventory.relationships
@@ -175,7 +128,7 @@ function records(s: State) {
     return doc.root.children.map((node) => {
       const definition =
         kind === "core"
-          ? Object.entries(core).find(
+          ? Object.entries(corePropertyDefinitions).find(
               ([, d]) => d[0] === node.name.namespace && d[1] === node.name.localName
             )
           : undefined;
@@ -212,7 +165,7 @@ function records(s: State) {
           name,
           kind: definition ? "core" : customNode ? "custom" : "unknown",
           type,
-          value: decode(type, text(doc, valueNode ?? node)),
+          value: decodePropertyValue(type, text(doc, valueNode ?? node)),
           part,
           namespace: node.name.namespace
         } as PropertyRecord
@@ -445,7 +398,7 @@ export class CoreProperties {
   readonly #read: () => XmlPart;
   constructor(read: () => XmlPart, write: (doc: XmlPart) => void) {
     this.#read = read;
-    for (const [name, [namespace, localName, type]] of Object.entries(core))
+    for (const [name, [namespace, localName, type]] of Object.entries(corePropertyDefinitions))
       Object.defineProperty(this, name, {
         enumerable: true,
         get: () => {
@@ -468,7 +421,7 @@ export class CoreProperties {
               ? value
               : 0;
           }
-          const value = decode("date", raw);
+          const value = decodePropertyValue("date", raw);
           return value === null ? null : new Date(value as string);
         },
         set: (value: unknown) => {

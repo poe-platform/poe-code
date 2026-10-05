@@ -34,7 +34,7 @@ and publishes conditionally. Errors and cancellation retire staging without
 publishing partial output; dry-run does not consume the output source.
 
 The built-in `validate`, `inspect`, `text get`, `text frames list/get`, `fields list`,
-`fields get`, `notes list/get`, `diff --mode raw|text|media|relationships` and `xml get` operations use retained input and caller-backed indexes.
+`fields get`, `notes list/get`, `diff` (all supported modes) and `xml get` operations use retained input and caller-backed indexes.
 Inspection, text, frame, field, speaker-note and XML extraction stage complete responses before
 writing stdout, so admission and output-limit failures expose no partial result. `slides set`
 and `xml set` also stage edits, archive bytes and response metadata in caller

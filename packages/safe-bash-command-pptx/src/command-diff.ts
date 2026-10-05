@@ -144,7 +144,7 @@ export async function executeDiffCommand(
           "usage"
         );
       const maxBytes = Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes);
-      if (request.streaming && mode !== 'structural') {
+      if (request.streaming) {
         const left = await request.streaming.openInput(positionals[0]!, maxBytes);
         request.signal.throwIfAborted();
         const right = await request.streaming.openInput(positionals[1]!, maxBytes);

@@ -5,10 +5,10 @@ import { fixture, xml, tree } from '../../safe-bash-presentation-engine/tests/fi
 import { storedArchive } from '../../safe-bash-presentation-engine/tests/fixtures/archive.js';
 const encode = (value: string) => new TextEncoder().encode(value);
 function deck(text: string) {
-  const volume = fixture({ 'slide.xml': xml('sld', tree('1', `<p:sp><p:nvSpPr><p:cNvPr id="2"/></p:nvSpPr><p:txBody><a:p><a:r><a:t>${text}</a:t></a:r></a:p></p:txBody></p:sp>`)) });
+  const volume = fixture({ 'slide.xml': xml('sld', tree('3', `<p:sp><p:nvSpPr><p:cNvPr id="2"/></p:nvSpPr><p:txBody><a:p><a:r><a:t>${text}</a:t></a:r></a:p></p:txBody></p:sp>`)) });
   return storedArchive(Object.entries(volume.toJSON()).map(([path, text]) => ({ name: path.slice(6), bytes: encode(text!) })));
 }
-for (const mode of ['raw', 'text', 'media', 'relationships']) for (const json of [false, true]) for (const same of [false, true]) it(`streams ${mode} diff, json=${json}, equal=${same}`, async () => {
+for (const mode of ['structural', 'raw', 'text', 'media', 'relationships']) for (const json of [false, true]) for (const same of [false, true]) it(`streams ${mode} diff, json=${json}, equal=${same}`, async () => {
   const left = deck('Before'), right = same ? left : deck('After'), fs = createMemoryFileSystem(), signal = new AbortController().signal, engine = createPptxCommandEngine();
   const args = ['diff', '/left.pptx', '/right.pptx', '--mode', mode, ...(json ? ['--json'] : [])].map(encode), chunks: Uint8Array[] = [];
   const expected = await engine.execute({ args, signal, readInput: async path => path === '/left.pptx' ? left : right });
@@ -20,7 +20,7 @@ for (const mode of ['raw', 'text', 'media', 'relationships']) for (const json of
   expect(await fs.readdir('/')).toEqual([]);
 });
 
-for (const mode of ['success', 'limit', 'sink', 'cancel', 'storage', 'read', 'close'] as const) it(`stages comparison changes with bounded caller IO and cleanup: ${mode}`, async () => {
+for (const comparisonMode of ['text', 'structural']) for (const mode of ['success', 'limit', 'sink', 'cancel', 'storage', 'read', 'close'] as const) it(`stages ${comparisonMode} comparison with bounded caller IO and cleanup: ${mode}`, async () => {
   const bytes = deck('Long 😀 &quot; comparison text '.repeat(1200));
   const fs = createMemoryFileSystem(), open = fs.open!.bind(fs), controller = new AbortController(); let written = 0, outstanding = 0, peak = 0, handles = 0;
   fs.readFile = async () => { throw new Error('payload-wide read forbidden'); };
@@ -34,7 +34,7 @@ for (const mode of ['success', 'limit', 'sink', 'cancel', 'storage', 'read', 'cl
     if (key === 'close') return async (...parameters: Parameters<typeof handle.close>) => { handles--; await handle.close(...parameters); if (mode === 'close') throw new Error('injected close failure'); };
     const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value;
   } }); };
-  const engine = createPptxCommandEngine(mode === 'limit' ? { maxOutputBytes: 1000 } : {}), args = ['diff', '/left.pptx', '/right.pptx', '--mode', 'text', '--json'].map(encode), chunks: Uint8Array[] = [], reused = new Uint8Array(16384);
+  const engine = createPptxCommandEngine(mode === 'limit' ? { maxOutputBytes: 1000 } : {}), args = ['diff', '/left.pptx', '/right.pptx', '--mode', comparisonMode, '--json'].map(encode), chunks: Uint8Array[] = [], reused = new Uint8Array(16384);
   const execution = engine.execute({ args, signal: controller.signal, readInput: async () => { throw new Error('buffered input forbidden'); }, streaming: {
     workingStorage: { fs, directory: '/', cacheBytes: 16384 }, openInput: async path => { const input = path === '/left.pptx' ? deck('Before') : bytes; return ({ size: input.length, async read(p, n) { const size = Math.min(n, reused.length, input.length - p); reused.set(input.subarray(p, p + size)); return reused.subarray(0, size); },
       async *stream() { for (let p = 0; p < input.length; p += reused.length) { const size = Math.min(reused.length, input.length - p); reused.set(input.subarray(p, p + size)); yield reused.subarray(0, size); reused.fill(255); } } }); },
@@ -73,7 +73,7 @@ it('routes the default adapter through retained input and cleans caller scratch'
 });
 
 
-for (const mode of ['raw', 'text', 'media', 'relationships']) it(`reads both inputs before parsing the first for ${mode}`, async () => {
+for (const mode of ['structural', 'raw', 'text', 'media', 'relationships']) it(`reads both inputs before parsing the first for ${mode}`, async () => {
   const engine = createPptxCommandEngine(), fs = createMemoryFileSystem(), signal = new AbortController().signal;
   const args = ['diff', '/bad', '/missing', '--mode', mode, '--json'].map(encode);
   const missing = () => { throw new Error('missing'); };

@@ -38,7 +38,10 @@ for (const boxed of [false, true]) {
       backend.readStream = (path) => ({ [Symbol.asyncIterator]: () => ({
         async next(): Promise<IteratorResult<Uint8Array>> { throw new FsError("ENOTSUP", { syscall: "readStream", path }); },
       }) });
-      const mounted = { ...backend, capabilities: { ...backend.capabilities, streamingRead: streaming } };
+      const capabilities = { ...backend.capabilities };
+      if (streaming === undefined) delete capabilities.streamingRead;
+      else capabilities.streamingRead = streaming;
+      const mounted = { ...backend, capabilities };
       const fs = createMountFileSystem({ root: createReadOnlyFileSystem(new MemoryFileSystem()), mounts: {
         "/data": boxed ? createReadOnlyFileSystem(mounted) : mounted,
         "/scratch": new MemoryFileSystem(),
@@ -367,8 +370,10 @@ async function bufferedBackend(readOnly = false, retainedRead = false): Promise<
   };
 }
 
-function retainedBackend(readOnly = false): Promise<FileSystem> {
-  return bufferedBackend(readOnly, true);
+async function retainedBackend(readOnly = false) {
+  const backend = await bufferedBackend(readOnly, true);
+  assert.ok(backend.openReadFile);
+  return { ...backend, openReadFile: backend.openReadFile };
 }
 
 function context(fs: FileSystem, signal = new AbortController().signal): CommandContext {

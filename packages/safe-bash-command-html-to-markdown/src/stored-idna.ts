@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- This ambient declaration has no runtime module to import.
+/// <reference path="./tr46.d.ts" />
 import mappingData from "tr46/lib/mappingTable.json" with { type: "json" };
 import regexes from "tr46/lib/regexes.js";
 import type { Budget } from "./budget.js";

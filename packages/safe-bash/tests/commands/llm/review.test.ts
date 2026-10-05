@@ -101,7 +101,10 @@ test("review: attachment snapshots survive an adapter reusing its read buffer", 
   let reads = 0;
   run.fs.readFile = async () => { slab.fill(++reads); return slab; };
   assert.equal((await run.execute()).exitCode, 0);
-  assert.deepEqual(run.requests[0]?.attachments.map(({ bytes }) => [...bytes]), [[1, 1, 1], [2, 2, 2]]);
+  assert.deepEqual(run.requests[0]?.attachments.map(({ bytes }) => {
+    assert.ok(bytes);
+    return [...bytes];
+  }), [[1, 1, 1], [2, 2, 2]]);
 });
 
 test("review: duplicate attachment paths are admitted cumulatively rather than deduplicated", async () => {

@@ -6,7 +6,7 @@ import { standardCommands } from "../../src/commands/index.js";
 import { agentCommands } from "../../src/core.js";
 
 test("find counts follow middle filenames across tenants and in-place renames", async context => {
-  const tenants = [];
+  const tenants: { fs: MemoryFileSystem; shell: Shell }[] = [];
   for (const middleExtension of ["ts", "txt"]) {
     const fs = new MemoryFileSystem();
     await fs.mkdir("/work/sub", { recursive: true });

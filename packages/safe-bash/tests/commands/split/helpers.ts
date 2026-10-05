@@ -38,7 +38,10 @@ export function chunks(input: Uint8Array, size: number, reuse = false): ByteSour
   })();
 }
 
-export function wrapped(fs: FileSystem, overrides: Partial<FileSystem>): FileSystem {
+export function wrapped(fs: FileSystem, overrides: Omit<Partial<FileSystem>, "readStream" | "openReadFile"> & {
+  readStream?: FileSystem["readStream"];
+  openReadFile?: FileSystem["openReadFile"];
+}): FileSystem {
   return new Proxy(fs, { get(target, key) {
     if (Object.hasOwn(overrides, key)) return Reflect.get(overrides, key);
     const value = Reflect.get(target, key);

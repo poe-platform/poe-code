@@ -35,7 +35,7 @@ test("uniq reports only its own closed stdout as a silent broken pipe", async ()
         if (mode === "provider" || mode === "distinct") throw providerFailure;
       },
     };
-    const pending = command.execute({ ...probe.context, command: "uniq", stdout });
+    const pending = Promise.resolve(command.execute({ ...probe.context, command: "uniq", stdout }));
     if (mode === "cancelled") {
       await assert.rejects(pending, error => error === cancellation);
       assert.equal(Buffer.concat(probe.stderr).toString(), "");

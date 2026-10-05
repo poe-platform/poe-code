@@ -1,4 +1,6 @@
-import { BiffPropertyRange, propertyRange, readPropertyValueRanges, readPropertySectionRanges } from './biff-property-range.js';
+import { encryptedBiffPropertyStream } from './biff-encrypted-properties.js';
+import { readBiffProperties } from './biff-properties.js';
+import { BiffPropertyRange, propertyRange, readPropertyValueRanges, readPropertySectionRanges, withPropertyValueRanges, type BiffPropertyValues } from './biff-property-range.js';
 import { Binary } from './biff-binary.js';
 import { readBiffPropertySections, readBiffPropertyValues } from './biff-properties-layout.js';
 import * as mergeProperties from './biff-properties-merge.js';
@@ -383,4 +385,83 @@ it.each([false, true])('reports section index close errors with malformed input=
     expect(error.errors[1]).toBe(failure);
   } else await expect(consume()).rejects.toBe(failure);
   expect(state.closed).toBe(1);
+});
+
+it('decodes properties without collecting a resident value-range map', async () => {
+  const input = { sheets: [], properties: Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`Custom${i}`, i])) };
+  const { streams } = await writeBiffProperties(input, context), { ctx, state } = fixture();
+  const original = Map.prototype.set;
+  Map.prototype.set = function (key, value) {
+    if (value instanceof BiffPropertyRange) throw new Error('resident property value map');
+    return original.call(this, key, value);
+  };
+  try { expect(await readBiffProperties(streams, ctx, text => text, () => {}, undefined)).toEqual(input.properties); }
+  finally { Map.prototype.set = original; }
+  expect(state.acquired).toBeGreaterThan(0); expect(state.closed).toBe(state.acquired);
+});
+
+it('looks up and replays value ranges beyond the cache without retaining the index after its visitor', async () => {
+  const { ctx, state } = fixture(), count = 300, bytes = new Uint8Array(8 + count * 16), view = new DataView(bytes.buffer);
+  view.setUint32(4, count, true); let at = 8 + count * 8;
+  for (let id = count - 1; id >= 0; id--) {
+    view.setUint32(8 + id * 8, id, true); view.setUint32(12 + id * 8, at, true);
+    view.setUint32(at, id, true); at += 4 + id % 3 * 4;
+  }
+  let escaped!: BiffPropertyValues;
+  const result = await withPropertyValueRanges(propertyRange(bytes, ctx), () => {}, () => {}, ctx, async values => {
+    escaped = values;
+    for (let i = 0; i < count; i++) {
+      const id = i * 13 % count, range = (await values.get(id))!;
+      expect(range.size).toBe(4 + id % 3 * 4); expect(await range.u32(0)).toBe(id);
+    }
+    expect(await values.get(999)).toBeUndefined();
+    let seen = 0;
+    for await (const [id, range] of values.entries()) {
+      expect(id).toBe(count - ++seen); expect(await range.u32(0)).toBe(id);
+      expect(range.size).toBe(4 + id % 3 * 4);
+    }
+    expect(seen).toBe(count); return values.get(150);
+  });
+  expect(await result!.u32(0)).toBe(150);
+  expect(state.acquired).toBe(1); expect(state.closed).toBe(1);
+  await expect(escaped.get(1)).rejects.toThrow('index is closed');
+  const consume = async () => { for await (const entry of escaped.entries()) void entry; };
+  await expect(consume()).rejects.toThrow('index is closed');
+});
+
+it.each(['lookup-read', 'replay-write', 'abort', 'consumer'])('closes value indexes after visitor %s failure', async mode => {
+  const { ctx, state, failure } = fixture(), controller = new AbortController(), count = 300;
+  const bytes = new Uint8Array(8 + count * 12), view = new DataView(bytes.buffer);
+  view.setUint32(4, count, true);
+  for (let i = 0; i < count; i++) {
+    view.setUint32(8 + i * 8, i, true); view.setUint32(12 + i * 8, 8 + count * 8 + i * 4, true);
+  }
+  const active = { ...ctx, signal: controller.signal };
+  await expect(withPropertyValueRanges(propertyRange(bytes, active), () => {}, () => {}, active, async values => {
+    if (mode === 'consumer') throw failure;
+    if (mode === 'abort') controller.abort(failure);
+    state.mode = mode === 'lookup-read' ? 'read' : mode === 'replay-write' ? 'write' : '';
+    if (mode === 'lookup-read') await values.get(0);
+    else for await (const entry of values.entries()) void entry;
+  })).rejects.toBe(failure);
+  expect(state.closed).toBe(1);
+});
+
+it.each([false, true])('preflights plaintext property collisions=%s without a resident value map', async collision => {
+  const { ctx, state } = fixture(), bytes = new Uint8Array(72), view = new DataView(bytes.buffer), encrypted = new Uint8Array(8);
+  view.setUint16(0, 0xfffe, true); view.setUint32(24, 1, true); view.setUint32(44, 48, true);
+  bytes.set(Buffer.from('02d5cdd59c2e1b10939708002b2cf9ae', 'hex'), 28);
+  view.setUint32(48, 24, true); view.setUint32(52, 1, true);
+  view.setUint32(56, collision ? 2 : 1, true); view.setUint32(60, 16, true); view.setUint32(64, 2, true);
+  const streams = new Map([['ENCRYPTION', encrypted], ['\u0005DocumentSummaryInformation', bytes]]), original = Map.prototype.set;
+  Map.prototype.set = function (key, value) {
+    if (value instanceof BiffPropertyRange) throw new Error('resident property value map');
+    return original.call(this, key, value);
+  };
+  try {
+    const result = encryptedBiffPropertyStream(streams, ctx, () => {});
+    if (collision) await expect(result).rejects.toThrow('ambiguous plaintext');
+    else expect(await result).toBe(encrypted);
+  } finally { Map.prototype.set = original; }
+  expect(state.acquired).toBe(2); expect(state.closed).toBe(2);
 });

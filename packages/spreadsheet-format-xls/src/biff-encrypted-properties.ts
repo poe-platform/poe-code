@@ -5,7 +5,7 @@ import type { BiffPropertySource } from "./biff-encrypted-properties-write.js";
 import type { BiffRc4Cipher } from "./biff-encryption.js";
 import { Binary, invalidBiff } from "./biff-binary.js";
 import { biffPropertyFormats } from "./biff-properties.js";
-import { propertyRange, readPropertySectionRanges, readPropertyValueRanges } from "./biff-property-range.js";
+import { propertyRange, readPropertySectionRanges, withPropertyValueRanges } from "./biff-property-range.js";
 
 /** Admit the outer container and reject hidden plaintext property collisions
  * before asking for a password. POI emits an empty document-summary placeholder. */
@@ -30,9 +30,10 @@ export async function encryptedBiffPropertyStream(streams: ReadonlyMap<string, U
     charge(file.size);
     for await (const section of readPropertySectionRanges(file, admit, charge, context)) {
       if (![biffPropertyFormats.document, biffPropertyFormats.custom].includes(section.guid)) invalidBiff("ambiguous plaintext document properties");
-      const values = await readPropertyValueRanges(file.slice(section.offset, section.end - section.offset), admit, charge, context);
-      for (const [id, value] of values) if (id > 1 || id === 0 && (await value.u32(0)) !== 0 || id === 1 && (await value.u32(0)) !== 2)
-        invalidBiff("ambiguous plaintext document properties");
+      await withPropertyValueRanges(file.slice(section.offset, section.end - section.offset), admit, charge, context, async values => {
+        for await (const [id, value] of values.entries()) if (id > 1 || id === 0 && (await value.u32(0)) !== 0 || id === 1 && (await value.u32(0)) !== 2)
+          invalidBiff("ambiguous plaintext document properties");
+      });
     }
   }
   if (!encrypted) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook ancillary properties require the encryption stream");

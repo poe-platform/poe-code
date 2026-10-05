@@ -117,12 +117,22 @@ export async function* readPropertySectionRanges(file: BiffPropertyRange, admit:
     throw error;
   } finally { if (!failed) await storage?.close(); }
 }
-export async function readPropertyValueRanges(section: BiffPropertyRange, admit: (count: number) => void,
-  accountWork: (amount: number) => void, context: CapabilityContext): Promise<Map<number, BiffPropertyRange>> {
+export interface BiffPropertyValues {
+  get(id: number): Promise<BiffPropertyRange | undefined>;
+  entries(): AsyncIterable<readonly [number, BiffPropertyRange]>;
+}
+
+/** The visitor owns the index lifetime; returned range views own only source coordinates. */
+export async function withPropertyValueRanges<T>(section: BiffPropertyRange, admit: (count: number) => void,
+  accountWork: (amount: number) => void, context: CapabilityContext, visit: (values: BiffPropertyValues) => Promise<T>): Promise<T> {
   const count = await section.u32(4); section.check(8, count * 8); admit(count);
   accountWork(count * Math.ceil(Math.log2(count + 1)));
   const storage = context.createWorkingStorage?.();
-  const values = new Map<number, BiffPropertyRange>();
+  let active = true, result: T;
+  const check = () => {
+    section.check(0, 0);
+    if (!active) throw new SsconvertError('invalid-request', 'BIFF property value index is closed');
+  };
   try {
     const backing = storage && propertyIndexStorage(storage, section);
     backing?.allocate(8);
@@ -132,23 +142,47 @@ export async function readPropertyValueRanges(section: BiffPropertyRange, admit:
       const entry = new Binary(await section.read(8 + i * 8, 8)), id = BigInt(entry.u32(0)), at = entry.u32(4);
       if (at < 8 + count * 8 || at > section.size - 4) invalidBiff('invalid property offset');
       if (await ids.get(id) !== undefined) invalidBiff('duplicate property ID');
-      section.check(0, 0); await ids.set(id, 1n); section.check(0, 0);
+      check(); await ids.set(id, BigInt(at)); check();
       if (await offsets.get(BigInt(at)) !== undefined) invalidBiff('overlapping property values');
-      section.check(0, 0); await offsets.set(BigInt(at), id); section.check(0, 0);
+      check(); await offsets.set(BigInt(at), id); check();
     }
-    const entries = offsets instanceof Map ? [...offsets].sort(([a], [b]) => Number(a - b)) : offsets.entries();
-    let previous: { id: number; at: number } | undefined;
-    for await (const [offset, id] of entries) {
-      section.check(0, 0); const at = Number(offset);
-      if (previous) values.set(previous.id, section.slice(previous.at, at - previous.at));
-      previous = { id: Number(id), at };
-    }
-    if (previous) values.set(previous.id, section.slice(previous.at, section.size - previous.at));
+    const ordered = (start = 0n) => offsets instanceof Map ? [...offsets].filter(([at]) => at >= start).sort(([a], [b]) => Number(a - b)) : offsets.entries(start);
+    result = await visit({
+      async get(id) {
+        check(); const at = await ids.get(BigInt(id)); check();
+        if (at === undefined) return undefined;
+        let end = section.size;
+        for await (const [next] of ordered(at + 1n)) { check(); end = Number(next); break; }
+        check(); return section.slice(Number(at), end - Number(at));
+      },
+      async *entries() {
+        check(); let previous: { id: number; at: number } | undefined;
+        for await (const [offset, id] of ordered()) {
+          check(); const at = Number(offset);
+          if (previous) yield [previous.id, section.slice(previous.at, at - previous.at)] as const;
+          previous = { id: Number(id), at };
+        }
+        check();
+        if (previous) yield [previous.id, section.slice(previous.at, section.size - previous.at)] as const;
+        check();
+      }
+    });
+    check();
   } catch (error) {
     try { await storage?.close(); }
     catch (cleanup) { throw new AggregateError([error, cleanup], 'BIFF property index and cleanup failed'); }
     throw error;
-  }
+  } finally { active = false; }
   await storage?.close(); section.check(0, 0);
-  return values;
+  return result;
+}
+
+/** Mutable convenience materialization for retained property merge edits. */
+export async function readPropertyValueRanges(section: BiffPropertyRange, admit: (count: number) => void,
+  accountWork: (amount: number) => void, context: CapabilityContext): Promise<Map<number, BiffPropertyRange>> {
+  return withPropertyValueRanges(section, admit, accountWork, context, async source => {
+    const values = new Map<number, BiffPropertyRange>();
+    for await (const [id, value] of source.entries()) values.set(id, value);
+    return values;
+  });
 }

@@ -127,20 +127,41 @@ test('htmlq denied host paths and URLs never fetch or execute inert HTML', async
   assert.equal(network.mock.callCount(), 0);
 });
 
-test('htmlq exclusive and replacement publication reject concurrent destination changes', async t => {
+for (const transport of ['staged', 'buffered'] as const) test(`htmlq ${transport} exclusive and replacement publication reject concurrent destination changes`, async t => {
   for (const existing of [false, true]) {
     const fs = createMemoryFileSystem();
-    const shell = new Shell({ fs }).use(htmlqCommands());
+    const capabilities = { ...fs.capabilities, atomicFilePublication: false, atomicFileStaging: false };
+    const provider = transport === 'staged' ? fs : new Proxy(fs, { get(target, property) {
+      if (property === 'capabilities') return capabilities;
+      if (property === 'capabilitiesFor') return async () => capabilities;
+      const value = Reflect.get(target, property, target);
+      return typeof value === 'function' ? value.bind(target) : value;
+    } });
+    const shell = new Shell({ fs: provider }).use(htmlqCommands());
     t.after(() => shell.dispose());
     await fs.writeFile('/input', encoder.encode('<p>NEW</p>'));
     if (existing) await fs.writeFile('/output', encoder.encode('OLD'));
-    const publish = fs.writeFileConditional!.bind(fs);
-    t.mock.method(fs, 'writeFileConditional', async (...[path, source, options]: Parameters<NonNullable<typeof fs.writeFileConditional>>) => {
-      assert.equal(options.expected === null, !existing);
-      await fs.writeFile(path, encoder.encode('CONCURRENT'));
-      return publish(path, source, options);
-    });
+    let injected = 0;
+    if (transport === 'staged') {
+      const publish = fs.publishStagedFile!.bind(fs);
+      t.mock.method(fs, 'publishStagedFile', async (...[staging, path, options]: Parameters<NonNullable<typeof fs.publishStagedFile>>) => {
+        assert.equal(options.destination === null, !existing);
+        assert.deepEqual(await fs.readFile(staging.file.path), encoder.encode('NEW\n'));
+        await fs.writeFile(path, encoder.encode('CONCURRENT'));
+        injected++;
+        return publish(staging, path, options);
+      });
+    } else {
+      const publish = fs.writeFileConditional!.bind(fs);
+      t.mock.method(fs, 'writeFileConditional', async (...[path, source, options]: Parameters<NonNullable<typeof fs.writeFileConditional>>) => {
+        assert.equal(options.expected === null, !existing);
+        await fs.writeFile(path, encoder.encode('CONCURRENT'));
+        injected++;
+        return publish(path, source, options);
+      });
+    }
     const result = await shell.exec('htmlq p -t -f /input -o /output');
+    assert.equal(injected, 1);
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, '');
     assert.equal(result.stderr, 'htmlq: E_IO\n');

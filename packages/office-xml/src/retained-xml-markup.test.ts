@@ -93,3 +93,19 @@ for (const mode of ['success', 'cancel', 'storage', 'closed'] as const) it(`stre
   }
   expect(outstanding).toBe(0); expect(handles).toBe(0); expect(await fs.readdir('/')).toEqual([]);
 });
+
+it('walks document-level and nested nodes in order with backed parent links', async () => {
+  const fs = createMemoryFileSystem();
+  const doc = await openRetainedXmlDocument(source('<?xml version="1.0"?> \n<!--before--><root a="x">text<child><![CDATA[value]]></child><?pi data?></root> \n'), {workingStorage: {fs, directory: '/', cacheBytes: 16384}});
+  try {
+    const rows = [];
+    for await (const {node, depth} of doc.nodes()) rows.push([node.kind, depth, node.kind === 'element' ? await collect(doc.raw(node.name)) : await collect(doc.text(node))]);
+    expect(rows).toEqual([
+      ['text', 0, ' \n'], ['comment', 0, 'before'], ['element', 1, 'root'], ['text', 1, 'text'],
+      ['element', 2, 'child'], ['cdata', 2, 'value'], ['instruction', 1, 'pi data'], ['text', 0, ' \n']
+    ]);
+    expect(rows.length).toBe(doc.nodeCount);
+  } finally {await doc.close();}
+  await expect(doc.nodes().next()).rejects.toMatchObject({code: 'invalid-handle'});
+  expect(await fs.readdir('/')).toEqual([]);
+});

@@ -717,6 +717,16 @@ Malformed namespace diagnostics retain the existing whole-string message API;
 measure that diagnostic minimum separately. This mapper is a building block,
 not an EPUB or deployed Worker qualification boundary.
 
+The EPUB retained XML acquisition boundary is also available internally. It
+owns source factories/iterators, maps UTF-8 and backing errors, enrolls late
+acquisitions in retirement, and accounts for prolog/epilog text through the
+shared backed node traversal. Unit checks compare XML node/attribute/text totals
+with the existing parser and exercise reused buffers, long values and live
+scratch-handle cleanup. Before public admission, complete document-tree budget
+and diagnostic precedence parity, book metadata/navigation, cross-chapter notes,
+resources and final retained serialization. These acquisition tests do not prove
+end-to-end EPUB boundedness or a deployed memory plateau.
+
 The next complete path is EPUB to plain output, then the same retained book to
 JSON and the other retained writers. Its implementation must remove the XHTML
 DOM and chapter/note AST materialization, retain cross-chapter identity resolution,

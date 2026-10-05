@@ -20,6 +20,9 @@ export interface RetainedXmlDocument {
   node(id: number): Promise<RetainedXmlNode>;
   /** The factory must replay the same immutable prefix bytes. */
   resolveNamespace(node: RetainedXmlNode, prefix: () => ByteSource): Promise<ByteSource | undefined>;
+  /** All document nodes in source order, including prolog/epilog text. Depth
+   * counts containing elements, including the node itself for element nodes. */
+  nodes(): AsyncGenerator<{readonly node: RetainedXmlNode; readonly depth: number}>;
   children(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
   attributes(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
   /** Local xmlns attributes, in source order. */
@@ -336,6 +339,19 @@ export async function openRetainedXmlDocument(source: ByteSource, settings: Reta
           }
           return undefined;
         } catch (error) { throw failure(error); }
+      },
+      async *nodes() {
+        try {
+          let pointer = (await row(document))[F.First]!, depth = 0;
+          while (pointer) {
+            let values = await row(pointer);
+            yield {node: await handle(pointer), depth: depth + (values[F.Kind] === 1 ? 1 : 0)};
+            if (values[F.First]) {pointer = values[F.First]!; depth++; continue;}
+            while (!values[F.Next] && values[F.Parent] !== document) {pointer = values[F.Parent]!; values = await row(pointer); depth--;}
+            pointer = values[F.Next]!;
+          }
+          check();
+        } catch (error) {throw failure(error);}
       },
       async *children(node) {
         try { for (let pointer = (await row(address(node)))[F.First]!; pointer;) { yield await handle(pointer); pointer = (await row(pointer))[F.Next]!; } }

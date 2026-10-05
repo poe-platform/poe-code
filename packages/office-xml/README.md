@@ -4,7 +4,7 @@ Index XML documents without retaining their payloads, names, or tree in the Java
 
 | API | Use |
 | --- | --- |
-| `openRetainedXmlDocument` | Traverse indexed nodes, attributes, namespaces, text and exact markup streams. |
+| `openRetainedXmlDocument` | Traverse all document nodes with depths, attributes, namespaces, text and exact markup streams. |
 | `openRetainedXml` | Read bounded lexical ranges for a format-specific parser. |
 | `stageRetainedXmlEdits` | Validate and stage ordered XML edits while preserving encoding and BOM. |
 

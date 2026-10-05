@@ -1,3 +1,4 @@
+import { mp4TextMetadataKeys, mp4ProbeMetadataKeys } from './mp4-metadata.js';
 import { sampleEntryHeader, applyCodecMetadata, finishCodecMetadata, probeSampleFormat } from './mp4-codec-metadata.js';
 import { mp4FragmentHeader, mp4FragmentTime, mp4FragmentRunSteps } from "./mp4-fragment-source.js";
 import { mp4SampleTableSteps, type Mp4SampleTables } from "./mp4-sample-source.js";
@@ -218,41 +219,9 @@ function parseMetadataTags(moov: Mp4Box): Mp4MetadataTags {
     const text = decodeUtf8(valueBytes).replace(/\0+$/, "");
     if (!text) continue;
 
-    switch (item.type) {
-      case "\xa9nam":
-        tags.title = text;
-        break;
-      case "\xa9ART":
-        tags.artist = text;
-        break;
-      case "aART":
-        tags.albumArtist = text;
-        break;
-      case "\xa9alb":
-        tags.album = text;
-        break;
-      case "\xa9day":
-        tags.date = text;
-        break;
-      case "\xa9cmt":
-        tags.comment = text;
-        break;
-      case "\xa9gen":
-        tags.genre = text;
-        break;
-      case "\xa9too":
-        tags.encoder = text;
-        break;
-      case "desc":
-        tags.description = text;
-        break;
-      case "cprt":
-        tags.copyright = text;
-        break;
-      default:
-        tags.custom[item.type] = text;
-        break;
-    }
+    const key = mp4TextMetadataKeys[item.type];
+    if (key) tags[key] = text;
+    else tags.custom[item.type] = text;
   }
 
   return tags;
@@ -2094,13 +2063,10 @@ export function buildProbeResultFromDoc(
   if (doc.compatibleBrands && doc.compatibleBrands.length > 0) {
     formatTags.compatible_brands = doc.compatibleBrands.join("");
   }
-  if (doc.metadata.title) formatTags.title = doc.metadata.title;
-  if (doc.metadata.artist) formatTags.artist = doc.metadata.artist;
-  if (doc.metadata.album) formatTags.album = doc.metadata.album;
-  if (doc.metadata.date) formatTags.date = doc.metadata.date;
-  if (doc.metadata.comment) formatTags.comment = doc.metadata.comment;
-  if (doc.metadata.genre) formatTags.genre = doc.metadata.genre;
-  if (doc.metadata.encoder) formatTags.encoder = doc.metadata.encoder;
+  for (const key of mp4ProbeMetadataKeys) {
+    const value = doc.metadata[key];
+    if (value) formatTags[key] = value;
+  }
 
   const overallBitRate =
     doc.durationSeconds > 0

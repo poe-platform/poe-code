@@ -25,3 +25,5 @@ export { scanMp4Packets, scanMp4Frames, type Mp4PacketScanOptions } from './mp4-
 
 export { scanMp4CodecDescriptions } from './mp4-codec-source.js';
 export type { Mp4CodecMetadata } from './mp4-codec-metadata.js';
+
+export { probeMp4MetadataSource } from './mp4-metadata-source.js';

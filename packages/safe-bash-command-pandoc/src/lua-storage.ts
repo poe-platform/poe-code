@@ -204,7 +204,11 @@ export class LuaStorage {
   private async bucket(table: LuaReference, key: StoredLuaValue): Promise<bigint> {
     if (table.kind !== "table") throw new TypeError("Expected Lua table");
     if (typeof key === "object" && key.kind === "integer") key = key.value;
-    const digest = typeof key === "object" && key.kind === "string"
+    // Integer array keys are already a bounded radix index. Hashing them spreads
+    // adjacent Lua slots over unrelated pages and amplifies remote storage IO.
+    const digest = typeof key === "number" && Number.isInteger(key) && key >= -0x80000000 && key <= 0xffffffff
+      ? key >>> 0
+      : typeof key === "object" && key.kind === "string"
       ? (await this.fields(key.id + 24, 1))[0]!
       : hash(encode(typeof key === "number" && key === 0 ? 0 : key));
     // Keep nearby table namespaces on shared radix paths. Hashing their offsets

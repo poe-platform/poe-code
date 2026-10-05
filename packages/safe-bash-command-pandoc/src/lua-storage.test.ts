@@ -304,3 +304,35 @@ it("keeps full table identity when storage offsets share their low bits", async 
   } finally {await storage.close(); await context.close();}
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it("keeps sequential Lua integer keys on adjacent radix paths", async () => {
+  const fs = new MemoryFileSystem();
+  const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 8);
+  const heap = new LuaStorage(storage, async () => {});
+  try {
+    const table = await heap.table();
+    for (let index = 0; index < 2000; index++) await heap.set(table, index, index * 2);
+    for (let index = 0; index < 2000; index++) expect(await heap.get(table, {kind: "integer", value: index})).toBe(index * 2);
+    // Array-like tables should not scatter adjacent keys across random radix leaves.
+    expect(storage.allocate(0)).toBeLessThan(256 * 1024);
+  } finally {await storage.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("distinguishes signed and unsigned integer keys sharing a radix slot", async () => {
+  await usingHeap(async heap => {
+    const table = await heap.table();
+    await heap.set(table, {kind: "integer", value: -1}, true);
+    await heap.set(table, 0xffffffff, 42);
+    await heap.set(table, -0x80000000, 17);
+    await heap.set(table, 0x80000000, 18);
+    expect(await heap.get(table, -1)).toBe(true);
+    expect(await heap.get(table, 0xffffffff)).toBe(42);
+    expect(await heap.get(table, -0x80000000)).toBe(17);
+    expect(await heap.get(table, 0x80000000)).toBe(18);
+    await heap.set(table, -1, undefined);
+    expect(await heap.get(table, -1)).toBeUndefined();
+    expect(await heap.get(table, 0xffffffff)).toBe(42);
+    expect(await heap.next(table, -1)).toEqual({key: 0xffffffff, value: 42});
+  });
+});

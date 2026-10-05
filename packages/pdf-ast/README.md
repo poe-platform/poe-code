@@ -231,6 +231,11 @@ PostScript page representation from a retained index, escaping literal strings
 without collecting line text. The caller supplies the document header/trailer
 and keeps ownership of the index.
 
+`streamHtmlPageText(document, page, index, storage, options)` streams styled HTML
+or XML text from an index created with `retainFontNames: true`. XML font IDs use
+caller storage; an optional `images` iterator runs between font definitions and
+text. The caller owns the document and index throughout consumption.
+
 `page.indexText(storage, options)` retains logical-order blocks, lines, words and
 geometry on caller storage. Select `mode: "layout"`, `"bbox"` or `"raw"` to change
 ordering; `page.indexRawText()` preserves raw order. Geometric and logical sorts
@@ -280,7 +285,9 @@ representation.
 
 `doc.outlines()` yields outline titles and zero-based destination page indices.
 `doc.outlineDetails()` also includes one-based hierarchy levels, accepts PDF name
-titles, and omits untitled entries. Both readers use caller-backed traversal.
+titles, and omits untitled entries. Set `includeUntitled: true` to retain empty
+ancestor records, or `includeNameTitles: false` to accept only string titles.
+Both readers use caller-backed traversal.
 It resolves direct and named destinations and stages traversal records on caller
 storage; closing the document releases suspended iterations.
 

@@ -1,9 +1,8 @@
+import { publishPdfOutput } from "./retained-output.js";
 import { streamTextGeometryPage, type RawTextGeometry } from "./retained-bbox.js";
 import { streamTextHtml, streamTextHtmlStart } from "./text-markup.js";
 import { PdfError, PdfNameIndex, PdfFileSource, PdfRetainedDocument, PdfStagingStorage, dictGet, type PdfRetainedPage, type PdfCosDict } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
-import { FsError } from "safe-bash-contracts/errors";
-import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -43,32 +42,6 @@ interface RawTextPlan {
   readonly eol: "unix" | "dos" | "mac";
 }
 
-async function publish(context: CommandContext, path: string, source: PdfFileSource, signal: AbortSignal) {
-  const fs = context.fs;
-  const capabilities = await fs.capabilitiesFor?.(path, { signal, create: true, stagingAncestry: true }) ?? fs.capabilities;
-  if (!capabilities.atomicFileStaging || !capabilities.retainedStagingWrite || !capabilities.retainedStagingCleanup || !capabilities.atomicStagingAncestry
-    || !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile) {
-    throw new FsError("ENOTSUP", { path, message: "PDF text output requires retained atomic staging" });
-  }
-  const resolution = await fs.prepareStagingResolution(path, { signal });
-  const directory = resolvePath(resolution.path, "..");
-  const staging = await fs.createStagedFile(`${directory}/.pdf-text-${crypto.randomUUID()}`, "output", { type: "file", data: new Uint8Array() },
-    { parent: resolution.parent, retainCleanup: true, signal });
-  let failed = false;
-  try {
-    if (!staging.writer || !staging.cleanup) throw new FsError("ENOTSUP", { path, message: "PDF backend omitted retained staging handles" });
-    for await (const bytes of source.stream(0, source.size, signal)) {
-      await writeFileOutput({ ...context, signal }, bytes, data => staging.writer!.write(data, { signal }));
-    }
-    const stat = await staging.writer.finish({ signal });
-    await fs.publishStagedFile({ ...staging, file: { ...staging.file, stat } }, resolution.path,
-      { parent: resolution.parent, destination: resolution.destination, ancestors: resolution.ancestors, commitGuard: resolution.validate, signal });
-  } catch (error) { failed = true; throw error; }
-  finally {
-    const cleanup = async () => { try { await staging.cleanup?.remove(); } finally { await staging.cleanup?.close(); } };
-    await cleanup().catch(error => { if (!failed) throw error; });
-  }
-}
 
 /** Keep command inputs, extraction state and atomic output on caller-authorized
  * retained storage for every text, layout, bbox and TSV mode. */
@@ -180,7 +153,7 @@ export async function executeRetainedText(context: CommandContext, plan: RawText
     if (outputPath === "-") {
       for await (const bytes of result.stream(0, result.size, signal)) await writeBytes(stdout, bytes, signal);
     } else {
-      try { await publish(context, resolvePath(context.cwd, outputPath), result, signal); }
+      try { await publishPdfOutput(context, resolvePath(context.cwd, outputPath), result.stream(0, result.size, signal), signal); }
       catch (failure) {
         signal.throwIfAborted();
         if (!(failure instanceof Error) || !("code" in failure)) throw failure;

@@ -92,13 +92,13 @@ export class PdfRetainedDocument extends PdfRetainedReader {
     const work = visit(this); return work;
   }
 
-  outlineDetails(): AsyncGenerator<{ title: string; pageIndex: number; level: number }, void, void> {
+  outlineDetails(options: { readonly includeUntitled?: boolean; readonly includeNameTitles?: boolean } = {}): AsyncGenerator<{ title: string; pageIndex: number; level: number }, void, void> {
     async function* visit(doc: PdfRetainedDocument): AsyncGenerator<{ title: string; pageIndex: number; level: number }, void, void> {
       doc.assertOpen(); doc.walks.add(work);
       const storage = new PdfStagingStorage(doc.storage, doc.options.maxTraversalStagingBytes);
       const outlines = new PdfMergeOutlines(storage, doc.options.signal!, Infinity);
       let failed = false;
-      try { await outlines.append(doc, 0, false, true); yield* outlines.details(); }
+      try { await outlines.append(doc, 0, options.includeUntitled ?? false, options.includeNameTitles ?? true); yield* outlines.details(); }
       catch (error) { failed = true; throw error; }
       finally { doc.walks.delete(work); await outlines.close().catch(error => { if (!failed) throw error; }); }
     }

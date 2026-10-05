@@ -1,17 +1,17 @@
+import { executeRetainedHtml } from "./retained-html.js";
+import { parseHtmlArguments, SUPPORTED_ENCODINGS } from "./html-arguments.js";
 import { escapeXml } from "./text-markup.js";
 import { applyPopplerOutputEncoding } from "./output-encoding.js";
 import { executeRetainedText } from "./retained-raw.js";
-import { resolvePath } from "safe-bash-contracts/path";
-import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
+import { drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
-import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
   type CommandContext,
   type CommandDefinition
 } from "safe-bash-contracts/command";
-import { readBytes, writeBytes } from "safe-bash-contracts/io";
+import { writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { PdfDocument, decodePdfString, dictGet, extractPageAnnotations, formatExtractedPageText, resolveDestinationPageIndex, type PdfCosDict, type PdfExtractedPage, type PdfTextBlock, type PdfTextLine, type PdfTextWord, encodeJpegSteps, encodePngSteps, extractDocumentImagesSteps } from "@poe-code/pdf-ast";
@@ -32,14 +32,7 @@ export interface PdftotextCliResult {
   readonly outputPath: string;
 }
 
-const SUPPORTED_ENCODINGS = new Set([
-  "ASCII7",
-  "Latin1",
-  "UTF-8",
-  "UCS-2",
-  "Symbol",
-  "ZapfDingbats"
-]);
+
 
 interface ParsedArgs {
   firstPage: number;
@@ -908,99 +901,9 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
     stderr: string;
 }, void> {
     let cooperativeWork = 63;
-    let xmlMode = false;
-    let toStdout = false;
-    let ignoreImages = false;
-    let dataUrls = false;
-    let firstPage = 1;
-    let lastPage = 0;
-    let zoom = 1;
-    let imageFmt: "png" | "jpg" = "png";
-    let encoding = "UTF-8";
-    let password = "";
-    const positionals: string[] = [];
-    for (let i = 0; i < argv.length; i++) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        const arg = argv[i]!;
-        if (arg === "--") {
-            positionals.push(...argv.slice(i + 1));
-            break;
-        }
-        if (arg === "-v" || arg === "--version") {
-            return { exitCode: 0, stdout: "pdftohtml version 24.08.0\n", stderr: "" };
-        }
-        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-            return {
-                exitCode: 0,
-                stdout: "Usage: pdftohtml [options] <PDF-file> [<html-file>|<xml-file>]\n  -xml / -stdout / -s / -i / -noframes / -c / -f <int> / -l <int>\n",
-                stderr: ""
-            };
-        }
-        if (arg === "-xml")
-            xmlMode = true;
-        else if (arg === "-stdout")
-            toStdout = true;
-        else if (arg === "-i")
-            ignoreImages = true;
-        else if (arg === "-dataurls")
-            dataUrls = true;
-        else if (arg === "-f")
-            firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
-        else if (arg === "-l")
-            lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
-        else if (arg === "-zoom") {
-            const z = Number.parseFloat(argv[++i] ?? "1");
-            if (Number.isFinite(z) && z > 0)
-                zoom = z;
-        }
-        else if (arg === "-fmt") {
-            const fmtVal = (argv[++i] ?? "").toLowerCase();
-            if (fmtVal === "png")
-                imageFmt = "png";
-            else if (fmtVal === "jpg" || fmtVal === "jpeg")
-                imageFmt = "jpg";
-            else {
-                return { exitCode: 99, stdout: "", stderr: `Command Line Error: Invalid image format '${fmtVal}'\n` };
-            }
-        }
-        else if (arg === "-enc") {
-            const nextEnc = argv[++i] ?? "";
-            if (!SUPPORTED_ENCODINGS.has(nextEnc)) {
-                return { exitCode: 99, stdout: "", stderr: `Command Line Error: Unknown encoding '${nextEnc}'\n` };
-            }
-            encoding = nextEnc;
-        }
-        else if (arg === "-upw" || arg === "-opw")
-            password = argv[++i] ?? "";
-        else if (arg === "-s" ||
-            arg === "-noframes" ||
-            arg === "-c" ||
-            arg === "-p" ||
-            arg === "-q" ||
-            arg === "-hidden" ||
-            arg === "-nomerge" ||
-            arg === "-nodrm") {
-            // Flag options
-        }
-        else if (!arg.startsWith("-") || arg === "-") {
-            positionals.push(arg);
-        }
-    }
-    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-    if (!inputPath) {
-        return { exitCode: 99, stdout: "", stderr: "Usage: pdftohtml [options] <PDF-file> [<html-file>]\n" };
-    }
-    const explicitOut = positionals[1];
-    const stdoutOutput = toStdout || explicitOut === "-" || (inputPath === "-" && !explicitOut);
-    const defaultExt = xmlMode ? ".xml" : ".html";
-    const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
-    const outPath = explicitOut
-        ? explicitOut.endsWith(".html") || explicitOut.endsWith(".xml")
-            ? explicitOut
-            : `${explicitOut}${defaultExt}`
-        : inputStem + defaultExt;
-    const imageDirectory = outPath.slice(0, outPath.lastIndexOf("/") + 1);
+    const parsed = parseHtmlArguments(argv, files.has("-"));
+    if ("exitCode" in parsed) return parsed;
+    const { inputPath, outPath, imageDirectory, xmlMode, stdoutOutput, ignoreImages, dataUrls, firstPage, lastPage, zoom, imageFmt, encoding, password } = parsed;
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
@@ -1285,93 +1188,18 @@ export function runPdftohtmlCliSync(argv: readonly string[], files: Map<string, 
     return next.value;
 }
 
-export async function pdftohtml(context: CommandContext): Promise<{ exitCode: number }> {
-  let cooperativeWork = 63;
+export async function pdftohtml(context: CommandContext, maxInputBytes = Infinity): Promise<{ exitCode: number }> {
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
-    const carrier = getCommandArguments(context);
-    const argv = [...carrier.args];
-    const vfsFiles = new Map<string, Uint8Array>();
-    let accountedBytes = 0;
-    const chargeBytes = (delta: number) => {
-      if (delta > 0) {
-        accountedBytes += delta;
-        context.inputBudget?.check(accountedBytes);
-      }
-    };
-
-    let inputOperand: string | undefined;
-    for (let i = 0; i < argv.length; i++) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      const arg = argv[i]!;
-      if (arg === "--") { inputOperand = argv[i + 1]; break; }
-      if (["-f", "-l", "-zoom", "-fmt", "-enc", "-upw", "-opw"].includes(arg)) {
-        i++;
-      } else if (arg === "-" || !arg.startsWith("-")) {
-        inputOperand = arg;
-        break;
-      }
+    const plan = parseHtmlArguments(getCommandArguments(context).args);
+    const stdout = invocation.child(context.stdout);
+    if ("exitCode" in plan) {
+      if (plan.stdout) await writeBytes(stdout.output, new TextEncoder().encode(plan.stdout), invocation.signal);
+      if (plan.stderr) await writeBytes(context.stderr, new TextEncoder().encode(plan.stderr), invocation.signal);
+      return { exitCode: plan.exitCode };
     }
-    if (inputOperand === "-") {
-      const chunks: Uint8Array[] = [];
-      let total = 0;
-      for await (const chunk of readBytes(context.stdin, invocation.signal)) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-        chunks.push(chunk);
-        total += chunk.byteLength;
-        chargeBytes(chunk.byteLength);
-      }
-      if (total > 0) {
-        const buf = new Uint8Array(total);
-        let off = 0;
-        for (const c of chunks) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-          buf.set(c, off);
-          off += c.byteLength;
-        }
-        vfsFiles.set("-", buf);
-      }
-    }
-
-    for (const token of inputOperand && inputOperand !== "-" ? [inputOperand] : []) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      try {
-        const bytes = await context.fs.readFile(resolvePath(context.cwd, token), { signal: invocation.signal });
-        chargeBytes(bytes.byteLength);
-        vfsFiles.set(token, bytes);
-      } catch {
-        // Non-existing output path
-      }
-    }
-    context.inputBudget?.check(0);
-    const existingSnap = new Map(vfsFiles);
-    const res = await runPdftohtmlCli(argv, vfsFiles, invocation.signal);
-    if (res.stderr) {
-      await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
-    }
-    if (res.stdout) {
-      const outBytes = new TextEncoder().encode(res.stdout);
-      const stdout = invocation.child(context.stdout);
-      await writeBytes(stdout.output, outBytes, invocation.signal);
-    }
-    for (const [key, val] of vfsFiles.entries()) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (existingSnap.get(key) !== val) {
-        const abs = resolvePath(context.cwd, key);
-        try {
-          await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
-        } catch (error) {
-          invocation.signal.throwIfAborted();
-          if (!(error instanceof Error) || !("code" in error)) throw error;
-          await writeBytes(context.stderr, new TextEncoder().encode(`I/O Error: Couldn't open html file '${key}'\n`), invocation.signal);
-          return { exitCode: 0 };
-        }
-      }
-    }
-    return { exitCode: res.exitCode };
-  } finally {
-    await invocation.close();
-  }
+    return await executeRetainedHtml(context, plan, stdout.output, invocation.signal, maxInputBytes);
+  } finally { await invocation.close(); }
 }
 
 export function createPdftohtmlCommand(options: PdftotextCommandOptions = {}): CommandDefinition {
@@ -1381,7 +1209,7 @@ export function createPdftohtmlCommand(options: PdftotextCommandOptions = {}): C
     runtimeIdentity: commandRuntimeIdentity,
     description: "Convert PDF pages into HTML or XML layout documents via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, pdftohtml);
+      return pdftohtml(context, maxInputBytes);
     }
   });
 }

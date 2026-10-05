@@ -103,6 +103,11 @@ pub fn run<H: Host>(
             }
         }
         ("equalMachine", [left, right]) => {
+            let left_initial = host.get(*left, "initial")?;
+            let right_initial = host.get(*right, "initial")?;
+            if !host.same(left_initial, right_initial)? {
+                return host.call("false", vec![]);
+            }
             let left_states = host.get(*left, "states")?;
             let right_states = host.get(*right, "states")?;
             let same = run(host, "equalStrings", &[left_states, right_states])?;

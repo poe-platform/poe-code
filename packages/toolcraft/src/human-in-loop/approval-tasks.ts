@@ -229,6 +229,10 @@ function getTaskListDirectory(
 }
 
 function isDeepEqualStateMachine(left: StateMachineDef, right: StateMachineDef): boolean {
+  if (left.initial !== right.initial) {
+    return false;
+  }
+
   if (!areEqualStrings(left.states, right.states)) {
     return false;
   }

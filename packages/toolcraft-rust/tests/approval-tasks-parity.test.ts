@@ -39,7 +39,7 @@ it("preserves runtime/dependency getter order and list validation cache behavior
   expect(await run(native)).toEqual(await run(reference));
 });
 
-it("matches exact state-machine comparison including reference initial-state behavior", async () => {
+it("matches exact state-machine comparison including the initial state", async () => {
   for (const change of [
     (machine: any) => { machine.initial = "declined"; },
     (machine: any) => { machine.states.reverse(); },
@@ -56,3 +56,46 @@ it("matches exact state-machine comparison including reference initial-state beh
     expect(await run(native)).toEqual(await run(reference));
   }
 });
+
+for (const [name, lib] of [["reference", reference], ["native", native]] as const) {
+  it(`${name} rejects a different initial state before enqueueing an approval`, async () => {
+    vol.reset();
+    const { openTaskList } = await import("@poe-code/task-list-rust");
+    const taskList = await openTaskList({
+      type: "yaml-file",
+      path: "/repo/approvals.yaml",
+      create: true,
+      stateMachine: { ...structuredClone(approvalStateMachine), initial: "declined" }
+    });
+    const before = vol.toJSON();
+    const enqueue = async () => {
+      const { tasks } = await lib.ensureApprovalList({ taskList });
+      return lib.enqueueApproval({
+        tasks,
+        payload: { commandPath: "deploy", params: {}, message: "Approve?" }
+      });
+    };
+
+    await expect(enqueue()).rejects.toThrow("different version of toolcraft");
+    expect(vol.toJSON()).toEqual(before);
+  });
+
+  it(`${name} enqueues a cloned matching state machine in the pending state`, async () => {
+    vol.reset();
+    const { openTaskList } = await import("@poe-code/task-list-rust");
+    const taskList = await openTaskList({
+      type: "yaml-file",
+      path: "/repo/approvals.yaml",
+      create: true,
+      stateMachine: structuredClone(approvalStateMachine)
+    });
+    const { tasks } = await lib.ensureApprovalList({ taskList });
+    const { approvalId, pending } = await lib.enqueueApproval({
+      tasks,
+      payload: { commandPath: "deploy", params: {}, message: "Approve?" }
+    });
+
+    expect(pending.status).toBe("pending-approval");
+    expect((await tasks.get(approvalId)).state).toBe("pending");
+  });
+}

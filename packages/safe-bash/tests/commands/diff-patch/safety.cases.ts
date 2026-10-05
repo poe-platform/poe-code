@@ -172,12 +172,23 @@ test("output budget is checked before writing any patch target", async () => {
   assert.equal(await contents(result.fs, "target"), "old\n");
 });
 
-test("hostile directory entry names never become filesystem paths", async () => {
+for (const streaming of [false, true]) test(`hostile directory entry names never become filesystem paths (streaming=${streaming})`, async () => {
   const fs = await filesystem({ "left/file": "old", "right/file": "new" });
+  let closed = 0;
   fs.readdir = async () => [{ name: "../escape", type: "file" }];
+  if (streaming) fs.iterateDirectory = async function* () {
+    try { yield { name: "../escape", type: "file" }; }
+    finally { closed++; }
+  };
+  else Object.defineProperty(fs, "iterateDirectory", { value: undefined });
+  const lstat = fs.lstat.bind(fs), stat = fs.stat.bind(fs);
+  fs.lstat = async (path, options) => { assert.ok(!path.includes("escape")); return lstat(path, options); };
+  fs.stat = async (path, options) => { assert.ok(!path.includes("escape")); return stat(path, options); };
   const result = await run("diff", ["-r", "left", "right"], { fs });
   assert.equal(result.exitCode, 2);
   assert.match(result.stderr, /unsafe directory entry/u);
+  assert.equal(result.stdout, "");
+  assert.equal(closed, streaming ? 1 : 0);
 });
 
 test("long paths reach filesystem policy without a secondary command quota", async () => {

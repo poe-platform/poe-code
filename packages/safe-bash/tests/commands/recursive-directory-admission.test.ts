@@ -23,6 +23,8 @@ for (const route of routes) for (const honors of [true, false]) {
   test(`${route.name} admits directory size before provider work (honors=${honors})`, async () => {
     const fs = await fixture(Object.fromEntries(Array.from({ length: 64 }, (_, index) => [`sub/${index}`, "x\n"])));
     await fs.mkdir("/work/other");
+    // Exercise the collected-listing fallback; streaming admission is covered below.
+    if (route.name === "diff") Object.defineProperty(fs, "iterateDirectory", { value: undefined });
     const read = fs.readdir.bind(fs);
     const calls: (number | undefined)[] = [];
     fs.readdir = async (path, options) => {
@@ -42,13 +44,56 @@ for (const route of routes) for (const honors of [true, false]) {
   });
 }
 
-test("diff admits matching directory names once", async () => {
+test("diff admits matching collected directory names once", async () => {
   const fs = await fixture({ "sub/a": "x\n", "sub/b": "x\n", "other/a": "x\n", "other/b": "x\n" });
+  Object.defineProperty(fs, "iterateDirectory", { value: undefined });
   const read = fs.readdir.bind(fs);
   const caps: (number | undefined)[] = [];
   fs.readdir = async (path, options) => { caps.push(options?.maxEntries); return read(path, options); };
   assert.equal((await run("diff", ["sub", "other"], { fs, commands: createDiffPatchCommands({ maxFiles: 3 }) })).exitCode, 0);
   assert.deepEqual(caps, [2, 2]);
+});
+
+test("diff stops and closes an over-limit directory iterator before inspecting children", async () => {
+  const fs = await fixture({ "sub/a": "x\n", "sub/b": "x\n", "sub/c": "x\n", "other/a": "x\n" });
+  const lstat = fs.lstat.bind(fs), stat = fs.stat.bind(fs);
+  const paths: string[] = [];
+  let yielded = 0, closed = 0;
+  fs.readdir = async () => assert.fail("diff collected an iterator-backed directory");
+  fs.lstat = async (path, options) => { paths.push(path); return lstat(path, options); };
+  fs.stat = async (path, options) => { paths.push(path); return stat(path, options); };
+  fs.iterateDirectory = async function* (path) {
+    assert.equal(path, "/work/sub");
+    try {
+      for (const name of ["a", "b", "c", "d"]) { yielded++; yield { name, type: "file" }; }
+      assert.fail("diff exhausted the over-limit iterator");
+    } finally { closed++; }
+  };
+  const result = await run("diff", ["sub", "other"], { fs, commands: createDiffPatchCommands({ maxFiles: 3 }) });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /limit exceeded/u);
+  assert.equal(result.stdout, "");
+  assert.equal(yielded, 3);
+  assert.equal(closed, 1);
+  assert.ok(paths.length > 0);
+  assert.ok(paths.every(path => !path.startsWith("/work/sub/") && !path.startsWith("/work/other/")), JSON.stringify(paths));
+});
+
+test("diff admits matching streamed directory names once and closes both iterators", async () => {
+  const fs = await fixture({ "sub/a": "x\n", "sub/b": "x\n", "other/a": "x\n", "other/b": "x\n" });
+  const iterate = fs.iterateDirectory.bind(fs), counts: number[] = [];
+  let closed = 0;
+  fs.readdir = async () => assert.fail("diff collected an iterator-backed directory");
+  fs.iterateDirectory = async function* (path, options) {
+    let count = 0;
+    try { for await (const entry of iterate(path, options)) { count++; yield entry; } }
+    finally { counts.push(count); closed++; }
+  };
+  const result = await run("diff", ["sub", "other"], { fs, commands: createDiffPatchCommands({ maxFiles: 3 }) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.deepEqual(counts, [2, 2]);
+  assert.equal(closed, 2);
 });
 
 test("cross-device move traverses directories without a default quota", async () => {

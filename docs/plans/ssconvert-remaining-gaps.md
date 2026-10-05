@@ -152,7 +152,7 @@ delivered root/scoped fixture separation `61baed7701`.
 | PY_CAPWORDS | 1. Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts. 2. Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash. |
 | Database functions | 1. Explicit in-memory SQLite in-flight cancellation, read-only transactions, provider credential admission and connection retirement are qualified. Extend only to remaining provider-specific lifecycle profiles; preserve original cancellation identity and zero publication. 2. Remaining provider-specific types and installed non-SQLite profiles; root/scoped SQLite lifecycle is qualified on Node22/24. Retain native CLI crash and classified GDA integer-inference/SQLite tiny-number profile differences as compatibility limitations. |
 | ATL_LAST | 1. Containing root/scoped conditional-unlink fix and remaining declared deployment profiles. Current root17.0.41/scoped0.1.813 schedule/mutation/feed-close contracts are qualified on Node22/24; retain those registry receipts. |
-| LN1P/log1p/acos | 1. Remaining runtime-library and installed root/scoped profiles using retained LN1P/log1p/ACOS cohorts; preserve explicit rounding-profile differences and existing work/cancellation contracts. |
+| LN1P/log1p/acos | 1. Root containing publication for capturedAcos and remaining declared runtime-library profiles using retained cohorts; preserve mathematical LN1P versus captured Linux rounding and existing work/cancellation contracts. |
 | Higher-q Bessel | 1. Current installed artifacts against retained native Bessel cohorts; independent uncovered fractional/near-integer and high-order boundaries. 2. Remaining domain/runtime profiles, warnings/errors and work ceilings; retain explained Darwin libm/FMA differences and all 3296 qualified matches per route. |
 | Format records | 1. Existing directional-service matrix: unqualified version/record transports, starting with rich-comment metadata/geometry and raw-NUL formula export, followed by independent edit/readback. 2. Remaining formula/name/style/encoding/metadata/merge/chart/object/link semantics and installed composition; explicit loss diagnostics for unsupported records, not opaque-preservation claims. |
 | Rendering | 1. Remaining weak/neutral/explicit bidi and shaping-direction overrides, rich text/fonts, decorations/merged multipage, print spans and chart profiles with independent visual evidence. 2. Current installed/public rendering composition; reuse completed Fill/tab/control cohorts rather than generating new permutations of them. |
@@ -280,7 +280,12 @@ The independent numeric boundary checkpoint is complete
 controls pass on Node22/26. All 1,200 public outputs match their declared
 contracts. Public LN1P retains independently verified mathematical rounding;
 captured Linux kernels retain native rounding, including two classified one-ULP
-differences. Remaining runtime-library and installed profiles stay open.
+differences. Installed qualification (`numericRegistryProfiles`) captures 27,840
+values across root17.0.41/scoped0.1.813 SDK/command routes on Node22/26. Scoped
+passes all retained cohorts; root passes LN1P/special controls but retains 218
+ACOS differences per route/runtime. Its bundle still calls Math.acos; scoped
+uses capturedAcos. The source fix is already on main. Root containing
+publication and remaining declared runtime-library profiles stay open.
 
 ## 4. Interfaces and test plan
 

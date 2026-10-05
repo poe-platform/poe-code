@@ -4746,20 +4746,22 @@
     {
       "id": "numeric-ln1p-log1p-acos",
       "status": "open",
-      "currentFinding": "Independent LN1P boundary/holdout and LN1P/ACOS special-value gates pass on Node22/26. Public LN1P matches500-digit Decimal; two Linux and one Darwin one-ULP differences are classified. Captured Linux kernels match native. Remaining runtime-library and installed profiles stay open.",
+      "currentFinding": "Installed scoped0.1.813 matches all3480 retained LN1P/ACOS values on Node22/26. Root17.0.41 retains218 ACOS differences per route/runtime and still calls Math.acos; source fix already exists on main. Root containing publication and remaining runtime-library profiles stay open.",
       "checkpoint20261004": {
-        "qualified": "Retained Linux log1p/acos/pow and scoped public binary64 controls match.285 raw-binary64 LN1P inputs plus13 raw primitive special values and15 public LN1P/ACOS domain/overflow formulas are qualified on Node22/26. All1200 public outputs match their declared mathematical/kernel contracts; native rounding differences remain explicit.",
+        "qualified": "Retained Linux log1p/acos/pow and scoped public binary64 controls match.285 raw-binary64 LN1P inputs plus13 raw primitive special values and15 public LN1P/ACOS domain/overflow formulas are qualified on Node22/26. All1200 public outputs match their declared mathematical/kernel contracts; native rounding differences remain explicit. Installed root17.0.41/scoped0.1.813 LN1P and special controls pass on Node22.22.2/26.10.0; scoped ACOS matches all3180 native values.32 conversions capture27840 values, including872 classified old-root ACOS mismatches.",
         "evidence": [
           "#/currentQualification20261002/publicAcos",
-          "#/numericBoundaryProfiles"
+          "#/numericBoundaryProfiles",
+          "#/numericRegistryProfiles"
         ],
-        "nextAcceptance": "Qualify remaining installed root/scoped and declared runtime-library profiles using the retained numerical cohorts; preserve mathematical LN1P and captured Linux kernel distinctions instead of changing correct values for cross-libm equality.",
+        "nextAcceptance": "Verify a root publication containing the existing capturedAcos fix; qualify remaining declared runtime-library profiles using retained cohorts and explicit rounding contracts.",
         "closureGate": "Qualify remaining domains and runtime libraries, documenting profile-specific differences instead of inventing cross-libm equality.",
         "qualificationBlockers": [
-          "At input2, Linux log1p is one ULP below the independently rounded public LN1P result; at input bits be1fffffffffffff both Linux and Darwin log1p differ by one ULP. Captured Linux log1p intentionally preserves its native profile; public LN1P retains mathematical rounding."
+          "At input2, Linux log1p is one ULP below the independently rounded public LN1P result; at input bits be1fffffffffffff both Linux and Darwin log1p differ by one ULP. Captured Linux log1p intentionally preserves its native profile; public LN1P retains mathematical rounding.",
+          "Root17.0.41 still uses Math.acos and differs on218 of3180 retained ACOS inputs per SDK/command route on both Node22/26; scoped0.1.813 contains capturedAcos and passes. This is a containing-publication gap, not a new source defect."
         ],
         "remainingAcceptance": [
-          "Remaining runtime-library and installed root/scoped profiles using retained LN1P/log1p/ACOS cohorts; preserve explicit rounding-profile differences and existing work/cancellation contracts."
+          "Root containing publication for capturedAcos and remaining declared runtime-library profiles using retained cohorts; preserve mathematical LN1P versus captured Linux rounding and existing work/cancellation contracts."
         ]
       }
     },
@@ -6860,5 +6862,13 @@
       "special-results.json": "8474f04a9b9b9c0358c7d61a7f6d446dfc61f60514b33cb07a82b066be7a6c07",
       "acos-special-results.json": "ab0f4da90652a46672250d52994b1f0b187e7ba908be071e917cbd45f0336eb0"
     }
+  },
+  "numericRegistryProfiles": {
+    "packages": "poe-code17.0.41 (gitHead c8851094da60e42b6c29fbd9da88351ef4dba270) and @poe-platform/safe-bash0.1.813; isolated registry install with lockfile integrity retained. No workspace resolution.",
+    "cohorts": "Retained285 LN1P exact inputs,3180 ACOS values and15 public special formulas. LN1P expectations independently checked against Decimal500 bits; ACOS/special expectations reuse retained native outputs.",
+    "validation": "32 SDK/command conversions and27840 values on Node22.22.2/26.10.0 with PATH=/nonexistent, zero diagnostics. Both runtime result arrays identical. Scoped13920 values exact. Root LN1P/special1200 values exact; root ACOS has218 mismatches per route/runtime (872 total), classified as older implementation.",
+    "artifactEvidence": "Root dist/ssconvert/chunks/chunk-OIQT5LQL.js:8990 has ACOS: Math.acos; scoped dist/spreadsheet-engine/formulas/functions/math.js:169 uses capturedAcos. Package integrity and file SHA256 retained with local evidence.",
+    "sourceStatus": "Existing fix9d9e002f98 is on remote main. No source defect established and no implementation change needed. Containing root publication remains pending; do not count the old artifact as a pass.",
+    "remaining": "Root containing publication and remaining declared runtime-library profiles. Preserve LN1P mathematical rounding and captured Linux contracts; broader issue stays open."
   }
 }

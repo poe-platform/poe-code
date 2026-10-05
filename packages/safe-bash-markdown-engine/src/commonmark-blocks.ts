@@ -31,8 +31,10 @@ export interface CommonMarkBlockDocument { blocks: PendingBlock[]; definitions: 
 interface Line {
   raw: string;
   text: string;
-  // Expanded columns map back to original UTF-16 offsets, including partial tabs.
-  offsets: number[];
+  tabs: boolean;
+  // Cache one cursor, rather than retaining one index per expanded character.
+  original: number;
+  expanded: number;
   number: number;
   ending: string;
 }
@@ -65,17 +67,27 @@ function trim(text: string): string {
   while (text[start] === " " || text[start] === "\t") start++;
   return trimEnd(text.slice(start));
 }
-function rawFrom(line: Line, offset: number): string {
-  const original = line.offsets[offset] ?? line.raw.length;
-  if (line.raw[original] === "\t" && offset > 0 && line.offsets[offset - 1] === original) {
-    let end = offset;
-    while (line.offsets[end] === original) end++;
-    return " ".repeat(end - offset) + line.raw.slice(original + 1);
+function sourcePosition(line: Line, offset: number): { original: number; remaining: number } {
+  if (!line.tabs) return { original: Math.min(offset, line.raw.length), remaining: 0 };
+  let original = offset < line.expanded ? 0 : line.original;
+  let expanded = offset < line.expanded ? 0 : line.expanded;
+  while (original < line.raw.length) {
+    const width = line.raw[original] === "\t" ? 4 - expanded % 4 : 1;
+    if (expanded + width > offset) break;
+    expanded += width;
+    original++;
   }
-  return line.raw.slice(original);
+  line.original = original;
+  line.expanded = expanded;
+  const remaining = line.raw[original] === "\t" && offset > expanded ? expanded + 4 - expanded % 4 - offset : 0;
+  return { original, remaining };
+}
+function rawFrom(line: Line, offset: number): string {
+  const { original, remaining } = sourcePosition(line, offset);
+  return remaining ? " ".repeat(remaining) + line.raw.slice(original + 1) : line.raw.slice(original);
 }
 function point(line: Line, offset: number): BlockPoint {
-  return { line: line.number, column: (line.offsets[offset] ?? line.raw.length) + 1 };
+  return { line: line.number, column: sourcePosition(line, offset).original + 1 };
 }
 function endPoint(line: Line): BlockPoint {
   return { line: line.number, column: Math.max(1, line.raw.length) };
@@ -302,17 +314,18 @@ export async function parseCommonMarkBlocks(
       ending = text[cursor++]!;
       if (ending === "\r" && text[cursor] === "\n") ending += text[cursor++]!;
     }
+    // Preserve the logical budget across changes to temporary storage.
     context.charge("retainedBytes", raw.length * 12 + 64);
-    const offsets: number[] = [];
+    const tabs = raw.includes("\t");
     let lineText = raw;
-    if (!raw.includes("\t")) {
+    if (!tabs) {
       context.checkpoint(raw.length);
       context.bound("text", raw.length);
       context.charge("retainedBytes", raw.length * 10);
-      for (let i = 0; i < raw.length; i++) offsets.push(i);
       if (raw.length >= 256) await context.cooperate(0);
     } else {
       const fragments: string[] = [];
+      lineText = "";
       let width = 0;
       for (let i = 0; i < raw.length; i++) {
         context.checkpoint();
@@ -320,13 +333,16 @@ export async function parseCommonMarkBlocks(
         context.bound("text", width + count);
         context.charge("retainedBytes", count * 10);
         fragments.push(raw[i] === "\t" ? " ".repeat(count) : raw[i]!);
-        for (let j = 0; j < count; j++) offsets.push(i);
+        if (fragments.length === 256) {
+          lineText += fragments.join("");
+          fragments.length = 0;
+        }
         width += count;
         if (i > 0 && i % 256 === 0) await context.cooperate(0);
       }
-      lineText = fragments.join("");
+      lineText += fragments.join("");
     }
-    const line: Line = { raw, text: lineText, offsets, number: ++number, ending };
+    const line: Line = { raw, text: lineText, tabs, original: 0, expanded: 0, number: ++number, ending };
     let offset = 0;
     let matched = 0;
     for (; matched < stack.length; matched++) {

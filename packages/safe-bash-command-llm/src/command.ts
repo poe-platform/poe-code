@@ -1,4 +1,5 @@
 import { promptToolChain } from "./prompt-tool-chain.js";
+import { createToolApproval } from "./prompt-tool-approval.js";
 import { selectLlmTools } from "./tool-registry.js";
 import { tokenInteger } from "./token-integer.js";
 import { fragmentLoaderCommand } from "./fragment-loader-command.js";
@@ -39,6 +40,8 @@ export const llmReferenceVersion = "0.27.1";
 interface Arguments {
   toolNames: string[];
   chainLimit: number | bigint;
+  toolsApprove?: boolean;
+  promptSupplied?: boolean;
   queries: string[];
   fragments: string[];
   systemFragments: string[];
@@ -73,12 +76,13 @@ async function parse(length: number, text: (index: number) => string, step: () =
     for (let cursor = long ? 0 : 1; cursor < argument.length; cursor++) {
       await step();
       const flag = long ? argument.slice(0, equals < 0 ? undefined : equals) : "-" + argument[cursor];
-      const boolean = ["--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
+      const boolean = ["--ta", "--tools-approve", "--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
       if (boolean) {
         if (long && equals >= 0) throw new LlmPromptUsageError(`Error: Option '${flag}' does not take a value.`);
         if (["-x", "--extract", "--xl", "--extract-last"].includes(flag)) { parsed.extract = flag === "--xl" || flag === "--extract-last" ? "last" : parsed.extract ?? "first"; parsed.noStream = true; }
         else if (flag === "-u" || flag === "--usage") parsed.usage = true;
         else if (flag === "--no-stream") parsed.noStream = true;
+        else if (flag === "--ta" || flag === "--tools-approve") parsed.toolsApprove = true;
         if (long) break;
         continue;
       }
@@ -112,6 +116,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
   }
   if (operands.length > 1) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra argument${operands.length === 2 ? "" : "s"} (${operands.slice(1).join(" ")})`);
   parsed.prompt = operands[0] ?? "";
+  parsed.promptSupplied = operands.length > 0;
   return parsed;
 }
 
@@ -157,10 +162,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   let usageSpool: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
   let outputBytes = 0;
   let writing = false;
-  const write = async (chunk: Uint8Array): Promise<void> => {
+  const write = async (chunk: Uint8Array, immediate = false): Promise<void> => {
     if (chunk.byteLength > (limits?.maxOutputBytes ?? Infinity) - outputBytes) throw new FsError("EFBIG", { message: "llm output byte limit exceeded" });
     outputBytes += chunk.byteLength;
-    if (outputSpool) { await outputSpool.write(chunk); return; }
+    if (outputSpool && !immediate) { await outputSpool.write(chunk); return; }
     writing = true;
     await operation.output.write(chunk);
     writing = false;
@@ -343,15 +348,20 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const entry = args.save && selected === undefined ? undefined : service.resolve(model);
     const streamed = entry !== undefined && service.streamSources !== undefined && entry.provider.completeSources !== undefined && entry.model.inputSources !== false;
     const stagePrompt = streamed && stored === undefined && args.save === undefined;
+    let stdinIterator: AsyncIterator<Uint8Array> | undefined;
+    const openStdin = async (approval = false): Promise<AsyncIterator<Uint8Array>> => stdinIterator ??= await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
+      ? {next: () => approval && context.stdinInput!.readAvailable
+        ? context.stdinInput!.readAvailable(4096, signal, 10)
+        : context.stdinInput!.read(approval ? 1 : Math.min(65536, input.remaining(!stagePrompt) + 1), signal)}
+      : context.stdin[Symbol.asyncIterator](), async resource => {await resource.return?.();});
     let promptSpool: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
     let stdinBytes = 0;
     const fragments: string[] = [];
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const templateUsesInput = stored !== undefined && llmTemplateUsesInput(stored);
-    if (stored === undefined || templateUsesInput) {
-      const stdin = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
-        ? { next: () => context.stdinInput!.read(Math.min(65536, input.remaining(!stagePrompt) + 1), signal) }
-        : context.stdin[Symbol.asyncIterator](), async iterator => { await iterator.return?.(); });
+    const readTerminalPrompt = !args.promptSupplied && !args.save && !args.attachments.length && !schema && !args.fragments.length;
+    if ((stored === undefined || templateUsesInput) && (!context.shellPredicates?.terminal(0) || readTerminalPrompt)) {
+      const stdin = await openStdin();
       while (true) {
         await step();
         const result = await interrupted(() => stdin.next(), signal);
@@ -592,6 +602,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (args.noStream) outputSpool = await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
     if (selectedTools.length) {
       const events = promptToolChain({context: {...context, signal}, operation, service, streamed, tools: selectedTools,
+        ...(args.toolsApprove ? {beforeCall: createToolApproval({context: {...context, signal}, openInput: () => openStdin(true), write: bytes => write(bytes, true), admitInput})} : {}),
         chainLimit: args.chainLimit, maxOutputBytes: limits?.maxOutputBytes ?? Infinity,
         remainingInput: () => input.remaining(!streamed), admitInput, textSource,
         request: {model: request.model, options: request.options, signal, stream: request.stream, ...(schema === undefined ? {} : {schema}), ...(resolvedKey === undefined ? {} : {key: resolvedKey}), prompt: (streamed ? composedPrompt : undefined) ?? (promptSpool ? {bytes: promptSpool.replay(), dispose: promptSpool.close} : textSource(prompt)),

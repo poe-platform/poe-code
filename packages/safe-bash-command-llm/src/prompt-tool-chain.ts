@@ -1,7 +1,7 @@
 import type { CommandContext, OutputOperation } from "safe-bash-contracts";
 import type { LlmService, LlmServiceSourceRequest, LlmStreamEvent } from "./service.js";
 import type { LlmInputSource, LlmMessage, LlmSourceAttachment, LlmToolCall } from "./types.js";
-import type { LlmExecutableTool } from "./tool-execution.js";
+import type { LlmExecutableTool, LlmToolExecutionOptions } from "./tool-execution.js";
 import { streamLlmToolChain } from "./tool-chain.js";
 import { createLlmSpool } from "./retained-spool.js";
 import { sourceBytes } from "./request-source.js";
@@ -18,6 +18,7 @@ export async function* promptToolChain(options: {
   streamed: boolean;
   tools: readonly LlmExecutableTool[];
   chainLimit: number | bigint;
+  beforeCall?: LlmToolExecutionOptions["beforeCall"];
   maxOutputBytes: number;
   remainingInput(): number;
   admitInput(size: number, materialized: boolean): void;
@@ -117,17 +118,19 @@ export async function* promptToolChain(options: {
         }
       })();
     },
-    async beforeCall() {
-      if (prepared) return;
-      prepared = true;
-      options.admitInput(responseContent!.size, !streamed);
-      for await (const bytes of jsonValue(responseCalls, signal)) options.admitInput(bytes.length, true);
-      if (currentSystem?.size) messages.push({role: "system", content: currentSystem});
-      // Pinned live chains do not replay prompt attachments from prior rounds.
-      // Assistant text and calls are distinct messages in the reference wire.
-      if (currentPrompt.size) messages.push({role: "user", content: currentPrompt});
-      if (responseContent!.size) messages.push({role: "assistant", content: responseContent!});
-      messages.push({role: "assistant", content: empty, toolCalls: responseCalls});
+    async beforeCall(tool, call, context) {
+      if (!prepared) {
+        prepared = true;
+        options.admitInput(responseContent!.size, !streamed);
+        for await (const bytes of jsonValue(responseCalls, signal)) options.admitInput(bytes.length, true);
+        if (currentSystem?.size) messages.push({role: "system", content: currentSystem});
+        // Pinned live chains do not replay prompt attachments from prior rounds.
+        // Assistant text and calls are distinct messages in the reference wire.
+        if (currentPrompt.size) messages.push({role: "user", content: currentPrompt});
+        if (responseContent!.size) messages.push({role: "assistant", content: responseContent!});
+        messages.push({role: "assistant", content: empty, toolCalls: responseCalls});
+      }
+      await options.beforeCall?.(tool, call, context);
     },
     async visit(result) {
       messages.push({role: "tool", ...(result.call.id === undefined ? {} : {toolCallId: result.call.id}), content: await retain(result.output, true, true)});

@@ -41,3 +41,40 @@ export async function verifyMarkdownLua({createStorage, bucket}) {
   if (largestTransfer > 16384) throw new Error('Markdown backing window exceeded');
   return {markdownLua: true};
 }
+
+/** Both operand modes must enter the public streamed Lua path. This is a
+ * dispatch/cleanup check; its input size does not establish external scaling. */
+export async function verifyMarkdownOperands({createStorage, bucket, fileScope}) {
+  const namespace = createMemoryFileSystem();
+  await namespace.mkdir('/spill');
+  const remote = createStorage(namespace, bucket);
+  const lua = createLuaFilterCapability({readStream: () => [new TextEncoder().encode('function Str(el) return pandoc.Str(string.upper(el.text)) end')]});
+  let streamed = 0, bytes = 0;
+  await convertToOutput([97, 98].map(letter => ({chunks: (async function* () {
+    for (let index = 0; index < 8; index++) yield new Uint8Array(1024).fill(letter);
+  })()})), {from: 'markdown', to: 'plain', fileScope, filters: [{kind: 'lua', path: '/filter.lua'}]}, {
+    filters: {
+      ...lua,
+      async apply() { throw new Error('Multiple Markdown operands used resident Lua'); },
+      async applyJsonStream(...args) { streamed++; return lua.applyJsonStream(...args); },
+    },
+    workingFiles: {fs: remote.fs, directory: '/spill', cacheBytes: 131072},
+    output: {
+      async write(chunk) {
+        if (chunk.length > 16384) throw new Error('Markdown operand output window exceeded');
+        for (const byte of chunk) {
+          const expected = bytes < 8192 ? 65 : bytes < 8194 || bytes === 16386 ? 10 : 66;
+          if (byte !== expected) throw new Error(`Markdown operand output differs at ${bytes}: ${byte}`);
+          bytes++;
+        }
+      },
+      async close() {}, async abort() {},
+    },
+  });
+  const {opened, closed, reads, writes, largestTransfer} = remote.events;
+  if (streamed !== 1 || bytes !== 16387 || !opened || !reads || !writes)
+    throw new Error('Markdown operand dispatch or external backing differs');
+  if (largestTransfer > 16384 || opened !== closed || (await bucket.list({limit: 1})).objects.length || (await namespace.readdir('/spill')).length)
+    throw new Error('Markdown operand storage bounds or cleanup differ');
+  return {markdownOperands: true, fileScope};
+}

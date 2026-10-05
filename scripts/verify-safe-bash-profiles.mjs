@@ -257,11 +257,13 @@ export async function verifySafeBashPortableCommands(consumer) {
       console.log(JSON.stringify({ profile: "portable-export", route, condition, inputs: Object.keys(result.metafile.inputs).length }));
     }
   }
-  for (const [filename, verify, expected, remote] of [
+  for (const [filename, verify, expected, remote, options] of [
     ["safe-packages-network-safejs.mjs", "verifyNetworkAndSafeJs", { networkEntries: 3, nodeEntries: 3, safeJsEntries: 1 }],
     ["safe-packages-image-pandoc-shuf.mjs", "verifyImagePandocShuf", { image: true, lua: true, entropy: true }],
     ["safe-packages-image-pandoc-shuf.mjs", "verifyImagePandocShuf", { image: true, lua: true, entropy: true }, true],
     ["safe-packages-markdown-lua.mjs", "verifyMarkdownLua", { markdownLua: true }, true],
+    ["safe-packages-markdown-lua.mjs", "verifyMarkdownOperands", { markdownOperands: true, fileScope: false }, true, {fileScope: false}],
+    ["safe-packages-markdown-lua.mjs", "verifyMarkdownOperands", { markdownOperands: true, fileScope: true }, true, {fileScope: true}],
   ]) {
     const fixture = (remote ? await readFile(new URL("./pandoc-r2-storage.fixture.mjs", import.meta.url), "utf8") + "\n" : "") +
       await readFile(new URL("./fixtures/" + filename, import.meta.url), "utf8");
@@ -269,7 +271,7 @@ export async function verifySafeBashPortableCommands(consumer) {
       const result = await build({
         absWorkingDir: consumer,
         stdin: { contents: fixture + `\nexport default { async fetch(request, env) {
-          try { return Response.json(await ${verify}(${remote ? "{ createStorage: createR2PagedFixture, bucket: env.PAGES }" : ""})); }
+          try { return Response.json(await ${verify}(${remote ? `{ createStorage: createR2PagedFixture, bucket: env.PAGES, ...${JSON.stringify(options ?? {})} }` : ""})); }
           catch (error) { return new Response(error.stack ?? String(error), { status: 500 }); }
         } };`, resolveDir: consumer, sourcefile: "portable-commands.mjs" },
         bundle: true, format: "esm", platform: "neutral", conditions, write: false,

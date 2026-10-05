@@ -162,8 +162,9 @@ export class RetainedRtfAst {
     return result;
   }
   /** Target tape must use a different store: its records are contiguous, while
-   * this store also receives traversal frames during serialization. */
-  async write(value: RtfValue, target: BackedJson): Promise<void> {
+   * this store also receives traversal frames during serialization. The optional
+   * string observer transfers parser identities to their wire positions. */
+  async write(value: RtfValue, target: BackedJson, onString?: (value: RtfValue, position: number) => Promise<void>): Promise<void> {
     let frame = 0;
     const begin = async (value: RtfValue) => {
       await this.cooperate();
@@ -175,7 +176,8 @@ export class RetainedRtfAst {
         if (fields[2]) await target.key("c");
         frame = await this.record([frame, fields[2]!, 1]);
       } else if (kind === 1) {
-        await target.begin("string");
+        const position = await target.begin("string");
+        await onString?.(value, position);
         for await (const text of this.text.chunks({first: fields[1]!, last: fields[2]!, units: fields[3]!})) await target.text(text);
         await target.end();
       } else await target.value(Number.isNaN(fields[1]!) ? null : fields[1]!);

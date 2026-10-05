@@ -1,3 +1,4 @@
+import type { XmlSourceStep } from './source.js';
 import type { XmlContent, XmlElement } from './index.js';
 
 export interface XmlParserFrame {
@@ -52,7 +53,7 @@ export class XmlFrames {
 export interface XmlNamespaceScope { readonly reference: number; readonly size: number; }
 export type XmlNamespaceRequest =
   | { readonly namespaceOperation: 'get'; readonly scope: XmlNamespaceScope; readonly prefix: string; value?: string; complete?: true }
-  | { readonly namespaceOperation: 'set'; readonly scope: XmlNamespaceScope; readonly prefix: string; readonly value: string; result?: XmlNamespaceScope };
+  | { readonly namespaceOperation: 'set'; readonly scope: XmlNamespaceScope; readonly prefix: string; readonly value: string | Generator<XmlSourceStep | string, void, void>; result?: XmlNamespaceScope };
 
 export function* namespaceValue(scope: Map<string, string> | XmlNamespaceScope, prefix: string): Generator<XmlNamespaceRequest, string | undefined, void> {
   if (scope instanceof Map) return scope.get(prefix);
@@ -62,8 +63,11 @@ export function* namespaceValue(scope: Map<string, string> | XmlNamespaceScope, 
   return request.value;
 }
 
-export function* bindNamespace(scope: Map<string, string> | XmlNamespaceScope, prefix: string, value: string): Generator<XmlNamespaceRequest, Map<string, string> | XmlNamespaceScope, void> {
-  if (scope instanceof Map) { scope.set(prefix, value); return scope; }
+export function* bindNamespace(scope: Map<string, string> | XmlNamespaceScope, prefix: string, value: string | Generator<XmlSourceStep | string, void, void>): Generator<XmlNamespaceRequest, Map<string, string> | XmlNamespaceScope, void> {
+  if (scope instanceof Map) {
+    if (typeof value !== 'string') throw new TypeError('Streamed XML namespace values require external scopes');
+    scope.set(prefix, value); return scope;
+  }
   const request: XmlNamespaceRequest = { namespaceOperation: 'set', scope, prefix, value };
   yield request;
   if (!request.result) throw new TypeError('Incomplete XML namespace update');

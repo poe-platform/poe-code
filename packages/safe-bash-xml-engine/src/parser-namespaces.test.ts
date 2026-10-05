@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { XmlLimitError } from "@poe-code/safe-fs/core";
+import { XmlLimitError, parseXml } from "@poe-code/safe-fs/core";
 import { XmlBudget, resolveXmlQueryLimits } from "./limits.js";
 import { parseStoredXml } from "./recovery.js";
 
@@ -67,5 +67,91 @@ for (const recover of [false, true]) for (const cancel of [false, true]) test(`p
   const budget = new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {});
   await assert.rejects(parseStoredXml(source, { fs: injected, cwd: "/", env: {}, signal: controller.signal }, budget, recover ? () => {} : undefined), error => error === failure);
   assert.ok(writes >= 2); assert.equal(active, 0); assert.equal(closed, true);
+  assert.deepEqual(await fs.readdir("/"), []);
+});
+
+for (const recover of [false, true]) test(`namespace binding consumes a lazy value producer (recover=${recover})`, async t => {
+  const { StoredStringMap } = await import("./stored-map.js");
+  const original = StoredStringMap.prototype.set;
+  let bound = false;
+  t.mock.method(StoredStringMap.prototype, "set", async function (this: InstanceType<typeof StoredStringMap>, key: string, value: Parameters<typeof original>[1]) {
+    if (key === "p") {
+      assert.notEqual(typeof value, "string", "namespace binding must not receive a full URI string");
+      assert.ok(Symbol.asyncIterator in (value as object)); bound = true;
+    }
+    return original.call(this, key, value);
+  });
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const source = (function* () { yield '<r xmlns:p="urn:'; for (let i = 0; i < 100; i++) yield "é😀&amp;"; yield '"/>'; })();
+  await parseStoredXml(source, { fs, cwd: "/", env: {}, signal }, new XmlBudget(resolveXmlQueryLimits(), signal, async () => {}), recover ? () => {} : undefined);
+  assert.equal(bound, true); assert.deepEqual(await fs.readdir("/"), []);
+});
+
+
+const xmlUri = "http://www.w3.org/XML/1998/namespace";
+for (const input of [
+  '<r xmlns=""/>', '<r xmlns:p=""/>', '<r xmlns:xml="' + xmlUri + '"/>',
+  '<r xmlns:xml="' + [...xmlUri].map(character => `&#000000${character.codePointAt(0)};`).join("") + '"/>',
+  '<r xmlns:p="' + xmlUri + '"/>', '<r xmlns:xml="' + xmlUri + 'suffix"/>',
+  '<r xmlns:p="http://www.w3.org/2000/xmlns/"/>', '<r xmlns:xmlns="urn:p"/>',
+  '<r xmlns:p="urn:' + 'x'.repeat(2000) + '&unknown;"/>',
+  '<r xmlns="&unknown;"/>', '<r xmlns:p="&#999999999;"/>',
+]) test(`streamed namespace bindings preserve buffered validation: ${input.slice(0, 80)}`, async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const expectedMessages: string[] = [], actualMessages: string[] = [];
+  let expected: ReturnType<typeof parseXml> | undefined, failure: Error | undefined;
+  try { expected = parseXml(input, { recover: message => { expectedMessages.push(message); } }); }
+  catch (error) { assert.ok(error instanceof Error); failure = error; }
+  const operation = parseStoredXml([input], { fs, cwd: "/", env: {}, signal }, new XmlBudget(resolveXmlQueryLimits(), signal, async () => {}), message => { actualMessages.push(message); });
+  if (failure) await assert.rejects(operation, error => error instanceof Error && error.message === failure.message);
+  else assert.equal((await operation).namespace, expected!.namespace);
+  assert.deepEqual(actualMessages, expectedMessages); assert.deepEqual(await fs.readdir("/"), []);
+});
+
+for (const recover of [false, true]) for (const outcome of ["read", "write", "abort"]) test(`lazy namespace binding retires backing after ${outcome} (recover=${recover})`, async t => {
+  const { StoredStringMap } = await import("./stored-map.js");
+  const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("binding stopped");
+  let binding = false, fragments = 0, opened = 0, closed = 0, sourceClosed = false;
+  const original = StoredStringMap.prototype.set;
+  t.mock.method(StoredStringMap.prototype, "set", async function (this: InstanceType<typeof StoredStringMap>, key: string, value: Parameters<typeof original>[1]) {
+    if (key !== "p") return original.call(this, key, value);
+    assert.ok(typeof value === "object" && Symbol.asyncIterator in value);
+    const parts = (async function* () {
+      for await (const part of value as AsyncIterable<string>) {
+        assert.ok(part.length <= 512); fragments++;
+        if (fragments === 3 && outcome === "abort") controller.abort(failure);
+        await Promise.resolve(); yield part;
+      }
+    })();
+    binding = true;
+    try { return await original.call(this, key, parts); }
+    finally { binding = false; }
+  });
+  const injected = new Proxy(fs, { get(target, key) {
+    if (key === "readFile") return () => assert.fail("no whole URI/source reads");
+    if (key === "open") return async (...args: Parameters<typeof fs.open>) => {
+      const handle = await fs.open(...args); opened++;
+      return new Proxy(handle, { get(descriptor, member) {
+        if (member === "read") return async (...args: Parameters<typeof handle.read>) => {
+          if (binding && outcome === "read") throw failure;
+          return handle.read(...args);
+        };
+        if (member === "write") return async (...args: Parameters<typeof handle.write>) => {
+          assert.ok(args[0].length <= 16384); await Promise.resolve();
+          if (binding && outcome === "write") throw failure;
+          return handle.write(...args);
+        };
+        if (member === "close") return async () => { closed++; await handle.close(); };
+        const value = Reflect.get(descriptor, member, descriptor);
+        return typeof value === "function" ? value.bind(descriptor) : value;
+      } });
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const piece = "x".repeat(512);
+  const source = (function* () { try { yield '<r xmlns:p="urn:'; for (let i = 0; i < 200; i++) yield piece; yield '"/>'; } finally { sourceClosed = true; } })();
+  await assert.rejects(parseStoredXml(source, { fs: injected, cwd: "/", env: {}, signal: controller.signal }, new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {}), recover ? () => {} : undefined), error => error === failure);
+  assert.equal(sourceClosed, true); assert.equal(opened, closed); assert.equal(binding, false);
   assert.deepEqual(await fs.readdir("/"), []);
 });

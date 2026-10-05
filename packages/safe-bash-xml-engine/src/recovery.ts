@@ -1,7 +1,7 @@
 import { StoredParserAttributes } from "./parser-attributes.js";
 import { StoredStringMap as StoredNamespaces } from "./stored-map.js";
 import { StoredXmlFrames } from "./frames.js";
-import { normalizeXmlChunks, parseXmlSourceSteps, type XmlElement, type XmlAttribute } from "@poe-code/safe-fs/core";
+import { normalizeXmlChunks, parseXmlSourceSteps, type XmlElement, type XmlAttribute, type XmlSourceRead } from "@poe-code/safe-fs/core";
 import { PagedStorage, PagedStorageCache, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { XmlBudget } from "./limits.js";
 
@@ -39,6 +39,16 @@ export async function parseStoredXml(
       const checkpoint = budget.tick(Math.min(chunk.length, 512)); if (checkpoint) await checkpoint;
     }
     if (recover) while (!sourceDone) await readNext();
+    async function completeSourceRead(request: XmlSourceRead): Promise<void> {
+      while (length <= request.offset && !sourceDone) await readNext();
+      const count = Math.min(request.length, Math.max(0, length - request.offset));
+      const bytes = await storage.read(start + request.offset * 2, count * 2);
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const units = new Uint16Array(count);
+      for (let index = 0; index < units.length; index++) units[index] = view.getUint16(index * 2, true);
+      request.value = String.fromCharCode(...units);
+      if (request.streaming) request.complete = sourceDone && request.offset + count === length;
+    }
     const queued: XmlEvent[] = [];
     const frames = new StoredXmlFrames(frameStorage);
     const attributes = new StoredParserAttributes(frameStorage, budget);
@@ -59,26 +69,27 @@ export async function parseStoredXml(
         } else if ("namespaceOperation" in step.value) {
           const request = step.value;
           const scope = new StoredNamespaces(frameStorage, budget, request.scope.reference);
-          const previous = await scope.get(request.prefix);
           if (request.namespaceOperation === "get") {
+            const previous = await scope.get(request.prefix);
             if (previous !== undefined) request.value = previous;
             request.complete = true;
           } else {
-            const next = await scope.set(request.prefix, request.value);
+            const previous = await scope.lookup(request.prefix);
+            const value = request.value;
+            const parts = typeof value === "string" ? value : (async function* () {
+              for (const part of value) {
+                if (typeof part === "string") yield part;
+                else if (typeof part === "number") { const checkpoint = budget.tick(part); if (checkpoint) await checkpoint; }
+                else await completeSourceRead(part);
+              }
+            })();
+            const next = await scope.set(request.prefix, parts);
             request.result = { reference: next.reference, size: request.scope.size + (previous === undefined ? 1 : 0) };
           }
         } else if ("frameOperation" in step.value) {
           await frames.execute(step.value);
         } else {
-          const request = step.value;
-          while (length <= request.offset && !sourceDone) await readNext();
-          const count = Math.min(request.length, Math.max(0, length - request.offset));
-          const bytes = await storage.read(start + request.offset * 2, count * 2);
-          const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-          const units = new Uint16Array(count);
-          for (let index = 0; index < units.length; index++) units[index] = view.getUint16(index * 2, true);
-          request.value = String.fromCharCode(...units);
-          if (request.streaming) request.complete = sourceDone && request.offset + count === length;
+          await completeSourceRead(step.value);
         }
         step = parser.next();
       }

@@ -547,15 +547,21 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
         pendingWork += scanLen;
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         if (end < 0) invalid("unterminated attribute");
-        const fragmented = limits.fragmentAttributes && attribute !== "xmlns" && attrPrefix !== "xmlns";
-        let value = "";
+        const fragmented = limits.fragmentAttributes && (limits.storeNamespaces || attribute !== "xmlns" && attrPrefix !== "xmlns");
+        const valueStart = offset;
+        let value = "", size = 0, matchesXml = true, matchesXmlns = true;
         if (fragmented) {
           if ((yield* source.indexOf("<", offset, end)) >= 0) invalid("less-than in attribute");
-          let size = 0;
           for (const part of textFragments(source, offset, end, true, limits.recover, true)) {
             if (typeof part !== "string") yield part;
-            else size += part.length;
+            else {
+              matchesXml = matchesXml && part === xmlNamespace.slice(size, size + part.length);
+              matchesXmlns = matchesXmlns && part === xmlnsNamespace.slice(size, size + part.length);
+              size += part.length;
+            }
           }
+          matchesXml = matchesXml && size === xmlNamespace.length;
+          matchesXmlns = matchesXmlns && size === xmlnsNamespace.length;
           if (size > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
           textLength += size;
         } else {
@@ -576,16 +582,17 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
         offset = end + 1;
         if (attribute === "xmlns" || attribute.startsWith("xmlns:")) {
           const nsPrefix = attribute === "xmlns" ? "" : attribute.slice(6);
-          if (nsPrefix === "xmlns" || value === xmlnsNamespace
-            || (nsPrefix === "xml") !== (value === xmlNamespace)
-            || (nsPrefix !== "" && value === "")) invalid("invalid namespace binding");
+          if (nsPrefix === "xmlns" || (fragmented ? matchesXmlns : value === xmlnsNamespace)
+            || (nsPrefix === "xml") !== (fragmented ? matchesXml : value === xmlNamespace)
+            || (nsPrefix !== "" && (fragmented ? size === 0 : value === ""))) invalid("invalid namespace binding");
           if (!ownsNamespaces && namespaces instanceof Map) {
             const copy = new Map<string, string>();
             for (const [key, uri] of namespaces) { copy.set(key, uri); pendingWork += 1; }
             namespaces = copy;
             ownsNamespaces = true;
           }
-          namespaces = yield* bindNamespace(namespaces, nsPrefix, value);
+          namespaces = yield* bindNamespace(namespaces, nsPrefix, fragmented
+            ? textFragments(source, valueStart, end, true, limits.recover ? () => {} : undefined, true) : value);
           if (namespaces.size > maxNamespaces) throw new XmlLimitError("maxNamespaces", "XML namespace scope limit exceeded");
         }
       }

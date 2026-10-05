@@ -69,8 +69,9 @@ and value in a new scope, then fill `result` with its storage `reference` and th
 number of distinct bindings (`size`). Frames carry this scope handle so shadowing
 never changes ancestor scopes. In this mode event elements have an empty
 `namespaces` map; their names and attributes still carry resolved namespace URIs.
-The codec remains filesystem-independent, and individual names, attribute values
-and namespace URIs still need a token storage strategy.
+The codec remains filesystem-independent. Individual names and resolved namespace
+URI metadata still need a token storage strategy; attribute values can use the
+fragment protocol below.
 
 Set `storeAttributes: true` to move current-tag attribute values, source order,
 and duplicate-name state behind `attributeOperation` requests (`has`, `append`,
@@ -87,8 +88,14 @@ units. Hosts must preserve the optional `source` field in append/read requests.
 The third `onAttribute` argument is `true` for continuations of the same logical
 attribute; await each fragment before requesting the next step. Empty attributes
 still emit once. Entity diagnostics are emitted during validation, not replay.
-This mode requires `storeAttributes: true`. Namespace declaration values are still buffered for binding validation and
-expanded-name resolution; individual names also retain their token cost.
+This mode requires `storeAttributes: true`. Combining it with `storeNamespaces`
+also validates namespace declarations in bounded fragments. A namespace `set`
+request's `value` may then be a generator: strings are decoded value fragments,
+numbers are work checkpoints, and objects are source-read requests. Service each
+step before advancing, consume the complete value before filling `result`, and
+close the producer if storage fails. Reserved URI checks preserve their diagnostic
+order without joining fragments. Expanded-name resolution still returns complete
+namespace URI strings; individual names also retain their token cost.
 
 Pass `undefined` as the source length to parse incrementally. Such read requests
 have `streaming: true` and request at most 512 UTF-16 units. Return any nonempty

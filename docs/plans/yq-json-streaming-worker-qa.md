@@ -56,8 +56,13 @@ Namespace declaration events now use the same fragments. Document namespace maps
 consume those fragments, and canonical URI validation, inheritance comparisons and
 emission use value references and bounded replay. Check empty/default resets, URI
 schemes crossing replay windows, namespace shadowing and astral URI characters at
-chunk boundaries. Parsing bindings and expanded-name metadata still buffer URIs;
-individual names and namespace URIs need end-to-end token work and qualification.
+chunk boundaries. Parser binding now validates decoded URI fragments and supplies
+a lazy producer to caller-backed scopes. Interrupt nested source reads and writes
+while that producer is active; confirm its source is retired and error identity is
+preserved. Include reserved xml/xmlns URIs expressed through numeric entities and
+recovery diagnostics, which must not repeat on binding replay. Expanded-name
+lookups/metadata still buffer URI strings; individual names and resolved namespace
+URIs need end-to-end token work and qualification.
 Parser ancestry uses linked backing records; check deep documents with
 a fixed namespace scope independently of source size. Also measure startup/first-byte latency; formatting validates
 the document before publishing output.

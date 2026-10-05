@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { FileStat, FileSystem } from "@poe-code/safe-fs/contracts";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { dictGet, type PdfXRefEntry } from "../ast.js";
+import { PdfError } from "../errors.js";
 import { PdfDocument } from "../document.js";
 import { PdfFileSource } from "../source.js";
 import { openPdfCrossReference } from "./cross-reference.js";
@@ -43,6 +44,55 @@ describe("range-backed PDF object reader", () => {
     expect(f.readFile).not.toHaveBeenCalled();
     await f.close();
   });
+  it.each(["decode", "compressed", "length", "filter"])("preserves selected value backing during %s stream lookup", async mode => {
+    const bytes = new Uint8Array(2_000_000);
+    let end = 0, largest = 0;
+    const backing = {
+      allocate(length: number) { const position = end; end += length; return position; },
+      async read(position: number, length: number) { return bytes.subarray(position, position + length); },
+      async write(position: number, chunk: Uint8Array) { largest = Math.max(largest, chunk.length); bytes.set(chunk, position); }
+    };
+    const resources = "/Resources << /Font << /F << /Widths [" + "500 ".repeat(1024) + "] >> >> >> /ActualText (" + "text ".repeat(1024) + ")";
+    const body = "1 0 <<>>", payload = mode === "filter" ? "68656c6c6f>" : "hello";
+    const first = mode === "compressed"
+      ? `10 0 obj << /Type /ObjStm /N 1 /First 4 /Length ${body.length} ${resources} >>\nstream\n${body}\nendstream\nendobj`
+      : `1 0 obj << /Length ${mode === "length" ? "2 0 R" : payload.length} ${mode === "filter" ? "/Filter [/ASCIIHexDecode]" : ""} ${mode === "length" ? "" : resources} >>\nstream\n${payload}\nendstream\nendobj\n`;
+    // An invalid stream-valued Length is still parsed before the parent's
+    // endstream fallback; its resources must not bypass the backing policy.
+    const text = first + (mode === "length" ? `2 0 obj << /Length 1 ${resources} >>\nstream\nx\nendstream\nendobj` : "");
+    const f = await fixture(text, mode === "compressed" ? [compressed(1, 0), plain(10)] : [plain(1), ...(mode === "length" ? [plain(2, first.length)] : [])],
+      { valueArrays: { arrayStorage: backing, storedArrayKeys: ["Widths", "Filter"], stringStorage: backing, storedStringKeys: ["ActualText"] } });
+    try {
+      if (mode === "compressed") expect((await f.reader.get(1))?.value.kind).toBe("dict");
+      else {
+        let result = "";
+        for await (const chunk of f.reader.decodeStream(1)) result += new TextDecoder().decode(chunk);
+        expect(result).toBe("hello");
+      }
+      expect(end).toBeGreaterThan(5120);
+      expect(largest).toBeLessThanOrEqual(4096);
+    } finally { await f.close(); }
+  });
+
+  it("preserves a nested backing failure through outer stream recovery and allows a later read", async () => {
+    const first = "1 0 obj << /Length 2 0 R >>\nstream\nhello\nendstream\nendobj\n";
+    const text = first + "2 0 obj << /Length 1 /Widths [500] >>\nstream\nx\nendstream\nendobj";
+    const failure = new PdfError("E_PARSE", "caller backing failed");
+    let fail = true, end = 0;
+    const bytes = new Uint8Array(4096), backing = {
+      allocate(length: number) { const position = end; end += length; return position; },
+      async read(position: number, length: number) { return bytes.subarray(position, position + length); },
+      async write(position: number, chunk: Uint8Array) { if (fail) { fail = false; throw failure; } bytes.set(chunk, position); }
+    };
+    const f = await fixture(text, [plain(1), plain(2, first.length)], { recovery: "repair", valueArrays: { arrayStorage: backing, storedArrayKeys: ["Widths"] } });
+    try {
+      await expect(f.reader.decodeStream(1).next()).rejects.toBe(failure);
+      let result = "";
+      for await (const chunk of f.reader.decodeStream(1)) result += new TextDecoder().decode(chunk);
+      expect(result).toBe("hello");
+    } finally { await f.close(); }
+  });
+
   it("loads only requested objects and retains stream ranges", async () => {
     const first = "1 0 obj << /Length 3 0 R >>\nstream\nhello\nendstream\nendobj\n";
     const f = await fixture(first + "3 0 obj 5 endobj", [plain(1), plain(3, first.length)]);

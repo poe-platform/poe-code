@@ -13,8 +13,8 @@ import { PdfObjectIndex, type PdfIndexStorage } from "./object-index.js";
 import { parseCosRangeObject, parseCosRangeValue, type ParseCosRangeOptions, type PdfRangeObject } from "./range-parser.js";
 
 export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "resolveLength" | keyof ValueArrayStorage | "onBackingError">, PdfStreamDecodeOptions {
-  /** Default backing for selected structural arrays in explicit object lookups.
-   * Cross-reference bootstrap and stream filter dictionaries remain independent. */
+  /** Default backing for selected values in object and stream dictionary lookups.
+   * Cross-reference bootstrap remains independently configured. */
   readonly valueArrays?: ValueArrayStorage;
   readonly cacheBytes?: number;
   readonly encryption?: PdfEncryptionState;
@@ -51,6 +51,9 @@ function field(dict: PdfCosDict, key: string): number {
  * openPdfObjectReader to discover xrefs and authenticate a password. */
 export class PdfObjectReader {
   private readonly streams = new Map<number, ObjectStream>();
+  // Recursive length/object-stream lookups share one failure identity so an
+  // outer recovery pass cannot mistake a caller-storage error for PDF syntax.
+  private readonly backingFailures = new WeakMap<Set<number>, { error: unknown }>();
   private readonly repairedOffsets = new Map<number, number>();
   private readonly options: PdfObjectReaderOptions;
   private readonly capacity: number;
@@ -90,7 +93,7 @@ export class PdfObjectReader {
       const object = await this.load(objectNumber, generationNumber, new Set());
       if (object?.value.kind !== "dict" || !object.stream) throw new PdfError("E_PARSE", "Expected an indexed PDF stream");
       const active = new Set([objectNumber]);
-      return { object, dict: await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, this.options) };
+      return { object, dict: await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, { ...this.options, onBackingError: error => { this.backingFailures.set(active, { error }); } }) };
     });
     const span = object.stream!;
     const input = () => this.source.stream(span.start, span.end - span.start, this.options.signal);
@@ -100,13 +103,14 @@ export class PdfObjectReader {
       : decodePdfStreamChunks(dict, input, decodeOptions);
   }
 
-  private async load(objectNumber: number, generationNumber: number, active: Set<number>, arrays: ValueArrayStorage = {}): Promise<PdfRangeObject | undefined> {
+  private async load(objectNumber: number, generationNumber: number, active: Set<number>, arrays: ValueArrayStorage = this.options.valueArrays ?? {}): Promise<PdfRangeObject | undefined> {
     this.options.signal?.throwIfAborted();
     if (active.has(objectNumber)) throw new PdfError("E_PARSE", "PDF indirect object cycle");
     if (active.size >= this.options.maxRecursionDepth!) throw new PdfError("E_LIMIT", "PDF object resolution depth limit exceeded");
     const entry = await this.index.get(objectNumber, this.options.signal);
     if (!entry || entry.type === "free" || generationNumber !== (entry.generationNumber ?? 0)) return undefined;
     active.add(objectNumber);
+    const onBackingError = (error: unknown) => { this.backingFailures.set(active, { error }); };
     try {
       if (entry.type === "compressed") {
         const container = entry.objectStreamNumber!;
@@ -119,13 +123,11 @@ export class PdfObjectReader {
         if (row.number !== objectNumber) throw new PdfError("E_PARSE", "Compressed object identity does not match xref");
         const end = ordinal + 1 === stream.count ? stream.data.size : stream.first + (await this.headerRow(stream.header, ordinal + 1)).offset;
         const start = stream.first + row.offset;
-        const parsed = await parseCosRangeValue(stream.data, start, { ...this.options, ...arrays, end });
+        const parsed = await parseCosRangeValue(stream.data, start, { ...this.options, ...arrays, end, onBackingError });
         if (!parsed.value) throw new PdfError("E_PARSE", "Empty compressed object");
         return { objectNumber, generationNumber, value: parsed.value, span: { start, end: parsed.offset } };
       }
       let object: PdfRangeObject;
-      let backingFailure: {error: unknown} | undefined;
-      const onBackingError = (error: unknown) => { backingFailure = {error}; };
       try {
         object = await parseCosRangeObject(this.source, this.repairedOffsets.get(objectNumber) ?? entry.offset!, {
           ...this.options, ...arrays, onBackingError,
@@ -137,10 +139,11 @@ export class PdfObjectReader {
         if (object.objectNumber !== objectNumber || object.generationNumber !== generationNumber) throw new PdfError("E_PARSE", "Indirect object identity does not match xref");
       } catch (error) {
         this.options.signal?.throwIfAborted();
+        const backingFailure = this.backingFailures.get(active);
         if (backingFailure && Object.is(backingFailure.error, error)) throw error;
         if (this.options.recovery !== "repair" || !(error instanceof PdfError) || error.code !== "E_PARSE") throw error;
         let recovered: PdfRangeObject | undefined;
-        for await (const event of scanCosRangeObjects(this.source, { ...this.options, ...arrays })) {
+        for await (const event of scanCosRangeObjects(this.source, { ...this.options, ...arrays, onBackingError })) {
           if (event.kind === "object" && event.object.objectNumber === objectNumber && event.object.generationNumber === generationNumber) recovered = event.object;
         }
         if (!recovered) throw error;
@@ -198,7 +201,7 @@ export class PdfObjectReader {
     if (count > maximum(this.options.maxObjectStreamMembers, "maxObjectStreamMembers") || count > Math.floor(Number.MAX_SAFE_INTEGER / 16)) throw new PdfError("E_LIMIT", "PDF object stream member limit exceeded");
     active.add(number);
     let dict: PdfCosDict;
-    try { dict = await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, this.options); } finally { active.delete(number); }
+    try { dict = await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, { ...this.options, onBackingError: error => { this.backingFailures.set(active, { error }); } }); } finally { active.delete(number); }
     while (this.streams.size >= this.capacity) {
       const [key, oldest] = this.streams.entries().next().value!;
       this.streams.delete(key); await this.release(oldest);

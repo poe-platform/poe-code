@@ -1,8 +1,9 @@
+import { readStoredItems } from "../content/stored-record.js";
 import type { PdfCosDict, PdfCosNode, PdfCosRef } from "../ast.js";
 import { PdfError } from "../errors.js";
 
 export async function resolvePdfStreamDictionary(dict: PdfCosDict, lookup: (reference: PdfCosRef) => Promise<{ value: PdfCosNode } | undefined>,
-  active: Set<number>, options: { maxNodes?: number; maxRecursionDepth?: number }): Promise<PdfCosDict> {
+  active: Set<number>, options: { maxNodes?: number; maxRecursionDepth?: number; signal?: AbortSignal; onBackingError?: (error: unknown) => void }): Promise<PdfCosDict> {
   let remaining = (options.maxNodes ?? 65536);
   const resolve = async (node: PdfCosNode, depth: number): Promise<PdfCosNode> => {
     if (--remaining < 0 || depth >= (options.maxRecursionDepth ?? 100)) throw new PdfError("E_LIMIT", "PDF filter resolution limit exceeded");
@@ -15,8 +16,18 @@ export async function resolvePdfStreamDictionary(dict: PdfCosDict, lookup: (refe
     }
     if (node.kind === "array") {
       const items: PdfCosNode[] = [];
-      for (const item of node.items) items.push(await resolve(item, depth + 1));
-      return { ...node, items };
+      const { storedItems, ...ordinary } = node;
+      if (storedItems) {
+        const reader = readStoredItems<PdfCosNode>(storedItems, options.signal);
+        try {
+          for (;;) {
+            const item = await reader.next().catch(error => { options.onBackingError?.(error); throw error; });
+            if (item.done) break;
+            items.push(await resolve(item.value, depth + 1));
+          }
+        } finally { await reader.return(); }
+      } else for (const item of node.items) items.push(await resolve(item, depth + 1));
+      return { ...ordinary, items };
     }
     if (node.kind === "dict") {
       const entries = [];

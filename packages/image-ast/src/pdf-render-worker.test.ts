@@ -11,6 +11,8 @@ it.each([32,128])("renders PDF pixels with %i backed page, content and annotatio
  const pdf=await sharp(pixels,{raw:{width:257,height:64,channels:4}}).toFormat("pdf").toBuffer();const document=PdfDocument.load(pdf),catalog=document.cos.resolveDict(document.cos.rootRef)!,pages=document.cos.resolveDict(dictGet(catalog,"Pages"))!,page=document.getPage(0).pageRef;
  dictSet(catalog,"Numeric",{...cosNumber(7),raw:"0".repeat(count*128)+"7"});
  const pageDict=document.getPage(0).pageDict,content=dictGet(pageDict,"Contents")!,empty=document.cos.allocateObject(cosStream(new TextEncoder().encode("q "+"0".repeat(count*32)+"0 w "+"z".repeat(count*8)+" Q"))),hidden=document.cos.allocateObject(cosDict({F:cosNumber(2)}));
+ const contentObject=document.cos.resolve(content);if(contentObject?.kind!=="stream")throw Error("content stream expected");
+ dictSet(contentObject.dict,"Resources",cosDict({Font:cosDict({Unused:cosDict({Widths:cosArray(Array.from({length:count*4},()=>cosNumber(731)))})})}));
  dictSet(pageDict,"Contents",cosArray([...Array.from({length:count},()=>empty),content]));
  dictSet(pageDict,"Annots",cosArray(Array.from({length:count},()=>hidden)));
  let ancestor=dictGet(pageDict,"Parent")!;
@@ -36,7 +38,7 @@ it.each([32,128])("renders PDF pixels with %i backed page, content and annotatio
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
  const tokenNext=CosRangeLexer.prototype.nextToken;CosRangeLexer.prototype.nextToken=async function(){const token=await tokenNext.call(this);if(token?.kind==='number'&&token.raw.length>2048)throw Error('unbounded numeric spelling');if(token?.kind==='keyword'&&token.value.length>65)throw Error('unbounded keyword spelling');return token;};
  const add=Set.prototype.add;let maxSet=0;Set.prototype.add=function(value){const result=add.call(this,value);maxSet=Math.max(maxSet,this.size);return result;};
- const push=Array.prototype.push;Array.prototype.push=function(...values){const result=push.apply(this,values);if(this.length>64&&values.some(value=>value?.kind==='ref'))throw Error('resident page reference list');if(this.length>64&&values.some(value=>value?.kind==='array'&&'tail' in value||value?.kind==='dict'&&'start' in value))throw Error('resident parser frame list');return result;};
+ const push=Array.prototype.push;Array.prototype.push=function(...values){const result=push.apply(this,values);if(this.length>64&&values.some(value=>value?.kind==='number'&&value.value===731))throw Error('resident stream resource widths');if(this.length>64&&values.some(value=>value?.kind==='ref'))throw Error('resident page reference list');if(this.length>64&&values.some(value=>value?.kind==='array'&&'tail' in value||value?.kind==='dict'&&'start' in value))throw Error('resident parser frame list');return result;};
  const generatorPrototype=Object.getPrototypeOf(Object.getPrototypeOf((async function*(){})())),next=generatorPrototype.next;let activePulls=0,maxPulls=0;
  generatorPrototype.next=function(...args){maxPulls=Math.max(maxPulls,++activePulls);return next.apply(this,args).finally(()=>{activePulls--;});};
  const syncPrototype=Object.getPrototypeOf(Object.getPrototypeOf((function*(){})())),syncNext=syncPrototype.next;let activeSync=0,maxSync=0;

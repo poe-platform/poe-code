@@ -728,10 +728,11 @@ it('merges without retaining decoded property observations in maps', async () =>
   expect(state.closed).toBe(state.acquired);
 });
 
-it.each([false, true])('merges without resident name sets (exposed=%s)', async exposed => {
+it.each(['changed', 'exposed', 'unchanged'])('merges without resident name sets (%s)', async mode => {
+  const exposed = mode === 'exposed';
   const seed = { sheets: book.sheets, properties: { 'dc:title': 'old' } };
   const fresh = await writeBiffProperties(seed, context), stream = '\u0005SummaryInformation', bytes = fresh.streams.get(stream)!;
-  const input = { ...seed, properties: exposed ? {} : { 'dc:title': 'changed' }, unsupportedRecords: [{
+  const input = { ...seed, properties: exposed ? {} : { 'dc:title': mode === 'unchanged' ? 'old' : 'changed' }, unsupportedRecords: [{
     source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
     data: { stream, ...(exposed ? { modeled: [] } : {}), bytes: Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('') }
   }] };
@@ -750,6 +751,63 @@ it.each([false, true])('merges without resident name sets (exposed=%s)', async e
   expect(state.closed).toBe(state.acquired);
   expect(warnings).toHaveLength(exposed ? 1 : 0);
   if (exposed) expect(warnings[0]).toContain('dc:title');
+});
+
+it.each(['success', 'add', 'lookup', 'diagnostic'])('tracks preserved unsupported properties in caller storage (%s)', async mode => {
+  const stream = '\u0005SummaryInformation';
+  const fresh = await writeBiffProperties({ sheets: book.sheets, properties: { 'dc:title': 'original' } }, context);
+  const bytes = new Uint8Array(fresh.streams.get(stream)!), view = new DataView(bytes.buffer);
+  const section = view.getUint32(44, true), count = view.getUint32(section + 4, true);
+  for (let i = 0; i < count; i++) if (view.getUint32(section + 8 + i * 8, true) === 2) {
+    const at = section + view.getUint32(section + 12 + i * 8, true);
+    view.setUint32(at, 11, true); view.setUint16(at + 4, 0xffff, true);
+  }
+  const input = { sheets: book.sheets, properties: { 'dc:title': true, Missing: [] }, unsupportedRecords: [{
+    source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+    data: { stream, bytes: Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('') }
+  }] };
+  const expected = await writeBiffProperties(input, context), { ctx, state, failure } = fixture();
+  const warnings: string[] = [], active: CapabilityContext = { ...ctx, async diagnostic(d) {
+    if (mode === 'diagnostic') throw failure; warnings.push(d.message);
+  } };
+  const merge = mergeProperties.mergeBiffProperties, add = BiffPropertyNames.prototype.add;
+  let preserved: Pick<BiffPropertyNames, 'add'> | undefined;
+  const mergeSpy = vi.spyOn(mergeProperties, 'mergeBiffProperties').mockImplementation(async (...args) => {
+    preserved = args[7]; expect(preserved).toBeDefined(); await merge(...args);
+    if (mode === 'lookup') state.mode = 'read';
+  });
+  const addSpy = vi.spyOn(BiffPropertyNames.prototype, 'add').mockImplementation(async function (this: BiffPropertyNames, name) {
+    if (this === preserved && mode === 'add') state.mode = 'write';
+    await add.call(this, name);
+  });
+  const setAdd = Set.prototype.add;
+  Set.prototype.add = function (value) {
+    if (value === 'dc:title') throw new Error('resident handled or preserved property name');
+    return setAdd.call(this, value);
+  };
+  try {
+    if (mode !== 'success') await expect(writeBiffProperties(input, active, true)).rejects.toBe(failure);
+    else {
+      const actual = await writeBiffProperties(input, active, true);
+      try { for (const [name, source] of actual.streams) expect(await source.read(0, source.size)).toEqual(expected.streams.get(name)); }
+      finally { await actual.close(); }
+      expect(warnings).toEqual(['Unsupported Excel BIFF document property: Missing']);
+    }
+  } finally { Set.prototype.add = setAdd; addSpy.mockRestore(); mergeSpy.mockRestore(); }
+  expect(state.closed).toBe(state.acquired);
+});
+
+it.each([false, true])('handles only enumerable model metadata names (enumerable=%s)', async enumerable => {
+  const properties = Object.defineProperty({}, 'dc:title', { value: 'Title', enumerable });
+  const office = 'urn:oasis:names:tc:opendocument:xmlns:office:1.0';
+  const record = { source: 'Gnumeric_XmlIO:sax', kind: 'document-meta', disposition: 'retained' as const,
+    data: { name: 'document-meta', namespace: office, text: '', attributes: [], children: [
+      { name: 'meta', namespace: office, text: '', attributes: [], children: [
+        { name: 'title', namespace: 'http://purl.org/dc/elements/1.1/', text: 'Title', attributes: [], children: [] }
+      ] }
+    ] } };
+  const actual = await writeBiffProperties({ sheets: book.sheets, properties, unsupportedRecords: [record] }, context);
+  expect(actual.handledMetadata.has(record)).toBe(enumerable); await actual.close();
 });
 
 it.each(['read', 'abort', 'close'])('rejects property-name replay after %s and retires storage', async mode => {

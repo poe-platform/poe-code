@@ -19,10 +19,10 @@ interface Snapshot { record: UnsupportedRecord; bytes: BiffPropertyRange; modele
 /** Rebuild offsets around original opaque spans. Never transcode their codepage. */
 export async function mergeBiffProperties(book: Workbook, streams: Map<string, Uint8Array | RangeSource>, handled: Set<UnsupportedRecord>,
   context: CapabilityContext, charge: (amount: number) => void, allocate: (length: number) => Uint8Array,
-  staged?: { sources: Map<string, BiffPropertySource>; reserve: (length: number) => number }): Promise<ReadonlySet<string>> {
+  staged?: { sources: Map<string, BiffPropertySource>; reserve: (length: number) => number },
+  preserved?: Pick<BiffPropertyNames, "add">): Promise<void> {
   const canonical = (name: string) => ["\u0005SummaryInformation", "\u0005DocumentSummaryInformation"].find(target => target.toUpperCase() === name.toUpperCase());
   const snapshots = new Map<string, Snapshot>(), duplicates = new Set<string>();
-  const preserved = new Set<string>();
   let nodes = 0, textBytes = 0;
   const admit = (amount: number) => {
     charge(amount); nodes += amount;
@@ -74,7 +74,7 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     snapshots.set(name, { record, bytes, modeled: object.modeled });
   }
   for (const name of duplicates) snapshots.delete(name);
-  if (!snapshots.size) return preserved;
+  if (!snapshots.size) return;
   const parse = async (input: Uint8Array | RangeSource): Promise<Section[]> => {
     const file = propertyRange(input, context), sections: Section[] = [];
     for await (const section of readPropertySectionRanges(file, admit, charge, context)) {
@@ -208,7 +208,7 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
       const section = old.get(name)!.find(section => section.offset === offset)!;
       const replacement = pending.get(key);
       if (!Object.hasOwn(book.properties ?? {}, key)) await remove(section, id);
-      else if (property.unchanged) { preserved.add(key); if (replacement) await take(replacement); }
+      else if (property.unchanged) { await preserved?.add(key); if (replacement) await take(replacement); }
       else if (replacement) await section.values!.set(id, await wide(await take(replacement), section));
     }
   }
@@ -331,5 +331,5 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     try { await closeTemporary(); } catch (cleanup) { throw new AggregateError([error, cleanup], "BIFF property merge and cleanup failed"); }
     throw error;
   }
-  await closeTemporary(); return preserved;
+  await closeTemporary();
 }

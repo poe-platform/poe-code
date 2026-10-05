@@ -1,3 +1,4 @@
+import { BiffPropertyNames } from "./biff-property-names.js";
 import { propertyChunks, stagePropertyBytes, type BiffPropertyBytes } from "./biff-property-bytes.js";
 import type { BiffPropertySource } from "./biff-encrypted-properties-write.js";
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
@@ -10,7 +11,7 @@ const maximumFileTime = 0xffffffffffffffffn;
 
 /** Only discard a generic loss report when every XML field has been handled.
  * Keep the original record on the caller's workbook, including unknown content. */
-function handledPropertyRecord(record: UnsupportedRecord, keys: ReadonlySet<string>, charge: (amount: number) => void): boolean {
+function handledPropertyRecord(record: UnsupportedRecord, properties: Workbook["properties"], charge: (amount: number) => void): boolean {
   if (record.disposition !== "retained" || record.source !== "Gnumeric_XmlIO:sax" || record.kind !== "document-meta") return false;
   const office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0", meta = "urn:oasis:names:tc:opendocument:xmlns:meta:1.0";
   type Node = { name: string; namespace: string; text: string; attributes: ImportedValue[]; children: ImportedValue[] };
@@ -62,7 +63,7 @@ function handledPropertyRecord(record: UnsupportedRecord, keys: ReadonlySet<stri
       if (key === undefined || !fieldByName.has(key)) return false;
     }
     const keyword = field.namespace === meta && field.name === "keyword";
-    if (key === undefined || !keys.has(key) || seen.has(key) && !(keyword && seen.get(key))) return false;
+    if (key === undefined || !Object.prototype.propertyIsEnumerable.call(properties ?? {}, key) || seen.has(key) && !(keyword && seen.get(key))) return false;
     seen.set(key, keyword);
   }
   return true;
@@ -106,7 +107,6 @@ export function writeBiffProperties(book: Workbook, context: CapabilityContext, 
 export function writeBiffProperties(book: Workbook, context: CapabilityContext, staged?: false): Promise<BiffProperties<Uint8Array>>;
 export async function writeBiffProperties(book: Workbook, context: CapabilityContext, staged = false): Promise<BiffProperties<Uint8Array | BiffPropertySource>> {
   const planned = new Map<string, BiffPropertyBytes>(), sections = new Map<string, Map<number, BiffPropertyBytes>>();
-  const handledKeys = new Set<string>();
   const unsupportedKeys: string[] = [];
   let work = 0, textBytes = 0, nodes = 0, payloadBytes = 0;
   const charge = (amount: number) => {
@@ -206,7 +206,6 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     charge(1); if (++nodes > (context.limits.workbookNodes ?? context.limits.outputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF property node limit exceeded");
     const field = fieldByName.get(key);
-    handledKeys.add(key);
     let source = book.properties[key]!;
     if (key === "dc:keywords" && Array.isArray(source)) {
       charge(source.length);
@@ -234,7 +233,7 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
   }
   const handledMetadata = new Set<UnsupportedRecord>();
   for (const record of book.unsupportedRecords ?? []) {
-    charge(1); if (handledPropertyRecord(record, handledKeys, charge)) handledMetadata.add(record);
+    charge(1); if (handledPropertyRecord(record, book.properties, charge)) handledMetadata.add(record);
   }
   if (names.length) {
     const length = reserve(4 + names.reduce((size, name) => size + 4 + name.bytes.length, 0));
@@ -288,9 +287,11 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     record.source === "biff" && record.kind === "ole-properties" && record.disposition === "retained");
   const streams = new Map<string, Uint8Array | BiffPropertySource>(), inputs: BiffPropertySource[] = [];
   const sources = new Map<string, BiffPropertySource>();
+  let preserved: BiffPropertyNames | undefined;
   const close = async () => {
     const errors: unknown[] = [];
     for (const source of [...sources.values(), ...inputs]) try { await source.close(); } catch (error) { errors.push(error); }
+    try { await preserved?.close(); } catch (error) { errors.push(error); }
     if (errors.length === 1) throw errors[0];
     if (errors.length) throw new AggregateError(errors, "BIFF property sources cleanup failed");
   };
@@ -304,10 +305,12 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
         streams.set(name, bytes);
       }
     }
-    const preserved = await mergeBiffProperties(book, streams, handledMetadata, context, charge, allocate,
-      staged ? { sources, reserve } : undefined);
-    for (const key of unsupportedKeys) if (!preserved.has(key))
+    if (snapshots && unsupportedKeys.length) preserved = new BiffPropertyNames(context, charge);
+    await mergeBiffProperties(book, streams, handledMetadata, context, charge, allocate,
+      staged ? { sources, reserve } : undefined, preserved);
+    for (const key of unsupportedKeys) if (!await preserved?.has(key))
       await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF document property: ${key}` });
+    await preserved?.close();
     if (!staged) return { streams, handledMetadata, async close() {} };
     for (const [name, value] of snapshots ? streams : planned) if (!sources.has(name)) {
       const bytes = 'size' in value ? { length: value.size, async *chunks() {

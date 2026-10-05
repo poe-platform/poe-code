@@ -41,7 +41,7 @@ test("count cache distinguishes middle bytes and filesystem tenants", async () =
   }
 });
 
-for (const [first, second] of [["v1.0.0", "v2.0.0"], ["aXXb", "aYYb"], ["user_1_id", "user_2_id"]] as const) {
+for (const [first, second] of [["FOO_1_BAR", "FOO_2_BAR"], ["alpha", "axxxa"], ["v1.0.0", "v2.0.0"], ["aXXb", "aYYb"], ["user_1_id", "user_2_id"]] as const) {
   for (const flags of [["-c"], ["-F", "-c"]]) {
     test(`repeated ${flags.join(" ")} counts distinguish ${first} and ${second}`, async () => {
       const fs = createMemoryFileSystem();

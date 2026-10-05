@@ -1,3 +1,4 @@
+import { mp4BoxLayout, mp4BoxChildrenOffset } from "./mp4-box-layout.js";
 import { decodeH264Samples } from "./h264.js";
 import { drainWork } from "./work.js";
 import {
@@ -59,26 +60,6 @@ import {
   type SliceMediaOptions
 } from "./types.js";
 
-const CONTAINER_BOXES = new Set([
-  "moov",
-  "trak",
-  "edts",
-  "mdia",
-  "minf",
-  "dinf",
-  "stbl",
-  "mvex",
-  "moof",
-  "traf",
-  "mfra",
-  "udta",
-  "ilst",
-  "sinf",
-  "schi",
-  "tref",
-  "gmhd"
-]);
-
 export function isMp4Signature(bytes: Uint8Array): boolean {
   if (bytes.byteLength < 8) return false;
   const type = decodeFourCC(bytes, 4);
@@ -106,59 +87,13 @@ export function parseMp4Boxes(
 
   while (offset + 8 <= bytes.byteLength) {
     budget?.checkCpu();
-    const view = new DataView(bytes.buffer, bytes.byteOffset + offset, bytes.byteLength - offset);
-    let size = view.getUint32(0, false);
-    const type = decodeFourCC(bytes, offset + 4);
-    let headerSize = 8;
-
-    if (size === 1) {
-      if (offset + 16 > bytes.byteLength) break;
-      const hi = view.getUint32(8, false);
-      const lo = view.getUint32(12, false);
-      size = hi * 4294967296 + lo;
-      headerSize = 16;
-    } else if (size === 0) {
-      size = bytes.byteLength - offset;
-    }
-
-    if (size < headerSize || offset + size > bytes.byteLength) {
-      size = bytes.byteLength - offset;
-      if (size < headerSize) break;
-    }
-
-    let uuid: Uint8Array | undefined;
-    if (type === "uuid" && headerSize + 16 <= size) {
-      uuid = bytes.subarray(offset + headerSize, offset + headerSize + 16);
-      headerSize += 16;
-    }
-
+    const layout = mp4BoxLayout(bytes.subarray(offset, offset + 16), bytes.byteLength - offset);
+    if (!layout) break;
+    const { type, size, headerSize, uuidOffset } = layout;
+    const uuid = uuidOffset === undefined ? undefined : bytes.subarray(offset + uuidOffset, offset + uuidOffset + 16);
     const payload = bytes.subarray(offset + headerSize, offset + size);
-    let children: Mp4Box[] | undefined;
-
-    if (CONTAINER_BOXES.has(type)) {
-      children = parseMp4Boxes(payload, baseOffset + offset + headerSize, depth + 1, budget);
-    } else if (type === "meta") {
-      // `meta` is normally a FullBox (4 byte version/flags before children),
-      // or a direct container in older QuickTime files.
-      if (payload.byteLength >= 12) {
-        const maybeChildType = decodeFourCC(payload, 8);
-        if (
-          maybeChildType === "hdlr" ||
-          maybeChildType === "ilst" ||
-          maybeChildType === "keys" ||
-          maybeChildType === "free"
-        ) {
-          children = parseMp4Boxes(
-            payload.subarray(4),
-            baseOffset + offset + headerSize + 4,
-            depth + 1,
-            budget
-          );
-        } else {
-          children = parseMp4Boxes(payload, baseOffset + offset + headerSize, depth + 1, budget);
-        }
-      }
-    }
+    const childOffset = mp4BoxChildrenOffset(type, payload.length, type === "meta" && payload.length >= 12 ? decodeFourCC(payload, 8) : undefined);
+    const children = childOffset === undefined ? undefined : parseMp4Boxes(payload.subarray(childOffset), baseOffset + offset + headerSize + childOffset, depth + 1, budget);
 
     boxes.push({
       type,

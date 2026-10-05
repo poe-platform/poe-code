@@ -6,6 +6,21 @@ import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createRgCommand } from "./index.js";
 
 const cases: readonly [string[], Uint8Array, Uint8Array, number][] = [
+  [["-n", "-m", "18", "-M", "3", "a"], Buffer.from("aaaaaa\naaa\n"), Buffer.from("1:[Omitted long matching line]\n2:[Omitted long matching line]\n"), 0],
+  [["--max-columns=3", "-C1", "a"], Buffer.from("zzzz\naaaa\nyyyy\n"), Buffer.from("[Omitted long context line]\n[Omitted long matching line]\n[Omitted long context line]\n"), 0],
+  [["-nM3", "é"], Buffer.from("éé\n"), Buffer.from("1:[Omitted long matching line]\n"), 0],
+  [["--max-columns", "0", "a"], Buffer.from("aaaaaa\n"), Buffer.from("aaaaaa\n"), 0],
+  [["-M3", "-o", "a"], Buffer.from("aaaa\n"), Buffer.from("a\na\na\na\n"), 0],
+  [["-M3", "a"], Buffer.from("aaa"), Buffer.from("aaa\n"), 0],
+  [["-M3", "-o", "a+"], Buffer.from("aaa\n"), Buffer.from("aaa\n"), 0],
+  [["-M3", "-o", "a+"], Buffer.from("aaaa\n"), Buffer.from("[Omitted long matching line]\n"), 0],
+  [["-M3", "--crlf", "a"], Buffer.from("aa\r\n"), Buffer.from("[Omitted long matching line]\r\n"), 0],
+  [["-M3", "-v", "x"], Buffer.from("aaaa\n"), Buffer.from("[Omitted long matching line]\n"), 0],
+  [["-M3", "--trim", "a"], Buffer.from("  aa\n"), Buffer.from("aa\n"), 0],
+  [["-M3", "-r", "x", "a"], Buffer.from("aaaa\n"), Buffer.from("[Omitted long line with 4 matches]\n"), 0],
+  [["-M3", "-r", "x", "a+"], Buffer.from("aaaa\n"), Buffer.from("x\n"), 0],
+  [["-M3", "-c", "a"], Buffer.from("aaaa\n"), Buffer.from("1\n"), 0],
+  [["-M3", "a"], Buffer.from("xxxx\n"), Buffer.from(""), 1],
   [["✓|FAIL"], Buffer.from("check ✓\n"), Buffer.from("check ✓\n"), 0],
   [["✓|FAIL"], Buffer.from("FAIL\n"), Buffer.from("FAIL\n"), 0],
   [["✓|FAIL"], Buffer.from("pass\n"), Buffer.from(""), 1],

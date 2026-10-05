@@ -95,8 +95,19 @@ export class Printer {
           while (trim < chunk.length && (chunk[trim] === 32 || chunk[trim]! >= 9 && chunk[trim]! <= 13)) trim++;
           chunk = chunk.subarray(trim);
         }
+        let outputTerminator = terminator;
+        if (this.args.maxColumns > 0) {
+          // Ripgrep includes the input terminator, except when printing only a match.
+          const lineEndingBytes = match ? 0 : delimiter >= 0 ? 1 : line.rawLength - line.content.length;
+          if (chunk.length + lineEndingBytes > this.args.maxColumns) {
+            chunk = bytesFrom(this.replacement && selected && !this.args.invert
+              ? `[Omitted long line with ${match ? 1 : matches.length} matches]`
+              : `[Omitted long ${selected ? "matching" : "context"} line]`);
+            outputTerminator = this.args.nullData ? "\0" : this.args.crlf ? "\r\n" : "\n";
+          }
+        }
         if (!multiline || !match || chunk.length > 0) {
-          await this.limits.output(concatBytes([bytesFrom(prefix), chunk, bytesFrom(terminator)]));
+          await this.limits.output(concatBytes([bytesFrom(prefix), chunk, bytesFrom(outputTerminator)]));
         }
         if (delimiter < 0) break;
         start = delimiter + 1;

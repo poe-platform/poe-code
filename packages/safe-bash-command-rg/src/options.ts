@@ -57,6 +57,7 @@ export interface Arguments {
   before: number;
   after: number;
   separator: string | undefined;
+  maxColumns: number;
   maxCount: number;
   maxCountSmi?: number;
   hasInfiniteMaxCount?: boolean;
@@ -129,6 +130,7 @@ export class ParsedArguments implements Arguments {
   declare before: number;
   declare after: number;
   declare separator: string | undefined;
+  declare maxColumns: number;
   declare maxCount: number;
   declare maxCountSmi: number;
   declare hasInfiniteMaxCount: boolean;
@@ -180,6 +182,7 @@ export class ParsedArguments implements Arguments {
     this.before = 0;
     this.after = 0;
     this.separator = "--";
+    this.maxColumns = 0;
     if (!this.hasInfiniteMaxCount) {
       this.maxCount = Infinity;
       this.maxCountSmi = 0x3fffffff;
@@ -235,6 +238,7 @@ export class ParsedArguments implements Arguments {
       before: 0,
       after: 0,
       separator: "--",
+      maxColumns: 0,
       maxCount: Infinity,
       maxCountSmi: 0x3fffffff,
       hasInfiniteMaxCount: true,
@@ -395,6 +399,7 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "no-column": result.column = false; break;
         case "b": case "byte-offset": result.byteOffset = true; break;
         case "A": case "after-context": result.after = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
+        case "M": case "max-columns": result.maxColumns = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
         case "B": case "before-context": result.before = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
         case "C": case "context": result.before = result.after = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
         case "context-separator": result.separator = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))); break;

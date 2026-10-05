@@ -23,6 +23,10 @@ spanning lines. Output retains UTF-8 bytes and obeys `maxOutputBytes`.
 Use `rg -d 1 pattern /dir` (or `--max-depth 1`) to search only files directly
 inside `/dir`. Depth `0` skips directory contents.
 
+Use `rg -n -m 18 -M 240 pattern file.log` to replace output lines longer than
+240 bytes with an omission marker. `--max-columns` is the long form; `0`
+disables the limit. Matches, counts, exit status and JSON output are unchanged.
+
 The module also exports `createRgCommand`, its command-list factory, and typed options and limits.
 
 Set `RIPGREP_CONFIG_PATH` to a virtual file containing one argument per line.

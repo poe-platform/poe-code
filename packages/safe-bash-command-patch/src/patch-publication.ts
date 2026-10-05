@@ -74,7 +74,9 @@ export class PatchPublication {
     const context = this.context;
     const capabilities = await host(context, async () =>
       await context.fs.capabilitiesFor?.(path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
-    const retained = !this.trusted && capabilities.retainedStagingCleanup === true && capabilities.retainedStagingWrite === true;
+    // An unspecified writer facet may still return an owned writer; validate
+    // that handle below. Explicitly unsupported writers use conditional writes.
+    const retained = !this.trusted && capabilities.retainedStagingCleanup === true && capabilities.retainedStagingWrite !== false;
     if (!retained && (!context.fs.writeFileConditional
       || (capabilities.atomicFileMutation !== true && capabilities.trustedOwnedStaging !== true))) {
       throw new ToolError("filesystem does not support conditional staging writes");

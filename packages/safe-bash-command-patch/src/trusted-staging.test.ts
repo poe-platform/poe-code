@@ -2,6 +2,25 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contents, filesystem, run } from "./helpers.test.js";
 
+for (const writer of [true, false]) test(`retained staging validates an unadvertised writer: ${writer}`, async t => {
+  const fs = await filesystem({ target: "old\n" });
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, retainedStagingWrite: undefined } });
+  const create = fs.createStagedFile.bind(fs);
+  t.mock.method(fs, "createStagedFile", async (...args: Parameters<typeof create>) => {
+    assert.equal(args[3].retainCleanup, true);
+    const staging = { ...await create(...args) };
+    if (!writer) delete staging.writer;
+    return staging;
+  });
+  const conditional = t.mock.method(fs, "writeFileConditional", async () => { throw new Error("retained writer required"); });
+  const result = await run("patch", [], { fs, input: "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n" });
+  assert.equal(result.exitCode, writer ? 0 : 2, result.stderr);
+  if (!writer) assert.ok(result.stderr.includes("filesystem does not support retained staging writes"));
+  assert.equal(conditional.mock.callCount(), 0);
+  assert.equal(await contents(fs, "target"), writer ? "new\n" : "old\n");
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["target"]);
+});
+
 for (const atomicStagingAncestry of [false, true]) for (const failure of ["none", "write", "cancel"] as const) {
   test(`conditional staging streams and cleans ownership (ancestry=${atomicStagingAncestry}): ${failure}`, async t => {
     const old = "a".repeat(40000), next = "b".repeat(40000);

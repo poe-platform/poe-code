@@ -4723,20 +4723,23 @@
     {
       "id": "atl-last",
       "status": "open",
-      "currentFinding": "Native FIFO splitting, writer reopen, tag rebinding and formula replacement/removal/restoration are qualified with compiled session and public conversion evidence. Explicit-host feed/close failures preserve established cleanup and error contracts. Remaining containing installed/deployment profiles are the next gate.",
+      "currentFinding": "Native schedule/mutation and explicit-host failure contracts are qualified. Published root17.0.41 and scoped0.1.813 pass160 SDK/command conversions on Node22/24 without native PATH. They predate the conditional-unlink fix; containing artifacts and remaining declared deployment profiles remain open.",
       "checkpoint20261004": {
-        "qualified": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Session polling now unlinks old tags before actual formula evaluation, including conditional branches that no longer call ATL_LAST; direct/dependency-triggered deactivation and reactivation pass. Twelve native FIFO phases now qualify tag/value/newline splitting across reads, writer close/reopen after each fragment, and dynamic tag rebinding; 24 native values match the persistent compiled session and 24 SDK/command snapshots. Four native formula replacement/removal/restoration phases match eight persistent-session values and eight public conversion snapshots. Eight SDK/command feed/close failure controls verify iterator retirement, awaited exactly-once cleanup, sanitized feed errors and original cancellation/close-error identities.",
+        "qualified": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Session polling now unlinks old tags before actual formula evaluation, including conditional branches that no longer call ATL_LAST; direct/dependency-triggered deactivation and reactivation pass. Twelve native FIFO phases now qualify tag/value/newline splitting across reads, writer close/reopen after each fragment, and dynamic tag rebinding; 24 native values match the persistent compiled session and 24 SDK/command snapshots. Four native formula replacement/removal/restoration phases match eight persistent-session values and eight public conversion snapshots. Eight SDK/command feed/close failure controls verify iterator retirement, awaited exactly-once cleanup, sanitized feed errors and original cancellation/close-error identities. Published root17.0.41/scoped0.1.813 pass160 SDK/command conversions on Node22/24 with native tools absent from PATH; strict public datasource types pass. This excludes the later conditional-unlink fix.",
         "evidence": [
           "#/currentQualification20261002/datasourceRecalculationCleanup",
           "#/datasourceConditionalUnlink",
           "#/datasourceNativeSchedules",
-          "#/datasourceMutationAndClose"
+          "#/datasourceMutationAndClose",
+          "#/datasourceRegistryDeployment"
         ],
-        "nextAcceptance": "Qualify the containing installed root/scoped datasource contracts and deployment profiles, including the conditional-unlink fix. Reuse the completed native schedule/mutation and feed/close cohorts.",
+        "nextAcceptance": "Qualify conditional-unlink behavior when containing root/scoped artifacts are published, then remaining declared deployment profiles. Do not repeat the160 qualified Node22/24 registry schedule/mutation/error conversions.",
         "closureGate": "Complete containing installed root/scoped datasource and deployment profiles; preserve qualified native and explicit-host lifecycle evidence.",
-        "qualificationBlockers": [],
+        "qualificationBlockers": [
+          "Current root17.0.41 and scoped0.1.813 predate conditional-unlink commit dc2778d60e. Scoped0.1.813 published at02:09:52Z; fix committed at02:17:30Z. Installed scoped datasource code still calls recalculation without the unlink observer. A containing publication remains unverified."
+        ],
         "remainingAcceptance": [
-          "Containing installed root/scoped datasource and remaining deployment profiles, including conditional watcher unlinking. Reuse the qualified native schedules, formula mutation and explicit-host feed/close controls."
+          "Containing root/scoped conditional-unlink fix and remaining declared deployment profiles. Current root17.0.41/scoped0.1.813 schedule/mutation/feed-close contracts are qualified on Node22/24; retain those registry receipts."
         ]
       }
     },
@@ -6779,6 +6782,40 @@
       "native.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "public.mjs": "bb1bff7cb602e418f1b8f1fa832bc5f7fe5f14757244a15dd7b2df9d27c0f5bd",
       "results.json": "d02f68ddddec7579f62735d76225ebdfb51de92cdc0b2a463d17216d6758b899"
+    }
+  },
+  "datasourceRegistryDeployment": {
+    "status": "Current registry schedule/mutation/error contracts qualified; containing conditional-unlink publication remains open",
+    "artifacts": {
+      "poe-code": {
+        "version": "17.0.41",
+        "resolved": "https://registry.npmjs.org/poe-code/-/poe-code-17.0.41.tgz",
+        "integrity": "sha512-YNCqf86Hy5/O6OIeGW7H16fLRLPEpyW8GMkmtaSIp5E4FI5aLfLSLD9yAmWQfOB9jRnzaJNG39PlXV0in0aYPQ=="
+      },
+      "@poe-platform/safe-bash": {
+        "version": "0.1.813",
+        "resolved": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.813.tgz",
+        "integrity": "sha512-pRFVQMKY5aify1p0hCB6BkedzYxwN/xFCK3CUqLwsPzoeTL/w7ekHdkC3AHVv/Lxis4Nr8wIb/HzoodbbYayvg=="
+      }
+    },
+    "runtimes": [
+      "v22.22.2",
+      "v24.21.0"
+    ],
+    "deployment": "Fresh isolated installation outside repository; both public module resolutions assert consumer node_modules. Final runs use PATH=/nonexistent and absolute Node executable. No native tool, private workspace import or source-tree module is used.",
+    "results": "160 conversions:128 native-derived schedule/mutation snapshots compare256 values;32 batch/iterator/close/cancel-plus-close controls verify cleanup/error behavior. Each160transport closes exactly once and is not reclosed on engine disposal. Feed/cancellation failures publish0bytes; close-only failures retain valid12-byte output and report cleanup failure. SDK/command cancellation and error distinctions match datasourceMutationAndClose.",
+    "types": "TypeScript5.9.3 strict NodeNext noEmit consumer validates both namespaces, DatasourceCapability, DatasourceTransport, context ownership/signal, createEngine and runCommand. skipLibCheck excludes dependency-internal checking.",
+    "publication": "Scoped0.1.813 is newer than the prior qualification but was published2026-10-05T02:09:52.898Z, before conditional-unlink commit dc2778d60e at02:17:30Z. Installed scoped datasource.js calls recalculateWithDiagnostics without an unlink observer at lines121/194. Root remains17.0.41. No containing-release or conditional-unlink installed pass is claimed.",
+    "scopedDatasourceSha256": "d262e173740d9c1a4b353b3d57186f0ea50b764fe9d5ce9ded9d65d21002e787",
+    "limits": "Bounded Node22/24 registry evidence only. Remaining declared deployment profiles and containing conditional-unlink publication are unmet; broader issue stays open. Native cohorts are reused, not regenerated.",
+    "evidence": "Retained datasource-registry-current/check.mjs, check-node24.mjs, consumer.mts, results-node22.json, results-node24.json, package-lock.json and provenance.json.",
+    "hashes": {
+      "check.mjs": "7e44705aa076934d0f0f1173a612d1e9b8e9b9ebb94988d84f3340f3064d3d0e",
+      "check-node24.mjs": "35f9347be3931685ccc969328d6955007ec42a1ea1994057435ce851793d029f",
+      "consumer.mts": "831462b8029ddf099ded93a4e082fa087053e0ac354536e4bccbd0f06297f2ce",
+      "results-node22.json": "e3136b9c7fa2b0f57072de21a6852086a76de2fa176d75ac939d96ab7d230710",
+      "results-node24.json": "2c04b28c839d6fc6e1935805bd34a6b2a2669f1d77e91eef7b7a4b86cd982207",
+      "package-lock.json": "85d8231c6031bd397adba63f0117f96493ce0bf8d8f766b510a86129e3cf3b8e"
     }
   }
 }

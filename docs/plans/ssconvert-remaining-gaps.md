@@ -151,7 +151,7 @@ delivered root/scoped fixture separation `61baed7701`.
 | PY_PRINTF | 1. Address-bearing RangeRef/sheet representation semantics, remaining coercion and diagnostic cases; compare structure rather than unstable addresses. 2. Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting. |
 | PY_CAPWORDS | 1. Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts. 2. Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash. |
 | Database functions | 1. Explicit in-memory SQLite in-flight cancellation, read-only transactions, provider credential admission and connection retirement are qualified. Extend only to remaining provider-specific lifecycle profiles; preserve original cancellation identity and zero publication. 2. Remaining provider-specific types and installed non-SQLite profiles; root/scoped SQLite lifecycle is qualified on Node22/24. Retain native CLI crash and classified GDA integer-inference/SQLite tiny-number profile differences as compatibility limitations. |
-| ATL_LAST | 1. Containing installed root/scoped datasource and remaining deployment profiles, including conditional watcher unlinking. Reuse the qualified native schedules, formula mutation and explicit-host feed/close controls. |
+| ATL_LAST | 1. Containing root/scoped conditional-unlink fix and remaining declared deployment profiles. Current root17.0.41/scoped0.1.813 schedule/mutation/feed-close contracts are qualified on Node22/24; retain those registry receipts. |
 | LN1P/log1p/acos | 1. Independent binary64 boundary/holdout inputs for LN1P/log1p/acos on declared runtimes, including signed zero, subnormals, poles, NaN/infinity and overflow; exact values and diagnostics through both routes. 2. Remaining runtime-library and installed profiles; distinguish rounding/profile differences from algorithm accuracy. |
 | Higher-q Bessel | 1. Current installed artifacts against retained native Bessel cohorts; independent uncovered fractional/near-integer and high-order boundaries. 2. Remaining domain/runtime profiles, warnings/errors and work ceilings; retain explained Darwin libm/FMA differences and all 3296 qualified matches per route. |
 | Format records | 1. Existing directional-service matrix: unqualified version/record transports, starting with rich-comment metadata/geometry and raw-NUL formula export, followed by independent edit/readback. 2. Remaining formula/name/style/encoding/metadata/merge/chart/object/link semantics and installed composition; explicit loss diagnostics for unsupported records, not opaque-preservation claims. |
@@ -267,6 +267,13 @@ match the compiled session and public snapshots. Eight failure controls verify
 cleanup and route-specific error reporting. Close-only failures can follow valid
 output; they do not roll back published bytes. Continue with containing installed
 root/scoped and deployment profiles, including the conditional-unlink fix.
+
+Published datasource contracts now pass 160 root/scoped SDK/command conversions
+on Node22/24 without native tools in PATH (`datasourceRegistryDeployment`).
+Public TypeScript types pass. Scoped0.1.813 was published before the conditional
+unlink fix, and its installed code lacks that callback; root remains17.0.41.
+Keep containing-release qualification separate from the verified main fix and
+these passing registry contracts. Remaining declared deployment profiles stay open.
 
 ## 4. Interfaces and test plan
 

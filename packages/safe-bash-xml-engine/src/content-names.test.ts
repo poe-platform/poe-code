@@ -9,6 +9,7 @@ import { evaluateExpression, expressionText } from "./predicate.js";
 import { parseQuery } from "./query.js";
 import { StoredXPath } from "./stored-evaluate.js";
 import { StoredStringMap } from "./stored-map.js";
+import { serialize } from "./evaluate.js";
 import { serializeDocument } from "./document.js";
 
 for (const recover of [false, true]) test(`large processing-instruction targets use source spans (recover=${recover})`, async () => {
@@ -55,6 +56,9 @@ for (const mode of ["format", "c14n", "exc-c14n"] as const) test(`backed PI targ
         assert.equal(actual, name === "namespace-uri" ? "" : target);
       }
     }
+    let selected = "";
+    for await (const part of serialize(await new StoredXPath(document, budget).node(document.root), budget)) selected += part;
+    assert.equal(selected, `<r><?${target} inside?></r>`);
     let actual = "";
     for await (const part of serializeDocument(document, mode, budget, true)) { actual += part; await Promise.resolve(); }
     assert.equal(actual, expected);

@@ -288,7 +288,7 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
           yield* document.text(event.reference);
           yield "-->";
         } else if (value.kind === "processing-instruction") {
-          yield `<?${value.target}`;
+          yield "<?"; yield* document.targetText(value);
           if (value.text) { yield " "; yield* document.text(event.reference); }
           yield "?>";
         }

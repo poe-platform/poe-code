@@ -108,13 +108,13 @@ for (const outcome of ['success', 'cancel', 'read'] as const) test(`recovery anc
   } });
   const depth = 600;
   const source = { async *[Symbol.asyncIterator]() {
-    for (let index = 0; index < depth; index++) yield `<x xmlns:p="urn:${index}">`;
+    for (let index = 0; index < depth; index++) yield `<p:x xmlns:p="urn:${index}">`;
   } };
   const operation = parseXmlRecovery(source, { fs: injected, cwd: '/', env: {}, signal: controller.signal },
     new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {}), () => {}, async event => {
       if (event.type === 'close') {
-        assert.equal(event.element.namespaces.get('p'), `urn:${depth - ++closes}`);
-        assert.equal(event.parent?.namespaces.get('p'), closes < depth ? `urn:${depth - closes - 1}` : undefined);
+        assert.equal(event.element.namespace, `urn:${depth - ++closes}`);
+        assert.equal(event.parent?.namespace, closes < depth ? `urn:${depth - closes - 1}` : undefined);
       }
     });
   if (outcome !== 'success') await assert.rejects(operation, error => error === failure);

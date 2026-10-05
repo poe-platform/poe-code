@@ -1,4 +1,4 @@
-import type { XmlElement, XmlFrameRequest } from '@poe-code/safe-fs/core';
+import type { XmlElement, XmlFrameRequest, XmlNamespaceScope } from '@poe-code/safe-fs/core';
 import type { PagedStorage } from '@poe-code/safe-fs/storage';
 
 type FrameRecord = {
@@ -6,6 +6,7 @@ type FrameRecord = {
   element: Omit<XmlElement, 'namespaces'>;
   namespaces: [string, string][];
   retainNamespaces: boolean;
+  namespaceScope?: XmlNamespaceScope;
 };
 
 /** Linked parser frames share the source cache; no array grows with nesting depth. */
@@ -18,7 +19,7 @@ export class StoredXmlFrames {
       const frame = request.frame;
       const { namespaces, ...element } = frame.element;
       const record: FrameRecord = { name: frame.name, element, namespaces: [...frame.namespaces],
-        retainNamespaces: namespaces === frame.namespaces };
+        retainNamespaces: namespaces === frame.namespaces, ...(frame.namespaceScope ? { namespaceScope: frame.namespaceScope } : {}) };
       const source = JSON.stringify(record);
       const reference = this.storage.allocate(16 + source.length * 2);
       const header = new Uint8Array(16), view = new DataView(header.buffer);
@@ -47,7 +48,7 @@ export class StoredXmlFrames {
     }
     const record = JSON.parse(source) as FrameRecord;
     const namespaces = new Map(record.namespaces);
-    request.frame = { name: record.name, namespaces, content: undefined,
+    request.frame = { name: record.name, namespaces, content: undefined, ...(record.namespaceScope ? { namespaceScope: record.namespaceScope } : {}),
       element: { ...record.element, namespaces: record.retainNamespaces ? namespaces : new Map() } };
   }
 }

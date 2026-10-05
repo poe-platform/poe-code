@@ -62,6 +62,16 @@ metadata. Keep the host stack in bounded backing storage. The parser caches one
 current frame; individual frame metadata and namespace scopes still have their own
 size cost. The default string and stream APIs retain their existing ancestry behavior.
 
+Also set `storeNamespaces: true` to resolve namespace scopes through host-backed
+immutable storage. `namespaceOperation: "get"` supplies a scope and prefix; fill
+`value` when present and set `complete: true`. For `"set"`, bind the supplied prefix
+and value in a new scope, then fill `result` with its storage `reference` and the
+number of distinct bindings (`size`). Frames carry this scope handle so shadowing
+never changes ancestor scopes. In this mode event elements have an empty
+`namespaces` map; their names and attributes still carry resolved namespace URIs.
+The codec remains filesystem-independent, and individual names, attribute values
+and namespace URIs still need a token storage strategy.
+
 Pass `undefined` as the source length to parse incrementally. Such read requests
 have `streaming: true` and request at most 512 UTF-16 units. Return any nonempty
 prefix available without pulling more input; set `complete: true` only when that

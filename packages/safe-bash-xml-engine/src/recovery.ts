@@ -1,3 +1,4 @@
+import { StoredNamespaces } from "./stored-namespaces.js";
 import { StoredXmlFrames } from "./frames.js";
 import { normalizeXmlChunks, parseXmlSourceSteps, type XmlElement } from "@poe-code/safe-fs/core";
 import { PagedStorage, PagedStorageCache, type PagedStorageContext } from "@poe-code/safe-fs/storage";
@@ -39,7 +40,7 @@ export async function parseStoredXml(
     const queued: XmlEvent[] = [];
     const frames = new StoredXmlFrames(frameStorage);
     const parser = parseXmlSourceSteps(recover ? length : undefined, {
-      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, fragmentContent: true, compactDeclaration: true,
+      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, fragmentContent: true, compactDeclaration: true,
       ...(recover ? { recover } : {}), ...(consume ? { events: (event: XmlEvent) => { queued.push(event); } } : {}),
     });
     let step = parser.next();
@@ -50,6 +51,17 @@ export async function parseStoredXml(
         if (step.done) { await frameStorage.close(); await storage.close(); return step.value; }
         if (typeof step.value === "number") {
           const checkpoint = budget.tick(step.value); if (checkpoint) await checkpoint;
+        } else if ("namespaceOperation" in step.value) {
+          const request = step.value;
+          const scope = new StoredNamespaces(frameStorage, budget, request.scope.reference);
+          const previous = await scope.get(request.prefix);
+          if (request.namespaceOperation === "get") {
+            if (previous !== undefined) request.value = previous;
+            request.complete = true;
+          } else {
+            const next = await scope.set(request.prefix, request.value);
+            request.result = { reference: next.reference, size: request.scope.size + (previous === undefined ? 1 : 0) };
+          }
         } else if ("frameOperation" in step.value) {
           await frames.execute(step.value);
         } else {

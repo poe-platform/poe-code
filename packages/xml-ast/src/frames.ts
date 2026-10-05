@@ -5,6 +5,7 @@ export interface XmlParserFrame {
   content: XmlContent[] | undefined;
   name: string;
   namespaces: Map<string, string>;
+  namespaceScope?: XmlNamespaceScope;
 }
 export type XmlFrameRequest =
   | { readonly frameOperation: 'push'; readonly frame: XmlParserFrame }
@@ -45,4 +46,26 @@ export class XmlFrames {
     this.current = undefined;
     return frame;
   }
+}
+
+/** A host-owned immutable namespace scope; count includes the built-in xml prefix. */
+export interface XmlNamespaceScope { readonly reference: number; readonly size: number; }
+export type XmlNamespaceRequest =
+  | { readonly namespaceOperation: 'get'; readonly scope: XmlNamespaceScope; readonly prefix: string; value?: string; complete?: true }
+  | { readonly namespaceOperation: 'set'; readonly scope: XmlNamespaceScope; readonly prefix: string; readonly value: string; result?: XmlNamespaceScope };
+
+export function* namespaceValue(scope: Map<string, string> | XmlNamespaceScope, prefix: string): Generator<XmlNamespaceRequest, string | undefined, void> {
+  if (scope instanceof Map) return scope.get(prefix);
+  const request: XmlNamespaceRequest = { namespaceOperation: 'get', scope, prefix };
+  yield request;
+  if (!request.complete) throw new TypeError('Incomplete XML namespace read');
+  return request.value;
+}
+
+export function* bindNamespace(scope: Map<string, string> | XmlNamespaceScope, prefix: string, value: string): Generator<XmlNamespaceRequest, Map<string, string> | XmlNamespaceScope, void> {
+  if (scope instanceof Map) { scope.set(prefix, value); return scope; }
+  const request: XmlNamespaceRequest = { namespaceOperation: 'set', scope, prefix, value };
+  yield request;
+  if (!request.result) throw new TypeError('Incomplete XML namespace update');
+  return request.result;
 }

@@ -1,5 +1,5 @@
-import { XmlFrames, type XmlFrameRequest, type XmlParserFrame } from "./frames.js";
-export type { XmlParserFrame, XmlFrameRequest } from "./frames.js";
+import { XmlFrames, bindNamespace, namespaceValue, type XmlNamespaceRequest, type XmlFrameRequest, type XmlParserFrame } from "./frames.js";
+export type { XmlParserFrame, XmlFrameRequest, XmlNamespaceScope, XmlNamespaceRequest } from "./frames.js";
 import { validCharacter } from "./characters.js";
 export { normalizeXmlChunks } from "./characters.js";
 import { XmlSource, type XmlSourceStep } from "./source.js";
@@ -283,15 +283,18 @@ export interface XmlSourceLimits extends XmlStepLimits {
   readonly fragmentContent?: boolean;
   /** Store active parser frames through host-serviced requests. Requires retainTree: false. */
   readonly storeFrames?: boolean;
+  /** Resolve namespace scopes through host-serviced requests. Requires retainTree: false. */
+  readonly storeNamespaces?: boolean;
 }
-export type XmlParseStep = XmlSourceStep | XmlFrameRequest;
+export type XmlParseStep = XmlSourceStep | XmlFrameRequest | XmlNamespaceRequest;
 
 /** Parse a validated, BOM-free, line-normalized UTF-16 source via bounded read requests. */
-export function parseXmlSourceSteps(length: number | undefined, limits?: XmlStepLimits & { readonly storeFrames?: false }): Generator<XmlSourceStep, XmlElement, void>;
+export function parseXmlSourceSteps(length: number | undefined, limits?: XmlStepLimits & { readonly storeFrames?: false; readonly storeNamespaces?: false }): Generator<XmlSourceStep, XmlElement, void>;
 export function parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits): Generator<XmlParseStep, XmlElement, void>;
 export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits = {}): Generator<XmlParseStep, XmlElement, void> {
   validateLimits(limits);
   if (limits.storeFrames && limits.retainTree !== false) throw new TypeError("Stored XML frames require retainTree: false");
+  if (limits.storeNamespaces && limits.retainTree !== false) throw new TypeError("Stored XML namespaces require retainTree: false");
   if (limits.fragmentContent && limits.retainTree !== false) throw new TypeError("XML content fragments require retainTree: false");
   const source = new XmlSource(length);
   const maxDepth = limits.maxDepth ?? Infinity;
@@ -312,6 +315,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     if (text.length > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
     textLength += text.length;
   };
+  const initialNamespaces = limits.storeNamespaces ? yield* bindNamespace({ reference: 0, size: 0 }, "xml", xmlNamespace) : new Map([["xml", xmlNamespace]]);
   const stack = new XmlFrames(limits.storeFrames === true);
   let root: XmlElement | undefined;
   const prolog: XmlContent[] = [];
@@ -507,7 +511,8 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       let attributes: Map<string, string> | undefined;
       const attrMeta: [string, string, string][] = [];
-      let namespaces = (yield* stack.peek())?.namespaces ?? new Map([["xml", xmlNamespace]]);
+      const namespaceParent = yield* stack.peek();
+      let namespaces = namespaceParent?.namespaceScope ?? namespaceParent?.namespaces ?? (initialNamespaces instanceof Map ? new Map(initialNamespaces) : initialNamespaces);
       let ownsNamespaces = stack.length === 0;
       while (!repeated) {
         const ws = (yield* skipWhitespace());
@@ -546,13 +551,13 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
           if (nsPrefix === "xmlns" || value === xmlnsNamespace
             || (nsPrefix === "xml") !== (value === xmlNamespace)
             || (nsPrefix !== "" && value === "")) invalid("invalid namespace binding");
-          if (!ownsNamespaces) {
+          if (!ownsNamespaces && namespaces instanceof Map) {
             const copy = new Map<string, string>();
             for (const [key, uri] of namespaces) { copy.set(key, uri); pendingWork += 1; }
             namespaces = copy;
             ownsNamespaces = true;
           }
-          namespaces.set(nsPrefix, value);
+          namespaces = yield* bindNamespace(namespaces, nsPrefix, value);
           if (namespaces.size > maxNamespaces) throw new XmlLimitError("maxNamespaces", "XML namespace scope limit exceeded");
         }
       }
@@ -562,9 +567,9 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
           const [attribute, attrPrefix, attrLocal] = attrMeta[i]!;
           if (attribute === "xmlns" || attribute.startsWith("xmlns:")) continue;
           pendingWork += attribute.length;
-          if (attrPrefix && !namespaces.has(attrPrefix)) invalid("unbound attribute prefix");
+          if (attrPrefix && (yield* namespaceValue(namespaces, attrPrefix)) === undefined) invalid("unbound attribute prefix");
           if (expanded) {
-            const key = `${attrPrefix ? namespaces.get(attrPrefix) : ""}\0${attrLocal}`;
+            const key = `${attrPrefix ? (yield* namespaceValue(namespaces, attrPrefix)) : ""}\0${attrLocal}`;
             if (expanded.has(key)) invalid("duplicate expanded attribute");
             expanded.add(key);
           }
@@ -572,10 +577,10 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       }
       pendingWork += name.length;
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-      if (prefix === "xmlns" || (prefix && !namespaces.has(prefix))) invalid("unbound element prefix");
+      if (prefix === "xmlns" || (prefix && (yield* namespaceValue(namespaces, prefix)) === undefined)) invalid("unbound element prefix");
       if (++nodes > maxNodes) throw new XmlLimitError("maxNodes", "XML resource limit exceeded");
       if (stack.length + 1 > maxDepth) throw new XmlLimitError("maxDepth", "XML resource limit exceeded");
-      const namespace = namespaces.get(prefix) ?? "";
+      const namespace = (yield* namespaceValue(namespaces, prefix)) ?? "";
       limits.onElement?.({ name, namespace, localName }, (yield* stack.peek())?.element, stack.length + 1);
       admitContent();
       const retainedAttributes: XmlAttribute[] = [];
@@ -585,13 +590,13 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
           const value = attributes.get(attribute)!;
           admitContent();
           retainedAttributes.push({ name: attribute, localName: attrLocal,
-            namespace: attribute === "xmlns" || attrPrefix === "xmlns" ? xmlnsNamespace : attrPrefix ? namespaces.get(attrPrefix)! : "", value });
+            namespace: attribute === "xmlns" || attrPrefix === "xmlns" ? xmlnsNamespace : attrPrefix ? (yield* namespaceValue(namespaces, attrPrefix))! : "", value });
           pendingWork += attribute.length + 1;
         }
       }
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       const content: XmlContent[] | undefined = retain ? [] : undefined;
-      const element: XmlElement = { kind: "element", name, namespace, localName, children: [], text: "", content: content ?? emptyContent, attributes: retainContent ? retainedAttributes : emptyAttributes, namespaces: retainContent ? namespaces : emptyNamespaces, ...(root === undefined && retainContent ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
+      const element: XmlElement = { kind: "element", name, namespace, localName, children: [], text: "", content: content ?? emptyContent, attributes: retainContent ? retainedAttributes : emptyAttributes, namespaces: retainContent && namespaces instanceof Map ? namespaces : emptyNamespaces, ...(root === undefined && retainContent ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
       const parent = (yield* stack.peek());
       if (parent) { if (retainTree) { parent.element.children.push(element); parent.content?.push(element); } }
       else if (root) invalid("multiple root elements");
@@ -607,7 +612,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       if (empty && !attributes && name.length <= 512 && (yield* source.slice(offset - name.length - 3, offset)) === `<${name}/>`)
         previousEmpty = { suffix: name + "/>", name, prefix, localName };
       limits.events?.({ type: "open", element, parent: parent?.element });
-      if (!empty) yield* stack.push({ element, content, name, namespaces });
+      if (!empty) yield* stack.push({ element, content, name, namespaces: namespaces instanceof Map ? namespaces : new Map(), ...(namespaces instanceof Map ? {} : { namespaceScope: namespaces }) });
       else limits.events?.({ type: "close", element, parent: parent?.element });
     }
   }

@@ -298,3 +298,16 @@ for (const field of ["version", "encoding", "standalone"]) it(`rejects oversized
     expect(slices.mock.calls.every(([start, end]) => end !== undefined && end - start <= 512)).toBe(true);
   } finally { slices.mockRestore(); }
 });
+
+it('requires host completion of namespace operations', () => {
+  const parser = parseXmlSourceSteps(4, { retainTree: false, storeNamespaces: true });
+  const step = parser.next();
+  expect(step.done).toBe(false);
+  expect(step.value).toMatchObject({ namespaceOperation: 'set', prefix: 'xml' });
+  expect(() => parser.next()).toThrow('Incomplete XML namespace update');
+});
+
+it('requires nonretained parsing for external namespace scopes', () => {
+  const parser = parseXmlSourceSteps(4, { storeNamespaces: true });
+  expect(() => parser.next()).toThrow('Stored XML namespaces require retainTree: false');
+});

@@ -2,7 +2,7 @@ import { closeDocumentResources, type IndexedDocument } from "safe-bash-diff-eng
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { Budget, ToolError } from "safe-bash-diff-engine/shared";
 import { startIndex } from "./unified.js";
-import { patchLine, type ReplayPatch, type ReplayApplication } from "./stored-patch.js";
+import { patchHunks, patchLine, type ReplayPatch, type ReplayApplication } from "./stored-patch.js";
 import { equalTargetLines, TargetDocuments, TargetOutput, type TargetLine } from "./stored-target.js";
 
 export async function applyStoredHunks(original: IndexedDocument, patch: ReplayPatch, fuzz: number, budget: Budget, ignoreWhitespace = false, application: ReplayApplication, documents: TargetDocuments): Promise<IndexedDocument> {
@@ -16,7 +16,7 @@ export async function applyStoredHunks(original: IndexedDocument, patch: ReplayP
     let cursor = 0;
     let offset = 0;
     let outputOffset = 0;
-    for (const [hunkIndex, hunk] of patch.hunks.entries()) {
+    for await (const [hunkIndex, hunk] of patchHunks(patch)) {
       budget.step();
       const oldIndex = indices.allocate((hunk.oldCount + hunk.newCount) * 8), newIndex = oldIndex + hunk.oldCount * 8;
       let oldPosition = oldIndex, newPosition = newIndex;

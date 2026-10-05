@@ -34,7 +34,9 @@ Discarded mail preamble/signature prose uses bounded prefix scans; normal-comman
 admission scans arbitrarily long numeric prefixes without decoding them whole.
 Application outcomes, reversal probes and merge replacements use fixed-width
 stored records in the shared cache. Status and reject decisions replay them.
-Header text, hunk metadata, file maps
+Hunk descriptors and body locations now use stored records, with lazy reversal
+views. Individual header/section decoding remains proportional to that line.
+Header text, file maps
 and retained resource handles still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.
 Apply-patch payload parsing, target snapshots, matching and replacements use

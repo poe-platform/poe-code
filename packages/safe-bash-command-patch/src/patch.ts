@@ -10,7 +10,7 @@ import { safeTarget } from "./patch-path.js";
 import { PatchPublication } from "./patch-publication.js";
 import { parseUnifiedReader } from "./unified.js";
 import { OutcomeStore } from "./stored-outcomes.js";
-import { PatchBodyStore, reverseStoredPatch as reversePatch, type PatchLines, type ReplayPatch as FilePatch } from "./stored-patch.js";
+import { patchHunk, patchHunks, PatchBodyStore, reverseStoredPatch as reversePatch, type PatchLines, type ReplayPatch as FilePatch } from "./stored-patch.js";
 import { FsError,dirname,pathOf,pipeBytes,resolvePath,writeBytes,type CommandContext } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { Budget,ToolError,definition,host,inspect,integer,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
@@ -153,28 +153,31 @@ interface Prepared {
 async function applyContent(sourcePatch: FilePatch, current: IndexedDocument, exists: boolean, options: PatchFlags, budget: Budget, documents: TargetDocuments, outcomeStore: OutcomeStore) {
   let reversed = options.reverse;
   let patch = reversed ? reversePatch(sourcePatch) : sourcePatch;
-  const emptyOld = () => patch.hunks.every(hunk => hunk.oldCount === 0 && hunk.oldStart === 0);
-  const creation = () => patch.oldPath === "/dev/null" || (emptyOld() && (patch.oldEpoch || !exists));
+  const emptySide = async (side: "old" | "new", checkStart = true) => {
+    for await (const [, hunk] of patchHunks(patch)) if (hunk[`${side}Count`] !== 0 || checkStart && hunk[`${side}Start`] !== 0) return false;
+    return true;
+  };
+  const creation = async () => patch.oldPath === "/dev/null" || (await emptySide("old") && (patch.oldEpoch || !exists));
   let autoReversed = false;
   let reverseMismatch = false;
-  const declaredCreation = patch.oldPath === "/dev/null" || (patch.oldEpoch && emptyOld());
-  const declaredDeletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0));
+  const declaredCreation = patch.oldPath === "/dev/null" || (patch.oldEpoch && await emptySide("old"));
+  const declaredDeletion = patch.newPath === "/dev/null" || (patch.newEpoch && await emptySide("new", false));
   if (!options.force && ((declaredCreation && current.size !== 0) || (declaredDeletion && !exists))) {
     patch = reversePatch(patch);
     reversed = !reversed;
     autoReversed = true;
   }
-  if (!creation() && !exists) return undefined;
+  if (!await creation() && !exists) return undefined;
   let outcomes = outcomeStore.create(patch);
   let result = await applyStoredHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
-    partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: creation() && current.size !== 0,
+    partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: await creation() && current.size !== 0,
   }, documents);
   const first = await outcomes.at(0);
   if (!options.merge && !options.force && !autoReversed && (first?.failed || first?.fuzz)) {
     const opposite = reversePatch(patch);
     const probe = outcomeStore.create(opposite);
     const reverseFuzz = first.failed ? options.fuzz : first.fuzz - 1;
-    const probeResult = await applyStoredHunks(current, { ...opposite, hunks: opposite.hunks.slice(0, 1) }, reverseFuzz, budget, options.ignoreWhitespace, { partial: true, outcomes: probe }, documents);
+    const probeResult = await applyStoredHunks(current, { ...opposite, hunks: [await patchHunk(opposite, 0)] }, reverseFuzz, budget, options.ignoreWhitespace, { partial: true, outcomes: probe }, documents);
     await documents.release(probeResult);
     if (!(await probe.at(0))?.failed) {
       patch = opposite;
@@ -184,11 +187,11 @@ async function applyContent(sourcePatch: FilePatch, current: IndexedDocument, ex
       outcomes = outcomeStore.create(patch);
       await documents.release(result);
       result = await applyStoredHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
-        partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: creation() && current.size !== 0,
+        partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: await creation() && current.size !== 0,
       }, documents);
     }
   }
-  const deletion = patch.newPath === "/dev/null" || (patch.newEpoch && patch.hunks.every(hunk => hunk.newCount === 0 && hunk.newStart === 0));
+  const deletion = patch.newPath === "/dev/null" || (patch.newEpoch && await emptySide("new"));
   if (autoReversed && options.forward) {
     await documents.release(result);
     return { result: current, outcomes: outcomeStore.create(patch), reversed, autoReversed, reverseMismatch, deletion: false, skipped: true };
@@ -303,14 +306,14 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
           : await documents.load(targetBytes(await budget.read(inputPath)));
     const progress: ParseProgress | undefined = options.atomic ? undefined : {};
     const sections = await parsePatchWith(await unwrapStoredPatch(input, budget), budget, options.format, explicit, {
-      unified: cursor => parseUnifiedReader(cursor, budget, true, () => bodies.begin()),
+      unified: cursor => parseUnifiedReader(cursor, budget, true, () => bodies.begin(), () => bodies.beginHunks()),
       converted: async chunks => {
         const converted = await documents.load({ async *[Symbol.asyncIterator]() {
           for await (const chunk of chunks) yield* targetBytes(chunk);
         } });
         try {
           budget.countLines(converted.length);
-          return await parseUnifiedReader({ input: new StoredPatchInput(converted), index: 0 }, budget, false, () => bodies.begin());
+          return await parseUnifiedReader({ input: new StoredPatchInput(converted), index: 0 }, budget, false, () => bodies.begin(), () => bodies.beginHunks());
         } finally { await documents.release(converted); }
       },
     }, progress);
@@ -373,7 +376,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const status = async (text: string) => {
       await appendStatus(text); await flushStatus();
     };
-    const applySection = async (authorizedPatch: AuthorizedPatch<PatchLines>) => {
+    const applySection = async (authorizedPatch: AuthorizedPatch<PatchLines, FilePatch["hunks"]>) => {
       const sourcePatch = authorizedPatch.patch;
       if (sourcePatch.unlocated) {
         if (options.atomic) throw new ToolError("no file to patch; provide a target or Index header", 1);
@@ -405,8 +408,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
               await authorizeOutputs([rejectPath], targets, paths.input, budget);
               if (backupPaths.has(rejectPath)) throw new ToolError("reject path aliases another section's backup");
               const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;
-              const outcomes = { *[Symbol.iterator]() {
-                for (const [index, hunk] of patch.hunks.entries()) yield { hunk, index: index + 1, failed: true, misordered: false,
+              const outcomes = { async *[Symbol.asyncIterator]() {
+                for await (const [index, hunk] of patchHunks(patch)) yield { hunk, index: index + 1, failed: true, misordered: false,
                   line: hunk.oldStart, outputOffset: 0, offset: 0, fuzz: 0 };
               } };
               const reject = await documents.load(rejectBytes(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, options.reverse, budget, options.rejectFormat));

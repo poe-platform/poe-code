@@ -1,5 +1,5 @@
 import { decodeHeaderPath } from "./patch-path.js";
-import { parseUnified,parseUnifiedSection,type FilePatch,type ParsedPatchLine,type PatchInput,type IndexedUnifiedCursor } from "./unified.js";
+import { parseUnified,parseUnifiedSection,type FilePatch,type Hunk,type ParsedPatchLine,type PatchInput,type IndexedUnifiedCursor } from "./unified.js";
 import { Budget,ToolError,integer } from "safe-bash-diff-engine/shared";
 import { equalPatchText, materializeText, terminated, textSize, type PatchText } from "./patch-text.js";
 
@@ -215,16 +215,16 @@ export async function parsePatch(text: string | PatchInput, budget: Budget, form
   }, progress);
 }
 
-export interface PatchParsers<Lines> {
-  unified(cursor: IndexedUnifiedCursor): Promise<FilePatch<Lines>[]>;
-  converted(source: AsyncIterable<PatchText>): Promise<FilePatch<Lines>[]>;
+export interface PatchParsers<Lines, Hunks = Hunk<Lines>[]> {
+  unified(cursor: IndexedUnifiedCursor): Promise<FilePatch<Lines, Hunks>[]>;
+  converted(source: AsyncIterable<PatchText>): Promise<FilePatch<Lines, Hunks>[]>;
 }
 
-export async function parsePatchWith<Lines>(text: string | PatchInput, budget: Budget, format: PatchFormat | undefined,
-  target: string | undefined, parsers: PatchParsers<Lines>, progress?: ParseProgress): Promise<FilePatch<Lines>[]> {
+export async function parsePatchWith<Lines, Hunks = Hunk<Lines>[]>(text: string | PatchInput, budget: Budget, format: PatchFormat | undefined,
+  target: string | undefined, parsers: PatchParsers<Lines, Hunks>, progress?: ParseProgress): Promise<FilePatch<Lines, Hunks>[]> {
   if (typeof text === "string" && text && !text.endsWith("\n")) throw new ToolError("patch is truncated: missing final LF");
   const reader = new Reader(text, budget);
-  const patches: FilePatch<Lines>[] = [];
+  const patches: FilePatch<Lines, Hunks>[] = [];
   let convertedBytes = 0;
   while ((await reader.peek()) !== undefined) {
     try {

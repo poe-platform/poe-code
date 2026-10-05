@@ -1,6 +1,6 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { TargetDocuments } from "./stored-target.js";
-import type { ReplayOutcome, ReplayPatch } from "./stored-patch.js";
+import { patchHunk, type ReplayOutcome, type ReplayPatch } from "./stored-patch.js";
 
 /** Invocation-wide storage for application, reversal-probe and merge outcomes. */
 export class OutcomeStore {
@@ -34,7 +34,7 @@ export class StoredOutcomes {
     if (!Number.isSafeInteger(position) || position < 0 || position >= this.length) return undefined;
     const bytes = await this.records.read(this.start + position * 64, 64), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const index = view.getFloat64(0, true), mergeStart = view.getFloat64(40, true);
-    return { hunk: this.patch.hunks[index - 1]!, index, line: view.getFloat64(8, true),
+    return { hunk: await patchHunk(this.patch, index - 1), index, line: view.getFloat64(8, true),
       outputOffset: view.getFloat64(16, true), offset: view.getFloat64(24, true), fuzz: view.getFloat64(32, true),
       failed: !!(bytes[56]! & 1), misordered: !!(bytes[56]! & 2),
       ...(Number.isNaN(mergeStart) ? {} : { mergeRange: [mergeStart, view.getFloat64(48, true)] as const }),

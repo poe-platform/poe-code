@@ -22,6 +22,21 @@ test("patch matching does not retain hunk outcomes in arrays", async t => {
   }
 });
 
+test("patch parsing and reversal do not retain hunk descriptor arrays", async t => {
+  const push = Array.prototype.push;
+  t.after(() => { Array.prototype.push = push; });
+  Array.prototype.push = function(this: unknown[], ...items: unknown[]) {
+    for (const item of items) if (item && typeof item === "object" && "oldStart" in item && "lines" in item)
+      assert.fail("retained hunk descriptor array");
+    return push.apply(this, items);
+  };
+  for (const [text, args, code] of [["old\n", [], 0], ["new\n", [], 0], ["other\n", ["--force"], 1],
+    ["other\n", ["--merge=diff3"], 1]] as const) {
+    const result = await run("patch", args, { input: replacement, files: { target: text } });
+    assert.equal(result.exitCode, code, result.stderr);
+  }
+});
+
 for (const failure of ["none", "write", "cancel"]) test(`outcome records spill and clean up after ${failure}`, async t => {
   const fs = await filesystem(), controller = new AbortController(), reason = new Error("outcome storage stopped");
   const context: CommandContext = { fs, cwd: "/work", env: {}, command: "patch", args: [], signal: controller.signal,

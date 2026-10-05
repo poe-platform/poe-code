@@ -1,3 +1,6 @@
+import { fragmentLoaderCommand } from "./fragment-loader-command.js";
+import { getLlmFragmentPrefix, loadLlmPluginFragments } from "./fragment-loaders.js";
+import { sourceBytes } from "./request-source.js";
 import { createLlmUrlFragmentSource } from "./url-fragment-source.js";
 import { createLlmFragmentSource } from "./fragments.js";
 import { resolveUrlAttachment } from "./url-attachment.js";
@@ -104,7 +107,7 @@ async function interrupted<Value>(start: () => Value | PromiseLike<Value>, signa
   });
 }
 
-async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections']) {
+async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections'], fragmentLoaders: NonNullable<LlmCommandsOptions['fragmentLoaders']>) {
   context.signal.throwIfAborted();
   const controller = new AbortController();
   const operation = createOutputOperation(context, context.stdout);
@@ -190,6 +193,14 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       argumentText(1);
       await emitText(modelsGroupHelp);
       return { exitCode: 0 };
+    }
+    if (argumentsValue.args[0] === "fragments") {
+      if (argumentsValue.args[1] !== "loaders") {
+        await writeDiagnostic(context.stderr, "Error: Fragment history is host-owned. Use a file, URL, or registered loader.\n", signal);
+        return {exitCode:2};
+      }
+      const tokens = Array.from({length:argumentsValue.args.length-2},(_,index)=>argumentText(index+2));
+      return {exitCode:await fragmentLoaderCommand(tokens,fragmentLoaders,emitText,text=>writeDiagnostic(context.stderr,text,signal))};
     }
     if (argumentsValue.args[0] === "schemas" && argumentsValue.args[1] !== "dsl") {
       await writeDiagnostic(context.stderr, "Error: Stored schema history is host-owned. Use an inline schema, file, template, or 'llm schemas dsl'.\n", signal);
@@ -380,7 +391,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     });
     let composedPrompt: LlmInputSource | undefined, composedSystem: LlmInputSource | undefined;
     const remoteFragments = new WeakSet<LlmInputSource>();
-    const loadFragments = async function* (paths: readonly string[]): AsyncIterable<LlmInputSource> {
+    const pluginAttachments: LlmAttachment[] = [], pluginSourceAttachments: LlmSourceAttachment[] = [];
+    const loadFragments = async function* (paths: readonly string[], system: boolean): AsyncIterable<LlmInputSource> {
       for (const reference of paths) {
         await step();
         // The reference reads fragments after consuming ordinary prompt stdin.
@@ -394,6 +406,29 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
           yield source;
           continue;
         }
+        if (getLlmFragmentPrefix(reference) !== undefined) {
+          try {
+            for await (const loaded of loadLlmPluginFragments(reference,fragmentLoaders,{fs:context.fs,cwd:context.cwd,signal,capabilities:context.capabilities,get maxBytes(){return input.remaining(!streamed);}},!system)) {
+              const source = await operation.acquire(()=>loaded.source,value=>value.dispose());
+              if (loaded.type === "text") { yield source; continue; }
+              input.admitText(loaded.mimeType);
+              if (loaded.id !== undefined) input.admitText(loaded.id);
+              if (!acceptsMimeType(entry.model.attachmentTypes ?? [], loaded.mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${loaded.mimeType}`);
+              const identity = loaded.id === undefined ? {} : {id:loaded.id};
+              if (streamed) {
+                const spool = await operation.acquire(()=>createLlmSpool(context.fs,context.cwd,signal,"input"),value=>value.close());
+                for await (const bytes of sourceBytes(source.bytes,signal)) {admitInput(bytes.byteLength,false);await spool.write(bytes);}
+                pluginSourceAttachments.push({mimeType:loaded.mimeType,source:{bytes:spool.replay(),dispose:spool.close},...identity});
+              } else {
+                const chunks:Uint8Array[]=[];let size=0;
+                for await(const bytes of sourceBytes(source.bytes,signal)){admitInput(bytes.byteLength,true);chunks.push(bytes.slice());size+=bytes.byteLength;}
+                const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
+                pluginAttachments.push({mimeType:loaded.mimeType,bytes,...identity});
+              }
+            }
+          } catch(error) {signal.throwIfAborted();throw new Error(`Error: ${error instanceof Error?error.message:String(error)}`);}
+          continue;
+        }
         const path = pathOf(context, reference);
         let source: LlmInputSource;
         try { source = await operation.acquire(() => fileSource({fs:context.fs,path,signal,maxBytes:input.remaining(!streamed)}), value=>value.dispose()); }
@@ -402,7 +437,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       }
     };
     const compose = async (paths: readonly string[], tail: LlmInputSource, system: boolean): Promise<LlmInputSource> => operation.acquire(
-      () => createLlmFragmentSource({fs:context.fs,directory:context.cwd,signal,fragments:loadFragments(paths),tail,system,normalizeNewlines:true,
+      () => createLlmFragmentSource({fs:context.fs,directory:context.cwd,signal,fragments:loadFragments(paths,system),tail,system,normalizeNewlines:true,
         admitBytes:(size,source)=>remoteFragments.has(source)?input.admit(size,!streamed):admitInput(size,!streamed),admitSeparator:size=>input.admit(size,!streamed)}),value=>value.dispose());
     const promptFragments = [...stored?.fragments ?? [], ...args.fragments];
     const systemFragments = [...stored?.system_fragments ?? [], ...args.systemFragments];
@@ -487,6 +522,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
       attachments.push({ mimeType, bytes: new Uint8Array(bytes), ...(acceptsMimeType(['application/pdf'],mimeType) && !bytes.length ? {id:await attachmentBytesId(bytes,signal)} : {}) });
     }
+    attachments.push(...pluginAttachments);
+    sourceAttachments.push(...pluginSourceAttachments);
     const resolvedKey = args.key === undefined ? undefined : await configuration.resolveKey(args.key);
     const request: LlmRequest = {
       ...(schema === undefined ? {} : { schema }),
@@ -566,7 +603,7 @@ export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefin
   const templateLoaderOptions: TemplateLoaderOptions = { maxRemoteBytes, ...(options.templateLoaders ? { loaders: options.templateLoaders } : {}) };
   const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
   const collections=options.collections;
-  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections) };
+  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections, options.fragmentLoaders ?? new Map()) };
 }
 
 export function createLlmCommands(options: LlmCommandsOptions = {}): readonly CommandDefinition[] {

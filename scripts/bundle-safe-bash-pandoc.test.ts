@@ -116,10 +116,11 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
           for (const mode of ["sdk", "command"]) {
             const controller = new AbortController();
             let timer;
+            let sourceClosed = false;
             await vfs.writeFile("/filter.lua", encoder.encode("function Str(el) while true do end end"));
             const readStream = async function* (path, options) {
               try {yield* vfs.readStream(path, options);}
-              finally {if (path === "/filter.lua") timer = setTimeout(() => controller.abort(), 0);}
+              finally {if (path === "/filter.lua") {sourceClosed = true; timer = setTimeout(() => controller.abort(), 0);}}
             };
             try {
               if (mode === "sdk") {
@@ -129,7 +130,7 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
                   }, {signal: controller.signal, limits: {work: 100000},
                     filters: pandoc.createLuaFilterCapability({readStream: (path, signal) => readStream(path, {signal})})});
                   outcomes.push({mode, code: "unexpected-success"});
-                } catch (error) {outcomes.push({mode, code: error.code});}
+                } catch (error) {outcomes.push({mode, code: error.code, sourceClosed});}
               } else {
                 let stdout = "", stderr = "";
                 const supplied = new Proxy(vfs, {get(target, key) {
@@ -137,14 +138,16 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
                   const value = Reflect.get(target, key, target);
                   return typeof value === "function" ? value.bind(target) : value;
                 }});
-                const result = await pandoc.createPandocCommand({limits: {work: 100000}}).execute({
+                // Allow retained VM initialization to reach the source-close timer.
+                // The separate budget scenario still verifies work-limit rejection.
+                const result = await pandoc.createPandocCommand({limits: {work: 10000000}}).execute({
                   command: "pandoc", args: ["-f", "markdown", "-t", "html", "-L", "/filter.lua", "/input.md"],
                   cwd: "/", env: {}, fs: supplied, signal: controller.signal,
                   stdin: (async function* () {})(),
                   stdout: {async write(bytes) {stdout += new TextDecoder().decode(bytes);}},
                   stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}},
                 }).then(result => ({exitCode: result.exitCode}), error => ({aborted: error === controller.signal.reason, name: error.name}));
-                outcomes.push({mode, ...result, stdout, stderr});
+                outcomes.push({mode, ...result, stdout, stderr, sourceClosed});
               }
             } finally {clearTimeout(timer);}
           }
@@ -275,8 +278,8 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
       const cancelledText = await cancelled.text();
       expect(cancelled.status, cancelledText).toBe(200);
       expect(JSON.parse(cancelledText)).toEqual([
-        {mode: "sdk", code: "E_CANCELLED"},
-        {mode: "command", aborted: true, name: "AbortError", stdout: "", stderr: ""}
+        {mode: "sdk", code: "E_CANCELLED", sourceClosed: true},
+        {mode: "command", aborted: true, name: "AbortError", stdout: "", stderr: "", sourceClosed: true}
       ]);
       for (const scenario of ["lua", "sdk", "ranges"]) {
         const filtered = await runtime.dispatchFetch("https://pandoc.test/" + scenario);

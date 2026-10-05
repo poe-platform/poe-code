@@ -9,8 +9,11 @@ export class Glob {
   private readonly literalEdges?: { prefix: string; suffix: string; anchored: boolean };
   constructor(readonly source: string, readonly insensitive = false, readonly literalUnclosedClass = false) {
     const pattern = source.endsWith("/") ? source.slice(0, -1) : source;
+    // Positive literal character classes cannot consume a separator. Negated
+    // classes, ranges and named classes may, so keep their full paths.
+    const separatorClass = pattern.includes("[") && ["!", "^", "-", ":"].some(character => pattern.includes(character));
     this.basenameOnly = pattern.length > 0 && !pattern.includes("/") && !pattern.includes("**")
-      && !pattern.includes("\\") && !pattern.includes("[") && !pattern.includes("{");
+      && !pattern.includes("\\") && !separatorClass && !pattern.includes("{");
     // Only simple ASCII patterns have literal edges we can safely recognize
     // without duplicating the glob parser (escapes, classes and braces included).
     if ([...pattern].every(character => character.charCodeAt(0) < 128 && !"\\[]{}".includes(character))) {

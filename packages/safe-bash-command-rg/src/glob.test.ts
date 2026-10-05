@@ -30,11 +30,11 @@ test('basename globs do not send irrelevant ancestor paths to the matcher', asyn
   const session = new RegexExecutor(createBoundedRegexProvider()).open(new AbortController().signal);
   const run = t.mock.method(session, 'run');
   try {
-    const globs = ['*.rs', 'unicode_categories.rs', 'target/', '/src/*.rs', '**foo*', '[a/]*', 'foo\\*'].map(source => new Glob(source));
+    const globs = ['*.rs', 'unicode_categories.rs', 'target/', '/src/*.rs', '**foo*', '[a/]*', 'foo\\*', '*.py[cod]', '*[!x]', '*[.-0]'].map(source => new Glob(source));
     const path = 'packages/deep/source/lib.rs';
-    assert.deepEqual(await matchGlobs(globs, globs.map(() => ({ path, directory: false, ancestors: false })), session), [true, false, false, false, false, false, false]);
+    assert.deepEqual(await matchGlobs(globs, globs.map(() => ({ path, directory: false, ancestors: false })), session), [true, false, false, false, false, false, false, false, true, false]);
     const rows = run.mock.calls[0]!.arguments[1];
-    assert.deepEqual(rows.map(row => new TextDecoder('utf-16le').decode(row.bytes)), ['lib.rs', 'lib.rs', 'lib.rs', path, path, path, path]);
+    assert.deepEqual(rows.map(row => new TextDecoder('utf-16le').decode(row.bytes)), ['lib.rs', 'lib.rs', 'lib.rs', path, path, path, path, 'lib.rs', path, path]);
     assert.deepEqual(await matchGlobs([new Glob('source')], [{path, directory: false}], session), [true]);
     assert.equal(new TextDecoder('utf-16le').decode(run.mock.calls[1]!.arguments[1][0]!.bytes), path);
     const unicodePath = 'café/lib.rs';
@@ -63,5 +63,18 @@ test('subtree prefilter retains every possible descendant match', async () => {
     assert.equal(new Glob('/src/*.ts').mayMatchDescendant('src'), true);
     assert.equal(new Glob('/SRC/*.ts', true).mayMatchDescendant('src'), true);
     assert.equal(new Glob('/docs/*.md').mayMatchDescendant('café'), true);
+  } finally { await session.close(); }
+});
+
+test('positive basename character classes preserve matching and separator classes use full paths', async () => {
+  const session = new RegexExecutor(createBoundedRegexProvider()).open(new AbortController().signal);
+  try {
+    for (const [pattern, path, expected] of [
+      ['*.py[cod]', 'deep/tree/module.pyc', true],
+      ['*.py[cod]', 'deep/tree/module.ts', false],
+      ['a[!x]b', 'a/b', true],
+      ['a[.-0]b', 'a/b', true],
+      ['a[^x]b', 'a/b', true],
+    ] as const) assert.equal(await new Glob(pattern).matches(path, false, session, false), expected);
   } finally { await session.close(); }
 });

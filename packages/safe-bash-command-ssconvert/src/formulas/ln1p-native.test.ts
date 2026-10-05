@@ -34,3 +34,22 @@ it("observes work/cancellation while evaluating LN1P without consuming further w
  expect(() => mathFunctions.LN1P!([{ kind: "number", value: .33688260287586475 }], host)).toThrow(reason);
  expect(ticks).toBe(4);
 });
+
+// Exact binary64 inputs; independent 500-digit Decimal ln(1+x) rounds to these
+// public values. Linux AArch64 glibc 2.41 differs by one ULP at both inputs.
+it.each([
+ { input: 2, rounded: "3ff193ea7aad030b", linux: "3ff193ea7aad030a" },
+ { input: -1.8626451492309568e-9, rounded: "be20000000400000", linux: "be200000003fffff" }
+])("distinguishes LN1P mathematical rounding from the Linux kernel at $input", async ({ input, rounded, linux }) => {
+ const { capturedLog1p } = await import("./functions/captured-log1p.js");
+ const bits = (value: number) => {
+  const view = new DataView(new ArrayBuffer(8)); view.setFloat64(0, value);
+  return view.getBigUint64(0).toString(16).padStart(16, "0");
+ };
+ const host = { scalar(value: Value) { return value; }, tick() {} } as unknown as FunctionHost;
+ const result = mathFunctions.LN1P!([{ kind: "number", value: input }], host);
+ expect(result.kind).toBe("number");
+ if (result.kind !== "number") throw new Error("Expected numeric LN1P result");
+ expect(bits(result.value)).toBe(rounded);
+ expect(bits(capturedLog1p(input))).toBe(linux);
+});

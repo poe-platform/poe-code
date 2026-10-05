@@ -4746,18 +4746,20 @@
     {
       "id": "numeric-ln1p-log1p-acos",
       "status": "open",
-      "currentFinding": "Retained Linux log1p/acos/pow controls and public numeric cohorts match exact binary64 results. Wider domains and other runtime profiles remain open.",
+      "currentFinding": "Independent LN1P boundary/holdout and LN1P/ACOS special-value gates pass on Node22/26. Public LN1P matches500-digit Decimal; two Linux and one Darwin one-ULP differences are classified. Captured Linux kernels match native. Remaining runtime-library and installed profiles stay open.",
       "checkpoint20261004": {
-        "qualified": "Retained Linux log1p/acos/pow and scoped public binary64 controls match.",
+        "qualified": "Retained Linux log1p/acos/pow and scoped public binary64 controls match.285 raw-binary64 LN1P inputs plus13 raw primitive special values and15 public LN1P/ACOS domain/overflow formulas are qualified on Node22/26. All1200 public outputs match their declared mathematical/kernel contracts; native rounding differences remain explicit.",
         "evidence": [
-          "#/currentQualification20261002/publicAcos"
+          "#/currentQualification20261002/publicAcos",
+          "#/numericBoundaryProfiles"
         ],
-        "nextAcceptance": "Add independent boundary/holdout domains for each function on declared runtime profiles; compare exact binary64 values and diagnostics through both public routes.",
+        "nextAcceptance": "Qualify remaining installed root/scoped and declared runtime-library profiles using the retained numerical cohorts; preserve mathematical LN1P and captured Linux kernel distinctions instead of changing correct values for cross-libm equality.",
         "closureGate": "Qualify remaining domains and runtime libraries, documenting profile-specific differences instead of inventing cross-libm equality.",
-        "qualificationBlockers": [],
+        "qualificationBlockers": [
+          "At input2, Linux log1p is one ULP below the independently rounded public LN1P result; at input bits be1fffffffffffff both Linux and Darwin log1p differ by one ULP. Captured Linux log1p intentionally preserves its native profile; public LN1P retains mathematical rounding."
+        ],
         "remainingAcceptance": [
-          "Independent binary64 boundary/holdout inputs for LN1P/log1p/acos on declared runtimes, including signed zero, subnormals, poles, NaN/infinity and overflow; exact values and diagnostics through both routes.",
-          "Remaining runtime-library and installed profiles; distinguish rounding/profile differences from algorithm accuracy."
+          "Remaining runtime-library and installed root/scoped profiles using retained LN1P/log1p/ACOS cohorts; preserve explicit rounding-profile differences and existing work/cancellation contracts."
         ]
       }
     },
@@ -6816,6 +6818,47 @@
       "results-node22.json": "e3136b9c7fa2b0f57072de21a6852086a76de2fa176d75ac939d96ab7d230710",
       "results-node24.json": "2c04b28c839d6fc6e1935805bd34a6b2a2669f1d77e91eef7b7a4b86cd982207",
       "package-lock.json": "85d8231c6031bd397adba63f0117f96493ce0bf8d8f766b510a86129e3cf3b8e"
+    }
+  },
+  "numericBoundaryProfiles": {
+    "status": "Independent boundary/holdout and special-value checkpoint complete for declared mathematical/captured-Linux contracts; other runtimes and installed artifacts remain open",
+    "inputs": "285 finite exact input bit patterns:45 boundary/neighbor cases plus240 deterministic random binary64 holdouts (seed17481005), including signed zero, subnormal/normal boundaries, -1 pole neighbors, reduction thresholds and maximum finite values. Native API receives raw bit-cast doubles, avoiding decimal-parser differences.219 inputs are within LN1P domain and66 yield #NUM!.",
+    "references": "Unmodified Gnumeric1.12.61 and Debian AArch64 glibc2.41-12+deb13u4. Gnumeric LN1P maps to log1p and rejects x<=-1. Independent Python Decimal precision500 computes ln(1+Decimal.from_float(x)), then rounds once to binary64. Darwin /usr/lib/libSystem.B.dylib is a separate libm profile.",
+    "nativeHashes": {
+      "inputProbe": "7e7ce647ef4f9e8d54a3e2ab0f54ce0aa6a0dc5139f7489a56634b21a72a7264",
+      "formulaProbe": "f5f3b4c4c12548e5c1f5b617c25c483f4e6c2b58448e54363957447dfe906a0e",
+      "libm": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2",
+      "mathPluginSource": "f5509cad1dd24a8b3162b48d729f4a0ef5428f49f3045296a0dba0c1f20eec64"
+    },
+    "results": "Node22.22.2 and26.10.0 produce identical receipts.285 LN1P values per SDK/command/runtime match independent mathematical rounding or the native domain error, with0diagnostics. CapturedLog1p matches all285 raw Linux primitive outputs (NaN semantics, not payload).13 additional raw log1p/acos signed-zero/nonfinite/endpoint controls match native.6 LN1P and9 ACOS public overflow/domain/pole/zero/endpoint formulas match native through both routes on both runtimes. Total1200 public outputs; original3180-value ACOS finite cohort is retained, not rerun.",
+    "differences": [
+      {
+        "inputBits": "4000000000000000",
+        "publicAndDecimal": "3ff193ea7aad030b",
+        "linuxLog1p": "3ff193ea7aad030a",
+        "darwinLog1p": "3ff193ea7aad030b"
+      },
+      {
+        "inputBits": "be1fffffffffffff",
+        "publicAndDecimal": "be20000000400000",
+        "linuxLog1p": "be200000003fffff",
+        "darwinLog1p": "be200000003fffff"
+      }
+    ],
+    "verification": "Two independent rounding-distinction regressions added;119 focused math/LN1P/captured-kernel tests, changed-test ESLint, command test types and selected workspace build pass. Runtime implementation is unchanged: no defect established. Initial ad-hoc harness had wrong cwd/unbuilt declaration paths; standalone arithmetic comparison corrected those harness errors before public compiled verification.",
+    "limits": "These are bounded domain/profile proofs, not universal correctly-rounded or cross-libm equality claims. Raw primitive nonfinite behavior is separate from workbook domain/error propagation and zero normalization. Remaining declared runtime-library and installed-artifact acceptance stays open.",
+    "evidence": "Retained log1p-boundaries-current input/native/independent/comparison/public/special receipts and build.log.",
+    "hashes": {
+      "cases.json": "9368b4e3bef6c54a094e1be2c68a3c7b662e7f485382eefbda920e8890e89bed",
+      "probe.c": "5aca51ba98dd271f5ade9257e5917688c32c84620c60e9bb4460adae44d24908",
+      "native.stdout": "94ea2d8d64386c8c2bbfbb2a67f141a4e8585dbc8367737fcd9b239543693e36",
+      "independent.json": "ebb5c53522bd78092b5b94bc0f993b0a904e0ae37f67c75c8fbcf6458a539854",
+      "comparison.json": "4bde405dcb698e477442f73c2093d9c1a38763d6aeba4ca179c5844faadf83c3",
+      "public.mjs": "c65d6e4eb3261aba87187f2e0cb7ffac399c8c65dee3c6880ac26a1aaeedf8bd",
+      "public-results-node22.json": "e4b06a005e2c4eb398694f90cf8dbcf8747ac899b51d6ba2504d4a8e8323abef",
+      "public-results-node26.json": "e4b06a005e2c4eb398694f90cf8dbcf8747ac899b51d6ba2504d4a8e8323abef",
+      "special-results.json": "8474f04a9b9b9c0358c7d61a7f6d446dfc61f60514b33cb07a82b066be7a6c07",
+      "acos-special-results.json": "ab0f4da90652a46672250d52994b1f0b187e7ba908be071e917cbd45f0336eb0"
     }
   }
 }

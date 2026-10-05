@@ -289,9 +289,15 @@ async function writeParadoxTable(book: Workbook, context: CapabilityContext): Pr
           try { raw.set(encodeText(alpha, "CP1252", false, context).subarray(0, field.length)); }
           catch (error) { if (!(error instanceof SsconvertError) || error.code === "resource-limit") throw error; /* pxlib leaves null on conversion loss. */ }
         } else if (field.type === 23) {
-          const negative = text.startsWith("-"), sign = negative ? 15 : 0, point = text.indexOf(".");
+          const nul = text.indexOf("\0"), decimal = nul < 0 ? text : text.slice(0, nul);
+          const negative = decimal.startsWith("-"), sign = negative ? 15 : 0, point = decimal.indexOf(".");
           raw.fill(negative ? 255 : 0); raw[0] = (negative ? 64 : 192) + field.precision;
-          const whole = point < 0 ? text.slice(0, field.precision) : text.slice(0, point), fraction = point < 0 ? "" : text.slice(point + 1);
+          const whole = point < 0 ? decimal.slice(0, field.precision) : decimal.slice(0, point);
+          // pxlib advances fractional precision only when it encounters a digit.
+          let fraction = "";
+          if (point >= 0) for (let i = point + 1; i < decimal.length && fraction.length < field.precision; i++) {
+            if ("0123456789".includes(decimal[i]!)) fraction += decimal[i]!;
+          }
           const integral = field.precision === 32 ? "" : whole.split("").filter(c => "0123456789".includes(c)).join("").padStart(32 - field.precision,"0").slice(-(32 - field.precision));
           const digits = integral + fraction.padEnd(field.precision,"0").slice(0,field.precision);
           for (let i = 0; i < 32; i++) {

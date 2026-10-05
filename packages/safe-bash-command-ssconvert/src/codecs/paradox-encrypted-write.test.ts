@@ -267,3 +267,22 @@ it.each([false, true])("retains alpha prefix truncation warnings with encryption
   expect(messages).toEqual(["Field 1 in line 2 has possibly been cut off. Data has 9 characters."]);
   expect(actual).toEqual(await writeParadox(book("12345678"), encrypted ? options : [], bindings().context));
 });
+
+it.each([
+  [false, "1.a2", "1.20"], [true, "1.a2", "1.20"],
+  [false, "1.2x3", "1.23"], [true, "1.2x3", "1.23"],
+  [false, "-1.2,3", "-1.23"], [true, "-1.2,3", "-1.23"],
+  [false, "1.2\0x3", "1.20"], [true, "1.2\0x3", "1.20"]
+] as const)("scans BCD fraction digits with encryption=%s and text=%j", async (encrypted, text, expected) => {
+  // Thirty integral digits keep the independent pxlib oracle's unsigned
+  // reverse scan within the input; its short-input underflow is not emulated.
+  const value = text.startsWith("-") ? "-" + "0".repeat(29) + text.slice(1) : "0".repeat(29) + text;
+  const book: Workbook = { sheets: [{ id: "b", name: "BCD", cells: [
+    { row: 0, column: 0, value: { kind: "string", value: "Amount,#,2" } },
+    { row: 1, column: 0, value: { kind: "string", value } }
+  ] }] };
+  const output = await writeParadox(book, encrypted ? options : [], bindings().context);
+  const imported = await readParadox(output, context);
+  expect(imported.sheets[0]!.cells.find(cell => cell.row === 1)?.value)
+    .toEqual({ kind: "string", value: expected });
+});

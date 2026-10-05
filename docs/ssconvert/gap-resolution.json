@@ -4584,20 +4584,22 @@
       "status": "open",
       "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained.",
       "checkpoint20261004": {
-        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3\u201315 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen. Companion-absence authority and diagnostics pass 16 plaintext/encrypted SDK/command controls, with/without MB/PX sentinels and cancellation; native pxlib matches the missing-blob warning and unaffected short value. Genuine pxlib-generated DB/MB pairs now validate the same default-reading authority contract in16 public controls; explicit native attachment independently recovers the89-byte plaintext memo. Alpha exports now stop at NUL before encoding and warning admission;12 public plaintext/encrypted outputs pass independent pxlib field-byte checks. Eight ASCII application readbacks pass with a documented process-local GSF callback correction.",
+        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3\u201315 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen. Companion-absence authority and diagnostics pass 16 plaintext/encrypted SDK/command controls, with/without MB/PX sentinels and cancellation; native pxlib matches the missing-blob warning and unaffected short value. Genuine pxlib-generated DB/MB pairs now validate the same default-reading authority contract in16 public controls; explicit native attachment independently recovers the89-byte plaintext memo. Alpha exports now stop at NUL before encoding and warning admission;12 public plaintext/encrypted outputs pass independent pxlib field-byte checks. Eight ASCII application readbacks pass with a documented process-local GSF callback correction. BCD export now skips non-digit fractional characters until precision or NUL;16 public plaintext/encrypted outputs match bounded native field/decode controls and adapted-GSF application readbacks.",
         "evidence": [
           "#/paradoxInlineMemoUtf8",
           "#/paradoxMemoNulCapacity",
           "#/paradoxVersionRoutes",
           "#/paradoxCompanionAbsence",
           "#/paradoxCompanionContent",
-          "#/paradoxAlphaNulBoundary"
+          "#/paradoxAlphaNulBoundary",
+          "#/paradoxBcdFractionDigits"
         ],
         "nextAcceptance": "Version-byte, companion-absence and genuine memo default-reading checkpoints are complete. Remaining Paradox acceptance includes primary-index content, wider field/key/block/record profiles and installed artifacts. Preserve encrypted native memo null-payload and Gnumeric/GSF header-refusal limitations; do not repeat default-reading controls as external blob support.",
         "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
         "qualificationBlockers": [
           "Current Gnumeric/GSF path refuses all 13 retained version controls at header loading; direct pxlib file API opens them. Direct-file qualification is not a GSF application pass.",
-          "Native pxlib-generated encrypted DB/MB pair with explicit attachment returns success and declared length89 but a null memo payload. Plaintext explicit attachment returns exact content; neither this limitation nor default no-attachment behavior qualifies encrypted external memo content."
+          "Native pxlib-generated encrypted DB/MB pair with explicit attachment returns success and declared length89 but a null memo payload. Plaintext explicit attachment returns exact content; neither this limitation nor default no-attachment behavior qualifies encrypted external memo content.",
+          "Native pxlib0.6.9 BCD writing uses an unsigned reverse index and can read before short integral strings. The retained30-digit integral controls avoid that underflow; undefined short-input native parity is not claimed."
         ],
         "remainingAcceptance": [
           "Companion-file and wider block/record/version profiles through SDK and command export; native reopen must preserve schema/records and exact diagnostics.",
@@ -7119,6 +7121,24 @@
       "alpha-native-results.json": "2c73560021d7c1faf6ff9fc060439515434bd3a368fd80b6ee8d37ca0bfa606b",
       "alpha-gsf-results.json": "66a5effe7011c603debc1278c9daada3af329e01982d9e6f35b617cb3a910218",
       "gsf-read-adapter.c": "a5fedc8ee90aed2fe781df6cf9dfa29de872c8c612cd9a2e3c33117d19643052"
+    }
+  },
+  "paradoxBcdFractionDigits": {
+    "status": "BCD fractional text repair verified; family remains open",
+    "finding": "BCD export consumed fractional characters positionally, replacing non-digits with zero. Native PX_put_data_bcd advances precision only for digits and ends at NUL. For example a zero-padded1.a2 became1.02 instead of1.20;1.2x3 became1.20 instead of1.23.",
+    "repair": "Stop the C-string prefix at NUL and scan only enough fractional digits to fill declared precision, ignoring intervening characters. Retain the existing bounded integral conversion and zero padding.",
+    "native": "pxlib0.6.9 PX_put_data_bcd in paradox.c SHA256 7f60f69f240eb59032723cde8c0247667fd365f54d45cfcf2be1f7d88da73022. The original short-input oracle produced corrupt integral values: its size_t reverse index underflows while j>=0. That source/input/output evidence is retained as a native limitation. A30-digit integral prefix bounds that scan; the same unmodified native library then independently returns1.20,1.23,-1.23,1.20 for letter/comma/NUL controls. Do not emulate undefined reads or claim short-input native parity.",
+    "verification": "Six regressions fail before repair, with two NUL controls retained. All111 focused tests, changed-file lint, selected workspace build and test types pass. Sixteen compiled SDK/command plaintext/encrypted exports match exact native schema, decrypted17-byte BCD fields and decoded strings. All16 pass Gnumeric application CSV readback under the previously documented process-local GSF byte-count adapter; its reencoding warning remains classified. Screenshot inspected.",
+    "remaining": "Wider Paradox and installed profiles remain open; the original unadapted GSF, encrypted external memo null payload, and native short-BCD underflow are not qualification passes.",
+    "hashes": {
+      "bcd.c": "ce9c7fb23e2eefb548447b5646e5c380847fe3f55f75827268a497ae37338e47",
+      "bcd-short.c": "d12a54e4f0cdc794fb731aaa18ee6a073bde973f2ebfd4f14a9d02c53a7fec09",
+      "bcd-short-reference.json": "b6b6bcaa9989660f5587237d7f195f1d034154fef139cef0064be11e3038b667",
+      "bcd-public.mjs": "21606f51bd5926642aaf9c891e43382abeca026d97c05ba59758cbad3dc12b20",
+      "bcd-public-results.json": "5a85aef05c9e09b92d5446bc66ac5e696d61ec0947d340538fdf8eed872935b4",
+      "bcd-read.c": "e37019afbcdd15f66aec93c3010921fa1e65bb45a43709ad0eda7ca9c6d7202d",
+      "bcd-native-results.json": "c4d6a2b815da63a844420b80299bb02a827dc6d2b41acda099426ab7aea0ff36",
+      "bcd-gsf-results.json": "77225a85334e7c5f463a50969b6225a6721b45b318d4621df66d0d1bf41bab67"
     }
   }
 }

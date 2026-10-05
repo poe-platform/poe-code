@@ -208,6 +208,12 @@ warns. Eight ASCII application readbacks pass under an explicitly documented
 GSF byte-count adapter. The installed pxlib callback casts a pointer to int; the
 adapter corrects only that return value and does not establish unmodified-profile
 parity or CP1252 application support in the library built without reencoding.
+BCD fractional conversion now skips non-digits until precision or NUL
+(`paradoxBcdFractionDigits`);16 public encrypted/plain outputs match independent
+native bytes and adapted-GSF application readback. The native writer underflows
+an unsigned reverse index on short integral strings. Those failed controls remain
+recorded separately; the qualified cohort uses30 integral digits to bound that
+scan without modifying native BCD logic. Wider profiles remain open.
 PERL_DATE takes no arguments: the activated sample and eight compiled public
 routes match all ten scalar/error/reference/array rejection and valid-call
 controls in C/C.UTF-8 (`perlDateArgumentLocale`). Broader locale/runtime profiles

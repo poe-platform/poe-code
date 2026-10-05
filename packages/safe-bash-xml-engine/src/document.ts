@@ -66,7 +66,7 @@ async function attributes(
         const p = budget.tick(attribute.name.length + 1); if (p) await p;
         if (attribute.namespace === xmlns) continue;
         const at = attribute.name.indexOf(":");
-        if (at > 0 && attribute.name.slice(0, at) === prefix) used = true;
+        if ((attribute.prefix ?? (at > 0 ? attribute.name.slice(0, at) : "")) === prefix) used = true;
       }
       if (!used) continue;
     }
@@ -101,7 +101,9 @@ async function attributes(
     const leftReference = left.namespaceReference, rightReference = right.namespaceReference;
     const order = rightReference !== undefined ? await tokens.compare(leftReference ?? left.namespace, rightReference)
       : leftReference !== undefined ? -await tokens.compare(right.namespace, leftReference) : compare(left.namespace, right.namespace);
-    return order || compare(left.localName, right.localName);
+    if (order) return order;
+    return right.localNameReference !== undefined ? tokens.compare(left.localNameReference ?? left.localName, right.localNameReference)
+      : left.localNameReference !== undefined ? -await tokens.compare(right.localName, left.localNameReference) : compare(left.localName, right.localName);
   });
   return selected;
 }
@@ -349,7 +351,8 @@ export async function* serializeDocument(
           }
         }
         { const p = budget.tick(); if (p) await p; }
-        yield ` ${attribute.name}="`;
+        if (stored && attribute.nameReference !== undefined) { yield " "; yield* stored.nameText(attribute); yield '="'; }
+        else yield ` ${attribute.name}="`;
         if (stored) for await (const part of stored.attributeText(attribute)) yield* escape(part, true, budget, escaping);
         else yield* escape(attribute.value, true, budget, escaping);
         yield '"';

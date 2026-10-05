@@ -329,6 +329,8 @@ export interface XmlSourceLimits extends XmlStepLimits {
   readonly deferContentNames?: boolean;
   /** Defer long element local names; namespace prefixes retain their own token cost. */
   readonly deferElementNames?: boolean;
+  /** Defer ordinary attribute local names; namespace declarations retain prefix tokens. */
+  readonly deferAttributeNames?: boolean;
   /** Store attribute collections through host requests and emit resolved attributes individually. */
   readonly storeAttributes?: boolean;
   readonly fragmentAttributes?: boolean;
@@ -341,6 +343,7 @@ export function parseXmlSourceSteps(length: number | undefined, limits?: XmlStep
 export function parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits): Generator<XmlParseStep, XmlElement, void>;
 export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits = {}): Generator<XmlParseStep, XmlElement, void> {
   validateLimits(limits);
+  if (limits.deferAttributeNames && (!limits.storeAttributes || !limits.storeNamespaces)) throw new TypeError("Deferred attribute names require stored attributes and namespaces");
   if (limits.deferElementNames && limits.retainTree !== false) throw new TypeError("Deferred element names require retainTree: false");
   if (limits.deferContentNames && !limits.fragmentContent) throw new TypeError("Deferred XML content names require fragmentContent: true");
   if (limits.fragmentAttributes && !limits.storeAttributes) throw new TypeError("XML attribute fragments require storeAttributes: true");
@@ -409,7 +412,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     }
     return true;
   };
-  const scanName = function* (defer?: "content" | "element"): Generator<XmlSourceStep, [string, string, string, XmlSourceSpan?, XmlSourceSpan?]> {
+  const scanName = function* (defer?: "content" | "element" | "attribute"): Generator<XmlSourceStep, [string, string, string, XmlSourceSpan?, XmlSourceSpan?]> {
     const start = offset;
     while (yield* source.has(offset)) {
       const c = (yield* source.charCodeAt(offset));
@@ -425,6 +428,10 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
         const localStart = colon < 0 ? start : colon + 1;
         const prefix = colon < 0 ? "" : yield* source.slice(start, colon);
         const local = offset - localStart <= 512 ? yield* source.slice(localStart, offset) : "";
+        if (defer === "attribute" && prefix === "xmlns") {
+          const name = yield* source.slice(start, offset);
+          return [name, prefix, name.slice(6)];
+        }
         if (local) return ["", prefix, local, { start, end: offset }];
         return ["", prefix, "", { start, end: offset }, { start: localStart, end: offset }];
       }
@@ -599,9 +606,9 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
         const ch = (yield* source.charCodeAt(offset));
         if (ch === 47 || ch === 62 || limits.recover && offset === source.length) break;
         if (ws === 0) invalid("attributes require whitespace");
-        const [attribute, attrPrefix, attrLocal] = yield* scanName();
+        const [attribute, attrPrefix, attrLocal, nameSource, localNameSource] = yield* scanName(limits.deferAttributeNames ? "attribute" : undefined);
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-        if ((yield* attributes.has(attribute))) invalid("duplicate attribute");
+        if ((yield* attributes.has(attribute, nameSource))) invalid("duplicate attribute");
         if (++attributeCount > maxAttributes) throw new XmlLimitError("maxAttributes", "XML attribute limit exceeded");
         if (attributes.size >= maxAttributesPerElement) throw new XmlLimitError("maxAttributesPerElement", "XML attribute limit exceeded");
         yield* skipWhitespace();
@@ -645,7 +652,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
           while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
           admitText(value);
         }
-        yield* attributes.append(attribute, attrPrefix, attrLocal, value, limits.fragmentAttributes ? { start: offset, end } : undefined);
+        yield* attributes.append(attribute, attrPrefix, attrLocal, value, limits.fragmentAttributes ? { start: offset, end } : undefined, nameSource, localNameSource);
         offset = end + 1;
         if (attribute === "xmlns" || attribute.startsWith("xmlns:")) {
           const nsPrefix = attribute === "xmlns" ? "" : attribute.slice(6);
@@ -674,7 +681,7 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
           if (attributes.length > 1) {
             const backed = limits.storeAttributes && !(namespaces instanceof Map) ? namespaces : undefined;
             const key = backed ? attrLocal : `${attrPrefix ? (yield* namespaceValue(namespaces, attrPrefix)) : ""}\0${attrLocal}`;
-            if (yield* attributes.expanded(key, backed ? { scope: backed, prefix: attrPrefix } : undefined)) invalid("duplicate expanded attribute");
+            if (yield* attributes.expanded(key, backed ? { scope: backed, prefix: attrPrefix } : undefined, record.localNameSource)) invalid("duplicate expanded attribute");
           }
         }
       }
@@ -724,17 +731,18 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
           cursor = attribute.next;
           const namespace = attribute.name === "xmlns" || attribute.prefix === "xmlns" ? { namespace: xmlnsNamespace }
             : attribute.prefix ? yield* namespaceMetadata(namespaces, attribute.prefix, limits.deferNamespaces) : { namespace: "" };
+          const nameMetadata = { name: attribute.name, localName: attribute.localName, ...(attribute.nameSource ? { nameSource: attribute.nameSource, prefix: attribute.prefix } : {}), ...(attribute.localNameSource ? { localNameSource: attribute.localNameSource } : {}) };
           let continuation = false;
           if (attribute.source) {
             for (const part of textFragments(source, attribute.source.start, attribute.source.end, true, limits.recover ? () => {} : undefined, true)) {
               if (typeof part !== "string") { yield part; continue; }
-              limits.onAttribute({ name: attribute.name, localName: attribute.localName, ...namespace, value: part }, element, continuation);
+              limits.onAttribute({ ...nameMetadata, ...namespace, value: part }, element, continuation);
               continuation = true;
               yield 1;
             }
           }
           if (!continuation) {
-            limits.onAttribute({ name: attribute.name, localName: attribute.localName, ...namespace, value: attribute.value }, element);
+            limits.onAttribute({ ...nameMetadata, ...namespace, value: attribute.value }, element);
             yield 1;
           }
         }

@@ -43,6 +43,7 @@ export class StoredXmlDocument {
       const namespaces = await new StoredNamespaces(document.storage, budget).set("xml", "http://www.w3.org/XML/1998/namespace");
       await document.set(document.documentReference, namespacesField, namespaces.reference);
       let parent = document.documentReference, fragmentTail = 0, attributeTail = 0, targetReference: number | undefined;
+      let attributeNames: Pick<XmlName, "nameReference" | "localNameReference"> = {};
       let pendingNamespace: { prefix: string; reference: number } | undefined;
       let tokens = new StoredNamespaces(document.storage, budget);
       const consume = async (event: XmlStreamEvent, namespaceParts: (reference: number) => AsyncIterable<string>, sourceParts: (span: XmlSourceSpan) => AsyncIterable<string>): Promise<void> => {
@@ -60,8 +61,17 @@ export class StoredXmlDocument {
             pendingNamespace = undefined;
           }
           if (event.type === "attribute") {
-            const attribute = event.attribute.namespaceReference === undefined ? event.attribute : {
-              ...event.attribute, namespaceReference: await retainNamespace(event.attribute.namespaceReference)
+            if (!event.continuation) {
+              const full = event.attribute.nameSource;
+              const local = event.attribute.localNameSource;
+              const nameReference = full ? await tokens.storeString(sourceParts(full)) : undefined;
+              const localNameReference = local ? local.start === full?.start ? nameReference : await tokens.storeString(sourceParts(local)) : undefined;
+              attributeNames = { ...(nameReference === undefined ? {} : { nameReference }), ...(localNameReference === undefined ? {} : { localNameReference }) };
+            }
+            const { nameSource: ignoredNameSource, localNameSource: ignoredLocalSource, ...original } = event.attribute;
+            const retained = { ...original, ...attributeNames };
+            const attribute = event.attribute.namespaceReference === undefined ? retained : {
+              ...retained, namespaceReference: await retainNamespace(event.attribute.namespaceReference)
             };
             const reference = await document.append(parent, { kind: "attribute", value: attribute }, event.continuation);
             if (event.continuation) await document.set(attributeTail, fragmentField, reference);
@@ -102,7 +112,7 @@ export class StoredXmlDocument {
             parent = reference;
           }
       };
-      await parseStoredXml(source, context, budget, recover, consume, { deferNamespaces: true, deferContentNames: true, deferElementNames: true });
+      await parseStoredXml(source, context, budget, recover, consume, { deferNamespaces: true, deferContentNames: true, deferElementNames: true, deferAttributeNames: true });
       return document;
     } catch (error) {
       try { await document.close(); }
@@ -169,6 +179,10 @@ export class StoredXmlDocument {
         for await (const part of this.attributeText(attribute)) complete.value += part;
         complete.namespace = "";
         for await (const part of this.namespaceText(attribute)) complete.namespace += part;
+        complete.name = ""; complete.localName = "";
+        for await (const part of this.nameText(attribute)) complete.name += part;
+        for await (const part of this.nameText(attribute, true)) complete.localName += part;
+        delete complete.nameReference; delete complete.localNameReference; delete complete.prefix;
         delete complete.namespaceReference;
         attributes.push(complete);
       }
@@ -185,8 +199,11 @@ export class StoredXmlDocument {
       let text = "";
       for await (const part of this.text(reference)) text += part;
       let namespace = ""; for await (const part of this.namespaceText(value.value)) namespace += part;
-      const { namespaceReference: ignoredNamespaceReference, ...attribute } = value.value;
-      return { ...value, value: { ...attribute, namespace, value: text } };
+      let name = "", localName = "";
+      for await (const part of this.nameText(value.value)) name += part;
+      for await (const part of this.nameText(value.value, true)) localName += part;
+      const { namespaceReference: ignoredNamespaceReference, nameReference: ignoredName, localNameReference: ignoredLocal, prefix: ignoredPrefix, ...attribute } = value.value;
+      return { ...value, value: { ...attribute, name, localName, namespace, value: text } };
     }
     if (value.kind === "processing-instruction" && value.targetReference !== undefined) {
       let target = ""; for await (const part of this.targetText(value)) target += part;

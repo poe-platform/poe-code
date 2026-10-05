@@ -102,7 +102,7 @@ export class StoredStringMap {
   }
 
   /** Locate a value without loading it; callers testing membership need only its reference. */
-  async lookup(key: string): Promise<number | undefined> {
+  async lookup(key: string | number): Promise<number | undefined> {
     let reference = this.reference;
     while (reference) {
       const checkpoint = this.budget.tick(1); if (checkpoint) await checkpoint;
@@ -113,7 +113,7 @@ export class StoredStringMap {
     return undefined;
   }
 
-  async get(key: string): Promise<string | undefined> {
+  async get(key: string | number): Promise<string | undefined> {
     const reference = await this.lookup(key);
     return reference === undefined ? undefined : this.string(reference);
   }
@@ -147,8 +147,8 @@ export class StoredStringMap {
     return this.updated(entry);
   }
 
-  async set(key: string | AsyncIterable<string>, value: string | AsyncIterable<string> | { reference: number }): Promise<StoredStringMap> {
-    const storedKey = typeof key === "string" ? key : await this.storeString(key);
+  async set(key: string | number | AsyncIterable<string>, value: string | AsyncIterable<string> | { reference: number }): Promise<StoredStringMap> {
+    const storedKey = typeof key === "string" || typeof key === "number" ? key : await this.storeString(key);
     const suppliedReference = typeof value === "string" ? undefined : "reference" in value ? value.reference : await this.storeString(value);
     const insert = async (reference: number): Promise<number> => {
       if (!reference) return this.write({ key: typeof storedKey === "number" ? storedKey : await this.storeString([storedKey]), value: suppliedReference ?? await this.storeString([value as string]), left: 0, right: 0, height: 1 });

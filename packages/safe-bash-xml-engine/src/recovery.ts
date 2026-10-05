@@ -16,7 +16,7 @@ export async function parseStoredXml(
   budget: XmlBudget,
   recover?: (message: string) => void,
   consume?: (event: XmlEvent, namespaceParts: (reference: number) => AsyncIterable<string>, sourceParts: (span: XmlSourceSpan) => AsyncIterable<string>) => Promise<void>,
-  options: { deferNamespaces?: boolean; deferContentNames?: boolean; deferElementNames?: boolean } = {},
+  options: { deferNamespaces?: boolean; deferContentNames?: boolean; deferElementNames?: boolean; deferAttributeNames?: boolean } = {},
 ): Promise<XmlElement> {
   const cache = new PagedStorageCache(4);
   const storage = new PagedStorage(context, 4, cache);
@@ -64,7 +64,7 @@ export async function parseStoredXml(
     }
     const queued: XmlEvent[] = [];
     const frames = new StoredXmlFrames(frameStorage);
-    const attributes = new StoredParserAttributes(frameStorage, budget);
+    const attributes = new StoredParserAttributes(frameStorage, budget, sourceParts);
     const parser = parseXmlSourceSteps(recover ? length : undefined, {
       ...budget.limits, ...options, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, storeNamespaces: true, storeAttributes: true, fragmentAttributes: true, fragmentContent: true, compactDeclaration: true,
       ...(recover ? { recover } : {}), ...(consume ? { events: (event: XmlEvent) => { queued.push(event); }, onAttribute: (attribute: XmlAttribute, element: XmlElement, continuation = false) => { queued.push({ type: "attribute", attribute, element, continuation }); } } : {}),

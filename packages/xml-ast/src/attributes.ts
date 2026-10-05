@@ -1,8 +1,9 @@
+import type { XmlSourceSpan } from "./source.js";
 import type { XmlNamespaceScope } from "./frames.js";
-export interface XmlAttributeRecord { name: string; prefix: string; localName: string; value: string; next: number; source?: { start: number; end: number }; }
+export interface XmlAttributeRecord { name: string; prefix: string; localName: string; value: string; next: number; nameSource?: XmlSourceSpan; localNameSource?: XmlSourceSpan; source?: { start: number; end: number }; }
 export interface XmlAttributeState { reference: number; first: number; length: number; size: number; }
 export type XmlAttributeRequest =
-  | { attributeOperation: 'has' | 'expanded'; state: XmlAttributeState; name: string; found?: boolean; namespace?: { scope: XmlNamespaceScope; prefix: string } }
+  | { attributeOperation: 'has' | 'expanded'; state: XmlAttributeState; name: string; nameSource?: XmlSourceSpan; found?: boolean; namespace?: { scope: XmlNamespaceScope; prefix: string } }
   | { attributeOperation: 'append'; state: XmlAttributeState; attribute: Omit<XmlAttributeRecord, 'next'>; result?: XmlAttributeState }
   | { attributeOperation: 'read'; state: XmlAttributeState; reference: number; values: boolean; result?: XmlAttributeRecord };
 
@@ -18,22 +19,22 @@ export class XmlAttributes {
   get size(): number { return this.state.size; }
   get first(): number { return this.state.first; }
 
-  *has(name: string): Generator<XmlAttributeRequest, boolean, void> {
+  *has(name: string, nameSource?: XmlSourceSpan): Generator<XmlAttributeRequest, boolean, void> {
     if (!this.length) return false;
     if (!this.external) return this.names.has(name);
-    const request: XmlAttributeRequest = { attributeOperation: 'has', state: this.state, name };
+    const request: XmlAttributeRequest = { attributeOperation: 'has', state: this.state, name, ...(nameSource ? { nameSource } : {}) };
     yield request;
     if (request.found === undefined) throw new TypeError('Incomplete XML attribute lookup');
     return request.found;
   }
 
-  *append(name: string, prefix: string, localName: string, value: string, source?: { start: number; end: number }): Generator<XmlAttributeRequest, void, void> {
+  *append(name: string, prefix: string, localName: string, value: string, source?: { start: number; end: number }, nameSource?: XmlSourceSpan, localNameSource?: XmlSourceSpan): Generator<XmlAttributeRequest, void, void> {
     if (!this.external) {
       this.names.set(name, value); this.records.push({ name, prefix, localName });
       this.state = { reference: 0, first: 1, length: this.records.length, size: this.names.size };
       return;
     }
-    const request: XmlAttributeRequest = { attributeOperation: 'append', state: this.state, attribute: { name, prefix, localName, value, ...(source ? { source } : {}) } };
+    const request: XmlAttributeRequest = { attributeOperation: 'append', state: this.state, attribute: { name, prefix, localName, value, ...(source ? { source } : {}), ...(nameSource ? { nameSource } : {}), ...(localNameSource ? { localNameSource } : {}) } };
     yield request;
     if (!request.result) throw new TypeError('Incomplete XML attribute append');
     this.state = request.result;
@@ -50,11 +51,11 @@ export class XmlAttributes {
     return request.result;
   }
 
-  *expanded(name: string, namespace?: { scope: XmlNamespaceScope; prefix: string }): Generator<XmlAttributeRequest, boolean, void> {
+  *expanded(name: string, namespace?: { scope: XmlNamespaceScope; prefix: string }, nameSource?: XmlSourceSpan): Generator<XmlAttributeRequest, boolean, void> {
     if (!this.external) {
       const found = this.expandedNames.has(name); this.expandedNames.add(name); return found;
     }
-    const request: XmlAttributeRequest = { attributeOperation: 'expanded', state: this.state, name, ...(namespace ? { namespace } : {}) };
+    const request: XmlAttributeRequest = { attributeOperation: 'expanded', state: this.state, name, ...(namespace ? { namespace } : {}), ...(nameSource ? { nameSource } : {}) };
     yield request;
     if (request.found === undefined) throw new TypeError('Incomplete XML expanded attribute lookup');
     return request.found;

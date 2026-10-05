@@ -76,7 +76,7 @@ for (const target of ["a".repeat(600), "p:" + "a".repeat(600), "a".repeat(511) +
     assert.deepEqual(await fs.readdir("/"), []);
   });
 
-for (const kind of ["PI", "element"]) for (const recover of [false, true]) for (const outcome of ["read", "write", "abort"]) test(`${kind} name copy cleans up on ${outcome} (recover=${recover})`, async t => {
+for (const kind of ["PI", "element", "attribute"]) for (const recover of [false, true]) for (const outcome of ["read", "write", "abort"]) test(`${kind} name copy cleans up on ${outcome} (recover=${recover})`, async t => {
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("name copy stopped");
   let copying = false, fragments = 0, opened = 0, closed = 0, sourceClosed = false;
   const store = StoredStringMap.prototype.storeString;
@@ -112,7 +112,7 @@ for (const kind of ["PI", "element"]) for (const recover of [false, true]) for (
     return typeof value === "function" ? value.bind(target) : value;
   } });
   const source = (function* () {
-    try { yield kind === "PI" ? "<r><?" : "<"; const piece = "a".repeat(4096); for (let i = 0; i < 80; i++) yield piece; yield kind === "PI" ? " data?></r>" : "/>"; }
+    try { yield kind === "PI" ? "<r><?" : kind === "attribute" ? "<r " : "<"; const piece = "a".repeat(4096); for (let i = 0; i < 80; i++) yield piece; yield kind === "PI" ? " data?></r>" : kind === "attribute" ? '="value"/>' : "/>"; }
     finally { sourceClosed = true; }
   })();
   const budget = new XmlBudget(resolveXmlQueryLimits(), controller.signal, async () => {});

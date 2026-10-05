@@ -253,7 +253,8 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
     return;
   }
   if (node.kind === "attribute") {
-    yield ` ${node.value.name}="`;
+    if (node.stored) { yield " "; yield* node.stored.document.nameText(node.value); yield '="'; }
+    else yield ` ${node.value.name}="`;
     for await (const part of stringValue(node, budget)) yield* escape(part, true, budget);
     yield '"';
     return;
@@ -266,11 +267,11 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
       if (value.kind === "element") {
         let hasChildren = false;
         for await (const ignored of document.children(event.reference)) { hasChildren = true; break; }
-        if (event.closing) { if (hasChildren) yield `</${value.name}>`; continue; }
-        yield `<${value.name}`;
+        if (event.closing) { if (hasChildren) { yield "</"; yield* document.nameText(value); yield ">"; } continue; }
+        yield "<"; yield* document.nameText(value);
         for await (const attribute of document.attributes(event.reference)) {
           const p = budget.tick(); if (p) await p;
-          yield ` ${attribute.name}="`;
+          yield " "; yield* document.nameText(attribute); yield '="';
           for await (const part of document.attributeText(attribute)) yield* escape(part, true, budget);
           yield '"';
         }

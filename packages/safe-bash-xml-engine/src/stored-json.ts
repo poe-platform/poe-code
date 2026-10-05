@@ -118,7 +118,7 @@ export async function* storedXmlToJson(document: StoredXmlDocument, budget: XmlB
         const value = await document.metadata(task.reference);
         if (value.kind !== "attribute") throw new TypeError("Expected XML attribute");
         const attribute = value.value;
-        yield* quoted(["@" + attribute.name]); yield ":"; yield* quoted(document.text(task.reference)); continue;
+        yield* quoted((async function* () { yield "@"; yield* document.nameText(attribute); })()); yield ":"; yield* quoted(document.text(task.reference)); continue;
       }
       if (task.kind === "text") { yield* quoted(directText(task.reference, task.first, task.last)); continue; }
       if (task.kind === "members") {

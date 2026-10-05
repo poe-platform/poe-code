@@ -169,3 +169,10 @@ conversion failures, cancellation, and early query termination. Measure XML
 conversion separately from jq: jq still retains arbitrary query values, and XML
 parser tokens/namespace scopes still need bounded backing. Record Worker memory, CPU,
 first-byte latency, and concurrent-request behavior using the procedure above.
+
+Ordinary attribute local names now use source spans and stored token references.
+Increase one local name independently of attribute count and value size; include
+late namespace declarations, duplicate raw names, equal expanded names through
+URI aliases, canonical ordering, XPath attribute/node serialization and xq keys.
+Check failure and cancellation during name copying and fragment continuation.
+Namespace declarations with long prefixes still require their separate backing gate.

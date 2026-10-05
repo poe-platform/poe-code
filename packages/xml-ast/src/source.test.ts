@@ -1,4 +1,5 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
+import { XmlSource } from './source.js';
 import { normalizeXmlChunks, parseXml, parseXmlSourceSteps } from './index.js';
 
 for (const width of [1, 511, 4096]) it(`external XML source preserves tokens across read windows (width=${width})`, () => {
@@ -92,4 +93,114 @@ for (const payload of ['', '😀'.repeat(5000)]) it(`fragments CDATA without cha
   }
   expect(actual).toBe(payload);
   expect(events).toBeGreaterThan(0);
+});
+
+for (const body of [
+  'x😀'.repeat(4000),
+  ('a&amp;&#x1f600;&lt;&gt;&quot;&apos;').repeat(400),
+  '&#' + '0'.repeat(10000) + '65;',
+]) it(`fragments a logical text node with bounded entity decoding (${body.length})`, () => {
+  const source = `<r>${body}</r>`;
+  let actual = '', fragments = 0;
+  const parser = parseXmlSourceSteps(undefined, {
+    retainTree: false, fragmentContent: true, maxContentNodes: 2,
+    events(event) {
+      if (event.type !== 'content') return;
+      expect(event.content.kind).toBe('text');
+      expect(event.content.text.length).toBeLessThanOrEqual(512);
+      expect(event.continuation === true).toBe(fragments > 0);
+      actual += event.content.text;
+      fragments++;
+    },
+  });
+  let step = parser.next();
+  while (!step.done) {
+    if (typeof step.value !== 'number') {
+      if (!('offset' in step.value)) throw new Error('unexpected frame request');
+      step.value.value = source.slice(step.value.offset, step.value.offset + Math.min(7, step.value.length));
+      step.value.complete = step.value.offset + step.value.value.length === source.length;
+    }
+    step = parser.next();
+  }
+  expect(actual).toBe(parseXml(source).text);
+  expect(fragments).toBeGreaterThan(0);
+});
+
+it('does not materialize a large entity token on the fragmented source path', () => {
+  const source = '<r>&#' + '0'.repeat(20000) + '65;</r>';
+  const slice = vi.spyOn(XmlSource.prototype, 'slice');
+  try {
+    const parser = parseXmlSourceSteps(source.length, { retainTree: false, fragmentContent: true });
+    let step = parser.next();
+    while (!step.done) {
+      if (typeof step.value !== 'number') {
+        if (!('offset' in step.value)) throw new Error('unexpected frame request');
+        step.value.value = source.slice(step.value.offset, step.value.offset + step.value.length);
+      }
+      step = parser.next();
+    }
+    expect(slice.mock.calls.every(([start, end]) => end !== undefined && end - start <= 512)).toBe(true);
+  } finally { slice.mockRestore(); }
+});
+
+for (const recover of [false, true]) for (const body of [
+  'a&missing;b', 'a&unterminated', '&#x;', '&#;', '&#xyz;', '&#0;', '&#x110000;',
+  'a'.repeat(511) + ']]>', 'a&bad;]]>', 'a&amp;lt;b', '&missing;',
+]) it(`fragmented text preserves diagnostics and recovery (${recover}, ${body.slice(-25)})`, () => {
+  const input = `<r>${body}</r>`;
+  const messages: string[] = [], expectedMessages: string[] = [];
+  let expected: string | undefined, actual = '', expectedError: unknown, actualError: unknown;
+  try { expected = parseXml(input, recover ? { recover: message => { expectedMessages.push(message); } } : {}).text; }
+  catch (error) { expectedError = error; }
+  const parser = parseXmlSourceSteps(input.length, {
+    retainTree: false, fragmentContent: true,
+    ...(recover ? { recover: (message: string) => { messages.push(message); } } : {}),
+    events(event) { if (event.type === 'content') actual += event.content.text; },
+  });
+  try {
+    let step = parser.next();
+    while (!step.done) {
+      if (typeof step.value !== 'number') {
+        if (!('offset' in step.value)) throw new Error('unexpected frame request');
+        step.value.value = input.slice(step.value.offset, step.value.offset + step.value.length);
+      }
+      step = parser.next();
+    }
+  } catch (error) { actualError = error; }
+  expect(actualError).toEqual(expectedError);
+  expect(messages).toEqual(expectedMessages);
+  if (!expectedError) expect(actual).toBe(expected);
+});
+
+it('bounded delimiter searches do not pull input past the logical text span', () => {
+  const source = new XmlSource(undefined);
+  const search = source.indexOf(';', 0, 5);
+  const step = search.next();
+  if (typeof step.value !== 'object') throw new Error('expected source read');
+  step.value.value = 'a&bad';
+  expect(search.next()).toEqual({ done: true, value: -1 });
+});
+
+it('text fragmentation preserves text-limit precedence and publishes no partial invalid node', () => {
+  for (const body of ['a'.repeat(1024), 'a'.repeat(1024) + '&bad;']) {
+    const input = `<r>${body}</r>`;
+    let expected: unknown, actual: unknown, events = 0;
+    try { parseXml(input, { maxTextLength: 1, maxContentNodes: 1 }); } catch (error) { expected = error; }
+    const parser = parseXmlSourceSteps(input.length, {
+      retainTree: false, fragmentContent: true, maxTextLength: 1, maxContentNodes: 1,
+      events(event) { if (event.type === 'content') events++; },
+    });
+    try {
+      let step = parser.next();
+      while (!step.done) {
+        if (typeof step.value !== 'number') {
+          if (!('offset' in step.value)) throw new Error('unexpected frame request');
+          step.value.value = input.slice(step.value.offset, step.value.offset + step.value.length);
+        }
+        step = parser.next();
+      }
+    } catch (error) { actual = error; }
+    expect(actual).toEqual(expected);
+    expect(events).toBe(0);
+  }
 });

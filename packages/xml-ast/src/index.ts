@@ -109,6 +109,85 @@ function qualifiedNameSync(name: string, cache: QualifiedNameCache): [string, st
   return parts;
 }
 
+function entity(source: string, start: number, end: number, recover?: (message: string) => void): Generator<number, string, void>;
+function entity(source: XmlSource, start: number, end: number, recover?: (message: string) => void): Generator<XmlSourceStep, string, void>;
+function* entity(source: string | XmlSource, start: number, end: number, recover?: (message: string) => void): Generator<XmlSourceStep, string, void> {
+  // Inspect only a bounded prefix, even for arbitrarily long numeric references.
+  const prefix = typeof source === "string" ? source.slice(start, Math.min(end, start + 4))
+    : yield* source.slice(start, Math.min(end, start + 4));
+  const predefined: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+  if (end - start <= 4 && Object.hasOwn(predefined, prefix)) return predefined[prefix]!;
+  const hexadecimal = prefix.startsWith("#x"), digits = start + (hexadecimal ? 2 : 1);
+  if (!prefix.startsWith("#") || digits >= end) {
+    if (!recover) invalid("undeclared entity");
+    recover("undeclared entity");
+    return "";
+  }
+  let point = 0;
+  for (let index = digits; index < end; index++) {
+    const code = typeof source === "string" ? source.charCodeAt(index) : yield* source.charCodeAt(index);
+    const digit = code >= 48 && code <= 57 ? code - 48 : hexadecimal && code >= 65 && code <= 70 ? code - 55
+      : hexadecimal && code >= 97 && code <= 102 ? code - 87 : -1;
+    if (digit < 0) invalid("undeclared entity");
+    point = point * (hexadecimal ? 16 : 10) + digit;
+    if (point > 0x10ffff) invalid("invalid character reference");
+    if ((index - digits + 1) % 512 === 0) yield 512;
+  }
+  if ((end - digits) % 512) yield (end - digits) % 512;
+  if (!validCharacter(point)) invalid("invalid character reference");
+  return String.fromCodePoint(point);
+}
+
+/** Decoded text fragments; source read/work requests remain host-serviced. */
+function* textParts(source: XmlSource, start: number, end: number, decode: boolean,
+  recover?: (message: string) => void): Generator<XmlSourceStep | string, void, void> {
+  let cursor = start;
+  while (cursor < end) {
+    let finish = Math.min(end, cursor + 512);
+    if (finish < end) {
+      const last = yield* source.charCodeAt(finish - 1);
+      if (last >= 0xd800 && last <= 0xdbff) finish--;
+    }
+    const raw = yield* source.slice(cursor, finish);
+    const found = decode ? raw.indexOf("&") : -1;
+    if (found < 0) {
+      yield raw;
+      yield raw.length;
+      cursor = finish;
+      continue;
+    }
+    const amp = cursor + found;
+    if (found) { yield raw.slice(0, found); yield found; }
+    const semicolon = yield* source.indexOf(";", amp + 1, end);
+    if (semicolon < 0) {
+      if (!recover) invalid("unterminated entity");
+      recover("unterminated entity");
+      cursor = amp + 1;
+      decode = false;
+      continue;
+    }
+    const part = yield* entity(source, amp + 1, semicolon, recover);
+    if (part) yield part;
+    yield 1;
+    cursor = semicolon + 1;
+  }
+}
+
+function* textFragments(source: XmlSource, start: number, end: number, decode: boolean,
+  recover?: (message: string) => void): Generator<XmlSourceStep | string, void, void> {
+  let pending = "";
+  for (const part of textParts(source, start, end, decode, recover)) {
+    if (typeof part !== "string") { yield part; continue; }
+    pending += part;
+    while (pending.length >= 512) {
+      const last = pending.charCodeAt(511), width = last >= 0xd800 && last <= 0xdbff ? 511 : 512;
+      yield pending.slice(0, width);
+      pending = pending.slice(width);
+    }
+  }
+  if (pending) yield pending;
+}
+
 function* entities(text: string, recover?: (message: string) => void): Generator<number, string, void> {
   let result = "";
   let offset = 0;
@@ -122,32 +201,7 @@ function* entities(text: string, recover?: (message: string) => void): Generator
       recover("unterminated entity");
       return result + text.slice(start + 1);
     }
-    const entity = text.slice(start + 1, end);
-    const predefined: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
-    if (Object.hasOwn(predefined, entity)) result += predefined[entity];
-    else {
-      const hexadecimal = entity.startsWith("#x");
-      const digits = entity.slice(hexadecimal ? 2 : 1);
-      if (!entity.startsWith("#") || !digits.length) {
-        if (!recover) invalid("undeclared entity");
-        recover("undeclared entity");
-        offset = end + 1;
-        continue;
-      }
-      let point = 0;
-      for (let index = 0; index < digits.length; index++) {
-        const code = digits.charCodeAt(index);
-        const digit = code >= 48 && code <= 57 ? code - 48 : hexadecimal && code >= 65 && code <= 70 ? code - 55
-          : hexadecimal && code >= 97 && code <= 102 ? code - 87 : -1;
-        if (digit < 0) invalid("undeclared entity");
-        point = point * (hexadecimal ? 16 : 10) + digit;
-        if (point > 0x10ffff) invalid("invalid character reference");
-        if ((index + 1) % 512 === 0) yield 512;
-      }
-      if (digits.length % 512) yield digits.length % 512;
-      if (!validCharacter(point)) invalid("invalid character reference");
-      result += String.fromCodePoint(point);
-    }
+    result += yield* entity(text, start + 1, end, recover);
     offset = end + 1;
   }
   return result;
@@ -218,7 +272,7 @@ function validateLimits(limits: XmlStepLimits): void {
 }
 
 export interface XmlSourceLimits extends XmlStepLimits {
-  /** Emit CDATA in bounded fragments, marking continuations of the same logical
+  /** Emit text and CDATA in bounded fragments, marking continuations of the same logical
    * node. Requires retainTree: false; consumers must preserve fragment identity. */
   readonly fragmentContent?: boolean;
   /** Store active parser frames through host-serviced requests. Requires retainTree: false. */
@@ -301,6 +355,38 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
     if ((yield* source.charCodeAt(offset)) !== 60) {
       const next = (yield* source.indexOf("<", offset));
       const endPos = next < 0 ? source.length : next;
+      if (limits.fragmentContent) {
+        if ((yield* source.indexOf("]]>", offset, endPos)) >= 0) invalid("CDATA terminator in text");
+        const parent = yield* stack.peek();
+        let size = 0, outsideText = false;
+        // Validate before emitting any part of the logical node. This preserves
+        // entity/recovery diagnostics and limit precedence without retaining it.
+        for (const part of textFragments(source, offset, endPos, !!parent, limits.recover)) {
+          if (typeof part !== "string") { yield part; continue; }
+          size += part.length;
+          if (!parent) for (const character of part) {
+            if (!" \t\r\n".includes(character)) outsideText = true;
+          }
+        }
+        if (size > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
+        textLength += size;
+        if (outsideText) invalid("text outside the root");
+        if (size) {
+          admitContent();
+          if (limits.events) {
+            let continuation = false;
+            for (const part of textFragments(source, offset, endPos, !!parent, limits.recover ? () => {} : undefined)) {
+              if (typeof part !== "string") { yield part; continue; }
+              limits.events({ type: "content", content: { kind: "text", text: part }, parent: parent?.element,
+                ...(continuation ? { continuation: true } : {}) });
+              continuation = true;
+              yield 1;
+            }
+          }
+        }
+        offset = endPos;
+        continue;
+      }
       const text = (yield* source.slice(offset, endPos));
       pendingWork += (endPos - offset) + text.length;
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }

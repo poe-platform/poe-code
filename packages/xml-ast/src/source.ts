@@ -60,14 +60,15 @@ export class XmlSource {
     }
     return true;
   }
-  *indexOf(value: string, offset: number): Generator<XmlSourceStep, number, void> {
+  *indexOf(value: string, offset: number, end = Infinity): Generator<XmlSourceStep, number, void> {
     let tail = '';
-    while (yield* this.has(offset)) {
-      const part = tail + this.window.slice(offset - this.start);
+    while (offset < end && (yield* this.has(offset))) {
+      const stop = Math.min(end, this.start + this.window.length);
+      const part = tail + this.window.slice(offset - this.start, stop - this.start);
       const found = part.indexOf(value);
       if (found >= 0) return offset - tail.length + found;
       tail = value.length > 1 ? part.slice(-(value.length - 1)) : '';
-      offset = this.start + this.window.length;
+      offset = stop;
     }
     return -1;
   }

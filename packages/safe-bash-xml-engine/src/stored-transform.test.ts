@@ -108,3 +108,61 @@ for (const recovery of [false, true]) test(`a large CDATA section stays one page
   } finally { await document.close(); }
   assert.deepEqual(await fs.readdir("/"), []);
 });
+
+for (const recovery of [false, true]) test(`large entity-bearing text stays one paged node (recovery=${recovery})`, async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  let writes = 0, opened = 0, closed = 0;
+  const injected = new Proxy(fs, { get(target, key) {
+    if (key === "readFile" || key === "writeFile") return () => assert.fail("use bounded descriptor I/O");
+    if (key === "open") return async (...args: Parameters<typeof fs.open>) => {
+      const handle = await fs.open(...args); opened++;
+      return new Proxy(handle, { get(descriptor, member) {
+        if (member === "write") return async (...values: Parameters<typeof handle.write>) => {
+          assert.ok(values[0].byteLength <= 16384); writes++;
+          await Promise.resolve();
+          return handle.write(...values);
+        };
+        if (member === "read") return async (...values: Parameters<typeof handle.read>) => {
+          assert.ok(values[0].byteLength <= 16384);
+          return handle.read(...values);
+        };
+        if (member === "close") return async () => { closed++; await handle.close(); };
+        const value = Reflect.get(descriptor, member, descriptor);
+        return typeof value === "function" ? value.bind(descriptor) : value;
+      } });
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const budget = new XmlBudget(resolveXmlQueryLimits(), signal, async () => {});
+  const chunk = "x😀&amp;&#65;", repetitions = 3000;
+  const document = await StoredXmlDocument.parse((function* () {
+    yield "<r>";
+    for (let index = 0; index < repetitions; index++) yield chunk;
+    yield "</r>";
+  })(), { fs: injected, cwd: "/", env: {}, signal }, budget, 1, recovery ? () => {} : undefined);
+  const load = document.node.bind(document);
+  document.node = async reference => {
+    const node = await load(reference);
+    if (node.kind === "text") assert.ok(node.text.length <= 512);
+    return node;
+  };
+  try {
+    const xpath = new StoredXPath(document, budget);
+    assert.equal(await xpath.scalar(await parseQuery("count(/r/text())", budget)), "1");
+    const selected = await xpath.select(await parseQuery("/r/text()", budget));
+    let text = "", serialized = "";
+    for await (const node of selected.nodes()) {
+      for await (const part of stringValue(node, budget)) text += part;
+      for await (const part of serialize(node, budget)) { serialized += part; await Promise.resolve(); }
+    }
+    assert.equal(text, "x😀&A".repeat(repetitions));
+    assert.equal(serialized, "x😀&amp;A".repeat(repetitions));
+    await document.transform({ nocdata: true, noblanks: true });
+    let formatted = "";
+    for await (const part of serializeDocument(document, "format", budget, false)) formatted += part;
+    assert.equal(formatted, `<?xml version="1.0"?>\n<r>${"x&#x1F600;&amp;A".repeat(repetitions)}</r>\n`);
+  } finally { await document.close(); }
+  assert.ok(writes > 0); assert.equal(closed, opened);
+  assert.deepEqual(await fs.readdir("/"), []);
+});

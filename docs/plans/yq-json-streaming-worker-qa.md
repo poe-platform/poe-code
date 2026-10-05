@@ -59,8 +59,11 @@ native xmllint without a concatenated value in the formatting/selection path.
 Also increase the size of a single CDATA section using reused Unicode chunks.
 Verify one XPath node per section (including empty sections), unchanged CDATA
 serialization and canonical output, bounded node metadata, and cleanup when a
-fragment consumer fails. CDATA bodies now use 512-unit fragments; ordinary text,
-comments, attributes and namespace scopes still need separate backing work.
+fragment consumer fails. Repeat with one large ordinary text node, many predefined
+entities and numeric references with long leading-zero spans; verify error precedence
+and that recovery messages are not duplicated by replay. Text and CDATA bodies now
+use 512-unit fragments; comments, attributes and namespace scopes still need
+separate backing work.
 
 For recovery, repeat formatting, CDATA conversion and XPath with a missing final
 closing tag. Verify repaired output and diagnostics, paged node writes and cleanup

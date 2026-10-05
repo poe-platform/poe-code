@@ -60,7 +60,7 @@ test("NONCOMPLIANT characterization: inherited Mock identity with different loca
   assert.equal(await first.compareEntry("/source", second, "/source"), "distinct");
   const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/first": first, "/second": second } });
   await assert.rejects(mounted.copyFile("/first/source", "/second/source"), error => error instanceof FsError && error.code === "EIO");
-  assert.deepEqual(effects, ["writeStream"]);
+  assert.deepEqual(effects, ["readStream", "writeStream"]);
   assert.deepEqual(await memory.readFile("/source"), damaged);
   context.diagnostic(JSON.stringify({ classification: "host binding violation, NOT compliant workflow success", effects, source: [...await memory.readFile("/source")] }));
 });

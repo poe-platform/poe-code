@@ -258,7 +258,7 @@ test("09 pending metadata cancellation preserves files and handles late rejectio
   observe("09", { error: "ECANCELED", callerReasonCode: reason.code, source: await contents(fs), target: await contents(target) });
 });
 
-test("10 pending streamed body cancellation preserves source but permits already-truncated destination", options, async () => {
+test("10 initial streamed body cancellation preserves source and destination", options, async () => {
   const store = new MockS3Client({ buckets: ["bucket"] });
   const entered = deferred<void>();
   const pending = deferred<IteratorResult<Uint8Array>>();
@@ -291,8 +291,8 @@ test("10 pending streamed body cancellation preserves source but permits already
   assert.equal(returned, 1);
   armed = false;
   assert.deepEqual(await contents(fs), original());
-  assert.deepEqual(await contents(target), { ...original(), target: [] });
-  observe("10 nontransactional destination effect", { error: reason.message, returned, source: await contents(fs), target: await contents(target) });
+  assert.deepEqual(await contents(target), original());
+  observe("10 initial read cancellation before destination effects", { error: reason.message, returned, source: await contents(fs), target: await contents(target) });
 });
 
 test("11 conflicting or invalid authorities fail EIO before content, known aliases still dominate", options, async () => {

@@ -12,7 +12,7 @@ import { CosRangeLexer } from "./lexer.js";
 import { PdfObjectIndex, type PdfIndexStorage } from "./object-index.js";
 import { parseCosRangeObject, parseCosRangeValue, type ParseCosRangeOptions, type PdfRangeObject } from "./range-parser.js";
 
-export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "resolveLength" | keyof ValueArrayStorage | "onBackingError">, PdfStreamDecodeOptions {
+export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "resolveLength" | keyof ValueArrayStorage>, PdfStreamDecodeOptions {
   /** Default backing for selected values in object and stream dictionary lookups.
    * Cross-reference bootstrap remains independently configured. */
   readonly valueArrays?: ValueArrayStorage;
@@ -93,7 +93,7 @@ export class PdfObjectReader {
       const object = await this.load(objectNumber, generationNumber, new Set());
       if (object?.value.kind !== "dict" || !object.stream) throw new PdfError("E_PARSE", "Expected an indexed PDF stream");
       const active = new Set([objectNumber]);
-      return { object, dict: await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, { ...this.options, onBackingError: error => { this.backingFailures.set(active, { error }); } }) };
+      return { object, dict: await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, { ...this.options, onBackingError: error => { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); } }) };
     });
     const span = object.stream!;
     const input = () => this.source.stream(span.start, span.end - span.start, this.options.signal);
@@ -110,7 +110,7 @@ export class PdfObjectReader {
     const entry = await this.index.get(objectNumber, this.options.signal);
     if (!entry || entry.type === "free" || generationNumber !== (entry.generationNumber ?? 0)) return undefined;
     active.add(objectNumber);
-    const onBackingError = (error: unknown) => { this.backingFailures.set(active, { error }); };
+    const onBackingError = (error: unknown) => { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); };
     try {
       if (entry.type === "compressed") {
         const container = entry.objectStreamNumber!;
@@ -201,7 +201,7 @@ export class PdfObjectReader {
     if (count > maximum(this.options.maxObjectStreamMembers, "maxObjectStreamMembers") || count > Math.floor(Number.MAX_SAFE_INTEGER / 16)) throw new PdfError("E_LIMIT", "PDF object stream member limit exceeded");
     active.add(number);
     let dict: PdfCosDict;
-    try { dict = await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, { ...this.options, onBackingError: error => { this.backingFailures.set(active, { error }); } }); } finally { active.delete(number); }
+    try { dict = await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, { ...this.options, onBackingError: error => { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); } }); } finally { active.delete(number); }
     while (this.streams.size >= this.capacity) {
       const [key, oldest] = this.streams.entries().next().value!;
       this.streams.delete(key); await this.release(oldest);
@@ -285,13 +285,26 @@ export interface PdfOpenedObjectReader {
  * encryption dictionary reference graph is retained during authentication. */
 export async function openPdfObjectReader(source: PdfFileSource, storage: PdfIndexStorage,
   options: OpenPdfObjectReaderOptions = {}): Promise<PdfOpenedObjectReader> {
-  const xrefOptions = { maxNodes: 65536, maxTokenBytes: 1048576, maxRecursionDepth: 100, ...options, ...options.xref };
+  // Storage can throw syntax-shaped errors. Carry their identity across all
+  // bootstrap readers so repair never turns a failed capability into a retry.
+  let backingFailure: { error: unknown } | undefined;
+  const callerBackingError = options.onBackingError;
+  const xrefBackingError = options.xref?.onBackingError;
+  const onBackingError = (error: unknown) => {
+    backingFailure = { error };
+    callerBackingError?.(error);
+  };
+  options = { ...options, onBackingError };
+  const canRepair = (error: unknown): boolean =>
+    !(backingFailure && Object.is(backingFailure.error, error)) && error instanceof PdfError && error.code === "E_PARSE";
+  const xrefOptions = { maxNodes: 65536, maxTokenBytes: 1048576, maxRecursionDepth: 100, ...options, ...options.xref,
+    onBackingError(error: unknown) { onBackingError(error); if (xrefBackingError !== callerBackingError) xrefBackingError?.(error); } };
   let crossReference: PdfCrossReference;
   let repaired = false;
   try { crossReference = await openPdfCrossReference(source, storage, xrefOptions); }
   catch (error) {
     options.signal?.throwIfAborted();
-    if (options.recovery !== "repair" || !(error instanceof PdfError) || error.code !== "E_PARSE") throw error;
+    if (options.recovery !== "repair" || !canRepair(error)) throw error;
     crossReference = await recoverPdfReferences(source, storage, xrefOptions); repaired = true;
   }
   let reader: PdfObjectReader | undefined;
@@ -307,7 +320,7 @@ export async function openPdfObjectReader(source: PdfFileSource, storage: PdfInd
         const root = await reader.get(crossReference.rootRef.objectNumber, crossReference.rootRef.generationNumber);
         const pages = root?.value.kind === "dict" && !root.stream ? dictGet(root.value, "Pages") : undefined;
         valid = pages?.kind === "ref" || pages?.kind === "dict";
-      } catch (error) { if (!(error instanceof PdfError) || error.code !== "E_PARSE") throw error; }
+      } catch (error) { if (!canRepair(error)) throw error; }
       if (!valid) {
         await reader.close();
         await crossReference.index.close();
@@ -359,7 +372,7 @@ export async function openPdfObjectReader(source: PdfFileSource, storage: PdfInd
           const type = object?.value.kind === "dict" && dictGet(object.value, "Type");
           if (!object?.stream || !type || type.kind !== "name" || type.decoded !== "ObjStm") continue;
           try { yield* currentReader.objectStreamEntries(object.objectNumber, object.generationNumber); }
-          catch (error) { if (!(error instanceof PdfError) || error.code !== "E_PARSE") throw error; }
+          catch (error) { if (!canRepair(error)) throw error; }
         }
       }
       const recovered = await PdfObjectIndex.build(recoveredEntries(), storage, { ...options.xref?.index, maxEntries: Math.min(options.xref?.maxEntries ?? Infinity, options.xref?.index?.maxEntries ?? Infinity), duplicate: "first", ...(options.signal ? { signal: options.signal } : {}) });
@@ -376,7 +389,7 @@ export async function openPdfObjectReader(source: PdfFileSource, storage: PdfInd
         for await (const entry of recovered.entries(options.signal)) {
           let object: PdfRangeObject | undefined;
           try { object = await reader.get(entry.objectNumber, entry.generationNumber ?? 0); }
-          catch (error) { if (error instanceof PdfError && error.code === "E_PARSE") continue; throw error; }
+          catch (error) { if (canRepair(error)) continue; throw error; }
           if (object?.value.kind !== "dict") continue;
           const type = dictGet(object.value, "Type");
           if (crossReference.rootRef.objectNumber === 0 && type?.kind === "name" && type.decoded === "Catalog") root = cosRef(object.objectNumber, object.generationNumber);

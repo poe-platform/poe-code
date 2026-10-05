@@ -93,6 +93,45 @@ describe("range-backed PDF object reader", () => {
     } finally { await f.close(); }
   });
 
+  it.each(["catalog", "trailer"])("preserves caller backing failures during %s bootstrap recovery", async location => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/scratch");
+    const objects = [
+      `1 0 obj << /Type /Catalog /Pages 2 0 R ${location === "catalog" ? "/Widths [500]" : ""} >> endobj\n`,
+      "2 0 obj << /Type /Pages /Kids [] /Count 0 >> endobj\n"
+    ];
+    let text = "%PDF-1.7\n";
+    const offsets = objects.map(object => { const offset = text.length; text += object; return offset; });
+    const xref = text.length;
+    text += `xref\n0 3\n0000000000 65535 f \n${offsets.map(offset => `${String(offset).padStart(10, "0")} 00000 n \n`).join("")}trailer\n<< /Size 3 /Root 1 0 R ${location === "trailer" ? "/Widths [500]" : ""} >>\nstartxref\n${xref}\n%%EOF`;
+    await fs.writeFile("/input", encode(text));
+    const source = await PdfFileSource.open(fs, "/input");
+    const failure = new PdfError("E_PARSE", "caller metadata backing unavailable");
+    let failed = false, end = 0;
+    const bytes = new Uint8Array(4096);
+    const backing = {
+      allocate(length: number) { const position = end; end += length; return position; },
+      async read(position: number, length: number) { return bytes.slice(position, position + length); },
+      async write(position: number, chunk: Uint8Array) {
+        if (!failed) { failed = true; throw failure; }
+        bytes.set(chunk, position);
+      }
+    };
+    const arrays = { arrayStorage: backing, storedArrayKeys: ["Widths"] };
+    const options = { recovery: "repair" as const, valueArrays: arrays, xref: arrays };
+    try {
+      let opened: Awaited<ReturnType<typeof openPdfObjectReader>> | undefined;
+      try {
+        await expect(openPdfObjectReader(source, { fs, directory: "/scratch" }, options).then(value => { opened = value; })).rejects.toBe(failure);
+      } finally { await opened?.close(); }
+      expect(await fs.readdir("/scratch")).toEqual([]);
+      // A separate caller retry can succeed; recovery must not retry a failed capability itself.
+      opened = await openPdfObjectReader(source, { fs, directory: "/scratch" }, options);
+      await opened.close();
+      expect(await fs.readdir("/scratch")).toEqual([]);
+    } finally { await source.close(); }
+  });
+
   it("loads only requested objects and retains stream ranges", async () => {
     const first = "1 0 obj << /Length 3 0 R >>\nstream\nhello\nendstream\nendobj\n";
     const f = await fixture(first + "3 0 obj 5 endobj", [plain(1), plain(3, first.length)]);

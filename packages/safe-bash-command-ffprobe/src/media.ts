@@ -1,4 +1,4 @@
-import { isOggFlac, probeStoredOgg } from "./ogg-probe.js";
+import { probeStoredOgg } from "./ogg-probe.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { FlacTags } from "./flac-tags.js";
 import { SourceAudioTags } from "./source-tags.js";
@@ -10,7 +10,7 @@ import { probe as probeAudio, parseArguments as parseAudioArguments, formatAudio
 import { probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
-import { allMediaAsts, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
+import { allMediaAsts, probeOggFlacSource, probeOggStreamMetadata, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
   type MediaAstPlugin, type MediaProbeSource, type MediaFeatureOptions, type MediaProbeResult, type MediaProbeRecords, type MediaResourceLimits } from "@poe-code/mp4-ast";
 
 export interface MediaCommandsOptions {
@@ -632,14 +632,12 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
     plugin = plugins.find(candidate => candidate.detect(header, filename));
   }
   if (!plugin) return undefined;
-  if (onAudio && plugin.formatName === "ogg") {
-    if (await isOggFlac(source, context.signal)) {
-      // The supported FLAC mapping still uses its legacy general-media adapter.
-      const bytes = new Uint8Array(source.size);
-      for (let offset = 0; offset < bytes.length; offset += 16384) bytes.set(await source.read(offset, Math.min(16384, bytes.length - offset)), offset);
-      return plugin.probe(bytes, { ...records, filename, budget, limits: budget.limits });
-    }
-    return { oggRows: await probeStoredOgg(source, context, retain) };
+  if (plugin.formatName === "ogg" && !plugin.probeMetadata) {
+    const probeOptions = { ...records, filename, signal: context.signal, budget, limits: budget.limits, checkpoint: () => yieldTurn(context.signal) };
+    const flac = await probeOggFlacSource(source, probeOptions);
+    if (flac) return flac;
+    const ogg = await probeStoredOgg(source, context, retain);
+    return onAudio ? { oggRows: ogg.rows } : probeOggStreamMetadata(ogg.first, source.size, probeOptions);
   }
   const result = await plugin.probeMetadata!(source, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
   if (onAudio) {
@@ -784,23 +782,24 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         let automaticAudio = !options.asts && !explicitFormat && !showPackets && !showFrames && !showChapters && !showPrograms && !countFrames && !countPackets;
         if (automaticAudio) { try { parseAudioArguments(args); } catch { automaticAudio = false; } }
         const automaticPlugins = !options.asts && !explicitFormat
-          ? astPlugins.filter(plugin => plugin.canDemux && (plugin.probeMetadata || automaticAudio && plugin === registry.findByFormatName("ogg")) && (!automaticAudio || ["wav", "flac", "mp3", "ogg"].some(format => plugin === registry.findByFormatName(format)))) : [];
+          ? astPlugins.filter(plugin => plugin.canDemux && (plugin.probeMetadata || plugin === registry.findByFormatName("ogg")) && (!automaticAudio || ["wav", "flac", "mp3", "ogg"].some(format => plugin === registry.findByFormatName(format)))) : [];
         const explicitPlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : undefined;
         const retainedPlugins = explicitPlugin
-          ? (explicitPlugin.canDemux && explicitPlugin.probeMetadata ? [explicitPlugin] : []) : automaticPlugins;
+          ? (explicitPlugin.canDemux && (explicitPlugin.probeMetadata || !options.asts && explicitPlugin === registry.findByFormatName("ogg")) ? [explicitPlugin] : []) : automaticPlugins;
         let probeResult = retainedPlugins.length && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, retainedPlugins, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin)
           : undefined;
         if (!probeResult && explicitPlugin)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames });
         let replay: AsyncIterable<Uint8Array> | undefined;
-        if (!probeResult && automaticPlugins.length) {
+        const streamPlugins = explicitPlugin ? retainedPlugins : automaticPlugins;
+        if (!probeResult && streamPlugins.length) {
           const source = await openProbeStream(context, isStdin(inputTarget) ? undefined : resolvePath(context.cwd, inputTarget));
           if (source) {
             const sniffed = await sniffMediaStream(source, context.signal, total => {
               context.inputBudget?.check(total); budget.checkInputBytes(total);
             });
-            const automaticPlugin = automaticPlugins.find(plugin => plugin.detect(sniffed.prefix, inputTarget));
+            const automaticPlugin = explicitPlugin ?? streamPlugins.find(plugin => plugin.detect(sniffed.prefix, inputTarget));
             if (automaticPlugin) {
               if (!automaticAudio && automaticPlugin.probeMetadataStream) {
                 // Sniff replay already admits each source chunk exactly once.

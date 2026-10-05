@@ -1,7 +1,8 @@
+import { oggAst, parseMp4, createSyntheticMp4 } from "@poe-code/mp4-ast";
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
-import { createFfprobeCommand } from "./media.js";
+import { createFfprobeCommand, formatFfprobeResult } from "./media.js";
 import { probe } from "./probe.js";
 
 const encoder=new TextEncoder();
@@ -19,7 +20,7 @@ function stream(serial:number,fields:string[],opus=true){
     let crc=0;for(const byte of page){crc^=byte<<24;for(let bit=0;bit<8;bit++)crc=crc<<1^(crc&0x80000000?0x04c11db7:0);}v.setUint32(22,crc>>>0,true);pages.push(page);at+=length;if(last)break;
   }return pages;
 }
-async function run(bytes:Uint8Array,route:'retained'|'stream'|'stdin',writer='json',extra:string[]=[],invalid=false){
+async function run(bytes:Uint8Array,route:'retained'|'stream'|'stdin',writer='json',extra:string[]=[],invalid=false,general=false){
   const base=new MemoryFileSystem();await base.writeFile('/input.ogg',bytes);let closed=false,opened=0,retired=0,output='',diagnostic='';const decoder=new TextDecoder();
   async function* chunks(){const borrowed=new Uint8Array(8191);try{for(let at=0;at<bytes.length;at+=borrowed.length){const length=Math.min(borrowed.length,bytes.length-at);borrowed.set(bytes.subarray(at,at+length));yield borrowed.subarray(0,length);}}finally{closed=true;}}
   const capabilities={...base.capabilities,retainedRead:route==='retained',streamingRead:route!=='retained'};
@@ -33,7 +34,7 @@ async function run(bytes:Uint8Array,route:'retained'|'stream'|'stdin',writer='js
   const args=['-of',writer,'-show_streams','-show_format',...extra,route==='stdin'?'-':'/input.ogg'];
   const result=await createFfprobeCommand({limits:{maxOutputBytes:4000000}}).execute({command:'ffprobe',...createCommandArguments(args),cwd:'/',env:{},fs,signal:new AbortController().signal,stdin:route==='stdin'?chunks():{async *[Symbol.asyncIterator](){}},stdout:{async write(chunk){expect(closed).toBe(true);expect(opened-retired).toBeLessThanOrEqual(1);output+=decoder.decode(chunk,{stream:true});}},stderr:{async write(chunk){diagnostic+=new TextDecoder().decode(chunk);}}});
   output+=decoder.decode();expect(retired).toBe(opened);expect(await base.readdir('/')).toEqual([{name:'input.ogg',type:'file'}]);
-  if(invalid){expect(result.exitCode).toBe(1);expect(output).toBe('');}else{expect(result.exitCode,diagnostic).toBe(0);expect(output).toBe(probe(bytes,args));}
+  if(invalid){expect(result.exitCode).toBe(1);expect(output).toBe('');}else{expect(result.exitCode,diagnostic).toBe(0);expect(output).toBe(general ? formatFfprobeResult(oggAst().probe(bytes,{filename:route==='stdin'?'-':'/input.ogg',showPackets:extra.includes('-show_packets'),showFrames:extra.includes('-show_frames')}),{printFormat:writer,showFormat:true,showStreams:true,showPackets:extra.includes('-show_packets'),showFrames:extra.includes('-show_frames'),showChapters:false,showPrograms:false,countFrames:extra.includes('-count_frames'),countPackets:extra.includes('-count_packets')}) : probe(bytes,args));}
 }
 for(const route of ['retained','stdin','stream'] as const)for(const writer of ['json','default','flat','compact','csv'])it(`streams Ogg metadata via ${route}/${writer}`,async()=>{
   await run(join(stream(7,['title='+ 'é😀,"x"\n'.repeat(11000),'title=','TITLE=other','artist=Alice','2=numeric'])),route,writer);
@@ -63,4 +64,18 @@ it('preserves multiplexed and first-completed packet ordering',async()=>{
 it('emits format-only and empty selected rows without collecting streams',async()=>{
   const bytes=join([...stream(7,['title=first']),...stream(8,['title=second'])]);
   for(const writer of ['json','flat','default'])await run(bytes,'retained',writer,['-select_streams','a:0','-show_entries','stream=:format=duration,nb_streams:format_tags']);
+});
+
+for(const route of ['retained','stdin','stream'] as const) for(const writer of ['json','default','flat','compact','csv']) it(`streams general Ogg records via ${route}/${writer}`,async()=>{
+  const bytes=join([...stream(7,['title='+ 'text'.repeat(30000)]),...stream(8,['TITLE=second'],false)]);
+  await run(bytes,route,writer,['-f','ogg','-show_packets','-show_frames','-count_packets','-count_frames'],false,true);
+  await run(bytes,route,writer,['-show_packets','-show_frames'],false,true);
+});
+it('streams automatic and explicit Ogg FLAC without allocating encoded payloads',async()=>{
+  const doc=parseMp4(createSyntheticMp4({includeAudio:true,frameCount:1}));const track=doc.tracks.find(track=>track.type==='audio')!;
+  const bytes=oggAst().serialize({...doc,tracks:[{...track,decodedAudio:{sampleRate:48000,channels:1,channelData:[new Float32Array(100000)]}}]},{audioCodec:'flac'});
+  for(const route of ['retained','stdin','stream'] as const){
+    await run(bytes,route,'json',[],false,true);
+    await run(bytes,route,'json',['-f','ogg','-show_packets','-show_frames'],false,true);
+  }
 });

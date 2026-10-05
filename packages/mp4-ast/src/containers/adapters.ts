@@ -1,10 +1,10 @@
 import { readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
-import { parseAudio } from "@poe-code/audio-ast";
+import { parseAudio, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { encodeFlacPackets } from "./flac.js";
 
 import { parseStreamingDocument, serializeDashDocument } from "./streaming.js";
-import { serializeOgg, extractOggFlac } from "./ogg.js";
+import { serializeOgg, extractOggFlac, readOggFlacHeader } from "./ogg.js";
 import { decodeImage, encodeImage, type ImageFormat } from "@poe-code/image-ast/portable";
 import {
   BinaryReader,
@@ -907,31 +907,7 @@ export function flacAst(): MediaAstPlugin {
   };
 }
 
-export function oggAst(): MediaAstPlugin {
-  return {
-    id: "ogg",
-    formatName: "ogg",
-    formatLongName: "Ogg",
-    extensions: ["ogg", "oga", "ogv", "opus"],
-    mimeTypes: ["audio/ogg", "video/ogg"],
-    canDemux: true,
-    canMux: true,
-    supportedVideoCodecs: ["theora", "vp8"],
-    supportedAudioCodecs: ["opus", "vorbis", "flac"],
-    detect(bytes, filename) {
-      if (bytes.byteLength >= 4 && decodeFourCC(bytes, 0) === "OggS") return true;
-      if (filename && /\.(ogg|oga|ogv|opus)$/i.test(filename) && bytes.byteLength >= 4) {
-        return decodeFourCC(bytes, 0) === "OggS";
-      }
-      return false;
-    },
-    parse(bytes) {
-      const flac = extractOggFlac(bytes);
-      if (flac) return { ...flacAst().parse(flac), containerFormat: "ogg", byteLength: bytes.length };
-
-      const parsed = parseAudio(bytes);
-      const stream = parsed.streams[0];
-      if (!stream) throw new Error("Ogg input contains no audio stream");
+function oggDocument(stream: AudioStream, size: number, data: Uint8Array = new Uint8Array()): MediaDocument {
       const { sampleRate, channels, samples: totalSamples, codec } = stream;
       return {
         containerFormat: "ogg",
@@ -958,12 +934,12 @@ export function oggAst(): MediaAstPlugin {
             ],
             samples: [
               {
-                data: bytes,
+                data,
                 dts: 0,
                 pts: 0,
                 cts: 0,
                 duration: totalSamples,
-                size: bytes.byteLength,
+                size: size,
                 isKeyframe: true,
                 sampleDescriptionIndex: 1
               }
@@ -971,8 +947,49 @@ export function oggAst(): MediaAstPlugin {
           }
         ],
         metadata: {},
-        byteLength: bytes.byteLength
+        byteLength: size
       };
+}
+
+/** Format a validated Ogg audio stream without materializing its sample payload. */
+export function probeOggStreamMetadata(stream: AudioStream, size: number, options: MediaSourceProbeOptions = {}): MediaProbeRecords {
+  return buildProbeResultFromDoc(oggDocument(stream, size), size, options.filename ?? "input.ogg", { ...options, formatName: "ogg", formatLongName: "Ogg" });
+}
+
+/** Bounded FLAC-mapped Ogg probe; undefined admits the other Ogg codecs. */
+export async function probeOggFlacSource(source: MediaProbeSource, options: MediaSourceProbeOptions & { checkpoint?: () => void | Promise<void> } = {}): Promise<MediaProbeRecords | undefined> {
+  const metadata = await readOggFlacHeader(source, options);
+  if (!metadata) return undefined;
+  const doc = { ...flacDocument(metadata.header, metadata.size), containerFormat: "ogg", byteLength: source.size };
+  return buildProbeResultFromDoc(doc, source.size, options.filename ?? "input.ogg", { ...options, formatName: "ogg", formatLongName: "Ogg" });
+}
+
+export function oggAst(): MediaAstPlugin {
+  return {
+    id: "ogg",
+    formatName: "ogg",
+    formatLongName: "Ogg",
+    extensions: ["ogg", "oga", "ogv", "opus"],
+    mimeTypes: ["audio/ogg", "video/ogg"],
+    canDemux: true,
+    canMux: true,
+    supportedVideoCodecs: ["theora", "vp8"],
+    supportedAudioCodecs: ["opus", "vorbis", "flac"],
+    detect(bytes, filename) {
+      if (bytes.byteLength >= 4 && decodeFourCC(bytes, 0) === "OggS") return true;
+      if (filename && /\.(ogg|oga|ogv|opus)$/i.test(filename) && bytes.byteLength >= 4) {
+        return decodeFourCC(bytes, 0) === "OggS";
+      }
+      return false;
+    },
+    parse(bytes) {
+      const flac = extractOggFlac(bytes);
+      if (flac) return { ...flacAst().parse(flac), containerFormat: "ogg", byteLength: bytes.length };
+
+      const parsed = parseAudio(bytes);
+      const stream = parsed.streams[0];
+      if (!stream) throw new Error("Ogg input contains no audio stream");
+      return oggDocument(stream, bytes.byteLength, bytes);
     },
     serialize: serializeOgg,
     probe(bytes, options) {

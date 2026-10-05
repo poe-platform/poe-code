@@ -1,20 +1,9 @@
-import { probeOggStreamSource, scanOggPages, type AudioProbeSource, type AudioStream } from "@poe-code/audio-ast";
+import { probeOggStreamSource, type AudioProbeSource, type AudioStream } from "@poe-code/audio-ast";
 import type { PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { OggIndex } from "./ogg-index.js";
 import { FlacTags } from "./flac-tags.js";
 import { audioProbeRows, parseArguments } from "./probe.js";
 import type { TaggedAudioRow } from "./tag-format.js";
-
-/** FLAC's legacy mapping has different validation; retain its existing adapter. */
-export async function isOggFlac(source: AudioProbeSource, signal: AbortSignal): Promise<boolean> {
-  for await (const page of scanOggPages(source, { signal })) {
-    if (!page.lacing.length) continue;
-    if (page.lacing[0]! < 5) return false;
-    const bytes = await source.read(page.payloadOffset, 5); signal.throwIfAborted();
-    return bytes[0] === 127 && bytes[1] === 70 && bytes[2] === 76 && bytes[3] === 65 && bytes[4] === 67;
-  }
-  return false;
-}
 
 /** Validate base64 picture lines using only a quartet and scalar field lengths. */
 async function validatePictures(text: AsyncIterable<string>): Promise<void> {
@@ -45,7 +34,7 @@ async function validatePictures(text: AsyncIterable<string>): Promise<void> {
 }
 
 /** Validate first, then replay one stream's tag index at a time during staged output. */
-export async function probeStoredOgg(source: AudioProbeSource, context: PagedStorageContext, retain: (close: () => Promise<void>) => void): Promise<(args: readonly string[]) => AsyncIterable<TaggedAudioRow>> {
+export async function probeStoredOgg(source: AudioProbeSource, context: PagedStorageContext, retain: (close: () => Promise<void>) => void): Promise<{ first: AudioStream; rows: (args: readonly string[]) => AsyncIterable<TaggedAudioRow> }> {
   const index = new OggIndex(source, context); retain(index.close); await index.scan();
   let count = 0, group = 0, groupDuration = 0, duration = 0, adjustment = 0;
   let first: AudioStream | undefined, pictures: FlacTags | undefined, failed = true;
@@ -93,7 +82,7 @@ export async function probeStoredOgg(source: AudioProbeSource, context: PagedSto
   }
   duration += groupDuration + adjustment;
   const firstStream = first!;
-  return async function* rows(args) {
+  return { first: firstStream, rows: async function* (args) {
     const parsed = parseArguments(args), streamSections = new Map([...parsed.sections].filter(([key]) => key === "stream" || key === "stream_tags"));
     if (streamSections.size) {
       let number = 0;
@@ -126,5 +115,5 @@ export async function probeStoredOgg(source: AudioProbeSource, context: PagedSto
       if ("nb_streams" in entry.row) entry.row.nb_streams = count;
       yield entry;
     }
-  };
+  } };
 }

@@ -1,6 +1,6 @@
 import { encodeOggAudio } from "@poe-code/media-codecs";
 import { concatBytes } from "../binary.js";
-import type { MediaDocument, SerializeMediaOptions } from "../types.js";
+import type { MediaDocument, MediaProbeSource, SerializeMediaOptions } from "../types.js";
 import { encodeFlacPackets } from "./flac.js";
 
 function page(packet: Uint8Array, sequence: number, flags: number, granule: number): Uint8Array {
@@ -37,10 +37,9 @@ export function serializeOggFlac(doc: MediaDocument): Uint8Array {
   return concatBytes(pages);
 }
 
-function oggCrc(bytes: Uint8Array): number {
-  let crc = 0;
+function oggCrc(bytes: Uint8Array, crc = 0, offset = 0): number {
   for (let i = 0; i < bytes.length; i++) {
-    const byte = i >= 22 && i < 26 ? 0 : bytes[i]!;
+    const byte = offset + i >= 22 && offset + i < 26 ? 0 : bytes[i]!;
     crc ^= byte << 24;
     for (let bit = 0; bit < 8; bit++) crc = (crc << 1) ^ ((crc & 0x80000000) ? 0x04c11db7 : 0);
   }
@@ -102,4 +101,61 @@ export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions 
     pages.push(page(packet.data, index + encoded.headers.length, index === encoded.packets.length - 1 ? 4 : 0, packet.granule));
   }
   return concatBytes(pages);
+}
+
+/** Read the existing FLAC mapping without retaining packets or encoded audio. */
+export async function readOggFlacHeader(source: MediaProbeSource, options: { signal?: AbortSignal; checkpoint?: () => void | Promise<void> } = {}): Promise<{ header: Uint8Array; size: number } | undefined> {
+  options.signal?.throwIfAborted();
+  if (!Number.isSafeInteger(source.size) || source.size < 0) throw new RangeError("Invalid Ogg source size");
+  const identification = new Uint8Array(51);
+  let offset = 0, packetSize = 0, firstSize = -1, payloadSize = 0, mapped = false;
+  const read = async (length: number) => {
+    if (length > source.size - offset) throw new Error("Truncated Ogg page");
+    const bytes = new Uint8Array(length);
+    for (let used = 0; used < length;) {
+      options.signal?.throwIfAborted();
+      const chunk = await source.read(offset, length - used);
+      options.signal?.throwIfAborted();
+      if (!chunk.length) throw new Error("Truncated Ogg page");
+      if (chunk.length > length - used) throw new Error("Ogg source returned more bytes than requested");
+      bytes.set(chunk, used); used += chunk.length; offset += chunk.length;
+    }
+    await options.checkpoint?.(); options.signal?.throwIfAborted();
+    return bytes;
+  };
+  while (offset < source.size) {
+    const start = offset, header = await read(27);
+    if (header[0] !== 79 || header[1] !== 103 || header[2] !== 103 || header[3] !== 83) throw new Error("Invalid Ogg page");
+    const lacing = await read(header[26]!);
+    let checksum = oggCrc(lacing, oggCrc(header), 27);
+    const continuation = Boolean(header[5]! & 1) !== (packetSize > 0);
+    let remaining = 0, chunk: Uint8Array = new Uint8Array(), used = 0;
+    for (const length of lacing) remaining += length;
+    for (const length of lacing) {
+      for (let pending = length; pending;) {
+        if (used === chunk.length) {
+          chunk = await read(Math.min(16384, remaining)); used = 0;
+          checksum = oggCrc(chunk, checksum, offset - start - chunk.length);
+          remaining -= chunk.length;
+        }
+        const take = Math.min(pending, chunk.length - used);
+        if (firstSize < 0 && packetSize < identification.length) identification.set(chunk.subarray(used, used + Math.min(take, identification.length - packetSize)), packetSize);
+        packetSize += take; payloadSize += take; used += take; pending -= take;
+      }
+      if (length < 255) {
+        if (firstSize < 0) {
+          firstSize = packetSize;
+          mapped = firstSize >= 5 && identification[0] === 127 && identification[1] === 70 && identification[2] === 76 && identification[3] === 65 && identification[4] === 67;
+        }
+        packetSize = 0;
+      }
+    }
+    if (checksum !== new DataView(header.buffer).getUint32(22, true)) throw new Error("Ogg CRC mismatch");
+    if (continuation) throw new Error("Invalid Ogg packet continuation");
+    if (firstSize >= 0 && !mapped) return undefined;
+  }
+  if (packetSize) throw new Error("Truncated Ogg packet");
+  if (firstSize < 0) return undefined;
+  if (firstSize !== 51 || identification[5] !== 1) throw new Error("Unsupported Ogg FLAC mapping");
+  return { header: identification.subarray(9), size: payloadSize - 9 };
 }

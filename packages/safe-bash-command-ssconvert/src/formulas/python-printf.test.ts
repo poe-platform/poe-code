@@ -42,8 +42,10 @@ it("normalizes empty scalar arguments to zero before loader conversion, preservi
   expect(calculate('=PY_PRINTF("%f",A2)')).toEqual({ kind: "string", value: "0.000000" });
   expect(calculate('=PY_PRINTF("%s",TRANSPOSE(A2:B2))')).toEqual({ kind: "string", value: "[[None, None]]" });
 });
-it("keeps unqualified native pointer representations explicit", () => {
-  expect(() => calculate('=PY_PRINTF("%r",A2:B3)')).toThrow("Python RangeRef object representation");
+it("gives simultaneous native reference wrappers distinct opaque identities", () => {
+  expect(calculate('=PY_PRINTF("%s %r %a",A2:B3,A2:B3,C2:D3)')).toEqual({
+    kind: "string", value: "<RangeRef object at 0x1> <RangeRef object at 0x2> <RangeRef object at 0x3>"
+  });
 });
 it.each(["s", "r", "a"].flatMap(conversion => [0, 1, 9, 20, 22].map(precision => ({
   format: `%${precision === 1 ? "25" : ""}.${precision}${conversion}`,
@@ -58,8 +60,16 @@ it.each([
 ])("pads precision-bounded RangeRef format %s", (format, expected) => {
   expect(calculate(`=PY_PRINTF("${format}",A2:B3)`)).toEqual({ kind: "string", value: expected });
 });
-it.each(["%.23s", "%.23r", "%.23a", "%s"])("refuses RangeRef pointer bytes for %s", format => {
-  expect(() => calculate(`=PY_PRINTF("${format}",A2:B3)`)).toThrow("Python RangeRef object representation");
+it.each(["s", "r", "a"].flatMap(conversion => [23, 24, 40].map(precision => ({
+  format: `%30.${precision}${conversion}`,
+  expected: "<RangeRef object at 0x1>".slice(0, precision).padStart(30, " ")
+}))))("formats bounded opaque RangeRef identity $format", ({ format, expected }) => {
+  expect(calculate(`=PY_PRINTF("${format}",A2:B3)`)).toEqual({ kind: "string", value: expected });
+});
+it("keeps opaque reference identities local to each formatting call and respects output admission", () => {
+  for (let i = 0; i < 2; i++) expect(calculate('=PY_PRINTF("%s",A2:B3)'))
+    .toEqual({ kind: "string", value: "<RangeRef object at 0x1>" });
+  expect(() => calculate('=PY_PRINTF("%s",A2:B3)', { limits: { ...context.limits, outputBytes: 23 } })).toThrow("text limit");
 });
 it("charges formatting work and stops when a loader diagnostic cancels the invocation", () => {
   expect(() => calculate('=PY_PRINTF("%.120f",1)', { limits: { ...context.limits, workbookWork: 50 } }))

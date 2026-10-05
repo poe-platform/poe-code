@@ -4657,19 +4657,20 @@
       "status": "open",
       "currentFinding": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired. Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences. See checkpoint20261004 for the next acceptance test and qualification blockers.",
       "checkpoint20261004": {
-        "qualified": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired. Malformed byte-string format/scalar/array arguments now use the existing Unicode rendering refusal instead of leaking internal hexadecimal storage as text; all three Python profiles and both public routes are covered. Precision-limited scalar/array representations now stream only the required characters, avoiding false output-limit refusal for long arguments while preserving UTF-8 and padding admission.",
+        "qualified": "Activated Python formatting now matches 10391 observations per route plus 60 loader cases and 36 warnings; scalar noncharacter handling is repaired. Malformed byte-string format/scalar/array arguments now use the existing Unicode rendering refusal instead of leaking internal hexadecimal storage as text; all three Python profiles and both public routes are covered. Precision-limited scalar/array representations now stream only the required characters, avoiding false output-limit refusal for long arguments while preserving UTF-8 and padding admission. Complete RangeRef representations now format with bounded call-local opaque identities; simultaneous wrapper arguments are distinct. Precision/padding and all three Python profiles pass compiled SDK/command controls.",
         "evidence": [
           "#/currentQualification20261002/pythonPrintfActivated",
           "#/pythonPrintfByteAdmission",
-          "#/pythonPrintfPrecisionAdmission"
+          "#/pythonPrintfPrecisionAdmission",
+          "#/pythonRangeRefRepresentation"
         ],
-        "nextAcceptance": "Qualify address-bearing RangeRef/sheet representations and remaining diagnostic/coercion cases without comparing unstable addresses as literal goldens.",
+        "nextAcceptance": "Continue sheet/tuple representation, remaining diagnostics and installed-artifact profiles. Preserve the documented portable RangeRef identity contract; native process addresses are not stable goldens.",
         "closureGate": "Complete remaining APIs, profiles and installed/registry consumers; separate formatting from XLSX exporter differences.",
         "qualificationBlockers": [
           "Combined native sheet/tuple probes crash; native control-character XLSX loss is not a formatting parity pass."
         ],
         "remainingAcceptance": [
-          "Address-bearing RangeRef/sheet representation semantics, remaining coercion and diagnostic cases; compare structure rather than unstable addresses.",
+          "Sheet/tuple representation semantics and remaining coercion/diagnostic cases. RangeRef percent formatting now uses documented call-local opaque identities; native address bytes and address-dependent truncation are deliberately not byte-parity claims.",
           "Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting."
         ]
       }
@@ -6960,5 +6961,13 @@
     "behavior": "Scoped active/deactivated/inactive/reactivated/active evaluation counts1,2,2,4,5; root1,3,4,6,7. Both retain values0,0,1 during inactivity and1,5,6 at completion. Counts establish missing root unlink behavior; value-only checks would not qualify it.",
     "remaining": "Root containing publication and other declared deployment profiles remain open. Preserve historical0.1.813 schedule/mutation/lifecycle receipts and all other family acceptance gates. No runtime code change was needed.",
     "evidence": "Retained atl-containing-current/check.mjs, consumer.mts, three versioned result files, lockfile and integrity/hash provenance. Initial prototype-sensitive assertion was corrected to compare CellValue fields; required unused goalSeek host hook supplied before final runs."
+  },
+  "pythonRangeRefRepresentation": {
+    "finding": "Eleven failing-before tests showed complete and precision-beyond-prefix RangeRef formatting throwing unsupported-feature. The native loader allocates a fresh RangeRef wrapper for each range argument and defines no tp_repr or tp_str, so CPython supplies an address-bearing representation.",
+    "implementation": "Preserve the native type representation shape and use distinct hexadecimal call-local opaque identities for reference wrappers. Stream the representation through existing precision, width, work and output admission. No machine address is exposed. Package README documents the portable identity contract.",
+    "verification": "1042 formatter/profile tests pass; changed lint, selected20-workspace build and engine/command test types pass. Six compiled SDK/command runs across Unicode15.0/15.1/16.0 verify336values with zero diagnostics. Independent ZIP/XML checks all336formula identities and values, including exact quoted custom-error wire spellings. Screenshot inspected.",
+    "independent": "Original Gnumeric1.12.61 plugins/python-loader/py-gnumeric.c514-533 establishes fresh wrappers and default repr. Isolated CPython3.13 static-type probe verifies two distinct address-bearing representations and56 formatting/coercion cases without modifying native plugins. A separate Python percent-format oracle checks the documented opaque representation. This is structural/default-type evidence, not a full activated Gnumeric application run.",
+    "limitations": "Portable identities have different bytes and lengths from native allocation addresses. Padding/truncation involving that identity therefore applies to the portable representation and is not literal native parity. Sheet/tuple probes and installed containing artifacts remain open; other18families unchanged.",
+    "evidence": "Retained python-reference-current/probe.c,probe.py,native.json,cases.json,input.gnumeric,public.mjs,results.json,xml-checks.json,build logs and command.png. Native probe at /out/python-reference-1748; no existing reference source/binary changed."
   }
 }

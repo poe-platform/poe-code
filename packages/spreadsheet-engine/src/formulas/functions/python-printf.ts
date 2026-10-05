@@ -6,7 +6,7 @@ import type { FunctionHost, Value } from "./types.js";
 import { nonPrintable } from "./python-printf-profile.js";
 import { inUnicodeRanges, type PythonUnicodeProfile } from "./python-unicode-profile.js";
 
-type PythonValue = string | number | boolean | null | { readonly columns: readonly (readonly PythonValue[])[] } | { readonly range: true };
+type PythonValue = string | number | boolean | null | { readonly columns: readonly (readonly PythonValue[])[] } | { readonly range: number };
 class PythonFormatError extends Error {
   constructor(readonly type: "TypeError" | "ValueError", message: string) { super(message); }
 }
@@ -26,9 +26,10 @@ function* pythonText(profile: PythonUnicodeProfile, value: PythonValue, repr: bo
   if (typeof value === "boolean") { yield* value ? "True" : "False"; return; }
   if (typeof value === "object") {
     if ("range" in value) {
-      // Precision may stop before the address, whose native bytes are unstable.
-      yield* "<RangeRef object at 0x";
-      throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Python RangeRef object representation");
+      // CPython uses a process address. The portable loader uses an opaque,
+      // call-local identity for each newly allocated reference wrapper instead.
+      yield* "<RangeRef object at 0x" + value.range.toString(16) + ">";
+      return;
     }
     yield "[";
     for (let column = 0; column < value.columns.length; column++) {
@@ -59,7 +60,7 @@ function* pythonText(profile: PythonUnicodeProfile, value: PythonValue, repr: bo
   }
   yield quote;
 }
-function pythonValue(value: Value | undefined, host: FunctionHost, argument = true): PythonValue {
+function pythonValue(value: Value | undefined, host: FunctionHost, references: { count: number }, argument = true): PythonValue {
   host.tick();
   // The node loader evaluates arguments without PERMIT_EMPTY; array children
   // are converted directly and retain Python None for empty Gnumeric values.
@@ -68,11 +69,11 @@ function pythonValue(value: Value | undefined, host: FunctionHost, argument = tr
     host.diagnostic?.({ code: "python-loader", severity: "warning", message: "gnm_value_to_py_obj: unsupported value type" });
     return null;
   }
-  if (value.kind === "range") return { range: true };
+  if (value.kind === "range") return { range: ++references.count };
   if (value.kind === "matrix" || value.kind === "set") {
     const rows = host.matrix(value).rows;
     return { columns: Array.from({ length: rows[0]?.length ?? 0 }, (_, column) =>
-      rows.map(row => pythonValue(row[column], host, false))) };
+      rows.map(row => pythonValue(row[column], host, references, false))) };
   }
   // Both Python C-string acquisition and returned Gnumeric strings stop at NUL.
   return typeof value.value === "string" ? rendered(value).split("\0", 1)[0]! : value.value;
@@ -128,7 +129,8 @@ function decimalFloat(value: number, kind: string, precision: number, alternate:
 /** Bounded Python Unicode percent formatting, from the released PY_PRINTF sample. */
 export function pythonPrintf(profile: PythonUnicodeProfile, args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
   if (!args.length) return { kind: "error", value: "Python exception (<class 'TypeError'>: func_printf() missing 1 required positional argument: 'format')" };
-  const values = args.map(value => pythonValue(value, host)), format = values[0];
+  const references = { count: 0 };
+  const values = args.map(value => pythonValue(value, host, references)), format = values[0];
   // Activated 1.12.61 loaders on CPython 3.12 and 3.14 wrap the sample's
   // GnumericError rather than recognizing it in py_exc_to_string.
   if (typeof format !== "string") return { kind: "error", value: "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)" };

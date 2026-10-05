@@ -73,8 +73,9 @@ runtime dependencies. This is a bounded implementation of that version's CLI
 contract, not a promise of compatibility with future mdq versions or every
 Markdown parser extension. The hidden upstream `--allow-unknown-markdown` option
 is accepted; the CLI's parser profile does not enable MDX or math extensions.
-Regex compilation admits at most 8,192 UTF-16 source units, 64 nested groups,
-and 16,384 instructions, followed by shared work and state-buffer limits.
+Regex compilation limits for source length, nested groups, and instruction count
+are disabled (`Infinity`); mdq does not expose configuration for these compilation
+caps. Configuring invocation limits does not bound regex compilation.
 The captured regex cases establish the covered v0.10.0 behavior; Unicode
 classification follows the JavaScript runtime's Unicode version.
 Two captured Unicode replacements cause the native v0.10.0 renderer to panic
@@ -86,7 +87,11 @@ Input and arguments must be valid UTF-8. Queries collect an admitted document
 before selecting elements; output is written in awaited byte chunks. Resource
 limits default to disabled (`Infinity`). Hosts may configure each resource
 through `limits` using a nonnegative safe integer, including zero, or `Infinity`.
-Accounting measures logical allocations and
-work, not process RSS. Host stream/filesystem budgets also apply. Cancellation
+`limits.work` shares one invocation quota across regex execution and document
+work. `limits.retainedBytes` bounds accounted document and output allocations
+and separately sets the regex execution state-buffer ceiling (with a minimum
+of one byte); regex state is not charged to the document allocation counter.
+These execution protections also default to disabled. Accounting measures
+logical allocations and work, not process RSS. Host stream/filesystem budgets also apply. Cancellation
 and closed output drain admitted cooperative resources; an uncooperative host
 operation cannot be forcibly stopped. Diagnostics are emitted in full; host output budgets still apply.

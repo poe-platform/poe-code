@@ -311,3 +311,35 @@ it.each([false, true].flatMap(encrypted => [
   expect(messages).toEqual(length > 8
     ? [`Field 1 in line 2 has possibly been cut off. Data has ${length} characters.`] : []);
 });
+
+// Native schema parsing and table-name serialization consume C strings.
+it.each([false, true].flatMap(encrypted => [
+  [encrypted, "Label,A,8\0,ignored", "Alpha", "Label,A,8", "Alpha"],
+  [encrypted, "Label,A,8", "Alpha\0ignored", "Label,A,8", "Alpha"],
+  [encrypted, "Label,A,8\0😀", "Alpha\0😀", "Label,A,8", "Alpha"]
+] as const))("terminates Paradox schema strings with encryption=%s", async (encrypted, schema, name, expectedSchema, expectedName) => {
+  const book = (specification: string, sheetName: string): Workbook => ({ sheets: [{
+    id: "s", name: sheetName, cells: [
+      { row: 0, column: 0, value: { kind: "string", value: specification } },
+      { row: 1, column: 0, value: { kind: "string", value: "value" } }
+    ]
+  }] });
+  const messages: string[] = [];
+  const output = await writeParadox(book(schema, name), encrypted ? options : [], {
+    ...bindings().context, async diagnostic(diagnostic) { messages.push(diagnostic.message); }
+  });
+  expect(output).toEqual(await writeParadox(book(expectedSchema, expectedName), encrypted ? options : [], bindings().context));
+  expect(messages).toEqual([]);
+});
+
+it("does not find a schema separator beyond native NUL termination", async () => {
+  const book: Workbook = { sheets: [{ id: "s", name: "Alpha", cells: [
+    { row: 0, column: 0, value: { kind: "string", value: "Label\0,A,8" } }
+  ] }] };
+  const messages: string[] = [];
+  const output = await writeParadox(book, [], { ...context,
+    async diagnostic(diagnostic) { messages.push(diagnostic.message); }
+  });
+  expect(output).toHaveLength(0);
+  expect(messages).toEqual(["Field specification must be a comma separated value (Name,Type,Size,Prec)."]);
+});

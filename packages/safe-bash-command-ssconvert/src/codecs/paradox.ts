@@ -209,7 +209,8 @@ async function writeParadoxTable(book: Workbook, context: CapabilityContext): Pr
   for (let column = 0; column <= endColumn; column++) {
     await input.tick(); const cell = cells.get(`0:${column}`);
     if (!cell || (cell.cachedResult ?? cell.value).kind === "blank") throw new SsconvertError("io", "E First line of sheet must contain database specification.");
-    const text = await renderCellText(cell, book, context, "preserve"), comma = text.indexOf(",");
+    const rendered = await renderCellText(cell, book, context, "preserve"), nul = rendered.indexOf("\0");
+    const text = nul < 0 ? rendered : rendered.slice(0, nul), comma = text.indexOf(",");
     if (comma < 0) { await warning("Field specification must be a comma separated value (Name,Type,Size,Prec)."); return new Uint8Array(); }
     const spec = text.slice(comma + 1), letter = spec[0];
     if (!letter || letter === ",") { await warning(`${column}. field specification ${letter === "," ? "misses type" : "ended unexpectedly"}.`); return new Uint8Array(); }
@@ -252,7 +253,8 @@ async function writeParadoxTable(book: Workbook, context: CapabilityContext): Pr
   let at = 120;
   for (const f of fields) { bytes[at++] = f.type; bytes[at++] = f.type === 23 ? f.precision : f.length; }
   at += 4 + fields.length * 4;
-  bytes.set(new TextEncoder().encode(sheet.name).subarray(0,260), at); at += 261;
+  const nameEnd = sheet.name.indexOf("\0");
+  bytes.set(new TextEncoder().encode(nameEnd < 0 ? sheet.name : sheet.name.slice(0, nameEnd)).subarray(0,260), at); at += 261;
   for (const name of names) { bytes.set(name, at); at += name.length; }
   for (let i = 0; i < fields.length; i++) { view.setUint16(at, i + 1, true); at += 2; }
   bytes.set(new TextEncoder().encode("ANSIINTL"), at); at += 9; view.setUint16(81, at, true);

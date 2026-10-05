@@ -331,6 +331,11 @@ regressions,90 focused tests and20 public/native readbacks verify the repair.
 Native exporter schema use-after-free and exact-buffer terminator overflow
 are classified separately; remaining family acceptance stays open.
 
+Paradox schema specifications and table names now stop at NUL
+(`paradoxSchemaNulBoundary`). Seven regressions,97 focused tests,12 public/native
+readbacks and four invalid-schema authority/publication controls verify the
+repair. Wider Paradox and other family acceptance remains open.
+
 ## 4. Interfaces and test plan
 
 Use existing `createEngine`, `readWorkbook`, `writeWorkbook`, `convert` and

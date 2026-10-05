@@ -1,3 +1,4 @@
+import { mp4SampleTableSteps, type Mp4SampleTables } from "./mp4-sample-source.js";
 import { mp4BoxLayout, mp4BoxChildrenOffset } from "./mp4-box-layout.js";
 import { decodeH264Samples } from "./h264.js";
 import { drainWork } from "./work.js";
@@ -653,189 +654,22 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
             ? "subtitle"
             : "data";
 
-    // Parse stts (Time to Sample)
-    const sttsBox = findBox(stbl?.children, "stts");
-    const sttsEntries: { count: number; delta: number }[] = [];
-    if (sttsBox && sttsBox.payload.byteLength >= 8) {
-      const r = new BinaryReader(sttsBox.payload);
-      r.skip(4);
-      const count = r.readU32BE();
-      for (let i = 0; i < count && !r.eof; i++) {
-        sttsEntries.push({ count: r.readU32BE(), delta: r.readU32BE() });
-      }
+    // Traverse classic tables directly; only the explicit document's samples are collected.
+    const tables: Mp4SampleTables = {};
+    for (const name of ['stts', 'ctts', 'stsc', 'stsz', 'stco', 'co64', 'stss'] as const) {
+      const box = findBox(stbl?.children, name);
+      if (box) tables[name] = { payloadOffset: box.offset + box.headerSize, payloadSize: box.payload.length };
     }
-
-    // Parse ctts (Composition Offset)
-    const cttsBox = findBox(stbl?.children, "ctts");
-    const cttsEntries: { count: number; offset: number }[] = [];
-    if (cttsBox && cttsBox.payload.byteLength >= 8) {
-      const r = new BinaryReader(cttsBox.payload);
-      const version = r.readU8();
-      r.skip(3);
-      const count = r.readU32BE();
-      for (let i = 0; i < count && !r.eof; i++) {
-        const sampleCount = r.readU32BE();
-        const sampleOffset = version === 1 ? r.readI32BE() : r.readU32BE();
-        cttsEntries.push({ count: sampleCount, offset: sampleOffset });
-      }
-    }
-
-    // Parse stsc (Sample to Chunk)
-    const stscBox = findBox(stbl?.children, "stsc");
-    const stscEntries: {
-      firstChunk: number;
-      samplesPerChunk: number;
-      sampleDescriptionIndex: number;
-    }[] = [];
-    if (stscBox && stscBox.payload.byteLength >= 8) {
-      const r = new BinaryReader(stscBox.payload);
-      r.skip(4);
-      const count = r.readU32BE();
-      for (let i = 0; i < count && !r.eof; i++) {
-        stscEntries.push({
-          firstChunk: r.readU32BE(),
-          samplesPerChunk: r.readU32BE(),
-          sampleDescriptionIndex: r.readU32BE() || 1
-        });
-      }
-    }
-
-    // Parse stsz / stz2 (Sample Size)
-    const stszBox = findBox(stbl?.children, "stsz");
-    let uniformSampleSize = 0;
-    let sampleCount = 0;
-    const sampleSizes: number[] = [];
-    if (stszBox && stszBox.payload.byteLength >= 12) {
-      const r = new BinaryReader(stszBox.payload);
-      r.skip(4);
-      uniformSampleSize = r.readU32BE();
-      sampleCount = r.readU32BE();
-      budget.checkSamples(sampleCount);
-      if (uniformSampleSize === 0) {
-        for (let i = 0; i < sampleCount && !r.eof; i++) {
-          sampleSizes.push(r.readU32BE());
-        }
-      }
-    }
-
-    // Parse stco / co64 (Chunk Offset)
-    const stcoBox = findBox(stbl?.children, "stco");
-    const co64Box = findBox(stbl?.children, "co64");
-    const chunkOffsets: number[] = [];
-    if (stcoBox && stcoBox.payload.byteLength >= 8) {
-      const r = new BinaryReader(stcoBox.payload);
-      r.skip(4);
-      const count = r.readU32BE();
-      for (let i = 0; i < count && !r.eof; i++) {
-        chunkOffsets.push(r.readU32BE());
-      }
-    } else if (co64Box && co64Box.payload.byteLength >= 8) {
-      const r = new BinaryReader(co64Box.payload);
-      r.skip(4);
-      const count = r.readU32BE();
-      for (let i = 0; i < count && !r.eof; i++) {
-        chunkOffsets.push(r.readU64BE());
-      }
-    }
-
-    // Parse stss (Sync Sample / Keyframes)
-    const stssBox = findBox(stbl?.children, "stss");
-    const syncSamples = new Set<number>();
-    if (stssBox && stssBox.payload.byteLength >= 8) {
-      const r = new BinaryReader(stssBox.payload);
-      r.skip(4);
-      const count = r.readU32BE();
-      for (let i = 0; i < count && !r.eof; i++) {
-        syncSamples.add(r.readU32BE());
-      }
-    }
-
-    // Reconstruct samples from stbl
-    const samples: MediaSample[] = [];
-    if (sampleCount > 0 && chunkOffsets.length > 0 && stscEntries.length > 0) {
-      let sttsIdx = 0;
-      let sttsRem = sttsEntries[0]?.count ?? 0;
-      let cttsIdx = 0;
-      let cttsRem = cttsEntries[0]?.count ?? 0;
-      let currentDts = 0;
-      let sampleIdx = 0;
-
-      for (let chunkIdx = 0; chunkIdx < chunkOffsets.length && sampleIdx < sampleCount; chunkIdx++) {
-        const chunkNumber = chunkIdx + 1;
-        let stscEntry = stscEntries[0]!;
-        for (let s = 0; s < stscEntries.length; s++) {
-          if (stscEntries[s]!.firstChunk <= chunkNumber) {
-            stscEntry = stscEntries[s]!;
-          } else {
-            break;
-          }
-        }
-
-        let byteCursor = chunkOffsets[chunkIdx]!;
-        for (
-          let sInChunk = 0;
-          sInChunk < stscEntry.samplesPerChunk && sampleIdx < sampleCount;
-          sInChunk++
-        ) {
-          const size = uniformSampleSize > 0 ? uniformSampleSize : (sampleSizes[sampleIdx] ?? 0);
-          while (sttsRem <= 0 && sttsIdx + 1 < sttsEntries.length) {
-            sttsIdx++;
-            sttsRem = sttsEntries[sttsIdx]!.count;
-          }
-          const delta = sttsEntries[sttsIdx]?.delta ?? 1024;
-          if (sttsRem > 0) sttsRem--;
-
-          let cts = 0;
-          if (cttsEntries.length > 0) {
-            while (cttsRem <= 0 && cttsIdx + 1 < cttsEntries.length) {
-              cttsIdx++;
-              cttsRem = cttsEntries[cttsIdx]!.count;
-            }
-            cts = cttsEntries[cttsIdx]?.offset ?? 0;
-            if (cttsRem > 0) cttsRem--;
-          }
-
-          const dts = currentDts;
-          const pts = dts + cts;
-          currentDts += delta;
-
-          const sampleOneBased = sampleIdx + 1;
-          const isKeyframe =
-            stssBox === undefined
-              ? true
-              : syncSamples.size === 0
-                ? sampleOneBased === 1
-                : syncSamples.has(sampleOneBased);
-
-          const safeStart = Math.max(0, Math.min(bytes.byteLength, byteCursor));
-          const safeEnd = Math.max(safeStart, Math.min(bytes.byteLength, safeStart + size));
-          let samplePayload = bytes.subarray(safeStart, safeEnd);
-          if (type === "subtitle" && samplePayload.byteLength >= 2) {
-            const textLen = (samplePayload[0]! << 8) | samplePayload[1]!;
-            if (textLen === 0) {
-              byteCursor += size;
-              sampleIdx++;
-              continue;
-            }
-            if (2 + textLen <= samplePayload.byteLength) {
-              samplePayload = samplePayload.subarray(2, 2 + textLen);
-            }
-          }
-          samples.push({
-            data: samplePayload,
-            dts,
-            pts,
-            cts,
-            duration: delta,
-            size: samplePayload.byteLength,
-            isKeyframe,
-            sampleDescriptionIndex: stscEntry.sampleDescriptionIndex
-          });
-
-          byteCursor += size;
-          sampleIdx++;
-        }
-      }
+    const samples: MediaSample[] = [], syncSamples = new Set<number>();
+    const steps = mp4SampleTableSteps(bytes.length, tables, { type, budget });
+    let answer: Uint8Array | boolean | undefined;
+    for (;;) {
+      const next = steps.next(answer); if (next.done) break;
+      const step = next.value; answer = undefined;
+      if (step.kind === 'read') answer = bytes.subarray(step.offset, step.offset + step.length);
+      else if (step.kind === 'sync-add') syncSamples.add(step.sample);
+      else if (step.kind === 'sync-has') answer = syncSamples.has(step.sample);
+      else { const { offset, ...sample } = step.sample; samples.push({ ...sample, data: bytes.subarray(offset, offset + sample.size) }); }
     }
 
     // Reconstruct samples from fragmented MP4 (`moof` -> `traf` -> `tfhd`/`tfdt`/`trun`)

@@ -683,7 +683,11 @@ backpressure, including inline page dictionaries. Each page provides its
 rotation and resources), and `streamContents()` (decoded content chunks with
 the same array separators as `PdfPage.getRawContentStream`). `doc.lookup(node)`
 resolves reference chains while retaining stream identity; `doc.info()` decodes
-string/name metadata.
+string/name metadata. `doc.streamInfoValue(key)` reads one field using caller-backed
+metadata containers and bounded decoded chunks. It emits an empty chunk for a
+present empty value and nothing for an absent/nontext value. Duplicate keys use
+the last definition. Temporary storage is admitted before allocation against
+`maxTraversalStagingBytes`; closing the reader or document releases it.
 
 Page walks keep only their active path and use caller-backed indexes for global
 cycle/duplicate tracking, with a 64-reference resident tail. `maxPages` is an

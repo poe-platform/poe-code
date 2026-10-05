@@ -1,7 +1,7 @@
 import { FsError } from "safe-bash-contracts/errors";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { PdfDocument, cosDict, cosString, cosName, cosNumber, cosArray, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, PdfRetainedDocument, cosDict, cosString, cosName, cosNumber, cosArray, dictSet } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createPdftohtmlCommand, runPdftohtmlCli } from "./index.js";
@@ -120,4 +120,13 @@ test("retained HTML publishes a replaced input before later image map entries", 
   } });
   assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, 0);
   assert.deepEqual(published, ["/report.html", "/page1_1.png"]); await f.clean();
+});
+
+for (const title of ["", "café & <title>".repeat(1024)]) test(`retained HTML streams the selected metadata title (${title.length})`, async t => {
+  const doc = PdfDocument.create(); doc.addPage(); doc.setMetadata({ title });
+  dictSet(doc.cos.resolveDict(doc.cos.infoRef)!, "Unrelated", cosString("ignored".repeat(8192)));
+  const input = doc.save(), args = ["input.pdf", "-"], expected = await runPdftohtmlCli(args, new Map([["input.pdf", input]])), f = await fixture(input, args);
+  t.mock.method(PdfRetainedDocument.prototype, "info", async () => { throw new Error("whole metadata map forbidden"); });
+  assert.equal((await createPdftohtmlCommand().execute(f.context)).exitCode, expected.exitCode);
+  assert.equal(new TextDecoder().decode(joined(f.stdout)), expected.stdout); await f.clean();
 });

@@ -130,8 +130,9 @@ export async function executeRetainedHtml(context: CommandContext, plan: HtmlPla
       if (plan.xmlMode) yield '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">\n<pdf2xml producer="@poe-code/pdf-ast" version="24.08.0">\n';
       else {
         yield '<!DOCTYPE html>\n<html>\n<head><meta charset="utf-8"/><title>';
-        const title = (await doc.info()).Title ?? plan.inputPath;
-        for (let at = 0; at < title.length; at += 2048) yield escape(title.slice(at, at + 2048));
+        let hasTitle = false;
+        for await (const part of doc.streamInfoValue("Title")) { hasTitle = true; yield escape(part); }
+        if (!hasTitle) for (let at = 0; at < plan.inputPath.length; at += 2048) yield escape(plan.inputPath.slice(at, at + 2048));
         yield "</title></head>\n<body>\n";
       }
       for await (const page of doc.pages()) {

@@ -1,6 +1,7 @@
+import { readPdfDictionaryValue } from "./content/stored-dictionary.js";
 import type { ExtractTextOptions } from "./extract/text.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosArray, cosDict, cosNumber, decodePdfString, dictGet, type ByteSpan, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfRect, type PdfStoredItems } from "./ast.js";
+import { cosArray, cosDict, cosNumber, decodePdfString, decodeStoredPdfString, dictGet, type ByteSpan, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfRect, type PdfStoredItems } from "./ast.js";
 import { annotationNameDestinationSteps, annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationFrame, type PdfAnnotationResult } from "./content/annotations.js";
 import { PdfArrayCursor } from "./content/array-cursor.js";
 import { evaluateRetainedContentSteps } from "./content/retained-evaluator.js";
@@ -142,6 +143,49 @@ export class PdfRetainedReader {
     const record = await readStoredRecord<PdfCosNode>(items.storage, position, this.options.signal);
     this.assertOpen();
     return cosArray([cosNumber(record.next), record.value]);
+  }
+
+  /** Stream one metadata field without expanding the information dictionary.
+   * A present empty value emits an empty chunk; missing/nontext fields emit none.
+   * Duplicate keys use the last definition, matching getInfoString(). */
+  streamInfoValue(key: string): AsyncGenerator<string, void, void> {
+    async function* visit(doc: PdfRetainedReader): AsyncGenerator<string, void, void> {
+      doc.assertOpen(); doc.walks.add(work);
+      const signal = doc.options.signal!;
+      const shared = new PdfStagingStorage(doc.storage, doc.options.maxTraversalStagingBytes);
+      const backing = new PagedStorage({ fs: shared.fs, cwd: shared.directory, env: {}, signal }, 2);
+      let allocated = 0;
+      const retained = {
+        allocate(length: number) {
+          const end = allocated + length;
+          if (!Number.isSafeInteger(end) || end > (doc.options.maxTraversalStagingBytes ?? Infinity)) throw new PdfError("E_LIMIT", "PDF metadata staging byte limit exceeded");
+          const position = backing.allocate(length); allocated = end; return position;
+        },
+        read: backing.read.bind(backing), write: backing.write.bind(backing)
+      };
+      const values: ValueArrayStorage = { dictionaryStorage: retained, arrayStorage: retained, stringStorage: retained, containerStorage: retained,
+        deferDictionaryValues: true, deferArrayValues: true, storeRootDictionary: true, storeRootArray: true, storeRootString: true };
+      let failed = false;
+      try {
+        const info = (await doc.lookup(doc.crossReference.infoRef, values))?.value;
+        if (info?.kind !== "dict") return;
+        const selected = await readPdfDictionaryValue(info, key, signal, { preserveDeferred: true });
+        const value = (await doc.lookup(selected, values))?.value;
+        if (value?.kind !== "string" && value?.kind !== "name") return;
+        doc.assertOpen(); yield "";
+        if (value.kind === "string" && value.storedBytes) {
+          for await (const part of decodeStoredPdfString(value.storedBytes, signal)) { doc.assertOpen(); yield part; }
+        } else {
+          const text = value.kind === "name" ? value.decoded : decodePdfString(value);
+          for (let at = 0; at < text.length; at += 2048) {
+            if (at && at % 65536 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+            doc.assertOpen(); yield text.slice(at, at + 2048);
+          }
+        }
+      } catch (error) { failed = true; throw error; }
+      finally { doc.walks.delete(work); await backing.close().catch(error => { if (!failed) throw error; }); }
+    }
+    const work = visit(this); return work;
   }
 
   async info(): Promise<Readonly<Record<string, string>>> {

@@ -307,3 +307,35 @@ it.each(["BM", "Font", "ca"].flatMap(key => [false, true].map(indirect => ({key,
  }finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+
+it.each(["font", "descriptor", "encoding", "descendant", "matrix", "glyphs"].flatMap(location => ["inline", "indirect", "stream", "encrypted"].map(mode => ({location, mode}))))("does not expand unused selected font $location fields ($mode)", async ({location, mode}) => {
+ const indirect=mode!=="inline";
+ const {cosArray,cosDict,cosName,cosStream}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([24,12]);
+ const unused=cosArray(Array.from({length:256},()=>cosNumber(757)));
+ const descriptor=cosDict({MissingWidth:cosNumber(600),...(location==="descriptor"?{Unused:unused}:{})});
+ const encoding=cosDict({BaseEncoding:cosName("WinAnsiEncoding"),Differences:cosArray([cosNumber(120),cosName("A")]),...(location==="encoding"?{Unused:unused}:{})});
+ const font=cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica"),FirstChar:cosNumber(120),Widths:cosArray([cosNumber(600)]),FontDescriptor:indirect?doc.cos.allocateObject(descriptor):descriptor,Encoding:indirect?doc.cos.allocateObject(encoding):encoding,...(location==="font"?{Unused:unused}:{})});
+ if(location==="descendant"){
+  const cid=cosDict({Subtype:cosName("CIDFontType2"),BaseFont:cosName("Helvetica"),DW:cosNumber(600),Unused:unused});
+  const descendants=cosArray([cid,...Array.from({length:256},()=>cosNumber(757))]);
+  dictSet(font,"Subtype",cosName("Type0"));dictSet(font,"Encoding",cosName("Identity-H"));dictSet(font,"DescendantFonts",indirect?doc.cos.allocateObject(descendants):descendants);
+ }
+ if(location==="matrix"||location==="glyphs"){
+  const {cosStream}=await import("@poe-code/pdf-ast");
+  const matrix=cosArray([.001,0,0,.001,0,0].map(value=>cosNumber(value)).concat(location==="matrix"?Array.from({length:256},()=>cosNumber(757)):[]));
+  const procs=cosDict({A:doc.cos.allocateObject(cosStream(new TextEncoder().encode("600 0 d0 0 0 500 700 re f"))),...(location==="glyphs"?{Unused:unused}:{})});
+  dictSet(font,"Subtype",cosName("Type3"));dictSet(font,"FontMatrix",indirect?doc.cos.allocateObject(matrix):matrix);dictSet(font,"CharProcs",indirect?doc.cos.allocateObject(procs):procs);
+ }
+ dictSet(page.pageDict,"Resources",cosDict({Font:cosDict({Selected:mode==="stream"?doc.cos.allocateObject(cosStream(font,new Uint8Array())):indirect?doc.cos.allocateObject(font):font})}));
+ page.setRawContentStream("BT /Selected 9 Tf 1 3 Td "+(location==="descendant"?"<00780078>":"(xx)")+" Tj ET");
+ const bytes=mode==="encrypted"?doc.save({encrypt:{revision:3}}):doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const push=Array.prototype.push;Array.prototype.push=function<T>(this:T[],...values:T[]):number{if(this.length>=64&&values.some(value=>(value as {kind?:string;value?:number})?.kind==="number"&&(value as {value:number}).value===757))throw Error("unused selected font field became resident");return push.apply(this,values);};
+ try{
+  const image=await tryPdfDecode({size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}},storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+ }finally{Array.prototype.push=push;await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

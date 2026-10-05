@@ -2057,7 +2057,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   explicitName=reply.node?.kind==="name"?reply.node.decoded:undefined;
                 }
                 const gName = explicitName ?? item.unicode;
-                const procNode = gName ? yield* resolveEvaluationNode(dictGet(font.charProcs, gName)) : undefined;
+                const procNode = gName ? yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(font.charProcs, gName)) : undefined;
                 if (procNode?.kind === "stream") {
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
                   const source = { stream: procNode };

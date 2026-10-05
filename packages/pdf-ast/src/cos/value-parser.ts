@@ -8,6 +8,8 @@ export interface ValueArrayStorage {
   readonly dictionaryStorage?: PdfPixelStorage;
   /** Defer unused resource values; all value and container stores must share backing. */
   readonly deferDictionaryValues?: boolean;
+  /** Also defer children of backed arrays; requires deferDictionaryValues. */
+  readonly deferArrayValues?: boolean;
   /** Select resource maps; their entry names are data, not nested map selectors. */
   readonly storedDictionaryKeys?: readonly string[];
   /** Select dictionary path suffixes; entry names of backed maps remain opaque. */
@@ -40,6 +42,7 @@ export type ValueWork<T> = Generator<void | "token" | PdfCosDict
 
 export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (storage: PdfPixelStorage | undefined) => void }, maxDepth: number, repair = false, maxNodes = Infinity, options: ValueArrayStorage = {}): ValueWork<PdfCosNode | undefined> {
   yield;
+  if (options.deferArrayValues && !options.deferDictionaryValues) throw new TypeError("Deferred array values require deferred dictionary values");
   if (options.deferDictionaryValues && (!options.dictionaryStorage ||
       options.arrayStorage !== options.dictionaryStorage || options.stringStorage !== options.dictionaryStorage ||
       options.containerStorage !== options.dictionaryStorage)) throw new TypeError("Deferred resource values require shared caller backing");
@@ -88,7 +91,7 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
     if (++work % 16 === 0) yield;
 
     const parent = current;
-    const deferred = options.deferDictionaryValues && (parent?.deferred || parent?.kind === "dict" && parent.storedEntries);
+    const deferred = options.deferDictionaryValues && (parent?.deferred || parent?.kind === "dict" && parent.storedEntries || options.deferArrayValues && parent?.kind === "array" && parent.storedItems);
     const selectedString = (parent?.kind === "dict" && parent.key && options.storedStringKeys?.includes(parent.key.decoded)) || (!parent && options.storeRootString);
     lexer.setStringStorage?.(options.stringStorage && (selectedString || deferred) ? options.stringStorage : undefined);
     const tok = (yield "token") as CosToken | undefined;

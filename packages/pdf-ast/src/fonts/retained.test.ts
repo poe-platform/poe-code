@@ -1,3 +1,4 @@
+import { readPdfDictionaryValue } from "../content/stored-dictionary.js";
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { cosArray, cosNumber, cosDict, cosName, cosStream } from "../ast.js";
@@ -175,8 +176,8 @@ it.each(["simple", "indirect", "cid", "encrypted"])("reads %s source width array
     const value = resolved.value;
     expect(value.kind).toBe("dict");
     if(mode === "simple") {
-      const array = value.entries.find((entry: {key:{decoded:string}}) => entry.key.decoded === "Widths").value;
-      expect(array.items).toHaveLength(0); expect(array.storedItems.length).toBe(1024);
+      const array = await readPdfDictionaryValue(value, "Widths", undefined, {preserveDeferred:true});
+      expect(array).toMatchObject({kind:"array",items:[],storedItems:{length:1024}});
     }
     if (mode !== "indirect") {
       const failure = new PdfError("E_PARSE", "caller storage failure");
@@ -210,4 +211,19 @@ it.each([false, true])("resolves selected fonts from caller-backed resource dict
     }
   } finally {await retained.close(); await source.close();}
   expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("preserves ordinary font results when deferred resources are supplied without a font backing option", async () => {
+  const {parseCosRangeValue} = await import("../cos/range-parser.js");
+  const bytes = new Uint8Array(65536); let end = 0;
+  const backing = {allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return bytes.subarray(at,at+n);},async write(at:number,data:Uint8Array){bytes.set(data,at);}};
+  const encoded = new TextEncoder().encode("<< /Font << /Good << /Subtype /Type1 /BaseFont /Helvetica /Encoding << /Differences [65 /B] >> >> >> >>");
+  const {value} = await parseCosRangeValue({size:encoded.length,chunkBytes:4096,async read(at:number,n:number){return encoded.subarray(at,at+n);}},0,{dictionaryStorage:backing,arrayStorage:backing,stringStorage:backing,containerStorage:backing,storedDictionaryKeys:["Font"],deferDictionaryValues:true});
+  if(value?.kind!=="dict")throw Error("resources expected");
+  const f=await fixture();
+  try{
+    const font=await resolveRetainedFont(f.doc,{fs:f.fs,directory:"/scratch"},value,"Good");
+    expect(font?.glyphNames.get(65)).toBe("B");
+    expect(font?.differences.get(65)).toBe("B");
+  }finally{await f.close();}
 });

@@ -1,4 +1,4 @@
-import { materializeResourceValue } from "../content/stored-dictionary.js";
+import { materializeResourceValue, readPdfDictionaryValue } from "../content/stored-dictionary.js";
 import { StoredFontEncoding } from "./stored-encoding.js";
 import { readStoredItems, readStoredRecord } from "../content/stored-record.js";
 import { cosArray, cosName } from "../ast.js";
@@ -47,14 +47,16 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
       if (++requests % 32 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
       let value: FontResolutionResult;
       if (step.value.kind === "resolve") {
-        const retained = await document.lookup(step.value.node, options.resourceStorage ? {dictionaryStorage:options.resourceStorage,deferDictionaryValues:true,containerStorage:options.resourceStorage,stringStorage:options.resourceStorage,storedDictionaryKeys:["Font","XObject","Properties"],storedDictionaryPaths:[["Resources","*"]],storeRootDictionary:step.value.storeRootDictionary ?? false,arrayStorage:options.resourceStorage,storedArrayKeys:["Widths","W","Differences"],storeRootArray:step.value.storeRootArray ?? false} : {}, step.value.arrayPathPrefix);
-        value = retained ? await materializeResourceValue(retained.value,signal) : undefined;
+        const retained = await document.lookup(step.value.node, options.resourceStorage ? {dictionaryStorage:options.resourceStorage,deferDictionaryValues:true,deferArrayValues:true,containerStorage:options.resourceStorage,stringStorage:options.resourceStorage,storedDictionaryKeys:["Font","XObject","Properties"],storedDictionaryPaths:[["Resources","*"]],storeRootDictionary:step.value.storeRootDictionary ?? false,arrayStorage:options.resourceStorage,storedArrayKeys:["Widths","W","Differences"],storeRootArray:step.value.storeRootArray ?? false} : {}, step.value.arrayPathPrefix);
+        value = retained ? (options.resourceStorage && (step.value.storeRootDictionary || step.value.storeRootArray) ? retained.value : await materializeResourceValue(retained.value,signal)) : undefined;
         if (retained?.stream) {
           if (retained.value.kind !== "dict" || !retained.reference) throw new PdfError("E_PARSE", "Font stream has no retained identity");
           allocation.admit(256);
           const stream: PdfCosStream = { kind: "stream", dict: retained.value, rawBytes: new Uint8Array() };
           identities.set(stream, retained.reference); value = stream;
         }
+      } else if (step.value.kind === "dictionary-value") {
+        value = await readPdfDictionaryValue(step.value.dict, step.value.key, signal, {preserveDeferred:true});
       } else if (step.value.kind === "dictionary-entry") {
         const record = await readStoredRecord<import("../ast.js").PdfDictEntry>(step.value.entries.storage, step.value.position, signal);
         value = cosArray([record.value.key, record.value.value, cosNumber(record.next)]);

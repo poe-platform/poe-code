@@ -11,15 +11,22 @@ import { getEncoding, type Type1Properties, type CMap } from "../vendor/pdfjs-fo
 import { parseEmbeddedType1Font } from "./type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "./cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "./standard-outlines.js";
-import { dictGet, dictSet, type PdfCosNode, type PdfCosDict, type PdfCosArray, type PdfCosRef, type PdfCosStream, type PdfPixelStorage, type PdfStoredItems } from "../ast.js";
+import { dictGet, cosDict, type PdfCosNode, type PdfCosDict, type PdfCosArray, type PdfCosRef, type PdfCosStream, type PdfPixelStorage, type PdfStoredItems } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "./cmap.js";
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = PdfDictionaryEntryRequest | {kind:"font-encoding";array:PdfCosArray} | {kind:"font-label";lookup:(code:number)=>Promise<string|undefined>;code:number} | {kind:"array-item"; items:PdfStoredItems; position:number} | {kind:"font-width-set";widths:StoredFontWidths;first:number;width:number;last?:number} | {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined; storeRootArray?:boolean; storeRootDictionary?:boolean; arrayPathPrefix?:readonly string[] } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; storedEncoding?:StoredFontEncoding; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
+export type FontResolutionRequest = {kind:"dictionary-value";dict:PdfCosDict;key:string} | PdfDictionaryEntryRequest | {kind:"font-encoding";array:PdfCosArray} | {kind:"font-label";lookup:(code:number)=>Promise<string|undefined>;code:number} | {kind:"array-item"; items:PdfStoredItems; position:number} | {kind:"font-width-set";widths:StoredFontWidths;first:number;width:number;last?:number} | {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined; storeRootArray?:boolean; storeRootDictionary?:boolean; arrayPathPrefix?:readonly string[] } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; storedEncoding?:StoredFontEncoding; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
 export type FontResolutionResult = StoredFontEncoding | StoredCffFont | StoredTrueTypeFont | PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
+/** Keep unused definition fields in caller backing. */
+function* field(dict: PdfCosDict, key: string): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
+  if (!dict.storedEntries) return dictGet(dict, key);
+  const value = yield {kind:"dictionary-value", dict, key};
+  if (value && !("kind" in value)) throw new TypeError("Expected a font dictionary value");
+  return value;
+}
 function* resolve(node: PdfCosNode | undefined, storeRootArray = false, storeRootDictionary = false, arrayPathPrefix?: readonly string[]): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
   const value = yield { kind: "resolve", node, storeRootArray, storeRootDictionary, ...(arrayPathPrefix ? {arrayPathPrefix} : {}) };
   if (value && !("kind" in value)) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
@@ -81,10 +88,10 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
     const allocationOptions = { onAllocation: (bytes: number) => allocation.admit(bytes) };
     const fonts = new Map<string, ResolvedPageFont>();
     const catalog = (yield* resolveDict(rootRef));
-    const acroForm = catalog ? (yield* resolveDict(dictGet(catalog, "AcroForm"))) : undefined;
-    const drDict = acroForm ? (yield* resolveDict(dictGet(acroForm, "DR"))) : undefined;
-    const drFontDict = drDict ? (yield* resolveDict(dictGet(drDict, "Font"), true)) : undefined;
-    const pageFontDict = resourcesDict ? (yield* resolveDict(dictGet(resourcesDict, "Font"), true)) : undefined;
+    const acroForm = catalog ? (yield* resolveDict((yield* field(catalog, "AcroForm")))) : undefined;
+    const drDict = acroForm ? (yield* resolveDict((yield* field(acroForm, "DR")))) : undefined;
+    const drFontDict = drDict ? (yield* resolveDict((yield* field(drDict, "Font")), true)) : undefined;
+    const pageFontDict = resourcesDict ? (yield* resolveDict((yield* field(resourcesDict, "Font")), true)) : undefined;
     for (const dictionary of [drFontDict, pageFontDict]) {
       if (!dictionary) continue;
       const cursor = new PdfDictionaryCursor(dictionary);
@@ -95,17 +102,17 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         const fName = entry.key.decoded;
         if (selectedName !== undefined && fName !== selectedName)
             continue;
-        const fObj = (yield* resolveDict(entry.value));
+        const fObj = (yield* resolveDict(entry.value, true));
         if (!fObj)
             continue;
         allocation.admit(1024);
-        const subtypeNode = (yield* resolve(dictGet(fObj, "Subtype")));
+        const subtypeNode = (yield* resolve((yield* field(fObj, "Subtype"))));
         const subtype = subtypeNode?.kind === "name" ? subtypeNode.decoded : "Type1";
-        const baseFontNode = (yield* resolve(dictGet(fObj, "BaseFont")));
+        const baseFontNode = (yield* resolve((yield* field(fObj, "BaseFont"))));
         const baseFont = baseFontNode?.kind === "name" ? baseFontNode.decoded : "Helvetica";
         let cmap: ParsedToUnicodeCMap | undefined;
         let storedCMap: StoredCMap | undefined;
-        const toUniNode = (yield* resolve(dictGet(fObj, "ToUnicode")));
+        const toUniNode = (yield* resolve((yield* field(fObj, "ToUnicode"))));
         if (toUniNode?.kind === "stream") {
             try {
                 const value=yield {kind:"decode",stream:toUniNode,purpose:"unicode-cmap"};
@@ -122,17 +129,15 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 // character-code/CID mapping can still supply its visible outlines.
             }
         }
-        const encNode = (yield* resolve(dictGet(fObj, "Encoding")));
+        let encNode = yield* resolve(yield* field(fObj, "Encoding"), false, true);
+        let differenceArray: PdfCosNode | undefined;
         if (encNode?.kind === "dict") {
-            const diffRef = dictGet(encNode, "Differences");
-            if (diffRef?.kind === "ref") {
-                const resolvedDiff = (yield* resolve(diffRef, true));
-                if (resolvedDiff?.kind === "array") {
-                    dictSet(encNode, "Differences", resolvedDiff);
-                }
-            }
+            differenceArray = yield* field(encNode, "Differences");
+            if (differenceArray?.kind === "ref") differenceArray = yield* resolve(differenceArray, true);
+            const baseEncoding = yield* field(encNode, "BaseEncoding");
+            // The synchronous encoding helpers consume only these two fields.
+            encNode = cosDict({...(baseEncoding ? {BaseEncoding:baseEncoding} : {}), ...(differenceArray ? {Differences:differenceArray} : {})});
         }
-        const differenceArray = encNode?.kind === "dict" ? dictGet(encNode, "Differences") : undefined;
         let storedEncoding:StoredFontEncoding|undefined;
         if(options.resourceStorage && differenceArray?.kind === "array") {
             const value=yield {kind:"font-encoding",array:differenceArray};
@@ -159,31 +164,32 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         let charProcs: PdfCosDict | undefined;
         let fontResources: PdfCosDict | undefined;
         if (subtype === "Type3") {
-            const fmArr = (yield* resolveArray(dictGet(fObj, "FontMatrix")));
-            if (fmArr && fmArr.items.length >= 6) {
-                const mn = function* (idx: number, fb = 0) {
-                    const r = (yield* resolve(fmArr.items[idx]));
-                    return r?.kind === "number" ? r.value : fb;
-                };
-                fontMatrix = [(yield* mn(0, 0.001)), (yield* mn(1, 0)), (yield* mn(2, 0)), (yield* mn(3, 0.001)), (yield* mn(4, 0)), (yield* mn(5, 0))];
+            const fmArr = yield* resolveArray(yield* field(fObj, "FontMatrix"), true);
+            if (fmArr && (fmArr.storedItems?.length ?? fmArr.items.length) >= 6) {
+                const cursor = arrayCursor(fmArr);
+                fontMatrix = [0.001, 0, 0, 0.001, 0, 0];
+                for (let i = 0; i < 6; i++) {
+                    const value = yield* resolve(yield* cursor.next());
+                    if (value?.kind === "number") fontMatrix[i] = value.value;
+                }
             }
             else {
                 fontMatrix = [0.001, 0, 0, 0.001, 0, 0];
             }
-            charProcs = (yield* resolveDict(dictGet(fObj, "CharProcs")));
-            fontResources = (yield* resolveDict(dictGet(fObj, "Resources"), false, ["Resources"]));
+            charProcs = (yield* resolveDict((yield* field(fObj, "CharProcs")), true));
+            fontResources = (yield* resolveDict((yield* field(fObj, "Resources")), false, ["Resources"]));
         }
         const type3Scale1000 = subtype === "Type3" && fontMatrix
             ? Math.hypot(fontMatrix[0], fontMatrix[1]) * 1000
             : 1;
+        const descendants = subtype === "Type0" ? yield* resolveArray(yield* field(fObj, "DescendantFonts"), true) : undefined;
+        const cidDict = descendants ? yield* resolveDict(yield* arrayCursor(descendants).next(), true) : undefined;
         if (subtype === "Type0") {
-            const descArr = (yield* resolveArray(dictGet(fObj, "DescendantFonts")));
-            const cidDict = descArr && descArr.items[0] ? (yield* resolveDict(descArr.items[0])) : undefined;
             if (cidDict) {
-                const dwNode = (yield* resolve(dictGet(cidDict, "DW")));
+                const dwNode = (yield* resolve((yield* field(cidDict, "DW"))));
                 if (dwNode?.kind === "number")
                     defaultWidth = dwNode.value;
-                const wArr = (yield* resolveArray(dictGet(cidDict, "W"), true));
+                const wArr = (yield* resolveArray((yield* field(cidDict, "W")), true));
                 if (wArr) {
                     const cursor = arrayCursor(wArr);
                     while (cursor.remaining) {
@@ -211,13 +217,13 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             }
         }
         else {
-            const firstCharNode = (yield* resolve(dictGet(fObj, "FirstChar")));
-            const widthsArr = (yield* resolveArray(dictGet(fObj, "Widths"), true));
+            const firstCharNode = (yield* resolve((yield* field(fObj, "FirstChar"))));
+            const widthsArr = (yield* resolveArray((yield* field(fObj, "Widths")), true));
             if (widthsArr) {
                 // PDF.js extractWidths: explicit tables use MissingWidth, not a
                 // standard-font width for characters omitted from the table.
-                const descriptor = (yield* resolveDict(dictGet(fObj, "FontDescriptor")));
-                const missingWidth = descriptor ? (yield* resolve(dictGet(descriptor, "MissingWidth"))) : undefined;
+                const descriptor = (yield* resolveDict((yield* field(fObj, "FontDescriptor")), true));
+                const missingWidth = descriptor ? (yield* resolve((yield* field(descriptor, "MissingWidth")))) : undefined;
                 defaultWidth = (missingWidth?.kind === "number" ? missingWidth.value : 0) * type3Scale1000;
                 const firstChar = firstCharNode?.kind === "number" ? firstCharNode.value : 0;
                 const cursor = arrayCursor(widthsArr);
@@ -241,13 +247,11 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         let storedTrueType: StoredTrueTypeFont | undefined;
         let embeddedTrueType: ParsedTrueTypeFont | undefined;
         let simpleToGid: Map<number, number> | undefined;
-        const fDescDirect = (yield* resolveDict(dictGet(fObj, "FontDescriptor")));
-        const descArrForTt = subtype === "Type0" ? (yield* resolveArray(dictGet(fObj, "DescendantFonts"))) : undefined;
-        const cidDictForTt = descArrForTt && descArrForTt.items[0] ? (yield* resolveDict(descArrForTt.items[0])) : undefined;
-        const fDesc = fDescDirect ?? (cidDictForTt ? (yield* resolveDict(dictGet(cidDictForTt, "FontDescriptor"))) : undefined);
+        const fDescDirect = (yield* resolveDict((yield* field(fObj, "FontDescriptor")), true));
+        const fDesc = fDescDirect ?? (cidDict ? yield* resolveDict(yield* field(cidDict, "FontDescriptor"), true) : undefined);
         let cidToGid: Uint16Array | undefined;
         let storedCidToGid: StoredCidMap | undefined;
-        const cidMap = cidDictForTt ? (yield* resolve(dictGet(cidDictForTt, "CIDToGIDMap"))) : undefined;
+        const cidMap = cidDict ? (yield* resolve((yield* field(cidDict, "CIDToGIDMap")))) : undefined;
         if (cidMap?.kind === "stream") {
             // PDF.js readCidToGidMap reads big-endian pairs; a trailing high byte
             // gets a zero low byte. Retain explicit zero entries and stream extent.
@@ -261,15 +265,15 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             }else throw new TypeError("Font decoder did not return CID map bytes");
         }
         if (fDesc) {
-            const type1Program = (yield* resolve(dictGet(fDesc, "FontFile")));
-            const program = (yield* resolve(dictGet(fDesc, "FontFile2"))) ?? (yield* resolve(dictGet(fDesc, "FontFile3"))) ?? type1Program;
+            const type1Program = (yield* resolve((yield* field(fDesc, "FontFile"))));
+            const program = (yield* resolve((yield* field(fDesc, "FontFile2")))) ?? (yield* resolve((yield* field(fDesc, "FontFile3")))) ?? type1Program;
             if (program?.kind === "stream") {
-                const programType = (yield* resolve(dictGet(program.dict, "Subtype")));
-                const baseEncoding = encNode?.kind === "dict" ? (yield* resolve(dictGet(encNode, "BaseEncoding"))) : encNode;
+                const programType = (yield* resolve((yield* field(program.dict, "Subtype"))));
+                const baseEncoding = encNode?.kind === "dict" ? (yield* resolve((yield* field(encNode, "BaseEncoding")))) : encNode;
                 if (program === type1Program) {
-                    const length1 = (yield* resolve(dictGet(program.dict, "Length1")));
-                    const length2 = (yield* resolve(dictGet(program.dict, "Length2")));
-                    const flags = (yield* resolve(dictGet(fDesc, "Flags")));
+                    const length1 = (yield* resolve((yield* field(program.dict, "Length1"))));
+                    const length2 = (yield* resolve((yield* field(program.dict, "Length2"))));
+                    const flags = (yield* resolve((yield* field(fDesc, "Flags"))));
                     const type1Properties: Type1Properties = {
                         length1: length1?.kind === "number" ? length1.value : 0,
                         length2: length2?.kind === "number" ? length2.value : 0,
@@ -391,7 +395,7 @@ export function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDi
   let step = steps.next();
   while (!step.done) {
     let value: FontResolutionResult;
-    try { if(step.value.kind==="dictionary-entry" || step.value.kind==="font-encoding" || step.value.kind==="font-label" || step.value.kind==="array-item" || step.value.kind==="truetype-map" || step.value.kind==="font-width-set")throw new TypeError("Stored font requires asynchronous evaluation"); value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
+    try { if(step.value.kind==="dictionary-value" || step.value.kind==="dictionary-entry" || step.value.kind==="font-encoding" || step.value.kind==="font-label" || step.value.kind==="array-item" || step.value.kind==="truetype-map" || step.value.kind==="font-width-set")throw new TypeError("Stored font requires asynchronous evaluation"); value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
     catch (error) { step = steps.throw(error); continue; }
     step = steps.next(value);
   }

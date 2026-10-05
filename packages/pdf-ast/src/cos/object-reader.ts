@@ -1,4 +1,4 @@
-import { PdfReferenceSet } from "./reference-set.js";
+import { PdfReferenceSet, type PdfReferencePath } from "./reference-set.js";
 import type { ValueArrayStorage } from "./value-parser.js";
 import { resolvePdfStreamDictionary } from "./filter-dictionary.js";
 import { scanCosRangeObjects } from "./range-repair.js";
@@ -25,13 +25,8 @@ export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "reso
   /** Aggregate decoded object-stream data and header tape bytes. */
   readonly maxStagingBytes?: number;
   readonly maxObjectStreamMembers?: number;
-  /** Live ancestor-index staging for each indirect length traversal. */
+  /** Live ancestor-index staging for each indirect reference traversal. */
   readonly maxTraversalStagingBytes?: number;
-}
-interface LengthPath {
-  readonly seen: PdfReferenceSet;
-  readonly parent: LengthPath | undefined;
-  depth: number;
 }
 interface ObjectStream {
   readonly data: PdfFileSource;
@@ -62,7 +57,7 @@ export class PdfObjectReader {
   // Recursive length/object-stream lookups share one failure identity so an
   // outer recovery pass cannot mistake a caller-storage error for PDF syntax.
   private readonly backingFailures = new WeakMap<Set<number>, { error: unknown }>();
-  private readonly lengthPaths = new WeakMap<Set<number>, LengthPath>();
+  private readonly referencePaths = new WeakMap<Set<number>, PdfReferencePath>();
   private readonly repairedOffsets = new Map<number, number>();
   private readonly options: PdfObjectReaderOptions;
   private readonly capacity: number;
@@ -103,7 +98,7 @@ export class PdfObjectReader {
       const object = await this.load(objectNumber, generationNumber, new Set());
       if (object?.value.kind !== "dict" || !object.stream) throw new PdfError("E_PARSE", "Expected an indexed PDF stream");
       const active = new Set([objectNumber]);
-      return { object, dict: await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, { ...this.options, onBackingError: error => { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); } }) };
+      return { object, dict: await this.resolveStreamDictionary(object.value, active) };
     });
     const span = object.stream!;
     const input = () => this.source.stream(span.start, span.end - span.start, this.options.signal);
@@ -113,13 +108,23 @@ export class PdfObjectReader {
       : decodePdfStreamChunks(dict, input, decodeOptions);
   }
 
+  private resolveStreamDictionary(dict: PdfCosDict, active: Set<number>): Promise<PdfCosDict> {
+    return resolvePdfStreamDictionary(dict, async (ref, path) => {
+      const parent = this.referencePaths.get(active);
+      this.referencePaths.set(active, path);
+      try { return await this.load(ref.objectNumber, ref.generationNumber, active); }
+      finally { if (parent) this.referencePaths.set(active, parent); else this.referencePaths.delete(active); }
+    }, active, { ...this.options, referenceStorage: this.storage, referencePath: this.referencePaths.get(active),
+      onBackingError: error => { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); } });
+  }
+
   /** A stream-valued /Length is invalid as a length, but its references still
    * need cycle, admission and backing-error validation. Walk those discarded
    * values in source order instead of retaining one parser and AST per link. */
   private async resolveLength(reference: PdfCosRef, active: Set<number>): Promise<number | undefined> {
-    const path: LengthPath = { seen: new PdfReferenceSet(this.storage, this.options.maxTraversalStagingBytes, this.options.signal),
-      parent: this.lengthPaths.get(active), depth: 0 };
-    this.lengthPaths.set(active, path);
+    const path: PdfReferencePath = { seen: new PdfReferenceSet(this.storage, this.options.maxTraversalStagingBytes, this.options.signal),
+      parent: this.referencePaths.get(active), depth: 0 };
+    this.referencePaths.set(active, path);
     let next: PdfCosRef | undefined = reference, result: number | undefined, failed = false;
     try {
       while (next) {
@@ -137,7 +142,7 @@ export class PdfObjectReader {
       return result;
     } catch (error) { failed = true; throw error; }
     finally {
-      if (path.parent) this.lengthPaths.set(active, path.parent); else this.lengthPaths.delete(active);
+      if (path.parent) this.referencePaths.set(active, path.parent); else this.referencePaths.delete(active);
       try { await path.seen.close(); } catch (error) {
         if (!failed) { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); await Promise.reject(error); }
       }
@@ -148,7 +153,7 @@ export class PdfObjectReader {
     this.options.signal?.throwIfAborted();
     if (active.has(objectNumber)) throw new PdfError("E_PARSE", "PDF indirect object cycle");
     let depth = active.size;
-    for (let path = this.lengthPaths.get(active); path; path = path.parent) {
+    for (let path = this.referencePaths.get(active); path; path = path.parent) {
       let seen: boolean;
       try { seen = await path.seen.has(objectNumber); }
       catch (error) { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); throw error; }
@@ -251,7 +256,7 @@ export class PdfObjectReader {
     if (count > maximum(this.options.maxObjectStreamMembers, "maxObjectStreamMembers") || count > Math.floor(Number.MAX_SAFE_INTEGER / 16)) throw new PdfError("E_LIMIT", "PDF object stream member limit exceeded");
     active.add(number);
     let dict: PdfCosDict;
-    try { dict = await resolvePdfStreamDictionary(object.value, ref => this.load(ref.objectNumber, ref.generationNumber, active), active, { ...this.options, onBackingError: error => { this.backingFailures.set(active, { error }); this.options.onBackingError?.(error); } }); } finally { active.delete(number); }
+    try { dict = await this.resolveStreamDictionary(object.value, active); } finally { active.delete(number); }
     while (this.streams.size >= this.capacity) {
       const [key, oldest] = this.streams.entries().next().value!;
       this.streams.delete(key); await this.release(oldest);

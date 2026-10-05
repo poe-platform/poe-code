@@ -58,3 +58,11 @@ export class PdfReferenceSet {
     for (const result of results) if (result.status === "rejected") throw result.reason;
   }
 }
+
+/** Ancestors whose parser frames have been released. The local depth preserves
+ * admission accounting while membership lives in caller-backed index runs. */
+export interface PdfReferencePath {
+  readonly seen: PdfReferenceSet;
+  readonly parent: PdfReferencePath | undefined;
+  depth: number;
+}

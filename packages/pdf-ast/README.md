@@ -587,8 +587,8 @@ with `maxNodes`, `maxTokenBytes` and `maxRecursionDepth`. Returned ASTs belong t
 the caller and are not cached. `close()` removes owned staging after accepted
 reads finish, leaving the source and index open. `reader.decodeStream(number,
 generation)` emits decoded payload chunks under consumer backpressure.
-Indirect stream-length chains use caller-backed ancestor indexes rather than
-retaining discarded stream dictionaries in recursive calls.
+Indirect stream-length and filter-reference chains use caller-backed ancestor
+indexes rather than retaining discarded objects in recursive calls.
 `maxTraversalStagingBytes` controls each index traversal; depth limits, cycle
 detection and cleanup also apply to these chains.
 

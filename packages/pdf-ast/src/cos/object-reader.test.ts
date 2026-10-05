@@ -526,3 +526,80 @@ it("repairs an intact xref whose trailer root resolves to an Info dictionary", a
   } finally { await opened.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+
+it("keeps indirect filter ancestor tracking bounded while decoding", async () => {
+  const count = 256;
+  let text = "1 0 obj << /Filter 2 0 R /Length 11 >>\nstream\n68656c6c6f>\nendstream\nendobj\n";
+  const entries = [plain(1)];
+  for (let number = 2; number <= count + 2; number++) {
+    entries.push(plain(number, text.length));
+    text += `${number} 0 obj ${number === count + 2 ? "/ASCIIHexDecode" : `${number + 1} 0 R`} endobj\n`;
+  }
+  const f = await fixture(text, entries, { maxRecursionDepth: Infinity });
+  const add = Set.prototype.add;
+  let maximum = 0;
+  Set.prototype.add = function<T>(this: Set<T>, value: T): Set<T> {
+    const result = add.call(this, value); maximum = Math.max(maximum, this.size); return result;
+  };
+  try {
+    let output = "";
+    for await (const chunk of f.reader.decodeStream(1)) output += new TextDecoder().decode(chunk);
+    expect(output).toBe("hello");
+    expect(maximum).toBeLessThanOrEqual(64);
+  } finally { Set.prototype.add = add; await f.close(); }
+});
+
+
+it.each(["cycle", "depth", "nodes", "staging", "write", "cancel"])("cleans filter ancestry after %s failure", async mode => {
+  let text = "1 0 obj << /Filter 2 0 R /Length 3 >>\nstream\n61>\nendstream\nendobj\n";
+  const entries = [plain(1)], abort = new AbortController();
+  for (let number = 2; number <= 132; number++) {
+    entries.push(plain(number, text.length));
+    text += `${number} 0 obj ${number === 132 ? 2 : number + 1} 0 R endobj\n`;
+  }
+  const f = await fixture(text, entries, { maxRecursionDepth: mode === "depth" ? 100 : Infinity,
+    maxNodes: mode === "nodes" ? 100 : Infinity, maxTraversalStagingBytes: mode === "staging" ? 0 : Infinity,
+    signal: abort.signal, recovery: "repair" });
+  const before = await f.fs.readdir("/scratch"), failure = new PdfError("E_PARSE", "caller filter backing failed");
+  const create = f.fs.createStagedFile!.bind(f.fs);
+  const spy = vi.spyOn(f.fs, "createStagedFile").mockImplementation(async (...args) => {
+    const staged = await create(...args);
+    if (mode === "write") return { ...staged, writer: { ...staged.writer!, write: async () => { throw failure; } } };
+    if (mode === "cancel") abort.abort(failure);
+    return staged;
+  });
+  try {
+    if (mode === "write" || mode === "cancel") await expect(f.reader.decodeStream(1).next()).rejects.toBe(failure);
+    else await expect(f.reader.decodeStream(1).next()).rejects.toThrow(mode === "cycle" ? "cycle" : "limit");
+    expect(await f.fs.readdir("/scratch")).toEqual(before);
+    if (mode !== "cancel") await expect(f.reader.get(999)).resolves.toBeUndefined();
+  } finally { spy.mockRestore(); await f.close(); }
+});
+
+it("detects filter ancestors reached through compressed object stream lengths", async () => {
+  const first = "1 0 obj << /Filter 2 0 R /Length 3 >>\nstream\n61>\nendstream\nendobj\n";
+  const second = "2 0 obj 3 0 R endobj\n";
+  const third = "3 0 obj 4 0 R endobj\n";
+  const container = "10 0 obj << /Type /ObjStm /N 1 /First 4 /Length 2 0 R >>\nstream\n4 0 /ASCIIHexDecode\nendstream\nendobj";
+  const f = await fixture(first + second + third + container, [plain(1), plain(2, first.length),
+    plain(3, first.length + second.length), plain(10, first.length + second.length + third.length), compressed(4, 0)]);
+  try { await expect(f.reader.decodeStream(1).next()).rejects.toThrow("cycle"); }
+  finally { await f.close(); }
+});
+
+it("reuses filter references across sibling entries but rejects nested ancestor cycles", async () => {
+  const first = "1 0 obj << /Filter [2 0 R 2 0 R] /Length 5 >>\nstream\n3631>\nendstream\nendobj\n";
+  const second = "2 0 obj 3 0 R endobj\n";
+  for (const cycle of [false, true]) {
+    const third = `3 0 obj ${cycle ? "[2 0 R]" : "/ASCIIHexDecode"} endobj`;
+    const f = await fixture(first + second + third, [plain(1), plain(2, first.length), plain(3, first.length + second.length)]);
+    try {
+      if (cycle) await expect(f.reader.decodeStream(1).next()).rejects.toThrow("cycle");
+      else {
+        let output = ""; for await (const bytes of f.reader.decodeStream(1)) output += new TextDecoder().decode(bytes);
+        expect(output).toBe("a");
+      }
+    } finally { await f.close(); }
+  }
+});

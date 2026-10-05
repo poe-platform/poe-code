@@ -8,9 +8,10 @@ import sharp,{decodeImage} from "./index.js";
 // Exercise structural depth and resource width independently so remote-backed
 // work stays linear in each growth axis rather than multiplying fixture costs.
 it.each([
- ...[32,128].flatMap(count=>["metadata","pixels"].map(mode=>({count,mode,resourceCount:0}))),
- ...[32,128].map(resourceCount=>({count:1,mode:"pixels",resourceCount})),
-])("validates $mode with $count backed PDF references and $resourceCount resources in Workerd",async ({count,mode,resourceCount})=>{
+ ...[32,128].flatMap(count=>["metadata","pixels"].map(mode=>({count,mode,resourceCount:0,filterCount:0}))),
+ ...[32,128].map(resourceCount=>({count:1,mode:"pixels",resourceCount,filterCount:0})),
+ ...[32,128].map(filterCount=>({count:1,mode:"pixels",resourceCount:0,filterCount})),
+])("validates $mode with $count backed PDF references, $resourceCount resources and $filterCount filter references in Workerd",async ({count,mode,resourceCount,filterCount})=>{
  // Keep the complete RGBA plane above 64 KiB while requiring only five raster tiles.
  const pixels=new Uint8Array(257*64*4);let state=1234567;for(let i=0;i<pixels.length;i++){state^=state<<13;state^=state>>>17;state^=state<<5;pixels[i]=state&255;}
  const pdf=await sharp(pixels,{raw:{width:257,height:64,channels:4}}).toFormat("pdf").toBuffer();const document=PdfDocument.load(pdf),catalog=document.cos.resolveDict(document.cos.rootRef)!,pages=document.cos.resolveDict(dictGet(catalog,"Pages"))!,page=document.getPage(0).pageRef;
@@ -40,6 +41,9 @@ it.each([
  let lengthReference=document.cos.allocateObject(cosNumber(0));
  for(let i=0;i<count;i++){const stream=cosStream(new Uint8Array());dictSet(stream.dict,"Length",cosNumber(0));dictSet(stream.dict,"LengtH",lengthReference);lengthReference=document.cos.allocateObject(stream);}
  dictSet(contentObject.dict,"LengtH",lengthReference);
+ // Type shares the indirect filter-dictionary resolver without changing the
+ // generated content's encoding or its pixel oracle.
+ if(filterCount){let type=document.cos.allocateObject(cosName("Content"));for(let i=1;i<filterCount;i++)type=document.cos.allocateObject(type);dictSet(contentObject.dict,"Type",type);}
  const saved=serializeCosDocument({rootRef:document.cos.rootRef,objects:[...document.cos.objects.values()]}),bytes=new Uint8Array(saved.length+200000).fill(32);bytes.set(saved);
  const lengthKey=new TextEncoder().encode("/LengtH");let renamed=0;
  for(let i=0;i<saved.length-lengthKey.length;i++){if(lengthKey.every((byte,j)=>bytes[i+j]===byte)){bytes[i+lengthKey.length-1]=104;renamed++;}}

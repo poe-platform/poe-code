@@ -43,7 +43,7 @@ export async function openStoredPdfObjectReader(store: PdfMutableObjectStore, st
       check(); validateIdentity(number, generation);
       const object = number === 0 ? undefined : await store.get(number);
       if (object?.generationNumber !== generation || !object.stream || object.value.kind !== "dict") throw new PdfError("E_PARSE", "Expected an indexed PDF stream");
-      const dict = await resolvePdfStreamDictionary(object.value, ref => reader.get(ref.objectNumber, ref.generationNumber), new Set([number]), options);
+      const dict = await resolvePdfStreamDictionary(object.value, ref => reader.get(ref.objectNumber, ref.generationNumber), new Set([number]), { ...options, referenceStorage: storage });
       const snapshot = object.stream;
       async function* input() {
         for await (const bytes of snapshot.chunks) { check(); yield bytes; }

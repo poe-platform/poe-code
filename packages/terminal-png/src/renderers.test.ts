@@ -33,6 +33,18 @@ describe("parseAnsi", () => {
     expect(parseAnsi("hello")).toEqual([createRun("hello")]);
   });
 
+  it.each([["e\u0301", 1], ["a\u0308\u0301", 1], ["👩‍💻", 2]] as const)(
+    "preserves cursor columns after the grapheme %s",
+    (text, width) => {
+      const padding = " ".repeat(9 - width);
+      expect(parseAnsi(`\u001b[1;1H${text}\u001b[1;10H|`)).toEqual([
+        createRun(`${text}${padding}|`)
+      ]);
+      expect(parseAnsi(`${text}\u001b[2C|`)).toEqual([createRun(`${text}  |`)]);
+      expect(parseAnsi(`${text}\rX`)).toEqual([createRun("X")]);
+    }
+  );
+
   it("parses bold text", () => {
     expect(parseAnsi("\u001b[1mhello")).toEqual([createRun("hello", { bold: true })]);
   });

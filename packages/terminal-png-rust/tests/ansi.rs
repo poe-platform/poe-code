@@ -66,3 +66,15 @@ fn extended_graphemes_preserve_utf16_boundaries() {
         );
     }
 }
+
+#[test]
+fn cursor_columns_after_graphemes() {
+    for (text, width) in [("e\u{301}", 1), ("a\u{308}\u{301}", 1), ("👩‍💻", 2)] {
+        assert_eq!(
+            rendered(&format!("\u{1b}[1;1H{text}\u{1b}[1;10H|")),
+            format!("{text}{}|", " ".repeat(9 - width))
+        );
+        assert_eq!(rendered(&format!("{text}\u{1b}[2C|")), format!("{text}  |"));
+        assert_eq!(rendered(&format!("{text}\rX")), "X");
+    }
+}

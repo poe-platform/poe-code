@@ -421,20 +421,23 @@ pub fn parse(input: &[u16]) -> Vec<Run> {
             i = if end < input.len() { end + 1 } else { end };
             continue;
         }
-        let paired = (0xd800..=0xdbff).contains(&ch)
-            && input
-                .get(i + 1)
-                .is_some_and(|c| (0xdc00..=0xdfff).contains(c));
-        let (cp, length) = if paired {
-            (
-                0x10000 + (u32::from(ch) - 0xd800) * 1024 + (u32::from(input[i + 1]) - 0xdc00),
-                2,
-            )
-        } else {
-            (u32::from(ch), 1)
-        };
-        d.write(input[i..i + length].to_vec(), if wide(cp) { 2 } else { 1 });
-        i += length;
+        // Keep terminal controls outside printable grapheme clusters.
+        let mut end = i + 1;
+        while end < input.len() && input[end] >= 0x20 && !(0x7f..=0x9f).contains(&input[end]) {
+            end += 1;
+        }
+        for text in crate::grapheme::segments(&input[i..end]) {
+            let first = text[0];
+            let cp = if (0xd800..=0xdbff).contains(&first)
+                && text.get(1).is_some_and(|c| (0xdc00..=0xdfff).contains(c))
+            {
+                0x10000 + (u32::from(first) - 0xd800) * 1024 + (u32::from(text[1]) - 0xdc00)
+            } else {
+                u32::from(first)
+            };
+            d.write(text.to_vec(), if wide(cp) { 2 } else { 1 });
+        }
+        i = end;
     }
     d.finish()
 }

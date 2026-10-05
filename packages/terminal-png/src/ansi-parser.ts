@@ -18,6 +18,8 @@ export type StyledRun = {
 
 type StyleState = Omit<StyledRun, "text">;
 
+const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
+
 const ESC = "\u001b";
 const TAB_WIDTH = 8;
 const MAX_TERMINAL_ROWS = 1000;
@@ -652,10 +654,19 @@ export function parseAnsi(input: string): StyledRun[] {
       continue;
     }
 
-    const codePoint = input.codePointAt(index);
-    const text = codePoint === undefined ? "" : String.fromCodePoint(codePoint);
-    writeText(text);
-    index += text.length;
+    // Segment only text: terminal controls must retain their own boundaries.
+    let end = index + 1;
+    while (end < input.length) {
+      const code = input.charCodeAt(end);
+      if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) {
+        break;
+      }
+      end += 1;
+    }
+    for (const { segment } of segmenter.segment(input.slice(index, end))) {
+      writeText(segment);
+    }
+    index = end;
   }
 
   return buildRuns(lines, lineBreakStyles);

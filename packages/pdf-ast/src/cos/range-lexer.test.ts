@@ -25,6 +25,25 @@ const samples = [
   "/empty/ /bad#xx /trailing# <0z1> (unterminated",
 ];
 
+it.each(["number", "keyword"])("scans long %s tokens without a generator dispatch per cached byte", async kind => {
+  const length = 16384, chunkBytes = 1024;
+  const bytes = new TextEncoder().encode((kind === "number" ? "0" : "z").repeat(length) + " ET");
+  const source = { size: bytes.length, chunkBytes, async read(at: number, count: number) { return bytes.subarray(at, at + count); } };
+  const lexer = new CosRangeLexer(source, { compactNumbers: true, compactKeywords: true });
+  const prototype = Object.getPrototypeOf(Object.getPrototypeOf((function* () {})())) as Generator;
+  const next = prototype.next;
+  let calls = 0;
+  prototype.next = function (...args) { calls++; return next.apply(this, args); };
+  let token: CosToken | undefined;
+  try { token = await lexer.nextToken(); }
+  finally { prototype.next = next; }
+  expect(token).toMatchObject({ kind, span: { start: 0, end: length } });
+  if (kind === "number") expect(token).toMatchObject({ value: 0, raw: "0" });
+  else expect(token).toMatchObject({ value: "z".repeat(64) + "…", truncated: true });
+  expect(calls).toBeLessThan(256);
+  expect(await lexer.nextToken()).toMatchObject({ kind: "keyword", value: "ET" });
+});
+
 describe("retained range COS lexer", () => {
   it.each(samples)("matches buffered token semantics across tiny ranges: %j", async text => {
     const bytes = new TextEncoder().encode(text);

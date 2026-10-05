@@ -256,7 +256,8 @@ class CosLexerState {
 
     let raw = "", truncated = false;
     while (this.pos < this.end) {
-      const cur = (yield* this.byte(this.pos))!;
+      // Only suspend for a new source window, not for every cached token byte.
+      const cur = this.window[this.pos - this.windowStart] ?? (yield* this.byte(this.pos))!;
       if (isPdfWhitespace(cur) || isPdfDelimiter(cur)) break;
       if(!truncated){
         this.onTokenAllocation?.(32);
@@ -325,7 +326,7 @@ class CosLexerState {
       throw new PdfError("E_PARSE", "Invalid PDF number prefix");
     }
     while (this.pos < this.end) {
-      const b = (yield* this.byte(this.pos))!;
+      const b = this.window[this.pos - this.windowStart] ?? (yield* this.byte(this.pos))!;
       if (b >= 0x30 && b <= 0x39) {
         advance(b);
       } else if (b === 0x2e && !decimal) {

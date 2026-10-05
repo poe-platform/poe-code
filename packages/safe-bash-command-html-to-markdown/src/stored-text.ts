@@ -16,23 +16,35 @@ const empty: TextNode = { left: 0, right: 0, data: 0, bytes: 0, length: 0, heigh
 /** Immutable balanced text ropes. Payloads and tree nodes share caller storage;
  * references are offsets, and traversal needs only a logarithmic stack. */
 export class TextStore {
+  // Fixed-size caches retain only metadata and short lexical values. Payloads
+  // remain caller-backed, and eviction never invalidates a stored reference.
+  private readonly metadata = new Map<number, TextNode>();
+  private readonly shortText = new Map<string, number>();
   private readonly encoder = new TextEncoder();
   private readonly decoder = new TextDecoder("utf-8", { ignoreBOM: true });
   constructor(private readonly storage: Pick<PagedStorage, "append" | "read">, private readonly cooperate?: (characters: number) => void | Promise<void>) {}
 
   async info(root: number): Promise<TextNode> {
     if (!root) return empty;
+    const cached = this.metadata.get(root);
+    if (cached) return cached;
     const bytes = await this.storage.read(root, 56);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    return { left: view.getFloat64(0, true), right: view.getFloat64(8, true), data: view.getFloat64(16, true),
-      bytes: view.getFloat64(24, true), length: view.getFloat64(32, true), height: view.getFloat64(40, true), points: view.getFloat64(48, true) };
+    const node = Object.freeze({ left: view.getFloat64(0, true), right: view.getFloat64(8, true), data: view.getFloat64(16, true),
+      bytes: view.getFloat64(24, true), length: view.getFloat64(32, true), height: view.getFloat64(40, true), points: view.getFloat64(48, true) });
+    if (this.metadata.size === 512) this.metadata.delete(this.metadata.keys().next().value!);
+    this.metadata.set(root, node);
+    return node;
   }
 
-  private node(node: TextNode): Promise<number> {
+  private async node(node: TextNode): Promise<number> {
     if (!Number.isSafeInteger(node.length) || !Number.isSafeInteger(node.bytes)) throw new RangeError("HTML text size overflow");
     const bytes = new Uint8Array(56), view = new DataView(bytes.buffer);
     for (const [index, value] of [node.left, node.right, node.data, node.bytes, node.length, node.height, node.points].entries()) view.setFloat64(index * 8, value, true);
-    return this.storage.append(bytes);
+    const root = await this.storage.append(bytes);
+    if (this.metadata.size === 512) this.metadata.delete(this.metadata.keys().next().value!);
+    this.metadata.set(root, Object.freeze(node));
+    return root;
   }
 
   private async branch(left: number, right: number): Promise<number> {
@@ -66,6 +78,12 @@ export class TextStore {
   }
 
   async from(text: string): Promise<number> {
+    if (!text) return 0;
+    const cached = text.length <= 64 ? this.shortText.get(text) : undefined;
+    if (cached !== undefined) {
+      await this.cooperate?.(text.length);
+      return cached;
+    }
     let root = 0;
     for (let offset = 0; offset < text.length;) {
       let end = Math.min(offset + 2048, text.length);
@@ -76,6 +94,10 @@ export class TextStore {
       const data = await this.storage.append(bytes);
       root = await this.concat(root, await this.node({ left: 0, right: 0, data, bytes: bytes.length, length: chunk.length, height: 1, points: Array.from(chunk).length }));
       offset = end;
+    }
+    if (text.length <= 64) {
+      if (this.shortText.size === 256) this.shortText.delete(this.shortText.keys().next().value!);
+      this.shortText.set(text, root);
     }
     return root;
   }

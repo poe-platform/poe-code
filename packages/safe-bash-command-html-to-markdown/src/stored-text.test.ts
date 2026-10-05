@@ -145,3 +145,55 @@ test("builder snapshots stay immutable across mixed rope and Unicode appends", (
   assert.equal(await collect(text, await builder.finish()), expected);
   for (const [root, value] of snapshots) assert.equal(await collect(text, root), value);
 }));
+
+test("repeated short text reuses backed records without repeated metadata I/O", async () => {
+  const fs = new MemoryFileSystem();
+  const storage = new PagedStorage({ fs, cwd: "/", env: {}, signal: new AbortController().signal }, 2);
+  let reads = 0, appends = 0, checkpoints = 0;
+  const text = new TextStore({
+    async append(bytes) { appends++; return storage.append(bytes); },
+    async read(offset, length) { reads++; return storage.read(offset, length); }
+  }, () => { checkpoints++; });
+  try {
+    for (let i = 0; i < 100; i++) {
+      const root = await text.from("p");
+      assert.equal((await text.info(root)).length, 1);
+      assert.equal(await collect(text, root), "p");
+    }
+    assert.ok(appends <= 2, `Repeated immutable text allocated ${appends} records`);
+    assert.ok(reads <= 100, `Repeated metadata caused ${reads} storage reads`);
+    assert.equal(checkpoints, 200, "Cache hits must still cooperate");
+  } finally { await storage.close(); }
+});
+
+test("short-text cache evicts old entries and never interns large payloads", () => fixture(async text => {
+  const original = await text.from("old");
+  for (let i = 0; i < 1024; i++) await text.from(`name-${i}`);
+  assert.notEqual(await text.from("old"), original);
+  assert.equal(await collect(text, original), "old");
+  const large = "x".repeat(2048);
+  assert.notEqual(await text.from(large), await text.from(large));
+}));
+
+test("metadata eviction reloads immutable records and cached text preserves cancellation", async () => {
+  const fs = new MemoryFileSystem();
+  const storage = new PagedStorage({ fs, cwd: "/", env: {}, signal: new AbortController().signal }, 2);
+  let reads = 0;
+  const controller = new AbortController();
+  const text = new TextStore({
+    append: storage.append.bind(storage),
+    async read(offset, length) { reads++; return storage.read(offset, length); }
+  }, () => controller.signal.throwIfAborted());
+  try {
+    const root = await text.from("first");
+    for (let i = 0; i < 1024; i++) await text.from(`value-${i}`);
+    const before = reads;
+    assert.equal((await text.info(root)).length, 5);
+    assert.equal(reads, before + 1, "Old metadata must be evicted and reloaded");
+    assert.equal(await collect(text, root), "first");
+    await text.from("cached");
+    const reason = new Error("cancelled");
+    controller.abort(reason);
+    await assert.rejects(text.from("cached"), error => error === reason);
+  } finally { await storage.close(); }
+});

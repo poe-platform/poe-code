@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { htmlq } from "./command.js";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 
 test("command projection stores its DOM in caller storage and retires backing files", async () => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
@@ -110,4 +111,37 @@ test("base detection and href rewriting keep large values out of native URL", as
     assert.equal(offset, prefix.length + payloadLength + 1); assert.ok(peak <= 16384);
     assert.deepEqual(await fs.readdir("/scratch"), []);
   } finally { globalThis.URL = original; }
+});
+
+
+test("retained-limit rejection bounds storage operations and permits recovery", async t => {
+  const fs = createMemoryFileSystem();
+  let reads = 0, appends = 0, output = "", returned = 0;
+  const read = PagedStorage.prototype.read, append = PagedStorage.prototype.append;
+  t.mock.method(PagedStorage.prototype, "read", function (this: PagedStorage, ...args: Parameters<typeof read>) {
+    reads++; return read.apply(this, args);
+  });
+  t.mock.method(PagedStorage.prototype, "append", function (this: PagedStorage, ...args: Parameters<typeof append>) {
+    appends++; return append.apply(this, args);
+  });
+  const invoke = (input: string) => htmlq({
+    command: "htmlq", args: [], fs, cwd: "/", env: {}, signal: new AbortController().signal,
+    stdin: (async function* () { try { yield new TextEncoder().encode(input); } finally { returned++; } })(),
+    stdout: { async write(bytes: Uint8Array) { output += new TextDecoder().decode(bytes); } },
+    stderr: { async write() {} }
+  } as unknown as CommandContext, {
+    selector: "p", text: true,
+    limits: { inputBytes: 98304, decodedBytes: 98304, retainedBytes: 98304, outputBytes: 98304 }
+  });
+  const result = await invoke("<p>x</p>".repeat(400));
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.error?.code, "E_LIMIT");
+  assert.equal(output, "");
+  assert.ok(reads < 5000, `Rejection performed ${reads} storage reads`);
+  assert.ok(appends < 1600, `Rejection allocated ${appends} storage records`);
+  assert.deepEqual(await fs.readdir("/"), []);
+  assert.equal((await invoke("<p>small</p>")).exitCode, 0);
+  assert.equal(output, "small\n");
+  assert.equal(returned, 2);
+  assert.deepEqual(await fs.readdir("/"), []);
 });

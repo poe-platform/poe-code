@@ -435,6 +435,7 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     "node ../mcp-protocol-rust/scripts/cargo.mjs build && node -e \"fs.mkdirSync('dist', { recursive: true })\"",
     "node ../../scripts/guard-package-dist.mjs && mkdir -p dist && node scripts/build-wasm.mjs && tsc",
     "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
+    "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/build.mjs",
     "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js && esbuild src/portable.ts --bundle --platform=browser --format=esm --target=es2022 --outfile=dist/portable.js && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.browser.js && tsc -p tsconfig.browser.json",
     "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:safe-bash-contracts --external:safe-bash-contracts/* --outfile=dist/index.js --external:@poe-code/image-ast",
     "node scripts/cargo.mjs build",

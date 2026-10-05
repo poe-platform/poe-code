@@ -69,6 +69,28 @@ describe("workspace build caching", () => {
     expect(state.spawn).toHaveBeenCalledTimes(6);
   });
 
+  it("caches guarded local bundlers while tracking their implementation and rejecting added commands", async () => {
+    const state = fixture();
+    const manifestPath = "/repo/packages/beta/package.json";
+    const manifest = JSON.parse(state.fileSystem.readFileSync(manifestPath, "utf8") as string);
+    manifest.scripts.build = "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/build.mjs";
+    state.fileSystem.writeFileSync(manifestPath, JSON.stringify(manifest));
+    state.fileSystem.mkdirSync("/repo/packages/beta/scripts", { recursive: true });
+    state.fileSystem.writeFileSync("/repo/packages/beta/scripts/build.mjs", "export const revision = 1;");
+    state.cacheFiles.push("packages/beta/scripts/build.mjs");
+    const options = { ...state, workspace: "beta" };
+    expect(await buildWorkspaces(state.root, options)).toMatchObject({ cacheHits: 0, cacheMisses: 1 });
+    state.fileSystem.rmSync("/repo/packages/beta/dist", { recursive: true });
+    expect(await buildWorkspaces(state.root, options)).toMatchObject({ cacheHits: 1, cacheMisses: 0 });
+    expect(state.fileSystem.readFileSync("/repo/packages/beta/dist/index.js", "utf8")).toBe("built packages/beta");
+    state.fileSystem.writeFileSync("/repo/packages/beta/scripts/build.mjs", "export const revision = 2;");
+    expect(await buildWorkspaces(state.root, options)).toMatchObject({ cacheHits: 0, cacheMisses: 1 });
+    manifest.scripts.build += " && node scripts/external.mjs";
+    state.fileSystem.writeFileSync(manifestPath, JSON.stringify(manifest));
+    expect(await buildWorkspaces(state.root, options)).toMatchObject({ cacheHits: 0, cacheMisses: 0 });
+    expect(state.spawn).toHaveBeenCalledTimes(3);
+  });
+
   it("restores generated Intl source artifacts alongside compiled output in a clean checkout", async () => {
     const state = fixture();
     state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({ tasks: {

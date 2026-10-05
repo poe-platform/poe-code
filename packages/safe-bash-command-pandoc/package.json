@@ -84,7 +84,8 @@
     "@poe-code/spreadsheet-ast": "*",
     "@noble/hashes": "2.4.0",
     "safe-bash-io-engine": "*",
-    "@poe-code/json-ast": "*"
+    "@poe-code/json-ast": "*",
+    "@poe-code/office-xml": "*"
   },
   "private": true,
   "types": "dist/index.d.ts",

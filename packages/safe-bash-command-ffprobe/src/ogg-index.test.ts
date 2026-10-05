@@ -1,3 +1,4 @@
+import { parseAudio, probeOggStreamSource } from "@poe-code/audio-ast";
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { OggIndex } from "./ogg-index.js";
@@ -92,5 +93,18 @@ it("handles zero laces terminating an exact-page packet and ignores unknown fina
   const bytes=join([page(new Uint8Array(65025).fill(6),new Array(255).fill(255),1,0,2,0xffffffffffffffffn),page(new Uint8Array(),[0],1,1,1,123n),page(Uint8Array.of(7),[1],1,2,4,0xffffffffffffffffn)]);
   const {index}=setup(bytes);try{await index.scan();for await(const stream of index.streams()){
     expect(stream.packets).toBe(2);expect(stream.granule).toBe(123n);expect(await materialize(stream.head!)).toEqual(new Uint8Array(65025).fill(6));expect(await materialize(stream.comments!)).toEqual(Uint8Array.of(7));
+  }}finally{await index.close();}
+});
+
+it("composes retained packet spans with bounded Opus metadata parsing",async()=>{
+  const head=new Uint8Array(19);head.set(new TextEncoder().encode('OpusHead'));head[8]=1;head[9]=2;new DataView(head.buffer).setUint16(10,312,true);
+  const value=new TextEncoder().encode('TITLE='+ 'é😀'.repeat(15000)),comments=new Uint8Array(20+value.length),view=new DataView(comments.buffer);
+  comments.set(new TextEncoder().encode('OpusTags'));view.setUint32(12,1,true);view.setUint32(16,value.length,true);comments.set(value,20);
+  const bytes=join(packets(1,[head,comments,Uint8Array.of(1)])),{index}=setup(bytes);
+  try {await index.scan();for await(const stream of index.streams()){
+    const parsed=await probeOggStreamSource({head:stream.head!,comments:stream.comments,granule:stream.granule,size:stream.size});
+    expect(parsed).toEqual(parseAudio(bytes).streams[0]);
+    const spans:unknown[]=[];const bounded=await probeOggStreamSource({head:stream.head!,comments:stream.comments,granule:stream.granule,size:stream.size},{onComment:async span=>{spans.push(span);}});
+    expect(bounded).toEqual({...parsed,tags:{}});expect(spans).toEqual([{offset:20,length:value.length}]);
   }}finally{await index.close();}
 });

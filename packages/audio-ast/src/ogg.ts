@@ -1,3 +1,4 @@
+import { oggIdentification, oggStream } from "./ogg-stream.js";
 import { Reader, ascii, join } from "./binary.js";
 import { parseComments, parsePicture } from "./vorbis.js";
 import type { AudioAst, AudioNode, AudioStream, AudioTags, AudioPicture } from "./types.js";
@@ -162,70 +163,31 @@ export function parseOgg(bytes: Uint8Array): AudioAst {
     pictures: AudioPicture[] = [];
   const serials = [...new Set(packets.map((p) => p.serial))];
   for (const serial of serials) {
-    const group = packets.filter((p) => p.serial === serial),
-      head = group[0]!.data,
-      r = new Reader(head);
-    let codec: string,
-      sampleRate: number,
-      channels: number,
-      preSkip = 0;
+    const group = packets.filter((p) => p.serial === serial), identification = oggIdentification(group[0]!.data);
+    const comment = group[1]?.data;
     let comments: string[];
-    if (head.length >= 8 && r.text(0, 8) === "OpusHead") {
-      if (head.length < 19 || r.u8(8) > 15) throw new Error("Invalid Opus identification");
-      codec = "opus";
-      sampleRate = 48000;
-      channels = r.u8(9);
-      preSkip = r.u16(10, true);
-      const mapping = r.u8(18);
-      if (mapping === 0 && channels > 2) throw new Error("Invalid Opus channels");
-      if (mapping !== 0) r.check(19, 2 + channels);
-      const comment = group[1]?.data;
-      if (!comment || new Reader(comment).text(0, 8) !== "OpusTags")
-        throw new Error("Missing OpusTags");
+    if (identification.codec === "opus") {
+      if (!comment || new Reader(comment).text(0, 8) !== "OpusTags") throw new Error("Missing OpusTags");
       const parsed = parseComments(comment.subarray(8));
-      Object.assign(tags, parsed.tags);
-      comments = parsed.comments;
-    } else if (head.length >= 7 && r.u8(0) === 1 && r.text(1, 6) === "vorbis") {
-      if (head.length !== 30 || r.u32(7, true) !== 0 || !(r.u8(29) & 1))
-        throw new Error("Invalid Vorbis identification");
-      codec = "vorbis";
-      channels = r.u8(11);
-      sampleRate = r.u32(12, true);
-      const comment = group[1]?.data;
-      if (!comment || comment[0] !== 3 || new Reader(comment).text(1, 6) !== "vorbis")
-        throw new Error("Missing Vorbis comments");
+      Object.assign(tags, parsed.tags); comments = parsed.comments;
+    } else {
+      if (!comment || comment[0] !== 3 || new Reader(comment).text(1, 6) !== "vorbis") throw new Error("Missing Vorbis comments");
       const parsed = parseComments(comment.subarray(7));
       if (!(comment[7 + parsed.size]! & 1)) throw new Error("Missing Vorbis comment framing bit");
-      Object.assign(tags, parsed.tags);
-      comments = parsed.comments;
-    } else throw new Error("Unsupported Ogg codec");
-    if (!channels || !sampleRate) throw new Error("Invalid Ogg audio stream");
+      Object.assign(tags, parsed.tags); comments = parsed.comments;
+    }
     const final = group.filter((p) => p.granule !== 0xffffffffffffffffn).at(-1)?.granule ?? 0n;
-    if (final > BigInt(Number.MAX_SAFE_INTEGER))
-      throw new Error("Ogg granule exceeds safe precision");
-    const samples = Math.max(0, Number(final) - preSkip),
-      duration = samples / sampleRate;
-    const size = nodes
-      .filter((n) => n.fields?.serial === serial)
-      .reduce((sum, n) => sum + n.size, 0);
+    const size = nodes.filter((n) => n.fields?.serial === serial).reduce((sum, n) => sum + n.size, 0);
     const streamTags: AudioTags = {};
     for (const comment of comments) {
       const split = comment.indexOf("=");
       if (split <= 0) continue;
-      const key = comment.slice(0, split),
-        value = comment.slice(split + 1);
+      const key = comment.slice(0, split), value = comment.slice(split + 1);
       streamTags[key] = streamTags[key] ? `${streamTags[key]};${value}` : value;
     }
-    streams.push({
-      tags: streamTags,
-      codec,
-      sampleRate,
-      channels,
-      samples,
-      duration,
-      bitrate: duration ? (size * 8) / duration : 0
-    });
+    streams.push({ tags: streamTags, ...oggStream(identification, final, size) });
   }
+
   for (const value of (tags.METADATA_BLOCK_PICTURE ?? "").split("\n").filter(Boolean)) {
     pictures.push(parsePicture(Uint8Array.from(atob(value), (c) => c.charCodeAt(0))));
   }

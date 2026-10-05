@@ -3623,18 +3623,23 @@ export class SqliteDatabase {
               continue;
             }
           }
+          const oldData = { ...conflictRow.data };
+          const newData = { ...conflictRow.data };
           for (const assign of upsertSetPairs) {
             yield;
             const realCol = tbl.columns.find((c) => {
               return c.name.toLowerCase() === assign.col.toLowerCase();
             });
             const colKey = realCol ? realCol.name : assign.col;
-            conflictRow.data[colKey] = applyColumnAffinity(
+            newData[colKey] = applyColumnAffinity(
               yield* this.evalExprSteps(assign.expr, ctx, positionalParams),
               realCol?.type ?? "",
               tbl.strict
             );
           }
+          yield* this.fireTriggers(tbl.name, "BEFORE", "UPDATE", oldData, newData);
+          conflictRow.data = newData;
+          yield* this.fireTriggers(tbl.name, "AFTER", "UPDATE", oldData, newData);
           insertedCount += 1;
           affectedRows.push(conflictRow);
           continue;

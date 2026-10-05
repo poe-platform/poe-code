@@ -228,7 +228,7 @@ export async function parseRetainedCommonMarkInlines(
     if (!node) {
       await flush(); if (!frame) return output;
       const fields = await get(frame, 5); frame = fields[0]!; node = fields[1]!; out = {position: fields[2]!}; depth = fields[3]!;
-      continue;
+      await push({position: fields[4]!}); continue;
     }
     await context.cooperate(); const fields = await get(node, 5), value = {position: fields[0]!};
     if (fields[1]) {
@@ -253,8 +253,8 @@ export async function parseRetainedCommonMarkInlines(
       if (fragmentLength) finishFragment();
       node = fields[4]!; continue;
     }
-    await flush(); await push(value);
-    if (!fields[2]) {node = fields[4]!; continue;}
+    await flush();
+    if (!fields[2]) {await push(value); node = fields[4]!; continue;}
     const children = await ast.array(), name = (await ast.name(value))!;
     if (name === "Link" || name === "Image") await ast.set((await ast.content(value))!, 1, children);
     else await ast.replaceTag(value, name, children);

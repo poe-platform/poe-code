@@ -261,6 +261,7 @@ export async function verifySafeBashPortableCommands(consumer) {
     ["safe-packages-network-safejs.mjs", "verifyNetworkAndSafeJs", { networkEntries: 3, nodeEntries: 3, safeJsEntries: 1 }],
     ["safe-packages-image-pandoc-shuf.mjs", "verifyImagePandocShuf", { image: true, lua: true, entropy: true }],
     ["safe-packages-image-pandoc-shuf.mjs", "verifyImagePandocShuf", { image: true, lua: true, entropy: true }, true],
+    ["safe-packages-markdown-lua.mjs", "verifyMarkdownLua", { markdownLua: true }, true],
   ]) {
     const fixture = (remote ? await readFile(new URL("./pandoc-r2-storage.fixture.mjs", import.meta.url), "utf8") + "\n" : "") +
       await readFile(new URL("./fixtures/" + filename, import.meta.url), "utf8");

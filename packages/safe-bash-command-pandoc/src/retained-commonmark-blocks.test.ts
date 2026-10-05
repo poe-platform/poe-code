@@ -52,7 +52,7 @@ async function compare(text: string, extensions: Record<string, boolean> = {pipe
           result.push({kind: node.kind, start: Number.isNaN(node.number) ? null : node.number, marker: String.fromCharCode(node.marker), tight: !!node.tight, items, source: location});
         } else if (node.kind === "table") {
           const rows: string[][] = []; let alignments: ("AlignDefault" | "AlignLeft" | "AlignRight" | "AlignCenter")[] = [];
-          for await (const child of parser.children(position)) {const cells = []; const alignment = []; for await (const cell of parser.lines(child)) {cells.push(await literal(cell.range)); alignment.push((["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter"] as const)[cell.alignment]!);} rows.push(cells); if (rows.length === 1) alignments = alignment;}
+          for await (const child of parser.children(position)) {const cells = []; const alignment: typeof alignments = []; for await (const cell of parser.lines(child)) {cells.push(await literal(cell.range)); alignment.push((["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter"] as const)[cell.alignment]!);} rows.push(cells); if (rows.length === 1) alignments = alignment;}
           result.push({kind: node.kind, header: rows[0]!, rows: rows.slice(1), alignments, source: location});
         } else result.push({kind: "thematicBreak", source: location});
       }

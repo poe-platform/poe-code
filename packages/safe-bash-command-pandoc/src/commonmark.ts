@@ -25,6 +25,21 @@ import { parseCommonMarkInlines } from "./commonmark-inlines.js";
 import { decodeSyntax } from "./commonmark-syntax.js";
 import { upgradeBracketedCitationsInBlocks } from "./citeproc-filters.js";
 
+/** Existing YAML semantics shared by resident and retained document readers.
+ * This remains a native frontmatter boundary until YAML values are backed. */
+export function parseCommonMarkMetadata(text: string, metadata: Record<string, MetaValue>): boolean {
+  try {
+    const doc = parseDocument(text);
+    if (doc.errors.length) return false;
+    const value = doc.toJS({maxAliasCount: 32});
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+      const converted = toMetaValue(entry); if (converted !== undefined) metadata[key] = converted;
+    }
+    return true;
+  } catch {return false;}
+}
+
 export const readCommonMark: ReaderCapability["read"] = async (input, context, selection) => {
   const extensions = selection?.extensions ?? {};
   const rawText = input.text ?? await context.decodeUtf8([input.bytes]);
@@ -32,21 +47,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
   let text = rawText;
   const fmMatch = /^---[ \t]*\r?\n((?:[A-Za-z_][A-Za-z0-9_-]*[ \t]*:[^\r\n]*\r?\n|[ \t]+[^\r\n]*\r?\n)+)(?:---|\.\.\.)[ \t]*\r?\n(?=\s*\S)/.exec(rawText);
   if (fmMatch) {
-    try {
-      const doc = parseDocument(fmMatch[1]!);
-      if (doc.errors.length === 0) {
-        const jsVal = doc.toJS({ maxAliasCount: 32 });
-        if (jsVal && typeof jsVal === "object" && !Array.isArray(jsVal)) {
-          for (const [k, v] of Object.entries(jsVal as Record<string, unknown>)) {
-            const mv = toMetaValue(v);
-            if (mv !== undefined) metadata[k] = mv;
-          }
-          text = rawText.slice(fmMatch[0].length);
-        }
-      }
-    } catch {
-      // Keep unparseable frontmatter in the document body.
-    }
+    if (parseCommonMarkMetadata(fmMatch[1]!, metadata)) text = rawText.slice(fmMatch[0].length);
   }
   const pending = await parseCommonMarkBlocks(text, context, input.base, extensions);
   async function assemble(blocks: readonly PendingBlock[], depth: number, tight = false): Promise<Block[]> {

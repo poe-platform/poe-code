@@ -1,3 +1,4 @@
+import {readRetainedCommonMark} from "./retained-commonmark.js";
 import {readRetainedEpubDocument} from "./retained-epub-document.js";
 import {readRetainedMediawiki} from "./retained-mediawiki.js";
 import {readRetainedRtfDocument} from "./retained-rtf-document.js";
@@ -632,9 +633,9 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text",
     // EPUB consumes XML budgets; the other format-specific budgets are inert for these pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
-  ].includes(key) || value === Infinity || (key === "references" || key === "retainedBytes") && (inputs.length === 0 || ["json", "rtf", "csv", "tsv", "mediawiki", "epub"].includes(reader.descriptor.name)) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
+  ].includes(key) || value === Infinity || (key === "references" || key === "retainedBytes") && (inputs.length === 0 || ["json", "rtf", "csv", "tsv", "mediawiki", "epub", "commonmark", "gfm"].includes(reader.descriptor.name)) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
   const backedDocument = context.workingFiles && !context.reader && !context.writer && (inputs.length === 1 || inputs.length > 1 && reader.descriptor.name === "mediawiki")
-    && ["json", "rtf", "mediawiki", "epub"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
+    && ["json", "rtf", "mediawiki", "epub", "commonmark", "gfm"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && retainedLimits;
   if (backedDocument) {
@@ -643,12 +644,18 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
       session.options(options, false);
       const filters = await session.admitFilters(options.filters);
       const includes = await session.call(() => RetainedOptions.acquire(session, context.workingFiles!, options));
+      const inputOrigin = ["commonmark", "gfm"].includes(reader.descriptor.name) && !options.fileScope
+        ? {...inputs[0]!, source: inputs[0]!.source ?? "input[0]"} : inputs[0]!;
       let reading = false, readerStarted = false, readerInput = 0;
       try {
         await session.call(() => streamRetainedDocument(async () => {
-          if (reader.descriptor.name !== "mediawiki" && Number.isFinite(session.limits.references)) session.charge("references", 1);
+          if (!["mediawiki", "commonmark", "gfm"].includes(reader.descriptor.name) && Number.isFinite(session.limits.references)) session.charge("references", 1);
           if (reader.descriptor.name === "epub" && "bytes" in inputs[0]! && Number.isFinite(session.limits.references)) session.charge("references", 1);
           reading = true;
+          if (reader.descriptor.name === "commonmark" || reader.descriptor.name === "gfm") {
+            const retained = await readRetainedCommonMark(inputs[0]!, session, context.workingFiles!, reader.extensions, options.fileScope, () => {readerStarted = true;});
+            reading = false; return retained;
+          }
           if (reader.descriptor.name === "json") {const retained = await readRetainedJson(inputs[0]!, session, context.workingFiles!, true, true, () => {readerStarted = true;}); reading = false; return retained;}
           if (reader.descriptor.name === "mediawiki") {const retained = await readRetainedMediawiki(inputs, session, context.workingFiles!, options.fileScope, index => {readerStarted = index >= 0; readerInput = index;}); reading = false; return retained;}
           if (reader.descriptor.name === "epub") {
@@ -668,13 +675,13 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
           }
           const retained = await readRetainedRtfDocument(inputs[0]!, session, context.workingFiles!, () => {readerStarted = true;});
           reading = false; return {...retained.document, resources: retained.resources, closeResources: retained.close};
-        }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
+        }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputOrigin, includes));
       } catch (error) {
         if (reading && reader.descriptor.name === "epub" && error instanceof PandocError && error.code === "E_LIMIT" && inputs[0]!.source && !error.location?.startsWith(inputs[0]!.source + ":"))
           throw new PandocError(error.code, "convert", error.message, error.format, `${inputs[0]!.source}:${error.location ?? "1:1"}`);
         if (reading && reader.descriptor.name === "json" && error instanceof PandocError && error.code === "E_LIMIT" && (["tableCells:", "attributes:", "depth:", "nodes:"].some(prefix => error.message.startsWith(prefix)) || readerStarted && ["text:", "references:", "retainedBytes:"].some(prefix => error.message.startsWith(prefix))) && inputs[0]!.source)
           throw new PandocError(error.code, "convert", error.message, error.format, `${inputs[0]!.source}:${error.location ?? "1:1"}`);
-        if (reading && readerStarted && reader.descriptor.name === "mediawiki" && error instanceof PandocError && error.code !== "E_IO" && error.code !== "E_CANCELLED") {
+        if (reading && readerStarted && ["mediawiki", "commonmark", "gfm"].includes(reader.descriptor.name) && error instanceof PandocError && error.code !== "E_IO" && error.code !== "E_CANCELLED") {
           const source = inputs[readerInput]!.source ?? (options.fileScope ? undefined : "input[0]");
           if (source) throw new PandocError(error.code, "convert", error.message, error.format, `${source}:${error.location ?? "1:1"}`);
         }

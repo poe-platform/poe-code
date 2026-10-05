@@ -558,7 +558,7 @@ export interface OAuthDiscoveryCache {
   delete?(resourceUrl: string): void | Promise<void>;
 }
 export interface OAuthMetadataDiscoveryOptions { fetch?: OAuthMetadataFetch; cache?: OAuthDiscoveryCache; }
-export interface OAuthMetadataLookupOptions { resourceMetadataUrl?: string | URL; signal?: AbortSignal; }
+export interface OAuthMetadataLookupOptions { expectedIssuer?: string; resourceMetadataUrl?: string | URL; signal?: AbortSignal; }
 export type OAuthMetadataFailureReason = "invalid-metadata" | "issuer-mismatch" | "pkce-unsupported"
   | "response-type-unsupported" | "invalid-endpoint" | "invalid-json" | "http-error" | "network-error";
 export type OAuthMetadataFailureCategory = "validation" | "json" | "http" | "network";

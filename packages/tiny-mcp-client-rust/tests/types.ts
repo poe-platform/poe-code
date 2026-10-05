@@ -75,6 +75,8 @@ void discoveryToReference;
 void discoveryFromReference;
 void ownLookup;
 void referenceLookup;
+void discoverOAuthMetadata("https://resource.example/mcp", { expectedIssuer: "https://issuer.example" });
+void new OAuthMetadataDiscovery().discover("https://resource.example/mcp", { expectedIssuer: "https://issuer.example" });
 import { OAuthMetadataError } from "../dist/index.js";
 import type { OAuthMetadataFailure, OAuthMetadataFailureCategory, OAuthMetadataFailureReason } from "../dist/index.js";
 import { OAuthMetadataError as ReferenceMetadataError } from "tiny-mcp-client";

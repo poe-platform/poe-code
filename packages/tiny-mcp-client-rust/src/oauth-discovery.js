@@ -176,12 +176,14 @@ export class OAuthMetadataDiscovery {
     if (previous !== null) this.#snapshots.delete(previous);
     this.#snapshots.set(slot, snapshot);
   }
-  async discover(resourceUrl, { resourceMetadataUrl, signal } = {}) {
+  async discover(resourceUrl, { resourceMetadataUrl, signal, expectedIssuer } = {}) {
     signal?.throwIfAborted();
+    if (expectedIssuer !== undefined) issuerLocations(expectedIssuer);
     const resource = canonicalizeResourceIndicator(resourceUrl);
     const firstLocation = resolveProtectedResourceMetadataUrl(resourceUrl, resourceMetadataUrl);
     const memorySlot = this.#index.get(resource);
-    if (memorySlot !== null && memorySlot !== undefined && resourceMetadataUrl === undefined) {
+    if (memorySlot !== null && memorySlot !== undefined && resourceMetadataUrl === undefined
+      && (expectedIssuer === undefined || this.#snapshots.get(memorySlot).authorizationServer === expectedIssuer)) {
       return structuredClone(this.#snapshots.get(memorySlot));
     }
     const shared = resourceMetadataUrl === undefined ? await waitForCache(this.#cache?.get(resource), signal) : undefined;
@@ -189,8 +191,10 @@ export class OAuthMetadataDiscovery {
     if (shared !== null && shared !== undefined && resourceMetadataUrl === undefined) {
       try {
         const result = cachedDiscovery(shared, resource);
-        this.#retain(resource, result);
-        return result;
+        if (expectedIssuer === undefined || result.authorizationServer === expectedIssuer) {
+          this.#retain(resource, result);
+          return result;
+        }
       } catch { await waitForCache(this.#cache?.delete?.(resource), signal); }
     }
     const resourceLocations = new Set([firstLocation]);
@@ -211,7 +215,11 @@ export class OAuthMetadataDiscovery {
     if (resourceMetadata === undefined) throw aggregateMetadataFailures("protected-resource", resourceErrors, resourceErrors.at(-1).message);
     const errors = [];
     const failures = [];
-    for (const advertisedIssuer of resourceMetadata.authorization_servers) {
+    if (expectedIssuer !== undefined && !resourceMetadata.authorization_servers.includes(expectedIssuer)) {
+      throw new OAuthMetadataError("authorization-server", "Expected issuer was not advertised by the protected resource", undefined, "issuer-mismatch");
+    }
+    const authorizationServers = expectedIssuer === undefined ? resourceMetadata.authorization_servers : [expectedIssuer];
+    for (const advertisedIssuer of authorizationServers) {
       let admitted;
       try { admitted = issuerLocations(advertisedIssuer); }
       catch (error) {

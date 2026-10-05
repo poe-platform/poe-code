@@ -11,6 +11,7 @@ import {
 import { HtmlTokenizer, rawElements, voidElements, type HtmlToken } from "./tokenizer.js";
 import { StreamingHtmlTokenizer } from "./streaming-tokenizer.js";
 import { htmlSpace } from "./entities.js";
+import { formatting, blocks, headElements, tableAllowedElements, headingElements, htmlScopeBarriers, mathmlScopeBarriers, svgScopeBarriers, specialHtmlElements, captionBreakingElements, tableCloseElements, endScopeExtraElements, svgNames, svgAttributes } from "./tree-rules.js";
 function allSpace(data: string): boolean {
   for (const c of data) if (!htmlSpace(c)) return false;
   return true;
@@ -179,193 +180,6 @@ function attach(parent: HtmlNode, node: HtmlNode, before?: HtmlNode): void {
   if (next) next.previousSibling = node;
   parent.children.splice(index, 0, node);
 }
-const formatting = new Set([
-  "a",
-  "b",
-  "big",
-  "code",
-  "em",
-  "font",
-  "i",
-  "nobr",
-  "s",
-  "small",
-  "strike",
-  "strong",
-  "tt",
-  "u"
-]);
-const blocks = new Set([
-  "address",
-  "article",
-  "aside",
-  "blockquote",
-  "center",
-  "details",
-  "dialog",
-  "dir",
-  "div",
-  "dl",
-  "fieldset",
-  "figcaption",
-  "figure",
-  "footer",
-  "header",
-  "hgroup",
-  "main",
-  "menu",
-  "nav",
-  "ol",
-  "p",
-  "section",
-  "summary",
-  "ul",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-  "pre",
-  "listing"
-]);
-const headElements = new Set([
-  "base",
-  "basefont",
-  "bgsound",
-  "link",
-  "meta",
-  "title",
-  "noscript",
-  "noframes",
-  "style",
-  "script",
-  "template"
-]);
-const tableAllowedElements = new Set([
-  "caption",
-  "colgroup",
-  "col",
-  "tbody",
-  "thead",
-  "tfoot",
-  "tr",
-  "td",
-  "th",
-  "style",
-  "script",
-  "template"
-]);
-const headingElements = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
-const htmlScopeBarriers = new Set(["applet", "caption", "html", "table", "td", "th", "marquee", "object", "template"]);
-const mathmlScopeBarriers = new Set(["mi", "mo", "mn", "ms", "mtext", "annotation-xml"]);
-const svgScopeBarriers = new Set(["foreignObject", "desc", "title"]);
-const specialHtmlElements = new Set(["applet", "button", "caption", "colgroup", "dd", "dt", "li", "object", "select", "table", "tbody", "td", "tfoot", "th", "thead", "tr"]);
-const captionBreakingElements = new Set(["caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr"]);
-const tableCloseElements = new Set(["table", "tbody", "thead", "tfoot", "tr", "td", "th"]);
-const endScopeExtraElements = new Set(["li", "dd", "dt", "button", "applet", "marquee", "object"]);
-const svgNames: Readonly<Record<string, string>> = {
-  altglyph: "altGlyph",
-  altglyphdef: "altGlyphDef",
-  altglyphitem: "altGlyphItem",
-  animatecolor: "animateColor",
-  animatemotion: "animateMotion",
-  animatetransform: "animateTransform",
-  clippath: "clipPath",
-  feblend: "feBlend",
-  fecolormatrix: "feColorMatrix",
-  fecomponenttransfer: "feComponentTransfer",
-  fecomposite: "feComposite",
-  feconvolvematrix: "feConvolveMatrix",
-  fediffuselighting: "feDiffuseLighting",
-  fedisplacementmap: "feDisplacementMap",
-  fedistantlight: "feDistantLight",
-  fedropshadow: "feDropShadow",
-  feflood: "feFlood",
-  fefunca: "feFuncA",
-  fefuncb: "feFuncB",
-  fefuncg: "feFuncG",
-  fefuncr: "feFuncR",
-  fegaussianblur: "feGaussianBlur",
-  feimage: "feImage",
-  femerge: "feMerge",
-  femergenode: "feMergeNode",
-  femorphology: "feMorphology",
-  feoffset: "feOffset",
-  fepointlight: "fePointLight",
-  fespecularlighting: "feSpecularLighting",
-  fespotlight: "feSpotLight",
-  fetile: "feTile",
-  feturbulence: "feTurbulence",
-  foreignobject: "foreignObject",
-  glyphref: "glyphRef",
-  lineargradient: "linearGradient",
-  radialgradient: "radialGradient",
-  textpath: "textPath"
-};
-const svgAttributes: Readonly<Record<string, string>> = Object.fromEntries(
-  [
-    "attributeName",
-    "attributeType",
-    "baseFrequency",
-    "baseProfile",
-    "calcMode",
-    "clipPathUnits",
-    "diffuseConstant",
-    "edgeMode",
-    "filterUnits",
-    "glyphRef",
-    "gradientTransform",
-    "gradientUnits",
-    "kernelMatrix",
-    "kernelUnitLength",
-    "keyPoints",
-    "keySplines",
-    "keyTimes",
-    "lengthAdjust",
-    "limitingConeAngle",
-    "markerHeight",
-    "markerUnits",
-    "markerWidth",
-    "maskContentUnits",
-    "maskUnits",
-    "numOctaves",
-    "pathLength",
-    "patternContentUnits",
-    "patternTransform",
-    "patternUnits",
-    "pointsAtX",
-    "pointsAtY",
-    "pointsAtZ",
-    "preserveAlpha",
-    "preserveAspectRatio",
-    "primitiveUnits",
-    "refX",
-    "refY",
-    "repeatCount",
-    "repeatDur",
-    "requiredExtensions",
-    "requiredFeatures",
-    "specularConstant",
-    "specularExponent",
-    "spreadMethod",
-    "startOffset",
-    "stdDeviation",
-    "stitchTiles",
-    "surfaceScale",
-    "systemLanguage",
-    "tableValues",
-    "targetX",
-    "targetY",
-    "textLength",
-    "viewBox",
-    "viewTarget",
-    "xChannelSelector",
-    "yChannelSelector",
-    "zoomAndPan"
-  ].map((name) => [name.toLowerCase(), name])
-);
-
 /** Original-source retention is optional for projections and normalized output. */
 export async function parseHtml(
   source: AsyncIterable<Uint8Array>,
@@ -408,7 +222,7 @@ export async function parseHtml(
   return step.value as PublicHtmlNode;
 }
 
-async function* decodedHtml(source: AsyncIterable<Uint8Array>, options: HtmlOptions): AsyncGenerator<string> {
+export async function* decodedHtml(source: AsyncIterable<Uint8Array>, options: HtmlOptions): AsyncGenerator<string> {
   const budget = new HtmlBudget(options);
   const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
   const iterator = source[Symbol.asyncIterator]();

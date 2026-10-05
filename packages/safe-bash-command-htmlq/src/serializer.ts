@@ -1,7 +1,7 @@
 import { HtmlBudget, HtmlError, type HtmlNode, type HtmlOptions } from "./contracts.js";
 import { rawElements, voidElements } from "./tokenizer.js";
 import { originalSource, ownsHtmlNode } from "./tree.js";
-const inlineElements = new Set("a abbr acronym audio b bdi bdo big button canvas cite code data datalist del dfn em embed i iframe img input ins kbd label map mark meter noscript object output picture progress q ruby s samp script select slot small span strong sub sup svg template textarea time u tt var video wbr".split(" "));
+export const inlineElements = new Set("a abbr acronym audio b bdi bdo big button canvas cite code data datalist del dfn em embed i iframe img input ins kbd label map mark meter noscript object output picture progress q ruby s samp script select slot small span strong sub sup svg template textarea time u tt var video wbr".split(" "));
 /** Rust char::is_whitespace excludes BOM and includes NEL. */
 export function rustWhitespaceOnly(data: string): boolean {
   for (const c of data) {

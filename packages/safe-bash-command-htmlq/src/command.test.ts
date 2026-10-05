@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import {
   createCommandArguments,
   CommandRegistry,
@@ -716,7 +717,9 @@ test("retaining sinks preserve htmlq output across batch reuse", async () => {
   const values = Array.from({ length: 2500 }, (_, i) => `value-${i}`);
   const f = fixture(["-t", "p"], values.map(value => `<p>${value}</p>`).join(""));
   const chunks: Uint8Array[] = [];
-  const result = await createHtmlqCommand().execute({ ...f.context, stdout: { async write(bytes) { chunks.push(bytes); } } });
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/vfs");
+  const result = await createHtmlqCommand().execute({ ...f.context, fs, stdout: { async write(bytes) { chunks.push(bytes); } } });
   assert.equal(result.exitCode, 0);
   assert.equal(chunks.map(bytes => new TextDecoder().decode(bytes)).join(""), values.join("\n") + "\n");
 });

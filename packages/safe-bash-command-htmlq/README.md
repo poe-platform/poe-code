@@ -59,11 +59,18 @@ DOM properties and ordered attribute/child arrays are read-only at runtime.
 Template contents are separate fragments and excluded from ordinary traversal,
 text and serialization, matching the pinned native engine.
 
-Projection parses input incrementally without retaining the original source.
-`parseHtml` defaults to original-source retention; pass `"discard"` as its third
-argument to omit that copy. Original serialization then fails with `E_UNSUPPORTED`.
-Individual tokens and the document tree still occupy memory proportional to input;
-streamed output does not establish a bounded-memory parser.
+Command projection parses input into caller-backed text and DOM records without
+retaining the original source. Open-element/formatting stacks, selector continuations
+and removal snapshots use the same storage. A 256 KiB page cache, 512 node records,
+16 KiB windows per live reference sequence and two 256-entry short-name caches
+bound this resident state. Large documents require injected retained read/write
+handles and conditional removal in `TMPDIR` or the command working directory.
+A memory filesystem still stores backing bytes in RAM.
+`parseHtml` and the source-only SDK retain a convenience DOM; `parseHtml` also
+defaults to original-source retention. Pass `"discard"` as its third argument to
+omit that copy; original serialization then fails with `E_UNSUPPORTED`.
+Individual lexical tokens and URL joins still materialize their complete values,
+so the command is not yet qualified for bounded memory on arbitrary inputs.
 The parser supports tested HTML recovery, entities, raw text, tables,
 formatting reconstruction and foreign integration points.
 `htmlqBaseline.fullHtml5Parity` is **false**: complete HTML5 parsing/recovery

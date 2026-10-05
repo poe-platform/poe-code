@@ -15,13 +15,13 @@ function asciiLower(s: string): string {
   }
   return changed ? out : s;
 }
-type Test =
+export type Test =
   | { kind: "type" | "id" | "class"; value: string; namespace?: "any" | "none" }
   | { kind: "attribute"; value: string; operator: string; expected: string; insensitive: boolean }
   | { kind: "pseudo"; value: string; a: number; b: number; negated?: Program };
-type Part = { tests: Test[]; relation: "" | " " | ">" | "+" | "~" };
-type Program = Part[][];
-class Parser {
+export type Part = { tests: Test[]; relation: "" | " " | ">" | "+" | "~" };
+export type Program = Part[][];
+export class SelectorParser {
   private at = 0;
   constructor(
     private source: string,
@@ -457,7 +457,7 @@ export function selectHtml(
   options: HtmlOptions
 ): Generator<HtmlNode, void> {
   const budget = new HtmlBudget(options);
-  const program = new Parser(selector, budget).list();
+  const program = new SelectorParser(selector, budget).list();
   const internalRoot = getInternalHtmlNode(root);
   if (!internalRoot) throw new HtmlError("E_OWNERSHIP", "Unowned HTML node");
   return (function* () {

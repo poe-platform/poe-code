@@ -29,16 +29,19 @@ Preserve output/error ordering, retained file identity, cleanup and cancellation
 while qualifying these paths; exercise adversarial depth and attribute size
 without lowering accepted limits. Deterministic tests are not Worker measurements.
 
-The separate htmlq owner is `packages/safe-bash-command-htmlq`: `command.ts`
-passes injected filesystem streams to `projectHtmlq` in `behavior.ts`, which
-calls the incremental projection parser in `tree.ts`. Projection decodes in
-4096-byte windows and frames complete tokens before requesting later input; it
-no longer concatenates or retains the original source. The public `parseHtml`
-convenience API still retains original source for serialization. Both paths use
-the same tree recovery state machine as `parseHtmlSync`. Token framing still
-materializes individual tokens, and the tree remains in memory. `selectors.ts`
-traverses this tree, and removal operations snapshot selections before mutation. Migration must preserve HTML5 recovery, selector behavior and
-original-source serialization. It cannot reuse the Markdown subset parser.
+The separate htmlq owner is `packages/safe-bash-command-htmlq`. Command projection
+now uses `stored-parser.ts`, `document-store.ts`, `stored-selectors.ts` and
+`stored-serializer.ts`. Text, DOM records, child/attribute links, parser stacks,
+selector continuations and removal snapshots live in injected caller storage.
+The page cache is 256 KiB; additional fixed caches hold at most 512 node records,
+16 KiB per live reference sequence and two sets of 256 names of at most 64
+UTF-16 units. Normalized/pretty traversal uses parent/sibling records, and selector
+attribute comparisons scan bounded text windows. Compatibility tests compare
+stored recovery, selectors and formatting with the existing parser, including
+adoption, foster parenting, namespaces and template fragments. The public
+source-only convenience APIs still retain their DOM. Individual token framing,
+parser handling of large token values/names and URL joins remain unbounded;
+these are required follow-up implementation work before qualification.
 Output publication now prefers direct streaming publication, then retained atomic
 staging with one awaited write of at most 16 KiB. Deterministic tests cover reused
 chunks, slow writes, cancellation, destination conflicts, aliased input/output,

@@ -22,7 +22,8 @@ import {
   type HtmlAccounting
 } from "./contracts.js";
 import { parseHtmlqArguments, type HtmlqArguments } from "./arguments.js";
-import { projectHtmlq } from "./behavior.js";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { projectStoredHtmlq } from "./stored-project.js";
 import { htmlqInformation } from "./information.js";
 import { publishStagedHtmlq } from "./staged-output.js";
 export interface HtmlqCommandOptions {
@@ -72,6 +73,7 @@ export async function htmlq(
   });
   const budget = new HtmlBudget(options);
   let stdout: OutputOperation | undefined, stderr: OutputOperation | undefined;
+  let storage: PagedStorage | undefined;
   let task: Promise<HtmlqResult | undefined> = Promise.resolve(undefined),
     closing: Promise<void> | undefined;
   let accepting = true;
@@ -82,7 +84,7 @@ export async function htmlq(
       await Promise.allSettled([task]);
       context.signal.removeEventListener("abort", abort);
       stdout?.signal.removeEventListener("abort", consumerAbort);
-      const results = await Promise.allSettled([stdout?.close(), stderr?.close()]);
+      const results = await Promise.allSettled([stdout?.close(), stderr?.close(), storage?.close()]);
       const failures = results.filter((r) => r.status === "rejected").map((r) => r.reason);
       if (failures.length) throw new AggregateError(failures, "htmlq output cleanup failed");
     });
@@ -234,7 +236,8 @@ export async function htmlq(
           };
         }
       };
-      const rendered = projectHtmlq(admittedInput, args, options);
+      storage = new PagedStorage({ ...context, signal: options.signal }, 16);
+      const rendered = projectStoredHtmlq(admittedInput, args, options, storage);
       if (args.output === "-") {
         if (options.limits.outputBytes === Infinity && options.limits.retainedBytes === Infinity) {
           const batch = new Uint8Array(16384);

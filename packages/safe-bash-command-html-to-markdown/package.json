@@ -62,6 +62,12 @@
       "workerd": "./dist/text.js",
       "browser": "./dist/text.js",
       "import": "./dist/text.js"
+    },
+    "./stored-text": {
+      "types": "./dist/stored-text.d.ts",
+      "workerd": "./dist/stored-text.js",
+      "browser": "./dist/stored-text.js",
+      "import": "./dist/stored-text.js"
     }
   },
   "name": "safe-bash-command-html-to-markdown",

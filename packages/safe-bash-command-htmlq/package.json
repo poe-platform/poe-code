@@ -29,6 +29,7 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "safe-bash-markdown-engine": "*",
-    "@poe-code/safe-fs": "*"
+    "@poe-code/safe-fs": "*",
+    "safe-bash-command-html-to-markdown": "*"
   }
 }

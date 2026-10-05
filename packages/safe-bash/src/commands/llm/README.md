@@ -7,6 +7,8 @@ It is separate from `agentCommands()` and is not a poe-code CLI command.
 Neither the command nor the reference providers read environment variables,
 store credentials, discover models remotely, or implicitly enable networking.
 
+Use repeated `-f PATH_OR_URL` and `--sf PATH_OR_URL` for prompt and system fragments, including saved template paths. File and URL inputs compose through retained caller storage. See the [current command and SDK guide](../../../../safe-bash-command-llm/README.md) for source ownership, decoding, input budgets and remaining compatibility gaps.
+
 ## Configuration and public exports
 
 Import from `virtual-bash/commands/llm` in this workspace, or the equivalent

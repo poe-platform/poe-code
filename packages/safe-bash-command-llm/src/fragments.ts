@@ -4,19 +4,24 @@ import { createLlmSpool } from "./retained-spool.js";
 import { sourceBytes, waitForSource } from "./request-source.js";
 import type { LlmInputSource } from "./types.js";
 
+export interface LlmFragmentInputSource extends LlmInputSource {
+  /** Override the composition default for this source, such as HTTP text. */
+  readonly normalizeNewlines?: boolean;
+}
+
 export interface LlmFragmentSourceOptions {
   readonly fs: FileSystem;
   readonly directory: string;
   readonly signal: AbortSignal;
   /** Sources are acquired sequentially and disposed after composition. */
-  readonly fragments: AsyncIterable<LlmInputSource>;
+  readonly fragments: AsyncIterable<LlmFragmentInputSource>;
   /** Already-admitted prompt or system text appended after the fragments. */
   readonly tail?: LlmInputSource;
   readonly system?: boolean;
   /** Match Python text-file universal newlines on fragments (not the tail). */
   readonly normalizeNewlines?: boolean;
   /** Charge raw fragment bytes before retaining them. Tail bytes are excluded. */
-  readonly admitBytes?: (size: number) => void;
+  readonly admitBytes?: (size: number, source: LlmFragmentInputSource) => void;
   readonly admitSeparator?: (size: number) => void;
 }
 
@@ -52,7 +57,7 @@ export async function createLlmFragmentSource(
   }
   let count = 0,
     tailDisposed = false;
-  const append = async (source: LlmInputSource, tail = false): Promise<void> => {
+  const append = async (source: LlmFragmentInputSource, tail = false): Promise<void> => {
     let part: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
     try {
       part = await createLlmSpool(fs, directory, signal, "input");
@@ -62,7 +67,7 @@ export async function createLlmFragmentSource(
         end = 0,
         previousCR = false;
       const normalize = (text: string): string => {
-        if (!options.normalizeNewlines || tail) return text;
+        if (!(source.normalizeNewlines ?? options.normalizeNewlines) || tail) return text;
         let result = "";
         for (const character of text) {
           if (character !== "\n" || !previousCR) result += character === "\r" ? "\n" : character;
@@ -82,7 +87,7 @@ export async function createLlmFragmentSource(
         }
       };
       for await (const chunk of sourceBytes(source.bytes, signal)) {
-        if (!tail) options.admitBytes?.(chunk.byteLength);
+        if (!tail) options.admitBytes?.(chunk.byteLength, source);
         if (!chunk.byteLength) await yieldTurn(signal);
         for (let offset = 0; offset < chunk.byteLength; offset += 16384) {
           await yieldTurn(signal);

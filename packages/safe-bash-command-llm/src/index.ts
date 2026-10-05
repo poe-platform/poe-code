@@ -23,4 +23,6 @@ export { createLlmUrlSource, type LlmUrlSourceOptions } from './url-source.js';
 export { resolveUrlAttachment as resolveLlmUrlAttachment } from './url-attachment.js';
 export { getLlmAttachmentUrlId } from './attachment-id.js';
 
-export { createLlmFragmentSource, type LlmFragmentSourceOptions } from "./fragments.js";
+export { createLlmFragmentSource, type LlmFragmentInputSource, type LlmFragmentSourceOptions } from "./fragments.js";
+
+export { createLlmUrlFragmentSource } from "./url-fragment-source.js";

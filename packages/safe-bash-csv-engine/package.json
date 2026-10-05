@@ -38,6 +38,10 @@
     "./python-utf16": {
       "types": "./dist/python-utf16.d.ts",
       "import": "./dist/python-utf16.js"
+    },
+    "./python-file-codepages": {
+      "types": "./dist/python-file-codepages.d.ts",
+      "import": "./dist/python-file-codepages.js"
     }
   },
   "files": [

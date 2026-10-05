@@ -9,15 +9,19 @@ export interface LlmUrlSourceOptions {
   readonly fetch: typeof globalThis.fetch;
   readonly signal: AbortSignal;
   readonly maxBytes?: number;
+  /** Explicit redirect allowance; defaults to zero for attachment acquisition. */
+  readonly maxRedirects?: number;
   /** Charge aggregate host input before a downloaded chunk is exposed or copied. */
   readonly admitBytes?: (bytes: number) => void;
 }
 
 /** A single-use remote input lease. Uses only the injected transport; downloads
- * are pulled on demand, never materialized, and redirects are not followed. */
+ * are pulled on demand, never materialized, and redirects require an explicit allowance. */
 export function createLlmUrlSource(options: LlmUrlSourceOptions): LlmInputSource {
   validateAttachmentUrl(options.url);
   const limit = options.maxBytes ?? Infinity;
+  const maxRedirects = options.maxRedirects ?? 0;
+  if (!Number.isSafeInteger(maxRedirects) || maxRedirects < 0) throw new RangeError("Invalid URL redirect limit");
   if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError('Invalid URL input byte limit');
   if (typeof options.fetch !== 'function') throw new TypeError('Attachment URL loading is not configured');
   options.signal.throwIfAborted();
@@ -49,12 +53,24 @@ export function createLlmUrlSource(options: LlmUrlSourceOptions): LlmInputSource
     let failed = false, size = 0, windows = 0;
     try {
       signal.throwIfAborted();
-      await waitForSource(() => options.fetch(options.url, { method: 'GET', redirect: 'manual', signal }).then(value => {
-        response = value;
-        if (closed || signal.aborted) void cancel().catch(() => undefined);
-        return value;
-      }), signal);
-      signal.throwIfAborted();
+      let url = options.url;
+      for (let redirects = 0; ; redirects++) {
+        await waitForSource(() => options.fetch(url, { method: 'GET', redirect: 'manual', signal }).then(value => {
+          response = value;
+          if (closed || signal.aborted) void cancel().catch(() => undefined);
+          return value;
+        }), signal);
+        signal.throwIfAborted();
+        const location = response!.headers.get('location');
+        if (![301, 302, 303, 307, 308].includes(response!.status) || !location || maxRedirects === 0) break;
+        if (redirects >= maxRedirects) throw new Error('Exceeded maximum allowed redirects.');
+        const next = new URL(location, url).href;
+        validateAttachmentUrl(next);
+        await waitForSource(cancel, signal);
+        response = undefined;
+        cancellation = undefined;
+        url = next;
+      }
       if (!response!.ok) throw new Error(`Attachment URL returned HTTP ${response!.status}`);
       if (!response!.body) return;
       reader = response!.body.getReader();

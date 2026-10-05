@@ -1,3 +1,4 @@
+import { createLlmUrlFragmentSource } from "./url-fragment-source.js";
 import { createLlmFragmentSource } from "./fragments.js";
 import { resolveUrlAttachment } from "./url-attachment.js";
 import { createLlmUrlSource } from './url-source.js';
@@ -378,11 +379,21 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       } },
     });
     let composedPrompt: LlmInputSource | undefined, composedSystem: LlmInputSource | undefined;
+    const remoteFragments = new WeakSet<LlmInputSource>();
     const loadFragments = async function* (paths: readonly string[]): AsyncIterable<LlmInputSource> {
       for (const reference of paths) {
         await step();
         // The reference reads fragments after consuming ordinary prompt stdin.
         if (reference === "-") { yield textSource(""); continue; }
+        if (reference.startsWith("http://") || reference.startsWith("https://")) {
+          const fetch = context.capabilities?.fetch;
+          if (!fetch) throw new Error("Fragment URL loading is not configured");
+          const source = await operation.acquire(() => createLlmUrlFragmentSource({url:reference,fetch,signal,maxBytes:input.remaining(!streamed),
+            admitBytes:size=>{context.inputBudget?.check(shellInputBytes+size);shellInputBytes+=size;}}),value=>value.dispose());
+          remoteFragments.add(source);
+          yield source;
+          continue;
+        }
         const path = pathOf(context, reference);
         let source: LlmInputSource;
         try { source = await operation.acquire(() => fileSource({fs:context.fs,path,signal,maxBytes:input.remaining(!streamed)}), value=>value.dispose()); }
@@ -392,7 +403,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     };
     const compose = async (paths: readonly string[], tail: LlmInputSource, system: boolean): Promise<LlmInputSource> => operation.acquire(
       () => createLlmFragmentSource({fs:context.fs,directory:context.cwd,signal,fragments:loadFragments(paths),tail,system,normalizeNewlines:true,
-        admitBytes:size=>admitInput(size,!streamed),admitSeparator:size=>input.admit(size,!streamed)}),value=>value.dispose());
+        admitBytes:(size,source)=>remoteFragments.has(source)?input.admit(size,!streamed):admitInput(size,!streamed),admitSeparator:size=>input.admit(size,!streamed)}),value=>value.dispose());
     const promptFragments = [...stored?.fragments ?? [], ...args.fragments];
     const systemFragments = [...stored?.system_fragments ?? [], ...args.systemFragments];
     const materialize = async (source: LlmInputSource): Promise<string> => {

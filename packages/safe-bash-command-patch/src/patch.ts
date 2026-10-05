@@ -2,13 +2,13 @@ import { IndexedDocument, closeDocumentResources } from "safe-bash-diff-engine/d
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { TargetDocuments, equalTargetLines, targetBytes } from "./stored-target.js";
 import { applyStoredHunks } from "./stored-hunks.js";
-import { unwrapStoredPatch } from "./stored-input.js";
+import { StoredPatchInput, unwrapStoredPatch } from "./stored-input.js";
 import { parsePatch,type ParseProgress,type PatchFormat } from "./patch-formats.js";
 import { authorizeOutputs,authorizePaths,backupName,candidateStat,ensureParents,pruneDirectories,pruneParents,regular,rejectName,selectTarget,type AuthorizedPatch,type BackupOptions,type PathOptions } from "./patch-gnu-paths.js";
 import { rejectBytes } from "./patch-gnu-reject.js";
 import { safeTarget } from "./patch-path.js";
 import { PatchPublication } from "./patch-publication.js";
-import { reversePatch,type FilePatch,type HunkOutcome } from "./unified.js";
+import { parseUnified,reversePatch,type FilePatch,type HunkOutcome } from "./unified.js";
 import { FsError,dirname,pipeBytes,resolvePath,writeBytes,type CommandContext } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { Budget,ToolError,definition,host,inspect,integer,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
@@ -297,7 +297,13 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         : context.fs.readStream && inputCapabilities?.streamingRead !== false ? await documents.load(budget.streamSource(inputPath))
           : await documents.load(targetBytes(await budget.read(inputPath)));
     const progress: ParseProgress | undefined = options.atomic ? undefined : {};
-    const sections = await parsePatch(await unwrapStoredPatch(input, budget), budget, options.format, explicit, progress);
+    const sections = await parsePatch(await unwrapStoredPatch(input, budget), budget, options.format, explicit, progress, async chunks => {
+      const converted = await documents.load({ async *[Symbol.asyncIterator]() {
+        for await (const chunk of chunks) yield* targetBytes(chunk);
+      } });
+      try { return await parseUnified(new StoredPatchInput(converted), budget); }
+      finally { await documents.release(converted); }
+    });
     await documents.release(input);
     const parsed = options.format === "normal" ? sections : sections.filter(patch => !patch.unlocated);
     if (sections.length && !parsed.length) throw new ToolError("no identifiable patch; normal input requires a target, Index header, or -n");

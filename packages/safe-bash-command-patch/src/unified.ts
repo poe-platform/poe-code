@@ -33,7 +33,11 @@ export interface PatchInput { readonly length: number; read(index: number): Prom
 export interface UnifiedCursor { readonly lines: readonly string[]; index: number }
 export interface IndexedUnifiedCursor { readonly input: PatchInput; index: number }
 
-export async function parseUnified(text: string, budget: Budget): Promise<FilePatch[]> {
+export async function parseUnified(text: string | PatchInput, budget: Budget): Promise<FilePatch[]> {
+  if (typeof text !== "string") {
+    budget.countLines(text.length);
+    return parseUnifiedReader({ input: text, index: 0 }, budget, false);
+  }
   if (text && !text.endsWith("\n")) throw new ToolError("patch is truncated: missing final LF");
   const lines = budget.split(text).map(line => line.slice(0, -1));
   return parseUnifiedReader({ input: { length: lines.length, async read(index) { return lines[index]; } }, index: 0 }, budget, false);

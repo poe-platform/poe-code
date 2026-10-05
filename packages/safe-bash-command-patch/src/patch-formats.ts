@@ -8,11 +8,11 @@ export type PatchFormat = "unified" | "normal" | "context";
 class Reader {
   readonly input: PatchInput;
   index = 0;
-  constructor(input: string | PatchInput, readonly budget: Budget) {
+  constructor(input: string | PatchInput, readonly budget: Budget, admit = true) {
     if (typeof input === "string") {
       const lines = budget.split(input).map(line => line.slice(0, -1));
       this.input = { length: lines.length, async read(index) { return lines[index]; } };
-    } else { budget.countLines(input.length); this.input = input; }
+    } else { if (admit) budget.countLines(input.length); this.input = input; }
   }
   peek(): Promise<string | undefined> { return this.input.read(this.index); }
   async take(): Promise<string> {
@@ -45,9 +45,9 @@ function encoded(line: PatchLine): string {
   return `${line.kind}${line.text}${line.text.endsWith("\n") ? "" : "\n\\ No newline at end of file\n"}`;
 }
 
-async function normal(reader: Reader, target: string | undefined): Promise<string> {
+async function* normal(reader: Reader, target: string | undefined): AsyncGenerator<string> {
   const quoted = JSON.stringify(target ?? "/dev/null");
-  const output = [`--- ${quoted}\n+++ ${quoted}\n`];
+  yield `--- ${quoted}\n+++ ${quoted}\n`;
   while ((await reader.peek()) !== undefined) {
     if ((await reader.peek()) === "") { await reader.take(); continue; }
     if (!/^\d/u.test((await reader.peek())!)) break;
@@ -62,12 +62,11 @@ async function normal(reader: Reader, target: string | undefined): Promise<strin
       || (operation === "d" && command[5] !== undefined)) throw new ToolError("invalid normal patch range");
     const oldCount = operation === "a" ? 0 : oldLast - oldStart + 1;
     const newCount = operation === "d" ? 0 : newLast - newStart + 1;
-    output.push(`@@ -${oldStart},${oldCount} +${newStart},${newCount} @@\n`);
-    for (let index = 0; index < oldCount; index++) output.push(encoded({ kind: "-", text: await reader.content("<") }));
+    yield `@@ -${oldStart},${oldCount} +${newStart},${newCount} @@\n`;
+    for (let index = 0; index < oldCount; index++) yield encoded({ kind: "-", text: await reader.content("<") });
     if (operation === "c" && await reader.take() !== "---") throw new ToolError("missing normal change separator");
-    for (let index = 0; index < newCount; index++) output.push(encoded({ kind: "+", text: await reader.content(">") }));
+    for (let index = 0; index < newCount; index++) yield encoded({ kind: "+", text: await reader.content(">") });
   }
-  return output.join("");
 }
 
 interface ContextLine { readonly kind: " " | "!" | "-" | "+"; readonly text: string }
@@ -83,24 +82,45 @@ async function contextRange(reader: Reader, old: boolean): Promise<Range> {
   return { start, last, multiple: match[2] !== undefined };
 }
 
-async function contextSide(reader: Reader, old: boolean, range: Range): Promise<ContextLine[]> {
-  const lines: ContextLine[] = [];
+interface ContextSide {
+  readonly start: number; readonly records: number; readonly length: number;
+  readonly common: number; readonly changed: boolean; readonly commonOnly?: boolean;
+}
+
+async function contextSide(reader: Reader, old: boolean, range: Range): Promise<ContextSide> {
+  const start = reader.index;
+  let length = 0, common = 0, changed = false, incomplete = false;
   const count = range.start === 0 ? 0 : range.last - range.start + 1;
-  while ((await reader.peek()) !== undefined && lines.length < count) {
+  while ((await reader.peek()) !== undefined && length < count) {
     const kind = (await reader.peek()) === "" ? " " : (await reader.peek())![0];
     if (kind !== " " && kind !== "!" && kind !== (old ? "-" : "+")) break;
     if (old && /^--- \d+(?:,\d+)? ----$/u.test((await reader.peek())!)) break;
-    lines.push({ kind, text: await reader.content(kind) });
-    if (lines.length > reader.budget.limits.maxLines) throw new ToolError("context body line limit exceeded");
+    const text = await reader.content(kind);
+    incomplete = !text.endsWith("\n");
+    length++;
+    if (kind === " ") common++;
+    changed ||= kind === "!";
+    if (length > reader.budget.limits.maxLines) throw new ToolError("context body line limit exceeded");
   }
-  if (!old && lines.length === count && lines.at(-1)?.text.endsWith("\n") === false) {
+  if (!old && length === count && incomplete) {
     // GNU accepts surplus markers after the complete new side, preserving its EOF.
     while ((await reader.peek()) === "\\ No newline at end of file") await reader.take();
   }
-  return lines;
+  return { start, records: length, length, common, changed };
 }
 
-function contextCount(range: Range, lines: ContextLine[]): number {
+async function* contextLines(reader: Reader, side: ContextSide): AsyncGenerator<ContextLine> {
+  const replay = new Reader(reader.input, reader.budget, false);
+  replay.index = side.start;
+  for (let index = 0; index < side.records; index++) {
+    const prefix = (await replay.peek())!;
+    const kind = (prefix === "" ? " " : prefix[0]) as ContextLine["kind"];
+    const text = await replay.content(kind);
+    if (!side.commonOnly || kind === " ") yield { kind, text };
+  }
+}
+
+function contextCount(range: Range, lines: ContextSide): number {
   if (!lines.length) {
     if (range.multiple) throw new ToolError("empty context side has a nonempty range");
     return 0;
@@ -109,16 +129,15 @@ function contextCount(range: Range, lines: ContextLine[]): number {
   return lines.length;
 }
 
-async function context(reader: Reader): Promise<string> {
-  const output: string[] = [];
+async function* context(reader: Reader): AsyncGenerator<string> {
   while ((await reader.peek()) !== undefined) {
     const header = await reader.take();
     if (header === "") continue;
-    if (/^diff -[^ ]+ /u.test(header)) { output.push(`${header}\n`); continue; }
+    if (/^diff -[^ ]+ /u.test(header)) { yield `${header}\n`; continue; }
     if (!header.startsWith("*** ")) throw new ToolError("expected context file header");
     const next = await reader.take();
     if (!next.startsWith("--- ")) throw new ToolError("expected new context file header");
-    output.push(`--- ${header.slice(4)}\n+++ ${next.slice(4)}\n`);
+    yield `--- ${header.slice(4)}\n+++ ${next.slice(4)}\n`;
     let hunks = 0;
     while ((await reader.peek())?.startsWith("***************")) {
       const delimiter = await reader.take();
@@ -129,53 +148,53 @@ async function context(reader: Reader): Promise<string> {
       const newRange = await contextRange(reader, false);
       let newLines = await contextSide(reader, false, newRange);
       if (!oldLines.length) {
-        if (newLines.some(line => line.kind === "!")) throw new ToolError("missing old changed context body");
-        oldLines = newLines.filter(line => line.kind === " ");
+        if (newLines.changed) throw new ToolError("missing old changed context body");
+        oldLines = { ...newLines, length: newLines.common, commonOnly: true };
       }
       if (!newLines.length) {
-        if (oldLines.some(line => line.kind === "!")) throw new ToolError("missing new changed context body");
-        newLines = oldLines.filter(line => line.kind === " ");
+        if (oldLines.changed) throw new ToolError("missing new changed context body");
+        newLines = { ...oldLines, length: oldLines.common, commonOnly: true };
       }
       const oldCount = contextCount(oldRange, oldLines);
       const newCount = contextCount(newRange, newLines);
-      output.push(`@@ -${oldRange.start},${oldCount} +${newRange.start},${newCount} @@${delimiter.slice(15)}\n`);
-      let oldIndex = 0;
-      let newIndex = 0;
-      while (oldIndex < oldLines.length || newIndex < newLines.length) {
-        let oldChanged = false;
-        let newChanged = false;
-        while (oldIndex < oldLines.length && oldLines[oldIndex]!.kind !== " ") {
-          const line = oldLines[oldIndex++]!;
-          oldChanged ||= line.kind === "!";
-          output.push(encoded({ kind: "-", text: line.text }));
-          reader.budget.step();
-          { const c = reader.budget.checkpoint(); if (c) await c; }
+      yield `@@ -${oldRange.start},${oldCount} +${newRange.start},${newCount} @@${delimiter.slice(15)}\n`;
+      const oldIterator = contextLines(reader, oldLines), newIterator = contextLines(reader, newLines);
+      try {
+        let oldLine = await oldIterator.next(), newLine = await newIterator.next();
+        while (!oldLine.done || !newLine.done) {
+          let oldChanged = false, newChanged = false;
+          while (!oldLine.done && oldLine.value.kind !== " ") {
+            oldChanged ||= oldLine.value.kind === "!";
+            yield encoded({ kind: "-", text: oldLine.value.text });
+            reader.budget.step();
+            { const c = reader.budget.checkpoint(); if (c) await c; }
+            oldLine = await oldIterator.next();
+          }
+          while (!newLine.done && newLine.value.kind !== " ") {
+            newChanged ||= newLine.value.kind === "!";
+            yield encoded({ kind: "+", text: newLine.value.text });
+            reader.budget.step();
+            { const c = reader.budget.checkpoint(); if (c) await c; }
+            newLine = await newIterator.next();
+          }
+          if (oldChanged !== newChanged) throw new ToolError("unpaired changed context group");
+          if (!oldLine.done || !newLine.done) {
+            if (oldLine.done || newLine.done || !reader.budget.equal(oldLine.value.text, newLine.value.text)) throw new ToolError("context halves disagree");
+            yield encoded({ kind: " ", text: oldLine.value.text });
+            oldLine = await oldIterator.next(); newLine = await newIterator.next();
+          }
         }
-        while (newIndex < newLines.length && newLines[newIndex]!.kind !== " ") {
-          const line = newLines[newIndex++]!;
-          newChanged ||= line.kind === "!";
-          output.push(encoded({ kind: "+", text: line.text }));
-          reader.budget.step();
-          { const c = reader.budget.checkpoint(); if (c) await c; }
-        }
-        if (oldChanged !== newChanged) throw new ToolError("unpaired changed context group");
-        if (oldIndex < oldLines.length || newIndex < newLines.length) {
-          const oldLine = oldLines[oldIndex++];
-          const newLine = newLines[newIndex++];
-          if (!oldLine || !newLine || !reader.budget.equal(oldLine.text, newLine.text)) throw new ToolError("context halves disagree");
-          output.push(encoded({ kind: " ", text: oldLine.text }));
-        }
-      }
+      } finally { await oldIterator.return(undefined); await newIterator.return(undefined); }
     }
     if (!hunks) throw new ToolError("context file patch has no hunks");
     break;
   }
-  return output.join("");
 }
 
 export interface ParseProgress { error?: unknown }
 
-export async function parsePatch(text: string | PatchInput, budget: Budget, format: PatchFormat | undefined, target: string | undefined, progress?: ParseProgress): Promise<FilePatch[]> {
+export async function parsePatch(text: string | PatchInput, budget: Budget, format: PatchFormat | undefined, target: string | undefined, progress?: ParseProgress,
+  convert?: (source: AsyncIterable<string>) => Promise<FilePatch[]>): Promise<FilePatch[]> {
   if (typeof text === "string" && text && !text.endsWith("\n")) throw new ToolError("patch is truncated: missing final LF");
   const reader = new Reader(text, budget);
   const patches: FilePatch[] = [];
@@ -205,10 +224,20 @@ export async function parsePatch(text: string | PatchInput, budget: Budget, form
         patches.push(...(await parseUnifiedSection(reader, budget)).map(patch => ({ ...patch, ...(indexPath === undefined ? {} : { indexPath }) })));
       } else {
         if (detected === "context") reader.index = start;
-        const converted = detected === "normal" ? await normal(reader, target ?? indexPath) : await context(reader);
-        convertedBytes += byteLength(converted);
-        if (convertedBytes > budget.limits.maxInputBytes * 2 + 16_384) throw new ToolError("converted patch byte limit exceeded");
-        patches.push(...(await parseUnified(converted, budget)).map(patch => ({ ...patch, format: detected,
+        const source = detected === "normal" ? normal(reader, target ?? indexPath) : context(reader);
+        const converted = { async *[Symbol.asyncIterator]() {
+          for await (const chunk of source) { convertedBytes += byteLength(chunk); yield chunk; }
+          // Complete format validation before reporting the converted-byte quota.
+          if (convertedBytes > budget.limits.maxInputBytes * 2 + 16_384) throw new ToolError("converted patch byte limit exceeded");
+        } };
+        let parsed: FilePatch[];
+        if (convert) parsed = await convert(converted);
+        else {
+          const chunks: string[] = [];
+          for await (const chunk of converted) chunks.push(chunk);
+          parsed = await parseUnified(chunks.join(""), budget);
+        }
+        patches.push(...parsed.map(patch => ({ ...patch, format: detected,
           ...(indexPath === undefined ? {} : { indexPath }),
           ...(detected === "normal" && target === undefined && indexPath === undefined ? { unlocated: true } : {}) })));
       }

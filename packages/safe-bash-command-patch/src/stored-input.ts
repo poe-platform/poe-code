@@ -3,10 +3,10 @@ import { Budget, ToolError } from "safe-bash-diff-engine/shared";
 import type { PatchInput } from "./unified.js";
 
 /** Replay physical patch lines without retaining a second payload or line array. */
-class DocumentInput implements PatchInput {
+export class StoredPatchInput implements PatchInput {
   private cachedIndex = -1;
   private cachedLine = "";
-  constructor(readonly document: IndexedDocument, readonly crlf: boolean,
+  constructor(readonly document: IndexedDocument, readonly crlf = false,
     readonly start = 0, readonly length = document.length - start) {}
 
   async read(index: number): Promise<string | undefined> {
@@ -39,7 +39,7 @@ export async function unwrapStoredPatch(document: IndexedDocument, budget: Budge
     if (line.end - line.start < 2 || (await document.data.read(8 + line.end - 2, 1))[0] !== 13) { crlf = false; break; }
     if (index + 1 > budget.limits.maxLines) throw new ToolError("transport line limit exceeded");
   }
-  const input = new DocumentInput(document, crlf);
+  const input = new StoredPatchInput(document, crlf);
   let start = 0;
   if (/^(?:From [0-9a-f]{40,64} |(?:From|Date|Subject|To|Cc|MIME-Version|Content-Type):)/u.test(await input.read(0) ?? "")) {
     while (start < input.length) {
@@ -64,5 +64,5 @@ export async function unwrapStoredPatch(document: IndexedDocument, budget: Budge
       if (/^(?:diff |---|\+\+\+|\*\*\*|@@|index |old mode |new mode |new file mode |deleted file mode |rename |copy |similarity index |dissimilarity index |GIT binary patch|Binary files |[+\\]|\d+(?:,\d+)?[acd]\d)/u.test((await input.read(index))!)) throw new ToolError("patch data after mail signature");
     }
   }
-  return new DocumentInput(document, crlf, start, end - start);
+  return new StoredPatchInput(document, crlf, start, end - start);
 }

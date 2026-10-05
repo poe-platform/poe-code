@@ -21,8 +21,12 @@ cache; merge and conditional output replay ranges without copied line lists.
 Patch input now stages stdin/streaming sources and uses retained reads for capable
 file backends. Transport normalization and mail envelope removal replay the
 stored physical-line index without a whole-input string or physical-line array.
+Normal/context conversion streams into stored documents and replays their indexes;
+it no longer assembles a complete converted string or physical-line array.
+Context halves retain scalar ranges/counts and replay physical records, including
+common-only reconstruction when one half is omitted.
 The string parser remains available as a convenience API. Parsed hunk bodies,
-individual decoded lines, normal/context conversions, hunk metadata, file maps
+individual decoded lines, hunk metadata, file maps
 and retained resource handles still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.
 Apply-patch payload parsing, target snapshots, matching and replacements use

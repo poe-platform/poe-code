@@ -1,3 +1,4 @@
+import { visitBiffPropertyDictionary } from './biff-property-dictionary.js';
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, UnsupportedRecord } from "@poe-code/spreadsheet-ast";
 import { invalidBiff } from "./biff-binary.js";
@@ -49,71 +50,60 @@ export async function readBiffProperties(streams: ReadonlyMap<string, Uint8Array
       await withPropertyValueRanges(file.slice(offset, end - offset), admit, accountWork, context, async values => {
         const cp = await values.get(1); let codepage = 1252;
         if (cp) { if ((await cp.u32(0)) !== 2) invalidBiff("invalid property codepage type"); codepage = await cp.u16(4); }
-        const names = new Map<number, string>(), dictionary = await values.get(0);
-        try {
-          if (dictionary && guid === custom) {
-            const length = await dictionary.u32(0); dictionary.check(4, length * 9); admit(length);
-            let at = 4;
-            for (let i = 0; i < length; i++) {
-              const id = await dictionary.u32(at), entry = await readBiffPropertyText(dictionary, at + 4, codepage, context, accountText, accountWork);
-              if (id < 2 || names.has(id) || !entry.value) invalidBiff("invalid property dictionary entry");
-              names.set(id, entry.value); at = entry.end;
-            }
-          }
-        } catch (error) {
-          if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
-          unknown = true; return;
-        }
-        for await (const [id, data] of values.entries()) {
-          context.signal.throwIfAborted(); if (id < 2) continue;
-          const key = guid === custom ? names.get(id) : biffPropertyFields.get(guid)?.get(id);
-          if (key === undefined || Object.hasOwn(properties, key)) { unknown = true; continue; }
-          let value: ImportedValue | undefined;
-          const type = await data.u32(0);
-          try {
-            if (type === 30 || type === 31) value = (await readBiffPropertyText(data, 4, type === 31 ? 1200 : codepage, context, accountText, accountWork)).value;
-            else if (type === 3) value = (await data.u32(4)) | 0;
-            else if (type === 5) { value = await data.f64(4); if (!Number.isFinite(value)) invalidBiff("nonfinite property value"); }
-            else if (type === 11) value = (await data.u16(4)) !== 0;
-            else if (type === 64) {
-              const ticks = BigInt(await data.u32(4)) + (BigInt(await data.u32(8)) << 32n);
-              if (guid === summary && id === 10) {
-                const fraction = (ticks % 10000000n).toString().padStart(7, "0");
-                let end = fraction.length; while (end && fraction[end - 1] === "0") end--;
-                value = `PT${ticks / 600000000n}M${ticks / 10000000n % 60n}${end ? "." + fraction.slice(0, end) : ""}S`;
-              } else {
-                value = new Date(Number(ticks / 10000n) - 11644473600000).toISOString();
-                // The workbook model stores timestamps as strings; retain the
-                // original property bytes when Date's millisecond precision loses ticks.
-                if (ticks % 10000n) unknown = true;
+        const dictionary = guid === custom ? await values.get(0) : undefined;
+        const supported = await visitBiffPropertyDictionary(dictionary, codepage, context, admit, accountText, accountWork, async getName => {
+          for await (const [id, data] of values.entries()) {
+            context.signal.throwIfAborted(); if (id < 2) continue;
+            const key = guid === custom ? await getName(id) : biffPropertyFields.get(guid)?.get(id);
+            if (key === undefined || Object.hasOwn(properties, key)) { unknown = true; continue; }
+            let value: ImportedValue | undefined;
+            const type = await data.u32(0);
+            try {
+              if (type === 30 || type === 31) value = (await readBiffPropertyText(data, 4, type === 31 ? 1200 : codepage, context, accountText, accountWork)).value;
+              else if (type === 3) value = (await data.u32(4)) | 0;
+              else if (type === 5) { value = await data.f64(4); if (!Number.isFinite(value)) invalidBiff("nonfinite property value"); }
+              else if (type === 11) value = (await data.u16(4)) !== 0;
+              else if (type === 64) {
+                const ticks = BigInt(await data.u32(4)) + (BigInt(await data.u32(8)) << 32n);
+                if (guid === summary && id === 10) {
+                  const fraction = (ticks % 10000000n).toString().padStart(7, "0");
+                  let end = fraction.length; while (end && fraction[end - 1] === "0") end--;
+                  value = `PT${ticks / 600000000n}M${ticks / 10000000n % 60n}${end ? "." + fraction.slice(0, end) : ""}S`;
+                } else {
+                  value = new Date(Number(ticks / 10000n) - 11644473600000).toISOString();
+                  // The workbook model stores timestamps as strings; retain the
+                  // original property bytes when Date's millisecond precision loses ticks.
+                  if (ticks % 10000n) unknown = true;
+                }
+                accountText(value);
+              } else if (type === 7) {
+                const days = await data.f64(4);
+                if (!Number.isFinite(days) || days <= -657435 || days >= 2958466) invalidBiff("invalid OLE property date");
+                // OLE Automation uses 1899-12-30 and the absolute fractional day.
+                // LibreOffice's oleprops DATE path truncates it and uses 1899-12-31;
+                // the documented Automation representation governs the stored value.
+                value = new Date(-2209161600000 + Math.round((Math.trunc(days) + Math.abs(days % 1)) * 86400000)).toISOString();
+                accountText(value);
               }
-              accountText(value);
-            } else if (type === 7) {
-              const days = await data.f64(4);
-              if (!Number.isFinite(days) || days <= -657435 || days >= 2958466) invalidBiff("invalid OLE property date");
-              // OLE Automation uses 1899-12-30 and the absolute fractional day.
-              // LibreOffice's oleprops DATE path truncates it and uses 1899-12-31;
-              // the documented Automation representation governs the stored value.
-              value = new Date(-2209161600000 + Math.round((Math.trunc(days) + Math.abs(days % 1)) * 86400000)).toISOString();
-              accountText(value);
+            } catch (error) {
+              if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
             }
-          } catch (error) {
-            if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
+            if (value === undefined) { unknown = true; continue; }
+            if (guid === summary && id === 5 && typeof value === "string") {
+              let count = 1; for (const character of value) if (character === ",") count++;
+              admit(count); accountWork(value.length);
+              value = value.split(",").map(keyword => {
+                let start = 0, end = keyword.length;
+                while (start < end && isBiffKeywordSpace(keyword.charCodeAt(start))) start++;
+                while (end > start && isBiffKeywordSpace(keyword.charCodeAt(end - 1))) end--;
+                return keyword.slice(start, end);
+              }).filter(Boolean);
+            }
+            accountText(key); properties[key] = value; modeled.push([offset, id, key]);
+            observe?.({ stream: streamName, section: offset, id, key, value });
           }
-          if (value === undefined) { unknown = true; continue; }
-          if (guid === summary && id === 5 && typeof value === "string") {
-            let count = 1; for (const character of value) if (character === ",") count++;
-            admit(count); accountWork(value.length);
-            value = value.split(",").map(keyword => {
-              let start = 0, end = keyword.length;
-              while (start < end && isBiffKeywordSpace(keyword.charCodeAt(start))) start++;
-              while (end > start && isBiffKeywordSpace(keyword.charCodeAt(end - 1))) end--;
-              return keyword.slice(start, end);
-            }).filter(Boolean);
-          }
-          accountText(key); properties[key] = value; modeled.push([offset, id, key]);
-          observe?.({ stream: streamName, section: offset, id, key, value });
-        }
+        });
+        if (!supported) unknown = true;
       });
     }
     if (unknown && retained) {

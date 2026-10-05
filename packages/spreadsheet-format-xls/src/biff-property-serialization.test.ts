@@ -1,3 +1,4 @@
+import { visitBiffPropertyDictionary } from './biff-property-dictionary.js';
 import { encryptedBiffPropertyStream } from './biff-encrypted-properties.js';
 import { readBiffProperties } from './biff-properties.js';
 import { BiffPropertyRange, propertyRange, readPropertyValueRanges, readPropertySectionRanges, withPropertyValueRanges, type BiffPropertyValues } from './biff-property-range.js';
@@ -464,4 +465,65 @@ it.each([false, true])('preflights plaintext property collisions=%s without a re
     else expect(await result).toBe(encrypted);
   } finally { Map.prototype.set = original; }
   expect(state.acquired).toBe(2); expect(state.closed).toBe(2);
+});
+
+it('looks up custom names without retaining decoded dictionary strings', async () => {
+  const input = { sheets: [], properties: Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`DictionaryName${i}`, i])) };
+  const { streams } = await writeBiffProperties(input, context), { ctx, state } = fixture(); let accounted = 0;
+  const original = Map.prototype.set;
+  Map.prototype.set = function (key, value) {
+    if (typeof key === 'number' && typeof value === 'string' && value.startsWith('DictionaryName')) throw new Error('resident dictionary names');
+    return original.call(this, key, value);
+  };
+  try {
+    expect(await readBiffProperties(streams, ctx, text => { if (text.startsWith('DictionaryName')) accounted++; return text; }, () => {}, undefined)).toEqual(input.properties);
+  } finally { Map.prototype.set = original; }
+  expect(accounted).toBe(600); expect(state.closed).toBe(state.acquired);
+});
+
+it.each(['success', 'allocate', 'write', 'read', 'abort', 'duplicate', 'lookup-read', 'consumer', 'unsupported'])('indexes dictionary names with bounded storage and cleanup (%s)', async mode => {
+  const { ctx, state, failure } = fixture(), controller = new AbortController(), count = 300;
+  const bytes = new Uint8Array(4 + count * 13), view = new DataView(bytes.buffer);
+  view.setUint32(0, count, true);
+  for (let i = 0; i < count; i++) {
+    const at = 4 + i * 13;
+    view.setUint32(at, mode === 'duplicate' && i === count - 1 ? 2 : i + 2, true);
+    view.setUint32(at + 4, 5, true); bytes.set(new TextEncoder().encode(`N${String(i).padStart(3, '0')}`), at + 8);
+  }
+  const active = { ...ctx, signal: controller.signal }; let entered = false, accounted = 0, escaped!: (id: number) => Promise<string | undefined>;
+  state.mode = mode;
+  if (mode === 'abort') state.hold = async () => { controller.abort(failure); };
+  const result = visitBiffPropertyDictionary(propertyRange(bytes, active), mode === 'unsupported' ? 777 : 65001, active,
+    amount => expect(amount).toBe(count), text => { accounted++; return text; }, () => {}, async get => {
+      entered = true; escaped = get;
+      if (mode === 'consumer') throw failure;
+      if (mode === 'lookup-read') { state.mode = 'read'; await get(2); return; }
+      for (let i = 0; i < count; i++) {
+        const id = i * 13 % count;
+        expect(await get(id + 2)).toBe(`N${String(id).padStart(3, '0')}`);
+      }
+      expect(await get(999)).toBeUndefined(); expect(accounted).toBe(count);
+    });
+  if (mode === 'success' || mode === 'unsupported') expect(await result).toBe(mode === 'success');
+  else if (mode === 'duplicate') await expect(result).rejects.toThrow('invalid property dictionary entry');
+  else await expect(result).rejects.toBe(failure);
+  expect(entered).toBe(['success', 'lookup-read', 'consumer'].includes(mode));
+  expect(state.acquired).toBe(1); expect(state.closed).toBe(1);
+  if (escaped) await expect(escaped(2)).rejects.toThrow('dictionary index is closed');
+});
+
+it.each([false, true])('preserves dictionary close failures with consumer error=%s', async consumerError => {
+  const { ctx, state, failure } = fixture(), bytes = new Uint8Array(4), consumer = new Error('consumer');
+  const active = { ...ctx, createWorkingStorage() {
+    const storage = ctx.createWorkingStorage!();
+    return { ...storage, async close() { await storage.close(); throw failure; } };
+  } };
+  const result = visitBiffPropertyDictionary(propertyRange(bytes, active), 65001, active, () => {}, text => text, () => {}, async () => {
+    if (consumerError) throw consumer;
+  });
+  if (consumerError) {
+    const error = await result.catch(error => error) as AggregateError;
+    expect(error).toBeInstanceOf(AggregateError); expect(error.errors).toEqual([consumer, failure]);
+  } else await expect(result).rejects.toBe(failure);
+  expect(state.closed).toBe(1);
 });

@@ -56,7 +56,7 @@ export function propertyRange(input: Uint8Array | RangeSource, context: Capabili
 }
 
 /** Index IO checks disposal around awaits and owns transient write buffers. */
-function propertyIndexStorage(storage: WorkingStorage, range: BiffPropertyRange) {
+export function propertyIndexStorage(storage: WorkingStorage, range: BiffPropertyRange) {
   return {
     allocate(length: number) { range.check(0, 0); return storage.allocate(length); },
     async read(at: number, length: number) {

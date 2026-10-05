@@ -22,6 +22,23 @@ it("publishes with full ancestry receipts on the trusted host without claiming a
   expect(vol.readdirSync("/host/out")).toEqual(["existing", "new"]);
 });
 
+for (const trusted of [false, true]) it(`preserves ancestry observation for confined memory mounts (trusted=${trusted})`, async () => {
+  const backing = new MemoryFileSystem();
+  await backing.mkdir("/out");
+  const mounted = new MountFileSystem({ root: backing });
+  const view = await (trusted ? mounted.confineTrustedExtraction(["/out"]) : mounted.confineExtraction(["/out"]));
+  const ancestors = await Promise.all(["/", "/out"].map(async path => ({ path, stat: await view.lstat(path) })));
+  const parent = ancestors[1]!.stat;
+  const bytes = new TextEncoder().encode("confined payload");
+  const stage = await view.createStagedFile!("/out/.stage", "entry", { type: "file", data: bytes }, { parent });
+  await view.publishStagedFile!(stage, "/out/new", { parent, destination: null, ancestors });
+  await view.removeStagedFile!(stage);
+  expect(await backing.readFile("/out/new")).toEqual(bytes);
+  expect((await backing.readdir("/out")).map(entry => entry.name)).toEqual(["new"]);
+  await expect(view.writeFile("/outside", bytes)).rejects.toMatchObject({ code: "EPERM" });
+  await expect(backing.lstat("/outside")).rejects.toMatchObject({ code: "ENOENT" });
+});
+
 it("rejects a replaced extraction root before creating directories or publishing", async () => {
   const fs = new RealFileSystem({ root: "/host" });
   const view = await fs.confineTrustedExtraction(["/out"]);

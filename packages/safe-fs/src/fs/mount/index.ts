@@ -239,7 +239,8 @@ export class MountFileSystem implements FileSystem {
             ...await target.capabilitiesFor?.(path, query) ?? target.capabilities,
             synchronousDirectoryValidation: (await observations.capabilitiesFor?.(path, query) ?? observations.capabilities).synchronousDirectoryValidation,
           });
-          const owner = property === "prepareDirectoryAncestry" ? observations : target;
+          // These capture bindings; mutations still use the confined view.
+          const owner = property === "prepareDirectoryAncestry" || property === "prepareStagingResolution" ? backend : target;
           const value: unknown = Reflect.get(owner, property);
           return typeof value === "function" ? value.bind(owner) : value;
         },

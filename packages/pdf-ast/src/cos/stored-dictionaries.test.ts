@@ -240,3 +240,17 @@ it.each(["failure","cancel","short"])("preserves deferred string read %s",async 
   if(mode==="short")await expect(result).rejects.toThrow("Incomplete deferred resource string");
   else await expect(result).rejects.toBe(failure);
 });
+
+it("lets consumers inspect individual fields of a deferred definition",async()=>{
+  const storage=backing();
+  const {value}=await parseCosRangeValue(source("<< /Font << /F << /Used 9 /Unused ["+"749 ".repeat(256)+"] >> >> >>"),0,{dictionaryStorage:storage,arrayStorage:storage,stringStorage:storage,containerStorage:storage,storedDictionaryKeys:["Font"],deferDictionaryValues:true});
+  if(value?.kind!=="dict")throw new Error("dictionary expected");
+  const map=dictGet(value,"Font") as PdfCosDict;
+  const push=Array.prototype.push;
+  Array.prototype.push=function(...values){if(this.length>=64&&values.some(value=>value?.kind==="number"&&value.value===749))throw new Error("unused deferred field expanded");return push.apply(this,values);};
+  try{
+    const definition=await readPdfDictionaryValue(map,"F",undefined,{preserveDeferred:true});
+    expect(definition).toMatchObject({kind:"dict",deferred:true,entries:[],storedEntries:{length:2}});
+    expect(await readPdfDictionaryValue(definition as PdfCosDict,"Used")).toMatchObject({value:9});
+  }finally{Array.prototype.push=push;}
+});

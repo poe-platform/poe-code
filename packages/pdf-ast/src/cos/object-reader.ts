@@ -1,3 +1,4 @@
+import { readPdfDictionaryValue } from "../content/stored-dictionary.js";
 import { PdfReferenceSet, type PdfReferencePath } from "./reference-set.js";
 import type { ValueArrayStorage } from "./value-parser.js";
 import { resolvePdfStreamDictionary } from "./filter-dictionary.js";
@@ -207,7 +208,11 @@ export class PdfObjectReader {
         this.repairedOffsets.set(objectNumber, object.span.start);
       }
       if (this.options.encryption && objectNumber !== this.options.encryptionObjectNumber) {
-        let type = object.stream && object.value.kind === "dict" ? dictGet(object.value, "Type") : undefined;
+        let type: PdfCosNode | undefined;
+        if(object.stream && object.value.kind==="dict"){
+          try{type=object.value.storedEntries ? await readPdfDictionaryValue(object.value,"Type",this.options.signal,{preserveDeferred:true}) : dictGet(object.value,"Type");}
+          catch(error){onBackingError(error);throw error;}
+        }
         if (type?.kind === "ref") type = (await this.load(type.objectNumber, type.generationNumber, active))?.value;
         const value = await decryptPdfObjectStrings(this.options.encryption, objectNumber, generationNumber, object.value,
           { ...(type?.kind === "name" ? { streamType: type.decoded } : {}), ...(this.options.signal ? { signal: this.options.signal } : {}) });

@@ -271,3 +271,21 @@ it.each(["Font","ExtGState"].flatMap(key=>[false,true].map(indirect=>({key,indir
  }finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["inline","map","state","both","stream","encrypted-stream"])("reads selected %s graphics-state fields without expanding unused values",async mode=>{
+ const {cosArray,cosDict,cosName,cosStream}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([12,12]);
+ const state=cosDict({Unused:cosArray(Array.from({length:256},()=>cosNumber(747))),ca:cosNumber(.5),CA:cosNumber(.75),SMask:cosName("None"),Font:cosArray([cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica")}),cosNumber(5)]),LW:cosNumber(2),LC:cosNumber(1),LJ:cosNumber(2),ML:cosNumber(4),BM:cosArray([cosName("Multiply")]),D:cosArray([cosArray([cosNumber(2),cosNumber(1)]),cosNumber(0)])});
+ const states=cosDict({Selected:mode==="stream"||mode==="encrypted-stream"?doc.cos.allocateObject(cosStream(state,new Uint8Array())):mode==="state"||mode==="both"?doc.cos.allocateObject(state):state});
+ dictSet(page.pageDict,"Resources",cosDict({ExtGState:mode==="map"||mode==="both"?doc.cos.allocateObject(states):states}));
+ page.setRawContentStream("/Selected gs 1 0 0 rg 0 0 12 12 re f 0 0 1 RG 1 2 m 10 9 l S BT 1 3 Td (x) Tj ET");
+ const bytes=mode==="encrypted-stream"?doc.save({encrypt:{revision:3}}):doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const push=Array.prototype.push;Array.prototype.push=function<T>(this:T[],...values:T[]):number{if(this.length>=64&&values.some(value=>(value as {kind?:string;value?:number})?.kind==="number"&&(value as {value:number}).value===747))throw Error("unused selected-state field became resident");return push.apply(this,values);};
+ try{
+  const source={size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}};
+  const image=await tryPdfDecode(source,storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+ }finally{Array.prototype.push=push;await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

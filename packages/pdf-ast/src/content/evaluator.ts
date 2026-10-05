@@ -832,20 +832,20 @@ export function isOptionalContentVisible(doc: ParsedCosDocument | undefined, ocN
   return step.value;
 }
 
-function* resolveEvaluationNode(node: PdfCosNode | undefined, storeRootArray = false, arrayPathPrefix?: readonly string[]): EvaluationWork<PdfCosNode | undefined> {
+function* resolveEvaluationNode(node: PdfCosNode | undefined, storeRootArray = false, arrayPathPrefix?: readonly string[], storeRootDictionary = false): EvaluationWork<PdfCosNode | undefined> {
   if (!node) return undefined;
-  const result = yield { kind: "resolve", node, ...(storeRootArray ? { storeRootArray } : {}), ...(arrayPathPrefix ? { arrayPathPrefix } : {}) };
+  const result = yield { kind: "resolve", node, ...(storeRootDictionary ? {storeRootDictionary} : {}), ...(storeRootArray ? { storeRootArray } : {}), ...(arrayPathPrefix ? { arrayPathPrefix } : {}) };
   if (!result || !("kind" in result) || result.kind !== "resolved") throw new TypeError("Expected a resolved PDF object");
   return result.node;
 }
-function* resolveEvaluationDict(node: PdfCosNode | undefined, arrayPathPrefix?: readonly string[]): EvaluationWork<PdfCosDict | undefined> {
-  const resolved = yield* resolveEvaluationNode(node, false, arrayPathPrefix);
+function* resolveEvaluationDict(node: PdfCosNode | undefined, arrayPathPrefix?: readonly string[], storeRootDictionary = false): EvaluationWork<PdfCosDict | undefined> {
+  const resolved = yield* resolveEvaluationNode(node, false, arrayPathPrefix, storeRootDictionary);
   return resolved?.kind === "dict" ? resolved : resolved?.kind === "stream" ? resolved.dict : undefined;
 }
-function* lookupEvaluationDictionary(dict: PdfCosDict | undefined, key: string): EvaluationWork<PdfCosNode | undefined> {
+function* lookupEvaluationDictionary(dict: PdfCosDict | undefined, key: string, preserveDeferred = false): EvaluationWork<PdfCosNode | undefined> {
   if (!dict) return undefined;
   if (!dict.storedEntries) return dictGet(dict, key);
-  const result = yield {kind: "dictionary-value", dict, key};
+  const result = yield {kind: "dictionary-value", dict, key, ...(preserveDeferred ? {preserveDeferred} : {})};
   if (!result || !("kind" in result) || result.kind !== "resolved") throw new TypeError("Expected a PDF dictionary value");
   return result.node;
 }
@@ -1056,7 +1056,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|PdfStoredBytes|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = { readonly kind: "dictionary-value"; readonly dict: PdfCosDict; readonly key: string } | { readonly kind: "array-reference"; readonly items: import("../ast.js").PdfStoredItems; readonly objectNumber: number } | { readonly kind: "dash-array"; readonly array: import("../ast.js").PdfCosArray; readonly storage: PdfPixelStorage; readonly resolveReferences?: boolean } | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
+export type PdfEvaluationRequest = { readonly kind: "dictionary-value"; readonly dict: PdfCosDict; readonly key: string; readonly preserveDeferred?: boolean } | { readonly kind: "array-reference"; readonly items: import("../ast.js").PdfStoredItems; readonly objectNumber: number } | { readonly kind: "dash-array"; readonly array: import("../ast.js").PdfCosArray; readonly storage: PdfPixelStorage; readonly resolveReferences?: boolean } | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
   | {readonly kind:"font-unicode";readonly lookup:(code:number)=>Promise<string|undefined>;readonly code:number}
   | {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
   | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>;storedSegments?(code:number,storage:PdfPixelStorage,signal?:AbortSignal):AsyncIterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
@@ -1067,7 +1067,7 @@ export type PdfEvaluationRequest = { readonly kind: "dictionary-value"; readonly
   | { readonly kind: "path-finish"; readonly writer: StoredPathWriter }
   | { readonly kind: "transform-path"; readonly path: PdfStoredPath; readonly matrix: Matrix6; readonly close: boolean }
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
-  | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly storeRootArray?: boolean; readonly arrayPathPrefix?: readonly string[] }
+  | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly storeRootArray?: boolean; readonly storeRootDictionary?: boolean; readonly arrayPathPrefix?: readonly string[] }
   | { readonly kind: "catalog" }
   | { readonly kind: "close-content"; readonly source: PdfEvaluationContentSource }
   | { readonly kind: "mask-parameters"; readonly mask: PdfCosDict; readonly form: PdfCosStream; readonly resources: PdfCosDict | undefined }
@@ -1402,9 +1402,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       st.strokeColor = yield* resolveScColorOperands("DeviceCMYK", ops, activeResources);
     } else if (operator === "gs" && activeResources && ops[0]?.kind === "name") {
       const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"), ["Resources", "ExtGState"]);
-      const gsDict = extDict ? yield* resolveEvaluationDict(yield* lookupEvaluationDictionary(extDict, ops[0].decoded), ["Resources", "ExtGState", ops[0].decoded]) : undefined;
+      const gsDict = extDict ? yield* resolveEvaluationDict(yield* lookupEvaluationDictionary(extDict, ops[0].decoded, true), ["Resources", "ExtGState", ops[0].decoded], true) : undefined;
       if (gsDict) {
-        const mask = yield* resolveEvaluationNode(dictGet(gsDict, "SMask"));
+        const mask = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "SMask"));
         if (mask?.kind === "name" && mask.decoded === "None") {
           st.softMask = undefined;
         } else if (mask?.kind === "dict") {
@@ -1440,7 +1440,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             st.softMask = { subtype: subtype.decoded, operations: captured instanceof StoredOperationsWriter ? [] : captured, ...(captured instanceof StoredOperationsWriter ? {storedOperations:captured.snapshot()} : {}), ...parameters.value };
           }
         }
-        const bmNode = yield* resolveEvaluationNode(dictGet(gsDict, "BM"));
+        const bmNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "BM"));
         if (bmNode?.kind === "name") {
           st.blendMode = bmNode.decoded === "Compatible" ? "Normal" : bmNode.decoded;
         } else if (bmNode?.kind === "array" && bmNode.items.length > 0) {
@@ -1449,25 +1449,25 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             st.blendMode = firstBm.decoded === "Compatible" ? "Normal" : firstBm.decoded;
           }
         }
-        const caNode = yield* resolveEvaluationNode(dictGet(gsDict, "ca"));
+        const caNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "ca"));
         if (caNode?.kind === "number") st.fillAlpha = Math.max(0, Math.min(1, caNode.value));
-        const CANode = yield* resolveEvaluationNode(dictGet(gsDict, "CA"));
+        const CANode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "CA"));
         if (CANode?.kind === "number") st.strokeAlpha = Math.max(0, Math.min(1, CANode.value));
-        const lwNode = yield* resolveEvaluationNode(dictGet(gsDict, "LW"));
+        const lwNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "LW"));
         if (lwNode?.kind === "number") st.strokeWidth = Math.max(0, lwNode.value);
-        const lcNode = yield* resolveEvaluationNode(dictGet(gsDict, "LC"));
+        const lcNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "LC"));
         if (lcNode?.kind === "number" && (lcNode.value === 0 || lcNode.value === 1 || lcNode.value === 2)) {
           st.lineCap = lcNode.value;
         }
-        const ljNode = yield* resolveEvaluationNode(dictGet(gsDict, "LJ"));
+        const ljNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "LJ"));
         if (ljNode?.kind === "number" && (ljNode.value === 0 || ljNode.value === 1 || ljNode.value === 2)) {
           st.lineJoin = ljNode.value;
         }
-        const mlNode = yield* resolveEvaluationNode(dictGet(gsDict, "ML"));
+        const mlNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "ML"));
         if (mlNode?.kind === "number" && mlNode.value > 0) {
           st.miterLimit = mlNode.value;
         }
-        const dArr = yield* resolveEvaluationArray(dictGet(gsDict, "D"), true);
+        const dArr = yield* resolveEvaluationArray(yield* lookupEvaluationDictionary(gsDict, "D"), true);
         if (dArr && (dArr.storedItems?.length ?? dArr.items.length) >= 2) {
           let pair = dArr.items;
           if (dArr.storedItems) {
@@ -1501,7 +1501,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             st.dashPhase = phaseNode?.kind === "number" ? phaseNode.value : 0;
           }
         }
-        const fontArr = yield* resolveEvaluationArray(dictGet(gsDict, "Font"));
+        const fontArr = yield* resolveEvaluationArray(yield* lookupEvaluationDictionary(gsDict, "Font"));
         if (fontArr && fontArr.items.length >= 2) {
           const fSizeNode = yield* resolveEvaluationNode(fontArr.items[1]);
           if (fSizeNode?.kind === "number") st.fontSize = fSizeNode.value;

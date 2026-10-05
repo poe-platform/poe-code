@@ -106,8 +106,9 @@ export class PdfRetainedDocument {
   }
 
   /** Resolve a bounded reference chain, retaining the final stream's identity. */
-  async lookup(node: PdfCosNode | undefined, arrays: ValueArrayStorage = this.options.valueArrays ?? {}, arrayPathPrefix?: readonly string[]): Promise<PdfRetainedValue | undefined> {
+  async lookup(node: PdfCosNode | undefined, arrays: ValueArrayStorage = this.options.valueArrays ?? {}, arrayPathPrefix?: readonly string[], storeRootDictionary = false): Promise<PdfRetainedValue | undefined> {
     this.assertOpen();
+    if(storeRootDictionary && arrays.dictionaryStorage) arrays={...arrays,storeRootDictionary:true};
     if (arrayPathPrefix) arrays = { ...arrays, arrayPathPrefix,
       ...(arrayPathPrefix.length && arrays.storedDictionaryKeys?.includes(arrayPathPrefix[arrayPathPrefix.length - 1]!) ? { storeRootDictionary: true } : {}),
       ...(arrayPathPrefix.length && arrays.storedArrayKeys?.includes(arrayPathPrefix[arrayPathPrefix.length - 1]!) ? { storeRootArray: true } : {}),

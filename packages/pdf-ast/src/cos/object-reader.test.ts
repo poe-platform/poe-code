@@ -603,3 +603,11 @@ it("reuses filter references across sibling entries but rejects nested ancestor 
     } finally { await f.close(); }
   }
 });
+
+it("does not repair a caller-backing failure while reading a stored root stream Length",async()=>{
+  const failure=new PdfError("E_PARSE","root Length backing failed");
+  let end=0;
+  const storage={allocate(length:number){const position=end;end+=length;return position;},async write(){},async read():Promise<Uint8Array>{throw failure;}};
+  const f=await fixture("1 0 obj << /Length 1 >>\nstream\nx\nendstream\nendobj",[plain(1)],{recovery:"repair"});
+  try{await expect(f.reader.get(1,0,{dictionaryStorage:storage,storeRootDictionary:true})).rejects.toBe(failure);}finally{await f.close();}
+});

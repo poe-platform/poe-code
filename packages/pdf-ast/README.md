@@ -33,7 +33,10 @@ synchronous dictionary helpers require ordinary in-memory entries. The caller
 keeps the backing alive until all dictionary consumers finish. Set
 `deferDictionaryValues: true` with the same caller backing for dictionary, array,
 string and container storage to defer resource definitions during parsing.
-Named lookup expands only the selected definition; enumeration expands one at a
+Named lookup expands only the selected definition; pass `{preserveDeferred: true}`
+as its fourth argument to read fields individually from that definition. Retained
+graphics-state evaluation uses this path, including indirect definitions.
+Enumeration expands one at a
 time. Explicit width, string and nested resource selectors remain backed.
 
 Pass `imageStorage` to retained page evaluation to keep decoded image pixels in

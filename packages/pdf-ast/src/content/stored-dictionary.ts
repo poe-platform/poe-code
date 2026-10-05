@@ -51,7 +51,7 @@ export async function* readPdfDictionaryEntries(dict: PdfCosDict, signal?: Abort
 }
 
 /** Same last-key-wins semantics as dictGet, without collecting a retained map. */
-export async function readPdfDictionaryValue(dict: PdfCosDict, key: string, signal?: AbortSignal): Promise<PdfCosNode | undefined> {
+export async function readPdfDictionaryValue(dict: PdfCosDict, key: string, signal?: AbortSignal, options: {preserveDeferred?: boolean} = {}): Promise<PdfCosNode | undefined> {
   if (dict.storedEntries) {
     const {storage, length} = dict.storedEntries;
     if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("Invalid stored array length");
@@ -64,11 +64,13 @@ export async function readPdfDictionaryValue(dict: PdfCosDict, key: string, sign
     }
     if (position !== -1) throw new Error("Invalid stored array terminator");
     signal?.throwIfAborted();
-    return selected === -1 ? undefined : materializeResourceValue((await readStoredRecord<PdfDictEntry>(storage, selected, signal)).value.value,signal);
+    if(selected===-1)return undefined;
+    const value=(await readStoredRecord<PdfDictEntry>(storage, selected, signal)).value.value;
+    return options.preserveDeferred ? value : materializeResourceValue(value,signal);
   }
   let value: PdfCosNode | undefined;
-  for await (const entry of readPdfDictionaryEntries(dict, signal)) if (entry.key.decoded === key) value = entry.value;
-  return value;
+  for await (const entry of readRawPdfDictionaryEntries(dict, signal)) if (entry.key.decoded === key) value = entry.value;
+  return value && !options.preserveDeferred ? materializeResourceValue(value,signal) : value;
 }
 
 /** Clone a resource map and fill missing keys from an appearance. Destination

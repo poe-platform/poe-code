@@ -1,3 +1,4 @@
+import { readPdfDictionaryValue } from "../content/stored-dictionary.js";
 import { listenForAbort } from "@poe-code/safe-fs/contracts";
 import { dictGet, type ByteSpan, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { PdfError } from "../errors.js";
@@ -169,7 +170,9 @@ export async function parseCosRangeObject(source: PdfFileSource, offset: number,
       const first = await byteAt(source, start, signal);
       if (first === 13) start += await byteAt(source, start + 1, signal) === 10 ? 2 : 1;
       else if (first === 10) start++;
-      const entry = dictGet(value, "Length");
+      let entry: PdfCosNode | undefined;
+      try { entry=value.storedEntries ? await readPdfDictionaryValue(value,"Length",signal,{preserveDeferred:true}) : dictGet(value,"Length"); }
+      catch(error){options.onBackingError?.(error);throw error;}
       const length = await resolveStreamLength(entry, options);
       signal?.throwIfAborted();
       if (length !== undefined && Number.isSafeInteger(length) && length >= 0 && length <= source.size - start) {

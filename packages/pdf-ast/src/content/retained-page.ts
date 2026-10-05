@@ -4,7 +4,7 @@ import { readStoredRecord } from "./stored-record.js";
 import { cosBool, cosArray, cosNumber, cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
 import { decodePdfStreamChunks } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
-import type { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
+import type { PdfRetainedReader, PdfRetainedPage } from "../retained-reader.js";
 import { preparePageAppearanceSteps, type PdfAppearanceResult } from "./appearance.js";
 import type { PdfContentEvent } from "./parser.js";
 import { parseContentStreamEvents } from "./range-events.js";
@@ -17,7 +17,7 @@ export interface PdfRetainedPageEvaluationOptions extends PdfRetainedEvaluationO
 /** Resources from all nonempty appearances precede base-page evaluation, just
  * as in the buffered API. A prepass avoids retaining an appearance plan or its
  * content: each cursor closes before the next annotation. */
-export async function prepareRetainedPageContent(document: PdfRetainedDocument, page: PdfRetainedPage,
+export async function prepareRetainedPageContent(document: PdfRetainedReader, page: PdfRetainedPage,
   pageResources: PdfCosDict, storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions) {
   options.onAllocation?.(64);
   const resources = cosDict(); const identities = new WeakMap<PdfCosStream, PdfCosRef>();

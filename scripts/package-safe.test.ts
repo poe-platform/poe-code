@@ -1423,9 +1423,11 @@ it('publishes PDF vendor declaration dependencies and their full license notices
   volume.writeFileSync(directory + '/package.json', readFileSync(new URL('package.json', source)));
   volume.writeFileSync(directory + '/dist/index.js', 'export {};');
   volume.writeFileSync(directory + '/dist/index.d.ts', 'export { CFFParser } from "./vendor/pdfjs-fonts.mjs";');
+  volume.writeFileSync(directory + '/dist/image.js', 'export * from "./index.js";');
+  volume.writeFileSync(directory + '/dist/image.d.ts', 'export * from "./index.js";');
   volume.writeFileSync(directory + '/dist/vendor/pdfjs-fonts.mjs', 'export class CFFParser {}');
   volume.writeFileSync(directory + '/dist/vendor/pdfjs-fonts.d.mts', 'export declare class CFFParser {}');
-  const notices = ['THIRD_PARTY_NOTICES.md', 'licenses/PDFJS-APACHE-2.0.txt', 'licenses/PDFIUM-BSD.txt', 'licenses/PYPDF-BSD.txt', 'licenses/AGG-2.3.txt', 'licenses/MIT.txt'];
+  const notices = ['THIRD_PARTY_NOTICES.md', 'licenses/PDFJS-APACHE-2.0.txt', 'licenses/PDFIUM-BSD.txt', 'licenses/PYPDF-BSD.txt', 'licenses/AGG-2.3.txt', 'licenses/MIT.txt', 'licenses/V8-BSD.txt', 'licenses/PYTHON-PSF.txt'];
   for (const filename of notices) {
     volume.mkdirSync(path.dirname(directory + '/' + filename), { recursive: true });
     volume.writeFileSync(directory + '/' + filename, readFileSync(new URL(filename, source)));

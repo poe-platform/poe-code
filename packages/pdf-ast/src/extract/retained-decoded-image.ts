@@ -5,7 +5,7 @@ import { cosDict, dictGet, type PdfCosDict, type PdfCosNode } from "../ast.js";
 import { decodePdfStreamChunks, pdfImageCodec } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
-import type { PdfRetainedDocument } from "../retained-document.js";
+import type { PdfRetainedReader } from "../retained-reader.js";
 import { PdfFileSource } from "../source.js";
 import type { ResolvedColorSpace } from "./images.js";
 import { openRetainedImageColor } from "./retained-color.js";
@@ -53,13 +53,13 @@ export class PdfRetainedDecodedImage {
     if (!source) throw new PdfError("E_CAPABILITY", "Retained image has no native payload");
     yield* source.stream();
   }
-  static async open(document: PdfRetainedDocument, image: Input, storage: PdfIndexStorage, options: PdfRetainedImageDecodeOptions = {}): Promise<PdfRetainedDecodedImage> {
+  static async open(document: PdfRetainedReader, image: Input, storage: PdfIndexStorage, options: PdfRetainedImageDecodeOptions = {}): Promise<PdfRetainedDecodedImage> {
     const controller = new AbortController();
     const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
     const owner = await this.decode(document, image, storage, { ...options, signal }, { working: 0, staged: 0 }, 0);
     owner.controller = controller; return owner;
   }
-  private static async decode(document: PdfRetainedDocument, image: Input, storage: PdfIndexStorage, options: PdfRetainedImageDecodeOptions,
+  private static async decode(document: PdfRetainedReader, image: Input, storage: PdfIndexStorage, options: PdfRetainedImageDecodeOptions,
     budget: Budget, depth: number): Promise<PdfRetainedDecodedImage> {
     const workingLimit = maximum(options.maxWorkingBytes, "maxWorkingBytes"), stagingLimit = maximum(options.maxStagingBytes, "maxStagingBytes"), outputLimit = maximum(options.maxOutputBytes, "maxOutputBytes");
     const maxDepth = options.maxDepth ?? document.depthLimit, chunkBytes = options.chunkBytes ?? 4096;

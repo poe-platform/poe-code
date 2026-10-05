@@ -6,7 +6,8 @@ import { cosArray, cosDict, cosName, cosNumber, cosRef, cosStream, dictGet, dict
 import { PdfDocument } from "./document.js";
 import { PdfFileSource } from "./source.js";
 import { serializeCosDocument } from "./cos/writer.js";
-import { PdfRetainedDocument, type PdfRetainedDocumentOptions } from "./retained-document.js";
+import { PdfRetainedDocument, PdfRetainedReader, type PdfRetainedDocumentOptions } from "./retained-document.js";
+describe.each([["document", PdfRetainedDocument], ["reader", PdfRetainedReader]] as const)("%s ownership", (_name, Reader) => {
 const text = (s: string) => new TextEncoder().encode(s);
 
 async function fixture(bytes: Uint8Array, options: PdfRetainedDocumentOptions & {backedArrays?:readonly string[]; trackReads?:boolean} = {}) {
@@ -18,7 +19,7 @@ async function fixture(bytes: Uint8Array, options: PdfRetainedDocumentOptions & 
   }) } as unknown as FileSystem;
   const source = await PdfFileSource.open(input, "/input", { chunkBytes: 64, cacheBytes: 128 });
   const backing=options.backedArrays?new PagedStorage({fs,cwd:"/scratch",env:{},signal:options.signal??new AbortController().signal},2):undefined;
-  const doc = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...options, ...(backing?{valueArrays:{arrayStorage:backing,storedArrayKeys:options.backedArrays!}}:{}) });
+  const doc = await Reader.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...options, ...(backing?{valueArrays:{arrayStorage:backing,storedArrayKeys:options.backedArrays!}}:{}) });
   return { fs, source, reads, readFile, doc, backing, async close() { await doc.close(); await backing?.close(); expect(await fs.readdir("/scratch")).toEqual([]); expect((await source.read(0, 1))[0]).toBe(37); await source.close(); } };
 }
 function inheritedPdf(malformed = false) {
@@ -332,4 +333,6 @@ it("retains styled text font names through page evaluation", async () => {
       } finally { await index.close(); }
     }
   } finally { await f.close(); }
+});
+
 });

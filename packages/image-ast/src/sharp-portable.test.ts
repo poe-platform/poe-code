@@ -12,6 +12,7 @@ it.each(["index", "portable"])("runs %s sharp pixel, stream and safe-fs file wor
       "@poe-code/safe-fs": new URL("../../safe-fs/src/", import.meta.url).pathname,
       "@poe-code/xml-ast": new URL("../../xml-ast/src/index.ts", import.meta.url).pathname,
       "@poe-code/pdf-ast": new URL("../../pdf-ast/src/index.ts", import.meta.url).pathname,
+      "@poe-code/pdf-ast/image": new URL("../../pdf-ast/src/image.ts", import.meta.url).pathname,
     },
   });
   const context = createContext({ TextEncoder, TextDecoder, Uint8Array, ReadableStream, WritableStream,
@@ -28,6 +29,7 @@ it.each(["image-ast", "sips", "imagemagick", "yq", "jq", "exiftool"])("imports %
     alias: {
       "@poe-code/image-ast": new URL("./", import.meta.url).pathname,
       "@poe-code/pdf-ast": new URL("../../pdf-ast/src/index.ts", import.meta.url).pathname,
+      "@poe-code/pdf-ast/image": new URL("../../pdf-ast/src/image.ts", import.meta.url).pathname,
       "@poe-code/safe-fs": new URL("../../safe-fs/src/", import.meta.url).pathname,
       "safe-bash-byte-engine": new URL("../../safe-bash-byte-engine/src/", import.meta.url).pathname,
       "safe-bash-calendar-engine": new URL("../../safe-bash-calendar-engine/src/", import.meta.url).pathname,

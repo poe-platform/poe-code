@@ -14,7 +14,7 @@ import type { PdfRetainedImage } from "../extract/retained-images.js";
 import type { DecodedDisplayImage } from "../extract/images.js";
 import { resolveRetainedFont } from "../fonts/retained.js";
 import type { ResolvedPageFont } from "../fonts/resolve.js";
-import type { PdfRetainedDocument } from "../retained-document.js";
+import type { PdfRetainedReader } from "../retained-reader.js";
 import { PdfStagingStorage } from "../staging-budget.js";
 import { StoredPathWriter, readStoredPath } from "./stored-path.js";
 import { evaluateContentSteps, transformPathSegment, type PdfContentEvaluationOptions, type PdfEvaluationContentSource, type PdfEvaluationOperation, type PdfEvaluationResult } from "./evaluator.js";
@@ -39,7 +39,7 @@ export type PdfRetainedEvaluationParameters = Omit<PdfContentEvaluationOptions, 
 /** Drive shared evaluation using retained input and caller-backed staging.
  * Paint operations are pulled on demand. With imageStorage, paths and images
  * use caller backing. Composite captures store replayable operation records there. */
-export async function* evaluateRetainedContentSteps(document: PdfRetainedDocument, content: AsyncIterable<Uint8Array> | Iterable<Uint8Array> | PdfRetainedContentEvents,
+export async function* evaluateRetainedContentSteps(document: PdfRetainedReader, content: AsyncIterable<Uint8Array> | Iterable<Uint8Array> | PdfRetainedContentEvents,
   params: PdfRetainedEvaluationParameters, storage: PdfIndexStorage, options: PdfRetainedEvaluationOptions = {}): AsyncGenerator<PdfEvaluationOperation, void, void> {
   const maximum = options.maxResourceBytes ?? Infinity, chunkBytes = options.chunkBytes ?? 4096, maxCachedFonts = options.maxCachedFonts ?? 16;
   if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid maxResourceBytes");

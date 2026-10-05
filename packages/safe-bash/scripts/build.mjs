@@ -494,7 +494,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         const exports = { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } };
         const packageExports = {
           "safe-bash-pdf-engine": exports,
-          "@poe-code/pdf-ast": exports,
+          "@poe-code/pdf-ast": { ...exports, "./image": { types: "./dist/image.d.ts", import: "./dist/image.js" } },
         };
         const packages = {
           "safe-bash-pdf-engine": { "pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1" },

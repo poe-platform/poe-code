@@ -11,7 +11,7 @@ import { decodePdfStreamChunks } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
-import type { PdfRetainedDocument } from "../retained-document.js";
+import type { PdfRetainedReader } from "../retained-reader.js";
 import { PdfFileSource } from "../source.js";
 import { decodeSamplesToRgbaAsync, imageColorSpaceProgram, type ResolvedColorSpace } from "./images.js";
 
@@ -37,7 +37,7 @@ function limit(value: number | undefined, fallback: number, name: string) {
 /** Resolve one color space without following unrelated resources. ICC profiles
  * contribute dictionary metadata only. Palette and tint-function state is
  * admitted before materialization and remains usable after document closure. */
-function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIndexStorage, options: PdfRetainedColorOptions, storedFunctions=false) {
+function createRetainedColorAccess(document: PdfRetainedReader, storage: PdfIndexStorage, options: PdfRetainedColorOptions, storedFunctions=false) {
   const maximum = limit(options.maxWorkingBytes, Infinity, "maxWorkingBytes");
   const maxStaging = limit(options.maxStagingBytes, Infinity, "maxStagingBytes");
   const maxNodes = limit(options.maxNodes, 65536, "maxNodes");
@@ -262,14 +262,14 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
   return { resolve, resource, decode, contents, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth, functionSources, storedFunctions, async close(){await functionBacking?.close();} };
 }
 
-export async function resolveRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
+export async function resolveRetainedImageColor(document: PdfRetainedReader, node: PdfCosNode | undefined,
   resources: PdfCosDict | undefined, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}): Promise<ResolvedColorSpace> {
   const access=createRetainedColorAccess(document,storage,options);
   return resolveImageColor(access,node,resources,options);
 }
 
 /** Keeps range-backed tint resources alive until the image owner closes. */
-export async function openRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
+export async function openRetainedImageColor(document: PdfRetainedReader, node: PdfCosNode | undefined,
   resources: PdfCosDict | undefined, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}) {
   const access=createRetainedColorAccess(document,storage,options,true);
   try {return {color:await resolveImageColor(access,node,resources,options),close:access.close};}
@@ -312,14 +312,14 @@ async function resolveImageColor(access:ReturnType<typeof createRetainedColorAcc
 /** Resolve the same vector colors as buffered evaluation using retained reads.
  * Palette/function state is admitted; unrelated resources and ICC payloads are
  * not read. The returned RGB value has no retained source lifetime. */
-export async function convertRetainedContentColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
+export async function convertRetainedContentColor(document: PdfRetainedReader, node: PdfCosNode | undefined,
   name: string, components: readonly number[], resources: PdfCosDict | undefined, storage: PdfIndexStorage,
   options: PdfRetainedColorOptions = {}): Promise<[number, number, number]> {
   return runRetainedColorProgram(document, storage, options, convertContentColorSteps(true, node, name, components, resources));
 }
 
 /** Resolve only mask backdrop and transfer state, without decoding the Form. */
-export async function resolveRetainedMaskParameters(document: PdfRetainedDocument, mask: PdfCosDict, form: PdfCosStream,
+export async function resolveRetainedMaskParameters(document: PdfRetainedReader, mask: PdfCosDict, form: PdfCosStream,
   resources: PdfCosDict | undefined, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}) {
   return runRetainedColorProgram(document, storage, options, resolveMaskParameterSteps(mask, form, resources));
 }
@@ -333,7 +333,7 @@ async function runFunctionSteps<T>(work:Generator<PdfFunctionReadRequest,T,Uint8
   }finally{work.return(undefined as never);}
 }
 
-async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage: PdfIndexStorage, options: PdfRetainedColorOptions,
+async function runRetainedColorProgram<T>(document: PdfRetainedReader, storage: PdfIndexStorage, options: PdfRetainedColorOptions,
   work: Generator<PdfMaskParameterRequest, T, unknown>): Promise<T> {
   const { resolve, resource, decode, snapshot, snapshotFunction, context, charge, functionSources, close } = createRetainedColorAccess(document, storage, options, true);
   let failed=false;
@@ -378,7 +378,7 @@ export type PdfRetainedShadingSettings = Omit<PdfEvaluationShadingRequest, "kind
 
 /** Read only selected shading resources through retained access. Resource
  * snapshots, mesh geometry and the result surface are admitted to one owner. */
-export async function renderRetainedShading(document: PdfRetainedDocument, node: PdfCosNode,
+export async function renderRetainedShading(document: PdfRetainedReader, node: PdfCosNode,
   settings: PdfRetainedShadingSettings, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}): Promise<PdfEvaluatedImage | undefined> {
   const { resolve, contents, snapshot, snapshotColor, snapshotFunction, charge, context, functionSources, close } = createRetainedColorAccess(document, storage, options, true);
   let failed=false;

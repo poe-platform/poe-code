@@ -12,7 +12,7 @@ import {parseCharacterCMapSteps,parseToUnicodeCMapSteps} from "./cmap.js";
 import type { PdfCosDict, PdfCosRef, PdfCosStream, PdfPixelStorage } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
-import type { PdfRetainedDocument } from "../retained-document.js";
+import type { PdfRetainedReader } from "../retained-reader.js";
 import { PdfFileSource } from "../source.js";
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import { resolvePageFontsSteps, type FontResolutionResult, type ResolvedPageFont } from "./resolve.js";
@@ -28,7 +28,7 @@ export interface PdfRetainedFontOptions extends PdfFontAllocationOptions {
 /** Resolve one font without loading the document or unrelated font programs.
  * Font programs and glyph scratch retain caller resource backing.
  * The caller owns font lifetime. */
-export async function resolveRetainedFont(document: PdfRetainedDocument, storage: PdfIndexStorage,
+export async function resolveRetainedFont(document: PdfRetainedReader, storage: PdfIndexStorage,
   resources: PdfCosDict | undefined, name: string, options: PdfRetainedFontOptions = {}): Promise<ResolvedPageFont | undefined> {
   const chunkBytes = options.chunkBytes ?? 65536;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError("Invalid font chunkBytes");

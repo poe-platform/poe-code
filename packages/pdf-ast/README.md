@@ -22,6 +22,11 @@ cancellation. This avoids collecting a page display list; individual evaluated
 paths, decoded resources and nested captures still retain their existing memory
 ownership.
 
+`@poe-code/pdf-ast/image` exposes `PdfRetainedReader` and the PDF image renderers
+for applications that only need pages and pixels. It shares page inheritance,
+cancellation and caller-owned backing with `PdfRetainedDocument`; document-wide
+extraction remains available on `PdfRetainedDocument` from the main entry.
+
 Retained source parsing can keep wide resource maps in caller backing with
 `valueArrays: { dictionaryStorage, storedDictionaryKeys: ["Font", "XObject", "Properties"], storedDictionaryPaths: [["Resources", "*"]] }`. Dictionary
 paths select maps without changing same-named resource definitions. Resource

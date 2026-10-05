@@ -49,7 +49,7 @@ it.each(["write","cancel"])("cleans PDF scratch after pixel %s failure",async ph
 });
 
 it.each(["F", "Font"])("backs inline font %s widths and encodings before decoding or inspecting PDF images",async fontName=>{
- const {cosArray,cosDict,cosName,cosStream,PdfRetainedDocument}=await import("@poe-code/pdf-ast");
+ const {cosArray,cosDict,cosName,cosStream,PdfRetainedReader}=await import("@poe-code/pdf-ast");
  const {tryPdfMetadata}=await import("./image-pdf.js");
  const original=PdfDocument.create(),page=original.addPage([32,24]);
  dictSet(page.pageDict,"Resources",cosDict({Font:cosDict({[fontName]:cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica"),FirstChar:cosNumber(0),Widths:cosArray(Array.from({length:2048},()=>cosNumber(500))),Encoding:cosDict({Differences:cosArray([cosNumber(65),...Array.from({length:1024},()=>cosName("B"))])})})})}));
@@ -57,7 +57,7 @@ it.each(["F", "Font"])("backs inline font %s widths and encodings before decodin
  const bytes=original.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
  const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
  const source={size:bytes.length,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
- const open=vi.spyOn(PdfRetainedDocument,"open");
+ const open=vi.spyOn(PdfRetainedReader,"open");
  try{
   const metadata=await tryPdfMetadata(source,fs,"/scratch",signal,{},storage);
   expect(metadata).toMatchObject({width:32,height:24});
@@ -95,7 +95,7 @@ it.each(["inline", "indirect"])("backs %s XObject and property maps during PDF r
 });
 
 it.each(["inline","map","state","both"])("backs %s graphics-state dashes before Sips PDF pixel traversal",async mode=>{
- const {cosArray,cosDict,dictGet,PdfRetainedDocument}=await import("@poe-code/pdf-ast");
+ const {cosArray,cosDict,dictGet,PdfRetainedReader}=await import("@poe-code/pdf-ast");
  const {tryPdfMetadata}=await import("./image-pdf.js");
  const original=PdfDocument.create(),page=original.addPage([24,16]);
  const values=Array.from({length:1025},(_,i)=>cosNumber(i%2?3:2));
@@ -107,8 +107,8 @@ it.each(["inline","map","state","both"])("backs %s graphics-state dashes before 
  const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
  const source={size:bytes.length,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
  let seen=0;
- const lookup=PdfRetainedDocument.prototype.lookup;
- const spy=vi.spyOn(PdfRetainedDocument.prototype,"lookup").mockImplementation(async function(node,arrays,prefix){
+ const lookup=PdfRetainedReader.prototype.lookup;
+ const spy=vi.spyOn(PdfRetainedReader.prototype,"lookup").mockImplementation(async function(node,arrays,prefix){
   const result=await lookup.call(this,node,arrays,prefix);
   if(result?.value.kind==="dict"){
    const resources=await readPdfDictionaryValue(result.value,"Resources");
@@ -181,7 +181,7 @@ it.each(["AllOn","AnyOn","AllOff","AnyOff"])("preserves Sips PDF pixels with bac
 });
 
 it("keeps compressed PDF xref ranges in caller backing during inspection and rendering",async()=>{
- const {PdfRetainedDocument,dictGet}=await import("@poe-code/pdf-ast");
+ const {PdfRetainedReader,dictGet}=await import("@poe-code/pdf-ast");
  const {tryPdfMetadata}=await import("./image-pdf.js");
  const original=PdfDocument.create(),page=original.addPage([16,12]);
  page.setRawContentStream(new TextEncoder().encode("0.2 0.7 0.4 rg 2 3 8 6 re f"));
@@ -192,7 +192,7 @@ it("keeps compressed PDF xref ranges in caller backing during inspection and ren
  const expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
  const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},2);
  const source={size:bytes.length,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
- const open=vi.spyOn(PdfRetainedDocument,"open");
+ const open=vi.spyOn(PdfRetainedReader,"open");
  try{
   expect(await tryPdfMetadata(source,fs,"/scratch",signal,{},storage)).toMatchObject({width:16,height:12});
   const image=await tryPdfDecode(source,storage,fs,"/scratch",signal);
@@ -206,14 +206,14 @@ it("keeps compressed PDF xref ranges in caller backing during inspection and ren
 });
 
 it("backs page-tree child lists while preserving selected-page metadata and pixels",async()=>{
- const {PdfRetainedDocument}=await import("@poe-code/pdf-ast");
+ const {PdfRetainedReader}=await import("@poe-code/pdf-ast");
  const {tryPdfMetadata}=await import("./image-pdf.js");
  const original=PdfDocument.create();
  for(let i=0;i<64;i++){const page=original.addPage([16+i,12]);page.setRawContentStream(new TextEncoder().encode("0.2 0.7 0.4 rg 2 3 8 6 re f"));}
  const bytes=original.save(),options={page:63},expected=decodeImage(bytes,options),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
  const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},2);
  const source={size:bytes.length,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
- const lookup=vi.spyOn(PdfRetainedDocument.prototype,"lookup");
+ const lookup=vi.spyOn(PdfRetainedReader.prototype,"lookup");
  try{
   expect(await tryPdfMetadata(source,fs,"/scratch",signal,options,storage)).toMatchObject({width:79,height:12,pages:64,pagePrimary:63});
   const image=await tryPdfDecode(source,storage,fs,"/scratch",signal,options);

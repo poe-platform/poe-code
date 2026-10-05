@@ -1,7 +1,7 @@
 import {PdfValueStorage} from "./pdf-value-storage.js";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {checkLimitInputPixels} from "./limits.js";
-import {PdfFileSource,PdfRetainedDocument,PdfError,renderRetainedPagePixels,type PdfRetainedPage} from "@poe-code/pdf-ast";
+import {PdfFileSource,PdfRetainedReader,PdfError,renderRetainedPagePixels,type PdfRetainedPage} from "@poe-code/pdf-ast/image";
 import {normalizePath,type FileSystem} from "@poe-code/safe-fs/contracts";
 import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./codecs/png-storage.js";
 import {isPdfBytes} from "./codecs/svg-pdf.js";
@@ -22,12 +22,12 @@ async function openPdfImage(source:ImageByteSource,fs:FileSystem,directory:strin
  if(!capabilities.retainedRead||!capabilities.retainedStagingWrite||!capabilities.retainedStagingCleanup||!fs.createStagedFile||!fs.openReadFile)throw new UnsupportedStoredResource();
  const chunks=(async function*(){for(let position=0;position<size;position+=16384){signal.throwIfAborted();const length=Math.min(16384,size-position),bytes=await source.read(position,length,{signal});signal.throwIfAborted();if(!(bytes instanceof Uint8Array)||bytes.length!==length)throw new Error("Truncated PDF image source");yield bytes;}})();
  const retained=await PdfFileSource.fromStream(fs,directory,chunks,{signal,chunkBytes:16384,cacheBytes:65536});
- let document:PdfRetainedDocument|undefined;
+ let document:PdfRetainedReader|undefined;
  const owned=storage?undefined:capabilities.open!==false&&capabilities.randomAccessWrite!==false&&fs.open&&fs.removeFileConditional?new PagedStorage({fs,cwd:directory,env:{},signal},4):new PdfValueStorage(fs,directory,signal);
  const values=storage??owned!;
  const cleanup=async()=>{let failure:{error:unknown}|undefined;try{await document?.close();}catch(error){failure={error};}try{await retained.close();}catch(error){failure??={error};}try{await owned?.close();}catch(error){failure??={error};}if(failure)throw failure.error;};
  try{
-  document=await PdfRetainedDocument.open(retained,{fs,directory},{signal,recovery:"repair",compactNumbers:true,compactKeywords:true,chunkBytes:16384,maxNodes:Infinity,maxTokenBytes:Infinity,maxRecursionDepth:Infinity,maxPageTreeDepth:Infinity,xref:{arrayStorage:values,storedArrayKeys:["Index"]},valueArrays:{dictionaryStorage:values,deferDictionaryValues:true,storedDictionaryKeys:["Font","XObject","Properties"],storedDictionaryPaths:[["Resources","*"]],containerStorage:values,stringStorage:values,storedStringKeys:["ActualText"],arrayStorage:values,storedArrayKeys:["Contents","Annots","Kids","Widths","W","Differences","ON","OFF","OCGs"],storedArrayPaths:[["ExtGState","*","D"]]}});
+  document=await PdfRetainedReader.open(retained,{fs,directory},{signal,recovery:"repair",compactNumbers:true,compactKeywords:true,chunkBytes:16384,maxNodes:Infinity,maxTokenBytes:Infinity,maxRecursionDepth:Infinity,maxPageTreeDepth:Infinity,xref:{arrayStorage:values,storedArrayKeys:["Index"]},valueArrays:{dictionaryStorage:values,deferDictionaryValues:true,storedDictionaryKeys:["Font","XObject","Properties"],storedDictionaryPaths:[["Resources","*"]],containerStorage:values,stringStorage:values,storedStringKeys:["ActualText"],arrayStorage:values,storedArrayKeys:["Contents","Annots","Kids","Widths","W","Differences","ON","OFF","OCGs"],storedArrayPaths:[["ExtGState","*","D"]]}});
   let pages=0,selected:PdfRetainedPage|undefined;
   for await(const page of document.pages()){pages++;if(page.index<=Math.max(0,settings.page??0))selected=page;}
   if(!selected)throw new PdfError("E_CAPABILITY","Page index out of bounds: 0");

@@ -96,10 +96,11 @@ for (const defect of ["none", "public", "closure", "source", "link", "mixed-nati
   assert.equal(owned.descriptors.size, 0);
 });
 
-for (const defect of ["none", "pin", "name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "closure", "missing-docx", "missing-ssconvert", "fengari-version", "link", "source-import", "runtime-import", "unapproved-import", "fengari-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
+for (const defect of ["none", "pin", "name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "pdf-image-export", "closure", "missing-docx", "missing-ssconvert", "fengari-version", "link", "source-import", "runtime-import", "unapproved-import", "fengari-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
   const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};
   const pandoc = {name: "safe-bash-command-pandoc", version: "0.0.1", private: true, type: "module", exports: { ...exports, "./command": { types: "./dist/command.d.ts", import: "./dist/command.js" }, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } }, dependencies: {"@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "@poe-code/image-ast": "*", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "safe-bash-pdf-engine": "0.0.1", "@poe-code/pdf-ast": "*", "safe-bash-presentation-engine": "*", "safe-bash-docx-engine": "*", "safe-bash-command-ssconvert": "*", "safe-bash-markdown-engine": "*"}};
   const pdf = {name: "safe-bash-pdf-engine", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1"}};
+  const pdfAst = {name: "@poe-code/pdf-ast", version: "0.0.1", private: true, type: "module", exports: {...exports, "./image": {types: "./dist/image.d.ts", import: "./dist/image.js"}}, dependencies: {}};
   const profile = {version: "0.0.1", dependencies: structuredClone(pandoc.dependencies), devDependencies: {}};
   const owned = fixture({
     "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"safe-bash-command-pandoc": defect === "pin" ? "unapproved" : "*", "safe-bash-pdf-engine": "*"}, poeCode: {integration: {privateWorkspaces: {"safe-bash-command-pandoc": profile}}}}),
@@ -108,8 +109,9 @@ for (const defect of ["none", "pin", "name", "version", "export", "lua-export", 
     "../safe-bash-command-pandoc/dist/command.d.ts": "export declare function createPandocCommand(): void;",
     "../safe-bash-command-pandoc/dist/lua-filters.d.ts": "export declare function filter(): void;",
     "../safe-bash-command-pandoc/dist/citeproc-filters.d.ts": "export declare function citeprocFilter(): void;",
-    "../safe-bash-command-pandoc/dist/index.d.ts": 'export type { Page } from "safe-bash-pdf-engine"; export type { PdfNode } from "@poe-code/pdf-ast";',
-    "../pdf-ast/package.json": JSON.stringify({name: "@poe-code/pdf-ast", version: "0.0.1", private: true, type: "module", exports, dependencies: {}}),
+    "../safe-bash-command-pandoc/dist/index.d.ts": 'export type { Page } from "safe-bash-pdf-engine"; export type { PdfNode } from "@poe-code/pdf-ast"; export type { PdfImage } from "@poe-code/pdf-ast/image";',
+    "../pdf-ast/package.json": JSON.stringify(pdfAst),
+    "../pdf-ast/dist/image.d.ts": 'export type { PdfNode as PdfImage } from "./index.js";',
     "../pdf-ast/dist/index.d.ts": 'export interface PdfNode { text: string; }',
     "../safe-bash-pdf-engine/package.json": JSON.stringify(pdf),
     "../safe-bash-pdf-engine/dist/index.d.ts": 'export type { Page } from "./model.js";',
@@ -126,11 +128,15 @@ for (const defect of ["none", "pin", "name", "version", "export", "lua-export", 
   if (defect === "lua-export") pandoc.exports["./lua-filters"].types = "./src/private.d.ts";
   if (defect === "lua-dependency") pandoc.dependencies.fengari = "^0.2.0";
   if (defect === "pdf-export") pdf.exports = pandoc.exports;
+  if (defect === "pdf-image-export") {
+    pdfAst.exports["./image"].types = "./src/private.d.ts";
+    owned.memory.writeFileSync(root + "/../pdf-ast/package.json", JSON.stringify(pdfAst));
+  }
   if (defect === "closure") pandoc.dependencies.extra = "1.0.0";
   if (defect === "missing-docx") delete pandoc.dependencies["safe-bash-docx-engine"];
   if (defect === "missing-ssconvert") delete pandoc.dependencies["safe-bash-command-ssconvert"];
   if (defect === "fengari-version") pandoc.dependencies.fengari = "^0.2.0";
-  if (["name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "closure", "missing-docx", "missing-ssconvert", "fengari-version"].includes(defect)) {
+  if (["name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "pdf-image-export", "closure", "missing-docx", "missing-ssconvert", "fengari-version"].includes(defect)) {
     owned.memory.writeFileSync(root + "/../safe-bash-command-pandoc/package.json", JSON.stringify(pandoc));
     owned.memory.writeFileSync(root + "/../safe-bash-pdf-engine/package.json", JSON.stringify(pdf));
   }
@@ -147,6 +153,7 @@ for (const defect of ["none", "pin", "name", "version", "export", "lua-export", 
     assert.equal((await owned.run()).status, 0, owned.output.join(""));
     assert.ok(owned.reads.includes("/owned/safe-bash-pdf-engine/dist/model.d.ts"));
     assert.ok(owned.reads.includes("/owned/pdf-ast/dist/index.d.ts"));
+    assert.ok(owned.reads.includes("/owned/pdf-ast/dist/image.d.ts"));
   } else await assert.rejects(owned.run(), defect === "link" ? /symlink/ : /private workspace|PDF SDK/);
   assert.equal(owned.reads.some(path => path.endsWith("/safe-bash-command-pandoc/src/private.d.ts")), false);
   assert.equal(owned.descriptors.size, 0);

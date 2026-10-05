@@ -82,7 +82,7 @@ for(const nested of [false,true])it(`preserves existing PDF structural admission
 
 
 it.each(["success","write","cancel"])("owns resource backing for metadata-only PDF inspection on %s",async phase=>{
- const {cosDict,cosString,dictSet,readPdfDictionaryValue,PdfRetainedDocument}=await import("@poe-code/pdf-ast");
+ const {cosDict,cosString,dictSet,readPdfDictionaryValue,PdfRetainedReader}=await import("@poe-code/pdf-ast");
  const document=PdfDocument.create(),page=document.addPage([17,11]);
  dictSet(page.pageDict,"Resources",cosDict({Properties:cosDict({Replacement:cosDict({ActualText:cosString("replacement".repeat(8192))})})}));
  const bytes=document.save(),fs=new MemoryFileSystem();let seen=0,opened=0,closed=0;
@@ -98,8 +98,8 @@ it.each(["success","write","cancel"])("owns resource backing for metadata-only P
   };
   const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;
  }});
- const lookup=PdfRetainedDocument.prototype.lookup;
- const spy=vi.spyOn(PdfRetainedDocument.prototype,"lookup").mockImplementation(async function(...args){
+ const lookup=PdfRetainedReader.prototype.lookup;
+ const spy=vi.spyOn(PdfRetainedReader.prototype,"lookup").mockImplementation(async function(...args){
   const result=await lookup.apply(this,args);
   if(result?.value.kind==="dict"){
    const resources=await readPdfDictionaryValue(result.value,"Resources",controller.signal);

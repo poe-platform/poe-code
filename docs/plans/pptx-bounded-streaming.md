@@ -727,7 +727,7 @@ extraction, workbook or Worker runtime matrix.
 | Area | Remaining migration |
 | --- | --- |
 | Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation, font, animation and accessibility readers; opaque-object inventory is migrated. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
-| Extraction | Image/media and embedded/opaque object extraction, including manifests and multi-output publication; package extraction is migrated. |
+| Extraction | Image/media extraction, including manifests and multi-output publication; package and opaque/embedded-object extraction are migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |
 | Drawing mutations | Shape/path/group, connector, table, image/media, chart, equation, opaque-object, animation/transition and accessibility edits. |
@@ -856,3 +856,22 @@ A native python-pptx chart/workbook deck matches exact human/JSON output through
 the public adapter with retained reads, unchanged input and empty scratch.
 Opaque extraction, font declarations and the other unfinished operation families
 remain in the matrix; this does not claim Worker runtime qualification.
+
+
+## Retained opaque-object extraction
+
+`openRetainedObjectExtraction` and the default `objects extract` command retain
+closure/member/relationship descriptors in caller storage and stream original
+member bytes. The complete opaque inventory is admitted before exact part selection;
+cycles, missing dependencies, sorting and safe digest-based filenames preserve
+buffered behavior. Shared staged extraction output now supports opaque manifests,
+including relationships and completed-file prefixes after cancellation/failure.
+
+Focused parity exercises typed payloads, valid/dangling cyclic closures, file bytes,
+relationship order, dry-run with/without a destination, atomic/partial publication,
+preflight/output limits and public retained adapter paths. Slow bounded staged writes,
+force/protected input identity, sink failures and cleanup remain covered. A native
+python-pptx deck yields byte-identical extracted workbook data and exact command
+output; openpyxl independently reads the expected exported chart cells. Other
+reads, image/media extraction, mutations, workbook processing and runtime Worker
+qualification remain unfinished.

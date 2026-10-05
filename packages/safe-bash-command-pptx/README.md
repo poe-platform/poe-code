@@ -43,6 +43,9 @@ input snapshots and keep their protected input identity. Unchanged edits reuse t
 bytes. Streaming engine requests accept source-based publication; requests without
 streaming retain the buffered publication contract. `extract` also streams member
 bytes and keeps its complete manifest and partial-failure records in caller storage.
+`objects extract` uses the same caller-backed publication path for the selected
+opaque object, its dependency closure and original relationship parts, with
+retained manifests, force/dry-run and partial-failure reporting.
 Every destination is preflighted before writing. Use `publishOutputStreams` for a
 trusted all-or-nothing transaction over an async iterable, optionally with
 `preflightOutputStream`; otherwise extraction requires `--allow-partial-output`.

@@ -1,3 +1,4 @@
+import { prepareRetainedObjectExtraction } from "./command-object-extraction-streaming.js";
 import { stageRetainedObjects } from "safe-bash-presentation-engine/opaque-objects";
 import { stageRetainedTransitions } from 'safe-bash-presentation-engine/transitions';
 import { stageRetainedMemberships } from 'safe-bash-presentation-engine/memberships';
@@ -4135,6 +4136,10 @@ async function executeRequest(
         if (!request.publishOutput) throw Object.assign(new Error("Output publication unavailable."), { code: "publication-unsupported" });
         publication = { outputPath: args.output, protectedInputPaths: manifest.paths(), bytes: packed.bytes(), originalBytes: input, inPlace: false, force: args.force ?? false, dryRun };
       } else if (args.output === "-" && !dryRun) stagedOutput = { close: packed.close, async write(sink) { for await (const bytes of packed.bytes()) await sink.write(bytes); } };
+    } else if (args.operation === "objects.extract" && request.streaming && (!request.publishOutputs || request.publishOutputStreams) && (!request.preflightOutput || request.preflightOutputStream)) {
+      retainedExtraction = await prepareRetainedObjectExtraction(args, request, options);
+      owned.push(retainedExtraction);
+      result = success(operation, null);
     } else if (args.operation === "extract" && request.streaming && (!request.publishOutputs || request.publishOutputStreams) && (!request.preflightOutput || request.preflightOutputStream)) {
       retainedExtraction = await prepareRetainedExtraction(args, request, options);
       owned.push(retainedExtraction);

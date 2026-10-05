@@ -60,6 +60,12 @@ slide selection and timing validation while keeping records in caller storage.
 `retained-output`; dependency queues, sorted references and arbitrary strings
 remain in caller storage. Payloads are hashed without activation or recursive
 parsing. `stageRetainedObjects` stages the default `objects list` response.
+`openRetainedObjectExtraction` accepts an admitted archive and `{ part }`, and
+returns replayable `members()` and `relationships()` iterators, `count` and
+`close()`. Members provide bounded names, sizes, SHA-256 hashes and `bytes()`
+streams, including the selected dependency closure and original relationship
+parts. `stageRetainedExtractionOutput` supports `operation: 'objects.extract'`
+with `dryRun`, preserving completed-file manifests after publication failures.
 `openRetainedNotes` (from `notes`) exposes a caller-backed `records()` iterator,
 with replayable part/master references, speaker text and body IDs. Close it after
 reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with

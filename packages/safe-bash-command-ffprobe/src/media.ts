@@ -12,7 +12,7 @@ import { probe as probeAudio, parseArguments as parseAudioArguments, formatAudio
 import { probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
-import { scanMp4Frames, scanMp4Packets, allMediaAsts, probeOggFlacSource, probeOggStreamMetadata, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
+import { probeMp4Source, scanMp4Frames, scanMp4Packets, allMediaAsts, probeOggFlacSource, probeOggStreamMetadata, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
   type MediaAstPlugin, type MediaProbeSource, type MediaFeatureOptions, type MediaProbeResult, type MediaProbeRecords, type MediaProbeSourceRecords, type MediaProbeStream, type MediaResourceLimits } from "@poe-code/mp4-ast";
 
 export interface MediaCommandsOptions {
@@ -610,7 +610,7 @@ function parseProbeArguments(args: readonly string[]) {
 
 type SourceProbe = ProbeSourceRows | { oggRows: (args: readonly string[]) => AsyncIterable<TaggedAudioRow> };
 
-async function probeSourceMetadata(context: CommandContext, plugins: readonly MediaAstPlugin[], input: MediaProbeSource, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean; mp4Records?: { packets: boolean; frames: boolean } }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<SourceProbe | undefined> {
+async function probeSourceMetadata(context: CommandContext, plugins: readonly MediaAstPlugin[], input: MediaProbeSource, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean; mp4Records?: { packets: boolean; frames: boolean; metadata: boolean } }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<SourceProbe | undefined> {
   let sourceFailed = false;
   const source: MediaProbeSource = { size: input.size, async read(offset, length) {
     try {
@@ -637,6 +637,7 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
         return { async add(sample: number) { await keys.set(BigInt(sample), 1n); }, async has(sample: number) { return await keys.get(BigInt(sample)) === 1n; } };
       }
     };
+    if (records.mp4Records.metadata) return probeMp4Source(source, { ...scanOptions, filename, showPackets: records.mp4Records.packets, showFrames: records.mp4Records.frames });
     return { streams: [], chapters: [],
       ...(records.mp4Records.packets ? { packets: scanMp4Packets(source, scanOptions) } : {}),
       ...(records.mp4Records.frames ? { frames: scanMp4Frames(source, scanOptions) } : {}) };
@@ -676,7 +677,7 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
   return result;
 }
 
-async function probeRetainedMetadata(context: CommandContext, plugins: readonly MediaAstPlugin[], path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean; mp4Records?: { packets: boolean; frames: boolean } }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<SourceProbe | undefined> {
+async function probeRetainedMetadata(context: CommandContext, plugins: readonly MediaAstPlugin[], path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean; mp4Records?: { packets: boolean; frames: boolean; metadata: boolean } }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<SourceProbe | undefined> {
   if (!plugins.length || !context.fs.openReadFile) return undefined;
   context.signal.throwIfAborted();
   const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
@@ -697,7 +698,7 @@ async function probeRetainedMetadata(context: CommandContext, plugins: readonly 
   return result;
 }
 
-async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlugin, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean; mp4Records?: { packets: boolean; frames: boolean } }): Promise<MediaProbeRecords | undefined> {
+async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlugin, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean; mp4Records?: { packets: boolean; frames: boolean; metadata: boolean } }): Promise<MediaProbeRecords | undefined> {
   if (!plugin.canDemux || plugin.probeRecords || !plugin.probeMetadataStream) return undefined;
   context.signal.throwIfAborted();
   const source = await openProbeStream(context, isStdin(filename) ? undefined : resolvePath(context.cwd, filename));
@@ -782,8 +783,8 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
         const entryFilter = parseEntryFilter(showEntries);
         const packetRecords = showPackets || entryFilter.has("packet"), frameRecords = showFrames || entryFilter.has("frame");
-        const mp4Records = !options.asts && (packetRecords || frameRecords) && !showStreams && !showFormat && !showChapters && !countFrames && !countPackets && [...entryFilter.keys()].every(section => section === "packet" || section === "frame")
-          ? { packets: packetRecords, frames: frameRecords } : undefined;
+        const mp4Records = !options.asts ? { packets: packetRecords, frames: frameRecords,
+          metadata: !(packetRecords || frameRecords) || showStreams || showFormat || showChapters || countFrames || countPackets || [...entryFilter.keys()].some(section => section !== "packet" && section !== "frame") } : undefined;
         const packetPlugins = mp4Records ? [registry.findByFormatName("mp4"), registry.findByFormatName("mov")] : [];
         let audioInput: AudioProbeInput | undefined;
         let automaticAudio = !options.asts && !explicitFormat && !showPackets && !showFrames && !showChapters && !showPrograms && !countFrames && !countPackets;

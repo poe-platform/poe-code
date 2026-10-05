@@ -19,20 +19,6 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
   async function first(parent: Mp4BoxSpan | undefined, type: string): Promise<Mp4BoxSpan | undefined> {
     if (parent?.children) for await (const box of scanMp4Boxes(source, { ...parent.children, ...work })) if (box.type === type) return box;
   }
-  function text(offset: number, length: number, latin1 = false): MediaProbeText {
-    return { kind: 'text', async *chunks() {
-      work.signal?.throwIfAborted(); work.budget.allocateMemory(Math.min(length, 16384));
-      try {
-        const decoder = new TextDecoder();
-        for (let used = 0; used < length;) {
-          const bytes = await read(offset + used, Math.min(16384, length - used)); used += bytes.length;
-          const chunk = latin1 ? decodeLatin1(bytes) : decoder.decode(bytes, { stream: true });
-          if (chunk) yield chunk;
-        }
-        if (!latin1) { const tail = decoder.decode(); if (tail) yield tail; }
-      } finally { work.budget.releaseMemory(Math.min(length, 16384)); }
-    } };
-  }
   let moov: Mp4BoxSpan | undefined, ftyp: Mp4BoxSpan | undefined, styp: Mp4BoxSpan | undefined;
   for await (const box of scanMp4Boxes(source, work)) {
     if (box.type === 'moov') moov ??= box;
@@ -45,7 +31,7 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     const prefix = new BinaryReader(await read(brands.payloadOffset, 8));
     tags.major_brand = prefix.readFourCC(); tags.minor_version = String(prefix.readU32BE());
     const length = Math.floor((brands.payloadSize - 8) / 4) * 4;
-    if (length) tags.compatible_brands = text(brands.payloadOffset + 8, length, true);
+    if (length) tags.compatible_brands = mp4SourceText(source, brands.payloadOffset + 8, length, work, true);
   }
   const udta = await first(moov, 'udta'), meta = await first(udta, 'meta') ?? await first(moov, 'meta'), ilst = await first(meta, 'ilst');
   const values: Partial<Record<(typeof mp4ProbeMetadataKeys)[number], MediaProbeText>> = {};
@@ -66,7 +52,7 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     if (!length) continue;
     // The resident UTF-8 decoder removes a leading BOM; BOM-only values are empty.
     if (length === 3) { const prefix = await read(offset, 3); if (prefix[0] === 0xef && prefix[1] === 0xbb && prefix[2] === 0xbf) continue; }
-    values[key as (typeof mp4ProbeMetadataKeys)[number]] = text(offset, length);
+    values[key as (typeof mp4ProbeMetadataKeys)[number]] = mp4SourceText(source, offset, length, work);
   }
   // Probe tag order is schema order, independent of the container's item order.
   for (const key of mp4ProbeMetadataKeys) if (values[key]) tags[key] = values[key]!;
@@ -89,4 +75,20 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     if (previous) yield row(previous, Math.max(previous.start, durationSeconds));
   }
   return { tags, chapters: { [Symbol.asyncIterator]: chapters } };
+}
+
+export function mp4SourceText(source: MediaProbeSource, offset: number, length: number, work: MetadataOptions, latin1 = false): MediaProbeText {
+  return { kind: 'text', async *chunks() {
+    work.signal?.throwIfAborted(); work.budget?.allocateMemory(Math.min(length, 16384));
+    try {
+      const decoder = new TextDecoder();
+      for (let used = 0; used < length;) {
+        work.budget?.checkCpu();
+        const bytes = await readMp4SampleRange(source, offset + used, Math.min(16384, length - used), work); used += bytes.length;
+        const chunk = latin1 ? decodeLatin1(bytes) : decoder.decode(bytes, { stream: true });
+        if (chunk) yield chunk;
+      }
+      if (!latin1) { const tail = decoder.decode(); if (tail) yield tail; }
+    } finally { work.budget?.releaseMemory(Math.min(length, 16384)); }
+  } };
 }

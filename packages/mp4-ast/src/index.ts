@@ -21,7 +21,7 @@ export { decodeH264Samples } from "./h264.js";
 export { scanMp4SampleTable, type Mp4SampleTables, type Mp4TableRange, type Mp4SampleSpan, type Mp4SampleScanOptions } from "./mp4-sample-source.js";
 
 export { scanMp4Fragment, type Mp4FragmentDefaults, type Mp4FragmentState, type Mp4FragmentScanOptions } from "./mp4-fragment-source.js";
-export { scanMp4Packets, scanMp4Frames, type Mp4PacketScanOptions } from './mp4-packets-source.js';
+export { scanMp4Packets, scanMp4Frames, probeMp4Source, type Mp4SourceProbeOptions, type Mp4PacketScanOptions } from './mp4-packets-source.js';
 
 export { scanMp4CodecDescriptions } from './mp4-codec-source.js';
 export type { Mp4CodecMetadata } from './mp4-codec-metadata.js';

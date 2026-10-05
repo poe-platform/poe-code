@@ -74,11 +74,11 @@ function parseRotationSuffix(raw: string): { rest: string; rotation?: RotationSp
       return { rest: raw.slice(0, -word.length), rotation: spec };
     }
   }
-  if (lower.endsWith("end") || lower.endsWith("odd") || lower.endsWith("even")) {
+  if (lower === "end" || lower === "rend" || lower.endsWith("-end") || lower.endsWith("-rend") || lower.endsWith("odd") || lower.endsWith("even")) {
     return { rest: raw };
   }
   const lastChar = raw[raw.length - 1];
-  if (raw.length > 1 && lastChar) {
+  if (lastChar) {
     const singleMap: Record<string, RotationSpec> = {
       N: { kind: "absolute", degrees: 0 },
       E: { kind: "absolute", degrees: 90 },
@@ -133,6 +133,9 @@ export function* iteratePdftkRangeToken(
     if (hKey && work.startsWith(hKey)) {
       const after = work.slice(hKey.length);
       const afterLower = after.toLowerCase();
+      const withoutQualifier = afterLower.endsWith("even") ? after.slice(0, -4)
+        : afterLower.endsWith("odd") ? after.slice(0, -3) : after;
+      const rotationOnly = parseRotationSuffix(withoutQualifier);
       if (
         after.length === 0 ||
         (after[0]! >= "0" && after[0]! <= "9") ||
@@ -140,13 +143,7 @@ export function* iteratePdftkRangeToken(
         afterLower.startsWith("r") ||
         afterLower.startsWith("even") ||
         afterLower.startsWith("odd") ||
-        afterLower === "north" ||
-        afterLower === "east" ||
-        afterLower === "south" ||
-        afterLower === "west" ||
-        afterLower === "left" ||
-        afterLower === "right" ||
-        afterLower === "down"
+        (rotationOnly.rotation !== undefined && rotationOnly.rest.length === 0)
       ) {
         handle = hKey;
         work = after;

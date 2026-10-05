@@ -125,3 +125,28 @@ it.each(["cat", "shuffle"])("streams long bookmark titles during %s", async oper
     expect(await fs.readdir("/scratch")).toEqual([]);
   } finally { spy.mockRestore(); }
 });
+
+
+it("assembles every page of the selected handle with a single-letter rotation", async () => {
+  const fs = createMemoryFileSystem();
+  for (const label of ["A", "B"]) {
+    const doc = PdfDocument.create();
+    for (let page = 1; page <= 2; page++) doc.addPage().drawText(`${label}${page}`, { x: 20, y: 30 });
+    await fs.writeFile(`/${label}.pdf`, doc.save());
+  }
+  const carrier = createCommandArguments(["A=/A.pdf", "B=/B.pdf", "cat", "BE", "output", "/out.pdf"]);
+  let stderr = "";
+  const result = await createPdftkCommand().execute({
+    command: "pdftk", args: carrier.args, argumentValues: carrier, cwd: "/", env: {},
+    fs, signal: new AbortController().signal, stdin: (async function* () {})(),
+    stdout: { async write() {} },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  expect(result.exitCode, stderr).toBe(0);
+  const output = PdfDocument.load(await fs.readFile("/out.pdf"));
+  expect(output.pageCount).toBe(2);
+  for (let page = 0; page < 2; page++) {
+    expect(output.getPage(page).extractText()).toContain(`B${page + 1}`);
+    expect(output.getPage(page).getRotation()).toBe(90);
+  }
+});

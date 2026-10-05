@@ -13,12 +13,14 @@ it('passes invocation cancellation to ImageMagick advisory filesystem operations
   const stat = vi.spyOn(fs, 'stat');
   const access = vi.spyOn(fs, 'access');
   const read = vi.spyOn(fs, 'readFile');
+  const stream = vi.spyOn(fs, 'readStream');
   const execute = vi.fn(async (_request: MediaEngineRequest) => ({ exitCode: 0 }));
   const shell = new Shell({ fs }).use(mediaCommands({ engine: { execute } }));
   try {
     await shell.exec('magick-script task.mg');
     const signal = execute.mock.calls[0]![0].signal;
-    expect(read).toHaveBeenCalledWith('/task.mg', { signal });
+    expect(stream).toHaveBeenCalledWith('/task.mg', { signal, chunkSize: 65536 });
+    expect(read).not.toHaveBeenCalled();
     expect(stat).toHaveBeenCalledWith('/image.ppm', { signal });
     expect(access).toHaveBeenCalledWith('/image.ppm', 0, { signal });
   } finally { await shell.dispose(); }
@@ -57,15 +59,18 @@ it('defers failed and non-UTF-8 ImageMagick filesystem probes to the engine', as
   const shell = new Shell({ fs }).use(mediaCommands({ engine: { execute } }));
   const stat = vi.spyOn(fs, 'stat').mockRejectedValue(Error('advisory stat unavailable'));
   const read = vi.spyOn(fs, 'readFile').mockRejectedValue(Error('advisory read unavailable'));
+  const stream = vi.spyOn(fs, 'readStream').mockImplementation(() => { throw Error('advisory stream unavailable'); });
   try {
     const bytes = Uint8Array.of(255, 58, 120);
     expect((await invoke(shell, 'identify', [bytes, 'xc:red'])).exitCode).toBe(2);
     expect(execute.mock.calls[0]![0].args).toEqual([bytes, new TextEncoder().encode('xc:red')]);
     expect(stat.mock.calls.every(([path]) => !path.includes('\uFFFD'))).toBe(true);
     expect((await invoke(shell, 'magick-script', ['task.mg'])).exitCode).toBe(2);
-    expect(read.mock.calls.map(([path]) => path)).toEqual(['/task.mg']);
+    expect(stream.mock.calls.map(([path]) => path)).toEqual(['/task.mg']);
+    expect(stream).toHaveBeenCalledWith('/task.mg', { signal: execute.mock.calls[1]![0].signal, chunkSize: 65536 });
+    expect(read).not.toHaveBeenCalled();
     expect(execute).toHaveBeenCalledTimes(2);
-  } finally { stat.mockRestore(); read.mockRestore(); await shell.dispose(); }
+  } finally { stat.mockRestore(); read.mockRestore(); stream.mockRestore(); await shell.dispose(); }
 });
 
 function bindings() {

@@ -601,7 +601,7 @@ SQL
     );
   });
 
-  it("18. apply_patch rejects non-atomic or read-only filesystems (MountFileSystem, OverlayFileSystem, ReadOnlyFileSystem) without partial mutations", async () => {
+  it("18. apply_patch preserves rejected backends and publishes through memory-backed overlays", async () => {
     const rootFs = createMemoryFileSystem();
     const pkgFs = createMemoryFileSystem();
     await seedFilesOnFs(pkgFs, {
@@ -629,11 +629,11 @@ PATCH
       assert.equal(content, 'export const BASE = "v1";\n');
     });
 
-    const overlay = createOverlayFileSystem({
-      lower: createMemoryFileSystem(),
-      upper: createMemoryFileSystem()
-    });
+    const lower = createMemoryFileSystem();
+    const upper = createMemoryFileSystem();
+    const overlay = createOverlayFileSystem({ lower, upper });
     await withE2EHarness({ fs: overlay, cwd: "/" }, async (h) => {
+      const upperEntries = (await upper.readdir("/")).map(entry => entry.name);
       const rOverlay = await h.exec(String.raw`
         apply_patch <<'PATCH'
 *** Begin Patch
@@ -642,8 +642,14 @@ PATCH
 *** End Patch
 PATCH
       `);
-      assert.notEqual(rOverlay.exitCode, 0);
-      assert.match(rOverlay.stderr, /atomic conditional patch mutations/);
+      assert.equal(rOverlay.exitCode, 0, rOverlay.stderr);
+      assert.equal(rOverlay.stdout, "Success. Updated the following files:\nA feature.ts\n");
+      assert.equal(rOverlay.stderr, "");
+      const expected = new TextEncoder().encode("export const ENABLED = true;\n");
+      assert.deepEqual(await overlay.readFile("/feature.ts"), expected);
+      assert.deepEqual(await upper.readFile("/feature.ts"), expected);
+      assert.deepEqual((await upper.readdir("/")).map(entry => entry.name).sort(), [...upperEntries, "feature.ts"].sort());
+      assert.deepEqual(await lower.readdir("/"), []);
     });
 
     const roInner = createMemoryFileSystem();

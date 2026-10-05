@@ -47,13 +47,21 @@ async function needsQuotes(input: AsyncIterable<string>, separator: string) {
   return false;
 }
 
+export type TaggedAudioRow = ReturnType<typeof audioProbeRows>[number] & { tags?: StoredAudioTags | undefined };
+
 /** Replay scalar rows and tag spans without collecting tag maps or formatted output. */
 export async function* formatTaggedAudio(audio: Omit<AudioAst, "data" | "nodes" | "pictures"> & { nodes?: AudioAst["nodes"] }, size: number, args: readonly string[], tags: StoredAudioTags): AsyncGenerator<string> {
-  const parsed = parseArguments(args), { sections, format, settings } = parsed;
-  const rows = audioProbeRows({ ...audio, nodes: audio.nodes ?? [] }, size, parsed, tags.count > 0);
+  const parsed = parseArguments(args), rows = audioProbeRows({ ...audio, nodes: audio.nodes ?? [] }, size, parsed, tags.count > 0);
+  yield* formatTaggedRows((async function* () { for (const row of rows) yield { ...row, tags }; })(), args);
+}
+
+/** Rows may acquire per-stream indexes; iteration never collects the stream list. */
+export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, args: readonly string[]): AsyncGenerator<string> {
+  const { sections, format, settings } = parseArguments(args);
+  let tags: StoredAudioTags | undefined;
   async function* tagFields(section: string) {
     const selected = sections.get(section + "_tags");
-    for await (const entry of tags.entries()) {
+    for await (const entry of tags?.entries() ?? []) {
       let included = selected === undefined;
       for (const wanted of selected ?? []) {
         let at = 0, matches = true;
@@ -66,7 +74,7 @@ export async function* formatTaggedAudio(audio: Omit<AudioAst, "data" | "nodes" 
       if (included) yield { key: entry.key, value: entry.text };
     }
   }
-  async function* jsonRow(row: typeof rows[number]["row"], section: string, indent: number): AsyncGenerator<string> {
+  async function* jsonRow(row: TaggedAudioRow["row"], section: string, indent: number): AsyncGenerator<string> {
     yield "{"; let first = true;
     for (const [key, value] of Object.entries(row)) {
       yield (first ? "\n" : ",\n") + " ".repeat(indent + 4) + JSON.stringify(key) + ": "; first = false;
@@ -84,25 +92,26 @@ export async function* formatTaggedAudio(audio: Omit<AudioAst, "data" | "nodes" 
     yield (first ? "" : "\n" + " ".repeat(indent)) + "}";
   }
   if (format === "json") {
-    yield "{"; let first = true;
-    if (sections.has("stream") || sections.has("stream_tags")) {
-      yield '\n    "streams": ['; first = false;
-      let firstStream = true;
-      for (const { section, row } of rows) if (section === "stream") {
+    yield "{"; let first = true, streamOpen = sections.has("stream") || sections.has("stream_tags"), firstStream = true;
+    if (streamOpen) { yield '\n    "streams": ['; first = false; }
+    for await (const entry of rows) {
+      const { section, row } = entry; tags = entry.tags;
+      if (section === "stream") {
         yield (firstStream ? "\n" : ",\n") + "        "; firstStream = false;
         yield* jsonRow(row, section, 8);
+      } else if (section === "format") {
+        if (streamOpen) { yield (firstStream ? "" : "\n    ") + "]"; streamOpen = false; }
+        yield (first ? "\n" : ",\n") + '    "format": '; first = false;
+        yield* jsonRow(row, section, 4);
       }
-      yield (firstStream ? "" : "\n    ") + "]";
     }
-    for (const { section, row } of rows) if (section === "format") {
-      yield (first ? "\n" : ",\n") + '    "format": '; first = false;
-      yield* jsonRow(row, section, 4);
-    }
+    if (streamOpen) yield (firstStream ? "" : "\n    ") + "]";
     yield (first ? "" : "\n") + "}\n"; return;
   }
   const enabled = (a: string, b: string, fallback: boolean) => { const value = settings.get(a) ?? settings.get(b); return value === undefined ? fallback : value === "1"; };
   let streamIndex = 0;
-  for (const { section, row } of rows) {
+  for await (const entry of rows) {
+    const { section, row } = entry; tags = entry.tags;
     async function* fields(): AsyncGenerator<{ key: Text; value: Value; tag?: boolean }> {
       for (const [key, value] of Object.entries(row)) {
         if (typeof value === "object") { for await (const tag of tagFields(section)) yield { key: tag.key, value: tag.value, tag: true }; }

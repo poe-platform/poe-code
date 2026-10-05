@@ -1,8 +1,9 @@
+import { isOggFlac, probeStoredOgg } from "./ogg-probe.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { FlacTags } from "./flac-tags.js";
 import { SourceAudioTags } from "./source-tags.js";
 import { resolveFfprobeLimits } from "./options.js";
-import { formatTaggedAudio, type StoredAudioTags } from "./tag-format.js";
+import { formatTaggedAudio, formatTaggedRows, type TaggedAudioRow, type StoredAudioTags } from "./tag-format.js";
 import { writeProbeOutput } from "./probe-output.js";
 import { openProbeStream, sniffMediaStream, withStagedProbeSource } from "./stream-input.js";
 import { probe as probeAudio, parseArguments as parseAudioArguments, formatAudioProbe } from "./probe.js";
@@ -612,7 +613,9 @@ function parseProbeArguments(args: readonly string[]) {
     selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget };
 }
 
-async function probeSourceMetadata(context: CommandContext, plugins: readonly MediaAstPlugin[], input: MediaProbeSource, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<MediaProbeRecords | undefined> {
+type SourceProbe = MediaProbeRecords | { oggRows: (args: readonly string[]) => AsyncIterable<TaggedAudioRow> };
+
+async function probeSourceMetadata(context: CommandContext, plugins: readonly MediaAstPlugin[], input: MediaProbeSource, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<SourceProbe | undefined> {
   let sourceFailed = false;
   const source: MediaProbeSource = { size: input.size, async read(offset, length) {
     try {
@@ -629,6 +632,15 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
     plugin = plugins.find(candidate => candidate.detect(header, filename));
   }
   if (!plugin) return undefined;
+  if (onAudio && plugin.formatName === "ogg") {
+    if (await isOggFlac(source, context.signal)) {
+      // The supported FLAC mapping still uses its legacy general-media adapter.
+      const bytes = new Uint8Array(source.size);
+      for (let offset = 0; offset < bytes.length; offset += 16384) bytes.set(await source.read(offset, Math.min(16384, bytes.length - offset)), offset);
+      return plugin.probe(bytes, { ...records, filename, budget, limits: budget.limits });
+    }
+    return { oggRows: await probeStoredOgg(source, context, retain) };
+  }
   const result = await plugin.probeMetadata!(source, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
   if (onAudio) {
     const tags = plugin.formatName === "flac" ? new FlacTags(source, context) : new SourceAudioTags(source, context);
@@ -655,7 +667,7 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
   return result;
 }
 
-async function probeRetainedMetadata(context: CommandContext, plugins: readonly MediaAstPlugin[], path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<MediaProbeRecords | undefined> {
+async function probeRetainedMetadata(context: CommandContext, plugins: readonly MediaAstPlugin[], path: string, filename: string, budget: MediaBudgetTracker, records: { showPackets: boolean; showFrames: boolean }, onAudio: AudioProbeReady | undefined, retain: (close: () => Promise<void>) => void, detect = false): Promise<SourceProbe | undefined> {
   if (!plugins.length || !context.fs.openReadFile) return undefined;
   context.signal.throwIfAborted();
   const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
@@ -772,7 +784,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         let automaticAudio = !options.asts && !explicitFormat && !showPackets && !showFrames && !showChapters && !showPrograms && !countFrames && !countPackets;
         if (automaticAudio) { try { parseAudioArguments(args); } catch { automaticAudio = false; } }
         const automaticPlugins = !options.asts && !explicitFormat
-          ? astPlugins.filter(plugin => plugin.canDemux && plugin.probeMetadata && (!automaticAudio || plugin === registry.findByFormatName("wav") || plugin === registry.findByFormatName("flac") || plugin === registry.findByFormatName("mp3"))) : [];
+          ? astPlugins.filter(plugin => plugin.canDemux && (plugin.probeMetadata || automaticAudio && plugin === registry.findByFormatName("ogg")) && (!automaticAudio || ["wav", "flac", "mp3", "ogg"].some(format => plugin === registry.findByFormatName(format)))) : [];
         const explicitPlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : undefined;
         const retainedPlugins = explicitPlugin
           ? (explicitPlugin.canDemux && explicitPlugin.probeMetadata ? [explicitPlugin] : []) : automaticPlugins;
@@ -827,7 +839,9 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           if (!options.asts && !explicitFormat) audioInput = { bytes, args };
         }
 
-        const formatted = storedTags && audioInput && "audio" in audioInput
+        const formatted = "oggRows" in probeResult
+          ? formatTaggedRows(probeResult.oggRows(args), args)
+          : storedTags && audioInput && "audio" in audioInput
           ? formatTaggedAudio(audioInput.audio, audioInput.size, audioInput.args, storedTags)
           : formatFfprobeResultChunks(probeResult, {
           printFormat,

@@ -7,6 +7,8 @@ interface IndexedOggStream {
   readonly size: number;
   readonly granule: bigint;
   readonly packets: number;
+  readonly group: number;
+  readonly pageGranule: bigint;
   readonly head: AudioProbeSource | undefined;
   readonly comments: AudioProbeSource | undefined;
 }
@@ -17,6 +19,8 @@ export class OggIndex {
   private readonly serials: IntegerTable;
   private first = 0;
   private last = 0;
+  private firstPage = 0;
+  private lastPage = 0;
   private started = false;
   private ready = false;
   private closed = false;
@@ -36,22 +40,28 @@ export class OggIndex {
     this.check();
     if (this.started) throw new Error("Ogg index already scanned");
     this.started = true;
-    let active = 0, seen = 0;
+    let active = 0, seen = 0, group = 0;
     for await (const page of scanOggPages(this.source, { signal: this.context.signal, checkpoint: async () => { this.check(); await yieldTurn(this.context.signal); this.check(); } })) {
       const key = BigInt(page.serial), existing = await this.serials.get(key);
-      const position = existing === undefined ? this.storage.allocate(104) : Number(existing);
-      const bytes = existing === undefined ? new Uint8Array(104) : await this.storage.read(position, 104);
+      const position = existing === undefined ? this.storage.allocate(128) : Number(existing);
+      const bytes = existing === undefined ? new Uint8Array(128) : await this.storage.read(position, 128);
       const row = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       if (existing === undefined) {
         if (!(page.flags & 2) || page.sequence !== 0) throw new Error("Missing Ogg beginning-of-stream");
         row.setUint32(8, 0xffffffff, true);
         row.setUint32(96, page.serial, true);
         await this.serials.set(key, BigInt(position));
+        if (!active) group++;
+        row.setFloat64(120, group, true);
+        if (this.lastPage) { const link = new Uint8Array(8); new DataView(link.buffer).setFloat64(0, position, true); await this.storage.write(this.lastPage + 104, link); }
+        else this.firstPage = position;
+        this.lastPage = position;
         active++; seen++;
       }
       if (bytes[12] || page.sequence !== (row.getUint32(8, true) + 1) >>> 0 || !!(page.flags & 1) !== !!bytes[13])
         throw new Error("Invalid Ogg sequence/continuation");
       row.setUint32(8, page.sequence, true);
+      if (page.granule !== 0xffffffffffffffffn) row.setBigUint64(112, page.granule, true);
       row.setFloat64(32, row.getFloat64(32, true) + page.size, true);
       let packet = row.getFloat64(16, true), pending = row.getFloat64(24, true);
       let sourceOffset = page.payloadOffset, spanSize = 0, completed = false;
@@ -121,18 +131,18 @@ export class OggIndex {
     } };
   }
 
-  async *streams(): AsyncGenerator<IndexedOggStream, void> {
+  async *streams(pageOrder = false): AsyncGenerator<IndexedOggStream, void> {
     this.check();
     if (!this.ready) throw new Error("Ogg index is not validated");
     let steps = 0;
-    for (let position = this.first; position;) {
+    for (let position = pageOrder ? this.firstPage : this.first; position;) {
       if (++steps % 256 === 0) { await yieldTurn(this.context.signal); this.check(); }
-      const bytes = await this.storage.read(position, 104), row = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      const bytes = await this.storage.read(position, 128), row = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       const packets = row.getFloat64(16, true);
-      yield { serial: row.getUint32(96, true), size: row.getFloat64(32, true), granule: row.getBigUint64(40, true), packets,
+      yield { group: row.getFloat64(120, true), pageGranule: row.getBigUint64(112, true), serial: row.getUint32(96, true), size: row.getFloat64(32, true), granule: row.getBigUint64(40, true), packets,
         head: packets ? this.packet(row.getFloat64(48, true), row.getFloat64(64, true)) : undefined,
         comments: packets > 1 ? this.packet(row.getFloat64(72, true), row.getFloat64(88, true)) : undefined };
-      position = row.getFloat64(0, true);
+      position = row.getFloat64(pageOrder ? 104 : 0, true);
     }
   }
 }

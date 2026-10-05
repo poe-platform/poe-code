@@ -12,7 +12,7 @@ export class FlacTags {
   private work = 0;
   count = 0;
   readonly close: () => Promise<void>;
-  constructor(private readonly source: AudioProbeSource, private readonly context: PagedStorageContext) {
+  constructor(private readonly source: AudioProbeSource, private readonly context: PagedStorageContext, private readonly options: { raw?: boolean } = {}) {
     this.storage = new PagedStorage(context, 4);
     this.close = this.storage.close.bind(this.storage);
     this.keys = new IntegerTable(this.storage, 128);
@@ -25,11 +25,11 @@ export class FlacTags {
     if (bytes.length !== length) throw new Error("Truncated FLAC comment");
     return bytes;
   }
-  private async *decoded(offset: number, length: number, ignoreBOM: boolean) {
+  private async *decoded(offset: number, length: number, ignoreBOM: boolean, stored = false) {
     const decoder = new TextDecoder("utf-8", { ignoreBOM });
     let steps = 0;
     for (let at = 0; at < length; at += 16384) {
-      yield decoder.decode(await this.read(offset + at, Math.min(16384, length - at)), { stream: true });
+      yield decoder.decode(await (stored ? this.storage.read(offset + at, Math.min(16384, length - at)) : this.read(offset + at, Math.min(16384, length - at))), { stream: true });
       if (++steps % 256 === 0) await yieldTurn(this.context.signal);
     }
     yield decoder.decode();
@@ -77,12 +77,13 @@ export class FlacTags {
         const part = text.slice(at, at + 8192), bytes = new Uint8Array(part.length * 2), view = new DataView(bytes.buffer);
         for (let i = 0; i < part.length; i++) { const code = part.charCodeAt(i); view.setUint16(i * 2, code, true); hash = Math.imul(hash ^ code, 16777619) >>> 0; }
         await this.storage.append(bytes); units += part.length;
-        if (short.length <= 12) short += part.slice(0, 13 - short.length);
+        if (short.length <= 20) short += part.slice(0, 21 - short.length);
       }
     };
-    for await (const part of this.decoded(span.offset, split, false)) await appendKey(part.toUpperCase());
+    for await (const part of this.decoded(span.offset, split, false)) await appendKey(this.options.raw ? part : part.toUpperCase());
     if (!units) return;
-    if (units <= 12) {
+    if (this.options.raw && short === "__proto__" && units === 9) return;
+    if (!this.options.raw && units <= 12) {
       const normalized = normalizeVorbisCommentKey(short);
       if (normalized !== short) { keyPosition = this.storage.allocate(0); units = 0; hash = 2166136261; short = ""; await appendKey(normalized); }
     }
@@ -96,6 +97,10 @@ export class FlacTags {
     // Records: insertion-next, collision-next, key-offset/units, block, first/last-value, truthy.
     const position = existing || this.storage.allocate(64);
     row ??= [0, Number(first ?? 0n), keyPosition, units, span.block, 0, 0, 0];
+    if (this.options.raw && !existing && units <= 20 && Object.hasOwn(Object.prototype, short)) {
+      const literal = new TextEncoder().encode(String(Reflect.get(Object.prototype, short))), offset = await this.storage.append(literal), value = this.storage.allocate(32);
+      await this.write(value, [0, offset, literal.length, 2]); row[5] = value; row[6] = value; row[7] = literal.length ? 1 : 0;
+    }
     const append = row[4] === span.block && !!row[7], value = this.storage.allocate(32), offset = span.offset + split + 1, length = span.length - split - 1;
     await this.write(value, [0, offset, length, append ? 1 : 0]);
     if (append) await this.write(row[6]!, [value]); else row[5] = value;
@@ -113,8 +118,9 @@ export class FlacTags {
   private async *valueText(value: number) {
     while (value) {
       const bytes = await this.storage.read(value, 32), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
-      if (view.getFloat64(24, true)) yield "\n";
-      yield* this.decoded(view.getFloat64(8, true), view.getFloat64(16, true), true);
+      const kind = view.getFloat64(24, true);
+      if (kind === 1) yield this.options.raw ? ";" : "\n";
+      yield* this.decoded(view.getFloat64(8, true), view.getFloat64(16, true), true, kind === 2);
       value = view.getFloat64(0, true);
     }
   }

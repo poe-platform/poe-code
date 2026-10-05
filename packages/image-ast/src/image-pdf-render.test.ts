@@ -252,3 +252,23 @@ it.each(["ExtGState","ColorSpace","Pattern","Shading"].flatMap(key=>["inline","i
  }finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["Font","ExtGState"].flatMap(key=>[false,true].map(indirect=>({key,indirect}))))("keeps unused $key definitions backed (indirect=$indirect)", async ({key,indirect}) => {
+ const {cosArray,cosDict,cosName,cosString}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([12,12]);
+ const unused=cosDict({Large:cosArray(Array.from({length:256},()=>cosNumber(743))),Text:cosString("payload ".repeat(1024))});
+ const selected=key==="Font"?cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica")}):cosDict({ca:cosNumber(.5)});
+ const map=cosDict({Unused:unused,Selected:selected});
+ dictSet(page.pageDict,"Resources",cosDict({[key]:indirect?doc.cos.allocateObject(map):map}));
+ page.setRawContentStream(key==="Font"?"BT /Selected 8 Tf 1 3 Td (x) Tj ET":"/Selected gs 1 0 0 rg 0 0 12 12 re f");
+ const bytes=doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const push=Array.prototype.push;Array.prototype.push=function<T>(this:T[],...values:T[]):number{if(this.length>=64&&values.some(value=>(value as {kind?:string;value?:number})?.kind==="number"&&(value as {value:number}).value===743))throw Error("unused definition became resident");return push.apply(this,values);};
+ try{
+  const source={size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}};
+  expect(await tryPdfMetadata(source,fs,"/scratch",signal,{},storage)).toMatchObject({width:12,height:12});
+  const image=await tryPdfDecode(source,storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+ }finally{Array.prototype.push=push;await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

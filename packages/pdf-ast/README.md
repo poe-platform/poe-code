@@ -30,7 +30,11 @@ Named lookup scans record keys and decodes only the last matching value; unused
 and overwritten values are skipped with bounded scratch and caller backing.
 Use `readPdfDictionaryEntries` or `readPdfDictionaryValue` for these dictionaries;
 synchronous dictionary helpers require ordinary in-memory entries. The caller
-keeps the backing alive until all dictionary consumers finish.
+keeps the backing alive until all dictionary consumers finish. Set
+`deferDictionaryValues: true` with the same caller backing for dictionary, array,
+string and container storage to defer resource definitions during parsing.
+Named lookup expands only the selected definition; enumeration expands one at a
+time. Explicit width, string and nested resource selectors remain backed.
 
 Pass `imageStorage` to retained page evaluation to keep decoded image pixels in
 caller-owned random-access backing. Parser and evaluated path segments also use

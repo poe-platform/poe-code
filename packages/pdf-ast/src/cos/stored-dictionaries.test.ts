@@ -173,3 +173,70 @@ it("looks up only the last matching record without materializing unused or shado
     expect(await readPdfDictionaryValue(dict, "Missing")).toBeUndefined();
   } finally { Array.prototype.push = push; }
 });
+
+it("defers unused source resource values before building their arrays and dictionaries", async () => {
+  const storage = backing();
+  const text = "<< /Font << /Unused << /Large [" + "743 ".repeat(256) + "] " + "/UnusedLeaf 744 ".repeat(256) + "/Text (" + "payload ".repeat(1024) + ") >> /F << /Subtype /Type1 /Widths [10 20] /Extra [1 << /K (ok) >>] >> >> >>";
+  const push = Array.prototype.push;
+  Array.prototype.push = function (...values) {
+    if (this.length >= 64 && values.some(value => value?.kind === "number" && value.value === 743 || value?.key?.decoded === "UnusedLeaf")) throw new Error("resident unused source value");
+    return push.apply(this, values);
+  };
+  try {
+    const {value} = await parseCosRangeValue(source(text),0,{dictionaryStorage:storage,arrayStorage:storage,stringStorage:storage,containerStorage:storage,storedDictionaryKeys:["Font"],storedArrayKeys:["Widths"],deferDictionaryValues:true});
+    if (value?.kind !== "dict") throw new Error("dictionary expected");
+    const map = dictGet(value,"Font") as PdfCosDict;
+    const font = await readPdfDictionaryValue(map,"F");
+    if(font?.kind !== "dict") throw new Error("font expected");
+    expect(dictGet(font,"Subtype")).toMatchObject({decoded:"Type1"});
+    expect(dictGet(font,"Widths")).toMatchObject({items:[],storedItems:{length:2}});
+    expect(dictGet(font,"Extra")).toMatchObject({items:[{value:1},{entries:[{key:{decoded:"K"},value:{bytes:new TextEncoder().encode("ok")}}]}]});
+    expect(await readPdfDictionaryValue(map,"Missing")).toBeUndefined();
+  } finally {Array.prototype.push = push;}
+});
+
+it("decrypts deferred resource definitions without expanding unused containers or signature contents", async () => {
+  const storage=backing();
+  const {PdfDocument}=await import("../document.js");
+  const seed=PdfDocument.create();seed.addPage();
+  const state=PdfDocument.load(seed.save({encrypt:{userPassword:"pw",revision:3}}),{password:"pw"}).cos.encryption!;
+  const cipher=encryptPdfBuffer(state,4,0,new TextEncoder().encode("retained"));
+  const hex=Array.from(cipher,byte=>byte.toString(16).padStart(2,"0")).join("");
+  const text="<< /Font << /F << /Title <"+hex+"> /Child [<"+hex+">] >> /Unused << /Large ["+"743 ".repeat(256)+"] >> /Signature << /Type /Sig /Contents (untouched) >> >> >>";
+  const options={dictionaryStorage:storage,arrayStorage:storage,stringStorage:storage,containerStorage:storage,storedDictionaryKeys:["Font"],deferDictionaryValues:true};
+  const parsed=await parseCosRangeValue(source(text),0,options);
+  const push=Array.prototype.push;
+  Array.prototype.push=function(...values){if(this.length>=64&&values.some(value=>value?.kind==="number"&&value.value===743))throw new Error("decryption expanded unused container");return push.apply(this,values);};
+  let output;
+  try{output=await decryptPdfObjectStrings(state,4,0,parsed.value!);}finally{Array.prototype.push=push;}
+  if(output.kind!=="dict")throw new Error("dictionary expected");
+  const map=dictGet(output,"Font") as PdfCosDict;
+  const font=await readPdfDictionaryValue(map,"F") as PdfCosDict;
+  expect(dictGet(font,"Title")).toMatchObject({bytes:new TextEncoder().encode("retained")});
+  expect(dictGet(font,"Child")).toMatchObject({items:[{bytes:new TextEncoder().encode("retained")}]});
+  const signature=await readPdfDictionaryValue(map,"Signature") as PdfCosDict;
+  expect(dictGet(signature,"Contents")).toMatchObject({bytes:new TextEncoder().encode("untouched")});
+});
+
+it("requires consistent caller backing for deferred resource values",async()=>{
+  const storage=backing();
+  await expect(parseCosRangeValue(source("<<>>"),0,{dictionaryStorage:storage,deferDictionaryValues:true})).rejects.toThrow("shared caller backing");
+});
+
+it.each(["failure","cancel","short"])("preserves deferred string read %s",async mode=>{
+  const storage=backing(),failure=new Error("deferred read failed"),controller=new AbortController();
+  const {value}=await parseCosRangeValue(source("<< /Font << /F (selected) >> >>"),0,{dictionaryStorage:storage,arrayStorage:storage,stringStorage:storage,containerStorage:storage,storedDictionaryKeys:["Font"],deferDictionaryValues:true});
+  if(value?.kind!=="dict")throw new Error("dictionary expected");
+  const map=dictGet(value,"Font") as PdfCosDict;
+  const read=storage.read;
+  storage.read=async (position,length)=>{
+    if(length!==8)return read(position,length);
+    if(mode==="failure")throw failure;
+    if(mode==="cancel")controller.abort(failure);
+    const bytes=await read(position,length);
+    return mode==="short"?bytes.subarray(1):bytes;
+  };
+  const result=readPdfDictionaryValue(map,"F",controller.signal);
+  if(mode==="short")await expect(result).rejects.toThrow("Incomplete deferred resource string");
+  else await expect(result).rejects.toBe(failure);
+});

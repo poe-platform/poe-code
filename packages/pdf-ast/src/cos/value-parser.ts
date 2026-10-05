@@ -6,6 +6,8 @@ import type { CosToken } from "./lexer.js";
 // is represented. The container/reference grammar is shared by both I/O paths.
 export interface ValueArrayStorage {
   readonly dictionaryStorage?: PdfPixelStorage;
+  /** Defer unused resource values; all value and container stores must share backing. */
+  readonly deferDictionaryValues?: boolean;
   /** Select resource maps; their entry names are data, not nested map selectors. */
   readonly storedDictionaryKeys?: readonly string[];
   /** Select dictionary path suffixes; entry names of backed maps remain opaque. */
@@ -29,7 +31,7 @@ export interface ValueArrayStorage {
 export type ValueContainer = (
   | { kind: "array"; start: number; items: PdfCosNode[]; storedItems?: PdfStoredItems; tail: number }
   | { kind: "dict"; start: number; entries: PdfDictEntry[]; storedEntries?: PdfStoredItems; tail: number; key?: PdfDictEntry["key"] }
-) & { path: readonly (string | null)[] };
+) & { path: readonly (string | null)[]; deferred?: boolean };
 export type ValueWork<T> = Generator<void | "token" | PdfCosDict
   | {kind: "dictionary-append"; entry: PdfDictEntry; previous: number}
   | {kind: "array-append"; node: PdfCosNode; previous: number}
@@ -38,6 +40,9 @@ export type ValueWork<T> = Generator<void | "token" | PdfCosDict
 
 export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (storage: PdfPixelStorage | undefined) => void }, maxDepth: number, repair = false, maxNodes = Infinity, options: ValueArrayStorage = {}): ValueWork<PdfCosNode | undefined> {
   yield;
+  if (options.deferDictionaryValues && (!options.dictionaryStorage ||
+      options.arrayStorage !== options.dictionaryStorage || options.stringStorage !== options.dictionaryStorage ||
+      options.containerStorage !== options.dictionaryStorage)) throw new TypeError("Deferred resource values require shared caller backing");
   let work = 0;
   let nodes = 0;
   const charge = () => {
@@ -83,7 +88,9 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
     if (++work % 16 === 0) yield;
 
     const parent = current;
-    lexer.setStringStorage?.(options.stringStorage && ((parent?.kind === "dict" && parent.key && options.storedStringKeys?.includes(parent.key.decoded)) || (!parent && options.storeRootString)) ? options.stringStorage : undefined);
+    const deferred = options.deferDictionaryValues && (parent?.deferred || parent?.kind === "dict" && parent.storedEntries);
+    const selectedString = (parent?.kind === "dict" && parent.key && options.storedStringKeys?.includes(parent.key.decoded)) || (!parent && options.storeRootString);
+    lexer.setStringStorage?.(options.stringStorage && (selectedString || deferred) ? options.stringStorage : undefined);
     const tok = (yield "token") as CosToken | undefined;
     if (!tok) {
       if (!parent) return undefined;
@@ -98,11 +105,11 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
     let node: PdfCosNode;
     if (parent?.kind === "array" && tok.kind === "array-end") {
       yield* pop();
-      node = { kind: "array", items: parent.items, ...(parent.storedItems ? {storedItems: parent.storedItems} : {}), span: { start: parent.start, end: tok.span.end } };
+      node = { kind: "array", items: parent.items, ...(parent.deferred ? {deferred:true} : {}), ...(parent.storedItems ? {storedItems: parent.storedItems} : {}), span: { start: parent.start, end: tok.span.end } };
     } else if (parent?.kind === "dict" && !parent.key) {
       if (tok.kind === "dict-end") {
         yield* pop();
-        node = (yield { kind: "dict", entries: parent.entries, ...(parent.storedEntries ? {storedEntries: parent.storedEntries} : {}), span: { start: parent.start, end: tok.span.end } }) as PdfCosNode;
+        node = (yield { kind: "dict", entries: parent.entries, ...(parent.deferred ? {deferred:true} : {}), ...(parent.storedEntries ? {storedEntries: parent.storedEntries} : {}), span: { start: parent.start, end: tok.span.end } }) as PdfCosNode;
       } else if (tok.kind === "name") {
         charge();
         parent.key = { kind: "name", rawBytes: tok.rawBytes, decoded: tok.decoded, span: tok.span };
@@ -120,18 +127,21 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
       charge();
       if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF syntax nesting limit exceeded");
       if (tok.kind === "array-start") {
-        const backed = options.arrayStorage && (parent?.kind === "array" && parent.storedItems || parent?.kind === "dict" && (options.storedArrayKeys?.includes(parent.key!.decoded) || matchesStoredPath(parent, options.storedArrayPaths)) || !parent && options.storeRootArray);
+        const backed = options.arrayStorage && (parent?.kind === "array" && parent.storedItems && !parent.deferred || parent?.kind === "dict" && (options.storedArrayKeys?.includes(parent.key!.decoded) || matchesStoredPath(parent, options.storedArrayPaths)) || !parent && options.storeRootArray);
         yield* push({ kind: "array", path:ancestorPath(parent), start: tok.span.start, items: [], tail: -1,
-          ...(backed ? {storedItems: {storage: options.arrayStorage!, position: -1, length: 0}} : {}) });
+          ...(deferred && !backed ? {deferred:true} : {}),
+          ...(backed || deferred ? {storedItems: {storage: options.arrayStorage!, position: -1, length: 0}} : {}) });
         continue;
       }
       if (tok.kind === "dict-start") {
-        const backed = options.dictionaryStorage && (parent?.kind === "dict" && !parent.storedEntries && (options.storedDictionaryKeys?.includes(parent.key!.decoded) || matchesStoredPath(parent, options.storedDictionaryPaths)) || !parent && (options.storeRootDictionary || matchesStoredPath(undefined, options.storedDictionaryPaths)));
+        const backed = options.dictionaryStorage && (parent?.kind === "dict" && (!parent.storedEntries || parent.deferred) && (options.storedDictionaryKeys?.includes(parent.key!.decoded) || matchesStoredPath(parent, options.storedDictionaryPaths)) || !parent && (options.storeRootDictionary || matchesStoredPath(undefined, options.storedDictionaryPaths)));
         yield* push({ kind: "dict", path:ancestorPath(parent), start: tok.span.start, entries: [], tail: -1,
-          ...(backed ? {storedEntries: {storage: options.dictionaryStorage!, position: -1, length: 0}} : {}) });
+          ...(deferred && !backed ? {deferred:true} : {}),
+          ...(backed || deferred ? {storedEntries: {storage: options.dictionaryStorage!, position: -1, length: 0}} : {}) });
         continue;
       }
       node = yield* parseLeafFromToken(tok, lexer);
+      if (deferred && !selectedString && node.kind === "string") node = {...node, deferred:true};
     }
     const container = current;
     if (!container) return node;

@@ -1,4 +1,4 @@
-import { readPdfDictionaryEntries } from "../content/stored-dictionary.js";
+import { readRawPdfDictionaryEntries } from "../content/stored-dictionary.js";
 import { appendStoredRecord, readStoredItems } from "../content/stored-record.js";
 import { readBytes } from "@poe-code/safe-fs/contracts";
 import { decodePdfStreamChunks, pdfImageCodec, type PdfStreamDecodeOptions, type PdfStreamInput } from "./filter-stream.js";
@@ -308,13 +308,13 @@ export async function decryptPdfObjectStrings(
       let signatureDict = node;
       if (node.storedEntries) {
         signatureDict = {kind: "dict", entries: []};
-        for await (const entry of readPdfDictionaryEntries(node, options.signal)) {
+        for await (const entry of readRawPdfDictionaryEntries(node, options.signal)) {
           if (["Type", "FT", "ByteRange", "Filter"].includes(entry.key.decoded)) dictSet(signatureDict, entry.key.decoded, entry.value);
         }
       }
       const signature = isSignatureDictionary(signatureDict);
       let position = -1, tail = -1;
-      for await (const entry of readPdfDictionaryEntries(node, options.signal)) {
+      for await (const entry of readRawPdfDictionaryEntries(node, options.signal)) {
         const transformed = {key:entry.key, value:signature && entry.key.decoded === "Contents" ? entry.value : await transform(entry.value)};
         if (node.storedEntries) {
           tail = await appendStoredRecord(node.storedEntries.storage, transformed, tail, options.signal);

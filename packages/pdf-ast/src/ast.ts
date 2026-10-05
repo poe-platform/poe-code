@@ -38,6 +38,8 @@ export interface PdfCosName {
 }
 
 export interface PdfCosString {
+  /** Implicit resource-value backing, expanded only when the resource is selected. */
+  readonly deferred?: boolean;
   /** Retained content payload. When present, bytes is empty and the caller owns backing lifetime. */
   readonly storedBytes?: PdfStoredBytes;
   readonly kind: "string";
@@ -48,6 +50,8 @@ export interface PdfCosString {
 }
 
 export interface PdfCosArray {
+  /** Implicit resource-value backing, expanded only when the resource is selected. */
+  readonly deferred?: boolean;
   /** Retained elements; items is empty when this descriptor is present. */
   readonly storedItems?: PdfStoredItems;
   readonly kind: "array";
@@ -61,6 +65,8 @@ export interface PdfDictEntry {
 }
 
 export interface PdfCosDict {
+  /** Implicit resource-value backing, expanded only when the resource is selected. */
+  readonly deferred?: boolean;
   /** Caller-backed ordered entries; entries is empty when this descriptor is present. */
   readonly storedEntries?: PdfStoredItems;
   readonly kind: "dict";

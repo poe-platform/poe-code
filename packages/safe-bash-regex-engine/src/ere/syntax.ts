@@ -262,15 +262,28 @@ class Parser {
   }
 }
 
+function compilationCacheKey(input: string | readonly EreFragment[], asciiInsensitive: boolean, localeProfile: { ranges: boolean; classes: boolean }): string | undefined {
+  const mode = `${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}`;
+  if (typeof input === "string") return input.length <= 128 ? `S:${mode}:${input}` : undefined;
+  if (!Array.isArray(input) || input.length === 0 || input.length > 128) return undefined;
+  let length = 0;
+  const fragments: [boolean, string][] = [];
+  for (const fragment of input) {
+    if (typeof fragment?.text !== "string" || typeof fragment?.literal !== "boolean") return undefined;
+    length += fragment.text.length;
+    if (length > 128) return undefined;
+    fragments.push([fragment.literal, fragment.text]);
+  }
+  if (input.length === 1) return `F:${mode}:${input[0]!.literal ? 1 : 0}:${input[0]!.text}`;
+  // Include fragment boundaries and quoting so literal and syntax fragments
+  // cannot alias. The existing 256-entry cache and source cap bound retention.
+  return `M:${mode}:${JSON.stringify(fragments)}`;
+}
+
 export async function compileEre(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal, asciiInsensitive = false, localeProfile = { ranges: true, classes: true }): Promise<EreProgram> {
   ledger.check(signal);
   if (typeof asciiInsensitive !== "boolean") throw new TypeError("ASCII case mode must be boolean");
-  let cacheKey: string | undefined;
-  if (typeof input === "string" && input.length <= 128) {
-    cacheKey = `S:${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}:${input}`;
-  } else if (Array.isArray(input) && input.length === 1 && typeof input[0]?.text === "string" && typeof input[0]?.literal === "boolean" && input[0].text.length <= 128) {
-    cacheKey = `F:${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}:${input[0].literal ? 1 : 0}:${input[0].text}`;
-  }
+  const cacheKey = compilationCacheKey(input, asciiInsensitive, localeProfile);
   if (cacheKey !== undefined && ledger.charge === EreLedger.prototype.charge) {
     const cached = ereCompilationCache.get(cacheKey);
     if (
@@ -322,12 +335,7 @@ export function tryCompileEreSync(
   asciiInsensitive = false,
   localeProfile: { ranges: boolean; classes: boolean } = { ranges: true, classes: true },
 ): EreProgram | undefined {
-  let cacheKey: string | undefined;
-  if (typeof input === "string" && input.length <= 128) {
-    cacheKey = `S:${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}:${input}`;
-  } else if (Array.isArray(input) && input.length === 1 && typeof input[0]?.text === "string" && typeof input[0]?.literal === "boolean" && input[0].text.length <= 128) {
-    cacheKey = `F:${asciiInsensitive ? 1 : 0}:${localeProfile.ranges ? 1 : 0}:${localeProfile.classes ? 1 : 0}:${input[0].literal ? 1 : 0}:${input[0].text}`;
-  }
+  const cacheKey = compilationCacheKey(input, asciiInsensitive, localeProfile);
   if (cacheKey === undefined) return undefined;
   const cached = ereCompilationCache.get(cacheKey);
   if (

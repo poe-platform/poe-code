@@ -1,0 +1,168 @@
+[
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "-T",
+      "lookup"
+    ],
+    "stdout": "thinkinganswer:found one\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "--tool=lookup",
+      "--no-stream"
+    ],
+    "stdout": "thinkinganswer:found one\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "-Tlookup",
+      "--cl",
+      "1"
+    ],
+    "stdout": "thinking",
+    "stderr": "Error: Chain limit of 1 exceeded.\n",
+    "exitCode": 1
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "-T",
+      "lookup",
+      "--chain-limit",
+      "2"
+    ],
+    "stdout": "thinkinganswer:found one",
+    "stderr": "Error: Chain limit of 2 exceeded.\n",
+    "exitCode": 1
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "-T",
+      "lookup",
+      "--cl",
+      "0"
+    ],
+    "stdout": "thinkinganswer:found one\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "-T",
+      "lookup",
+      "--cl",
+      "-1"
+    ],
+    "stdout": "thinking",
+    "stderr": "Error: Chain limit of -1 exceeded.\n",
+    "exitCode": 1
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "--cl",
+      "1"
+    ],
+    "stdout": "plain\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "-T",
+      "missing"
+    ],
+    "stdout": "",
+    "stderr": "Error: Tool(s) missing not found. Available tools: lookup\n",
+    "exitCode": 1
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "-T"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '-T' requires an argument.\n",
+    "exitCode": 2
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "--cl",
+      "no"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': 'no' is not a valid integer.\n",
+    "exitCode": 2
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "-T",
+      "lookup",
+      "--no-stream",
+      "--cl",
+      "1"
+    ],
+    "stdout": "",
+    "stderr": "Error: Chain limit of 1 exceeded.\n",
+    "exitCode": 1
+  },
+  {
+    "argv": [
+      "-n",
+      "-m",
+      "fixture",
+      "hello",
+      "-T",
+      "lookup",
+      "-u"
+    ],
+    "stdout": "thinkinganswer:found one\n",
+    "stderr": "Token usage: \nToken usage: \n",
+    "exitCode": 0
+  }
+]

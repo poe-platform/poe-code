@@ -128,8 +128,7 @@ failure or cancellation, including sources returned after cancellation.
 `beforeCall` may throw `LlmCancelToolCall` to decline a call and continue. Missing
 tools and implementation failures become result errors; a declared tool without
 an implementation stops execution. The helper retains no conversation history.
-Parallel async execution, CLI tool selection and broader Python tool bridging
-remain incomplete.
+Parallel async execution and broader Python tool bridging remain incomplete.
 
 Use `streamLlmToolChain` to repeat requests and serial tool execution without
 giving the library ownership of conversation state:
@@ -157,8 +156,7 @@ messages or persisted history. Output and tool byte limits apply across all
 rounds. Consumer exit aborts the active response and does not run pending tools.
 The SDK default chain limit is 10; zero/null disables it. Matching the pinned
 reference, the limit is checked after yielding each response, before executing
-tools, including a final response with no calls. CLI orchestration remains
-incomplete.
+tools, including a final response with no calls.
 
 Register host tools with `createLlmToolRegistry(definitions)` and pass the returned
 map as `llmCommands({ tools, providers })`. Inspect registrations with
@@ -168,7 +166,18 @@ receive registry-key suffixes while preserving the underlying callable name.
 SDK callers resolve names with `selectLlmTools(registry, names)` and pass the
 result to `executeLlmToolCalls`. Discovery never executes implementations or
 loads ambient plugins. JSON schemas stream under the command output limit.
-Python `--functions` loading, toolboxes and prompt `-T` wiring remain incomplete.
+Run selected tools with `llm -T lookup "Find an answer"`. Repeat `-T`/`--tool`
+for multiple registrations. The CLI executes calls serially and sends results
+back to the model through the shared service. `--cl`/`--chain-limit` defaults to
+five responses; zero disables the limit. `--no-stream`, extraction and per-response
+`--usage` output work across the chain. Templates can save and supply tool names.
+All transient request context is staged on the caller's filesystem and removed
+when the command exits. Large results use bounded reads on source-capable
+providers; buffered providers remain subject to materialized-input limits.
+Matching the pinned live-chain behavior, prior assistant text and tool calls are
+separate messages, and attachments are sent in their current round. SDK callers
+can still explicitly supply prior attachments in their own request messages.
+Python `--functions` loading, toolboxes, debug and approval flags remain incomplete.
 
 Persist aliases, default models and default options in the caller’s filesystem using `llm aliases`, `llm models default`, and `llm models options`. Use `llm embed-models` (or `list`) with repeated `-q` queries to discover embedding models, and `llm embed-models default [MODEL]` or `--remove-default` to manage their separate default. SDK callers use `service.models` and `configuration.defaultModel("default_embedding_model.txt")` / `setDefaultModel(modelOrNull, "default_embedding_model.txt")`. Set `LLM_USER_PATH` to choose the virtual configuration directory. `createLlmConfiguration(context)` exposes these controls to structured frontends. Configuration controls require atomic publication. Configuration and remote templates default to unlimited bytes and accept explicit `Infinity`; set `limits.maxConfigurationBytes` (or the second argument to `createLlmConfiguration`) and `maxRemoteTemplateBytes` to impose finite quotas. Remote templates inherit `limits.maxInputBytes` when no separate quota is supplied. Remaining reference CLI workflows and bounded prompt/attachment preparation are still incomplete.
 

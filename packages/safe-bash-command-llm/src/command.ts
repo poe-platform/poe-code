@@ -1,3 +1,6 @@
+import { promptToolChain } from "./prompt-tool-chain.js";
+import { selectLlmTools } from "./tool-registry.js";
+import { tokenInteger } from "./token-integer.js";
 import { fragmentLoaderCommand } from "./fragment-loader-command.js";
 import { toolsCommand } from './tools-command.js';
 import { getLlmFragmentPrefix, loadLlmPluginFragments } from "./fragment-loaders.js";
@@ -34,6 +37,8 @@ import { selectLlmModelByQuery } from "./model-selection.js";
 export const llmReferenceVersion = "0.27.1";
 
 interface Arguments {
+  toolNames: string[];
+  chainLimit: number;
   queries: string[];
   fragments: string[];
   systemFragments: string[];
@@ -56,7 +61,7 @@ interface Arguments {
 class LlmPromptUsageError extends Error {}
 
 async function parse(length: number, text: (index: number) => string, step: () => Promise<void>): Promise<Arguments> {
-  const parsed: Arguments = { prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
+  const parsed: Arguments = { toolNames: [], chainLimit: 5, prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
   let ended = false;
   for (let index = 0; index < length; index++) {
@@ -77,12 +82,18 @@ async function parse(length: number, text: (index: number) => string, step: () =
         if (long) break;
         continue;
       }
-      if (!["-f", "--fragment", "--sf", "--system-fragment", "-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+      if (!["-T", "--tool", "--cl", "--chain-limit", "-f", "--fragment", "--sf", "--system-fragment", "-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
       const attached = long ? equals < 0 ? undefined : argument.slice(equals + 1) : argument.slice(cursor + 1) || undefined;
       const arity = ["-o", "--option", "-p", "--param", "--at", "--attachment-type"].includes(flag) ? 2 : 1;
       if (length - index - 1 < arity - (attached === undefined ? 0 : 1)) throw new LlmPromptUsageError(`Error: Option '${flag}' requires ${arity === 2 ? "2 arguments" : "an argument"}.`);
       const value = attached ?? text(++index);
-      if (flag === "-f" || flag === "--fragment") parsed.fragments.push(value);
+      if (flag === "-T" || flag === "--tool") parsed.toolNames.push(value);
+      else if (flag === "--cl" || flag === "--chain-limit") {
+        const integer = tokenInteger(value);
+        if (integer === undefined || !Number.isSafeInteger(Number(integer))) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': '${value}' is not a valid integer.`);
+        parsed.chainLimit = Number(integer);
+      }
+      else if (flag === "-f" || flag === "--fragment") parsed.fragments.push(value);
       else if (flag === "--sf" || flag === "--system-fragment") parsed.systemFragments.push(value);
       else if (flag === "-q" || flag === "--query") parsed.queries.push(value);
       else if (flag === "-t" || flag === "--template") parsed.template = value;
@@ -143,6 +154,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (work % 256 === 0) await yieldTurn(signal);
   };
   let outputSpool: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
+  let usageSpool: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
   let outputBytes = 0;
   let writing = false;
   const write = async (chunk: Uint8Array): Promise<void> => {
@@ -387,6 +399,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         ...(args.extract === "last" ? { extract_last: true } : args.extract === "first" ? { extract: true } : {}),
         ...(Object.keys(args.params).length ? { defaults: args.params } : {}),
         ...(Object.keys(args.options).length ? { options: args.options } : {}),
+        ...(args.toolNames.length ? { tools: args.toolNames } : {}),
         ...(args.fragments.length ? { fragments: args.fragments } : {}),
         ...(args.systemFragments.length ? { system_fragments: args.systemFragments } : {}),
         ...(attachments.length ? { attachments } : {}),
@@ -563,6 +576,9 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
       attachments.push({ mimeType, bytes: new Uint8Array(bytes), ...(acceptsMimeType(['application/pdf'],mimeType) && !bytes.length ? {id:await attachmentBytesId(bytes,signal)} : {}) });
     }
+    let selectedTools;
+    try { selectedTools = selectLlmTools(tools, [...stored?.tools ?? [], ...args.toolNames]); }
+    catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`); }
     attachments.push(...pluginAttachments);
     sourceAttachments.push(...pluginSourceAttachments);
     const resolvedKey = args.key === undefined ? undefined : await configuration.resolveKey(args.key);
@@ -574,7 +590,32 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     };
     signal.throwIfAborted();
     if (args.noStream) outputSpool = await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
-    if (streamed) {
+    if (selectedTools.length) {
+      const events = promptToolChain({context: {...context, signal}, operation, service, streamed, tools: selectedTools,
+        chainLimit: args.chainLimit, maxOutputBytes: limits?.maxOutputBytes ?? Infinity,
+        remainingInput: () => input.remaining(!streamed), admitInput, textSource,
+        request: {model: request.model, options: request.options, signal, stream: request.stream, ...(schema === undefined ? {} : {schema}), ...(resolvedKey === undefined ? {} : {key: resolvedKey}), prompt: (streamed ? composedPrompt : undefined) ?? (promptSpool ? {bytes: promptSpool.replay(), dispose: promptSpool.close} : textSource(prompt)),
+          ...(streamed && composedSystem ? {system: composedSystem} : args.system === undefined ? {} : {system: textSource(args.system)}),
+          attachments: streamed ? sourceAttachments : attachments.map(attachment => attachment.url === undefined
+            ? {mimeType: attachment.mimeType, ...(attachment.id === undefined ? {} : {id: attachment.id}), source: {bytes: {async *[Symbol.asyncIterator]() {yield attachment.bytes;}}, async dispose() {}}}
+            : attachment)
+        }
+      });
+      iterator = (async function* () {
+        try {
+          for await (const event of events) {
+            if (event.type === "text") yield event.text;
+            else if (event.type === "bytes") yield event.data;
+            else if (args.usage) {
+              usageSpool ??= await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
+              await usageSpool.write(new TextEncoder().encode("Token usage: "));
+              for await (const bytes of serializeLlmTokenUsage(event.response.usage, signal)) await usageSpool.write(bytes);
+              await usageSpool.write(Uint8Array.of(10));
+            }
+          }
+        } catch (error) {signal.throwIfAborted(); throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`);}
+      })()[Symbol.asyncIterator]();
+    } else if (streamed) {
       const events = service.streamSources!({ model: request.model, options: request.options, signal, stream: request.stream, prompt: composedPrompt ?? (promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt)),
         ...(schema === undefined ? {} : { schema }),
         ...(composedSystem ? {system:composedSystem} : args.system === undefined ? {} : { system: textSource(args.system) }),
@@ -613,7 +654,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return range && range.end > range.start ? range : undefined;
     } : undefined)) { writing = true; await operation.output.write(chunk); writing = false; }
     if (args.extract && text) await operation.output.write(Uint8Array.of(10));
-    if (args.usage) {
+    if (usageSpool) await pipeBytes(usageSpool.replay(), context.stderr, signal);
+    else if (args.usage) {
       await writeDiagnostic(context.stderr, "Token usage: ", signal);
       await pipeBytes(serializeLlmTokenUsage(responseUsage, signal), context.stderr, signal);
       await writeDiagnostic(context.stderr, "\n", signal);

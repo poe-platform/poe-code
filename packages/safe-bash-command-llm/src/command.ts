@@ -42,6 +42,7 @@ export const llmReferenceVersion = "0.27.1";
 interface Arguments {
   async?: boolean;
   toolNames: string[];
+  functions: string[];
   chainLimit: number | bigint;
   toolsApprove?: boolean;
   toolsDebug?: boolean;
@@ -68,7 +69,7 @@ interface Arguments {
 class LlmPromptUsageError extends Error {}
 
 async function parse(length: number, text: (index: number) => string, step: () => Promise<void>): Promise<Arguments> {
-  const parsed: Arguments = { toolNames: [], chainLimit: 5, prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
+  const parsed: Arguments = { toolNames: [], functions: [], chainLimit: 5, prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
   let ended = false;
   for (let index = 0; index < length; index++) {
@@ -92,12 +93,13 @@ async function parse(length: number, text: (index: number) => string, step: () =
         if (long) break;
         continue;
       }
-      if (!["-T", "--tool", "--cl", "--chain-limit", "-f", "--fragment", "--sf", "--system-fragment", "-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+      if (!["--functions", "-T", "--tool", "--cl", "--chain-limit", "-f", "--fragment", "--sf", "--system-fragment", "-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
       const attached = long ? equals < 0 ? undefined : argument.slice(equals + 1) : argument.slice(cursor + 1) || undefined;
       const arity = ["-o", "--option", "-p", "--param", "--at", "--attachment-type"].includes(flag) ? 2 : 1;
       if (length - index - 1 < arity - (attached === undefined ? 0 : 1)) throw new LlmPromptUsageError(`Error: Option '${flag}' requires ${arity === 2 ? "2 arguments" : "an argument"}.`);
       const value = attached ?? text(++index);
-      if (flag === "-T" || flag === "--tool") parsed.toolNames.push(value);
+      if (flag === "--functions") parsed.functions.push(value);
+      else if (flag === "-T" || flag === "--tool") parsed.toolNames.push(value);
       else if (flag === "--cl" || flag === "--chain-limit") {
         const integer = tokenInteger(value);
         if (integer === undefined) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': '${value}' is not a valid integer.`);
@@ -138,7 +140,7 @@ async function interrupted<Value>(start: () => Value | PromiseLike<Value>, signa
   });
 }
 
-async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections'], fragmentLoaders: NonNullable<LlmCommandsOptions['fragmentLoaders']>, tools: NonNullable<LlmCommandsOptions['tools']>) {
+async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections'], fragmentLoaders: NonNullable<LlmCommandsOptions['fragmentLoaders']>, tools: NonNullable<LlmCommandsOptions['tools']>, loadTools: LlmCommandsOptions['loadTools']) {
   context.signal.throwIfAborted();
   const controller = new AbortController();
   const operation = createOutputOperation(context, context.stdout);
@@ -204,6 +206,19 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     shellInputBytes += size;
   };
   const admitBuffered = (size: number): void => input.admit(size, true);
+  const functionSessions = new Set<Awaited<ReturnType<NonNullable<LlmCommandsOptions['loadTools']>>>>();
+  const loadDefinitions = async (definitions: readonly string[]) => {
+    if (!loadTools) throw new Error("Python tool loading is not configured");
+    const diagnostic = operation.child(context.stderr).output;
+    const loaded = await operation.acquire(async () => {const value = await loadTools({definitions,
+      context: {...context, signal, stdout: {write: bytes => write(bytes, true)}, stderr: {write: async bytes => {admitOutput(bytes.length); await writeOutput(diagnostic, bytes);}}},
+      maxInputBytes: input.remaining(true), maxOutputBytes: limits?.maxOutputBytes ?? Infinity});
+      let closing: Promise<void> | undefined;
+      return {tools: value.tools, close: () => closing ??= Promise.resolve().then(() => value.close())};
+    }, value => value.close());
+    functionSessions.add(loaded);
+    return loaded.tools;
+  };
   const invocationLoaders = { ...templateLoaderOptions, get maxBytes() { return input.remaining(true); }, admitBytes: admitBuffered };
   try {
     let argumentsValue = getCommandArguments(context);
@@ -266,7 +281,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (argumentsValue.args[0] === 'tools') {
       argumentText(0);
       const tokens=Array.from({length:argumentsValue.args.length-1},(_,index)=>argumentText(index+1));
-      return {exitCode:await toolsCommand(tokens,tools,emitText,text=>writeDiagnostic(context.stderr,text,signal),step,signal)};
+      return {exitCode:await toolsCommand(tokens,tools,emitText,text=>writeDiagnostic(context.stderr,text,signal),step,signal,loadDefinitions)};
     }
     if (argumentsValue.args[0] === "fragments") {
       if (argumentsValue.args[1] !== "loaders") {
@@ -441,6 +456,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         ...(args.extract === "last" ? { extract_last: true } : args.extract === "first" ? { extract: true } : {}),
         ...(Object.keys(args.params).length ? { defaults: args.params } : {}),
         ...(Object.keys(args.options).length ? { options: args.options } : {}),
+        ...(args.functions.length ? { functions: args.functions.join("\n\n") } : {}),
         ...(args.toolNames.length ? { tools: args.toolNames } : {}),
         ...(args.fragments.length ? { fragments: args.fragments } : {}),
         ...(args.systemFragments.length ? { system_fragments: args.systemFragments } : {}),
@@ -619,7 +635,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       attachments.push({ mimeType, bytes: new Uint8Array(bytes), ...(acceptsMimeType(['application/pdf'],mimeType) && !bytes.length ? {id:await attachmentBytesId(bytes,signal)} : {}) });
     }
     let selectedTools;
-    try { selectedTools = selectLlmTools(tools, [...stored?.tools ?? [], ...args.toolNames]); }
+    try {
+      const definitions = [...(stored?.functions && Object.getOwnPropertyDescriptor(stored, "functionsTrusted")?.value !== false ? [stored.functions] : []), ...args.functions];
+      selectedTools = [...(definitions.length ? await loadDefinitions(definitions) : []), ...selectLlmTools(tools, [...stored?.tools ?? [], ...args.toolNames])];
+    }
     catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`); }
     attachments.push(...pluginAttachments);
     sourceAttachments.push(...pluginSourceAttachments);
@@ -716,8 +735,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     await writeDiagnostic(context.stderr, `${error instanceof Error || error instanceof TypeError ? error.message.slice(0, 4096) : "llm provider failed"}\n`, context.signal);
     return { exitCode: error instanceof LlmModelsUsageError || error instanceof LlmPromptUsageError ? 2 : 1 };
   } finally {
-    controller.abort(new Error("llm request closed"));
-    await operation.close();
+    try { await Promise.all([...functionSessions].map(session => session.close())); }
+    finally {controller.abort(new Error("llm request closed")); await operation.close();}
   }
 }
 
@@ -732,7 +751,7 @@ export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefin
   const templateLoaderOptions: TemplateLoaderOptions = { maxRemoteBytes, ...(options.templateLoaders ? { loaders: options.templateLoaders } : {}) };
   const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
   const collections=options.collections;
-  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections, options.fragmentLoaders ?? new Map(), options.tools ?? new Map()) };
+  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections, options.fragmentLoaders ?? new Map(), options.tools ?? new Map(), options.loadTools) };
 }
 
 export function createLlmCommands(options: LlmCommandsOptions = {}): readonly CommandDefinition[] {

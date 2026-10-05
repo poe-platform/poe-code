@@ -21,14 +21,15 @@ function compareNames(left: string, right: string): number {
   return left.length - a - (right.length - b);
 }
 
-/** Inspect explicit host registrations without running tools or loading plugins. */
+/** Inspect host registrations and explicit invocation-owned Python definitions. */
 export async function toolsCommand(
   tokens: readonly string[],
   registry: ReadonlyMap<string, LlmRegisteredTool>,
   output: (text: string) => Promise<void>,
   diagnostic: (text: string) => Promise<void>,
   step: () => Promise<void>,
-  signal: AbortSignal
+  signal: AbortSignal,
+  load?: (definitions: readonly string[]) => Promise<readonly LlmRegisteredTool[]>
 ): Promise<number> {
   let groupEager = false,
     separator = -1;
@@ -62,8 +63,8 @@ export async function toolsCommand(
   const names: string[] = [];
   let json = false,
     help = false,
-    ended = false,
-    functions = false;
+    ended = false;
+  const functions: string[] = [];
   for (let index = 0; index < args.length; index++) {
     await step();
     const token = args[index]!;
@@ -90,7 +91,7 @@ export async function toolsCommand(
     if (flag === "--functions") {
       if (equals < 0 && args[++index] === undefined)
         return error("Option '--functions' requires an argument.");
-      functions = true;
+      functions.push(equals < 0 ? args[index]! : token.slice(equals + 1));
       continue;
     }
     return error(`No such option '${flag}'.`, true);
@@ -99,18 +100,19 @@ export async function toolsCommand(
     await output(listHelp);
     return 0;
   }
-  if (functions) {
+  if (functions.length && !load) {
     await diagnostic("Error: Python tool loading is not configured\n");
     return 1;
   }
-  let selected: ReadonlyMap<string, LlmRegisteredTool> = registry;
-  if (names.length) {
-    try {
-      selected = new Map(selectLlmTools(registry, names).map((tool) => [tool.name, tool]));
-    } catch (error) {
-      await diagnostic("Error: " + (error as Error).message + "\n");
-      return 1;
-    }
+  let selected: ReadonlyMap<string, LlmRegisteredTool>;
+  try {
+    const loaded = functions.length ? await load!(functions) : [];
+    selected = new Map(names.length
+      ? [...loaded, ...selectLlmTools(registry, names)].map(tool => [tool.name, tool] as const)
+      : [...registry, ...loaded.map(tool => [tool.name, tool] as const)]);
+  } catch (failure) {
+    await diagnostic("Error: " + (failure instanceof Error ? failure.message : String(failure)) + "\n");
+    return 1;
   }
   const entries = [...selected].sort(([left], [right]) => compareNames(left, right));
   if (json) {

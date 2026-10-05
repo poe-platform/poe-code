@@ -463,3 +463,18 @@ test('real workerd confines original llm calls to platform models and credential
   assert.deepEqual(result.failures,[]);
   assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });
+
+
+test('real workerd loads Python functions for LLM discovery and sync/async tool chains', {timeout:120000}, async () => {
+  const response = await nativeFixture.miniflare.dispatchFetch('http://fixture/llm-functions');
+  const result = await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  for (const key of ['listing','serial','concurrent']) assert.equal(result[key].exitCode,0,result[key].stderr);
+  assert.deepEqual(JSON.parse(result.listing.stdout).tools.map(tool=>tool.name),['add','first','second','unicode_text']);
+  assert.equal(result.serial.stdout,'2,5,'+'😀'.repeat(4096)+'\n');
+  assert.equal(result.concurrent.stdout,'first,second\n');
+  assert.equal(result.cancelled,true);
+  assert.deepEqual(result.retained,[]);
+  assert.deepEqual(result.failures,[]);
+  assert.deepEqual(nativeFixture.runtimeErrors,[]);
+});

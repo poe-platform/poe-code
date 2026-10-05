@@ -1,3 +1,4 @@
+import type {CommandContext} from "safe-bash-contracts";
 import type { LlmExecutableTool } from "./tool-execution.js";
 import { validateJsonData } from "./json-data.js";
 
@@ -50,3 +51,12 @@ export function selectLlmTools(
     );
   return names.map((name) => registry.get(name)!);
 }
+
+/** An invocation-owned runtime for Python function definitions. The caller owns
+ * canonical storage, transport and admission; closing retires all callables. */
+export type LlmToolLoader = (options: {
+  readonly context: CommandContext;
+  readonly definitions: readonly string[];
+  readonly maxInputBytes: number;
+  readonly maxOutputBytes: number;
+}) => Promise<{readonly tools: readonly LlmRegisteredTool[]; close(): Promise<void>}>;

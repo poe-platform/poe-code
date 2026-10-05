@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonLlmToolLoader, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
@@ -158,6 +158,40 @@ async function qualifyShells(backend, createExecutor) {
     await Promise.all([first.dispose(), sibling.dispose()]);
     await pool.dispose();
   }
+}
+
+async function qualifyFunctionTools(backend, createExecutor) {
+  const cancellation = new AbortController();
+  let cancelRun = false;
+  const source = 'import asyncio as _asyncio\n_state = 0\n_event = _asyncio.Event()\ndef add(value: int):\n global _state\n _state += value\n return _state\nasync def first():\n await _event.wait()\n return "first"\nasync def second():\n _event.set()\n return "second"\ndef unicode_text():\n return "😀" * 4096\n';
+  await backend.writeFile('/work/functions.py', new TextEncoder().encode(source));
+  const complete = async function* (request) {
+    const results = request.messages?.filter(message => message.role === 'tool') ?? [];
+    if (results.length) {
+      const values = [];
+      for (const result of results) {
+        if (typeof result.content === 'string') values.push(result.content);
+        else {let text = ''; const decoder = new TextDecoder('utf-8', {fatal:true}); for await (const bytes of result.content.bytes) text += decoder.decode(bytes,{stream:true}); values.push(text+decoder.decode());}
+      }
+      yield values.join(','); return;
+    }
+    if (cancelRun) {setTimeout(()=>cancellation.abort(new Error('function cancelled')),50); return {toolCalls:[{id:'cancel',name:'first',arguments:{}}]};}
+    return {toolCalls: request.async ? [{id:'a',name:'first',arguments:{}},{id:'b',name:'second',arguments:{}}]
+      : [{id:'a',name:'add',arguments:{value:2}},{id:'b',name:'add',arguments:{value:3}},{id:'c',name:'unicode_text',arguments:{}}]};
+  };
+  const service = createLlmService({defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture',asyncModel:{},capabilities:['messages','tools']}],complete,completeSources:complete}]});
+  const loadTools = createPythonLlmToolLoader({createExecutor,createCapabilities: context => ({llm:createPythonLlmCapability(context,service)})});
+  const shell = new Shell({fs:backend,cwd:'/work',env:{HOME:'/work',LLM_USER_PATH:'/work/llm-config'}}).use(llmCommands({service,loadTools}));
+  try {
+    const listing = await shell.exec('llm tools list --functions functions.py --json');
+    const serial = await shell.exec('llm hello --functions functions.py');
+    const concurrent = await shell.exec('llm hello --async --functions functions.py');
+    cancelRun = true;
+    let cancelled = false;
+    try {await shell.exec('llm hello --async --functions functions.py',{signal:cancellation.signal});}
+    catch(error) {cancelled = error === cancellation.signal.reason;}
+    return {listing,serial,concurrent,cancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+  } finally {await shell.dispose();}
 }
 
 async function qualifyStandardLlm(backend, createExecutor, cancel = false, policy = false) {
@@ -981,6 +1015,11 @@ export default {
       try { return Response.json({...await qualifyPublication(backend, createExecutor, mode === '/publication-recovery'), failures}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
       finally { clearInterval(timer); await filesystem.close(); }
+    }
+    if (mode === '/llm-functions') {
+      try {return Response.json({...await qualifyFunctionTools(backend,createExecutor),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/llm-api' || mode === '/llm-api-cancel' || mode === '/llm-policy') {
       try { return Response.json({...await qualifyStandardLlm(backend,createExecutor,mode === '/llm-api-cancel',mode === '/llm-policy'),failures}); }

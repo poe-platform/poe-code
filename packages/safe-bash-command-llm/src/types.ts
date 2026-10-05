@@ -1,5 +1,5 @@
 import type { LlmFragmentLoader } from "./fragment-loaders.js";
-import type { LlmRegisteredTool } from "./tool-registry.js";
+import type { LlmRegisteredTool, LlmToolLoader } from "./tool-registry.js";
 import type { ByteSource } from "safe-bash-contracts";
 import type { LlmService } from "./service.js";
 import type { LlmTemplateLoader } from "./templates.js";
@@ -122,6 +122,7 @@ export interface LlmCommandsOptions {
   readonly replace?: boolean;
   readonly fragmentLoaders?: ReadonlyMap<string, LlmFragmentLoader>;
   readonly tools?: ReadonlyMap<string, LlmRegisteredTool>;
+  readonly loadTools?: LlmToolLoader;
   readonly templateLoaders?: ReadonlyMap<string, LlmTemplateLoader>;
   readonly maxRemoteTemplateBytes?: number;
 }

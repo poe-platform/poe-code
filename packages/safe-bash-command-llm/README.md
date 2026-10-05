@@ -138,7 +138,7 @@ The next chain response waits for every visitor. A visitor failure cancels sibli
 work and retires all returned source leases. Implementations must honor the
 supplied signal during acquisition. JavaScript and Python scheduling turns differ;
 per-call hooks retain their lifecycle order, not a shared global callback order.
-Use `llm --async` to select the paired async definition and execute declared coroutine tools concurrently. Broader Python tool bridging remains incomplete.
+Use `llm --async` to select the paired async definition and execute declared coroutine tools concurrently. Python function tools use the explicit loader described below.
 
 Use `streamLlmToolChain` to repeat requests and serial tool execution without
 giving the library ownership of conversation state:
@@ -178,6 +178,21 @@ receive registry-key suffixes while preserving the underlying callable name.
 SDK callers resolve names with `selectLlmTools(registry, names)` and pass the
 result to `executeLlmToolCalls`. Discovery never executes implementations or
 loads ambient plugins. JSON schemas stream under the command output limit.
+Load inline Python or caller-filesystem definitions with repeated `--functions CODE_OR_PATH`,
+including `llm tools list --functions tools.py`. Configure `loadTools` with
+`createPythonLlmToolLoader(pythonOptions)` from
+`@poe-platform/safe-bash/commands/python/executor`; the configured interpreter must
+provide the pinned `llm==0.27.1` package and its host bridge. Definitions execute
+once per invocation, preserving Python globals across calls. Function schemas and
+signatures come from the genuine package. Local templates retain function code;
+remote/plugin templates cannot execute their embedded functions. Explicit CLI
+functions remain enabled. Definition code and metadata obey input limits; result
+text and attachments stream through caller storage under output limits. SDK callers
+can invoke the loader directly and must close its returned session after consuming
+borrowed results. Cancellation cooperatively cancels Python tasks; arbitrary
+noncooperative Python requires runtime-enforced interruption. Toolboxes and ambient
+plugin loading remain incomplete.
+
 Run selected tools with `llm -T lookup "Find an answer"`. Repeat `-T`/`--tool`
 for multiple registrations. The CLI executes calls serially by default; `--async` runs declared coroutine tools concurrently and sends results
 back to the model through the shared service. `--cl`/`--chain-limit` defaults to
@@ -198,8 +213,7 @@ formatted results, exceptions and attachment details to stderr. Large diagnostic
 use temporary caller storage and bounded writes, with aggregate output admission.
 JSON result formatting keeps a fixed page cache and spills large inputs to the caller’s filesystem.
 JSON keys and numeric tokens currently use the parser’s 64 KiB control-token
-limit; larger controls remain a compatibility gap. Python `--functions` loading,
-toolboxes remain incomplete. Async results and attachments are staged in caller storage and assembled in original call order; approval prompts and debug records are serialized. A debug sink failure cancels sibling execution and cleans staged inputs. The pinned reference crashes on async tool chains with `--usage`; this implementation reports per-response usage instead. Exact async callback/EOF scheduling remains a compatibility gap.
+limit; larger controls and Python toolboxes remain compatibility gaps. Async results and attachments are staged in caller storage and assembled in original call order; approval prompts and debug records are serialized. A debug sink failure cancels sibling execution and cleans staged inputs. The pinned reference crashes on async tool chains with `--usage`; this implementation reports per-response usage instead. Exact async callback/EOF scheduling remains a compatibility gap.
 
 Persist aliases, default models and default options in the caller’s filesystem using `llm aliases`, `llm models default`, and `llm models options`. Use `llm embed-models` (or `list`) with repeated `-q` queries to discover embedding models, and `llm embed-models default [MODEL]` or `--remove-default` to manage their separate default. SDK callers use `service.models` and `configuration.defaultModel("default_embedding_model.txt")` / `setDefaultModel(modelOrNull, "default_embedding_model.txt")`. Set `LLM_USER_PATH` to choose the virtual configuration directory. `createLlmConfiguration(context)` exposes these controls to structured frontends. Configuration controls require atomic publication. Configuration and remote templates default to unlimited bytes and accept explicit `Infinity`; set `limits.maxConfigurationBytes` (or the second argument to `createLlmConfiguration`) and `maxRemoteTemplateBytes` to impose finite quotas. Remote templates inherit `limits.maxInputBytes` when no separate quota is supplied. Remaining reference CLI workflows and bounded prompt/attachment preparation are still incomplete.
 

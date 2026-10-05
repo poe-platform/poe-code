@@ -48,3 +48,13 @@ filesystem and releases temporary inputs after each request. Tool schemas,
 arguments and response metadata remain subject to host byte limits. Tool
 implementations execute in the configured Python runtime; credentials and
 provider transport remain host-owned.
+
+Use `createPythonLlmToolLoader(pythonOptions)` from the public executor entrypoint
+as `llmCommands({ service, loadTools })`'s `loadTools` option to enable
+`llm --functions tools.py` and inline definitions. The configured executor must
+provide genuine `llm==0.27.1` and the standard host bridge. Each invocation owns
+one interpreter, shares the loader's configured worker capacity, and preserves
+function globals across calls. Result text and attachments use caller-backed
+storage; close direct SDK sessions after consuming their borrowed results.
+Cancellation is cooperative for Python tasks; CPU-bound or cancellation-suppressing
+code still requires runtime-enforced interruption. No conversation history is stored.

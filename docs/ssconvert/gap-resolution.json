@@ -4791,7 +4791,7 @@
       "id": "format-record-roundtrip",
       "status": "open",
       "glossaryTimestampFinding": "Timestamp and pathname cohorts are qualified independently. The exact48-plugin glossary activation succeeds, but actual native saving fails its legacy gsf import without output; see reference.glossaryFilenameAndSaver. Installed-registry and complete saver qualification remain open.",
-      "currentFinding": "Qualified Calc XLSX cell/range links and imported external-name definitions now survive relationship reordering and live target edits; see xlsxExternalNameDefinitions. All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches encode/decode ST_Xstring and preserve empty cached results without forced recalculation; the 139-test cohort and 32 compiled SDK/command observations passed. Comment author/text escapes and VML type references are repaired; rich comment metadata and native rendering remain open. At 89dd9aa4ba, rich cell font names use rFont with XString decoding/encoding, rather than treating numeric family classification as a typeface. LibreOffice bce0998a stylesbuffer.cxx:605-617 establishes this correction; it intentionally replaces the old Gnumeric-family-handler expectation. Seven failing-before checks become 111 passing focused checks, with package and root lint passing. Current compiled/native font qualification and raw-NUL formula text remain open.",
+      "currentFinding": "Qualified Calc XLSX cell/range links and imported external-name definitions now survive relationship reordering and live target edits; see xlsxExternalNameDefinitions. All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches encode/decode ST_Xstring and preserve empty cached results without forced recalculation; the 139-test cohort and 32 compiled SDK/command observations passed. Comment author/text escapes and VML type references are repaired; rich comment metadata and native rendering remain open. At 89dd9aa4ba, rich cell font names use rFont with XString decoding/encoding, rather than treating numeric family classification as a typeface. LibreOffice bce0998a stylesbuffer.cxx:605-617 establishes this correction; it intentionally replaces the old Gnumeric-family-handler expectation. Seven failing-before checks become 111 passing focused checks, with package and root lint passing. Current compiled/native font qualification remains open. Raw-NUL formula transport was fixed at3266448aeb and now passes current compiled SDK/command export/edit/readback and independent XML checks; native Gnumeric preserves wire escapes instead of decoding them, a classified reader limitation.",
       "richFontEvidence": {
         "source": "out/ssconvert-xlsx-metadata/rich-font-source.json",
         "red": "out/ssconvert-xlsx-metadata/rich-font-red.log",
@@ -4817,22 +4817,24 @@
         }
       },
       "checkpoint20261004": {
-        "qualified": "Scoped record/style/protection/theme, formula/name identity and rich-text repairs are delivered; registration of 48 directional services is not full format closure.",
+        "qualified": "Scoped record/style/protection/theme, formula/name identity and rich-text repairs are delivered; registration of 48 directional services is not full format closure. Raw-NUL/control/literal-escape cell and defined-name formula transport is qualified through both current compiled XLSX editions, SDK/command conversion and edits;100 independent wire checks across10 archives pass.",
         "evidence": [
           "#/reference/xlsxAllocatedDefaultStyle",
           "#/reference/xlsxSelfContainedThemes",
           "#/reference/xlsxToBiffWorkbookProtection",
           "#/reference/biffOperationOrder",
-          "#/reference/glossaryFilenameAndSaver"
+          "#/reference/glossaryFilenameAndSaver",
+          "#/xlsxFormulaNulTransport"
         ],
-        "nextAcceptance": "Use the existing directional-service matrix to identify unqualified version/record transports; start with retained rich-comment metadata/geometry and raw-NUL formula export, checking independent readback after edits.",
+        "nextAcceptance": "Continue rich-comment metadata/geometry and remaining directional-service version/record semantics. Preserve completed raw-NUL formula wire/public checks and classified native-reader limitations.",
         "closureGate": "Close applicable per-format/version/record semantics, diagnostics and installed public composition; require explicit loss outcomes for unsupported records.",
         "qualificationBlockers": [
           "Calc/Gnumeric lose selected original protection/comment fields; matching empty readbacks do not qualify preservation.",
-          "Glossary activation succeeds but native saving fails its legacy gsf import."
+          "Glossary activation succeeds but native saving fails its legacy gsf import.",
+          "Gnumeric1.12.61 passes raw formula XML text to xlsx_parse_expr and preserves ST_Xstring escape spelling; native readback does not prove decoded NUL/literal-escape identity."
         ],
         "remainingAcceptance": [
-          "Existing directional-service matrix: unqualified version/record transports, starting with rich-comment metadata/geometry and raw-NUL formula export, followed by independent edit/readback.",
+          "Existing directional-service matrix: unqualified version/record transports, starting with rich-comment metadata/geometry and independent edit/readback. Raw-NUL formula wire/public export is qualified; retain native Gnumeric escape-decoding limitations.",
           "Remaining formula/name/style/encoding/metadata/merge/chart/object/link semantics and installed composition; explicit loss diagnostics for unsupported records, not opaque-preservation claims."
         ]
       }
@@ -6870,5 +6872,12 @@
     "artifactEvidence": "Root dist/ssconvert/chunks/chunk-OIQT5LQL.js:8990 has ACOS: Math.acos; scoped dist/spreadsheet-engine/formulas/functions/math.js:169 uses capturedAcos. Package integrity and file SHA256 retained with local evidence.",
     "sourceStatus": "Existing fix9d9e002f98 is on remote main. No source defect established and no implementation change needed. Containing root publication remains pending; do not count the old artifact as a pass.",
     "remaining": "Root containing publication and remaining declared runtime-library profiles. Preserve LN1P mathematical rounding and captured Linux contracts; broader issue stays open."
+  },
+  "xlsxFormulaNulTransport": {
+    "source": "Existing3266448aeb formula ST_Xstring encoding/decoding fix is on main; current xlsx-ast writer encodes cell/defined-name formula strings before XML escaping. No new runtime defect established.",
+    "cohort": "Five formula/name values: NUL, other invalid XML/control and isolated UTF16 units, literal _x0000_ and nested escape text, Unicode/XML metacharacters/CR. Both XLSX2006/2008 editions; source export, SDK/command conversion and edited re-export.",
+    "validation": "101 maintained tests pass across cell/formula string, defined-name and metadata formula suites; selected20-workspace build passes. Four compiled SDK/command conversions preserve20cell formulas and20names. Eight edited cell/name identities pass. Python zipfile/ElementTree and independent one-pass Xstring decoding validate all100 formula/name entries across10archives; every XML part parses.",
+    "native": "Native Gnumeric1.12.61 reopens the edited2006 archive without errors but retains escaped wire spellings in cell/name formulas and normalizes CR to LF. xlsx-read.c:1498 passes xin->content->str directly to xlsx_parse_expr. This is an observed native-reader limitation, not a decoded-preservation pass. Isolated Calc headless read/export produced no output after115seconds and was terminated; its result is inconclusive, not a pass.",
+    "remaining": "Full metadata/geometry/rendering and wider directional-service/installed composition remain open. Do not reintroduce invalid raw XML or double-decode literal escape tokens to match a native reader limitation."
   }
 }

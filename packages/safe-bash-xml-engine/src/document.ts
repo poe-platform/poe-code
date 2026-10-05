@@ -329,7 +329,11 @@ export async function* serializeDocument(
     } else if (current.kind === "text" || (current.kind === "cdata" && canonical)) {
       for await (const part of typeof reference === "number" ? stored!.text(reference) : [current.text])
         yield* escape(part, false, budget, escaping);
-    } else if (current.kind === "cdata") { yield "<![CDATA["; yield current.text; yield "]]>"; }
+    } else if (current.kind === "cdata") {
+      yield "<![CDATA[";
+      yield* typeof reference === "number" ? stored!.text(reference) : [current.text];
+      yield "]]>";
+    }
     else if (current.kind === "comment") { yield "<!--"; yield current.text; yield "-->"; }
     else if (current.kind === "processing-instruction") {
       yield `<?${current.target}`;

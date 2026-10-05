@@ -37,7 +37,7 @@ export class StoredXmlDocument {
     try {
       context.registerCleanup?.(document.close.bind(document));
       document.documentReference = await document.storage.append(new Uint8Array(headerBytes));
-      let parent = document.documentReference;
+      let parent = document.documentReference, fragmentTail = 0;
       const consume = async (event: XmlStreamEvent): Promise<void> => {
           if (event.type === "close") { parent = await document.field(parent, parentField); return; }
           let metadata: Metadata;
@@ -48,7 +48,10 @@ export class StoredXmlDocument {
               attributes: element.attributes, namespaces: [...element.namespaces],
               ...(element.declaration === undefined ? {} : { declaration: element.declaration }) };
           }
-          const reference = await document.append(parent, metadata);
+          const continuation = event.type === "content" && event.continuation === true;
+          const reference = await document.append(parent, metadata, continuation);
+          if (continuation) await document.set(fragmentTail, fragmentField, reference);
+          fragmentTail = reference;
           if (event.type === "open") {
             for (const attribute of event.element.attributes) {
               if (attribute.namespace !== "http://www.w3.org/2000/xmlns/")
@@ -78,7 +81,7 @@ export class StoredXmlDocument {
     await this.storage.write(reference + offset, bytes);
   }
 
-  private async append(parent: number, metadata: Metadata): Promise<number> {
+  private async append(parent: number, metadata: Metadata, fragment = false): Promise<number> {
     const source = JSON.stringify(metadata);
     const encoder = new TextEncoder();
     // Encode in fixed windows instead of allocating another full-node byte copy.
@@ -103,6 +106,7 @@ export class StoredXmlDocument {
       at += bytes.length; offset = end;
       const checkpoint = this.budget.tick(bytes.length); if (checkpoint) await checkpoint;
     }
+    if (fragment) return reference;
     const firstLink = metadata.kind === "attribute" ? firstAttributeField : firstField;
     const lastLink = metadata.kind === "attribute" ? lastAttributeField : lastField;
     const last = await this.field(parent, lastLink);

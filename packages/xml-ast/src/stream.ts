@@ -4,7 +4,7 @@ import type { XmlContent, XmlElement, XmlLimits, XmlName } from "./index.js";
 
 export type XmlStreamEvent =
   | { readonly type: "open" | "close"; readonly element: XmlElement; readonly parent: XmlElement | undefined }
-  | { readonly type: "content"; readonly content: Exclude<XmlContent, XmlElement>; readonly parent: XmlElement | undefined };
+  | { readonly type: "content"; readonly continuation?: boolean; readonly content: Exclude<XmlContent, XmlElement>; readonly parent: XmlElement | undefined };
 
 export interface XmlStreamLimits extends XmlLimits {
   /** Validate the full document but return only its root name, without a retained tree. */

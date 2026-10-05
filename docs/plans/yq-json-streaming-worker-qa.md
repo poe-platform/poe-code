@@ -56,6 +56,12 @@ exercise backed algorithm state. Repeat with `--nocdata` and
 text node. Verify `count(text())`, whitespace inheritance and byte output against
 native xmllint without a concatenated value in the formatting/selection path.
 
+Also increase the size of a single CDATA section using reused Unicode chunks.
+Verify one XPath node per section (including empty sections), unchanged CDATA
+serialization and canonical output, bounded node metadata, and cleanup when a
+fragment consumer fails. CDATA bodies now use 512-unit fragments; ordinary text,
+comments, attributes and namespace scopes still need separate backing work.
+
 For recovery, repeat formatting, CDATA conversion and XPath with a missing final
 closing tag. Verify repaired output and diagnostics, paged node writes and cleanup
 on cancellation. Include `--recover --noout` to isolate the 64 KiB normalized-source

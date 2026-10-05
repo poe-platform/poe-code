@@ -277,6 +277,10 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
       } else if (!event.closing && value.kind !== "attribute") {
         if (value.kind === "text") {
           for await (const part of document.text(event.reference)) yield* escape(part, false, budget);
+        } else if (value.kind === "cdata") {
+          yield "<![CDATA[";
+          yield* document.text(event.reference);
+          yield "]]>";
         } else yield* serialize({ kind: value.kind, value }, budget);
       }
     }

@@ -123,3 +123,25 @@ for (const outcome of ['success', 'cancel', 'read'] as const) test(`recovery anc
   assert.equal(opened, 1); assert.equal(closed, opened);
   assert.deepEqual(await fs.readdir('/'), []);
 });
+
+for (const recover of [false, true]) test(`CDATA fragment consumer failure retires backing (recover=${recover})`, async () => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const failure = new Error('fragment stopped');
+  let events = 0;
+  const operation = parseXmlRecovery((function* () {
+    yield '<r><![CDATA[';
+    const chunk = 'a'.repeat(512);
+    for (let index = 0; index < 160; index++) yield chunk;
+    yield ']]></r>';
+  })(), { fs, cwd: '/', env: {}, signal }, new XmlBudget(resolveXmlQueryLimits(), signal, async () => {}),
+  recover ? () => {} : undefined, async event => {
+    if (event.type !== 'content') return;
+    assert.ok(event.content.text.length <= 512);
+    assert.equal(event.continuation === true, events > 0);
+    await Promise.resolve();
+    if (++events === 2) throw failure;
+  });
+  await assert.rejects(operation, error => error === failure);
+  assert.equal(events, 2);
+  assert.deepEqual(await fs.readdir('/'), []);
+});

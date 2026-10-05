@@ -218,6 +218,9 @@ function validateLimits(limits: XmlStepLimits): void {
 }
 
 export interface XmlSourceLimits extends XmlStepLimits {
+  /** Emit CDATA in bounded fragments, marking continuations of the same logical
+   * node. Requires retainTree: false; consumers must preserve fragment identity. */
+  readonly fragmentContent?: boolean;
   /** Store active parser frames through host-serviced requests. Requires retainTree: false. */
   readonly storeFrames?: boolean;
 }
@@ -229,6 +232,7 @@ export function parseXmlSourceSteps(length: number | undefined, limits: XmlSourc
 export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSourceLimits = {}): Generator<XmlParseStep, XmlElement, void> {
   validateLimits(limits);
   if (limits.storeFrames && limits.retainTree !== false) throw new TypeError("Stored XML frames require retainTree: false");
+  if (limits.fragmentContent && limits.retainTree !== false) throw new TypeError("XML content fragments require retainTree: false");
   const source = new XmlSource(length);
   const maxDepth = limits.maxDepth ?? Infinity;
   const maxNodes = limits.maxNodes ?? Infinity;
@@ -343,13 +347,27 @@ export function* parseXmlSourceSteps(length: number | undefined, limits: XmlSour
       if (!stack.length) invalid("CDATA outside root");
       const end = yield* find(source, "]]>", offset + 9);
       if (end < 0) invalid("unterminated CDATA");
-      const cdataText = (yield* source.slice(offset + 9, end));
-      admitText(cdataText);
+      if (end - offset - 9 > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");
       const parent = (yield* stack.peek())!;
-      if (retainTree) parent.element.text += cdataText;
       admitContent();
-      if (retain) parent.content!.push({ kind: "cdata", text: cdataText });
-      limits.events?.({ type: "content", content: { kind: "cdata", text: cdataText }, parent: parent.element });
+      let cursor = offset + 9, continuation = false;
+      do {
+        let finish = limits.fragmentContent ? Math.min(end, cursor + 512) : end;
+        if (finish < end) {
+          const last = yield* source.charCodeAt(finish - 1);
+          if (last >= 0xd800 && last <= 0xdbff) finish--;
+        }
+        const text = yield* source.slice(cursor, finish);
+        admitText(text);
+        if (retainTree) parent.element.text += text;
+        if (retain) parent.content!.push({ kind: "cdata", text });
+        limits.events?.({ type: "content", content: { kind: "cdata", text }, parent: parent.element,
+          ...(continuation ? { continuation: true } : {}) });
+        // Let external consumers persist each fragment before producing another.
+        if (limits.fragmentContent) yield Math.max(1, text.length);
+        continuation = true;
+        cursor = finish;
+      } while (cursor < end);
       offset = end + 3;
     } else if ((yield* source.startsWith("<?", offset))) {
       const start = offset;

@@ -66,3 +66,30 @@ for (const width of [1, 7, 512]) it(`streams unknown-length source without overr
   }
   expect(step.value).toEqual(parseXml(source));
 });
+
+for (const payload of ['', '😀'.repeat(5000)]) it(`fragments CDATA without changing logical content counts (${payload.length})`, () => {
+  const source = `<r><![CDATA[${payload}]]></r>`;
+  let actual = '', events = 0;
+  const parser = parseXmlSourceSteps(source.length, {
+    retainTree: false, fragmentContent: true, maxContentNodes: 2,
+    events(event) {
+      if (event.type !== 'content') return;
+      expect(event.content.kind).toBe('cdata');
+      expect(event.content.text.length).toBeLessThanOrEqual(512);
+      expect(event.continuation === true).toBe(events > 0);
+      expect(Array.from(event.content.text).every(character => character === '😀')).toBe(true);
+      actual += event.content.text;
+      events++;
+    },
+  });
+  let step = parser.next();
+  while (!step.done) {
+    if (typeof step.value !== 'number') {
+      if (!('offset' in step.value)) throw new Error('unexpected frame request');
+      step.value.value = source.slice(step.value.offset, step.value.offset + step.value.length);
+    }
+    step = parser.next();
+  }
+  expect(actual).toBe(payload);
+  expect(events).toBeGreaterThan(0);
+});

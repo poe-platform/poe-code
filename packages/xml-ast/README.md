@@ -69,3 +69,10 @@ read reaches EOF (an empty EOF read is valid). Earlier offsets may be requested
 again, so retain source spans in caller-backed storage. With `normalizeXmlChunks`,
 pass `true` as the second argument to flush at input-chunk boundaries and preserve
 early parser failures. The string parser and known-length protocol are unchanged.
+
+With `retainTree: false`, `parseXmlSourceSteps` accepts `fragmentContent: true`
+to emit CDATA bodies in at most 512 UTF-16 units without splitting surrogate
+pairs. Content events with `continuation: true` belong to the preceding logical
+node; store their bodies separately and retain one node identity. Yielded steps
+let the host await each fragment before parsing more. Other token kinds still
+require their own memory budget.

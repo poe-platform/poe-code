@@ -39,7 +39,7 @@ export async function parseStoredXml(
     const queued: XmlEvent[] = [];
     const frames = new StoredXmlFrames(frameStorage);
     const parser = parseXmlSourceSteps(recover ? length : undefined, {
-      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true,
+      ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false, storeFrames: true, fragmentContent: true,
       ...(recover ? { recover } : {}), ...(consume ? { events: (event: XmlEvent) => { queued.push(event); } } : {}),
     });
     let step = parser.next();

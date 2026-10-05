@@ -201,6 +201,13 @@ payload; the corrected evidence harness reports that limitation without
 dereferencing it. Gnumeric/GSF still refuses the genuine table at header loading.
 These results qualify neither implicit companion loading nor encrypted external
 memo parity. Primary-index content and the wider remaining profiles stay open.
+Alpha fields now apply the same native NUL boundary before encoding and warning
+admission (`paradoxAlphaNulBoundary`). Twelve public exports preserve prefixes
+and match independent pxlib schema/field bytes; genuine prefix overflow still
+warns. Eight ASCII application readbacks pass under an explicitly documented
+GSF byte-count adapter. The installed pxlib callback casts a pointer to int; the
+adapter corrects only that return value and does not establish unmodified-profile
+parity or CP1252 application support in the library built without reencoding.
 PERL_DATE takes no arguments: the activated sample and eight compiled public
 routes match all ten scalar/error/reference/array rejection and valid-call
 controls in C/C.UTF-8 (`perlDateArgumentLocale`). Broader locale/runtime profiles

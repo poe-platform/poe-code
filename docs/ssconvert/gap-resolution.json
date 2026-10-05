@@ -4584,13 +4584,14 @@
       "status": "open",
       "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained.",
       "checkpoint20261004": {
-        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3\u201315 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen. Companion-absence authority and diagnostics pass 16 plaintext/encrypted SDK/command controls, with/without MB/PX sentinels and cancellation; native pxlib matches the missing-blob warning and unaffected short value. Genuine pxlib-generated DB/MB pairs now validate the same default-reading authority contract in16 public controls; explicit native attachment independently recovers the89-byte plaintext memo.",
+        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings. Declared version IDs 3\u201315 now pass the bounded encrypted type-2/single-short-record cohort through native pxlib direct-file import and 52 SDK/command plaintext/encrypted exports with independent reopen. Companion-absence authority and diagnostics pass 16 plaintext/encrypted SDK/command controls, with/without MB/PX sentinels and cancellation; native pxlib matches the missing-blob warning and unaffected short value. Genuine pxlib-generated DB/MB pairs now validate the same default-reading authority contract in16 public controls; explicit native attachment independently recovers the89-byte plaintext memo. Alpha exports now stop at NUL before encoding and warning admission;12 public plaintext/encrypted outputs pass independent pxlib field-byte checks. Eight ASCII application readbacks pass with a documented process-local GSF callback correction.",
         "evidence": [
           "#/paradoxInlineMemoUtf8",
           "#/paradoxMemoNulCapacity",
           "#/paradoxVersionRoutes",
           "#/paradoxCompanionAbsence",
-          "#/paradoxCompanionContent"
+          "#/paradoxCompanionContent",
+          "#/paradoxAlphaNulBoundary"
         ],
         "nextAcceptance": "Version-byte, companion-absence and genuine memo default-reading checkpoints are complete. Remaining Paradox acceptance includes primary-index content, wider field/key/block/record profiles and installed artifacts. Preserve encrypted native memo null-payload and Gnumeric/GSF header-refusal limitations; do not repeat default-reading controls as external blob support.",
         "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
@@ -7100,6 +7101,24 @@
       "qualify.mjs": "767210938bc4c4615ed0e1f78a743b9e5d678bf3895ca12f55d890b11996a8d5",
       "results.json": "da013f45f27912c58eb238911ba200254ef45d3d18f6f6f94e1f71845d1d2d44",
       "native-results.json": "5c27448d70896c30dc92af24772ea4a0127fdf64254a44eb67f23409b1e943fa"
+    }
+  },
+  "paradoxAlphaNulBoundary": {
+    "status": "Alpha NUL-boundary repair verified; family remains open",
+    "finding": "Alpha fields encoded and measured suffix text after NUL. Fitting ASCII suffixes leaked into the field; unencodable suffixes could discard an otherwise valid CP1252 prefix and produce false truncation warnings.",
+    "repair": "Apply the native C-string prefix before UTF-8 warning length and CP1252 conversion, for both plaintext and encrypted exports. Genuine pre-NUL overflow still truncates and warns with the prefix byte length.",
+    "nativeSource": "Gnumeric paradox.c uses strlen(fieldstr); pxlib0.6.9 PX_put_data_alpha clears the field then converts/copies strlen(value). pxlib paradox.c SHA256 7f60f69f240eb59032723cde8c0247667fd365f54d45cfcf2be1f7d88da73022.",
+    "verification": "Six memory regressions fail before repair. All101 focused tests pass, then52 writer tests pass including two added true-overflow controls. Changed-file lint, selected20-workspace build and test types pass. Twelve compiled SDK/command exports preserve three original prefix cases without warnings; screenshot inspected. Independent pxlib reopens all12, checks schema and decrypts exact8-byte fields against PX_put_data_alpha results.",
+    "nativeApplication": "Eight ASCII/empty-prefix plaintext/encrypted exports pass Gnumeric CSV readback under an explicitly adapted GSF profile. Installed pxlib lacks reencoding support, so its exact reencoding warning is retained and CP1252 application decoding is not claimed.",
+    "gsfAdapter": "Pinned pxlib px_io.c SHA256 aef26a1f03a3204c771d0d57f36b7e31e4fccd8a0f5f72e5ba1bb1583ebf88d1 casts gsf_input_read pointer to int; negative truncated addresses cause spurious header refusal. A process-local LD_PRELOAD adapter returns requested byte count on success or-1 on failure; all file/record/crypto logic and installed binaries remain unchanged. Adapter .so SHA256 a1f063fb7917c485185d2e7c029ef9454deec007bf47f31edfbabe0e03070280. This is adapted-profile evidence, not an unmodified reference pass.",
+    "remaining": "Wider field/key/block/index content, password/truncation/work/cleanup and installed-artifact profiles remain open. Original GSF and encrypted external memo limitations remain historical/current unadapted-profile evidence.",
+    "hashes": {
+      "alpha-public.mjs": "23eddb17dfe1affa6f19dbbf2db650dbc1d466064fa8825a27db7faef0844aa9",
+      "alpha-public-results.json": "4927c2542a78074bfce124a1af50aefdff0e5662ffe72350fdc560e149250cc0",
+      "alpha-read.c": "d4cb5b98c76994b979d0e33d32ff0d7b45a1c9c7149385680636741ede7b490b",
+      "alpha-native-results.json": "2c73560021d7c1faf6ff9fc060439515434bd3a368fd80b6ee8d37ca0bfa606b",
+      "alpha-gsf-results.json": "66a5effe7011c603debc1278c9daada3af329e01982d9e6f35b617cb3a910218",
+      "gsf-read-adapter.c": "a5fedc8ee90aed2fe781df6cf9dfa29de872c8c612cd9a2e3c33117d19643052"
     }
   }
 }

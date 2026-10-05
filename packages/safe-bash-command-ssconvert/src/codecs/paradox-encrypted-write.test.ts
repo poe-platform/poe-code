@@ -236,3 +236,34 @@ it.each([
     "Paradox database has no blob file.", "Field 1 in row 2 could not be written."
   ]);
 });
+
+// PX_put_data_alpha receives a C string: suffix bytes after NUL cannot
+// trigger conversion loss, warnings, or appear in the on-disk field.
+it.each([
+  [false, "ab\0cd", "ab"], [true, "ab\0cd", "ab"],
+  [false, "café\0😀", "café"], [true, "café\0😀", "café"],
+  [false, "\0ignored text", ""], [true, "\0ignored text", ""]
+] as const)("terminates alpha fields before encoding with encryption=%s and text=%j", async (encrypted, text, prefix) => {
+  const book = (value: string): Workbook => ({ sheets: [{ id: "a", name: "Alpha", cells: [
+    { row: 0, column: 0, value: { kind: "string", value: "Label,A,8" } },
+    { row: 1, column: 0, value: { kind: "string", value } }
+  ] }] });
+  const messages: string[] = [];
+  const actual = await writeParadox(book(text), encrypted ? options : [],
+    { ...bindings().context, async diagnostic(d) { messages.push(d.message); } });
+  const expected = await writeParadox(book(prefix), encrypted ? options : [], bindings().context);
+  expect(messages).toEqual([]);
+  expect(actual).toEqual(expected);
+});
+
+it.each([false, true])("retains alpha prefix truncation warnings with encryption=%s", async encrypted => {
+  const book = (value: string): Workbook => ({ sheets: [{ id: "a", name: "Alpha", cells: [
+    { row: 0, column: 0, value: { kind: "string", value: "Label,A,8" } },
+    { row: 1, column: 0, value: { kind: "string", value } }
+  ] }] });
+  const messages: string[] = [];
+  const actual = await writeParadox(book("123456789\0ignored"), encrypted ? options : [],
+    { ...bindings().context, async diagnostic(d) { messages.push(d.message); } });
+  expect(messages).toEqual(["Field 1 in line 2 has possibly been cut off. Data has 9 characters."]);
+  expect(actual).toEqual(await writeParadox(book("12345678"), encrypted ? options : [], bindings().context));
+});

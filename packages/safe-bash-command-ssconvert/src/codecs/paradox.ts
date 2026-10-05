@@ -281,9 +281,12 @@ async function writeParadoxTable(book: Workbook, context: CapabilityContext): Pr
           data.setFloat64(0, number);
           if (number >= 0) raw[0] = raw[0]! | 128; else for (let i = 0; i < 8; i++) raw[i] = raw[i]! ^ 255;
         } else if (field.type === 1) {
-          const nlen = new TextEncoder().encode(text).length;
+          // Gnumeric measures strlen(fieldstr), and pxlib converts that same
+          // C-string prefix. Ignore suffixes before both admission and encoding.
+          const nul = text.indexOf("\0"), alpha = nul < 0 ? text : text.slice(0, nul);
+          const nlen = new TextEncoder().encode(alpha).length;
           if (nlen > field.length) await warning(`Field ${column + 1} in line ${row + 1} has possibly been cut off. Data has ${nlen} ${nlen === 1 ? "character" : "characters"}.`);
-          try { raw.set(encodeText(text, "CP1252", false, context).subarray(0, field.length)); }
+          try { raw.set(encodeText(alpha, "CP1252", false, context).subarray(0, field.length)); }
           catch (error) { if (!(error instanceof SsconvertError) || error.code === "resource-limit") throw error; /* pxlib leaves null on conversion loss. */ }
         } else if (field.type === 23) {
           const negative = text.startsWith("-"), sign = negative ? 15 : 0, point = text.indexOf(".");

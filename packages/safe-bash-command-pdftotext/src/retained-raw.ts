@@ -1,4 +1,4 @@
-import { streamRawBboxPage, type RawTextGeometry } from "./retained-bbox.js";
+import { streamTextGeometryPage, type RawTextGeometry } from "./retained-bbox.js";
 import { streamTextHtml, streamTextHtmlStart } from "./text-markup.js";
 import { PdfError, PdfNameIndex, PdfFileSource, PdfRetainedDocument, PdfStagingStorage, dictGet, type PdfRetainedPage, type PdfCosDict } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
@@ -14,6 +14,8 @@ interface RawTextPlan {
   readonly removeHyphens: boolean;
   readonly layout: boolean;
   readonly colspacing?: number;
+  readonly fixed?:number;
+  readonly linespacing?:number;
   readonly inputFile?: string;
   readonly outputFile?: string;
   readonly opw?: string;
@@ -68,9 +70,9 @@ async function publish(context: CommandContext, path: string, source: PdfFileSou
   }
 }
 
-/** Keep raw command inputs and all-or-nothing output on caller-authorized
- * retained storage. Ordered bbox output uses the same retained publication path. */
-export async function executeRetainedRawText(context: CommandContext, plan: RawTextPlan, stdout: ByteSink, signal: AbortSignal, maxInputBytes = Infinity): Promise<{ exitCode: number }> {
+/** Keep command inputs, extraction state and atomic output on caller-authorized
+ * retained storage for every text, layout, bbox and TSV mode. */
+export async function executeRetainedText(context: CommandContext, plan: RawTextPlan, stdout: ByteSink, signal: AbortSignal, maxInputBytes = Infinity): Promise<{ exitCode: number }> {
   const encoder = new TextEncoder(), inputPath = plan.inputFile ?? "-", outputPath = plan.outputFile ?? "-";
   const warning = plan.invalidEolWarning ? "Bad '-eol' value on command line\n" : "";
   async function error(message: string, exitCode: number, includeWarning = true) {
@@ -131,9 +133,9 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
         if (page.index + 1 < first) continue;
         if (page.index + 1 > last) break;
         const geometry = await rawGeometry(retained, page, plan);
-        if (plan.bbox) {
-          const hasWords = yield* streamRawBboxPage(page, storage, geometry!, { ...plan, signal });
-          if (!hasWords && !plan.bboxLayout && !plan.quiet) emptyPageWarning = true;
+        if (plan.bbox || (plan.tsv&&!plan.raw)) {
+          const hasWords = yield* streamTextGeometryPage(page, storage, geometry!, { ...plan, tsv:plan.tsv&&!plan.bbox, signal });
+          if (plan.bbox&&!hasWords && !plan.bboxLayout && !plan.quiet) emptyPageWarning = true;
           continue;
         }
         if (plan.tsv) {
@@ -144,8 +146,8 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
           continue;
         }
         const crop = geometry?.crop;
-        const textOptions={...(crop?{crop}:{}),rejoinHyphens:!plan.raw&&plan.removeHyphens,discardDiagonal:plan.nodiag,clipText:plan.clip,colSpacing:plan.colspacing,signal};
-        const raw = plan.raw?page.streamRawText(storage,textOptions):page.streamLogicalText(storage,textOptions);
+        const textOptions={...(crop?{crop}:{}),rejoinHyphens:!plan.raw&&plan.removeHyphens,discardDiagonal:plan.nodiag,clipText:plan.clip,colSpacing:plan.colspacing,fixedPitch:plan.fixed,lineSpacing:plan.linespacing,signal};
+        const raw = plan.raw?page.streamRawText(storage,textOptions):plan.layout?page.streamLayoutText(storage,textOptions):page.streamLogicalText(storage,textOptions);
         let lastByte: number | undefined;
         if (!plan.urls) { for await(const bytes of raw){lastByte=bytes.at(-1)??lastByte;yield bytes;} }
         else {
@@ -166,7 +168,7 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
             if (!pageFailed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
           }
         }
-        if(!plan.raw&&lastByte!==undefined){if(lastByte!==10)yield new Uint8Array([10]);yield new Uint8Array([10]);}
+        if(!plan.raw&&lastByte!==undefined){if(lastByte!==10)yield new Uint8Array([10]);if(!plan.layout)yield new Uint8Array([10]);}
         if (!plan.nopgbrk) yield new Uint8Array([12]);
       }
       if (plan.bbox) yield encoder.encode("</doc>\n</body>\n</html>\n");

@@ -1,3 +1,4 @@
+import type {ExtractTextOptions} from "./extract/text.js";
 import {streamLogicalTextChunks,type PdfLogicalTextOptions} from "./extract/logical-text-stream.js";
 import { walkRetainedFormFieldDetails, type PdfRetainedFormFieldDetails } from "./extract/retained-form-field-details.js";
 import { PdfArrayCursor } from "./content/array-cursor.js";
@@ -620,6 +621,15 @@ export class PdfRetainedPage {
     try { yield* streamRawTextChunks(glyphs(), shared, options); }
     catch (error) { failed = true; throw error; }
     finally { await owned?.close().catch(error => { if (!failed) throw error; }); }
+  }
+
+  /** Stream physical layout in bounded UTF-8 chunks, preserving pitch and rows. */
+  async *streamLayoutText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextIndexOptions & Pick<ExtractTextOptions,"fixedPitch"|"lineSpacing"> & {readonly crop?:PdfRect} = {}): AsyncGenerator<Uint8Array,void,void> {
+    const index=await this.indexText(storage,{...options,mode:"layout"});
+    const encoder=new TextEncoder();let failed=false;
+    try{for await(const part of index.layoutText(options)){options.signal?.throwIfAborted();yield encoder.encode(part);}}
+    catch(error){failed=true;throw error;}
+    finally{await index.close().catch(error=>{if(!failed)throw error;});}
   }
 
   /** Stream logical reading order from a caller-backed text index. */

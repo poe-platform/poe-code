@@ -1,3 +1,4 @@
+import {PdfTextRecordOrder} from "./text-record-order.js";
 import {logicalTextGlyphs} from "./logical-text-glyphs.js";
 import {orderedTextGlyphs,type PdfOrderedTextGlyph} from "./ordered-text-glyphs.js";
 import { glyphText, sameReplacement, type PdfTextGlyph } from "./stored-text-glyphs.js";
@@ -240,6 +241,51 @@ export class PdfRawTextIndex {
       kind: block[7] === 1 ? "heading" : block[7] === 2 ? "list-item" : "paragraph", bbox: bounds(block),
       lines: () => this.lines(block[1]!, block[2]!),
     };
+  }
+  /** Stream physical rows; sorting and merge arrays stay in caller backing.
+   * Replaying a row twice trims an arbitrarily long whitespace suffix without
+   * retaining it, while preserving all interior whitespace and fixed spacing. */
+  async *layoutText(options: Pick<ExtractTextOptions,"fixedPitch"|"lineSpacing"> & {readonly crop?:PdfRect} = {}): AsyncGenerator<string,void,void> {
+    this.assertOpen();
+    if(maximum(this.options.maxWorkingBytes)<409600)throw new PdfError("E_LIMIT","PDF layout working byte limit exceeded");
+    const crop=options.crop,{backing,storage,firstBlock,blockCount}=this;
+    const assertOpen=this.assertOpen.bind(this),records=this.records.bind(this),allocate=this.allocate.bind(this),writeRecord=this.writeRecord.bind(this),text=this.text.bind(this);
+    const selected=(box:PdfRect)=>!crop||((box[0]+box[2])/2>=crop[0]&&(box[0]+box[2])/2<=crop[2]&&(box[1]+box[3])/2>=crop[1]&&(box[1]+box[3])/2<=crop[3]);
+    const read=async(position:number)=>{assertOpen();const bytes=await backing.read(position,64),view=new DataView(bytes.buffer,bytes.byteOffset,64);return Array.from({length:8},(_,i)=>view.getFloat64(i*8));};
+    async function* positions(position:number,count:number){for(let i=0;i<count;i++){assertOpen();if(i&&i%64===0)await new Promise<void>(resolve=>setTimeout(resolve,0));yield position;position=(await read(position))[0]!;}}
+    const sortOptions={...this.options,accountStorage:(delta:number)=>{const total=this.orderStorage+delta;if(total+Math.ceil(this.allocated/16384)*16384>maximum(this.options.maxStorageBytes))throw new PdfError("E_LIMIT","PDF text index storage byte limit exceeded");this.orderStorage=total;}};
+    let leftMargin=Infinity;
+    async function* lines(){for await(const block of records(firstBlock,blockCount))for await(const position of positions(block[1]!,block[2]!)){
+      const line=await read(position);let box:PdfRect|undefined;
+      for await(const word of records(line[1]!,line[2]!))if(selected(bounds(word)))box=box?mergeBBox(box,bounds(word)):bounds(word);
+      if(!box)continue;leftMargin=Math.min(leftMargin,box[0]);
+      if(!crop)yield position;else{const at=allocate(64);await writeRecord(at,[0,line[1]!,line[2]!,...box,line[7]!]);yield at;}
+    }}
+    const order=await PdfTextRecordOrder.create(lines(),async(a,b)=>{const x=await read(a),y=await read(b),dy=y[7]!-x[7]!;return Math.abs(dy)>4?dy:x[3]!-y[3]!;},this.storage,sortOptions);
+    const cursor=order.values();let failed=false,previousY:number|undefined;
+    try{
+      let next=await cursor.next(),pending=next.done?undefined:{position:next.value,record:await read(next.value)};
+      while(pending){const reference=pending.record[7]!;
+        async function* group(){while(pending&&Math.abs(reference-pending.record[7]!)<=4){yield pending.position;next=await cursor.next();pending=next.done?undefined:{position:next.value,record:await read(next.value)};}}
+        const row=await PdfTextRecordOrder.create(group(),async(a,b)=>(await read(a))[3]!-(await read(b))[3]!,this.storage,sortOptions);let rowFailed=false;
+        try{
+          let baseline=reference;for await(const position of row.values()){baseline=(await read(position))[7]!;break;}
+          if(previousY!==undefined){let blanks=0;if(options.lineSpacing!==undefined&&options.lineSpacing>0)blanks=Math.max(0,Math.min(40,Math.round((previousY-baseline)/options.lineSpacing)-1));yield "\n".repeat(1+blanks);}previousY=baseline;
+          const fixed=options.fixedPitch!==undefined&&options.fixedPitch>0,pitch=fixed?options.fixedPitch!:6;
+          async function* words(){for await(const linePosition of row.values()){const line=await read(linePosition);for await(const wordPosition of positions(line[1]!,line[2]!)){if(selected(bounds(await read(wordPosition))))yield wordPosition;}}}
+          const wordOrder=fixed?await PdfTextRecordOrder.create(words(),async(a,b)=>(await read(a))[3]!-(await read(b))[3]!,storage,sortOptions):undefined;
+          let wordsFailed=false;
+          try{
+            async function* content(){let length=0,currentX=leftMargin;
+              if(wordOrder){for await(const position of wordOrder.values()){const word=await read(position),spaces=Math.min(80,Math.max(length>0?1:0,Math.round((word[3]!-currentX)/pitch)));if(spaces){length+=spaces;yield " ".repeat(spaces);}for await(const part of text(word[1]!,word[2]!)){length+=part.length;yield part;}currentX=word[5]!;}}
+              else for await(const position of row.values()){const line=await read(position),spaces=Math.min(40,Math.max(length>0?2:0,Math.round((line[3]!-currentX)/pitch)));if(spaces){length+=spaces;yield " ".repeat(spaces);}let seen=false;for await(const word of records(line[1]!,line[2]!)){if(!selected(bounds(word)))continue;if(seen){length++;yield " ";}seen=true;for await(const part of text(word[1]!,word[2]!)){length+=part.length;yield part;}}currentX=line[5]!;}
+            }
+            let length=0,end=0;for await(const part of content()){const kept=part.trimEnd().length;if(kept)end=length+kept;length+=part.length;}
+            let emitted=0;for await(const part of content()){assertOpen();const count=Math.min(part.length,end-emitted);if(count>0)yield part.slice(0,count);emitted+=count;if(emitted>=end)break;}
+          }catch(error){wordsFailed=true;throw error;}finally{await wordOrder?.close().catch(error=>{if(!wordsFailed)throw error;});}
+        }catch(error){rowFailed=true;throw error;}finally{await row.close().catch(error=>{if(!rowFailed)throw error;});}
+      }
+    }catch(error){failed=true;throw error;}finally{const results=await Promise.allSettled([cursor.return(),order.close()]);if(!failed)for(const result of results)if(result.status==='rejected')await Promise.reject(result.reason);}
   }
   close(): Promise<void> { this.closed = true; return this.closing ??= this.backing.close(); }
 }

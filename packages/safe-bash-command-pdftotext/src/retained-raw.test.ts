@@ -222,3 +222,15 @@ for(const flags of [[],['-remove-hyphens','no'],['-htmlmeta'],['-urls'],['-x','1
  assert.equal((await createPdftotextCommand().execute(f.context)).exitCode,expected.exitCode);assert.deepEqual(joined(f.stdout),encoded(expected.output,flags.includes('UCS-2')?'UCS-2':'UTF-8'));assert.equal(new TextDecoder().decode(joined(f.stderr)),expected.stderr);
  assert.deepEqual(f.counts(),{wholeReads:0,payloadWrites:0,published:0});await f.clean();
 });
+
+for(const flags of [['-layout'],['-layout','-fixed','5'],['-lineprinter'],['-layout','-linespacing','10'],['-layout','-x','15','-W','90'],['-layout','-enc','UCS-2','-eol','dos']])test(`retained layout text preserves bytes: ${flags.join(' ')}`,async()=>{
+ const input=pdf(),args=[...flags,'input.pdf','-'],expected=await runPdftotextCli(args,new Map([['input.pdf',input]])),f=await fixture(input,args);
+ assert.equal((await createPdftotextCommand().execute(f.context)).exitCode,expected.exitCode);assert.deepEqual(joined(f.stdout),encoded(expected.output,flags.includes('UCS-2')?'UCS-2':'UTF-8'));assert.equal(new TextDecoder().decode(joined(f.stderr)),expected.stderr);
+ assert.deepEqual(f.counts(),{wholeReads:0,payloadWrites:0,published:0});await f.clean();
+});
+
+for(const flags of [['-tsv'],['-layout','-tsv'],['-tsv','-htmlmeta','-eol','dos'],['-tsv','-cropbox','-r','144','-x','15','-W','90'],['-tsv','-enc','UCS-2']])test(`retained ordered TSV preserves bytes: ${flags.join(' ')}`,async()=>{
+ const input=pdf(),args=[...flags,'input.pdf','-'],expected=await runPdftotextCli(args,new Map([['input.pdf',input]])),f=await fixture(input,args);
+ assert.equal((await createPdftotextCommand().execute(f.context)).exitCode,expected.exitCode);assert.deepEqual(joined(f.stdout),encoded(expected.output,flags.includes('UCS-2')?'UCS-2':'UTF-8'));assert.equal(new TextDecoder().decode(joined(f.stderr)),expected.stderr);
+ assert.deepEqual(f.counts(),{wholeReads:0,payloadWrites:0,published:0});await f.clean();
+});

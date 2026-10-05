@@ -1,6 +1,6 @@
 import { escapeXml } from "./text-markup.js";
-import { encodeUcs2, applyPopplerOutputEncoding } from "./output-encoding.js";
-import { executeRetainedRawText } from "./retained-raw.js";
+import { applyPopplerOutputEncoding } from "./output-encoding.js";
+import { executeRetainedText } from "./retained-raw.js";
 import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
@@ -828,12 +828,11 @@ export async function runPdftotextCli(argv: readonly string[], files: ReadonlyMa
     return drainSteps(runPdftotextCliSteps(argv, files, stdinBytes, signal), signal);
 }
 
-function usesRetainedRaw(parsed: ParsedArgs): boolean {
-  return !parsed.error && !parsed.listenc && !parsed.version && !parsed.help && (parsed.raw || parsed.bbox || (!parsed.layout && !parsed.tsv));
+function usesRetainedText(parsed: ParsedArgs): boolean {
+  return !parsed.error && !parsed.listenc && !parsed.version && !parsed.help;
 }
 
 export async function pdftotext(context: CommandContext): Promise<{ exitCode: number }> {
-  let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
@@ -852,79 +851,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       return { exitCode: res.exitCode };
     }
 
-    if (usesRetainedRaw(parsed)) {
-      return await executeRetainedRawText(context, parsed, invocation.child(context.stdout).output, invocation.signal);
-    }
-
-    const inputTarget = parsed.inputFile ?? "-";
-    let pdfBytes: Uint8Array;
-    let accountedBytes = 0;
-    const chargeBytes = (delta: number) => {
-      if (delta > 0) {
-        accountedBytes += delta;
-        context.inputBudget?.check(accountedBytes);
-      }
-    };
-    if (inputTarget === "-") {
-      const chunks: Uint8Array[] = [];
-      let total = 0;
-      for await (const chunk of readBytes(context.stdin, invocation.signal)) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-        chunks.push(chunk);
-        total += chunk.byteLength;
-        chargeBytes(chunk.byteLength);
-      }
-      pdfBytes = new Uint8Array(total);
-      let offset = 0;
-      for (const c of chunks) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-        pdfBytes.set(c, offset);
-        offset += c.byteLength;
-      }
-    } else {
-      const resolvedPath = resolvePath(context.cwd, inputTarget);
-      try {
-        pdfBytes = await context.fs.readFile(resolvedPath, { signal: invocation.signal });
-        chargeBytes(pdfBytes.byteLength);
-      } catch {
-        if (!parsed.quiet) {
-          const msg = `I/O Error: Couldn't open file '${inputTarget}': No such file or directory.\n`;
-          await writeBytes(context.stderr, new TextEncoder().encode(msg), invocation.signal);
-        }
-        return { exitCode: 1 };
-      }
-    }
-
-    const res = await drainSteps(extractPdfToTextBytesCooperativelySteps(pdfBytes, argv, invocation.signal), invocation.signal);
-    if (res.stderr) {
-      await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
-    }
-    if (res.exitCode !== 0) {
-      return { exitCode: res.exitCode };
-    }
-
-    const outBytes = parsed.encoding === "Latin1"
-      ? Uint8Array.from(res.output, char => char.charCodeAt(0))
-      : parsed.encoding === "UCS-2"
-        ? encodeUcs2(res.output)
-        : new TextEncoder().encode(res.output);
-    if (res.outputPath === "-") {
-      const stdout = invocation.child(context.stdout);
-      await writeBytes(stdout.output, outBytes, invocation.signal);
-    } else {
-      const outResolved = resolvePath(context.cwd, res.outputPath);
-      try {
-        await writeFileOutput(context, outBytes, data => context.fs.writeFile(outResolved, data, { signal: invocation.signal }));
-      } catch {
-        if (!parsed.quiet) {
-          const msg = `I/O Error: Couldn't open text file '${res.outputPath}'\n`;
-          await writeBytes(context.stderr, new TextEncoder().encode(msg), invocation.signal);
-        }
-        return { exitCode: 2 };
-      }
-    }
-
-    return { exitCode: 0 };
+    return await executeRetainedText(context, parsed, invocation.child(context.stdout).output, invocation.signal);
   } finally {
     await invocation.close();
   }
@@ -938,9 +865,9 @@ export function createPdftotextCommand(options: PdftotextCommandOptions = {}): C
     description: "Extract PDF text, layout, XHTML bounding boxes, and TSV via @poe-code/pdf-ast",
     async execute(context: CommandContext) {
       const parsed = parseArgs(getCommandArguments(context).args);
-      if (usesRetainedRaw(parsed)) {
+      if (usesRetainedText(parsed)) {
         const invocation = createOutputOperation(context, { write: async () => {} });
-        try { return await executeRetainedRawText(context, parsed, invocation.child(context.stdout).output, invocation.signal, maxInputBytes); }
+        try { return await executeRetainedText(context, parsed, invocation.child(context.stdout).output, invocation.signal, maxInputBytes); }
         finally { await invocation.close(); }
       }
       return new InputByteBudget(maxInputBytes).run(context, pdftotext);

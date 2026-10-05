@@ -206,6 +206,11 @@ to the current line and preserving original paragraph boundaries. `chunkBytes` b
 `maxWorkingBytes` admits formatter scratch before input is pulled. Page resource
 and rendering allocations still belong to the evaluator described above.
 
+`page.streamLayoutText(storage, options)` streams physical rows with optional
+`fixedPitch`, `lineSpacing` and `crop`. `index.layoutText(options)` yields bounded
+string chunks from an existing layout index; row and word orders stay on caller
+storage, including when trimming long whitespace suffixes.
+
 `page.streamLogicalText(storage, options)` streams UTF-8 in logical reading order,
 with optional `crop`, `rejoinHyphens` and `chunkBytes`. It owns and closes its
 caller-backed text index. Use `streamLogicalTextChunks(index, options)` to format

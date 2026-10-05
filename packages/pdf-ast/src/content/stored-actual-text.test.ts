@@ -1,3 +1,4 @@
+import {formatExtractedPageText} from "../extract/text.js";
 import { PdfTextGlyphNormalizer } from "../extract/text-glyphs.js";
 import { expect, it } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
@@ -79,7 +80,7 @@ it('indexes logical page columns through the retained SDK',async()=>{
   page.setRawContentStream('BT /F 10 Tf 1 0 0 1 150 80 Tm (R1) Tj 1 0 0 1 0 80 Tm (L1) Tj 1 0 0 1 150 65 Tm (R2) Tj 1 0 0 1 0 65 Tm (L2) Tj ET');
   const fs=createMemoryFileSystem();await fs.mkdir('/scratch');await fs.writeFile('/input',original.save());
   const storage={fs,directory:'/scratch'},source=await PdfFileSource.open(fs,'/input'),document=await PdfRetainedDocument.open(source,storage);
-  try{const retained=(await document.pages().next()).value!;let formatted='';for await(const part of retained.streamLogicalText(storage))formatted+=new TextDecoder().decode(part);expect(formatted).toBe('L1\nL2\n\nR1\nR2');const index=await retained.indexText(storage);
+  try{const retained=(await document.pages().next()).value!;let formatted='';for await(const part of retained.streamLogicalText(storage))formatted+=new TextDecoder().decode(part);expect(formatted).toBe('L1\nL2\n\nR1\nR2');let layout='';for await(const part of retained.streamLayoutText(storage,{fixedPitch:5}))layout+=new TextDecoder().decode(part);expect(layout).toBe(formatExtractedPageText(page.extractPage({mode:'layout'}),{mode:'layout',fixedPitch:5}));const index=await retained.indexText(storage);
     try{const words:string[]=[];for await(const block of index.blocks())for await(const line of block.lines())for await(const word of line.words()){let text='';for await(const part of word.text())text+=part;words.push(text);}expect(words).toEqual(['L1','L2','R1','R2']);}finally{await index.close();}
   }finally{await document.close();await source.close();}expect(await fs.readdir('/scratch')).toEqual([]);
 });

@@ -1,3 +1,4 @@
+import * as epubXml from "./epub-xml.js";
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {PagedStorage} from "safe-bash-io-engine/storage";
@@ -86,4 +87,22 @@ it("preserves public EPUB parse-error attribution without publishing output", as
   const fs = new MemoryFileSystem(), write = vi.fn(), close = vi.fn(), abort = vi.fn();
   await expect(convertToOutput([input], {from: "epub", to: "plain"}, {yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {write, close, abort}})).rejects.toMatchObject({code: expected.code, message: expected.message, location: expected.location, format: expected.format});
   expect(write).not.toHaveBeenCalled(); expect(close).not.toHaveBeenCalled(); expect(abort).not.toHaveBeenCalled(); expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each(["xmlNodes", "xmlDepth", "attributes", "text", "nodes", "depth", "references", "resourceBytes"].flatMap(key => [0, 1, 8, 64, 512, 2048, 65536].flatMap(limit => [false, true].map(streamed => ({key, limit, streamed})))))("preserves public EPUB finite $key=$limit (streamed=$streamed)", async ({key, limit, streamed}) => {
+  const bytes = await archive(parts()), input = {...(streamed ? {chunks: [bytes]} : {bytes}), source: "book.epub"};
+  const options = {from: "epub", to: "plain"}, limits = {[key]: limit};
+  const referenceFs = new MemoryFileSystem();
+  const expected = await convert([input], options, {limits, workingFiles: {fs: referenceFs, directory: "/", cacheBytes: 16384}, yield: async () => {}}).then(value => ({value}), error => ({error}));
+  const fs = new MemoryFileSystem(), write = vi.fn(), close = vi.fn(), abort = vi.fn();
+  const buffered = vi.spyOn(epubXml, "parseEpubXml").mockRejectedValue(new Error("Buffered XML forbidden"));
+  try {
+    const result = await convertToOutput([input], options, {limits, yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {write, close, abort}}).then(value => ({value}), error => ({error}));
+    expect(buffered).not.toHaveBeenCalled();
+    if ("error" in expected) {
+      expect(result).toHaveProperty("error");
+      if ("error" in result) expect({code: result.error.code, message: result.error.message, location: result.error.location, format: result.error.format}).toEqual({code: expected.error.code, message: expected.error.message, location: expected.error.location, format: expected.error.format});
+      expect(write).not.toHaveBeenCalled(); expect(close).not.toHaveBeenCalled();
+    } else {expect(result).toHaveProperty("value"); expect(close).toHaveBeenCalledOnce();}
+  } finally {buffered.mockRestore(); expect(await fs.readdir("/")).toEqual([]);}
 });

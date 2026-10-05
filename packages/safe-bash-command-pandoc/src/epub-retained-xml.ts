@@ -52,8 +52,8 @@ export async function openEpubXml(source: Source, part: string, context: Adapter
           const next = await iterator!.next(); context.checkpoint();
           if (next.done) {done = true; break;}
           if (!(next.value instanceof Uint8Array)) throw new PandocError("E_IO", context.operation ?? "read", "Producer must yield bytes");
-          for (let offset = 0; offset < next.value.length; offset += 4096) {
-            const decoded = decode(next.value.subarray(offset, offset + 4096));
+          for (let offset = 0; offset < next.value.length; offset += 256) {
+            const decoded = decode(next.value.subarray(offset, offset + 256));
             context.charge("text", decoded.length);
             if (decoded) yield encoder.encode(decoded);
             await context.cooperate();
@@ -72,10 +72,13 @@ export async function openEpubXml(source: Source, part: string, context: Adapter
       await context.cooperate();
       if (node.kind === "text" || node.kind === "cdata") {context.charge("xmlNodes", 1); context.charge("retainedBytes", 2 * await units(document.text(node))); continue;}
       if (node.kind !== "element") continue;
-      context.bound("xmlDepth", depth!); context.charge("xmlNodes", 1); context.charge("retainedBytes", 128);
+      context.bound("xmlDepth", depth!); context.charge("xmlNodes", 1);
+      let attributeCount = 0;
+      for (const attributes of [document.attributes(node), document.declarations(node)]) for await (const ignoredAttribute of attributes) {attributeCount++; await context.cooperate();}
+      context.charge("attributes", attributeCount); context.charge("retainedBytes", 128);
       context.charge("retainedBytes", 2 * (await units(document.raw(node.localName)) + await units(document.namespace(node))));
       for (const attributes of [document.attributes(node), document.declarations(node)]) for await (const attribute of attributes) {
-        context.charge("attributes", 1); context.charge("retainedBytes", 64);
+        context.charge("retainedBytes", 64);
         context.charge("retainedBytes", 2 * (await units(document.raw(attribute.localName)) + await units(document.namespace(attribute)) + await units(document.text(attribute))));
       }
     }

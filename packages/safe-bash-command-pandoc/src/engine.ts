@@ -647,6 +647,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
       try {
         await session.call(() => streamRetainedDocument(async () => {
           if (reader.descriptor.name !== "mediawiki" && Number.isFinite(session.limits.references)) session.charge("references", 1);
+          if (reader.descriptor.name === "epub" && "bytes" in inputs[0]! && Number.isFinite(session.limits.references)) session.charge("references", 1);
           reading = true;
           if (reader.descriptor.name === "json") {const retained = await readRetainedJson(inputs[0]!, session, context.workingFiles!, true, true, () => {readerStarted = true;}); reading = false; return retained;}
           if (reader.descriptor.name === "mediawiki") {const retained = await readRetainedMediawiki(inputs, session, context.workingFiles!, options.fileScope, index => {readerStarted = index >= 0; readerInput = index;}); reading = false; return retained;}
@@ -669,6 +670,8 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
           reading = false; return {...retained.document, resources: retained.resources, closeResources: retained.close};
         }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
       } catch (error) {
+        if (reading && reader.descriptor.name === "epub" && error instanceof PandocError && error.code === "E_LIMIT" && inputs[0]!.source && !error.location?.startsWith(inputs[0]!.source + ":"))
+          throw new PandocError(error.code, "convert", error.message, error.format, `${inputs[0]!.source}:${error.location ?? "1:1"}`);
         if (reading && reader.descriptor.name === "json" && error instanceof PandocError && error.code === "E_LIMIT" && (["tableCells:", "attributes:", "depth:", "nodes:"].some(prefix => error.message.startsWith(prefix)) || readerStarted && ["text:", "references:", "retainedBytes:"].some(prefix => error.message.startsWith(prefix))) && inputs[0]!.source)
           throw new PandocError(error.code, "convert", error.message, error.format, `${inputs[0]!.source}:${error.location ?? "1:1"}`);
         if (reading && readerStarted && reader.descriptor.name === "mediawiki" && error instanceof PandocError && error.code !== "E_IO" && error.code !== "E_CANCELLED") {

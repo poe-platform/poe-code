@@ -11,7 +11,8 @@ I/O uses byte streams and the configured VFS only. There is no script execution,
 host executable/filesystem access, network access, native/WASM fallback, dynamic
 download or external runtime dependency.
 Use Node.js 22+ with TypeScript ESM. Browser/workerd conditional imports and
-declarations are checked in Node; actual browser/workerd engines remain unqualified.
+declarations support both profiles. Local workerd measurements and their limits
+are recorded in the [Worker QA plan](../../docs/plans/html-conversion-worker-memory-qa.md).
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
@@ -65,12 +66,14 @@ and removal snapshots use the same storage. A 256 KiB page cache, 512 node recor
 16 KiB windows per live reference sequence and two 256-entry short-name caches
 bound this resident state. Large documents require injected retained read/write
 handles and conditional removal in `TMPDIR` or the command working directory.
-A memory filesystem still stores backing bytes in RAM.
+A memory filesystem still stores backing bytes in RAM. For large output through `Shell.exec`, pass `captureOutput: false` and a streaming `stdout` sink; the default result captures output in memory.
 `parseHtml` and the source-only SDK retain a convenience DOM; `parseHtml` also
 defaults to original-source retention. Pass `"discard"` as its third argument to
 omit that copy; original serialization then fails with `E_UNSUPPORTED`.
-Individual lexical tokens and URL joins still materialize their complete values,
-so the command is not yet qualified for bounded memory on arbitrary inputs.
+Lexical tokens, arbitrary names, attribute indexes and URL components also use
+caller storage. Relative URL paths use a persistent stored stack; native URL
+parsing receives only bounded escaping windows and hostname probes. Sibling
+ordinals and per-type totals use stored indexes with fixed-size caches.
 The parser supports tested HTML recovery, entities, raw text, tables,
 formatting reconstruction and foreign integration points.
 `htmlqBaseline.fullHtml5Parity` is **false**: complete HTML5 parsing/recovery

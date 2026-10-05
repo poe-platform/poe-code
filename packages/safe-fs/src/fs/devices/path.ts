@@ -1,3 +1,4 @@
+import { plainDevicePathResolvers } from "./plain-path.js";
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import { pathByteLength, validatePath } from "../../contracts/virtual-path.js";
@@ -126,6 +127,10 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
   if (options.pathLimits === undefined && Reflect.get(filesystem, pathNamespace) === undefined) {
     const fast = tryResolveMemoryDevicePath(filesystem, path, resizeCreate);
     if (fast !== undefined) return fast;
+    if (followFinal && resizeCreate === undefined && traversal === undefined && isCleanAbsolutePath(path) && path !== "/" && path !== "/dev" && !path.startsWith("/dev/")) {
+      const resolved = await plainDevicePathResolvers.get(filesystem)?.(path, options);
+      if (resolved !== undefined) return resolved;
+    }
   }
   const namespace = capturePathNamespace(filesystem, options);
   if (resizeCreate !== undefined) return resolveResizeDevicePath(filesystem, path, options, resizeCreate, namespace, traversal);

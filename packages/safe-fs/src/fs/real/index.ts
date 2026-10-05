@@ -1,3 +1,4 @@
+import { plainDevicePathResolvers } from "../devices/plain-path.js";
 import { platform } from "#safe-fs-platform";
 import { snapshotStagingCreation } from "../staging-cleanup.js";
 import { snapshotConditionalChmod } from "../conditional-chmod.js";
@@ -160,6 +161,27 @@ export class RealFileSystem implements FileSystem {
       throw new FsError("ENOTSUP", { syscall: "root", message: "this backend requires a POSIX host" });
     }
     this.configuredRoot = root;
+    if (Object.getPrototypeOf(this) === RealFileSystem.prototype) {
+      plainDevicePathResolvers.set(this, async (path, options) => {
+        if (this.lstat !== realImplementation.lstat?.value || this.readlink !== realImplementation.readlink?.value) return undefined;
+        try {
+          let target = await this.root(options);
+          const components = path.slice(1).split("/");
+          for (let index = 0; index < components.length; index++) {
+            options.signal?.throwIfAborted();
+            target = join(target, components[index]!);
+            const stat = await native.lstat(target);
+            options.signal?.throwIfAborted();
+            if ((!stat.isFile() && !stat.isDirectory()) || (index < components.length - 1 && !stat.isDirectory())) return undefined;
+          }
+          return path;
+        } catch {
+          options.signal?.throwIfAborted();
+          // Missing entries, symlinks and other failures use generic routing.
+          return undefined;
+        }
+      });
+    }
     this.renameNoReplace = typeof options === "string" ? undefined : options.renameNoReplace;
     if (this.renameNoReplace !== undefined) {
       if (!platform.nativeFileSystem.atomicRename) throw new FsError("ENOTSUP", { syscall: "root", message: "atomic rename is unavailable on this host" });
@@ -177,9 +199,12 @@ export class RealFileSystem implements FileSystem {
     })();
     const root = await this.rootPromise;
     options.signal?.throwIfAborted();
-    if (await native.realpath(root) !== root) throw new FsError("EACCES");
+    const [canonical, metadata] = await Promise.allSettled([native.realpath(root), native.stat(root)]);
+    if (canonical.status === "rejected") throw canonical.reason;
+    if (canonical.value !== root) throw new FsError("EACCES");
     options.signal?.throwIfAborted();
-    if (!(await native.stat(root)).isDirectory()) throw new FsError("ENOTDIR");
+    if (metadata.status === "rejected") throw metadata.reason;
+    if (!metadata.value.isDirectory()) throw new FsError("ENOTDIR");
     options.signal?.throwIfAborted();
     return root;
   }

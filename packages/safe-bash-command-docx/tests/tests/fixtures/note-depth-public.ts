@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { Volume } from "memfs";
 import * as api from "../../../src/sdk.js";
 import { textContext, textFixture, w } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
+import { streamingFixture } from "../../fixtures/streaming-filesystem.js";
 let request = "";
 for await (const bytes of process.stdin) request += String(bytes);
 const { strict, depth, kind, route } = JSON.parse(request) as { strict: boolean; depth: number; kind: "footnote" | "endnote"; route: "sdk" | "cli" };
@@ -22,7 +23,7 @@ try {
     assert.equal(before.items[0]!.text, "Old é 海"); assert.equal(before.items[0]!.references.length, 1);
     await api.editDocumentNotes(input, { operation: "notes.set", options: { kind, note: 1, text: "New é 海", output: "-" } }, { ...context(), stdout, encoding: { order: "input", compression: "store" } });
   } else {
-    const result = await api.createDocxInspectionCommandEngine({ limits, documentLimits }).execute({ args: ["notes", "set", "/input", "--kind", kind, "--note", "1", "--text", "New é 海", "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(memory.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { memory.appendFileSync("/err", bytes); } } });
+    const result = await api.createDocxInspectionCommandEngine({ limits, documentLimits }).execute({ args: ["notes", "set", "/input", "--kind", kind, "--note", "1", "--text", "New é 海", "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(memory.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { memory.appendFileSync("/err", bytes); } } });
     assert.equal(result.exitCode, 0, memory.readFileSync("/err", "utf8") as string);
   }
   const output = new Uint8Array(memory.readFileSync("/out") as Buffer), saved = await api.readArchive(output, context());

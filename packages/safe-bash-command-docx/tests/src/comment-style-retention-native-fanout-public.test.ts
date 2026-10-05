@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
-import { prepareNativeModelScript } from "../tests/fixtures/native-model.js";
+import { prepareNativeModelScript } from "../../../safe-bash-docx-engine/tests/fixtures/native-model.js";
 
 let native: Awaited<ReturnType<Awaited<ReturnType<typeof prepareNativeModelScript>>>> | undefined;
 beforeAll(async () => {
@@ -9,7 +9,7 @@ try {
   console.log(JSON.stringify({ ok: true }));
 } catch (error) {
   console.log(JSON.stringify({ ok: false, error: String(error), stack: error instanceof Error ? error.stack : undefined }));
-}`, `import { verifyCommentStyleRetention } from "../tests/fixtures/comment-style-retention-native.js";`);
+}`, `import { verifyCommentStyleRetention } from "../../safe-bash-command-docx/tests/tests/fixtures/comment-style-retention-native.js";`);
   native = await startNative();
 });
 afterEach(async () => {

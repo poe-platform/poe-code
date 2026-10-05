@@ -3,6 +3,7 @@ import { createInterface } from "node:readline";
 import { Volume } from "memfs";
 import * as api from "../../../src/sdk.js";
 import { textContext, textFixture } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
+import { streamingFixture } from "../../fixtures/streaming-filesystem.js";
 
 console.log(JSON.stringify({ ready: true }));
 for await (const request of createInterface({ input: process.stdin })) {
@@ -34,7 +35,7 @@ try {
     }
   } else {
     const args = action === "read" ? ["bookmarks", "list", "/input", "--json"] : ["bookmarks", action === "rename" ? "set" : "remove", "/input", "--bookmark", "1", "--references", action === "rename" ? "update" : "remove", ...(action === "rename" ? ["--name", "Bay"] : []), "--output", "-"];
-    const result = await api.createDocxInspectionCommandEngine({ limits, documentLimits }).execute({ args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(memory.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { memory.appendFileSync("/err", bytes); } } });
+    const result = await api.createDocxInspectionCommandEngine({ limits, documentLimits }).execute({ args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(memory.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { memory.appendFileSync("/err", bytes); } } });
     assert.equal(result.exitCode, 0, memory.readFileSync("/err", "utf8") as string);
     if (action === "read") {
       const result = JSON.parse(memory.readFileSync("/out", "utf8") as string); assert.equal(result.data.items[0].name, "Coast"); assert.deepEqual(result.data.issues, []); assert.equal(result.affected, 0);

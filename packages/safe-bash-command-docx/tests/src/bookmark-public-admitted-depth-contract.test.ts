@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
-import { useNativeProcess } from "../tests/native-process.js";
+import { useNativeProcess } from "../../../safe-bash-docx-engine/tests/native-process.js";
 
-const execute = useNativeProcess(["--import", "tsx", "packages/safe-bash-docx-engine/tests/fixtures/bookmark-depth-public.ts"]);
+const execute = useNativeProcess(["--import", "tsx", "packages/safe-bash-command-docx/tests/tests/fixtures/bookmark-depth-public.ts"]);
 
 // A normal Node host has a smaller stack than Vitest's worker. The child uses
 // memfs only and the public exports; explicit depth ceilings are caller authority.

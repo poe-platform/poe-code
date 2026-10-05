@@ -141,7 +141,7 @@ test("OpenAI routes arbitrary configured models and streams split UTF-8 SSE delt
   const transport = fake(reply);
   const configured = createOpenAiProvider({ transport: transport.transport, apiKey: "test-secret", baseUrl: "https://compatible.test/custom/v1/", models });
   assert.equal(configured.name, "openai");
-  assert.deepEqual(configured.models, models.map(model => ({ ...model, inputSources: model.endpoint === "chat", attachmentUrls: model.endpoint === "chat", capabilities: model.endpoint === "chat" ? ["messages"] : [] })));
+  assert.deepEqual(configured.models, models.map(model => ({ ...model, ...(model.endpoint === "chat" ? {asyncModel: {}} : {}), inputSources: model.endpoint === "chat", attachmentUrls: model.endpoint === "chat", capabilities: model.endpoint === "chat" ? ["messages"] : [] })));
   const signal = new AbortController().signal;
   assert.deepEqual(await collect(configured.complete(request({ system: "be brief", signal, options: { temperature: "0.25" }, attachments: [{ mimeType: "image/png", bytes: picture }] }))), ["fox 🦊", "!"]);
   const sent = transport.calls[0]!;

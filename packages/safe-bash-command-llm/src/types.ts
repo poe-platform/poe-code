@@ -47,6 +47,8 @@ export interface LlmModelOption {
   readonly nullable?: boolean;
 }
 export interface LlmModel {
+  /** False forces complete-response output even when a caller requests streaming. */
+  readonly canStream?: boolean;
   /** Optional reference display text, independent of transport/provider identity. */
   readonly displayName?: string;
   /** Paired async definition. Omitted fields inherit the sync metadata; IDs and

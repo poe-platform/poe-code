@@ -84,14 +84,23 @@ export async function* promptToolChain(options: {
   let currentPrompt = prompt, currentAttachments = initialAttachments, currentSystem = system;
   let responseContent: Content | undefined, responseCalls: readonly LlmToolCall[] = [], prepared = false;
   let nextAttachments: Attachment[] = [];
+  const pendingResults = new Map<number, {message: Message; attachments: Attachment[]}>();
+  let approvals = Promise.resolve(), diagnostics = Promise.resolve();
   yield* streamLlmToolChain({
     context: {...context, signal}, tools, chainLimit: options.chainLimit,
+    ...(request.async ? {async: true} : {}),
     maxOutputBytes: options.maxOutputBytes, maxToolOutputBytes: options.remainingInput(),
     openResponse(index, activeSignal) {
       return (async function* () {
-        if (index) {currentPrompt = empty; currentSystem = undefined; currentAttachments = nextAttachments; nextAttachments = [];}
+        if (index) {
+          for (let callIndex = 0; callIndex < responseCalls.length; callIndex++) {
+            const result = pendingResults.get(callIndex);
+            if (result) {messages.push(result.message); nextAttachments.push(...result.attachments);}
+          }
+          pendingResults.clear();
+          currentPrompt = empty; currentSystem = undefined; currentAttachments = nextAttachments; nextAttachments = [];}
         prepared = false;
-        const base = {maxOutputBytes: options.maxOutputBytes, ...(request.model === undefined ? {} : {model: request.model}), options: request.options, signal: activeSignal, stream: request.stream,
+        const base = {...(request.async ? {async: true} : {}), maxOutputBytes: options.maxOutputBytes, ...(request.model === undefined ? {} : {model: request.model}), options: request.options, signal: activeSignal, stream: request.stream,
           ...(request.key === undefined ? {} : {key: request.key}), tools: declarations,
           ...(!index && request.schema !== undefined ? {schema: request.schema} : {})};
         const events = streamed ? service.streamSources!({...base, prompt: await lease(currentPrompt, activeSignal),
@@ -119,28 +128,38 @@ export async function* promptToolChain(options: {
         }
       })();
     },
-    async beforeCall(tool, call, context) {
-      if (!prepared) {
-        prepared = true;
-        options.admitInput(responseContent!.size, !streamed);
-        for await (const bytes of jsonValue(responseCalls, signal)) options.admitInput(bytes.length, true);
-        if (currentSystem?.size) messages.push({role: "system", content: currentSystem});
-        // Pinned live chains do not replay prompt attachments from prior rounds.
-        // Assistant text and calls are distinct messages in the reference wire.
-        if (currentPrompt.size) messages.push({role: "user", content: currentPrompt});
-        if (responseContent!.size) messages.push({role: "assistant", content: responseContent!});
-        messages.push({role: "assistant", content: empty, toolCalls: responseCalls});
-      }
-      await options.beforeCall?.(tool, call, context);
+    beforeCall(tool, call, context) {
+      const approval = approvals.then(async () => {
+        context.signal.throwIfAborted();
+        if (!prepared) {
+          prepared = true;
+          options.admitInput(responseContent!.size, !streamed);
+          for await (const bytes of jsonValue(responseCalls, signal)) options.admitInput(bytes.length, true);
+          if (currentSystem?.size) messages.push({role: "system", content: currentSystem});
+          // Pinned live chains do not replay prompt attachments from prior rounds.
+          // Assistant text and calls are distinct messages in the reference wire.
+          if (currentPrompt.size) messages.push({role: "user", content: currentPrompt});
+          if (responseContent!.size) messages.push({role: "assistant", content: responseContent!});
+          messages.push({role: "assistant", content: empty, toolCalls: responseCalls});
+        }
+        await options.beforeCall?.(tool, call, context);
+      });
+      // A declined call must not decline the following call implicitly.
+      approvals = approval.then(() => {}, () => {});
+      return approval;
     },
-    async visit(result) {
+    async visit(result, callIndex) {
       const content = await retain(result.output, true, true);
       const attachments = await retainAttachments(result.attachments, true);
-      messages.push({role: "tool", ...(result.call.id === undefined ? {} : {toolCallId: result.call.id}), content});
-      nextAttachments.push(...attachments);
+      pendingResults.set(callIndex, {message: {role: "tool", ...(result.call.id === undefined ? {} : {toolCallId: result.call.id}), content}, attachments});
       if (options.debugWrite) {
-        const {debugToolResult} = await import("./prompt-tool-debug.js");
-        await debugToolResult({context: {...context, signal}, result, output: content.spool, attachments, write: options.debugWrite});
+        const write = options.debugWrite;
+        diagnostics = diagnostics.then(async () => {
+          signal.throwIfAborted();
+          const {debugToolResult} = await import("./prompt-tool-debug.js");
+          await debugToolResult({context: {...context, signal}, result, output: content.spool, attachments, write});
+        });
+        await diagnostics;
       }
     }
   });

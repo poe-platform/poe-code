@@ -91,6 +91,7 @@ export async function listLlmModels(context: CommandContext, service: LlmService
     }
     if (options && model.attachmentTypes?.length) output += `\n  Attachment types:\n    ${[...model.attachmentTypes].sort().join(", ")}`;
     const features = [
+      ...(model.canStream ? ["streaming"] : []),
       ...(model.capabilities?.includes("schema") ? ["schemas"] : []),
       ...(model.capabilities?.includes("tools") ? ["tools"] : []),
       ...(syncModel.asyncModel ? ["async"] : [])

@@ -242,7 +242,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
         }
       }
       const { maxOutputBytes: ignoredMaxOutputBytes, ...input } = request;
-      return entry.provider.complete({ ...input, model: entry.model.id, options: validateModelOptions(entry.model, request.options) });
+      return entry.provider.complete({ ...input, ...(entry.model.canStream === false ? {stream: false} : {}), model: entry.model.id, options: validateModelOptions(entry.model, request.options) });
     },
     async *stream(request: LlmServiceRequest): AsyncGenerator<LlmStreamEvent> {
       const entry = this.resolve(request.model, request);
@@ -280,7 +280,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
           if (!acceptsMimeType(entry.model.attachmentTypes ?? [], attachment.mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${attachment.mimeType}`);
         }
         const { maxOutputBytes: ignoredMaxOutputBytes, ...input } = request;
-        yield* streamResult(() => entry.provider.completeSources!({ ...input, model: entry.model.id, options: validateModelOptions(entry.model, request.options) }), entry.model, request);
+        yield* streamResult(() => entry.provider.completeSources!({ ...input, ...(entry.model.canStream === false ? {stream: false} : {}), model: entry.model.id, options: validateModelOptions(entry.model, request.options) }), entry.model, request);
       } catch (error) {
         failed = true;
         throw request.signal.aborted ? request.signal.reason : error;

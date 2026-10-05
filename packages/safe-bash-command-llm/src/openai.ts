@@ -151,6 +151,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
   const baseUrl = base.href.endsWith("/") ? base.href.slice(0, -1) : base.href;
   const configured = options.models.map(model => Object.freeze({
     ...model,
+    ...(model.endpoint === "chat" && model.asyncModel === undefined ? {asyncModel: {}} : {}),
     inputSources: model.endpoint === "chat",
     attachmentUrls: model.endpoint === "chat",
     capabilities: Object.freeze(model.capabilities ?? (model.endpoint === "chat" ? ["messages"] as const : model.endpoint === "embeddings" ? ["embed"] as const : [])),
@@ -202,7 +203,8 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
     embed, embedSources: embed,
     async *completeSources(request) {
       request.signal.throwIfAborted();
-      const model = byId.get(request.model);
+      const registered = byId.get(request.model);
+      const model = registered && request.async && registered.asyncModel ? {...registered, ...registered.asyncModel} : registered;
       if (!model || model.endpoint !== "chat") throw new Error(`Model ${request.model} does not support streamed inputs`);
       if ((request.tools?.length || request.messages?.some(message=>message.role === "tool" || message.toolCalls?.length)) && !model.capabilities?.includes("tools")) throw new Error(`Model ${model.id} does not support tools`);
       const body = chatJson({ ...request, options: openAiChatOptions(jsonOptions(request.options, "chat")) }, limits.maxRequestBytes);
@@ -223,7 +225,8 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
     },
     async *complete(request) {
       request.signal.throwIfAborted();
-      const model = byId.get(request.model);
+      const registered = byId.get(request.model);
+      const model = registered && request.async && registered.asyncModel ? {...registered, ...registered.asyncModel} : registered;
       if (!model) throw new Error(`Unknown model: ${request.model}`);
       if (model.endpoint === "embeddings") throw new TypeError("Embedding models require embed()");
       if (model.endpoint !== "chat" && (request.messages?.length || request.schema !== undefined)) throw new TypeError("Messages and schemas require a chat model");

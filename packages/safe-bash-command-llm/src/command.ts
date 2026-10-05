@@ -1,3 +1,4 @@
+import {pythonRepr} from "./python-repr.js";
 import { promptToolChain } from "./prompt-tool-chain.js";
 import { createToolApproval } from "./prompt-tool-approval.js";
 import { stripPythonWhitespace } from "./python-whitespace.js";
@@ -39,6 +40,7 @@ import { selectLlmModelByQuery } from "./model-selection.js";
 export const llmReferenceVersion = "0.27.1";
 
 interface Arguments {
+  async?: boolean;
   toolNames: string[];
   chainLimit: number | bigint;
   toolsApprove?: boolean;
@@ -78,12 +80,13 @@ async function parse(length: number, text: (index: number) => string, step: () =
     for (let cursor = long ? 0 : 1; cursor < argument.length; cursor++) {
       await step();
       const flag = long ? argument.slice(0, equals < 0 ? undefined : equals) : "-" + argument[cursor];
-      const boolean = ["--td", "--tools-debug", "--ta", "--tools-approve", "--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
+      const boolean = ["--async", "--td", "--tools-debug", "--ta", "--tools-approve", "--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
       if (boolean) {
         if (long && equals >= 0) throw new LlmPromptUsageError(`Error: Option '${flag}' does not take a value.`);
         if (["-x", "--extract", "--xl", "--extract-last"].includes(flag)) { parsed.extract = flag === "--xl" || flag === "--extract-last" ? "last" : parsed.extract ?? "first"; parsed.noStream = true; }
         else if (flag === "-u" || flag === "--usage") parsed.usage = true;
         else if (flag === "--no-stream") parsed.noStream = true;
+        else if (flag === "--async") parsed.async = true;
         else if (flag === "--ta" || flag === "--tools-approve") parsed.toolsApprove = true;
         else if (flag === "--td" || flag === "--tools-debug") parsed.toolsDebug = true;
         if (long) break;
@@ -164,7 +167,16 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   let outputSpool: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
   let usageSpool: Awaited<ReturnType<typeof createLlmSpool>> | undefined;
   let outputBytes = 0;
-  let writing = false;
+  let outputFailed = false;
+  const writeOutput = async (sink: CommandContext["stdout"], chunk: Uint8Array): Promise<void> => {
+    try { await sink.write(chunk); }
+    catch (error) {
+      // A successful concurrent write cannot make a rejected destination safe
+      // for a second diagnostic or erase the original sink error.
+      outputFailed = true;
+      throw error;
+    }
+  };
   const admitOutput = (size: number): void => {
     if (size > (limits?.maxOutputBytes ?? Infinity) - outputBytes) throw new FsError("EFBIG", { message: "llm output byte limit exceeded" });
     outputBytes += size;
@@ -172,9 +184,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   const write = async (chunk: Uint8Array, immediate = false): Promise<void> => {
     admitOutput(chunk.byteLength);
     if (outputSpool && !immediate) { await outputSpool.write(chunk); return; }
-    writing = true;
-    await operation.output.write(chunk);
-    writing = false;
+    await writeOutput(operation.output, chunk);
   };
   const emitText = async (text: string): Promise<void> => {
     for (let offset = 0; offset < text.length;) {
@@ -356,7 +366,18 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     const selected = args.model ?? stored?.model ?? (args.save ? undefined : await configuration.defaultModel());
     const model = selected === undefined ? undefined : await configuration.resolveAlias(selected);
-    const entry = args.save && selected === undefined ? undefined : service.resolve(model);
+    let entry: ReturnType<LlmService["resolve"]> | undefined;
+    try { entry = args.save && selected === undefined ? undefined : service.resolve(model, args.async && !args.save ? {async: true} : undefined); }
+    catch (error) {
+      if (!args.async || args.save) throw error;
+      let detail = "";
+      for await (const bytes of pythonRepr(error instanceof Error ? error.message : String(error), signal)) {
+        detail += new TextDecoder().decode(bytes);
+        if (detail.length >= 4096) break;
+      }
+      throw new Error("Error: " + detail);
+    }
+    if (!args.save && entry?.model.canStream === false) args.noStream = true;
     const streamed = entry !== undefined && service.streamSources !== undefined && entry.provider.completeSources !== undefined && entry.model.inputSources !== false;
     const stagePrompt = streamed && stored === undefined && args.save === undefined;
     let stdinIterator: AsyncIterator<Uint8Array> | undefined;
@@ -604,6 +625,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     sourceAttachments.push(...pluginSourceAttachments);
     const resolvedKey = args.key === undefined ? undefined : await configuration.resolveKey(args.key);
     const request: LlmRequest = {
+      ...(args.async ? {async: true} : {}),
       ...(schema === undefined ? {} : { schema }),
       model: entry.model.id, prompt,
       ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal, stream: !args.noStream,
@@ -614,11 +636,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (selectedTools.length) {
       const debugOutput = args.toolsDebug ? operation.child(context.stderr).output : undefined;
       const events = promptToolChain({context: {...context, signal}, operation, service, streamed, tools: selectedTools,
-        ...(debugOutput ? {debugWrite: async (bytes: Uint8Array) => {admitOutput(bytes.length); writing = true; await debugOutput.write(bytes); writing = false;}} : {}),
+        ...(debugOutput ? {debugWrite: async (bytes: Uint8Array) => {admitOutput(bytes.length); await writeOutput(debugOutput, bytes);}} : {}),
         ...(args.toolsApprove ? {beforeCall: createToolApproval({context: {...context, signal}, openInput: () => openStdin(true), write: bytes => write(bytes, true), admitInput})} : {}),
         chainLimit: args.chainLimit, maxOutputBytes: limits?.maxOutputBytes ?? Infinity,
         remainingInput: () => input.remaining(!streamed), admitInput, textSource,
-        request: {model: request.model, options: request.options, signal, stream: request.stream, ...(schema === undefined ? {} : {schema}), ...(resolvedKey === undefined ? {} : {key: resolvedKey}), prompt: (streamed ? composedPrompt : undefined) ?? (promptSpool ? {bytes: promptSpool.replay(), dispose: promptSpool.close} : textSource(prompt)),
+        request: {...(args.async ? {async: true} : {}), model: request.model, options: request.options, signal, stream: request.stream, ...(schema === undefined ? {} : {schema}), ...(resolvedKey === undefined ? {} : {key: resolvedKey}), prompt: (streamed ? composedPrompt : undefined) ?? (promptSpool ? {bytes: promptSpool.replay(), dispose: promptSpool.close} : textSource(prompt)),
           ...(streamed && composedSystem ? {system: composedSystem} : args.system === undefined ? {} : {system: textSource(args.system)}),
           attachments: streamed ? sourceAttachments : attachments.map(attachment => attachment.url === undefined
             ? {mimeType: attachment.mimeType, ...(attachment.id === undefined ? {} : {id: attachment.id}), source: {bytes: {async *[Symbol.asyncIterator]() {yield attachment.bytes;}}, async dispose() {}}}
@@ -637,10 +659,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
               await usageSpool.write(Uint8Array.of(10));
             }
           }
-        } catch (error) {signal.throwIfAborted(); if (writing) throw error; throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`);}
+        } catch (error) {signal.throwIfAborted(); if (outputFailed) throw error; throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`);}
       })()[Symbol.asyncIterator]();
     } else if (streamed) {
-      const events = service.streamSources!({ model: request.model, options: request.options, signal, stream: request.stream, prompt: composedPrompt ?? (promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt)),
+      const events = service.streamSources!({ ...(args.async ? {async: true} : {}), model: request.model, options: request.options, signal, stream: request.stream, prompt: composedPrompt ?? (promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt)),
         ...(schema === undefined ? {} : { schema }),
         ...(composedSystem ? {system:composedSystem} : args.system === undefined ? {} : { system: textSource(args.system) }),
         ...(resolvedKey === undefined ? {} : { key: resolvedKey }),
@@ -676,8 +698,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (outputSpool) for await (const chunk of outputSpool.replay(args.extract && text ? async reader => {
       const range = await findExtractedRange(reader, args.extract === "last", signal);
       return range && range.end > range.start ? range : undefined;
-    } : undefined)) { writing = true; await operation.output.write(chunk); writing = false; }
-    if (args.extract && text) await operation.output.write(Uint8Array.of(10));
+    } : undefined)) await writeOutput(operation.output, chunk);
+    if (args.extract && text) await writeOutput(operation.output, Uint8Array.of(10));
     if (usageSpool) await pipeBytes(usageSpool.replay(), context.stderr, signal);
     else if (args.usage) {
       await writeDiagnostic(context.stderr, "Token usage: ", signal);
@@ -689,7 +711,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     context.signal.throwIfAborted();
     operation.signal.throwIfAborted();
     controller.abort(error);
-    if (writing) throw error;
+    if (outputFailed) throw error;
     await operation.close();
     await writeDiagnostic(context.stderr, `${error instanceof Error || error instanceof TypeError ? error.message.slice(0, 4096) : "llm provider failed"}\n`, context.signal);
     return { exitCode: error instanceof LlmModelsUsageError || error instanceof LlmPromptUsageError ? 2 : 1 };

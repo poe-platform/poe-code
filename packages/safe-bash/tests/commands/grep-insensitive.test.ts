@@ -23,8 +23,9 @@ const cases: readonly [string, string, string, number][] = [
   ["grep -Fixo a", "A\naa\n", "A\n", 0],
   ["grep -i a", "aA\n", "aA\n", 0],
   ["grep a", "A\n", "", 1],
+  ["rg -Fi a", "é A\n", "é A\n", 0],
 ];
-for (const [source, input, output, status] of cases) test(`bounded grep ASCII folding: ${source}`, async () => {
+for (const [source, input, output, status] of cases) test(`search ASCII folding: ${source}`, async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
   try {
     const result = await shell.exec(source, { stdin: input });
@@ -34,10 +35,10 @@ for (const [source, input, output, status] of cases) test(`bounded grep ASCII fo
   } finally { await shell.dispose(); }
 });
 
-for (const source of ["rg -Fi a", "grep -i é"]) test(`ASCII folding does not widen ${source}`, async () => {
+test("ASCII folding does not widen grep -i é", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
   try {
-    const result = await shell.exec(source, { stdin: "é A\n" });
+    const result = await shell.exec("grep -i é", { stdin: "é A\n" });
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");
     assert.ok(result.stderr.includes("unsupported"));

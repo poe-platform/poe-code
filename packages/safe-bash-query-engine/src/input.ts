@@ -336,18 +336,19 @@ class JsonParser {
         count++;
         if (count > this.budget.maxCollectionSizeSmi && count > this.budget.limits.maxCollectionSize) return undefined;
         const kFirst = key.charCodeAt(0);
-        if (kFirst >= 48 && kFirst <= 57 || key === "__proto__") {
+        if (kFirst >= 48 && kFirst <= 57 || key === "__proto__" || hasCustomKeyOrder(obj)) {
           if (shapeMatch) {
             shapeMatch = false;
             const fresh = object();
             for (let k = 0; k < count - 1; k++) {
               const prevKey = rKeys[k]!;
-              fresh[prevKey] = obj[prevKey]!;
+              put(fresh, prevKey, obj[prevKey]!);
             }
             obj = fresh;
             if (canReuse) {
               this.reusableObj = obj;
-              rKeys.length = 0;
+              rKeys.length = count - 1;
+              rKeys.push(key);
             }
           }
           put(obj, key, val);

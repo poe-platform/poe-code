@@ -726,7 +726,7 @@ extraction, workbook or Worker runtime matrix.
 
 | Area | Remaining migration |
 | --- | --- |
-| Read operations | Paragraph/run formatting; other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
+| Read operations | Paragraph formatting; other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image/media, link/comment, equation/opaque, animation/transition and accessibility readers. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
 | Extraction | Image/media and embedded/opaque object extraction, including manifests and multi-output publication; package extraction is migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |
@@ -781,3 +781,22 @@ Node heap statistics, this plan, or mocked storage tests as Worker measurements.
    runtime evidence. Store temporary captures under `/out` and remove them after
    recording the needed evidence. Report failures and missing metrics explicitly;
    qualification requires both functional results and measured bounded execution.
+
+
+## Retained run formatting reads
+
+`openRetainedText` now supports a runs mode with zero-based paragraph/run selection.
+It stages formatting JSON in caller pages, retains arbitrary font/language/color
+strings as streams, and admits numeric/classification/brightness scalars with
+bounded state. Unselected formatting is not interpreted. Formatting failures are
+deferred until all selected text bodies have been admitted, preserving structural
+error precedence. Ordered records, cardinality and locations stay caller-backed.
+The default `text runs list/get` command uses this reader and stages both output
+formats before exposing stdout; the existing buffered SDK remains available.
+
+Verification includes strict/transitional scalar and color parity, malformed and
+unselected formatting, large font names and padded numeric tokens, reused source
+buffers, slow sinks, output limits, cancellation, storage/sink failures and cleanup.
+Native python-pptx output is compared through the built public adapter with whole
+file reads forbidden. This does not qualify the remaining operations or the Worker
+runtime; the operation matrix remains open.

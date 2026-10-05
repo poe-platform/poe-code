@@ -43,6 +43,10 @@ as the fifth `openRetainedText` argument to read `frames()` and `frameCount` ins
 of text/field contents. Frame formatting records stay in caller storage; numeric
 properties are parsed incrementally, including arbitrarily padded values.
 `stageRetainedText` also supports `text.frames.list` and `text.frames.get`.
+Pass `'runs'` to read `runs()` and `runCount`, with optional zero-based `paragraph`
+and `run` selectors. Run formatting is caller-backed admitted JSON, consumed by
+`streamJson` from `retained-output`; font, language and color strings never require
+collection. `stageRetainedText` provides `text.runs.list` and `text.runs.get`.
 `openRetainedNotes` (from `notes`) exposes a caller-backed `records()` iterator,
 with replayable part/master references, speaker text and body IDs. Close it after
 reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with

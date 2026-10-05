@@ -4172,7 +4172,7 @@ async function executeRequest(
         publication = { inputPath: args.input!, outputPath: destination, bytes: staged.bytes(), originalBytes: input, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun };
       }
       result = success(operation, null);
-    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "text.frames.list" || args.operation === "text.frames.get" || args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "properties.list" || args.operation === "properties.get" || args.operation === "tags.list" || args.operation === "tags.get" || args.operation === "settings.list" || args.operation === "settings.get" || args.operation === "sections.list" || args.operation === "sections.get" || args.operation === "shows.list" || args.operation === "shows.get" || args.operation === "xml.get") && request.streaming) {
+    } else if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get" || args.operation === "text.frames.list" || args.operation === "text.frames.get" || args.operation === "text.runs.list" || args.operation === "text.runs.get" || args.operation === "notes.list" || args.operation === "notes.get" || args.operation === "properties.list" || args.operation === "properties.get" || args.operation === "tags.list" || args.operation === "tags.get" || args.operation === "settings.list" || args.operation === "settings.get" || args.operation === "sections.list" || args.operation === "sections.get" || args.operation === "shows.list" || args.operation === "shows.get" || args.operation === "xml.get") && request.streaming) {
       if (args.token && args.operation !== "notes.list" && args.operation !== "notes.get" && args.operation !== "tags.list" && args.operation !== "tags.get" && !['sections.list', 'sections.get', 'shows.list', 'shows.get'].includes(args.operation)) decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const hash = sha256.create();
@@ -4211,6 +4211,7 @@ async function executeRequest(
           }, context, { json: args.json, pretty: args.pretty ?? false, maxOutputBytes: options.maxOutputBytes })
           : args.operation !== "inspect"
           ? await stageRetainedText(archive, fingerprint, {
+            ...(args.operation.startsWith('text.runs.') ? args.runEdit : {}),
             ...(scope === undefined ? {} : { scope: scope as TextScope }),
             ...(args.token ? { select: { token: args.token } } : args.slide === undefined ? {} : { select: { kind: "slide", position: { coordinateSystem: "one-based", value: args.slide } } }),
             ...(args.shape === undefined ? {} : { shape: args.shape })

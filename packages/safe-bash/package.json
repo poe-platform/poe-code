@@ -1518,7 +1518,9 @@
             "@poe-code/safe-fs": "*",
             "safe-bash-io-engine": "*",
             "safe-bash-presentation-engine": "*",
-            "toolcraft-schema": "*"
+            "toolcraft-schema": "*",
+            "@poe-code/json-ast": "*",
+            "@poe-code/office-package": "*"
           },
           "portable": true
         },

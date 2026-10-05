@@ -524,9 +524,24 @@ preserves all 41 chart-deck members, text, chart values and embedded workbook, w
 exact buffered ZIP bytes and empty scratch. This is an engine capability, not a
 migration of the default pack command; no Worker qualification is claimed.
 
-Next: replace the pack command's whole-manifest JSON parsing with caller-backed
-records, preserve duplicate-key/schema/path checks, store part-to-input bindings,
-and migrate its protected input identities without growing arrays or session maps.
+`openRetainedPackManifest` now uses the shared `@poe-code/json-ast` parser with
+caller-backed nesting, UTF-16 scalars and duplicate-key indexes. It validates the
+complete schema, canonical part uniqueness, scoped paths, stdin ownership and
+output/source exclusion before returning replayable descriptors and path lookups.
+The JSON tree and part-to-input index stay in caller storage. One path at a time
+is materialized for the filesystem's string API; there is no resident path list.
+The buffered command shares the same scoped-path function. The new parser remains
+internal and is not yet selected by the default pack execution branch.
+
+Thirty parser tests cover generated/reused chunks, spills, bounded writes, slow
+traversal, syntax/UTF-8/schema/depth/limit failures, cancellation and source cleanup.
+All 1,249 command tests, 103 workspace ownership checks, command lint/type checks
+and the maintained workspace build passed. A native 41-member chart deck survived
+manifest-to-retained-packing composition with exact member/text/chart/workbook
+parity, Unicode scoped paths and empty scratch. No Worker qualification is claimed.
+
+Next: migrate protected input identities and replay indexes without growing arrays
+or session maps, then connect `openRetainedPackManifest` to `stageRetainedPackage`.
 Wire staged archive and response publication for force/dry-run/binary stdout.
 Other mutations, richer reads and workbook intermediates also remain unfinished.
 

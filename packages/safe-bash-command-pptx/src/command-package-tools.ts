@@ -1,3 +1,4 @@
+import { scopedPackagePath } from "./command-package-path.js";
 import { commandJson } from "./command-engine-values.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import type {
@@ -27,26 +28,7 @@ interface PackageArguments {
 function usage(message: string): never {
   throw new OfficeError("invalid-value", message, "usage");
 }
-function scopedPath(manifest: string, path: string): string {
-  if (path === "-") return path;
-  if (path.includes("\\") || [...path].some((c) => c.charCodeAt(0) < 32))
-    usage("Invalid scoped file path.");
-  const prefix = path.startsWith("/")
-    ? ""
-    : manifest === "-"
-      ? "/"
-      : manifest.slice(0, manifest.lastIndexOf("/") + 1);
-  const absolute = (prefix + path).startsWith("/");
-  const segments: string[] = [];
-  for (const segment of (prefix + path).split("/")) {
-    if (!segment || segment === ".") continue;
-    if (segment === "..") {
-      if (!segments.length) usage("Scoped path escapes its root.");
-      segments.pop();
-    } else segments.push(segment);
-  }
-  return (absolute ? "/" : "") + segments.join("/");
-}
+
 function canonical(part: unknown): part is string {
   try {
     return typeof part === "string" && partName(part, false) === part;
@@ -199,7 +181,7 @@ export async function executePackageCommand(
       usage("Manifest parts require canonical URIs, hashes and explicit scoped files.");
   if (new Set(parts.map((item) => asciiKey(item.part))).size !== parts.length)
     usage("Manifest parts must be unique.");
-  const paths = parts.map((item) => scopedPath(args.manifest!, item.file.vfsPath));
+  const paths = parts.map((item) => scopedPackagePath(args.manifest!, item.file.vfsPath));
   if ([args.manifest, ...paths].filter((path) => path === "-").length > 1)
     usage("Only one manifest input may consume stdin.");
   if (args.output !== "-" && paths.includes(args.output!))

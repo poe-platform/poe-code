@@ -50,3 +50,23 @@ it("rejects invalid entities even in overwritten prefixes and cleans backing", a
   await expect((async () => { for await (const update of retainedInfoUpdates(chunks(), new AbortController().signal, { fs, directory: "/scratch" })) void update; })()).rejects.toThrow(RangeError);
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("preserves integer defaults, clamping and decimal suffix rules with retained lines", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  async function* chunks() {
+    yield new TextEncoder().encode("BookmarkBegin\nBookmarkTitle: chapter\nBookmarkLevel: ");
+    for (let i = 0; i < 32; i++) yield new Uint8Array(4096).fill(48);
+    yield new TextEncoder().encode("2suffix\nBookmarkPageNumber: +99999999999999999999999999\nPageLabelBegin\nPageLabelStart: -3\nPageLabelNewIndex: 0x12\nPageMediaBegin\nPageMediaNumber: 1suffix\nPageMediaRotation: -090tail\n");
+  }
+  const records: unknown[] = [];
+  for await (const update of retainedInfoUpdates(chunks(), new AbortController().signal, { fs, directory: "/scratch" })) {
+    if (update.kind === "bookmark") records.push({ ...update, title: "chapter" });
+    else records.push(update);
+  }
+  expect(records).toEqual([
+    { kind: "bookmark", title: "chapter", level: 2, pageNumber: Number.MAX_SAFE_INTEGER },
+    { kind: "label", index: 0, start: 1, prefix: "", style: "D" },
+    { kind: "page", pageNumber: 1, property: "rotation", values: [-90] },
+  ]);
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

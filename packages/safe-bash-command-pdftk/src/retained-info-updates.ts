@@ -1,10 +1,13 @@
+import { parsePdftkIntegerChunks } from "./info-integer-stream.js";
 import { decodePdftkEntityChunks } from "./info-entity-stream.js";
 import { PdfTextStore, type PdfIndexStorage, type RetainedInfoUpdate } from "@poe-code/pdf-ast";
 import { decodePdftkEntities, hexToBytes } from "./info-text.js";
 
 const styles: Readonly<Record<string, string>> = { DecimalArabicNumerals: "D", UppercaseRomanNumerals: "R", LowercaseRomanNumerals: "r", UppercaseLetters: "A", LowercaseLetters: "a" };
 
-async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { field: "BookmarkTitle:" | "PageLabelPrefix:"; text: () => AsyncGenerator<string, void, void> }> {
+const integerFields = ["BookmarkLevel:", "BookmarkPageNumber:", "PageLabelNewIndex:", "PageLabelStart:", "PageMediaNumber:", "PageMediaRotation:"] as const;
+
+async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { integer: typeof integerFields[number]; value: number } | { field: "BookmarkTitle:" | "PageLabelPrefix:"; text: () => AsyncGenerator<string, void, void> }> {
   async function* decoded() {
     const decoder = new TextDecoder();
     for await (const bytes of chunks) for (let at = 0; at < bytes.length; at += 4096) {
@@ -59,7 +62,10 @@ async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, si
         }
         yield { field: streamed, text: () => decodePdftkEntityChunks(readText, signal) };
       }
-      else {
+      else if (integerFields.some(name => head.startsWith(name))) {
+        const integer = integerFields.find(name => head.startsWith(name))!;
+        yield { integer, value: await parsePdftkIntegerChunks(field(integer.length), signal) };
+      } else {
         // Unknown lines are ignored without collecting their contents. The
         // remaining scalar update fields keep their existing conversion rules.
         const begin = ["InfoBegin", "BookmarkBegin", "PageLabelBegin", "PageMediaBegin"].some(name => end - start === name.length && head.startsWith(name));
@@ -125,6 +131,15 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
 
   for await (const raw of lines(chunks, texts, signal)) {
     if (typeof raw !== "string") {
+      if ("integer" in raw) {
+        if (mode === "bookmark" && raw.integer === "BookmarkLevel:") bmLevel = raw.value || 1;
+        else if (mode === "bookmark" && raw.integer === "BookmarkPageNumber:") bmPage = raw.value || 1;
+        else if (mode === "pagelabel" && raw.integer === "PageLabelNewIndex:") plNewIndex = raw.value || 1;
+        else if (mode === "pagelabel" && raw.integer === "PageLabelStart:") plStart = raw.value || 1;
+        else if (mode === "pagemedia" && raw.integer === "PageMediaNumber:") pmNumber = raw.value || 0;
+        else if (mode === "pagemedia" && raw.integer === "PageMediaRotation:") pmRotation = raw.value || 0;
+        continue;
+      }
       if (mode === "bookmark" && raw.field === "BookmarkTitle:") {
         let nonempty = false; for await (const part of raw.text()) nonempty ||= !!part.length;
         bmTitle = nonempty ? raw.text : "";
@@ -165,20 +180,8 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
       mode = "none";
       curKey = "";
 
-    } else if (mode === "bookmark" && line.startsWith("BookmarkLevel:")) {
-      bmLevel = Number.parseInt(line.slice("BookmarkLevel:".length).trim(), 10) || 1;
-    } else if (mode === "bookmark" && line.startsWith("BookmarkPageNumber:")) {
-      bmPage = Number.parseInt(line.slice("BookmarkPageNumber:".length).trim(), 10) || 1;
-    } else if (mode === "pagelabel" && line.startsWith("PageLabelNewIndex:")) {
-      plNewIndex = Number.parseInt(line.slice("PageLabelNewIndex:".length).trim(), 10) || 1;
-    } else if (mode === "pagelabel" && line.startsWith("PageLabelStart:")) {
-      plStart = Number.parseInt(line.slice("PageLabelStart:".length).trim(), 10) || 1;
     } else if (mode === "pagelabel" && line.startsWith("PageLabelNumStyle:")) {
       plStyle = line.slice("PageLabelNumStyle:".length).trim();
-    } else if (mode === "pagemedia" && line.startsWith("PageMediaNumber:")) {
-      pmNumber = Number.parseInt(line.slice("PageMediaNumber:".length).trim(), 10) || 0;
-    } else if (mode === "pagemedia" && line.startsWith("PageMediaRotation:")) {
-      pmRotation = Number.parseInt(line.slice("PageMediaRotation:".length).trim(), 10) || 0;
     } else if (mode === "pagemedia" && line.startsWith("PageMediaRect:")) {
       const parts = line.slice("PageMediaRect:".length).trim().split(" ").filter(Boolean).map(Number);
       if (parts.length >= 4 && parts.every(Number.isFinite)) {

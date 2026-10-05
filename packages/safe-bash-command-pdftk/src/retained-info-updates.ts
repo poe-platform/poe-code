@@ -4,7 +4,7 @@ import { decodePdftkEntities, hexToBytes } from "./info-text.js";
 
 const styles: Readonly<Record<string, string>> = { DecimalArabicNumerals: "D", UppercaseRomanNumerals: "R", LowercaseRomanNumerals: "r", UppercaseLetters: "A", LowercaseLetters: "a" };
 
-async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { title: () => AsyncGenerator<string, void, void> }> {
+async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { field: "BookmarkTitle:" | "PageLabelPrefix:"; text: () => AsyncGenerator<string, void, void> }> {
   async function* decoded() {
     const decoder = new TextDecoder();
     for await (const bytes of chunks) for (let at = 0; at < bytes.length; at += 4096) {
@@ -44,19 +44,20 @@ async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, si
           position += part.length; if (position >= end) break;
         }
       }
-      if (head.startsWith("BookmarkTitle:")) {
-        let body = start + "BookmarkTitle:".length;
+      const streamed = head.startsWith("BookmarkTitle:") ? "BookmarkTitle:" : head.startsWith("PageLabelPrefix:") ? "PageLabelPrefix:" : undefined;
+      if (streamed) {
+        let body = start + streamed.length;
         for await (const part of texts.text(id, body)) {
           const value = part.trimStart(); body += part.length - value.length; if (value) break;
         }
-        async function* readTitle(offset: number) {
+        async function* readText(offset: number) {
           let position = body + offset;
           for await (const part of texts.text(id, position)) {
             const length = Math.min(part.length, end - position); if (length <= 0) break;
             yield part.slice(0, length); position += length; if (position >= end) break;
           }
         }
-        yield { title: () => decodePdftkEntityChunks(readTitle, signal) };
+        yield { field: streamed, text: () => decodePdftkEntityChunks(readText, signal) };
       }
       else {
         // Unknown lines are ignored without collecting their contents. The
@@ -83,7 +84,7 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
 
   let plNewIndex = 1;
   let plStart = 1;
-  let plPrefix = "";
+  let plPrefix: string | (() => AsyncIterable<string>) = "";
   let plStyle = "DecimalArabicNumerals";
 
   let pmNumber = 0;
@@ -124,9 +125,13 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
 
   for await (const raw of lines(chunks, texts, signal)) {
     if (typeof raw !== "string") {
-      if (mode === "bookmark") {
-        let nonempty = false; for await (const part of raw.title()) nonempty ||= !!part.length;
-        bmTitle = nonempty ? raw.title : "";
+      if (mode === "bookmark" && raw.field === "BookmarkTitle:") {
+        let nonempty = false; for await (const part of raw.text()) nonempty ||= !!part.length;
+        bmTitle = nonempty ? raw.text : "";
+      } else if (mode === "pagelabel" && raw.field === "PageLabelPrefix:") {
+        // Validate now, including prefixes overwritten later in the stanza.
+        for await (const part of raw.text()) { signal.throwIfAborted(); void part; }
+        plPrefix = raw.text;
       }
       continue;
     }
@@ -168,8 +173,6 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
       plNewIndex = Number.parseInt(line.slice("PageLabelNewIndex:".length).trim(), 10) || 1;
     } else if (mode === "pagelabel" && line.startsWith("PageLabelStart:")) {
       plStart = Number.parseInt(line.slice("PageLabelStart:".length).trim(), 10) || 1;
-    } else if (mode === "pagelabel" && line.startsWith("PageLabelPrefix:")) {
-      plPrefix = decodePdftkEntities(line.slice("PageLabelPrefix:".length).trim());
     } else if (mode === "pagelabel" && line.startsWith("PageLabelNumStyle:")) {
       plStyle = line.slice("PageLabelNumStyle:".length).trim();
     } else if (mode === "pagemedia" && line.startsWith("PageMediaNumber:")) {

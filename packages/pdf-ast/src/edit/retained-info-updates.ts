@@ -11,7 +11,7 @@ export type RetainedInfoUpdate =
   | { readonly kind: "info"; readonly key: string; readonly value: string }
   | { readonly kind: "id"; readonly index: 0 | 1; readonly bytes: Uint8Array }
   | { readonly kind: "page"; readonly pageNumber: number; readonly property: "rotation" | "dimensions" | "media" | "crop"; readonly values: readonly number[] }
-  | { readonly kind: "label"; readonly index: number; readonly start: number; readonly prefix?: string; readonly style?: string }
+  | { readonly kind: "label"; readonly index: number; readonly start: number; readonly prefix?: string | (() => AsyncIterable<string>); readonly style?: string }
   | ({ readonly kind: "bookmark" } & RetainedBookmark);
 
 /** Apply metadata immediately, then last-wins page properties in first-seen
@@ -62,7 +62,11 @@ export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, st
         await pages.write(offset, bytes);
       } else if (update.kind === "label") {
         const value = cosDict({ St: cosNumber(update.start) });
-        if (update.prefix) dictSet(value, "P", cosString(update.prefix));
+        if (update.prefix) {
+          const id = await titles.append(typeof update.prefix === "string" ? update.prefix : update.prefix());
+          let nonempty = false; for await (const part of titles.text(id)) { if (part.length) { nonempty = true; break; } }
+          if (nonempty) dictSet(value, "P", cosNumber(id));
+        }
         if (update.style) dictSet(value, "S", cosName(update.style));
         await labels.allocate(cosArray([cosNumber(update.index), value])); labelCount++;
       } else await bookmarks.allocate(cosArray([cosNumber(await titles.append(typeof update.title === "string" ? update.title : update.title())), cosNumber(update.level), cosNumber(update.pageNumber)]));
@@ -86,7 +90,16 @@ export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, st
           const encoder = new TextEncoder(); yield encoder.encode("<<\n/Nums [ ");
           for await (const object of labels.objects()) {
             await checkpoint(); if (object.value.kind !== "array") throw new Error("Invalid label record");
-            for (const node of object.value.items) { yield* serializeCosNodeChunks(node, { signal }); yield encoder.encode(" "); }
+            const [index, value] = object.value.items;
+            if (!index || value?.kind !== "dict") throw new Error("Invalid label record");
+            yield* serializeCosNodeChunks(index, { signal }); yield encoder.encode(" <<\n");
+            for (const entry of value.entries) {
+              yield* serializeCosNodeChunks(entry.key, { signal }); yield encoder.encode(" ");
+              if (entry.key.decoded === "P" && entry.value.kind === "number") yield* titles.serialized(entry.value.value);
+              else yield* serializeCosNodeChunks(entry.value, { signal });
+              yield encoder.encode("\n");
+            }
+            yield encoder.encode(">> ");
           }
           yield encoder.encode("]\n>>");
         }

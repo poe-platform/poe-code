@@ -76,3 +76,21 @@ it.each(["producer", "cancel", "write"])("cleans metadata staging after %s failu
   } finally { failWrites = false; await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("serializes streamed page label prefixes with buffered byte parity", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const original = PdfDocument.create(); original.addPage(); await fs.writeFile("/input", original.save());
+  const source = await PdfFileSource.open(fs, "/input"), storage = { fs, directory: "/scratch" }, document = await PdfRetainedDocument.open(source, storage);
+  async function* prefix() { for (let i = 0; i < 64; i++) yield "prefix(\\)".repeat(256); yield "😀"; }
+  let buffered = ""; for await (const part of prefix()) buffered += part;
+  const outputs: string[] = [];
+  try {
+    for (const value of [buffered, prefix]) {
+      const edited = await editRetainedDocument(document, storage, { infoUpdates: [{ kind: "label", index: 0, start: 2, style: "D", prefix: value }] });
+      try { let output = ""; for await (const bytes of saveRetainedDocumentChunks(edited.document, storage)) { expect(bytes.length).toBeLessThanOrEqual(65536); output += new TextDecoder("latin1").decode(bytes); } outputs.push(output); }
+      finally { await edited.close(); }
+    }
+    expect(outputs[1]).toBe(outputs[0]);
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

@@ -18,22 +18,22 @@ export interface Mp4SampleScanOptions {
 
 type Step = { kind: 'read'; offset: number; length: number; table?: Mp4TableRange } |
   { kind: 'sync-add'; sample: number } | { kind: 'sync-has'; sample: number } | { kind: 'sample'; sample: Mp4SampleSpan };
-type Steps<T> = Generator<Step, T, Uint8Array | boolean | undefined>;
+export type Mp4SampleSteps<T> = Generator<Step, T, Uint8Array | boolean | undefined>;
 
 /** One traversal shared by the resident parser and asynchronous caller ranges. */
-export function* mp4SampleTableSteps(size: number, tables: Mp4SampleTables, options: Pick<Mp4SampleScanOptions, 'type' | 'budget'> = {}): Steps<void> {
-  function* read(table: Mp4TableRange | undefined, offset: number, length: number): Steps<BinaryReader> {
+export function* mp4SampleTableSteps(size: number, tables: Mp4SampleTables, options: Pick<Mp4SampleScanOptions, 'type' | 'budget'> = {}): Mp4SampleSteps<void> {
+  function* read(table: Mp4TableRange | undefined, offset: number, length: number): Mp4SampleSteps<BinaryReader> {
     if (!table || offset >= table.payloadSize) return new BinaryReader(new Uint8Array());
     const bytes = (yield { kind: 'read', table, offset: table.payloadOffset + offset, length: Math.min(length, table.payloadSize - offset) }) as Uint8Array;
     return new BinaryReader(bytes);
   }
   type Table = { table?: Mp4TableRange; count: number; header: BinaryReader; width: number; headerSize: number };
-  function* info(table: Mp4TableRange | undefined, width: number, headerSize = 8): Steps<Table> {
+  function* info(table: Mp4TableRange | undefined, width: number, headerSize = 8): Mp4SampleSteps<Table> {
     const header = yield* read(table && table.payloadSize >= headerSize ? table : undefined, 0, headerSize);
     const count = header.bytes.length ? new BinaryReader(header.bytes, headerSize - 4).readU32BE() : 0;
     return { ...(table ? { table } : {}), count: Math.min(count, Math.max(0, Math.ceil(((table?.payloadSize ?? 0) - headerSize) / width))), header, width, headerSize };
   }
-  function* entry(table: Table, index: number): Steps<BinaryReader> {
+  function* entry(table: Table, index: number): Mp4SampleSteps<BinaryReader> {
     return yield* read(index < table.count ? table.table : undefined, table.headerSize + index * table.width, table.width);
   }
   const timing = yield* info(tables.stts, 8), composition = yield* info(tables.ctts, 8), mapping = yield* info(tables.stsc, 12);
@@ -49,7 +49,7 @@ export function* mp4SampleTableSteps(size: number, tables: Mp4SampleTables, opti
   let compositionEntry = yield* entry(composition, 0), compositionLeft = compositionEntry.readU32BE();
   const signed = composition.header.bytes[0] === 1;
   let cts = signed ? compositionEntry.readI32BE() : compositionEntry.readU32BE();
-  function* nextMapping(): Steps<{ first: number; count: number; description: number }> {
+  function* nextMapping(): Mp4SampleSteps<{ first: number; count: number; description: number }> {
     const row = yield* entry(mapping, mappingIndex);
     return { first: row.readU32BE(), count: row.readU32BE(), description: row.readU32BE() || 1 };
   }
@@ -94,8 +94,10 @@ export async function* scanMp4SampleTable(source: MediaProbeSource, tables: Mp4S
   options.signal?.throwIfAborted();
   if (!Number.isSafeInteger(source.size) || source.size < 0) throw new RangeError('Invalid MP4 source size');
   for (const name of ['stts', 'ctts', 'stsc', 'stsz', 'stco', 'co64', 'stss'] as const) { const table = tables[name]; if (table && (!Number.isSafeInteger(table.payloadOffset) || !Number.isSafeInteger(table.payloadSize) || table.payloadOffset < 0 || table.payloadSize < 0 || table.payloadOffset > source.size || table.payloadSize > source.size - table.payloadOffset)) throw new RangeError('Invalid MP4 sample table range'); }
-  const cache = new Map<Mp4TableRange, { offset: number; bytes: Uint8Array }>();
-  const read = async (offset: number, length: number) => {
+  yield* consumeMp4SampleSteps(source, mp4SampleTableSteps(source.size, tables, options), options);
+}
+
+export async function readMp4SampleRange(source: MediaProbeSource, offset: number, length: number, options: Mp4SampleScanOptions): Promise<Uint8Array> {
     const bytes = new Uint8Array(length);
     for (let used = 0; used < length;) {
       options.signal?.throwIfAborted(); const chunk = await source.read(offset + used, length - used); options.signal?.throwIfAborted();
@@ -104,14 +106,17 @@ export async function* scanMp4SampleTable(source: MediaProbeSource, tables: Mp4S
       bytes.set(chunk, used); used += chunk.length;
     }
     await options.checkpoint?.(); options.signal?.throwIfAborted(); return bytes;
-  };
-  const steps = mp4SampleTableSteps(source.size, tables, options);
+}
+
+/** Drive the shared sample traversal with bounded owned table pages. */
+export async function* consumeMp4SampleSteps<T>(source: MediaProbeSource, steps: Mp4SampleSteps<T>, options: Mp4SampleScanOptions): AsyncGenerator<Mp4SampleSpan, T> {
+  const cache = new Map<Mp4TableRange, { offset: number; bytes: Uint8Array }>();
   let answer: Uint8Array | boolean | undefined, work = 0, retainedBytes = 0;
   try {
     for (;;) {
       options.signal?.throwIfAborted();
       if (++work % 256 === 0) { options.budget?.checkCpu(); await options.checkpoint?.(); options.signal?.throwIfAborted(); }
-      const next = steps.next(answer); if (next.done) return;
+      const next = steps.next(answer); if (next.done) return next.value;
       const step = next.value; answer = undefined;
       if (step.kind === 'sample') { yield step.sample; continue; }
       if (step.kind === 'sync-add' || step.kind === 'sync-has') {
@@ -119,7 +124,7 @@ export async function* scanMp4SampleTable(source: MediaProbeSource, tables: Mp4S
         if (step.kind === 'sync-add') await options.syncSamples.add(step.sample); else answer = await options.syncSamples.has(step.sample);
         options.signal?.throwIfAborted(); continue;
       }
-      if (!step.table) { answer = await read(step.offset, step.length); continue; }
+      if (!step.table) { answer = await readMp4SampleRange(source, step.offset, step.length, options); continue; }
       const bytes = new Uint8Array(step.length); let used = 0;
       while (used < bytes.length) {
         const relative = step.offset + used - step.table.payloadOffset, page = Math.floor(relative / 16384) * 16384;
@@ -128,12 +133,12 @@ export async function* scanMp4SampleTable(source: MediaProbeSource, tables: Mp4S
           if (cached) { retainedBytes -= cached.bytes.length; options.budget?.releaseMemory(cached.bytes.length); cache.delete(step.table); cached = undefined; }
           const length = Math.min(16384, step.table.payloadSize - page);
           retainedBytes += length; options.budget?.allocateMemory(length);
-          cached = { offset: page, bytes: await read(step.table.payloadOffset + page, length) }; cache.set(step.table, cached);
+          cached = { offset: page, bytes: await readMp4SampleRange(source, step.table.payloadOffset + page, length, options) }; cache.set(step.table, cached);
         }
         const from = relative - page, take = Math.min(bytes.length - used, cached.bytes.length - from);
         bytes.set(cached.bytes.subarray(from, from + take), used); used += take;
       }
       answer = bytes;
     }
-  } finally { cache.clear(); options.budget?.releaseMemory(retainedBytes); steps.return(); }
+  } finally { cache.clear(); options.budget?.releaseMemory(retainedBytes); steps.return(undefined as T); }
 }

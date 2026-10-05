@@ -1,3 +1,4 @@
+import { mp4FragmentHeader, mp4FragmentTime, mp4FragmentRunSteps } from "./mp4-fragment-source.js";
 import { mp4SampleTableSteps, type Mp4SampleTables } from "./mp4-sample-source.js";
 import { mp4BoxLayout, mp4BoxChildrenOffset } from "./mp4-box-layout.js";
 import { decodeH264Samples } from "./h264.js";
@@ -689,86 +690,25 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
         for (const traf of trafBoxes) {
           const tfhd = findBox(traf.children, "tfhd");
           if (!tfhd || tfhd.payload.byteLength < 8) continue;
-          const tfhdReader = new BinaryReader(tfhd.payload);
-          tfhdReader.readU8();
-          const tfhdFlags = tfhdReader.readU24BE();
-          const trafTrackId = tfhdReader.readU32BE();
-          if (trafTrackId !== trackId) continue;
-
-          let baseDataOffset = moof.offset;
-          let defaultSampleDescriptionIndex = trex.defaultSampleDescriptionIndex;
-          let defaultSampleDuration = trex.defaultSampleDuration;
-          let defaultSampleSize = trex.defaultSampleSize;
-          let defaultSampleFlags = trex.defaultSampleFlags;
-
-          if (tfhdFlags & 0x000001) baseDataOffset = tfhdReader.readU64BE();
-          if (tfhdFlags & 0x000002) defaultSampleDescriptionIndex = tfhdReader.readU32BE();
-          if (tfhdFlags & 0x000008) defaultSampleDuration = tfhdReader.readU32BE();
-          if (tfhdFlags & 0x000010) defaultSampleSize = tfhdReader.readU32BE();
-          if (tfhdFlags & 0x000020) defaultSampleFlags = tfhdReader.readU32BE();
-
+          const fragmentOptions = { trackId, moofOffset: moof.offset, defaults: trex, type, budget };
+          const header = mp4FragmentHeader(tfhd.payload, fragmentOptions);
+          if (!header) continue;
           const tfdt = findBox(traf.children, "tfdt");
-          if (tfdt && tfdt.payload.byteLength >= 8) {
-            const tfdtReader = new BinaryReader(tfdt.payload);
-            const tfdtVersion = tfdtReader.readU8();
-            tfdtReader.skip(3);
-            runningDts = tfdtVersion === 1 ? tfdtReader.readU64BE() : tfdtReader.readU32BE();
-          }
-
-          const trunBoxes = findBoxes(traf.children, "trun");
-          for (const trun of trunBoxes) {
-            if (trun.payload.byteLength < 8) continue;
-            const trunReader = new BinaryReader(trun.payload);
-            const trunVersion = trunReader.readU8();
-            const trunFlags = trunReader.readU24BE();
-            const trunSampleCount = trunReader.readU32BE();
-            budget.checkSamples(samples.length + trunSampleCount);
-
-            let dataOffset = baseDataOffset;
-            if (trunFlags & 0x000001) {
-              dataOffset = baseDataOffset + trunReader.readI32BE();
-            }
-            const firstSampleFlags =
-              trunFlags & 0x000004 ? trunReader.readU32BE() : undefined;
-
-            let cursor = dataOffset;
-            for (let s = 0; s < trunSampleCount; s++) {
-              const duration =
-                trunFlags & 0x000100 ? trunReader.readU32BE() : defaultSampleDuration;
-              const size = trunFlags & 0x000200 ? trunReader.readU32BE() : defaultSampleSize;
-              const flags =
-                trunFlags & 0x000400
-                  ? trunReader.readU32BE()
-                  : s === 0 && firstSampleFlags !== undefined
-                    ? firstSampleFlags
-                    : defaultSampleFlags;
-              const cts =
-                trunFlags & 0x000800
-                  ? trunVersion === 1
-                    ? trunReader.readI32BE()
-                    : trunReader.readU32BE()
-                  : 0;
-
-              // ISO 14496-12 sample_is_non_sync_sample bit (bit 16)
-              const isNonSync = (flags & 0x00010000) !== 0;
-              const sampleDependsOn = (flags >>> 24) & 0x03;
-              const isKeyframe = sampleDependsOn === 2 || (!isNonSync && (s === 0 || type !== "video"));
-
-              const safeStart = Math.max(0, Math.min(bytes.byteLength, cursor));
-              const safeEnd = Math.max(safeStart, Math.min(bytes.byteLength, safeStart + size));
-              samples.push({
-                data: bytes.subarray(safeStart, safeEnd),
-                dts: runningDts,
-                pts: runningDts + cts,
-                cts,
-                duration,
-                size: safeEnd - safeStart,
-                isKeyframe,
-                sampleDescriptionIndex: defaultSampleDescriptionIndex
-              });
-
-              runningDts += duration;
-              cursor += size;
+          if (tfdt) runningDts = mp4FragmentTime(tfdt.payload, runningDts);
+          for (const trun of findBoxes(traf.children, "trun")) {
+            const steps = mp4FragmentRunSteps(bytes.byteLength,
+              { payloadOffset: trun.offset + trun.headerSize, payloadSize: trun.payload.byteLength },
+              header, { dts: runningDts, sampleCount: samples.length }, fragmentOptions);
+            let answer: Uint8Array | undefined;
+            for (;;) {
+              const next = steps.next(answer);
+              if (next.done) { runningDts = next.value.dts; break; }
+              const step = next.value;
+              if (step.kind === 'read') answer = bytes.subarray(step.offset, step.offset + step.length);
+              else if (step.kind === 'sample') {
+                const { offset, ...sample } = step.sample;
+                samples.push({ ...sample, data: bytes.subarray(offset, offset + sample.size) });
+              }
             }
           }
         }

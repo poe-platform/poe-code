@@ -5,13 +5,16 @@ import {fileURLToPath} from "node:url";
 import {PdfDocument,cosArray,cosDict,cosName,cosString,cosStream,cosNumber,dictGet,dictSet,serializeCosDocument} from "@poe-code/pdf-ast";
 import sharp,{decodeImage} from "./index.js";
 
-// Exercise structural depth and resource width independently so remote-backed
-// work stays linear in each growth axis rather than multiplying fixture costs.
+// Exercise page traversal, structural depth, content-list length and resource
+// width separately. Each axis still crosses the same storage bounds without
+// multiplying repeated pages by growing per-page dictionaries and streams.
 it.each([
- ...[32,128].flatMap(count=>["metadata","pixels"].map(mode=>({count,mode,resourceCount:0,filterCount:0}))),
- ...[32,128].map(resourceCount=>({count:1,mode:"pixels",resourceCount,filterCount:0})),
- ...[32,128].map(filterCount=>({count:1,mode:"pixels",resourceCount:0,filterCount})),
-])("validates $mode with $count backed PDF references, $resourceCount resources and $filterCount filter references in Workerd",async ({count,mode,resourceCount,filterCount})=>{
+ ...[32,128].flatMap(count=>["metadata","pixels"].map(mode=>({count,mode,traversalCount:1,contentCount:1,resourceCount:0,filterCount:0}))),
+ ...[32,128].flatMap(traversalCount=>["metadata","pixels"].map(mode=>({count:1,mode,traversalCount,contentCount:1,resourceCount:0,filterCount:0}))),
+ ...[32,128].map(contentCount=>({count:1,mode:"pixels",traversalCount:1,contentCount,resourceCount:0,filterCount:0})),
+ ...[32,128].map(resourceCount=>({count:1,mode:"pixels",traversalCount:1,contentCount:1,resourceCount,filterCount:0})),
+ ...[32,128].map(filterCount=>({count:1,mode:"pixels",traversalCount:1,contentCount:1,resourceCount:0,filterCount})),
+])("validates $mode with $count backed PDF references, $traversalCount page branches, $contentCount content references, $resourceCount resources and $filterCount filter references in Workerd",async ({count,mode,traversalCount,contentCount,resourceCount,filterCount})=>{
  // Keep the complete RGBA plane above 64 KiB while requiring only five raster tiles.
  const pixels=new Uint8Array(257*64*4);let state=1234567;for(let i=0;i<pixels.length;i++){state^=state<<13;state^=state>>>17;state^=state<<5;pixels[i]=state&255;}
  const pdf=await sharp(pixels,{raw:{width:257,height:64,channels:4}}).toFormat("pdf").toBuffer();const document=PdfDocument.load(pdf),catalog=document.cos.resolveDict(document.cos.rootRef)!,pages=document.cos.resolveDict(dictGet(catalog,"Pages"))!,page=document.getPage(0).pageRef;
@@ -45,14 +48,14 @@ it.each([
   dictSet(mask,"TR",document.cos.allocateObject(cosDict({FunctionType:cosNumber(3),Domain:cosArray([cosNumber(0),cosNumber(1)]),Functions:document.cos.allocateObject(cosArray([dictGet(mask,"TR")!,child])),Bounds:cosArray([cosNumber(.5)]),Encode:cosArray([0,1,0,1].map(value=>cosNumber(value)))})));
  }
  if(resourceCount)dictSet(document.cos.resolveDict(dictGet(pageResources,"Font"))!,"SelectedFont",document.cos.allocateObject(cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica"),Unused:cosArray(Array.from({length:resourceCount},()=>cosNumber(757)))})));
- dictSet(pageDict,"Contents",cosArray([...Array.from({length:count},()=>empty),content]));
+ dictSet(pageDict,"Contents",cosArray([...Array.from({length:contentCount},()=>empty),content]));
  dictSet(pageDict,"Annots",cosArray(Array.from({length:count},()=>hidden)));
  let ancestor=dictGet(pageDict,"Parent")!;
  for(let i=0;i<count;i++)ancestor=document.cos.allocateObject(cosDict({Parent:ancestor}));
  dictSet(pageDict,"Parent",ancestor);
  let branch=page;
- for(let i=0;i<count;i++)branch=document.cos.allocateObject(cosDict({Type:cosName("Pages"),Kids:cosArray([branch,page]),Count:cosNumber(2)}));
- dictSet(pages,"Kids",cosArray([branch,...Array.from({length:count},()=>page)]));dictSet(pages,"Count",cosNumber(count));
+ for(let i=0;i<traversalCount;i++)branch=document.cos.allocateObject(cosDict({Type:cosName("Pages"),Kids:cosArray([branch,page]),Count:cosNumber(2)}));
+ dictSet(pages,"Kids",cosArray([branch,...Array.from({length:traversalCount},()=>page)]));dictSet(pages,"Count",cosNumber(traversalCount));
  let namedRoot=document.cos.allocateObject(cosDict({Names:cosArray([cosString("target"),cosArray([page,cosName("Fit")])])}));
  for(let i=0;i<count;i++)namedRoot=document.cos.allocateObject(cosDict({Kids:cosArray([cosDict({}),namedRoot])}));
  dictSet(catalog,"Names",cosDict({Dests:namedRoot}));
@@ -76,8 +79,8 @@ it.each([
  export default {async fetch(request,env){const {size,namedRoot,mode}=await request.json();let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
  const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
  const fs={capabilities:{retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(){return parent;},async capabilitiesFor(){return this.capabilities;},
- async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
- async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
+ async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;return new Uint8Array(await env.BACKING.read(file.id,position,length));},async close(){closed++;}};},
+ async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.write(file.id,file.size,chunk);file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.remove(file.id);},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
  const tokenNext=CosRangeLexer.prototype.nextToken;CosRangeLexer.prototype.nextToken=async function(){const token=await tokenNext.call(this);if(token?.kind==='number'&&token.raw.length>2048)throw Error('unbounded numeric spelling');if(token?.kind==='keyword'&&token.value.length>65)throw Error('unbounded keyword spelling');return token;};
  const add=Set.prototype.add;let maxSet=0;Set.prototype.add=function(value){const result=add.call(this,value);maxSet=Math.max(maxSet,this.size);return result;};
@@ -87,24 +90,29 @@ it.each([
  const syncPrototype=Object.getPrototypeOf(Object.getPrototypeOf((function*(){})())),syncNext=syncPrototype.next;let activeSync=0,maxSync=0;
  syncPrototype.next=function(...args){maxSync=Math.max(maxSync,++activeSync);try{return syncNext.apply(this,args);}finally{activeSync--;}};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded PDF allocation '+length);return Reflect.construct(target,args);}});
- try{let pixelEnd=0;const storage={allocate(length){const start=pixelEnd;pixelEnd+=length;return start;},async read(position,length){if(length>4096)throw Error('large pixel read');return new Uint8Array(await(await env.BACKING.fetch('https://backing/pixels?position='+position+'&length='+length)).arrayBuffer());},async write(position,bytes){if(bytes.length>4096)throw Error('large pixel write');await env.BACKING.fetch('https://backing/pixels?position='+position,{method:'PUT',body:bytes});}};
+ try{let pixelEnd=0;const storage={allocate(length){const start=pixelEnd;pixelEnd+=length;return start;},async read(position,length){if(length>4096)throw Error('large pixel read');return new Uint8Array(await env.BACKING.read('pixels',position,length));},async write(position,bytes){if(bytes.length>4096)throw Error('large pixel write');await env.BACKING.write('pixels',position,bytes);}};
  let metadata;if(mode==='metadata'){const source=await PdfFileSource.open(fs,'/input',{chunkBytes:4096,cacheBytes:8192});let doc;
  try{doc=await PdfRetainedDocument.open(source,{fs,directory:'/'},{chunkBytes:4096,cacheBytes:8192,maxPageTreeDepth:Infinity,maxRecursionDepth:Infinity,compactNumbers:true,compactKeywords:true,valueArrays:{dictionaryStorage:storage,deferDictionaryValues:true,stringStorage:storage,storedDictionaryKeys:['Font','XObject','Properties'],storedDictionaryPaths:[['Resources','*']],containerStorage:storage,arrayStorage:storage,storedArrayKeys:['Kids','Contents','Annots','Widths']}});if(await doc.annotationPageNumber({kind:'ref',objectNumber:0,generationNumber:0})!==undefined)throw Error('unexpected destination');if((await doc.annotationNamedDestination(namedRoot,'target'))?.kind!=='array')throw Error('missing named destination');if(await doc.annotationNamedDestination(namedRoot,'absent')!==undefined)throw Error('unexpected named destination');}finally{try{await doc?.close();}finally{await source.close();}}
  }else{const input=await fs.openReadFile('/input');let image;try{image=await tryPdfDecode({size,read:input.read},storage,fs,'/',new AbortController().signal);}finally{await input.close();}
  let sum=0;for(let offset=0;offset<image.width*image.height*4;offset+=4096){const bytes=await storage.read(image.position+offset,Math.min(4096,image.width*image.height*4-offset));for(let i=0;i<bytes.length;i++)sum=(sum+bytes[i]*((offset+i)%65521+1))%1000000007;}
  metadata={width:image.width,height:image.height,sum};}
- await env.BACKING.fetch('https://backing/pixels',{method:'DELETE'});
+ await env.BACKING.remove('pixels');
  return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,maxPulls,maxSet,maxSync,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{CosRangeLexer.prototype.nextToken=tokenNext;globalThis.Uint8Array=Native;Array.prototype.push=push;generatorPrototype.next=next;Set.prototype.add=add;syncPrototype.next=syncNext;}
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
  const runtime=new Miniflare({workers:[{name:"image",modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{BACKING:"backing"}},
- {name:"backing",modules:true,compatibilityDate:"2026-07-01",cf:false,script:`const backing=new Map();export default {async fetch(request){
-  const url=new URL(request.url),key=url.pathname,position=Number(url.searchParams.get("position"));
-  if(key==='/status')return Response.json([...backing.keys()]);
-  if(request.method==="DELETE"){backing.delete(key);return new Response();}
-  if(request.method==="PUT"){const chunk=new Uint8Array(await request.arrayBuffer()),end=position+chunk.length;let file=backing.get(key);if(!file||end>file.bytes.length){const next=new Uint8Array(Math.max(end,(file?.bytes.length??2048)*2));if(file)next.set(file.bytes);file={bytes:next,size:file?.size??0};backing.set(key,file);}file.bytes.set(chunk,position);file.size=Math.max(file.size,end);return new Response();}
-  return new Response(backing.get(key).bytes.slice(position,Math.min(backing.get(key).size,position+Number(url.searchParams.get("length")))));
- }}`}]});
+ {name:"backing",modules:true,compatibilityDate:"2026-07-01",cf:false,script:`
+ import {WorkerEntrypoint} from 'cloudflare:workers';
+ const backing=new Map();
+ export default class extends WorkerEntrypoint {
+  read(id,position,length){const file=backing.get('/'+id);return file.bytes.slice(position,Math.min(file.size,position+length));}
+  write(id,position,chunk){const key='/'+id,end=position+chunk.length;let file=backing.get(key);if(!file||end>file.bytes.length){const next=new Uint8Array(Math.max(end,(file?.bytes.length??2048)*2));if(file)next.set(file.bytes);file={bytes:next,size:file?.size??0};backing.set(key,file);}file.bytes.set(chunk,position);file.size=Math.max(file.size,end);}
+  remove(id){backing.delete('/'+id);}
+  async fetch(request){const url=new URL(request.url);
+   if(url.pathname==='/status')return Response.json([...backing.keys()]);
+   this.write(url.pathname.slice(1),Number(url.searchParams.get('position')),new Uint8Array(await request.arrayBuffer()));return new Response();
+  }
+ }`}]});
  try{const backing=await runtime.getWorker("backing");
  await backing.fetch("https://backing/input?position=0",{method:"PUT",body:bytes});
  const response=await runtime.dispatchFetch("https://image/",{method:"POST",body:JSON.stringify({size:bytes.length,namedRoot,mode})});if(response.status!==200)throw new Error(await response.text());const result=await response.json() as {metadata:unknown;opened:number;closed:number;removed:number;files:number;reads:number;maxAllocation:number;maxPulls:number;maxSet:number;maxSync:number;nodeGlobals:boolean};

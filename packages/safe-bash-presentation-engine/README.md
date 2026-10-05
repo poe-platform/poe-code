@@ -71,6 +71,11 @@ The default tag read commands use this path, including stdin input.
 notes and slideshow settings with replayable print/view XML streams.
 `stageRetainedPresentationSettings` stages list/get output for the default command,
 including inherited namespace declarations in standalone print XML.
+
+`openRetainedMemberships` (from `memberships`) reads section/custom-show identities,
+names and ordered slide memberships through caller storage. `stageRetainedMemberships`
+adds streamed locations/tokens and list/get selection for the default command,
+preserving repeated custom-show slides and section contiguity checks.
 `pptx xml get` also stages raw, JSON and pretty responses through caller storage.
 `openRetainedXmlPart` (from `xml-parts`) exposes replayable original bytes and
 UTF-8 XML streams with explicit `validationLimits`; pretty formatting preserves

@@ -619,3 +619,5 @@ export async function mutateMemberships(
     fail("invalid-opc", "Changed memberships fail graph validation.");
   return output;
 }
+
+export { openRetainedMemberships, stageRetainedMemberships, type RetainedMembershipRecord } from './retained-memberships.js';

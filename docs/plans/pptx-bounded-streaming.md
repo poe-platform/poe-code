@@ -701,6 +701,27 @@ native canvas dimensions and exact buffered output, including standalone print
 XML, through the built public adapter without whole-file reads or leftover scratch.
 Other families and Worker runtime qualification remain unfinished.
 
+## Retained section and custom-show reads
+
+The default sections/shows list/get commands now use retained inputs and staged
+responses. Ordered records, arbitrary names and padded custom-show identities,
+slide lookup maps, duplicate tracking and membership lists live in caller pages.
+Section extension admission, contiguous/nonoverlapping membership checks, repeated
+custom-show slides and exact identifier spelling match the buffered SDK. Locations
+and opaque tokens stream from stored identities; token selection preserves decoded
+identity matching, while all owners/records are admitted before selection.
+
+Tests cover strict/transitional documents, malformed extension structures,
+identities and references, empty/multiple records, unsupported bulk-read flags, numeric
+boundaries, long identities/names and large ordered member lists. Generated/reused
+chunks, slow sinks, actual spill writes, bounded outstanding IO, file/stdin public
+adapters, cancellation and injected storage/sink failures exercise cleanup and
+publication ordering. A native python-pptx chart/workbook deck preserves independent
+section/custom-show slide order and matches exact buffered human/JSON output
+through the built public adapter, without whole-file reads or leftover scratch.
+These read operations do not complete the remaining mutation,
+extraction, workbook or Worker runtime matrix.
+
 ## Remaining operation matrix
 
 | Area | Remaining migration |

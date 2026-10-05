@@ -1,3 +1,4 @@
+import { stageWideBiffProperty } from './biff-property-transcode.js';
 import { stagePropertyBytes } from './biff-property-bytes.js';
 import type { BiffPropertySource } from './biff-encrypted-properties-write.js';
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
@@ -33,6 +34,13 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
       throw new SsconvertError("resource-limit", "ssconvert BIFF property text limit exceeded");
     return text;
   };
+  const temporarySources: BiffPropertySource[] = [];
+  const closeTemporary = async () => {
+    const outcomes = await Promise.allSettled(temporarySources.map(source => source.close()));
+    const errors = outcomes.filter((value): value is PromiseRejectedResult => value.status === "rejected").map(value => value.reason);
+    if (errors.length) throw new AggregateError(errors, "BIFF property transcode cleanup failed");
+  };
+  try {
   for (const record of book.unsupportedRecords ?? []) {
     admit(1);
     if (record.source !== "biff" || record.kind !== "ole-properties" || record.disposition !== "retained") continue;
@@ -125,6 +133,10 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
   };
   const wide = async (source: BiffPropertyRange, section: Section): Promise<BiffPropertyRange> => {
     if (await source.u32(0) !== 30 || (await section.values!.get(1)?.u16(4) ?? 1252) === 65001) return source;
+    if (staged) {
+      const output = await stageWideBiffProperty(source, context, charge, staged.reserve);
+      temporarySources.push(output); return propertyRange(output, context);
+    }
     const data = await materialize(source);
     const value = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(data.slice(8, data.u32(4) - 1));
     charge(value.length); const bytes = allocate(8 + (value.length + 1) * 2), view = new DataView(bytes.buffer);
@@ -291,5 +303,9 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     admit(1); if (!Object.hasOwn(book.properties ?? {}, property.key)) exposed.add(property.key);
   });
   for (const key of exposed) await warn(key, "opaque property exposes a field absent from the model");
-  return preserved;
+  } catch (error) {
+    try { await closeTemporary(); } catch (cleanup) { throw new AggregateError([error, cleanup], "BIFF property merge and cleanup failed"); }
+    throw error;
+  }
+  await closeTemporary(); return preserved;
 }

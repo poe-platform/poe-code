@@ -170,3 +170,38 @@ it.each(['odd', 'invalid-tail'])('rejects %s snapshot hex before opening output 
     { sources: new Map(), reserve: length => length })).rejects.toThrow('invalid retained property bytes');
   expect(state.acquired).toBe(0);
 });
+
+it.each(['success', 'transcode-write', 'output-write', 'output-read', 'abort'])('transcodes retained legacy replacements with bounded decoding and cleanup (%s)', async mode => {
+  const seed = { sheets: book.sheets, properties: { 'dc:title': 'old' } };
+  const original = (await writeBiffProperties(seed, context)).streams.get('\u0005SummaryInformation')!;
+  const view = new DataView(original.buffer), section = view.getUint32(44, true);
+  for (let i = 0; i < view.getUint32(section + 4, true); i++) if (view.getUint32(section + 8 + i * 8, true) === 1)
+    view.setUint16(section + view.getUint32(section + 12 + i * 8, true) + 4, 1252, true);
+  const input = { ...seed, properties: { 'dc:title': 'a'.repeat(8191) + '😀漢'.repeat(15000) }, unsupportedRecords: [{
+    source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+    data: { stream: '\u0005SummaryInformation', bytes: Array.from(original, byte => byte.toString(16).padStart(2, '0')).join(''), modeled: [[section, 2, 'dc:title']] }
+  }] };
+  const expected = await writeBiffProperties(input, context), { ctx, state, failure, cleanups } = fixture();
+  const controller = new AbortController(), runContext = { ...ctx, signal: controller.signal };
+  if (mode === 'output-read') state.mode = mode;
+  state.hold = async () => {
+    if (mode === 'transcode-write' && state.acquired === 2 || mode === 'output-write' && state.acquired === 3) throw failure;
+    if (mode === 'abort' && state.acquired === 2) controller.abort(failure);
+  };
+  const decode = TextDecoder.prototype.decode;
+  const spy = vi.spyOn(TextDecoder.prototype, 'decode').mockImplementation(function (this: TextDecoder, bytes, options) {
+    expect(bytes?.byteLength ?? 0).toBeLessThanOrEqual(16384); return decode.call(this, bytes, options);
+  });
+  try {
+    if (mode !== 'success') await expect(writeBiffProperties(input, runContext, true)).rejects.toBe(failure);
+    else {
+    const actual = await writeBiffProperties(input, runContext, true);
+    for (const [name, source] of actual.streams) {
+      const bytes = expected.streams.get(name)!; expect(source.size).toBe(bytes.length);
+      for (let at = 0; at < source.size;) { const part = await source.read(at, source.size); expect(part).toEqual(bytes.subarray(at, at + part.length)); at += part.length; }
+    }
+    await actual.close();
+    }
+  } finally { spy.mockRestore(); for (const cleanup of cleanups) await cleanup(); }
+  expect(state.closed).toBe(state.acquired);
+});

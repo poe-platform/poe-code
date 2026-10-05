@@ -125,16 +125,18 @@ export async function verifyLlmCollections() {
   });
   if(importedBytes!==4194304)throw new Error('Large CSV field was truncated');
   let jsonBytes=0;
-  await withJsonEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){
+  // Four-byte code points plus node/index pages exceed the catalog's 1 MiB cap.
+  await withJsonEmbeddingEntries({...options,directory:'/',maxFileBytes:32*1024*1024},{async *[Symbol.asyncIterator](){
     yield new TextEncoder().encode('[{"id":1e0,"body":"');
     const chunk=new Uint8Array(4096).fill(120);for(let index=0;index<1024;index++)yield chunk;
     yield new TextEncoder().encode('"}]');
   }},async entries=>{for await(const entry of entries){
     if(entry.id!=='1.0')throw new Error('JSON numeric ID lost its type');
-    for await(const bytes of entry.input.bytes){if(bytes.length>24576)throw new Error('Unbounded JSON field chunk');jsonBytes+=bytes.length;}
+    for await(const bytes of entry.input.bytes){if(bytes.length>24576)throw new Error('Unbounded JSON field chunk');if(bytes.some(byte=>byte!==120))throw new Error('Large JSON field bytes changed');jsonBytes+=bytes.length;}
     await entry.input.dispose();
   }});
   if(jsonBytes!==4194304)throw new Error('Large JSON field was truncated');
+  if(JSON.stringify(await fs.readdir('/'))!==JSON.stringify([{name:'embeddings.db',type:'file'}]))throw new Error('JSON staging files leaked');
   for(const fixture of jsonImportEncodingInputs){
     let count=0;
     await withJsonEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){for(const byte of Uint8Array.from(atob(fixture.base64),c=>c.charCodeAt(0)))yield Uint8Array.of(byte);}},async entries=>{

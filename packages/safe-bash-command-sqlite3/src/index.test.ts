@@ -1043,3 +1043,9 @@ test("sqlite3 imports 25000 primary keys in sync and async transactions", async 
   assert.equal(result.stdout, expected);
   assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [":memory:"], () => csv), expected);
 });
+
+test("sqlite3 creates and queries an in-memory FTS5 table", async () => {
+  const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+    "CREATE VIRTUAL TABLE docs USING fts5(title, body); INSERT INTO docs VALUES ('hello', 'world'); SELECT * FROM docs; SELECT title FROM docs WHERE docs MATCH 'WORLD';"]);
+  assert.deepEqual(result, { code: 0, stdout: "hello|world\nhello\n", stderr: "" });
+});

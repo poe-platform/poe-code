@@ -89,6 +89,31 @@ export interface TableDef {
   primaryKeyCols: string[];
   primaryKeyOrder?: { desc: boolean; collation: string | undefined }[] | undefined;
   uniqueColSets: string[][];
+  fts5?: boolean | undefined;
+}
+
+// This bounded subset follows unicode61 for ASCII input. Reject other input
+// instead of silently approximating Unicode categories or FTS query operators.
+function* ftsTokens(text: string, query: boolean): SqlSteps<string[]> {
+  const words: string[] = [];
+  let word = "";
+  for (const char of text + " ") {
+    yield;
+    const code = char.charCodeAt(0);
+    const letter = code >= 65 && code <= 90 || code >= 97 && code <= 122;
+    const digit = code >= 48 && code <= 57;
+    if (code > 127 || query && !letter && !digit && !" \t\r\n".includes(char)) {
+      throw new Error("unsupported FTS5 input: only ASCII text and bare alphanumeric query terms are supported");
+    }
+    if (letter || digit) word += char;
+    else if (word) {
+      if (query && ["AND", "OR", "NOT", "NEAR"].includes(word)) throw new Error("unsupported FTS5 query operator");
+      words.push(word.toLowerCase());
+      word = "";
+    }
+  }
+  if (query && !words.length) throw new Error("unsupported FTS5 empty query");
+  return words;
 }
 
 function tableStorageColumns(table: TableDef): ColumnDef[] {
@@ -127,6 +152,7 @@ function cloneSqlValue(v: SqlValue): SqlValue {
 
 function cloneTableDef(t: TableDef): TableDef {
   return {
+    fts5: t.fts5,
     name: t.name,
     sql: t.sql,
     columns: t.columns.map((c) => ({ ...c })),
@@ -1781,6 +1807,9 @@ export class SqliteDatabase {
   }
 
   private *serializeToBytesSteps(): SqlSteps<Uint8Array> {
+    if ([...this.tables.values()].some((table) => table.fts5)) {
+      throw new Error("unsupported FTS5 binary persistence; use a SQL dump");
+    }
     const master: StoredTableMeta[] = [];
     const tableRows = new Map<string, { rowid: number; values: SqlValue[] }[]>();
     const indexRows = new Map<string, SqlValue[][]>();
@@ -2325,7 +2354,10 @@ export class SqliteDatabase {
       unique = true;
       idx += 1;
     }
+    const virtual = tokens[idx]?.value.toUpperCase() === "VIRTUAL";
+    if (virtual) idx += 1;
     const kind = (tokens[idx]?.value ?? "").toUpperCase();
+    if (virtual && kind !== "TABLE") throw new Error("unsupported virtual table declaration");
     idx += 1;
     let ifNotExists = false;
     if (
@@ -2348,6 +2380,43 @@ export class SqliteDatabase {
           return;
         }
         throw new Error(`table ${objName} already exists`);
+      }
+
+      if (virtual) {
+        if (tokens[idx]?.value.toUpperCase() !== "USING" ||
+            tokens[idx + 1]?.value.toLowerCase() !== "fts5" ||
+            tokens[idx + 2]?.value !== "(") {
+          throw new Error("unsupported virtual table module; only fts5 is supported");
+        }
+        const columns: ColumnDef[] = [];
+        idx += 3;
+        while (idx < tokens.length && tokens[idx]?.value !== ")") {
+          yield;
+          const token = tokens[idx++];
+          if (!token || !["word", "ident", "string"].includes(token.type) ||
+              ![",", ")"].includes(tokens[idx]?.value ?? "")) {
+            throw new Error("unsupported FTS5 column or option");
+          }
+          const name = token.value;
+          if (["rank", "rowid", objName.toLowerCase()].includes(name.toLowerCase())) {
+            throw new Error("unsupported FTS5 reserved column name");
+          }
+          if (columns.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
+            throw new Error(`duplicate column name: ${name}`);
+          }
+          columns.push({ name, type: "", notNull: false, primaryKey: false, autoIncrement: false, unique: false });
+          if (tokens[idx]?.value !== ",") break;
+          idx += 1;
+          if (tokens[idx]?.value === ")") throw new Error("unsupported FTS5 trailing comma");
+        }
+        if (!columns.length || tokens[idx]?.value !== ")" || idx !== tokens.length - 1) {
+          throw new Error("unsupported FTS5 table definition");
+        }
+        this.tables.set(objName, {
+          name: objName, sql, columns, rows: [], nextRowId: 1, maxAutoInc: 0,
+          withoutRowId: false, strict: false, primaryKeyCols: [], uniqueColSets: [], fts5: true
+        });
+        return;
       }
 
       // Check CREATE TABLE ... AS SELECT
@@ -4506,7 +4575,7 @@ export class SqliteDatabase {
 
     // 1. Evaluate FROM & JOINs into row contexts
     let workingRows: Record<string, SqlValue>[] = [{}];
-    let sourceSchema: { tableAlias: string; columns: string[]; hidden?: Set<string>; shared?: Set<string> }[] = [];
+    let sourceSchema: { tableAlias: string; columns: string[]; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[] = [];
 
     if (fromTokens && fromTokens.length > 0) {
       const built = yield* this.evaluateFromClause(fromTokens, positionalParams, cteScope);
@@ -4561,8 +4630,11 @@ export class SqliteDatabase {
     // Resolve identifiers against the schema before evaluating any rows. This
     // catches errors in empty tables and branches that evaluation never visits.
     const bindings: Record<string, SqlValue> = {};
+    const ftsBindings: Record<string, TableDef> = {};
+    bindings.__fts = ftsBindings as unknown as SqlValue;
     for (const source of sourceSchema) {
       yield;
+      if (source.ftsTable) ftsBindings[source.tableAlias] = source.ftsTable;
       for (const column of [...source.columns, "rowid", "_rowid_", "oid"]) {
         yield;
         bindings[column] = null;
@@ -4963,7 +5035,7 @@ export class SqliteDatabase {
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
   ): SqlSteps<{
     rows: Record<string, SqlValue>[];
-    schema: { tableAlias: string; columns: string[]; hidden?: Set<string>; shared?: Set<string> }[];
+    schema: { tableAlias: string; columns: string[]; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[];
   }> {
     // Parse sequence of table sources and JOIN operators
     interface JoinItem {
@@ -5110,7 +5182,7 @@ export class SqliteDatabase {
     }
 
     let currentRows: Record<string, SqlValue>[] = [];
-    const schema: { tableAlias: string; columns: string[]; hidden?: Set<string>; shared?: Set<string> }[] = [];
+    const schema: { tableAlias: string; columns: string[]; ftsTable?: TableDef | undefined; hidden?: Set<string>; shared?: Set<string> }[] = [];
 
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
       yield;
@@ -5140,7 +5212,7 @@ export class SqliteDatabase {
           });
         }, this)
       );
-      schema.push({ tableAlias: resolved.alias, columns: resolved.columns });
+      schema.push({ tableAlias: resolved.alias, columns: resolved.columns, ftsTable: resolved.ftsTable });
 
       if (itemIdx === 0) {
         currentRows = resolved.rows;
@@ -5484,6 +5556,7 @@ export class SqliteDatabase {
     columns: string[];
     rows: Record<string, SqlValue>[];
     isCorrelated?: boolean;
+    ftsTable?: TableDef | undefined;
   }> {
     if (srcTokens.length === 0) {
       return { alias: "", columns: [], rows: [{}] };
@@ -5792,7 +5865,7 @@ export class SqliteDatabase {
         __sources: [r.data]
       } as unknown as Record<string, SqlValue>;
     }, this);
-    return { alias, columns: cols, rows };
+    return { alias, columns: cols, rows, ftsTable: tbl.fts5 ? tbl : undefined };
   }
 
   private *evaluateTableValuedFunction(
@@ -6352,6 +6425,16 @@ export class SqliteDatabase {
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
   ): SqlSteps<void> {
     if (!node || typeof node !== "object") return;
+    if ("kind" in node && node.kind === "binary" && (node as Extract<ExprNode, { kind: "binary" }>).op === "MATCH") {
+      const match = node as Extract<ExprNode, { kind: "binary" }>;
+      this.ftsValues(match.left, scope);
+      if (match.right.kind === "literal" || match.right.kind === "param") {
+        const query = yield* this.evalExprSteps(match.right, scope, positionalParams, cteScope);
+        yield* ftsTokens(toSqlString(query), true);
+      }
+      yield* this.validateColumns(match.right, scope, positionalParams, cteScope);
+      return;
+    }
     if ("kind" in node && node.kind === "column") {
       const column = node as Extract<ExprNode, { kind: "column" }>;
       this.lookupColInRow(scope, column.table, column.name, column.doubleQuoted);
@@ -6384,6 +6467,36 @@ export class SqliteDatabase {
       yield;
       yield* this.validateColumns(child, scope, positionalParams, cteScope);
     }
+  }
+
+  private ftsValues(expr: ExprNode, row: Record<string, SqlValue>): SqlValue[] {
+    if (expr.kind !== "column") throw new Error("MATCH requires an FTS5 table or column");
+    const tables = (row as unknown as { __tables?: Record<string, Record<string, SqlValue>> }).__tables ?? {};
+    const bindings = (row as unknown as { __fts?: Record<string, TableDef> }).__fts;
+    if (bindings) {
+      for (const [alias, table] of Object.entries(bindings)) {
+        if (!expr.table && table.name.toLowerCase() === expr.name.toLowerCase()) {
+          return table.columns.map((column) => this.lookupColInRow(row, alias, column.name));
+        }
+        if ((!expr.table || expr.table.toLowerCase() === alias.toLowerCase()) &&
+            table.columns.some((column) => column.name.toLowerCase() === expr.name.toLowerCase())) {
+          return [this.lookupColInRow(row, expr.table, expr.name)];
+        }
+      }
+      throw new Error("MATCH requires an FTS5 table or column");
+    }
+    const table = this.findTable(expr.name);
+    if (!expr.table && table?.fts5) {
+      return table.columns.map((column) => this.lookupColInRow(row, table.name, column.name));
+    }
+    const value = this.lookupColInRow(row, expr.table, expr.name);
+    for (const [name, data] of Object.entries(tables)) {
+      const candidate = this.findTable(name);
+      if (!candidate?.fts5) continue;
+      if (expr.table && !Object.entries(tables).some(([alias, source]) => alias.toLowerCase() === expr.table!.toLowerCase() && source === data)) continue;
+      if (candidate.columns.some((column) => column.name.toLowerCase() === expr.name.toLowerCase())) return [value];
+    }
+    throw new Error("MATCH requires an FTS5 table or column");
   }
 
   private lookupColInRow(
@@ -6606,6 +6719,17 @@ export class SqliteDatabase {
           yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation)
         );
       case "binary": {
+        if (expr.op === "MATCH") {
+          const values = this.ftsValues(expr.left, row);
+          const query = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope, evaluation);
+          const terms = yield* ftsTokens(toSqlString(query), true);
+          const words = new Set<string>();
+          for (const value of values) {
+            yield;
+            for (const word of yield* ftsTokens(toSqlString(value), false)) words.add(word);
+          }
+          return terms.every((term) => words.has(term)) ? 1 : 0;
+        }
         if (expr.op === "AND") {
           const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
           if (l !== null && !isTruthy(l)) {
@@ -6937,7 +7061,6 @@ export class SqliteDatabase {
       case "GLOB":
         return matchGlob(toSqlString(l), toSqlString(r)) ? 1 : 0;
       case "REGEXP":
-      case "MATCH":
         try {
           return new RegExp(toSqlString(r)).test(toSqlString(l)) ? 1 : 0;
         } catch {

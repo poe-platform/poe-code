@@ -660,6 +660,14 @@ output and admission; cancellation and early return retire the source iterator.
 The serializer retains one segment and a fixed output buffer instead of a whole
 path string. The caller keeps ownership of backing storage.
 
+`encodeSvgPathPaintChunks(operation, pageHeight, options)` streams path or glyph
+paint elements from resident or caller-backed geometry and dash records. It
+preserves stroke transforms, hairlines, zero-length dash outlines, opacity and
+glyph labels. `chunkBytes`, `maxSegments`, `maxDashEntries`, `maxOutputBytes` and
+`signal` bound output, record admission and cancellation; `scale` controls stroke
+resolution. The caller owns source storage and enclosing clip/mask/blend wrappers.
+This leaf serializer does not replace the full-page SVG execution path.
+
 `encodeSvgImageChunks(image, pageHeight, storage, options)` streams an SVG
 `<image>` element, including its PNG data URL, from `decodedRgba` or caller-backed
 `storedRgba` pixels. It preserves the buffered SVG encoder's RGBA PNG bytes and

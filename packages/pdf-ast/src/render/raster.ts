@@ -1,4 +1,5 @@
-import { svgPathSegment } from "./svg-path-stream.js";
+import {PdfError} from "../errors.js";
+import { encodeSvgPathDataChunks, svgPathSegment } from "./svg-path-stream.js";
 import { operationEffects, readStoredOperations } from "../content/stored-operations.js";
 import { readStoredClips } from "../content/stored-clips.js";
 import { storedStrokeDash } from "./stored-dash.js";
@@ -1957,4 +1958,69 @@ export function renderPdfPageToPng(
   let next = steps.next();
   while (!next.done) next = steps.next();
   return next.value;
+}
+
+export interface PdfSvgPathPaintOptions {
+  readonly scale?: number;
+  readonly chunkBytes?: number;
+  readonly maxOutputBytes?: number;
+  readonly maxSegments?: number;
+  readonly maxDashEntries?: number;
+  readonly signal?: AbortSignal;
+}
+
+/** Stream a path/glyph's SVG paint elements. Clip/mask/blend wrappers belong to
+ * the enclosing compositor. Caller-backed paths and dashes remain descriptors;
+ * zero-length dash contours are emitted without collecting their point arrays. */
+export async function* encodeSvgPathPaintChunks(original: Extract<PdfPaintOperation, {kind:"path"|"glyph"}>, pageHeight: number,
+  options: PdfSvgPathPaintOptions = {}): AsyncGenerator<Uint8Array, void, void> {
+  const {signal}=options;signal?.throwIfAborted();const chunkBytes=options.chunkBytes??16384,maximum=options.maxOutputBytes??Infinity,scale=options.scale??1;
+  if(!Number.isSafeInteger(chunkBytes)||chunkBytes<1)throw new RangeError("Invalid SVG paint chunk size");
+  for(const value of [maximum,options.maxSegments??Infinity,options.maxDashEntries??Infinity])if(value!==Infinity&&(!Number.isSafeInteger(value)||value<0))throw new RangeError("Invalid SVG paint limit");
+  if(!Number.isFinite(scale)||scale<=0)throw new RangeError("Invalid SVG paint scale");
+  if(original.kind==="glyph"&&(original.value.renderMode===3||(!original.value.outline&&!original.value.unicode.trim())))return;
+  const p=original.kind==="glyph"?glyphPaint(original.value):original.value;
+  const segmentCount=p.storedSegments?.count??p.segments.length,dashCount=p.storedDash?.length??p.dashArray?.length??0;
+  if(!Number.isSafeInteger(segmentCount)||segmentCount<0||!Number.isSafeInteger(dashCount)||dashCount<0)throw new RangeError("Invalid SVG paint record count");
+  if(segmentCount>(options.maxSegments??Infinity)||dashCount>(options.maxDashEntries??Infinity))throw new PdfError("E_LIMIT","SVG paint record limit exceeded");
+  if(!segmentCount)return;
+  let emitted=0,work=0;const encoder=new TextEncoder();
+  function* bytes(bytes:Uint8Array){if(bytes.length>maximum-emitted||!Number.isSafeInteger(emitted+bytes.length))throw new PdfError("E_LIMIT","SVG paint output byte limit exceeded");emitted+=bytes.length;for(let at=0;at<bytes.length;at+=chunkBytes){signal?.throwIfAborted();yield bytes.slice(at,at+chunkBytes);}}
+  function* text(value:string){for(let at=0;at<value.length;){let end=Math.min(at+2048,value.length);if(end<value.length&&value.charCodeAt(end-1)>=0xd800&&value.charCodeAt(end-1)<=0xdbff)end--;yield* bytes(encoder.encode(value.slice(at,end)));at=end;}}
+  async function checkpoint(){signal?.throwIfAborted();if(++work%64===0){await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}}
+  async function* dashes(factor:number){
+    if(!p.storedDash){for(const value of p.dashArray??[]){await checkpoint();yield value*factor;}return;}
+    const source=p.storedDash;if(!Number.isSafeInteger(source.position)||source.position<0||!Number.isSafeInteger(source.position+dashCount*8))throw new RangeError("Invalid SVG dash position");
+    for(let at=0;at<dashCount;at+=512){await checkpoint();const length=Math.min(512,dashCount-at)*8,data=(await source.storage.read(source.position+at*8,length,signal?{signal}:undefined)).slice();if(data.length!==length)throw new Error("Incomplete SVG dash pattern");const view=new DataView(data.buffer,data.byteOffset,data.length);for(let i=0;i<length;i+=8){await checkpoint();yield view.getFloat64(i,true)*factor;}}
+  }
+  const prepared=p.strokeColor?prepareStroke(p,scale):undefined;let outlineStroke=false;
+  if(prepared)for await(const value of dashes(1)){if(value===0){outlineStroke=true;break;}}
+  const matrix=prepared&&(prepared.matrix[0]!==1||prepared.matrix[1]!==0||prepared.matrix[2]!==0||prepared.matrix[3]!==1)?prepared.matrix:undefined,inverse=matrix?inverseStrokeMatrix(matrix):undefined;
+  const transform=inverse&&matrix?` transform="matrix(${matrix[0]} ${-matrix[1]} ${-matrix[2]} ${matrix[3]} ${matrix[4]} ${pageHeight-matrix[5]})"`:"";
+  const fill=p.fillColor?`rgb(${Math.round(p.fillColor.r*255)},${Math.round(p.fillColor.g*255)},${Math.round(p.fillColor.b*255)})`:"none",stroke=p.strokeColor&&prepared?`rgb(${Math.round(p.strokeColor.r*255)},${Math.round(p.strokeColor.g*255)},${Math.round(p.strokeColor.b*255)})`:"none";
+  const label=original.kind==="glyph"?` aria-label="${escapeXmlText(original.value.unicode)}"`:"";
+  let painted=false;
+  if(!outlineStroke||p.fillColor){
+    painted=true;yield* text(`  <path${label}${transform} d="`);
+    for await(const chunk of encodeSvgPathDataChunks(p.storedSegments??p.segments,inverse?0:pageHeight,{...options,...(inverse?{matrix:inverse}:{})}))yield* bytes(chunk);
+    yield* text(`" fill="${fill}"${p.fillRule==="evenodd"?' fill-rule="evenodd"':""}${p.fillAlpha!==undefined&&p.fillAlpha<1?` fill-opacity="${p.fillAlpha}"`:""} stroke="${outlineStroke?"none":stroke}"${p.strokeAlpha!==undefined&&p.strokeAlpha<1?` stroke-opacity="${p.strokeAlpha}"`:""}`);
+    yield* text(p.strokeWidth<=0&&!matrix&&!dashCount?' stroke-width="1" vector-effect="non-scaling-stroke"':` stroke-width="${prepared?.width??p.strokeWidth}"`);
+    yield* text(`${p.lineCap===1?' stroke-linecap="round"':p.lineCap===2?' stroke-linecap="square"':""}${p.lineJoin===1?' stroke-linejoin="round"':p.lineJoin===2?' stroke-linejoin="bevel"':""}${p.miterLimit!==undefined&&p.miterLimit!==10?` stroke-miterlimit="${p.miterLimit}"`:""}`);
+    if(!outlineStroke&&prepared&&dashCount){yield* text(' stroke-dasharray="');let first=true;const factor=p.storedDash?prepared.storedDashScale:1;
+      if(p.storedDash){for await(const value of dashes(factor)){yield* text(`${first?"":" "}${value}`);first=false;}}
+      else for(const value of prepared.dashArray??[]){await checkpoint();yield* text(`${first?"":" "}${value}`);first=false;}
+      yield* text('"');}
+    if(!outlineStroke&&prepared?.dashPhase)yield* text(` stroke-dashoffset="${prepared.dashPhase}"`);
+    yield* text('/>');
+  }
+  if(outlineStroke){
+    const io:RasterImageInput={signal},iterator=strokeContourPoints(p,pageHeight,scale,0,0,0,0,io)[Symbol.iterator]();let firstPoint=true,started=false,contours=0;
+    try{for(;;){await checkpoint();const next=iterator.next();if(next.done)break;if(io.pathRequest){const request=io.pathRequest;io.pathRequest=undefined;await request();}const point=next.value;if(point===null)continue;
+      if(!started){yield* text(`${painted?"\n":""}  <path${label} d="`);started=true;}
+      if(firstPoint&&contours)yield* text(" ");
+      if(point){yield* text(`${firstPoint?"M":" L"} ${point[0]/scale} ${point[1]/scale}`);firstPoint=false;}
+      else{yield* text(" Z");firstPoint=true;contours++;}
+    }}finally{iterator.return?.();}
+    if(started)yield* text(`" fill="${stroke}" fill-opacity="${p.strokeAlpha??1}"/>`);
+  }
 }

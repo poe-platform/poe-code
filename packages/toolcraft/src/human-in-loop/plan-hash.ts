@@ -69,7 +69,12 @@ function normalizePlan(value: unknown, seen: Set<object>): ApprovalPlanValue {
 
     const normalized: Record<string, ApprovalPlanValue> = {};
     for (const key of Object.keys(value).sort()) {
-      normalized[key] = normalizePlan((value as Record<string, unknown>)[key], seen);
+      Object.defineProperty(normalized, key, {
+        value: normalizePlan((value as Record<string, unknown>)[key], seen),
+        enumerable: true,
+        writable: true,
+        configurable: true
+      });
     }
     return normalized;
   } finally {

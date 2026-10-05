@@ -19,6 +19,33 @@ describe("createApprovalPlan", () => {
     );
   });
 
+  it.each([false, true])("preserves own __proto__ fields (null prototype: %s)", (nullPrototype) => {
+    const value = JSON.parse('{"safe":true,"__proto__":{"delete":"protected-file"}}');
+    if (nullPrototype) Object.setPrototypeOf(value, null);
+    const plan = createApprovalPlan(value);
+
+    expect(plan.canonical).toBe('{"__proto__":{"delete":"protected-file"},"safe":true}');
+    expect(plan.display).toBe(JSON.stringify(JSON.parse(plan.canonical), null, 2));
+    expect(Object.hasOwn(plan.value as object, "__proto__")).toBe(true);
+    expect(Object.getPrototypeOf(plan.value)).toBe(Object.prototype);
+    expect(Reflect.get(plan.value as object, "delete")).toBeUndefined();
+    expect(plan.hash).not.toBe(createApprovalPlan({ safe: true }).hash);
+    expect(plan.hash).not.toBe(createApprovalPlan(JSON.parse(
+      '{"safe":true,"__proto__":{"delete":"another-file"}}'
+    )).hash);
+    expect(createApprovalPlan(plan.value)).toEqual(plan);
+  });
+
+  it("preserves and sorts nested __proto__ fields inside arrays", () => {
+    const plan = createApprovalPlan(JSON.parse(
+      '{"items":[{"__proto__":{"z":2,"a":1}}]}'
+    ));
+
+    expect(plan.canonical).toBe('{"items":[{"__proto__":{"a":1,"z":2}}]}');
+    expect(plan.hash).not.toBe(createApprovalPlan({ items: [{}] }).hash);
+    expect(createApprovalPlan(JSON.parse(plan.canonical))).toEqual(plan);
+  });
+
   it("rejects nondeterministic or non-JSON plan values", () => {
     expect(() => createApprovalPlan({ generatedAt: new Date() })).toThrowError(
       "Approval plan must contain only JSON values."

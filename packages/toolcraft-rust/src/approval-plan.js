@@ -31,7 +31,14 @@ const operations = {
   map: (value, seen) => value.map(item => invoke("normalize", [item, seen])),
   members(value, seen) {
     const normalized = {};
-    for (const key of Object.keys(value).sort()) normalized[key] = invoke("normalize", [value[key], seen]);
+    for (const key of Object.keys(value).sort()) {
+      Object.defineProperty(normalized, key, {
+        value: invoke("normalize", [value[key], seen]),
+        enumerable: true,
+        writable: true,
+        configurable: true
+      });
+    }
     return normalized;
   },
   canonical: value => JSON.stringify(value),

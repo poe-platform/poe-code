@@ -23,7 +23,7 @@ paths, decoded resources and nested captures still retain their existing memory
 ownership.
 
 Retained source parsing can keep wide resource maps in caller backing with
-`valueArrays: { dictionaryStorage, storedDictionaryKeys: ["Font"] }`. Font
+`valueArrays: { dictionaryStorage, storedDictionaryKeys: ["Font", "XObject", "Properties"] }`. Resource
 resolution visits one entry at a time, including indirect and encrypted maps.
 Use `readPdfDictionaryEntries` or `readPdfDictionaryValue` for these dictionaries;
 synchronous dictionary helpers require ordinary in-memory entries. The caller

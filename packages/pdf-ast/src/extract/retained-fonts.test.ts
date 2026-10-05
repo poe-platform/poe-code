@@ -1,3 +1,4 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { cosArray, cosDict, cosName, cosStream, dictSet, dictDelete, dictGet } from "../ast.js";
@@ -5,7 +6,7 @@ import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
 
-async function fixture(count = 3, amend?: (document: PdfDocument) => void) {
+async function fixture(count = 3, amend?: (document: PdfDocument) => void, backed = false) {
   const original = PdfDocument.create(); const page = original.addPage();
   const fonts = Array.from({ length: count }, (_, i) => original.cos.allocateObject(cosDict({ Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName(`Font${i}`) })));
   const resources = cosDict({ Font: cosDict({ F: fonts[0]! }) });
@@ -17,14 +18,22 @@ async function fixture(count = 3, amend?: (document: PdfDocument) => void) {
   dictSet(page.pageDict, "Annots", cosArray([cosDict({ AP: cosDict({ N: original.cos.allocateObject(cosStream(cosDict({ Resources: cosDict({ Font: cosDict({ F: fonts[2]! }) }) }), new Uint8Array())) }) })]));
   dictSet(original.cos.resolveDict(original.cos.rootRef)!, "AcroForm", cosDict({ DR: cosDict({ Font: cosDict(Object.fromEntries(fonts.map((font, i) => [`F${i}`, font]))) }) }));
   amend?.(original);
+  if (backed) {
+    const resources = original.cos.resolveDict(dictGet(page.pageDict,"Resources"))!;
+    for (const key of ["Font","XObject"]) {
+      const map = dictGet(resources,key);
+      if (map) dictSet(resources,key,original.cos.allocateObject(map));
+    }
+  }
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
   const source = await PdfFileSource.open(fs, "/input", { chunkBytes: 64, cacheBytes: 128 });
-  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128 });
-  return { document, fs, source, async close() { await document.close(); expect(await fs.readdir("/scratch")).toEqual([]); await source.close(); } };
+  const backing = new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal});
+  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...(backed ? {valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Font","XObject","Properties"]}} : {}) });
+  return { document, fs, source, async close() { await document.close(); await backing.close(); expect(await fs.readdir("/scratch")).toEqual([]); await source.close(); } };
 }
 
-it("visits page, recursive form, annotation and AcroForm fonts without decoding payloads", async () => {
-  const f = await fixture(); const decode = vi.spyOn(f.document.objects, "decodeStream"); const names = [];
+it.each([false,true])("visits page, form, annotation and AcroForm fonts (backed resources=%s)", async backed => {
+  const f = await fixture(3,undefined,backed); const decode = vi.spyOn(f.document.objects, "decodeStream"); const names = [];
   for await (const font of f.document.fonts()) { names.push(font.name); expect(font.embedded).toBe(false); expect(font.type).toBe("Type 1"); }
   expect(names).toEqual(["Font0", "Font1", "Font2"]); expect(decode).not.toHaveBeenCalled(); await f.close();
 });

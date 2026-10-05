@@ -1,12 +1,13 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosArray, cosDict, cosName, cosNumber, cosStream, dictSet } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, dictSet } from "../ast.js";
 import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
 
 const bytes = (s: string) => new TextEncoder().encode(s);
-async function fixture(content: string, amend?: (doc: PdfDocument) => void) {
+async function fixture(content: string, amend?: (doc: PdfDocument) => void, backed = false) {
   const original = PdfDocument.create(); const page = original.addPage();
   const image = original.cos.allocateObject(cosStream(cosDict({ Subtype: cosName("Image"), Width: cosNumber(2), Height: cosNumber(1), Filter: cosArray([cosName("ASCIIHexDecode"), cosName("DCTDecode")]) }), bytes("FFD81117FFD9>")));
   const mask = original.cos.allocateObject(cosStream(cosDict({ Subtype: cosName("Image"), Width: cosNumber(2), Height: cosNumber(1) }), new Uint8Array([0, 255])));
@@ -16,14 +17,22 @@ async function fixture(content: string, amend?: (doc: PdfDocument) => void) {
   dictSet(page.pageDict, "Resources", cosDict({ XObject: cosDict({ I: image, M: mask, F: form }) }));
   dictSet(page.pageDict, "Contents", original.cos.allocateObject(cosStream(cosDict(), bytes(content))));
   amend?.(original);
+  if (backed) {
+    const resources = original.cos.resolveDict(dictGet(page.pageDict,"Resources"))!;
+    for (const key of ["Font","XObject"]) {
+      const map = dictGet(resources,key);
+      if (map) dictSet(resources,key,original.cos.allocateObject(map));
+    }
+  }
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
   const source = await PdfFileSource.open(fs, "/input", { chunkBytes: 64, cacheBytes: 128 });
-  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128 });
-  return { document, fs, source, image, async close() { await document.close(); expect(await fs.readdir("/scratch")).toEqual([]); await source.close(); } };
+  const backing = new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal});
+  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...(backed ? {valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Font","XObject","Properties"]}} : {}) });
+  return { document, fs, source, image, async close() { await document.close(); await backing.close(); expect(await fs.readdir("/scratch")).toEqual([]); await source.close(); } };
 }
 
-it("streams repeated image occurrences with graphics transforms and path-local form cycles", async () => {
-  const f = await fixture("q 4 0 0 5 0 0 cm /F Do Q /F Do /I Do");
+it.each([false,true])("streams image occurrences and form cycles (backed resources=%s)", async backed => {
+  const f = await fixture("q 4 0 0 5 0 0 cm /F Do Q /F Do /I Do",undefined,backed);
   const decode = vi.spyOn(f.document.objects, "decodeStream"); const rows = [];
   for await (const image of f.document.images()) {
     expect(decode.mock.calls.filter(call => call[0] === f.image.objectNumber)).toHaveLength(rows.length);
@@ -52,8 +61,8 @@ it("spills deep graphics saves and excludes referenced masks from fallback enume
   expect(matrices).toEqual([[2 ** 70, 0, 0, 2 ** 70, 0, 0], [1, 0, 0, 1, 0, 0]]); await f.close();
 });
 
-it("finds unreferenced resource images and selects pages", async () => {
-  const f = await fixture("", doc => { doc.addPage(); });
+it.each([false,true])("finds unreferenced resource images and selects pages (backed=%s)", async backed => {
+  const f = await fixture("", doc => { doc.addPage(); },backed);
   const rows = []; for await (const image of f.document.images({ firstPage: 1, lastPage: 1 })) rows.push(image.matrix);
   expect(rows).toEqual([[2, 0, 0, 1, 0, 0]]);
   const empty = []; for await (const image of f.document.images({ firstPage: 2 })) empty.push(image);

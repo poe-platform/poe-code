@@ -3,7 +3,7 @@ import {createMemoryFileSystem} from "@poe-code/safe-fs";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {PdfDocument,cosNumber,dictSet} from "@poe-code/pdf-ast";
 import {decodeImage} from "./codecs/index.js";
-import {tryPdfDecode} from "./image-pdf.js";
+import {tryPdfDecode,tryPdfMetadata} from "./image-pdf.js";
 import sharp from "./index.js";
 
 function fixture(){
@@ -66,6 +66,31 @@ it.each(["F", "Font"])("backs inline font %s widths and encodings before decodin
   expect(actual).toEqual(expected.data);
   for(const call of open.mock.calls)expect(call[2]?.valueArrays?.arrayStorage).toBe(storage);
  }finally{open.mockRestore();await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it.each(["inline", "indirect"])("backs %s XObject and property maps during PDF rasterization",async mode=>{
+ const {cosArray,cosDict,cosName,cosStream}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([12,12]);
+ const form=doc.cos.allocateObject(cosStream(new TextEncoder().encode("1 0 0 rg 1 1 8 8 re f"),{dict:cosDict({Type:cosName("XObject"),Subtype:cosName("Form"),BBox:cosArray([0,0,12,12].map(value=>cosNumber(value)))})}));
+ const objects=cosDict([...Array.from({length:256},(_,i)=>["UnusedMap"+i,cosNumber(733)] as const),["XObject",cosNumber(0)],["XObject",form]]);
+ const properties=cosDict([...Array.from({length:256},(_,i)=>["UnusedMap"+i,cosNumber(734)] as const),["Properties",cosDict({MCID:cosNumber(3)})]]);
+ dictSet(page.pageDict,"Resources",cosDict({XObject:mode==="indirect"?doc.cos.allocateObject(objects):objects,Properties:mode==="indirect"?doc.cos.allocateObject(properties):properties}));
+ page.setRawContentStream("/Span /Properties BDC /XObject Do EMC");
+ const bytes=doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const push=Array.prototype.push;
+ Array.prototype.push=function<T>(this:T[],...values:T[]):number{
+  const length=push.apply(this,values);
+  if(length>64&&values.some(value=>(value as {key?:{decoded?:string}})?.key?.decoded?.startsWith("UnusedMap")))throw Error("resident resource map");
+  return length;
+ };
+ try{
+  const source={size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}};
+  expect(await tryPdfMetadata(source,fs,"/scratch",signal)).toMatchObject({width:12,height:12});
+  const image=await tryPdfDecode(source,storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+ }finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
 

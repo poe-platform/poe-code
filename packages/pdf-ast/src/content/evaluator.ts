@@ -840,6 +840,13 @@ function* resolveEvaluationDict(node: PdfCosNode | undefined, arrayPathPrefix?: 
   const resolved = yield* resolveEvaluationNode(node, false, arrayPathPrefix);
   return resolved?.kind === "dict" ? resolved : resolved?.kind === "stream" ? resolved.dict : undefined;
 }
+function* lookupEvaluationDictionary(dict: PdfCosDict | undefined, key: string): EvaluationWork<PdfCosNode | undefined> {
+  if (!dict) return undefined;
+  if (!dict.storedEntries) return dictGet(dict, key);
+  const result = yield {kind: "dictionary-value", dict, key};
+  if (!result || !("kind" in result) || result.kind !== "resolved") throw new TypeError("Expected a PDF dictionary value");
+  return result.node;
+}
 function* resolveEvaluationArray(node: PdfCosNode | undefined, storeRootArray = false, arrayPathPrefix?: readonly string[]): EvaluationWork<import("../ast.js").PdfCosArray | undefined> {
   const resolved = yield* resolveEvaluationNode(node, storeRootArray, arrayPathPrefix);
   return resolved?.kind === "array" ? resolved : undefined;
@@ -1047,7 +1054,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|PdfStoredBytes|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = { readonly kind: "array-reference"; readonly items: import("../ast.js").PdfStoredItems; readonly objectNumber: number } | { readonly kind: "dash-array"; readonly array: import("../ast.js").PdfCosArray; readonly storage: PdfPixelStorage; readonly resolveReferences?: boolean } | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
+export type PdfEvaluationRequest = { readonly kind: "dictionary-value"; readonly dict: PdfCosDict; readonly key: string } | { readonly kind: "array-reference"; readonly items: import("../ast.js").PdfStoredItems; readonly objectNumber: number } | { readonly kind: "dash-array"; readonly array: import("../ast.js").PdfCosArray; readonly storage: PdfPixelStorage; readonly resolveReferences?: boolean } | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
   | {readonly kind:"font-unicode";readonly lookup:(code:number)=>Promise<string|undefined>;readonly code:number}
   | {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
   | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>;storedSegments?(code:number,storage:PdfPixelStorage,signal?:AbortSignal):AsyncIterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
@@ -1751,8 +1758,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     let resolvedMcid = node.mcid;
     let resolvedActualText: string | PdfStoredBytes | undefined = node.actualText ?? node.storedActualText;
     if (typeof node.properties === "string" && activeResources) {
-      const propsMap = yield* resolveEvaluationDict(dictGet(activeResources, "Properties"));
-      const propRefOrNode = propsMap ? dictGet(propsMap, node.properties) : undefined;
+      const propsMap = yield* resolveEvaluationDict(dictGet(activeResources, "Properties"), ["Properties"]);
+      const propRefOrNode = yield* lookupEvaluationDictionary(propsMap, node.properties);
       if (propRefOrNode) {
         const propDict = yield* resolveEvaluationDict(propRefOrNode);
         const propType = propDict ? yield* resolveEvaluationNode(dictGet(propDict, "Type")) : undefined;
@@ -1947,8 +1954,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         case "xobject": {
           const st = curState();
           if (activeResources) {
-            const xobjDict = yield* resolveEvaluationDict(dictGet(activeResources, "XObject"));
-            const xobjNode = xobjDict ? yield* resolveEvaluationNode(dictGet(xobjDict, node.name)) : undefined;
+            const xobjDict = yield* resolveEvaluationDict(dictGet(activeResources, "XObject"), ["XObject"]);
+            const xobjNode = xobjDict ? yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(xobjDict, node.name)) : undefined;
             if (xobjNode?.kind === "stream") {
               if (!(yield* optionalContentVisibilitySteps(dictGet(xobjNode.dict, "OC")))) {
                 break;
@@ -2329,7 +2336,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "dash-array" || step.value.kind === "array-reference" || step.value.kind === "array-item" || step.value.kind === "string-bytes" || step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "dictionary-value" || step.value.kind === "dash-array" || step.value.kind === "array-reference" || step.value.kind === "array-item" || step.value.kind === "string-bytes" || step.value.kind === "font-width" || step.value.kind === "font-unicode" || step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

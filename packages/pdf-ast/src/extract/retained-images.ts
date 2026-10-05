@@ -1,3 +1,4 @@
+import { readPdfDictionaryEntries, readPdfDictionaryValue } from "../content/stored-dictionary.js";
 import { cosArray, cosNumber, dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { multiplyMatrices } from "../content/evaluator.js";
 import { PdfOperandStack } from "../content/operand-stack.js";
@@ -34,8 +35,8 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
   const maximum = options.maxStagingBytes ?? Infinity;
   const decodeOptions = { chunkBytes, ...(options.maxDecodedBytes === undefined ? {} : { maxDecodedBytes: options.maxDecodedBytes }), ...(options.signal ? { signal: options.signal } : {}) };
   let imageIndex = 0; let stagedBytes = 0;
-  async function dictionary(node: PdfCosNode | undefined) {
-    const value = await document.lookup(node);
+  async function dictionary(node: PdfCosNode | undefined, resourceKey?: string) {
+    const value = await document.lookup(node, undefined, resourceKey ? [resourceKey] : undefined);
     return value?.value.kind === "dict" && !value.stream ? value.value : undefined;
   }
   async function number(node: PdfCosNode | undefined, fallback: number) {
@@ -98,8 +99,8 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
               (native, raw) => decodePdfStreamChunks(dict, () => source.stream(start, end - start, options.signal), { ...decodeOptions, stopBeforeImageCodec: native, raw }), undefined, true);
           } else if (op.operator === "Do") {
             const name = op.operands[0]; if (name?.kind !== "name") continue;
-            const objects = await dictionary(dictGet(activeResources, "XObject"));
-            const target = await document.lookup(objects ? dictGet(objects, name.decoded) : undefined);
+            const objects = await dictionary(dictGet(activeResources, "XObject"), "XObject");
+            const target = await document.lookup(objects ? await readPdfDictionaryValue(objects, name.decoded, options.signal) : undefined);
             if (target?.value.kind !== "dict" || !target.stream || !target.reference) continue;
             const subtype = (await document.lookup(dictGet(target.value, "Subtype")))?.value;
             if (subtype?.kind !== "name") continue;
@@ -143,8 +144,8 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
       yield* content(page.streamContents(), resources, identity, new Set(), 0);
       const patterns = await dictionary(dictGet(resources, "Pattern"));
       if (patterns) for (const entry of patterns.entries) yield* auxiliary(entry.value, resources);
-      const fonts = await dictionary(dictGet(resources, "Font"));
-      if (fonts) for (const entry of fonts.entries) {
+      const fonts = await dictionary(dictGet(resources, "Font"), "Font");
+      if (fonts) for await (const entry of readPdfDictionaryEntries(fonts, options.signal)) {
         const font = await dictionary(entry.value); if (!font) continue;
         const subtype = (await document.lookup(dictGet(font, "Subtype")))?.value;
         if (subtype?.kind !== "name" || subtype.decoded !== "Type3") continue;
@@ -158,8 +159,8 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
         const appearance = annotation ? await dictionary(dictGet(annotation, "AP")) : undefined;
         if (appearance) yield* auxiliary(dictGet(appearance, "N"), resources);
       }
-      const objects = await dictionary(dictGet(resources, "XObject"));
-      if (objects) for (const entry of objects.entries) {
+      const objects = await dictionary(dictGet(resources, "XObject"), "XObject");
+      if (objects) for await (const entry of readPdfDictionaryEntries(objects, options.signal)) {
         const ref = entry.value;
         if (ref.kind === "ref" && !(await seen.intern(`${ref.objectNumber}:${ref.generationNumber}`)).added) continue;
         const target = await document.lookup(ref);

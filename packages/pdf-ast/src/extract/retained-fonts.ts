@@ -1,3 +1,4 @@
+import { readPdfDictionaryEntries } from "../content/stored-dictionary.js";
 import { decodePdfString, dictGet, type PdfCosNode, type PdfCosDict, type PdfCosRef } from "../ast.js";
 import { PdfNameIndex } from "../cos/name-index.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -25,8 +26,8 @@ export async function* walkRetainedFonts(document: PdfRetainedDocument, storage:
   const first = options.firstPage ?? 1; const last = options.lastPage ?? Infinity;
   if (!Number.isSafeInteger(first) || first < 1 || (last !== Infinity && (!Number.isSafeInteger(last) || last < first))) throw new RangeError("Invalid PDF font page range");
   let failed = false;
-  async function dictionary(node: PdfCosNode | undefined): Promise<PdfCosDict | undefined> {
-    const resolved = await document.lookup(node);
+  async function dictionary(node: PdfCosNode | undefined, resourceKey?: string): Promise<PdfCosDict | undefined> {
+    const resolved = await document.lookup(node, undefined, resourceKey ? [resourceKey] : undefined);
     return resolved?.value.kind === "dict" && !resolved.stream ? resolved.value : undefined;
   }
   async function* font(node: PdfCosNode, key: string, depth: number): AsyncGenerator<PdfRetainedFont> {
@@ -61,8 +62,8 @@ export async function* walkRetainedFonts(document: PdfRetainedDocument, storage:
     options.signal?.throwIfAborted();
     if (!value) return;
     if (depth > options.maxDepth) throw new PdfError("E_LIMIT", "PDF font resource depth limit exceeded");
-    const fonts = await dictionary(dictGet(value, "Font"));
-    if (fonts) for (const entry of fonts.entries) yield* font(entry.value, entry.key.decoded, depth);
+    const fonts = await dictionary(dictGet(value, "Font"), "Font");
+    if (fonts) for await (const entry of readPdfDictionaryEntries(fonts, options.signal)) yield* font(entry.value, entry.key.decoded, depth);
     const states = await dictionary(dictGet(value, "ExtGState"));
     if (states) for (const entry of states.entries) {
       const state = await dictionary(entry.value);
@@ -70,9 +71,9 @@ export async function* walkRetainedFonts(document: PdfRetainedDocument, storage:
       if (gsFont?.kind === "array" && gsFont.items[0]) yield* font(gsFont.items[0], `ExtGS_${entry.key.decoded}`, depth);
     }
     for (const key of ["XObject", "Pattern"]) {
-      const objects = await dictionary(dictGet(value, key));
+      const objects = await dictionary(dictGet(value, key), key);
       if (!objects) continue;
-      for (const entry of objects.entries) {
+      for await (const entry of readPdfDictionaryEntries(objects, options.signal)) {
         if (entry.value.kind === "ref" && !(await names.intern(`form:${entry.value.objectNumber}`)).added) continue;
         const resolved = await document.lookup(entry.value);
         if (!resolved?.stream || resolved.value.kind !== "dict") continue;

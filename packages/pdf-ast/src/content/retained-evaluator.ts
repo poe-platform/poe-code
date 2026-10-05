@@ -1,3 +1,4 @@
+import { readPdfDictionaryValue } from "./stored-dictionary.js";
 import { StoredReferenceMembership } from "./stored-reference-membership.js";
 import { storeDashArray } from "./stored-dash.js";
 import { readStoredRecord } from "./stored-record.js";
@@ -152,6 +153,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
         case "dash-array": {
           reply = { kind: "dash-array", value: await storeDashArray(request.array, request.storage, request.resolveReferences ? resolve : async node => node, signal) }; break;
         }
+        case "dictionary-value": reply = {kind: "resolved", node: await readPdfDictionaryValue(request.dict, request.key, signal)}; break;
         case "array-reference": reply = { kind: "resolved", node: cosBool(await memberships.has(request.items, request.objectNumber)) }; break;
         case "array-item": {
           const record = await readStoredRecord<PdfCosNode>(request.items.storage, request.position, signal);

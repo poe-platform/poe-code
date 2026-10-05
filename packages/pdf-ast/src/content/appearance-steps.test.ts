@@ -38,3 +38,24 @@ it.each([false, true])("preserves transformed appearances, resource precedence a
   expect(actual.glyphs.map(glyph => glyph.unicode).join("")).toEqual(expected.glyphs.map(glyph => glyph.unicode).join(""));
   if (!hideAnnotations) expect(dictGet(resources, "Font")).toBeDefined();
 });
+
+
+it.each(["XObject", "Properties"])("shares immutable %s backing without copying unused resources", key => {
+  const unexpected = () => { throw new Error("Unused backing must not be accessed"); };
+  const storedEntries = { storage: { allocate: unexpected, read: unexpected, write: unexpected }, position: 0, length: 1000 };
+  const source = { ...cosDict(), storedEntries };
+  const resources = cosDict();
+  const work = preparePageAppearanceSteps(cosDict(), cosDict({ [key]: source }), resources);
+  let step = work.next();
+  while (!step.done) {
+    expect(step.value.kind).toBe("resolve");
+    if (step.value.kind !== "resolve") throw new Error("Unused resource map was copied");
+    step = work.next(step.value.node);
+  }
+  const copy = dictGet(resources, key);
+  expect(copy).not.toBe(source);
+  expect(copy?.kind).toBe("dict");
+  if (copy?.kind !== "dict") throw new Error("Missing resource map");
+  expect(copy.storedEntries).toBe(storedEntries);
+  expect(source.entries).toEqual([]);
+});

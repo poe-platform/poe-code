@@ -43,7 +43,13 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
     const sub = (yield* resolveDict(entry.value, [entry.key.decoded]));
     if (sub) {
       onAllocation?.(64 + sub.entries.length * 64);
-      const clonedSub = sub.storedEntries ? (yield {kind: "dictionary-merge", destination: sub}) as PdfCosDict : cosDict({});
+      // Named lookups already enforce last-key-wins; immutable backing can be
+      // shared until an appearance actually adds resources. Font enumeration
+      // still requires duplicate normalization before skipping invalid fonts.
+      const shareBacking = entry.key.decoded === "XObject" || entry.key.decoded === "Properties";
+      const clonedSub = sub.storedEntries
+        ? shareBacking ? { ...sub, entries: [] } : (yield {kind: "dictionary-merge", destination: sub}) as PdfCosDict
+        : cosDict({});
       if (!sub.storedEntries) for (const se of sub.entries) dictSet(clonedSub, se.key.decoded, se.value);
       dictSet(evalResourcesDict, entry.key.decoded, clonedSub);
     } else {

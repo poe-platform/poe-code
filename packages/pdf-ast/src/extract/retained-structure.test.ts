@@ -1,15 +1,17 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosArray, cosDict, cosName, cosNumber, cosStream, cosString, dictSet } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosStream, cosString, dictGet, dictSet } from "../ast.js";
 import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
-async function fixture(content: string | string[], amend?: (doc: PdfDocument) => void) {
+async function fixture(content: string | string[], amend?: (doc: PdfDocument) => void, backed = false) {
   const original=PdfDocument.create();const page=original.addPage();const stream=(text:string)=>original.cos.allocateObject(cosStream(new TextEncoder().encode(text)));
   dictSet(page.pageDict,"Contents",Array.isArray(content)?cosArray(content.map(stream)):stream(content));dictSet(page.pageDict,"Resources",cosDict({Properties:cosDict({Marked:cosDict({MCID:cosNumber(0)})})}));
   dictSet(original.cos.resolveDict(original.cos.rootRef)!,"StructTreeRoot",cosDict({Type:cosName("StructTreeRoot"),RoleMap:cosDict({Fancy:cosName("H1")}),K:cosDict({S:cosName("Fancy"),Pg:page.ref,K:cosNumber(0)})}));amend?.(original);
-  const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",original.save());const source=await PdfFileSource.open(fs,"/input");const document=await PdfRetainedDocument.open(source,{fs,directory:"/scratch"},{chunkBytes:64});
-  return {document,fs,source,async close(){await document.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}};
+  if(backed){const resources=original.cos.resolveDict(dictGet(page.pageDict,"Resources"))!;dictSet(resources,"Properties",original.cos.allocateObject(dictGet(resources,"Properties")!));}
+  const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",original.save());const source=await PdfFileSource.open(fs,"/input");const backing=new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal});const document=await PdfRetainedDocument.open(source,{fs,directory:"/scratch"},{chunkBytes:64,...(backed?{valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Properties"]}}:{})});
+  return {document,fs,source,async close(){await document.close();await backing.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}};
 }
 async function collect(document: PdfRetainedDocument, includeText=true){let output="";for await(const item of document.structure({includeText})){const pad="  ".repeat(item.depth);if(item.kind==="element")output+=pad+item.role+(item.mappedRole&&item.mappedRole!==item.role?` / ${item.mappedRole}`:"")+"\n";else{const decoder=new TextDecoder();let text="";for await(const bytes of item.contents())text+=decoder.decode(bytes,{stream:true});text+=decoder.decode();if(text)output+=pad+`"${text}"\n`;}}return output;}
 it.each([
@@ -23,7 +25,7 @@ it.each([
  {content:"/P /Marked BDC BT (named) Tj ET EMC",text:"named"},
  {content:"/P << /MCID 0 >> BDC BT (left) Tj /P << /MCID 1 >> BDC (excluded) Tj EMC (right) Tj ET EMC",text:"left right"},
 ])("streams structure text preserving parser grouping: $text",async({content,text})=>{const f=await fixture(content);expect(await collect(f.document)).toBe('StructTreeRoot\n  Fancy / H1\n'+(text?`    "${text}"\n`:""));await f.close();});
-it("joins content-array ranges without inserting text bytes",async()=>{const f=await fixture(["/P /Marked BDC BT (left","right) Tj ET EMC"]);expect(await collect(f.document)).toContain('"leftright"');await f.close();});
+it.each([false,true])("joins content ranges with named properties (backed=%s)",async backed=>{const f=await fixture(["/P /Marked BDC BT (left","right) Tj ET EMC"],undefined,backed);expect(await collect(f.document)).toContain('"leftright"');await f.close();});
 it("inspects roles without decoding contents when text is disabled",async()=>{const f=await fixture("/P /Marked BDC BT (text) Tj ET EMC");const decode=vi.spyOn(f.document.objects,"decodeStream");expect(await collect(f.document,false)).toBe("StructTreeRoot\n  Fancy / H1\n");expect(decode).not.toHaveBeenCalled();await f.close();});
 
 it("preserves alternate text, inherited pages and MCR content",async()=>{

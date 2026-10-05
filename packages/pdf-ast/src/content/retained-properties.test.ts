@@ -1,3 +1,5 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { readPdfDictionaryValue } from "./stored-dictionary.js";
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { cosArray, cosDict, cosName, cosNumber, cosString, dictSet } from "../ast.js";
@@ -24,7 +26,8 @@ it.each(["AllOn", "AnyOn", "AllOff", "AnyOff"])("evaluates retained marked prope
     const value = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value;
   } });
   const source = await PdfFileSource.open(guarded, "/input", { chunkBytes: 64, cacheBytes: 128 });
-  const doc = await PdfRetainedDocument.open(source, { fs: guarded, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128 });
+  const backing = new PagedStorage({fs:guarded,cwd:"/scratch",env:{},signal:new AbortController().signal});
+  const doc = await PdfRetainedDocument.open(source, { fs: guarded, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Properties"]} });
   const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, resourcesDict: resources });
   const input = nodes[Symbol.iterator](); const actualOperations = [];
   try {
@@ -34,15 +37,16 @@ it.each(["AllOn", "AnyOn", "AllOff", "AnyOff"])("evaluates retained marked prope
       if (request.kind === "node") step = work.next(input.next().value);
       else if (request.kind === "font") step = work.next(undefined);
       else if (request.kind === "resolve" || request.kind === "catalog") {
-        step = work.next({ kind: "resolved", node: (await doc.lookup(request.kind === "catalog" ? doc.crossReference.rootRef : request.node))?.value });
-      } else if ((request.kind === "dash-array" || request.kind === "array-reference" || request.kind === "array-item" || request.kind === "string-bytes" || request.kind === "font-width" || request.kind === "font-unicode" || request.kind === "cmap-lookup" || request.kind === "cmap-character" || request.kind === "truetype-number" || request.kind === "truetype-path" || request.kind === "cid-gid" || request.kind === "frame-push" || request.kind === "frame-pop" || request.kind === "capture-append" || request.kind === "append-clip" || request.kind === "path-append" || request.kind === "path-finish" || request.kind === "transform-path" || request.kind === "close-content" || request.kind === "image" || request.kind === "mask-parameters" || request.kind === "color" || request.kind === "inline-image" || request.kind === "shading")) throw new Error("Unexpected nested content");
+        step = work.next({ kind: "resolved", node: (await doc.lookup(request.kind === "catalog" ? doc.crossReference.rootRef : request.node, undefined, request.kind === "resolve" ? request.arrayPathPrefix : undefined))?.value });
+      } else if (request.kind === "dictionary-value") step = work.next({kind:"resolved",node:await readPdfDictionaryValue(request.dict,request.key)});
+      else if ((request.kind === "dash-array" || request.kind === "array-reference" || request.kind === "array-item" || request.kind === "string-bytes" || request.kind === "font-width" || request.kind === "font-unicode" || request.kind === "cmap-lookup" || request.kind === "cmap-character" || request.kind === "truetype-number" || request.kind === "truetype-path" || request.kind === "cid-gid" || request.kind === "frame-push" || request.kind === "frame-pop" || request.kind === "capture-append" || request.kind === "append-clip" || request.kind === "path-append" || request.kind === "path-finish" || request.kind === "transform-path" || request.kind === "close-content" || request.kind === "image" || request.kind === "mask-parameters" || request.kind === "color" || request.kind === "inline-image" || request.kind === "shading")) throw new Error("Unexpected nested content");
       else { actualOperations.push(request); step = work.next(); }
     }
     expect(actualOperations).toEqual(expected);
     expect(actualOperations.filter(event => event.operation.kind === "path")).toHaveLength(policy === "AnyOn" || policy === "AnyOff" ? 1 : 0);
     expect(actualOperations.at(-1)?.operation).toMatchObject({ kind: "glyph", value: { mcid: 7, actualText: "accessible" } });
     expect(readFile).not.toHaveBeenCalled();
-  } finally { work.return(); await doc.close(); await source.close(); }
+  } finally { work.return(); await doc.close(); await source.close(); await backing.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
 

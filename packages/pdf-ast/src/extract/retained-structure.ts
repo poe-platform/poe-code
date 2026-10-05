@@ -1,3 +1,4 @@
+import { readPdfDictionaryValue } from "../content/stored-dictionary.js";
 import { cosDict, decodePdfString, dictGet, type PdfCosDict, type PdfCosNode } from "../ast.js";
 import { PdfOperandStack } from "../content/operand-stack.js";
 import type { PdfContentOperator } from "../content/operator-parser.js";
@@ -48,7 +49,7 @@ async function markedText(document: PdfRetainedDocument, page: PdfCosDict, mcid:
   try {
     source = await PdfFileSource.fromStream(storage.fs, storage.directory, input(), { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: maximum, ...(signal ? { signal } : {}) });
     const resources = (await document.lookup(dictGet(page, "Resources")))?.value;
-    const properties = resources?.kind === "dict" ? (await document.lookup(dictGet(resources, "Properties")))?.value : undefined;
+    const properties = resources?.kind === "dict" ? (await document.lookup(dictGet(resources, "Properties"), undefined, ["Properties"]))?.value : undefined;
     const operators = parseContentRangeOperators(source, storage, { chunkBytes, maxStagingBytes: maximum - source.size, ...(signal ? { signal } : {}) });
     let pending: PdfContentOperator | undefined, matching = false, inText = false, part = 0, recorded = false;
     function boundary(command: PdfContentOperator) { return command.inlineImage !== undefined || ["BT", "ET", "q", "Q", "BMC", "BDC", "EMC"].includes(command.operator); }
@@ -76,7 +77,7 @@ async function markedText(document: PdfRetainedDocument, page: PdfCosDict, mcid:
               await marks.push({ kind: "boolean", value: matching });
               if (operator !== "q") {
                 const property = operands[1];
-                const dict = property?.kind === "name" && properties?.kind === "dict" ? (await document.lookup(dictGet(properties, property.decoded)))?.value : property;
+                const dict = property?.kind === "name" && properties?.kind === "dict" ? (await document.lookup(await readPdfDictionaryValue(properties, property.decoded, signal)))?.value : property;
                 const number = dict?.kind === "dict" ? (await document.lookup(dictGet(dict, "MCID")))?.value : undefined;
                 if (number?.kind === "number") matching = number.value === mcid;
               }

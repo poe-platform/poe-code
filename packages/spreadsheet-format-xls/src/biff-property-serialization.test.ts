@@ -1,3 +1,4 @@
+import { BiffMutablePropertyValues } from './biff-property-values.js';
 import { visitBiffPropertyDictionary } from './biff-property-dictionary.js';
 import { encryptedBiffPropertyStream } from './biff-encrypted-properties.js';
 import { readBiffProperties } from './biff-properties.js';
@@ -15,14 +16,14 @@ import { createBiffWriter, readBiff } from './biff.js';
 const context: CapabilityContext = { signal: new AbortController().signal, own() {}, environment: { env: {}, locale: 'C', timezone: 'UTC' },
   limits: { inputBytes: 2e6, outputBytes: 2e6, workbookWork: 30e6, cells: 10, sheets: 2, operations: 100 } };
 function fixture() {
-  const cleanups: (() => void | Promise<void>)[] = [], state = { closed: 0, acquired: 0, mode: '', pending: 0, writes: [] as Uint8Array[], hold: undefined as (() => Promise<void>) | undefined }, failure = new Error('backing failure');
+  const cleanups: (() => void | Promise<void>)[] = [], state = { closed: 0, acquired: 0, mode: '', pending: 0, writes: [] as Uint8Array[], hold: undefined as ((ordinal: number, bytes: Uint8Array) => Promise<void>) | undefined }, failure = new Error('backing failure');
   const ctx: CapabilityContext = { ...context, own(fn) { cleanups.push(fn); }, createWorkingStorage() {
     state.acquired++; if (state.mode === 'acquire') throw failure;
-    const ordinal = state.acquired, data = new Uint8Array(2e6), borrowed = new Uint8Array(16384); let end = 23;
+    const ordinal = state.acquired, data = new Uint8Array(2e6), borrowed = new Uint8Array(16384); let end = 23, output = false;
     return { allocate(length) { if (state.mode === 'allocate') throw failure; const at = end; end += length; return at; }, async write(at, bytes) {
       expect(bytes.length).toBeLessThanOrEqual(16384); expect(++state.pending).toBe(1);
-      try { state.writes.push(bytes); await state.hold?.(); if (state.mode === 'write') throw failure; data.set(bytes, at); } finally { state.pending--; }
-    }, async read(at, length) { expect(length).toBeLessThanOrEqual(16384); if (state.mode === 'read' || state.mode === 'output-read' && ordinal > 2) throw failure;
+      try { state.writes.push(bytes); if (ordinal > 2 && bytes.length >= 28 && bytes[0] === 0xfe && bytes[1] === 0xff) output = true; await state.hold?.(ordinal, bytes); if (state.mode === 'write') throw failure; data.set(bytes, at); } finally { state.pending--; }
+    }, async read(at, length) { expect(length).toBeLessThanOrEqual(16384); if (state.mode === 'read' || state.mode === 'output-read' && output) throw failure;
       borrowed.set(data.subarray(at, at + length)); return borrowed.subarray(0, length); },
     async close() { expect(state.pending).toBe(0); state.closed++; } };
   } };
@@ -140,15 +141,17 @@ it.each(['second-write', 'output-write', 'read', 'output-read', 'abort'])('clean
   const { ctx, state, failure, cleanups } = fixture(), controller = new AbortController();
   const retainedContext = { ...ctx, signal: controller.signal };
   if (mode === 'read' || mode === 'output-read') state.mode = mode;
-  state.hold = async () => {
-    if (state.acquired === (mode === 'second-write' ? 2 : 4)) {
-      if (mode === 'second-write' || mode === 'output-write') throw failure;
+  state.hold = async (ordinal, bytes) => {
+    if (mode === 'second-write' && ordinal === 2) throw failure;
+    if (ordinal > 2 && bytes.length >= 28 && bytes[0] === 0xfe && bytes[1] === 0xff) {
+      if (mode === 'output-write') throw failure;
       if (mode === 'abort') controller.abort(failure);
     }
-  };
-  await expect(writeBiffProperties(input, retainedContext, true)).rejects.toBe(failure);
+  };  await expect(writeBiffProperties(input, retainedContext, true)).rejects.toBe(failure);
   for (const cleanup of cleanups) await cleanup();
-  expect(state.closed).toBe(state.acquired); expect(state.acquired).toBe(mode === 'second-write' ? 2 : mode === 'read' || mode === 'output-read' ? 3 : 4);
+  expect(state.closed).toBe(state.acquired);
+  if (mode === 'second-write' || mode === 'read') expect(state.acquired).toBe(mode === 'second-write' ? 2 : 3);
+  else expect(state.acquired).toBeGreaterThan(4);
   expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
 });
 
@@ -190,11 +193,11 @@ it.each(['success', 'transcode-write', 'output-write', 'output-read', 'abort'])(
   const expected = await writeBiffProperties(input, context), { ctx, state, failure, cleanups } = fixture();
   const controller = new AbortController(), runContext = { ...ctx, signal: controller.signal };
   if (mode === 'output-read') state.mode = mode;
-  state.hold = async () => {
-    if (mode === 'transcode-write' && state.acquired === 2 || mode === 'output-write' && state.acquired === 3) throw failure;
+  state.hold = async (ordinal, bytes) => {
+    if (mode === 'transcode-write' && bytes.length >= 8 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true) === 31) throw failure;
+    if (mode === 'output-write' && ordinal > 1 && bytes.length >= 28 && bytes[0] === 0xfe && bytes[1] === 0xff) throw failure;
     if (mode === 'abort' && state.acquired === 2) controller.abort(failure);
-  };
-  const decode = TextDecoder.prototype.decode;
+  };  const decode = TextDecoder.prototype.decode;
   const spy = vi.spyOn(TextDecoder.prototype, 'decode').mockImplementation(function (this: TextDecoder, bytes, options) {
     expect(bytes?.byteLength ?? 0).toBeLessThanOrEqual(16384); return decode.call(this, bytes, options);
   });
@@ -526,4 +529,94 @@ it.each([false, true])('preserves dictionary close failures with consumer error=
     expect(error).toBeInstanceOf(AggregateError); expect(error.errors).toEqual([consumer, failure]);
   } else await expect(result).rejects.toBe(failure);
   expect(state.closed).toBe(1);
+});
+
+it('merges retained values without a resident range map', async () => {
+  const seed = { sheets: book.sheets, properties: { 'dc:title': 'original', Custom: 2 } };
+  const fresh = await writeBiffProperties(seed, context), stream = '\u0005SummaryInformation', bytes = fresh.streams.get(stream)!;
+  const input = { ...seed, properties: { ...seed.properties, 'dc:title': 'replacement' }, unsupportedRecords: [{ source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+    data: { stream, bytes: Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('') } }] };
+  const expected = await writeBiffProperties(input, context), { ctx, state } = fixture(), original = Map.prototype.set;
+  Map.prototype.set = function (key, value) {
+    if (typeof key === 'number' && value instanceof BiffPropertyRange) throw new Error('resident merge value map');
+    return original.call(this, key, value);
+  };
+  try {
+    const actual = await writeBiffProperties(input, ctx, true);
+    for (const [name, source] of actual.streams) expect(await source.read(0, source.size)).toEqual(expected.streams.get(name));
+    await actual.close();
+  } finally { Map.prototype.set = original; }
+  expect(state.closed).toBe(state.acquired);
+});
+
+it('preserves mutable property insertion order and detached payloads beyond the index cache', async () => {
+  const { ctx, state, cleanups } = fixture(), values = new BiffMutablePropertyValues(ctx, () => {});
+  const range = (id: number) => { const bytes = new Uint8Array(4); new DataView(bytes.buffer).setUint32(0, id, true); return propertyRange(bytes, ctx); };
+  try {
+    for (let id = 0; id < 300; id++) await values.set(id, range(id));
+    const detached = (await values.get(2))!;
+    await values.set(5, range(55)); expect(await values.delete(2)).toBe(true);
+    expect(await values.delete(999)).toBe(false); expect(await values.get(2)).toBeUndefined();
+    expect(await detached.u32(0)).toBe(2);
+    await values.set(2, range(22)); await values.set(7, (await values.get(7))!);
+    const ids: number[] = [];
+    for await (const [id, value] of values.entries()) {
+      ids.push(id); expect(await value.u32(0)).toBe(id === 5 ? 55 : id === 2 ? 22 : id);
+    }
+    expect(ids).toEqual([...Array.from({ length: 300 }, (_, i) => i).filter(id => id !== 2), 2]);
+    expect(values.size).toBe(300);
+    const first = (await values.get(0))!, last = (await values.get(299))!;
+    expect(await Promise.all([first.u32(0), last.u32(0)])).toEqual([0, 299]);
+    await values.close(); await expect(first.u32(0)).rejects.toThrow('closed');
+  } finally { await values.close(); for (const cleanup of cleanups) await cleanup(); }
+  expect(state.acquired).toBe(1); expect(state.closed).toBe(1);
+  expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
+});
+
+it.each(['success', 'allocate', 'write', 'read', 'source-read', 'abort'])('owns bounded mutable property payloads and cleans after %s', async mode => {
+  const { ctx, state, failure } = fixture(), controller = new AbortController(), active = { ...ctx, signal: controller.signal };
+  const values = new BiffMutablePropertyValues(active, () => {}), borrowed = new Uint8Array(257);
+  state.mode = mode === 'allocate' || mode === 'write' ? mode : '';
+  if (mode === 'abort') state.hold = async () => { controller.abort(failure); };
+  const source = propertyRange({ size: 40001, async read(at, count) {
+    if (mode === 'source-read' && at > 16384) throw failure;
+    const length = Math.min(count, borrowed.length, 40001 - at);
+    for (let i = 0; i < length; i++) borrowed[i] = (at + i) % 251;
+    return borrowed.subarray(0, length);
+  } }, active);
+  const run = async () => {
+    await values.set(2, source); borrowed.fill(0);
+    if (mode === 'read') state.mode = mode;
+    const result = (await values.get(2))!;
+    for (let at = 0; at < result.size;) {
+      const bytes = await result.read(at, result.size); expect(bytes.length).toBeLessThanOrEqual(16384);
+      expect(bytes).toEqual(Uint8Array.from({ length: bytes.length }, (_, i) => (at + i) % 251)); at += bytes.length;
+    }
+  };
+  try { if (mode === 'success') await run(); else await expect(run()).rejects.toBe(failure); }
+  finally { await values.close(); }
+  expect(state.closed).toBe(1); expect(state.pending).toBe(0);
+});
+
+it('waits for mutable property writes during disposal', async () => {
+  const { ctx, state } = fixture(), values = new BiffMutablePropertyValues(ctx, () => {});
+  let entered!: () => void, resume!: () => void;
+  const writing = new Promise<void>(resolve => { entered = resolve; }), gate = new Promise<void>(resolve => { resume = resolve; });
+  state.hold = async () => { entered(); await gate; };
+  const operation = values.set(2, propertyRange(new Uint8Array(4), ctx)); await writing;
+  const closing = values.close(); expect(state.closed).toBe(0); resume();
+  await expect(operation).rejects.toThrow('closed'); await closing;
+  expect(state.closed).toBe(1); expect(state.pending).toBe(0);
+});
+
+it('closes mutable value storage once even when cleanup fails', async () => {
+  const { ctx, state, failure } = fixture();
+  const active = { ...ctx, createWorkingStorage() {
+    const storage = ctx.createWorkingStorage!();
+    return { ...storage, async close() { await storage.close(); throw failure; } };
+  } };
+  const values = new BiffMutablePropertyValues(active, () => {});
+  await values.set(2, propertyRange(new Uint8Array(4), active));
+  await expect(values.close()).rejects.toBe(failure); await expect(values.close()).rejects.toBe(failure);
+  expect(state.closed).toBe(1); await expect(values.get(2)).rejects.toThrow('closed');
 });

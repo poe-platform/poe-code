@@ -1,3 +1,4 @@
+import { BiffMutablePropertyValues } from './biff-property-values.js';
 import { createBiffPropertyNameEncoder } from "./biff-property-name.js";
 import { readBiffPropertyText } from "./biff-property-text.js";
 import { stageWideBiffProperty } from './biff-property-transcode.js';
@@ -7,9 +8,9 @@ import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-c
 import type { ImportedValue, UnsupportedRecord, Workbook } from "@poe-code/spreadsheet-ast";
 import { Binary, invalidBiff } from "./biff-binary.js";
 import { biffPropertyFields, biffPropertyFormats, readBiffProperties } from "./biff-properties.js";
-import { propertyRange, readPropertySectionRanges, readPropertyValueRanges, type BiffPropertyRange } from "./biff-property-range.js";
+import { propertyRange, readPropertySectionRanges, withPropertyValueRanges, type BiffPropertyRange } from "./biff-property-range.js";
 
-interface Section { guid: string; offset: number; bytes: BiffPropertyRange; values?: Map<number, BiffPropertyRange>; }
+interface Section { guid: string; offset: number; bytes: BiffPropertyRange; values?: BiffMutablePropertyValues; }
 interface Property { stream: string; section: number; id: number; key: string; value: ImportedValue; }
 interface Snapshot { record: UnsupportedRecord; bytes: BiffPropertyRange; modeled: ImportedValue[] | undefined; }
 
@@ -33,7 +34,7 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
       throw new SsconvertError("resource-limit", "ssconvert BIFF property text limit exceeded");
     return text;
   };
-  const temporarySources: BiffPropertySource[] = [];
+  const temporarySources: Pick<BiffPropertySource, "close">[] = [];
   const closeTemporary = async () => {
     const outcomes = await Promise.allSettled(temporarySources.map(source => source.close()));
     const errors = outcomes.filter((value): value is PromiseRejectedResult => value.status === "rejected").map(value => value.reason);
@@ -76,8 +77,14 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     const file = propertyRange(input, context), sections: Section[] = [];
     for await (const section of readPropertySectionRanges(file, admit, charge, context)) {
       const bytes = file.slice(section.offset, section.end - section.offset);
-      sections.push({ ...section, bytes, ...(biffPropertyFields.has(section.guid) || section.guid === biffPropertyFormats.custom ?
-        { values: await readPropertyValueRanges(bytes, admit, charge, context) } : {}) });
+      let values: BiffMutablePropertyValues | undefined;
+      if (biffPropertyFields.has(section.guid) || section.guid === biffPropertyFormats.custom) {
+        values = new BiffMutablePropertyValues(context, charge); temporarySources.push(values);
+        await withPropertyValueRanges(bytes, admit, charge, context, async source => {
+          for await (const [id, value] of source.entries()) await values!.set(id, value);
+        });
+      }
+      sections.push({ ...section, bytes, ...(values ? { values } : {}) });
     }
     return sections;
   };
@@ -101,8 +108,8 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     for (let at = 0; at < source.size;) { const bytes = await source.read(at, source.size - at); at += bytes.length; yield bytes; }
   };
   const dictionary = async function* (section: Section, names = true): AsyncIterable<{ id: number; bytes: BiffPropertyRange; name: string }> {
-    const data = section.values?.get(0); if (!data) return;
-    const cp = await section.values?.get(1)?.u16(4) ?? 1252, count = await data.u32(0);
+    const data = await section.values?.get(0); if (!data) return;
+    const cp = await (await section.values?.get(1))?.u16(4) ?? 1252, count = await data.u32(0);
     data.check(4, count * 9);
     if (names) { charge(data.size); admit(count); }
     let at = 4;
@@ -128,15 +135,15 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     } };
     if (staged) {
       staged.reserve(plan.length); const source = await stagePropertyBytes(output, context); temporarySources.push(source);
-      section.values!.set(0, propertyRange(source, context));
+      await section.values!.set(0, propertyRange(source, context));
     } else {
       const bytes = allocate(plan.length); let at = 0;
       for await (const part of output.chunks()) { bytes.set(part, at); at += part.length; }
-      section.values!.set(0, propertyRange(bytes, context));
+      await section.values!.set(0, propertyRange(bytes, context));
     }
   };
   const remove = async (section: Section, id: number) => {
-    section.values!.delete(id);
+    await section.values!.delete(id);
     if (section.guid === biffPropertyFormats.custom) {
       let length = 4, count = 0;
       for await (const entry of dictionary(section)) if (entry.id !== id) { length += entry.bytes.size; count++; }
@@ -146,10 +153,10 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
   const take = async (property: Property): Promise<BiffPropertyRange> => {
     charge(fresh.get(property.stream)!.length);
     const section = fresh.get(property.stream)!.find(section => section.offset === property.section)!;
-    const value = section.values!.get(property.id)!; await remove(section, property.id); pending.delete(property.key); return value;
+    const value = (await section.values!.get(property.id))!; await remove(section, property.id); pending.delete(property.key); return value;
   };
   const wide = async (source: BiffPropertyRange, section: Section): Promise<BiffPropertyRange> => {
-    if (await source.u32(0) !== 30 || (await section.values!.get(1)?.u16(4) ?? 1252) === 65001) return source;
+    if (await source.u32(0) !== 30 || (await (await section.values!.get(1))?.u16(4) ?? 1252) === 65001) return source;
     if (staged) {
       const output = await stageWideBiffProperty(source, context, charge, staged.reserve);
       temporarySources.push(output); return propertyRange(output, context);
@@ -193,7 +200,7 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
       const value = book.properties?.[key], replacement = pending.get(key);
       if (!Object.hasOwn(book.properties ?? {}, key)) await remove(section, id);
       else if (same(property.value, value)) { preserved.add(key); if (replacement) await take(replacement); }
-      else if (replacement) section.values!.set(id, await wide(await take(replacement), section));
+      else if (replacement) await section.values!.set(id, await wide(await take(replacement), section));
     }
   }
 
@@ -218,9 +225,9 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
         await warn(property.key, "unknown dictionary encoding"); continue; }
       charge(count + values.size);
       if (collision) { await warn(property.key, "opaque name collision"); continue; }
-      const cp = await values.get(1)?.u16(4) ?? 1252, text = encodeName(property.key, cp);
+      const cp = await (await values.get(1))?.u16(4) ?? 1252, text = encodeName(property.key, cp);
       if (!text) { await warn(property.key, "name cannot be encoded in the original codepage"); continue; }
-      id = maximumId; for (const key of values.keys()) id = Math.max(id, key); id++;
+      id = maximumId; for await (const [key] of values.entries()) id = Math.max(id, key); id++;
       if (id > 0xffffffff) { await warn(property.key, "no free property ID"); continue; }
       const size = 8 + text.length, length = cp === 1200 ? Math.ceil(size / 4) * 4 : size;
       const entry = { length, *chunks() {
@@ -238,8 +245,8 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
         bytes = propertyRange(data, context);
       }
       await writeDictionary(target, { length: dictionaryLength + bytes.size, count: count + 1, append: bytes });
-    } else if (values.has(id)) { await warn(property.key, "opaque property ID collision"); continue; }
-    values.set(id, await wide(value, target));
+    } else if (await values.get(id)) { await warn(property.key, "opaque property ID collision"); continue; }
+    await values.set(id, await wide(value, target));
   }
 
   const reserve = staged?.reserve ?? ((length: number) => {
@@ -249,24 +256,24 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     return length;
   });
   type Output = { length: number; chunks(): AsyncIterable<Uint8Array> };
-  const encodeSection = (section: Section): Output => {
+  const encodeSection = async (section: Section): Promise<Output> => {
     if (!section.values) return { length: section.bytes.size, chunks: () => chunks(section.bytes) };
     const values = section.values;
     let length = 8 + values.size * 8;
-    for (const value of values.values()) length += Math.ceil(value.size / 4) * 4;
+    for await (const [, value] of values.entries()) length += Math.ceil(value.size / 4) * 4;
     // Buffered output charges the section size here, as the old allocation did.
     reserve(length);
     return { length, async *chunks() {
       const header = new Uint8Array(8), view = new DataView(header.buffer);
       view.setUint32(0, length, true); view.setUint32(4, values.size, true); yield header;
       let at = 8 + values.size * 8;
-      for (const [id, value] of values) {
+      for await (const [id, value] of values.entries()) {
         charge(value.size);
         const entry = new Uint8Array(8), view = new DataView(entry.buffer);
         view.setUint32(0, id, true); view.setUint32(4, at, true); yield entry;
         at += Math.ceil(value.size / 4) * 4;
       }
-      for (const value of values.values()) {
+      for await (const [, value] of values.entries()) {
         yield* chunks(value);
         const padding = (4 - value.size % 4) % 4; if (padding) yield new Uint8Array(padding);
       }
@@ -274,7 +281,10 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
   };
   for (const name of new Set([...streams.keys(), ...snapshots.keys()])) {
     for (const section of fresh.get(name) ?? []) charge(1 + section.values!.size);
-    const remaining = fresh.get(name)?.filter(section => [...section.values!.keys()].some(id => id >= 2)) ?? [];
+    const remaining: Section[] = [];
+    for (const section of fresh.get(name) ?? []) {
+      for await (const [id] of section.values!.entries()) if (id >= 2) { remaining.push(section); break; }
+    }
     if (!old.has(name) && remaining.some(section => section.guid === biffPropertyFormats.custom) &&
       !remaining.some(section => section.guid === biffPropertyFormats.document)) {
       const builtin = fresh.get(name)?.find(section => section.guid === biffPropertyFormats.document);
@@ -282,7 +292,9 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     }
     const sections = [...old.get(name) ?? [], ...remaining];
     if (!sections.length) { streams.delete(name); continue; }
-    const bodies = sections.map(encodeSection), length = 28 + sections.length * 20 + bodies.reduce((sum, body) => sum + body.length, 0);
+    const bodies: Output[] = [];
+    for (const section of sections) bodies.push(await encodeSection(section));
+    const length = 28 + sections.length * 20 + bodies.reduce((sum, body) => sum + body.length, 0);
     const originalHeader = await (snapshots.get(name)?.bytes ?? propertyRange(streams.get(name)!, context)).read(0, 28);
     const output: Output = { length, async *chunks() {
       const header = new Uint8Array(originalHeader); new DataView(header.buffer).setUint32(24, sections.length, true); yield header;

@@ -46,7 +46,7 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
       if (++requests % 32 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
       let value: FontResolutionResult;
       if (step.value.kind === "resolve") {
-        const retained = await document.lookup(step.value.node, options.resourceStorage ? {dictionaryStorage:options.resourceStorage,storedDictionaryKeys:["Font","XObject","Properties"],storeRootDictionary:step.value.storeRootDictionary ?? false,arrayStorage:options.resourceStorage,storedArrayKeys:["Widths","W","Differences"],storeRootArray:step.value.storeRootArray ?? false} : {});
+        const retained = await document.lookup(step.value.node, options.resourceStorage ? {dictionaryStorage:options.resourceStorage,storedDictionaryKeys:["Font","XObject","Properties"],storedDictionaryPaths:[["Resources","*"]],storeRootDictionary:step.value.storeRootDictionary ?? false,arrayStorage:options.resourceStorage,storedArrayKeys:["Widths","W","Differences"],storeRootArray:step.value.storeRootArray ?? false} : {}, step.value.arrayPathPrefix);
         value = retained?.value;
         if (retained?.stream) {
           if (retained.value.kind !== "dict" || !retained.reference) throw new PdfError("E_PARSE", "Font stream has no retained identity");

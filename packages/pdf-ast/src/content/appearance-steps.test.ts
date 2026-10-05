@@ -40,7 +40,7 @@ it.each([false, true])("preserves transformed appearances, resource precedence a
 });
 
 
-it.each(["XObject", "Properties"])("shares immutable %s backing without copying unused resources", key => {
+it.each(["XObject", "Properties", "ExtGState", "ColorSpace", "Pattern", "Shading"])("shares immutable %s backing without copying unused resources", key => {
   const unexpected = () => { throw new Error("Unused backing must not be accessed"); };
   const storedEntries = { storage: { allocate: unexpected, read: unexpected, write: unexpected }, position: 0, length: 1000 };
   const source = { ...cosDict(), storedEntries };

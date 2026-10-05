@@ -36,7 +36,7 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
   const decodeOptions = { chunkBytes, ...(options.maxDecodedBytes === undefined ? {} : { maxDecodedBytes: options.maxDecodedBytes }), ...(options.signal ? { signal: options.signal } : {}) };
   let imageIndex = 0; let stagedBytes = 0;
   async function dictionary(node: PdfCosNode | undefined, resourceKey?: string) {
-    const value = await document.lookup(node, undefined, resourceKey ? [resourceKey] : undefined);
+    const value = await document.lookup(node, undefined, resourceKey ? resourceKey === "Resources" ? [resourceKey] : ["Resources", resourceKey] : undefined);
     return value?.value.kind === "dict" && !value.stream ? value.value : undefined;
   }
   async function number(node: PdfCosNode | undefined, fallback: number) {
@@ -119,7 +119,7 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
               active.add(ref.objectNumber);
               try {
                 yield* content(document.objects.decodeStream(ref.objectNumber, ref.generationNumber),
-                  await dictionary(dictGet(target.value, "Resources")) ?? activeResources, transform, active, depth + 1);
+                  await dictionary(dictGet(target.value, "Resources"), "Resources") ?? activeResources, transform, active, depth + 1);
               } finally { active.delete(ref.objectNumber); }
             }
           }
@@ -137,20 +137,20 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
       if (value?.value.kind !== "dict") return;
       if (value.stream && value.reference) {
         yield* content(document.objects.decodeStream(value.reference.objectNumber, value.reference.generationNumber),
-          await dictionary(dictGet(value.value, "Resources")) ?? inherited, identity, new Set([value.reference.objectNumber]), 0);
+          await dictionary(dictGet(value.value, "Resources"), "Resources") ?? inherited, identity, new Set([value.reference.objectNumber]), 0);
       } else for (const entry of value.value.entries) yield* auxiliary(entry.value, inherited, depth + 1);
     }
     try {
       yield* content(page.streamContents(), resources, identity, new Set(), 0);
-      const patterns = await dictionary(dictGet(resources, "Pattern"));
-      if (patterns) for (const entry of patterns.entries) yield* auxiliary(entry.value, resources);
+      const patterns = await dictionary(dictGet(resources, "Pattern"), "Pattern");
+      if (patterns) for await (const entry of readPdfDictionaryEntries(patterns, options.signal)) yield* auxiliary(entry.value, resources);
       const fonts = await dictionary(dictGet(resources, "Font"), "Font");
       if (fonts) for await (const entry of readPdfDictionaryEntries(fonts, options.signal)) {
         const font = await dictionary(entry.value); if (!font) continue;
         const subtype = (await document.lookup(dictGet(font, "Subtype")))?.value;
         if (subtype?.kind !== "name" || subtype.decoded !== "Type3") continue;
         const procedures = await dictionary(dictGet(font, "CharProcs"));
-        const inherited = await dictionary(dictGet(font, "Resources")) ?? resources;
+        const inherited = await dictionary(dictGet(font, "Resources"), "Resources") ?? resources;
         if (procedures) for (const entry of procedures.entries) yield* auxiliary(entry.value, inherited);
       }
       const annotations = (await document.lookup(dictGet(page.dict, "Annots")))?.value;

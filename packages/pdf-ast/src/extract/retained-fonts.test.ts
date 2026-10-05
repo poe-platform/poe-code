@@ -20,15 +20,16 @@ async function fixture(count = 3, amend?: (document: PdfDocument) => void, backe
   amend?.(original);
   if (backed) {
     const resources = original.cos.resolveDict(dictGet(page.pageDict,"Resources"))!;
-    for (const key of ["Font","XObject"]) {
+    for (const key of ["Font","XObject","Pattern","ExtGState"]) {
       const map = dictGet(resources,key);
       if (map) dictSet(resources,key,original.cos.allocateObject(map));
     }
+    dictSet(page.pageDict,"Resources",original.cos.allocateObject(resources));
   }
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
   const source = await PdfFileSource.open(fs, "/input", { chunkBytes: 64, cacheBytes: 128 });
   const backing = new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal});
-  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...(backed ? {valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Font","XObject","Properties"]}} : {}) });
+  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...(backed ? {valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Font","XObject","Properties"],storedDictionaryPaths:[["Resources","*"]]}} : {}) });
   return { document, fs, source, async close() { await document.close(); await backing.close(); expect(await fs.readdir("/scratch")).toEqual([]); await source.close(); } };
 }
 
@@ -44,7 +45,7 @@ it("releases suspended font traversal indexes on document close", async () => {
   await f.close(); expect((await iterator.next()).done).toBe(true);
 });
 
-it("inspects Type 3, CID, pattern and graphics-state fonts without loading font programs", async () => {
+it.each([false,true])("inspects Type 3, CID, pattern and graphics-state fonts (backed=%s)", async backed => {
   const f = await fixture(3, doc => {
     const program = doc.cos.allocateObject(cosStream(cosDict({ Filter: cosName("Unsupported") }), new Uint8Array([1, 2, 3])));
     const cid = doc.cos.allocateObject(cosDict({ Type: cosName("Font"), Subtype: cosName("Type0"), BaseFont: cosName("ABCDEF+CID"), Encoding: cosName("Identity-H"),
@@ -55,7 +56,7 @@ it("inspects Type 3, CID, pattern and graphics-state fonts without loading font 
     dictSet(doc.getPage(0).pageDict, "Resources", cosDict({ Font: cosDict({ Type3: type3 }), ExtGState: cosDict({ State: cosDict({ Font: cosArray([cid]) }) }), Pattern: cosDict({ P: pattern }) }));
     dictSet(doc.cos.resolveDict(doc.cos.rootRef)!, "AcroForm", cosDict());
     dictSet(doc.getPage(0).pageDict, "Annots", cosArray([]));
-  });
+  }, backed);
   const rows = []; for await (const font of f.document.fonts()) rows.push([font.name, font.type, font.encoding, font.embedded, font.unicode]);
   expect(rows).toEqual([["Glyphs", "Type 3", "Builtin", true, false], ["ABCDEF+CID", "CID TrueType", "Identity-H", true, true], ["Simple", "TrueType", "Custom", false, false]]);
   await f.close();

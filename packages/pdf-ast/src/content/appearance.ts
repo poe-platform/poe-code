@@ -40,13 +40,13 @@ function* visible(node: PdfCosNode | undefined): AppearanceWork<boolean> {
 export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCosDict, evalResourcesDict: PdfCosDict, hideAnnotations = false, onAllocation?: (bytes: number) => void): AppearanceWork {
   onAllocation?.(64 * pageRes.entries.length);
   for (const entry of pageRes.entries) {
-    const sub = (yield* resolveDict(entry.value, [entry.key.decoded]));
+    const sub = (yield* resolveDict(entry.value, ["Resources", entry.key.decoded]));
     if (sub) {
       onAllocation?.(64 + sub.entries.length * 64);
       // Named lookups already enforce last-key-wins; immutable backing can be
       // shared until an appearance actually adds resources. Font enumeration
       // still requires duplicate normalization before skipping invalid fonts.
-      const shareBacking = entry.key.decoded === "XObject" || entry.key.decoded === "Properties";
+      const shareBacking = entry.key.decoded !== "Font";
       const clonedSub = sub.storedEntries
         ? shareBacking ? { ...sub, entries: [] } : (yield {kind: "dictionary-merge", destination: sub}) as PdfCosDict
         : cosDict({});
@@ -97,12 +97,12 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
         if (hasContent === true) {
           onAllocation?.(2048);
           renderedApStream = true;
-          const apRes = (yield* resolveDict(dictGet(apN.dict, "Resources")));
+          const apRes = (yield* resolveDict(dictGet(apN.dict, "Resources"), ["Resources"]));
           if (apRes) {
             for (const subKey of ["Font", "XObject", "ExtGState", "ColorSpace", "Pattern", "Shading"]) {
-              const srcSub = (yield* resolveDict(dictGet(apRes, subKey), [subKey]));
+              const srcSub = (yield* resolveDict(dictGet(apRes, subKey), ["Resources", subKey]));
               if (!srcSub) continue;
-              let dstSub = (yield* resolveDict(dictGet(evalResourcesDict, subKey), [subKey]));
+              let dstSub = (yield* resolveDict(dictGet(evalResourcesDict, subKey), ["Resources", subKey]));
               if (!dstSub) {
                 onAllocation?.(64);
                 dstSub = cosDict({});

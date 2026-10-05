@@ -134,3 +134,21 @@ it.each([false, true])("keeps resource names opaque to dictionary selectors (ind
   expect(child).toMatchObject({entries: [{key: {decoded: "Subtype"}, value: {decoded: "Type1"}}]});
   expect(child?.kind === "dict" && child.storedEntries).toBeUndefined();
 });
+
+
+it.each([false,true])("backs resource-map paths without backing same-named definitions (indirect=%s)", async indirect => {
+  const storage = backing();
+  const body = "<< /ExtGState << /ExtGState << /ca 0.5 >> >> /Pattern << /P << /Shading << /ShadingType 2 >> /ExtGState << /ca 1 >> >> >> >>";
+  const {value} = await parseCosRangeValue(source(indirect ? body : `<< /Resources ${body} >>`),0,
+    {dictionaryStorage:storage,storedDictionaryPaths:[["Resources","*"]],...(indirect?{arrayPathPrefix:["Resources"]}:{})});
+  const resources = indirect ? value : value?.kind === "dict" ? dictGet(value,"Resources") : undefined;
+  if(resources?.kind !== "dict")throw Error("resources expected");
+  const states=dictGet(resources,"ExtGState"),patterns=dictGet(resources,"Pattern");
+  expect(states).toMatchObject({entries:[],storedEntries:{length:1}});
+  expect(patterns).toMatchObject({entries:[],storedEntries:{length:1}});
+  const state=await readPdfDictionaryValue(states as PdfCosDict,"ExtGState");
+  expect(state?.kind === "dict" && dictGet(state,"ca")).toMatchObject({value:0.5});
+  const pattern=await readPdfDictionaryValue(patterns as PdfCosDict,"P");
+  expect(pattern?.kind === "dict" && dictGet(pattern,"Shading")).toMatchObject({entries:[{key:{decoded:"ShadingType"}}]});
+  expect(pattern?.kind === "dict" && dictGet(pattern,"ExtGState")).toMatchObject({entries:[{key:{decoded:"ca"}}]});
+});

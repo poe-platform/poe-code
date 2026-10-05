@@ -18,15 +18,15 @@ import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = PdfDictionaryEntryRequest | {kind:"font-encoding";array:PdfCosArray} | {kind:"font-label";lookup:(code:number)=>Promise<string|undefined>;code:number} | {kind:"array-item"; items:PdfStoredItems; position:number} | {kind:"font-width-set";widths:StoredFontWidths;first:number;width:number;last?:number} | {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined; storeRootArray?:boolean; storeRootDictionary?:boolean } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; storedEncoding?:StoredFontEncoding; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
+export type FontResolutionRequest = PdfDictionaryEntryRequest | {kind:"font-encoding";array:PdfCosArray} | {kind:"font-label";lookup:(code:number)=>Promise<string|undefined>;code:number} | {kind:"array-item"; items:PdfStoredItems; position:number} | {kind:"font-width-set";widths:StoredFontWidths;first:number;width:number;last?:number} | {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined; storeRootArray?:boolean; storeRootDictionary?:boolean; arrayPathPrefix?:readonly string[] } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; storedEncoding?:StoredFontEncoding; type1Properties?: Type1Properties; purpose?: "type1" | "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
 export type FontResolutionResult = StoredFontEncoding | StoredCffFont | StoredTrueTypeFont | PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
-function* resolve(node: PdfCosNode | undefined, storeRootArray = false, storeRootDictionary = false): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
-  const value = yield { kind: "resolve", node, storeRootArray, storeRootDictionary };
+function* resolve(node: PdfCosNode | undefined, storeRootArray = false, storeRootDictionary = false, arrayPathPrefix?: readonly string[]): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
+  const value = yield { kind: "resolve", node, storeRootArray, storeRootDictionary, ...(arrayPathPrefix ? {arrayPathPrefix} : {}) };
   if (value && !("kind" in value)) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
   return value;
 }
-function* resolveDict(node: PdfCosNode | undefined, backed = false): Generator<FontResolutionRequest, PdfCosDict | undefined, FontResolutionResult> {
-  const value = yield* resolve(node, false, backed); return value?.kind === "dict" ? value : value?.kind === "stream" ? value.dict : undefined;
+function* resolveDict(node: PdfCosNode | undefined, backed = false, path?: readonly string[]): Generator<FontResolutionRequest, PdfCosDict | undefined, FontResolutionResult> {
+  const value = yield* resolve(node, false, backed, path); return value?.kind === "dict" ? value : value?.kind === "stream" ? value.dict : undefined;
 }
 function* resolveArray(node: PdfCosNode | undefined, backed = false): Generator<FontResolutionRequest, PdfCosArray | undefined, FontResolutionResult> {
   const value = yield* resolve(node, backed); return value?.kind === "array" ? value : undefined;
@@ -171,7 +171,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 fontMatrix = [0.001, 0, 0, 0.001, 0, 0];
             }
             charProcs = (yield* resolveDict(dictGet(fObj, "CharProcs")));
-            fontResources = (yield* resolveDict(dictGet(fObj, "Resources")));
+            fontResources = (yield* resolveDict(dictGet(fObj, "Resources"), false, ["Resources"]));
         }
         const type3Scale1000 = subtype === "Type3" && fontMatrix
             ? Math.hypot(fontMatrix[0], fontMatrix[1]) * 1000

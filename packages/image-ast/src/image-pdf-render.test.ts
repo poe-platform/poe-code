@@ -1,3 +1,4 @@
+import { readPdfDictionaryValue } from "../../pdf-ast/src/content/stored-dictionary.js";
 import {expect,it,vi} from "vitest";
 import {createMemoryFileSystem} from "@poe-code/safe-fs";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
@@ -111,10 +112,10 @@ it.each(["inline","map","state","both"])("backs %s graphics-state dashes before 
  const spy=vi.spyOn(PdfRetainedDocument.prototype,"lookup").mockImplementation(async function(node,arrays,prefix){
   const result=await lookup.call(this,node,arrays,prefix);
   if(result?.value.kind==="dict"){
-   const resources=dictGet(result.value,"Resources");
-   const states=resources?.kind==="dict"?dictGet(resources,"ExtGState"):undefined;
-   const state=states?.kind==="dict"?dictGet(states,"Dashes"):dictGet(result.value,"Dashes");
-   const dash=state?.kind==="dict"?dictGet(state,"D"):dictGet(result.value,"D");
+   const resources=await readPdfDictionaryValue(result.value,"Resources");
+   const states=resources?.kind==="dict"?await readPdfDictionaryValue(resources,"ExtGState"):undefined;
+   const state=states?.kind==="dict"?await readPdfDictionaryValue(states,"Dashes"):await readPdfDictionaryValue(result.value,"Dashes");
+   const dash=state?.kind==="dict"?dictGet(state,"D"):await readPdfDictionaryValue(result.value,"D");
    if(dash?.kind==="array"){
     expect(dash.items).toHaveLength(0);expect(dash.storedItems?.length).toBe(2);
     expect(dash.storedItems?.storage).toBe(storage);seen++;
@@ -226,5 +227,28 @@ it("backs page-tree child lists while preserving selected-page metadata and pixe
   }
   expect(visited).toBeGreaterThanOrEqual(2);
  }finally{lookup.mockRestore();await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+
+it.each(["ExtGState","ColorSpace","Pattern","Shading"].flatMap(key=>["inline","indirect"].map(mode=>({key,mode}))))("backs $mode $key maps without changing PDF pixels",async ({key,mode})=>{
+ const {cosArray,cosDict,cosName,cosBool}=await import("@poe-code/pdf-ast");
+ const numbers=(values:number[])=>cosArray(values.map(value=>cosNumber(value)));
+ const shading=cosDict({ShadingType:cosNumber(2),ColorSpace:cosName("DeviceRGB"),Coords:numbers([0,0,12,0]),Extend:cosArray([cosBool(true),cosBool(true)]),Function:cosDict({FunctionType:cosNumber(2),Domain:numbers([0,1]),C0:numbers([1,0,0]),C1:numbers([0,0,1]),N:cosNumber(1)})});
+ const selected=key==="Shading"?shading:key==="Pattern"?cosDict({PatternType:cosNumber(2),Shading:shading,ExtGState:cosDict({ca:cosNumber(1)})}):key==="ColorSpace"?cosName("DeviceRGB"):cosDict({ca:cosNumber(0.5)});
+ const doc=PdfDocument.create(),page=doc.addPage([12,12]);
+ const map=cosDict([...Array.from({length:256},(_,i)=>["UnusedStateMap"+i,cosNumber(739)] as const),["Selected",selected]]);
+ const resources=cosDict({[key]:mode==="indirect"?doc.cos.allocateObject(map):map});
+ dictSet(page.pageDict,"Resources",mode==="indirect"?doc.cos.allocateObject(resources):resources);
+ page.setRawContentStream(key==="Shading"?"/Selected sh":key==="Pattern"?"/Pattern cs /Selected scn 0 0 12 12 re f":key==="ColorSpace"?"/Selected cs 1 0 0 sc 0 0 12 12 re f":"/Selected gs 1 0 0 rg 0 0 12 12 re f");
+ const bytes=doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const push=Array.prototype.push;Array.prototype.push=function<T>(this:T[],...values:T[]):number{const length=push.apply(this,values);if(length>64&&values.some(value=>(value as {key?:{decoded?:string}})?.key?.decoded?.startsWith("UnusedStateMap")))throw Error("resident rendering resource map");return length;};
+ try{
+  const source={size:bytes.length,async read(position:number,length:number){return bytes.subarray(position,position+length);}};
+  expect(await tryPdfMetadata(source,fs,"/scratch",signal,{},storage)).toMatchObject({width:12,height:12});
+  const image=await tryPdfDecode(source,storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);
+ }finally{Array.prototype.push=push;await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });

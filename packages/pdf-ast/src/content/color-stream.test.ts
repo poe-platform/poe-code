@@ -3,7 +3,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfFileSource } from "../source.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { convertRetainedContentColor } from "../extract/retained-color.js";
-import { cosArray, cosDict, cosName, cosNumber, cosStream } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosStream, dictGet } from "../ast.js";
 import { PdfDocument } from "../document.js";
 import { convertContentColorSteps, evaluateContentStreamSteps, evalShadingFunctionToComponents } from "./evaluator.js";
 import { createCalibratedColorSpace } from "./calibrated-color.js";
@@ -29,6 +29,7 @@ it.each(["indexed", "icc", "lab", "tint", "stream-resources"])("suspends %s vect
     await Promise.resolve(); reads++;
     const request = step.value;
     if (request.kind === "resolve") step = work.next(doc.cos.resolve(request.node));
+    else if (request.kind === "resource") { const map = doc.cos.resolveDict(dictGet(request.resources, request.category)); step = work.next(map ? dictGet(map, request.name) : undefined); }
     else if (request.kind === "decode") step = work.next(doc.cos.decodeStream(request.stream).subarray(request.start, request.start + request.length));
     else if (request.kind === "calibrated") step = work.next(createCalibratedColorSpace(doc.cos, request.family, request.parameters));
     else step = work.next(evalShadingFunctionToComponents(doc.cos, request.node, request.components));

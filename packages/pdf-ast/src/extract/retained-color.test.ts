@@ -1,4 +1,5 @@
-import { expect, it, vi } from "vitest";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { describe, expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { cosArray, cosDict, cosName, cosNumber, cosStream, cosHexString, dictGet, dictSet } from "../ast.js";
 import { PdfDocument } from "../document.js";
@@ -9,6 +10,7 @@ import { resolveRetainedMaskParameters, resolveRetainedImageColor } from "./reta
 import { decodeSamplesToRgbaSteps } from "./images.js";
 import { drainWork } from "../work.js";
 
+describe.each([false, true])("retained colors (backed=%s)", backed => {
 async function fixture() {
   const original = PdfDocument.create(); const page = original.addPage();
   const palette = original.cos.allocateObject(cosStream(cosDict({ Filter: cosName("FlateDecode") }), encodeFlate(new Uint8Array([255, 0, 0, 0, 255, 0]))));
@@ -27,14 +29,15 @@ async function fixture() {
       FunctionType: cosNumber(2), C0: cosArray([0, 0, 0].map(n => cosNumber(n))), C1: cosArray([1, 0.5, 0].map(n => cosNumber(n))), N: cosNumber(1),
     }))]),
   });
-  dictSet(page.pageDict, "Resources", cosDict({ ColorSpace: colors }));
+  dictSet(page.pageDict, "Resources", cosDict({ ColorSpace: backed ? original.cos.allocateObject(colors) : colors }));
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
   const source = await PdfFileSource.open(fs, "/input", { chunkBytes: 32, cacheBytes: 64 });
   const storage = { fs, directory: "/scratch" };
-  const doc = await PdfRetainedDocument.open(source, storage, { chunkBytes: 32, cacheBytes: 64 });
+  const backing = new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal});
+  const doc = await PdfRetainedDocument.open(source, storage, { chunkBytes: 32, cacheBytes: 64, ...(backed ? {valueArrays:{dictionaryStorage:backing,storedDictionaryPaths:[["Resources","*"]]}} : {}) });
   const retained = (await doc.pages().next()).value!;
   return { doc, resources: (await retained.attributes()).resources, storage, palette, unused, sampled,
-    async close() { await doc.close(); await source.close(); expect(await fs.readdir("/scratch")).toEqual([]); } };
+    async close() { await doc.close(); await backing.close(); await source.close(); expect(await fs.readdir("/scratch")).toEqual([]); } };
 }
 it("resolves only the requested resource color and decoded palette", async () => {
   const f = await fixture(); const decode = vi.spyOn(f.doc.objects, "decodeStream");
@@ -262,4 +265,6 @@ it("evaluates growing PostScript programs without materializing their source or 
  vi.spyOn(f.doc,"lookup").mockImplementation(async node=>{const result=await lookup(node);if(node?.kind==="ref"&&node.objectNumber===f.sampled.objectNumber&&result?.value.kind==="dict")dictSet(result.value,"FunctionType",cosNumber(4));return result;});
  vi.spyOn(f.doc.objects,"decodeStream").mockImplementation(async function*(){const encode=new TextEncoder();yield encode.encode('{ pop ');const block=encode.encode('1 pop '.repeat(1024));for(let i=0;i<32;i++)yield block;yield encode.encode('0.5 dup dup }');});
  try{expect(await convertRetainedContentColor(f.doc,cosName("Sampled"),"Sampled",[0.5],f.resources,f.storage,{onAllocation(bytes){if(bytes>65536)throw Error("whole PostScript allocation "+bytes);}})).toEqual([0.5,0.5,0.5]);}finally{await f.close();}
+});
+
 });

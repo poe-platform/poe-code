@@ -1,3 +1,4 @@
+import type { PdfResourceRequest } from "./stored-dictionary.js";
 import type { StoredTrueTypeFont } from "../fonts/stored-truetype.js";
 import type {StoredCMap} from "../fonts/stored-cmap.js";
 import { sampledVertices } from "./sampled-vertices.js";
@@ -282,7 +283,7 @@ function kClamp(v: number): number {
   return Math.max(0, Math.min(1, v));
 }
 
-export type PdfColorRequest = { readonly kind: "resolve"; readonly node: PdfCosNode | undefined }
+export type PdfColorRequest = PdfResourceRequest | { readonly kind: "resolve"; readonly node: PdfCosNode | undefined }
   | { readonly kind: "decode"; readonly stream: PdfCosStream; readonly start: number; readonly length: number }
   | { readonly kind: "calibrated"; readonly family: "CalGray" | "CalRGB" | "Lab"; readonly parameters: PdfCosNode | undefined }
   | { readonly kind: "function"; readonly node: PdfCosNode | undefined; readonly components: readonly number[] };
@@ -310,7 +311,10 @@ function* runColorProgramSteps<T>(doc: ParsedCosDocument | undefined, work: Gene
     while (!step.done) {
       const request = step.value;
       if (request.kind === "resolve") step = work.next(doc?.resolve(request.node));
-      else {
+      else if (request.kind === "resource") {
+        const map = doc?.resolveDict(dictGet(request.resources, request.category));
+        step = work.next(map ? dictGet(map, request.name) : undefined);
+      } else {
         if (!doc) throw new PdfError("E_CAPABILITY", "PDF resource color requires a source driver");
         if (request.kind === "decode") {
           const bytes = doc.decodeStream(request.stream);
@@ -340,8 +344,7 @@ export function* colorComponentCountSteps(
     if (name === "DeviceCMYK" || name === "CMYK") return 4;
     if (name === "DeviceRGB" || name === "RGB" || name === "CalRGB" || name === "Lab") return 3;
     if (hasDocument && activeResources) {
-      const csDict = (yield* resolveColorNode(dictGet(activeResources, "ColorSpace"), "dict"));
-      const mapped = csDict ? dictGet(csDict, name) : undefined;
+      const mapped = (yield {kind:"resource",resources:activeResources,category:"ColorSpace",name}) as PdfCosNode | undefined;
       if (mapped) return yield* colorComponentCountSteps(hasDocument, mapped, activeResources, depth + 1);
     }
     return 3;
@@ -388,8 +391,7 @@ export function* convertContentColorSteps(
       lookupName !== "DeviceCMYK" &&
       lookupName !== "CMYK"
     ) {
-      const csDict = (yield* resolveColorNode(dictGet(activeResources, "ColorSpace"), "dict"));
-      const mapped = csDict ? dictGet(csDict, lookupName) : undefined;
+      const mapped = (yield {kind:"resource",resources:activeResources,category:"ColorSpace",name:lookupName}) as PdfCosNode | undefined;
       if (mapped) {
         resolved = (yield* resolveColorNode(mapped));
       }
@@ -1356,8 +1358,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         st.dashPhase = undefined;
       }
     } else if (operator === "sh" && activeResources && ops[0]?.kind === "name") {
-      const shMap = yield* resolveEvaluationDict(dictGet(activeResources, "Shading"));
-      const shNode = shMap ? yield* resolveEvaluationNode(dictGet(shMap, ops[0].decoded)) : undefined;
+      const shMap = yield* resolveEvaluationDict(dictGet(activeResources, "Shading"), ["Resources", "Shading"]);
+      const shNode = shMap ? yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(shMap, ops[0].decoded)) : undefined;
       const shDict = shNode?.kind === "dict" ? shNode : shNode?.kind === "stream" ? shNode.dict : undefined;
       const shStream = shNode?.kind === "stream" ? shNode : undefined;
       if (shDict) {
@@ -1399,8 +1401,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     } else if (operator === "K") {
       st.strokeColor = yield* resolveScColorOperands("DeviceCMYK", ops, activeResources);
     } else if (operator === "gs" && activeResources && ops[0]?.kind === "name") {
-      const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"), ["ExtGState"]);
-      const gsDict = extDict ? yield* resolveEvaluationDict(dictGet(extDict, ops[0].decoded), ["ExtGState", ops[0].decoded]) : undefined;
+      const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"), ["Resources", "ExtGState"]);
+      const gsDict = extDict ? yield* resolveEvaluationDict(yield* lookupEvaluationDictionary(extDict, ops[0].decoded), ["Resources", "ExtGState", ops[0].decoded]) : undefined;
       if (gsDict) {
         const mask = yield* resolveEvaluationNode(dictGet(gsDict, "SMask"));
         if (mask?.kind === "name" && mask.decoded === "None") {
@@ -1571,8 +1573,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     const st = curState();
     if (!st.fillPatternName || !resources) return false;
     if (depth >= 8) throw new PdfError("E_LIMIT", "Pattern nesting exceeds the form depth limit");
-    const patterns = yield* resolveEvaluationDict(dictGet(resources, "Pattern"));
-    const pattern = patterns && (yield* resolveEvaluationNode(dictGet(patterns, st.fillPatternName)));
+    const patterns = yield* resolveEvaluationDict(dictGet(resources, "Pattern"), ["Resources", "Pattern"]);
+    const pattern = patterns && (yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(patterns, st.fillPatternName)));
     const dict = pattern?.kind === "stream" ? pattern.dict : pattern?.kind === "dict" ? pattern : undefined;
     if (!dict) return false;
     const nums = function* (key: string, fallback: number[]): EvaluationWork<number[]> {
@@ -1639,7 +1641,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       const iy1 = Math.ceil((Math.max(...corners.map(p => p[1])) - box[1]!) / yStep) - 1;
       if ((ix1 - ix0 + 1) * (iy1 - iy0 + 1) > 20000) throw new PdfError("E_LIMIT", "Pattern tile count exceeds 20000");
       const nodes = { stream: pattern };
-      const patternResources = (yield* resolveEvaluationDict(dictGet(dict, "Resources"))) ?? resources;
+      const patternResources = (yield* resolveEvaluationDict(dictGet(dict, "Resources"), ["Resources"])) ?? resources;
       const patternFonts: FontScope = [patternResources, ...activeFonts];
       for (let iy = iy0; iy <= iy1; iy++) {
         for (let ix = ix0; ix <= ix1; ix++) {
@@ -1679,7 +1681,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     const compositeGroup = !maskGroup && groupType?.kind === "name" && groupType.decoded === "Transparency" &&
       (isolated || st.fillAlpha !== 1 || !!st.softMask || (!!st.blendMode && st.blendMode !== "Normal" && st.blendMode !== "Compatible"));
     const formNodes = { stream: form };
-    const formResDict = (yield* resolveEvaluationDict(dictGet(form.dict, "Resources"))) ?? activeResources;
+    const formResDict = (yield* resolveEvaluationDict(dictGet(form.dict, "Resources"), ["Resources"])) ?? activeResources;
     const formFonts: FontScope = [formResDict, ...activeFonts];
     let nextCtm: Matrix6 = [...st.ctm] as Matrix6;
     const matArr = yield* resolveEvaluationArray(dictGet(form.dict, "Matrix"));
@@ -1758,7 +1760,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     let resolvedMcid = node.mcid;
     let resolvedActualText: string | PdfStoredBytes | undefined = node.actualText ?? node.storedActualText;
     if (typeof node.properties === "string" && activeResources) {
-      const propsMap = yield* resolveEvaluationDict(dictGet(activeResources, "Properties"), ["Properties"]);
+      const propsMap = yield* resolveEvaluationDict(dictGet(activeResources, "Properties"), ["Resources", "Properties"]);
       const propRefOrNode = yield* lookupEvaluationDictionary(propsMap, node.properties);
       if (propRefOrNode) {
         const propDict = yield* resolveEvaluationDict(propRefOrNode);
@@ -1954,7 +1956,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         case "xobject": {
           const st = curState();
           if (activeResources) {
-            const xobjDict = yield* resolveEvaluationDict(dictGet(activeResources, "XObject"), ["XObject"]);
+            const xobjDict = yield* resolveEvaluationDict(dictGet(activeResources, "XObject"), ["Resources", "XObject"]);
             const xobjNode = xobjDict ? yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(xobjDict, node.name)) : undefined;
             if (xobjNode?.kind === "stream") {
               if (!(yield* optionalContentVisibilitySteps(dictGet(xobjNode.dict, "OC")))) {

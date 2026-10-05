@@ -544,7 +544,7 @@ export class PdfRetainedPage {
       for (const key of keys) {
         const entry = dictGet(current, key);
         if (values.has(key) || !entry) continue;
-        const value = (await this.document.lookup(entry))?.value;
+        const value = (await this.document.lookup(entry, undefined, key === "Resources" ? ["Resources"] : undefined))?.value;
         if (key.endsWith("Box")) {
           const rectangle = await box(value, this.document);
           if (!rectangle) continue;

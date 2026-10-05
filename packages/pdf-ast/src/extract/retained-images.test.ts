@@ -19,15 +19,16 @@ async function fixture(content: string, amend?: (doc: PdfDocument) => void, back
   amend?.(original);
   if (backed) {
     const resources = original.cos.resolveDict(dictGet(page.pageDict,"Resources"))!;
-    for (const key of ["Font","XObject"]) {
+    for (const key of ["Font","XObject","Pattern","ExtGState"]) {
       const map = dictGet(resources,key);
       if (map) dictSet(resources,key,original.cos.allocateObject(map));
     }
+    dictSet(page.pageDict,"Resources",original.cos.allocateObject(resources));
   }
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
   const source = await PdfFileSource.open(fs, "/input", { chunkBytes: 64, cacheBytes: 128 });
   const backing = new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal});
-  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...(backed ? {valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Font","XObject","Properties"]}} : {}) });
+  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...(backed ? {valueArrays:{dictionaryStorage:backing,storedDictionaryKeys:["Font","XObject","Properties"],storedDictionaryPaths:[["Resources","*"]]}} : {}) });
   return { document, fs, source, image, async close() { await document.close(); await backing.close(); expect(await fs.readdir("/scratch")).toEqual([]); await source.close(); } };
 }
 

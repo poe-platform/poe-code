@@ -8,6 +8,8 @@ export interface ValueArrayStorage {
   readonly dictionaryStorage?: PdfPixelStorage;
   /** Select resource maps; their entry names are data, not nested map selectors. */
   readonly storedDictionaryKeys?: readonly string[];
+  /** Select dictionary path suffixes; entry names of backed maps remain opaque. */
+  readonly storedDictionaryPaths?: readonly (readonly string[])[];
   readonly storeRootDictionary?: boolean;
   readonly arrayStorage?: PdfPixelStorage;
   /** Back suspended parser containers; selected descriptors must share this storage. */
@@ -48,14 +50,15 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
   const residentDepth = 32;
   const stack: ValueContainer[] = [];
   let current: ValueContainer | undefined, depth = 0;
-  const pathLength = (options.storedArrayPaths ?? []).reduce((length,path)=>Math.max(length,path.length-1),0);
-  function matchesStoredPath(parent: ValueContainer): boolean {
-    return options.storedArrayPaths?.some(path => {
-      const length = parent.path.length + 1;
+  const pathLength = [...(options.storedArrayPaths ?? []), ...(options.storedDictionaryPaths ?? [])].reduce((length,path)=>Math.max(length,path.length-1),0);
+  function matchesStoredPath(parent: ValueContainer | undefined, paths: readonly (readonly string[])[] | undefined): boolean {
+    const currentPath = parent ? [...parent.path, parent.kind === "dict" ? parent.key?.decoded : null] : options.arrayPathPrefix ?? [];
+    return paths?.some(path => {
+      const length = currentPath.length;
       if (!path.length || path.length > length) return false;
       for (let i = 0; i < path.length; i++) {
         const at = length - path.length + i;
-        const key = at === parent.path.length ? (parent.kind === "dict" ? parent.key?.decoded : undefined) : parent.path[at];
+        const key = currentPath[at];
         if (key == null || (path[i] !== "*" && path[i] !== key)) return false;
       }
       return true;
@@ -117,13 +120,13 @@ export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (st
       charge();
       if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF syntax nesting limit exceeded");
       if (tok.kind === "array-start") {
-        const backed = options.arrayStorage && (parent?.kind === "array" && parent.storedItems || parent?.kind === "dict" && (options.storedArrayKeys?.includes(parent.key!.decoded) || matchesStoredPath(parent)) || !parent && options.storeRootArray);
+        const backed = options.arrayStorage && (parent?.kind === "array" && parent.storedItems || parent?.kind === "dict" && (options.storedArrayKeys?.includes(parent.key!.decoded) || matchesStoredPath(parent, options.storedArrayPaths)) || !parent && options.storeRootArray);
         yield* push({ kind: "array", path:ancestorPath(parent), start: tok.span.start, items: [], tail: -1,
           ...(backed ? {storedItems: {storage: options.arrayStorage!, position: -1, length: 0}} : {}) });
         continue;
       }
       if (tok.kind === "dict-start") {
-        const backed = options.dictionaryStorage && (parent?.kind === "dict" && !parent.storedEntries && options.storedDictionaryKeys?.includes(parent.key!.decoded) || !parent && options.storeRootDictionary);
+        const backed = options.dictionaryStorage && (parent?.kind === "dict" && !parent.storedEntries && (options.storedDictionaryKeys?.includes(parent.key!.decoded) || matchesStoredPath(parent, options.storedDictionaryPaths)) || !parent && (options.storeRootDictionary || matchesStoredPath(undefined, options.storedDictionaryPaths)));
         yield* push({ kind: "dict", path:ancestorPath(parent), start: tok.span.start, entries: [], tail: -1,
           ...(backed ? {storedEntries: {storage: options.dictionaryStorage!, position: -1, length: 0}} : {}) });
         continue;

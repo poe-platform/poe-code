@@ -58,3 +58,11 @@ export async function mergePdfResourceDictionaries(destination: PdfCosDict, sour
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
   }
 }
+
+/** Lookup only the selected entry of a possibly indirect resource map. */
+export interface PdfResourceRequest {
+  readonly kind: "resource";
+  readonly resources: PdfCosDict;
+  readonly category: string;
+  readonly name: string;
+}

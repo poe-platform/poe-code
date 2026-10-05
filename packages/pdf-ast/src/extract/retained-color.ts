@@ -1,3 +1,4 @@
+import { readPdfDictionaryValue, type PdfResourceRequest } from "../content/stored-dictionary.js";
 import { compileStoredPostScript } from "../content/stored-postscript.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { renderRetainedMesh } from "./retained-mesh.js";
@@ -78,11 +79,11 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
     options.onAllocation?.(bytes);
     used += bytes;
   }
-  async function resolve(value: PdfCosNode | undefined): Promise<PdfCosNode | undefined> {
+  async function resolve(value: PdfCosNode | undefined, path?: readonly string[]): Promise<PdfCosNode | undefined> {
     options.signal?.throwIfAborted();
     if (++nodes > maxNodes) throw new PdfError("E_LIMIT", "PDF color node limit exceeded");
     charge(64);
-    const resolved = await document.lookup(value);
+    const resolved = await document.lookup(value, undefined, path);
     options.signal?.throwIfAborted();
     if (!resolved) return undefined;
     if (resolved.stream && resolved.reference && resolved.value.kind === "dict") {
@@ -91,6 +92,11 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
     }
     if (resolved.value.kind === "name") charge(resolved.value.decoded.length * 2);
     return resolved.value;
+  }
+  async function resource(request: PdfResourceRequest): Promise<PdfCosNode | undefined> {
+    const map = await resolve(dictGet(request.resources, request.category), ["Resources", request.category]);
+    const dictionary = map?.kind === "stream" ? map.dict : map;
+    return dictionary?.kind === "dict" ? readPdfDictionaryValue(dictionary, request.name, options.signal) : undefined;
   }
   function contents(stream: PdfCosStream) {
     const reference = streams.get(stream);
@@ -248,7 +254,7 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
   const context = new ParsedCosDocument({ version: "1.7", bytes: new Uint8Array(), objects: new Map(), revisions: [],
     rootRef: { kind: "ref", objectNumber: 0, generationNumber: 0 }, maxDecompressedBytes: maximum, maxRecursionDepth: maxDepth });
   options.signal?.throwIfAborted();
-  return { resolve, decode, contents, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth, functionSources, storedFunctions, async close(){await functionBacking?.close();} };
+  return { resolve, resource, decode, contents, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth, functionSources, storedFunctions, async close(){await functionBacking?.close();} };
 }
 
 export async function resolveRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
@@ -267,7 +273,7 @@ export async function openRetainedImageColor(document: PdfRetainedDocument, node
 
 async function resolveImageColor(access:ReturnType<typeof createRetainedColorAccess>,node:PdfCosNode|undefined,
   resources:PdfCosDict|undefined,options:PdfRetainedColorOptions):Promise<ResolvedColorSpace>{
-  const {resolve,decode,snapshot,snapshotFunction,charge,context,maxDepth,functionSources}=access;
+  const {resolve,resource,decode,snapshot,snapshotFunction,charge,context,maxDepth,functionSources}=access;
   const work = imageColorSpaceProgram(node, resources, maxDepth);
   try {
     let step = work.next();
@@ -276,6 +282,7 @@ async function resolveImageColor(access:ReturnType<typeof createRetainedColorAcc
       const request = step.value; let result: unknown;
       switch (request?.kind) {
         case "resolve": result = await resolve(request.node); break;
+        case "resource": result = await resource(request); break;
         case "palette": {
           if (!Number.isSafeInteger(request.maxBytes) || request.maxBytes < 0) throw new PdfError("E_LIMIT", "PDF palette size limit exceeded");
           if (request.node.kind === "stream") result = await decode(request.node, request.maxBytes);
@@ -323,7 +330,7 @@ async function runFunctionSteps<T>(work:Generator<PdfFunctionReadRequest,T,Uint8
 
 async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage: PdfIndexStorage, options: PdfRetainedColorOptions,
   work: Generator<PdfMaskParameterRequest, T, unknown>): Promise<T> {
-  const { resolve, decode, snapshot, snapshotFunction, context, charge, functionSources, close } = createRetainedColorAccess(document, storage, options, true);
+  const { resolve, resource, decode, snapshot, snapshotFunction, context, charge, functionSources, close } = createRetainedColorAccess(document, storage, options, true);
   let failed=false;
   try {
     let step = work.next();
@@ -332,6 +339,7 @@ async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage
       const request = step.value;
       let result: unknown;
       if (request.kind === "resolve") result = await resolve(request.node);
+      else if (request.kind === "resource") result = await resource(request);
       else if (request.kind === "decode") result = await decode(request.stream, request.length, request.start);
       else if (request.kind === "calibrated") result = createCalibratedColorSpace(context, request.family, await snapshot(request.parameters));
       else if (request.kind === "transfer") {

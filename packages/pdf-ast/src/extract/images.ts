@@ -1,3 +1,4 @@
+import type { PdfResourceRequest } from "../content/stored-dictionary.js";
 import { applyImageMaskPixel } from "./mask-pixel.js";
 import { pdfImageCodec } from "../cos/filter-stream.js";
 import { assertDecodedByteBudget } from "../cos/limits.js";
@@ -157,7 +158,7 @@ export interface ResolvedColorSpace {
   readonly alternateCalibrated?: CalibratedColorSpace | undefined;
 }
 
-export type PdfImageColorRequest =
+export type PdfImageColorRequest = PdfResourceRequest
   | { kind: "resolve"; node: PdfCosNode | undefined }
   | { kind: "palette"; node: PdfCosStream | Extract<PdfCosNode, { kind: "string" }>; maxBytes: number }
   | { kind: "calibrated"; family: "CalGray" | "CalRGB" | "Lab"; parameters: PdfCosNode | undefined }
@@ -176,6 +177,7 @@ function *resolveColorSpaceInfoSteps(doc: ParsedCosDocument, node: PdfCosNode | 
       let result: unknown;
       switch (request?.kind) {
         case "resolve": result = doc.resolve(request.node); break;
+        case "resource": { const map=doc.resolveDict(dictGet(request.resources,request.category)); result=map?dictGet(map,request.name):undefined; break; }
         case "palette": result = request.node.kind === "stream" ? doc.decodeStream(request.node) : request.node.bytes; break;
         case "calibrated": result = createCalibratedColorSpace(doc, request.family, request.parameters); break;
         case "tint": result = { doc, node: request.node }; break;
@@ -212,9 +214,7 @@ export function *imageColorSpaceProgram(
     if (name === "DeviceRGB" || name === "RGB" || name === "CalRGB") {
       return { colorSpace: "rgb", colorSpaceLabel: name === "CalRGB" ? "cal-rgb" : "rgb", components: 3 };
     }
-    const csResources = resourcesDict ? (yield { kind: "resolve", node: dictGet(resourcesDict, "ColorSpace") }) as PdfCosNode | undefined : undefined;
-    const csResDict = csResources?.kind === "dict" ? csResources : undefined;
-    const mapped = csResDict ? dictGet(csResDict, name) : undefined;
+    const mapped = resourcesDict ? (yield {kind:"resource",resources:resourcesDict,category:"ColorSpace",name}) as PdfCosNode | undefined : undefined;
     if (mapped) {
       return (yield* imageColorSpaceProgram(mapped, resourcesDict, maxDepth, depth + 1));
     }

@@ -48,7 +48,7 @@ async function markedText(document: PdfRetainedDocument, page: PdfCosDict, mcid:
   }
   try {
     source = await PdfFileSource.fromStream(storage.fs, storage.directory, input(), { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: maximum, ...(signal ? { signal } : {}) });
-    const resources = (await document.lookup(dictGet(page, "Resources")))?.value;
+    const resources = (await document.lookup(dictGet(page, "Resources"), undefined, ["Resources"]))?.value;
     const properties = resources?.kind === "dict" ? (await document.lookup(dictGet(resources, "Properties"), undefined, ["Properties"]))?.value : undefined;
     const operators = parseContentRangeOperators(source, storage, { chunkBytes, maxStagingBytes: maximum - source.size, ...(signal ? { signal } : {}) });
     let pending: PdfContentOperator | undefined, matching = false, inText = false, part = 0, recorded = false;

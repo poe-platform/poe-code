@@ -35,7 +35,7 @@ BookmarkPageNumber: 2
 PdfID0: 00112233
 PdfID1: aabbccdd
 `;
-it.each(["plain", "utf8", "stdin", "compress", "uncompress", "empty", "no-info", "invalid-info", "indirect-info", "alias", "first-id", "partial-id", "unknown-style", "crlf", "encrypted", "large-numbers"])("updates %s info without whole-file I/O", async mode => {
+it.each(["plain", "utf8", "stdin", "compress", "uncompress", "empty", "no-info", "invalid-info", "indirect-info", "alias", "first-id", "partial-id", "unknown-style", "crlf", "encrypted", "large-numbers", "large-bookmark"])("updates %s info without whole-file I/O", async mode => {
   const doc = PdfDocument.create(); doc.addPage(); doc.addPage();
   doc.cos.idArray = cosArray([cosHexString(Uint8Array.of(1, 2)), cosHexString(Uint8Array.of(3, 4))]);
   if (mode === "no-info") doc.cos.infoRef = undefined;
@@ -50,6 +50,7 @@ it.each(["plain", "utf8", "stdin", "compress", "uncompress", "empty", "no-info",
   if (mode === "unknown-style") text += "PageLabelBegin\nPageLabelNumStyle: Unknown";
   if (mode === "crlf") text = text.replaceAll("\n", "\r\n");
   if (mode === "large-numbers") text = `BookmarkBegin\nBookmarkTitle: Large\nBookmarkLevel: ${"9".repeat(400)}\nBookmarkPageNumber: ${"9".repeat(400)}\nPageMediaBegin\nPageMediaNumber: 1\nPageMediaRotation: ${"9".repeat(400)}`;
+  if (mode === "large-bookmark") text = "BookmarkBegin\nBookmarkTitle: " + "A".repeat(65536) + "&#" + "0".repeat(8192) + "128512;\nBookmarkLevel: 1\nBookmarkPageNumber: 1";
   const data = new TextEncoder().encode(text);
   const args = ["in.pdf", ...(mode === "encrypted" ? ["input_pw", "secret"] : []), mode === "utf8" ? "update_info_utf8" : "update_info", mode === "stdin" ? "-" : "info", "output", "out.pdf", ...(mode === "first-id" ? ["keep_first_id"] : []), ...(mode === "compress" || mode === "uncompress" ? [mode] : [])];
   const files = new Map([["in.pdf", input], ["info", data], ["-", data]]), expected = await runPdftkCli(args, files);

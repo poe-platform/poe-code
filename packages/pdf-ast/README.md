@@ -1128,7 +1128,7 @@ of `{ title, level, pageNumber }` to replace outlines in order. `title` accepts 
 string or a function producing an async iterable of string chunks. Titles are
 retained separately from hierarchy records, so sibling updates do not reload
 large values. `PdfTextStore` provides caller-backed text identities with repeatable
-`text(id)` and byte-compatible PDF `serialized(id)` streams; call `close()` to
+`text(id, utf16Offset?)` and byte-compatible PDF `serialized(id)` streams; call `close()` to
 release its backing. Levels and page
 numbers are one-based integers; destinations clamp to the available pages and
 level jumps descend through the last child. Empty input or a document without

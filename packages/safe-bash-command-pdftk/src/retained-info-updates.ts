@@ -1,26 +1,82 @@
-import type { RetainedInfoUpdate } from "@poe-code/pdf-ast";
+import { decodePdftkEntityChunks } from "./info-entity-stream.js";
+import { PdfTextStore, type PdfIndexStorage, type RetainedInfoUpdate } from "@poe-code/pdf-ast";
 import { decodePdftkEntities, hexToBytes } from "./info-text.js";
 
 const styles: Readonly<Record<string, string>> = { DecimalArabicNumerals: "D", UppercaseRomanNumerals: "R", LowercaseRomanNumerals: "r", UppercaseLetters: "A", LowercaseLetters: "a" };
 
-async function* lines(chunks: AsyncIterable<Uint8Array>, signal: AbortSignal): AsyncGenerator<string> {
-  const decoder = new TextDecoder(); let pending = "", work = 0;
-  for await (const bytes of chunks) {
-    signal.throwIfAborted(); pending += decoder.decode(bytes, { stream: true });
-    let offset = 0, end: number;
-    while ((end = pending.indexOf("\n", offset)) >= 0) {
-      if (++work % 64 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal.throwIfAborted(); }
-      yield pending.slice(offset, end); offset = end + 1;
+async function* lines(chunks: AsyncIterable<Uint8Array>, texts: PdfTextStore, signal: AbortSignal): AsyncGenerator<string | { title: () => AsyncGenerator<string, void, void> }> {
+  async function* decoded() {
+    const decoder = new TextDecoder();
+    for await (const bytes of chunks) for (let at = 0; at < bytes.length; at += 4096) {
+      signal.throwIfAborted(); yield decoder.decode(bytes.subarray(at, at + 4096), { stream: true });
     }
-    pending = pending.slice(offset);
+    yield decoder.decode();
   }
-  pending += decoder.decode(); if (pending) yield pending;
+  const input = decoded(); let buffer = "", offset = 0, ended = false, failed = false;
+  async function* line() {
+    while (!ended || offset < buffer.length) {
+      if (offset === buffer.length) { const next = await input.next(); ended = !!next.done; buffer = next.value ?? ""; offset = 0; if (ended) return; }
+      const end = buffer.indexOf("\n", offset);
+      if (end >= 0) { yield buffer.slice(offset, end); offset = end + 1; return; }
+      yield buffer.slice(offset); offset = buffer.length;
+    }
+  }
+  try {
+    while (!ended || offset < buffer.length) {
+      const id = await texts.append(line()); let start = -1, end = 0, position = 0, head = "";
+      for await (const part of texts.text(id)) {
+        for (let at = 0; at < part.length; at++) {
+          const character = part[at]!;
+          if (character.trim()) { if (start < 0) start = position; end = position + 1; }
+          if (start >= 0 && head.length < 64) head += character;
+          position++;
+        }
+      }
+      async function* field(skip: number) {
+        let position = 0, leading = true;
+        for await (const part of texts.text(id)) {
+          const from = Math.max(0, start + skip - position), to = Math.min(part.length, end - position);
+          if (to > from) {
+            let value = part.slice(from, to);
+            if (leading) { value = value.trimStart(); leading = !value.length; }
+            if (value) yield value;
+          }
+          position += part.length; if (position >= end) break;
+        }
+      }
+      if (head.startsWith("BookmarkTitle:")) {
+        let body = start + "BookmarkTitle:".length;
+        for await (const part of texts.text(id, body)) {
+          const value = part.trimStart(); body += part.length - value.length; if (value) break;
+        }
+        async function* readTitle(offset: number) {
+          let position = body + offset;
+          for await (const part of texts.text(id, position)) {
+            const length = Math.min(part.length, end - position); if (length <= 0) break;
+            yield part.slice(0, length); position += length; if (position >= end) break;
+          }
+        }
+        yield { title: () => decodePdftkEntityChunks(readTitle, signal) };
+      }
+      else {
+        // Unknown lines are ignored without collecting their contents. The
+        // remaining scalar update fields keep their existing conversion rules.
+        const begin = ["InfoBegin", "BookmarkBegin", "PageLabelBegin", "PageMediaBegin"].some(name => end - start === name.length && head.startsWith(name));
+        const known = ["PdfID0:", "PdfID1:", "InfoKey:", "InfoValue:", "BookmarkLevel:", "BookmarkPageNumber:", "PageLabelNewIndex:", "PageLabelStart:", "PageLabelPrefix:", "PageLabelNumStyle:", "PageMediaNumber:", "PageMediaRotation:", "PageMediaRect:", "PageMediaDimensions:", "PageMediaCropBox:", "PageMediaCropRect:"].some(name => head.startsWith(name));
+        if (!begin && !known) continue;
+        let text = ""; for await (const part of field(0)) text += part; yield text;
+      }
+    }
+  } catch (error) { failed = true; throw error; }
+  finally { await input.return().catch(error => { if (!failed) throw error; }); }
 }
 
-export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, signal: AbortSignal): AsyncGenerator<RetainedInfoUpdate> {
+export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, signal: AbortSignal, storage: PdfIndexStorage): AsyncGenerator<RetainedInfoUpdate> {
+  const texts = new PdfTextStore(storage, { signal }); let failed = false;
+  try {
   let mode: "none" | "info" | "bookmark" | "pagelabel" | "pagemedia" = "none";
   let curKey = "";
-  let bmTitle = "";
+  let bmTitle: string | (() => AsyncIterable<string>) = "";
   let bmLevel = 1;
   let bmPage = 1;
   const pending: RetainedInfoUpdate[] = [];
@@ -66,7 +122,14 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
     pmCropBox = undefined;
   };
 
-  for await (const raw of lines(chunks, signal)) {
+  for await (const raw of lines(chunks, texts, signal)) {
+    if (typeof raw !== "string") {
+      if (mode === "bookmark") {
+        let nonempty = false; for await (const part of raw.title()) nonempty ||= !!part.length;
+        bmTitle = nonempty ? raw.title : "";
+      }
+      continue;
+    }
     const line = raw.trim();
     if (line === "InfoBegin") {
       flushStanza();
@@ -96,8 +159,7 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
       yield { kind: "info", key: curKey, value: val };
       mode = "none";
       curKey = "";
-    } else if (mode === "bookmark" && line.startsWith("BookmarkTitle:")) {
-      bmTitle = decodePdftkEntities(line.slice("BookmarkTitle:".length).trim());
+
     } else if (mode === "bookmark" && line.startsWith("BookmarkLevel:")) {
       bmLevel = Number.parseInt(line.slice("BookmarkLevel:".length).trim(), 10) || 1;
     } else if (mode === "bookmark" && line.startsWith("BookmarkPageNumber:")) {
@@ -137,4 +199,6 @@ export async function* retainedInfoUpdates(chunks: AsyncIterable<Uint8Array>, si
   }
   flushStanza();
   yield* pending;
+  } catch (error) { failed = true; throw error; }
+  finally { await texts.close().catch(error => { if (!failed) throw error; }); }
 }

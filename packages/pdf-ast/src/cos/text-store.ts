@@ -11,6 +11,8 @@ export class PdfTextStore {
   private readonly backing: PagedStorage;
   private readonly retained: PdfPixelStorage;
   private readonly index: IntegerTable;
+  private readonly chunkIndex: IntegerTable;
+  private nextChunk = 0;
   private readonly controller = new AbortController();
   private readonly signal: AbortSignal;
   private count = 0;
@@ -27,7 +29,7 @@ export class PdfTextStore {
       if (!Number.isSafeInteger(length) || length < 0 || length > Math.min(maximum, Number.MAX_SAFE_INTEGER) - allocated) throw new PdfError("E_LIMIT", "PDF text staging byte limit exceeded");
       const position = this.backing.allocate(length); allocated += length; return position;
     }, read: this.backing.read.bind(this.backing), write: this.backing.write.bind(this.backing) };
-    this.index = new IntegerTable(this.retained, 64);
+    this.index = new IntegerTable(this.retained, 64); this.chunkIndex = new IntegerTable(this.retained, 64);
   }
   private async checkpoint() {
     this.signal.throwIfAborted();
@@ -43,7 +45,8 @@ export class PdfTextStore {
         if (!buffered) return;
         utf16 ||= cosString(buffered).format === "hex";
         const position = await appendStoredRecord(this.retained, buffered, last, this.signal);
-        if (first === -1) first = position;
+        const chunk = this.nextChunk; await this.chunkIndex.set(BigInt(chunk), BigInt(position)); this.nextChunk++;
+        if (first === -1) first = chunk;
         last = position; count++; buffered = "";
       };
       for await (const text of chunks) {
@@ -68,10 +71,15 @@ export class PdfTextStore {
     if (!Number.isSafeInteger(id) || id < 0 || id >= this.count) throw new RangeError("Unknown PDF text identity");
     return BigInt(id) * 3n;
   }
-  async *text(id: number): AsyncGenerator<string, void, void> {
-    const key = await this.identity(id), position = Number(await this.index.get(key)) - 1, length = Number(await this.index.get(key + 1n));
-    let high = "";
-    for await (const part of readStoredItems<string>({ storage: this.retained, position, length }, this.signal)) {
+  async *text(id: number, start = 0): AsyncGenerator<string, void, void> {
+    const key = await this.identity(id), first = Number(await this.index.get(key)) - 1, count = Number(await this.index.get(key + 1n));
+    if (!Number.isSafeInteger(start) || start < 0) throw new RangeError("Invalid PDF text offset");
+    const chunk = Math.floor(start / 2048); if (chunk >= count) return;
+    const position = await this.chunkIndex.get(BigInt(first + chunk));
+    if (position === undefined) throw new PdfError("E_PARSE", "Missing PDF text chunk");
+    let high = "", skip = start % 2048;
+    for await (const stored of readStoredItems<string>({ storage: this.retained, position: Number(position), length: count - chunk }, this.signal)) {
+      const part = stored.slice(skip); skip = 0;
       await this.checkpoint(); let text = high + part; high = "";
       const last = text.charCodeAt(text.length - 1);
       if (last >= 0xd800 && last <= 0xdbff) { high = text.slice(-1); text = text.slice(0, -1); }

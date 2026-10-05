@@ -45,3 +45,16 @@ it("coalesces tiny input chunks within the same text storage budget", async () =
   finally { await store.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+it("seeks text by UTF-16 offset across stored chunk boundaries", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const store = new PdfTextStore({ fs, directory: "/scratch" });
+  const value = "a".repeat(2047) + "😀" + "b".repeat(8192);
+  try {
+    const id = await store.append(value);
+    for (const offset of [0, 2047, 2048, 2049, 8192, value.length, value.length + 1]) {
+      let actual = ""; for await (const part of store.text(id, offset)) actual += part;
+      expect(actual).toBe(value.slice(offset));
+    }
+    await expect(store.text(id, -1).next()).rejects.toThrow();
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

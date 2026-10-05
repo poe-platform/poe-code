@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { retainedInfoUpdates } from "./retained-info-updates.js";
 
-it.each(["bookmark", "label", "info"])("spills a %s line before its producer reaches the delimiter", async kind => {
+it.each(["bookmark", "label", "info", "key"])("spills a %s line before its producer reaches the delimiter", async kind => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); let writes = 0;
   const guarded = new Proxy(fs, { get(owner, key) {
     if (key === "open") return async (...args: Parameters<NonNullable<typeof fs.open>>) => {
@@ -15,15 +15,15 @@ it.each(["bookmark", "label", "info"])("spills a %s line before its producer rea
     const value = Reflect.get(owner, key); return typeof value === "function" ? value.bind(owner) : value;
   } });
   async function* chunks() {
-    yield new TextEncoder().encode(kind === "bookmark" ? "BookmarkBegin\nBookmarkTitle: " : kind === "label" ? "PageLabelBegin\nPageLabelPrefix: " : "InfoBegin\nInfoKey: Title\nInfoValue: ");
+    yield new TextEncoder().encode(kind === "bookmark" ? "BookmarkBegin\nBookmarkTitle: " : kind === "label" ? "PageLabelBegin\nPageLabelPrefix: " : kind === "info" ? "InfoBegin\nInfoKey: Title\nInfoValue: " : "InfoBegin\nInfoKey: ");
     const bytes = new Uint8Array(4096).fill(65);
     for (let i = 0; i < 128; i++) { if (i === 96) expect(writes).toBeGreaterThan(0); yield bytes; }
-    yield new TextEncoder().encode(" &#x1F600;\nBookmarkLevel: 1\nBookmarkPageNumber: 1\n");
+    yield new TextEncoder().encode(kind === "key" ? " &#x1F600;\nInfoValue: value\n" : " &#x1F600;\nBookmarkLevel: 1\nBookmarkPageNumber: 1\n");
   }
   let found = 0;
   for await (const update of retainedInfoUpdates(chunks(), new AbortController().signal, { fs: guarded, directory: "/scratch" })) {
     if (update.kind !== "bookmark" && update.kind !== "label" && update.kind !== "info") continue;
-    const text = update.kind === "bookmark" ? update.title : update.kind === "label" ? update.prefix : update.value;
+    const text = update.kind === "bookmark" ? update.title : update.kind === "label" ? update.prefix : kind === "key" ? update.key : update.value;
     expect(typeof text).toBe("function"); if (typeof text !== "function") throw new Error("text was collected");
     let length = 0, tail = "";
     for await (const part of text()) { expect(part.length).toBeLessThanOrEqual(4096); length += part.length; tail = (tail + part).slice(-3); }
@@ -97,4 +97,24 @@ it("streams decoded info values and consumes only the first value in a stanza", 
     let value = ""; for await (const part of update.value()) value += part; expect(value).toBe("value😀"); count++;
   }
   expect(count).toBe(1); expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("retains decoded metadata keys as streams", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  async function* chunks() { yield new TextEncoder().encode("InfoBegin\nInfoKey: Custom&#x1F600;\nInfoValue: value\n"); }
+  for await (const update of retainedInfoUpdates(chunks(), new AbortController().signal, { fs, directory: "/scratch" })) {
+    if (update.kind !== "info") throw new Error("expected info");
+    expect(typeof update.key).toBe("function"); if (typeof update.key !== "function") throw new Error("key was collected");
+    let key = ""; for await (const part of update.key()) key += part; expect(key).toBe("Custom😀");
+  }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("rejects invalid entities in overwritten keys but ignores an empty key value", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  async function* invalid() { yield new TextEncoder().encode("InfoBegin\nInfoKey: &#1114112;\nInfoKey: Title\nInfoValue: value\n"); }
+  await expect((async () => { for await (const update of retainedInfoUpdates(invalid(), new AbortController().signal, { fs, directory: "/scratch" })) void update; })()).rejects.toThrow(RangeError);
+  async function* empty() { yield new TextEncoder().encode("InfoBegin\nInfoKey: \nInfoValue: &#1114112;\n"); }
+  const updates = []; for await (const update of retainedInfoUpdates(empty(), new AbortController().signal, { fs, directory: "/scratch" })) updates.push(update);
+  expect(updates).toEqual([]); expect(await fs.readdir("/scratch")).toEqual([]);
 });

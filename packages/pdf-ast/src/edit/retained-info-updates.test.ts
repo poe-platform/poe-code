@@ -150,3 +150,18 @@ it("replaces only the last duplicate metadata key without rewriting other values
   } finally { await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("applies repeated streamed metadata keys without collecting generated names", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const original = PdfDocument.create(); original.addPage(); await fs.writeFile("/input", original.save());
+  const source = await PdfFileSource.open(fs, "/input"), storage = { fs, directory: "/scratch" }, document = await PdfRetainedDocument.open(source, storage);
+  async function* key() { for (let i = 0; i < 16; i++) yield "custom".repeat(16); }
+  const name = "custom".repeat(256);
+  try {
+    const edited = await editRetainedDocument(document, storage, { infoUpdates: [{ kind: "info", key, value: "first" }, { kind: "info", key, value: "last" }, { kind: "info", key: async function* () { yield "Title"; }, value: "title" }] });
+    try {
+      let value = ""; for await (const part of edited.document.streamInfoValue(name)) value += part; expect(value).toBe("last");
+      let title = ""; for await (const part of edited.document.streamInfoValue("Title")) title += part; expect(title).toBe("title");
+    } finally { await edited.close(); }
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

@@ -4631,19 +4631,22 @@
       "status": "open",
       "currentFinding": "Bounded grammar, captures, lookbehind, classes and raw-byte results are implemented for qualified cases. Capture/assertion conditionals, branch-reset numbering, numeric-condition bounds, alphabetic lookaround/atomic forms and explicit backreference spellings are delivered. All 4738 focused tests pass. Standalone Perl comparisons cover 81 outputs through the rebuilt root SDK/command and 19 later outputs through the command package (see perlPatternGrammar). Earlier compiled SDK/Shell match 625 PERL_SED rows within the 633-row activated Linux cohort, excluding 13 malformed UTF-8 outputs; that cohort does not qualify the new grammar. Wider grammar, Unicode, diagnostics, lifecycle, activated runtime, installed artifacts and publication remain open.",
       "checkpoint20261004": {
-        "qualified": "Bounded grammar, captures, assertions, branch reset and explicit backreferences have scoped implementation and comparison receipts.",
+        "qualified": "Bounded grammar, captures, assertions, branch reset and explicit backreferences have scoped implementation and comparison receipts. Version profiles, match reset and experimental-warning behavior have delivered receipts. Fresh harness controls classify all 18 retained activated atomic-lookbehind mismatches as context-dependent reference limitations.",
         "evidence": [
           "#/reference/perlPatternGrammar",
           "#/reference/perlExperimentalWarnings",
-          "#/currentQualification20261002/perlReferenceStateDefect"
+          "#/currentQualification20261002/perlReferenceStateDefect",
+          "#/reference/perlRuntimeProfiles",
+          "#/reference/perlMatchReset",
+          "#/perlAtomicHarnessClassification"
         ],
-        "nextAcceptance": "Classify the retained 4150-case interpreter corpus differences using isolated and ordered native calls; resolve product semantic failures and preserve exact warnings before activated SDK/command requalification.",
+        "nextAcceptance": "Qualify bounded Unicode/raw-byte/NUL transport and lifecycle through activated SDK/command routes; preserve the completed 4150-case classification and warning receipts. Containing installed consumers remain separate.",
         "closureGate": "Close wider grammar/Unicode/diagnostics/lifecycle and installed-runtime profiles with the original reference retained.",
         "qualificationBlockers": [
           "Perl5.40.1 has a warning-sensitive atomic-lookbehind state defect; diagnostic patched-interpreter results are not replacement goldens."
         ],
         "remainingAcceptance": [
-          "Classify the retained 4150-case corpus using isolated and ordered native calls; repair product differences and preserve exact warnings.",
+          "Retained corpus classification is complete: all 18 activated atomic-lookbehind discrepancies vary with the native harness. Preserve them as reference limitations, not passes; complete bounded Unicode/raw-byte/NUL transport and lifecycle qualification.",
           "Remaining bounded grammar, Unicode/raw bytes, malformed inputs and lifecycle through activated and installed routes; keep original interpreter goldens."
         ]
       }
@@ -6546,6 +6549,24 @@
       "consumer.mts": "c1937f5f5ebdaa294be78e47ae379e8dfb5caa8f92b25eda93faa9cf7dc35ec9",
       "results.json": "da72767e066f492c3b00cc90b42f222be327b25124d62882d06bd25050f958e0",
       "package-lock.json": "a04a748508d0879849c0a03dd507719ca42f88220220ebd7ba4117431c377416"
+    }
+  },
+  "perlAtomicHarnessClassification": {
+    "status": "Retained activated atomic-lookbehind discrepancies classified; no runtime change or parity claim",
+    "native": {
+      "version": "Perl5.40.1",
+      "binarySha256": "b37d5994e1790b1901d23e3939278de303de0eec57b181da0d1ff3f5ca54f3bb",
+      "unchanged": true
+    },
+    "scope": "Exactly the 18 retained mismatches from reference.perlRuntimeProfiles.activatedLoader: 10 fixed atomic, 4 variable atomic and 4 possessive lookbehind. Five harnesses per case, each repeated three times in a fresh unchanged interpreter: 270 observations. No 4150-case rerun.",
+    "harnesses": "Warning-enabled variable pattern with literal inputs, warning-enabled packed inputs, warning-preceded variable pattern, cold variable pattern and cold inline pattern. Source/pattern/replacement bytes remain identical. Warning-enabled is distinct from actually emitting a warning.",
+    "results": "All 18 cases produce exactly two different native outputs across harnesses; all three repetitions within each harness agree. Warning-enabled/packed/warning-preceded modes return original text for all 18. Cold variable/inline modes match the retained product output for the 10 fixed-width cases; the 8 variable-width cases still differ from retained product output. No additional product or native parity passes are claimed.",
+    "interpretation": "Consistent with the authenticated SUSPEND/prev_match_end defect in currentQualification20261002.perlReferenceStateDefect. These context-dependent outputs cannot establish stable replacement goldens. The portable matcher keeps deterministic atomic and lookbehind-boundary semantics; original native mismatches and diagnostic patched-interpreter limitations remain intact.",
+    "remaining": "Unicode/raw-byte/NUL transport and lifecycle, containing installed profiles and other family acceptance remain open. Product comparisons here use retained outputs; this is fresh native classification only.",
+    "hashes": {
+      "expanded-probe.py": "d271228c90623db5b3757b04c2007f6eaeb583cf3f7725018188c5f556c9f11c",
+      "results.json": "d112cc710f3a7f9419a082a83c80a9363b9aa9e7900d70d15fcedc515dc61de5",
+      "summary.json": "f4a777771974a75215c3860c8b7d0bebd635c4e6f8b682740b2599f5cbe8bbe4"
     }
   }
 }

@@ -147,7 +147,7 @@ delivered root/scoped fixture separation `61baed7701`.
 | Encrypted ODF | 1. Remaining password/encoding, package/path, truncation/tampering and application profiles with bounded KDF/work, cleanup and no invalid plaintext publication. 2. Containing installed artifacts; retain six-algorithm command evidence and classify Calc CFB8/empty-password limitations separately. Legacy prefix checksums are not full authentication. |
 | Encrypted Paradox | 1. Companion-file and wider block/record/version profiles through SDK and command export; native reopen must preserve schema/records and exact diagnostics. 2. Remaining password, truncation, work/cleanup and installed-artifact controls; do not claim authenticated encryption. |
 | PERL_DATE | 1. Zero-argument signature and scalar/error/reference/array/multiple-argument rejection are qualified in C/C.UTF-8. Complete remaining declared locale/runtime profiles; do not invent supported argument coercions. 2. Containing root publication with explicit profile selection and remaining installed runtime profiles; retain the 120 registry argument/locale results and qualified 92-case five-zone date cohort. |
-| PERL_SED | 1. Classify the retained 4150-case corpus using isolated and ordered native calls; repair product differences and preserve exact warnings. 2. Remaining bounded grammar, Unicode/raw bytes, malformed inputs and lifecycle through activated and installed routes; keep original interpreter goldens. |
+| PERL_SED | 1. Retained corpus classification is complete: all 18 activated atomic-lookbehind discrepancies vary with the native harness. Preserve them as reference limitations, not passes; complete bounded Unicode/raw-byte/NUL transport and lifecycle qualification. 2. Remaining bounded grammar, Unicode/raw bytes, malformed inputs and lifecycle through activated and installed routes; keep original interpreter goldens. |
 | PY_PRINTF | 1. Address-bearing RangeRef/sheet representation semantics, remaining coercion and diagnostic cases; compare structure rather than unstable addresses. 2. Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting. |
 | PY_CAPWORDS | 1. Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts. 2. Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash. |
 | Database functions | 1. Real in-flight query cancellation, transactions/authentication and connection retirement on an explicit provider; original cancellation reason, exactly-once close and zero publication. 2. Remaining provider/type and installed/cross-runtime profiles; retain native CLI crash and integer/tiny-number discrepancies as unresolved outcomes. |
@@ -204,6 +204,13 @@ types pass (`perlDateRegistry`). The root release predates the profile factory
 already exported by current source. Qualify that containing publication next;
 retain these results and the earlier 92 date-boundary cases. No new runtime
 fix, clock-boundary or lifecycle qualification is claimed.
+
+The retained PERL_SED corpus classification is now complete
+(`perlAtomicHarnessClassification`): all 18 activated atomic-lookbehind
+discrepancies change with the native harness across 270 observations. Keep them
+as reference limitations, not parity passes. Version selection, match reset and
+experimental warnings already have receipts; the next independent gate is
+bounded Unicode/raw-byte/NUL transport and lifecycle qualification.
 
 ## 4. Interfaces and test plan
 

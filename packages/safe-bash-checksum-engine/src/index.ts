@@ -123,7 +123,7 @@ function parse(args: readonly string[], algorithm: Algorithm): Settings {
       }
     }
   }
-  if (!settings.check && checkOnly) throw new UsageError("verification options require --check");
+  if (!settings.check && checkOnly) throw new PublicDiagnostic("verification options require --check");
   if (settings.tag && settings.check) throw new UsageError("the --tag option is meaningless when verifying checksums");
   if (settings.tag && !settings.binary) throw new UsageError("--tag does not support --text mode");
   if (settings.check && (settings.zero || explicitMode)) throw new UsageError("--zero, --binary and --text are not supported with --check");

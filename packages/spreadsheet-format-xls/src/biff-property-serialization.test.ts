@@ -1,3 +1,4 @@
+import { BiffPropertyRange } from './biff-property-range.js';
 import { Binary } from './biff-binary.js';
 import { readBiffPropertySections, readBiffPropertyValues } from './biff-properties-layout.js';
 import * as mergeProperties from './biff-properties-merge.js';
@@ -221,7 +222,12 @@ it.each(['success', 'dictionary-write', 'dictionary-read', 'output-write', 'abor
     if (mode === 'dictionary-write' && state.acquired === 1 || mode === 'output-write' && state.acquired === 3) throw failure;
     if (mode === 'abort' && state.acquired === 1) controller.abort(failure);
   };
-  const sources = new Map<string, BiffPropertySource>();
+  const sources = new Map<string, BiffPropertySource>(), push = Array.prototype.push;
+  Array.prototype.push = function (this: unknown[], ...values: unknown[]) {
+    for (const value of values) if (value && typeof value === 'object' && 'id' in value && 'name' in value && 'bytes' in value && value.bytes instanceof BiffPropertyRange)
+      throw new Error('resident dictionary entries');
+    return push.apply(this, values);
+  };
   try {
     const merging = mergeBiffProperties(input, new Map(fresh.streams), new Set(), runContext, () => {}, length => {
       expect(length).toBeLessThanOrEqual(16384); return new Uint8Array(length);
@@ -234,7 +240,7 @@ it.each(['success', 'dictionary-write', 'dictionary-read', 'output-write', 'abor
       for (let at = 0; at < source.size;) { const part = await source.read(at, source.size); expect(part).toEqual(bytes.subarray(at, at + part.length)); at += part.length; }
     }
     }
-  } finally { for (const cleanup of cleanups) await cleanup(); }
+  } finally { Array.prototype.push = push; for (const cleanup of cleanups) await cleanup(); }
   expect(state.closed).toBe(state.acquired);
 });
 

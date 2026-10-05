@@ -19,7 +19,7 @@ export interface ExtractedMedia {
   readonly sourceParts: readonly string[];
   readonly occurrenceIds: readonly string[];
 }
-const extensions = new Map([
+export const mediaExtensions = new Map([
   ["video/mp4", "mp4"],
   ["audio/mp4", "m4a"],
   ["video/quicktime", "mov"],
@@ -36,13 +36,7 @@ const extensions = new Map([
   ["audio/ogg", "ogg"]
 ]);
 
-export async function extractMedia(
-  input: BinaryInput,
-  options: ExtractMediaOptions = {},
-  settings: ResourceContext = {}
-): Promise<readonly ExtractedMedia[]> {
-  const context: SelectionContext = resourceContext(settings);
-  context.signal?.throwIfAborted();
+export function validateMediaExtractionOptions(options: ExtractMediaOptions): void {
   if (
     !options ||
     typeof options !== "object" ||
@@ -67,6 +61,16 @@ export async function extractMedia(
     (options.deduplicate !== undefined && typeof options.deduplicate !== "boolean")
   )
     throw new OfficeError("invalid-value", "Invalid media extraction options or limits.", "usage");
+}
+
+export async function extractMedia(
+  input: BinaryInput,
+  options: ExtractMediaOptions = {},
+  settings: ResourceContext = {}
+): Promise<readonly ExtractedMedia[]> {
+  const context: SelectionContext = resourceContext(settings);
+  context.signal?.throwIfAborted();
+  validateMediaExtractionOptions(options);
   const { maxOutputBytes = Infinity, maxOutputs = Infinity, deduplicate, ...selection } = options;
   const source = await readBinary(input, context);
   const inventory = await readMedia(source, selection, context);
@@ -116,7 +120,7 @@ export async function extractMedia(
     if (index > 0 && index % 64 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
     context.signal?.throwIfAborted();
     outputs.push({
-      name: `part-${String(index + 1).padStart(6, "0")}.${extensions.get(group.ref.contentType ?? "") ?? "bin"}`,
+      name: `part-${String(index + 1).padStart(6, "0")}.${mediaExtensions.get(group.ref.contentType ?? "") ?? "bin"}`,
       bytes: reader.get(group.ref.mediaPart!),
       sha256: group.ref.sha256!,
       contentType: group.ref.contentType,
@@ -126,3 +130,6 @@ export async function extractMedia(
   }
   return outputs;
 }
+
+export {openRetainedMediaExtraction} from './retained-media-extraction.js';
+export {stageRetainedExtractionOutput} from './retained-extraction-output.js';

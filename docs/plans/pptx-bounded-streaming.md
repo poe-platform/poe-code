@@ -727,7 +727,7 @@ extraction, workbook or Worker runtime matrix.
 | Area | Remaining migration |
 | --- | --- |
 | Read operations | Other slide, master/layout/theme/background, shape/path/group, connector, table/chart, image, link/comment, equation, animation and accessibility readers; opaque-object, font and media inventories are migrated. Shared retained indexes already exist; command wiring and operation-specific semantics remain. |
-| Extraction | Image/media extraction, including manifests and multi-output publication; package and opaque/embedded-object extraction are migrated. |
+| Extraction | Image extraction, including manifests and multi-output publication; package, media and opaque/embedded-object extraction are migrated. |
 | Text and metadata mutations | Text replacement, fitting and run/paragraph/frame formatting; field, note, comment, property, tag and link edits; sanitization. |
 | Presentation mutations | Creation, slide copy/import/merge/split/removal/reordering; settings, membership, master/layout/theme/background edits. Slide label/visibility and guarded XML replacement are migrated. |
 | Drawing mutations | Shape/path/group, connector, table, image/media, chart, equation, opaque-object, animation/transition and accessibility edits. |
@@ -931,3 +931,27 @@ metadata interoperability, not video decoding or playback.
 
 Media extraction, image reads/extraction, other remaining reads/mutations,
 embedded workbook processing and Worker runtime qualification remain unfinished.
+
+
+## Retained media extraction
+
+The media inventory now exposes ordered resource descriptors without decoding its
+JSON response. `openRetainedMediaExtraction` groups those resources in caller
+storage, preserving per-occurrence duplicates, optional cross-occurrence
+deduplication, MIME-sensitive hashes, safe filenames and provenance insertion
+order. External targets still require explicit local bytes. Payload limits and
+output counts are admitted before publication.
+
+The default media extraction command streams retained members through preflight,
+atomic or explicitly partial publication. Shared manifest staging preserves exact
+JSON and pretty human success output, reserves diagnostics before writes, and
+retains completed-file manifests after cancellation. Selection errors stage all
+candidates and retire their owned resources. Explicit legacy batch/preflight
+callbacks retain their established compatibility path.
+
+Verification: 162 focused extraction/read/publication cases, scoped lint/build,
+and native python-pptx movie extraction checked against Python ZIP member bytes.
+The synthetic opaque clip verifies extraction fidelity, not playback. Caller IO,
+source protection, force, nested destinations, capability failures, partial output,
+cancellation and cleanup are exercised. Image extraction, remaining readers and
+mutations, embedded workbook processing and Worker runtime qualification remain.

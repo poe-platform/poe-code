@@ -61,6 +61,8 @@ export async function openRetainedMedia(
     closing: Promise<void> | undefined,
     head = 0,
     tail = 0,
+    resourceHead = 0,
+    resourceTail = 0,
     mediaHead = 0,
     mediaTail = 0,
     count = 0;
@@ -226,6 +228,30 @@ export async function openRetainedMedia(
       let embedded = 0,
         linked = 0;
       for await (const ref of relationships()) {
+        const resource = ref.mediaPart ? await part(ref.mediaPart) : undefined;
+        const metadata = await values.store(
+          literal(
+            JSON.stringify({
+              external: ref.external,
+              part: resource?.part ?? null,
+              contentType: resource?.contentType ?? null,
+              bytes: ref.bytes,
+              sha256: ref.sha256
+            })
+          )
+        );
+        const resourcePointer = pages.allocate(48);
+        await write(resourcePointer, [
+          0,
+          count + 1,
+          storedId.start,
+          storedId.length,
+          metadata.start,
+          metadata.length
+        ]);
+        if (resourceTail) await write(resourceTail, [resourcePointer]);
+        else resourceHead = resourcePointer;
+        resourceTail = resourcePointer;
         if (ref.external) linked++;
         else embedded++;
         if (ref.mediaPart) {
@@ -646,6 +672,31 @@ export async function openRetainedMedia(
           throw failure(error);
         }
       },
+      async *resources() {
+        try {
+          check();
+          for (let pointer = resourceHead; pointer; ) {
+            const item = await row(pointer, 6);
+            pointer = item[0]!;
+            const metadata = JSON.parse(await text({ start: item[4]!, length: item[5]! })) as {
+              external: boolean;
+              part: string | null;
+              contentType: XmlRange | null;
+              bytes: number | null;
+              sha256: string | null;
+            };
+            yield {
+              ...metadata,
+              occurrence: item[1]!,
+              occurrenceId: () => values.read({ start: item[2]!, length: item[3]! }),
+              contentType: metadata.contentType ? () => values.read(metadata.contentType!) : null
+            };
+          }
+          check();
+        } catch (error) {
+          throw failure(error);
+        }
+      },
       async *summaries() {
         try {
           check();
@@ -734,38 +785,47 @@ export async function stageRetainedMedia(
     return { output: staged, ok: true };
   } catch (error) {
     if (error instanceof RetainedMediaSelectionError) {
-      const selection = error;
-      try {
-        async function* render() {
-          if (output.json) {
-            yield* streamJson({
-              version: 1,
-              operation: output.operation,
-              ok: false,
-              data: null,
-              warnings: [],
-              errors: [
-                {
-                  code: selection.code,
-                  message: selection.message,
-                  context: { phase: "select", candidates: selection.candidates() }
-                }
-              ],
-              affected: 0,
-              locations: []
-            });
-            yield* literal("\n");
-          } else yield* literal("pptx: " + selection.code + ": " + selection.message + "\n");
-        }
-        staged = await stageRetainedOutput(render(), settings, output.maxOutputBytes);
-        await error.close();
-        return { output: staged, ok: false };
-      } catch (failure) {
-        await Promise.allSettled([error.close(), staged?.close()]);
-        throw failure;
-      }
+      return { output: await stageRetainedMediaSelectionError(error, settings, output), ok: false };
     }
     await Promise.allSettled([reader?.close(), staged?.close()]);
+    throw error;
+  }
+}
+
+export async function stageRetainedMediaSelectionError(
+  selection: RetainedMediaSelectionError,
+  settings: RetainedPackageContext,
+  format: { readonly operation: string; readonly json: boolean; readonly maxOutputBytes: number }
+): Promise<StagedOutput> {
+  const output = { ...format };
+  let staged: StagedOutput | undefined;
+  async function* render() {
+    if (output.json) {
+      yield* streamJson({
+        version: 1,
+        operation: output.operation,
+        ok: false,
+        data: null,
+        warnings: [],
+        errors: [
+          {
+            code: selection.code,
+            message: selection.message,
+            context: { phase: "select", candidates: selection.candidates() }
+          }
+        ],
+        affected: 0,
+        locations: []
+      });
+      yield* literal("\n");
+    } else yield* literal("pptx: " + selection.code + ": " + selection.message + "\n");
+  }
+  try {
+    staged = await stageRetainedOutput(render(), settings, output.maxOutputBytes);
+    await selection.close();
+    return staged;
+  } catch (error) {
+    await Promise.allSettled([selection.close(), staged?.close()]);
     throw error;
   }
 }

@@ -73,7 +73,8 @@ Typeface/variant strings and ordered declarations stay in caller storage; font
 payloads are never installed or interpreted. Close the reader when finished.
 `stageRetainedFonts` supplies the default `fonts list` response.
 `openRetainedMedia` (from `media`) exposes `occurrences()` and `media()` as
-admitted JSON for `streamJson`, plus `summaries()`, `count` and `close()`.
+admitted JSON for `streamJson`, plus `summaries()`, `resources()`, `count` and `close()`.
+The resource iterator preserves occurrence and relationship order for extraction.
 Playback, caption and timing XML preserve standalone namespace bindings. Media
 hashes and all variable-length metadata use bounded streams and caller storage.
 On shape-selection failure, `RetainedMediaSelectionError` exposes a replayable
@@ -82,6 +83,14 @@ On shape-selection failure, `RetainedMediaSelectionError` exposes a replayable
 selection diagnostics without truncation. Write JSON output to stdout, human
 errors to stderr, and close the staged output. These reads never activate external
 targets or claim playback verification.
+`openRetainedMediaExtraction` (from `media-extraction`) accepts the retained
+archive, fingerprint, extraction options and storage context. Its `members()`
+iterator supplies `name`, `size`, `sha256`, streamed `contentType`,
+`sourceParts()`, `occurrenceIds()` and original `bytes()`. Grouping and ordered
+provenance remain in caller storage; deduplication requires an explicit option.
+Close the extractor after publication. Selection errors use the owned diagnostic
+contract above. `stageRetainedExtractionOutput` supports
+`operation: 'media.extract'`, including complete or partially published manifests.
 `openRetainedNotes` (from `notes`) exposes a caller-backed `records()` iterator,
 with replayable part/master references, speaker text and body IDs. Close it after
 reading. `stageRetainedNotes` supplies `notes.list` and `notes.get` output with

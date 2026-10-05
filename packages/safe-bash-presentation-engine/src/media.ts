@@ -419,4 +419,4 @@ export async function readMedia(
   return { occurrences, media, playbackVerified: false };
 }
 
-export {openRetainedMedia,stageRetainedMedia,RetainedMediaSelectionError} from './retained-media.js';
+export {openRetainedMedia,stageRetainedMedia,RetainedMediaSelectionError,stageRetainedMediaSelectionError} from './retained-media.js';

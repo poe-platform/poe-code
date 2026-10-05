@@ -1,3 +1,4 @@
+import { prepareRetainedMediaExtraction } from './command-media-extraction-streaming.js';
 import { stageRetainedMedia } from 'safe-bash-presentation-engine/media';
 import { prepareRetainedObjectExtraction } from "./command-object-extraction-streaming.js";
 import { stageRetainedObjects, stageRetainedFonts } from "safe-bash-presentation-engine/opaque-objects";
@@ -4137,6 +4138,10 @@ async function executeRequest(
         if (!request.publishOutput) throw Object.assign(new Error("Output publication unavailable."), { code: "publication-unsupported" });
         publication = { outputPath: args.output, protectedInputPaths: manifest.paths(), bytes: packed.bytes(), originalBytes: input, inPlace: false, force: args.force ?? false, dryRun };
       } else if (args.output === "-" && !dryRun) stagedOutput = { close: packed.close, async write(sink) { for await (const bytes of packed.bytes()) await sink.write(bytes); } };
+    } else if (args.operation === "media.extract" && request.streaming && (!request.publishOutputs || request.publishOutputStreams) && (!request.preflightOutput || request.preflightOutputStream)) {
+      retainedExtraction = await prepareRetainedMediaExtraction(args, request, options);
+      owned.push(retainedExtraction);
+      result = success(operation, null);
     } else if (args.operation === "objects.extract" && request.streaming && (!request.publishOutputs || request.publishOutputStreams) && (!request.preflightOutput || request.preflightOutputStream)) {
       retainedExtraction = await prepareRetainedObjectExtraction(args, request, options);
       owned.push(retainedExtraction);

@@ -17,7 +17,7 @@ export async function* promptToolChain(options: {
   request: Omit<LlmServiceSourceRequest, "messages">;
   streamed: boolean;
   tools: readonly LlmExecutableTool[];
-  chainLimit: number;
+  chainLimit: number | bigint;
   maxOutputBytes: number;
   remainingInput(): number;
   admitInput(size: number, materialized: boolean): void;

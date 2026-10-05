@@ -22,6 +22,17 @@ async function drain(input: LlmToolChainOptions): Promise<void> {
   for await (const event of streamLlmToolChain(input)) assert.ok(event.type);
 }
 
+test("chain limits preserve Python integers beyond the JavaScript safe range", async () => {
+  for (const chainLimit of [9007199254740993n, 0n]) {
+    await drain(options({chainLimit, async *openResponse() {
+      yield {type: "response", response: {model: "fixture"}};
+    }}));
+  }
+  await assert.rejects(drain(options({chainLimit: -9007199254740993n})), {
+    message: "Chain limit of -9007199254740993 exceeded."
+  });
+});
+
 for (const fixture of fixtures) test(`pinned serial chain limit ${fixture.limit}`, async () => {
   const events: string[] = [];
   let text = "", error: string | null = null, requests = 0;

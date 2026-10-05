@@ -17,8 +17,9 @@ export interface LlmToolChainOptions extends Omit<LlmToolExecutionOptions, "call
   readonly openResponse: (index: number, signal: AbortSignal) => AsyncIterable<LlmStreamEvent>;
   /** Borrow each result during this callback; consume/stage leases before returning. */
   readonly visit: (result: LlmToolExecutionResult) => void | PromiseLike<void>;
-  /** Pinned SDK default is 10 (the CLI uses 5). Zero/null disables this limit. */
-  readonly chainLimit?: number | null;
+  /** Pinned SDK default is 10 (the CLI uses 5). Zero/null disables this limit.
+   * Use bigint for Python integers outside the JavaScript safe integer range. */
+  readonly chainLimit?: number | bigint | null;
   /** Aggregate response text/bytes and tool-call controls, across all rounds. */
   readonly maxOutputBytes?: number;
   /** Aggregate consumed tool output and attachment bytes, across all rounds. */
@@ -30,7 +31,7 @@ export interface LlmToolChainOptions extends Omit<LlmToolExecutionOptions, "call
  * aborts the current response and never executes its outstanding tools. */
 export async function* streamLlmToolChain(options: LlmToolChainOptions): AsyncGenerator<LlmStreamEvent> {
   const chainLimit = options.chainLimit === undefined ? 10 : options.chainLimit;
-  if (chainLimit !== null && !Number.isSafeInteger(chainLimit)) throw new RangeError("Invalid chain limit");
+  if (chainLimit !== null && typeof chainLimit !== "bigint" && !Number.isSafeInteger(chainLimit)) throw new RangeError("Invalid chain limit");
   const outputLimit = options.maxOutputBytes ?? Infinity;
   const toolLimit = options.maxToolOutputBytes ?? Infinity;
   for (const limit of [outputLimit, toolLimit])

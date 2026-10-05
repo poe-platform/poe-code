@@ -38,7 +38,7 @@ export const llmReferenceVersion = "0.27.1";
 
 interface Arguments {
   toolNames: string[];
-  chainLimit: number;
+  chainLimit: number | bigint;
   queries: string[];
   fragments: string[];
   systemFragments: string[];
@@ -90,8 +90,8 @@ async function parse(length: number, text: (index: number) => string, step: () =
       if (flag === "-T" || flag === "--tool") parsed.toolNames.push(value);
       else if (flag === "--cl" || flag === "--chain-limit") {
         const integer = tokenInteger(value);
-        if (integer === undefined || !Number.isSafeInteger(Number(integer))) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': '${value}' is not a valid integer.`);
-        parsed.chainLimit = Number(integer);
+        if (integer === undefined) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': '${value}' is not a valid integer.`);
+        parsed.chainLimit = BigInt(integer);
       }
       else if (flag === "-f" || flag === "--fragment") parsed.fragments.push(value);
       else if (flag === "--sf" || flag === "--system-fragment") parsed.systemFragments.push(value);

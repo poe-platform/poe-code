@@ -154,7 +154,9 @@ before the next request opens. Use `service.stream` for buffered requests or
 `service.streamSources` for leased inputs. The chain retains no response list,
 messages or persisted history. Output and tool byte limits apply across all
 rounds. Consumer exit aborts the active response and does not run pending tools.
-The SDK default chain limit is 10; zero/null disables it. Matching the pinned
+The SDK default chain limit is 10; zero/null disables it. Use `bigint` for chain
+limits beyond JavaScript's safe integer range; CLI integer values remain exact.
+Matching the pinned
 reference, the limit is checked after yielding each response, before executing
 tools, including a final response with no calls.
 

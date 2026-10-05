@@ -53,6 +53,24 @@ async function read(source: LlmInputSource): Promise<string> {
   return text + decoder.decode();
 }
 
+test("CLI accepts arbitrary Python chain-limit integers without rounding", async () => {
+  for (const limit of ["9007199254740993", "١_٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠٠", "+000000000000000000000000", "-9007199254740993"]) {
+    let executed = 0;
+    const result = await run(["hello", "-m", "fixture", "-T", "lookup", "--cl", limit], {
+      tools: createLlmToolRegistry([{name: "lookup", inputSchema: {}, implementation() {executed++; return {output: "done"};}}]),
+      providers: [{name: "fixture", models: [{id: "fixture", capabilities: ["tools", "messages"]}], async *complete(request) {
+        yield "step";
+        return request.messages?.length ? {} : {toolCalls: [{name: "lookup", arguments: {}, id: "id"}]};
+      }}]
+    });
+    const negative = limit.startsWith("-");
+    assert.equal(result.exitCode, negative ? 1 : 0, result.stderr);
+    assert.equal(result.stderr, negative ? "Error: Chain limit of -9007199254740993 exceeded.\n" : "");
+    assert.equal(executed, negative ? 0 : 1);
+    assert.equal(result.stdout, negative ? "step" : "stepstep\n");
+  }
+});
+
 test("three source rounds preserve pinned system, prompt, call and current-attachment ordering", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input.png", new Uint8Array([1,2,3]));

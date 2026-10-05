@@ -2,9 +2,9 @@ import { expect,it } from 'vitest';
 import { createSyntheticMp4,probeMp4 } from '@poe-code/mp4-ast';
 import { MemoryFileSystem } from '@poe-code/safe-fs/core';
 import { createCommandArguments } from 'safe-bash-contracts/command';
-import { createFfprobeCommand } from './media.js';
+import { createFfprobeCommand, formatFfprobeResult } from './media.js';
 
-for(const fragmented of [false,true])for(const route of ['explicit','automatic','stdin','stream'])it(`reads MP4 packet-only JSON through caller sources: ${route}, fragmented=${fragmented}`,async()=>{
+for(const writer of ['json','default','default=nw=1:nk=1','csv=p=0','compact','flat'])for(const selection of [false,true])for(const fragmented of [false,true])for(const route of ['explicit','automatic','stdin','stream'])it(`reads MP4 packet-only ${writer}, selection=${selection} through caller sources: ${route}, fragmented=${fragmented}`,async()=>{
   const bytes=createSyntheticMp4({frameCount:8,includeAudio:true,fragmented}),expected=probeMp4(bytes,{showPackets:true}).packets,base=new MemoryFileSystem();await base.writeFile('/input.mp4',bytes);
   let closed=0,output='',diagnostic='';
   const capabilities={...base.capabilities,retainedRead:route!=='stream',streamingRead:true};
@@ -15,7 +15,15 @@ for(const fragmented of [false,true])for(const route of ['explicit','automatic',
     if(key==='readStream')return async function*(){try{for(let offset=0;offset<bytes.length;offset+=71)yield bytes.subarray(offset,offset+71);}finally{closed++;}};
     const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
   }});
-  const args=[...(route==='explicit'?['-f','mp4']:[]),'-show_packets','-of','json',route==='stdin'?'-':'/input.mp4'];
+  const args=[...(route==='explicit'?['-f','mp4']:[]),...(selection?['-show_entries','packet=stream_index,pts,size']:['-show_packets']),'-of',writer,route==='stdin'?'-':'/input.mp4'];
   const result=await createFfprobeCommand().execute({command:'ffprobe',...createCommandArguments(args),cwd:'/',env:{},fs,signal:new AbortController().signal,stdin:{async *[Symbol.asyncIterator](){try{yield bytes;}finally{closed++;}}},stdout:{async write(chunk){expect(closed).toBe(1);output+=new TextDecoder().decode(chunk);}},stderr:{async write(chunk){diagnostic+=new TextDecoder().decode(chunk);}}});
-  expect(result.exitCode,diagnostic).toBe(0);expect(JSON.parse(output)).toEqual({packets:expected});expect(closed).toBe(1);expect((await base.readdir('/')).map(e=>e.name)).toEqual(['input.mp4']);
+  expect(result.exitCode,diagnostic).toBe(0);const fields=selection?expected?.map(({stream_index,pts,size})=>({stream_index,pts,size})):expected;
+  if(writer==='json')expect(JSON.parse(output)).toEqual({packets:fields});
+  else {
+    expect(output.length).toBeGreaterThan(0);
+    if(writer==='default')expect(output).toContain('[PACKET]\n');
+    if(writer==='flat')expect(output).toContain('packets.packet.0.stream_index=0\n');
+    if(selection)expect(output).not.toContain('duration');
+    expect(output).toBe(formatFfprobeResult(probeMp4(bytes,{showPackets:true}),{printFormat:writer,showPackets:!selection,showFrames:false,showStreams:false,showFormat:false,showChapters:false,showPrograms:false,...(selection?{showEntries:'packet=stream_index,pts,size'}:{})}));
+  }expect(closed).toBe(1);expect((await base.readdir('/')).map(e=>e.name)).toEqual(['input.mp4']);
 });

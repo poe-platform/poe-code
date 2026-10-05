@@ -26,7 +26,7 @@ beforeAll(async()=>{
   runtime=new Miniflare({modules:true,compatibilityDate:'2026-07-01',cf:false,r2Buckets:['PAGES'],script:`
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request,env){
-      const [kind,route,mode]=new URL(request.url).pathname.slice(1).split('/'),headSize=kind==='classic'?${fixtures.classic.head.length}:${fixtures.fragmented.head.length},physical=headSize+100000;
+      const [kind,route,mode,writer]=new URL(request.url).pathname.slice(1).split('/'),headSize=kind==='classic'?${fixtures.classic.head.length}:${fixtures.fragmented.head.length},physical=headSize+100000;
       const namespace=new api.MemoryFileSystem();await namespace.mkdir('/spill');await namespace.writeFile('/input.mp4',new Uint8Array());
       const backing=api.createR2PagedFixture(namespace,env.PAGES),controller=new AbortController();let inputClosed=0,reads=0,largest=0,total=0,hash=2166136261,diagnostic='',error;
       async function read(offset,length){reads++;if(length>16384)throw new Error('unbounded read');if(mode==='source'&&reads>20)throw new Error('source failed');const object=await env.PAGES.get('input/'+kind,{range:{offset,length}});return new Uint8Array(await object.arrayBuffer());}
@@ -36,7 +36,7 @@ beforeAll(async()=>{
         const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
       }});
       const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const bytes=Reflect.construct(target,args);largest=Math.max(largest,bytes.length);if(bytes.length>65536)throw new Error('unbounded allocation');return bytes;}});
-      let result;try{result=await api.createFfprobeCommand({limits:{maxInputBytes:2**41,maxOutputBytes:8000000}}).execute({command:'ffprobe',...api.createCommandArguments(['-f','mp4','-show_packets','-of','json:compact=1',route==='stdin'?'-':'/input.mp4']),cwd:'/',env:{TMPDIR:'/spill'},fs,signal:controller.signal,stdin:{async *[Symbol.asyncIterator](){try{for(let at=0;at<physical;at+=16384)yield await read(at,Math.min(16384,physical-at));}finally{inputClosed++;}}},stdout:{async write(bytes){if(inputClosed!==1)throw new Error('publication before input close');if(bytes.length>16384)throw new Error('unbounded output');for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;total+=bytes.length;}},stderr:{async write(bytes){diagnostic+=new TextDecoder().decode(bytes);}}});}catch(cause){error=cause.message;}finally{globalThis.Uint8Array=Native;}
+      let result;try{result=await api.createFfprobeCommand({limits:{maxInputBytes:2**41,maxOutputBytes:8000000}}).execute({command:'ffprobe',...api.createCommandArguments(['-f','mp4',...(writer?['-show_entries','packet=stream_index,pts,size']:['-show_packets']),'-of',writer||'json:compact=1',route==='stdin'?'-':'/input.mp4']),cwd:'/',env:{TMPDIR:'/spill'},fs,signal:controller.signal,stdin:{async *[Symbol.asyncIterator](){try{for(let at=0;at<physical;at+=16384)yield await read(at,Math.min(16384,physical-at));}finally{inputClosed++;}}},stdout:{async write(bytes){if(inputClosed!==1)throw new Error('publication before input close');if(bytes.length>16384)throw new Error('unbounded output');for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;total+=bytes.length;}},stderr:{async write(bytes){diagnostic+=new TextDecoder().decode(bytes);}}});}catch(cause){error=cause.message;}finally{globalThis.Uint8Array=Native;}
       return Response.json({exitCode:result?.exitCode,inputClosed,reads,largest,total,hash,diagnostic,error,events:backing.events,remaining:(await env.PAGES.list()).objects.filter(o=>!o.key.startsWith('input/')).length});
     }}
   `});
@@ -46,6 +46,18 @@ afterAll(async()=>{await runtime?.dispose();});
 for(const kind of ['classic','fragmented'])for(const route of ['retained','stdin'])it(`native MP4 packet JSON uses bounded R2 storage: ${kind}/${route}`,async()=>{
   const result=await(await runtime.dispatchFetch('https://example.test/'+kind+'/'+route+'/success')).json() as Result;
   check(result);expect(result.exitCode,result.diagnostic||result.error).toBe(0);expect([result.total,result.hash]).toEqual([expected.length,hash]);
+});
+for(const writer of ['json:compact=1','default','compact','csv','flat'])for(const route of ['retained','stdin'])it(`selected MP4 packet fields use bounded R2 storage: ${writer}/${route}`,async()=>{
+  const result=await(await runtime.dispatchFetch('https://example.test/classic/'+route+'/success/'+writer)).json() as Result;
+  const rows=Array.from({length:count},(_,i)=>({stream_index:0,pts:i*2,size:'3'}));
+  const text=writer.startsWith('json')?JSON.stringify({packets:rows})+'\n':rows.map((row,i)=>{
+    if(writer==='csv')return `packet,0,${row.pts},3\n`;
+    if(writer==='compact')return `packet|stream_index=0|pts=${row.pts}|size=3\n`;
+    if(writer==='flat')return `packets.packet.${i}.stream_index=0\npackets.packet.${i}.pts=${row.pts}\npackets.packet.${i}.size="3"\n`;
+    return `[PACKET]\nstream_index=0\npts=${row.pts}\nsize=3\n[/PACKET]\n`;
+  }).join('');
+  const bytes=new TextEncoder().encode(text);let expectedHash=2166136261;for(const byte of bytes)expectedHash=Math.imul(expectedHash^byte,16777619)>>>0;
+  check(result);expect(result.exitCode,result.diagnostic||result.error).toBe(0);expect([result.total,result.hash]).toEqual([bytes.length,expectedHash]);
 });
 for(const mode of ['source','write','close','cancel'])it(`native MP4 packets clean up without publication: ${mode}`,async()=>{
   const result=await(await runtime.dispatchFetch('https://example.test/classic/retained/'+mode)).json() as Result;

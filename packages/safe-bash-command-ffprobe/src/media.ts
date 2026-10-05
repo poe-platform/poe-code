@@ -316,11 +316,10 @@ export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: F
   }
 }
 
-function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): Generator<FormatStep> {
-  // Parse `-show_entries` filter if provided
+function parseEntryFilter(showEntries: string | undefined): Map<string, Set<string>> {
   const entryFilter = new Map<string, Set<string>>();
-  if (opts.showEntries) {
-    for (const secSpec of opts.showEntries.split(":")) {
+  if (showEntries) {
+    for (const secSpec of showEntries.split(":")) {
       if (!secSpec.trim()) continue;
       const eqIdx = secSpec.indexOf("=");
       if (eqIdx >= 0) {
@@ -336,6 +335,12 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       }
     }
   }
+
+  return entryFilter;
+}
+
+function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): Generator<FormatStep> {
+  const entryFilter = parseEntryFilter(opts.showEntries);
 
   const filterObject = (
     obj: Record<string, unknown>,
@@ -434,6 +439,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         let firstRow = true;
         yield { rows: section.rows, *render(row) {
           if (section.name === "streams") { row = prepareStream(row); if (row === undefined) return; }
+          else if (section.name === "packets") row = filterObject(row as Record<string, unknown>, "packet");
           yield (firstRow ? "" : ",") + (compact ? "" : "\n    ");
           firstRow = false;
           const text = JSON.stringify(row, null, compact ? undefined : 2) ?? "null";
@@ -493,7 +499,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       }
       yield "\n";
     } else if (fmt === "flat") {
-      const sep = paramMap.s ?? ".", prefix = name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : `format${sep}`;
+      const sep = paramMap.s ?? ".", prefix = name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : name === "packet" ? `packets${sep}packet${sep}${index}${sep}` : `format${sep}`;
       for (const [key, value] of probeEntries(section, `tags${sep}`)) {
         if (value === undefined || typeof value === "object") continue;
         yield `${prefix}${key}=${probeText(value)}\n`;
@@ -510,6 +516,9 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       if (!noWrappers) yield `[/${wrapper}]\n`;
     }
   }
+  if (includePackets && probe.packets) yield { rows: probe.packets, *render(row, index) {
+    yield* render(filterObject(row as Record<string, unknown>, "packet"), "packet", index);
+  } };
   if (includeStreams) yield { rows: probe.streams, *render(row) {
     const stream = prepareStream(row);
     if (stream !== undefined) yield* render(stream, "stream", streamIndex++);
@@ -753,7 +762,8 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       try {
         const { printFormat, showFormat, showStreams, showPackets, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, explicitFormat, inputTarget } = parseProbeArguments(args);
-        const mp4PacketsOnly = !options.asts && showPackets && !showStreams && !showFormat && !showFrames && !showChapters && !countFrames && !countPackets && showEntries === undefined && printFormat.split(":")[0]!.split("=")[0]!.toLowerCase() === "json";
+        const entryFilter = parseEntryFilter(showEntries);
+        const mp4PacketsOnly = !options.asts && (showPackets || entryFilter.has("packet")) && !showStreams && !showFormat && !showFrames && !showChapters && !countFrames && !countPackets && [...entryFilter.keys()].every(section => section === "packet");
         const packetPlugins = mp4PacketsOnly ? [registry.findByFormatName("mp4"), registry.findByFormatName("mov")] : [];
         let audioInput: AudioProbeInput | undefined;
         let automaticAudio = !options.asts && !explicitFormat && !showPackets && !showFrames && !showChapters && !showPrograms && !countFrames && !countPackets;

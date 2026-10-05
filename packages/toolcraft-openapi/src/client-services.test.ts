@@ -53,8 +53,8 @@ for (const client of [customDirect, customRuntime]) {
 `);
   const options: ts.CompilerOptions = {
     strict: true, noEmit: true, skipLibCheck: true,
-    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext,
-    moduleResolution: ts.ModuleResolutionKind.Bundler,
+    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext,
+    moduleResolution: ts.ModuleResolutionKind.NodeNext,
     baseUrl: root,
     paths: { "toolcraft-openapi": ["packages/toolcraft-openapi/src/index.ts"] },
     types: ["node"]

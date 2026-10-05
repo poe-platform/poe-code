@@ -708,10 +708,8 @@ pub fn log(
     let mut visited = BTreeSet::new();
     while let Some(commit) = tips.pop() {
         if !visited.insert(commit.oid.clone()) { continue; }
-        if let Some(since_ts) = since_timestamp
-            && commit.commit.committer.timestamp <= since_ts {
-                break;
-            }
+        let past_limit = since_timestamp.is_some_and(|limit| commit.commit.committer.timestamp <= limit);
+        if past_limit && current_filepath.is_none() { break; }
 
         if let Some(ref fp) = current_filepath.clone() {
             match resolve_filepath_entry(fs, &gdir, &commit.commit.tree, fp) {
@@ -782,6 +780,10 @@ pub fn log(
         } else {
             commits.push(commit.clone());
         }
+
+        // Path history delays emission until the parent reveals whether the file
+        // changed. Inspect that parent even at the cutoff, but never traverse it.
+        if past_limit { break; }
 
         if let Some(max_d) = depth
             && commits.len() == max_d {

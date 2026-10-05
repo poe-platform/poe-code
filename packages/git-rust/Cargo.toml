@@ -11,6 +11,8 @@ crate-type = ["rlib", "cdylib"]
 path = "src/lib.rs"
 
 [dependencies]
+gix-date = "0.17.0"
+jiff = { version = "0.2", default-features = false, features = ["std"] }
 glob = "0.3.4"
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }
 regex = "1.13.1"

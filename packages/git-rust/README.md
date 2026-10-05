@@ -13,7 +13,7 @@ Full-featured Rust Git implementation with both a standalone native CLI binary (
 
 | Category | Supported Commands & Capabilities |
 | --- | --- |
-| **Porcelain & History** | `init`, `clone`, `add`, `mv`, `rm`, `restore`, `reset`, `status`, `commit`, `amend`, `log`, `show`, `diff`, `blame`, `shortlog`, `describe`, `reflog`, `bisect`, `grep` |
+| **Porcelain & History** | `init`, `clone`, `add`, `mv`, `rm`, `restore`, `reset`, `status`, `commit`, `amend`, `log` (including `--since` / `--after` date cutoffs and `--since-as-filter` full-history filtering), `show`, `diff`, `blame`, `shortlog`, `describe`, `reflog`, `bisect`, `grep` |
 | **Branching & History Rewrite** | `branch`, `checkout`, `switch`, `merge`, `rebase` (`--onto`, `--abort`, `--continue`, `--skip`), `cherry-pick`, `revert`, `stash`, `tag`, `worktree`, `submodule`, `notes`, `replace` |
 | **Signing & Verification** | `commit -S` / `--gpg-sign`, `tag -s` / `-u`, `verify-commit`, `verify-tag`, `log --show-signature`, `gpg.format = openpgp \| ssh`, `gpg.ssh.allowedSignersFile`, `gpg.openpgp.publicKeyFile` |
 | **Network & Wire Transport** | `fetch`, `pull`, `push`, `remote`, `ls-remote`, `upload-pack`, `receive-pack`, `bundle`, `archive`, `format-patch`, `am`, `apply` |

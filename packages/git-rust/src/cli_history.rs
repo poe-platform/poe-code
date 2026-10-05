@@ -428,6 +428,8 @@ pub(crate) fn execute(
     show: bool,
 ) -> CliResult {
     let mut depth = None;
+    let mut since = None;
+    let mut since_as_filter = None;
     let mut revision = "HEAD";
     let mut output = HistoryOutput {
         format: "medium",
@@ -497,6 +499,19 @@ pub(crate) fn execute(
                 return CliResult::err(129, "error: invalid maximum commit count\n");
             };
             depth = Some(count);
+        } else if matches!(arg.split('=').next(), Some("--since" | "--after" | "--since-as-filter")) {
+            let (name, value) = if let Some(pair) = arg.split_once('=') {
+                pair
+            } else {
+                i += 1;
+                let Some(value) = args.get(i) else {
+                    return CliResult::err(129, format!("error: option '{arg}' requires a value\n"));
+                };
+                (arg, *value)
+            };
+            let timestamp = crate::cli_date::parse(value);
+            if name == "--since-as-filter" { since_as_filter = Some(timestamp); }
+            else { since = Some(timestamp); }
         } else if arg == "--reverse" {
             reverse = true;
         } else if let Some(val) = arg.strip_prefix("--author=") {
@@ -615,6 +630,8 @@ pub(crate) fn execute(
             Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
         };
     }
+    // The plumbing API uses an exclusive cutoff; CLI revision dates are inclusive.
+    let walk_since = since.and_then(|timestamp: i64| timestamp.checked_sub(1));
     let result = (|| {
         let compile = |patterns: &[&str]| -> Result<Vec<regex::Regex>, GitError> {
             patterns.iter().map(|p| {
@@ -631,6 +648,7 @@ pub(crate) fn execute(
             && authors.is_empty()
             && greps.is_empty()
             && paths.is_empty()
+            && since_as_filter.is_none()
             && !all_refs
             && !revision.contains("..")
         {
@@ -651,12 +669,13 @@ pub(crate) fn execute(
                     }
                     if !seen.insert(oid.clone()) { break; }
                     let c = crate::read_commit(fs, gitdir, &oid)?;
+                    if since.is_some_and(|limit| c.commit.committer.timestamp < limit) { break; }
                     cur = if shallow.contains(&oid) { None } else { c.commit.parent.first().cloned() };
                     list.push(c);
                 }
                 Ok(list)
             } else {
-                log(fs, gitdir, Some(&oid), None, unfiltered_depth, None, false, false)
+                log(fs, gitdir, Some(&oid), None, unfiltered_depth, walk_since, false, false)
             }
         };
         let ancestors = |rev: &str| -> Result<BTreeSet<String>, GitError> {
@@ -679,31 +698,58 @@ pub(crate) fn execute(
             }
         }
         let mut commits = Vec::new();
+        let mut order_tips = Vec::new();
+        let mut append = |list: Vec<ReadCommitResult>| {
+            if let Some(tip) = list.first() { order_tips.push(tip.oid.clone()); }
+            commits.extend(list);
+        };
         if all_refs {
             for r in crate::list_refs(fs, gitdir, "refs") {
-                if let Ok(list) = history(&format!("refs/{r}")) { commits.extend(list); }
+                if let Ok(list) = history(&format!("refs/{r}")) { append(list); }
             }
         }
         for prefix in &ref_prefixes {
             for r in crate::list_refs(fs, gitdir, prefix) {
-                if let Ok(list) = history(&format!("{prefix}/{r}")) { commits.extend(list); }
+                if let Ok(list) = history(&format!("{prefix}/{r}")) { append(list); }
             }
         }
         if walk_range {
-            commits.extend(log_revision_range(fs, gitdir, revision, None)?);
+            append(log_revision_range(fs, gitdir, revision, None, since)?);
         } else {
             for tip in tips {
                 if !first_parent && !all_refs && !revision.contains("..") {
                     let follow_path = if follow && paths.len() == 1 { Some(paths[0].as_str()) } else { None };
-                    commits.extend(log(fs, gitdir, Some(&resolve(fs, gitdir, tip)?), follow_path, unfiltered_depth, None, false, follow && follow_path.is_some())?);
+                    append(log(fs, gitdir, Some(&resolve(fs, gitdir, tip)?), follow_path, unfiltered_depth, walk_since, false, follow && follow_path.is_some())?);
                 } else {
-                    commits.extend(history(tip)?);
+                    append(history(tip)?);
                 }
             }
         }
         commits.retain(|c| !excluded.contains(&c.oid));
         if all_refs || !ref_prefixes.is_empty() || (!walk_range && revision.contains("...")) {
-            commits.sort_by_key(|c| std::cmp::Reverse(c.commit.committer.timestamp));
+            // Order the frontier, not the entire graph: a clock-skewed ancestor
+            // only becomes eligible after its child has been visited.
+            let mut remaining: BTreeMap<_, _> = commits.into_iter().map(|c| (c.oid.clone(), c)).collect();
+            let shallow = crate::GitShallowManager::read(fs, gitdir);
+            let mut pending = std::collections::BinaryHeap::new();
+            let mut scheduled = BTreeSet::new();
+            for oid in order_tips {
+                if let Some(c) = remaining.get(&oid) && scheduled.insert(oid.clone()) {
+                    pending.push((c.commit.committer.timestamp, std::cmp::Reverse(scheduled.len()), oid));
+                }
+            }
+            commits = Vec::new();
+            while let Some((_, _, oid)) = pending.pop() {
+                let c = remaining.remove(&oid).expect("scheduled commits exist");
+                if !shallow.contains(&oid) {
+                    for parent in c.commit.parent.iter().take(if first_parent { 1 } else { usize::MAX }) {
+                        if let Some(p) = remaining.get(parent) && scheduled.insert(parent.clone()) {
+                            pending.push((p.commit.committer.timestamp, std::cmp::Reverse(scheduled.len()), parent.clone()));
+                        }
+                    }
+                }
+                commits.push(c);
+            }
         }
         let mut seen = BTreeSet::new();
         commits.retain(|c| seen.insert(c.oid.clone()));
@@ -713,6 +759,7 @@ pub(crate) fn execute(
             if depth.is_some_and(|n| selected.len() >= n) {
                 break;
             }
+            if since_as_filter.is_some_and(|limit| c.commit.committer.timestamp < limit) { continue; }
             if no_merges && c.commit.parent.len() > 1 {
                 continue;
             }
@@ -963,6 +1010,7 @@ fn log_revision_range(
     gitdir: &str,
     revision: &str,
     depth: Option<usize>,
+    since: Option<i64>,
 ) -> Result<Vec<crate::commands::plumbing::ReadCommitResult>, crate::GitError> {
     let Some((left, right, symmetric)) = revision_range(revision) else {
         return log(fs, gitdir, Some(revision), None, depth, None, false, false);
@@ -1019,6 +1067,7 @@ fn log_revision_range(
     let mut commits = Vec::new();
     while let Some((_, _, oid)) = pending.pop() {
         let c = remaining.remove(&oid).expect("scheduled commits exist");
+        if since.is_some_and(|limit| c.commit.committer.timestamp < limit) { break; }
         if !shallow.contains(&oid) {
             for parent in &c.commit.parent {
                 if let Some(p) = remaining.get(parent)

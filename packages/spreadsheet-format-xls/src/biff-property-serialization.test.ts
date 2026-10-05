@@ -1,3 +1,5 @@
+import { Binary } from './biff-binary.js';
+import { readBiffPropertySections, readBiffPropertyValues } from './biff-properties-layout.js';
 import * as mergeProperties from './biff-properties-merge.js';
 import { mergeBiffProperties } from './biff-properties-merge.js';
 import type { BiffPropertySource } from './biff-encrypted-properties-write.js';
@@ -233,5 +235,40 @@ it.each(['success', 'dictionary-write', 'dictionary-read', 'output-write', 'abor
     }
     }
   } finally { for (const cleanup of cleanups) await cleanup(); }
+  expect(state.closed).toBe(state.acquired);
+});
+
+it.each([65001, 1200, 1252, 932].flatMap(cp => ['success', 'name-write', 'name-read', 'output-write', 'abort'].map(mode => ({ cp, mode }))))('stages new names in codepage $cp with bounded payloads and cleanup ($mode)', async ({ cp, mode }) => {
+  const seed = { sheets: book.sheets, properties: { A: 1 } }, stream = '\u0005DocumentSummaryInformation';
+  const original = (await writeBiffProperties(seed, context)).streams.get(stream)!;
+  const sections = readBiffPropertySections(original, () => {}, () => {}), section = sections[sections.length - 1]!;
+  const values = readBiffPropertyValues(new Binary(original.subarray(section.offset, section.end)), () => {}, () => {});
+  const codepage = values.get(1)!.bytes; new DataView(codepage.buffer, codepage.byteOffset, codepage.byteLength).setUint16(4, cp, true);
+  const name = (cp === 1252 ? 'é' : cp === 932 ? '漢' : '漢😀').repeat(18000);
+  const input = { ...seed, properties: { A: 1, [name]: 2 }, unsupportedRecords: [{ source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+    data: { stream, bytes: Array.from(original, byte => byte.toString(16).padStart(2, '0')).join('') } }] };
+  const fresh = await writeBiffProperties({ ...input, unsupportedRecords: [] }, context), expected = await writeBiffProperties(input, context);
+  const { ctx, state, failure, cleanups } = fixture(), sources = new Map<string, BiffPropertySource>();
+  const controller = new AbortController(), runContext = { ...ctx, signal: controller.signal };
+  if (mode === 'name-read') state.mode = 'output-read';
+  state.hold = async () => {
+    if (mode === 'name-write' && state.acquired === 3 || mode === 'output-write' && state.acquired === 5) throw failure;
+    if (mode === 'abort' && state.acquired === 3) controller.abort(failure);
+  };
+  const encode = TextEncoder.prototype.encode;
+  const spy = vi.spyOn(TextEncoder.prototype, 'encode').mockImplementation(function (this: TextEncoder, text) {
+    expect(text?.length ?? 0).toBeLessThanOrEqual(16384); return encode.call(this, text);
+  });
+  try {
+    const merging = mergeBiffProperties(input, new Map(fresh.streams), new Set(), runContext, () => {}, length => {
+      expect(length).toBeLessThanOrEqual(16384); return new Uint8Array(length);
+    }, { sources, reserve: length => length });
+    if (mode !== 'success') await expect(merging).rejects.toBe(failure);
+    else {
+    await merging;
+    const source = sources.get(stream)!, bytes = expected.streams.get(stream)!; expect(source.size).toBe(bytes.length);
+    for (let at = 0; at < source.size;) { const part = await source.read(at, source.size); expect(part).toEqual(bytes.subarray(at, at + part.length)); at += part.length; }
+    }
+  } finally { spy.mockRestore(); for (const close of cleanups) await close(); }
   expect(state.closed).toBe(state.acquired);
 });

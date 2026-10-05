@@ -1,13 +1,11 @@
+import { createBiffPropertyNameEncoder } from "./biff-property-name.js";
 import { readBiffPropertyText } from "./biff-property-text.js";
 import { stageWideBiffProperty } from './biff-property-transcode.js';
-import { stagePropertyBytes } from './biff-property-bytes.js';
+import { stagePropertyBytes, propertyChunks } from './biff-property-bytes.js';
 import type { BiffPropertySource } from './biff-encrypted-properties-write.js';
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, UnsupportedRecord, Workbook } from "@poe-code/spreadsheet-ast";
-import { singleByteTables } from "@poe-code/spreadsheet-engine/encoding/tables";
-import { biffDbcsTables } from "@poe-code/spreadsheet-engine/encoding/biff-dbcs-tables";
 import { Binary, invalidBiff } from "./biff-binary.js";
-import { biffDecode } from "./biff-strings.js";
 import { biffPropertyFields, biffPropertyFormats, readBiffProperties } from "./biff-properties.js";
 import { propertyRange, readPropertySectionRanges, readPropertyValueRanges, type BiffPropertyRange } from "./biff-property-range.js";
 
@@ -188,33 +186,7 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     }
   }
 
-  // Reverse the same tables as the importer; no transliteration or escape fallback.
-  const encodings = new Map<number, Map<string, number[]>>();
-  const encodeName = (name: string, cp: number): Uint8Array | undefined => {
-    accountText(name);
-    if (cp === 65001) return new TextEncoder().encode(name + "\0");
-    if (cp === 1200) {
-      const bytes = allocate((name.length + 1) * 2), view = new DataView(bytes.buffer);
-      for (let i = 0; i < name.length; i++) view.setUint16(i * 2, name.charCodeAt(i), true);
-      return bytes;
-    }
-    let reverse = encodings.get(cp);
-    if (!reverse) {
-      reverse = new Map(); encodings.set(cp, reverse);
-      const dbcs = biffDbcsTables[cp], table = dbcs?.single ?? singleByteTables[cp === 1201 ? "iso-8859-1" : cp === 10000 ? "macintosh" : cp >= 1250 && cp <= 1258 ? `windows-${cp}` : `cp${cp}`];
-      if (!table) return undefined;
-      for (let i = 0; i < table.length; i++) { charge(1); if (table[i] !== "\uffff" && !reverse.has(table[i]!)) reverse.set(table[i]!, [i]); }
-      if (dbcs) for (const [lead, row] of Object.entries(dbcs.double)) for (let trail = 0; trail < row.length; trail++) {
-        charge(1); if (row[trail] !== "\uffff" && !reverse.has(row[trail]!)) reverse.set(row[trail]!, [Number(lead), trail]);
-      }
-    }
-    const result: number[] = [];
-    for (const character of name + "\0") {
-      charge(1); const value = reverse.get(character); if (!value) return undefined;
-      result.push(...value); if (result.length > context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert BIFF property output bytes limit exceeded");
-    }
-    const bytes = Uint8Array.from(result); return biffDecode(bytes, cp) === name + "\0" ? bytes : undefined;
-  };
+  const encodeName = createBiffPropertyNameEncoder(context, charge, accountText);
   const warn = async (key: string, reason: string) => context.diagnostic?.({ code: "biff-loss-warning", severity: "warning",
     message: `Unsupported Excel BIFF document property: ${key} (${reason}; original property bytes retained)` });
   for (const property of [...pending.values()]) {
@@ -235,9 +207,22 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
       if (!text) { await warn(property.key, "name cannot be encoded in the original codepage"); continue; }
       id = 1; for (const key of values.keys()) id = Math.max(id, key); for (const entry of entries) id = Math.max(id, entry.id); id++;
       if (id > 0xffffffff) { await warn(property.key, "no free property ID"); continue; }
-      const length = 8 + text.length, bytes = allocate(cp === 1200 ? Math.ceil(length / 4) * 4 : length), view = new DataView(bytes.buffer);
-      view.setUint32(0, id, true); view.setUint32(4, text.length / (cp === 1200 ? 2 : 1), true); bytes.set(text, 8);
-      await writeDictionary(target, [...entries, { id, name: property.key, bytes: propertyRange(bytes, context) }]);
+      const size = 8 + text.length, length = cp === 1200 ? Math.ceil(size / 4) * 4 : size;
+      const entry = { length, *chunks() {
+        const header = new Uint8Array(8), view = new DataView(header.buffer);
+        view.setUint32(0, id, true); view.setUint32(4, text.length / (cp === 1200 ? 2 : 1), true); yield header;
+        yield* propertyChunks(text); if (length > size) yield new Uint8Array(length - size);
+      } };
+      let bytes: BiffPropertyRange;
+      if (staged) {
+        staged.reserve(length); const source = await stagePropertyBytes(entry, context); temporarySources.push(source);
+        bytes = propertyRange(source, context);
+      } else {
+        const data = allocate(length); let at = 0;
+        for (const part of entry.chunks()) { data.set(part, at); at += part.length; }
+        bytes = propertyRange(data, context);
+      }
+      await writeDictionary(target, [...entries, { id, name: property.key, bytes }]);
     } else if (values.has(id)) { await warn(property.key, "opaque property ID collision"); continue; }
     values.set(id, await wide(value, target));
   }

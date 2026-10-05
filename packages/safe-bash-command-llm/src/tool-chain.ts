@@ -15,8 +15,9 @@ export interface LlmToolChainOptions extends Omit<LlmToolExecutionOptions, "call
    * data and owns continuation state. Called only after all prior results have
    * been visited. Index is zero-based; use the supplied cancellation signal. */
   readonly openResponse: (index: number, signal: AbortSignal) => AsyncIterable<LlmStreamEvent>;
-  /** Borrow each result during this callback; consume/stage leases before returning. */
-  readonly visit: (result: LlmToolExecutionResult) => void | PromiseLike<void>;
+  /** Borrow each result during this callback; consume/stage leases before returning.
+   * Async visitors may overlap. Use the original call index for ordered staging. */
+  readonly visit: (result: LlmToolExecutionResult, index: number) => void | PromiseLike<void>;
   /** Pinned SDK default is 10 (the CLI uses 5). Zero/null disables this limit.
    * Use bigint for Python integers outside the JavaScript safe integer range. */
   readonly chainLimit?: number | bigint | null;
@@ -26,7 +27,7 @@ export interface LlmToolChainOptions extends Omit<LlmToolExecutionOptions, "call
   readonly maxToolOutputBytes?: number;
 }
 
-/** Serial pinned chain ordering without a retained response/conversation list.
+/** Pinned chain rounds without a retained response/conversation list.
  * The consumer observes response events before tool execution; returning early
  * aborts the current response and never executes its outstanding tools. */
 export async function* streamLlmToolChain(options: LlmToolChainOptions): AsyncGenerator<LlmStreamEvent> {
@@ -103,15 +104,21 @@ export async function* streamLlmToolChain(options: LlmToolChainOptions): AsyncGe
       if (chainLimit && index + 1 >= chainLimit) throw new Error(`Chain limit of ${chainLimit} exceeded.`);
       const calls = response.response.toolCalls ?? [];
       if (!calls.length) return;
+      let visited = false;
       await executeLlmToolCalls({
+        ...(options.async === undefined ? {} : {async: options.async}),
         tools: options.tools, calls, context: {...options.context, signal},
         maxOutputBytes: toolLimit - toolBytes,
         ...(options.beforeCall ? {beforeCall: options.beforeCall} : {})
-      }, result => options.visit({
-        ...result, output: counted(result.output),
-        attachments: result.attachments.map(attachment => attachment.source
-          ? {...attachment, source: counted(attachment.source)} : attachment)
-      }));
+      }, (result, callIndex) => {
+        visited = true;
+        return options.visit({
+          ...result, output: counted(result.output),
+          attachments: result.attachments.map(attachment => attachment.source
+            ? {...attachment, source: counted(attachment.source)} : attachment)
+        }, callIndex);
+      });
+      if (!visited) return;
     }
   } finally {
     controller.abort(new Error("LLM chain closed"));

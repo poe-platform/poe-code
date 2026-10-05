@@ -128,7 +128,17 @@ failure or cancellation, including sources returned after cancellation.
 `beforeCall` may throw `LlmCancelToolCall` to decline a call and continue. Missing
 tools and implementation failures become result errors; a declared tool without
 an implementation stops execution. The helper retains no conversation history.
-Parallel async execution and broader Python tool bridging remain incomplete.
+Pass `async: true` to the executor or chain and declare coroutine tools with
+`async: true` on their definitions to execute them concurrently. Unmarked tools,
+including functions returning promises, remain serial. In async mode the pinned
+reference omits missing tools and definitions without implementations. Visitors
+can overlap and receive `(result, callIndex)` in completion order; stage payloads
+in caller storage and use that index to assemble the next request in call order.
+The next chain response waits for every visitor. A visitor failure cancels sibling
+work and retires all returned source leases. Implementations must honor the
+supplied signal during acquisition. JavaScript and Python scheduling turns differ;
+per-call hooks retain their lifecycle order, not a shared global callback order.
+CLI async model selection and broader Python tool bridging remain incomplete.
 
 Use `streamLlmToolChain` to repeat requests and serial tool execution without
 giving the library ownership of conversation state:

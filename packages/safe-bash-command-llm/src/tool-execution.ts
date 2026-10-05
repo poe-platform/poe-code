@@ -1,5 +1,5 @@
 import type { CommandContext, FileSystem } from "safe-bash-contracts";
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { sourceBytes, waitForSource } from "./request-source.js";
 import { referenceJson } from "./reference-json.js";
 import { validateJsonData } from "./json-data.js";
@@ -25,6 +25,9 @@ export type LlmToolOutput = (
   | { readonly source: LlmInputSource; readonly output?: never }
 ) & { readonly attachments?: readonly LlmSourceAttachment[] };
 export interface LlmExecutableTool extends LlmTool {
+  /** Declared coroutine, eligible for concurrent execution in async mode.
+   * Promise-returning synchronous implementations leave this unset. */
+  readonly async?: boolean;
   readonly implementation?: (
     args: Readonly<Record<string, LlmOption>>,
     context: LlmToolContext
@@ -38,6 +41,8 @@ export interface LlmToolExecutionResult {
   readonly exception?: unknown;
 }
 export interface LlmToolExecutionOptions {
+  /** Pinned AsyncResponse semantics; default is serial Response execution. */
+  readonly async?: boolean;
   readonly tools: readonly LlmExecutableTool[];
   readonly calls: readonly LlmToolCall[];
   readonly context: Omit<LlmToolContext, "maxBytes">;
@@ -67,27 +72,31 @@ async function* outputBytes(output: LlmOption, signal: AbortSignal): AsyncIterab
   }
 }
 
-/** Execute serially using the pinned synchronous Response semantics. Each
- * result is borrowed only during visit; stage it in caller storage if needed
- * later. This function retains no conversation, response list or history. */
+/** Execute using pinned Response/AsyncResponse semantics. Each result is
+ * borrowed only during visit; stage it in caller storage if needed later. In
+ * async mode visitors may overlap and run in completion order; the second
+ * argument is the original call index for host-owned ordered staging. No
+ * result payloads, conversation, response list or history are retained. */
 export async function executeLlmToolCalls(
   options: LlmToolExecutionOptions,
-  visit: (result: LlmToolExecutionResult) => void | PromiseLike<void>
+  visit: (result: LlmToolExecutionResult, index: number) => void | PromiseLike<void>
 ): Promise<void> {
-  const { signal } = options.context,
-    limit = options.maxOutputBytes ?? Infinity;
+  const limit = options.maxOutputBytes ?? Infinity;
   if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0))
     throw new RangeError("Invalid tool output byte limit");
+  const controller = new AbortController();
+  const signal = options.async ? AbortSignal.any([options.context.signal, controller.signal]) : options.context.signal;
+  inheritYieldCheckpoint(options.context.signal, signal);
   const tools = new Map(options.tools.map((tool) => [tool.name, tool]));
   let size = 0;
   const context: LlmToolContext = {
     ...options.context,
+    signal,
     get maxBytes() {
       return limit - size;
     }
   };
-  for (const call of options.calls) {
-    await yieldTurn(signal);
+  const execute = async (call: LlmToolCall, index: number): Promise<void> => {
     const tool = tools.get(call.name);
     let closed = false,
       failed = false,
@@ -249,7 +258,7 @@ export async function executeLlmToolCalls(
               attachments,
               executed,
               ...(exception === undefined ? {} : { exception })
-            })
+            }, index)
           ),
         signal
       );
@@ -262,5 +271,27 @@ export async function executeLlmToolCalls(
         if (!failed && !signal.aborted) throw error;
       });
     }
-  }
+  };
+  const pending: Promise<void>[] = [];
+  let failure: unknown, failed = false;
+  const fail = (error: unknown): void => {
+    if (!failed) { failed = true; failure = error; controller.abort(error); }
+  };
+  try {
+    for (let index = 0; index < options.calls.length; index++) {
+      await yieldTurn(signal);
+      const call = options.calls[index]!;
+      const tool = tools.get(call.name);
+      // The pinned AsyncResponse omits these calls, including both hooks.
+      if (options.async && !tool?.implementation) continue;
+      if (options.async && tool?.async) {
+        // Observe rejection immediately: a sibling must never remain blocked
+        // on a source or visitor after the batch has already failed.
+        pending.push(execute(call, index).catch(fail));
+      } else await execute(call, index);
+    }
+  } catch (error) { fail(error); }
+  await Promise.all(pending);
+  if (failed) throw failure;
+  signal.throwIfAborted();
 }

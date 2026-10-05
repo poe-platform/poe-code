@@ -27,6 +27,8 @@ export function createLlmToolRegistry(
         throw new TypeError("Invalid LLM tool metadata");
     if (tool.implementation !== undefined && typeof tool.implementation !== "function")
       throw new TypeError("Invalid LLM tool implementation");
+    if (tool.async !== undefined && typeof tool.async !== "boolean")
+      throw new TypeError("Invalid LLM tool async declaration");
     validateJsonData(tool.inputSchema, "Tool schema must be finite JSON data");
     let name = tool.name,
       suffix = 0;

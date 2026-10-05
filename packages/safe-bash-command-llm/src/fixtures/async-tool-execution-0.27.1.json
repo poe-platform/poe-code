@@ -1,0 +1,190 @@
+[
+  {
+    "mode": "parallel",
+    "events": [
+      [
+        "before",
+        0
+      ],
+      [
+        "start",
+        0
+      ],
+      [
+        "before",
+        1
+      ],
+      [
+        "start",
+        1
+      ],
+      [
+        "end",
+        1
+      ],
+      [
+        "after",
+        1,
+        "done 1"
+      ],
+      [
+        "end",
+        0
+      ],
+      [
+        "after",
+        0,
+        "done 0"
+      ]
+    ],
+    "results": [
+      {
+        "id": "0",
+        "output": "done 0",
+        "exception": null
+      },
+      {
+        "id": "1",
+        "output": "done 1",
+        "exception": null
+      }
+    ]
+  },
+  {
+    "mode": "missing",
+    "events": [
+      [
+        "before",
+        1
+      ],
+      [
+        "start",
+        1
+      ],
+      [
+        "end",
+        1
+      ],
+      [
+        "after",
+        1,
+        "done 1"
+      ]
+    ],
+    "results": [
+      {
+        "id": "1",
+        "output": "done 1",
+        "exception": null
+      }
+    ]
+  },
+  {
+    "mode": "no_implementation",
+    "events": [],
+    "results": []
+  },
+  {
+    "mode": "duplicate",
+    "events": [
+      [
+        "before",
+        0
+      ],
+      [
+        "after",
+        0,
+        "last"
+      ],
+      [
+        "before",
+        1
+      ],
+      [
+        "after",
+        1,
+        "last"
+      ]
+    ],
+    "results": [
+      {
+        "id": "0",
+        "output": "last",
+        "exception": null
+      },
+      {
+        "id": "1",
+        "output": "last",
+        "exception": null
+      }
+    ]
+  },
+  {
+    "mode": "cancel",
+    "events": [
+      [
+        "before",
+        0
+      ],
+      [
+        "before",
+        1
+      ]
+    ],
+    "results": [
+      {
+        "id": "0",
+        "output": "Cancelled: declined",
+        "exception": "declined"
+      },
+      {
+        "id": "1",
+        "output": "Cancelled: declined",
+        "exception": "declined"
+      }
+    ]
+  },
+  {
+    "mode": "failure",
+    "events": [
+      [
+        "before",
+        0
+      ],
+      [
+        "start",
+        0
+      ],
+      [
+        "after",
+        0,
+        "Error: broken"
+      ],
+      [
+        "before",
+        1
+      ],
+      [
+        "start",
+        1
+      ],
+      [
+        "after",
+        1,
+        "Error: broken"
+      ]
+    ],
+    "results": [
+      {
+        "id": "0",
+        "output": "Error: broken",
+        "exception": "broken"
+      },
+      {
+        "id": "1",
+        "output": "Error: broken",
+        "exception": "broken"
+      }
+    ]
+  }
+]

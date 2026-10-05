@@ -92,3 +92,24 @@ it("keeps lookup path context local while preserving default backing across refe
     expect(options).not.toHaveProperty("arrayPathPrefix");
   } finally { await document.close(); await source.close(); expect(await fs.readdir("/scratch")).toEqual([]); }
 });
+
+it.each(["explicit", "default"])("honors %s caller-backed values when reading edited objects", async mode => {
+  const { PagedStorage } = await import("@poe-code/safe-fs/storage");
+  const { cosString, decodeStoredPdfString } = await import("../ast.js");
+  const { readPdfDictionaryValue } = await import("../content/stored-dictionary.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const storage = { fs, directory: "/scratch" }, store = new PdfMutableObjectStore(storage);
+  const signal = new AbortController().signal, backing = new PagedStorage({ fs, cwd: "/scratch", env: {}, signal }, 2);
+  const values = { dictionaryStorage: backing, arrayStorage: backing, stringStorage: backing, containerStorage: backing, deferDictionaryValues: true, storeRootDictionary: true, storeRootString: true };
+  const title = "large😀".repeat(8192), reference = await store.allocate(cosDict({ Title: cosString(title) }));
+  const document = await PdfRetainedDocument.openStore(store, storage, { rootRef: reference, ...(mode === "default" ? { valueArrays: values } : {}) });
+  try {
+    const object = await document.objects.get(reference.objectNumber, 0, mode === "explicit" ? values : undefined);
+    expect(object?.value.kind).toBe("dict"); if (object?.value.kind !== "dict") throw new Error("missing dictionary");
+    expect(object.value.entries).toEqual([]); expect(object.value.storedEntries?.length).toBe(1);
+    const value = await readPdfDictionaryValue(object.value, "Title", signal, { preserveDeferred: true });
+    if (value?.kind !== "string" || !value.storedBytes) throw new Error("missing stored title");
+    expect(value.bytes.length).toBe(0); let actual = ""; for await (const part of decodeStoredPdfString(value.storedBytes, signal)) actual += part;
+    expect(actual).toBe(title);
+  } finally { await document.close(); await store.close(); await backing.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

@@ -1,5 +1,5 @@
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { PdfMutableObjectStore, PdfNameIndex, PdfFileSource, createRetainedPageCopy, editRetainedDocument, cosArray, cosDict, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfRetainedDocument, type RetainedBookmark, type RetainedPageRotation } from "@poe-code/pdf-ast";
+import { PdfTextStore, PdfMutableObjectStore, PdfNameIndex, PdfFileSource, createRetainedPageCopy, editRetainedDocument, cosArray, cosDict, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfRetainedDocument, type RetainedBookmark, type RetainedPageRotation } from "@poe-code/pdf-ast";
 import { iteratePdftkRangeToken, type ExpandedPageSelection } from "./index.js";
 import { retainedUnpack } from "./retained-unpack.js";
 import type { PdftkArguments } from "./arguments.js";
@@ -11,6 +11,7 @@ type Storage = ConstructorParameters<typeof PdfMutableObjectStore>[0];
 export async function assembleRetainedPdftk(primary: PdfRetainedDocument, storage: Storage, options: PdftkArguments, counts: ReadonlyMap<Input, number>, handles: ReadonlyMap<string, Input>, open: (input: Input) => Promise<PdfRetainedDocument>, signal: AbortSignal): Promise<{ document: PdfRetainedDocument; close(): Promise<void> }> {
   const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const sourceBookmarks = new PdfMutableObjectStore(storage, { signal }), outputBookmarks = new PdfMutableObjectStore(storage, { signal }), rotations = new PdfMutableObjectStore(storage, { signal }), attachments = new PdfMutableObjectStore(storage, { signal });
+  const titles = new PdfTextStore(storage, { signal });
   const names = new PdfNameIndex(storage, Infinity, signal);
   const states = new Map<Input, { bookmarks: IntegerTable; resources: IntegerTable }>();
   const used = new Set<Input>(), rangeHandles = new Map([...handles].map(([handle, input]) => [handle, { pageCount: counts.get(input)! }]));
@@ -33,10 +34,10 @@ export async function assembleRetainedPdftk(primary: PdfRetainedDocument, storag
   async function state(input: Input, source: PdfRetainedDocument) {
     let result = states.get(input); if (result) return result;
     result = { bookmarks: new IntegerTable(backing, 64), resources: new IntegerTable(backing, 64) }; states.set(input, result);
-    for await (const bookmark of source.outlineDetails()) {
+    for await (const bookmark of source.streamOutlineDetails()) {
       await checkpoint();
       const key = BigInt(bookmark.pageIndex) * 2n, previous = await result.bookmarks.get(key + 1n);
-      const ref = await sourceBookmarks.allocate(cosDict({ Title: cosString(bookmark.title), Level: cosNumber(bookmark.level), Next: cosNumber(0) }));
+      const ref = await sourceBookmarks.allocate(cosDict({ Title: cosNumber(await titles.append(bookmark.title())), Level: cosNumber(bookmark.level), Next: cosNumber(0) }));
       if (previous) {
         const row = (await sourceBookmarks.get(Number(previous)))!;
         if (row.value.kind === "dict") { dictSet(row.value, "Next", cosNumber(ref.objectNumber)); await sourceBookmarks.set(row); }
@@ -66,8 +67,9 @@ export async function assembleRetainedPdftk(primary: PdfRetainedDocument, storag
   async function* bookmarkEdits(): AsyncGenerator<RetainedBookmark> {
     for await (const object of outputBookmarks.objects()) {
       await checkpoint(); const value = object.value;
-      if (value.kind !== "array" || value.items[0]?.kind !== "string" || value.items[1]?.kind !== "number" || value.items[2]?.kind !== "number") throw new Error("Invalid output bookmark");
-      yield { title: decodePdfString(value.items[0]), level: value.items[1].value, pageNumber: value.items[2].value };
+      if (value.kind !== "array" || value.items[0]?.kind !== "number" || value.items[1]?.kind !== "number" || value.items[2]?.kind !== "number") throw new Error("Invalid output bookmark");
+      const title = value.items[0].value;
+      yield { title: () => titles.text(title), level: value.items[1].value, pageNumber: value.items[2].value };
     }
   }
   async function* rotationEdits(): AsyncGenerator<RetainedPageRotation> {
@@ -103,7 +105,7 @@ export async function assembleRetainedPdftk(primary: PdfRetainedDocument, storag
     return { document: result.document, async close() { const results = await Promise.allSettled([result.close(), pages.close()]); for (const outcome of results) if (outcome.status === "rejected") throw outcome.reason; } };
   } catch (error) { failed = true; await Promise.allSettled([edited?.close(), copy?.close()]); throw error; }
   finally {
-    const results = await Promise.allSettled([current?.close(), sourceBookmarks.close(), outputBookmarks.close(), rotations.close(), attachments.close(), names.close(), backing.close()]);
+    const results = await Promise.allSettled([current?.close(), sourceBookmarks.close(), outputBookmarks.close(), rotations.close(), attachments.close(), names.close(), backing.close(), titles.close()]);
     if (!failed) for (const outcome of results) if (outcome.status === "rejected") { await Promise.allSettled([edited?.close(), copy?.close()]); await Promise.reject(outcome.reason); }
   }
 }

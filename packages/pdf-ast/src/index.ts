@@ -1,3 +1,4 @@
+export { PdfTextStore } from "./cos/text-store.js";
 export { streamHtmlPageText, type PdfHtmlPageTextOptions } from "./extract/html-text-stream.js";
 export type { PdfRetainedPageLabel } from "./extract/retained-page-labels.js";
 export { renderRetainedPagePixels, type PdfRetainedPixelOptions, type PdfRetainedPixels } from "./render/retained-page-pixels.js";

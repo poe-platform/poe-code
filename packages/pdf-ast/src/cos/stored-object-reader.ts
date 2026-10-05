@@ -30,11 +30,11 @@ export async function openStoredPdfObjectReader(store: PdfMutableObjectStore, st
     if (!Number.isSafeInteger(number) || number < 0 || !Number.isSafeInteger(generation) || generation < 0) throw new RangeError("Invalid PDF object identity");
   }
   const reader: PdfOpenedObjectReader["reader"] = {
-    async get(number, generation = 0) {
+    async get(number, generation = 0, arrays = options.valueArrays ?? {}) {
       check();
       validateIdentity(number, generation);
       if (number === 0) return undefined;
-      const object = await store.get(number); check();
+      const object = await store.get(number, arrays); check();
       if (!object || object.generationNumber !== generation) return undefined;
       return { objectNumber: number, generationNumber: generation, value: object.value, ...(object.stream?.decoded ? { decoded: true } : {}), span: { start: 0, end: 0 },
         ...(object.stream ? { stream: { start: 0, end: object.stream.length } } : {}) };

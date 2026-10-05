@@ -1,3 +1,4 @@
+import type { ValueArrayStorage } from "./value-parser.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosRef, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { PdfError } from "../errors.js";
@@ -156,20 +157,20 @@ export class PdfMutableObjectStore {
     await this.backing.write(recordAt, record); this.signal.throwIfAborted();
     await this.index.set(BigInt(number), BigInt(recordAt)); this.highest = Math.max(this.highest, number);
   }
-  get(number: number): Promise<PdfRetainedOutputObject | undefined> {
+  get(number: number, arrays: ValueArrayStorage = {}): Promise<PdfRetainedOutputObject | undefined> {
     return this.operation(async () => {
       if (!Number.isSafeInteger(number) || number < 1) throw new RangeError("Invalid PDF object number");
-      const at = await this.index.get(BigInt(number)); return at === undefined || at === DELETED_OBJECT ? undefined : this.load(number, Number(at));
+      const at = await this.index.get(BigInt(number)); return at === undefined || at === DELETED_OBJECT ? undefined : this.load(number, Number(at), arrays);
     });
   }
-  private async load(number: number, at: number): Promise<PdfRetainedOutputObject> {
+  private async load(number: number, at: number, arrays: ValueArrayStorage = {}): Promise<PdfRetainedOutputObject> {
     const bytes = await this.backing.read(at, 64), record = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     const generation = record.getFloat64(0), valueAt = record.getFloat64(8), valueLength = record.getFloat64(16), streamAt = record.getFloat64(24), length = record.getFloat64(32), hasStream = record.getFloat64(40);
     const backing = this.backing, signal = this.signal;
     const source = { size: valueLength, chunkBytes: 16384, read: async (position: number, count: number, callerSignal?: AbortSignal) => {
       signal.throwIfAborted(); callerSignal?.throwIfAborted(); return backing.read(valueAt + position, Math.min(count, valueLength - position));
     } };
-    const parsed = await parseCosRangeValue(source, 0, { ...this.options, signal });
+    const parsed = await parseCosRangeValue(source, 0, { ...arrays, ...this.options, signal });
     if (!parsed.value) throw new PdfError("E_PARSE", "Missing mutable PDF value");
     const object = { objectNumber: number, generationNumber: generation, value: restoreStringFormats(parsed.value) };
     const stream = hasStream ? this.streamSnapshot(at, streamAt, length, hasStream) : undefined;

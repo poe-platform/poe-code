@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, PdfFileSource, PdfRetainedDocument, cosStream, cosArray, cosDict, cosName, cosString, cosNumber, cosHexString, dictGet, dictSet, dictDelete } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
@@ -109,4 +109,19 @@ it.each([16, 32])("copies %i repeated payloads with bounded backing and slow out
   try { let pages = 0; for await (const ignored of document.pages()) { void ignored; pages++; } expect(pages).toBe(count); }
   finally { await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it.each(["cat", "shuffle"])("streams long bookmark titles during %s", async operation => {
+  const doc = PdfDocument.create(); doc.addPage(); doc.addPage();
+  const title = "café😀<&".repeat(2048);
+  const root = cosDict({ First: cosDict({ Title: cosString(title), Dest: cosArray([doc.getPage(0).ref, cosName("Fit")]), First: cosDict({ Title: cosString("child"), Dest: cosArray([doc.getPage(1).ref, cosName("Fit")]) }) }) });
+  dictSet(doc.cos.resolveDict(doc.cos.rootRef)!, "Outlines", root);
+  const input = doc.save(), args = ["in.pdf", operation, "1-end", "1", "output", "out.pdf"], files = new Map([["in.pdf", input]]);
+  const expected = await runPdftkCli(args, files), fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
+  const carrier = createCommandArguments(args), spy = vi.spyOn(PdfRetainedDocument.prototype, "outlineDetails").mockImplementation(() => { throw new Error("collected outline titles forbidden"); });
+  try {
+    const result = await createPdftkCommand().execute({ command: "pdftk", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} } });
+    expect(result.exitCode).toBe(expected.exitCode); expect(await fs.readFile("/out.pdf")).toEqual(files.get("out.pdf"));
+    expect(await fs.readdir("/scratch")).toEqual([]);
+  } finally { spy.mockRestore(); }
 });

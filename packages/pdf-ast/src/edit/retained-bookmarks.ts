@@ -1,11 +1,13 @@
+import { PdfTextStore } from "../cos/text-store.js";
+import { serializeCosNodeChunks } from "../cos/writer.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictSet, type PdfCosRef } from "../ast.js";
-import type { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
+import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
 
 export interface RetainedBookmark {
-  readonly title: string;
+  readonly title: string | (() => AsyncIterable<string>);
   /** One-based hierarchy depth; jumps descend through the last child only. */
   readonly level: number;
   /** One-based destination, clamped to the document's page range. */
@@ -19,6 +21,7 @@ export async function setRetainedBookmarks(store: PdfMutableObjectStore, storage
   const catalog = await store.get(root.objectNumber);
   if (catalog?.value.kind !== "dict") return;
   const frames = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
+  const titles = new PdfTextStore(storage, { signal }), records = new PdfMutableObjectStore(storage, { signal });
   const base = frames.allocate(0); let depth = 0, capacity = 0, failed = false, work = 0;
   type Frame = { number: number; last: number; count: number };
   async function write(index: number, frame: Frame) {
@@ -51,8 +54,10 @@ export async function setRetainedBookmarks(store: PdfMutableObjectStore, storage
       const frame = await read(depth - 1), parent = (await store.get(frame.number))!;
       if (parent.value.kind !== "dict") throw new PdfError("E_PARSE", "Expected outline parent dictionary");
       const page = await pageReference(Math.max(0, Math.min(pageCount - 1, bookmark.pageNumber - 1)));
-      const value = cosDict({ Title: cosString(bookmark.title), Parent: cosRef(frame.number), Dest: cosArray([page, cosName("XYZ"), { kind: "null" }, { kind: "null" }, { kind: "null" }]) });
+      const title = await titles.append(typeof bookmark.title === "string" ? bookmark.title : bookmark.title());
+      const value = cosDict({ Title: cosString(""), Parent: cosRef(frame.number), Dest: cosArray([page, cosName("XYZ"), { kind: "null" }, { kind: "null" }, { kind: "null" }]) });
       const item = await store.allocate(value);
+      await records.allocate(cosArray([cosNumber(item.objectNumber), cosNumber(title)]));
       if (frame.last) {
         const previous = (await store.get(frame.last))!;
         if (previous.value.kind !== "dict") throw new PdfError("E_PARSE", "Expected outline sibling dictionary");
@@ -62,6 +67,26 @@ export async function setRetainedBookmarks(store: PdfMutableObjectStore, storage
       dictSet(parent.value, "Last", item); dictSet(parent.value, "Count", cosNumber(++frame.count)); await store.set(parent);
       frame.last = item.objectNumber; await write(depth - 1, frame);
     }
+    // Link only small dictionaries. Restore title payloads after all parent and
+    // sibling edits, so updating links never parses an already-written title.
+    for await (const record of records.objects()) {
+      if (record.value.kind !== "array" || record.value.items[0]?.kind !== "number" || record.value.items[1]?.kind !== "number") throw new PdfError("E_PARSE", "Invalid bookmark title record");
+      const number = record.value.items[0].value, title = record.value.items[1].value, object = (await store.get(number))!;
+      if (object.value.kind !== "dict") throw new PdfError("E_PARSE", "Invalid bookmark dictionary");
+      const entries = object.value.entries;
+      async function* chunks() {
+        const encoder = new TextEncoder(); yield encoder.encode("<<\n");
+        for (const entry of entries) {
+          signal.throwIfAborted(); yield* serializeCosNodeChunks(entry.key, { signal }); yield encoder.encode(" ");
+          if (entry.key.decoded === "Title") yield* titles.serialized(title);
+          else yield* serializeCosNodeChunks(entry.value, { signal });
+          yield encoder.encode("\n");
+        }
+        yield encoder.encode(">>");
+      }
+      let length = 0; for await (const bytes of chunks()) length += bytes.length;
+      await store.setSerializedValue({ objectNumber: number, generationNumber: object.generationNumber, body: { length, chunks: chunks() } });
+    }
   } catch (error) { failed = true; throw error; }
-  finally { await frames.close().catch(error => { if (!failed) throw error; }); }
+  finally { const results = await Promise.allSettled([frames.close(), titles.close(), records.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

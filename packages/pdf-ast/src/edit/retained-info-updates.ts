@@ -1,5 +1,6 @@
+import { PdfTextStore } from "../cos/text-store.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosArray, cosDict, cosHexString, cosName, cosNumber, cosString, decodePdfString, dictSet, type PdfCosArray, type PdfCosRef } from "../ast.js";
+import { cosArray, cosDict, cosHexString, cosName, cosNumber, cosString, dictSet, type PdfCosArray, type PdfCosRef } from "../ast.js";
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import type { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
@@ -18,6 +19,7 @@ export type RetainedInfoUpdate =
 export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, store: PdfMutableObjectStore, storage: PdfIndexStorage, count: number, getPage: (index: number) => Promise<PdfRetainedPage>, updates: Iterable<RetainedInfoUpdate> | AsyncIterable<RetainedInfoUpdate>, signal: AbortSignal, maxDepth?: number): Promise<{ infoRef: PdfCosRef | undefined; idArray: PdfCosArray | undefined }> {
   const pages = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const base = pages.allocate(count * 4 * 48), heads = [-1, -1, -1, -1], tails = [-1, -1, -1, -1];
+  const titles = new PdfTextStore(storage, { signal });
   const labels = new PdfMutableObjectStore(storage, { signal }), bookmarks = new PdfMutableObjectStore(storage, { signal });
   let infoRef = document.crossReference.infoRef, idArray = document.crossReference.idArray, labelCount = 0, work = 0, failed = false;
   const rootRef = document.crossReference.rootRef;
@@ -63,7 +65,7 @@ export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, st
         if (update.prefix) dictSet(value, "P", cosString(update.prefix));
         if (update.style) dictSet(value, "S", cosName(update.style));
         await labels.allocate(cosArray([cosNumber(update.index), value])); labelCount++;
-      } else await bookmarks.allocate(cosArray([cosString(update.title), cosNumber(update.level), cosNumber(update.pageNumber)]));
+      } else await bookmarks.allocate(cosArray([cosNumber(await titles.append(typeof update.title === "string" ? update.title : update.title())), cosNumber(update.level), cosNumber(update.pageNumber)]));
     }
     for (let group = 0; group < 4; group++) for (let index = heads[group]!; index >= 0;) {
       await checkpoint();
@@ -95,12 +97,13 @@ export async function applyRetainedInfoUpdates(document: PdfRetainedDocument, st
     async function* outlineUpdates(): AsyncGenerator<RetainedBookmark> {
       for await (const object of bookmarks.objects()) {
         await checkpoint(); const value = object.value;
-        if (value.kind !== "array" || value.items[0]?.kind !== "string" || value.items[1]?.kind !== "number" || value.items[2]?.kind !== "number") throw new Error("Invalid bookmark record");
-        yield { title: decodePdfString(value.items[0]), level: value.items[1].value, pageNumber: value.items[2].value };
+        if (value.kind !== "array" || value.items[0]?.kind !== "number" || value.items[1]?.kind !== "number" || value.items[2]?.kind !== "number") throw new Error("Invalid bookmark record");
+        const title = value.items[0].value;
+        yield { title: () => titles.text(title), level: value.items[1].value, pageNumber: value.items[2].value };
       }
     }
     await setRetainedBookmarks(store, storage, rootRef, count, async index => (await getPage(index)).reference!, outlineUpdates(), signal, maxDepth);
     return { infoRef, idArray };
   } catch (error) { failed = true; throw error; }
-  finally { const results = await Promise.allSettled([pages.close(), labels.close(), bookmarks.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+  finally { const results = await Promise.allSettled([pages.close(), labels.close(), bookmarks.close(), titles.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

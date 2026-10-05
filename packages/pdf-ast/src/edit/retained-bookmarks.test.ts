@@ -101,3 +101,21 @@ it.each(["empty", "no-pages", "inline-page"])("preserves %s bookmark editing sem
   } finally { await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each(["bookmarks", "infoUpdates"])("accepts streamed titles through %s without changing hierarchy", async mode => {
+  const original = PdfDocument.create(); original.addPage();
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
+  const source = await PdfFileSource.open(fs, "/input"), storage = { fs, directory: "/scratch" }, document = await PdfRetainedDocument.open(source, storage);
+  const title = "café😀()".repeat(2048); let calls = 0;
+  async function* chunks() { calls++; for (let at = 0; at < title.length; at += 127) yield title.slice(at, at + 127); }
+  const bookmarks = [{ title: chunks, level: 1, pageNumber: 1 }, { title: "child", level: 2, pageNumber: 1 }, { title: "next", level: 1, pageNumber: 1 }];
+  try {
+    const edited = await editRetainedDocument(document, storage, mode === "bookmarks" ? { bookmarks } : { infoUpdates: bookmarks.map(bookmark => ({ kind: "bookmark" as const, ...bookmark })) });
+    try {
+      const actual = []; for await (const item of edited.document.outlineDetails()) actual.push(item);
+      expect(actual).toEqual([{ title, level: 1, pageIndex: 0 }, { title: "child", level: 2, pageIndex: 0 }, { title: "next", level: 1, pageIndex: 0 }]);
+      expect(calls).toBe(1);
+    } finally { await edited.close(); }
+  } finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

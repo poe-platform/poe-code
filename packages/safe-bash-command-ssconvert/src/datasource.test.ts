@@ -292,3 +292,37 @@ it.each(["cleanup", "abort"])("rejects %s while settling fed-value recalculation
   expect(evaluations).toBe(2);
   expect(closed).toBe(1);
 });
+
+it.each([false, true])("unlinks a skipped conditional tag (dependency-triggered: %s)", async (dependencyTriggered) => {
+  const { openDatasourceSession } = await import("./datasource.js");
+  let evaluations = 0, polls = 0;
+  const cleanups: (() => void | Promise<void>)[] = [];
+  const context = { ...config, signal: new AbortController().signal,
+    own(cleanup: () => void | Promise<void>) { cleanups.push(cleanup); },
+    runtimeFunctions: { COUNTED: { signature: "", implementation() { evaluations++; return { kind: "number" as const, value: 0 }; } } } };
+  const session = await openDatasourceSession({ async open() { return {
+    async poll() { return [encode(`stock:${++polls}\n`)]; }, close() {}
+  }; } }, context);
+  try {
+    const first = await session.poll({ sheets: [{ id: "s", name: "S", cells: [
+      { row: 0, column: 0, formula: "=1", value: { kind: "number", value: 1 } },
+      { row: 0, column: 1, formula: '=IF(A1,ATL_LAST("stock"),0)+COUNTED()', value: { kind: "blank" } },
+      { row: 0, column: 2, formula: "=B1+1", value: { kind: "blank" } }
+    ] }] });
+    const changed = { ...first, sheets: first.sheets.map(sheet => ({ ...sheet, cells: sheet.cells.map(cell =>
+      cell.column === 0 ? { ...cell, formula: "=0", formulaDirty: dependencyTriggered, value: { kind: "number" as const, value: 0 }, cachedResult: { kind: "number" as const, value: 0 } } : cell.column === 1 ? { ...cell, formulaDirty: !dependencyTriggered } : cell) })) };
+    const before = evaluations;
+    const unlinked = await session.poll(changed);
+    expect(unlinked.sheets[0]!.cells.map(cell => cell.value)).toEqual([
+      { kind: "number", value: 0 }, { kind: "number", value: 0 }, { kind: "number", value: 1 }
+    ]);
+    expect(evaluations).toBe(before + 1);
+    await session.poll(unlinked);
+    expect(evaluations).toBe(before + 1);
+    const restored = { ...unlinked, sheets: unlinked.sheets.map(sheet => ({ ...sheet, cells: sheet.cells.map(cell =>
+      cell.column === 0 ? { ...cell, formula: "=1", formulaDirty: true } : cell) })) };
+    const active = await session.poll(restored);
+    expect(active.sheets[0]!.cells[1]!.value).toEqual({ kind: "number", value: 4 });
+    expect(active.sheets[0]!.cells[2]!.value).toEqual({ kind: "number", value: 5 });
+  } finally { for (const cleanup of cleanups) await cleanup(); }
+});

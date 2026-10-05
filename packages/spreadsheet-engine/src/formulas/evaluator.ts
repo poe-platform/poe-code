@@ -23,7 +23,8 @@ import { gnumericGrammar, sylkGrammar } from "./conventions.js";
 /** A calculation run owns its indexes, traversal state and caches. No host I/O. */
 export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityContext, options: boolean | FormulaRecalculationOptions = false, onDiagnostic?: (diagnostic: Diagnostic) => void,
   cellEvaluation?: { readonly changed?: ParsePosition; readonly target: ParsePosition | readonly ParsePosition[] | null;
-    readonly tick?: () => void; readonly onCycle?: () => void }): Generator<void, Workbook> {
+    readonly tick?: () => void; readonly onCycle?: () => void },
+  onEvaluate?: (position: ParsePosition) => void): Generator<void, Workbook> {
   context.signal.throwIfAborted();
   const force = typeof options === "boolean" ? options : options.force;
   if (context.runtimeFunctions !== undefined) context = { ...context, runtimeFunctions: snapshotRuntimeFunctions(context.runtimeFunctions) };
@@ -503,7 +504,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         tick();
         const key = `${sheet.id}:${group?.id ?? ""}`;
         let value = group ? matrices.get(key) : undefined;
-        if (!value) { value = evaluate(node, position, Boolean(group)); if (group) matrices.set(key, value); }
+        if (!value) { onEvaluate?.(position); value = evaluate(node, position, Boolean(group)); if (group) matrices.set(key, value); }
         const output = group ? matrix(value) : undefined;
         const next = output ? output.rows[output.rows.length === 1 ? 0 : cell.row - position.row]?.[(output.rows[0]?.length ?? 0) === 1 ? 0 : cell.column - position.column] ?? error("#N/A") : scalar(value, position);
         const nonempty = next.kind === "blank" && (value.kind === "range" || !functionEmptyValues.has(next) && !functionEmptyValues.has(value)) ? numericResult(0) : next;

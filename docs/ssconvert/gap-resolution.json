@@ -4725,15 +4725,16 @@
       "status": "open",
       "currentFinding": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Complete remaining scheduling/watch lifecycle and installed/deployment profiles. See checkpoint20261004 for the next acceptance test and qualification blockers.",
       "checkpoint20261004": {
-        "qualified": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort.",
+        "qualified": "Initial/feed cancellation cleanup and native FIFO normal, late, partial and completed records match the qualified eight-value cohort. Session polling now unlinks old tags before actual formula evaluation, including conditional branches that no longer call ATL_LAST; direct/dependency-triggered deactivation and reactivation pass.",
         "evidence": [
-          "#/currentQualification20261002/datasourceRecalculationCleanup"
+          "#/currentQualification20261002/datasourceRecalculationCleanup",
+          "#/datasourceConditionalUnlink"
         ],
-        "nextAcceptance": "Vary FIFO read splitting, watcher mutation and feed/close timing; compare values, dependent recalculation, diagnostics and exactly-once cleanup through SDK/command.",
+        "nextAcceptance": "Qualify remaining native FIFO split-read, feed/close and rebinding schedules plus installed/deployment profiles; preserve the repaired conditional watcher lifecycle without repeating its unit/public controls.",
         "closureGate": "Complete remaining scheduling/watch lifecycle and installed/deployment profiles.",
         "qualificationBlockers": [],
         "remainingAcceptance": [
-          "FIFO split reads, watcher mutation, feed/close ordering and rebinding: values, dependent recalculation, diagnostics and exactly-once cleanup through SDK/command.",
+          "Remaining native FIFO split reads, watcher mutation, feed/close ordering and rebinding through SDK/command. Conditional deactivation/reactivation during session polling is repaired and verified; retain exact values, diagnostics and cleanup requirements.",
           "Remaining installed/deployment profiles; reuse the qualified eight-value normal/late/partial/completed record cohort."
         ]
       }
@@ -6675,5 +6676,16 @@
       "package-lock.json": "ef5c9bc4f3193fab83ae28cb8425eb489717833943650e929b9a16f3d2ee4829"
     },
     "limitations": "No runtime changes. Synthetic explicit host credentials do not qualify server authentication. Cooperative SQLite callback cancellation does not qualify blocked sockets. Installed artifacts predate current main; this proves their database lifecycle contract only. Remaining provider-specific types, non-SQLite profiles and native CLI limitations stay open."
+  },
+  "datasourceConditionalUnlink": {
+    "problem": "A watched IF(A1,ATL_LAST(\"stock\"),0)+COUNTED() changed to its inactive branch but retained the old tag. A feed in the same poll evaluated it a second time and later feeds kept dirtying it. Original in-memory test failed: evaluation count3 instead of2.",
+    "change": "Datasource polling supplies an internal formula-evaluation observer that removes prior subscriptions before each actual expression evaluation. Current ATL_LAST calls rebuild the active tags. Existing workbook-epoch rebinding remains for runtime-function consumers outside session.poll. Clean unrelated formulas are not scheduled.",
+    "verification": "Two direct/dependency-triggered conditional controls cover unlinking, downstream value1, ignored old-tag feeds and reactivation values4/5.78 focused datasource/formula tests and1083 engine tests pass; final50datasource tests, source/test types, changed-file ESLint and selected20-workspace build pass. Compiled session reproducer passes; four SDK/command conversions across whole/byte-split input preserve CSV1,2,3,23,24, empty diagnostics and exactly-once closure. Terminal screenshot inspected.",
+    "limits": "This repairs session.poll evaluation lifecycle; it does not establish all external-evaluator, native FIFO scheduling, deployment or installed-artifact profiles. Other database providers remain unavailable in the current native inventory (only SQLite). Broader family gates remain open.",
+    "evidence": "Retained datasource-conditional-current/public.mjs, input.gnumeric, results.json, build.log, tests.log and command.png.",
+    "hashes": {
+      "public.mjs": "ae394734692fdde2b261593c46c9378f1f23dd6895aafb3ac3ed3c27df65dc04",
+      "results.json": "c98f61cbcbe5490e7c9b5be8584e23ee75d05174224bd21bd110896e0448edd3"
+    }
   }
 }

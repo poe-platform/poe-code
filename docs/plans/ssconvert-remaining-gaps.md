@@ -151,7 +151,7 @@ delivered root/scoped fixture separation `61baed7701`.
 | PY_PRINTF | 1. Address-bearing RangeRef/sheet representation semantics, remaining coercion and diagnostic cases; compare structure rather than unstable addresses. 2. Remaining API/runtime and installed consumers; classify native crashes and XLSX control-character loss separately from formatting. |
 | PY_CAPWORDS | 1. Current installed root/scoped SDK/command selected-version casing/context, typed-error and namespace contracts using retained Unicode cohorts. 2. Remaining optional-runtime and diagnostic profiles; preserve portable malformed-input refusal where native UTF-8 probes crash. |
 | Database functions | 1. Explicit in-memory SQLite in-flight cancellation, read-only transactions, provider credential admission and connection retirement are qualified. Extend only to remaining provider-specific lifecycle profiles; preserve original cancellation identity and zero publication. 2. Remaining provider-specific types and installed non-SQLite profiles; root/scoped SQLite lifecycle is qualified on Node22/24. Retain native CLI crash and classified GDA integer-inference/SQLite tiny-number profile differences as compatibility limitations. |
-| ATL_LAST | 1. FIFO split reads, watcher mutation, feed/close ordering and rebinding: values, dependent recalculation, diagnostics and exactly-once cleanup through SDK/command. 2. Remaining installed/deployment profiles; reuse the qualified eight-value normal/late/partial/completed record cohort. |
+| ATL_LAST | 1. Remaining native FIFO split reads, watcher mutation, feed/close ordering and rebinding through SDK/command. Conditional deactivation/reactivation during session polling is repaired and verified; retain exact values, diagnostics and cleanup requirements. 2. Remaining installed/deployment profiles; reuse the qualified eight-value normal/late/partial/completed record cohort. |
 | LN1P/log1p/acos | 1. Independent binary64 boundary/holdout inputs for LN1P/log1p/acos on declared runtimes, including signed zero, subnormals, poles, NaN/infinity and overflow; exact values and diagnostics through both routes. 2. Remaining runtime-library and installed profiles; distinguish rounding/profile differences from algorithm accuracy. |
 | Higher-q Bessel | 1. Current installed artifacts against retained native Bessel cohorts; independent uncovered fractional/near-integer and high-order boundaries. 2. Remaining domain/runtime profiles, warnings/errors and work ceilings; retain explained Darwin libm/FMA differences and all 3296 qualified matches per route. |
 | Format records | 1. Existing directional-service matrix: unqualified version/record transports, starting with rich-comment metadata/geometry and raw-NUL formula export, followed by independent edit/readback. 2. Remaining formula/name/style/encoding/metadata/merge/chart/object/link semantics and installed composition; explicit loss diagnostics for unsupported records, not opaque-preservation claims. |
@@ -248,6 +248,11 @@ qualified on Node22/SQLite3.51.2 and Node24/SQLite3.53.4
 eight in-query cancellations and retirement of40connections; strict public
 TypeScript consumers pass. Remaining database work is provider-specific types
 and non-SQLite profiles, with the native limitations preserved.
+
+ATL_LAST session polling now releases subscriptions when a recalculated
+conditional stops reading a tag (`datasourceConditionalUnlink`). Direct and
+dependency-triggered branch changes, reactivation and split-read public routes
+pass. Remaining native FIFO schedules and installed/deployment profiles stay open.
 
 ## 4. Interfaces and test plan
 

@@ -3,6 +3,7 @@ import type { Workbook } from "@poe-code/spreadsheet-ast";
 import { recalculateWithDiagnostics } from "./formulas/diagnostics.js";
 import { byteTextArg } from "./formulas/functions/common.js";
 import { numericResult } from "./formulas/values.js";
+import type { ParsePosition } from "./formulas/ast.js";
 import { datasourceNumber } from "./datasource-number.js";
 import { snapshotRuntimeFunctions, type RuntimeFunctions } from "./formulas/runtime-functions.js";
 
@@ -85,6 +86,19 @@ export async function openDatasourceSession(capability: DatasourceCapability, co
     }
     return values.has(key) ? numericResult(values.get(key)!) : { kind: "error", value: "#N/A" };
   } } });
+  // Unlink before every actual evaluation, even when its selected branch never
+  // calls ATL_LAST. Calls within that evaluation rebuild all active tag links.
+  const unlink = (position: ParsePosition) => {
+    const cell = JSON.stringify([position.sheet, position.row, position.column]);
+    for (const tag of observed.get(cell)?.tags ?? []) {
+      tick();
+      if (watchers.get(tag)?.delete(cell)) {
+        watcherCount--;
+        if (!watchers.get(tag)!.size) watchers.delete(tag);
+      }
+    }
+    observed.delete(cell);
+  };
   const calculationContext: CapabilityContext = { ...context, runtimeFunctions: { ...context.runtimeFunctions, ...runtimeFunctions } };
   return Object.freeze({ runtimeFunctions, async poll(book: Workbook) {
     tick();
@@ -106,7 +120,7 @@ export async function openDatasourceSession(capability: DatasourceCapability, co
         }
         observed.delete(cell);
       }
-      book = await recalculateWithDiagnostics(book, calculationContext, !linked);
+      book = await recalculateWithDiagnostics(book, calculationContext, !linked, unlink);
       tick();
       linked = true;
       if (!transport) return book;
@@ -157,7 +171,7 @@ export async function openDatasourceSession(capability: DatasourceCapability, co
         tick();
         return changed.has(JSON.stringify([sheet.id, cell.row, cell.column])) ? { ...cell, formulaDirty: true } : cell;
       }) })) };
-      const result = await recalculateWithDiagnostics(dirty, calculationContext);
+      const result = await recalculateWithDiagnostics(dirty, calculationContext, false, unlink);
       tick();
       return result;
     } finally { polling = false; }

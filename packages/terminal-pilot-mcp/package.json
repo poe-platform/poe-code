@@ -23,7 +23,8 @@
   },
   "files": [
     "LICENSE",
-    "dist"
+    "dist",
+    "assets"
   ],
   "engines": {
     "node": ">=18.18"

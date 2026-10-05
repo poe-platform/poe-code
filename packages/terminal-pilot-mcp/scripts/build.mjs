@@ -1,7 +1,10 @@
 import * as esbuild from "esbuild";
 import path from "node:path";
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import * as fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { copyTerminalPngAssets } from "../../terminal-pilot/scripts/build-assets.mjs";
+
+const { readdir, readFile, writeFile } = fs;
 
 const packageDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const rootDir = path.resolve(packageDir, "../..");
@@ -101,6 +104,12 @@ await esbuild.build({
   external,
   loader: { ".md": "text" },
 });
+
+await copyTerminalPngAssets(
+  fs,
+  path.join(rootDir, "packages", "terminal-png", "assets"),
+  path.join(packageDir, "assets")
+);
 
 const cliPath = path.join(distDir, "cli.js");
 const cliContents = await readFile(cliPath, "utf8");

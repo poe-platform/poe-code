@@ -130,10 +130,13 @@ for (const failure of ["messageerror", "match"] as const) test(`public ignore ${
   await backing.writeFile("/work/alpha.ts", Buffer.from("hit\n"));
   await backing.mkdir("/work/nested");
   await backing.writeFile("/work/nested/beta.ts", Buffer.from("hit\n"));
-  const listings: string[] = [];
+  const listings: { path: string; afterRequest: boolean }[] = [];
   const fs = new Proxy(backing, {
     get(target, property) {
-      if (property === "readdir") return (...args: Parameters<FileSystem["readdir"]>) => { listings.push(args[0]); return target.readdir(...args); };
+      if (property === "readdir") return (...args: Parameters<FileSystem["readdir"]>) => {
+        listings.push({ path: args[0], afterRequest: workers.some(worker => worker.requests.length > 0) });
+        return target.readdir(...args);
+      };
       const value: unknown = Reflect.get(target, property);
       return typeof value === "function" ? value.bind(target) : value;
     },
@@ -145,7 +148,12 @@ for (const failure of ["messageerror", "match"] as const) test(`public ignore ${
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, failure === "match" ? "alpha.ts\nnested/beta.ts\n" : "");
     assert.match(result.stderr, failure === "match" ? /invalid glob/u : /regex PROTOCOL/u);
-    assert.deepEqual(listings, failure === "match" ? ["/work", "/work/nested"] : []);
+    // Directory entries discover ignore files before the request. A fatal
+    // transport failure must still prevent every subsequent directory listing.
+    assert.deepEqual(listings, [
+      { path: "/work", afterRequest: false },
+      ...(failure === "match" ? [{ path: "/work/nested", afterRequest: true }] : []),
+    ]);
     clean();
   } finally { await shell.dispose(); }
 });

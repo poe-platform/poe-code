@@ -59,7 +59,7 @@ Import CSV/TSV, JSON or JSONL using `llm embed-multi documents data.csv --format
 remaining values form the text. Duplicate headers and object keys retain their first position
 and last value. `--prefix`, `--prepend`, and `--batch-size` customize imports.
 Each provider-sized batch commits independently, so earlier batches survive a
-later failure. File imports validate once before importing. JSON documents stage completely before
+later failure. File imports validate once before importing. JSON string payloads use separate caller backing and do not count against the index `maxFileBytes` limit. JSON documents stage completely before
 embedding; JSONL accepts a UTF-8 BOM on each physical line and skips blank byte-whitespace lines, preserving earlier committed
 batches when a later line fails.
 SDK callers can use `withCsvEmbeddingEntries(options, bytes, async entries =>

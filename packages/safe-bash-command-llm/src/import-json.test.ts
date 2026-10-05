@@ -67,3 +67,17 @@ test('nested raw-surrogate IDs use Python repr without merging code points',asyn
  });
  assert.deepEqual(await fs.readdir('/'),[]);
 });
+
+test('JSON payloads larger than the index file limit stream through caller storage',async()=>{
+ const fs=new MemoryFileSystem();let count=0;
+ await withJsonEmbeddingEntries({fs,directory:'/',signal,maxFileBytes:1048576,maxOpenFiles:8},{async *[Symbol.asyncIterator](){
+  yield new TextEncoder().encode('[{"id":1e0,"body":"');
+  const chunk=new Uint8Array(4096).fill(120);for(let index=0;index<1024;index++)yield chunk;
+  yield new TextEncoder().encode('"}]');
+ }},async entries=>{for await(const entry of entries){
+  assert.equal(entry.id,'1.0');
+  for await(const bytes of entry.input.bytes){assert.ok(bytes.length<=24576);assert.ok(bytes.every(byte=>byte===120));count+=bytes.length;}
+  await entry.input.dispose();
+ }});
+ assert.equal(count,4194304);assert.deepEqual(await fs.readdir('/'),[]);
+});

@@ -53,6 +53,7 @@ test('paged JSON indexing preserves insertion order through spills, collisions a
 for(const outcome of ['abort','callback','malformed','limit'] as const)test('paged JSON staging retires storage after '+outcome,async()=>{
  const fs=new MemoryFileSystem(),controller=new AbortController(),failure=new Error(outcome);let entered=false,retired=false;
  const input={async *[Symbol.asyncIterator](){try{
+  if(outcome==='limit'){yield new TextEncoder().encode('['+'null,'.repeat(1024)+'null]');return;}
   yield new TextEncoder().encode('["');
   for(let index=0;index<24;index++)yield new Uint8Array(2048).fill(120);
   if(outcome==='abort')controller.abort(failure);

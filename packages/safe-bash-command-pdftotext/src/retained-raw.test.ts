@@ -1,7 +1,7 @@
 import { FsError } from "safe-bash-contracts/errors";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { PdfDocument, cosDict, cosName, cosString, cosArray, cosNumber, dictSet, dictGet } from "@poe-code/pdf-ast";
+import { PdfDocument, PdfRetainedDocument, cosDict, cosName, cosString, cosArray, cosNumber, dictSet, dictGet } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createPdftotextCommand, runPdftotextCli } from "./index.js";
@@ -233,4 +233,15 @@ for(const flags of [['-tsv'],['-layout','-tsv'],['-tsv','-htmlmeta','-eol','dos'
  const input=pdf(),args=[...flags,'input.pdf','-'],expected=await runPdftotextCli(args,new Map([['input.pdf',input]])),f=await fixture(input,args);
  assert.equal((await createPdftotextCommand().execute(f.context)).exitCode,expected.exitCode);assert.deepEqual(joined(f.stdout),encoded(expected.output,flags.includes('UCS-2')?'UCS-2':'UTF-8'));assert.equal(new TextDecoder().decode(joined(f.stderr)),expected.stderr);
  assert.deepEqual(f.counts(),{wholeReads:0,payloadWrites:0,published:0});await f.clean();
+});
+
+for (const mode of ["-htmlmeta", "-bbox", "-bbox-layout"]) test(`streams metadata without collecting info for ${mode}`, async (t) => {
+  const doc = PdfDocument.create(); doc.addPage().drawText("kept", { x: 20, y: 100, size: 12 });
+  doc.setMetadata({ title: "<&😀".repeat(4096), author: "", subject: "&subject".repeat(2048), creator: "creator", producer: "producer" });
+  const input = doc.save(), args = [mode, "input.pdf", "-"];
+  const expected = await runPdftotextCli(args, new Map([["input.pdf", input]]));
+  const f = await fixture(input, args);
+  t.mock.method(PdfRetainedDocument.prototype, "info", async () => { throw new Error("metadata collection forbidden"); });
+  assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
+  assert.equal(new TextDecoder().decode(joined(f.stdout)), expected.output); await f.clean();
 });

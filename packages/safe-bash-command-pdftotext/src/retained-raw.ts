@@ -99,7 +99,7 @@ export async function executeRetainedText(context: CommandContext, plan: RawText
     if (first > pageCount || first > last) return await error(`Command Line Error: Wrong page range given: the first page (${first}) can not be after the last page (${last}).\n`, 99);
     const retained = document; let emptyPageWarning = false;
     async function* text() {
-      if (plan.bbox) yield* streamTextHtmlStart(await retained.info(), "doc");
+      if (plan.bbox) yield* streamTextHtmlStart(key => retained.streamInfoValue(key), "doc");
       else if (plan.tsv) yield encoder.encode("level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n");
       for await (const page of retained.pages()) {
         await yieldTurn(signal);
@@ -147,7 +147,7 @@ export async function executeRetainedText(context: CommandContext, plan: RawText
       if (plan.bbox) yield encoder.encode("</doc>\n</body>\n</html>\n");
     }
     const formatted = plan.htmlmeta && !plan.bbox
-      ? streamTextHtml(encodePopplerChunks(text(), "UTF-8", plan.tsv ? "unix" : plan.eol), await document.info()) : text();
+      ? streamTextHtml(encodePopplerChunks(text(), "UTF-8", plan.tsv ? "unix" : plan.eol), key => retained.streamInfoValue(key)) : text();
     result = await PdfFileSource.fromStream(storage.fs, directory, encodePopplerChunks(formatted, plan.encoding, plan.htmlmeta || plan.tsv || plan.bbox ? "unix" : plan.eol), { signal });
     if (warning || emptyPageWarning) await writeBytes(context.stderr, encoder.encode(warning + (emptyPageWarning ? "no word list\n" : "")), signal);
     if (outputPath === "-") {

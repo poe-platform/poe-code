@@ -97,9 +97,10 @@ export class SolverProgram {
     const columns: number[][] = [];
     for (let i = 0; i < n; i++) {
       const lo = this.lower[i]!, hi = this.upper[i]!, start = origin[i]!;
-      const end = lo === hi ? start : this.model.domains[i] !== 'continuous' && hi - lo === 1 ? hi : start + 1 <= hi ? start + 1 : start - 1 >= hi ? start - 1 : start !== hi ? (start + hi) / 2 : (start + lo) / 2;
+      const end = lo === hi ? start : this.model.domains[i] !== 'continuous' && hi - lo === 1 ? hi : start + 1 <= hi ? start + 1 : start - 1 >= lo ? start - 1 : start !== hi ? (start + hi) / 2 : (start + lo) / 2;
       const dx = end - start;
-      if (!(dx > 0)) { columns.push(addresses.map(() => 0)); continue; }
+      // A finite backward probe carries the same affine slope as a forward probe.
+      if (dx === 0) { columns.push(addresses.map(() => 0)); continue; }
       const coords = [...origin]; coords[i] = end;
       const evaluated = yield* this.applySteps(coords);
       if (this.budget.shouldYield()) yield;

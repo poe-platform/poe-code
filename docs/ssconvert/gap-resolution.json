@@ -4882,9 +4882,10 @@
       "status": "open",
       "currentFinding": "Qualified linear/nonlinear models and reports match native CSV effects. Report diagnostics, independent solver factories, wider sensitivity/nonlinear/analysis behavior and layout remain open.",
       "checkpoint20261004": {
-        "qualified": "Qualified linear/nonlinear models and report CSV effects have retained native comparisons. Degenerate continuous-LP sensitivity now uses a dual-feasible active basis. Independent lp_solve confirms the bounded model; both public profiles and objective directions preserve correct optima/report intervals with shared work and cancellation.",
+        "qualified": "Qualified linear/nonlinear models and report CSV effects have retained native comparisons. Degenerate continuous-LP sensitivity now uses a dual-feasible active basis. Independent lp_solve confirms the bounded model; both public profiles and objective directions preserve correct optima/report intervals with shared work and cancellation. Negative upper-bound affine probing retains backward slopes, including fractional and integer domains; independent lp_solve and compiled public routes verify the optimum.",
         "evidence": [
-          "#/solverDegenerateSensitivity"
+          "#/solverDegenerateSensitivity",
+          "#/solverNegativeUpperBounds"
         ],
         "nextAcceptance": "Continue independent solver/report and nonlinear boundary profiles beyond the verified degenerate dual-basis repair. Preserve basis-dependent GLPK limits and native reversed minimization intervals as classified differences, not exact parity.",
         "closureGate": "Complete remaining solver/analysis numerical, report and layout profiles with independent native evidence.",
@@ -6932,5 +6933,12 @@
     "independent": "Unmodified lp_solve -S4 confirms x=1,y=0, objective1 and coefficient limits x:[1,infinity],y:[-infinity,1]. Native Gnumeric max/min XLSX agree on original model and program report values; lpsolve profile has its expected Optimal versus GLPK Feasible status. Native GLPK chooses a different valid basis, yielding two different variable-limit cells per report. Its min report additionally shows six reversed RHS-limit cells [1,0], while product keeps [0,1]. These are recorded differences, not native parity.",
     "fixtureCorrection": "Initial minimal SheetNameIndex created an empty active native S1 sheet, causing Invalid solver target. Removing that incorrect index and using established Solver-before-Cells/absolute inputs yielded successful native models. All final public/native outputs use the corrected fixture.",
     "remaining": "Other sensitivity bases, numerical/layout/nonlinear/analysis and installed-artifact profiles remain open. Native report source gnm-solver.c1895-1940 resets cidx per constraint; glpk/gnm-glpk.c425-441 copies human-report low/high fields. No reference binary/source changes."
+  },
+  "solverNegativeUpperBounds": {
+    "finding": "Four failing-before regressions show backward linearization discards objective and constraint slopes for variables with negative upper bounds and no finite lower bound. GLPK reports failure; lpsolve returns zero, violating the constraint.",
+    "implementation": "Compare backward probes against the lower bound and retain nonzero negative finite-difference steps. Existing finite-affine validation, cooperative evaluation and resource accounting remain active.",
+    "verification": "132 solver tests in 14 files pass, including fractional and integer bounds. Changed-file lint, engine source and command test types and selected workspace build pass. Four compiled GLPK/lpsolve SDK/command XLSX conversions give x=-1 and 3*x+2=-1, with only the existing Solver-record export warning.",
+    "independent": "Unmodified lp_solve with x+y<=-1, y=0 and free x confirms x=-1, objective 3*x=-3. Its free declaration overwrites an earlier simple bound, so the independent control uses a row constraint. Native Gnumeric GLPK reports Solver ran, but failed for the direct-bound fixture; this repair is mathematically verified, not native-result parity.",
+    "remaining": "Other independent solver/report, nonlinear, analysis and installed profiles remain open."
   }
 }

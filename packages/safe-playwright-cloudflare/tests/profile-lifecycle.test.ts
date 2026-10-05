@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { encodeBrowserProfile, parseBrowserProfile, restoreBrowserProfile } from '../../safe-bash/src/playwright/profile.js';
+import { checkpointBrowserProfile, encodeBrowserProfile, parseBrowserProfile, restoreBrowserProfile } from '../../safe-bash/src/playwright/profile.js';
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from '../../safe-bash/src/playwright/adapter.js';
 
 const limits = { maxBytes: 4096, maxTabs: 2 };
@@ -14,7 +14,7 @@ test('profile serialization roundtrips and enforces host byte and tab limits', (
 
 function fixture() {
   const navigations: string[] = [];
-  const pages = profile.tabs.map(() => ({ goto: vi.fn(async (url: string) => { navigations.push(url); }) }) as unknown as PlaywrightPage);
+  const pages = profile.tabs.map(() => ({ url: () => 'about:blank', goto: vi.fn(async (url: string) => { navigations.push(url); }) }) as unknown as PlaywrightPage);
   let index = 0;
   const lease = { context: { pages: () => pages.slice(0, index), newPage: vi.fn(async () => pages[index++]!) }, release: vi.fn(async () => {}) } as unknown as PlaywrightLease;
   const adapter = { acquire: vi.fn(async () => lease) } as unknown as PlaywrightAdapter;
@@ -43,16 +43,25 @@ test('failed allocation retires the lease and preserves cleanup errors', async (
   expect(f.lease.release).toHaveBeenCalledOnce();
 });
 
-test('provider profile state is restored before any saved tab navigation', async () => {
+test('provider profile state is restored while saved tab navigation remains deferred', async () => {
   const f = fixture();
   const state = { provider: 'qualified-provider', settings: { timeout: 1234 } };
   const restore = vi.fn(async () => { expect(f.navigations).toEqual([]); });
-  Object.assign(f.lease.context, { browserProfile: { restore } });
+  Object.assign(f.lease.context, {
+    browserProfile: { restore, capture: async () => state },
+    storageState: async () => profile.state,
+  });
   const signal = new AbortController().signal;
   const restored = await restoreBrowserProfile({ adapter: f.adapter, profile: { ...profile, runtimeState: state }, limits, name: 'host-owned', signal, tabRestoration: 'navigate' });
   await restored.initialize!({ signal });
   expect(restore).toHaveBeenCalledWith(state, signal);
-  expect(f.navigations).toEqual(profile.tabs);
+  expect(f.navigations).toEqual([]);
+  const checkpoint = parseBrowserProfile(await checkpointBrowserProfile({
+    name: 'host-owned', context: f.lease.context, selectedPage: restored.selectedPage,
+  }, limits, signal), limits);
+  expect(checkpoint.tabs).toEqual(profile.tabs);
+  expect(checkpoint.selected).toBe(profile.selected);
+  expect(checkpoint.runtimeState).toEqual(state);
 });
 
 test('unsupported provider settings fail restoration before navigation', async () => {

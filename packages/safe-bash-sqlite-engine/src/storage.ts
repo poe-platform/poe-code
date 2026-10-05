@@ -8,3 +8,5 @@ export {sqliteRecord, type SqliteRecordValue} from './sqlite-record.js';
 export {readSqliteRecord} from './sqlite-record-read.js';
 export type {SqliteEditSnapshot} from './sqlite-edit-snapshot.js';
 export type {SqliteFinalizer} from './sqlite-finalization.js';
+
+export {withSqliteReadSession} from './sqlite-read-session.js';

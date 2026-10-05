@@ -2,8 +2,7 @@ import { FsError, toByteSource, type FileReadHandle, type FileStat, type FileSys
 import { acquireSqliteSources } from './sqlite-sources.js';
 import { createPrivateSqliteStorage } from './sqlite-private.js';
 import { withPrivateSqliteSession, type PrivateSqliteSession } from './sqlite-session.js';
-import { createSqliteWalSnapshot } from './sqlite-wal.js';
-import { writeSqliteFile } from './file-io.js';
+import { copySqliteSnapshot } from './sqlite-copy-snapshot.js';
 import { finalizeSqlite, type SqliteFinalizer } from './sqlite-finalization.js';
 import { publishSqliteSnapshot } from './sqlite-publication.js';
 
@@ -38,48 +37,7 @@ export async function transactSqlite<T>(options: {
     const storage = await createPrivateSqliteStorage({ fs, directory, signal, maxFiles: options.maxOpenFiles });
     cleanups.push(() => storage.close());
     const privatePath = `${storage.directory}/database`;
-    const copy = async (source: FileReadHandle, target: string): Promise<void> => {
-      const stat = await source.stat({ signal });
-      if (!Number.isSafeInteger(stat.size) || stat.size < 0 || stat.size > maxFileBytes) throw new FsError('EFBIG', { path: target });
-      const file = await storage.fs.open!(target, { access: 'readwrite', creation: 'exclusive', signal });
-      try {
-        for (let position = 0; position < stat.size;) {
-          const bytes = await source.read(position, Math.min(16384, stat.size - position), { signal });
-          if (!bytes.length || bytes.length > Math.min(16384, stat.size - position)) throw new FsError('EIO', { path: target });
-          await writeSqliteFile(file, bytes, position, signal);
-          position += bytes.length;
-        }
-      } finally { await file.close(); }
-    };
-    let snapshot = sources.database?.file;
-    if (snapshot && sources.wal?.stat.size) {
-      const index = await storage.fs.open!(`${storage.directory}/index`, { access: 'readwrite', creation: 'exclusive', signal });
-      cleanups.push(() => index.close());
-      snapshot = await createSqliteWalSnapshot(snapshot, sources.wal.file, index, { signal, maxIndexBytes: options.maxIndexBytes });
-      const overlay = snapshot;
-      cleanups.push(() => overlay.close());
-    }
-    if (!snapshot && (sources.wal?.stat.size || sources.journal?.stat.size)) throw new FsError('EIO', { path, message: 'SQLite sidecar has no database' });
-    let walMode = false;
-    if (snapshot) {
-      await copy(snapshot, privatePath);
-      const file = await storage.fs.open!(privatePath, { access: 'readwrite', creation: 'never', signal });
-      try {
-        const header = new Uint8Array(20);
-        let count = 0;
-        while (count < header.length) {
-          const read = await file.read(header.subarray(count), count, { signal });
-          if (!read) break;
-          count += read;
-        }
-        walMode = count === 20 && header[18] === 2 && header[19] === 2;
-        if (walMode) await writeSqliteFile(file, new Uint8Array([1, 1]), 18, signal);
-      } finally { await file.close(); }
-    }
-    if (sources.journal?.stat.size) {
-      if (walMode) throw new FsError('EIO', { path, message: 'SQLite WAL database has a rollback journal' });
-      await copy(sources.journal.file, `${privatePath}-journal`);
-    }
+    const {walMode}=await copySqliteSnapshot({...options,sources,storage,path:privatePath});
     value = await withPrivateSqliteSession({ ...options, fs: storage.fs, directory: storage.directory, path: privatePath }, async session => {
       await session.execute('BEGIN IMMEDIATE');
       const result = await operation(session);

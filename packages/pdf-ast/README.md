@@ -996,7 +996,11 @@ ordered relative edits accumulate without collecting the selection.
 
 `editRetainedDocument(document, storage, options)` applies ordered rotations and
 information/metadata/structure/form/label removals to a caller-backed editable
-graph. Pass `infoUpdates` as an iterable or async iterable of `RetainedInfoUpdate`
+graph. Pass `formUpdates` as an iterable or async iterable of `{ name, value }`
+records to fill fields in order, including checkbox states, choices, inherited
+text styling and generated appearances. Field traversal and appearance output use
+caller storage; each individual field value and COS container remains resident.
+Pass `infoUpdates` as an iterable or async iterable of `RetainedInfoUpdate`
 records to edit Info strings, trailer ID members, page geometry, page labels and
 bookmarks. Info changes apply in order; page properties retain their last value
 and first-seen page order, then apply rotation, dimensions, media and crop boxes.

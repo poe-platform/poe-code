@@ -1,5 +1,5 @@
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosArray, cosBool, cosDict, cosName, cosNumber, decodePdfString, dictGet, dictSet, type PdfCosNode, type PdfCosRef } from "../ast.js";
+import { cosArray, cosBool, cosDict, cosName, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { appendStoredRecord, readStoredRecord } from "../content/stored-record.js";
 import type { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -10,14 +10,17 @@ import { parseDefaultAppearanceString } from "./default-appearance.js";
 import { serializeFormAppearanceChunks } from "./form-appearance-chunks.js";
 
 type Location = { reference: PdfCosRef; path: (string | number)[] };
-type Frame = { location: Location; named: boolean; ft: string; ff: number; q: number; maxLen?: number; depth: number } | { exit: number };
+type Frame = { location: Location; named: string; ft: string; ff: number; q: number; maxLen?: number; depth: number } | { exit: number };
+
+export interface RetainedFormUpdate { readonly name: string; readonly value: string | boolean }
 
 /** Field traversal and generated streams live on caller storage. Locations keep
  * direct fields attached to their indirect owner without retaining the tree. */
-export async function generateRetainedFormAppearances(document: PdfRetainedDocument, store: PdfMutableObjectStore, storage: PdfIndexStorage, signal: AbortSignal): Promise<void> {
+export async function generateRetainedFormAppearances(document: PdfRetainedDocument, store: PdfMutableObjectStore, storage: PdfIndexStorage, signal: AbortSignal, update?: RetainedFormUpdate): Promise<void> {
   if (!document.crossReference.rootRef) return;
   const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4), active = new IntegerTable(backing);
   let head = -1, failed = false, work = 0;
+  let matched = false;
   let defaultAppearance: PdfCosNode | undefined;
   async function checkpoint(depth = 0) {
     signal.throwIfAborted(); if (depth > document.depthLimit) throw new PdfError("E_LIMIT", "PDF form field depth limit exceeded");
@@ -85,11 +88,22 @@ export async function generateRetainedFormAppearances(document: PdfRetainedDocum
     return "Yes";
   }
   try {
-    const form = await locate(formLocation); if (form?.value.kind !== "dict") return;
+    let form = await locate(formLocation);
+    if (update && form?.value.kind !== "dict") {
+      const catalog = await locate(root); if (catalog?.value.kind !== "dict") return;
+      dictSet(catalog.value, "AcroForm", await store.allocate(cosDict({ Fields: cosArray([]), NeedAppearances: cosBool(true) })));
+      await store.set(catalog.owner); form = await locate(formLocation);
+    }
+    if (form?.value.kind !== "dict") return;
+    if (update) {
+      dictSet(form.value, "NeedAppearances", cosBool(true)); await store.set(form.owner);
+      const fields = await locate(child(form.location, "Fields"));
+      if (fields?.value.kind !== "array") { dictSet(form.value, "Fields", cosArray([])); await store.set(form.owner); }
+    }
     defaultAppearance = dictGet(form.value, "DA");
     const need = await resolve(dictGet(form.value, "NeedAppearances")), force = need?.kind === "boolean" && need.value;
     const fields = await locate(child(form.location, "Fields"));
-    if (fields?.value.kind === "array") for (let i = fields.value.items.length - 1; i >= 0; i--) { await checkpoint(); await push({ location: itemLocation(fields.location, i, fields.value.items[i]!), named: false, ft: "", ff: 0, q: 0, depth: 0 }); }
+    if (fields?.value.kind === "array") for (let i = fields.value.items.length - 1; i >= 0; i--) { await checkpoint(); await push({ location: itemLocation(fields.location, i, fields.value.items[i]!), named: "", ft: "", ff: 0, q: 0, depth: 0 }); }
     while (head !== -1) {
       const record = await readStoredRecord<{ frame: Frame; previous: number }>(backing, head, signal); head = record.value.previous; const frame = record.value.frame;
       if ("exit" in frame) { await active.set(BigInt(frame.exit), 0n); continue; }
@@ -100,7 +114,8 @@ export async function generateRetainedFormAppearances(document: PdfRetainedDocum
         await active.set(BigInt(id), 1n); await push({ exit: id });
       }
       const name = await resolve(dictGet(field.value, "T")), ft = await resolve(dictGet(field.value, "FT"));
-      const named = frame.named || (name?.kind === "name" ? !!name.decoded : name?.kind === "string" ? !!decodePdfString(name) : false);
+      const partial = name?.kind === "name" ? name.decoded : name?.kind === "string" ? decodePdfString(name) : "";
+      const named = update ? (frame.named && partial ? `${frame.named}.${partial}` : partial || frame.named) : (frame.named || partial ? "1" : "");
       const inherited = { ...frame, named, ft: ft?.kind === "name" ? ft.decoded : frame.ft, ff: await number(dictGet(field.value, "Ff"), frame.ff), q: await number(dictGet(field.value, "Q"), frame.q) };
       const maxLen = await resolve(dictGet(field.value, "MaxLen")); if (maxLen?.kind === "number") inherited.maxLen = maxLen.value;
       const kids = await locate(child(field.location, "Kids"));
@@ -113,6 +128,51 @@ export async function generateRetainedFormAppearances(document: PdfRetainedDocum
         }
       }
       if (!named) continue;
+      if (update) {
+        if (named !== update.name) continue;
+        matched = true;
+        const value = update.value;
+        if (typeof value === "boolean" || inherited.ft === "Btn") {
+          const on = await onValue(field.location);
+          const checked = typeof value === "boolean" ? value : value !== "Off" && value !== "false" && value !== "0" && value !== "";
+          const chosen = typeof value === "string" && value !== "true" && value !== "false" && value !== "Off" ? value : on;
+          const state = cosName(checked ? chosen : "Off");
+          dictSet(field.value, "FT", cosName("Btn")); dictSet(field.value, "V", state); dictSet(field.value, "AS", state); await store.set(field.owner);
+          if (kids?.value.kind === "array") for (let i = 0; i < kids.value.items.length; i++) {
+            await checkpoint(); const kid = await locate(itemLocation(kids.location, i, kids.value.items[i]!)); if (kid?.value.kind !== "dict") continue;
+            const normal = await locate(child(child(kid.location, "AP"), "N"));
+            const selected = normal?.value.kind === "dict" && normal.value.entries.length ? cosName(checked && dictGet(normal.value, chosen) !== undefined ? chosen : "Off") : state;
+            dictSet(kid.value, "AS", selected); await store.set(kid.owner);
+          }
+          continue;
+        }
+        if (!inherited.ft) dictSet(field.value, "FT", cosName("Tx"));
+        let text = String(value);
+        const multi = inherited.ft === "Ch" && !!(inherited.ff & (1 << 21)) && text.includes(",");
+        const selected = multi ? text.split(",").map(value => value.trim()).filter(Boolean) : [text];
+        dictSet(field.value, "V", multi ? cosArray(selected.map(value => cosString(value))) : cosString(text));
+        if (inherited.ft === "Ch") {
+          const choices = await resolve(dictGet(field.value, "Opt")), indices: number[] = [];
+          if (choices?.kind === "array") for (let i = 0; i < choices.items.length; i++) {
+            await checkpoint(); const option = await resolve(choices.items[i]);
+            let exported = "", label = "", valid = false;
+            if (option?.kind === "string") { exported = decodePdfString(option); label = exported; valid = true; }
+            else if (option?.kind === "array" && option.items.length >= 2) {
+              const first = await resolve(option.items[0]), second = await resolve(option.items[1]);
+              exported = first?.kind === "string" ? decodePdfString(first) : ""; label = second?.kind === "string" ? decodePdfString(second) : ""; valid = true;
+            }
+            if (valid && (selected.includes(exported) || selected.includes(label))) { indices.push(i); if (!multi) { if (label) text = label; break; } }
+          }
+          if (indices.length) dictSet(field.value, "I", cosArray(indices.map(value => cosNumber(value))));
+        }
+        await store.set(field.owner);
+        await synthesize(field.location, text, inherited);
+        if (kids?.value.kind === "array") for (let i = 0; i < kids.value.items.length; i++) {
+          await checkpoint(); const kid = await locate(itemLocation(kids.location, i, kids.value.items[i]!));
+          if (kid?.value.kind === "dict" && !dictGet(kid.value, "T")) await synthesize(kid.location, text, inherited);
+        }
+        continue;
+      }
       const value = await resolve(dictGet(field.value, "V")); if (!value) continue;
       const appearance = await resolve(dictGet(field.value, "AP")), hasNormal = appearance?.kind === "dict" && dictGet(appearance, "N") !== undefined;
       if (!force && hasNormal) continue;
@@ -142,8 +202,16 @@ export async function generateRetainedFormAppearances(document: PdfRetainedDocum
         if (kid?.value.kind === "dict" && !dictGet(kid.value, "T")) await synthesize(kid.location, text, inherited);
       }
     }
+    if (update && !matched) {
+      const fields = await locate(child(formLocation, "Fields"));
+      if (fields?.value.kind === "array") {
+        const value = update.value;
+        const field = typeof value === "boolean" ? cosDict({ FT: cosName("Btn"), T: cosString(update.name), V: cosName(value ? "Yes" : "Off"), AS: cosName(value ? "Yes" : "Off") }) : cosDict({ FT: cosName("Tx"), T: cosString(update.name), V: cosString(value) });
+        fields.value.items.push(await store.allocate(field)); await store.set(fields.owner);
+      }
+    }
     const latest = await locate(formLocation);
-    if (latest?.value.kind === "dict") { dictSet(latest.value, "NeedAppearances", cosBool(false)); await store.set(latest.owner); }
+    if (latest?.value.kind === "dict") { dictSet(latest.value, "NeedAppearances", cosBool(!!update)); await store.set(latest.owner); }
   } catch (error) { failed = true; throw error; }
   finally { await backing.close().catch(error => { if (!failed) throw error; }); }
 }

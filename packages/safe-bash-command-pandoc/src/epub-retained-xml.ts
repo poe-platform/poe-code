@@ -36,7 +36,10 @@ export async function openEpubXml(source: Source, part: string, context: Adapter
     releaseSource = context.onClose?.(closeSource);
     iterator = Symbol.asyncIterator in source ? source[Symbol.asyncIterator]() : source[Symbol.iterator]();
     context.checkpoint();
-    context.charge("retainedBytes", cache * 2 + 8192);
+    // XML parts are processed serially. A single page per XML store avoids
+    // reserving the caller's entire general cache twice for every small part.
+    const xmlCacheBytes = 16384;
+    context.charge("retainedBytes", xmlCacheBytes * 2 + 8192);
     const owned = (async function* () {
       const decoder = new TextDecoder("utf-8", {fatal: true}), encoder = new TextEncoder();
       const decode = (bytes?: Uint8Array) => {
@@ -61,7 +64,7 @@ export async function openEpubXml(source: Source, part: string, context: Adapter
       } catch (reason) {inputFailure = {reason}; throw reason;}
       finally {await closeSource().catch(reason => {if (!inputFailure) {inputFailure = {reason}; throw reason;}});}
     })();
-    opening = openRetainedXmlDocument(owned, {workingStorage: working, signal});
+    opening = openRetainedXmlDocument(owned, {workingStorage: {...working, cacheBytes: xmlCacheBytes}, signal});
     document = await opening;
     releaseSource?.(); releaseSource = undefined;
     const units = async (source: AsyncIterable<Uint8Array>) => {let count = 0, window = 0; for await (const character of characters(source)) {count += character.length; window += character.length; if (window >= 4096) {window = 0; await context.cooperate();}} return count;};

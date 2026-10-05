@@ -1,3 +1,4 @@
+import {readRetainedEpubDocument} from "./retained-epub-document.js";
 import {readRetainedMediawiki} from "./retained-mediawiki.js";
 import {readRetainedRtfDocument} from "./retained-rtf-document.js";
 import {RetainedOptions} from "./retained-options.js";
@@ -629,11 +630,11 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const retainedLimits = Object.entries(context.limits ?? {}).every(([key, value]) => [
     "inputBytes", "outputBytes", "work", "diagnostics", "fonts", "includes", "images", "binaryBytes", "layoutWork",
     "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text",
-    // These format-specific budgets have no consumers in the retained format pairs.
+    // EPUB consumes XML budgets; the other format-specific budgets are inert for these pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
-  ].includes(key) || value === Infinity || (key === "references" || key === "retainedBytes") && (inputs.length === 0 || ["json", "rtf", "csv", "tsv", "mediawiki"].includes(reader.descriptor.name)) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
+  ].includes(key) || value === Infinity || (key === "references" || key === "retainedBytes") && (inputs.length === 0 || ["json", "rtf", "csv", "tsv", "mediawiki", "epub"].includes(reader.descriptor.name)) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
   const backedDocument = context.workingFiles && !context.reader && !context.writer && (inputs.length === 1 || inputs.length > 1 && reader.descriptor.name === "mediawiki")
-    && ["json", "rtf", "mediawiki"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
+    && (["json", "rtf", "mediawiki"].includes(reader.descriptor.name) || reader.descriptor.name === "epub" && writer.descriptor.name === "plain") && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && retainedLimits;
   if (backedDocument) {
@@ -649,6 +650,21 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
           reading = true;
           if (reader.descriptor.name === "json") {const retained = await readRetainedJson(inputs[0]!, session, context.workingFiles!, true, true, () => {readerStarted = true;}); reading = false; return retained;}
           if (reader.descriptor.name === "mediawiki") {const retained = await readRetainedMediawiki(inputs, session, context.workingFiles!, options.fileScope, index => {readerStarted = index >= 0; readerInput = index;}); reading = false; return retained;}
+          if (reader.descriptor.name === "epub") {
+            const input = inputs[0]!;
+            session.sourceLocations = input.source ? [{source: input.source, line: 1, ...(input.base === undefined ? {} : {base: input.base})}] : [];
+            session.inputBase = input.base;
+            try {
+              const retained = await readRetainedEpubDocument(input, session, context.workingFiles!);
+              reading = false; return {...retained.document, resources: retained.resources, closeResources: retained.close};
+            } catch (error) {
+              if (error instanceof PandocError && input.source && error.code !== "E_CANCELLED" && error.code !== "E_IO")
+                throw new PandocError(error.code, "convert", error.message, error.format, session.sourceLocation(error.location));
+              if (error instanceof PandocError && input.base && error.code === "E_PARSE")
+                throw new PandocError(error.code, "convert", error.message, error.format, `${input.base}:${error.location ?? "1:1"}`);
+              throw error;
+            } finally {session.sourceLocations = []; session.inputBase = undefined;}
+          }
           const retained = await readRetainedRtfDocument(inputs[0]!, session, context.workingFiles!, () => {readerStarted = true;});
           reading = false; return {...retained.document, resources: retained.resources, closeResources: retained.close};
         }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));

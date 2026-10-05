@@ -16,6 +16,10 @@ export class RetainedEpubNotes {
     this.referenced = new BackedTextSet(storage, ast.text);
   }
   async add(key: string, blocks: RtfValue): Promise<void> {await this.definitions.set(key, blocks.position);}
+  async reference(key: string): Promise<void> {await this.referenced.add(key);}
+  async validate(): Promise<void> {
+    for await (const key of this.referenced) if (await this.definitions.get(key) === undefined) epubFailure(this.ctx, key, "Missing EPUB note target");
+  }
   private async text(value: RtfValue): Promise<string> {
     let text = "";
     for await (const chunk of this.ast.text.chunks(await this.ast.range(value))) text += chunk;

@@ -693,7 +693,7 @@ admission in `engine.ts`; a retained default pair is not complete option coverag
 | HTML | `html.ts`, parse5 tree and mapper arrays | Retained HTML recovery tree and retained Pandoc mapping |
 | RST | `rst.ts`, source lines, definitions, jobs, notes and tables | Retained parsing/resolution including includes and substitutions |
 | LaTeX | `latex.ts`, syntax/expansion state and AST | Retained macro expansion and mapping with existing diagnostics |
-| EPUB | `epub.ts`, remaining XML/XHTML/NCX trees, chapter/note ASTs and media bag | Retained book assembly through public output conversion |
+| EPUB | `epub-retained-book.ts` still materializes URI/manifest control values; other output pairs use `epub.ts` trees and ASTs | Qualify public plain output, remove remaining control-value materialization, and connect every output pair |
 | DOCX | `docx.ts`, imported document/AST conversion | Stream package resources and retain imported document and Pandoc nodes |
 | ODT | `odt.ts`, package bytes, XML/styles and AST | Retained package/XML/style resolution and mapping |
 | PPTX | `pptx.ts`, presentation selection/text/format/note/image results | Retained presentation traversal and mapping |
@@ -708,39 +708,29 @@ coverage with each completed reader, options, resources and real filters.
 current retained admission lists; do not certify their execution from default-pair
 checks. Runtime coordination retains Lua/IDNA/citeproc ownership separately.
 
-The internal retained XHTML mapper now stores its normalized tree, traversal
-worklists, text, table occupancy and Pandoc values in caller pages. Differential
-unit tests cover block/inline semantics, namespaces, language, tables, long text,
-limits and cleanup. It is not yet connected to `epub.ts` or retained engine
-admission: the existing public EPUB route still builds resident chapter trees.
-Malformed namespace diagnostics retain the existing whole-string message API;
-measure that diagnostic minimum separately. This mapper is a building block,
-not an EPUB or deployed Worker qualification boundary.
+The retained EPUB book owner now connects XML acquisition, XHTML mapping,
+metadata/navigation, scoped anchors, independent note expansion and replayable
+archive media to the public EPUB-to-plain output route. XML part caches
+retire serially; chapter trees, metadata maps and note worklists use caller pages.
+The public regression forbids the buffered XML parser and whole-file reads,
+poisons reused input chunks, and exercises a slow sink, cancellation, sink failure
+and finite reference/retained-byte budgets. Differential book tests compare spine,
+metadata, navigation/NCX, notes, media, diagnostics and malformed input behavior.
 
-The EPUB retained XML acquisition boundary is also available internally. It
-owns source factories/iterators, maps UTF-8 and backing errors, enrolls late
-acquisitions in retirement, and accounts for prolog/epilog text through the
-shared backed node traversal. Unit checks compare XML node/attribute/text totals
-with the existing parser and exercise reused buffers, long values and live
-scratch-handle cleanup. Before public admission, complete document-tree budget
-and diagnostic precedence parity, book metadata/navigation, cross-chapter notes,
-resources and final retained serialization. These acquisition tests do not prove
-end-to-end EPUB boundedness or a deployed memory plateau.
+This is not complete EPUB qualification. Other EPUB output pairs still use the
+buffered route. URI/manifest control values and some diagnostic strings still
+cross whole-string interfaces; budget/diagnostic precedence needs broader
+comparison, and deployed memory/CPU/concurrency measurements remain required.
+The local workerd fixture now rejects resident XML for both public SDK and command
+conversions and includes an external note; its transfer/cleanup evidence does not
+replace deployed measurements or prove every option/filter combination.
 
-Retained book mutation and note assembly are now available internally: metadata
-maps, independent text/node copies, caller-backed traversal continuations, note
-cycle membership, provenance and anchor pruning. Unit checks cover repeated and
-nested references, missing/recursive targets, finite budgets and long type tokens.
-These operations are not yet wired into the public EPUB reader. The saved public
-cross-chapter output regression must pass before claiming an integrated path.
-URI control strings remain a separately tracked memory boundary.
-
-The next complete path is EPUB to plain output, then the same retained book to
-JSON and the other retained writers. Its implementation must remove the XHTML
-DOM and chapter/note AST materialization, retain cross-chapter identity resolution,
-stream media resources and preserve XML budgets/errors before routing public
-`convertToOutput` to it. Use the existing retained XML owner and retained Pandoc
-node storage; do not introduce another whole-document serialization boundary.
+The next qualification path completes EPUB-to-plain control-value and XML
+budget/error parity, then connects the same retained book to JSON and the other
+retained writers. Preserve document language/direction sidecars, resource identity
+and filter behavior when adding those output pairs. Keep XHTML, chapter/note trees
+and intermediate serialization in caller storage; do not introduce another
+whole-document serialization boundary.
 The next Worker measurement must include generated multi-chapter books, increasing
 chapter text, notes, tables and embedded images, finite budgets, a slow sink and
 concurrent requests. Record peak isolate memory, CPU, first-byte time and R2 I/O

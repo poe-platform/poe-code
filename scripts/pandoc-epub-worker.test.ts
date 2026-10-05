@@ -93,7 +93,7 @@ it.each([16385, 262145])("rejects a %i-byte EPUB mimetype without a whole-member
   } finally {await runtime.dispose();}
 }, 60000);
 
-it.each(["sdk", "command"])("retains EPUB manifest XML, records, anchors and fallback membership and resolves long chapter URIs through the public %s in workerd", async mode => {
+it.each(["sdk", "command"])("retains EPUB XML, chapter/note ASTs, manifest records and fallback membership and resolves long chapter URIs through the public %s in workerd", async mode => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -118,6 +118,9 @@ it.each(["sdk", "command"])("retains EPUB manifest XML, records, anchors and fal
       files['chapter.xhtml'] = files['chapter.xhtml'].replace('</body>', Array.from({length: 96}, (_, i) => '<span id="anchor-' + i + '"></span>').join('') + '</body>');
       const fallbacks = Array.from({length: 96}, (_, index) => '<item id="fallback-id-' + index + '" href="unused-' + index + '.bin" media-type="application/octet-stream" fallback="' + (index < 95 ? 'fallback-id-' + (index + 1) : 'chapter') + '"/>').join('');
       files['package.opf'] = files['package.opf'].replace('<manifest>', '<manifest>' + fallbacks);
+      files['chapter.xhtml'] = files['chapter.xhtml'].replace('<html ', '<html xmlns:epub="http://www.idpf.org/2007/ops" ').replace('</body>', '<p><a epub:type="noteref" href="notes.xhtml#note">1</a></p></body>');
+      files['notes.xhtml'] = '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><body><aside id="note" epub:type="footnote"><p>External note.</p></aside></body></html>';
+      files['package.opf'] = files['package.opf'].replace('</manifest>', '<item id="notes" href="notes.xhtml" media-type="application/xhtml+xml"/></manifest>');
       const entries = [];
       for (const [name, value] of Object.entries(files)) entries.push(await zip.makeZipEntry(name, new TextEncoder().encode(value), {modified: new Date('1980-01-01T00:00:00Z'), mode: 0o100644, directory: false, symlink: false, compression: 'store'}, limits, signal));
       await env.PAGES.put('/input.epub', await zip.writeZipArchive({entries, comment: new Uint8Array()}, limits, signal));
@@ -129,7 +132,7 @@ it.each(["sdk", "command"])("retains EPUB manifest XML, records, anchors and fal
         const value = Reflect.get(target, key); return typeof value === 'function' ? value.bind(target) : value;
       }});
       const originalPush = Array.prototype.push;
-      Array.prototype.push = function(...values) {if (this.length >= 64 && values.some(value => value && typeof value === 'object' && value.name === 'item' && Array.isArray(value.children))) throw new Error('Resident manifest XML forbidden'); return originalPush.apply(this, values);};
+      Array.prototype.push = function(...values) {if (values.some(value => value && typeof value === 'object' && typeof value.name === 'string' && typeof value.uri === 'string' && Array.isArray(value.children))) throw new Error('Resident EPUB XML forbidden'); return originalPush.apply(this, values);};
       const originalMapSet = Map.prototype.set;
       Map.prototype.set = function(key, value) {if (value && typeof value === 'object' && typeof value.id === 'string' && value.id.startsWith('fallback-id-')) throw new Error('Resident manifest record forbidden'); return originalMapSet.call(this, key, value);};
       const originalAdd = Set.prototype.add;
@@ -152,8 +155,9 @@ it.each(["sdk", "command"])("retains EPUB manifest XML, records, anchors and fal
   try {
     const response = await runtime.dispatchFetch("https://epub.test/");
     expect(response.status, response.status === 200 ? undefined : await response.text()).toBe(200);
-    const result = await response.json() as {events: {opened: number; closed: number; largestTransfer: number}};
-    expect(result).toMatchObject({output: "Book.\n", errors: "", exitCode: 0, remaining: 0, namespace: []});
+    const result = await response.json() as {output: string; events: {opened: number; closed: number; largestTransfer: number}};
+    expect(result).toMatchObject({errors: "", exitCode: 0, remaining: 0, namespace: []});
+    expect(result.output).toContain("Book."); expect(result.output).toContain("External note.");
     if (mode === "sdk") expect(result.events.opened).toBeGreaterThan(0);
     expect(result.events.closed).toBe(result.events.opened); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
   } finally {await runtime.dispose();}

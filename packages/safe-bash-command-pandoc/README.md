@@ -322,8 +322,12 @@ EPUB reads also accept `workingFiles` through `readDocument` and `convert`.
 Streamed archives and expanded ZIP members use the bounded page cache and caller
 backing storage, including ZIP names, span validation and member locations;
 unused members are still CRC-checked. XML parts feed the parser incrementally.
-XML trees and tokens, images, publication metadata and the document AST remain
-materialized in memory.
+For `convertToOutput` from EPUB to plain text with `workingFiles`, XML trees,
+chapter/note ASTs, publication metadata and navigation use caller backing storage;
+media stays replayable from the archive. Cross-chapter notes, finite budgets and
+streamed JSON/Lua filters use that retained route. Individual URI/manifest control
+values still use strings. Other EPUB output pairs and the buffering convenience
+APIs still materialize document trees and resources.
 
 CSV/TSV also feeds the retained filter and writer pipeline, including multiple
 inputs, chained `applyJsonStream` filters, heading/comment transforms and standalone

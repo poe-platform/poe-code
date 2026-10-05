@@ -4768,21 +4768,24 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Algorithm A2 adds 82 exact native holdouts per public route; Algorithm A4 adds 142 native matches per route. The latest fractional-series repair matches all 912 original cases and all 264 boundary cases without work failures. Additional fractional/near-integer and baseline cohorts bring full native matches to 3296 per compiled SDK/command route. See besselFractionalSeries for current full-application evidence; broader profiles remain open. See currentQualification20261002.besselHighOrder.",
+      "currentFinding": "Registry-installed scoped0.1.815 matches all4256 retained native cases through SDK/command on Node22.22.2/26.10.0:17024 exact binary64/error values and992 exact retained warnings. This includes the3296 earlier cases and960 later fractional holdouts. Root17.0.41 first912-case SDK attempt had no completed result after120seconds and was terminated; it is unqualified and predates the bounded fractional-series fix. Remaining root publication, domain/runtime and work-ceiling requirements stay open.",
       "checkpoint20261004": {
-        "qualified": "High-order, transition and fractional-series repairs eliminate prior work exhaustion; 3296 native matches per public route are retained.",
+        "qualified": "High-order, transition and fractional-series repairs eliminate prior work exhaustion; 3296 native matches per public route are retained. The later960 positive/negative fractional holdouts are retained. Registry scoped0.1.815 qualifies all4256 retained cases on Node22/26 with exact values/formula identities/warnings and native PATH absent.",
         "evidence": [
           "#/reference/besselPhaseBoundary",
           "#/currentQualification20261002/besselFractionalSeries",
-          "#/currentQualification20261002/besselHighOrder"
+          "#/currentQualification20261002/besselHighOrder",
+          "#/reference/besselFractionalHoldouts20261003",
+          "#/besselRegistryProfiles"
         ],
-        "nextAcceptance": "Qualify current installed artifacts against the retained native cohorts, then test independent uncovered fractional/near-integer and high-order boundaries.",
+        "nextAcceptance": "Verify a root publication containing bounded Bessel repairs; continue independently uncovered domain/runtime/work-ceiling gates without repeating the qualified4256 retained scoped cases.",
         "closureGate": "Complete remaining domain/runtime and registry profiles while preserving source accuracy warnings.",
         "qualificationBlockers": [
-          "Darwin libm/FMA profile differences are explained in retained receipts; they do not establish exact Linux or universal numerical parity."
+          "Darwin libm/FMA profile differences are explained in retained receipts; they do not establish exact Linux or universal numerical parity.",
+          "Published root17.0.41 gitHead c8851094da60e42b6c29fbd9da88351ef4dba270 does not contain d0d1eac6e9. Its first912-case SDK conversion had no result at120seconds and was terminated with143; other root routes/cohorts were not run. This is not a root qualification pass."
         ],
         "remainingAcceptance": [
-          "Current installed artifacts against retained native Bessel cohorts; independent uncovered fractional/near-integer and high-order boundaries.",
+          "Root containing publication for bounded Bessel repairs; independent uncovered fractional/near-integer and high-order boundaries. Scoped0.1.815 retained4256-case registry cohort is qualified on Node22/26; preserve those receipts.",
           "Remaining domain/runtime profiles, warnings/errors and work ceilings; retain explained Darwin libm/FMA differences and all 3296 qualified matches per route."
         ]
       }
@@ -6894,5 +6897,12 @@
     "validation": "436 tests across40 owning/related files pass; final32 focused tests verify normalized A1 spellings and related comment behavior. Changed-file lint, package test types and selected20-workspace build pass. Four compiled SDK/command conversions and four print-flag edit exports/readbacks pass. Python zipfile/ElementTree checks all8 archives for exactly one expected PrintObject and preserved rectangle geometry. Public command screenshot inspected.",
     "nativeLimit": "Pinned Gnumeric1.12.61 xlsx-read-drawing.c:4155 registers PrintObject with GSF_XML_NO_CONTENT and no callbacks. Its reader does not independently qualify preservation; native rendering/printing remains open.",
     "remaining": "Other comment metadata, VML semantics, native rendering and containing installed artifacts remain open; no claim of full print-layout parity."
+  },
+  "besselRegistryProfiles": {
+    "packages": "Isolated registry install of poe-code17.0.41 and @poe-platform/safe-bash0.1.815, exact lockfile/integrity retained. Public subpaths resolve only within isolated node_modules. Native PATH absent.",
+    "cohorts": "Eight retained native cohorts:912 original,264 boundary,1112 fractional series,288 near-integer,514 integer,206 baseline,480 positive fractional holdouts and480 negative fractional holdouts. Total4256. Native runs reused; no completed native cohort restarted.",
+    "scopedValidation": "32 SDK/command conversions on Node22.22.2/26.10.0 produce17024 exact native binary64/error matches. Independent ZIP/XML extraction validates formula function/argument identity and exact cell counts before values. All992 warning observations exactly match retained diagnostics, including48 original and200 baseline warnings per route/runtime. No mismatches or conversion failures.",
+    "rootOutcome": "Root17.0.41 first912-case SDK conversion was still running at120seconds with96.4percent CPU and no completed result; isolated process terminated with143. No output captured and no root pass claimed. Other root routes/cohorts were not run. Its gitHead c8851094da60e42b6c29fbd9da88351ef4dba270 predates bounded-series repair d0d1eac6e9; existing source repair remains on main. This run alone does not establish a new source defect.",
+    "remaining": "Root containing publication and remaining independent domain/runtime/work-ceiling profiles; retain explicit Linux/Darwin libm/FMA distinctions and broader scope. No runtime implementation change or family closure."
   }
 }

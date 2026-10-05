@@ -293,11 +293,23 @@ test("manifest encoding, malformed escapes, NULs, comments, CRLF and final lines
 });
 
 test("all unknown flags and invalid combinations are rejected", async () => {
-  for (const args of [["--tag=yes"], ["--algorithm=sha256"], ["--quiet"], ["--status"], ["--strict"], ["--ignore-missing"], ["-w"], ["-cz"], ["-cb"], ["-ct"], ["--check=yes"], ["-q"], ["--nope"]]) {
+  for (const args of [["--tag=yes"], ["--algorithm=sha256"], ["-cz"], ["-cb"], ["-ct"], ["--check=yes"], ["-q"], ["--nope"]]) {
     assert.equal((await run("sha256sum", args)).exitCode, 2, args.join(" "));
   }
   for (const args of [["-c", "-z"], ["--binary=yes"], ["--tag=yes"], ["--text"], ["--algorithm=unknown"], ["--strict"]]) {
     assert.equal((await run("cksum", args)).exitCode, 2);
+  }
+});
+
+test("verification-only digest flags fail without acquiring input", async () => {
+  const stdin = { [Symbol.asyncIterator]() { assert.fail("verification-only flag acquired input"); } };
+  for (const name of Object.keys(vectors)) {
+    for (const flag of ["--quiet", "--status", "--strict", "--ignore-missing", "--warn", "-w"]) {
+      const result = await run(name, [flag], { stdin });
+      assert.equal(result.exitCode, 1, `${name} ${flag}`);
+      assert.equal(result.stdout, "");
+      assert.ok(result.stderr.includes("require --check"), result.stderr);
+    }
   }
 });
 

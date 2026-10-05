@@ -1,3 +1,4 @@
+import {validateJsonData} from "./json-data.js";
 import { jsonValue } from "./json-value.js";
 import { validateAttachmentUrl } from "./url-attachment.js";
 import { requestAttachments } from "./request-attachments.js";
@@ -79,30 +80,9 @@ function validateMetadata(value: LlmResponseMetadata): void {
 }
 
 function validateOptions(options: Readonly<Record<string, LlmOption>>): void {
-  const ancestors = new Set<object>();
-  function visit(value: unknown, key: string): void {
-    const fail = (): never => { throw new TypeError(`Invalid model option ${key}: expected finite JSON data`); };
-    if (value === null || typeof value === "string" || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value)) return;
-    if (!value || typeof value !== "object" || ancestors.has(value)) return fail();
-    if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null) return fail();
-    ancestors.add(value);
-    try {
-      if (Array.isArray(value)) {
-        for (let index = 0; index < value.length; index++) {
-          const property = Object.getOwnPropertyDescriptor(value, index);
-          if (!property || !("value" in property)) return fail();
-          visit(property.value, key);
-        }
-      } else for (const name in value) if (Object.hasOwn(value, name)) {
-        const property = Object.getOwnPropertyDescriptor(value, name)!;
-        if (!("value" in property)) return fail();
-        visit(property.value, key);
-      }
-    } finally { ancestors.delete(value); }
-  }
   for (const [key, value] of Object.entries(options)) {
     if (!key) throw new TypeError("Invalid model option: empty name");
-    visit(value, key);
+    validateJsonData(value, `Invalid model option ${key}: expected finite JSON data`);
   }
 }
 

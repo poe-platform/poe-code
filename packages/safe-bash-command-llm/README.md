@@ -112,7 +112,21 @@ prompt is omitted when tool results are supplied, so a continuation can consist
 entirely of caller-provided messages. `streamSources()` accepts input leases for
 tool-result content and releases them with the other request inputs. Nested call
 arguments and result content are encoded in bounded chunks on this path.
-Execution chains, CLI tool selection and Python tool bridging remain incomplete.
+Use `executeLlmToolCalls({ tools, calls, context, maxOutputBytes }, visit)` to
+execute one response's calls serially. Tools add an `implementation(args, context)`
+to their definition and return `{ output }` (text or finite JSON) or `{ source }`,
+with optional source/URL attachments. The injected context supplies the caller's
+filesystem, working directory, capabilities, cancellation signal and remaining
+output budget. Implementations own resource acquisition until they return.
+The visitor borrows single-use output and attachment leases; consume or stage
+them in caller storage before returning. All consumed output/attachment bytes
+share the budget across calls, and acquired sources are disposed on completion,
+failure or cancellation, including sources returned after cancellation.
+`beforeCall` may throw `LlmCancelToolCall` to decline a call and continue. Missing
+tools and implementation failures become result errors; a declared tool without
+an implementation stops execution. The helper retains no conversation history.
+Execution chains, parallel async execution, CLI tool selection and Python tool
+bridging remain incomplete.
 
 Persist aliases, default models and default options in the caller’s filesystem using `llm aliases`, `llm models default`, and `llm models options`. Use `llm embed-models` (or `list`) with repeated `-q` queries to discover embedding models, and `llm embed-models default [MODEL]` or `--remove-default` to manage their separate default. SDK callers use `service.models` and `configuration.defaultModel("default_embedding_model.txt")` / `setDefaultModel(modelOrNull, "default_embedding_model.txt")`. Set `LLM_USER_PATH` to choose the virtual configuration directory. `createLlmConfiguration(context)` exposes these controls to structured frontends. Configuration controls require atomic publication. Configuration and remote templates default to unlimited bytes and accept explicit `Infinity`; set `limits.maxConfigurationBytes` (or the second argument to `createLlmConfiguration`) and `maxRemoteTemplateBytes` to impose finite quotas. Remote templates inherit `limits.maxInputBytes` when no separate quota is supplied. Remaining reference CLI workflows and bounded prompt/attachment preparation are still incomplete.
 

@@ -95,7 +95,8 @@ export function* sortTextRecordsSteps(length:number):Program {
     b=yield* gallop(yield* read(baseA+a-1),baseB,b,b-1,false);if(!b)return;
     if(a<=b)yield* mergeLow(baseA,a,baseB,b);else yield* mergeHigh(baseA,a,baseB,b);
   }
-  if(length<8){yield* insertion(0,0,length);return;}
+  // Keep natural-run detection for short inputs, matching the Node 22 buffered path.
+  if(length<2)return;
   let minimum=length,remainder=0;while(minimum>=64){remainder ||= minimum%2;minimum=Math.floor(minimum/2);}minimum+=remainder;
   const invariant=(n:number)=>n<2||runs[n-2]!.length>runs[n-1]!.length+runs[n]!.length;
   for(let low=0;low<length;){let count=yield* run(low,length);if(count<minimum){const forced=Math.min(minimum,length-low);yield* insertion(low,low+count,low+forced);count=forced;}runs.push({base:low,length:count});

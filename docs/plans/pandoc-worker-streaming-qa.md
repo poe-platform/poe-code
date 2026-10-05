@@ -156,9 +156,17 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   surrogates. Preserve admission order, duplicate ID/path rejection, fallback and
   cover/navigation ambiguity diagnostics. Inject failure/cancellation during
   record admission and require scratch cleanup. The public SDK/command Worker
-  fixture rejects resident manifest objects across 96 fallback entries. The OPF
-  XML tree still holds source attributes and chapter records still reference their
-  own items; this is not a claim of a retained XML reader or memory plateau.
+  fixture rejects resident manifest objects across 96 fallback entries. Direct
+  OPF manifest subtrees now stream their item headers to caller-backed source
+  records before normal admission; the XML tree retains neither item nodes nor
+  ignored descendant/whitespace nodes. Drain completed headers after each
+  256-unit parser window and await storage before another input pull. Compare
+  XML charges/depth checks with the ordinary parser, validate ignored content,
+  preserve namespace/ancestry selection and original storage errors on cleanup.
+  Unit fixtures grow to 512 items; the Worker fixture also forbids growing
+  manifest XML arrays. Other OPF sections, individual SAX attribute/token values,
+  XHTML/NCX trees and chapter ASTs remain resident boundaries. This is not a claim
+  of a complete retained XML reader or a deployed memory plateau.
 - Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
   independently of input bytes and document nesting. JSON and CSV/TSV to plain

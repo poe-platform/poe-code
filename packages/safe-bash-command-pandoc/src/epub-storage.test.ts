@@ -431,3 +431,20 @@ it.each([
   await expect(readDocument({chunks: [bytes]}, {from: "epub"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}})).rejects.toMatchObject({code: error.code, message: error.message, location: error.location});
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it.each([96, 512])("does not retain %i manifest XML nodes while parsing the package document", async count => {
+  const manifest = Array.from({length: count}, (_, i) => `<item id="xml-item-${i}" href="part-${i}.bin" media-type="application/octet-stream"/>`).join("\n  ");
+  const bytes = await publication(32768, "<p>Manifest XML.</p>", undefined, manifest);
+  const expected = await readDocument({bytes}, {from: "epub"}, {yield: async () => {}});
+  const original = Array.prototype.push;
+  let violation: Error | undefined;
+  Array.prototype.push = function(this: unknown[], ...items: unknown[]) {
+    if (this.length >= 64 && items.some(item => item && typeof item === "object" && "name" in item && item.name === "item" && "children" in item)) {violation = new Error("Resident manifest XML forbidden"); throw violation;}
+    return original.apply(this, items);
+  };
+  const fs = new MemoryFileSystem();
+  try {
+    expect(await readDocument({chunks: [bytes]}, {from: "epub"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}}).catch(error => {throw violation ?? error;})).toEqual(expected);
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {Array.prototype.push = original;}
+});

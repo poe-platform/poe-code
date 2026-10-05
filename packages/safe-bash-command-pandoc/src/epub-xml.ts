@@ -32,10 +32,21 @@ export function epubFailure(ctx: AdapterContext, part: string, message: string, 
 
 type XmlBytes = AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
 
-export async function parseEpubXml(bytes: Uint8Array | XmlBytes, part: string, ctx: AdapterContext): Promise<XmlElement> {
+/** A manifest consumer removes direct OPF manifest subtrees from the result.
+ * It receives only item headers; ignored descendants remain validated/charged. */
+export async function parseEpubXml(bytes: Uint8Array | XmlBytes, part: string, ctx: AdapterContext, onManifestItem?: (node: XmlElement) => Promise<void>): Promise<XmlElement> {
   const parser = new SaxesParser({xmlns: true});
   const stack: XmlElement[] = [];
   let root: XmlElement | undefined;
+  let depth = 0, manifestDepth = 0;
+  let captured: XmlElement | undefined;
+  // Parser writes are at most 256 source units, so completed item headers are
+  // drained before the next window. Ignored item descendants are still validated.
+  const pending: XmlElement[] = [];
+  const drain = async () => {
+    for (const item of pending) await onManifestItem!(item);
+    pending.length = 0;
+  };
   parser.on("error", error => epubFailure(ctx, part, `Invalid EPUB XML: ${error.message}`));
   parser.on("doctype", () => epubFailure(ctx, part, "EPUB DTD and external entities are forbidden"));
   parser.on("xmldecl", decl => {
@@ -43,21 +54,31 @@ export async function parseEpubXml(bytes: Uint8Array | XmlBytes, part: string, c
   });
   parser.on("opentag", tag => {
     ctx.checkpoint();
-    ctx.bound("xmlDepth", stack.length + 1);
+    ctx.bound("xmlDepth", ++depth);
     ctx.charge("xmlNodes", 1);
     ctx.charge("attributes", Object.keys(tag.attributes).length);
     ctx.charge("retainedBytes", 128 + Object.keys(tag.attributes).length * 64);
     if (!(bytes instanceof Uint8Array)) ctx.charge("retainedBytes", 2 * (tag.local.length + tag.uri.length + Object.values(tag.attributes).reduce((sum, attr) => sum + attr.local.length + attr.uri.length + attr.value.length, 0)));
+    if (onManifestItem && depth === 2 && root?.name === "package" && root.uri === namespaces.opf
+      && tag.local === "manifest" && tag.uri === namespaces.opf) {manifestDepth = depth; return;}
+    if (manifestDepth && !(depth === 3 && tag.local === "item" && tag.uri === namespaces.opf)) return;
     const node: XmlElement = {name: tag.local, uri: tag.uri, attrs: Object.values(tag.attributes).map(a => ({name: a.local, uri: a.uri, value: a.value})), children: []};
+    if (manifestDepth) {captured = node; return;}
     if (stack.length) stack.at(-1)!.children.push(node);
     else root = node;
     stack.push(node);
   });
-  parser.on("closetag", () => {stack.pop();});
+  parser.on("closetag", () => {
+    if (manifestDepth) {
+      if (captured && depth === 3) {pending.push(captured); captured = undefined;}
+      if (depth === manifestDepth) manifestDepth = 0;
+    } else stack.pop();
+    depth--;
+  });
   const append = (value: string) => {
     ctx.charge("xmlNodes", 1);
     ctx.charge("retainedBytes", value.length * 2);
-    if (stack.length) stack.at(-1)!.children.push(value);
+    if (!manifestDepth && stack.length) stack.at(-1)!.children.push(value);
   };
   parser.on("text", append);
   parser.on("cdata", append);
@@ -65,6 +86,7 @@ export async function parseEpubXml(bytes: Uint8Array | XmlBytes, part: string, c
     const text = await ctx.decodeUtf8([bytes]);
     for (let i = 0; i < text.length; i += 256) {
       parser.write(text.slice(i, i + 256));
+      await drain();
       await ctx.cooperate(256);
     }
   } else {
@@ -104,6 +126,7 @@ export async function parseEpubXml(bytes: Uint8Array | XmlBytes, part: string, c
         for (let offset = 0; offset < chunk.length; offset += 256) {
           const text = decode(chunk.subarray(offset, offset + 256));
           write(text);
+          await drain();
           await ctx.cooperate(256);
         }
         await ctx.cooperate(0);
@@ -118,6 +141,7 @@ export async function parseEpubXml(bytes: Uint8Array | XmlBytes, part: string, c
     }
   }
   parser.close();
+  await drain();
   if (!root) epubFailure(ctx, part, "Missing EPUB XML root");
   return root;
 }

@@ -163,3 +163,52 @@ it("rejects malformed streamed UTF-8 and retires the producer", async () => {
   try {await expect(parseEpubXml(chunks, "book.xml", ctx)).rejects.toMatchObject({code: "E_ENCODING"}); expect(closed).toBe(true);}
   finally {await ctx.close();}
 });
+
+it("captures only direct OPF manifest item headers while preserving XML budget accounting", async () => {
+  const bytes = encode('<package xmlns="http://www.idpf.org/2007/opf"><metadata><item id="metadata"/></metadata><manifest><item id="a" href="a.xhtml"><ignored><item id="nested"/>text<![CDATA[cdata]]></ignored></item><foreign xmlns="urn:foreign"><item id="foreign"/></foreign><item id="b" href="b.xhtml"/></manifest><spine><itemref idref="a"/></spine></package>');
+  const first = context(), second = context();
+  const charges = vi.spyOn(first, "charge"), capturedCharges = vi.spyOn(second, "charge");
+  const bounds = vi.spyOn(first, "bound"), capturedBounds = vi.spyOn(second, "bound");
+  const capture = vi.fn(async () => {});
+  try {
+    const buffered = await parseEpubXml([bytes], "package.opf", first);
+    const retained = await parseEpubXml([bytes], "package.opf", second, capture);
+    expect(capture.mock.calls).toHaveLength(2);
+    expect(capture).toHaveBeenNthCalledWith(1, expect.objectContaining({name: "item", attrs: expect.arrayContaining([{name: "id", uri: "", value: "a"}]), children: []}));
+    expect(capture).toHaveBeenNthCalledWith(2, expect.objectContaining({name: "item", attrs: expect.arrayContaining([{name: "id", uri: "", value: "b"}]), children: []}));
+    buffered.children = buffered.children.filter(child => typeof child === "string" || child.uri !== "http://www.idpf.org/2007/opf" || child.name !== "manifest");
+    expect(retained).toEqual(buffered);
+    expect(capturedCharges.mock.calls).toEqual(charges.mock.calls);
+    expect(capturedBounds.mock.calls).toEqual(bounds.mock.calls);
+  } finally {await first.close(); await second.close();}
+});
+
+it.each(["<broken></item>", "&undeclared;", '<deep><child/></deep>'])("validates ignored manifest descendants and enforces their depth budget: %s", async content => {
+  const bytes = encode(`<package xmlns="http://www.idpf.org/2007/opf"><manifest><item id="a">${content}</item></manifest></package>`);
+  const first = new ExecutionContext("read", {limits: {xmlDepth: 4}}), second = new ExecutionContext("read", {limits: {xmlDepth: 4}});
+  try {
+    const expected = await parseEpubXml([bytes], "package.opf", first).catch(error => error) as Error & {code: string};
+    expect(expected).toBeInstanceOf(Error);
+    await expect(parseEpubXml([bytes], "package.opf", second, async () => {})).rejects.toMatchObject({code: expected.code, message: expected.message});
+  } finally {await first.close(); await second.close();}
+});
+
+it("awaits manifest-header storage before pulling more XML and preserves storage failure over cleanup failure", async () => {
+  const ctx = context(), failure = new Error("Manifest storage failed");
+  let pulls = 0, closed = 0, enter!: () => void, reject!: (reason: unknown) => void;
+  const entered = new Promise<void>(resolve => {enter = resolve;});
+  const pending = new Promise<void>((_, fail) => {reject = fail;});
+  const iterator = {
+    next() {pulls++; return {done: false as const, value: encode('<package xmlns="http://www.idpf.org/2007/opf"><manifest><item id="a"/>')};},
+    return() {closed++; throw new Error("Cleanup failed");}
+  };
+  const result = parseEpubXml({[Symbol.iterator]: () => iterator}, "package.opf", ctx, async () => {enter(); await pending;});
+  const settled = result.catch(error => error);
+  try {
+    await entered;
+    expect(pulls).toBe(1);
+    reject(failure);
+    expect(await settled).toBe(failure);
+    expect(closed).toBe(1);
+  } finally {reject(failure); await settled; await ctx.close();}
+});

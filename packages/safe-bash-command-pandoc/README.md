@@ -348,7 +348,11 @@ Finite table-cell budgets with filters still use the compatibility converter. Li
 `entityBytes`, `yamlAliases`) do not force these retained conversions to buffer.
 Additional transformations, other finite limits,
 and other format pairs
-currently use the existing buffered converter. The Safe Bash command uses the
+currently use the existing buffered converter. In particular, Markdown → plain
+text with a Lua filter retains the complete document before invoking the filter,
+even with streamed input and `workingFiles`. `workingFiles.cacheBytes` bounds
+backing-page caches, not these resident document strings or the total conversion
+memory. The Safe Bash command uses the
 output-only API for stdout and selects backing storage in the injected filesystem
 at `TMPDIR` or the command directory. `-o` streams into the supplied filesystem’s atomic
 `publishFileConditional` capability when available; byte-only atomic providers

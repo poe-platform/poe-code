@@ -3,23 +3,26 @@ import type { BiffPropertyRange } from './biff-property-range.js';
 import { stagePropertyBytes } from './biff-property-bytes.js';
 import type { BiffPropertySource } from './biff-encrypted-properties-write.js';
 
-/** Count UTF-16 units before staging; both passes retain only a bounded decoder window. */
-export async function stageWideBiffProperty(source: BiffPropertyRange, context: CapabilityContext,
-  charge: (amount: number) => void, reserve: (length: number) => number): Promise<BiffPropertySource> {
+/** Count UTF-16 units before serialization; both passes retain only a bounded decoder window. */
+export async function wideBiffPropertyBytes(source: BiffPropertyRange, context: CapabilityContext,
+  charge: (amount: number) => void, reserve: (length: number) => number): Promise<{ size: number; chunks(): AsyncIterable<Uint8Array> }> {
   reserve(source.size);
   const text = source.slice(8, await source.u32(4) - 1);
   const parts = async function* (): AsyncIterable<string> {
+    context.signal.throwIfAborted();
     const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
     for (let at = 0; at < text.size;) {
+      context.signal.throwIfAborted();
       const bytes = await text.read(at, Math.min(8192, text.size - at)); at += bytes.length;
-      try { yield decoder.decode(bytes, { stream: true }); } finally { bytes.fill(0); }
+      try { context.signal.throwIfAborted(); yield decoder.decode(bytes, { stream: true }); } finally { bytes.fill(0); }
     }
-    yield decoder.decode();
+    context.signal.throwIfAborted(); yield decoder.decode();
   };
   let units = 0;
   for await (const part of parts()) units += part.length;
   charge(units); const length = reserve(8 + (units + 1) * 2);
-  return stagePropertyBytes({ length, async *chunks() {
+  return { size: length, async *chunks() {
+    context.signal.throwIfAborted();
     const header = new Uint8Array(8), view = new DataView(header.buffer);
     view.setUint32(0, 31, true); view.setUint32(4, units + 1, true); yield header;
     const buffer = new Uint8Array(16384), output = new DataView(buffer.buffer);
@@ -29,7 +32,14 @@ export async function stageWideBiffProperty(source: BiffPropertyRange, context: 
         for (let i = 0; i < size; i++) output.setUint16(i * 2, part.charCodeAt(at + i), true);
         yield buffer.subarray(0, size * 2);
       }
-      yield new Uint8Array(2);
+      context.signal.throwIfAborted(); yield new Uint8Array(2);
     } finally { buffer.fill(0); }
-  } }, context);
+  } };
+}
+
+/** Convenience API for callers that need an independently owned range source. */
+export async function stageWideBiffProperty(source: BiffPropertyRange, context: CapabilityContext,
+  charge: (amount: number) => void, reserve: (length: number) => number): Promise<BiffPropertySource> {
+  const output = await wideBiffPropertyBytes(source, context, charge, reserve);
+  return stagePropertyBytes({ length: output.size, chunks: output.chunks }, context);
 }

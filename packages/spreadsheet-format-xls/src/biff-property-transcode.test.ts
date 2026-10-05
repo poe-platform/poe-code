@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import type { CapabilityContext } from '@poe-code/spreadsheet-engine/contracts';
 import { propertyRange } from './biff-property-range.js';
-import { stageWideBiffProperty } from './biff-property-transcode.js';
+import { stageWideBiffProperty, wideBiffPropertyBytes } from './biff-property-transcode.js';
 
 function fixture(mode = '', text = '\ufeff' + 'a'.repeat(8190) + '😀漢'.repeat(10000)) {
   const controller = new AbortController(), failure = new Error(mode), encoded = new TextEncoder().encode(text);
@@ -29,7 +29,7 @@ function fixture(mode = '', text = '\ufeff' + 'a'.repeat(8190) + '😀漢'.repea
     }
     const part = input.subarray(at, at + Math.min(count, borrowed.length)); borrowed.set(part); return borrowed.subarray(0, part.length);
   } }, context);
-  return { text, input, source, context, state, failure, cleanups, writes };
+  return { text, input, source, context, state, failure, cleanups, writes, controller };
 }
 it('preserves BOM, surrogate pairs and multibyte boundaries across two borrowed-read passes', async () => {
   const f = fixture(), result = await stageWideBiffProperty(f.source, f.context, () => {}, length => length);
@@ -60,4 +60,30 @@ it('admits the expanded UTF-16 size before opening output storage', async () => 
     if (length > 16000) throw f.failure; return length;
   })).rejects.toBe(f.failure);
   expect(f.state.opened).toBe(0);
+});
+
+it.each(['complete', 'early-return', 'abort'])('serializes UTF-16 without opening storage and erases borrowed chunks on %s', async mode => {
+  const f = fixture(), cleanups = f.cleanups.length;
+  const output = await wideBiffPropertyBytes(f.source, f.context, () => {}, length => length);
+  expect(f.state.opened).toBe(0); expect(f.state.passes).toBe(1);
+  const iterator = output.chunks()[Symbol.asyncIterator]();
+  const first = await iterator.next(); if (first.done) throw new Error('missing transcode header');
+  const header = first.value;
+  expect(new DataView(header.buffer, header.byteOffset, header.byteLength).getUint32(4, true)).toBe(f.text.length + 1);
+  const nextBody = await iterator.next(); if (nextBody.done) throw new Error('missing transcode body');
+  const body = nextBody.value;
+  expect(body.length).toBeLessThanOrEqual(16384); expect(body.some(byte => byte !== 0)).toBe(true);
+  if (mode === 'early-return') await iterator.return?.();
+  else if (mode === 'abort') {
+    f.controller.abort(f.failure); await expect(iterator.next()).rejects.toBe(f.failure);
+  } else {
+    let bytes = header.length + body.length;
+    for (;;) {
+      const next = await iterator.next(); if (next.done) break;
+      expect(next.value.length).toBeLessThanOrEqual(16384); bytes += next.value.length;
+    }
+    expect(bytes).toBe(output.size); expect(f.state.passes).toBe(2);
+  }
+  expect(body.every(byte => byte === 0)).toBe(true);
+  expect(f.state.opened).toBe(0); expect(f.cleanups).toHaveLength(cleanups);
 });

@@ -1,7 +1,7 @@
 import { BiffMutablePropertyValues } from './biff-property-values.js';
 import { createBiffPropertyNameEncoder } from "./biff-property-name.js";
 import { readBiffPropertyText } from "./biff-property-text.js";
-import { stageWideBiffProperty } from './biff-property-transcode.js';
+import { wideBiffPropertyBytes } from './biff-property-transcode.js';
 import { stagePropertyBytes, propertyChunks, type BiffPropertyBytes } from './biff-property-bytes.js';
 import type { BiffPropertySource } from './biff-encrypted-properties-write.js';
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
@@ -161,11 +161,10 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     const section = fresh.get(property.stream)!.find(section => section.offset === property.section)!;
     const value = (await section.values!.get(property.id))!; await remove(section, property.id); pending.delete(property.key); return value;
   };
-  const wide = async (source: BiffPropertyRange, section: Section): Promise<BiffPropertyRange> => {
+  const wide = async (source: BiffPropertyRange, section: Section) => {
     if (await source.u32(0) !== 30 || (await (await section.values!.get(1))?.u16(4) ?? 1252) === 65001) return source;
     if (staged) {
-      const output = await stageWideBiffProperty(source, context, charge, staged.reserve);
-      temporarySources.push(output); return propertyRange(output, context);
+      return wideBiffPropertyBytes(source, context, charge, staged.reserve);
     }
     const data = await materialize(source);
     const value = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(data.slice(8, data.u32(4) - 1));

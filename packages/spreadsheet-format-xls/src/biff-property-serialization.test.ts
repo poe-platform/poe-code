@@ -596,6 +596,34 @@ it.each([false, true])('keeps dictionary rewrite storage handles independent of 
   expect(counts[1]).toBe(counts[0]);
 });
 
+it('keeps transcoding storage handles independent of the number of legacy replacements', async () => {
+  const counts: number[] = [];
+  for (const count of [1, 12]) {
+    const seed = { sheets: book.sheets, properties: Object.fromEntries(Array.from({ length: count }, (_, i) => [`P${i}`, 'old'])) };
+    const fresh = await writeBiffProperties(seed, context), stream = '\u0005DocumentSummaryInformation';
+    const modeled: [number, number, string][] = [];
+    await readBiffProperties(fresh.streams, context, text => text, () => {}, undefined,
+      property => { if (property.stream === stream) modeled.push([property.section, property.id, property.key]); });
+    const bytes = fresh.streams.get(stream)!;
+    for (const section of readBiffPropertySections(bytes, () => {}, () => {})) {
+      const values = readBiffPropertyValues(new Binary(bytes.subarray(section.offset, section.end)), () => {}, () => {});
+      const cp = values.get(1)!.bytes; new DataView(cp.buffer, cp.byteOffset, cp.byteLength).setUint16(4, 1252, true);
+    }
+    const input = { ...seed, properties: Object.fromEntries(Object.keys(seed.properties).map(key => [key, 'new 漢😀'])),
+      unsupportedRecords: [{ source: 'biff', kind: 'ole-properties', disposition: 'retained' as const,
+        data: { stream, bytes: Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join(''), modeled }
+      }] };
+    const expected = await writeBiffProperties(input, context), { ctx, state } = fixture();
+    const actual = await writeBiffProperties(input, ctx, true);
+    try {
+      for (const [name, source] of actual.streams) expect(await source.read(0, source.size)).toEqual(expected.streams.get(name));
+      counts.push(state.acquired);
+    } finally { await actual.close(); }
+    expect(state.closed).toBe(state.acquired);
+  }
+  expect(counts[1]).toBe(counts[0]);
+});
+
 it.each([false, true])('streams borrowed property fragments into atomic payload snapshots (stored=%s)', async stored => {
   const { ctx, state } = fixture(), active = stored ? ctx : context;
   const values = new BiffMutablePropertyValues(active, () => {}), borrowed = new Uint8Array(257);

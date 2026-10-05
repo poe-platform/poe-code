@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import type { PdfPixelStorage } from "../ast.js";
-import { readStoredItems, readStoredRecord, writeStoredRecord } from "./stored-record.js";
+import { readStoredItems, readStoredRecord, storedRecordMatches, writeStoredRecord } from "./stored-record.js";
 
 function backing(capacity: number) {
   const data = new Uint8Array(capacity);
@@ -123,10 +123,10 @@ it.each([-1, NaN, 0.5])("rejects an invalid array element count before reading: 
 });
 
 
-it.each(["measure", "write", "read", "items"])("allows timer cancellation during stored record %s", async (operation) => {
+it.each(["measure", "write", "read", "items", "match"])("allows timer cancellation during stored record %s", async (operation) => {
   const storage = backing(2 * 1024 * 1024);
   const payload = new Uint8Array(1024 * 1024);
-  const position = operation === "read" ? await writeStoredRecord(storage, payload) : -1;
+  const position = operation === "read" || operation === "match" ? await writeStoredRecord(storage, payload) : -1;
   let head = -1;
   if (operation === "items") {
     for (let i = 0; i < 8192; i++) head = await writeStoredRecord(storage, i, head);
@@ -143,6 +143,7 @@ it.each(["measure", "write", "read", "items"])("allows timer cancellation during
   try {
     const work = operation === "write" || operation === "measure" ? writeStoredRecord(storage, payload, -1, controller.signal)
       : operation === "read" ? readStoredRecord(storage, position, controller.signal)
+      : operation === "match" ? storedRecordMatches(storage, position, ["absent"], "unused", controller.signal)
       : (async () => {
         for await (const value of readStoredItems({ storage, position: head, length: 8192 }, controller.signal)) void value;
       })();
@@ -172,4 +173,49 @@ it("allows shared children while rejecting back-edges during iterative capture",
   await expect(writeStoredRecord(storage, cycle)).rejects.toThrow("Cyclic capture value");
   const after = await writeStoredRecord(storage, child);
   expect((await readStoredRecord(storage, after)).value).toEqual(child);
+});
+
+it("compares selected record strings while skipping deep and wide values with bounded scratch", async () => {
+  const storage = backing(512 * 1024);
+  let deep: unknown = {bytes: new Uint8Array(8192), text: "ignored".repeat(2048)};
+  for (let i = 0; i < 1024; i++) deep = i % 2 ? {child: deep} : [deep, false, null];
+  const input = {before: deep, key: {decoded: "selected\ud800"}, after: [NaN, Infinity, {storage}]};
+  const position = await writeStoredRecord(storage, input, 123);
+  const push = Array.prototype.push;
+  Array.prototype.push = function (...values) {
+    if (this.length >= 32 && values.some(value => value === 0 || value === -1)) throw new Error("resident skip frames");
+    return push.apply(this, values);
+  };
+  try {
+    expect(await storedRecordMatches(storage, position, ["key", "decoded"], "selected\ud800")).toEqual({matched:true,next:123});
+    expect(await storedRecordMatches(storage, position, ["key", "decoded"], "missing")).toEqual({matched:false,next:123});
+    expect(await storedRecordMatches(storage, position, ["absent"], "missing")).toEqual({matched:false,next:123});
+    expect(await storedRecordMatches(storage, position, ["before"], "missing")).toEqual({matched:false,next:123});
+  } finally { Array.prototype.push = push; }
+});
+
+it("propagates skip-stack backing failures and cancellation before returning a match", async () => {
+  const storage = backing(16384);
+  let nested: unknown = 1;
+  for (let i = 0; i < 64; i++) nested = [nested];
+  const position = await writeStoredRecord(storage, {name: "found", nested});
+  const failure = new Error("skip backing failed");
+  await expect(storedRecordMatches({...storage, async write(){throw failure;}}, position, ["name"], "found")).rejects.toBe(failure);
+  const controller = new AbortController();
+  const guarded = {...storage, async write(at:number,bytes:Uint8Array) {await storage.write(at,bytes);controller.abort(failure);}};
+  await expect(storedRecordMatches(guarded, position, ["name"], "found", controller.signal)).rejects.toBe(failure);
+});
+
+it.each(["tag", "key", "size", "trailing"])("validates skipped record %s corruption", async kind => {
+  const data = new Uint8Array(128);
+  const view = new DataView(data.buffer);
+  view.setFloat64(0, -1, true);
+  let payload: number[];
+  if (kind === "tag") payload = [255];
+  else if (kind === "key") payload = [8, 3];
+  else if (kind === "trailing") payload = [0, 0];
+  else {payload = [5, ...new Uint8Array(new Float64Array([Infinity]).buffer)];}
+  view.setFloat64(8, payload.length, true);data.set(payload,16);
+  const storage: PdfPixelStorage = {allocate(){throw new Error("unexpected allocation");},async write(){throw new Error("unexpected write");},async read(at,length){return data.subarray(at,at+length);}};
+  await expect(storedRecordMatches(storage,0,["name"],"unused")).rejects.toThrow(kind === "trailing" ? "Trailing" : "Invalid");
 });

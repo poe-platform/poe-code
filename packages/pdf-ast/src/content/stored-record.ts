@@ -233,6 +233,78 @@ class RecordReader {
     }
     return result;
   }
+  private async size(tag: number): Promise<number> {
+    const bytes = await this.take(8);
+    const size = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getFloat64(0, true);
+    if (!Number.isSafeInteger(size) || size < 0 || size > this.remaining ||
+        (tag === Tag.String && size * 2 > this.remaining)) throw new Error("Invalid capture field length");
+    return size;
+  }
+  private async discard(length: number): Promise<void> {
+    while (length) { const count = Math.min(length, 4096); await this.take(count); length -= count; }
+  }
+  private async stringEquals(expected: string): Promise<boolean> {
+    const length = await this.size(Tag.String);
+    let equal = length === expected.length;
+    for (let at = 0; at < length; at += 2048) {
+      const bytes = await this.take(Math.min(2048, length - at) * 2);
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      if (equal) for (let i = 0; i < bytes.length / 2; i++) {
+        if (view.getUint16(i * 2, true) !== expected.charCodeAt(at + i)) { equal = false; break; }
+      }
+    }
+    return equal;
+  }
+
+  /** Skip without constructing arrays, strings or byte payloads. Only 32
+   * container counters stay resident; deeper counters use caller backing. */
+  private async skip(tag?: number): Promise<void> {
+    const frames: number[] = [];
+    const spilled = new StoredMetadataStack<number>(this.storage, this.signal);
+    let remaining = 1;
+    for (;;) {
+      if (remaining === 0) {
+        const parent = frames.pop() ?? await spilled.pop();
+        if (parent === undefined) return;
+        remaining = parent;
+        continue;
+      }
+      if (remaining === -1) {
+        const field = (await this.take(1))[0];
+        if (field === Tag.End) { remaining = 0; continue; }
+        if (field !== Tag.String) throw new Error("Invalid capture key");
+        await this.discard((await this.size(Tag.String)) * 2);
+      } else remaining--;
+      const current = tag ?? (await this.take(1))[0];
+      tag = undefined;
+      if (current === Tag.Object || current === Tag.Array) {
+        const children = current === Tag.Object ? -1 : await this.size(Tag.Array);
+        if (frames.length === 32) await spilled.push(frames.shift()!);
+        frames.push(remaining);
+        remaining = children;
+      } else if (current === Tag.String || current === Tag.Bytes) {
+        await this.discard((await this.size(current)) * (current === Tag.String ? 2 : 1));
+      } else if (current === Tag.Number) await this.take(8);
+      else if (current !== Tag.Null && current !== Tag.False && current !== Tag.True && current !== Tag.Storage) {
+        throw new Error("Invalid capture tag");
+      }
+    }
+  }
+
+  async matches(path: readonly string[], expected: string, depth = 0): Promise<boolean> {
+    const tag = (await this.take(1))[0];
+    if (depth === path.length && tag === Tag.String) return this.stringEquals(expected);
+    if (depth === path.length || tag !== Tag.Object) { await this.skip(tag); return false; }
+    let matched = false;
+    for (;;) {
+      const field = (await this.take(1))[0];
+      if (field === Tag.End) return matched;
+      if (field !== Tag.String) throw new Error("Invalid capture key");
+      if (await this.stringEquals(path[depth]!)) matched = await this.matches(path, expected, depth + 1);
+      else await this.skip();
+    }
+  }
+
   async value(tag?: number): Promise<unknown> {
     tag ??= (await this.take(1))[0];
     if (tag === Tag.Null) return null;
@@ -290,11 +362,11 @@ class RecordReader {
   }
 }
 
-export async function readStoredRecord<T>(
+async function openStoredRecord(
   storage: PdfPixelStorage,
   position: number,
   signal?: AbortSignal
-): Promise<{ value: T; next: number }> {
+): Promise<{ reader: RecordReader; next: number }> {
   signal?.throwIfAborted();
   if (!Number.isSafeInteger(position) || position < 0)
     throw new RangeError("Invalid capture position");
@@ -306,11 +378,25 @@ export async function readStoredRecord<T>(
     length = view.getFloat64(8, true);
   if (!Number.isSafeInteger(length) || length < 1 || !Number.isSafeInteger(position + 16 + length))
     throw new RangeError("Invalid capture length");
-  const reader = new RecordReader(storage, position + 16, length, signal),
-    value = (await reader.value()) as T;
+  return {reader: new RecordReader(storage, position + 16, length, signal), next};
+}
+
+export async function readStoredRecord<T>(storage: PdfPixelStorage, position: number, signal?: AbortSignal): Promise<{value: T; next: number}> {
+  const {reader, next} = await openStoredRecord(storage, position, signal);
+  const value = (await reader.value()) as T;
   if (reader.remaining) throw new Error("Trailing capture bytes");
   signal?.throwIfAborted();
   return { value, next };
+}
+
+/** Compare one string property without decoding the rest of a record.
+ * Paths are caller-defined; input-controlled nesting is skipped with bounded scratch. */
+export async function storedRecordMatches(storage: PdfPixelStorage, position: number, path: readonly string[], expected: string, signal?: AbortSignal): Promise<{matched: boolean; next: number}> {
+  const {reader, next} = await openStoredRecord(storage, position, signal);
+  const matched = await reader.matches(path, expected);
+  if (reader.remaining) throw new Error("Trailing capture bytes");
+  signal?.throwIfAborted();
+  return {matched, next};
 }
 
 /** Persistent linked frames; only the frame currently being read is resident. */

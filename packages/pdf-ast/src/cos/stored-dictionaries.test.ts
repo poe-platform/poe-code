@@ -152,3 +152,24 @@ it.each([false,true])("backs resource-map paths without backing same-named defin
   expect(pattern?.kind === "dict" && dictGet(pattern,"Shading")).toMatchObject({entries:[{key:{decoded:"ShadingType"}}]});
   expect(pattern?.kind === "dict" && dictGet(pattern,"ExtGState")).toMatchObject({entries:[{key:{decoded:"ca"}}]});
 });
+
+it("looks up only the last matching record without materializing unused or shadowed values", async () => {
+  const storage = backing();
+  const large = {kind: "array" as const, items: Array.from({length: 4096}, () => ({kind: "number" as const, value: 739}))};
+  let position = -1, previous = -1;
+  for (const [name, value] of [["Unused", large], ["Selected", large], ["Selected", {kind: "number", value: 42}]] as const) {
+    const next = await appendStoredRecord(storage, {key: cosName(name), value}, previous);
+    if (position === -1) position = next;
+    previous = next;
+  }
+  const dict: PdfCosDict = {kind: "dict", entries: [], storedEntries: {storage,position,length:3}};
+  const push = Array.prototype.push;
+  Array.prototype.push = function (...values) {
+    if (this.length >= 64 && values.some(value => value?.kind === "number" && value.value === 739)) throw new Error("materialized unused resource value");
+    return push.apply(this, values);
+  };
+  try {
+    expect(await readPdfDictionaryValue(dict, "Selected")).toEqual({kind: "number", value: 42});
+    expect(await readPdfDictionaryValue(dict, "Missing")).toBeUndefined();
+  } finally { Array.prototype.push = push; }
+});

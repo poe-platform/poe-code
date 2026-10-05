@@ -1,7 +1,7 @@
 import { PdfNameIndex } from "../cos/name-index.js";
 import { PdfObjectIndex, type PdfIndexStorage } from "../cos/object-index.js";
 import type { PdfXRefEntry } from "../ast.js";
-import { writeStoredRecord } from "./stored-record.js";
+import { readStoredRecord, storedRecordMatches, writeStoredRecord } from "./stored-record.js";
 import type { PdfCosDict, PdfCosNode, PdfDictEntry } from "../ast.js";
 import { readStoredItems } from "./stored-record.js";
 
@@ -14,6 +14,20 @@ export async function* readPdfDictionaryEntries(dict: PdfCosDict, signal?: Abort
 
 /** Same last-key-wins semantics as dictGet, without collecting a retained map. */
 export async function readPdfDictionaryValue(dict: PdfCosDict, key: string, signal?: AbortSignal): Promise<PdfCosNode | undefined> {
+  if (dict.storedEntries) {
+    const {storage, length} = dict.storedEntries;
+    if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("Invalid stored array length");
+    let position = dict.storedEntries.position, selected = -1;
+    for (let i = 0; i < length; i++) {
+      if (i && i % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      const record = await storedRecordMatches(storage, position, ["key", "decoded"], key, signal);
+      if (record.matched) selected = position;
+      position = record.next;
+    }
+    if (position !== -1) throw new Error("Invalid stored array terminator");
+    signal?.throwIfAborted();
+    return selected === -1 ? undefined : (await readStoredRecord<PdfDictEntry>(storage, selected, signal)).value.value;
+  }
   let value: PdfCosNode | undefined;
   for await (const entry of readPdfDictionaryEntries(dict, signal)) if (entry.key.decoded === key) value = entry.value;
   return value;

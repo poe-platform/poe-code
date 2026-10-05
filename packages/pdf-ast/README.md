@@ -26,6 +26,8 @@ Retained source parsing can keep wide resource maps in caller backing with
 `valueArrays: { dictionaryStorage, storedDictionaryKeys: ["Font", "XObject", "Properties"], storedDictionaryPaths: [["Resources", "*"]] }`. Dictionary
 paths select maps without changing same-named resource definitions. Resource
 resolution visits one entry at a time, including indirect and encrypted maps.
+Named lookup scans record keys and decodes only the last matching value; unused
+and overwritten values are skipped with bounded scratch and caller backing.
 Use `readPdfDictionaryEntries` or `readPdfDictionaryValue` for these dictionaries;
 synchronous dictionary helpers require ordinary in-memory entries. The caller
 keeps the backing alive until all dictionary consumers finish.

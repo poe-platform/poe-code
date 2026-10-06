@@ -253,6 +253,7 @@ jobs:
           SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT: ${{ github.workspace }}/out/python-host-qualification/llm-dependencies
           SAFE_BASH_LLM_PACKAGE_DIR: ${{ github.workspace }}/out/python-host-qualification/wheels
           SAFE_BASH_LLM_REFERENCE_PYTHON: ${{ github.workspace }}/out/python-host-qualification/reference/bin/python
+          SAFE_BASH_PYTHON_MICROPIP_WHEEL: ${{ github.workspace }}/out/python-host-qualification/wheels/micropip-0.11.1-py3-none-any.whl
         shell: bash
         run: |
           set -euo pipefail
@@ -267,6 +268,7 @@ jobs:
           python3 -m venv "$(dirname "$(dirname "$SAFE_BASH_LLM_REFERENCE_PYTHON")")"
           "$SAFE_BASH_LLM_REFERENCE_PYTHON" -m pip install --disable-pip-version-check "llm==0.27.1" "pydantic==2.12.5" "httpx==0.28.1"
           (cd "$SAFE_BASH_PYTHON_CONSUMER_ROOT" && node --input-type=module -e "import {downloadPythonLlmPackages} from '@poe-platform/safe-bash/commands/python/node'; await downloadPythonLlmPackages(process.env.SAFE_BASH_LLM_PACKAGE_DIR);")
+          curl --fail --silent --show-error --location https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl --output "$SAFE_BASH_PYTHON_MICROPIP_WHEEL"
           node --test packages/safe-bash/tests/integration/python-jspi.test.mjs
       - name: Publish SafeFS with provenance
         if: steps.queue-check.outputs.publish == 'true'

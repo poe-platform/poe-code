@@ -162,7 +162,8 @@ async function qualifyShells(backend, createExecutor) {
 
 async function qualifyFunctionTools(backend, createExecutor) {
   let cancellation = new AbortController();
-  let cancelRun = false, chatRun = false;
+  let cancelRun = false, chatRun = false, wireRun = false;
+  const chatWire = [];
   const chatPrompts = [];
   const source = 'import asyncio as _asyncio\n_state = 0\n_event = _asyncio.Event()\ndef add(value: int):\n global _state\n _state += value\n return _state\nasync def first():\n await _event.wait()\n return "first"\nasync def second():\n _event.set()\n return "second"\ndef unicode_text():\n return "😀" * 4096\n';
   await backend.writeFile('/work/functions.py', new TextEncoder().encode(source));
@@ -186,6 +187,20 @@ _pm.register(_Plugin(), name="fixture")
 `;
   await backend.writeFile('/work/toolbox.py', new TextEncoder().encode(toolbox));
   const complete = async function* (request) {
+    if (wireRun) {
+      const read = async value => {
+        if (typeof value === 'string') return value;
+        let text = ''; const decoder = new TextDecoder();
+        for await (const bytes of value.bytes) text += decoder.decode(bytes, {stream:true});
+        return text + decoder.decode();
+      };
+      const messages = [];
+      if (request.system) messages.push({role:'system',content:await read(request.system)});
+      for (const message of request.messages ?? []) messages.push({role:message.role,content:await read(message.content)});
+      messages.push({role:'user',content:await read(request.prompt)});
+      chatWire.push(messages);
+      return;
+    }
     if (chatRun) {
       let prompt = request.prompt;
       if (typeof prompt !== 'string') {let text = ''; for await (const bytes of prompt.bytes) text += new TextDecoder().decode(bytes); prompt = text;}
@@ -244,6 +259,11 @@ _pm.register(_Plugin(), name="fixture")
     const initialStdinChatFragment = await shell.exec("llm chat -f - <<'EOF'\nbody\nexit\nEOF");
     const stdinChatFragment = await shell.exec("llm chat --functions functions.py <<'EOF'\n!fragment -\nbody\nexit\nEOF");
     chatRun = false;
+    await backend.mkdir('/work/llm-config/templates', {recursive:true});
+    await backend.writeFile('/work/llm-config/templates/wire.yaml', new TextEncoder().encode('prompt: "$input"\nsystem: "$input"\n'));
+    wireRun = true;
+    const wireChat = await shell.exec("llm chat -t wire <<'EOF'\none\none\ntwo\nexit\nEOF");
+    wireRun = false;
     cancelRun = true;
     let cancelled = false;
     try {await shell.exec('llm hello --async --functions functions.py',{signal:cancellation.signal});}
@@ -252,7 +272,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

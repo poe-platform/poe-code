@@ -771,7 +771,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (args.noStream) outputSpool = await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
       if (selectedTools.length || chat) {
         const debugOutput = args.toolsDebug ? operation.child(context.stderr).output : undefined;
-        const events = promptToolChain({...(chat ? {chatMessages, chatTurn} : {}), context: {...context, signal}, operation, service, streamed, tools: selectedTools,
+        const events = promptToolChain({...(chat ? {chatMessages} : {}), context: {...context, signal}, operation, service, streamed, tools: selectedTools,
           ...(debugOutput ? {debugWrite: async (bytes: Uint8Array) => {admitOutput(bytes.length); await writeOutput(debugOutput, bytes);}} : {}),
           ...(args.toolsApprove ? {beforeCall: createToolApproval({context: {...context, signal}, openInput: () => openStdin(true), write: bytes => write(bytes, true), admitInput: chat ? () => {} : admitInput})} : {}),
           chainLimit: args.chainLimit, maxOutputBytes: limits?.maxOutputBytes ?? Infinity,

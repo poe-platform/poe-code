@@ -1,3 +1,4 @@
+import {yieldTurn} from "safe-bash-contracts/yield";
 import type { CommandContext, OutputOperation } from "safe-bash-contracts";
 import type { LlmService, LlmServiceSourceRequest, LlmStreamEvent } from "./service.js";
 import type { LlmInputSource, LlmMessage, LlmSourceAttachment, LlmToolCall } from "./types.js";
@@ -11,7 +12,7 @@ type Spool = Awaited<ReturnType<typeof createLlmSpool>>;
 type Content = {spool: Spool; size: number};
 type Attachment = Omit<LlmSourceAttachment, "source"> & {content?: Content};
 export type PromptChatMessage = Omit<LlmMessage, "content" | "attachments"> & {
-  content: Content; chatAttachments?: Attachment[]; turn?: number;
+  content: Content;
 };
 
 /** Command-local request context, destroyed with its output operation. This is
@@ -20,7 +21,6 @@ export type PromptChatMessage = Omit<LlmMessage, "content" | "attachments"> & {
 export async function* promptToolChain(options: {
   context: CommandContext;
   chatMessages?: PromptChatMessage[];
-  chatTurn?: number;
   operation: OutputOperation;
   service: LlmService;
   request: Omit<LlmServiceSourceRequest, "messages">;
@@ -68,6 +68,29 @@ export async function* promptToolChain(options: {
   const sourceAttachments = (attachments: Attachment[], activeSignal: AbortSignal): Promise<LlmSourceAttachment[]> => Promise.all(attachments.map(async attachment => attachment.content
     ? {mimeType: attachment.mimeType, ...(attachment.id === undefined ? {} : {id: attachment.id}), source: await lease(attachment.content, activeSignal)}
     : {mimeType: attachment.mimeType, ...(attachment.id === undefined ? {} : {id: attachment.id}), url: attachment.url!}));
+  const sameContent = async (left: Content, right: Content): Promise<boolean> => {
+    if (left.size !== right.size) return false;
+    const first = await lease(left, signal), second = await lease(right, signal);
+    const iterator = sourceBytes(second.bytes, signal)[Symbol.asyncIterator]();
+    let pending: Uint8Array = new Uint8Array(0), offset = 0;
+    try {
+      for await (const bytes of sourceBytes(first.bytes, signal)) {
+        await yieldTurn(signal);
+        for (const byte of bytes) {
+          while (offset === pending.length) {
+            const next = await iterator.next();
+            if (next.done) return false;
+            pending = next.value; offset = 0;
+          }
+          if (byte !== pending[offset++]) return false;
+        }
+      }
+      return true;
+    } finally {
+      try {await iterator.return?.();}
+      finally {await Promise.all([first.dispose(), second.dispose()]);}
+    }
+  };
   const materialize = async (content: Content): Promise<string> => {
     let value = ""; const decoder = new TextDecoder("utf-8", {fatal: true, ignoreBOM: true});
     const source = await lease(content, signal);
@@ -90,6 +113,16 @@ export async function* promptToolChain(options: {
   const empty = await retain(textSource(""), false, true);
   const messages: Message[] = options.chatMessages ?? [];
   let currentPrompt = prompt, currentAttachments = initialAttachments, currentSystem = system;
+  if (options.chatMessages) {
+    if (!system?.size) currentSystem = undefined;
+    else if (messages.length) {
+      let previous: Message | undefined;
+      for (let index = messages.length - 1; index >= 0; index--) {if (messages[index]!.role === "system") {previous = messages[index]; break;}}
+      if (!previous || !await sameContent(previous.content, system)) messages.push({role: "system", content: system});
+      // A changed system belongs after prior turns, as in the native wire.
+      currentSystem = undefined;
+    }
+  }
   let responseContent: Content | undefined, responseCalls: readonly LlmToolCall[] = [], prepared = false;
   let nextAttachments: Attachment[] = [];
   const pendingResults = new Map<number, {message: Message; attachments: Attachment[]}>();
@@ -113,12 +146,10 @@ export async function* promptToolChain(options: {
           ...(!index && request.schema !== undefined ? {schema: request.schema} : {})};
         const events = streamed ? service.streamSources!({...base, prompt: await lease(currentPrompt, activeSignal),
           ...(currentSystem ? {system: await lease(currentSystem, activeSignal)} : {}), attachments: await sourceAttachments(currentAttachments, activeSignal),
-          messages: await Promise.all(messages.map(async ({chatAttachments, turn, ...message}) => ({...message, content: await lease(message.content, activeSignal),
-            ...(chatAttachments && turn !== options.chatTurn ? {attachments: await sourceAttachments(chatAttachments, activeSignal)} : {})})))
+          messages: await Promise.all(messages.map(async message => ({...message, content: await lease(message.content, activeSignal)})))
         }) : service.stream({...base, prompt: await materialize(currentPrompt),
           ...(currentSystem ? {system: await materialize(currentSystem)} : {}), attachments: await bufferedAttachments(currentAttachments),
-          messages: await Promise.all(messages.map(async ({chatAttachments, turn, ...message}) => ({...message, content: await materialize(message.content),
-            ...(chatAttachments && turn !== options.chatTurn ? {attachments: await bufferedAttachments(chatAttachments)} : {})})))
+          messages: await Promise.all(messages.map(async message => ({...message, content: await materialize(message.content)})))
         });
         responseContent = {spool: await create(), size: 0};
         let surrogate = "";
@@ -148,8 +179,7 @@ export async function* promptToolChain(options: {
           if (currentSystem?.size) messages.push({role: "system", content: currentSystem});
           // Pinned live chains do not replay prompt attachments from prior rounds.
           // Assistant text and calls are distinct messages in the reference wire.
-          if (currentPrompt.size || options.chatMessages && currentAttachments.length) messages.push({role: "user", content: currentPrompt,
-            ...(options.chatMessages ? {chatAttachments: currentAttachments, turn: options.chatTurn ?? 0} : {})});
+          if (currentPrompt.size) messages.push({role: "user", content: currentPrompt});
           if (responseContent!.size) messages.push({role: "assistant", content: responseContent!});
           messages.push({role: "assistant", content: empty, toolCalls: responseCalls});
         }
@@ -177,7 +207,7 @@ export async function* promptToolChain(options: {
   if (options.chatMessages && responseContent && !prepared) {
     options.admitInput(responseContent.size, !streamed);
     if (currentSystem?.size) messages.push({role: "system", content: currentSystem});
-    if (currentPrompt.size || currentAttachments.length) messages.push({role: "user", content: currentPrompt, chatAttachments: currentAttachments, turn: options.chatTurn ?? 0});
-    messages.push({role: "assistant", content: responseContent});
+    if (currentPrompt.size) messages.push({role: "user", content: currentPrompt});
+    if (responseContent.size) messages.push({role: "assistant", content: responseContent});
   }
 }

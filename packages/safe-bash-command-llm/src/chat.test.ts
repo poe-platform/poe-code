@@ -16,12 +16,16 @@ for (const fixture of fixtures) test(`pinned chat ${JSON.stringify([fixture.args
   const command = createLlmCommand({defaultModel: 'fixture', providers: [{name: 'fixture', models: [{id: 'fixture', canStream: false, capabilities: ['messages'], options: {count: {type: 'integer'}}}], async *complete(request) {
     const messages = request.messages ?? [];
     const previous = messages.flatMap((message, index) => message.role === 'user' ? [{prompt: message.content, text: messages[index + 1]?.content}] : []);
-    calls.push({prompt: request.prompt, system: request.system ?? '', options: {count: request.options.count ?? 1}, stream: request.stream, previous});
+    calls.push({prompt: request.prompt, system: request.system || messages.filter(message => message.role === 'system').at(-1)?.content || '', options: {count: request.options.count ?? 1}, stream: request.stream, previous});
     yield 'reply:' + request.prompt;
   }}]});
   const result = await command.execute({command: 'llm', args: ['chat', ...fixture.args], fs, cwd: '/', env: {LLM_USER_PATH: '/config'}, signal: new AbortController().signal,
     stdin: toByteSource(fixture.input), stdout: {async write(bytes) {stdout += new TextDecoder().decode(bytes);}}, stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}} as CommandContext);
-  assert.deepEqual({stdout, stderr, calls, exitCode: result.exitCode}, {stdout: fixture.args.includes('--help') ? fixture.stdout.split('\n').filter(line => !['  -c, --continue ', '  --cid, --conversation ', '  -d, --database '].some(prefix => line.startsWith(prefix))).join('\n') : fixture.stdout, stderr: fixture.stderr, calls: fixture.calls, exitCode: fixture.exitCode});
+  // Native Prompt.system may repeat a template system already present in the
+  // conversation. Compare the effective system context, as well as raw turns.
+  let system = '';
+  const expectedCalls = fixture.calls.map(call => {system = call.system || system; return {...call, system};});
+  assert.deepEqual({stdout, stderr, calls, exitCode: result.exitCode}, {stdout: fixture.args.includes('--help') ? fixture.stdout.split('\n').filter(line => !['  -c, --continue ', '  --cid, --conversation ', '  -d, --database '].some(prefix => line.startsWith(prefix))).join('\n') : fixture.stdout, stderr: fixture.stderr, calls: expectedCalls, exitCode: fixture.exitCode});
   assert.deepEqual(await fs.readdir('/'), initial);
 });
 

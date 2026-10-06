@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderDiscovery, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -194,9 +194,8 @@ async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacy
     if(result){yield result.content;return;}
     return {toolCalls:[{id:'installed-call',name:'installed_tool',arguments:{value:5}}]};
   }}]});
-  const fragmentLoaders=new Map(),templateLoaders=new Map();
   const shell = new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(pythonOptions))
-    .use(llmCommands({service,templateLoaders,fragmentLoaders,loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-fixture']}),managePackages:createPythonLlmPackageManager(pythonOptions)}));
+    .use(llmCommands({service,loaderProvider:createPythonLlmLoaderProvider({...pythonOptions,plugins:['worker-fixture']}),loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-fixture']}),managePackages:createPythonLlmPackageManager(pythonOptions)}));
   const prefix = useLlm ? 'llm' : 'python -m pip';
   const quote = value => "'" + value.split("'").join("'\\''") + "'";
   try {
@@ -221,7 +220,7 @@ if ${legacyOnly ? 'True' : 'False'}:
  dependency['worker_dependency-1.0.dist-info/METADATA'] += 'Provides-Extra: feature\\nRequires-Dist: worker-extra @ file:///work/worker_extra-1.0-py3-none-any.whl ; extra == "feature"\\n'
 write_wheel('worker_dependency-1.0-py3-none-any.whl', dependency)
 files['worker_fixture-1.0.dist-info/METADATA'] += 'Requires-Dist: worker-dependency${legacyOnly ? '[feature]' : ''} @ file:///work/worker_dependency-1.0-py3-none-any.whl\\n'
-files['worker_fixture/plugin.py'] = 'import llm, sys\\ndef native_fragment(value):\\n print("plugin output")\\n print("plugin diagnostic", file=sys.stderr)\\n return llm.Fragment("native fragment:" + value, "fixture")\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n@llm.hookimpl\\ndef register_fragment_loaders(register):\\n register("native", native_fragment)\\ndef native_template(value):\\n print("template output")\\n print("template diagnostic", file=sys.stderr)\\n return llm.Template(name="native", prompt="native template:" + value + " $name $input", system="native system", defaults={"name":"default"})\\n@llm.hookimpl\\ndef register_template_loaders(register):\\n register("native", native_template)\\n'
+files['worker_fixture/plugin.py'] = 'import llm, sys\\ndef native_fragment(value):\\n print("plugin output")\\n print("plugin diagnostic", file=sys.stderr)\\n return llm.Fragment("native fragment:" + value, "fixture")\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n@llm.hookimpl\\ndef register_fragment_loaders(register):\\n print("register fragments")\\n register("native", native_fragment)\\ndef native_template(value):\\n print("template output")\\n print("template diagnostic", file=sys.stderr)\\n return llm.Template(name="native", prompt="native template:" + value + " $name $input", system="native system", defaults={"name":"default"})\\n@llm.hookimpl\\ndef register_template_loaders(register):\\n print("register templates")\\n register("native", native_template)\\n'
 files['worker_fixture-1.0.dist-info/entry_points.txt'] = '[llm]\\nfixture = worker_fixture.plugin\\n'
 if ${artifactOnly ? 'True' : 'False'}:
  files['worker_fixture-1.0.dist-info/METADATA'] += '\\n' + 'unneeded-description' * 8192
@@ -314,13 +313,10 @@ print('worker package verified')
       const result = await shell.exec('llm ' + args.join(' '));
       native.push({args,exitCode:result.exitCode,output:result.stdout+result.stderr});
     }
-    let plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing;
+    let plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing,missingFragment,missingTemplate;
     if(useLlm) {
       const added=await shell.exec('llm install ./worker_provider-1.0-py3-none-any.whl');
       if(added.exitCode)throw new Error(JSON.stringify({added,diagnostics}));
-      const discovered=await createPythonLlmLoaderDiscovery({...pythonOptions,plugins:['worker-fixture']})({fs:backend,cwd:'/work',signal:new AbortController().signal,maxBytes:65536});
-      for(const [prefix,loader]of discovered.fragmentLoaders)fragmentLoaders.set(prefix,loader);
-      for(const [prefix,loader]of discovered.templateLoaders)templateLoaders.set(prefix,loader);
       fragmentListing=await shell.exec('llm fragments loaders');
       templateListing=await shell.exec('llm templates loaders');
       plugins=await shell.exec('llm plugins --hook register_tools');
@@ -328,6 +324,8 @@ print('worker package verified')
       called=await shell.exec("llm -T installed_tool 'use installed tool'");
       fragment=await shell.exec("llm -f native:hello prompt");
       template=await shell.exec("llm -t native:hello -p name Ada question");
+      missingFragment=await shell.exec('llm -f missing:value question');
+      missingTemplate=await shell.exec('llm -t missing:value question');
       const denied=new Shell({fs:backend,cwd:'/work'}).use(llmCommands({loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-provider']})}));
       try {blocked=await denied.exec('llm plugins');} finally {await denied.dispose();}
     }
@@ -390,7 +388,7 @@ except PackageNotFoundError: pass
 else: raise AssertionError('Removed root reappeared')
 print('root removed; dependency retained')
 `));
-    return {wheelReads, installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, declined, afterDecline, removed, afterRemoval, missing, protectedPackage, restored, afterRestore, rootRemoved, afterRootRemoval, protectedDependency, eof, native, plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing, requests, diagnostics};
+    return {wheelReads, installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, declined, afterDecline, removed, afterRemoval, missing, protectedPackage, restored, afterRestore, rootRemoved, afterRootRemoval, protectedDependency, eof, native, plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing,missingFragment,missingTemplate, requests, diagnostics};
   } finally {await shell.dispose();await environment.dispose();manifestStore.dispose();}
 }
 

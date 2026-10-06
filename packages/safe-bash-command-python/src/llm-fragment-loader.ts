@@ -1,4 +1,4 @@
-import {createLlmSpool,createLlmUrlSource,type LlmFragmentLoader,type LlmInputSource,type LlmLoadedFragment} from 'safe-bash-command-llm';
+import {createLlmSpool,createLlmUrlSource,LlmLoaderLookupError,type LlmFragmentLoader,type LlmInputSource,type LlmLoadedFragment} from 'safe-bash-command-llm';
 import {toByteSource,type CommandContext} from 'safe-bash-contracts';
 import {createPythonExecutorCommands} from './executor.js';
 import type {PythonLlmToolLoaderOptions} from './llm-functions-loader.js';
@@ -39,6 +39,7 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
    if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Invalid Python fragment message');
    const message=input as Record<string,PythonHostValue>;
    if(message.op==='request')return {prefix,value,plugins};
+   if(message.op==='missing')throw new LlmLoaderLookupError(String(message.message));
    if(message.op==='error')throw new Error(String(message.message));
    if(message.op==='begin'){
     if(current||resume)throw new Error('Python fragment already active');
@@ -147,7 +148,9 @@ def main():
   finally:
    manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded = original
  loaders = llm.get_fragment_loaders()
- if request['prefix'] not in loaders: raise ValueError('Unknown fragment prefix: ' + request['prefix'])
+ if request['prefix'] not in loaders:
+  send('missing', message='Unknown fragment prefix: ' + request['prefix'])
+  return
  result = loaders[request['prefix']](request['value'])
  if not isinstance(result, list): result = [result]
  for value in result:

@@ -211,6 +211,15 @@ The native LLM loader supplies entrypoint names, versions and hooks. Tool,
 template-loader and fragment-loader hooks are allowed; provider registration
 remains platform-owned.
 
+Set `loaderProvider: createPythonLlmLoaderProvider({ ...pythonOptions, plugins: ["my-plugin"] })`
+on `llmCommands` for native fragment and template loaders that follow installed
+environment changes. Import the factory from `@poe-platform/safe-bash/commands/python`.
+Listing discovers the selected family after argument validation; execution resolves
+the requested prefix without a separate discovery pass. Metadata shares the command
+input budget and plugin diagnostics share its output budget. Explicit `fragmentLoaders`
+and `templateLoaders` entries take precedence. SDK hosts can supply `LlmLoaderProvider`
+to the template store or pass it as the fifth argument to `loadLlmPluginFragments`.
+
 Use `llm plugins` to list the configured interpreter's installed plugin names,
 versions and hooks. `--all` includes built-in plugins; repeated `--hook NAME`
 filters match any requested hook. SDK callers pass

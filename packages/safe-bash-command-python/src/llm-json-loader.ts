@@ -1,4 +1,4 @@
-import type {LlmFragmentLoaderContext} from 'safe-bash-command-llm';
+import {LlmLoaderLookupError,type LlmFragmentLoaderContext} from 'safe-bash-command-llm';
 import {toByteSource,type CommandContext} from 'safe-bash-contracts';
 import {createPythonExecutorCommands} from './executor.js';
 import type {PythonLlmToolLoaderOptions} from './llm-functions-loader.js';
@@ -16,7 +16,7 @@ export function createPythonLlmJsonLoader(options:PythonLlmToolLoaderOptions,cap
   if(!capability)throw new Error(`Unknown Python ${label} invocation`);
   return {...provided,[capabilityName]:capability};
  }})[0]!;
- return async(request:Record<string,PythonHostValue>,context:LlmFragmentLoaderContext):Promise<unknown>=>{
+ return async(request:Record<string,PythonHostValue>,context:LlmFragmentLoaderContext,admitBytes?:(size:number)=>void):Promise<unknown>=>{
   if(!context)throw new TypeError(`Python ${label} loading requires caller context`);
   const {maxBytes,signal}=context;
   if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError(`Invalid Python ${label} byte limit`);
@@ -30,13 +30,15 @@ export function createPythonLlmJsonLoader(options:PythonLlmToolLoaderOptions,cap
     if(!input||typeof input!=='object'||Array.isArray(input)||done)throw new TypeError(`Invalid Python ${label} message`);
     const message=input as Record<string,PythonHostValue>;
     if(message.op==='request')return {...request,plugins};
-    if(message.op==='error')throw new Error(String(message.message));
+    if(message.op==='missing'||message.op==='error'){
+     failure??=message.op==='missing'?new LlmLoaderLookupError(String(message.message)):new Error(String(message.message));done=true;return null;
+    }
     if(message.op==='done'){done=true;return null;}
     if(message.op!=='text'||typeof message.text!=='string'||message.text.length>8192)throw new TypeError(`Invalid Python ${label} text window`);
     const bytes=new TextEncoder().encode(message.text).length;
     if(bytes>16384)throw new TypeError(`Invalid Python ${label} text window`);
     if(bytes>maxBytes-size)throw new RangeError(`Python ${label} byte limit exceeded`);
-    size+=bytes;if(bytes)chunks.push(message.text);return null;
+    admitBytes?.(bytes);size+=bytes;if(bytes)chunks.push(message.text);return null;
    }catch(error){failure??=error;throw error;}
   }});
   try{

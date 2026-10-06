@@ -46,3 +46,25 @@ test('discovery cancellation retains caller ownership of interpreter retirement'
  try{assert.ok(cleanups.length>0);assert.equal(retired,false);}finally{release();}
  await assert.rejects(pending,/stop discovery/);await Promise.all(cleanups.map(cleanup=>cleanup()));assert.equal(retired,true);
 });
+
+for(const kind of ['fragments','templates'] as const)test('discovery selects only '+kind,async()=>{
+ const discover=createPythonLlmLoaderDiscovery({createExecutor:()=>({terminate(){},async run(start){
+  start.onReady();const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'llm_loaders',value});
+  assert.deepEqual(await send({op:'request'}),{kind,plugins:[]});
+  await send({op:'text',text:JSON.stringify({fragments:kind==='fragments'?metadata.fragments:[],templates:kind==='templates'?metadata.templates:[]})});
+  await send({op:'done'});return 0;
+ }})});
+ const result=await discover({fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal,maxBytes:1000,kind});
+ assert.equal(result.fragmentLoaders.size,kind==='fragments'?2:0);
+ assert.equal(result.templateLoaders.size,kind==='templates'?1:0);
+});
+test('discovery charges retained metadata once to the caller budget',async()=>{
+ const f=fixture();let admitted=0;
+ await f.discover({fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal,maxBytes:1000,admitBytes(size){admitted+=size;}});
+ assert.equal(admitted,new TextEncoder().encode(JSON.stringify(metadata)).length);
+});
+test('caller metadata admission failure stops discovery and retires its interpreter',async()=>{
+ const f=fixture(),reason=new Error('caller metadata exhausted');let admissions=0;
+ await assert.rejects(f.discover({fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal,maxBytes:1000,admitBytes(){admissions++;throw reason;}}),error=>error===reason);
+ assert.equal(admissions,1);assert.equal(f.terminated(),1);
+});

@@ -1,4 +1,6 @@
 import {unicodeOrder} from "./python-unicode.js";
+import {getLlmFragmentPrefix} from './fragment-loaders.js';
+import {discoverLlmLoaders,LlmLoaderLookupError,type LlmLoaderProvider} from './loader-provider.js';
 import {formatLoaderDescription} from './loader-description.js';
 import {commandArguments} from './command-arguments.js';
 import { jsonValue } from "./json-value.js";
@@ -94,30 +96,13 @@ export function evaluateLlmTemplate(value: LlmTemplate, input: string, params: R
 export type LlmTemplateLoaderContext = LlmTemplateStoreContext & { readonly maxBytes: number };
 export type LlmTemplateLoader = ((remainder: string, signal: AbortSignal, context?: LlmTemplateLoaderContext) => Promise<LlmTemplate> | LlmTemplate) & { readonly description?: string };
 export interface TemplateLoaderOptions {
+  readonly provider?: LlmLoaderProvider|undefined;
   readonly maxRemoteBytes: number;
   readonly maxBytes?: number;
   readonly admitBytes?: (size: number) => void;
-  readonly loaders?: ReadonlyMap<string, LlmTemplateLoader>;
+  readonly loaders?: ReadonlyMap<string, LlmTemplateLoader>|undefined;
 }
-/** Cancellation settles independently of an injected host operation. */
-function abortLoader<Value>(start: () => PromiseLike<Value> | Value, signal: AbortSignal, late?: (value: Value) => Promise<void>): Promise<Value> {
-  signal.throwIfAborted();
-  return new Promise((resolve, reject) => {
-    const abort = () => { signal.removeEventListener("abort", abort); reject(signal.reason); };
-    signal.addEventListener("abort", abort, { once: true });
-    Promise.resolve().then(() => { signal.throwIfAborted(); return start(); }).then(value => {
-      signal.removeEventListener("abort", abort);
-      if (signal.aborted) {
-        if (late) void Promise.resolve().then(() => late(value)).catch(() => undefined);
-        reject(signal.reason);
-      } else resolve(value);
-    }, error => {
-      signal.removeEventListener("abort", abort);
-      reject(signal.aborted ? signal.reason : error);
-    });
-    if (signal.aborted) abort();
-  });
-}
+import {waitForSource as abortLoader} from "./request-source.js";
 export type LlmTemplateStoreContext = Pick<CommandContext, "fs" | "cwd" | "env" | "signal"> &
   Partial<Omit<CommandContext, "fs" | "cwd" | "env" | "signal">> & {
     readonly fetch?: typeof globalThis.fetch | undefined;
@@ -189,31 +174,27 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
       try { await context.fs.stat(path, { signal: context.signal }); }
       catch (error) {
         if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
-        const colon = name.indexOf(":");
-        if (colon > 0) {
-          const prefix = name.slice(0, colon);
-          let valid = true;
-          for (const letter of prefix) if (!"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-".includes(letter)) { valid = false; break; }
-          if (valid) {
-            const loader = loaders?.loaders?.get(prefix);
-            if (!loader) throw new Error(`Unknown template prefix: ${prefix}`);
-            try {
-              const materializedLimit = loaders?.maxBytes ?? Infinity;
-              const loaded = await abortLoader(() => loader(name.slice(colon + 1), context.signal, {...context, maxBytes: materializedLimit}), context.signal);
-              context.signal.throwIfAborted();
-              let loadedBytes = 0;
-              if (loaders?.admitBytes || materializedLimit !== Infinity) for await (const bytes of jsonValue(loaded, context.signal)) {
-                loadedBytes += bytes.byteLength;
-                if (loadedBytes > materializedLimit) throw new FsError("EFBIG", {message:"llm buffered input byte limit exceeded"});
-                loaders?.admitBytes?.(bytes.byteLength);
-              }
-              const value = template(loaded, loaded.name);
-              Object.defineProperty(value, "functionsTrusted", { value: false });
-              return value;
-            } catch (error) {
-              context.signal.throwIfAborted();
-              throw new Error(`Could not load template ${name}: ${error instanceof Error ? error.message : String(error)}`);
+        const prefix = getLlmFragmentPrefix(name);
+        if (prefix !== undefined) {
+          const loader = loaders?.loaders?.get(prefix)??loaders?.provider?.templates(prefix);
+          if (!loader) throw new Error(`Unknown template prefix: ${prefix}`);
+          try {
+            const materializedLimit = loaders?.maxBytes ?? Infinity;
+            const loaded = await abortLoader(() => loader(name.slice(prefix.length + 1), context.signal, {...context, maxBytes: materializedLimit}), context.signal);
+            context.signal.throwIfAborted();
+            let loadedBytes = 0;
+            if (loaders?.admitBytes || materializedLimit !== Infinity) for await (const bytes of jsonValue(loaded, context.signal)) {
+              loadedBytes += bytes.byteLength;
+              if (loadedBytes > materializedLimit) throw new FsError("EFBIG", {message:"llm buffered input byte limit exceeded"});
+              loaders?.admitBytes?.(bytes.byteLength);
             }
+            const value = template(loaded, loaded.name);
+            Object.defineProperty(value, "functionsTrusted", { value: false });
+            return value;
+          } catch (error) {
+            context.signal.throwIfAborted();
+            if(error instanceof LlmLoaderLookupError)throw error;
+            throw new Error(`Could not load template ${name}: ${error instanceof Error ? error.message : String(error)}`);
           }
         }
         path = filename(name);
@@ -249,8 +230,9 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
       const {command, operands} = parsed;
       const name = operands[0];
       if (command === "loaders") {
-        if (!loaders?.loaders?.size) await output("No template loaders found\n");
-        else for (const [prefix, loader] of loaders.loaders) {
+        const registered=await discoverLlmLoaders(loaders?.loaders,{...context,kind:'templates',maxBytes:loaders?.maxBytes??Infinity,admitBytes:loaders?.admitBytes},loaders?.provider);
+        if (!registered.size) await output("No template loaders found\n");
+        else for (const [prefix, loader] of registered) {
           context.signal.throwIfAborted();
           await output(prefix + ":\n" + formatLoaderDescription(loader.description).join("\n") + "\n");
         }

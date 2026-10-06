@@ -36,7 +36,9 @@ def main():
   finally:
    manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded = original
  loaders = llm.get_template_loaders()
- if request['prefix'] not in loaders: raise ValueError('Unknown template prefix: ' + request['prefix'])
+ if request['prefix'] not in loaders:
+  send('missing', message='Unknown template prefix: ' + request['prefix'])
+  return
  template = loaders[request['prefix']](request['value'])
  encoder = json.JSONEncoder(ensure_ascii=False, separators=(',', ':'))
  for part in encoder.iterencode(template.model_dump(exclude_none=True)):

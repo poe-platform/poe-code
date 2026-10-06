@@ -116,6 +116,7 @@ export interface LlmLimits {
 export type LlmPackageManager = (request: {readonly context: CommandContext; readonly args: readonly string[]}) => Promise<CommandResult>;
 
 export interface LlmCommandsOptions {
+  readonly loaderProvider?: import('./loader-provider.js').LlmLoaderProvider;
   readonly managePackages?: LlmPackageManager;
   readonly collections?:LlmCollectionCommands;
   readonly limits?: Partial<LlmLimits>;

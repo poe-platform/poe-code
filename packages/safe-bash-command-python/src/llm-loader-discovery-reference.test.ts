@@ -49,3 +49,65 @@ assert [entry[0] for entry in actual['fragments']]==['native','native_1','native
 `],{input:JSON.stringify(pythonLlmLoaderDiscoveryProgram),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });
+
+test('targeted native discovery does not run the other loader family hooks',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned llm==0.27.1':false},()=>{
+ const result=spawnSync(python,['-B','-c',String.raw`
+import llm,json,sys,types
+program=json.load(sys.stdin)
+calls=[]
+class Plugin:
+ @llm.hookimpl
+ def register_fragment_loaders(self,register):
+  calls.append('fragments')
+  register('fragment',lambda value: llm.Fragment(value,'fixture'))
+ @llm.hookimpl
+ def register_template_loaders(self,register):
+  calls.append('templates')
+  register('template',lambda value: llm.Template(name=value))
+llm.plugins.load_plugins()
+llm.plugins.pm.register(Plugin(),name='targeted-discovery')
+for kind in ('fragments','templates'):
+ calls.clear()
+ if kind=='fragments': llm.get_fragment_loaders()
+ else: llm.get_template_loaders()
+ expected=list(calls)
+ calls.clear()
+ messages=[]
+ def call(capability,message):
+  if message['op']=='request': return dict(plugins=[],kind=kind)
+  messages.append(message)
+ sys.modules['safe_host']=types.SimpleNamespace(call=call)
+ exec(program,{})
+ assert calls==expected,(kind,calls,expected)
+ actual=json.loads(''.join(m['text'] for m in messages if m['op']=='text'))
+ assert len(actual[kind])==1
+ assert actual['templates' if kind=='fragments' else 'fragments']==[]
+`],{input:JSON.stringify(pythonLlmLoaderDiscoveryProgram),encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
+});
+
+test('native missing prefixes retain lookup diagnostics before loader execution',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned llm==0.27.1':false},async()=>{
+ const {pythonLlmFragmentProgram}=await import('./llm-fragment-loader.js');
+ const {pythonLlmTemplateProgram}=await import('./llm-template-loader.js');
+ const result=spawnSync(python,['-B','-c',String.raw`
+import llm,json,sys,types
+from llm.cli import resolve_fragments,load_template
+programs=json.load(sys.stdin)
+sys.modules['llm_safe_host']=types.SimpleNamespace(_attachment_type=lambda value:value.type)
+for kind in ('fragment','template'):
+ try:
+  if kind=='fragment': resolve_fragments(None,['missing:value'])
+  else: load_template('missing:value')
+  raise AssertionError('native lookup unexpectedly succeeded')
+ except Exception as error:
+  expected=str(error)
+ messages=[]
+ def call(capability,message):
+  if message['op']=='request': return dict(plugins=[],prefix='missing',value='value')
+  messages.append(message)
+ sys.modules['safe_host']=types.SimpleNamespace(call=call)
+ exec(programs[kind],{})
+ assert messages==[dict(op='missing',message=expected)],(kind,messages,expected)
+`],{input:JSON.stringify({fragment:pythonLlmFragmentProgram,template:pythonLlmTemplateProgram}),encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
+});

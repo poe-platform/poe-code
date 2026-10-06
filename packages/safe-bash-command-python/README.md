@@ -88,10 +88,18 @@ CLI includes both in its output budget without treating them as fragment content
 The content byte limit excludes attachment metadata; cancellation
 and iterator closure retire staged files and the interpreter.
 
-To discover prefixes from authorized installed plugins, call
+For automatic CLI lookup after installing or changing authorized plugins, pass
+`loaderProvider: createPythonLlmLoaderProvider({ ...pythonOptions, plugins: ["my-plugin"] })`
+to `llmCommands`. Listings discover only the requested loader family; execution
+resolves a prefix without an extra registration pass. Help and usage errors do
+not start discovery. Explicit loader map entries override dynamic registrations.
+
+To discover prefixes directly from authorized installed plugins, call
 `createPythonLlmLoaderDiscovery({ ...pythonOptions, plugins: ["my-plugin"] })(context)`.
 Supply `fs`, `cwd`, `signal` and a finite metadata `maxBytes` in `context`; optional
 output streams and `registerCleanup` retain caller-owned diagnostics and retirement.
+Set `kind: "fragments"` or `"templates"` to run only that family's hooks, and
+`admitBytes` to charge retained metadata to a shared caller budget.
 Spread the returned `{ fragmentLoaders, templateLoaders }` into `llmCommands` or
 use the maps directly through the SDK. Native ordering, collision suffixes and
 docstrings are preserved. Discovery does not execute the loaders. Discover again

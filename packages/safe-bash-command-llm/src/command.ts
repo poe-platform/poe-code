@@ -11,6 +11,7 @@ import { createToolApproval } from "./prompt-tool-approval.js";
 import { stripPythonWhitespace } from "./python-whitespace.js";
 import { selectLlmTools } from "./tool-registry.js";
 import { tokenInteger } from "./token-integer.js";
+import {discoverLlmLoaders} from "./loader-provider.js";
 import { fragmentLoaderCommand } from "./fragment-loader-command.js";
 import { toolsCommand } from './tools-command.js';
 import { getLlmFragmentPrefix, loadLlmPluginFragments } from "./fragment-loaders.js";
@@ -348,7 +349,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         return {exitCode:2};
       }
       const tokens = Array.from({length:argumentsValue.args.length-2},(_,index)=>argumentText(index+2));
-      return {exitCode:await fragmentLoaderCommand(tokens,fragmentLoaders,emitText,text=>writeDiagnostic(context.stderr,text,signal),step)};
+      return {exitCode:await fragmentLoaderCommand(tokens,fragmentLoaders,emitText,text=>writeDiagnostic(context.stderr,text,signal),step,()=>discoverLlmLoaders(fragmentLoaders,{...loaderContext(),kind:'fragments',maxBytes:input.remaining(true),admitBytes:admitBuffered},templateLoaderOptions.provider))};
     }
     if (argumentsValue.args[0] === "schemas" && argumentsValue.args[1] !== "dsl") {
       await writeDiagnostic(context.stderr, "Error: Stored schema history is host-owned. Use an inline schema, file, template, or 'llm schemas dsl'.\n", signal);
@@ -544,7 +545,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         }
         if (getLlmFragmentPrefix(reference) !== undefined) {
           try {
-            for await (const loaded of loadLlmPluginFragments(reference,fragmentLoaders,{...loaderContext(),get maxBytes(){return input.remaining(!streamed);}},!system)) {
+            for await (const loaded of loadLlmPluginFragments(reference,fragmentLoaders,{...loaderContext(),get maxBytes(){return input.remaining(!streamed);}},!system,templateLoaderOptions.provider)) {
               const source = await operation.acquire(()=>loaded.source,value=>value.dispose());
               if (loaded.type === "text") { yield source; continue; }
               input.admitText(loaded.mimeType);
@@ -915,7 +916,7 @@ export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefin
   const limits = options.limits === undefined ? undefined : Object.freeze({ ...options.limits });
   if (options.service && (options.providers !== undefined || options.defaultModel !== undefined)) throw new TypeError("Configure providers and defaultModel on the injected LLM service");
   const maxRemoteBytes = options.maxRemoteTemplateBytes ?? limits?.maxInputBytes ?? Infinity;
-  const templateLoaderOptions: TemplateLoaderOptions = { maxRemoteBytes, ...(options.templateLoaders ? { loaders: options.templateLoaders } : {}) };
+  const templateLoaderOptions: TemplateLoaderOptions = { maxRemoteBytes, provider:options.loaderProvider, loaders:options.templateLoaders };
   const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
   const collections=options.collections;
   return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections, options.fragmentLoaders ?? new Map(), options.tools ?? new Map(), options.loadTools, options.managePackages) };

@@ -1,10 +1,10 @@
-export function waitForSource<Value>(start: () => PromiseLike<Value>, signal: AbortSignal): Promise<Value> {
+export function waitForSource<Value>(start: () => PromiseLike<Value>|Value, signal: AbortSignal, late?: (value:Value)=>Promise<void>): Promise<Value> {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
     const abort = (): void => { signal.removeEventListener("abort", abort); reject(signal.reason); };
     signal.addEventListener("abort", abort, { once: true });
     Promise.resolve().then(() => { signal.throwIfAborted(); return start(); }).then(
-      value => { signal.removeEventListener("abort", abort); if (signal.aborted) reject(signal.reason); else resolve(value); },
+      value => { signal.removeEventListener("abort", abort); if (signal.aborted) {if(late)void Promise.resolve().then(()=>late(value)).catch(()=>undefined);reject(signal.reason);} else resolve(value); },
       error => { signal.removeEventListener("abort", abort); reject(signal.aborted ? signal.reason : error); },
     );
     if (signal.aborted) abort();

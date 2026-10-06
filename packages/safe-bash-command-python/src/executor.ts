@@ -16,7 +16,7 @@ export * from './host-capabilities.js';
 export { createPythonShellCapability } from './shell-capability.js';
 export { createPythonLlmPackageManager } from './llm-package-manager.js';
 export { createPythonLlmTemplateLoader } from './llm-template-loader.js';
-export { createPythonLlmLoaderDiscovery, type PythonLlmDiscoveredLoaders } from './llm-loader-discovery.js';
+export { createPythonLlmLoaderDiscovery, createPythonLlmLoaderProvider, type PythonLlmDiscoveredLoaders, type PythonLlmLoaderDiscoveryContext } from './llm-loader-discovery.js';
 export { createPythonLlmFragmentLoader } from './llm-fragment-loader.js';
 export { createPythonLlmToolLoader, type PythonLlmToolLoaderOptions } from './llm-functions-loader.js';
 export { createPythonLlmCapability, type PythonLlmCapabilityOptions } from './llm-capability.js';

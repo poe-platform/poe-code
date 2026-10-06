@@ -638,9 +638,9 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
       assert.equal(result.plugins.exitCode,0,JSON.stringify(result));
       assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_fragment_loaders','register_template_loaders','register_tools'],version:'1.0'}]);
       assert.equal(result.plugins.stderr,'');
-      for(const listing of [result.fragmentListing,result.templateListing]){
+      for(const [kind,listing] of [['fragments',result.fragmentListing],['templates',result.templateListing]]){
         assert.equal(listing.exitCode,0,JSON.stringify(listing));
-        assert.equal(listing.stdout,'native:\n  Undocumented\n');
+        assert.equal(listing.stdout,'register '+kind+'\nnative:\n  Undocumented\n');
         assert.equal(listing.stderr,'');
       }
       assert.equal(result.listed.exitCode,0,JSON.stringify(result));
@@ -651,11 +651,18 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
       assert.equal(result.fragment.exitCode,0,JSON.stringify(result.fragment));
       assert.match(result.fragment.stdout,/native fragment:hello/);
       assert.match(result.fragment.stdout,/prompt/);
-      assert.ok(result.fragment.stdout.startsWith('plugin output\n'));
+      assert.ok(result.fragment.stdout.startsWith('register fragments\nplugin output\n'));
+      assert.equal(result.fragment.stdout.split('register fragments').length,2);
+      assert.ok(!result.fragment.stdout.includes('register templates'));
       assert.equal(result.fragment.stderr,'plugin diagnostic\n');
       assert.equal(result.template.exitCode,0,JSON.stringify(result.template));
-      assert.equal(result.template.stdout,'template output\nnative template:hello Ada question\n');
+      assert.equal(result.template.stdout,'register templates\ntemplate output\nnative template:hello Ada question\n');
       assert.equal(result.template.stderr,'template diagnostic\n');
+      for(const [kind,missing]of [['fragment',result.missingFragment],['template',result.missingTemplate]]){
+        assert.equal(missing.exitCode,1,JSON.stringify(missing));
+        assert.equal(missing.stdout,'register '+kind+'s\n');
+        assert.equal(missing.stderr,'Error: Unknown '+kind+' prefix: missing\n');
+      }
       assert.equal(result.blocked.exitCode,1);
       assert.match(result.blocked.stderr,/platform-configured providers/);
     }

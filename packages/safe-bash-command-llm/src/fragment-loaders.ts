@@ -3,6 +3,7 @@ import {yieldTurn} from 'safe-bash-contracts/yield';
 import {waitForSource} from './request-source.js';
 import type {LlmInputSource} from './types.js';
 import type {LlmFragmentInputSource} from './fragments.js';
+import {LlmLoaderLookupError,type LlmLoaderProvider} from './loader-provider.js';
 
 export type LlmLoadedFragment =
  | {readonly type:'text';readonly source:LlmFragmentInputSource}
@@ -35,8 +36,9 @@ export function createLlmFragmentLoaders(entries:Iterable<readonly [string,LlmFr
 }
 
 /** Resolve an injected loader without ambient plugin imports or history. */
-export async function* loadLlmPluginFragments(reference:string,loaders:ReadonlyMap<string,LlmFragmentLoader>,context:LlmFragmentLoaderContext,allowAttachments=true):AsyncGenerator<LlmLoadedFragment> {
- const prefix=getLlmFragmentPrefix(reference),loader=prefix===undefined?undefined:loaders.get(prefix);
+export async function* loadLlmPluginFragments(reference:string,loaders:ReadonlyMap<string,LlmFragmentLoader>,context:LlmFragmentLoaderContext,allowAttachments=true,provider?:Pick<LlmLoaderProvider,'fragments'>):AsyncGenerator<LlmLoadedFragment> {
+ context.signal.throwIfAborted();
+ const prefix=getLlmFragmentPrefix(reference),loader=prefix===undefined?undefined:loaders.get(prefix)??provider?.fragments(prefix);
  if(!loader)throw new Error(`Unknown fragment prefix: ${prefix??reference}`);
  const {signal}=context;
  let iterator:AsyncIterator<LlmLoadedFragment>|undefined,ended=false;
@@ -59,7 +61,7 @@ export async function* loadLlmPluginFragments(reference:string,loaders:ReadonlyM
     yield {...value,source};
    }finally{await dispose();}
   }
- }catch(error){signal.throwIfAborted();throw new Error(`Could not load fragment ${reference}: ${error instanceof Error?error.message:String(error)}`);}
+ }catch(error){signal.throwIfAborted();if(error instanceof LlmLoaderLookupError)throw error;throw new Error(`Could not load fragment ${reference}: ${error instanceof Error?error.message:String(error)}`);}
  finally{
   if(iterator&&!ended){
    const retired=Promise.resolve().then(()=>iterator!.return?.());

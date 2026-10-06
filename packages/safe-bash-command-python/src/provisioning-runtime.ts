@@ -274,9 +274,28 @@ if _safe_uninstall:
   await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\\nUninstalling ' + _safe_target + '-' + _safe_version + ':\\n')
   if not _safe_uninstall['yes']:
    from micropip._utils import get_files_in_distribution as _safe_distribution_files
-   await _safe_package_emit('stdout', '  Would remove:\\n')
-   for _safe_path in sorted(_safe_distribution_files(_safe_dist)):
-    await _safe_package_emit('stdout', '    ' + str(_safe_path) + '\\n')
+   import os as _safe_os
+   def _safe_compact(paths):
+    compact = []
+    for path in sorted(paths, key=len):
+     if not any(path.startswith(parent.rstrip('*').rstrip('/') + '/') for parent in compact):
+      compact.append(path)
+    return compact
+   _safe_files = {str(path) for path in _safe_distribution_files(_safe_dist) if not str(path).endswith('.pyc')}
+   _safe_folders = _safe_compact({_safe_os.path.dirname(path) for path in _safe_files if path.endswith('__init__.py') or '.dist-info' in path})
+   _safe_skipped = set()
+   for _safe_folder in _safe_folders:
+    for _safe_dir, _, _safe_names in _safe_os.walk(_safe_folder):
+     for _safe_name_ in _safe_names:
+      _safe_path = _safe_os.path.join(_safe_dir, _safe_name_)
+      if not _safe_name_.endswith('.pyc') and _safe_os.path.isfile(_safe_path) and _safe_path not in _safe_files:
+       _safe_skipped.add(_safe_path)
+   _safe_listing = set(_safe_files) | {_safe_os.path.join(folder, '*') for folder in _safe_folders}
+   for _safe_heading, _safe_paths in [('Would remove:', _safe_listing), ('Would not remove (might be manually added):', _safe_skipped)]:
+    if _safe_paths:
+     await _safe_package_emit('stdout', '  ' + _safe_heading + '\\n')
+     for _safe_path in sorted(_safe_compact(_safe_paths)):
+      await _safe_package_emit('stdout', '    ' + _safe_path + '\\n')
    while True:
     await _safe_package_emit('stdout', 'Proceed (Y/n)? ')
     _safe_answer = (await _safe_package_line()).strip().lower()

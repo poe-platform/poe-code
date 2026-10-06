@@ -592,10 +592,14 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
     assert.ok(result.removed.stdout.includes('Successfully uninstalled worker-dependency-1.0'));
     assert.equal(result.afterRemoval.stdout,'dependency removed\n');
     assert.equal(result.missing.stderr,'WARNING: Skipping worker-dependency as it is not installed.\n');
-    // File listings are platform-specific; compare native prompt/response text separately.
+    // Normalize only the runtime installation prefix; retain complete native output.
     for (const [key,row] of [['declined',0],['removed',1]]) {
       const expected=uninstallReference.rows[row];
-      assert.equal(result[key].stdout.slice(result[key].stdout.indexOf('Proceed (Y/n)? ')).replaceAll('worker-dependency','worker-fixture'),expected.stdout.slice(expected.stdout.indexOf('Proceed (Y/n)? ')));
+      const output=result[key].stdout.replaceAll('worker-dependency','worker-fixture').replaceAll('worker_dependency','worker_fixture');
+      const firstPath=output.split('\n').find(line=>line.startsWith('    /'));
+      assert.ok(firstPath,output);
+      const site=firstPath.trim().slice(0,firstPath.trim().indexOf('/worker_fixture'));
+      assert.equal(output.replaceAll(site,'<site>'),expected.stdout);
       assert.equal(result[key].stderr,expected.stderr);
     }
     assert.equal(result.missing.stderr.replaceAll('worker-dependency','worker-fixture'),uninstallReference.rows[2].stderr);
@@ -625,7 +629,7 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
     if(mode==='llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT) {
       const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
       assert.ok(output.startsWith(resolve(root,'out')+'/'));
-      await writeFile(output,result.installed.stdout+'\n'+result.plugins.stdout+'\n'+result.called.stdout);
+      await writeFile(output,result.removed.stdout+'\n'+result.installed.stdout+'\n'+result.plugins.stdout+'\n'+result.called.stdout);
     }
     for(const actual of result.native) {
       const expected=packageCommandReference.find(row=>JSON.stringify(row.args)===JSON.stringify(actual.args));

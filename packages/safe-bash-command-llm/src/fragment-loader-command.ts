@@ -1,3 +1,4 @@
+import {loadLlmHelp} from './help-text.js';
 import type {LlmFragmentLoader} from './fragment-loaders.js';
 
 export async function fragmentLoaderCommand(tokens:readonly string[],loaders:ReadonlyMap<string,LlmFragmentLoader>,output:(text:string)=>Promise<void>,diagnostic:(text:string)=>Promise<void>):Promise<number>{
@@ -9,7 +10,7 @@ export async function fragmentLoaderCommand(tokens:readonly string[],loaders:Rea
   else if(!ended&&token.startsWith('-')&&token!=='-'){failure=`No such option: ${token.split('=')[0]}`;break;}
   else operands.push(token);
  }
- if(help&&!failure){await output(usage+'\n  Show fragment loaders registered by plugins\n\nOptions:\n  -h, --help  Show this message and exit.\n');return 0;}
+ if(help&&!failure){await output(await loadLlmHelp('fragments-loaders'));return 0;}
  failure??=operands.length?`Got unexpected extra argument (${operands[0]})`:undefined;
  if(failure){await diagnostic(usage+"Try 'llm fragments loaders --help' for help.\n\nError: "+failure+'\n');return 2;}
  let found=false;

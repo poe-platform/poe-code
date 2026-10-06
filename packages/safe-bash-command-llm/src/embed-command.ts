@@ -1,3 +1,4 @@
+import {loadLlmHelp} from './help-text.js';
 import { FsError } from "safe-bash-contracts";
 import { pathOf } from 'safe-bash-contracts/path';
 import type { CommandContext } from 'safe-bash-contracts';
@@ -7,7 +8,6 @@ import { createLlmConfiguration } from './configuration.js';
 import {acquireEmbeddingInput} from './embed-source.js';
 import { serializeLlmEmbedding, type LlmEmbeddingFormat } from './embed-output.js';
 const usage="Usage: llm embed [OPTIONS] [COLLECTION] [ID]\n";
-const help="Usage: llm embed [OPTIONS] [COLLECTION] [ID]\n\n  Embed text and store or return the result\n\nOptions:\n  -i, --input PATH                File to embed\n  -m, --model TEXT                Embedding model to use\n  --store                         Store the text itself in the database\n  -d, --database FILE\n  -c, --content TEXT              Content to embed\n  --binary                        Treat input as binary data\n  --metadata TEXT                 JSON object metadata to store\n  -f, --format [json|blob|base64|hex]\n                                  Output format\n  -h, --help                      Show this message and exit.\n";
 
 export async function embeddingCommand(context:CommandContext,service:LlmService,tokens:readonly string[],write:(bytes:Uint8Array)=>Promise<void>,diagnostic:(text:string)=>Promise<void>,step:()=>Promise<void>,admit:(bytes:number,materialized?:boolean)=>void,maxConfigurationBytes=Infinity,stored?: (request:{collection:string;id:string;values:Readonly<Record<string,string>>;store:boolean;binary:boolean})=>Promise<number>):Promise<number>{
  const encoder=new TextEncoder();
@@ -33,7 +33,7 @@ export async function embeddingCommand(context:CommandContext,service:LlmService
    values[name]=value;break;
   }
  }
- if(wantsHelp){await write(encoder.encode(help));return 0;}
+ if(wantsHelp){await write(encoder.encode(await loadLlmHelp('embed')));return 0;}
  if(operands.length>2)return fail(`Got unexpected extra argument${operands.length>3?'s':''} (${operands.slice(2).join(' ')})`,2,true);
  if(values.format!==undefined&&!['json','blob','base64','hex'].includes(values.format))return fail(`Invalid value for '-f' / '--format': '${values.format}' is not one of 'json', 'blob', 'base64', 'hex'.`,2,true);
  if(values.metadata!==undefined){

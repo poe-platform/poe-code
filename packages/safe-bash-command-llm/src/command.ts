@@ -77,8 +77,19 @@ interface Arguments {
 
 class LlmPromptUsageError extends Error {}
 
+const chatUsage = "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.";
+
+const promptValueOptions: Record<string, string> = Object.fromEntries(Object.entries({
+  functions: ['--functions'], toolNames: ['-T', '--tool'], chainLimit: ['--cl', '--chain-limit'],
+  fragments: ['-f', '--fragment'], systemFragments: ['--sf', '--system-fragment'], queries: ['-q', '--query'],
+  template: ['-t', '--template'], schema: ['--schema'], schemaMulti: ['--schema-multi'], key: ['--key'], save: ['--save'],
+  params: ['-p', '--param'], model: ['-m', '--model'], system: ['-s', '--system'], options: ['-o', '--option'],
+  attachmentType: ['--at', '--attachment-type'], attachment: ['-a', '--attachment'],
+}).flatMap(([name, flags]) => flags.map(flag => [flag, name])));
+
 async function parse(length: number, text: (index: number) => string, step: () => Promise<void>, chat = false, toolsDebugEnv?: string): Promise<Arguments> {
   const parsed: Arguments = { toolNames: [], functions: [], chainLimit: 5, prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, optionNames: [], options: Object.create(null) as Record<string, string>, attachments: [] };
+  const usage = chat ? chatUsage : "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.";
   const operands: string[] = [];
   let ended = false, chainLimit: string | undefined;
   for (let index = 0; index < length; index++) {
@@ -98,7 +109,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
       }
       if (chat) {
         if (!chatOptions.includes(flag))
-          throw new LlmPromptUsageError(`Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: ${flag}${await chatOptionSuggestion(flag, step)}`);
+          throw new LlmPromptUsageError(`${usage}\n\nError: No such option: ${flag}${await chatOptionSuggestion(flag, step)}`);
       }
       const boolean = ["--async", "--td", "--tools-debug", "--ta", "--tools-approve", "--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
       if (boolean) {
@@ -112,36 +123,27 @@ async function parse(length: number, text: (index: number) => string, step: () =
         if (long) break;
         continue;
       }
-      if (!["--functions", "-T", "--tool", "--cl", "--chain-limit", "-f", "--fragment", "--sf", "--system-fragment", "-q", "--query", "-m", "--model", "-s", "--system", "-o", "--option", "-a", "--attachment", "--at", "--attachment-type", "-t", "--template", "--save", "-p", "--param", "--key", "--schema", "--schema-multi"].includes(flag)) throw new Error(`Unknown option: ${flag}`);
+      const option = promptValueOptions[flag];
+      if (!option) throw new Error(`Unknown option: ${flag}`);
       const attached = long ? equals < 0 ? undefined : argument.slice(equals + 1) : argument.slice(cursor + 1) || undefined;
-      const arity = ["-o", "--option", "-p", "--param", "--at", "--attachment-type"].includes(flag) ? 2 : 1;
+      const arity = ["options", "params", "attachmentType"].includes(option) ? 2 : 1;
       if (length - index - 1 < arity - (attached === undefined ? 0 : 1)) throw new LlmPromptUsageError(`Error: Option '${flag}' requires ${arity === 2 ? "2 arguments" : "an argument"}.`);
       const value = attached ?? text(++index);
-      if (flag === "--functions") parsed.functions.push(value);
-      else if (flag === "-T" || flag === "--tool") parsed.toolNames.push(value);
-      else if (flag === "--cl" || flag === "--chain-limit") chainLimit = value;
-      else if (flag === "-f" || flag === "--fragment") parsed.fragments.push(value);
-      else if (flag === "--sf" || flag === "--system-fragment") parsed.systemFragments.push(value);
-      else if (flag === "-q" || flag === "--query") parsed.queries.push(value);
-      else if (flag === "-t" || flag === "--template") parsed.template = value;
-      else if (flag === "--schema") parsed.schema = value;
-      else if (flag === "--schema-multi") parsed.schemaMulti = value;
-      else if (flag === "--key") parsed.key = value;
-      else if (flag === "--save") parsed.save = value;
-      else if (flag === "-p" || flag === "--param") Object.defineProperty(parsed.params, value, { value: text(++index), enumerable: true, configurable: true, writable: true });
-      else if (flag === "-m" || flag === "--model") parsed.model = value;
-      else if (flag === "-s" || flag === "--system") parsed.system = value;
-      else if (flag === "-o" || flag === "--option") {
+      if (["functions", "toolNames", "fragments", "systemFragments", "queries"].includes(option))
+        (parsed[option as "functions"] as string[]).push(value);
+      else if (option === "chainLimit") chainLimit = value;
+      else if (option === "params") Object.defineProperty(parsed.params, value, { value: text(++index), enumerable: true, configurable: true, writable: true });
+      else if (option === "options") {
         if (!Object.hasOwn(parsed.options, value)) parsed.optionNames.push(value);
         parsed.options[value] = text(++index);
       }
-      else if (flag === "--at" || flag === "--attachment-type") parsed.attachments.push({ path: value, mimeType: text(++index) });
-      else parsed.attachments.push({ path: value });
+      else if (option === "attachmentType") parsed.attachments.push({ path: value, mimeType: text(++index) });
+      else if (option === "attachment") parsed.attachments.push({ path: value });
+      else parsed[option as "model"] = value;
       break;
     }
   }
   if (parsed.help) return parsed;
-  const usage = chat ? "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help." : "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.";
   if (chainLimit !== undefined) {
     const integer = tokenInteger(chainLimit);
     if (integer === undefined) throw new LlmPromptUsageError(`${usage}\n\nError: Invalid value for '--cl' / '--chain-limit': '${chainLimit}' is not a valid integer.`);
@@ -155,8 +157,8 @@ async function parse(length: number, text: (index: number) => string, step: () =
       throw new LlmPromptUsageError(`${usage}\n\nError: Invalid value for '--td' / '--tools-debug': '${raw}' is not a valid boolean.${detail}`);
     }
   }
-  if (chat && operands.length) throw new LlmPromptUsageError(`Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Got unexpected extra argument${operands.length === 1 ? "" : "s"} (${operands.join(" ")})`);
-  if (operands.length > 1) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra argument${operands.length === 2 ? "" : "s"} (${operands.slice(1).join(" ")})`);
+  const unexpected = chat ? operands : operands.slice(1);
+  if (unexpected.length) throw new LlmPromptUsageError(`${usage}\n\nError: Got unexpected extra argument${unexpected.length === 1 ? "" : "s"} (${unexpected.join(" ")})`);
   parsed.prompt = operands[0] ?? "";
   parsed.promptSupplied = operands.length > 0;
   return parsed;
@@ -298,7 +300,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return { exitCode: 0 };
     }
     if (eager === "help") {
-      await emitText("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment, -u/--usage; -- ends options\n");
+      await emitText(await loadLlmHelp('root'));
       return { exitCode: 0 };
     }
     // A later separator belongs to the explicit or default subcommand.
@@ -348,7 +350,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       const tokens = Array.from({ length: argumentsValue.args.length - 2 }, (_, index) => argumentText(index + 2));
       const usage = "Usage: llm schemas dsl [OPTIONS] INPUT\n";
       if (tokens.includes("--help") || tokens.includes("-h")) {
-        await emitText(usage + "\n  Convert LLM's schema DSL to a JSON schema\n\n      llm schema dsl 'name, age int, bio: their bio'\n\nOptions:\n  --multi     Wrap in an array\n  -h, --help  Show this message and exit.\n");
+        await emitText(await loadLlmHelp('schemas-dsl'));
         return { exitCode: 0 };
       }
       let multi = false, optionsEnded = false;
@@ -445,7 +447,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (!args.save && entry?.model.canStream === false) args.noStream = true;
     const streamed = entry !== undefined && service.streamSources !== undefined && entry.provider.completeSources !== undefined && entry.model.inputSources !== false;
     const stagePrompt = streamed && stored === undefined && args.save === undefined;
-    if (isChat && args.promptSupplied) throw new LlmPromptUsageError(`Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Got unexpected extra argument (${args.prompt})`);
+    if (isChat && args.promptSupplied) throw new LlmPromptUsageError(`${chatUsage}\n\nError: Got unexpected extra argument (${args.prompt})`);
     let chatModelOptions: Record<string, string> | undefined;
     if (isChat) {
       const configured = await configuration.modelOptions(entry!.model.id);

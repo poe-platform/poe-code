@@ -208,3 +208,12 @@ version pins can replace installed versions without either flag. Unrelated
 packages remain installed; failed resolution leaves the saved environment intact.
 SDK callers use `upgrade`, `forceReinstall`, `pre` and `noCache` on `PythonPackageOptions` or per-invocation
 `PythonPackagePrepareContext`; explicit invocation values override defaults.
+
+Hosts can call `publishPythonBuildWheel(source, directory, maxBytes, context)`
+to retain a built wheel before deleting its build directory. The destination must
+already exist in caller-owned storage. Publication streams through retained,
+atomic staging and returns `{ url, digest, size }`; pass the file URL to the
+installer. Digest directories keep distinct builds of the same filename separate.
+The caller owns these durable files and their retention policy. Failed staging
+is removed; empty digest directories can remain. Publication requires confined
+writes and retained read/staging capabilities, with no whole-file fallback.

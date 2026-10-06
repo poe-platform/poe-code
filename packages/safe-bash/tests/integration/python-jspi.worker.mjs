@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonBuildDependencies, createPythonSourceSnapshot, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonBuildDependencies, createPythonSourceSnapshot, publishPythonBuildWheel, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -301,6 +301,10 @@ factory = Backend()
           await prepareBuild({source:snapshot.path,name:'fixture',buildSystem,configSettings:hookRequest.configSettings},hookContext);
           hookRequirements=await hook({...hookRequest,hook:'get_requires_for_build_wheel'},hookContext);
           built=await hook({...hookRequest,hook:'build_wheel',wheelDirectory:'/work/built-wheels'},hookContext);
+          await backend.mkdir('/work/published-wheels');
+          const published=await publishPythonBuildWheel('/work/built-wheels/'+built,'/work/published-wheels',16*1024*1024,hookContext);
+          await backend.unlink('/work/built-wheels/'+built);
+          built=published.url;
           await backend.writeFile(snapshot.path+'/pyproject.toml',new TextEncoder().encode('[build-system]\nrequires=["bad @@@"]'));
           try{await hook({hook:'read_build_system',source:snapshot.path,name:'fixture'},hookContext);}catch(error){invalidBuildSystem={name:error.name,message:error.message};}
         }finally{await snapshot.dispose();}
@@ -309,7 +313,7 @@ factory = Backend()
       }finally{await buildShell.dispose();await buildEnvironment.dispose();await wheelEnvironment.dispose();}
       const after=await manifestStore.get(manifestScope,context);
       const targetState=await shell.exec(inspect);
-      const builtInstalled=await shell.exec('python -m pip install /work/built-wheels/'+built);
+      const builtInstalled=await shell.exec('python -m pip install '+quote(built));
       const builtImported=await shell.exec('python -c '+quote('import built_fixture; print(built_fixture.value)'));
       return {installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,buildSystem,invalidBuildSystem,hookRequirements,built,hookOutput:hookOutput.join(''),builtInstalled,builtImported,wheelReads,requests,diagnostics};
     }

@@ -461,3 +461,5 @@ export type { PythonFailureCategory, PythonDiagnostic, PythonDiagnosticObserver,
 
 export { pythonLlmPackages, installPythonLlmPackages } from './llm-packages.js';
 export type { PythonLlmPackageAsset } from './llm-packages.js';
+
+export { publishPythonBuildWheel, type PythonBuiltWheel } from './build-wheel.js';

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {createHash} from 'node:crypto';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonSourcePackageEnvironment} from './source-environment.js';
 import {createPythonPackageEnvironment} from './provisioning.js';
@@ -22,6 +23,10 @@ for(const zipped of [false,true])for(const legacy of [false,true])for(const requ
   assert.equal(start.invocation.env.TOKEN,'fixture');
   const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});
   const request=await send({op:'request'}) as any;calls.push(request.hook);
+  if(request.hook==='read_source_origin'){
+   assert.equal(request.source,'/work/source'+(zipped?'.zip':''));assert.equal(request.directory,!zipped);
+   await send({op:'text',text:JSON.stringify(JSON.stringify({url:'file:///work/source'+(zipped?'.zip':''),[zipped?'archive_info':'dir_info']:{}}))});await send({op:'done'});return 0;
+  }
   assert.notEqual(request.source,'/work/source');
   assert.equal(new TextDecoder().decode(await fs.readFile(request.source+'/input.txt')),'original');
   let result:unknown;
@@ -33,10 +38,25 @@ for(const zipped of [false,true])for(const legacy of [false,true])for(const requ
  try{
   const receipt=await environment.prepare({...context,...requirementFile?{requirementFiles:['/elsewhere/requirements.txt']}:{requirements:[requirement,requirement]}});
   try{
-   assert.deepEqual(calls,legacy?['read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']:['read_build_system','get_requires_for_build_wheel','build_wheel']);
+   assert.deepEqual(calls,legacy?['read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']:['read_build_system','get_requires_for_build_wheel','build_wheel','read_source_origin']);
    assert.equal(receipt.requested?.length,1);
-   const url=receipt.requested![0]!;assert.ok(url.startsWith('file:///storage/'));assert.ok(url.endsWith('/fixture-1.0-py3-none-any.whl'));
+   const url=receipt.requested![0]!;assert.ok(url.startsWith('file:///storage/'));assert.ok(new URL(url).pathname.endsWith('/fixture-1.0-py3-none-any.whl'));
    assert.deepEqual(await fs.readFile(decodeURIComponent(new URL(url).pathname)),Uint8Array.of(42));
+   const opened=await environment.dispatch('package-open',[receipt.session,url],context) as {key:string};
+   await environment.dispatch('package-close',[receipt.session,'not-open-artifact'],context);
+   const retained=await environment.dispatch('package-retain',[receipt.session,opened.key],context) as {metadata?:Record<string,string>};
+   assert.deepEqual(retained.metadata,legacy?undefined:{'direct_url.json':JSON.stringify({url:'file:///work/source'+(zipped?'.zip':''),[zipped?'archive_info':'dir_info']:{}})});
+   if(!legacy){
+    const restored=createPythonSourcePackageEnvironment({}, {directory:'/storage',python:{createExecutor:()=>{throw new Error('must not rebuild');}}});
+    const replay=await restored.prepare({...context,requirements:[url]});
+    try{
+     const reopened=await restored.dispatch('package-open',[replay.session,url],context) as {key:string};
+     assert.deepEqual((await restored.dispatch('package-retain',[replay.session,reopened.key],context) as {metadata:unknown}).metadata,retained.metadata);
+    }finally{await restored.finish(replay);await restored.dispose();}
+   }
+   const ordinary=new URL(url);ordinary.hash='';
+   const unrelated=await environment.dispatch('package-open',[receipt.session,ordinary.href],context) as {key:string};
+   assert.equal((await environment.dispatch('package-retain',[receipt.session,unrelated.key],context) as {metadata?:unknown}).metadata,undefined);
    assert.ok((await fs.readdir('/storage')).every(entry=>!entry.name.startsWith('.python-')));
   }finally{await environment.finish(receipt);}
  }finally{await environment.dispose();}
@@ -205,5 +225,33 @@ test('requirements comments retain URL integrity fragments and ignore only white
   const receipt=await environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirementFiles:['/requirements.txt']});
   try{assert.deepEqual(receipt.requested,['fixture @ https://example.test/fixture.whl#sha256=abc','a==1#fragment','b==2','c==3']);}
   finally{await environment.finish(receipt);}
+ }finally{await environment.dispose();}
+});
+
+
+test('source origin metadata is bounded independently from wheel bytes',async()=>{
+ const fs=new MemoryFileSystem(),key=createHash('sha256').update(Uint8Array.of(42)).digest('hex');await fs.mkdir('/work/'+key,{recursive:true});await fs.writeFile('/work/'+key+'/fixture-1-py3-none-any.whl',Uint8Array.of(42));
+ const environment=createPythonSourcePackageEnvironment({maxMetadataBytes:4},{directory:'/work',python:{createExecutor:()=>{throw new Error('must not build');}}});
+ const url='file:///work/'+key+'/fixture-1-py3-none-any.whl#python-source='+encodeURIComponent('{"url":"file:///original"}');
+ const context={fs,cwd:'/work',signal:new AbortController().signal,requirements:[url]};
+ try{
+  const start=await environment.prepare(context);
+  try{await assert.rejects(environment.dispatch('package-open',[start.session,url],context),/source origin exceeds maxMetadataBytes/);}
+  finally{await environment.finish(start);}
+ }finally{await environment.dispose();}
+});
+
+
+test('source provenance markers do not reinterpret ordinary caller wheel fragments',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/work');await fs.writeFile('/work/fixture-1-py3-none-any.whl',Uint8Array.of(42));
+ const environment=createPythonSourcePackageEnvironment({maxMetadataBytes:4},{directory:'/absent',python:{createExecutor:()=>{throw new Error('must not build');}}});
+ const url='file:///work/fixture-1-py3-none-any.whl#python-source=not-json';
+ const context={fs,cwd:'/work',signal:new AbortController().signal,requirements:[url]};
+ try{
+  const start=await environment.prepare(context);
+  try{
+   const opened=await environment.dispatch('package-open',[start.session,url],context) as {key:string};
+   assert.equal((await environment.dispatch('package-retain',[start.session,opened.key],context) as {metadata?:unknown}).metadata,undefined);
+  }finally{await environment.finish(start);}
  }finally{await environment.dispose();}
 });

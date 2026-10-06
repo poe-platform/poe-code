@@ -46,6 +46,11 @@ export interface PythonBuildRequirementsStatus {
  readonly conflicting:readonly (readonly [installed:string,wanted:string])[];
  readonly missing:readonly string[];
 }
+export interface PythonSourceOriginRequest {
+ readonly hook:'read_source_origin';
+ readonly source:string;
+ readonly directory:boolean;
+}
 export interface PythonDownloadFilenameRequest {
  readonly hook:'read_download_filename';
  readonly source:string;
@@ -70,8 +75,8 @@ export interface PythonSourceRequirement {
  readonly marker:string|null;
  readonly active:boolean;
 }
-type BuildRequest=PythonDownloadFilenameRequest|PythonEditableRequirementRequest|PythonLegacyRequirementsRequest|PythonSourceRequirementRequest|PythonLegacyBuildRequest|PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
-type BuildResult<T extends BuildRequest>=T extends PythonDownloadFilenameRequest?string:T extends PythonSourceRequirementRequest|PythonEditableRequirementRequest?PythonSourceRequirement|null:T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'|'build_legacy_wheel'}?string:string[];
+type BuildRequest=PythonSourceOriginRequest|PythonDownloadFilenameRequest|PythonEditableRequirementRequest|PythonLegacyRequirementsRequest|PythonSourceRequirementRequest|PythonLegacyBuildRequest|PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
+type BuildResult<T extends BuildRequest>=T extends PythonDownloadFilenameRequest|PythonSourceOriginRequest?string:T extends PythonSourceRequirementRequest|PythonEditableRequirementRequest?PythonSourceRequirement|null:T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'|'build_legacy_wheel'}?string:string[];
 export interface PythonBuildHookContext extends Pick<CommandContext,'fs'|'cwd'|'env'|'signal'|'stdout'|'stderr'> {
  /** Total UTF-8 result metadata allowance; wheel bytes stay in caller storage. */
  readonly maxBytes:number;
@@ -93,9 +98,11 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   context.signal.throwIfAborted();
   const {maxBytes}=context;
   if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError('Invalid Python build metadata limit');
-  if(!input||!['read_download_filename','read_editable_requirement','get_requires_for_legacy_wheel','read_source_requirement','read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
+  if(!input||!['read_source_origin','read_download_filename','read_editable_requirement','get_requires_for_legacy_wheel','read_source_requirement','read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
   if(input.hook==='read_editable_requirement'&&input.requirementLine!==undefined&&typeof input.requirementLine!=='boolean')throw new TypeError('Invalid editable requirement line');
-  if(input.hook==='read_download_filename'){
+  if(input.hook==='read_source_origin'){
+   if(typeof input.directory!=='boolean')throw new TypeError('Invalid Python source origin');
+  }else if(input.hook==='read_download_filename'){
    if(typeof input.responseUrl!=='string'||!Array.isArray(input.headers)||input.headers.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python download metadata');
   }else if(input.hook==='build_legacy_wheel'){
    if(typeof input.wheelDirectory!=='string'||!input.wheelDirectory||input.editable!==undefined&&typeof input.editable!=='boolean')throw new TypeError('Invalid Python legacy wheel directory');
@@ -139,7 +146,7 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
    if(result.exitCode)throw new Error(`Python build interpreter exited with status ${result.exitCode}`);
    if(!done)throw new Error('Python build interpreter returned no result');
    const value:unknown=JSON.parse(chunks.join(''));
-   if(request.hook==='read_download_filename'){
+   if(request.hook==='read_source_origin'||request.hook==='read_download_filename'){
     if(typeof value!=='string')throw new TypeError('Invalid Python download filename');
    }else if(request.hook==='read_source_requirement'||request.hook==='read_editable_requirement'){
     const result=value as PythonSourceRequirement|null;
@@ -167,6 +174,29 @@ ${pythonDownloadFilenameProgram}
 
 def send(op, **fields):
  return safe_host.call('python_build', dict(op=op, **fields))
+
+
+def read_source_origin(request):
+ import re
+ from urllib.parse import urlsplit, urlunsplit
+ source = request['source']
+ if source.startswith('/'):
+  from pathlib import Path
+  source = Path(source).as_uri()
+ url = urlsplit(source)
+ netloc = url.netloc
+ if '@' in netloc:
+  credentials, host = netloc.split('@', 1)
+  if not re.match(r'^\$\{[A-Za-z0-9-_]+\}(:\$\{[A-Za-z0-9-_]+\})?$', credentials): netloc = host
+ result = {'url': urlunsplit((url.scheme, netloc, url.path, url.query, ''))}
+ subdirectory = re.search(r'[#&]subdirectory=([^&]*)', source)
+ if subdirectory: result['subdirectory'] = subdirectory.group(1)
+ info = {}
+ if not request['directory']:
+  hashed = re.search(r'(sha1|sha224|sha384|sha256|sha512|md5)=([a-f0-9]+)', source)
+  if hashed: info['hash'] = hashed.group(1) + '=' + hashed.group(2)
+ result['dir_info' if request['directory'] else 'archive_info'] = info
+ return json.dumps(result, sort_keys=True)
 
 def parse_build_requirement(value):
  from urllib.parse import urlparse, urlunparse
@@ -298,6 +328,7 @@ def read_editable_requirement(request):
 def main():
  request = send('request')
  if request['hook'] == 'get_requires_for_legacy_wheel': request.update(hook='get_requires_for_build_wheel', backend='setuptools.build_meta:__legacy__')
+ if request['hook'] == 'read_source_origin': return read_source_origin(request)
  if request['hook'] == 'read_download_filename': return read_download_filename(request)
  if request['hook'] == 'read_source_requirement': return read_source_requirement(request)
  if request['hook'] == 'read_editable_requirement': return read_editable_requirement(request)

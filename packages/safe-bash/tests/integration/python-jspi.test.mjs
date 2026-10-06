@@ -576,7 +576,7 @@ test('real workerd loads native code from a retained installed wheel', {timeout:
  assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const format of ['directory','zip','tar','named','remote','remote-metadata','remote-metadata-zip','remote-redirect','remote-extensionless','remote-extensionless-zip','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds legacy setup projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
+for(const format of ['directory','zip','tar','named','remote','remote-pep517','remote-metadata','remote-metadata-zip','remote-redirect','remote-extensionless','remote-extensionless-zip','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds ${format==='remote-pep517'?'PEP 517 source':'legacy setup'} projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
   const extras=format==='editable-extras'||format==='editable-file',editable=format==='editable'||format==='llm-editable'||extras;
   const directory=process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT;
   assert.ok(directory,'Set SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT to authenticated runtime build wheels');
@@ -604,7 +604,11 @@ for(const format of ['directory','zip','tar','named','remote','remote-metadata',
   assert.notEqual(result.failed.exitCode,0);
   assert.deepEqual(result.records,[...extras?['build-helper']:[],'legacy-fixture']);
   assert.ok(result.buildEntries.every(name=>!name.startsWith('.python-')));
-  assert.ok(result.requests.some(url=>url.endsWith(lock.setuptools.file_name)));
+  assert.equal(result.requests.some(url=>url.endsWith(lock.setuptools.file_name)),format!=='remote-pep517');
+  if(format==='remote-pep517'){
+    assert.equal(result.provenance.exitCode,0,JSON.stringify(result));
+    assert.deepEqual(JSON.parse(result.provenance.stdout),{url:'https://build.test/legacy-source.tar.gz',archive_info:{hash:'sha256='+result.sourceDigest},subdirectory:'nested'});
+  }
   if(format==='remote-redirect'){
     assert.equal(result.sourceReplay.url,'https://build.test/legacy-source.tar.gz');
     assert.deepEqual(result.sourceReplay.headers,[['content-disposition','attachment; filename="legacy-source.tar.gz"']]);
@@ -647,6 +651,10 @@ test('real workerd isolates build dependencies and preserves target packages aft
   assert.equal(result.sourceInstalled.exitCode,0,JSON.stringify(result));
   assert.equal(result.sourceImported.exitCode,0,JSON.stringify(result));
   assert.equal(result.sourceImported.stdout,'changed original:73\n');
+  assert.equal(result.sourceMetadata.exitCode,0,JSON.stringify(result));
+  assert.deepEqual(JSON.parse(result.sourceMetadata.stdout),{dir_info:{},url:'file:///work/build-source'});
+  assert.equal(result.sourceUninstalled.exitCode,0,JSON.stringify(result));
+  assert.notEqual(result.sourceRemoved.exitCode,0);
   assert.ok(result.wheelReads.opened>0);
   assert.equal(result.wheelReads.closed,result.wheelReads.opened);
   assert.deepEqual(result.failures,[]);

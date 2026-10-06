@@ -247,6 +247,10 @@ The same environment works with SDK requirements and the LLM package manager.
 Named local references such as `project[feature] @ file:///sources/project`
 retain the requested package name, extras and environment marker after building.
 Inactive markers skip the build.
+PEP 517 installations retain the original source URL, optional archive hash and
+subdirectory in `direct_url.json`, including after source cleanup and offline
+restoration through the source environment. Authentication is redacted following
+pinned pip rules. Legacy and editable installs keep the pinned legacy behavior.
 Direct and named HTTP(S) ZIP/tar archives use the same authorized package
 transport and caller-backed cache. SHA-256 URL fragments are verified before
 extraction; offline replay and cache bypass use the normal installation controls.

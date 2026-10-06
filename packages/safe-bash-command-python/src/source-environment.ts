@@ -1,3 +1,4 @@
+import {withPythonSourceOrigins} from './source-origin.js';
 import {compareIdentity} from '@poe-code/safe-fs/core';
 import {FsError,toByteSource,type CommandContext,type FileStat} from 'safe-bash-contracts';
 import {resolvePath} from 'safe-bash-contracts/path';
@@ -58,6 +59,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    finally{await environment.dispose();}
    if(named){if(!named.active)return requirement;source=named.url;}
   }
+  const originalLink=source.slice(0,5).toLowerCase()==='file:'||source.startsWith('https://')||source.startsWith('http://')?source:undefined;
   let subdirectory:string|undefined;
   if(source.startsWith('file:')||source.startsWith('https://')||source.startsWith('http://')){
    for(let index=0;index<source.length;index++)if((source[index]==='#'||source[index]==='&')&&source.startsWith('subdirectory=',index+1)){
@@ -80,6 +82,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    try{const stat=await fs.stat(source,settings);archived=stat.type==='file'&&!!suffix;if(editable&&stat.type!=='directory')throw new Error('Editable source requires a local directory');if(stat.type!=='directory'&&!archived)return requirement;}
    catch(error){if(error instanceof FsError&&error.code==='ENOENT'){if(editable)throw new Error('Editable source requires an existing local directory');return requirement;}throw error;}
   }
+  const originSource=originalLink??source;
   if(!context.stdout||!context.stderr||!context.env)throw new TypeError('Source package preparation requires command output and environment context');
   if(!fs.prepareDirectory||!fs.removeTreeConditional||!fs.confineExtraction)throw new Error('Source packages require conditional caller storage');
   const root=await fs.realpath(resolvePath(context.cwd,build.directory),settings),parent=await fs.stat(root,settings);
@@ -138,16 +141,18 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    await createPythonBuildDependencies(configuration)({source:prepared,buildSystem},hookContext);
    const filename=await hook(editable?{hook:'build_legacy_wheel',source:prepared,wheelDirectory,editable:true}:buildSystem?{hook:'build_wheel',source:prepared,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:prepared,wheelDirectory},hookContext);
    const published=await publishPythonBuildWheel(resolvePath(wheelDirectory,filename),root,options.maxDownloadBytes??Infinity,context);
-   await cleanup();return named?(named.name||filename.slice(0,filename.indexOf('-')))+(named.extras.length?'['+named.extras.join(',')+']':'')+' @ '+published.url+(named.marker?' ; '+named.marker:''):published.url;
+   const origin=buildSystem&&!editable?await hook({hook:'read_source_origin',source:originSource,directory:!archived},hookContext):undefined;
+   const url=published.url+(origin===undefined?'':'#python-source='+encodeURIComponent(origin));
+   await cleanup();return named?(named.name||filename.slice(0,filename.indexOf('-')))+(named.extras.length?'['+named.extras.join(',')+']':'')+' @ '+url+(named.marker?' ; '+named.marker:''):url;
   }catch(error){
    try{await cleanup();}catch(retirement){if(retirement===error)throw error;throw new AggregateError([error,retirement],'Python source build cleanup failed');}
    throw error;
   }
  };
- return createPythonPackageEnvironment({...options,async prepareRequirements(requirements,context){
+ return withPythonSourceOrigins(createPythonPackageEnvironment({...options,async prepareRequirements(requirements,context){
   const resolved:string[]=[];
   for(const requirement of new Set([...options.editable??[],...context.editable??[]]))resolved.push(await prepareRequirement(requirement,context,true));
   for(const requirement of new Set(requirements))resolved.push(await prepareRequirement(requirement,context));
   return resolved;
- }});
+ }}),build.directory,options.maxMetadataBytes??Infinity);
 }

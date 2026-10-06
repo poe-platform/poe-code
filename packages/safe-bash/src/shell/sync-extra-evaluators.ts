@@ -10407,7 +10407,7 @@ const syncExtraRuntimeMethods = {
             if (disc.status !== 0 || fastSyncSink || fastPipeSink || syncOut) {
               const encoded = disc.status === 0 ? (encodeRedirectTextWithNewlineToScratch(disc.text) ?? fastSharedTextEncoder.encode(`${disc.text}\n`)) : undefined;
               const byteLength = encoded ? encoded.byteLength : 0;
-              if (byteLength === 0 || this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+              if (byteLength === 0 || ((!fastPipeSink || fastPipeSink.canWriteSync(byteLength)) && (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes))) {
                 if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
                 const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
                 this.budget.tick();
@@ -10440,7 +10440,7 @@ const syncExtraRuntimeMethods = {
         if (fastSyncSink || fastPipeSink || syncOut) {
           const encoded = encodeRedirectTextWithNewlineToScratch(rawState.cwd) ?? fastSharedTextEncoder.encode(`${rawState.cwd}\n`);
           const byteLength = encoded.byteLength;
-          if (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+          if ((!fastPipeSink || fastPipeSink.canWriteSync(byteLength)) && (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes)) {
             if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
@@ -10508,7 +10508,7 @@ const syncExtraRuntimeMethods = {
           if (outText !== undefined) {
             const encoded = encodeRedirectTextWithNewlineToScratch(outText) ?? fastSharedTextEncoder.encode(`${outText}\n`);
             const byteLength = encoded.byteLength;
-            if (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+            if ((!fastPipeSink || fastPipeSink.canWriteSync(byteLength)) && (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes)) {
               if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
@@ -10607,7 +10607,7 @@ const syncExtraRuntimeMethods = {
           if (preEncoded !== undefined || formatted !== undefined) {
             const encoded = preEncoded ?? encodeRedirectTextToScratch(formatted!);
             const byteLength = encoded.byteLength;
-            if (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+            if ((!fastPipeSink || fastPipeSink.canWriteSync(byteLength)) && (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes)) {
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
               if (fastSyncSink) {

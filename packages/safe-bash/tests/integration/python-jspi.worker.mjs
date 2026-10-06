@@ -1,3 +1,4 @@
+import {extractPythonSourceZip} from "@poe-platform/safe-bash/commands/python/source-zip";
 import { standardCommands } from '@poe-platform/safe-bash/core';
 import libraryExamples from 'python-library-examples';
 import { installStaticPackages, llmPackageAssets, nativeWheelAssets } from 'python-static-assets';
@@ -34,7 +35,7 @@ async function qualifyNativeWheel(backend,createExecutor,micropip) {
   }finally{await shell.dispose();await environment.dispose();}
 }
 
-async function qualifyLegacyBuild(backend,createExecutor,assets) {
+async function qualifyLegacyBuild(backend,createExecutor,assets,zipped=false) {
   const base='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/';
   const wheels=new Map(assets.map(({file,bytes})=>[base+file,Uint8Array.from(bytes)]));
   const requests=[];
@@ -47,16 +48,24 @@ async function qualifyLegacyBuild(backend,createExecutor,assets) {
   await backend.writeFile('/work/legacy-source/legacy_fixture.py',new TextEncoder().encode('value = "legacy-original"\n'));
   const environment=createPythonSourcePackageEnvironment({cacheDirectory:'/work/packages',authorize:({url})=>wheels.has(url),transport:async({url})=>{
     requests.push(url);return {status:200,headers:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
-  }},{directory:'/work/builds',python:{createExecutor}});
+  }},{directory:'/work/builds',extractArchive:extractPythonSourceZip,python:{createExecutor}});
   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
   const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names]))'`;
   try{
-    const installed=await shell.exec('python -m pip install ./legacy-source');
+    const archive=async()=>{
+      const result=await shell.exec(`python -c 'from zipfile import ZipFile; z=ZipFile("legacy-source.zip","w"); z.write("legacy-source/setup.py","project/setup.py"); z.write("legacy-source/legacy_fixture.py","project/legacy_fixture.py"); z.close()'`);
+      if(result.exitCode)throw new Error(JSON.stringify(result));
+    };
+    if(zipped)await archive();
+    const install='python -m pip install ./legacy-source'+(zipped?'.zip':'');
+    const installed=await shell.exec(install);
     await backend.writeFile('/work/legacy-source/legacy_fixture.py',new TextEncoder().encode('value = "changed"\n'));
     const imported=await shell.exec(inspect);
     await backend.writeFile('/work/legacy-source/setup.py',new TextEncoder().encode('raise RuntimeError("legacy-build-failed")\n'));
-    const failed=await shell.exec('python -m pip install ./legacy-source');
+    if(zipped)await archive();
+    const failed=await shell.exec(install);
     await backend.unlink('/work/legacy-source/setup.py');await backend.unlink('/work/legacy-source/legacy_fixture.py');
+    if(zipped)await backend.unlink('/work/legacy-source.zip');
     const restored=await shell.exec(inspect);
     const receipt=await environment.prepare({fs:backend,cwd:'/work',signal:new AbortController().signal});
     let records;try{records=receipt.records?.map(record=>record[0]);}finally{await environment.finish(receipt);}
@@ -1686,7 +1695,7 @@ export default {
       return runtime;
     } });
     if (mode === '/legacy-build') {
-      try {return Response.json({...await qualifyLegacyBuild(backend,createExecutor,await request.json()),failures});}
+      try {return Response.json({...await qualifyLegacyBuild(backend,createExecutor,await request.json(),new URL(request.url).searchParams.has('zip')),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

@@ -3487,6 +3487,10 @@
       "workerd": "./dist/commands/sort/index.js",
       "browser": "./dist/commands/sort/index.js",
       "import": "./dist/commands/sort/index.js"
+    },
+    "./commands/python/source-zip": {
+      "types": "./dist/commands/python/source-zip.d.ts",
+      "import": "./dist/commands/python/source-zip.js"
     }
   },
   "sideEffects": [

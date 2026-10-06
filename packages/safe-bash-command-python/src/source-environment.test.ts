@@ -2,14 +2,22 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonSourcePackageEnvironment} from './source-environment.js';
+import {extractPythonSourceZip} from './source-zip.js';
+import {makeZipEntry,writeZipArchive} from 'safe-bash-zip-engine';
+import {DEFAULT_ARCHIVE_LIMITS} from 'safe-bash-io-engine/commands/archive/internal';
 
-for(const legacy of [false,true])for(const requirementFile of [false,true])test(`source preparation builds a copied tree and installs a durable wheel; legacy=${legacy}; requirementFile=${requirementFile}`,async()=>{
+for(const zipped of [false,true])for(const legacy of [false,true])for(const requirementFile of [false,true])test(`source preparation builds a copied tree and installs a durable wheel; zip=${zipped}; legacy=${legacy}; requirementFile=${requirementFile}`,async()=>{
  const fs=new MemoryFileSystem();await fs.mkdir('/work/source',{recursive:true});await fs.mkdir('/storage');await fs.mkdir('/elsewhere');
  await fs.writeFile('/work/source/input.txt',new TextEncoder().encode('original'));
- await fs.writeFile('/elsewhere/requirements.txt',new TextEncoder().encode('./source'));
+ const requirement=zipped?'./source.zip':'./source';
+ if(zipped){
+  const signal=new AbortController().signal,entry=await makeZipEntry('project/input.txt',new TextEncoder().encode('original'),{modified:new Date(0),mode:0o644,directory:false,symlink:false},DEFAULT_ARCHIVE_LIMITS,signal);
+  await fs.writeFile('/work/source.zip',await writeZipArchive({entries:[entry],comment:new Uint8Array()},DEFAULT_ARCHIVE_LIMITS,signal));
+ }
+ await fs.writeFile('/elsewhere/requirements.txt',new TextEncoder().encode(requirement));
  const context={fs,cwd:'/work',signal:new AbortController().signal,env:{TOKEN:'fixture'},stdout:{async write(){}},stderr:{async write(){}}};
  const calls:string[]=[];
- const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',python:{createExecutor:()=>({terminate(){},async run(start){
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',extractArchive:extractPythonSourceZip,python:{createExecutor:()=>({terminate(){},async run(start){
   assert.equal(start.invocation.env.TOKEN,'fixture');
   const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});
   const request=await send({op:'request'}) as any;calls.push(request.hook);
@@ -22,7 +30,7 @@ for(const legacy of [false,true])for(const requirementFile of [false,true])test(
   await send({op:'text',text:JSON.stringify(result)});await send({op:'done'});return 0;
  }})}});
  try{
-  const receipt=await environment.prepare({...context,...requirementFile?{requirementFiles:['/elsewhere/requirements.txt']}:{requirements:['./source','./source']}});
+  const receipt=await environment.prepare({...context,...requirementFile?{requirementFiles:['/elsewhere/requirements.txt']}:{requirements:[requirement,requirement]}});
   try{
    assert.deepEqual(calls,legacy?['read_build_system','build_legacy_wheel']:['read_build_system','get_requires_for_build_wheel','build_wheel']);
    assert.equal(receipt.requested?.length,1);
@@ -45,7 +53,7 @@ test('ordinary package requirements do not start a build or require command cont
 test('failed source backend preserves its exception and cleans only the owned build tree',async()=>{
  const fs=new MemoryFileSystem();await fs.mkdir('/source');await fs.mkdir('/storage');
  await fs.writeFile('/storage/keep',Uint8Array.of(5));
- const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',python:{createExecutor:()=>({terminate(){},async run(start){
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',extractArchive:extractPythonSourceZip,python:{createExecutor:()=>({terminate(){},async run(start){
   await start.host!.request({version:1,operation:'call',capability:'python_build',value:{op:'error',type:'ValueError',message:'invalid source'}});return 0;
  }})}});
  try{
@@ -70,9 +78,28 @@ for(const late of [false,true])test(`a substituted build directory cannot redire
   if(key==='realpath')return async(...args:Parameters<typeof target.realpath>)=>{if(late&&!substituted&&staging&&args[0]==='/source')await swap();return target.realpath(...args);};
   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
  }});
- const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',python:{createExecutor:()=>({terminate(){},async run(){throw new Error('backend should not start');}})}});
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',extractArchive:extractPythonSourceZip,python:{createExecutor:()=>({terminate(){},async run(){throw new Error('backend should not start');}})}});
  try{
   await assert.rejects(environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:['/source'],env:{},stdout:{async write(){}},stderr:{async write(){}}}));
   assert.deepEqual(await backing.readdir('/outside'),[]);
+ }finally{await environment.dispose();}
+});
+
+test('invalid source ZIP never invokes build hooks and removes its owned extraction tree',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/storage');await fs.writeFile('/broken.zip',Uint8Array.of(1,2,3));
+ let runs=0;
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',extractArchive:extractPythonSourceZip,python:{createExecutor:()=>{runs++;throw new Error('unexpected build');}}});
+ try{
+  await assert.rejects(environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:['/broken.zip'],env:{},stdout:{async write(){}},stderr:{async write(){}}}));
+  assert.equal(runs,0);assert.deepEqual(await fs.readdir('/storage'),[]);
+ }finally{await environment.dispose();}
+});
+
+test('source archive selection requires an explicit host capability',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/storage');await fs.writeFile('/source.zip',Uint8Array.of(1));
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',python:{createExecutor:()=>{throw new Error('unexpected build');}}});
+ try{
+  await assert.rejects(environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:['/source.zip'],env:{},stdout:{async write(){}},stderr:{async write(){}}}),/extraction capability/);
+  assert.deepEqual(await fs.readdir('/storage'),[]);
  }finally{await environment.dispose();}
 });

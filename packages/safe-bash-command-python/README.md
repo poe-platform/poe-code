@@ -221,11 +221,15 @@ The caller owns these durable files and their retention policy. Failed staging
 is removed; empty digest directories can remain. Publication requires confined
 writes and retained read/staging capabilities, with no whole-file fallback.
 
-For local PEP 517 or legacy `setup.py` projects, configure a source-building environment:
+For local PEP 517 or legacy `setup.py` projects and ZIP source archives, configure
+a source-building environment:
 
 ```ts
+import { extractPythonSourceZip } from "@poe-platform/safe-bash/commands/python/source-zip";
+
 const environment = createPythonSourcePackageEnvironment(packageOptions, {
   directory: "/package-builds", // existing caller-owned durable storage
+  extractArchive: extractPythonSourceZip, // optional ZIP source capability
   python: { createExecutor }
 });
 const commands = pythonCommands({ createExecutor, environment });
@@ -236,9 +240,14 @@ build dependencies (or bootstraps runtime setuptools for legacy projects), runs
 the native backend and installs the published wheel. Legacy tooling uses the
 configured runtime package transport and stays out of the target inventory.
 The same environment works with SDK requirements and the LLM package manager.
-Relative project paths in requirements files use the invocation working directory.
+Select the optional `extractArchive` capability above to enable ZIP sources;
+source-directory hosts can omit its import. ZIP sources use retained reads, storage-backed directory metadata and streamed
+extraction inside the build directory. A shared top-level directory is removed
+according to pip’s source layout rules. Relative project paths in requirements
+files use the invocation working directory.
 Installed snapshots retain durable wheel URLs, so later runs do not need the
 source directory. Direct `environment.prepare()` calls that build sources must
 supply `env`, `stdout` and `stderr`; Python commands supply these automatically.
-Editable source installation and legacy `setup_requires` dependency resolution
-are not supported yet.
+Editable source installation, tar source archives, named source URLs and legacy
+`setup_requires` dependency resolution are not supported yet. ZIP members must
+use canonical relative paths; broader archive path compatibility remains incomplete.

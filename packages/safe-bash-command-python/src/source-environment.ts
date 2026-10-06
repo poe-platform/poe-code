@@ -6,12 +6,15 @@ import {createPythonBuildEnvironment} from './build-environment.js';
 import {createPythonBuildBackend} from './build-backend.js';
 import {createPythonBuildDependencies} from './build-dependencies.js';
 import {createPythonSourceSnapshot} from './source-snapshot.js';
+import type {extractPythonSourceZip} from './source-zip.js';
 import {publishPythonBuildWheel} from './build-wheel.js';
 import type {PythonCommandsOptions} from './executor.js';
 
 export interface PythonSourceBuildOptions {
  /** Existing caller-owned directory for build staging and durable wheels. */
  readonly directory:string;
+ /** Optional caller-selected archive implementation; omitted hosts support source directories. */
+ readonly extractArchive?:typeof extractPythonSourceZip;
  readonly python:Omit<PythonCommandsOptions,'packages'|'requirements'|'packageProfile'|'provisioning'|'environment'>;
 }
 let serial=0;
@@ -28,7 +31,8 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    source=decodeURIComponent(url.pathname);
   }else if(source.includes('://'))return requirement;
   source=resolvePath(context.cwd,source);
-  try{if((await fs.stat(source,settings)).type!=='directory')return requirement;}
+  let zipped=false;
+  try{const stat=await fs.stat(source,settings);zipped=stat.type==='file'&&source.toLowerCase().endsWith('.zip');if(stat.type!=='directory'&&!zipped)return requirement;}
   catch(error){if(error instanceof FsError&&error.code==='ENOENT')return requirement;throw error;}
   if(!context.stdout||!context.stderr||!context.env)throw new TypeError('Source package preparation requires command output and environment context');
   if(!fs.prepareDirectory||!fs.removeTreeConditional||!fs.confineExtraction)throw new Error('Source packages require conditional caller storage');
@@ -58,13 +62,15 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
     return typeof value==='function'?value.bind(owner):value;
    }});
    const command:CommandContext={...context,env:context.env,stdout:context.stdout,stderr:context.stderr,command:'python',args:[],stdin:toByteSource('')};
-   const snapshot=await createPythonSourceSnapshot(source,path,{...command,fs:staging});
+   let prepared:string;
+   if(zipped){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
+   else prepared=(await createPythonSourceSnapshot(source,path,{...command,fs:staging})).path;
    const wheelDirectory=resolvePath(path,'wheels');
    await confined.mkdir(wheelDirectory,settings);
    const configuration={...build.python,environment},hook=createPythonBuildBackend(configuration),hookContext={...command,maxBytes:options.maxMetadataBytes??Infinity};
-   const buildSystem=await hook({hook:'read_build_system',source:snapshot.path},hookContext);
-   if(buildSystem)await createPythonBuildDependencies(configuration)({source:snapshot.path,buildSystem},hookContext);
-   const filename=await hook(buildSystem?{hook:'build_wheel',source:snapshot.path,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:snapshot.path,wheelDirectory},hookContext);
+   const buildSystem=await hook({hook:'read_build_system',source:prepared},hookContext);
+   if(buildSystem)await createPythonBuildDependencies(configuration)({source:prepared,buildSystem},hookContext);
+   const filename=await hook(buildSystem?{hook:'build_wheel',source:prepared,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:prepared,wheelDirectory},hookContext);
    const published=await publishPythonBuildWheel(resolvePath(wheelDirectory,filename),root,options.maxDownloadBytes??Infinity,context);
    await cleanup();return published.url;
   }catch(error){

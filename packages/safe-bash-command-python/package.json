@@ -91,6 +91,10 @@
     "./worker": {
       "types": "./dist/worker.d.ts",
       "import": "./dist/worker.js"
+    },
+    "./source-zip": {
+      "types": "./dist/source-zip.d.ts",
+      "import": "./dist/source-zip.js"
     }
   },
   "files": [

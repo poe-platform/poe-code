@@ -576,7 +576,7 @@ test('real workerd loads native code from a retained installed wheel', {timeout:
  assert.deepEqual(runtimeErrors,[]);
 });
 
-test('real workerd builds legacy setup projects with genuine isolated tooling', {timeout:90000}, async()=>{
+for(const zipped of [false,true])test(`real workerd builds legacy setup projects with genuine isolated tooling; zip=${zipped}`, {timeout:90000}, async()=>{
   const directory=process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT;
   assert.ok(directory,'Set SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT to authenticated runtime build wheels');
   const lock=JSON.parse(files['pyodide-lock.json']).packages;
@@ -588,7 +588,7 @@ test('real workerd builds legacy setup projects with genuine isolated tooling', 
   const micropip=readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL);
   assert.equal(createHash('sha256').update(micropip).digest('hex'),'0ad7104a3cde648e5486a718799f3852f1d782ff19d4bfc13db9dc631df083f8');
   assets.push({file:'micropip-0.11.1-py3-none-any.whl',bytes:Array.from(micropip)});
-  const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/legacy-build',{method:'POST',body:JSON.stringify(assets)});
+  const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/legacy-build'+(zipped?'?zip':''),{method:'POST',body:JSON.stringify(assets)});
   const result=await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
   for(const key of ['installed','imported','restored'])assert.equal(result[key].exitCode,0,JSON.stringify(result));

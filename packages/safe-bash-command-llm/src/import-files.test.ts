@@ -175,3 +175,18 @@ test('GB18030 file imports preserve split supplementary characters and reject in
   assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['chinese']);
  }
 });
+
+test('HZ file imports retain shift state across reads and clean rejected staging',async()=>{
+ const fs=new MemoryFileSystem();
+ for(const encoding of ['hz','hz-gb','hz-gb-2312','hzgb'])for(const suffix of ['~{VP~}\r\n','~{VP~']){
+  const input='A'.repeat(4095)+suffix;
+  await fs.writeFile('/hz',new TextEncoder().encode(input));const values:string[]=[],warnings:string[]=[];
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:[encoding],undecodable(path){warnings.push(path);}},{async *[Symbol.asyncIterator](){yield {path:'/hz',id:'one'};}},async entries=>{
+   for await(const entry of entries){let text='';const decoder=new TextDecoder();for await(const bytes of entry.input.bytes)text+=decoder.decode(bytes,{stream:true});values.push(text+decoder.decode());}
+  });
+  const valid=suffix.endsWith('\n');
+  assert.deepEqual(values,valid?['A'.repeat(4095)+'中\n']:[]);
+  assert.deepEqual(warnings,valid?[]:['/hz']);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['hz']);
+ }
+});

@@ -286,6 +286,12 @@ export async function verifyLlmCollections() {
     const chineseRows=await cliShell.exec('llm similar chinese -c query -d /cli.db');
     if(chineseRows.exitCode!==0||JSON.parse(chineseRows.stdout).content!=='\u{10000}\ue7c7\n')throw new Error('GB18030 CLI stored content changed');
     await fs.unlink('/file-inputs/chinese.txt');
+    await fs.writeFile('/file-inputs/hz.txt',new TextEncoder().encode('A'.repeat(4095)+'~{VP~}\r\n'));
+    const hzImport=await cliShell.exec('llm embed-multi hz --files /file-inputs hz.txt --encoding hz-gb-2312 --store -m embed -d /cli.db');
+    if(hzImport.exitCode!==0||hzImport.stdout!=='Embedding\n')throw new Error('HZ CLI import failed: '+hzImport.stderr);
+    const hzRows=await cliShell.exec('llm similar hz -c query -d /cli.db');
+    if(hzRows.exitCode!==0||JSON.parse(hzRows.stdout).content!=='A'.repeat(4095)+'中\n')throw new Error('HZ CLI stored content changed');
+    await fs.unlink('/file-inputs/hz.txt');
     await fs.writeFile('/file-inputs/ebcdic.txt',Uint8Array.of(0xc1,0x0d,0x25));
     const ebcdicImport=await cliShell.exec('llm embed-multi ebcdic --files /file-inputs ebcdic.txt --encoding ibm037 --store -m embed -d /cli.db');
     if(ebcdicImport.exitCode!==0||ebcdicImport.stdout!=='Embedding\n')throw new Error('EBCDIC CLI import failed: '+ebcdicImport.stderr);

@@ -146,6 +146,7 @@ export async function installStaticPackages(runtime) {
         '@poe-platform/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
         '@poe-platform/safe-bash/core': resolve(root, 'packages/safe-bash/src/commands/index.ts'),
         '@poe-platform/safe-bash/search': resolve(root, 'packages/safe-bash/src/search.ts'),
+        '@poe-platform/safe-bash/commands/llm/collections': resolve(root, 'packages/safe-bash/src/commands/llm/collections.ts'),
         '@poe-platform/safe-bash/commands/llm': resolve(root, 'packages/safe-bash/src/commands/llm/index.ts'),
         '@poe-platform/safe-bash/commands/python': resolve(root, 'packages/safe-bash/src/commands/python/index.ts'),
         '@poe-platform/safe-bash': resolve(root, 'packages/safe-bash/src/shell/shell.ts'),
@@ -477,6 +478,7 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   assert.equal(result.missingChatFragment.stderr, "Error: Fragment 'missing-fragment' not found\n");
   for (const key of ['initialStdinChatFragment', 'stdinChatFragment']) {assert.equal(result[key].exitCode, 1); assert.equal(result[key].stderr, 'Aborted!\n');}
   assert.ok(result.stdinChatFragment.stdout.endsWith('> 1\n> '), result.stdinChatFragment.stdout);
+  assert.equal(result.hzText, 'A'.repeat(4095)+'中\n');
   for (const key of ['missingTemplateAtPrompt','missingTemplateAtEof']) {
     assert.equal(result[key].exitCode, 1);
     assert.ok(result[key].stdout.startsWith('Chatting with fixture\n'));

@@ -12,6 +12,7 @@ import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatT
 import { createPythonJspiExecutor, createPythonLlmToolLoader, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
+import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
 import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
@@ -273,6 +274,12 @@ _pm.register(_Plugin(), name="fixture")
     await backend.mkdir('/work/llm-config/templates', {recursive:true});
     await backend.writeFile('/work/llm-config/templates/wire.yaml', new TextEncoder().encode('prompt: "$input"\nsystem: "$input"\n'));
     await backend.writeFile('/work/llm-config/templates/missing.yaml', new TextEncoder().encode('prompt: "$missing $missing"\n'));
+    await backend.writeFile('/work/hz.txt',new TextEncoder().encode('A'.repeat(4095)+'~{VP~}\r\n'));
+    let hzText='';
+    await withFileEmbeddingEntries({fs:backend,directory:'/work',signal:new AbortController().signal,encodings:['hz']},{async *[Symbol.asyncIterator](){yield {path:'/work/hz.txt',id:'hz'};}},async entries=>{
+      for await(const entry of entries){const decoder=new TextDecoder();for await(const bytes of entry.input.bytes)hzText+=decoder.decode(bytes,{stream:true});hzText+=decoder.decode();}
+    });
+    await backend.unlink('/work/hz.txt');
     const missingTemplateAtPrompt = await shell.exec("llm chat -t missing <<'EOF'\nhello\nEOF");
     const missingTemplateAtEof = await shell.exec('llm chat -t missing');
     wireRun = true;
@@ -292,7 +299,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {missingTemplateAtPrompt,missingTemplateAtEof,invalidChatOptions,snapshotChatOptions,explicitChatOptions,optionCalls,missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {hzText,missingTemplateAtPrompt,missingTemplateAtEof,invalidChatOptions,snapshotChatOptions,explicitChatOptions,optionCalls,missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

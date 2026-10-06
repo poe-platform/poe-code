@@ -16,7 +16,8 @@
   "devDependencies": {
     "@poe-platform/safe-bash": "*",
     "@poe-code/safe-fs": "*",
-    "@poe-platform/safe-fs": "file:../safe-fs"
+    "@poe-platform/safe-fs": "file:../safe-fs",
+    "@poe-code/safe-bash-rust": "*"
   },
   "exports": {
     ".": {

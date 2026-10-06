@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createMemoryFileSystem, createMountFileSystem, createOverlayFileSystem } from "@poe-code/safe-fs";
-import { createRustWasmBash } from "../../safe-bash-rust/dist/index.js";
+import { createRustWasmBash } from "@poe-code/safe-bash-rust";
 import {
   BenchmarkRecorder,
   type BenchmarkRunRecord,

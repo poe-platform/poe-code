@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createRustWasmBash } from "../../safe-bash-rust/dist/index.js";
+import { createRustWasmBash } from "@poe-code/safe-bash-rust";
 import {
   createConfigHierarchyFixture,
   createMonorepoFixture,

@@ -5,6 +5,7 @@ import {createPythonPackageEnvironment,type PythonPackageOptions,type PythonPack
 import {createPythonBuildEnvironment} from './build-environment.js';
 import {createPythonBuildBackend,type PythonSourceRequirement} from './build-backend.js';
 import {createPythonBuildDependencies} from './build-dependencies.js';
+import {downloadPythonSourceArchive} from './source-download.js';
 import {createPythonSourceSnapshot} from './source-snapshot.js';
 import type {extractPythonSourceZip} from './source-zip.js';
 import {publishPythonBuildWheel} from './build-wheel.js';
@@ -18,6 +19,7 @@ export interface PythonSourceBuildOptions {
  readonly python:Omit<PythonCommandsOptions,'packages'|'requirements'|'packageProfile'|'provisioning'|'environment'>;
 }
 let serial=0;
+const archiveSuffix=(path:string)=>['.zip','.tar','.tar.gz','.tgz','.tar.bz2','.tbz','.tar.xz','.txz'].find(suffix=>path.toLowerCase().endsWith(suffix));
 
 /** Package environment that builds local PEP 517 and legacy setup projects before normal installation. */
 export function createPythonSourcePackageEnvironment(options:PythonPackageOptions,build:PythonSourceBuildOptions){
@@ -25,8 +27,16 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
  const prepareRequirement=async(requirement:string,context:PythonPackagePrepareContext):Promise<string>=>{
   const {fs,signal}=context,settings={signal};
   let source=requirement,named:PythonSourceRequirement|null=null;
+  let remote:URL|undefined;
   const at=requirement.indexOf('@');
-  if(at>=0&&!requirement.startsWith('file:')&&requirement.slice(at+1).trimStart().startsWith('file:')){
+  let namedSource=false;
+  if(at>=0&&!requirement.startsWith('file:')){
+   const tail=requirement.slice(at+1).trimStart();let end=0;
+   while(end<tail.length&&![' ','\t','\r','\n'].includes(tail[end]!))end++;
+   try{const url=new URL(tail.slice(0,end));namedSource=url.protocol==='file:'||['http:','https:'].includes(url.protocol)&&!!archiveSuffix(url.pathname);}
+   catch{/* Native requirement validation retains invalid-input diagnostics. */}
+  }
+  if(namedSource){
    if(!context.stdout||!context.stderr||!context.env)throw new TypeError('Source requirement parsing requires command output and environment context');
    const environment=createPythonBuildEnvironment(options);
    try{named=await createPythonBuildBackend({...build.python,environment})({hook:'read_source_requirement',source:requirement},{...context,env:context.env,stdout:context.stdout,stderr:context.stderr,maxBytes:options.maxMetadataBytes??Infinity});}
@@ -37,11 +47,16 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    const url=new URL(source);
    if(url.host&&url.host!=='localhost')return requirement;
    source=decodeURIComponent(url.pathname);
-  }else if(source.includes('://'))return requirement;
-  source=resolvePath(context.cwd,source);
-  let archived=false;
-  try{const stat=await fs.stat(source,settings);archived=stat.type==='file'&&['.zip','.tar','.tar.gz','.tgz','.tar.bz2','.tbz','.tar.xz','.txz'].some(suffix=>source.toLowerCase().endsWith(suffix));if(stat.type!=='directory'&&!archived)return requirement;}
-  catch(error){if(error instanceof FsError&&error.code==='ENOENT')return requirement;throw error;}
+  }else if(source.startsWith('https://')||source.startsWith('http://'))remote=new URL(source);
+  else if(source.includes('://'))return requirement;
+  const suffix=archiveSuffix(remote?.pathname??source);
+  let archived=!!remote&&!!suffix;
+  if(remote){if(!archived)return requirement;}
+  else{
+   source=resolvePath(context.cwd,source);
+   try{const stat=await fs.stat(source,settings);archived=stat.type==='file'&&!!suffix;if(stat.type!=='directory'&&!archived)return requirement;}
+   catch(error){if(error instanceof FsError&&error.code==='ENOENT')return requirement;throw error;}
+  }
   if(!context.stdout||!context.stderr||!context.env)throw new TypeError('Source package preparation requires command output and environment context');
   if(!fs.prepareDirectory||!fs.removeTreeConditional||!fs.confineExtraction)throw new Error('Source packages require conditional caller storage');
   const root=await fs.realpath(resolvePath(context.cwd,build.directory),settings),parent=await fs.stat(root,settings);
@@ -71,7 +86,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    }});
    const command:CommandContext={...context,env:context.env,stdout:context.stdout,stderr:context.stderr,command:'python',args:[],stdin:toByteSource('')};
    let prepared:string;
-   if(archived){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
+   if(archived){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');if(remote){source=resolvePath(path,'archive'+suffix);await downloadPythonSourceArchive(remote,source,options,command);}await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
    else prepared=(await createPythonSourceSnapshot(source,path,{...command,fs:staging})).path;
    const wheelDirectory=resolvePath(path,'wheels');
    await confined.mkdir(wheelDirectory,settings);

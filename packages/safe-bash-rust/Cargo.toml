@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
 license = "MIT"
-description = "Hybrid Rust and TypeScript @poe-platform/safe-bash runtime with poe-agent-rust integration"
+description = "Zero-dependency Rust @poe-platform/safe-bash runtime with Wasm and poe-agent-rust integration"
 
 [lib]
 path = "src/lib.rs"
+crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }
 poe-agent-rust = { path = "../poe-agent-rust" }
-git-rust = { path = "../git-rust" }

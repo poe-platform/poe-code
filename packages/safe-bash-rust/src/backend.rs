@@ -1,10 +1,10 @@
-use crate::fs::{SafeBashFs, VfsEntryKind, VfsFileEntry, resolve_posix_path};
+use crate::budget::{ExecutionBudget, ShellLimits};
+use crate::fs::{SafeBashFs, VfsEntryKind, VfsFileEntry};
+use crate::shell::eval::{EvalError, EvalState};
+use crate::shell::parser::Script;
 use mcp_protocol_rust::json::{Limits, Value, parse, stringify};
 use std::collections::BTreeMap;
-use std::io::Write;
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum BackendMode {
@@ -38,18 +38,7 @@ pub type RustCommand =
 pub struct HybridBackend {
     pub mode: BackendMode,
     commands: BTreeMap<String, RustCommand>,
-}
-
-#[derive(Debug)]
-struct ParsedRedirect {
-    target: String,
-    append: bool,
-}
-
-#[derive(Debug)]
-struct SimpleSegment {
-    words: Vec<String>,
-    redirect_out: Option<ParsedRedirect>,
+    functions: Mutex<BTreeMap<String, Script>>,
 }
 
 fn jstr(s: &str) -> Vec<u16> {
@@ -70,6 +59,7 @@ impl HybridBackend {
         Self {
             mode,
             commands: BTreeMap::new(),
+            functions: Mutex::new(BTreeMap::new()),
         }
     }
 
@@ -85,71 +75,74 @@ impl HybridBackend {
         stdin: &str,
         fs: &dyn SafeBashFs,
     ) -> Option<Result<CommandResult, String>> {
-        let segments = parse_simple_and_chain(script)?;
-        let mut combined_stdout = String::new();
-        let mut combined_stderr = String::new();
-        let mut last_exit = 0;
-
-        for seg in segments {
-            if seg.words.is_empty() {
-                continue;
-            }
-            let cmd_name = &seg.words[0];
-            let args = &seg.words[1..];
-
-            let seg_result = if let Some(custom) = self.commands.get(cmd_name) {
-                let mut ctx = CommandContext {
-                    args,
-                    stdin,
-                    cwd,
-                    env,
-                    fs,
-                };
-                match custom(&mut ctx) {
-                    Ok(res) => {
-                        *cwd = res.cwd.clone();
-                        *env = res.env.clone();
-                        res
-                    }
-                    Err(err) => return Some(Err(err)),
-                }
-            } else {
-                execute_builtin(cmd_name, args, stdin, cwd, env, fs)?
-            };
-
-            last_exit = seg_result.exit_code;
-            combined_stderr.push_str(&seg_result.stderr);
-
-            if let Some(redir) = seg.redirect_out {
-                let out_path = resolve_posix_path(cwd, &redir.target);
-                let payload = if redir.append && fs.exists(&out_path) {
-                    let mut existing = fs.read_file(&out_path).unwrap_or_default();
-                    existing.extend_from_slice(seg_result.stdout.as_bytes());
-                    existing
-                } else {
-                    seg_result.stdout.as_bytes().to_vec()
-                };
-                if let Err(err) = fs.write_file(&out_path, &payload) {
-                    return Some(Err(err));
-                }
-            } else {
-                combined_stdout.push_str(&seg_result.stdout);
-            }
-
-            if last_exit != 0 {
-                break;
-            }
-        }
-
-        Some(Ok(CommandResult {
-            stdout: combined_stdout,
-            stderr: combined_stderr,
-            exit_code: last_exit,
-            cwd: cwd.clone(),
-            env: env.clone(),
-        }))
+        self.try_execute_native_with_limits(
+            script,
+            cwd,
+            env,
+            stdin,
+            None,
+            &ShellLimits::default(),
+            fs,
+        )
     }
 
+    pub fn try_execute_native_with_limits(
+        &self,
+        script: &str,
+        cwd: &mut String,
+        env: &mut BTreeMap<String, String>,
+        stdin: &str,
+        timeout_ms: Option<u64>,
+        limits: &ShellLimits,
+        fs: &dyn SafeBashFs,
+    ) -> Option<Result<CommandResult, String>> {
+        let budget = ExecutionBudget::new(limits.clone(), timeout_ms);
+        let allow_fallback = self.mode == BackendMode::Hybrid;
+        let mut eval = EvalState::new(cwd, env, fs, &budget, &self.commands, allow_fallback);
+        if let Ok(guard) = self.functions.lock() {
+            eval.functions = guard.clone();
+        }
+        match eval.eval_script_str(script, stdin) {
+            Ok(res) => {
+                if let Ok(mut guard) = self.functions.lock() {
+                    *guard = eval.functions;
+                }
+                Some(Ok(res))
+            }
+            Err(EvalError::Syntax(msg)) => Some(Ok(CommandResult {
+                stdout: String::new(),
+                stderr: format!("syntax error: {msg}\n"),
+                exit_code: 2,
+                cwd: cwd.clone(),
+                env: env.clone(),
+            })),
+            Err(EvalError::Budget(msg)) => Some(Err(msg)),
+            Err(EvalError::UnportedCommand(_)) => None,
+        }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn execute_typescript_bridge(
+        &self,
+        _script: &str,
+        _cwd: &mut String,
+        _env: &mut BTreeMap<String, String>,
+        _stdin: &str,
+        _timeout_ms: Option<u64>,
+        _fs: &dyn SafeBashFs,
+    ) -> Result<CommandResult, String> {
+        let _ = (jstr, from_jstr, obj_get, base64_encode, base64_decode);
+        let _ = (Limits::default, Value::Null, parse, stringify, VfsEntryKind::File, VfsFileEntry {
+            path: String::new(),
+            kind: VfsEntryKind::File,
+            data: Vec::new(),
+            symlink_target: None,
+            mode: 0,
+        });
+        Err("TypeScript subprocess bridge is not available on wasm32".into())
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn execute_typescript_bridge(
         &self,
         script: &str,
@@ -159,6 +152,10 @@ impl HybridBackend {
         timeout_ms: Option<u64>,
         fs: &dyn SafeBashFs,
     ) -> Result<CommandResult, String> {
+        use std::io::Write;
+        use std::path::PathBuf;
+        use std::process::{Command, Stdio};
+
         let entries = fs.export_entries()?;
         let mut files_json = Vec::with_capacity(entries.len());
         for entry in entries {
@@ -234,7 +231,7 @@ impl HybridBackend {
                 max_nodes: 1_048_576,
             },
         )
-            .map_err(|e| format!("Invalid JSON from safe-bash bridge: {e:?}"))?;
+        .map_err(|e| format!("Invalid JSON from safe-bash bridge: {e:?}"))?;
 
         let Value::Object(resp) = parsed else {
             return Err("Expected JSON object from safe-bash bridge".into());
@@ -315,331 +312,6 @@ impl HybridBackend {
             env: env.clone(),
         })
     }
-}
-
-fn execute_builtin(
-    cmd: &str,
-    args: &[String],
-    stdin: &str,
-    cwd: &mut String,
-    env: &mut BTreeMap<String, String>,
-    fs: &dyn SafeBashFs,
-) -> Option<CommandResult> {
-    match cmd {
-        "pwd" => Some(CommandResult {
-            stdout: format!("{cwd}\n"),
-            stderr: String::new(),
-            exit_code: 0,
-            cwd: cwd.clone(),
-            env: env.clone(),
-        }),
-        "true" => Some(CommandResult {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
-            cwd: cwd.clone(),
-            env: env.clone(),
-        }),
-        "false" => Some(CommandResult {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 1,
-            cwd: cwd.clone(),
-            env: env.clone(),
-        }),
-        "echo" => {
-            let mut newline = true;
-            let mut start = 0;
-            if args.first().map(String::as_str) == Some("-n") {
-                newline = false;
-                start = 1;
-            }
-            let text = args[start..].join(" ");
-            let stdout = if newline { format!("{text}\n") } else { text };
-            Some(CommandResult {
-                stdout,
-                stderr: String::new(),
-                exit_code: 0,
-                cwd: cwd.clone(),
-                env: env.clone(),
-            })
-        }
-        "cd" => {
-            let target = args.first().map(String::as_str).unwrap_or("/");
-            let resolved = resolve_posix_path(cwd, target);
-            if !fs.is_dir(&resolved) {
-                return Some(CommandResult {
-                    stdout: String::new(),
-                    stderr: format!("cd: {target}: No such file or directory\n"),
-                    exit_code: 1,
-                    cwd: cwd.clone(),
-                    env: env.clone(),
-                });
-            }
-            *cwd = resolved;
-            Some(CommandResult {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 0,
-                cwd: cwd.clone(),
-                env: env.clone(),
-            })
-        }
-        "mkdir" => {
-            for arg in args.iter().filter(|a| !a.starts_with('-')) {
-                let resolved = resolve_posix_path(cwd, arg);
-                if let Err(err) = fs.mkdir_all(&resolved) {
-                    return Some(CommandResult {
-                        stdout: String::new(),
-                        stderr: format!("mkdir: {err}\n"),
-                        exit_code: 1,
-                        cwd: cwd.clone(),
-                        env: env.clone(),
-                    });
-                }
-            }
-            Some(CommandResult {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 0,
-                cwd: cwd.clone(),
-                env: env.clone(),
-            })
-        }
-        "cat" => {
-            if args.is_empty() {
-                return Some(CommandResult {
-                    stdout: stdin.to_string(),
-                    stderr: String::new(),
-                    exit_code: 0,
-                    cwd: cwd.clone(),
-                    env: env.clone(),
-                });
-            }
-            let mut out = String::new();
-            for arg in args {
-                if arg.starts_with('-') {
-                    return None;
-                }
-                let resolved = resolve_posix_path(cwd, arg);
-                match fs.read_file(&resolved) {
-                    Ok(bytes) => out.push_str(&String::from_utf8_lossy(&bytes)),
-                    Err(err) => {
-                        return Some(CommandResult {
-                            stdout: out,
-                            stderr: format!("cat: {arg}: {err}\n"),
-                            exit_code: 1,
-                            cwd: cwd.clone(),
-                            env: env.clone(),
-                        });
-                    }
-                }
-            }
-            Some(CommandResult {
-                stdout: out,
-                stderr: String::new(),
-                exit_code: 0,
-                cwd: cwd.clone(),
-                env: env.clone(),
-            })
-        }
-        "touch" => {
-            for arg in args.iter().filter(|a| !a.starts_with('-')) {
-                let resolved = resolve_posix_path(cwd, arg);
-                if !fs.exists(&resolved)
-                    && let Err(err) = fs.write_file(&resolved, b"")
-                {
-                    return Some(CommandResult {
-                        stdout: String::new(),
-                        stderr: format!("touch: {err}\n"),
-                        exit_code: 1,
-                        cwd: cwd.clone(),
-                        env: env.clone(),
-                    });
-                }
-            }
-            Some(CommandResult {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 0,
-                cwd: cwd.clone(),
-                env: env.clone(),
-            })
-        }
-        "rm" => {
-            let force = args
-                .iter()
-                .any(|a| a == "-f" || a == "--force" || a == "-rf" || a == "-fr");
-            let recursive = args
-                .iter()
-                .any(|a| a == "-r" || a == "-R" || a == "--recursive" || a == "-rf" || a == "-fr");
-            if recursive {
-                return None;
-            }
-            for arg in args.iter().filter(|a| !a.starts_with('-')) {
-                let resolved = resolve_posix_path(cwd, arg);
-                if !fs.exists(&resolved) {
-                    if force {
-                        continue;
-                    }
-                    return Some(CommandResult {
-                        stdout: String::new(),
-                        stderr: format!("rm: cannot remove '{arg}': No such file or directory\n"),
-                        exit_code: 1,
-                        cwd: cwd.clone(),
-                        env: env.clone(),
-                    });
-                }
-                if let Err(err) = fs.remove_path(&resolved) {
-                    return Some(CommandResult {
-                        stdout: String::new(),
-                        stderr: format!("rm: {err}\n"),
-                        exit_code: 1,
-                        cwd: cwd.clone(),
-                        env: env.clone(),
-                    });
-                }
-            }
-            Some(CommandResult {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 0,
-                cwd: cwd.clone(),
-                env: env.clone(),
-            })
-        }
-        "export" => {
-            for arg in args {
-                if let Some((k, v)) = arg.split_once('=') {
-                    env.insert(k.to_string(), v.to_string());
-                }
-            }
-            Some(CommandResult {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 0,
-                cwd: cwd.clone(),
-                env: env.clone(),
-            })
-        }
-        _ => None,
-    }
-}
-
-fn parse_simple_and_chain(script: &str) -> Option<Vec<SimpleSegment>> {
-    let trimmed = script.trim();
-    if trimmed.is_empty() {
-        return Some(vec![]);
-    }
-    // Delegate scripts with newlines, subshells, variables, loops, pipes, or globs to TypeScript safe-bash
-    if trimmed.contains('\n')
-        || trimmed.contains('$')
-        || trimmed.contains('`')
-        || trimmed.contains('|')
-        || trimmed.contains(';')
-        || trimmed.contains('(')
-        || trimmed.contains(')')
-        || trimmed.contains('{')
-        || trimmed.contains('}')
-        || trimmed.contains('*')
-        || trimmed.contains('?')
-        || trimmed.contains('<')
-    {
-        return None;
-    }
-
-    let mut segments = Vec::new();
-    for raw_part in trimmed.split("&&") {
-        let tokens = tokenize_simple_words(raw_part.trim())?;
-        if tokens.is_empty() {
-            return None;
-        }
-        let mut words = Vec::new();
-        let mut redirect_out = None;
-        let mut i = 0;
-        while i < tokens.len() {
-            if tokens[i] == ">" || tokens[i] == ">>" {
-                let append = tokens[i] == ">>";
-                let target = tokens.get(i + 1)?.clone();
-                redirect_out = Some(ParsedRedirect { target, append });
-                i += 2;
-            } else if tokens[i].contains('>') {
-                return None;
-            } else {
-                words.push(tokens[i].clone());
-                i += 1;
-            }
-        }
-        if words.is_empty() {
-            return None;
-        }
-        segments.push(SimpleSegment {
-            words,
-            redirect_out,
-        });
-    }
-    Some(segments)
-}
-
-fn tokenize_simple_words(input: &str) -> Option<Vec<String>> {
-    let mut tokens = Vec::new();
-    let mut current = String::new();
-    let mut in_single = false;
-    let mut in_double = false;
-    let mut chars = input.chars().peekable();
-
-    while let Some(ch) = chars.next() {
-        if in_single {
-            if ch == '\'' {
-                in_single = false;
-            } else {
-                current.push(ch);
-            }
-        } else if in_double {
-            if ch == '"' {
-                in_double = false;
-            } else if ch == '\\' {
-                let next = chars.next()?;
-                current.push(next);
-            } else {
-                current.push(ch);
-            }
-        } else {
-            match ch {
-                '\'' => in_single = true,
-                '"' => in_double = true,
-                ' ' | '\t' => {
-                    if !current.is_empty() {
-                        tokens.push(std::mem::take(&mut current));
-                    }
-                }
-                '>' => {
-                    if !current.is_empty() {
-                        tokens.push(std::mem::take(&mut current));
-                    }
-                    if chars.peek() == Some(&'>') {
-                        chars.next();
-                        tokens.push(">>".to_string());
-                    } else {
-                        tokens.push(">".to_string());
-                    }
-                }
-                '\\' => {
-                    let next = chars.next()?;
-                    current.push(next);
-                }
-                other => current.push(other),
-            }
-        }
-    }
-
-    if in_single || in_double {
-        return None;
-    }
-    if !current.is_empty() {
-        tokens.push(current);
-    }
-    Some(tokens)
 }
 
 const BASE64_ALPHABET: &[u8; 64] =

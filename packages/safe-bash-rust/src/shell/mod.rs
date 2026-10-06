@@ -1,4 +1,11 @@
+pub mod builtins;
+pub mod eval;
+pub mod expand;
+pub mod lexer;
+pub mod parser;
+
 use crate::backend::{BackendMode, HybridBackend, RustCommand};
+use crate::budget::ShellLimits;
 use crate::fs::{MemoryVfs, SafeBashFs, normalize_posix_path};
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -32,6 +39,7 @@ pub struct Shell {
     cwd: String,
     env: BTreeMap<String, String>,
     backend: HybridBackend,
+    limits: ShellLimits,
 }
 
 impl Shell {
@@ -47,6 +55,7 @@ impl Shell {
             cwd,
             env: options.env,
             backend: HybridBackend::new(options.mode),
+            limits: ShellLimits::default(),
         }
     }
 
@@ -54,6 +63,14 @@ impl Shell {
         let vfs = MemoryVfs::new();
         let shell = Self::new(Arc::new(vfs.clone()), ShellOptions::default());
         (shell, vfs)
+    }
+
+    pub fn set_limits(&mut self, limits: ShellLimits) {
+        self.limits = limits;
+    }
+
+    pub fn limits(&self) -> &ShellLimits {
+        &self.limits
     }
 
     pub fn register_command(&mut self, name: impl Into<String>, cmd: RustCommand) {
@@ -90,11 +107,13 @@ impl Shell {
         let stdin = options.stdin.as_deref().unwrap_or("");
 
         if self.backend.mode != BackendMode::TypeScriptOnly
-            && let Some(native_res) = self.backend.try_execute_native(
+            && let Some(native_res) = self.backend.try_execute_native_with_limits(
                 script,
                 &mut self.cwd,
                 &mut self.env,
                 stdin,
+                options.timeout_ms,
+                &self.limits,
                 self.fs.as_ref(),
             )
         {

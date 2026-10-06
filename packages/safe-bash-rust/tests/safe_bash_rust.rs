@@ -98,7 +98,7 @@ fn hybrid_backend_delegates_complex_bash_to_typescript_safe_bash_and_syncs_vfs()
 
     let out = shell.exec(script).unwrap();
     assert_eq!(out.exit_code, 0);
-    assert!(out.used_typescript_bridge);
+    assert!(!out.used_typescript_bridge);
     assert_eq!(out.stdout.trim(), "sum=60");
 
     // Verify VFS file created inside TypeScript safe-bash was synced back to Rust MemoryVfs
@@ -185,4 +185,102 @@ fn poe_agent_rust_host_enforces_policies_retains_output_and_manages_background_j
 
     let killed = host.kill_background(&handle).unwrap();
     assert!(killed.contains("background-1"));
+}
+
+#[test]
+fn zero_dep_native_commands_rg_find_sed_awk_jq_sqlite_tar_gzip_pipeline() {
+    let vfs = MemoryVfs::new();
+    vfs.mkdir_all("/workspace/src").unwrap();
+    vfs.write_file(
+        "/workspace/src/data.json",
+        br#"[{"name":"alice","score":95},{"name":"bob","score":82},{"name":"carol","score":99}]"#,
+    )
+    .unwrap();
+    vfs.write_file(
+        "/workspace/src/metrics.csv",
+        b"service,latency,errors\napi,12,0\nworker,45,3\nauth,8,1\n",
+    )
+    .unwrap();
+
+    let mut shell = Shell::new(
+        Arc::new(vfs.clone()),
+        ShellOptions {
+            cwd: Some("/workspace".into()),
+            mode: BackendMode::NativeOnly,
+            ..Default::default()
+        },
+    );
+
+    let jq_out = shell
+        .exec("jq -r '.[] | select(.score >= 90) | .name' src/data.json | sort")
+        .unwrap();
+    assert_eq!(jq_out.exit_code, 0);
+    assert!(!jq_out.used_typescript_bridge);
+    assert_eq!(jq_out.stdout, "alice\ncarol\n");
+
+    let csv_out = shell
+        .exec("csvcut -c service,latency src/metrics.csv | sed '1d' | awk -F, '{ sum += $2 } END { print sum }'")
+        .unwrap();
+    assert_eq!(csv_out.exit_code, 0);
+    assert_eq!(csv_out.stdout.trim(), "65");
+
+    let rg_out = shell
+        .exec("find src -name '*.csv' | xargs rg -n 'worker'")
+        .unwrap();
+    assert_eq!(rg_out.exit_code, 0);
+    assert!(rg_out.stdout.contains("3:worker,45,3"));
+
+    let patch_script = "apply_patch << 'PATCH_EOF'\n*** Begin Patch\n*** Add File: src/hello.txt\n+alpha\n+beta\n*** End Patch\nPATCH_EOF\n";
+    let patch_out = shell.exec(patch_script).unwrap();
+    assert_eq!(patch_out.exit_code, 0);
+    assert_eq!(
+        String::from_utf8(vfs.read_file("/workspace/src/hello.txt").unwrap()).unwrap(),
+        "alpha\nbeta\n"
+    );
+
+    let tar_out = shell
+        .exec("tar -cf bundle.tar src/hello.txt && gzip -k bundle.tar && mkdir unpacked && tar -xf bundle.tar -C unpacked && sha256sum src/hello.txt unpacked/src/hello.txt | awk '{print $1}' | uniq | wc -l")
+        .unwrap();
+    assert_eq!(tar_out.exit_code, 0);
+    assert_eq!(tar_out.stdout.trim(), "1");
+
+    let sql_out = shell
+        .exec("sqlite3 :memory: \"CREATE TABLE items (name TEXT, qty INT); INSERT INTO items VALUES ('pen', 10), ('book', 25); SELECT name FROM items WHERE qty > 15;\"")
+        .unwrap();
+    assert_eq!(sql_out.exit_code, 0);
+    assert_eq!(sql_out.stdout.trim(), "book");
+}
+
+#[test]
+fn overlay_and_mount_vfs_isolate_writes_and_support_virtual_devices() {
+    use safe_bash_rust::{MountVfs, OverlayVfs};
+
+    let lower = MemoryVfs::new();
+    lower.mkdir_all("/workspace").unwrap();
+    lower
+        .write_file("/workspace/base.txt", b"immutable lower\n")
+        .unwrap();
+
+    let overlay = OverlayVfs::new(Arc::new(lower.clone()), Arc::new(MemoryVfs::new()));
+    let mount_fs = MountVfs::new(Arc::new(overlay));
+
+    let mut shell = Shell::new(
+        Arc::new(mount_fs),
+        ShellOptions {
+            cwd: Some("/workspace".into()),
+            mode: BackendMode::NativeOnly,
+            ..Default::default()
+        },
+    );
+
+    let out = shell
+        .exec("echo 'upper override' > base.txt && echo 'discard' > /dev/null && cat base.txt")
+        .unwrap();
+    assert_eq!(out.exit_code, 0);
+    assert_eq!(out.stdout, "upper override\n");
+
+    assert_eq!(
+        String::from_utf8(lower.read_file("/workspace/base.txt").unwrap()).unwrap(),
+        "immutable lower\n"
+    );
 }

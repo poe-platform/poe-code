@@ -1,23 +1,23 @@
 # safe-bash-rust
 
-Run virtualized, sandboxed shell commands and full `@poe-platform/safe-bash` scripts directly from Rust crates and `poe-agent-rust`.
+Run virtualized, sandboxed shell commands and full `@poe-platform/safe-bash` scripts with zero external dependencies in native Rust or WebAssembly (`wasm32-unknown-unknown`).
 
-`safe-bash-rust` provides a native Rust `Shell` and `PoeAgentShellHost` backed by a hybrid execution engine: common shell built-ins and registered Rust commands execute in-process at native speed, while complex bash syntax and full agent toolsets (`awk`, `sed`, `jq`, `rg`, `sort`, `tar`, and pipelines) transparently delegate to `@poe-platform/safe-bash` with automatic bidirectional virtual filesystem (`MemoryVfs` / `git-rust::MemoryFs`) state synchronization.
+`safe-bash-rust` provides a zero-dependency Rust `Shell`, `PoeAgentShellHost`, and WebAssembly runtime (`createRustWasmBash`) with built-in POSIX/Bash grammar, virtual filesystems (`MemoryVfs`, `OverlayVfs`, `MountVfs`, `RealVfs`), resource budgets (`ShellLimits`), and native implementations of `rg`, `find`, `xargs`, `sed`, `awk`, `jq`, `yq`, `xan`, `csvcut`/`csvgrep`/`csvsort`, `sqlite3`, `tar`, `gzip`/`zstd`/`xz`/`bzip2`/`zip`, `sha256sum`, `xxd`, `od`, `dd`, and document/media utilities.
 
 ## Feature Index
 
 | Capability | Description |
 | --- | --- |
 | `Shell` | Stateful virtual shell (`cwd`, `env`, `SafeBashFs`) with `BackendMode::{Hybrid, NativeOnly, TypeScriptOnly}` |
+| `createRustWasmBash` | Zero-dependency WebAssembly (`wasm32-unknown-unknown`) shell for Node.js, Edge, and Browser runtimes |
+| `MemoryVfs` / `OverlayVfs` / `MountVfs` | In-memory VFS with quota limits, Copy-on-Write overlays, and path-routed virtual mounts (`/dev`) |
+| `ShellLimits` | Bounded loop iterations, command count, recursion depth, output bytes, and filesystem operations |
 | `PoeAgentShellHost` | Drop-in `poe-agent-rust` shell host with `read`/`edit` policy checks, 128 KiB UTF-16 tail retention, and background handles (`run_in_background`, `read_background`, `kill_background`) |
-| `MemoryVfs` | Shared in-memory filesystem compatible with `git-rust::MemoryFs` so Rust Git and shell commands operate on the same virtual tree |
-| `register_command` | Register native Rust closures (`RustCommand`) alongside TypeScript `safe-bash` commands |
-| Native Fast-Path Built-ins | `pwd`, `cd`, `echo`, `cat`, `mkdir`, `touch`, `rm`, `export`, `true`, `false`, `&&` chains, and `>` / `>>` redirections |
-| TypeScript `safe-bash` Bridge | Full POSIX/Bash loops, arithmetic `$((...))`, parameter expansion, pipelines, and `agentCommands()` plugins |
+| Zero-Dep Command Suite | `rg`, `grep`, `find`, `fd`, `xargs`, `sed`, `awk`, `diff`, `diff3`, `patch`, `apply_patch`, `jq`, `yq`, `xan`, `sqlite3`, `tar`, `gzip`, `zstd`, `xz`, `bzip2`, `zip`, `unzip`, `sha256sum`, `xxd`, `od`, `dd`, and POSIX coreutils |
 
 ## Quick Start
 
-### 1. Hybrid Shell with Shared `MemoryVfs`
+### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 
 ```rust
 use safe_bash_rust::{BackendMode, MemoryVfs, SafeBashFs, Shell, ShellOptions};
@@ -30,15 +30,13 @@ let mut shell = Shell::new(
     Arc::new(vfs.clone()),
     ShellOptions {
         cwd: Some("/workspace".into()),
-        mode: BackendMode::Hybrid,
+        mode: BackendMode::NativeOnly,
         ..Default::default()
     },
 );
 
-// Executes in native Rust fast-path
 shell.exec("echo '3\n1\n2' > numbers.txt").unwrap();
 
-// Transparently delegates to TypeScript @poe-platform/safe-bash and syncs VFS
 let result = shell
     .exec("for n in $(sort numbers.txt); do echo \"v=$n\" >> sorted.txt; done")
     .unwrap();
@@ -48,7 +46,24 @@ let sorted = String::from_utf8(vfs.read_file("/workspace/sorted.txt").unwrap()).
 assert_eq!(sorted, "v=1\nv=2\nv=3\n");
 ```
 
-### 2. Using with `poe-agent-rust` (`PoeAgentShellHost`)
+### 2. WebAssembly Shell from JavaScript / TypeScript
+
+```ts
+import { createRustWasmBash } from "@poe-code/safe-bash-rust";
+
+const bash = createRustWasmBash({
+  cwd: "/workspace",
+  files: {
+    "/workspace/events.jsonl": '{"service":"api","latency_ms":12}\n{"service":"api","latency_ms":48}\n',
+  },
+});
+
+const res = await bash.exec("jq -s 'map(.latency_ms) | max' /workspace/events.jsonl");
+console.log(res.stdout); // "48\n"
+bash.dispose();
+```
+
+### 3. Using with `poe-agent-rust` (`PoeAgentShellHost`)
 
 ```rust
 use safe_bash_rust::{

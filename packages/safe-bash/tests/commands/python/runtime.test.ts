@@ -337,10 +337,14 @@ test('internal pipe closure delivers EPIPE while preserving stderr and interpret
 test('pip help and rejected options do not load an interpreter or pretend success', async () => {
   let created = 0;
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(pythonCommands({ createWorker() { created++; throw new Error('must remain lazy'); } }));
-  const help = await shell.exec('python -m pip install --help');
-  assert.equal(help.exitCode, 0, help.stderr);
-  assert.ok(help.stdout.includes('Supported options:'));
-  for (const command of ['python -m pip install --upgrade pypdf', 'python3 -m pip uninstall pypdf', 'python -m pip install']) {
+  for (const command of ['python -m pip install --help', 'python3 -m pip uninstall --help']) {
+    const help = await shell.exec(command);
+    assert.equal(help.exitCode, 0, help.stderr);
+    assert.ok(help.stdout.includes('Usage: python -m pip install'));
+    assert.ok(help.stdout.includes('python -m pip uninstall [-y/--yes]'));
+    assert.equal(help.stderr, '');
+  }
+  for (const command of ['python -m pip install --unknown-option pypdf', 'python3 -m pip uninstall --unknown-option pypdf', 'python -m pip install', 'python3 -m pip uninstall']) {
     const result = await shell.exec(command);
     assert.equal(result.exitCode, 2, result.stderr);
     assert.ok(result.stderr.includes('python:'));

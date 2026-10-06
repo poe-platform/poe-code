@@ -268,10 +268,12 @@ Hard links copy retained archive contents. Tar extended headers and global PAX
 metadata still use the archive engine’s memory limits.
 Local setup projects also support `python -m pip install -e ./project` (repeat
 `-e` for several projects), or `editable: ["./project"]` in the package SDK.
+Use `-e './project[feature]'` (or the same SDK string) to install optional
+dependencies while keeping imports linked to the original source.
 The genuine setuptools compatibility-mode wheel keeps imports linked to the
 original caller-owned source directory; keep that directory available after
 installation. Build dependencies remain isolated and failed builds leave the
-installed environment intact. Custom `develop` commands, editable extras, VCS
+installed environment intact. Custom `develop` commands, VCS
 sources and editable requirements-file entries still need qualification.
 
 Source URL content-disposition selection

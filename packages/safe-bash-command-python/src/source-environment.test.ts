@@ -140,15 +140,18 @@ for(const active of [false,true])test(`named local sources retain name, extras a
  }finally{await environment.dispose();}
 });
 
-for(const defaults of [false,true])test(`editable preparation builds from live caller source without leaking editable roots to private tooling; defaults=${defaults}`,async()=>{
+for(const extras of ['', '[FEATURE,repeated___extra]'])for(const defaults of [false,true])test(`editable preparation builds from live caller source without leaking editable roots to private tooling; defaults=${defaults}; extras=${extras}`,async()=>{
  const fs=new MemoryFileSystem();await fs.mkdir('/work/source',{recursive:true});await fs.mkdir('/storage');
  await fs.writeFile('/work/source/input.txt',new TextEncoder().encode('live'));
  const calls:string[]=[];
- const environment=createPythonSourcePackageEnvironment(defaults?{editable:['./source']}:{}, {directory:'/storage',python:{createExecutor:()=>({terminate(){},async run(start){
+ const environment=createPythonSourcePackageEnvironment(defaults?{editable:['./source'+extras]}:{}, {directory:'/storage',python:{createExecutor:()=>({terminate(){},async run(start){
   const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});
   const request=await send({op:'request'}) as any;calls.push(request.hook);
-  assert.equal(request.source,'/work/source');
   let result:unknown=null;
+  if(request.hook==='read_editable_requirement'){
+   assert.equal(request.source,'./source'+extras);
+   result={name:'',url:'file:///work/source',extras:['feature','repeated___extra'],marker:null,active:true};
+  }else assert.equal(request.source,'/work/source');
   if(request.hook==='get_requires_for_legacy_wheel')result=[];
   if(request.hook==='build_legacy_wheel'){
    assert.equal(request.editable,true);
@@ -157,10 +160,11 @@ for(const defaults of [false,true])test(`editable preparation builds from live c
   await send({op:'text',text:JSON.stringify(result)});await send({op:'done'});return 0;
  }})}});
  try{
-  const receipt=await environment.prepare({fs,cwd:'/work',signal:new AbortController().signal,...defaults?{}:{editable:['./source']},env:{},stdout:{async write(){}},stderr:{async write(){}}});
+  const receipt=await environment.prepare({fs,cwd:'/work',signal:new AbortController().signal,...defaults?{}:{editable:['./source'+extras]},env:{},stdout:{async write(){}},stderr:{async write(){}}});
   try{
    assert.equal(receipt.requested?.length,1);
-   assert.deepEqual(calls,['read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']);
+   assert.deepEqual(calls,[...extras?['read_editable_requirement']:[],'read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']);
+   if(extras)assert.ok(receipt.requested![0]!.startsWith('fixture[feature,repeated___extra] @ file:///storage/'));
    assert.equal(new TextDecoder().decode(await fs.readFile('/work/source/input.txt')),'live');
    assert.ok((await fs.readdir('/storage')).every(entry=>!entry.name.startsWith('.python-')));
   }finally{await environment.finish(receipt);}

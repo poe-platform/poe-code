@@ -36,10 +36,13 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    try{const url=new URL(tail.slice(0,end));namedSource=url.protocol==='file:'||['http:','https:'].includes(url.protocol)&&!!archiveSuffix(url.pathname);}
    catch{/* Native requirement validation retains invalid-input diagnostics. */}
   }
-  if(namedSource){
+  const editableExtras=editable&&requirement.endsWith(']')&&requirement.lastIndexOf('[')>0;
+  if(namedSource||editableExtras){
    if(!context.stdout||!context.stderr||!context.env)throw new TypeError('Source requirement parsing requires command output and environment context');
    const environment=createPythonBuildEnvironment(options);
-   try{named=await createPythonBuildBackend({...build.python,environment})({hook:'read_source_requirement',source:requirement},{...context,env:context.env,stdout:context.stdout,stderr:context.stderr,maxBytes:options.maxMetadataBytes??Infinity});}
+   const parsing={...context,env:context.env,stdout:context.stdout,stderr:context.stderr,maxBytes:options.maxMetadataBytes??Infinity};
+   Reflect.deleteProperty(parsing,'editable');
+   try{named=await createPythonBuildBackend({...build.python,environment})({hook:editableExtras?'read_editable_requirement':'read_source_requirement',source:requirement},parsing);}
    finally{await environment.dispose();}
    if(named){if(!named.active)return requirement;source=named.url;}
   }
@@ -50,7 +53,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
     subdirectory=source.slice(start,end<0?undefined:end);break;
    }
   }
-  if(source.startsWith('file:')){
+  if(source.slice(0,5).toLowerCase()==='file:'){
    const url=new URL(source);
    if(url.host&&url.host!=='localhost'){if(editable)throw new Error('Editable source requires a local directory');return requirement;}
    source=decodeURIComponent(url.pathname);
@@ -111,7 +114,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    await createPythonBuildDependencies(configuration)({source:prepared,buildSystem},hookContext);
    const filename=await hook(editable?{hook:'build_legacy_wheel',source:prepared,wheelDirectory,editable:true}:buildSystem?{hook:'build_wheel',source:prepared,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:prepared,wheelDirectory},hookContext);
    const published=await publishPythonBuildWheel(resolvePath(wheelDirectory,filename),root,options.maxDownloadBytes??Infinity,context);
-   await cleanup();return named?named.name+(named.extras.length?'['+named.extras.join(',')+']':'')+' @ '+published.url+(named.marker?' ; '+named.marker:''):published.url;
+   await cleanup();return named?(named.name||filename.slice(0,filename.indexOf('-')))+(named.extras.length?'['+named.extras.join(',')+']':'')+' @ '+published.url+(named.marker?' ; '+named.marker:''):published.url;
   }catch(error){
    try{await cleanup();}catch(retirement){if(retirement===error)throw error;throw new AggregateError([error,retirement],'Python source build cleanup failed');}
    throw error;

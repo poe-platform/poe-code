@@ -443,7 +443,7 @@ export { createPythonPackageEnvironment, pythonDocumentPackages } from './provis
 export { createPythonBuildEnvironment } from './build-environment.js';
 export { createPythonBuildDependencies,type PythonBuildDependenciesRequest } from './build-dependencies.js';
 export { createPythonSourceSnapshot, type PythonSourceSnapshot } from './source-snapshot.js';
-export { createPythonBuildBackend, type PythonBuildHookRequest, type PythonSourceRequirementRequest, type PythonSourceRequirement, type PythonLegacyBuildRequest, type PythonLegacyRequirementsRequest, type PythonBuildHookContext, type PythonBuildSystemRequest, type PythonBuildSystemDetails, type PythonBuildRequirementsRequest, type PythonBuildRequirementsStatus } from './build-backend.js';
+export { createPythonBuildBackend, type PythonBuildHookRequest, type PythonSourceRequirementRequest, type PythonEditableRequirementRequest, type PythonSourceRequirement, type PythonLegacyBuildRequest, type PythonLegacyRequirementsRequest, type PythonBuildHookContext, type PythonBuildSystemRequest, type PythonBuildSystemDetails, type PythonBuildRequirementsRequest, type PythonBuildRequirementsStatus } from './build-backend.js';
 export type { PythonPackageInstallOptions, PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext, PythonPackageEnvironment, PythonPackagePrepareContext } from './provisioning.js';
 export { PythonPackageConflictError, createPythonPackageManifestStore } from './manifest.js';
 export type { PythonPackageManifest, PythonPackageManifestStore } from './manifest.js';

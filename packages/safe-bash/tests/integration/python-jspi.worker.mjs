@@ -63,7 +63,7 @@ with zipfile.ZipFile("pth_fixture-1.0-py3-none-any.whl","w") as wheel:
 }
 
 async function qualifyLegacyBuild(backend,createExecutor,assets,format='directory') {
-  const editable=format==='editable'||format==='llm-editable';
+  const extras=format==='editable-extras',llmEditable=format==='llm-editable'||extras,editable=format==='editable'||llmEditable;
   const base='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/';
   const wheels=new Map(assets.map(({file,bytes})=>[base+file,Uint8Array.from(bytes)]));
   const requests=[];
@@ -81,17 +81,17 @@ class Build(build_py):
   assert build_helper.answer == 41
   super().run()
 setup(name="legacy-fixture",version="1.0",py_modules=["legacy_fixture"],setup_requires=["build-helper @ file:///work/build_helper-1.0-py3-none-any.whl"],cmdclass={"build_py":Build})
-`:'from setuptools import setup\nsetup(name="legacy-fixture", version="1.0", py_modules=["legacy_fixture"])\n';
+`:'from setuptools import setup\nsetup(name="legacy-fixture", version="1.0", py_modules=["legacy_fixture"]'+(extras?', extras_require={"feature": ["build-helper @ file:///work/build_helper-1.0-py3-none-any.whl"]}':'')+')\n';
   await backend.writeFile(sourceDirectory+'/setup.py',new TextEncoder().encode(setupSource));
   await backend.writeFile(sourceDirectory+'/legacy_fixture.py',new TextEncoder().encode('value = "legacy-original"\n'));
   const environment=createPythonSourcePackageEnvironment({cacheDirectory:'/work/packages',authorize:({url})=>wheels.has(url),transport:async({url})=>{
     requests.push(url);return {status:200,headers:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
   }},{directory:'/work/builds',extractArchive:extractPythonSourceArchive,python:{createExecutor}});
   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
-  if(format==='llm-editable')shell.use(llmCommands({managePackages:createPythonLlmPackageManager({createExecutor,environment})}));
+  if(llmEditable)shell.use(llmCommands({managePackages:createPythonLlmPackageManager({createExecutor,environment})}));
   const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names, "build-helper" in names]))'`;
   try{
-    if(format==='setup-requires'){
+    if(format==='setup-requires'||extras){
       const quote=value=>"'"+value.split("'").join("'\\''")+"'";
       const generated=await shell.exec('python -c '+quote(`import zipfile
 with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
@@ -110,7 +110,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
     };
     if(archived)await archive();
     const suffix=format==='zip'?'.zip':'.tar.gz';
-    const install=format==='llm-editable'?'llm install -e ./legacy-source':remote?`python -m pip install 'legacy-fixture @ https://build.test/legacy-source.tar.gz${format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
+    const install=llmEditable?"llm install -e './legacy-source"+(extras?'[FEATURE]':'')+"'":remote?`python -m pip install 'legacy-fixture @ https://build.test/legacy-source.tar.gz${format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
     if(format==='named'){
       const skipped=await shell.exec(`python -m pip install 'absent @ file:///work/nonexistent ; python_version < "1"'`);
       if(skipped.exitCode)throw new Error(JSON.stringify(skipped));

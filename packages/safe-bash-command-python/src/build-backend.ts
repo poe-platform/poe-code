@@ -46,15 +46,20 @@ export interface PythonSourceRequirementRequest {
  readonly hook:'read_source_requirement';
  readonly source:string;
 }
+export interface PythonEditableRequirementRequest {
+ readonly hook:'read_editable_requirement';
+ readonly source:string;
+}
 export interface PythonSourceRequirement {
+ /** Empty when an editable source has no explicit egg name. */
  readonly name:string;
  readonly extras:readonly string[];
  readonly url:string;
  readonly marker:string|null;
  readonly active:boolean;
 }
-type BuildRequest=PythonLegacyRequirementsRequest|PythonSourceRequirementRequest|PythonLegacyBuildRequest|PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
-type BuildResult<T extends BuildRequest>=T extends PythonSourceRequirementRequest?PythonSourceRequirement|null:T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'|'build_legacy_wheel'}?string:string[];
+type BuildRequest=PythonEditableRequirementRequest|PythonLegacyRequirementsRequest|PythonSourceRequirementRequest|PythonLegacyBuildRequest|PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
+type BuildResult<T extends BuildRequest>=T extends PythonSourceRequirementRequest|PythonEditableRequirementRequest?PythonSourceRequirement|null:T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'|'build_legacy_wheel'}?string:string[];
 export interface PythonBuildHookContext extends Pick<CommandContext,'fs'|'cwd'|'env'|'signal'|'stdout'|'stderr'> {
  /** Total UTF-8 result metadata allowance; wheel bytes stay in caller storage. */
  readonly maxBytes:number;
@@ -76,14 +81,14 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   context.signal.throwIfAborted();
   const {maxBytes}=context;
   if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError('Invalid Python build metadata limit');
-  if(!input||!['get_requires_for_legacy_wheel','read_source_requirement','read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
+  if(!input||!['read_editable_requirement','get_requires_for_legacy_wheel','read_source_requirement','read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
   if(input.hook==='build_legacy_wheel'){
    if(typeof input.wheelDirectory!=='string'||!input.wheelDirectory||input.editable!==undefined&&typeof input.editable!=='boolean')throw new TypeError('Invalid Python legacy wheel directory');
   }else if(input.hook==='check_build_requirements'){
    if([input.requirements,input.installed].some(values=>!Array.isArray(values)||values.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python build requirements request');
   }else if(input.hook==='read_build_system'){
    if(input.name!==undefined&&typeof input.name!=='string'||input.usePep517!==undefined&&typeof input.usePep517!=='boolean')throw new TypeError('Invalid Python build system request');
-  }else if(input.hook!=='read_source_requirement'&&input.hook!=='get_requires_for_legacy_wheel'){
+  }else if(input.hook!=='read_source_requirement'&&input.hook!=='read_editable_requirement'&&input.hook!=='get_requires_for_legacy_wheel'){
   if(typeof input.backend!=='string'||!input.backend
    ||input.backendPath!==undefined&&(!Array.isArray(input.backendPath)||input.backendPath.some(path=>typeof path!=='string'))
    ||input.hook==='build_wheel'&&(typeof input.wheelDirectory!=='string'||!input.wheelDirectory||input.metadataDirectory!==undefined&&typeof input.metadataDirectory!=='string'))throw new TypeError('Invalid Python build hook request');
@@ -118,7 +123,7 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
    if(result.exitCode)throw new Error(`Python build interpreter exited with status ${result.exitCode}`);
    if(!done)throw new Error('Python build interpreter returned no result');
    const value:unknown=JSON.parse(chunks.join(''));
-   if(request.hook==='read_source_requirement'){
+   if(request.hook==='read_source_requirement'||request.hook==='read_editable_requirement'){
     const result=value as PythonSourceRequirement|null;
     if(result!==null&&(!result||typeof result.name!=='string'||typeof result.url!=='string'||typeof result.active!=='boolean'||result.marker!==null&&typeof result.marker!=='string'||!Array.isArray(result.extras)||result.extras.some(extra=>typeof extra!=='string')))throw new TypeError('Invalid Python source requirement');
    }else if(request.hook==='check_build_requirements'){
@@ -234,10 +239,33 @@ def read_source_requirement(request):
  marker = requirement.marker
  return dict(name=requirement.name, extras=sorted({'_'.join(part for part in extra.lower().split('_') if part) for extra in requirement.extras}), url=requirement.url, marker=str(marker) if marker else None, active=not marker or marker.evaluate({'extra': ''}))
 
+def read_editable_requirement(request):
+ from pathlib import Path
+ from micropip._vendored.packaging.src.packaging.requirements import Requirement
+ class InstallationError(Exception): pass
+ source, extras = request['source'], None
+ start = source.rfind('[')
+ if start > 0 and source.endswith(']') and start < len(source) - 2 and ']' not in source[start + 1:-1]:
+  source, extras = source[:start], source[start:]
+ if os.path.isdir(source):
+  if not any(os.path.exists(os.path.join(source, name)) for name in ('setup.py', 'setup.cfg')):
+   message = 'File "setup.py" or "setup.cfg" not found. Directory cannot be installed in editable mode: {}'.format(os.path.abspath(source))
+   if os.path.isfile(os.path.join(source, 'pyproject.toml')): message += '\n(A "pyproject.toml" file was found, but editable mode currently requires a setuptools-based build.)'
+   raise InstallationError(message)
+  source = Path(os.path.abspath(source)).as_uri()
+ if not source.lower().startswith('file:'): raise InstallationError('Editable source requires a local directory')
+ name = ''
+ for index, character in enumerate(source):
+  if character in '#&' and source.startswith('egg=', index + 1):
+   name = source[index + 5:].split('&', 1)[0]
+   break
+ return dict(name=name, url=source, extras=sorted(Requirement('placeholder' + extras.lower()).extras) if extras else [], marker=None, active=True)
+
 def main():
  request = send('request')
  if request['hook'] == 'get_requires_for_legacy_wheel': request.update(hook='get_requires_for_build_wheel', backend='setuptools.build_meta:__legacy__')
  if request['hook'] == 'read_source_requirement': return read_source_requirement(request)
+ if request['hook'] == 'read_editable_requirement': return read_editable_requirement(request)
  if request['hook'] == 'build_legacy_wheel':
   if not request.get('editable'): return build_legacy_wheel(request)
   request.update(hook='build_wheel', backend='setuptools.build_meta:__legacy__')

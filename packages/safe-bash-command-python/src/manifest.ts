@@ -1,3 +1,17 @@
+/** Exact installed requirements, restored without resolving dependency metadata. */
+export interface PythonInstalledSnapshot {
+  readonly version: 1;
+  readonly installed: readonly string[];
+}
+
+/** Accept legacy requirements or a versioned installed snapshot. */
+export function readPackageManifest(value: unknown): readonly string[] | undefined {
+  const record = value as PythonInstalledSnapshot;
+  const entries = Array.isArray(value) ? value
+    : value && typeof value === 'object' && record.version === 1 && Object.keys(value).length === 2 ? record.installed : undefined;
+  return Array.isArray(entries) && entries.every(item => typeof item === 'string') ? entries : undefined;
+}
+
 export interface PythonPackageManifest {
   readonly revision: string;
   readonly bytes: Uint8Array;

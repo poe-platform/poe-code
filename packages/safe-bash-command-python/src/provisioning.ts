@@ -3,7 +3,7 @@ import type { FileSystem } from "safe-bash-contracts/filesystem";
 import { resolvePath as resolve, dirname } from "safe-bash-contracts/path";
 import type { HttpTransport, NetworkAuthorizer } from "safe-bash-network-engine/types";
 import { inheritYieldCheckpoint } from "safe-bash-contracts/yield";
-import { PythonPackageConflictError, type PythonPackageManifest, type PythonPackageManifestStore } from './manifest.js';
+import { readPackageManifest, PythonPackageConflictError, type PythonPackageManifest, type PythonPackageManifestStore } from './manifest.js';
 import { createPythonPackageCache, pythonPackageRuntimeKey as runtimeKey, type PythonPackageCache } from './cache.js';
 
 export type { PythonPackageCache } from './cache.js';
@@ -33,7 +33,16 @@ export interface PythonPackageOptions {
  readonly maxCacheBytes?: number;
  readonly onProgress?: (event: PythonPackageProgress) => void;
 }
-export interface PythonPackageStart { readonly session: string; readonly requirements: readonly string[]; readonly offline: boolean }
+export interface PythonPackageStart {
+ readonly session: string;
+ /** Combined requirements for compatibility with custom executors. */
+ readonly requirements: readonly string[];
+ /** Exact prior installation; restore these without resolving dependencies. */
+ readonly restore?: readonly string[];
+ /** New or host-configured requirements whose dependency closure is resolved. */
+ readonly requested?: readonly string[];
+ readonly offline: boolean;
+}
 export interface PythonPackageContext { readonly fs: FileSystem; readonly cwd: string; readonly signal: AbortSignal }
 export interface PythonPackagePrepareContext extends PythonPackageContext {
  readonly requirements?: readonly string[];
@@ -138,8 +147,11 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const manifest = stored === undefined ? '' : decoder.decode(stored);
   let previous: unknown;
   try { previous = stored === undefined ? [] : JSON.parse(manifest); } catch { throw failure('Invalid Python package environment manifest'); }
-  if (!Array.isArray(previous) || previous.some(value=>typeof value!=='string')) throw failure('Invalid Python package environment manifest');
-  const requirements = [...previous as string[],...(options.profile === 'documents' ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
+  const saved = readPackageManifest(previous);
+  if (!saved) throw failure('Invalid Python package environment manifest');
+  const legacy = Array.isArray(previous);
+  const restore = (legacy ? [] : saved).map(value=>normalizeRequirement(value,context.cwd));
+  const requirements = [...(legacy ? saved : []),...(options.profile === 'documents' ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
   for (const file of [...options.requirementFiles??[],...context.requirementFiles??[]]) {
    const path = resolve(context.cwd,file);
    let source: string;
@@ -154,11 +166,12 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   }
   context.signal.throwIfAborted();
   const session=String(++counter);
-  const unique=[...new Set(requirements)];
+  const requested=[...new Set(requirements)];
+  const unique=[...new Set([...restore,...requested])];
   const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;current.opened.clear();}sessions.delete(session);};
   sessions.set(session,{...context,cache,manifestCache,manifestRevision,controller:invocation,offline:context.offline??options.offline??false,requirements:unique,opened:new Map(),opening:false,closed:false,manifest,aborted});
   context.signal.addEventListener('abort',aborted,{once:true});
-  return {session,requirements:unique,offline:context.offline??options.offline??false};
+  return {session,requirements:unique,restore,requested,offline:context.offline??options.offline??false};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();
@@ -167,10 +180,12 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   checkSession(session);
   if(op==='package-commit') {
    const pinned=args[1];
-   if(!Array.isArray(pinned)||pinned.some(value=>typeof value!=='string'))throw failure('Invalid installed package manifest');
-   // Pins supplement the original sources (including canonical local wheels).
-   const merged=[...new Set([...session.requirements,...pinned as string[]])];
-   const manifestBytes=encoder.encode(JSON.stringify(merged));
+   const saved=readPackageManifest(pinned);
+   if(!saved)throw failure('Invalid installed package manifest');
+   // Legacy executors publish supplemental pins. Modern executors publish the
+   // complete installed state, so removed roots cannot reappear on startup.
+   const state=Array.isArray(pinned) ? [...new Set([...session.requirements,...saved])] : {version:1,installed:[...new Set(saved)]};
+   const manifestBytes=encoder.encode(JSON.stringify(state));
    if(manifestBytes.length>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
    const commit = committing.then(async()=>{
     checkSession(session);

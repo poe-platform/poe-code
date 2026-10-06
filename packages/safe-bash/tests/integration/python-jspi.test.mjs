@@ -555,6 +555,14 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
     assert.equal(result.recovered.exitCode,0,JSON.stringify(result));
     assert.equal(result.recovered.stdout,'worker package verified\n');
     assert.equal(result.recovered.stderr,'');
+    assert.equal(result.retained.exitCode,0,JSON.stringify(result));
+    assert.equal(result.retained.stdout,'exact package state restored\n');
+    assert.equal(result.retained.stderr,'');
+    assert.notEqual(result.rejectedSnapshot.exitCode,0);
+    assert.equal(result.rejectedSnapshot.stdout,'');
+    assert.equal(result.repaired.exitCode,0,JSON.stringify(result));
+    assert.equal(result.repairVerified.exitCode,0,JSON.stringify(result));
+    assert.equal(result.repairVerified.stdout,'worker package verified\n');
     assert.equal(result.requests.length,1);
     assert.deepEqual(result.failures,[]);
     if(mode==='llm-packages') {

@@ -78,8 +78,10 @@ export async function installPythonPackages(
    const result=await fetch(url);return JSON.stringify({text:new TextDecoder().decode(result.bytes),headers:Object.fromEntries(result.headers.map(([name,value])=>[name.toLowerCase(),value]))});
   });
   installedGlobals.push('_safe_package_metadata');
-  runtime.globals.set('_safe_package_requirements_json',JSON.stringify(start.requirements));
+  runtime.globals.set('_safe_package_requirements_json',JSON.stringify(start.requested ?? start.requirements));
   installedGlobals.push('_safe_package_requirements_json');
+  runtime.globals.set('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
+  installedGlobals.push('_safe_package_restore_json');
   await runtime.runPythonAsync(`
 import json as _safe_json
 import micropip as _safe_micropip
@@ -111,29 +113,38 @@ async def _safe_wheel_fetch(self, url, kwargs, compat):
  return (await _safe_package_bytes(url, expected)).to_bytes()
 _SafeWheelInfo._fetch_bytes = _safe_wheel_fetch
 _safe_manager = _SafePackageManager(_SafePackageCompatibility)
+async def _safe_parse_sources(sources):
+ roots = []
+ for source in sources:
+  try:
+   root = _SafeRequirement(source)
+   if root.name.endswith('.whl'):
+    raise _SafeInvalidRequirement(source)
+  except _SafeInvalidRequirement:
+   wheel = _SafeWheelInfo.from_url(source)
+   root = _SafeRequirement(wheel.name + ' @ ' + source)
+  roots.append(root)
+  if (not root.marker or root.marker.evaluate({'extra': ''})) and root.url:
+   direct = _SafeWheelInfo.from_url(root.url)
+   _safe_check_compatible(direct.filename)
+   # Validate explicit archives even when micropip's satisfied-name path would
+   # skip them, including restored wheels matching a preloaded distribution.
+   await direct.download({}, _SafePackageCompatibility)
+ return roots
+
+_safe_restore = _safe_json.loads(_safe_package_restore_json)
+_safe_restored_roots = await _safe_parse_sources(_safe_restore)
+# Replaying an environment is not a new resolver transaction. Missing or removed
+# dependencies stay missing until a new request explicitly asks to resolve them.
+await _safe_manager.install(_safe_restore, deps=False)
+_safe_restored_names = {_safe_name(root.name) for root in _safe_restored_roots if not root.marker or root.marker.evaluate({'extra': ''})}
 _safe_requirements = _safe_json.loads(_safe_package_requirements_json)
 # A persisted base wheel may be visited before a newly requested extra. Micropip
 # skips already locked names, so every occurrence must carry the requested extras.
-_safe_roots = []
+_safe_roots = await _safe_parse_sources(_safe_requirements)
 _safe_extras = {}
-for _safe_source in _safe_requirements:
- try:
-  _safe_root = _SafeRequirement(_safe_source)
-  if _safe_root.name.endswith('.whl'):
-   raise _SafeInvalidRequirement(_safe_source)
- except _SafeInvalidRequirement:
-  _safe_wheel = _SafeWheelInfo.from_url(_safe_source)
-  _safe_root = _SafeRequirement(_safe_wheel.name + ' @ ' + _safe_source)
- _safe_roots.append(_safe_root)
+for _safe_root in _safe_roots:
  if not _safe_root.marker or _safe_root.marker.evaluate({'extra': ''}):
-  # Named requirements may be skipped when already locked. Validate direct
-  # wheels even then, rather than letting an incompatible URL report success.
-  if _safe_root.url:
-   _safe_direct_wheel = _SafeWheelInfo.from_url(_safe_root.url)
-   _safe_check_compatible(_safe_direct_wheel.filename)
-   # Validate the actual archive and host-checked digest even if micropip's
-   # satisfied-name fast path will skip installing this explicit operand.
-   await _safe_direct_wheel.download({}, _SafePackageCompatibility)
   _safe_extras.setdefault(_safe_name(_safe_root.name), set()).update(_safe_root.extras)
 for _safe_root in _safe_roots:
  _safe_root.extras.update(_safe_extras.get(_safe_name(_safe_root.name), set()))
@@ -190,7 +201,7 @@ while True:
  await _safe_manager.install(sorted(_safe_pending), deps=True)
 # Explicit roots also constrain the result: direct URLs can bypass micropip's
 # already-installed version check, including when another root pins that name.
-for _safe_root in _safe_roots:
+for _safe_root in _safe_restored_roots + _safe_roots:
  if _safe_root.marker and not _safe_root.marker.evaluate({'extra': ''}):
   continue
  _safe_version = _safe_versions.get(_safe_name(_safe_root.name))
@@ -203,6 +214,7 @@ for _safe_root in _safe_roots:
    raise ValueError('Python package wheel version conflict: ' + str(_safe_root))
 # Preserve resolved wheel origins before adding version pins. A dependency from
 # a direct local URL may not exist on an index during the next fresh invocation.
+_safe_managed.update(_safe_restored_names)
 _safe_sources = []
 for _safe_dist in _safe_distributions:
  _safe_dist_name = _safe_name(_safe_dist.metadata['Name'])
@@ -221,7 +233,7 @@ _safe_gc.collect()
   await pending;
   if(transportFailure)throw transportFailure.error;
   const pinned=JSON.parse(runtime.runPython('_safe_installed_json')) as string[];
-  await request('package-commit',start.session,pinned);
+  await request('package-commit',start.session,start.restore === undefined ? pinned : {version:1,installed:pinned});
  }catch(error){
   accepting=false;
   await pending;

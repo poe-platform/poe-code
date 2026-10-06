@@ -88,6 +88,9 @@ To enable `llm install` for compatible wheels, pass
 to `llmCommands`. Share the caller-owned `createPythonPackageEnvironment(...)`
 with Python commands and tool loaders, and dispose it when the host closes.
 The pinned native LLM CLI handles package-command help and argument errors;
-installation uses the environment’s authorization, cache and manifest.
+installation uses the environment’s authorization, cache and manifest. Installed
+state is restored exactly without resolving its dependencies again; new install
+requests resolve their dependency closure. Legacy requirement manifests migrate
+on the next successful installation.
 Uninstall, editable installs and pip lifecycle flags still require additional
 installer support and currently report unsupported-operation errors.

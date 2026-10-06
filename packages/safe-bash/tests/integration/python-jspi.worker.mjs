@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonLlmPackageManager, createPythonLlmToolLoader, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -20,7 +20,12 @@ const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
 async function qualifyPackages(backend, createExecutor, micropip, useLlm) {
   const requests = [], diagnostics = [];
   const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
-  const environment = createPythonPackageEnvironment({authorize:request => request.url === url, transport:async request => {
+  const manifestStore=createPythonPackageManifestStore();
+  let manifestScope;
+  const environment = createPythonPackageEnvironment({scope:'fixture',manifestStore:{
+    get(scope,options) {manifestScope=scope;return manifestStore.get(scope,options);},
+    compareAndSet:manifestStore.compareAndSet,
+  },authorize:request => request.url === url, transport:async request => {
       if (request.url !== url) throw new Error('Unexpected package request');
       requests.push(request.url);
       return {status:200, headers:[], body:(async function*(){yield micropip;})(), async dispose(){}};
@@ -94,8 +99,35 @@ print('worker package verified')
       const denied=new Shell({fs:backend,cwd:'/work'}).use(llmCommands({loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-provider']})}));
       try {blocked=await denied.exec('llm plugins');} finally {await denied.dispose();}
     }
-    return {installed, imported, conflict, recovered, native, plugins,listed,called,blocked, requests, diagnostics};
-  } finally {await shell.dispose();await environment.dispose();}
+    // Simulate a caller restoring an intentionally incomplete installed state.
+    // Starting Python must not resolve metadata and silently reinstall a dependency.
+    const manifestContext={signal:new AbortController().signal};
+    const before=await manifestStore.get(manifestScope,manifestContext);
+    const snapshot=JSON.parse(new TextDecoder().decode(before.bytes));
+    if(snapshot.version!==1)throw new Error('Expected exact installed snapshot');
+    snapshot.installed=snapshot.installed.filter(source=>!source.startsWith('worker-dependency'));
+    if(!await manifestStore.compareAndSet(manifestScope,before.revision,new TextEncoder().encode(JSON.stringify(snapshot)),manifestContext))throw new Error('Unexpected manifest conflict');
+    const retained = await shell.exec('python -c ' + quote(`
+from importlib.metadata import version, PackageNotFoundError
+assert version('worker-fixture') == '1.0'
+try: version('worker-dependency')
+except PackageNotFoundError: pass
+else: raise AssertionError('Removed dependency was reinstalled during restoration')
+print('exact package state restored')
+`));
+    const retainedManifest=await manifestStore.get(manifestScope,manifestContext);
+    const contradictory=JSON.parse(new TextDecoder().decode(retainedManifest.bytes));
+    contradictory.installed=contradictory.installed.map(source=>source==='worker-fixture==1.0'?'worker-fixture==2.0':source);
+    if(!await manifestStore.compareAndSet(manifestScope,retainedManifest.revision,new TextEncoder().encode(JSON.stringify(contradictory)),manifestContext))throw new Error('Unexpected manifest conflict');
+    const invalidSnapshot=await manifestStore.get(manifestScope,manifestContext);
+    const rejectedSnapshot=await shell.exec('python -c ' + quote('print("must not run")'));
+    const afterRejected=await manifestStore.get(manifestScope,manifestContext);
+    if(afterRejected.revision!==invalidSnapshot.revision)throw new Error('Contradictory snapshot was republished');
+    if(!await manifestStore.compareAndSet(manifestScope,afterRejected.revision,retainedManifest.bytes,manifestContext))throw new Error('Unexpected manifest conflict');
+    const repaired = await shell.exec(prefix + ' install ./worker_fixture-1.0-py3-none-any.whl');
+    const repairVerified = await shell.exec(verify);
+    return {installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, native, plugins,listed,called,blocked, requests, diagnostics};
+  } finally {await shell.dispose();await environment.dispose();manifestStore.dispose();}
 }
 
 async function qualifyPublication(backend, createExecutor, cancel) {

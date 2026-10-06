@@ -142,7 +142,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  }finally{await shell.dispose();await environment.dispose();}
 }
 
-async function qualifyPackages(backend, createExecutor, micropip, useLlm) {
+async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false) {
   const requests = [], diagnostics = [];
   const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
   const manifestStore=createPythonPackageManifestStore();
@@ -181,8 +181,12 @@ files = {
  'worker_fixture-1.0.dist-info/WHEEL': 'Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n',
  'worker_fixture-1.0.dist-info/RECORD': '',
 }
-write_wheel('worker_dependency-1.0-py3-none-any.whl', {name.replace('worker_fixture', 'worker_dependency'): contents.replace('worker-fixture', 'worker-dependency') for name, contents in files.items()})
-files['worker_fixture-1.0.dist-info/METADATA'] += 'Requires-Dist: worker-dependency @ file:///work/worker_dependency-1.0-py3-none-any.whl\\n'
+dependency = {name.replace('worker_fixture', 'worker_dependency'): contents.replace('worker-fixture', 'worker-dependency') for name, contents in files.items()}
+if ${legacyOnly ? 'True' : 'False'}:
+ write_wheel('worker_extra-1.0-py3-none-any.whl', {name.replace('worker_fixture', 'worker_extra'): contents.replace('worker-fixture', 'worker-extra') for name, contents in files.items()})
+ dependency['worker_dependency-1.0.dist-info/METADATA'] += 'Provides-Extra: feature\\nRequires-Dist: worker-extra @ file:///work/worker_extra-1.0-py3-none-any.whl ; extra == "feature"\\n'
+write_wheel('worker_dependency-1.0-py3-none-any.whl', dependency)
+files['worker_fixture-1.0.dist-info/METADATA'] += 'Requires-Dist: worker-dependency${legacyOnly ? '[feature]' : ''} @ file:///work/worker_dependency-1.0-py3-none-any.whl\\n'
 files['worker_fixture/plugin.py'] = 'import llm\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n'
 files['worker_fixture-1.0.dist-info/entry_points.txt'] = '[llm]\\nfixture = worker_fixture.plugin\\n'
 write_wheel('worker_fixture-1.0-py3-none-any.whl', files)
@@ -196,6 +200,31 @@ provider = {
 write_wheel('worker_provider-1.0-py3-none-any.whl', provider)
 `));
     if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
+    if(legacyOnly) {
+      const context={signal:new AbortController().signal},rows=[];
+      for(const target of ['worker-dependency','worker-fixture']) {
+        const prior=await manifestStore.get(manifestScope,context);
+        const bytes=new TextEncoder().encode(JSON.stringify(['file:///work/worker_dependency-1.0-py3-none-any.whl','file:///work/worker_fixture-1.0-py3-none-any.whl']));
+        if(!await manifestStore.compareAndSet(manifestScope,prior?.revision,bytes,context))throw Error('Legacy seed conflict');
+        const hostShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({...pythonOptions,packages:['worker-fixture==1.0']}));
+        let protectedResult;
+        try {protectedResult=await hostShell.exec('python -m pip uninstall '+target+' -y');} finally {await hostShell.dispose();}
+        const afterProtected=await manifestStore.get(manifestScope,context);
+        const result=await shell.exec(prefix+' uninstall '+target+' -y');
+        const state=await shell.exec('python -c '+quote(`
+import json
+from importlib.metadata import version, PackageNotFoundError
+result = []
+for name in ('worker-fixture', 'worker-dependency', 'worker-extra'):
+ try: result.append(version(name))
+ except PackageNotFoundError: result.append(None)
+print(json.dumps(result))
+`));
+        const after=await manifestStore.get(manifestScope,context);
+        rows.push({target,protectedCode:protectedResult.exitCode,protectedManifest:JSON.parse(new TextDecoder().decode(afterProtected.bytes)),exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr,state:{exitCode:state.exitCode,stdout:state.stdout,stderr:state.stderr},manifest:JSON.parse(new TextDecoder().decode(after.bytes)),diagnostics:diagnostics.splice(0)});
+      }
+      return {rows,requests};
+    }
     const installed = await shell.exec(prefix + ' install ./worker_fixture-1.0-py3-none-any.whl');
     if(installed.exitCode)throw new Error(JSON.stringify({stage:'install',installed,diagnostics}));
     const verify = 'python -c ' + quote(`
@@ -1455,6 +1484,11 @@ export default {
     }
     if (mode === '/package-controls') {
       try {return Response.json({...await qualifyPackageControls(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
+    if (mode === '/legacy-packages' || mode === '/legacy-llm-packages') {
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/legacy-llm-packages',true),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

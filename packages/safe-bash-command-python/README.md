@@ -91,8 +91,8 @@ The pinned native LLM CLI handles package-command help and argument errors
 without restoring caller packages or reading their requirement files;
 installation uses the environment’s authorization, cache and manifest. Installed
 state is restored exactly without resolving its dependencies again; new install
-requests resolve their dependency closure. Legacy requirement manifests migrate
-on the next successful installation.
+requests resolve their dependency closure. Legacy requirement manifests resolve their dependencies once and migrate
+on the next successful operation, including uninstall. Migration keeps saved packages separate from current host requirements.
 Use `llm uninstall PACKAGE` (or `python -m pip uninstall PACKAGE`) to remove
 a distribution with confirmation; `-y` skips the prompt. Dependencies remain
 installed. Host-required distributions cannot be removed. Removal publishes an

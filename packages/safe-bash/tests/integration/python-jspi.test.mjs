@@ -689,3 +689,30 @@ test('real workerd replaces requested packages while retaining unrelated install
  for(const [index,row] of result.sdk.entries()){assert.equal(row.exitCode,0,JSON.stringify(row));assert.deepEqual(JSON.parse(row.stdout),index===0?['2.0','1.0','1.0']:['2.0','2.0','1.0']);}
  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
+
+
+test('real workerd migrates legacy requirements before uninstall without making them host requirements', {timeout:120000}, async()=>{
+ const {miniflare,runtimeErrors}=nativeFixture;
+ for(const mode of ['legacy-packages','legacy-llm-packages']){
+  const response=await miniflare.dispatchFetch('http://fixture/'+mode,{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+  const result=await response.json();assert.equal(response.status,200,JSON.stringify(result));
+  assert.equal(result.rows.length,2);
+  for(const [index,row] of result.rows.entries()){
+   assert.notEqual(row.protectedCode,0,JSON.stringify(row));
+   assert.deepEqual(row.protectedManifest,['file:///work/worker_dependency-1.0-py3-none-any.whl','file:///work/worker_fixture-1.0-py3-none-any.whl']);
+   assert.equal(row.exitCode,0,JSON.stringify(row));assert.equal(row.stderr,'');
+   assert.ok(row.stdout.includes('Successfully uninstalled '+row.target+'-1.0'),JSON.stringify(row));
+   assert.equal(row.state.exitCode,0,JSON.stringify(row));
+   assert.deepEqual(JSON.parse(row.state.stdout),index===0?['1.0',null,'1.0']:[null,'1.0','1.0']);
+   assert.equal(row.manifest.version,1);
+   assert.ok(!row.manifest.installed.some(source=>source.startsWith(row.target)),JSON.stringify(row));
+  }
+  if(mode==='legacy-llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT){
+   const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
+   assert.ok(output.startsWith(resolve(root,'out')+'/'));
+   await writeFile(output,result.rows.map(row=>row.stdout).join('\n'));
+  }
+  assert.deepEqual(result.failures,[]);
+ }
+ assert.deepEqual(runtimeErrors,[]);
+});

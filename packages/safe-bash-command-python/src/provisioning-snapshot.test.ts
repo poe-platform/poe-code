@@ -35,8 +35,9 @@ test('legacy requirement manifests migrate once and exact snapshot publication p
  await one.dispatch('package-commit',[initial.session,['old==1']],ctx);
  one.finish(initial);
  const legacy=await one.prepare(ctx);
- assert.deepEqual(legacy.restore,[]);
- assert.deepEqual(legacy.requested,['old>=1','old==1']);
+ assert.deepEqual(legacy.restore,['old>=1','old==1']);
+ assert.equal(legacy.legacy,true);
+ assert.deepEqual(legacy.requested,[]);
  const stale=await two.prepare(ctx);
  await one.dispatch('package-commit',[legacy.session,{version:1,installed:['old==1']}],ctx);
  await assert.rejects(two.dispatch('package-commit',[stale.session,{version:1,installed:[]}],ctx),/changed.*retry/);
@@ -57,4 +58,15 @@ test('invalid or unknown installed snapshot formats cannot overwrite package sta
   await assert.rejects(env.dispatch('package-commit',[start.session,value],ctx),/Invalid installed package manifest/);
  }
  env.finish(start);await env.dispose();
+});
+
+
+test('legacy uninstall separates saved packages from current host requirements',async()=>{
+ const env=createPythonPackageEnvironment({requirements:['host==1']});const ctx=context();
+ const first=await env.prepare({...ctx,requirements:['old==1']});
+ await env.dispatch('package-commit',[first.session,['dependency==1']],ctx);env.finish(first);
+ const removal=await env.prepare({...ctx,uninstall:{packages:['old'],yes:true}});
+ assert.deepEqual(removal.restore,['host==1','old==1','dependency==1']);
+ assert.deepEqual(removal.requested,['host==1']);assert.equal(removal.legacy,true);
+ env.finish(removal);await env.dispose();
 });

@@ -47,7 +47,9 @@ export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'n
  readonly session: string;
  /** Combined requirements for compatibility with custom executors. */
  readonly requirements: readonly string[];
- /** Exact prior installation; restore these without resolving dependencies. */
+ /** Legacy requirements need one dependency-resolution pass before migration. */
+ readonly legacy?: boolean;
+ /** Prior installation; only legacy manifests resolve dependencies during restore. */
  readonly restore?: readonly string[];
  /** New or host-configured requirements whose dependency closure is resolved. */
  readonly requested?: readonly string[];
@@ -168,8 +170,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const saved = readPackageManifest(previous);
   if (!saved) throw failure('Invalid Python package environment manifest');
   const legacy = Array.isArray(previous);
-  const restore = (legacy ? [] : saved).map(value=>normalizeRequirement(value,context.cwd));
-  const requirements = [...(legacy ? saved : []),...(options.profile === 'documents' ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
+  const restore = saved.map(value=>normalizeRequirement(value,context.cwd));
+  const requirements = [...(options.profile === 'documents' ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
   for (const file of [...options.requirementFiles??[],...context.requirementFiles??[]]) {
    const path = resolve(context.cwd,file);
    let source: string;
@@ -192,7 +194,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   context.signal.addEventListener('abort',aborted,{once:true});
   const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
   for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
-  return {session,requirements:unique,restore,requested,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
+  return {session,requirements:unique,restore,requested,legacy,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();

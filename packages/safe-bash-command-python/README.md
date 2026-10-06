@@ -99,3 +99,10 @@ installed. Host-required distributions cannot be removed. Removal publishes an
 exact environment snapshot only after success, and requires the artifacts needed
 to restore that environment. Editable installs and other pip lifecycle flags
 still require additional installer support.
+
+Pass `--pre` to include prerelease and development candidates. Use
+`--no-cache-dir` to bypass artifact-cache reads and writes while retaining the
+caller-owned environment manifest. Authorization and integrity checks still
+apply; cache bypass does not force reinstall an already satisfied requirement.
+SDK callers use `pre` and `noCache` on `PythonPackageOptions` or per-invocation
+`PythonPackagePrepareContext`; explicit invocation values override defaults.

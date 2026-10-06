@@ -10,6 +10,7 @@ import { after, before, test } from 'node:test';
 import { build } from 'esbuild';
 import ts from 'typescript';
 
+import packageControlsReference from '../../../safe-bash-command-python/src/fixtures/package-controls-pip-21.2.4.json' with {type:'json'};
 import uninstallReference from '../../../safe-bash-command-python/src/fixtures/uninstall-pip-21.2.4.json' with {type:'json'};
 import packageCommandReference from '../../../safe-bash-command-llm/src/fixtures/package-commands-0.27.1.json' with {type:'json'};
 import { createPythonJspiCallbackCatalog } from './python-jspi-catalog.mjs';
@@ -535,6 +536,26 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });
 
+
+test('real workerd applies prerelease selection and cache bypass through CLI and SDK', {timeout:180000}, async()=>{
+  const bytes=readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL);
+  const {miniflare,runtimeErrors}=nativeFixture;
+  const response=await miniflare.dispatchFetch('http://fixture/package-controls',{method:'POST',body:bytes});
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  for(const row of result.results) {
+    if(row.installed)assert.equal(row.installed.exitCode,0,JSON.stringify(result));
+    assert.equal(row.version.exitCode,0,JSON.stringify(result));
+    const expected=packageControlsReference.rows.find(value=>value.profile===(row.profile==='sdk'?'pre':row.profile));
+    assert.equal(row.version.stdout,expected.version+'\n');
+    assert.equal(row.version.stderr,'');
+    if(row.uncached) {
+      assert.equal(row.uncached.exitCode,0,JSON.stringify(result));
+      assert.ok(row.additionalRequests.includes('https://packages.example/worker_candidate-1.0-py3-none-any.whl'));
+    }
+  }
+  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});
 
 test('real workerd installs and reuses explicitly authorized Python wheels', {timeout:240000}, async()=>{
   const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;

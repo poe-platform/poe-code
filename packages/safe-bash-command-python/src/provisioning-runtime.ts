@@ -80,6 +80,8 @@ export async function installPythonPackages(
   installedGlobals.push('_safe_package_metadata');
   runtime.globals.set('_safe_package_requirements_json',JSON.stringify(start.requested ?? start.requirements));
   installedGlobals.push('_safe_package_requirements_json');
+  runtime.globals.set('_safe_package_pre',!!start.pre);
+  installedGlobals.push('_safe_package_pre');
   runtime.globals.set('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
   installedGlobals.push('_safe_package_restore_json');
   runtime.globals.set('_safe_package_uninstall_json',JSON.stringify(start.uninstall ?? null));
@@ -170,7 +172,7 @@ for _safe_root in _safe_roots:
   _safe_extras.setdefault(_safe_name(_safe_root.name), set()).update(_safe_root.extras)
 for _safe_root in _safe_roots:
  _safe_root.extras.update(_safe_extras.get(_safe_name(_safe_root.name), set()))
-await _safe_manager.install([str(root) for root in _safe_roots], deps=True)
+await _safe_manager.install([str(root) for root in _safe_roots], deps=True, pre=_safe_package_pre)
 # Resolve selected extras from distribution metadata, including extras added to
 # an already satisfied transitive dependency. Micropip skips those names early.
 # Keep its installer and conflict policy; do not infer dependencies from imports.
@@ -220,7 +222,7 @@ while True:
  if _safe_pending == _safe_previous_pending:
   raise ValueError('Python package dependencies remain missing: ' + ', '.join(sorted(_safe_pending)))
  _safe_previous_pending = _safe_pending
- await _safe_manager.install(sorted(_safe_pending), deps=True)
+ await _safe_manager.install(sorted(_safe_pending), deps=True, pre=_safe_package_pre)
 # Explicit roots also constrain the result: direct URLs can bypass micropip's
 # already-installed version check, including when another root pins that name.
 for _safe_root in _safe_restored_roots + _safe_roots:

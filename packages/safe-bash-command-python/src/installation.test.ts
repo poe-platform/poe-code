@@ -14,7 +14,7 @@ test('pip interception respects Python option operands and entrypoint boundaries
   assert.deepEqual(parsePythonInstallation(['-Bmpip', 'install', 'pypdf==6.18.1'])?.packages, ['pypdf==6.18.1']);
 });
 test('unsupported pip commands and every unknown option fail explicitly', () => {
-  for (const option of ['--no-index', '--upgrade', '--no-deps', '--target=/tmp', '--user', '--index-url', '--trusted-host', '--require-hashes', '--dry-run', '--quiet', '-e', '--no-cache-dir']) {
+  for (const option of ['--no-index', '--upgrade', '--no-deps', '--target=/tmp', '--user', '--index-url', '--trusted-host', '--require-hashes', '--dry-run', '--quiet', '-e']) {
     assert.throws(() => parsePythonInstallation(['-m', 'pip', 'install', option]), new RegExp('unsupported pip option'));
   }
   assert.throws(() => parsePythonInstallation(['-m', 'pip', 'list', 'x']), /unsupported pip command/);
@@ -32,4 +32,9 @@ test('pip uninstall preserves targets and explicit confirmation without treating
  assert.deepEqual(parsePythonInstallation(['-m','pip','uninstall','first']),{packages:['first'],requirements:[],help:false,uninstall:true,yes:false});
  assert.throws(()=>parsePythonInstallation(['-m','pip','uninstall','--upgrade','first']),/unsupported pip option/);
  assert.throws(()=>parsePythonInstallation(['-m','pip','uninstall']),/at least one/);
+});
+
+test('pip install preserves prerelease selection and cache bypass',()=>{
+ assert.deepEqual(parsePythonInstallation(['-m','pip','install','--pre','--no-cache-dir','fixture']),{packages:['fixture'],requirements:[],help:false,pre:true,noCache:true});
+ assert.throws(()=>parsePythonInstallation(['-m','pip','uninstall','--pre','fixture']),/unsupported pip option/);
 });

@@ -17,6 +17,62 @@ import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
 
+async function qualifyPackageControls(backend, createExecutor, micropip) {
+  const quote=value=>"'"+value.split("'").join("'\\''")+"'";
+  const bootstrap=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor}));
+  try {
+    const created=await bootstrap.exec('python -c '+quote(`
+from zipfile import ZipFile
+for version in ('1.0', '2.0rc1'):
+ prefix = 'worker_candidate-' + version + '.dist-info/'
+ files = {'worker_candidate.py': 'version = ' + repr(version), prefix + 'METADATA': 'Metadata-Version: 2.1\\nName: worker-candidate\\nVersion: ' + version + '\\n', prefix + 'WHEEL': 'Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n', prefix + 'RECORD': ''}
+ files[prefix + 'RECORD'] = ''.join(name + ',,' + chr(10) for name in files)
+ with ZipFile('worker_candidate-' + version + '-py3-none-any.whl', 'w') as wheel:
+  for name, value in files.items(): wheel.writestr(name, value)
+`));
+    if(created.exitCode)throw new Error(JSON.stringify(created));
+  } finally {await bootstrap.dispose();}
+  const artifacts=new Map();
+  const files=[];
+  for(const version of ['1.0','2.0rc1']) {
+    const filename='worker_candidate-'+version+'-py3-none-any.whl';
+    const bytes=await backend.readFile('/work/'+filename);
+    const url='https://packages.example/'+filename;
+    const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),byte=>byte.toString(16).padStart(2,'0')).join('');
+    files.push({filename,url,hashes:{sha256}});artifacts.set(url,bytes);
+  }
+  const micropipUrl='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
+  artifacts.set(micropipUrl,micropip);
+  const index='https://pypi.org/simple/worker-candidate/';
+  artifacts.set(index,new TextEncoder().encode(JSON.stringify({name:'worker-candidate',files})));
+  const requests=[];
+  const configuration={authorize:request=>artifacts.has(request.url),transport:async request=>{
+    requests.push(request.url);
+    const bytes=artifacts.get(request.url);
+    if(!bytes)throw new Error('Unexpected package transport request');
+    return {status:200,statusText:'OK',headers:[['content-type',request.url===index?'application/vnd.pypi.simple.v1+json':'application/octet-stream']],body:(async function*(){yield bytes;})(),async dispose(){}};
+  }};
+  const results=[];
+  for(const profile of ['stable','pre','sdk']) {
+    const environment=createPythonPackageEnvironment({...configuration,...profile==='sdk'?{pre:true,noCache:true,requirements:['worker-candidate']}:{}});
+    const options={createExecutor,environment};
+    const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(options)).use(llmCommands({managePackages:createPythonLlmPackageManager(options)}));
+    try {
+      let installed;
+      if(profile!=='sdk')installed=await shell.exec(profile==='stable'?'python -m pip install worker-candidate':'llm install --pre worker-candidate');
+      const version=await shell.exec('python -c '+quote('import worker_candidate; print(worker_candidate.version)'));
+      let uncached,additionalRequests;
+      if(profile==='stable') {
+        const before=requests.length;
+        uncached=await shell.exec('llm install --no-cache-dir worker-candidate');
+        additionalRequests=requests.slice(before);
+      }
+      results.push({profile,installed,version,uncached,additionalRequests});
+    } finally {await shell.dispose();await environment.dispose();}
+  }
+  return {results,requests};
+}
+
 async function qualifyPackages(backend, createExecutor, micropip, useLlm) {
   const requests = [], diagnostics = [];
   const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
@@ -1323,6 +1379,11 @@ export default {
       }
       return runtime;
     } });
+    if (mode === '/package-controls') {
+      try {return Response.json({...await qualifyPackageControls(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
     if (mode === '/packages' || mode === '/llm-packages') {
       try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}

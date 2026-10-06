@@ -13,7 +13,13 @@ export interface PythonPackageProgress {
  readonly bytes?: number;
  readonly totalBytes?: number;
 }
-export interface PythonPackageOptions {
+export interface PythonPackageInstallOptions {
+ /** Include prerelease and development candidates during dependency resolution. */
+ readonly pre?: boolean;
+ /** Bypass artifact cache reads and writes; environment snapshots still persist. */
+ readonly noCache?: boolean;
+}
+export interface PythonPackageOptions extends PythonPackageInstallOptions {
  readonly requirements?: readonly string[];
  readonly requirementFiles?: readonly string[];
  readonly profile?: 'documents';
@@ -35,6 +41,7 @@ export interface PythonPackageOptions {
 }
 export interface PythonPackageStart {
  readonly session: string;
+ readonly pre?: boolean;
  /** Combined requirements for compatibility with custom executors. */
  readonly requirements: readonly string[];
  /** Exact prior installation; restore these without resolving dependencies. */
@@ -45,7 +52,7 @@ export interface PythonPackageStart {
  readonly offline: boolean;
 }
 export interface PythonPackageContext { readonly fs: FileSystem; readonly cwd: string; readonly signal: AbortSignal }
-export interface PythonPackagePrepareContext extends PythonPackageContext {
+export interface PythonPackagePrepareContext extends PythonPackageContext, PythonPackageInstallOptions {
  readonly uninstall?: PythonPackageStart['uninstall'];
  readonly requirements?: readonly string[];
  readonly requirementFiles?: readonly string[];
@@ -64,6 +71,11 @@ export const pythonDocumentPackages: readonly string[] = Object.freeze([
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 function digest(value: Uint8Array): string { return Array.from(sha256(value),byte=>byte.toString(16).padStart(2,'0')).join(''); }
+function validDigest(value: unknown): value is string {
+ if(typeof value!=='string'||value.length!==64)return false;
+ for(const char of value)if(!'0123456789abcdef'.includes(char))return false;
+ return true;
+}
 function failure(message: string, cause?: unknown): Error & {code:string} { return Object.assign(new Error(message,{cause}),{code:'EPACKAGE'}); }
 function missing(error: unknown): boolean { return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT'; }
 function normalizeRequirement(value: string, cwd: string): string {
@@ -73,6 +85,7 @@ function normalizeRequirement(value: string, cwd: string): string {
  return requirement;
 }
 interface Session extends PythonPackageContext {
+ readonly noCache: boolean;
  readonly cache: PythonPackageCache;
  readonly offline: boolean;
  readonly requirements: readonly string[];
@@ -171,9 +184,10 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const requested=[...new Set(requirements)];
   const unique=[...new Set([...restore,...requested])];
   const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;current.opened.clear();}sessions.delete(session);};
-  sessions.set(session,{...context,cache,manifestCache,manifestRevision,controller:invocation,offline:context.offline??options.offline??false,requirements:unique,opened:new Map(),opening:false,closed:false,manifest,aborted});
+  const offline=context.offline??options.offline??false;
+  sessions.set(session,{...context,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opened:new Map(),opening:false,closed:false,manifest,aborted});
   context.signal.addEventListener('abort',aborted,{once:true});
-  return {session,requirements:unique,restore,requested,...input.uninstall ? {uninstall:input.uninstall} : {},offline:context.offline??options.offline??false};
+  return {session,requirements:unique,restore,requested,...(context.pre??options.pre) ? {pre:true} : {},...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();
@@ -222,17 +236,17 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   session.opened.clear();
   try {
   const url=args[1];const expected=args[2];
-  if(expected!==undefined && expected!==null && (typeof expected!=='string'||expected.length!==64||Array.from(expected).some(c=>!'0123456789abcdef'.includes(c))))throw failure('Invalid SHA-256 package integrity value');
+  if(expected!==undefined && expected!==null && !validDigest(expected))throw failure('Invalid SHA-256 package integrity value');
   const address=runtimeKey+'-url-'+digest(encoder.encode(url));
   const canonicalWheel=url.startsWith('file:')||url.startsWith('emfs:');
-  const metadata=canonicalWheel?undefined:await session.cache.get(address);
+  const metadata=canonicalWheel||session.noCache?undefined:await session.cache.get(address);
   checkSession(session);
   let bytes:Uint8Array|undefined;let headers:readonly(readonly[string,string])[]=[];
   if(metadata){
    if(metadata.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
    let record: {digest:string,headers:readonly(readonly[string,string])[]};
    try { record=JSON.parse(decoder.decode(metadata)) as typeof record; } catch { throw failure(`Invalid package cache metadata: ${url}`); }
-   if(typeof record!=='object'||record===null||typeof record.digest!=='string'||record.digest.length!==64||Array.from(record.digest).some(char=>!'0123456789abcdef'.includes(char))||!Array.isArray(record.headers)||record.headers.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw failure(`Invalid package cache metadata: ${url}`);
+   if(typeof record!=='object'||record===null||!validDigest(record.digest)||!Array.isArray(record.headers)||record.headers.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw failure(`Invalid package cache metadata: ${url}`);
    bytes=await session.cache.get(runtimeKey+'-sha256-'+record.digest);headers=record.headers;
    checkSession(session);
    if(bytes && bytes.length>maxBytes)throw failure('Cached package exceeds maxDownloadBytes');
@@ -281,12 +295,14 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    }
    checkSession(session);
    if(expected&&digest(bytes)!==expected)throw failure(`Package integrity mismatch: ${url}`);
+   if(!session.noCache){
    const hash=digest(bytes);
    const metadataBytes=encoder.encode(JSON.stringify({digest:hash,headers}));
    if(metadataBytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
    await session.cache.set(runtimeKey+'-sha256-'+hash,Uint8Array.from(bytes));
    checkSession(session);
    if(!canonicalWheel)await session.cache.set(address,metadataBytes);
+   }
    checkSession(session);
   }
   checkSession(session);

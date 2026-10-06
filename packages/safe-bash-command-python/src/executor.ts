@@ -251,6 +251,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
       }
       options.onProgress?.({ phase: 'initializing', command: context.command });
       const preparation = environment.prepare({ fs: context.fs, cwd: context.cwd, signal,
+        ...(installation?.pre ? {pre:true} : {}),...(installation?.noCache ? {noCache:true} : {}),
         ...(installation?.uninstall ? {uninstall:{packages:installation.packages,yes:!!installation.yes}} : {}),
         requirements: [...(options.packages ?? []), ...(options.packageProfile ? pythonDocumentPackages : []), ...(installation?.uninstall ? [] : installation?.packages ?? [])],
         requirementFiles: [...(options.requirements ?? []), ...(installation?.requirements ?? [])],
@@ -436,7 +437,7 @@ export function pythonExecutorCommands(options: PythonCommandsOptions): VirtualS
 }
 
 export { createPythonPackageEnvironment, pythonDocumentPackages } from './provisioning.js';
-export type { PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext, PythonPackageEnvironment, PythonPackagePrepareContext } from './provisioning.js';
+export type { PythonPackageInstallOptions, PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext, PythonPackageEnvironment, PythonPackagePrepareContext } from './provisioning.js';
 export { PythonPackageConflictError, createPythonPackageManifestStore } from './manifest.js';
 export type { PythonPackageManifest, PythonPackageManifestStore } from './manifest.js';
 export { createPythonPackageCache } from './cache.js';

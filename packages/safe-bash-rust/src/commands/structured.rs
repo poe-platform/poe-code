@@ -521,11 +521,24 @@ fn eval_jq(
     }
 
     if let Some(pipes) = split_jq_top(s, '|') {
+        let mut local_vars = vars.clone();
         let mut current = vec![input.clone()];
         for stage in pipes {
+            let st_trim = stage.trim();
+            if let Some((val_expr, var_part)) = split_jq_binary(st_trim, " as ")
+                && let Some(var_name) = var_part.trim().strip_prefix("$")
+            {
+                if let Some(first_item) = current.first()
+                    && let Ok(mut bound) = eval_jq(&val_expr, first_item, &local_vars)
+                    && let Some(v) = bound.pop()
+                {
+                    local_vars.insert(var_name.to_string(), v);
+                }
+                continue;
+            }
             let mut next = Vec::new();
             for item in &current {
-                next.extend(eval_jq(&stage, item, vars)?);
+                next.extend(eval_jq(&stage, item, &local_vars)?);
             }
             current = next;
         }
@@ -546,7 +559,7 @@ fn eval_jq(
 
     for update_op in ["|=", "+=", "-=", "="] {
         if let Some((lhs, rhs)) = split_jq_binary(s, update_op) {
-            if update_op == "=" && (lhs.ends_with('!') || lhs.ends_with('<') || lhs.ends_with('>') || lhs.ends_with('=')) {
+            if update_op == "=" && (lhs.ends_with('!') || lhs.ends_with('<') || lhs.ends_with('>') || lhs.ends_with('=') || rhs.starts_with('=')) {
                 continue;
             }
             return eval_jq_update(&lhs, update_op, &rhs, input, vars);
@@ -657,6 +670,14 @@ fn eval_jq(
             return Ok(vec![v.clone()]);
         }
         return Ok(vec![JVal::Null]);
+    }
+
+    if s.starts_with('"') && s.ends_with('"') && s.contains("\\(") {
+        return Ok(vec![JVal::Str(eval_jq_interpolated_string(
+            &s[1..s.len() - 1],
+            input,
+            vars,
+        )?)]);
     }
 
     if let Ok(mut parsed) = parse_json_stream(s) {
@@ -906,6 +927,20 @@ fn try_eval_jq_builtin(
     input: &JVal,
     vars: &BTreeMap<String, JVal>,
 ) -> Result<Option<Vec<JVal>>, String> {
+    if let Some(stem) = s.strip_suffix("[]")
+        && !stem.is_empty()
+        && !stem.starts_with('.')
+        && !stem.starts_with('[')
+    {
+        let inner = eval_jq(stem, input, vars)?;
+        let mut out = Vec::new();
+        for item in inner {
+            if let JVal::Array(arr) = item {
+                out.extend(arr);
+            }
+        }
+        return Ok(Some(out));
+    }
     match s {
         "empty" => return Ok(Some(Vec::new())),
         "not" => return Ok(Some(vec![JVal::Bool(!input.is_truthy())])),
@@ -2905,4 +2940,63 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     }
     ok_out(svg)
+}
+
+fn eval_jq_interpolated_string(
+    inner: &str,
+    input: &JVal,
+    vars: &BTreeMap<String, JVal>,
+) -> Result<String, String> {
+    let chars: Vec<char> = inner.chars().collect();
+    let mut i = 0usize;
+    let mut out = String::new();
+    while i < chars.len() {
+        if chars[i] == '\\' && i + 1 < chars.len() {
+            match chars[i + 1] {
+                '(' => {
+                    i += 2;
+                    let start = i;
+                    let mut depth = 1i32;
+                    while i < chars.len() && depth > 0 {
+                        if chars[i] == '(' {
+                            depth += 1;
+                        } else if chars[i] == ')' {
+                            depth -= 1;
+                            if depth == 0 {
+                                break;
+                            }
+                        }
+                        i += 1;
+                    }
+                    let expr: String = chars[start..i].iter().collect();
+                    if i < chars.len() && chars[i] == ')' {
+                        i += 1;
+                    }
+                    if let Some(val) = eval_jq(&expr, input, vars)?.first() {
+                        out.push_str(&val.to_raw_string(true, false));
+                    }
+                }
+                'n' => {
+                    out.push('\n');
+                    i += 2;
+                }
+                't' => {
+                    out.push('\t');
+                    i += 2;
+                }
+                'r' => {
+                    out.push('\r');
+                    i += 2;
+                }
+                other => {
+                    out.push(other);
+                    i += 2;
+                }
+            }
+        } else {
+            out.push(chars[i]);
+            i += 1;
+        }
+    }
+    Ok(out)
 }

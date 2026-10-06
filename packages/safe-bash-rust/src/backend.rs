@@ -1,5 +1,6 @@
 use crate::budget::{ExecutionBudget, ShellLimits};
 use crate::fs::{SafeBashFs, VfsEntryKind, VfsFileEntry};
+use crate::vfs::FileStat;
 use crate::shell::eval::{EvalError, EvalState};
 use crate::shell::parser::Script;
 use mcp_protocol_rust::json::{Limits, Value, parse, stringify};
@@ -54,6 +55,102 @@ fn obj_get<'a>(props: &'a [(Vec<u16>, Value)], key: &str) -> Option<&'a Value> {
     props.iter().find_map(|(k, v)| (k == &key_u16).then_some(v))
 }
 
+struct BudgetedFs<'a> {
+    inner: &'a dyn SafeBashFs,
+    budget: &'a ExecutionBudget,
+}
+
+impl<'a> BudgetedFs<'a> {
+    fn check_path(&self, path: &str) -> Result<(), String> {
+        let comps = path.split('/').filter(|s| !s.is_empty()).count();
+        if comps > self.budget.limits.max_pathname_components {
+            return Err("ENAMETOOLONG: File name too long".to_string());
+        }
+        Ok(())
+    }
+}
+
+impl<'a> SafeBashFs for BudgetedFs<'a> {
+    fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
+        self.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.read_file(path)
+    }
+
+    fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
+        self.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.budget.add_output_bytes(data.len())?;
+        self.inner.write_file(path, data)
+    }
+
+    fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
+        self.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.budget.add_output_bytes(data.len())?;
+        self.inner.append_file(path, data)
+    }
+
+    fn remove_path(&self, path: &str) -> Result<(), String> {
+        self.check_path(path)?;
+        self.inner.remove_path(path)
+    }
+
+    fn mkdir_all(&self, path: &str) -> Result<(), String> {
+        self.check_path(path)?;
+        self.inner.mkdir_all(path)
+    }
+
+    fn exists(&self, path: &str) -> bool {
+        self.inner.exists(path)
+    }
+
+    fn is_dir(&self, path: &str) -> bool {
+        self.inner.is_dir(path)
+    }
+
+    fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
+        self.inner.list_dir(path)
+    }
+
+    fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
+        self.check_path(path)?;
+        self.inner.symlink(target, path)
+    }
+
+    fn readlink(&self, path: &str) -> Result<String, String> {
+        self.inner.readlink(path)
+    }
+
+    fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> {
+        self.inner.export_entries()
+    }
+
+    fn replace_entries(&self, entries: &[VfsFileEntry]) -> Result<(), String> {
+        self.inner.replace_entries(entries)
+    }
+
+    fn stat(&self, path: &str) -> Result<FileStat, String> {
+        self.inner.stat(path)
+    }
+
+    fn lstat(&self, path: &str) -> Result<FileStat, String> {
+        self.inner.lstat(path)
+    }
+
+    fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
+        self.inner.chmod(path, mode)
+    }
+
+    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+        self.inner.set_mtime(path, mtime_ms)
+    }
+
+    fn generation(&self) -> u64 {
+        self.inner.generation()
+    }
+}
+
 impl HybridBackend {
     pub fn new(mode: BackendMode) -> Self {
         Self {
@@ -97,12 +194,20 @@ impl HybridBackend {
         fs: &dyn SafeBashFs,
     ) -> Option<Result<CommandResult, String>> {
         let budget = ExecutionBudget::new(limits.clone(), timeout_ms);
+        let budgeted_fs = BudgetedFs {
+            inner: fs,
+            budget: &budget,
+        };
         let allow_fallback = self.mode == BackendMode::Hybrid;
-        let mut eval = EvalState::new(cwd, env, fs, &budget, &self.commands, allow_fallback);
+        let mut eval = EvalState::new(cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
         if let Ok(guard) = self.functions.lock() {
             eval.functions = guard.clone();
         }
-        match eval.eval_script_str(script, stdin) {
+        let eval_res = eval.eval_script_str(script, stdin);
+        if let Err(exceeded_msg) = budget.check_exceeded() {
+            return Some(Err(exceeded_msg));
+        }
+        match eval_res {
             Ok(res) => {
                 if let Ok(mut guard) = self.functions.lock() {
                     *guard = eval.functions;

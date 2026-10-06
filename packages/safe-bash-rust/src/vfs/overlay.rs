@@ -191,6 +191,22 @@ impl SafeBashFs for OverlayVfs {
         self.upper.chmod(&norm, mode)
     }
 
+    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+        let norm = normalize_posix_path(path);
+        if !self.upper.exists(&norm) {
+            if self.is_deleted(&norm) || !self.lower.exists(&norm) {
+                return Err(format!("ENOENT: no such file or directory, utime '{norm}'"));
+            }
+            if self.lower.is_dir(&norm) {
+                self.upper.mkdir_all(&norm)?;
+            } else {
+                let bytes = self.lower.read_file(&norm)?;
+                self.upper.write_file(&norm, &bytes)?;
+            }
+        }
+        self.upper.set_mtime(&norm, mtime_ms)
+    }
+
     fn generation(&self) -> u64 {
         self.lower
             .generation()

@@ -1,7 +1,7 @@
 pub mod alloc;
 
 pub use alloc::AllocationGuard;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::{Duration, Instant};
@@ -19,6 +19,10 @@ pub struct ShellLimits {
     pub max_expansion_bytes: usize,
     pub max_memory_bytes: usize,
     pub max_redirects: usize,
+    pub max_pathname_components: usize,
+    pub max_input_bytes: usize,
+    pub max_parse_units: usize,
+    pub max_source_bytes: usize,
 }
 
 impl Default for ShellLimits {
@@ -35,6 +39,10 @@ impl Default for ShellLimits {
             max_expansion_bytes: 8 * 1024 * 1024,
             max_memory_bytes: 64 * 1024 * 1024,
             max_redirects: 64,
+            max_pathname_components: 256,
+            max_input_bytes: 16 * 1024 * 1024,
+            max_parse_units: 100_000,
+            max_source_bytes: 16 * 1024 * 1024,
         }
     }
 }
@@ -69,6 +77,8 @@ pub struct ExecutionBudget {
     output_bytes: AtomicUsize,
     fs_ops: AtomicUsize,
     recursion_depth: AtomicUsize,
+    substitution_depth: AtomicUsize,
+    exceeded_error: Mutex<Option<String>>,
     #[cfg(not(target_arch = "wasm32"))]
     deadline: Option<Instant>,
 }
@@ -95,12 +105,33 @@ impl ExecutionBudget {
             output_bytes: AtomicUsize::new(0),
             fs_ops: AtomicUsize::new(0),
             recursion_depth: AtomicUsize::new(0),
+            substitution_depth: AtomicUsize::new(0),
+            exceeded_error: Mutex::new(None),
             #[cfg(not(target_arch = "wasm32"))]
             deadline,
         }
     }
 
+    pub fn record_exceeded(&self, msg: String) -> String {
+        if let Ok(mut guard) = self.exceeded_error.lock()
+            && guard.is_none()
+        {
+            *guard = Some(msg.clone());
+        }
+        msg
+    }
+
+    pub fn check_exceeded(&self) -> Result<(), String> {
+        if let Ok(guard) = self.exceeded_error.lock()
+            && let Some(msg) = guard.as_ref()
+        {
+            return Err(msg.clone());
+        }
+        Ok(())
+    }
+
     pub fn check_cancelled(&self) -> Result<(), String> {
+        self.check_exceeded()?;
         if self.cancel_token.is_cancelled() {
             return Err("Execution aborted: cancelled".to_string());
         }
@@ -117,10 +148,10 @@ impl ExecutionBudget {
         self.check_cancelled()?;
         let prev = self.loop_iterations.fetch_add(1, Ordering::Relaxed);
         if prev + 1 > self.limits.max_loop_iterations {
-            return Err(format!(
+            return Err(self.record_exceeded(format!(
                 "Execution aborted: Shell limit exceeded: maxLoopIterations ({})",
                 self.limits.max_loop_iterations
-            ));
+            )));
         }
         Ok(())
     }
@@ -134,16 +165,33 @@ impl ExecutionBudget {
         let prev = self.recursion_depth.fetch_add(1, Ordering::Relaxed);
         if prev + 1 > self.limits.max_function_depth {
             self.recursion_depth.fetch_sub(1, Ordering::Relaxed);
-            return Err(format!(
+            return Err(self.record_exceeded(format!(
                 "Execution aborted: Shell limit exceeded: maxFunctionDepth ({})",
                 self.limits.max_function_depth
-            ));
+            )));
         }
         Ok(())
     }
 
     pub fn leave_recursion(&self) {
         let _ = self.recursion_depth.fetch_sub(1, Ordering::Relaxed);
+    }
+
+    pub fn enter_substitution(&self) -> Result<(), String> {
+        self.check_cancelled()?;
+        let prev = self.substitution_depth.fetch_add(1, Ordering::Relaxed);
+        if prev + 1 > self.limits.max_substitution_depth {
+            self.substitution_depth.fetch_sub(1, Ordering::Relaxed);
+            return Err(self.record_exceeded(format!(
+                "Execution aborted: Shell limit exceeded: maxSubstitutionDepth ({})",
+                self.limits.max_substitution_depth
+            )));
+        }
+        Ok(())
+    }
+
+    pub fn leave_substitution(&self) {
+        let _ = self.substitution_depth.fetch_sub(1, Ordering::Relaxed);
     }
 
     pub fn record_stdout(&self, bytes: usize) -> Result<(), String> {
@@ -158,10 +206,10 @@ impl ExecutionBudget {
         self.check_cancelled()?;
         let prev = self.commands.fetch_add(1, Ordering::Relaxed);
         if prev + 1 > self.limits.max_commands {
-            return Err(format!(
+            return Err(self.record_exceeded(format!(
                 "Execution aborted: Shell limit exceeded: maxCommands ({})",
                 self.limits.max_commands
-            ));
+            )));
         }
         Ok(())
     }
@@ -172,10 +220,10 @@ impl ExecutionBudget {
         }
         let prev = self.output_bytes.fetch_add(bytes, Ordering::Relaxed);
         if prev.saturating_add(bytes) > self.limits.max_output_bytes {
-            return Err(format!(
+            return Err(self.record_exceeded(format!(
                 "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
                 self.limits.max_output_bytes
-            ));
+            )));
         }
         Ok(())
     }
@@ -183,10 +231,10 @@ impl ExecutionBudget {
     pub fn tick_fs_op(&self) -> Result<(), String> {
         let prev = self.fs_ops.fetch_add(1, Ordering::Relaxed);
         if prev + 1 > self.limits.max_filesystem_operations {
-            return Err(format!(
+            return Err(self.record_exceeded(format!(
                 "Execution aborted: Shell limit exceeded: maxFileSystemOperations ({})",
                 self.limits.max_filesystem_operations
-            ));
+            )));
         }
         Ok(())
     }

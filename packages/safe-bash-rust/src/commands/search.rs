@@ -28,7 +28,7 @@ where
         )),
         "rg" => Some(cmd_rg(args, stdin, cwd, fs)),
         "find" => Some(cmd_find(args, cwd, env, fs, &mut exec_sub)),
-        "fd" => Some(cmd_fd(args, cwd, fs)),
+        "fd" => Some(cmd_fd(args, cwd, env, fs, &mut exec_sub)),
         "xargs" => Some(cmd_xargs(args, stdin, cwd, env, &mut exec_sub)),
         "which" => Some(cmd_which(args)),
         _ => None,
@@ -123,6 +123,9 @@ pub fn is_known_command(name: &str) -> bool {
             | "rev"
             | "paste"
             | "comm"
+            | "tsort"
+            | "expand"
+            | "unexpand"
             | "tee"
             | "sponge"
             | "seq"
@@ -181,6 +184,15 @@ pub fn is_known_command(name: &str) -> bool {
             | "cmp"
             | "jq"
             | "yq"
+            | "join"
+            | "getopt"
+            | "dos2unix"
+            | "unix2dos"
+            | "timeout"
+            | "unxz"
+            | "unzstd"
+            | "disown"
+            | "kill"
             | "csvcut"
             | "csvgrep"
             | "csvstat"
@@ -433,6 +445,69 @@ struct RxToken {
     max: Option<usize>,
 }
 
+fn has_unescaped_ere_syntax(pat: &str) -> bool {
+    let mut in_bracket = false;
+    let mut chars = pat.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            let _ = chars.next();
+            continue;
+        }
+        if c == '[' && !in_bracket {
+            in_bracket = true;
+            continue;
+        }
+        if c == ']' && in_bracket {
+            in_bracket = false;
+            continue;
+        }
+        if !in_bracket && matches!(c, '(' | ')' | '+' | '?' | '|') {
+            return true;
+        }
+    }
+    false
+}
+
+fn normalize_bre_escapes(pat: &str) -> String {
+    if has_unescaped_ere_syntax(pat) {
+        return pat.to_string();
+    }
+    if !pat.contains("\\(")
+        && !pat.contains("\\)")
+        && !pat.contains("\\+")
+        && !pat.contains("\\?")
+        && !pat.contains("\\{")
+        && !pat.contains("\\}")
+    {
+        return pat.to_string();
+    }
+    let mut out = String::new();
+    let mut chars = pat.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            if let Some(&nc) = chars.peek() {
+                if matches!(nc, '(' | ')' | '+' | '?') {
+                    out.push(chars.next().unwrap());
+                    continue;
+                }
+                if nc == '{' || nc == '}' {
+                    let mut clone = chars.clone();
+                    let _ = clone.next();
+                    if nc == '}' || clone.peek().is_some_and(|d| d.is_ascii_digit()) {
+                        out.push(chars.next().unwrap());
+                        continue;
+                    }
+                }
+                out.push(c);
+                out.push(chars.next().unwrap());
+                continue;
+            }
+        }
+        out.push(c);
+    }
+    out
+}
+
 fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
     if fixed {
         return pat
@@ -444,7 +519,8 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
             })
             .collect();
     }
-    let chars: Vec<char> = pat.chars().collect();
+    let norm = normalize_bre_escapes(pat);
+    let chars: Vec<char> = norm.chars().collect();
     let mut idx = 0usize;
     let mut out = Vec::new();
 
@@ -514,14 +590,32 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
                     if idx + 2 < chars.len() && chars[idx + 1] == '-' && chars[idx + 2] != ']' {
                         ranges.push((chars[idx], chars[idx + 2]));
                         idx += 3;
+                    } else if chars[idx] == '\\' && idx + 1 < chars.len() {
+                        let esc = chars[idx + 1];
+                        idx += 2;
+                        match esc {
+                            'd' => ranges.push(('0', '9')),
+                            'w' => {
+                                ranges.push(('0', '9'));
+                                ranges.push(('a', 'z'));
+                                ranges.push(('A', 'Z'));
+                                ranges.push(('_', '_'));
+                            }
+                            's' => {
+                                for ws in [' ', '\t', '\n', '\r'] {
+                                    ranges.push((ws, ws));
+                                }
+                            }
+                            'S' | 'D' | 'W' => {
+                                ranges.push(('\0', '\u{10ffff}'));
+                            }
+                            'n' => ranges.push(('\n', '\n')),
+                            't' => ranges.push(('\t', '\t')),
+                            'r' => ranges.push(('\r', '\r')),
+                            other => ranges.push((other, other)),
+                        }
                     } else {
-                        let c = if chars[idx] == '\\' && idx + 1 < chars.len() {
-                            idx += 1;
-                            chars[idx]
-                        } else {
-                            chars[idx]
-                        };
-                        ranges.push((c, c));
+                        ranges.push((chars[idx], chars[idx]));
                         idx += 1;
                     }
                 }
@@ -598,6 +692,9 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
                     }
                 }
                 _ => {}
+            }
+            if idx < chars.len() && chars[idx] == '?' && (min != 1 || max != Some(1)) {
+                idx += 1;
             }
         }
         out.push(RxToken { atom, min, max });
@@ -740,6 +837,162 @@ fn match_single_atom(
     }
 }
 
+pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<String>> {
+    let hay: Vec<(usize, char)> = text.char_indices().collect();
+    let anchored_start = pat.starts_with('^');
+    let anchored_end = pat.ends_with('$') && !pat.ends_with("\\$");
+    let s = pat.strip_prefix('^').unwrap_or(pat);
+    let core_pat = if anchored_end { &s[..s.len() - 1] } else { s };
+    let tokens = parse_rx(core_pat, false);
+
+    let start_positions: Vec<usize> = if anchored_start {
+        vec![0]
+    } else {
+        (0..=hay.len()).collect()
+    };
+
+    for start_pos in start_positions {
+        if let Some((end_pos, caps)) =
+            match_tokens_with_caps(&tokens, &hay, text, start_pos, ignore_case)
+        {
+            if !anchored_end || end_pos == hay.len() {
+                let start_byte = if start_pos < hay.len() {
+                    hay[start_pos].0
+                } else {
+                    text.len()
+                };
+                let end_byte = if end_pos < hay.len() {
+                    hay[end_pos].0
+                } else {
+                    text.len()
+                };
+                let mut res = Vec::with_capacity(caps.len() + 1);
+                res.push(text[start_byte..end_byte].to_string());
+                res.extend(caps);
+                return Some(res);
+            }
+        }
+    }
+    None
+}
+
+fn match_tokens_with_caps(
+    tokens: &[RxToken],
+    hay: &[(usize, char)],
+    text: &str,
+    pos: usize,
+    ignore_case: bool,
+) -> Option<(usize, Vec<String>)> {
+    if tokens.is_empty() {
+        return Some((pos, Vec::new()));
+    }
+    let tok = &tokens[0];
+    let rest = &tokens[1..];
+
+    if matches!(tok.atom, RxAtom::WordBoundary) {
+        let before_word = pos > 0 && is_word_char(hay[pos - 1].1);
+        let after_word = pos < hay.len() && is_word_char(hay[pos].1);
+        if before_word != after_word {
+            return match_tokens_with_caps(rest, hay, text, pos, ignore_case);
+        }
+        return None;
+    }
+
+    let mut steps: Vec<(usize, Vec<String>)> = vec![(pos, Vec::new())];
+    let mut count = 0usize;
+    let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
+
+    while count < max_limit {
+        let cur_pos = steps.last().unwrap().0;
+        if let Some((next_pos, step_caps)) =
+            match_single_atom_with_caps(&tok.atom, hay, text, cur_pos, ignore_case)
+        {
+            if next_pos == cur_pos && count >= tok.min {
+                break;
+            }
+            steps.push((next_pos, step_caps));
+            count += 1;
+        } else {
+            break;
+        }
+    }
+
+    if steps.len() - 1 < tok.min {
+        return None;
+    }
+
+    for idx in (tok.min..steps.len()).rev() {
+        let (step_pos, ref step_caps) = steps[idx];
+        if let Some((final_pos, rest_caps)) =
+            match_tokens_with_caps(rest, hay, text, step_pos, ignore_case)
+        {
+            let mut combined = step_caps.clone();
+            combined.extend(rest_caps);
+            return Some((final_pos, combined));
+        }
+    }
+    None
+}
+
+fn match_single_atom_with_caps(
+    atom: &RxAtom,
+    hay: &[(usize, char)],
+    text: &str,
+    pos: usize,
+    ignore_case: bool,
+) -> Option<(usize, Vec<String>)> {
+    match atom {
+        RxAtom::Group(alts) => {
+            for alt in alts {
+                let sub_tokens = parse_rx(alt, false);
+                if let Some((end_pos, sub_caps)) =
+                    match_tokens_with_caps(&sub_tokens, hay, text, pos, ignore_case)
+                {
+                    let start_byte = if pos < hay.len() { hay[pos].0 } else { text.len() };
+                    let end_byte = if end_pos < hay.len() {
+                        hay[end_pos].0
+                    } else {
+                        text.len()
+                    };
+                    let mut caps = vec![text[start_byte..end_byte].to_string()];
+                    caps.extend(sub_caps);
+                    return Some((end_pos, caps));
+                }
+            }
+            None
+        }
+        _ => match_single_atom(atom, hay, pos, ignore_case).map(|next| (next, Vec::new())),
+    }
+}
+
+fn expand_regex_replacement(replacement: &str, matched_str: &str, caps: &[String]) -> String {
+    let mut out = String::new();
+    let mut chars = replacement.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            match chars.next() {
+                Some(d @ '1'..='9') => {
+                    let idx = (d as u8 - b'1') as usize;
+                    if let Some(cap) = caps.get(idx + 1) {
+                        out.push_str(cap);
+                    }
+                }
+                Some('&') => out.push('&'),
+                Some('n') => out.push('\n'),
+                Some('t') => out.push('\t'),
+                Some('r') => out.push('\r'),
+                Some(other) => out.push(other),
+                None => out.push('\\'),
+            }
+        } else if c == '&' {
+            out.push_str(matched_str);
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
 pub fn replace_regex_in_text(
     text: &str,
     pat: &str,
@@ -753,6 +1006,11 @@ pub fn replace_regex_in_text(
     if matches.is_empty() {
         return (text.to_string(), false);
     }
+    let core_pat = pat
+        .strip_prefix('^')
+        .unwrap_or(pat)
+        .strip_suffix('$')
+        .unwrap_or(pat.strip_prefix('^').unwrap_or(pat));
     let mut out = String::new();
     let mut last_end = 0usize;
     let mut replaced = false;
@@ -769,7 +1027,10 @@ pub fn replace_regex_in_text(
         out.push_str(&text[last_end..s]);
         if should_replace {
             let matched_str = &text[s..e];
-            let expanded = replacement.replace('&', matched_str);
+            let caps = regex_captures(&format!("^{core_pat}$"), matched_str, ignore_case)
+                .or_else(|| regex_captures(pat, matched_str, ignore_case))
+                .unwrap_or_else(|| vec![matched_str.to_string()]);
+            let expanded = expand_regex_replacement(replacement, matched_str, &caps);
             out.push_str(&expanded);
             replaced = true;
         } else {
@@ -779,6 +1040,81 @@ pub fn replace_regex_in_text(
     }
     out.push_str(&text[last_end..]);
     (out, replaced)
+}
+
+fn apply_rg_line_replace(
+    line: &str,
+    spans: &[(usize, usize)],
+    rep: &str,
+    rx: &ZeroRegex,
+    ignore_case: bool,
+) -> String {
+    if spans.is_empty() {
+        return line.to_string();
+    }
+    let pat0 = rx.patterns.first().map(|p| p.as_str()).unwrap_or("");
+    let mut out = String::new();
+    let mut last = 0usize;
+    for &(s, e) in spans {
+        if s < last || e > line.len() {
+            continue;
+        }
+        out.push_str(&line[last..s]);
+        let matched_slice = &line[s..e];
+        let caps = regex_captures(&format!("^{pat0}$"), matched_slice, ignore_case)
+            .or_else(|| regex_captures(pat0, matched_slice, ignore_case))
+            .unwrap_or_else(|| vec![matched_slice.to_string()]);
+        out.push_str(&expand_rg_replacement(rep, matched_slice, &caps));
+        last = e;
+    }
+    out.push_str(&line[last..]);
+    out
+}
+
+fn expand_rg_replacement(replacement: &str, matched_str: &str, caps: &[String]) -> String {
+    let mut out = String::new();
+    let mut chars = replacement.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '$' {
+            match chars.peek().copied() {
+                Some('0') => {
+                    chars.next();
+                    out.push_str(matched_str);
+                }
+                Some(d @ '1'..='9') => {
+                    chars.next();
+                    let idx = (d as u8 - b'1') as usize;
+                    if let Some(cap) = caps.get(idx + 1) {
+                        out.push_str(cap);
+                    }
+                }
+                Some('$') => {
+                    chars.next();
+                    out.push('$');
+                }
+                _ => out.push('$'),
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
+fn json_escape_str(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            other => out.push(other),
+        }
+    }
+    out
 }
 
 fn cmd_grep(
@@ -793,6 +1129,8 @@ fn cmd_grep(
     let mut invert = false;
     let mut count_only = false;
     let mut line_number = false;
+    let mut byte_offset = false;
+    let mut null_delim = false;
     let mut files_with_matches = false;
     let mut files_without_match = false;
     let mut only_matching = false;
@@ -806,6 +1144,8 @@ fn cmd_grep(
     let mut max_count: Option<usize> = None;
     let mut before_ctx = 0usize;
     let mut after_ctx = 0usize;
+    let mut multiline = false;
+    let mut globs: Vec<String> = Vec::new();
     let mut patterns: Vec<String> = Vec::new();
     let mut targets: Vec<String> = Vec::new();
 
@@ -824,6 +1164,8 @@ fn cmd_grep(
                 "--invert-match" => invert = true,
                 "--count" => count_only = true,
                 "--line-number" => line_number = true,
+                "--byte-offset" => byte_offset = true,
+                "--null" => null_delim = true,
                 "--files-with-matches" => files_with_matches = true,
                 "--files-without-match" => files_without_match = true,
                 "--only-matching" => only_matching = true,
@@ -835,11 +1177,41 @@ fn cmd_grep(
                 "--quiet" | "--silent" => quiet = true,
                 "--no-filename" => no_filename = true,
                 "--with-filename" => with_filename = true,
+                "--include" if i + 1 < args.len() => {
+                    i += 1;
+                    globs.push(args[i].clone());
+                }
+                "--exclude" | "--exclude-dir" if i + 1 < args.len() => {
+                    i += 1;
+                    globs.push(format!("!{}", args[i]));
+                }
+                "--file" if i + 1 < args.len() => {
+                    i += 1;
+                    let resolved = resolve_posix_path(cwd, &args[i]);
+                    if let Ok(bytes) = fs.read_file(&resolved) {
+                        for line in String::from_utf8_lossy(&bytes).lines() {
+                            patterns.push(line.to_string());
+                        }
+                    }
+                }
                 _ => {
                     if let Some(val) = a.strip_prefix("--max-count=") {
                         max_count = val.parse().ok();
                     } else if let Some(val) = a.strip_prefix("--regexp=") {
                         patterns.push(val.to_string());
+                    } else if let Some(val) = a.strip_prefix("--include=") {
+                        globs.push(val.to_string());
+                    } else if let Some(val) = a.strip_prefix("--exclude=") {
+                        globs.push(format!("!{val}"));
+                    } else if let Some(val) = a.strip_prefix("--exclude-dir=") {
+                        globs.push(format!("!{val}"));
+                    } else if let Some(val) = a.strip_prefix("--file=") {
+                        let resolved = resolve_posix_path(cwd, val);
+                        if let Ok(bytes) = fs.read_file(&resolved) {
+                            for line in String::from_utf8_lossy(&bytes).lines() {
+                                patterns.push(line.to_string());
+                            }
+                        }
                     }
                 }
             }
@@ -855,6 +1227,8 @@ fn cmd_grep(
                     'v' => invert = true,
                     'c' => count_only = true,
                     'n' => line_number = true,
+                    'b' => byte_offset = true,
+                    'Z' => null_delim = true,
                     'l' => files_with_matches = true,
                     'L' => files_without_match = true,
                     'o' => only_matching = true,
@@ -866,6 +1240,7 @@ fn cmd_grep(
                     'q' | 's' => quiet = true,
                     'h' => no_filename = true,
                     'H' => with_filename = true,
+                    'U' => multiline = true,
                     'e' => {
                         let rest: String = chars[ci + 1..].iter().collect();
                         if !rest.is_empty() {
@@ -888,7 +1263,9 @@ fn cmd_grep(
                         let resolved = resolve_posix_path(cwd, &file_arg);
                         if let Ok(bytes) = fs.read_file(&resolved) {
                             for line in String::from_utf8_lossy(&bytes).lines() {
-                                patterns.push(line.to_string());
+                                if !line.is_empty() {
+                                    patterns.push(line.to_string());
+                                }
                             }
                         }
                         break;
@@ -939,6 +1316,7 @@ fn cmd_grep(
         cwd,
         fs,
         GrepConfig {
+            is_rg: false,
             ignore_case,
             invert,
             count_only,
@@ -956,7 +1334,16 @@ fn cmd_grep(
             max_count,
             before_ctx,
             after_ctx,
-            globs: Vec::new(),
+            globs,
+            types_include: Vec::new(),
+            types_exclude: Vec::new(),
+            show_hidden: true,
+            unrestricted_level: 3,
+            byte_offset,
+            null_delim,
+            json_output: false,
+            replace: None,
+            multiline,
         },
     )
 }
@@ -967,6 +1354,8 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut invert = false;
     let mut count_only = false;
     let mut line_number = false;
+    let mut byte_offset = false;
+    let mut null_delim = false;
     let mut files_with_matches = false;
     let mut files_without_match = false;
     let mut only_matching = false;
@@ -977,10 +1366,17 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut no_filename = false;
     let mut with_filename = false;
     let mut list_files_only = false;
+    let mut show_hidden = false;
+    let mut unrestricted_level = 0usize;
+    let mut json_output = false;
+    let mut multiline = false;
+    let mut replace: Option<String> = None;
     let mut max_count: Option<usize> = None;
     let mut before_ctx = 0usize;
     let mut after_ctx = 0usize;
     let mut globs: Vec<String> = Vec::new();
+    let mut types_include: Vec<String> = Vec::new();
+    let mut types_exclude: Vec<String> = Vec::new();
     let mut patterns: Vec<String> = Vec::new();
     let mut targets: Vec<String> = Vec::new();
 
@@ -1002,6 +1398,24 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "--count" => count_only = true,
                 "--line-number" => line_number = true,
                 "--no-line-number" => line_number = false,
+                "--byte-offset" => byte_offset = true,
+                "--null" => null_delim = true,
+                "--hidden" => show_hidden = true,
+                "--no-ignore" => unrestricted_level = unrestricted_level.max(1),
+                "--unrestricted" => unrestricted_level += 1,
+                "--json" => json_output = true,
+                "--multiline" | "--multiline-dotall" => multiline = true,
+                "--file" if i + 1 < args.len() => {
+                    i += 1;
+                    let resolved = resolve_posix_path(cwd, &args[i]);
+                    if let Ok(bytes) = fs.read_file(&resolved) {
+                        for line in String::from_utf8_lossy(&bytes).lines() {
+                            if !line.is_empty() {
+                                patterns.push(line.to_string());
+                            }
+                        }
+                    }
+                }
                 "--files-with-matches" => files_with_matches = true,
                 "--files-without-match" => files_without_match = true,
                 "--only-matching" => only_matching = true,
@@ -1011,6 +1425,18 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "--quiet" => quiet = true,
                 "--no-filename" | "--no-heading" => no_filename = true,
                 "--with-filename" => with_filename = true,
+                "--replace" if i + 1 < args.len() => {
+                    i += 1;
+                    replace = Some(args[i].clone());
+                }
+                "--type" if i + 1 < args.len() => {
+                    i += 1;
+                    types_include.push(args[i].clone());
+                }
+                "--type-not" if i + 1 < args.len() => {
+                    i += 1;
+                    types_exclude.push(args[i].clone());
+                }
                 "--glob" | "-g" if i + 1 < args.len() => {
                     i += 1;
                     globs.push(args[i].clone());
@@ -1028,6 +1454,12 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         globs.push(g.to_string());
                     } else if let Some(m) = a.strip_prefix("--max-count=") {
                         max_count = m.parse().ok();
+                    } else if let Some(r) = a.strip_prefix("--replace=") {
+                        replace = Some(r.to_string());
+                    } else if let Some(t) = a.strip_prefix("--type=") {
+                        types_include.push(t.to_string());
+                    } else if let Some(t) = a.strip_prefix("--type-not=") {
+                        types_exclude.push(t.to_string());
                     }
                 }
             }
@@ -1045,6 +1477,10 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     'c' => count_only = true,
                     'n' => line_number = true,
                     'N' => line_number = false,
+                    'b' => byte_offset = true,
+                    '0' => null_delim = true,
+                    '.' => show_hidden = true,
+                    'u' => unrestricted_level += 1,
                     'l' => files_with_matches = true,
                     'o' => only_matching = true,
                     'w' => word_regexp = true,
@@ -1053,6 +1489,56 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     'q' => quiet = true,
                     'I' => no_filename = true,
                     'H' => with_filename = true,
+                    'r' => {
+                        let rest: String = chars[ci + 1..].iter().collect();
+                        if !rest.is_empty() {
+                            replace = Some(rest);
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            replace = Some(args[i].clone());
+                        }
+                        break;
+                    }
+                    't' => {
+                        let rest: String = chars[ci + 1..].iter().collect();
+                        if !rest.is_empty() {
+                            types_include.push(rest);
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            types_include.push(args[i].clone());
+                        }
+                        break;
+                    }
+                    'U' => multiline = true,
+                    'T' => {
+                        let rest: String = chars[ci + 1..].iter().collect();
+                        if !rest.is_empty() {
+                            types_exclude.push(rest);
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            types_exclude.push(args[i].clone());
+                        }
+                        break;
+                    }
+                    'f' => {
+                        let file_arg = if ci + 1 < chars.len() {
+                            chars[ci + 1..].iter().collect::<String>()
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            String::new()
+                        };
+                        let resolved = resolve_posix_path(cwd, &file_arg);
+                        if let Ok(bytes) = fs.read_file(&resolved) {
+                            for line in String::from_utf8_lossy(&bytes).lines() {
+                                if !line.is_empty() {
+                                    patterns.push(line.to_string());
+                                }
+                            }
+                        }
+                        break;
+                    }
                     'e' => {
                         let rest: String = chars[ci + 1..].iter().collect();
                         if !rest.is_empty() {
@@ -1112,6 +1598,10 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         i += 1;
     }
 
+    if unrestricted_level >= 2 {
+        show_hidden = true;
+    }
+
     if list_files_only {
         let search_roots = if targets.is_empty() {
             vec![".".to_string()]
@@ -1120,13 +1610,26 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         };
         let mut files = Vec::new();
         for r in &search_roots {
-            collect_search_files(r, cwd, fs, true, &globs, &mut files);
+            collect_search_files(
+                r,
+                cwd,
+                fs,
+                true,
+                &globs,
+                &types_include,
+                &types_exclude,
+                show_hidden,
+                unrestricted_level == 0,
+                &Vec::new(),
+                &mut files,
+            );
         }
+        let sep = if null_delim { '\0' } else { '\n' };
         let mut out = String::new();
         for (disp, _) in files {
             let clean = disp.strip_prefix("./").unwrap_or(&disp);
             out.push_str(clean);
-            out.push('\n');
+            out.push(sep);
         }
         return ok_out(&out);
     }
@@ -1156,6 +1659,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         cwd,
         fs,
         GrepConfig {
+            is_rg: true,
             ignore_case,
             invert,
             count_only,
@@ -1174,11 +1678,21 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             before_ctx,
             after_ctx,
             globs,
+            types_include,
+            types_exclude,
+            show_hidden,
+            unrestricted_level,
+            byte_offset,
+            null_delim,
+            json_output,
+            replace,
+            multiline,
         },
     )
 }
 
 struct GrepConfig {
+    is_rg: bool,
     ignore_case: bool,
     invert: bool,
     count_only: bool,
@@ -1197,14 +1711,76 @@ struct GrepConfig {
     before_ctx: usize,
     after_ctx: usize,
     globs: Vec<String>,
+    types_include: Vec<String>,
+    types_exclude: Vec<String>,
+    show_hidden: bool,
+    unrestricted_level: usize,
+    byte_offset: bool,
+    null_delim: bool,
+    json_output: bool,
+    replace: Option<String>,
+    multiline: bool,
 }
 
+fn file_matches_rg_type(base: &str, t: &str) -> bool {
+    match t {
+        "ts" => base.ends_with(".ts") || base.ends_with(".tsx"),
+        "js" => {
+            base.ends_with(".js")
+                || base.ends_with(".jsx")
+                || base.ends_with(".mjs")
+                || base.ends_with(".cjs")
+        }
+        "py" => base.ends_with(".py"),
+        "rs" => base.ends_with(".rs"),
+        "md" => base.ends_with(".md"),
+        "json" => base.ends_with(".json"),
+        "yaml" | "yml" => base.ends_with(".yaml") || base.ends_with(".yml"),
+        "sh" => base.ends_with(".sh") || base.ends_with(".bash"),
+        "css" => base.ends_with(".css"),
+        "html" => base.ends_with(".html") || base.ends_with(".htm"),
+        other => base.ends_with(&format!(".{other}")),
+    }
+}
+
+fn is_ignored_by_rules(name: &str, is_dir: bool, rules: &[String]) -> bool {
+    let mut ignored = false;
+    for rule in rules {
+        let r = rule.trim();
+        if r.is_empty() || r.starts_with('#') {
+            continue;
+        }
+        if let Some(neg) = r.strip_prefix('!') {
+            let neg_clean = neg.trim_start_matches('/').trim_end_matches('/');
+            if glob_match(neg_clean, name) {
+                ignored = false;
+            }
+        } else if let Some(dir_pat) = r.strip_suffix('/') {
+            if is_dir && glob_match(dir_pat.trim_start_matches('/'), name) {
+                ignored = true;
+            }
+        } else {
+            let pat = r.trim_start_matches('/');
+            if glob_match(pat, name) {
+                ignored = true;
+            }
+        }
+    }
+    ignored
+}
+
+#[allow(clippy::too_many_arguments)]
 fn collect_search_files(
     target: &str,
     cwd: &str,
     fs: &dyn SafeBashFs,
     recursive: bool,
     globs: &[String],
+    types_include: &[String],
+    types_exclude: &[String],
+    show_hidden: bool,
+    respect_ignore_files: bool,
+    parent_ignore_rules: &[String],
     out: &mut Vec<(String, String)>,
 ) {
     let resolved = resolve_posix_path(cwd, target);
@@ -1212,9 +1788,28 @@ fn collect_search_files(
         if !recursive {
             return;
         }
+        let mut local_rules = parent_ignore_rules.to_vec();
+        if respect_ignore_files {
+            for ig_name in [".gitignore", ".ignore", ".rgignore"] {
+                let ig_path = normalize_posix_path(&format!("{resolved}/{ig_name}"));
+                if let Ok(bytes) = fs.read_file(&ig_path) {
+                    for line in String::from_utf8_lossy(&bytes).lines() {
+                        let trimmed = line.trim();
+                        if !trimmed.is_empty() && !trimmed.starts_with('#') {
+                            local_rules.push(trimmed.to_string());
+                        }
+                    }
+                }
+            }
+        }
         if let Ok(entries) = fs.read_dir(&resolved) {
             for e in entries {
-                if e.starts_with('.') {
+                if e == ".git" || (!show_hidden && e.starts_with('.')) {
+                    continue;
+                }
+                let child_resolved = normalize_posix_path(&format!("{resolved}/{e}"));
+                let child_is_dir = fs.is_dir(&child_resolved);
+                if respect_ignore_files && is_ignored_by_rules(&e, child_is_dir, &local_rules) {
                     continue;
                 }
                 let disp = if target == "." {
@@ -1222,11 +1817,30 @@ fn collect_search_files(
                 } else {
                     format!("{}/{}", target.trim_end_matches('/'), e)
                 };
-                collect_search_files(&disp, cwd, fs, true, globs, out);
+                collect_search_files(
+                    &disp,
+                    cwd,
+                    fs,
+                    true,
+                    globs,
+                    types_include,
+                    types_exclude,
+                    show_hidden,
+                    respect_ignore_files,
+                    &local_rules,
+                    out,
+                );
             }
         }
     } else if fs.exists(&resolved) {
         let base = basename_posix_path(&resolved);
+        if !types_include.is_empty() && !types_include.iter().any(|t| file_matches_rg_type(&base, t))
+        {
+            return;
+        }
+        if types_exclude.iter().any(|t| file_matches_rg_type(&base, t)) {
+            return;
+        }
         if !globs.is_empty() {
             let mut include = true;
             let mut has_pos = false;
@@ -1288,7 +1902,19 @@ fn run_grep_engine(
                 had_error = true;
                 continue;
             }
-            collect_search_files(t, cwd, fs, cfg.recursive, &cfg.globs, &mut file_list);
+            collect_search_files(
+                t,
+                cwd,
+                fs,
+                cfg.recursive,
+                &cfg.globs,
+                &cfg.types_include,
+                &cfg.types_exclude,
+                cfg.show_hidden,
+                cfg.is_rg && cfg.unrestricted_level == 0,
+                &Vec::new(),
+                &mut file_list,
+            );
         }
         for (disp, full) in file_list {
             if let Ok(bytes) = fs.read_file(&full) {
@@ -1307,38 +1933,133 @@ fn run_grep_engine(
 
     let mut out = String::new();
     let mut any_match = false;
+    let mut total_matches = 0usize;
+    let mut total_matched_lines = 0usize;
+    let mut searches_with_match = 0usize;
 
     for (fname, content) in &inputs {
         let lines: Vec<&str> = content.lines().collect();
+        let mut line_offsets: Vec<usize> = Vec::with_capacity(lines.len());
+        let mut cur_off = 0usize;
+        for l in &lines {
+            line_offsets.push(cur_off);
+            cur_off += l.len() + 1;
+        }
         let mut match_indices = Vec::new();
         let mut matched_count = 0usize;
+        let mut file_submatch_count = 0usize;
 
-        for (idx, line) in lines.iter().enumerate() {
-            let line_matches = rx.find_all(line);
-            let is_matched = if cfg.invert {
-                line_matches.is_empty()
-            } else {
-                !line_matches.is_empty()
-            };
-            if is_matched {
-                any_match = true;
-                if cfg.quiet {
-                    return ok_out("");
+        if cfg.multiline && !cfg.invert {
+            let full_spans = rx.find_all(content);
+            for (s, e) in full_spans {
+                for (idx, line) in lines.iter().enumerate() {
+                    let l_start = line_offsets[idx];
+                    let l_end = l_start + line.len();
+                    if s < l_end && e > l_start {
+                        any_match = true;
+                        if cfg.quiet {
+                            return ok_out("");
+                        }
+                        if !match_indices.iter().any(|(i, _)| *i == idx) {
+                            let rel_s = s.saturating_sub(l_start).min(line.len());
+                            let rel_e = e.saturating_sub(l_start).min(line.len());
+                            match_indices.push((idx, vec![(rel_s, rel_e)]));
+                            matched_count += 1;
+                            file_submatch_count += 1;
+                        }
+                    }
                 }
-                match_indices.push((idx, line_matches));
-                matched_count += 1;
-                if let Some(max_c) = cfg.max_count {
-                    if matched_count >= max_c {
-                        break;
+            }
+        } else {
+            for (idx, line) in lines.iter().enumerate() {
+                let line_matches = rx.find_all(line);
+                let is_matched = if cfg.invert {
+                    line_matches.is_empty()
+                } else {
+                    !line_matches.is_empty()
+                };
+                if is_matched {
+                    any_match = true;
+                    if cfg.quiet {
+                        return ok_out("");
+                    }
+                    file_submatch_count += line_matches.len().max(1);
+                    match_indices.push((idx, line_matches));
+                    matched_count += 1;
+                    if let Some(max_c) = cfg.max_count {
+                        if matched_count >= max_c {
+                            break;
+                        }
                     }
                 }
             }
         }
 
+        if matched_count > 0 {
+            searches_with_match += 1;
+            total_matched_lines += matched_count;
+            total_matches += file_submatch_count;
+        }
+
+        if cfg.json_output {
+            if matched_count == 0 {
+                continue;
+            }
+            let path_text = fname.as_deref().unwrap_or("<stdin>");
+            let escaped_path = json_escape_str(path_text);
+            out.push_str(&format!(
+                "{{\"type\":\"begin\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}}}}}}\n"
+            ));
+            let mut printed = vec![false; lines.len()];
+            for (idx, _) in &match_indices {
+                let start = idx.saturating_sub(cfg.before_ctx);
+                let end = (*idx + cfg.after_ctx + 1).min(lines.len());
+                for p in start..end {
+                    printed[p] = true;
+                }
+            }
+            let match_map: std::collections::BTreeMap<usize, &Vec<(usize, usize)>> =
+                match_indices.iter().map(|(i, m)| (*i, m)).collect();
+            for (idx, should_print) in printed.iter().enumerate() {
+                if !*should_print {
+                    continue;
+                }
+                let line_text = format!("{}\n", lines[idx]);
+                let escaped_line = json_escape_str(&line_text);
+                let line_no = idx + 1;
+                let abs_off = line_offsets.get(idx).copied().unwrap_or(0);
+                if let Some(spans) = match_map.get(&idx) {
+                    let mut subs_json = String::new();
+                    for (si, &(s, e)) in spans.iter().enumerate() {
+                        if si > 0 {
+                            subs_json.push(',');
+                        }
+                        let mtxt = json_escape_str(&lines[idx][s..e]);
+                        subs_json.push_str(&format!(
+                            "{{\"match\":{{\"text\":\"{mtxt}\"}},\"start\":{s},\"end\":{e}}}"
+                        ));
+                    }
+                    out.push_str(&format!(
+                        "{{\"type\":\"match\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{{\"text\":\"{escaped_line}\"}},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[{subs_json}]}}}}\n"
+                    ));
+                } else {
+                    out.push_str(&format!(
+                        "{{\"type\":\"context\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"lines\":{{\"text\":\"{escaped_line}\"}},\"line_number\":{line_no},\"absolute_offset\":{abs_off},\"submatches\":[]}}}}\n"
+                    ));
+                }
+            }
+            out.push_str(&format!(
+                "{{\"type\":\"end\",\"data\":{{\"path\":{{\"text\":\"{escaped_path}\"}},\"stats\":{{\"matches\":{file_submatch_count},\"matched_lines\":{matched_count}}}}}}}\n"
+            ));
+            continue;
+        }
+
+        let file_sep = if cfg.null_delim { '\0' } else { '\n' };
         if cfg.files_with_matches {
             if matched_count > 0 {
                 if let Some(f) = fname {
-                    out.push_str(&format!("{f}\n"));
+                    out.push_str(f);
+                    out.push(file_sep);
                 }
             }
             continue;
@@ -1346,12 +2067,16 @@ fn run_grep_engine(
         if cfg.files_without_match {
             if matched_count == 0 {
                 if let Some(f) = fname {
-                    out.push_str(&format!("{f}\n"));
+                    out.push_str(f);
+                    out.push(file_sep);
                 }
             }
             continue;
         }
         if cfg.count_only {
+            if cfg.is_rg && matched_count == 0 {
+                continue;
+            }
             if show_filename {
                 if let Some(f) = fname {
                     out.push_str(&format!("{f}:{matched_count}\n"));
@@ -1365,6 +2090,7 @@ fn run_grep_engine(
         if cfg.only_matching && !cfg.invert {
             for (idx, spans) in &match_indices {
                 let line = lines[*idx];
+                let line_off = line_offsets.get(*idx).copied().unwrap_or(0);
                 for &(s, e) in spans {
                     if show_filename {
                         if let Some(f) = fname {
@@ -1374,7 +2100,19 @@ fn run_grep_engine(
                     if cfg.line_number {
                         out.push_str(&format!("{}:", idx + 1));
                     }
-                    out.push_str(&line[s..e]);
+                    if cfg.byte_offset {
+                        out.push_str(&format!("{}:", line_off + s));
+                    }
+                    let matched_slice = &line[s..e];
+                    if let Some(rep) = &cfg.replace {
+                        let pat0 = rx.patterns.first().map(|p| p.as_str()).unwrap_or("");
+                        let caps = regex_captures(&format!("^{pat0}$"), matched_slice, cfg.ignore_case)
+                            .or_else(|| regex_captures(pat0, matched_slice, cfg.ignore_case))
+                            .unwrap_or_else(|| vec![matched_slice.to_string()]);
+                        out.push_str(&expand_rg_replacement(rep, matched_slice, &caps));
+                    } else {
+                        out.push_str(matched_slice);
+                    }
                     out.push('\n');
                 }
             }
@@ -1390,13 +2128,20 @@ fn run_grep_engine(
                     printed[p] = true;
                 }
             }
-            let match_set: std::collections::BTreeSet<usize> =
-                match_indices.iter().map(|(i, _)| *i).collect();
+            let match_map: std::collections::BTreeMap<usize, &Vec<(usize, usize)>> =
+                match_indices.iter().map(|(i, m)| (*i, m)).collect();
+            let mut prev_printed: Option<usize> = None;
             for (idx, should_print) in printed.iter().enumerate() {
                 if !*should_print {
                     continue;
                 }
-                let sep = if match_set.contains(&idx) { ':' } else { '-' };
+                if let Some(prev) = prev_printed {
+                    if idx > prev + 1 {
+                        out.push_str("--\n");
+                    }
+                }
+                prev_printed = Some(idx);
+                let sep = if match_map.contains_key(&idx) { ':' } else { '-' };
                 if show_filename {
                     if let Some(f) = fname {
                         out.push_str(&format!("{f}{sep}"));
@@ -1405,11 +2150,15 @@ fn run_grep_engine(
                 if cfg.line_number {
                     out.push_str(&format!("{}{sep}", idx + 1));
                 }
-                out.push_str(lines[idx]);
+                if let (Some(rep), Some(spans)) = (&cfg.replace, match_map.get(&idx)) {
+                    out.push_str(&apply_rg_line_replace(lines[idx], spans, rep, &rx, cfg.ignore_case));
+                } else {
+                    out.push_str(lines[idx]);
+                }
                 out.push('\n');
             }
         } else {
-            for (idx, _) in &match_indices {
+            for (idx, spans) in &match_indices {
                 if show_filename {
                     if let Some(f) = fname {
                         out.push_str(&format!("{f}:"));
@@ -1418,10 +2167,25 @@ fn run_grep_engine(
                 if cfg.line_number {
                     out.push_str(&format!("{}:", idx + 1));
                 }
-                out.push_str(lines[*idx]);
+                if cfg.byte_offset {
+                    let line_off = line_offsets.get(*idx).copied().unwrap_or(0);
+                    out.push_str(&format!("{line_off}:"));
+                }
+                if let Some(rep) = &cfg.replace {
+                    out.push_str(&apply_rg_line_replace(lines[*idx], spans, rep, &rx, cfg.ignore_case));
+                } else {
+                    out.push_str(lines[*idx]);
+                }
                 out.push('\n');
             }
         }
+    }
+
+    if cfg.json_output {
+        let searches = inputs.len();
+        out.push_str(&format!(
+            "{{\"type\":\"summary\",\"data\":{{\"stats\":{{\"matches\":{total_matches},\"matched_lines\":{total_matched_lines},\"searches\":{searches},\"searches_with_match\":{searches_with_match}}}}}}}\n"
+        ));
     }
 
     let exit_code = if had_error {
@@ -1446,6 +2210,11 @@ enum FindPred {
     Type(char),
     Empty,
     Size { op: i8, bytes: usize },
+    Perm { mode_kind: char, mask: u32 },
+    Newer(u64),
+    Prune,
+    Print { null_delim: bool },
+    Group(Box<FindPred>),
     Not(Box<FindPred>),
     And(Box<FindPred>, Box<FindPred>),
     Or(Box<FindPred>, Box<FindPred>),
@@ -1457,6 +2226,8 @@ fn eval_find_pred(
     full_path: &str,
     depth: usize,
     fs: &dyn SafeBashFs,
+    pruned: &mut bool,
+    printed: &mut Vec<(String, bool)>,
 ) -> bool {
     match pred {
         FindPred::Name { pat, ignore_case } => {
@@ -1506,14 +2277,42 @@ fn eval_find_pred(
             },
             Err(_) => false,
         },
-        FindPred::Not(inner) => !eval_find_pred(inner, disp_path, full_path, depth, fs),
+        FindPred::Perm { mode_kind, mask } => match fs.stat(full_path) {
+            Ok(st) => {
+                let file_mode = st.mode & 0o7777;
+                match mode_kind {
+                    '-' => (file_mode & *mask) == *mask,
+                    '/' => (file_mode & *mask) != 0,
+                    _ => file_mode == *mask,
+                }
+            }
+            Err(_) => false,
+        },
+        FindPred::Newer(ref_mtime) => match fs.stat(full_path) {
+            Ok(st) => st.mtime_ms > *ref_mtime,
+            Err(_) => false,
+        },
+        FindPred::Prune => {
+            *pruned = true;
+            true
+        }
+        FindPred::Print { null_delim } => {
+            printed.push((disp_path.to_string(), *null_delim));
+            true
+        }
+        FindPred::Group(inner) => {
+            eval_find_pred(inner, disp_path, full_path, depth, fs, pruned, printed)
+        }
+        FindPred::Not(inner) => {
+            !eval_find_pred(inner, disp_path, full_path, depth, fs, pruned, printed)
+        }
         FindPred::And(a, b) => {
-            eval_find_pred(a, disp_path, full_path, depth, fs)
-                && eval_find_pred(b, disp_path, full_path, depth, fs)
+            eval_find_pred(a, disp_path, full_path, depth, fs, pruned, printed)
+                && eval_find_pred(b, disp_path, full_path, depth, fs, pruned, printed)
         }
         FindPred::Or(a, b) => {
-            eval_find_pred(a, disp_path, full_path, depth, fs)
-                || eval_find_pred(b, disp_path, full_path, depth, fs)
+            eval_find_pred(a, disp_path, full_path, depth, fs, pruned, printed)
+                || eval_find_pred(b, disp_path, full_path, depth, fs, pruned, printed)
         }
     }
 }
@@ -1539,6 +2338,16 @@ fn parse_size_arg(s: &str) -> (i8, usize) {
     };
     let n = num_str.parse::<usize>().unwrap_or(0);
     (op, n * mult)
+}
+
+fn parse_perm_arg(s: &str) -> (char, u32) {
+    if let Some(rest) = s.strip_prefix('-') {
+        ('-', u32::from_str_radix(rest, 8).unwrap_or(0))
+    } else if let Some(rest) = s.strip_prefix('/') {
+        ('/', u32::from_str_radix(rest, 8).unwrap_or(0))
+    } else {
+        ('=', u32::from_str_radix(s, 8).unwrap_or(0))
+    }
 }
 
 fn cmd_find<F>(
@@ -1568,24 +2377,70 @@ where
     let mut max_depth: Option<usize> = None;
     let mut min_depth: usize = 0;
     let mut print0 = false;
+    let mut explicit_print = false;
+    let mut depth_first = false;
     let mut delete_matched = false;
     let mut exec_template: Option<(Vec<String>, bool)> = None;
     let mut pred: Option<FindPred> = None;
     let mut pending_or = false;
     let mut pending_not = false;
+    let mut group_stack: Vec<(Option<FindPred>, bool, bool)> = Vec::new();
 
     while idx < args.len() {
         let a = &args[idx];
         match a.as_str() {
-            "(" | ")" | "-print" => {
+            "(" => {
+                group_stack.push((pred.take(), pending_not, pending_or));
+                pending_not = false;
+                pending_or = false;
+                idx += 1;
+            }
+            ")" => {
+                let inner = pred.take().map(|p| FindPred::Group(Box::new(p)));
+                if let Some((mut outer_pred, mut outer_not, mut outer_or)) = group_stack.pop() {
+                    if let Some(in_p) = inner {
+                        combine_pred(&mut outer_pred, in_p, &mut outer_not, &mut outer_or);
+                    }
+                    pred = outer_pred;
+                    pending_not = outer_not;
+                    pending_or = outer_or;
+                } else {
+                    pred = inner;
+                }
+                idx += 1;
+            }
+            "-print" => {
+                explicit_print = true;
+                combine_pred(
+                    &mut pred,
+                    FindPred::Print { null_delim: false },
+                    &mut pending_not,
+                    &mut pending_or,
+                );
                 idx += 1;
             }
             "-print0" => {
                 print0 = true;
+                explicit_print = true;
+                combine_pred(
+                    &mut pred,
+                    FindPred::Print { null_delim: true },
+                    &mut pending_not,
+                    &mut pending_or,
+                );
+                idx += 1;
+            }
+            "-prune" => {
+                combine_pred(&mut pred, FindPred::Prune, &mut pending_not, &mut pending_or);
+                idx += 1;
+            }
+            "-depth" => {
+                depth_first = true;
                 idx += 1;
             }
             "-delete" => {
                 delete_matched = true;
+                depth_first = true;
                 idx += 1;
             }
             "!" | "-not" => {
@@ -1648,6 +2503,27 @@ where
                 );
                 idx += 2;
             }
+            "-perm" if idx + 1 < args.len() => {
+                let (mode_kind, mask) = parse_perm_arg(&args[idx + 1]);
+                combine_pred(
+                    &mut pred,
+                    FindPred::Perm { mode_kind, mask },
+                    &mut pending_not,
+                    &mut pending_or,
+                );
+                idx += 2;
+            }
+            "-newer" if idx + 1 < args.len() => {
+                let ref_full = resolve_posix_path(cwd, &args[idx + 1]);
+                let ref_mtime = fs.stat(&ref_full).map(|st| st.mtime_ms).unwrap_or(0);
+                combine_pred(
+                    &mut pred,
+                    FindPred::Newer(ref_mtime),
+                    &mut pending_not,
+                    &mut pending_or,
+                );
+                idx += 2;
+            }
             "-exec" => {
                 idx += 1;
                 let mut cmd_words = Vec::new();
@@ -1674,6 +2550,7 @@ where
     }
 
     let mut matched_paths = Vec::new();
+    let mut explicit_prints: Vec<(String, bool)> = Vec::new();
     let mut err = String::new();
     let mut exit_code = 0;
 
@@ -1690,14 +2567,16 @@ where
             0,
             min_depth,
             max_depth,
+            depth_first,
             &pred,
             fs,
             &mut matched_paths,
+            &mut explicit_prints,
         );
     }
 
     if delete_matched {
-        for (_, full) in matched_paths.iter().rev() {
+        for (_, full) in &matched_paths {
             let _ = fs.remove(full, true);
         }
         return BuiltinOutcome {
@@ -1743,6 +2622,19 @@ where
         };
     }
 
+    if explicit_print {
+        let mut out = String::new();
+        for (disp, is_null) in explicit_prints {
+            out.push_str(&disp);
+            out.push(if is_null { '\0' } else { '\n' });
+        }
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: err,
+            exit_code,
+        };
+    }
+
     let mut out = String::new();
     let sep = if print0 { '\0' } else { '\n' };
     for (disp, _) in matched_paths {
@@ -1773,212 +2665,801 @@ fn combine_pred(
                 *pending_or = false;
                 Some(FindPred::Or(Box::new(prev), Box::new(next)))
             } else {
-                Some(FindPred::And(Box::new(prev), Box::new(next)))
+                match prev {
+                    FindPred::Or(left, right) => Some(FindPred::Or(
+                        left,
+                        Box::new(FindPred::And(right, Box::new(next))),
+                    )),
+                    other => Some(FindPred::And(Box::new(other), Box::new(next))),
+                }
             }
         }
     };
 }
 
+#[allow(clippy::too_many_arguments)]
 fn walk_find(
     disp: &str,
     full: &str,
     depth: usize,
     min_depth: usize,
     max_depth: Option<usize>,
+    depth_first: bool,
     pred: &Option<FindPred>,
     fs: &dyn SafeBashFs,
     out: &mut Vec<(String, String)>,
+    explicit_prints: &mut Vec<(String, bool)>,
 ) {
     if let Some(max_d) = max_depth {
         if depth > max_d {
             return;
         }
     }
-    if depth >= min_depth {
+    let mut pruned = false;
+    if !depth_first && depth >= min_depth {
         let ok = match pred {
-            Some(p) => eval_find_pred(p, disp, full, depth, fs),
+            Some(p) => eval_find_pred(p, disp, full, depth, fs, &mut pruned, explicit_prints),
             None => true,
         };
         if ok {
             out.push((disp.to_string(), full.to_string()));
         }
     }
-    if let Some(max_d) = max_depth {
-        if depth >= max_d {
-            return;
-        }
-    }
-    if let Ok(st) = fs.lstat(full) {
-        if st.kind == VfsEntryKind::Directory {
-            if let Ok(entries) = fs.read_dir(full) {
-                for e in entries {
-                    let child_disp = if disp == "/" {
-                        format!("/{e}")
-                    } else {
-                        format!("{}/{e}", disp.trim_end_matches('/'))
-                    };
-                    let child_full = normalize_posix_path(&format!("{full}/{e}"));
-                    walk_find(
-                        &child_disp,
-                        &child_full,
-                        depth + 1,
-                        min_depth,
-                        max_depth,
-                        pred,
-                        fs,
-                        out,
-                    );
+    let can_descend = !pruned && max_depth.map(|max_d| depth < max_d).unwrap_or(true);
+    if can_descend {
+        if let Ok(st) = fs.lstat(full) {
+            if st.kind == VfsEntryKind::Directory {
+                if let Ok(entries) = fs.read_dir(full) {
+                    for e in entries {
+                        let child_disp = if disp == "/" {
+                            format!("/{e}")
+                        } else {
+                            format!("{}/{e}", disp.trim_end_matches('/'))
+                        };
+                        let child_full = normalize_posix_path(&format!("{full}/{e}"));
+                        walk_find(
+                            &child_disp,
+                            &child_full,
+                            depth + 1,
+                            min_depth,
+                            max_depth,
+                            depth_first,
+                            pred,
+                            fs,
+                            out,
+                            explicit_prints,
+                        );
+                    }
                 }
             }
+        }
+    }
+    if depth_first && depth >= min_depth {
+        let ok = match pred {
+            Some(p) => eval_find_pred(p, disp, full, depth, fs, &mut pruned, explicit_prints),
+            None => true,
+        };
+        if ok {
+            out.push((disp.to_string(), full.to_string()));
         }
     }
 }
 
-fn cmd_fd(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut ext_filter: Option<String> = None;
-    let mut type_filter: Option<char> = None;
+fn format_fd_template(template: &str, path: &str) -> String {
+    let trimmed = path.trim_end_matches('/');
+    let base = basename_posix_path(trimmed);
+    let parent = match trimmed.rfind('/') {
+        Some(0) => "/".to_string(),
+        Some(idx) => trimmed[..idx].to_string(),
+        None => ".".to_string(),
+    };
+    let ext_len = match base.rfind('.') {
+        Some(idx) if idx > 0 => base.len() - idx,
+        _ => 0,
+    };
+    let no_ext_path = if ext_len > 0 {
+        &trimmed[..trimmed.len() - ext_len]
+    } else {
+        trimmed
+    };
+    let no_ext_base = if ext_len > 0 {
+        &base[..base.len() - ext_len]
+    } else {
+        &base
+    };
+
+    let mut out = String::new();
+    let bytes = template.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if template[i..].starts_with("{{") {
+            out.push('{');
+            i += 2;
+        } else if template[i..].starts_with("}}") {
+            out.push('}');
+            i += 2;
+        } else if template[i..].starts_with("{/.}") {
+            out.push_str(no_ext_base);
+            i += 4;
+        } else if template[i..].starts_with("{//}") {
+            out.push_str(&parent);
+            i += 4;
+        } else if template[i..].starts_with("{/}") {
+            out.push_str(&base);
+            i += 3;
+        } else if template[i..].starts_with("{.}") {
+            out.push_str(no_ext_path);
+            i += 3;
+        } else if template[i..].starts_with("{}") {
+            out.push_str(trimmed);
+            i += 2;
+        } else {
+            let ch = template[i..].chars().next().unwrap();
+            out.push(ch);
+            i += ch.len_utf8();
+        }
+    }
+    out
+}
+
+fn has_fd_placeholder(s: &str) -> bool {
+    let cleaned = s.replace("{{", "").replace("}}", "");
+    cleaned.contains("{}")
+        || cleaned.contains("{/}")
+        || cleaned.contains("{//}")
+        || cleaned.contains("{.}")
+        || cleaned.contains("{/.}")
+}
+
+fn parse_fd_size_spec(spec: &str) -> Option<(char, usize)> {
+    let s = spec.trim();
+    if s.is_empty() {
+        return None;
+    }
+    let (op, rest) = if let Some(r) = s.strip_prefix('+') {
+        ('+', r)
+    } else if let Some(r) = s.strip_prefix('-') {
+        ('-', r)
+    } else {
+        ('=', s)
+    };
+    let num_len = rest.chars().take_while(|c| c.is_ascii_digit()).count();
+    if num_len == 0 {
+        return None;
+    }
+    let num = rest[..num_len].parse::<usize>().ok()?;
+    let unit = rest[num_len..].to_ascii_lowercase();
+    let mult = match unit.as_str() {
+        "" | "b" => 1usize,
+        "k" | "kb" => 1_000,
+        "ki" | "kib" => 1_024,
+        "m" | "mb" => 1_000_000,
+        "mi" | "mib" => 1_048_576,
+        "g" | "gb" => 1_000_000_000,
+        "gi" | "gib" => 1_073_741_824,
+        _ => return None,
+    };
+    Some((op, num.saturating_mul(mult)))
+}
+
+struct FdConfig {
+    extensions: Vec<String>,
+    types: Vec<char>,
+    min_depth: usize,
+    max_depth: Option<usize>,
+    max_results: Option<usize>,
+    excludes: Vec<String>,
+    sizes: Vec<(char, usize)>,
+    show_hidden: bool,
+    respect_ignore: bool,
+    follow: bool,
+    full_path: bool,
+    absolute_path: bool,
+    glob_mode: bool,
+    fixed_mode: bool,
+    ignore_case: bool,
+    prune: bool,
+    pattern: Option<String>,
+}
+
+fn cmd_fd<F>(
+    args: &[String],
+    cwd: &mut String,
+    env: &mut BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+    exec_sub: &mut F,
+) -> BuiltinOutcome
+where
+    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+{
+    let mut extensions: Vec<String> = Vec::new();
+    let mut types: Vec<char> = Vec::new();
+    let mut min_depth = 1usize;
     let mut max_depth: Option<usize> = None;
+    let mut max_results: Option<usize> = None;
+    let mut excludes: Vec<String> = Vec::new();
+    let mut sizes: Vec<(char, usize)> = Vec::new();
     let mut show_hidden = false;
+    let mut respect_ignore = true;
+    let mut unrestricted = 0usize;
+    let mut follow = false;
+    let mut full_path = false;
+    let mut absolute_path = false;
     let mut print0 = false;
-    let mut pattern: Option<String> = None;
-    let mut roots: Vec<String> = Vec::new();
+    let mut quiet = false;
+    let mut glob_mode = false;
+    let mut fixed_mode = false;
+    let mut case_override: Option<bool> = None;
+    let mut prune = false;
+    let mut format_tpl: Option<String> = None;
+    let mut base_dir: Option<String> = None;
+    let mut exec_cmd: Vec<String> = Vec::new();
+    let mut exec_batch = false;
+    let mut operands: Vec<String> = Vec::new();
+    let mut search_paths: Vec<String> = Vec::new();
 
     let mut i = 0usize;
+    let mut end_of_opts = false;
     while i < args.len() {
         let a = &args[i];
-        match a.as_str() {
-            "-H" | "--hidden" => show_hidden = true,
-            "-0" | "--print0" => print0 = true,
-            "-e" | "--extension" if i + 1 < args.len() => {
+        if !end_of_opts && a == "--" {
+            end_of_opts = true;
+            i += 1;
+            continue;
+        }
+        if !end_of_opts && (a == "-x" || a == "--exec" || a == "-X" || a == "--exec-batch") {
+            exec_batch = a == "-X" || a == "--exec-batch";
+            i += 1;
+            while i < args.len() && args[i] != ";" {
+                exec_cmd.push(args[i].clone());
                 i += 1;
-                ext_filter = Some(args[i].trim_start_matches('.').to_string());
             }
-            "-t" | "--type" if i + 1 < args.len() => {
-                i += 1;
-                type_filter = args[i].chars().next();
-            }
-            "-d" | "--max-depth" if i + 1 < args.len() => {
-                i += 1;
-                max_depth = args[i].parse().ok();
-            }
-            _ if a.starts_with('-') => {}
-            _ => {
-                if pattern.is_none() {
-                    pattern = Some(a.clone());
-                } else {
-                    roots.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if !end_of_opts && a.starts_with("--") {
+            match a.as_str() {
+                "--hidden" => show_hidden = true,
+                "--no-ignore" | "--no-ignore-vcs" | "--no-ignore-parent" => respect_ignore = false,
+                "--unrestricted" => {
+                    unrestricted += 1;
+                    respect_ignore = false;
+                    if unrestricted >= 2 {
+                        show_hidden = true;
+                    }
+                }
+                "--follow" => follow = true,
+                "--glob" => glob_mode = true,
+                "--fixed-strings" => fixed_mode = true,
+                "--ignore-case" => case_override = Some(true),
+                "--case-sensitive" => case_override = Some(false),
+                "--full-path" => full_path = true,
+                "--absolute-path" => absolute_path = true,
+                "--print0" => print0 = true,
+                "--quiet" | "--has-results" => quiet = true,
+                "--prune" => prune = true,
+                "--extension" if i + 1 < args.len() => {
+                    i += 1;
+                    extensions.push(args[i].trim_start_matches('.').to_ascii_lowercase());
+                }
+                "--type" if i + 1 < args.len() => {
+                    i += 1;
+                    if let Some(c) = args[i].chars().next() {
+                        types.push(c);
+                    }
+                }
+                "--max-depth" if i + 1 < args.len() => {
+                    i += 1;
+                    max_depth = args[i].parse().ok();
+                }
+                "--min-depth" if i + 1 < args.len() => {
+                    i += 1;
+                    min_depth = args[i].parse().unwrap_or(1);
+                }
+                "--exact-depth" if i + 1 < args.len() => {
+                    i += 1;
+                    if let Ok(d) = args[i].parse::<usize>() {
+                        min_depth = d;
+                        max_depth = Some(d);
+                    }
+                }
+                "--max-results" if i + 1 < args.len() => {
+                    i += 1;
+                    max_results = args[i].parse().ok();
+                }
+                "--exclude" if i + 1 < args.len() => {
+                    i += 1;
+                    excludes.push(args[i].clone());
+                }
+                "--size" if i + 1 < args.len() => {
+                    i += 1;
+                    if let Some(sz) = parse_fd_size_spec(&args[i]) {
+                        sizes.push(sz);
+                    }
+                }
+                "--format" if i + 1 < args.len() => {
+                    i += 1;
+                    format_tpl = Some(args[i].clone());
+                }
+                "--search-path" if i + 1 < args.len() => {
+                    i += 1;
+                    search_paths.push(args[i].clone());
+                }
+                "--base-directory" if i + 1 < args.len() => {
+                    i += 1;
+                    base_dir = Some(args[i].clone());
+                }
+                _ => {
+                    if let Some(v) = a.strip_prefix("--extension=") {
+                        extensions.push(v.trim_start_matches('.').to_ascii_lowercase());
+                    } else if let Some(v) = a.strip_prefix("--type=") {
+                        if let Some(c) = v.chars().next() {
+                            types.push(c);
+                        }
+                    } else if let Some(v) = a.strip_prefix("--max-depth=") {
+                        max_depth = v.parse().ok();
+                    } else if let Some(v) = a.strip_prefix("--min-depth=") {
+                        min_depth = v.parse().unwrap_or(1);
+                    } else if let Some(v) = a.strip_prefix("--exact-depth=") {
+                        if let Ok(d) = v.parse::<usize>() {
+                            min_depth = d;
+                            max_depth = Some(d);
+                        }
+                    } else if let Some(v) = a.strip_prefix("--max-results=") {
+                        max_results = v.parse().ok();
+                    } else if let Some(v) = a.strip_prefix("--exclude=") {
+                        excludes.push(v.to_string());
+                    } else if let Some(v) = a.strip_prefix("--size=") {
+                        if let Some(sz) = parse_fd_size_spec(v) {
+                            sizes.push(sz);
+                        }
+                    } else if let Some(v) = a.strip_prefix("--format=") {
+                        format_tpl = Some(v.to_string());
+                    } else if let Some(v) = a.strip_prefix("--search-path=") {
+                        search_paths.push(v.to_string());
+                    } else if let Some(v) = a.strip_prefix("--base-directory=") {
+                        base_dir = Some(v.to_string());
+                    }
                 }
             }
+            i += 1;
+            continue;
         }
+        if !end_of_opts && a.starts_with('-') && a.len() > 1 {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut ci = 0usize;
+            while ci < chars.len() {
+                match chars[ci] {
+                    'H' => show_hidden = true,
+                    'I' => respect_ignore = false,
+                    'u' => {
+                        unrestricted += 1;
+                        respect_ignore = false;
+                        if unrestricted >= 2 {
+                            show_hidden = true;
+                        }
+                    }
+                    'L' => follow = true,
+                    'g' => glob_mode = true,
+                    'F' => fixed_mode = true,
+                    'i' => case_override = Some(true),
+                    's' => case_override = Some(false),
+                    'p' => full_path = true,
+                    'a' => absolute_path = true,
+                    '0' => print0 = true,
+                    'q' => quiet = true,
+                    '1' => max_results = Some(1),
+                    'e' | 't' | 'd' | 'E' | 'S' | 'C' => {
+                        let flag = chars[ci];
+                        let val = if ci + 1 < chars.len() {
+                            chars[ci + 1..].iter().collect::<String>()
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            String::new()
+                        };
+                        match flag {
+                            'e' => extensions.push(val.trim_start_matches('.').to_ascii_lowercase()),
+                            't' => {
+                                if let Some(c) = val.chars().next() {
+                                    types.push(c);
+                                }
+                            }
+                            'd' => max_depth = val.parse().ok(),
+                            'E' => excludes.push(val),
+                            'S' => {
+                                if let Some(sz) = parse_fd_size_spec(&val) {
+                                    sizes.push(sz);
+                                }
+                            }
+                            'C' => base_dir = Some(val),
+                            _ => {}
+                        }
+                        break;
+                    }
+                    _ => {}
+                }
+                ci += 1;
+            }
+            i += 1;
+            continue;
+        }
+        operands.push(a.clone());
         i += 1;
     }
 
+    let pattern = if !operands.is_empty() {
+        let p = operands.remove(0);
+        if p.is_empty() || p == "." {
+            None
+        } else {
+            Some(p)
+        }
+    } else {
+        None
+    };
+
+    let mut roots = if !search_paths.is_empty() {
+        search_paths
+    } else if !operands.is_empty() {
+        operands
+    } else {
+        vec![".".to_string()]
+    };
     if roots.is_empty() {
         roots.push(".".to_string());
     }
 
-    let rx = pattern.map(|p| ZeroRegex::new(vec![p], true, false, false, false));
-    let mut results = Vec::new();
+    let ignore_case = match case_override {
+        Some(ic) => ic,
+        None => !pattern
+            .as_ref()
+            .map(|p| p.chars().any(|c| c.is_ascii_uppercase()))
+            .unwrap_or(false),
+    };
 
+    let effective_cwd = match &base_dir {
+        Some(b) => resolve_posix_path(cwd, b),
+        None => cwd.clone(),
+    };
+
+    let cfg = FdConfig {
+        extensions,
+        types,
+        min_depth,
+        max_depth,
+        max_results,
+        excludes,
+        sizes,
+        show_hidden,
+        respect_ignore,
+        follow,
+        full_path,
+        absolute_path,
+        glob_mode,
+        fixed_mode,
+        ignore_case,
+        prune,
+        pattern,
+    };
+
+    let mut results: Vec<(String, bool)> = Vec::new();
     for r in &roots {
-        let full = resolve_posix_path(cwd, r);
+        let full = resolve_posix_path(&effective_cwd, r);
+        let mut init_rules = Vec::new();
+        if cfg.respect_ignore {
+            for ign_name in [".gitignore", ".ignore", ".fdignore"] {
+                let ign_path = normalize_posix_path(&format!("{full}/{ign_name}"));
+                if let Ok(bytes) = fs.read_file(&ign_path) {
+                    for line in String::from_utf8_lossy(&bytes).lines() {
+                        let t = line.trim();
+                        if !t.is_empty() && !t.starts_with('#') {
+                            init_rules.push(t.to_string());
+                        }
+                    }
+                }
+            }
+        }
         walk_fd(
             r,
+            "",
             &full,
             0,
-            max_depth,
-            show_hidden,
-            &ext_filter,
-            type_filter,
-            &rx,
+            &cfg,
+            &init_rules,
             fs,
             &mut results,
         );
     }
 
+    if let Some(max_r) = cfg.max_results {
+        results.truncate(max_r);
+    }
+
+    if quiet {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code: if results.is_empty() { 1 } else { 0 },
+        };
+    }
+
+    if !exec_cmd.is_empty() {
+        if results.is_empty() {
+            return ok_out("");
+        }
+        if exec_batch {
+            let mut cmd_words: Vec<String> = Vec::new();
+            let any_ph = exec_cmd.iter().any(|w| has_fd_placeholder(w));
+            if any_ph {
+                for w in &exec_cmd {
+                    if has_fd_placeholder(w) {
+                        for (item, _) in &results {
+                            let clean = item.strip_prefix("./").unwrap_or(item);
+                            cmd_words.push(format_fd_template(w, clean));
+                        }
+                    } else {
+                        cmd_words.push(w.clone());
+                    }
+                }
+            } else {
+                cmd_words.extend(exec_cmd.clone());
+                for (item, _) in &results {
+                    let clean = item.strip_prefix("./").unwrap_or(item);
+                    cmd_words.push(clean.to_string());
+                }
+            }
+            return exec_sub(&cmd_words, "", cwd, env);
+        } else {
+            let mut out = String::new();
+            let mut err = String::new();
+            let mut code = 0;
+            let any_ph = exec_cmd.iter().any(|w| has_fd_placeholder(w));
+            for (item, _) in &results {
+                let clean = item.strip_prefix("./").unwrap_or(item);
+                let mut cmd_words: Vec<String> = Vec::new();
+                if any_ph {
+                    for w in &exec_cmd {
+                        cmd_words.push(format_fd_template(w, clean));
+                    }
+                } else {
+                    cmd_words.extend(exec_cmd.clone());
+                    cmd_words.push(clean.to_string());
+                }
+                let res = exec_sub(&cmd_words, "", cwd, env);
+                out.push_str(&res.stdout);
+                err.push_str(&res.stderr);
+                if res.exit_code != 0 {
+                    code = res.exit_code;
+                }
+            }
+            return BuiltinOutcome {
+                stdout: out,
+                stderr: err,
+                exit_code: code,
+            };
+        }
+    }
+
     let sep = if print0 { '\0' } else { '\n' };
     let mut out = String::new();
-    for item in results {
+    for (item, is_dir) in results {
         let clean = item.strip_prefix("./").unwrap_or(&item);
-        out.push_str(clean);
+        if let Some(fmt) = &format_tpl {
+            out.push_str(&format_fd_template(fmt, clean));
+        } else if is_dir && !clean.ends_with('/') {
+            out.push_str(clean);
+            out.push('/');
+        } else {
+            out.push_str(clean);
+        }
         out.push(sep);
     }
     ok_out(&out)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn walk_fd(
     disp: &str,
+    rel: &str,
     full: &str,
     depth: usize,
-    max_depth: Option<usize>,
-    show_hidden: bool,
-    ext_filter: &Option<String>,
-    type_filter: Option<char>,
-    rx: &Option<ZeroRegex>,
+    cfg: &FdConfig,
+    ignore_rules: &[String],
     fs: &dyn SafeBashFs,
-    out: &mut Vec<String>,
+    out: &mut Vec<(String, bool)>,
 ) {
-    if let Some(max_d) = max_depth {
+    if let Some(max_d) = cfg.max_depth {
         if depth > max_d {
             return;
         }
     }
-    if depth > 0 {
-        let base = basename_posix_path(disp);
-        if !show_hidden && base.starts_with('.') {
+    if let Some(max_r) = cfg.max_results {
+        if out.len() >= max_r {
             return;
         }
-        let mut matches = true;
-        if let Some(t) = type_filter {
-            if let Ok(st) = fs.lstat(full) {
-                matches = match t {
-                    'f' => st.kind == VfsEntryKind::File,
-                    'd' => st.kind == VfsEntryKind::Directory,
-                    'l' => st.kind == VfsEntryKind::Symlink,
-                    _ => true,
+    }
+
+    let st_opt = if cfg.follow {
+        fs.stat(full).or_else(|_| fs.lstat(full)).ok()
+    } else {
+        fs.lstat(full).ok()
+    };
+    let Some(st) = st_opt else {
+        return;
+    };
+    let is_dir = st.kind == VfsEntryKind::Directory;
+
+    let mut matched_here = false;
+    if depth > 0 {
+        let base = basename_posix_path(disp);
+        if !cfg.show_hidden && base.starts_with('.') {
+            return;
+        }
+        if cfg.excludes.iter().any(|ex| {
+            let ex_clean = ex.trim_end_matches('/');
+            glob_match(ex, &base)
+                || glob_match(ex_clean, &base)
+                || glob_match(ex, rel)
+                || glob_match(ex_clean, rel)
+                || glob_match(ex, disp)
+        }) {
+            return;
+        }
+        if cfg.respect_ignore && is_ignored_by_rules(&base, is_dir, ignore_rules) {
+            return;
+        }
+
+        if depth >= cfg.min_depth {
+            let mut matches = true;
+            if !cfg.types.is_empty() {
+                let ordinary: Vec<char> = cfg
+                    .types
+                    .iter()
+                    .copied()
+                    .filter(|&c| c != 'e' && c != 'x')
+                    .collect();
+                let wants_exec = cfg.types.contains(&'x');
+                let wants_empty = cfg.types.contains(&'e');
+
+                if !ordinary.is_empty() || wants_exec {
+                    let ord_ok = ordinary.iter().any(|&t| match t {
+                        'f' => st.kind == VfsEntryKind::File,
+                        'd' => st.kind == VfsEntryKind::Directory,
+                        'l' => st.kind == VfsEntryKind::Symlink,
+                        _ => false,
+                    });
+                    let exec_ok =
+                        wants_exec && st.kind == VfsEntryKind::File && (st.mode & 0o111) != 0;
+                    matches = ord_ok || exec_ok;
+                }
+                if matches && wants_empty {
+                    matches = match st.kind {
+                        VfsEntryKind::File => st.size == 0,
+                        VfsEntryKind::Directory => fs
+                            .read_dir(full)
+                            .map(|entries| entries.is_empty())
+                            .unwrap_or(false),
+                        _ => false,
+                    };
+                }
+            }
+
+            if matches && !cfg.sizes.is_empty() {
+                if st.kind != VfsEntryKind::File {
+                    matches = false;
+                } else {
+                    for &(op, target) in &cfg.sizes {
+                        let ok = match op {
+                            '+' => st.size >= target,
+                            '-' => st.size <= target,
+                            _ => st.size == target,
+                        };
+                        if !ok {
+                            matches = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if matches && !cfg.extensions.is_empty() {
+                let lower = base.to_ascii_lowercase();
+                matches = cfg
+                    .extensions
+                    .iter()
+                    .any(|ext| lower.len() > ext.len() + 1 && lower.ends_with(&format!(".{ext}")));
+            }
+
+            if matches {
+                if let Some(pat) = &cfg.pattern {
+                    let subj = if cfg.full_path {
+                        if cfg.absolute_path {
+                            full
+                        } else {
+                            disp
+                        }
+                    } else {
+                        &base
+                    };
+                    if cfg.glob_mode {
+                        if cfg.ignore_case {
+                            matches = glob_match(&pat.to_ascii_lowercase(), &subj.to_ascii_lowercase());
+                        } else {
+                            matches = glob_match(pat, subj);
+                        }
+                    } else {
+                        let rx = ZeroRegex::new(
+                            vec![pat.clone()],
+                            cfg.ignore_case,
+                            cfg.fixed_mode,
+                            false,
+                            false,
+                        );
+                        matches = rx.is_match(subj);
+                    }
+                }
+            }
+
+            if matches {
+                let out_path = if cfg.absolute_path {
+                    full.to_string()
+                } else {
+                    disp.to_string()
                 };
+                out.push((out_path, is_dir));
+                matched_here = true;
             }
-        }
-        if matches {
-            if let Some(ext) = ext_filter {
-                matches = base.ends_with(&format!(".{ext}"));
-            }
-        }
-        if matches {
-            if let Some(r) = rx {
-                matches = r.is_match(&base);
-            }
-        }
-        if matches {
-            out.push(disp.to_string());
         }
     }
-    if let Ok(st) = fs.lstat(full) {
-        if st.kind == VfsEntryKind::Directory {
-            if let Ok(entries) = fs.read_dir(full) {
-                for e in entries {
-                    if !show_hidden && e.starts_with('.') {
-                        continue;
+
+    if is_dir && !(cfg.prune && matched_here) {
+        if let Some(max_d) = cfg.max_depth {
+            if depth >= max_d {
+                return;
+            }
+        }
+        let mut local_rules: Vec<String> = ignore_rules.to_vec();
+        if depth > 0 && cfg.respect_ignore {
+            for ign_name in [".gitignore", ".ignore", ".fdignore"] {
+                let ign_path = normalize_posix_path(&format!("{full}/{ign_name}"));
+                if let Ok(bytes) = fs.read_file(&ign_path) {
+                    for line in String::from_utf8_lossy(&bytes).lines() {
+                        let t = line.trim();
+                        if !t.is_empty() && !t.starts_with('#') {
+                            local_rules.push(t.to_string());
+                        }
                     }
-                    let child_disp = if disp == "." {
-                        e.clone()
-                    } else {
-                        format!("{}/{e}", disp.trim_end_matches('/'))
-                    };
-                    let child_full = normalize_posix_path(&format!("{full}/{e}"));
-                    walk_fd(
-                        &child_disp,
-                        &child_full,
-                        depth + 1,
-                        max_depth,
-                        show_hidden,
-                        ext_filter,
-                        type_filter,
-                        rx,
-                        fs,
-                        out,
-                    );
                 }
+            }
+        }
+        if let Ok(entries) = fs.read_dir(full) {
+            for e in entries {
+                if !cfg.show_hidden && e.starts_with('.') {
+                    continue;
+                }
+                let child_disp = if disp == "." {
+                    e.clone()
+                } else {
+                    format!("{}/{e}", disp.trim_end_matches('/'))
+                };
+                let child_rel = if rel.is_empty() {
+                    e.clone()
+                } else {
+                    format!("{rel}/{e}")
+                };
+                let child_full = normalize_posix_path(&format!("{full}/{e}"));
+                walk_fd(
+                    &child_disp,
+                    &child_rel,
+                    &child_full,
+                    depth + 1,
+                    cfg,
+                    &local_rules,
+                    fs,
+                    out,
+                );
             }
         }
     }
@@ -2008,9 +3489,12 @@ where
             match a.as_str() {
                 "-0" | "--null" => null_delim = true,
                 "-r" | "--no-run-if-empty" => no_run_if_empty = true,
-                "-n" if i + 1 < args.len() => {
+                "-n" | "-L" if i + 1 < args.len() => {
                     i += 1;
                     max_args = args[i].parse().ok();
+                }
+                "-P" | "-s" if i + 1 < args.len() => {
+                    i += 1;
                 }
                 "-I" if i + 1 < args.len() => {
                     i += 1;
@@ -2141,4 +3625,3 @@ fn tokenize_xargs_input(input: &str) -> Vec<String> {
     }
     out
 }
-

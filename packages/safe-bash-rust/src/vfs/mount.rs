@@ -100,6 +100,11 @@ impl SafeBashFs for MountVfs {
         fs.chmod(&rel, mode)
     }
 
+    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+        let (fs, rel) = self.route(path);
+        fs.set_mtime(&rel, mtime_ms)
+    }
+
     fn generation(&self) -> u64 {
         let mut g = self.root.generation();
         for m in self.mounts.values() {

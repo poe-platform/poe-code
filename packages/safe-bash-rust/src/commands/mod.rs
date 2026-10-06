@@ -56,20 +56,68 @@ where
         }
     }
 
-    if cmd == "timeout" && args.len() >= 2 {
+    if cmd == "timeout" && !args.is_empty() {
         let mut idx = 0usize;
+        let mut sig_num = 15i32;
+        let mut preserve_status = false;
         while idx < args.len() && args[idx].starts_with('-') {
-            idx += 1;
+            let a = &args[idx];
+            if a == "--preserve-status" {
+                preserve_status = true;
+                idx += 1;
+            } else if (a == "-s" || a == "--signal" || a == "-k" || a == "--kill-after") && idx + 1 < args.len() {
+                if a == "-s" || a == "--signal" {
+                    let s = args[idx + 1].trim().to_uppercase();
+                    let clean = s.strip_prefix("SIG").unwrap_or(&s);
+                    sig_num = match clean {
+                        "KILL" | "9" => 9,
+                        "INT" | "2" => 2,
+                        "HUP" | "1" => 1,
+                        "QUIT" | "3" => 3,
+                        "ABRT" | "6" => 6,
+                        "ALRM" | "14" => 14,
+                        "TERM" | "15" => 15,
+                        _ => clean.parse::<i32>().unwrap_or(15),
+                    };
+                }
+                idx += 2;
+            } else if let Some(rest) = a.strip_prefix("--signal=") {
+                let s = rest.trim().to_uppercase();
+                let clean = s.strip_prefix("SIG").unwrap_or(&s);
+                sig_num = if clean == "KILL" || clean == "9" { 9 } else { 15 };
+                idx += 1;
+            } else {
+                idx += 1;
+            }
         }
         if idx + 1 < args.len() {
-            return Some(exec_sub(&args[idx + 1..], stdin, cwd, env));
+            let dur_s = parse_duration_seconds(&args[idx]);
+            let sub_words = &args[idx + 1..];
+            if sub_words.first().map(|s| s.as_str()) == Some("sleep")
+                && let Some(sleep_arg) = sub_words.get(1)
+            {
+                let sleep_s = parse_duration_seconds(sleep_arg);
+                if sleep_s > dur_s {
+                    let code = if sig_num == 9 || preserve_status {
+                        128 + sig_num
+                    } else {
+                        124
+                    };
+                    return Some(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: code,
+                    });
+                }
+            }
+            return Some(exec_sub(sub_words, stdin, cwd, env));
         }
     }
 
     if let Some(res) = coreutils::try_run_coreutil(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
-    if let Some(res) = fs::try_run_fs_command(cmd, args, cwd, fs) {
+    if let Some(res) = fs::try_run_fs_command(cmd, args, cwd, env, fs) {
         return Some(res);
     }
     if let Some(res) = search::try_run_search_command(cmd, args, stdin, cwd, env, fs, exec_sub) {
@@ -85,4 +133,19 @@ where
         return Some(res);
     }
     None
+}
+
+fn parse_duration_seconds(raw: &str) -> f64 {
+    let s = raw.trim();
+    if let Some(num) = s.strip_suffix('s') {
+        num.parse::<f64>().unwrap_or(0.0)
+    } else if let Some(num) = s.strip_suffix('m') {
+        num.parse::<f64>().unwrap_or(0.0) * 60.0
+    } else if let Some(num) = s.strip_suffix('h') {
+        num.parse::<f64>().unwrap_or(0.0) * 3600.0
+    } else if let Some(num) = s.strip_suffix('d') {
+        num.parse::<f64>().unwrap_or(0.0) * 86400.0
+    } else {
+        s.parse::<f64>().unwrap_or(0.0)
+    }
 }

@@ -19,7 +19,7 @@ pub fn try_run_archive_command(
         "xxd" => Some(cmd_xxd(args, stdin, cwd, fs)),
         "od" => Some(cmd_od(args, stdin, cwd, fs)),
         "tar" => Some(cmd_tar(args, stdin, cwd, fs)),
-        "gzip" | "gunzip" | "zcat" | "zstd" | "zstdcat" | "xz" | "xzcat" | "bzip2" | "bunzip2" | "bzcat" => Some(cmd_gzip(cmd, args, stdin, cwd, fs)),
+        "gzip" | "gunzip" | "zcat" | "zstd" | "unzstd" | "zstdcat" | "xz" | "unxz" | "xzcat" | "bzip2" | "bunzip2" | "bzcat" => Some(cmd_gzip(cmd, args, stdin, cwd, fs)),
         "ffmpeg" | "ffprobe" | "soffice" | "wkhtmltopdf" | "qpdf" | "pdftotext" | "magick" | "convert" | "exiftool" | "identify" => Some(cmd_media_doc(cmd, args, cwd, fs)),
         "zip" => Some(cmd_zip(args, cwd, fs)),
         "unzip" => Some(cmd_unzip(args, cwd, fs)),
@@ -471,7 +471,7 @@ fn cmd_hash(
     }
 
     if files.is_empty() {
-        let hex = compute_digest_hex(algo, stdin.as_bytes());
+        let hex = compute_digest_hex(algo, &crate::vfs::stream_string_to_bytes(stdin));
         return ok_out(&format!("{hex}  -\n"));
     }
 
@@ -480,7 +480,7 @@ fn cmd_hash(
     let mut code = 0;
     for f in &files {
         if f == "-" {
-            let hex = compute_digest_hex(algo, stdin.as_bytes());
+            let hex = compute_digest_hex(algo, &crate::vfs::stream_string_to_bytes(stdin));
             out.push_str(&format!("{hex}  -\n"));
         } else {
             let full = resolve_posix_path(cwd, f);
@@ -533,7 +533,7 @@ fn posix_crc32(data: &[u8]) -> u32 {
 
 fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.is_empty() {
-        let bytes = stdin.as_bytes();
+        let bytes = &crate::vfs::stream_string_to_bytes(stdin);
         return ok_out(&format!("{} {}\n", posix_crc32(bytes), bytes.len()));
     }
     let mut out = String::new();
@@ -624,7 +624,7 @@ fn cmd_base64(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 
     let data = if files.is_empty() || files[0] == "-" {
-        stdin.as_bytes().to_vec()
+        crate::vfs::stream_string_to_bytes(stdin)
     } else {
         let full = resolve_posix_path(cwd, &files[0]);
         match fs.read_file(&full) {
@@ -636,7 +636,7 @@ fn cmd_base64(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     if decode {
         let s = String::from_utf8_lossy(&data);
         match base64_decode(&s) {
-            Ok(bytes) => ok_out(&String::from_utf8_lossy(&bytes)),
+            Ok(bytes) => ok_out(&crate::vfs::bytes_to_stream_string(&bytes)),
             Err(e) => err_out(&format!("base64: {e}\n"), 1),
         }
     } else {
@@ -672,7 +672,7 @@ fn cmd_base32(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         }
     }
     let data = if files.is_empty() || files[0] == "-" {
-        stdin.as_bytes().to_vec()
+        crate::vfs::stream_string_to_bytes(stdin)
     } else {
         let full = resolve_posix_path(cwd, &files[0]);
         match fs.read_file(&full) {
@@ -700,7 +700,7 @@ fn cmd_base32(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 out.push(((buf >> bits) & 0xff) as u8);
             }
         }
-        ok_out(&String::from_utf8_lossy(&out))
+        ok_out(&crate::vfs::bytes_to_stream_string(&out))
     } else {
         if data.is_empty() {
             return ok_out("");
@@ -754,7 +754,7 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let mut data = if files.is_empty() || files[0] == "-" {
-        stdin.as_bytes().to_vec()
+        crate::vfs::stream_string_to_bytes(stdin)
     } else {
         let full = resolve_posix_path(cwd, &files[0]);
         match fs.read_file(&full) {
@@ -765,7 +765,23 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     if reverse {
         let text = String::from_utf8_lossy(&data);
-        let hex_only: String = text.chars().filter(|c| c.is_ascii_hexdigit()).collect();
+        let mut hex_only = String::new();
+        if plain {
+            hex_only.extend(text.chars().filter(|c| c.is_ascii_hexdigit()));
+        } else {
+            for line in text.lines() {
+                let hex_part = if let Some((addr, rest)) = line.split_once(": ")
+                    && !addr.is_empty()
+                    && addr.chars().all(|c| c.is_ascii_hexdigit())
+                {
+                    let max_hex = rest.find("  ").unwrap_or_else(|| rest.len().min(40));
+                    &rest[..max_hex.min(40)]
+                } else {
+                    line
+                };
+                hex_only.extend(hex_part.chars().filter(|c| c.is_ascii_hexdigit()));
+            }
+        }
         let mut bytes = Vec::new();
         let chars: Vec<char> = hex_only.chars().collect();
         for pair in chars.chunks(2) {
@@ -776,7 +792,7 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             }
         }
-        return ok_out(&String::from_utf8_lossy(&bytes));
+        return ok_out(&crate::vfs::bytes_to_stream_string(&bytes));
     }
 
     if let Some(l) = max_len {
@@ -824,6 +840,8 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut format_type = "o2".to_string();
     let mut no_addr = false;
+    let mut max_len: Option<usize> = None;
+    let mut skip_bytes: usize = 0;
     let mut files = Vec::new();
 
     let mut i = 0usize;
@@ -840,17 +858,27 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 i += 1;
                 format_type = args[i].clone();
             }
+            "-N" if i + 1 < args.len() => {
+                i += 1;
+                max_len = args[i].parse::<usize>().ok();
+            }
+            "-j" if i + 1 < args.len() => {
+                i += 1;
+                skip_bytes = args[i].parse::<usize>().unwrap_or(0);
+            }
             "-c" => format_type = "c".to_string(),
             "-x" => format_type = "x1".to_string(),
             a if a.starts_with("-t") => format_type = a[2..].to_string(),
+            a if a.starts_with("-N") => max_len = a[2..].parse::<usize>().ok(),
+            a if a.starts_with("-j") => skip_bytes = a[2..].parse::<usize>().unwrap_or(0),
             a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
     }
 
-    let data = if files.is_empty() || files[0] == "-" {
-        stdin.as_bytes().to_vec()
+    let mut data = if files.is_empty() || files[0] == "-" {
+        crate::vfs::stream_string_to_bytes(stdin)
     } else {
         let full = resolve_posix_path(cwd, &files[0]);
         match fs.read_file(&full) {
@@ -858,6 +886,16 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             Err(_) => return err_out(&format!("od: {}: No such file\n", files[0]), 1),
         }
     };
+    if skip_bytes > 0 {
+        if skip_bytes >= data.len() {
+            data.clear();
+        } else {
+            data.drain(0..skip_bytes);
+        }
+    }
+    if let Some(limit) = max_len && data.len() > limit {
+        data.truncate(limit);
+    }
 
     let mut out = String::new();
     for (idx, chunk) in data.chunks(16).enumerate() {
@@ -1193,7 +1231,7 @@ fn cmd_gzip(
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    let mut decompress = matches!(invoked, "gunzip" | "zcat" | "zstdcat" | "xzcat" | "bunzip2" | "bzcat");
+    let mut decompress = matches!(invoked, "gunzip" | "zcat" | "zstdcat" | "xzcat" | "bunzip2" | "bzcat" | "unxz" | "unzstd");
     let mut to_stdout = matches!(invoked, "zcat" | "zstdcat" | "xzcat" | "bzcat");
     let mut keep = false;
     let mut files = Vec::new();

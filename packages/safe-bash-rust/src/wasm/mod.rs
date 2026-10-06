@@ -1,17 +1,32 @@
 use crate::backend::BackendMode;
 use crate::budget::ShellLimits;
-use crate::fs::{MemoryVfs, MountVfs, OverlayVfs, SafeBashFs};
+use crate::fs::{MemoryVfs, MountVfs, OverlayVfs, SafeBashFs, VfsEntryKind};
 use crate::shell::{ExecOptions, Shell, ShellOptions};
+use crate::vfs::{bytes_to_stream_string, stream_string_to_bytes};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, OnceLock};
 
 struct WasmSession {
     shell: Shell,
+    memory_vfs: MemoryVfs,
     vfs: Arc<dyn SafeBashFs>,
     last_output_buf: Vec<u8>,
 }
 
 static SESSIONS: OnceLock<Mutex<BTreeMap<u32, WasmSession>>> = OnceLock::new();
+
+
+unsafe fn slice_from_raw<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
+    if len == 0 || ptr.is_null() {
+        &[]
+    } else {
+        unsafe { std::slice::from_raw_parts(ptr, len) }
+    }
+}
+
+unsafe fn str_from_raw<'a>(ptr: *const u8, len: usize) -> &'a str {
+    unsafe { std::str::from_utf8_unchecked(slice_from_raw(ptr, len)) }
+}
 
 fn sessions() -> &'static Mutex<BTreeMap<u32, WasmSession>> {
     SESSIONS.get_or_init(|| Mutex::new(BTreeMap::new()))
@@ -41,7 +56,8 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
     let vfs = MemoryVfs::new();
     let _ = vfs.mkdir_all("/workspace");
     let _ = vfs.mkdir_all("/tmp");
-    let fs_arc: Arc<dyn SafeBashFs> = Arc::new(vfs);
+    let _ = vfs.mkdir_all("/home/user");
+    let fs_arc: Arc<dyn SafeBashFs> = Arc::new(vfs.clone());
     let shell = Shell::new(
         fs_arc.clone(),
         ShellOptions {
@@ -54,6 +70,7 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
         id,
         WasmSession {
             shell,
+            memory_vfs: vfs,
             vfs: fs_arc,
             last_output_buf: Vec::new(),
         },
@@ -132,7 +149,7 @@ pub unsafe extern "C" fn safe_bash_mkdir_all(
     path_len: usize,
 ) -> i32 {
     let path = unsafe {
-        std::str::from_utf8_unchecked(std::slice::from_raw_parts(path_ptr, path_len))
+        str_from_raw(path_ptr, path_len)
     };
     let Ok(map) = sessions().lock() else {
         return -1;
@@ -156,9 +173,9 @@ pub unsafe extern "C" fn safe_bash_write_file(
     data_len: usize,
 ) -> i32 {
     let path = unsafe {
-        std::str::from_utf8_unchecked(std::slice::from_raw_parts(path_ptr, path_len))
+        str_from_raw(path_ptr, path_len)
     };
-    let data = unsafe { std::slice::from_raw_parts(data_ptr, data_len) };
+    let data = unsafe { slice_from_raw(data_ptr, data_len) };
     let Ok(map) = sessions().lock() else {
         return -1;
     };
@@ -179,7 +196,7 @@ pub unsafe extern "C" fn safe_bash_read_file(
     path_len: usize,
 ) -> i32 {
     let path = unsafe {
-        std::str::from_utf8_unchecked(std::slice::from_raw_parts(path_ptr, path_len))
+        str_from_raw(path_ptr, path_len)
     };
     let Ok(mut map) = sessions().lock() else {
         return -1;
@@ -198,6 +215,198 @@ pub unsafe extern "C" fn safe_bash_read_file(
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_remove_path(
+    id: u32,
+    path_ptr: *const u8,
+    path_len: usize,
+) -> i32 {
+    let path = unsafe {
+        str_from_raw(path_ptr, path_len)
+    };
+    let Ok(map) = sessions().lock() else {
+        return -1;
+    };
+    let Some(sess) = map.get(&id) else {
+        return -1;
+    };
+    if sess.vfs.remove_path(path).is_ok() {
+        0
+    } else {
+        -1
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_symlink(
+    id: u32,
+    target_ptr: *const u8,
+    target_len: usize,
+    path_ptr: *const u8,
+    path_len: usize,
+) -> i32 {
+    let target = unsafe {
+        str_from_raw(target_ptr, target_len)
+    };
+    let path = unsafe {
+        str_from_raw(path_ptr, path_len)
+    };
+    let Ok(map) = sessions().lock() else {
+        return -1;
+    };
+    let Some(sess) = map.get(&id) else {
+        return -1;
+    };
+    if sess.vfs.symlink(target, path).is_ok() {
+        0
+    } else {
+        -1
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_readlink(
+    id: u32,
+    path_ptr: *const u8,
+    path_len: usize,
+) -> i32 {
+    let path = unsafe {
+        str_from_raw(path_ptr, path_len)
+    };
+    let Ok(mut map) = sessions().lock() else {
+        return -1;
+    };
+    let Some(sess) = map.get_mut(&id) else {
+        return -1;
+    };
+    match sess.vfs.readlink(path) {
+        Ok(target) => {
+            let bytes = target.into_bytes();
+            let len = bytes.len() as i32;
+            sess.last_output_buf = bytes;
+            len
+        }
+        Err(_) => -1,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_chmod(
+    id: u32,
+    path_ptr: *const u8,
+    path_len: usize,
+    mode: u32,
+) -> i32 {
+    let path = unsafe {
+        str_from_raw(path_ptr, path_len)
+    };
+    let Ok(map) = sessions().lock() else {
+        return -1;
+    };
+    let Some(sess) = map.get(&id) else {
+        return -1;
+    };
+    if sess.vfs.chmod(path, mode).is_ok() {
+        0
+    } else {
+        -1
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_set_mtime(
+    id: u32,
+    path_ptr: *const u8,
+    path_len: usize,
+    mtime_ms: u64,
+) -> i32 {
+    let path = unsafe { str_from_raw(path_ptr, path_len) };
+    let Ok(map) = sessions().lock() else {
+        return -1;
+    };
+    let Some(sess) = map.get(&id) else {
+        return -1;
+    };
+    if sess.vfs.set_mtime(path, mtime_ms).is_ok() {
+        0
+    } else {
+        -1
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_stat(
+    id: u32,
+    path_ptr: *const u8,
+    path_len: usize,
+    follow: u32,
+) -> i32 {
+    let path = unsafe {
+        str_from_raw(path_ptr, path_len)
+    };
+    let Ok(mut map) = sessions().lock() else {
+        return -1;
+    };
+    let Some(sess) = map.get_mut(&id) else {
+        return -1;
+    };
+    let res = if follow != 0 {
+        sess.vfs.stat(path)
+    } else {
+        sess.vfs.lstat(path)
+    };
+    match res {
+        Ok(st) => {
+            let kind_code: u32 = match st.kind {
+                VfsEntryKind::File => 0,
+                VfsEntryKind::Directory => 1,
+                VfsEntryKind::Symlink => 2,
+            };
+            let mut buf = Vec::with_capacity(20);
+            buf.extend_from_slice(&kind_code.to_le_bytes());
+            buf.extend_from_slice(&(st.size as u32).to_le_bytes());
+            buf.extend_from_slice(&st.mode.to_le_bytes());
+            buf.extend_from_slice(&st.mtime_ms.to_le_bytes());
+            sess.last_output_buf = buf;
+            20
+        }
+        Err(_) => -1,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_readdir(
+    id: u32,
+    path_ptr: *const u8,
+    path_len: usize,
+) -> i32 {
+    let path = unsafe {
+        str_from_raw(path_ptr, path_len)
+    };
+    let Ok(mut map) = sessions().lock() else {
+        return -1;
+    };
+    let Some(sess) = map.get_mut(&id) else {
+        return -1;
+    };
+    match sess.vfs.list_dir(path) {
+        Ok(mut entries) => {
+            entries.sort();
+            let mut buf = Vec::new();
+            buf.extend_from_slice(&(entries.len() as u32).to_le_bytes());
+            for entry in entries {
+                let b = entry.as_bytes();
+                buf.extend_from_slice(&(b.len() as u32).to_le_bytes());
+                buf.extend_from_slice(b);
+            }
+            let len = buf.len() as i32;
+            sess.last_output_buf = buf;
+            len
+        }
+        Err(_) => -1,
+    }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_set_env(
     id: u32,
     key_ptr: *const u8,
@@ -206,10 +415,10 @@ pub unsafe extern "C" fn safe_bash_set_env(
     val_len: usize,
 ) -> i32 {
     let key = unsafe {
-        std::str::from_utf8_unchecked(std::slice::from_raw_parts(key_ptr, key_len))
+        str_from_raw(key_ptr, key_len)
     };
     let val = unsafe {
-        std::str::from_utf8_unchecked(std::slice::from_raw_parts(val_ptr, val_len))
+        str_from_raw(val_ptr, val_len)
     };
     let Ok(mut map) = sessions().lock() else {
         return -1;
@@ -230,6 +439,47 @@ pub unsafe extern "C" fn safe_bash_set_env(
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_set_limit(
+    id: u32,
+    key_ptr: *const u8,
+    key_len: usize,
+    val: usize,
+) -> i32 {
+    let key = unsafe { str_from_raw(key_ptr, key_len) };
+    let Ok(mut map) = sessions().lock() else {
+        return -1;
+    };
+    let Some(sess) = map.get_mut(&id) else {
+        return -1;
+    };
+    let mut lim = sess.shell.limits().clone();
+    match key {
+        "maxLoopIterations" => lim.max_loop_iterations = val,
+        "maxCommands" => lim.max_commands = val,
+        "maxOutputBytes" => lim.max_output_bytes = val,
+        "maxFileSystemOperations" => lim.max_filesystem_operations = val,
+        "maxPipelineStages" => lim.max_pipeline_stages = val,
+        "maxSubstitutionDepth" => lim.max_substitution_depth = val,
+        "maxFunctionDepth" => lim.max_function_depth = val,
+        "maxExpansionFields" => lim.max_expansion_fields = val,
+        "maxExpansionBytes" => lim.max_expansion_bytes = val,
+        "maxMemoryBytes" => lim.max_memory_bytes = val,
+        "maxRedirects" => lim.max_redirects = val,
+        "maxPathnameComponents" => lim.max_pathname_components = val,
+        "maxInputBytes" => lim.max_input_bytes = val,
+        "maxParseUnits" => lim.max_parse_units = val,
+        "maxSourceBytes" => lim.max_source_bytes = val,
+        "maxVfsBytes" => {
+            sess.memory_vfs.set_max_total_bytes(val);
+            return 0;
+        }
+        _ => return -1,
+    }
+    sess.shell.set_limits(lim);
+    0
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_exec(
     id: u32,
     script_ptr: *const u8,
@@ -238,11 +488,10 @@ pub unsafe extern "C" fn safe_bash_exec(
     stdin_len: usize,
 ) -> i32 {
     let script = unsafe {
-        std::str::from_utf8_unchecked(std::slice::from_raw_parts(script_ptr, script_len))
+        str_from_raw(script_ptr, script_len)
     };
-    let stdin = unsafe {
-        std::str::from_utf8_unchecked(std::slice::from_raw_parts(stdin_ptr, stdin_len))
-    };
+    let stdin_bytes = unsafe { slice_from_raw(stdin_ptr, stdin_len) };
+    let stdin_str = bytes_to_stream_string(stdin_bytes);
     let Ok(mut map) = sessions().lock() else {
         return -1;
     };
@@ -252,25 +501,25 @@ pub unsafe extern "C" fn safe_bash_exec(
     match sess.shell.exec_with_options(
         script,
         ExecOptions {
-            stdin: if stdin.is_empty() {
+            stdin: if stdin_bytes.is_empty() {
                 None
             } else {
-                Some(stdin.to_string())
+                Some(stdin_str)
             },
             ..Default::default()
         },
     ) {
         Ok(res) => {
             let mut buf = Vec::new();
-            let stdout_bytes = res.stdout.as_bytes();
-            let stderr_bytes = res.stderr.as_bytes();
+            let stdout_bytes = stream_string_to_bytes(&res.stdout);
+            let stderr_bytes = stream_string_to_bytes(&res.stderr);
             let cwd_bytes = res.cwd.as_bytes();
             buf.extend_from_slice(&(res.exit_code).to_le_bytes());
             buf.extend_from_slice(&(stdout_bytes.len() as u32).to_le_bytes());
             buf.extend_from_slice(&(stderr_bytes.len() as u32).to_le_bytes());
             buf.extend_from_slice(&(cwd_bytes.len() as u32).to_le_bytes());
-            buf.extend_from_slice(stdout_bytes);
-            buf.extend_from_slice(stderr_bytes);
+            buf.extend_from_slice(&stdout_bytes);
+            buf.extend_from_slice(&stderr_bytes);
             buf.extend_from_slice(cwd_bytes);
             sess.last_output_buf = buf;
             res.exit_code
@@ -279,14 +528,14 @@ pub unsafe extern "C" fn safe_bash_exec(
             let mut buf = Vec::new();
             let stderr_bytes = err_msg.as_bytes();
             let cwd_bytes = sess.shell.cwd().as_bytes();
-            buf.extend_from_slice(&124i32.to_le_bytes());
+            buf.extend_from_slice(&(-124i32).to_le_bytes());
             buf.extend_from_slice(&0u32.to_le_bytes());
             buf.extend_from_slice(&(stderr_bytes.len() as u32).to_le_bytes());
             buf.extend_from_slice(&(cwd_bytes.len() as u32).to_le_bytes());
             buf.extend_from_slice(stderr_bytes);
             buf.extend_from_slice(cwd_bytes);
             sess.last_output_buf = buf;
-            124
+            -124
         }
     }
 }

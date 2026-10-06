@@ -2,17 +2,16 @@ use crate::shell::lexer::{Token, tokenize_shell};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RedirectKind {
-    Out,
-    Append,
-    Clobber,
-    In,
-    HereString,
-    HereDoc { quoted: bool },
-    ErrOut,
-    ErrAppend,
-    ErrToOut,
-    OutToErr,
+    Out(u32),
+    Append(u32),
+    Clobber(u32),
+    In(u32),
+    HereString(u32),
+    HereDoc { fd: u32, quoted: bool },
+    DupOut(u32),
+    DupIn(u32),
     BothOut,
+    BothAppend,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,6 +25,13 @@ pub struct SimpleCommand {
     pub assignments: Vec<(String, String, bool)>,
     pub words: Vec<String>,
     pub redirects: Vec<Redirect>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CaseTerminator {
+    Break,
+    Fallthrough,
+    ContinueTesting,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -50,6 +56,12 @@ pub enum CommandNode {
         body: Script,
         redirects: Vec<Redirect>,
     },
+    Select {
+        var: String,
+        items: Vec<String>,
+        body: Script,
+        redirects: Vec<Redirect>,
+    },
     ForArith {
         init: String,
         cond: String,
@@ -65,7 +77,7 @@ pub enum CommandNode {
     },
     Case {
         word: String,
-        arms: Vec<(Vec<String>, Script)>,
+        arms: Vec<(Vec<String>, Script, CaseTerminator)>,
         redirects: Vec<Redirect>,
     },
     ArithCommand(String),
@@ -91,6 +103,7 @@ pub enum ListOp {
 pub struct AndOrList {
     pub first: Pipeline,
     pub rest: Vec<(ListOp, Pipeline)>,
+    pub background: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -103,6 +116,7 @@ pub fn validate_basic_syntax(script: &str) -> Result<(), String> {
     let mut if_depth = 0i32;
     let mut do_depth = 0i32;
     let mut case_depth = 0i32;
+    let mut case_paren_stack: Vec<i32> = Vec::new();
     let mut paren_depth = 0i32;
     let mut brace_depth = 0i32;
 
@@ -117,12 +131,15 @@ pub fn validate_basic_syntax(script: &str) -> Result<(), String> {
                 at_cmd_start = true;
             }
             Token::RParen => {
-                if case_depth > 0 && paren_depth == 0 {
+                if case_depth > 0 && case_paren_stack.last().copied() == Some(paren_depth) {
                     at_cmd_start = true;
                 } else {
                     paren_depth -= 1;
                     if paren_depth < 0 {
                         return Err("Syntax error: unexpected `)`".to_string());
+                    }
+                    if case_depth > 0 && case_paren_stack.last().copied() == Some(paren_depth) {
+                        at_cmd_start = true;
                     }
                 }
             }
@@ -146,8 +163,11 @@ pub fn validate_basic_syntax(script: &str) -> Result<(), String> {
                             }
                             at_cmd_start = false;
                         }
-                        "for" | "while" | "until" => {
+                        "for" | "select" => {
                             at_cmd_start = false;
+                        }
+                        "while" | "until" => {
+                            at_cmd_start = true;
                         }
                         "do" => {
                             do_depth += 1;
@@ -162,10 +182,12 @@ pub fn validate_basic_syntax(script: &str) -> Result<(), String> {
                         }
                         "case" => {
                             case_depth += 1;
+                            case_paren_stack.push(paren_depth);
                             at_cmd_start = false;
                         }
                         "esac" => {
                             case_depth -= 1;
+                            case_paren_stack.pop();
                             if case_depth < 0 {
                                 return Err("Syntax error: unexpected `esac`".to_string());
                             }
@@ -245,7 +267,11 @@ fn parse_tokens(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Scr
         if *pos >= tokens.len() || matches!(tokens.get(*pos), Some(Token::RParen)) || is_stop_word(tokens.get(*pos), stops) {
             break;
         }
-        let list = parse_and_or(tokens, pos, stops)?;
+        let mut list = parse_and_or(tokens, pos, stops)?;
+        if matches!(tokens.get(*pos), Some(Token::Background)) {
+            list.background = true;
+            *pos += 1;
+        }
         if !list.first.commands.is_empty() || !list.rest.is_empty() {
             lists.push(list);
         }
@@ -272,7 +298,7 @@ fn parse_and_or(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<And
         let next = parse_pipeline(tokens, pos, stops)?;
         rest.push((op, next));
     }
-    Ok(AndOrList { first, rest })
+    Ok(AndOrList { first, rest, background: false })
 }
 
 fn parse_pipeline(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Pipeline, String> {
@@ -303,59 +329,64 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
     let mut redirects = Vec::new();
     while let Some(tok) = tokens.get(*pos) {
         let r = match tok {
-            Token::RedirectOut => {
+            Token::RedirectOut(fd) => {
+                let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::Out, target }
+                Redirect { kind: RedirectKind::Out(f), target }
             }
-            Token::RedirectAppend => {
+            Token::RedirectAppend(fd) => {
+                let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::Append, target }
+                Redirect { kind: RedirectKind::Append(f), target }
             }
-            Token::RedirectClobber => {
+            Token::RedirectClobber(fd) => {
+                let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::Clobber, target }
+                Redirect { kind: RedirectKind::Clobber(f), target }
             }
-            Token::RedirectIn => {
+            Token::RedirectIn(fd) => {
+                let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::In, target }
+                Redirect { kind: RedirectKind::In(f), target }
             }
-            Token::RedirectHereString => {
+            Token::RedirectHereString(fd) => {
+                let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::HereString, target }
+                Redirect { kind: RedirectKind::HereString(f), target }
             }
-            Token::RedirectHereDoc { quoted, body, .. } => {
+            Token::RedirectHereDoc { fd, quoted, body, .. } => {
+                let f = *fd;
                 let q = *quoted;
                 let b = body.clone();
                 *pos += 1;
-                Redirect { kind: RedirectKind::HereDoc { quoted: q }, target: b }
+                Redirect { kind: RedirectKind::HereDoc { fd: f, quoted: q }, target: b }
             }
-            Token::RedirectErrOut => {
+            Token::RedirectDupOut(fd) => {
+                let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::ErrOut, target }
+                Redirect { kind: RedirectKind::DupOut(f), target }
             }
-            Token::RedirectErrAppend => {
+            Token::RedirectDupIn(fd) => {
+                let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::ErrAppend, target }
-            }
-            Token::RedirectErrToOut => {
-                *pos += 1;
-                Redirect { kind: RedirectKind::ErrToOut, target: String::new() }
-            }
-            Token::RedirectOutToErr => {
-                *pos += 1;
-                Redirect { kind: RedirectKind::OutToErr, target: String::new() }
+                Redirect { kind: RedirectKind::DupIn(f), target }
             }
             Token::RedirectBothOut => {
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
                 Redirect { kind: RedirectKind::BothOut, target }
+            }
+            Token::RedirectBothAppend => {
+                *pos += 1;
+                let target = expect_word(tokens, pos)?;
+                Redirect { kind: RedirectKind::BothAppend, target }
             }
             _ => break,
         };
@@ -470,7 +501,8 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                     redirects,
                 }));
             }
-            "for" => {
+            "for" | "select" => {
+                let is_select = kw == "select";
                 *pos += 1;
                 // C-style `for ((init; cond; step)); do ... done`
                 if matches!(tokens.get(*pos), Some(Token::LParen)) && matches!(tokens.get(*pos + 1), Some(Token::LParen)) {
@@ -543,6 +575,14 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 }
                 *pos += 1;
                 let redirects = parse_trailing_redirects(tokens, pos)?;
+                if is_select {
+                    return Ok(Some(CommandNode::Select {
+                        var,
+                        items,
+                        body,
+                        redirects,
+                    }));
+                }
                 return Ok(Some(CommandNode::ForIn {
                     var,
                     items,
@@ -600,20 +640,40 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                         *pos += 1;
                     }
                     let mut arm_tokens = Vec::new();
+                    let mut term = CaseTerminator::Break;
+                    let mut nested_case_depth = 0usize;
                     while *pos < tokens.len() {
-                        if matches!(tokens.get(*pos), Some(Token::Semi)) && matches!(tokens.get(*pos + 1), Some(Token::Semi)) {
-                            *pos += 2;
-                            break;
+                        if is_stop_word(tokens.get(*pos), &["case"]) {
+                            nested_case_depth += 1;
+                        } else if is_stop_word(tokens.get(*pos), &["esac"]) {
+                            if nested_case_depth == 0 {
+                                break;
+                            }
+                            nested_case_depth -= 1;
                         }
-                        if is_stop_word(tokens.get(*pos), &["esac"]) {
-                            break;
+                        if nested_case_depth == 0 {
+                            if matches!(tokens.get(*pos), Some(Token::Semi)) && matches!(tokens.get(*pos + 1), Some(Token::Semi)) {
+                                if matches!(tokens.get(*pos + 2), Some(Token::Background)) {
+                                    *pos += 3;
+                                    term = CaseTerminator::ContinueTesting;
+                                } else {
+                                    *pos += 2;
+                                    term = CaseTerminator::Break;
+                                }
+                                break;
+                            }
+                            if matches!(tokens.get(*pos), Some(Token::Semi)) && matches!(tokens.get(*pos + 1), Some(Token::Background)) {
+                                *pos += 2;
+                                term = CaseTerminator::Fallthrough;
+                                break;
+                            }
                         }
                         arm_tokens.push(tokens[*pos].clone());
                         *pos += 1;
                     }
                     let mut arm_pos = 0usize;
                     let arm_body = parse_tokens(&arm_tokens, &mut arm_pos, &[])?;
-                    arms.push((patterns, arm_body));
+                    arms.push((patterns, arm_body, term));
                 }
                 if is_stop_word(tokens.get(*pos), &["esac"]) {
                     *pos += 1;
@@ -629,21 +689,79 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
         }
     }
 
-    // Function definition `name() { ... }`
-    if let Some(Token::Word(name)) = tokens.get(*pos)
+    // Function definition `function name() { ... }` or `name() { ... }`
+    let func_header = if is_stop_word(tokens.get(*pos), &["function"]) {
+        if let Some(Token::Word(name)) = tokens.get(*pos + 1) {
+            let mut next_pos = *pos + 2;
+            if matches!(tokens.get(next_pos), Some(Token::LParen))
+                && matches!(tokens.get(next_pos + 1), Some(Token::RParen))
+            {
+                next_pos += 2;
+            }
+            Some((name.clone(), next_pos))
+        } else {
+            None
+        }
+    } else if let Some(Token::Word(name)) = tokens.get(*pos)
         && matches!(tokens.get(*pos + 1), Some(Token::LParen))
         && matches!(tokens.get(*pos + 2), Some(Token::RParen))
     {
-        let fn_name = name.clone();
-        *pos += 3;
+        Some((name.clone(), *pos + 3))
+    } else {
+        None
+    };
+
+    if let Some((fn_name, next_pos)) = func_header {
+        *pos = next_pos;
         skip_newlines(tokens, pos);
         if is_stop_word(tokens.get(*pos), &["{"]) {
             *pos += 1;
-            let body = parse_tokens(tokens, pos, &["}"])?;
+            let mut body = parse_tokens(tokens, pos, &["}"])?;
             if !is_stop_word(tokens.get(*pos), &["}"]) {
                 return Err("Syntax error: expected `}` in function definition".to_string());
             }
             *pos += 1;
+            let fn_redirects = parse_trailing_redirects(tokens, pos)?;
+            if !fn_redirects.is_empty() {
+                body = Script {
+                    lists: vec![AndOrList {
+                        first: Pipeline {
+                            negated: false,
+                            commands: vec![CommandNode::Group {
+                                body,
+                                redirects: fn_redirects,
+                            }],
+                        },
+                        rest: Vec::new(),
+                        background: false,
+                    }],
+                };
+            }
+            return Ok(Some(CommandNode::FuncDef {
+                name: fn_name,
+                body,
+            }));
+        } else if matches!(tokens.get(*pos), Some(Token::LParen)) {
+            *pos += 1;
+            let sub_body = parse_tokens(tokens, pos, &[])?;
+            if !matches!(tokens.get(*pos), Some(Token::RParen)) {
+                return Err("Syntax error: expected `)` in function definition".to_string());
+            }
+            *pos += 1;
+            let fn_redirects = parse_trailing_redirects(tokens, pos)?;
+            let body = Script {
+                lists: vec![AndOrList {
+                    first: Pipeline {
+                        negated: false,
+                        commands: vec![CommandNode::Subshell {
+                            body: sub_body,
+                            redirects: fn_redirects,
+                        }],
+                    },
+                    rest: Vec::new(),
+                    background: false,
+                }],
+            };
             return Ok(Some(CommandNode::FuncDef {
                 name: fn_name,
                 body,
@@ -670,17 +788,16 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 | Token::RParen,
             ) => break,
             Some(
-                Token::RedirectOut
-                | Token::RedirectAppend
-                | Token::RedirectClobber
-                | Token::RedirectIn
-                | Token::RedirectHereString
+                Token::RedirectOut(_)
+                | Token::RedirectAppend(_)
+                | Token::RedirectClobber(_)
+                | Token::RedirectIn(_)
+                | Token::RedirectHereString(_)
                 | Token::RedirectHereDoc { .. }
-                | Token::RedirectErrOut
-                | Token::RedirectErrAppend
-                | Token::RedirectErrToOut
-                | Token::RedirectOutToErr
-                | Token::RedirectBothOut,
+                | Token::RedirectDupOut(_)
+                | Token::RedirectDupIn(_)
+                | Token::RedirectBothOut
+                | Token::RedirectBothAppend,
             ) => {
                 let mut more = parse_trailing_redirects(tokens, pos)?;
                 redirects.append(&mut more);
@@ -733,23 +850,50 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
 }
 
 fn parse_assignment_word(word: &str) -> Option<(String, String, bool)> {
-    let (lhs, rhs, append) = if let Some((l, r)) = word.split_once("+=") {
-        (l, r, true)
-    } else if let Some((l, r)) = word.split_once('=') {
-        (l, r, false)
+    let bytes = word.as_bytes();
+    if bytes.is_empty() || !(bytes[0].is_ascii_alphabetic() || bytes[0] == b'_') {
+        return None;
+    }
+    let mut i = 1usize;
+    while i < bytes.len() && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_') {
+        i += 1;
+    }
+    if i < bytes.len() && bytes[i] == b'[' {
+        i += 1;
+        let mut depth = 1usize;
+        let mut in_q: Option<u8> = None;
+        while i < bytes.len() && depth > 0 {
+            let b = bytes[i];
+            if let Some(q) = in_q {
+                if b == b'\\' && q == b'"' && i + 1 < bytes.len() {
+                    i += 2;
+                    continue;
+                }
+                if b == q {
+                    in_q = None;
+                }
+            } else if b == b'\'' || b == b'"' {
+                in_q = Some(b);
+            } else if b == b'[' {
+                depth += 1;
+            } else if b == b']' {
+                depth -= 1;
+            }
+            i += 1;
+        }
+        if depth != 0 {
+            return None;
+        }
+    }
+    if i >= bytes.len() {
+        return None;
+    }
+    let lhs = &word[..i];
+    if word[i..].starts_with("+=") {
+        Some((lhs.to_string(), word[i + 2..].to_string(), true))
+    } else if word[i..].starts_with('=') {
+        Some((lhs.to_string(), word[i + 1..].to_string(), false))
     } else {
-        return None;
-    };
-    if lhs.is_empty() {
-        return None;
+        None
     }
-    let mut chars = lhs.chars();
-    let first = chars.next()?;
-    if !(first.is_ascii_alphabetic() || first == '_') {
-        return None;
-    }
-    if !chars.all(|c| c.is_ascii_alphanumeric() || c == '_') {
-        return None;
-    }
-    Some((lhs.to_string(), rhs.to_string(), append))
 }

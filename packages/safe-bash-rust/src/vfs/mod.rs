@@ -133,6 +133,10 @@ pub trait SafeBashFs: Send + Sync {
         Ok(())
     }
 
+    fn set_mtime(&self, _path: &str, _mtime_ms: u64) -> Result<(), String> {
+        Ok(())
+    }
+
     fn generation(&self) -> u64 {
         0
     }

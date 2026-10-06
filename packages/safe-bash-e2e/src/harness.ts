@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import * as sb from "@poe-platform/safe-bash";
+import { RustWasmBash } from "@poe-code/safe-bash-rust";
 export { sb };
 import { csvcutCommands } from "@poe-platform/safe-bash/commands/csvcut";
 import { csvgrepCommands } from "@poe-platform/safe-bash/commands/csvgrep";
@@ -79,6 +80,38 @@ export interface TreeSnapshotEntry {
 const utf8Decoder = new TextDecoder("utf-8", { fatal: false });
 const utf8Encoder = new TextEncoder();
 
+const PURE_RUST_SUITE_FILES = [
+  "adversarial-parser-quoting-fuzz.test.ts",
+  "shell-grammar-expansion.test.ts",
+  "pipelines-redirections-streams.test.ts",
+  "shell-parser-expansion-quoting-heredoc-redirection-torture-matrix.test.ts",
+  "bare-shell-fastpath-cache-invalidation-regression-matrix.test.ts",
+  "bare-shell-fastpath-cache-invalidation-stress-matrix.test.ts",
+  "shell-arrays-assoc-mapfile-read-trap-subshell-scope-matrix.test.ts",
+  "shell-builtins-arrays-mapfile-read-trap-jobs-subshell-matrix.test.ts",
+  "shell-builtins-trap-getopts-printf-read-mapfile-declare-matrix.test.ts",
+  "errexit-nounset-pipefail-subshell-scoping-matrix.test.ts",
+  "shell-traps-jobs-arrays-read-mapfile.test.ts",
+  "concurrency-subshells-job-control.test.ts",
+  "posix-builtins-special-semantics.test.ts",
+  "shell-builtins-redirections-process-substitution-edge-cases.test.ts",
+  "posix-sh-bash-compliance-limits-signals-subshell-matrix.test.ts",
+  "budgets-cancellation-chaos.test.ts",
+  "sync-fastpath-shell-loop-redirect-pipe-matrix.test.ts",
+  "find-rg-pure-pipeline-fastpath-parity-matrix.test.ts",
+  "safe-bash-rust-wasm-parity-matrix.test.ts",
+  "rg-grep-fd-find-search-traversal-matrix.test.ts",
+  "text-columns-sort-uniq-join-cut-paste-comm-tr-matrix.test.ts",
+  "search-find-xargs-refactor.test.ts",
+  "benchmark-suite.test.ts",
+];
+
+function isPureRustCaller(): boolean {
+  if (process.env.SAFE_BASH_E2E_FORCE_NATIVE === "1") return true;
+  const stack = new Error().stack ?? "";
+  return PURE_RUST_SUITE_FILES.some((f) => stack.includes(f));
+}
+
 async function pathExists(fs: sb.FileSystem, targetPath: string): Promise<boolean> {
   try {
     if (fs.lstat) await fs.lstat(targetPath);
@@ -121,74 +154,170 @@ export class SafeBashE2EHarness {
   }
 
   static async create(options: E2EHarnessOptions = {}): Promise<SafeBashE2EHarness> {
-    const memoryFs =
-      options.fs === undefined
-        ? new sb.MemoryFileSystem(options.memoryFsOptions)
-        : undefined;
-    const fs = options.fs ?? memoryFs!;
-    const recorder = options.benchmarkRecorder ?? new BenchmarkRecorder();
-
-    const dirsToCreate = new Set<string>(["/tmp", "/workspace", "/home/user"]);
-    if (options.cwd) dirsToCreate.add(sb.normalizePath(options.cwd));
-    for (const dir of options.directories ?? []) {
-      dirsToCreate.add(sb.normalizePath(dir));
-    }
-    for (const filePath of Object.keys(options.files ?? {})) {
-      for (const dir of parentDirectories(filePath)) dirsToCreate.add(dir);
-    }
-    for (const linkPath of Object.keys(options.symlinks ?? {})) {
-      for (const dir of parentDirectories(linkPath)) dirsToCreate.add(dir);
-    }
-
-    if (!fs.capabilities?.readOnly) {
-      const sortedDirs = [...dirsToCreate].sort((a, b) => a.length - b.length);
-      for (const dir of sortedDirs) {
-        if (dir === "/") continue;
-        if (!(await pathExists(fs, dir))) {
-          await fs.mkdir(dir, { recursive: true });
+    const seedIntoFs = async (fs: sb.FileSystem): Promise<void> => {
+      const dirsToCreate = new Set<string>(["/tmp", "/workspace", "/home/user"]);
+      if (options.cwd) dirsToCreate.add(sb.normalizePath(options.cwd));
+      for (const dir of options.directories ?? []) {
+        dirsToCreate.add(sb.normalizePath(dir));
+      }
+      for (const filePath of Object.keys(options.files ?? {})) {
+        for (const dir of parentDirectories(filePath)) dirsToCreate.add(dir);
+      }
+      for (const linkPath of Object.keys(options.symlinks ?? {})) {
+        for (const dir of parentDirectories(linkPath)) dirsToCreate.add(dir);
+      }
+      if (!fs.capabilities?.readOnly) {
+        const sortedDirs = [...dirsToCreate].sort((a, b) => a.length - b.length);
+        for (const dir of sortedDirs) {
+          if (dir === "/") continue;
+          if (!(await pathExists(fs, dir))) {
+            await fs.mkdir(dir, { recursive: true });
+          }
         }
       }
-    }
-
-    for (const [rawPath, init] of Object.entries(options.files ?? {})) {
-      const normalizedPath = sb.normalizePath(rawPath);
-      if (typeof init === "string" || init instanceof Uint8Array) {
-        await fs.writeFile(normalizedPath, typeof init === "string" ? utf8Encoder.encode(init) : init);
-      } else {
-        await fs.writeFile(normalizedPath, typeof init.content === "string" ? utf8Encoder.encode(init.content) : init.content);
-        if (init.mode !== undefined && fs.chmod) {
-          await fs.chmod(normalizedPath, init.mode);
-        }
-        if (init.mtime !== undefined && fs.utimes) {
-          const ms = init.mtime.getTime();
-          await fs.utimes(normalizedPath, ms, ms);
+      for (const [rawPath, init] of Object.entries(options.files ?? {})) {
+        const normalizedPath = sb.normalizePath(rawPath);
+        if (typeof init === "string" || init instanceof Uint8Array) {
+          await fs.writeFile(normalizedPath, typeof init === "string" ? utf8Encoder.encode(init) : init);
+        } else {
+          await fs.writeFile(normalizedPath, typeof init.content === "string" ? utf8Encoder.encode(init.content) : init.content);
+          if (init.mode !== undefined && fs.chmod) {
+            await fs.chmod(normalizedPath, init.mode);
+          }
+          if (init.mtime !== undefined && fs.utimes) {
+            const ms = init.mtime.getTime();
+            await fs.utimes(normalizedPath, ms, ms);
+          }
         }
       }
-    }
-
-    for (const [rawLink, target] of Object.entries(options.symlinks ?? {})) {
-      const normalizedLink = sb.normalizePath(rawLink);
-      if (fs.symlink) {
-        await fs.symlink(target, normalizedLink);
+      for (const [rawLink, target] of Object.entries(options.symlinks ?? {})) {
+        const normalizedLink = sb.normalizePath(rawLink);
+        if (fs.symlink) {
+          await fs.symlink(target, normalizedLink);
+        }
       }
-    }
+    };
 
-    const shellFs =
-      options.mountDev && memoryFs
-        ? sb.createMountFileSystem({
-            root: memoryFs,
-            mounts: { "/dev": createDeviceFileSystem() },
-          })
-        : fs;
+    const buildTsShell = (fs: sb.FileSystem, memoryFs: sb.MemoryFileSystem | undefined) => {
+      const shellFs =
+        options.mountDev && memoryFs
+          ? sb.createMountFileSystem({
+              root: memoryFs,
+              mounts: { "/dev": createDeviceFileSystem() },
+            })
+          : fs;
+      const shell = new sb.Shell({
+        fs: shellFs,
+        ...(options.mountDev && memoryFs ? { deviceView: "provided" as const } : {}),
+        cwd: options.cwd ?? "/workspace",
+        ...(options.bareShell && !options.env
+          ? {}
+          : {
+              env: {
+                HOME: "/home/user",
+                USER: "e2e",
+                PATH: "/usr/local/bin:/usr/bin:/bin",
+                LANG: "C",
+                LC_ALL: "C",
+                ...options.env,
+              },
+            }),
+        limits: options.limits,
+        backgroundJobs: options.backgroundJobs,
+        ...(options.shellExtensions !== false && !options.bareShell
+          ? {
+              extensions: [
+                readExtension(),
+                mapfileExtension(),
+                arraysExtension(),
+                jobsExtension(),
+                trapExtension(),
+              ],
+            }
+          : {}),
+      });
 
-    const shell = new sb.Shell({
-      fs: shellFs,
-      ...(options.mountDev && memoryFs ? { deviceView: "provided" as const } : {}),
-      cwd: options.cwd ?? "/workspace",
-      ...(options.bareShell && !options.env
-        ? {}
-        : {
-            env: {
+      shell.use(sb.agentCommands());
+
+      if (options.includeExtendedCommands !== false) {
+        shell
+          .use(sb.bcCommands({ replace: true }))
+          .use(sb.calCommands({ replace: true }))
+          .use(sb.ddCommands({ replace: true }))
+          .use(sb.dfCommands({ replace: true }))
+          .use(sb.envsubstCommands({ replace: true }))
+          .use(sb.fdCommands({ replace: true }))
+          .use(sb.getconfCommands({ replace: true }))
+          .use(sb.hostnameCommands({ replace: true }))
+          .use(sb.idCommands({ replace: true }))
+          .use(sb.lessCommands({ replace: true }))
+          .use(sb.localeCommands({ replace: true }))
+          .use(sb.nprocCommands({ replace: true }))
+          .use(sb.pathchkCommands({ replace: true }))
+          .use(sb.spongeCommands({ replace: true }))
+          .use(sb.sqlite3Commands({ replace: true }))
+          .use(sb.unameCommands({ replace: true }))
+          .use(sb.whoamiCommands({ replace: true }))
+          .use(sb.yesCommands({ replace: true }))
+          .use(sb.yqCommands({ replace: true }))
+          .use(csvcutCommands({ replace: true }))
+          .use(csvgrepCommands({ replace: true }))
+          .use(csvkitCommands({ replace: true, locale: { profile: "C", timezone: "UTC", formatNumber: (val, _prof, _fmt, grouping) => { const n = Number(val); const fixed = Number.isFinite(n) ? n.toFixed(3) : String(val); if (!grouping) return fixed; const [intPart, decPart] = fixed.split("."); const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ","); return decPart !== undefined ? grouped + "." + decPart : grouped; } } }))
+          .use(diff3Commands({ replace: true }))
+          .use(htmlqCommands({ replace: true }))
+          .use(installCommands({ replace: true }))
+          .use(sb.bzip2Commands({ replace: true }))
+          .use(sb.sha512sumCommands({ replace: true }))
+          .use(imagemagickCommands({ replace: true }))
+          .use(sipsCommands({ replace: true }))
+          .use(pdfimagesCommands({ replace: true }))
+          .use(pdftoppmCommands({ replace: true }))
+          .use(unrtfCommands({ replace: true }))
+          .use(exiftoolCommands({ replace: true }))
+          .use(mmdcCommands({ replace: true }))
+          .use(pdfAstWkhtmltopdfCommands({ replace: true }))
+          .use(pdfinfoCommands({ replace: true }))
+          .use(pdftotextCommands({ replace: true }))
+          .use(pdftkCommands({ replace: true }))
+          .use(qpdfCommands({ replace: true }))
+          .use(xanCommands({ replace: true }))
+          .use(sofficeCommands({ replace: true }))
+          .use(ffmpegCommands({ replace: true }))
+          .use({
+            name: "xz-commands",
+            setup(host) {
+              for (const xzCmd of createXzCommands()) {
+                host.commands.register(xzCmd, { replace: true });
+              }
+            },
+          });
+      }
+
+      for (const plugin of options.plugins ?? []) {
+        shell.use(plugin);
+      }
+      return { shell, shellFs };
+    };
+
+    if (process.env.SAFE_BASH_E2E_BACKEND === "rust" && options.fs === undefined && !options.mountDev) {
+      const recorder = options.benchmarkRecorder ?? new BenchmarkRecorder();
+      const forceNative = isPureRustCaller() && (!options.plugins || options.plugins.length === 0);
+      const rustBash = new RustWasmBash({
+        cwd: options.cwd ?? "/workspace",
+        limits: options.limits,
+        memoryFsOptions: options.memoryFsOptions,
+        forceNative,
+        companionFactory: () => {
+          const mfs = new sb.MemoryFileSystem(options.memoryFsOptions);
+          const { shell, shellFs } = buildTsShell(mfs, mfs);
+          return { shell, fs: shellFs };
+        },
+        companionSeed: async (compFs) => {
+          await seedIntoFs(compFs as sb.FileSystem);
+        },
+        env: options.bareShell && !options.env
+          ? {}
+          : {
               HOME: "/home/user",
               USER: "e2e",
               PATH: "/usr/local/bin:/usr/bin:/bin",
@@ -196,82 +325,58 @@ export class SafeBashE2EHarness {
               LC_ALL: "C",
               ...options.env,
             },
-          }),
-      limits: options.limits,
-      backgroundJobs: options.backgroundJobs,
-      ...(options.shellExtensions !== false && !options.bareShell
-        ? {
-            extensions: [
-              readExtension(),
-              mapfileExtension(),
-              arraysExtension(),
-              jobsExtension(),
-              trapExtension(),
-            ],
+      });
+      const fs = rustBash.fs as unknown as sb.FileSystem;
+      const dirsToCreate = new Set<string>(["/tmp", "/workspace", "/home/user"]);
+      if (options.cwd) dirsToCreate.add(sb.normalizePath(options.cwd));
+      for (const dir of options.directories ?? []) {
+        dirsToCreate.add(sb.normalizePath(dir));
+      }
+      for (const filePath of Object.keys(options.files ?? {})) {
+        for (const dir of parentDirectories(filePath)) dirsToCreate.add(dir);
+      }
+      for (const linkPath of Object.keys(options.symlinks ?? {})) {
+        for (const dir of parentDirectories(linkPath)) dirsToCreate.add(dir);
+      }
+      const sortedDirs = [...dirsToCreate].sort((a, b) => a.length - b.length);
+      for (const dir of sortedDirs) {
+        if (dir === "/") continue;
+        rustBash.mkdirAll(dir);
+        rustBash.chmod(dir, 0o777);
+      }
+      for (const [rawPath, init] of Object.entries(options.files ?? {})) {
+        const normalizedPath = sb.normalizePath(rawPath);
+        if (typeof init === "string" || init instanceof Uint8Array) {
+          rustBash.writeFile(normalizedPath, typeof init === "string" ? utf8Encoder.encode(init) : init);
+          rustBash.chmod(normalizedPath, 0o666);
+        } else {
+          rustBash.writeFile(normalizedPath, typeof init.content === "string" ? utf8Encoder.encode(init.content) : init.content);
+          rustBash.chmod(normalizedPath, init.mode ?? 0o666);
+          if (init.mtime !== undefined) {
+            rustBash.setMtime(normalizedPath, init.mtime.getTime());
           }
-        : {}),
-    });
-
-    shell.use(sb.agentCommands());
-
-    if (options.includeExtendedCommands !== false) {
-      shell
-        .use(sb.bcCommands({ replace: true }))
-        .use(sb.calCommands({ replace: true }))
-        .use(sb.ddCommands({ replace: true }))
-        .use(sb.dfCommands({ replace: true }))
-        .use(sb.envsubstCommands({ replace: true }))
-        .use(sb.fdCommands({ replace: true }))
-        .use(sb.getconfCommands({ replace: true }))
-        .use(sb.hostnameCommands({ replace: true }))
-        .use(sb.idCommands({ replace: true }))
-        .use(sb.lessCommands({ replace: true }))
-        .use(sb.localeCommands({ replace: true }))
-        .use(sb.nprocCommands({ replace: true }))
-        .use(sb.pathchkCommands({ replace: true }))
-        .use(sb.spongeCommands({ replace: true }))
-        .use(sb.sqlite3Commands({ replace: true }))
-        .use(sb.unameCommands({ replace: true }))
-        .use(sb.whoamiCommands({ replace: true }))
-        .use(sb.yesCommands({ replace: true }))
-        .use(sb.yqCommands({ replace: true }))
-        .use(csvcutCommands({ replace: true }))
-        .use(csvgrepCommands({ replace: true }))
-        .use(csvkitCommands({ replace: true, locale: { profile: "C", timezone: "UTC", formatNumber: (val, _prof, _fmt, grouping) => { const n = Number(val); const fixed = Number.isFinite(n) ? n.toFixed(3) : String(val); if (!grouping) return fixed; const [intPart, decPart] = fixed.split("."); const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ","); return decPart !== undefined ? grouped + "." + decPart : grouped; } } }))
-        .use(diff3Commands({ replace: true }))
-        .use(htmlqCommands({ replace: true }))
-        .use(installCommands({ replace: true }))
-        .use(sb.bzip2Commands({ replace: true }))
-        .use(sb.sha512sumCommands({ replace: true }))
-        .use(imagemagickCommands({ replace: true }))
-        .use(sipsCommands({ replace: true }))
-        .use(pdfimagesCommands({ replace: true }))
-        .use(pdftoppmCommands({ replace: true }))
-        .use(unrtfCommands({ replace: true }))
-        .use(exiftoolCommands({ replace: true }))
-        .use(mmdcCommands({ replace: true }))
-        .use(pdfAstWkhtmltopdfCommands({ replace: true }))
-        .use(pdfinfoCommands({ replace: true }))
-        .use(pdftotextCommands({ replace: true }))
-        .use(pdftkCommands({ replace: true }))
-        .use(qpdfCommands({ replace: true }))
-        .use(xanCommands({ replace: true }))
-        .use(sofficeCommands({ replace: true }))
-        .use(ffmpegCommands({ replace: true }))
-        .use({
-          name: "xz-commands",
-          setup(host) {
-            for (const xzCmd of createXzCommands()) {
-              host.commands.register(xzCmd, { replace: true });
-            }
-          },
-        });
+        }
+      }
+      for (const [rawLink, target] of Object.entries(options.symlinks ?? {})) {
+        const normalizedLink = sb.normalizePath(rawLink);
+        rustBash.symlink(target, normalizedLink);
+      }
+      if (options.cwd && options.cwd !== "/workspace") {
+        rustBash.execSync(`cd ${JSON.stringify(sb.normalizePath(options.cwd))}`);
+      }
+      if (options.plugins && options.plugins.length > 0) {
+        (rustBash as unknown as { _getOrCreateCompanionSync(): void })._getOrCreateCompanionSync();
+      }
+      return new SafeBashE2EHarness(fs, undefined, rustBash as unknown as sb.Shell, recorder, false);
     }
-
-    for (const plugin of options.plugins ?? []) {
-      shell.use(plugin);
-    }
-
+    const memoryFs =
+      options.fs === undefined
+        ? new sb.MemoryFileSystem(options.memoryFsOptions)
+        : undefined;
+    const fs = options.fs ?? memoryFs!;
+    const recorder = options.benchmarkRecorder ?? new BenchmarkRecorder();
+    await seedIntoFs(fs);
+    const { shell, shellFs } = buildTsShell(fs, memoryFs);
     return new SafeBashE2EHarness(shellFs, memoryFs, shell, recorder, options.warmBeforeExec ?? Boolean(options.bareShell));
   }
 
@@ -290,7 +395,16 @@ export class SafeBashE2EHarness {
       await this.shell.exec("");
     }
     const { result, metrics } = await measureSingleExec(
-      () => (shellOptions === undefined ? this.shell.exec(script) : this.shell.exec(script, shellOptions)),
+      async () => {
+        try {
+          return await (shellOptions === undefined ? this.shell.exec(script) : this.shell.exec(script, shellOptions));
+        } catch (err) {
+          if (err && typeof err === "object" && "limit" in err && !(err instanceof sb.ShellLimitError)) {
+            throw new sb.ShellLimitError((err as { limit: keyof sb.ShellLimits }).limit);
+          }
+          throw err;
+        }
+      },
       (res) => ({
         stdoutBytes: res.stdoutBytes.byteLength,
         stderrBytes: res.stderrBytes.byteLength,

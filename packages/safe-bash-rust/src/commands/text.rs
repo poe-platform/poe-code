@@ -1368,6 +1368,14 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
         }
     }
 
+    if let Some(parts) = split_awk_concat(s) {
+        let mut joined = String::new();
+        for p in parts {
+            joined.push_str(&eval_awk_expr(&p, state));
+        }
+        return joined;
+    }
+
     for op in ["+", "-"] {
         if let Some((lhs, rhs)) = split_awk_binary_right(s, op) {
             if !lhs.trim().is_empty() {
@@ -1407,14 +1415,6 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
 
     if let Some(func_res) = try_eval_awk_func(s, state) {
         return func_res;
-    }
-
-    if let Some(parts) = split_awk_concat(s) {
-        let mut joined = String::new();
-        for p in parts {
-            joined.push_str(&eval_awk_expr(&p, state));
-        }
-        return joined;
     }
 
     if let Some(field_expr) = s.strip_prefix('$') {
@@ -1728,7 +1728,26 @@ fn split_awk_concat(s: &str) -> Option<Vec<String>> {
     if !cur.trim().is_empty() {
         parts.push(cur.trim().to_string());
     }
-    if parts.len() > 1 { Some(parts) } else { None }
+    let is_arith_op_end = |tok: &str| -> bool {
+        let t = tok.trim();
+        !t.ends_with("++") && !t.ends_with("--") && t.ends_with(['+', '-', '*', '/', '%', '^'])
+    };
+    let is_arith_op_start = |tok: &str| -> bool {
+        let t = tok.trim();
+        !t.starts_with("++") && !t.starts_with("--") && t.starts_with(['+', '-', '*', '/', '%', '^'])
+    };
+    let mut merged: Vec<String> = Vec::new();
+    for p in parts {
+        if let Some(last) = merged.last_mut()
+            && (is_arith_op_end(last) || is_arith_op_start(&p))
+        {
+            last.push(' ');
+            last.push_str(&p);
+        } else {
+            merged.push(p);
+        }
+    }
+    if merged.len() > 1 { Some(merged) } else { None }
 }
 
 fn format_awk_num(n: f64) -> String {
@@ -1996,13 +2015,16 @@ fn compute_lcs_edits(a: &[String], b: &[String]) -> Vec<DiffEdit> {
 
 fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut strip = 0usize;
+    let mut reverse = false;
     let mut input_file: Option<String> = None;
     let mut target_file: Option<String> = None;
 
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if let Some(p) = a.strip_prefix("-p") {
+        if a == "-R" || a == "--reverse" {
+            reverse = true;
+        } else if let Some(p) = a.strip_prefix("-p") {
             if !p.is_empty() {
                 strip = p.parse().unwrap_or(0);
             } else if i + 1 < args.len() {
@@ -2028,7 +2050,7 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         stdin.to_string()
     };
 
-    match apply_unified_diff(&patch_text, target_file.as_deref(), strip, cwd, fs) {
+    match apply_unified_diff(&patch_text, target_file.as_deref(), strip, reverse, cwd, fs) {
         Ok(msg) => ok_out(&msg),
         Err(e) => err_out(&format!("patch: {e}\n"), 1),
     }
@@ -2038,6 +2060,7 @@ fn apply_unified_diff(
     patch_text: &str,
     explicit_target: Option<&str>,
     strip: usize,
+    reverse: bool,
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> Result<String, String> {
@@ -2089,7 +2112,8 @@ fn apply_unified_diff(
                     }
                 }
             }
-            let orig_start = parse_hunk_start(line).unwrap_or(1);
+            let (old_start, new_start) = parse_hunk_starts(line);
+            let orig_start = if reverse { new_start } else { old_start };
             idx += 1;
             let mut hunk_old = Vec::new();
             let mut hunk_new = Vec::new();
@@ -2112,6 +2136,9 @@ fn apply_unified_diff(
                 idx += 1;
             }
 
+            if reverse {
+                std::mem::swap(&mut hunk_old, &mut hunk_new);
+            }
             let expected_pos = ((orig_start.saturating_sub(1) as isize) + offset).max(0) as usize;
             let pos = find_subslice_pos(&file_lines, &hunk_old, expected_pos)
                 .ok_or_else(|| "hunk failed to apply".to_string())?;
@@ -2151,11 +2178,23 @@ fn strip_path_components(path: &str, strip: usize) -> String {
     }
 }
 
-fn parse_hunk_start(header: &str) -> Option<usize> {
-    let minus_idx = header.find('-')?;
-    let after = &header[minus_idx + 1..];
-    let num_str: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
-    num_str.parse().ok()
+fn parse_hunk_starts(header: &str) -> (usize, usize) {
+    let mut old_s = 1usize;
+    let mut new_s = 1usize;
+    for part in header.split_whitespace() {
+        if let Some(rest) = part.strip_prefix('-') {
+            let n: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+            if let Ok(v) = n.parse() {
+                old_s = v;
+            }
+        } else if let Some(rest) = part.strip_prefix('+') {
+            let n: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+            if let Ok(v) = n.parse() {
+                new_s = v;
+            }
+        }
+    }
+    (old_s, new_s)
 }
 
 fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize) -> Option<usize> {
@@ -2283,7 +2322,7 @@ fn cmd_cmp(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     let read_b = |f: &str| -> Result<Vec<u8>, String> {
         if f == "-" {
-            return Ok(stdin.as_bytes().to_vec());
+            return Ok(crate::vfs::stream_string_to_bytes(stdin));
         }
         let full = resolve_posix_path(cwd, f);
         fs.read_file(&full)
@@ -2348,6 +2387,7 @@ fn cmd_diff3(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     let theirs = read_lines(files[2]);
     let max_len = ours.len().max(base.len()).max(theirs.len());
     let mut out = String::new();
+    let mut has_conflict = false;
     for i in 0..max_len {
         let o = ours.get(i).map(|s| s.as_str()).unwrap_or("");
         let b = base.get(i).map(|s| s.as_str()).unwrap_or("");
@@ -2356,9 +2396,19 @@ fn cmd_diff3(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             out.push_str(&format!("{o}\n"));
         } else if t != b && o == b {
             out.push_str(&format!("{t}\n"));
+        } else if o != b && t != b && o != t {
+            has_conflict = true;
+            out.push_str(&format!(
+                "<<<<<<< {}\n{o}\n||||||| {}\n{b}\n=======\n{t}\n>>>>>>> {}\n",
+                files[0], files[1], files[2]
+            ));
         } else {
             out.push_str(&format!("{o}\n"));
         }
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr: String::new(),
+        exit_code: if has_conflict { 1 } else { 0 },
+    }
 }

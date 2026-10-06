@@ -59,6 +59,12 @@ impl Default for MemoryVfs {
 }
 
 impl MemoryVfs {
+    pub fn set_max_total_bytes(&self, max_total_bytes: usize) {
+        if let Ok(mut guard) = self.state.write() {
+            guard.limits.max_total_bytes = max_total_bytes;
+        }
+    }
+
     pub fn new() -> Self {
         Self::with_limits(MemoryVfsLimits::default())
     }
@@ -193,7 +199,7 @@ impl SafeBashFs for MemoryVfs {
             return Ok(Vec::new());
         }
         if norm == "/dev/zero" {
-            return Ok(vec![0u8; 4096]);
+            return Ok(vec![0u8; 65536]);
         }
         let guard = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
@@ -480,6 +486,23 @@ impl SafeBashFs for MemoryVfs {
                 *m = 0o120000 | (mode & 0o7777);
             }
             None => return Err(format!("ENOENT: no such file or directory, chmod '{norm}'")),
+        }
+        drop(guard);
+        self.bump_generation();
+        Ok(())
+    }
+
+    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+        let norm = normalize_posix_path(path);
+        let mut guard = self.state.write().map_err(|e| e.to_string())?;
+        let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
+        match guard.nodes.get_mut(&resolved) {
+            Some(MemoryNode::File { mtime_ms: m, .. })
+            | Some(MemoryNode::Directory { mtime_ms: m, .. })
+            | Some(MemoryNode::Symlink { mtime_ms: m, .. }) => {
+                *m = mtime_ms;
+            }
+            None => return Err(format!("ENOENT: no such file or directory, utime '{norm}'")),
         }
         drop(guard);
         self.bump_generation();

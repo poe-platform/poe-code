@@ -1,17 +1,17 @@
 # safe-bash E2E Performance Baselines & Optimization Comparisons
 
-Generated from commit `ff78f654ea` on `darwin/arm64` (Apple M2 Pro, Node `v22.22.2`).
+Generated from commit `eefb24200b` on `darwin/arm64` (Apple M2 Pro, Node `v22.22.2`).
 
 ## 1. Summary Across Stored Runs
 
 | Run ID | Profile / Optimization | Backend | Geomean p50 (ms) | Total Suite (ms) | Mean Ops/sec |
 | --- | --- | --- | ---: | ---: | ---: |
-| `ts-baseline-warm-memory-fastpath` | TypeScript safe-bash (Warm MemoryFileSystem + FastPaths) | `ts-safe-bash` | **4.09** | 1002.87 | 331.3 |
-| `ts-baseline-overlay-cow-fs` | TypeScript safe-bash (OverlayFileSystem Copy-on-Write) | `ts-safe-bash` | **6.72** | 2193.69 | 296.4 |
-| `ts-baseline-strict-budgets-mount-dev` | TypeScript safe-bash (Strict Budgets + Mount /dev + Core Cold-Start) | `ts-safe-bash` | **3.37** | 963.54 | 490.4 |
-| `rust-wasm-warm-memory-fastpath` | Rust Zero-Dep Wasm safe-bash (MemoryVfs FastPath) | `rust-safe-bash` | **0.11** | 35.93 | 15832.1 |
-| `rust-wasm-overlay-cow-fs` | Rust Zero-Dep Wasm safe-bash (OverlayVfs Copy-on-Write) | `rust-safe-bash` | **0.11** | 35.17 | 16279.2 |
-| `rust-wasm-strict-budgets-mount-dev` | Rust Zero-Dep Wasm safe-bash (Strict Budgets + Mount /dev) | `rust-safe-bash` | **0.11** | 32.33 | 15783.6 |
+| `ts-baseline-warm-memory-fastpath` | TypeScript safe-bash (Warm MemoryFileSystem + FastPaths) | `ts-safe-bash` | **4.53** | 1082.28 | 290.1 |
+| `ts-baseline-overlay-cow-fs` | TypeScript safe-bash (OverlayFileSystem Copy-on-Write) | `ts-safe-bash` | **6.93** | 2243.88 | 293.0 |
+| `ts-baseline-strict-budgets-mount-dev` | TypeScript safe-bash (Strict Budgets + Mount /dev + Core Cold-Start) | `ts-safe-bash` | **3.46** | 992.13 | 454.3 |
+| `rust-wasm-warm-memory-fastpath` | Rust Zero-Dep Wasm safe-bash (MemoryVfs FastPath) | `rust-safe-bash` | **0.19** | 50.94 | 8590.5 |
+| `rust-wasm-overlay-cow-fs` | Rust Zero-Dep Wasm safe-bash (OverlayVfs Copy-on-Write) | `rust-safe-bash` | **0.18** | 49.09 | 9014.1 |
+| `rust-wasm-strict-budgets-mount-dev` | Rust Zero-Dep Wasm safe-bash (Strict Budgets + Mount /dev) | `rust-safe-bash` | **0.17** | 43.71 | 9363.3 |
 
 ---
 
@@ -19,37 +19,37 @@ Generated from commit `ff78f654ea` on `darwin/arm64` (Apple M2 Pro, Node `v22.22
 
 - **Baseline**: `ts-baseline-warm-memory-fastpath` (`ts-safe-bash`)
 - **Candidate**: `rust-wasm-warm-memory-fastpath` (`rust-safe-bash`)
-- **Geometric Mean Speedup (p50)**: **35.81x**
-- **Total Duration Speedup**: **27.91x**
+- **Geometric Mean Speedup (p50)**: **23.83x**
+- **Total Duration Speedup**: **21.25x**
 
 | Category | Scenario | Baseline p50 (ms) | Candidate p50 (ms) | Speedup | Delta (%) |
 | --- | --- | ---: | ---: | ---: | ---: |
-| shell-grammar | shell-grammar-arithmetic-loops | 5.59 | 0.22 | **25.87x** | -96.1% |
-| pipelines | pipeline-6-stage-stream | 6.14 | 2.39 | **2.57x** | -61.0% |
-| search | search-rg-find-monorepo | 3.93 | 0.59 | **6.62x** | -84.9% |
-| text-processing | text-awk-sed-log-analytics | 1.03 | 0.26 | **3.95x** | -74.7% |
-| structured-data | structured-jq-yq-pipeline | 2.08 | 0.12 | **16.92x** | -94.1% |
-| database | sqlite3-join-aggregation | 1.26 | 0.02 | **78.56x** | -98.7% |
-| archives | archive-tar-gzip-sha256-roundtrip | 7.33 | 0.19 | **38.80x** | -97.4% |
-| compression | compression-zstd-xz-stream | 14.72 | 0.07 | **216.46x** | -99.5% |
-| vfs | vfs-tree-clone-chmod-stat | 3.72 | 0.26 | **14.31x** | -93.0% |
-| math-utils | math-awk-bc-numfmt-reduction | 1.19 | 0.74 | **1.60x** | -37.4% |
-| chaos | chaos-adversarial-find-xargs0 | 1.82 | 0.06 | **28.91x** | -96.5% |
-| lifecycle | shell-cold-start-and-exec | 1.69 | 0.01 | **129.77x** | -99.2% |
-| diff-patch | diff-patch-diff3-merge | 6.03 | 0.09 | **70.06x** | -98.6% |
-| csv-analytics | csvkit-xan-data-science | 4.75 | 0.07 | **64.15x** | -98.4% |
-| web-scraping | htmlq-xmllint-web-scraping | 5.35 | 0.03 | **178.20x** | -99.4% |
-| session-state | session-state-json-roundtrip | 1.79 | 0.05 | **35.20x** | -97.2% |
-| document-media | document-mermaid-svg-pipeline | 1.76 | 0.03 | **70.56x** | -98.6% |
-| agent-workflow | agent-refactor-release-pipeline | 14.70 | 0.96 | **15.32x** | -93.5% |
-| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 2.55 | 0.07 | **37.47x** | -97.3% |
-| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 2.40 | 0.06 | **43.67x** | -97.7% |
-| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 35.13 | 0.34 | **103.32x** | -99.0% |
-| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 6.63 | 0.06 | **116.25x** | -99.1% |
-| document-media | media-office-ffmpeg-soffice-pipeline | 3.14 | 0.08 | **37.81x** | -97.4% |
-| structured-data | polyglot-yq-jq-xmllint-config-compiler | 3.51 | 0.12 | **29.23x** | -96.6% |
-| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 54.97 | 0.09 | **597.52x** | -99.8% |
-| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.52 | 0.07 | **38.75x** | -97.4% |
+| shell-grammar | shell-grammar-arithmetic-loops | 6.08 | 0.72 | **8.39x** | -88.1% |
+| pipelines | pipeline-6-stage-stream | 7.46 | 2.82 | **2.65x** | -62.2% |
+| search | search-rg-find-monorepo | 5.17 | 0.95 | **5.43x** | -81.6% |
+| text-processing | text-awk-sed-log-analytics | 1.18 | 0.40 | **2.93x** | -65.9% |
+| structured-data | structured-jq-yq-pipeline | 2.51 | 0.15 | **16.86x** | -94.1% |
+| database | sqlite3-join-aggregation | 1.51 | 0.03 | **60.40x** | -98.3% |
+| archives | archive-tar-gzip-sha256-roundtrip | 7.30 | 0.34 | **21.22x** | -95.3% |
+| compression | compression-zstd-xz-stream | 16.55 | 0.09 | **179.89x** | -99.4% |
+| vfs | vfs-tree-clone-chmod-stat | 4.65 | 0.29 | **16.20x** | -93.8% |
+| math-utils | math-awk-bc-numfmt-reduction | 1.59 | 0.86 | **1.85x** | -45.9% |
+| chaos | chaos-adversarial-find-xargs0 | 2.18 | 0.12 | **18.31x** | -94.5% |
+| lifecycle | shell-cold-start-and-exec | 1.93 | 0.07 | **29.75x** | -96.6% |
+| diff-patch | diff-patch-diff3-merge | 6.38 | 0.14 | **46.53x** | -97.9% |
+| csv-analytics | csvkit-xan-data-science | 5.26 | 0.10 | **55.41x** | -98.2% |
+| web-scraping | htmlq-xmllint-web-scraping | 5.19 | 0.05 | **105.96x** | -99.1% |
+| session-state | session-state-json-roundtrip | 2.32 | 0.10 | **23.65x** | -95.8% |
+| document-media | document-mermaid-svg-pipeline | 2.00 | 0.04 | **46.49x** | -97.8% |
+| agent-workflow | agent-refactor-release-pipeline | 15.04 | 1.37 | **10.98x** | -90.9% |
+| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 2.69 | 0.12 | **22.60x** | -95.6% |
+| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 2.19 | 0.10 | **21.48x** | -95.3% |
+| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 34.24 | 0.45 | **76.76x** | -98.7% |
+| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 6.96 | 0.08 | **86.99x** | -98.8% |
+| document-media | media-office-ffmpeg-soffice-pipeline | 3.24 | 0.14 | **23.13x** | -95.7% |
+| structured-data | polyglot-yq-jq-xmllint-config-compiler | 3.56 | 0.17 | **20.61x** | -95.1% |
+| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 56.78 | 0.16 | **359.35x** | -99.7% |
+| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.65 | 0.17 | **15.51x** | -93.6% |
 
 ---
 
@@ -57,37 +57,37 @@ Generated from commit `ff78f654ea` on `darwin/arm64` (Apple M2 Pro, Node `v22.22
 
 - **Baseline**: `ts-baseline-overlay-cow-fs` (`ts-safe-bash`)
 - **Candidate**: `rust-wasm-overlay-cow-fs` (`rust-safe-bash`)
-- **Geometric Mean Speedup (p50)**: **59.73x**
-- **Total Duration Speedup**: **62.38x**
+- **Geometric Mean Speedup (p50)**: **37.82x**
+- **Total Duration Speedup**: **45.71x**
 
 | Category | Scenario | Baseline p50 (ms) | Candidate p50 (ms) | Speedup | Delta (%) |
 | --- | --- | ---: | ---: | ---: | ---: |
-| shell-grammar | shell-grammar-arithmetic-loops | 3.70 | 0.16 | **22.57x** | -95.6% |
-| pipelines | pipeline-6-stage-stream | 4.87 | 2.16 | **2.25x** | -55.6% |
-| search | search-rg-find-monorepo | 26.45 | 0.56 | **46.90x** | -97.9% |
-| text-processing | text-awk-sed-log-analytics | 1.09 | 0.23 | **4.64x** | -78.5% |
-| structured-data | structured-jq-yq-pipeline | 2.24 | 0.10 | **22.14x** | -95.5% |
-| database | sqlite3-join-aggregation | 0.79 | 0.02 | **49.44x** | -98.0% |
-| archives | archive-tar-gzip-sha256-roundtrip | 30.70 | 0.23 | **134.66x** | -99.3% |
-| compression | compression-zstd-xz-stream | 13.18 | 0.05 | **248.72x** | -99.6% |
-| vfs | vfs-tree-clone-chmod-stat | 50.49 | 0.39 | **130.46x** | -99.2% |
-| math-utils | math-awk-bc-numfmt-reduction | 0.84 | 0.76 | **1.11x** | -10.0% |
-| chaos | chaos-adversarial-find-xargs0 | 8.73 | 0.07 | **122.99x** | -99.2% |
-| lifecycle | shell-cold-start-and-exec | 0.94 | 0.01 | **72.00x** | -98.6% |
-| diff-patch | diff-patch-diff3-merge | 21.65 | 0.09 | **248.88x** | -99.6% |
-| csv-analytics | csvkit-xan-data-science | 4.01 | 0.07 | **61.68x** | -98.4% |
-| web-scraping | htmlq-xmllint-web-scraping | 6.04 | 0.03 | **201.20x** | -99.5% |
-| session-state | session-state-json-roundtrip | 1.09 | 0.04 | **25.26x** | -96.0% |
-| document-media | document-mermaid-svg-pipeline | 4.00 | 0.02 | **166.88x** | -99.4% |
-| agent-workflow | agent-refactor-release-pipeline | 116.93 | 1.09 | **107.67x** | -99.1% |
-| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 8.24 | 0.07 | **114.51x** | -99.1% |
-| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 13.26 | 0.06 | **232.63x** | -99.6% |
-| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 74.59 | 0.41 | **179.74x** | -99.4% |
-| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 5.86 | 0.06 | **101.09x** | -99.0% |
-| document-media | media-office-ffmpeg-soffice-pipeline | 8.94 | 0.08 | **110.41x** | -99.1% |
-| structured-data | polyglot-yq-jq-xmllint-config-compiler | 6.15 | 0.11 | **54.90x** | -98.2% |
-| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 15.92 | 0.09 | **180.96x** | -99.4% |
-| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.23 | 0.06 | **39.07x** | -97.4% |
+| shell-grammar | shell-grammar-arithmetic-loops | 3.75 | 0.58 | **6.42x** | -84.4% |
+| pipelines | pipeline-6-stage-stream | 4.86 | 2.35 | **2.06x** | -51.5% |
+| search | search-rg-find-monorepo | 26.58 | 0.99 | **26.77x** | -96.3% |
+| text-processing | text-awk-sed-log-analytics | 1.06 | 0.38 | **2.80x** | -64.2% |
+| structured-data | structured-jq-yq-pipeline | 2.32 | 0.13 | **18.13x** | -94.5% |
+| database | sqlite3-join-aggregation | 0.77 | 0.02 | **33.65x** | -97.0% |
+| archives | archive-tar-gzip-sha256-roundtrip | 30.70 | 0.25 | **120.86x** | -99.2% |
+| compression | compression-zstd-xz-stream | 12.41 | 0.08 | **163.33x** | -99.4% |
+| vfs | vfs-tree-clone-chmod-stat | 50.99 | 0.43 | **117.49x** | -99.1% |
+| math-utils | math-awk-bc-numfmt-reduction | 0.92 | 0.82 | **1.13x** | -11.3% |
+| chaos | chaos-adversarial-find-xargs0 | 8.68 | 0.12 | **71.75x** | -98.6% |
+| lifecycle | shell-cold-start-and-exec | 0.91 | 0.07 | **14.06x** | -92.9% |
+| diff-patch | diff-patch-diff3-merge | 20.87 | 0.14 | **153.47x** | -99.3% |
+| csv-analytics | csvkit-xan-data-science | 4.05 | 0.09 | **44.00x** | -97.7% |
+| web-scraping | htmlq-xmllint-web-scraping | 6.16 | 0.05 | **131.09x** | -99.2% |
+| session-state | session-state-json-roundtrip | 1.02 | 0.09 | **11.70x** | -91.5% |
+| document-media | document-mermaid-svg-pipeline | 4.81 | 0.04 | **117.22x** | -99.1% |
+| agent-workflow | agent-refactor-release-pipeline | 114.71 | 1.56 | **73.44x** | -98.6% |
+| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 7.65 | 0.11 | **69.57x** | -98.6% |
+| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 13.70 | 0.10 | **139.75x** | -99.3% |
+| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 84.85 | 0.47 | **180.91x** | -99.4% |
+| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 6.73 | 0.08 | **84.15x** | -98.8% |
+| document-media | media-office-ffmpeg-soffice-pipeline | 10.40 | 0.14 | **75.88x** | -98.7% |
+| structured-data | polyglot-yq-jq-xmllint-config-compiler | 6.97 | 0.20 | **34.15x** | -97.1% |
+| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 17.57 | 0.16 | **107.82x** | -99.1% |
+| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.47 | 0.14 | **17.87x** | -94.4% |
 
 ---
 
@@ -95,37 +95,37 @@ Generated from commit `ff78f654ea` on `darwin/arm64` (Apple M2 Pro, Node `v22.22
 
 - **Baseline**: `ts-baseline-strict-budgets-mount-dev` (`ts-safe-bash`)
 - **Candidate**: `rust-wasm-strict-budgets-mount-dev` (`rust-safe-bash`)
-- **Geometric Mean Speedup (p50)**: **31.16x**
-- **Total Duration Speedup**: **29.80x**
+- **Geometric Mean Speedup (p50)**: **20.46x**
+- **Total Duration Speedup**: **22.70x**
 
 | Category | Scenario | Baseline p50 (ms) | Candidate p50 (ms) | Speedup | Delta (%) |
 | --- | --- | ---: | ---: | ---: | ---: |
-| shell-grammar | shell-grammar-arithmetic-loops | 3.55 | 0.15 | **23.52x** | -95.7% |
-| pipelines | pipeline-6-stage-stream | 4.36 | 2.14 | **2.04x** | -51.0% |
-| search | search-rg-find-monorepo | 4.62 | 0.47 | **9.74x** | -89.7% |
-| text-processing | text-awk-sed-log-analytics | 0.70 | 0.24 | **2.97x** | -66.3% |
-| structured-data | structured-jq-yq-pipeline | 1.60 | 0.10 | **16.03x** | -93.8% |
-| database | sqlite3-join-aggregation | 0.59 | 0.01 | **39.53x** | -97.5% |
-| archives | archive-tar-gzip-sha256-roundtrip | 5.51 | 0.17 | **33.40x** | -97.0% |
-| compression | compression-zstd-xz-stream | 12.04 | 0.05 | **236.14x** | -99.6% |
-| vfs | vfs-tree-clone-chmod-stat | 7.04 | 0.25 | **27.92x** | -96.4% |
-| math-utils | math-awk-bc-numfmt-reduction | 0.78 | 0.73 | **1.06x** | -6.0% |
-| chaos | chaos-adversarial-find-xargs0 | 2.51 | 0.07 | **38.62x** | -97.4% |
-| lifecycle | shell-cold-start-and-exec | 0.54 | 0.01 | **36.27x** | -97.2% |
-| diff-patch | diff-patch-diff3-merge | 3.98 | 0.08 | **47.34x** | -97.9% |
-| csv-analytics | csvkit-xan-data-science | 3.41 | 0.07 | **50.90x** | -98.0% |
-| web-scraping | htmlq-xmllint-web-scraping | 4.27 | 0.04 | **115.51x** | -99.1% |
-| session-state | session-state-json-roundtrip | 1.13 | 0.05 | **21.79x** | -95.4% |
-| document-media | document-mermaid-svg-pipeline | 1.37 | 0.03 | **44.29x** | -97.7% |
-| agent-workflow | agent-refactor-release-pipeline | 19.40 | 0.96 | **20.29x** | -95.1% |
-| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 2.38 | 0.07 | **35.49x** | -97.2% |
-| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 2.11 | 0.06 | **38.36x** | -97.4% |
-| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 36.09 | 0.33 | **108.07x** | -99.1% |
-| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 5.35 | 0.06 | **92.26x** | -98.9% |
-| document-media | media-office-ffmpeg-soffice-pipeline | 2.98 | 0.08 | **37.67x** | -97.3% |
-| structured-data | polyglot-yq-jq-xmllint-config-compiler | 3.08 | 0.10 | **29.29x** | -96.6% |
-| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 56.48 | 0.09 | **664.41x** | -99.8% |
-| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.48 | 0.06 | **43.56x** | -97.7% |
+| shell-grammar | shell-grammar-arithmetic-loops | 3.25 | 0.54 | **6.03x** | -83.4% |
+| pipelines | pipeline-6-stage-stream | 4.43 | 2.24 | **1.98x** | -49.5% |
+| search | search-rg-find-monorepo | 4.96 | 0.78 | **6.39x** | -84.4% |
+| text-processing | text-awk-sed-log-analytics | 0.69 | 0.36 | **1.92x** | -47.8% |
+| structured-data | structured-jq-yq-pipeline | 1.47 | 0.12 | **12.22x** | -91.8% |
+| database | sqlite3-join-aggregation | 0.59 | 0.02 | **25.48x** | -96.1% |
+| archives | archive-tar-gzip-sha256-roundtrip | 6.12 | 0.19 | **32.05x** | -96.9% |
+| compression | compression-zstd-xz-stream | 12.76 | 0.07 | **182.21x** | -99.5% |
+| vfs | vfs-tree-clone-chmod-stat | 7.06 | 0.32 | **22.42x** | -95.5% |
+| math-utils | math-awk-bc-numfmt-reduction | 0.93 | 0.80 | **1.16x** | -13.6% |
+| chaos | chaos-adversarial-find-xargs0 | 2.61 | 0.11 | **22.93x** | -95.6% |
+| lifecycle | shell-cold-start-and-exec | 0.55 | 0.07 | **8.03x** | -87.5% |
+| diff-patch | diff-patch-diff3-merge | 4.69 | 0.13 | **35.77x** | -97.2% |
+| csv-analytics | csvkit-xan-data-science | 3.52 | 0.09 | **40.44x** | -97.5% |
+| web-scraping | htmlq-xmllint-web-scraping | 4.25 | 0.05 | **92.44x** | -98.9% |
+| session-state | session-state-json-roundtrip | 1.16 | 0.09 | **13.44x** | -92.6% |
+| document-media | document-mermaid-svg-pipeline | 1.36 | 0.04 | **33.29x** | -97.0% |
+| agent-workflow | agent-refactor-release-pipeline | 21.42 | 1.45 | **14.80x** | -93.2% |
+| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 2.48 | 0.11 | **23.19x** | -95.7% |
+| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 2.45 | 0.10 | **25.81x** | -96.1% |
+| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 35.49 | 0.40 | **89.85x** | -98.9% |
+| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 4.82 | 0.07 | **66.01x** | -98.5% |
+| document-media | media-office-ffmpeg-soffice-pipeline | 3.01 | 0.15 | **19.39x** | -94.8% |
+| structured-data | polyglot-yq-jq-xmllint-config-compiler | 3.00 | 0.15 | **19.98x** | -95.0% |
+| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 54.58 | 0.14 | **381.68x** | -99.7% |
+| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.62 | 0.13 | **20.43x** | -95.1% |
 
 ---
 
@@ -133,37 +133,37 @@ Generated from commit `ff78f654ea` on `darwin/arm64` (Apple M2 Pro, Node `v22.22
 
 - **Baseline**: `ts-baseline-overlay-cow-fs` (`ts-safe-bash`)
 - **Candidate**: `ts-baseline-warm-memory-fastpath` (`ts-safe-bash`)
-- **Geometric Mean Speedup (p50)**: **1.64x**
-- **Total Duration Speedup**: **2.19x**
+- **Geometric Mean Speedup (p50)**: **1.53x**
+- **Total Duration Speedup**: **2.07x**
 
 | Category | Scenario | Baseline p50 (ms) | Candidate p50 (ms) | Speedup | Delta (%) |
 | --- | --- | ---: | ---: | ---: | ---: |
-| shell-grammar | shell-grammar-arithmetic-loops | 3.70 | 5.59 | **0.66x** | +50.9% |
-| pipelines | pipeline-6-stage-stream | 4.87 | 6.14 | **0.79x** | +26.0% |
-| search | search-rg-find-monorepo | 26.45 | 3.93 | **6.73x** | -85.1% |
-| text-processing | text-awk-sed-log-analytics | 1.09 | 1.03 | **1.06x** | -5.5% |
-| structured-data | structured-jq-yq-pipeline | 2.24 | 2.08 | **1.07x** | -6.9% |
-| database | sqlite3-join-aggregation | 0.79 | 1.26 | **0.63x** | +58.9% |
-| archives | archive-tar-gzip-sha256-roundtrip | 30.70 | 7.33 | **4.19x** | -76.1% |
-| compression | compression-zstd-xz-stream | 13.18 | 14.72 | **0.90x** | +11.7% |
-| vfs | vfs-tree-clone-chmod-stat | 50.49 | 3.72 | **13.57x** | -92.6% |
-| math-utils | math-awk-bc-numfmt-reduction | 0.84 | 1.19 | **0.71x** | +41.3% |
-| chaos | chaos-adversarial-find-xargs0 | 8.73 | 1.82 | **4.79x** | -79.1% |
-| lifecycle | shell-cold-start-and-exec | 0.94 | 1.69 | **0.56x** | +80.2% |
-| diff-patch | diff-patch-diff3-merge | 21.65 | 6.03 | **3.59x** | -72.2% |
-| csv-analytics | csvkit-xan-data-science | 4.01 | 4.75 | **0.84x** | +18.4% |
-| web-scraping | htmlq-xmllint-web-scraping | 6.04 | 5.35 | **1.13x** | -11.4% |
-| session-state | session-state-json-roundtrip | 1.09 | 1.79 | **0.60x** | +65.3% |
-| document-media | document-mermaid-svg-pipeline | 4.00 | 1.76 | **2.27x** | -56.0% |
-| agent-workflow | agent-refactor-release-pipeline | 116.93 | 14.70 | **7.95x** | -87.4% |
-| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 8.24 | 2.55 | **3.24x** | -69.1% |
-| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 13.26 | 2.40 | **5.52x** | -81.9% |
-| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 74.59 | 35.13 | **2.12x** | -52.9% |
-| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 5.86 | 6.63 | **0.89x** | +13.0% |
-| document-media | media-office-ffmpeg-soffice-pipeline | 8.94 | 3.14 | **2.85x** | -64.9% |
-| structured-data | polyglot-yq-jq-xmllint-config-compiler | 6.15 | 3.51 | **1.75x** | -43.0% |
-| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 15.92 | 54.97 | **0.29x** | +245.2% |
-| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.23 | 2.52 | **0.88x** | +13.1% |
+| shell-grammar | shell-grammar-arithmetic-loops | 3.75 | 6.08 | **0.62x** | +62.4% |
+| pipelines | pipeline-6-stage-stream | 4.86 | 7.46 | **0.65x** | +53.7% |
+| search | search-rg-find-monorepo | 26.58 | 5.17 | **5.14x** | -80.5% |
+| text-processing | text-awk-sed-log-analytics | 1.06 | 1.18 | **0.90x** | +11.1% |
+| structured-data | structured-jq-yq-pipeline | 2.32 | 2.51 | **0.92x** | +8.3% |
+| database | sqlite3-join-aggregation | 0.77 | 1.51 | **0.51x** | +95.1% |
+| archives | archive-tar-gzip-sha256-roundtrip | 30.70 | 7.30 | **4.21x** | -76.2% |
+| compression | compression-zstd-xz-stream | 12.41 | 16.55 | **0.75x** | +33.3% |
+| vfs | vfs-tree-clone-chmod-stat | 50.99 | 4.65 | **10.97x** | -90.9% |
+| math-utils | math-awk-bc-numfmt-reduction | 0.92 | 1.59 | **0.58x** | +72.3% |
+| chaos | chaos-adversarial-find-xargs0 | 8.68 | 2.18 | **3.98x** | -74.9% |
+| lifecycle | shell-cold-start-and-exec | 0.91 | 1.93 | **0.47x** | +111.6% |
+| diff-patch | diff-patch-diff3-merge | 20.87 | 6.38 | **3.27x** | -69.5% |
+| csv-analytics | csvkit-xan-data-science | 4.05 | 5.26 | **0.77x** | +30.0% |
+| web-scraping | htmlq-xmllint-web-scraping | 6.16 | 5.19 | **1.19x** | -15.7% |
+| session-state | session-state-json-roundtrip | 1.02 | 2.32 | **0.44x** | +127.7% |
+| document-media | document-mermaid-svg-pipeline | 4.81 | 2.00 | **2.40x** | -58.4% |
+| agent-workflow | agent-refactor-release-pipeline | 114.71 | 15.04 | **7.63x** | -86.9% |
+| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 7.65 | 2.69 | **2.85x** | -64.9% |
+| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 13.70 | 2.19 | **6.25x** | -84.0% |
+| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 84.85 | 34.24 | **2.48x** | -59.7% |
+| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 6.73 | 6.96 | **0.97x** | +3.4% |
+| document-media | media-office-ffmpeg-soffice-pipeline | 10.40 | 3.24 | **3.21x** | -68.9% |
+| structured-data | polyglot-yq-jq-xmllint-config-compiler | 6.97 | 3.56 | **1.95x** | -48.8% |
+| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 17.57 | 56.78 | **0.31x** | +223.1% |
+| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.47 | 2.65 | **0.93x** | +7.5% |
 
 ---
 
@@ -171,34 +171,34 @@ Generated from commit `ff78f654ea` on `darwin/arm64` (Apple M2 Pro, Node `v22.22
 
 - **Baseline**: `ts-baseline-warm-memory-fastpath` (`ts-safe-bash`)
 - **Candidate**: `ts-baseline-strict-budgets-mount-dev` (`ts-safe-bash`)
-- **Geometric Mean Speedup (p50)**: **1.22x**
-- **Total Duration Speedup**: **1.04x**
+- **Geometric Mean Speedup (p50)**: **1.31x**
+- **Total Duration Speedup**: **1.09x**
 
 | Category | Scenario | Baseline p50 (ms) | Candidate p50 (ms) | Speedup | Delta (%) |
 | --- | --- | ---: | ---: | ---: | ---: |
-| shell-grammar | shell-grammar-arithmetic-loops | 5.59 | 3.55 | **1.57x** | -36.4% |
-| pipelines | pipeline-6-stage-stream | 6.14 | 4.36 | **1.41x** | -29.0% |
-| search | search-rg-find-monorepo | 3.93 | 4.62 | **0.85x** | +17.5% |
-| text-processing | text-awk-sed-log-analytics | 1.03 | 0.70 | **1.47x** | -31.8% |
-| structured-data | structured-jq-yq-pipeline | 2.08 | 1.60 | **1.30x** | -23.0% |
-| database | sqlite3-join-aggregation | 1.26 | 0.59 | **2.12x** | -52.8% |
-| archives | archive-tar-gzip-sha256-roundtrip | 7.33 | 5.51 | **1.33x** | -24.9% |
-| compression | compression-zstd-xz-stream | 14.72 | 12.04 | **1.22x** | -18.2% |
-| vfs | vfs-tree-clone-chmod-stat | 3.72 | 7.04 | **0.53x** | +89.1% |
-| math-utils | math-awk-bc-numfmt-reduction | 1.19 | 0.78 | **1.53x** | -34.5% |
-| chaos | chaos-adversarial-find-xargs0 | 1.82 | 2.51 | **0.72x** | +37.8% |
-| lifecycle | shell-cold-start-and-exec | 1.69 | 0.54 | **3.10x** | -67.8% |
-| diff-patch | diff-patch-diff3-merge | 6.03 | 3.98 | **1.51x** | -34.0% |
-| csv-analytics | csvkit-xan-data-science | 4.75 | 3.41 | **1.39x** | -28.2% |
-| web-scraping | htmlq-xmllint-web-scraping | 5.35 | 4.27 | **1.25x** | -20.1% |
-| session-state | session-state-json-roundtrip | 1.79 | 1.13 | **1.58x** | -36.9% |
-| document-media | document-mermaid-svg-pipeline | 1.76 | 1.37 | **1.28x** | -22.2% |
-| agent-workflow | agent-refactor-release-pipeline | 14.70 | 19.40 | **0.76x** | +31.9% |
-| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 2.55 | 2.38 | **1.07x** | -6.7% |
-| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 2.40 | 2.11 | **1.14x** | -12.2% |
-| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 35.13 | 36.09 | **0.97x** | +2.7% |
-| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 6.63 | 5.35 | **1.24x** | -19.2% |
-| document-media | media-office-ffmpeg-soffice-pipeline | 3.14 | 2.98 | **1.05x** | -5.2% |
-| structured-data | polyglot-yq-jq-xmllint-config-compiler | 3.51 | 3.08 | **1.14x** | -12.3% |
-| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 54.97 | 56.48 | **0.97x** | +2.7% |
-| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.52 | 2.48 | **1.01x** | -1.4% |
+| shell-grammar | shell-grammar-arithmetic-loops | 6.08 | 3.25 | **1.88x** | -46.7% |
+| pipelines | pipeline-6-stage-stream | 7.46 | 4.43 | **1.68x** | -40.6% |
+| search | search-rg-find-monorepo | 5.17 | 4.96 | **1.04x** | -4.2% |
+| text-processing | text-awk-sed-log-analytics | 1.18 | 0.69 | **1.70x** | -41.1% |
+| structured-data | structured-jq-yq-pipeline | 2.51 | 1.47 | **1.71x** | -41.6% |
+| database | sqlite3-join-aggregation | 1.51 | 0.59 | **2.58x** | -61.2% |
+| archives | archive-tar-gzip-sha256-roundtrip | 7.30 | 6.12 | **1.19x** | -16.1% |
+| compression | compression-zstd-xz-stream | 16.55 | 12.76 | **1.30x** | -22.9% |
+| vfs | vfs-tree-clone-chmod-stat | 4.65 | 7.06 | **0.66x** | +51.9% |
+| math-utils | math-awk-bc-numfmt-reduction | 1.59 | 0.93 | **1.72x** | -41.9% |
+| chaos | chaos-adversarial-find-xargs0 | 2.18 | 2.61 | **0.83x** | +20.0% |
+| lifecycle | shell-cold-start-and-exec | 1.93 | 0.55 | **3.49x** | -71.4% |
+| diff-patch | diff-patch-diff3-merge | 6.38 | 4.69 | **1.36x** | -26.5% |
+| csv-analytics | csvkit-xan-data-science | 5.26 | 3.52 | **1.50x** | -33.2% |
+| web-scraping | htmlq-xmllint-web-scraping | 5.19 | 4.25 | **1.22x** | -18.1% |
+| session-state | session-state-json-roundtrip | 2.32 | 1.16 | **2.00x** | -50.1% |
+| document-media | document-mermaid-svg-pipeline | 2.00 | 1.36 | **1.46x** | -31.7% |
+| agent-workflow | agent-refactor-release-pipeline | 15.04 | 21.42 | **0.70x** | +42.4% |
+| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 2.69 | 2.48 | **1.08x** | -7.7% |
+| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 2.19 | 2.45 | **0.89x** | +11.9% |
+| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 34.24 | 35.49 | **0.96x** | +3.7% |
+| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 6.96 | 4.82 | **1.44x** | -30.8% |
+| document-media | media-office-ffmpeg-soffice-pipeline | 3.24 | 3.01 | **1.08x** | -7.2% |
+| structured-data | polyglot-yq-jq-xmllint-config-compiler | 3.56 | 3.00 | **1.19x** | -15.9% |
+| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 56.78 | 54.58 | **1.04x** | -3.9% |
+| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.65 | 2.62 | **1.01x** | -1.4% |

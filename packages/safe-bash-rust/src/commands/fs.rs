@@ -7,16 +7,17 @@ pub fn try_run_fs_command(
     cmd: &str,
     args: &[String],
     cwd: &str,
+    env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
     match cmd {
         "ls" => Some(cmd_ls(args, cwd, fs)),
-        "mkdir" => Some(cmd_mkdir(args, cwd, fs)),
+        "mkdir" => Some(cmd_mkdir(args, cwd, env, fs)),
         "rmdir" => Some(cmd_rmdir(args, cwd, fs)),
         "rm" => Some(cmd_rm(args, cwd, fs)),
         "cp" => Some(cmd_cp(args, cwd, fs)),
         "mv" => Some(cmd_mv(args, cwd, fs)),
-        "touch" => Some(cmd_touch(args, cwd, fs)),
+        "touch" => Some(cmd_touch(args, cwd, env, fs)),
         "ln" => Some(cmd_ln(args, cwd, fs)),
         "readlink" => Some(cmd_readlink(args, cwd, fs)),
         "realpath" => Some(cmd_realpath(args, cwd, fs)),
@@ -98,13 +99,24 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     }
 }
 
-fn cmd_mkdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_mkdir(
+    args: &[String],
+    cwd: &str,
+    env: &std::collections::BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut stderr = String::new();
     let mut code = 0;
+    let mut explicit_mode: Option<u32> = None;
+    let umask_val = env
+        .get("__umask")
+        .and_then(|s| u32::from_str_radix(s, 8).ok())
+        .unwrap_or(0o022);
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
         if a == "-m" && i + 1 < args.len() {
+            explicit_mode = u32::from_str_radix(&args[i + 1], 8).ok();
             i += 2;
             continue;
         }
@@ -113,9 +125,13 @@ fn cmd_mkdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             continue;
         }
         let p = resolve_posix_path(cwd, a);
+        let existed = fs.exists(&p);
         if let Err(e) = fs.mkdir_all(&p) {
             stderr.push_str(&format!("mkdir: cannot create directory '{a}': {e}\n"));
             code = 1;
+        } else if !existed {
+            let mode = explicit_mode.unwrap_or((0o777 & !umask_val) & 0o777);
+            let _ = fs.chmod(&p, mode);
         }
         i += 1;
     }
@@ -225,7 +241,18 @@ fn copy_recursive(src: &str, dst: &str, fs: &dyn SafeBashFs) -> Result<(), Strin
 }
 
 fn cmd_cp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let operands: Vec<&String> = args.iter().filter(|a| !a.starts_with('-')).collect();
+    let mut operands: Vec<&String> = Vec::new();
+    let mut end_opts = false;
+    for a in args {
+        if !end_opts && a == "--" {
+            end_opts = true;
+            continue;
+        }
+        if !end_opts && a.starts_with('-') && a != "-" {
+            continue;
+        }
+        operands.push(a);
+    }
     if operands.len() < 2 {
         return BuiltinOutcome {
             stdout: String::new(),
@@ -264,7 +291,18 @@ fn cmd_cp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
 }
 
 fn cmd_mv(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let operands: Vec<&String> = args.iter().filter(|a| !a.starts_with('-')).collect();
+    let mut operands: Vec<&String> = Vec::new();
+    let mut end_opts = false;
+    for a in args {
+        if !end_opts && a == "--" {
+            end_opts = true;
+            continue;
+        }
+        if !end_opts && a.starts_with('-') && a != "-" {
+            continue;
+        }
+        operands.push(a);
+    }
     if operands.len() < 2 {
         return BuiltinOutcome {
             stdout: String::new(),
@@ -305,25 +343,80 @@ fn cmd_mv(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     }
 }
 
-fn cmd_touch(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_touch(
+    args: &[String],
+    cwd: &str,
+    env: &std::collections::BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut no_create = false;
+    let mut ref_mtime: Option<u64> = None;
+    let umask_val = env
+        .get("__umask")
+        .and_then(|s| u32::from_str_radix(s, 8).ok())
+        .unwrap_or(0o022);
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if matches!(a.as_str(), "-d" | "-t" | "-r") {
+        if a == "-r" && i + 1 < args.len() {
+            let rp = resolve_posix_path(cwd, &args[i + 1]);
+            if let Ok(st) = fs.stat(&rp) {
+                ref_mtime = Some(st.mtime_ms);
+            }
+            i += 2;
+            continue;
+        }
+        if (a == "-d" || a == "-t") && i + 1 < args.len() {
+            ref_mtime = Some(parse_touch_timestamp_ms(&args[i + 1]));
             i += 2;
             continue;
         }
         if a.starts_with('-') {
+            if a.contains('c') {
+                no_create = true;
+            }
             i += 1;
             continue;
         }
         let p = resolve_posix_path(cwd, a);
         if !fs.exists(&p) {
-            let _ = fs.write_file(&p, &[]);
+            if !no_create {
+                let _ = fs.write_file(&p, &[]);
+                let mode = (0o666 & !umask_val) & 0o777;
+                let _ = fs.chmod(&p, mode);
+                if let Some(ms) = ref_mtime {
+                    let _ = fs.set_mtime(&p, ms);
+                }
+            }
+        } else if let Some(ms) = ref_mtime {
+            let _ = fs.set_mtime(&p, ms);
         }
         i += 1;
     }
     ok_out("")
+}
+
+fn parse_touch_timestamp_ms(s: &str) -> u64 {
+    let trimmed = s.trim();
+    if let Some(epoch) = trimmed.strip_prefix('@') {
+        return epoch.parse::<u64>().unwrap_or(1_700_000_000) * 1000;
+    }
+    let digits: Vec<u64> = trimmed
+        .split(|c: char| !c.is_ascii_digit())
+        .filter(|p| !p.is_empty())
+        .filter_map(|p| p.parse::<u64>().ok())
+        .collect();
+    if digits.len() >= 3 && digits[0] >= 1970 {
+        let y = digits[0];
+        let m = digits.get(1).copied().unwrap_or(1).clamp(1, 12);
+        let d = digits.get(2).copied().unwrap_or(1).clamp(1, 31);
+        let hh = digits.get(3).copied().unwrap_or(0).clamp(0, 23);
+        let mm = digits.get(4).copied().unwrap_or(0).clamp(0, 59);
+        let ss = digits.get(5).copied().unwrap_or(0).clamp(0, 59);
+        let days = (y - 1970) * 365 + (y - 1969) / 4 + (m - 1) * 30 + (d - 1);
+        return (days * 86400 + hh * 3600 + mm * 60 + ss) * 1000;
+    }
+    1_700_000_000_000
 }
 
 fn cmd_ln(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {

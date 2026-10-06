@@ -399,7 +399,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (configurationInvocation) {
       try {
         const tokens = Array.from({ length: argumentsValue.args.length }, (_, index) => argumentText(index));
-        if (await configurationCommand(context, service, tokens, emitText, text => writeDiagnostic(context.stderr, text, signal), admitInput, limits?.maxConfigurationBytes)) return { exitCode: 0 };
+        const exitCode = await configurationCommand({...context, signal}, service, tokens, emitText, text => writeDiagnostic(context.stderr, text, signal), admitInput, limits?.maxConfigurationBytes, step);
+        if (exitCode !== undefined) return {exitCode};
       } catch (error) {
         throw new Error(`Error: ${error instanceof Error ? error.message : "Configuration failed"}`);
       }

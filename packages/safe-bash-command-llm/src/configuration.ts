@@ -166,6 +166,7 @@ export function createLlmConfiguration(context: Context, maxConfigurationBytes =
     }),
     removeAlias: name => serialized(async () => {
       const expected = await stat(filename("aliases.json"));
+      if (!expected) throw new Error("No aliases.json file exists");
       const values = await aliases();
       if (!Object.hasOwn(values, name)) throw new Error(`No such alias: ${name}`);
       delete values[name];

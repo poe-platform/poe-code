@@ -6,9 +6,9 @@ export const chatOptions: readonly string[] = [
 ];
 
 /** Click's three closest long options, using Python's matching-block ratio. */
-export async function chatOptionSuggestion(value: string, step: () => Promise<void>): Promise<string> {
+export async function chatOptionSuggestion(value: string, step: () => Promise<void>, choices: readonly string[] = chatOptions): Promise<string> {
   if (!value.startsWith('--')) return '';
-  const options = chatOptions.filter(option => option.startsWith('--'));
+  const options = choices.filter(option => option.startsWith('--'));
   const cutoff = 0.6;
   // Even a perfect match of the longest option cannot qualify beyond this size.
   // This also keeps every comparison below SequenceMatcher's autojunk threshold.

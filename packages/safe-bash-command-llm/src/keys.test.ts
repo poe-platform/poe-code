@@ -57,7 +57,7 @@ test("llm keys CLI and configuration store manage keys.json and resolve --key fo
   });
   assert.deepEqual(await run(["keys", "set", "anthropic"], "sk-stdin-456\n"), {
     exitCode: 0,
-    stdout: "",
+    stdout: "Enter key: \n",
     stderr: "",
   });
   assert.deepEqual(await run(["keys", "list"]), {

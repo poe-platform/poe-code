@@ -1,5 +1,5 @@
 import {formatLoaderDescription} from './loader-description.js';
-import {loadLlmHelp} from './help-text.js';
+import {configurationArguments} from './configuration-arguments.js';
 import { jsonValue } from "./json-value.js";
 import { FsError, type CommandContext } from "safe-bash-contracts";
 import { pathOf } from "safe-bash-contracts/path";
@@ -252,48 +252,9 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
       await publish(name, new TextEncoder().encode(stringify(value, { indent: 4, lineWidth: 0 })));
     },
     async command(args: readonly string[], output: (text: string) => Promise<void>, diagnostic: (text: string) => Promise<void>): Promise<number> {
-      const actions = ["list", "edit", "loaders", "path", "show"];
-      const grouped = args.length === 1 && ["--help", "-h"].includes(args[0]!);
-      const routed = args[0] === "--" ? args.slice(1) : args;
-      const explicit = actions.includes(routed[0] ?? "");
-      const command = (explicit ? routed[0]! : "list") as "list" | "edit" | "loaders" | "path" | "show";
-      const tokens = explicit ? routed.slice(1) : routed;
-
-      const usage = `Usage: llm templates ${command} [OPTIONS]${["show", "edit"].includes(command) ? " NAME" : ""}\n`;
-      if (grouped) {
-        await output((await loadLlmHelp("templates")));
-        return 0;
-      }
-      let optionsEnded = false;
-      const operands: string[] = [];
-      let failure: string | undefined;
-      let help = false, showUsage = true;
-      for (const token of tokens) {
-        context.signal.throwIfAborted();
-        if (!optionsEnded && token === "--") optionsEnded = true;
-        else if (!optionsEnded && token === "--help") help = true;
-        else if (!optionsEnded && token.startsWith("--help=")) { failure = "Option '--help' does not take a value."; showUsage = false; break; }
-        else if (!optionsEnded && token.startsWith("-") && !token.startsWith("--") && token !== "-") {
-          for (const letter of token.slice(1)) {
-            if (letter === "h") help = true;
-            else { failure = `No such option: -${letter}`; break; }
-          }
-          if (failure) break;
-        } else if (!optionsEnded && token.startsWith("-") && token !== "-") {
-          failure = `No such option: ${token.split("=")[0]}`;
-          break;
-        } else operands.push(token);
-      }
-      if (help && !failure) {
-        await output(await loadLlmHelp(`templates-${command}`));
-        return 0;
-      }
-      const needsName = ["show", "edit"].includes(command);
-      failure ??= needsName && !operands.length ? "Missing argument 'NAME'." : operands.length > (needsName ? 1 : 0) ? `Got unexpected extra argument (${operands[needsName ? 1 : 0]})` : undefined;
-      if (failure) {
-        await diagnostic((showUsage ? usage + `Try 'llm templates ${command} -h' for help.\n\n` : "") + `Error: ${failure}\n`);
-        return 2;
-      }
+      const parsed = await configurationArguments("templates", args, ["list", "edit", "loaders", "path", "show"], output, diagnostic, async () => {context.signal.throwIfAborted();});
+      if (typeof parsed === "number") return parsed;
+      const {command, operands} = parsed;
       const name = operands[0];
       if (command === "loaders") {
         if (!loaders?.loaders?.size) await output("No template loaders found\n");

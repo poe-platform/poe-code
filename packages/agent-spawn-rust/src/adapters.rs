@@ -957,6 +957,15 @@ impl Adapter {
             {
                 let output = trim_ecmascript(units(f(item, "aggregated_output")));
                 let output_text = String::from_utf16_lossy(output);
+                if (output_text.contains("failed to register synthetic bubblewrap mount target ")
+                    || output_text
+                        .contains("failed to create synthetic bubblewrap mount marker directory "))
+                    && output_text.contains("No space left on device (os error 28)")
+                {
+                    let mut message = output.to_vec();
+                    message.extend("\nCodex sandbox startup failed before the command ran: synthetic mount staging ran out of space (ENOSPC).\nCheck available blocks and inodes on the staging filesystem; for /tmp, use df -h /tmp and df -i /tmp.\nMoving the worktree to a volume with free space does not move Codex's synthetic mount staging.\nFree only temporary files you own and no longer need, or ask the host administrator to restore capacity;\nthen retry the command in the same sandbox. Do not delete other workers' files.\nIf even diagnostic commands cannot start, request the exact diagnostic command through the existing approval reviewer\nwith sandbox_permissions: \"require_escalated\", only when the session policy permits it.\nDo not retry automatically outside the sandbox or bypass a denied approval.".encode_utf16());
+                    result.push(e("error", vec![("message", Value::String(message))]));
+                }
                 if output_text.contains("esbuild/lib/main.js:")
                     && output.split(|unit| *unit == 10).any(|line| {
                         matches!(

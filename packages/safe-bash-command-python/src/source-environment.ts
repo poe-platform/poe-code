@@ -24,7 +24,7 @@ const archiveSuffix=(path:string)=>['.zip','.tar','.tar.gz','.tgz','.tar.bz2','.
 /** Package environment that builds local PEP 517 and legacy setup projects before normal installation. */
 export function createPythonSourcePackageEnvironment(options:PythonPackageOptions,build:PythonSourceBuildOptions){
  if(options.prepareRequirements||!build.python.createExecutor||!build.directory)throw new TypeError('Source packages require an asynchronous build executor and caller storage');
- const prepareRequirement=async(requirement:string,context:PythonPackagePrepareContext):Promise<string>=>{
+ const prepareRequirement=async(requirement:string,context:PythonPackagePrepareContext,editable=false):Promise<string>=>{
   const {fs,signal}=context,settings={signal};
   let source=requirement,named:PythonSourceRequirement|null=null;
   let remote:URL|undefined;
@@ -52,17 +52,18 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
   }
   if(source.startsWith('file:')){
    const url=new URL(source);
-   if(url.host&&url.host!=='localhost')return requirement;
+   if(url.host&&url.host!=='localhost'){if(editable)throw new Error('Editable source requires a local directory');return requirement;}
    source=decodeURIComponent(url.pathname);
   }else if(source.startsWith('https://')||source.startsWith('http://'))remote=new URL(source);
-  else if(source.includes('://'))return requirement;
+  else if(source.includes('://')){if(editable)throw new Error('Editable source requires a local directory');return requirement;}
+  if(editable&&remote)throw new Error('Editable source requires a local directory');
   const suffix=archiveSuffix(remote?.pathname??source);
   let archived=!!remote&&!!suffix;
   if(remote){if(!archived)return requirement;}
   else{
    source=resolvePath(context.cwd,source);
-   try{const stat=await fs.stat(source,settings);archived=stat.type==='file'&&!!suffix;if(stat.type!=='directory'&&!archived)return requirement;}
-   catch(error){if(error instanceof FsError&&error.code==='ENOENT')return requirement;throw error;}
+   try{const stat=await fs.stat(source,settings);archived=stat.type==='file'&&!!suffix;if(editable&&stat.type!=='directory')throw new Error('Editable source requires a local directory');if(stat.type!=='directory'&&!archived)return requirement;}
+   catch(error){if(error instanceof FsError&&error.code==='ENOENT'){if(editable)throw new Error('Editable source requires an existing local directory');return requirement;}throw error;}
   }
   if(!context.stdout||!context.stderr||!context.env)throw new TypeError('Source package preparation requires command output and environment context');
   if(!fs.prepareDirectory||!fs.removeTreeConditional||!fs.confineExtraction)throw new Error('Source packages require conditional caller storage');
@@ -92,9 +93,10 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
     return typeof value==='function'?value.bind(owner):value;
    }});
    const command:CommandContext={...context,env:context.env,stdout:context.stdout,stderr:context.stderr,command:'python',args:[],stdin:toByteSource('')};
+   Reflect.deleteProperty(command,'editable');
    let prepared:string;
    if(archived){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');if(remote){source=resolvePath(path,'archive'+suffix);await downloadPythonSourceArchive(remote,source,options,command);}await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
-   else prepared=(await createPythonSourceSnapshot(source,path,{...command,fs:staging})).path;
+   else prepared=editable?await fs.realpath(source,settings):(await createPythonSourceSnapshot(source,path,{...command,fs:staging})).path;
    if(subdirectory){
     const selected=resolvePath(prepared,subdirectory);
     if(selected!==prepared&&!selected.startsWith(prepared+'/'))throw new Error('Source subdirectory escapes the build tree');
@@ -107,7 +109,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    const configuration={...build.python,environment},hook=createPythonBuildBackend(configuration),hookContext={...command,maxBytes:options.maxMetadataBytes??Infinity};
    const buildSystem=await hook({hook:'read_build_system',source:prepared},hookContext);
    await createPythonBuildDependencies(configuration)({source:prepared,buildSystem},hookContext);
-   const filename=await hook(buildSystem?{hook:'build_wheel',source:prepared,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:prepared,wheelDirectory},hookContext);
+   const filename=await hook(editable?{hook:'build_legacy_wheel',source:prepared,wheelDirectory,editable:true}:buildSystem?{hook:'build_wheel',source:prepared,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:prepared,wheelDirectory},hookContext);
    const published=await publishPythonBuildWheel(resolvePath(wheelDirectory,filename),root,options.maxDownloadBytes??Infinity,context);
    await cleanup();return named?named.name+(named.extras.length?'['+named.extras.join(',')+']':'')+' @ '+published.url+(named.marker?' ; '+named.marker:''):published.url;
   }catch(error){
@@ -117,6 +119,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
  };
  return createPythonPackageEnvironment({...options,async prepareRequirements(requirements,context){
   const resolved:string[]=[];
+  for(const requirement of new Set([...options.editable??[],...context.editable??[]]))resolved.push(await prepareRequirement(requirement,context,true));
   for(const requirement of new Set(requirements))resolved.push(await prepareRequirement(requirement,context));
   return resolved;
  }});

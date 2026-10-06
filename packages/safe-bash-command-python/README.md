@@ -266,6 +266,14 @@ Tar sources support plain, gzip, bzip2 and xz archives with streamed file writes
 executable permissions, timestamps and links confined to the build directory.
 Hard links copy retained archive contents. Tar extended headers and global PAX
 metadata still use the archive engine’s memory limits.
-Editable source installation and source URL content-disposition selection
-are not supported yet. ZIP members must
+Local setup projects also support `python -m pip install -e ./project` (repeat
+`-e` for several projects), or `editable: ["./project"]` in the package SDK.
+The genuine setuptools compatibility-mode wheel keeps imports linked to the
+original caller-owned source directory; keep that directory available after
+installation. Build dependencies remain isolated and failed builds leave the
+installed environment intact. Custom `develop` commands, editable extras, VCS
+sources and editable requirements-file entries still need qualification.
+
+Source URL content-disposition selection
+is not supported yet. ZIP members must
 use canonical relative paths; broader archive path compatibility remains incomplete.

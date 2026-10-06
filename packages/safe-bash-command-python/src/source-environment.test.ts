@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonSourcePackageEnvironment} from './source-environment.js';
+import {createPythonPackageEnvironment} from './provisioning.js';
 import {extractPythonSourceZip} from './source-zip.js';
 import {makeZipEntry,writeZipArchive} from 'safe-bash-zip-engine';
 import {DEFAULT_ARCHIVE_LIMITS} from 'safe-bash-io-engine/commands/archive/internal';
@@ -136,5 +137,46 @@ for(const active of [false,true])test(`named local sources retain name, extras a
    if(active){assert.ok(receipt.requested![0]!.startsWith('Fixture[feature] @ file:///storage/'));assert.ok(receipt.requested![0]!.endsWith('/fixture-1-py3-none-any.whl ; python_version >= "3"'));}
    else{assert.deepEqual(receipt.requested,[requirement]);assert.deepEqual(await fs.readdir('/storage'),[]);}
   }finally{await environment.finish(receipt);}
+ }finally{await environment.dispose();}
+});
+
+for(const defaults of [false,true])test(`editable preparation builds from live caller source without leaking editable roots to private tooling; defaults=${defaults}`,async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/work/source',{recursive:true});await fs.mkdir('/storage');
+ await fs.writeFile('/work/source/input.txt',new TextEncoder().encode('live'));
+ const calls:string[]=[];
+ const environment=createPythonSourcePackageEnvironment(defaults?{editable:['./source']}:{}, {directory:'/storage',python:{createExecutor:()=>({terminate(){},async run(start){
+  const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});
+  const request=await send({op:'request'}) as any;calls.push(request.hook);
+  assert.equal(request.source,'/work/source');
+  let result:unknown=null;
+  if(request.hook==='get_requires_for_legacy_wheel')result=[];
+  if(request.hook==='build_legacy_wheel'){
+   assert.equal(request.editable,true);
+   result='fixture-1.0-py3-none-any.whl';await fs.writeFile(request.wheelDirectory+'/'+result,Uint8Array.of(42));
+  }
+  await send({op:'text',text:JSON.stringify(result)});await send({op:'done'});return 0;
+ }})}});
+ try{
+  const receipt=await environment.prepare({fs,cwd:'/work',signal:new AbortController().signal,...defaults?{}:{editable:['./source']},env:{},stdout:{async write(){}},stderr:{async write(){}}});
+  try{
+   assert.equal(receipt.requested?.length,1);
+   assert.deepEqual(calls,['read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']);
+   assert.equal(new TextDecoder().decode(await fs.readFile('/work/source/input.txt')),'live');
+   assert.ok((await fs.readdir('/storage')).every(entry=>!entry.name.startsWith('.python-')));
+  }finally{await environment.finish(receipt);}
+ }finally{await environment.dispose();}
+});
+
+test('ordinary package environments refuse editable inputs without a source capability',async()=>{
+ const environment=createPythonPackageEnvironment();
+ try{await assert.rejects(environment.prepare({fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal,editable:['/source']}),/source package environment/);}
+ finally{await environment.dispose();}
+});
+for(const source of ['/missing','https://example.test/source.zip','git+https://example.test/repo','file://elsewhere/source'])test('editable source admission cannot silently become an ordinary requirement: '+source,async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/storage');
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',python:{createExecutor:()=>{throw new Error('unexpected build');}}});
+ try{
+  await assert.rejects(environment.prepare({fs,cwd:'/',signal:new AbortController().signal,editable:[source],env:{},stdout:{async write(){}},stderr:{async write(){}}}),/Editable source requires/);
+  assert.deepEqual(await fs.readdir('/storage'),[]);
  }finally{await environment.dispose();}
 });

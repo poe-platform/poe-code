@@ -5,6 +5,7 @@ import {createPythonPackageManifestStore} from './manifest.js';
 export function createPythonBuildEnvironment(options:PythonPackageOptions={}):PythonPackageEnvironment {
  const manifestStore=createPythonPackageManifestStore({maxEntries:1,...options.maxManifestBytes===undefined?{}:{maxBytes:options.maxManifestBytes}});
  const isolated={...options,manifestStore,scope:'build'};
+ delete isolated.editable;
  delete isolated.requirements;
  delete isolated.requirementFiles;
  delete isolated.profile;

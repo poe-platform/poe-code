@@ -14,6 +14,8 @@ export interface PythonLegacyRequirementsRequest {
 }
 export interface PythonLegacyBuildRequest {
  readonly hook:'build_legacy_wheel';
+ /** Build a native setuptools compatibility-mode editable wheel. */
+ readonly editable?:boolean;
  readonly source:string;
  readonly wheelDirectory:string;
 }
@@ -76,7 +78,7 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError('Invalid Python build metadata limit');
   if(!input||!['get_requires_for_legacy_wheel','read_source_requirement','read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
   if(input.hook==='build_legacy_wheel'){
-   if(typeof input.wheelDirectory!=='string'||!input.wheelDirectory)throw new TypeError('Invalid Python legacy wheel directory');
+   if(typeof input.wheelDirectory!=='string'||!input.wheelDirectory||input.editable!==undefined&&typeof input.editable!=='boolean')throw new TypeError('Invalid Python legacy wheel directory');
   }else if(input.hook==='check_build_requirements'){
    if([input.requirements,input.installed].some(values=>!Array.isArray(values)||values.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python build requirements request');
   }else if(input.hook==='read_build_system'){
@@ -236,7 +238,9 @@ def main():
  request = send('request')
  if request['hook'] == 'get_requires_for_legacy_wheel': request.update(hook='get_requires_for_build_wheel', backend='setuptools.build_meta:__legacy__')
  if request['hook'] == 'read_source_requirement': return read_source_requirement(request)
- if request['hook'] == 'build_legacy_wheel': return build_legacy_wheel(request)
+ if request['hook'] == 'build_legacy_wheel':
+  if not request.get('editable'): return build_legacy_wheel(request)
+  request.update(hook='build_wheel', backend='setuptools.build_meta:__legacy__')
  if request['hook'] == 'read_build_system': return read_build_system(request)
  if request['hook'] == 'check_build_requirements': return check_build_requirements(request)
  source = os.path.realpath(request['source'])
@@ -262,7 +266,8 @@ def main():
   except AttributeError: result = []
   else: result = hook(settings)
  else:
-  result = backend.build_wheel(wheel_directory, settings, metadata_directory)
+  if request.get('editable'): result = backend.build_editable(wheel_directory, {'editable_mode': 'compat'}, metadata_directory)
+  else: result = backend.build_wheel(wheel_directory, settings, metadata_directory)
  return result
 
 try:

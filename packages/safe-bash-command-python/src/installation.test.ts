@@ -8,7 +8,7 @@ test('pip installation parses explicit pins, local wheels and requirement files'
   });
 });
 test('unsupported pip commands and every unknown option fail explicitly', () => {
-  for (const option of ['--no-index', '--no-deps', '--target=/tmp', '--user', '--index-url', '--trusted-host', '--require-hashes', '--dry-run', '--quiet', '-e']) {
+  for (const option of ['--no-index', '--no-deps', '--target=/tmp', '--user', '--index-url', '--trusted-host', '--require-hashes', '--dry-run', '--quiet']) {
     assert.throws(() => parsePythonInstallation(['install', option]), new RegExp('unsupported pip option'));
   }
   assert.throws(() => parsePythonInstallation(['list', 'x']), /unsupported pip command/);
@@ -38,3 +38,10 @@ test('pip upgrade and force-reinstall select install policies',()=>{
  assert.equal(parsePythonInstallation(['install','--force-reinstall','fixture']).controls.forceReinstall,true);
  assert.throws(()=>parsePythonInstallation(['uninstall','--force-reinstall','fixture']),/unsupported pip option/);
 });
+
+test('editable install arguments preserve repeated source paths independently of ordinary roots',()=>{
+  assert.deepEqual(parsePythonInstallation(['install','fixture','-e','./source','--editable=/other','-e./third']).controls,{editable:['./source','/other','./third']});
+  assert.equal(parsePythonInstallation(['install','--editable','./source']).help,false);
+  for(const flag of ['-e','--editable','--editable='])assert.throws(()=>parsePythonInstallation(['install',flag]),/requires a path/);
+  assert.throws(()=>parsePythonInstallation(['uninstall','-e','./source']),/unsupported pip option/);
+ });

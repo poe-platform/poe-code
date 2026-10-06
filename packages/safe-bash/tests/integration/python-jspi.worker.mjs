@@ -63,6 +63,7 @@ with zipfile.ZipFile("pth_fixture-1.0-py3-none-any.whl","w") as wheel:
 }
 
 async function qualifyLegacyBuild(backend,createExecutor,assets,format='directory') {
+  const editable=format==='editable'||format==='llm-editable';
   const base='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/';
   const wheels=new Map(assets.map(({file,bytes})=>[base+file,Uint8Array.from(bytes)]));
   const requests=[];
@@ -87,6 +88,7 @@ setup(name="legacy-fixture",version="1.0",py_modules=["legacy_fixture"],setup_re
     requests.push(url);return {status:200,headers:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
   }},{directory:'/work/builds',extractArchive:extractPythonSourceArchive,python:{createExecutor}});
   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
+  if(format==='llm-editable')shell.use(llmCommands({managePackages:createPythonLlmPackageManager({createExecutor,environment})}));
   const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names, "build-helper" in names]))'`;
   try{
     if(format==='setup-requires'){
@@ -108,7 +110,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
     };
     if(archived)await archive();
     const suffix=format==='zip'?'.zip':'.tar.gz';
-    const install=remote?`python -m pip install 'legacy-fixture @ https://build.test/legacy-source.tar.gz${format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install ./legacy-source'+(archived?suffix:'');
+    const install=format==='llm-editable'?'llm install -e ./legacy-source':remote?`python -m pip install 'legacy-fixture @ https://build.test/legacy-source.tar.gz${format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
     if(format==='named'){
       const skipped=await shell.exec(`python -m pip install 'absent @ file:///work/nonexistent ; python_version < "1"'`);
       if(skipped.exitCode)throw new Error(JSON.stringify(skipped));
@@ -119,14 +121,21 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
     await backend.writeFile(sourceDirectory+'/setup.py',new TextEncoder().encode('raise RuntimeError("legacy-build-failed")\n'));
     if(archived)await archive();
     const failed=await shell.exec(install+(remote?' --no-cache-dir':''));
-    await backend.unlink(sourceDirectory+'/setup.py');await backend.unlink(sourceDirectory+'/legacy_fixture.py');
+    await backend.unlink(sourceDirectory+'/setup.py');if(!editable)await backend.unlink(sourceDirectory+'/legacy_fixture.py');
     if(archived)await backend.unlink('/work/legacy-source'+suffix);
     if(remote)wheels.delete('https://build.test/legacy-source.tar.gz');
     if(format==='setup-requires')await backend.unlink('/work/build_helper-1.0-py3-none-any.whl');
     const restored=await shell.exec(inspect);
     const receipt=await environment.prepare({fs:backend,cwd:'/work',signal:new AbortController().signal});
     let records;try{records=receipt.records?.map(record=>record[0]);}finally{await environment.finish(receipt);}
-    return {installed,imported,failed,restored,records,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
+    let metadata,uninstalled,removed,sourceRetained;
+    if(editable){
+      metadata=await shell.exec(`python -c 'from importlib.metadata import distribution; d=distribution("legacy-fixture"); print(d.version); print(d.read_text("direct_url.json"))'`);
+      uninstalled=await shell.exec('python -m pip uninstall -y legacy-fixture');
+      removed=await shell.exec('python -c "import legacy_fixture"');
+      sourceRetained=new TextDecoder().decode(await backend.readFile(sourceDirectory+'/legacy_fixture.py'));
+    }
+    return {installed,imported,failed,restored,records,metadata,uninstalled,removed,sourceRetained,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
   }finally{await shell.dispose();await environment.dispose();}
 }
 

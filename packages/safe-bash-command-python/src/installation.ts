@@ -10,16 +10,16 @@ export interface PythonInstallation {
   readonly yes?: boolean;
 }
 
-export const pythonInstallationHelp = `Usage: python -m pip install [-r/--requirement FILE] [OPTIONS] PACKAGE ...
+export const pythonInstallationHelp = `Usage: python -m pip install [OPTIONS] PACKAGE ...
        python -m pip uninstall [-y/--yes] PACKAGE ...
-Install options: --pre, -U/--upgrade, --force-reinstall, --no-cache-dir
-Compatible wheels; configure transport with the Python package SDK.
-Both accept -h/--help and --. Other pip operations are unsupported.
+Install: -r/--requirement FILE, -e/--editable PATH, --pre, -U/--upgrade,
+         --force-reinstall, --no-cache-dir
+Both accept -h/--help and --.
 `;
 
 /** Parse arguments after the validated Python pip module entrypoint. */
 export function parsePythonInstallation(pipArgs: readonly string[]): PythonInstallation {
-  const controls: {pre?:boolean;noCache?:boolean;upgrade?:boolean;forceReinstall?:boolean} = {};
+  const controls: {pre?:boolean;noCache?:boolean;upgrade?:boolean;forceReinstall?:boolean;editable?:string[]} = {};
   const packages: string[] = [];
   const requirements: string[] = [];
   if (pipArgs.length === 0 || pipArgs[0] === '--help' || pipArgs[0] === '-h') {
@@ -34,20 +34,24 @@ export function parsePythonInstallation(pipArgs: readonly string[]): PythonInsta
   for (let index = 1; index < pipArgs.length; index++) {
     const option = pipArgs[index]!;
     if (operands || !option.startsWith('-')) { packages.push(option); continue; }
-    if (!uninstall && (option === '--pre' || option === '--no-cache-dir')) { controls[option === '--pre' ? 'pre' : 'noCache'] = true; continue; }
-    if (!uninstall && (option === '-U' || option === '--upgrade' || option === '--force-reinstall')) { controls[option === '--force-reinstall' ? 'forceReinstall' : 'upgrade'] = true; continue; }
+    const flag = ({'--pre':'pre','--no-cache-dir':'noCache','-U':'upgrade','--upgrade':'upgrade','--force-reinstall':'forceReinstall'} as Partial<Record<string,'pre'|'noCache'|'upgrade'|'forceReinstall'>>)[option];
+    if (!uninstall && flag) { controls[flag] = true; continue; }
     if (option === '--') { operands = true; continue; }
     if (option === '--help' || option === '-h') { help = true; continue; }
     if (uninstall && (option === '-y' || option === '--yes')) { yes = true; continue; }
-    if (!uninstall && (option === '-r' || option === '--requirement' || option.startsWith('--requirement=') || option.startsWith('-r'))) {
-      const path = option.startsWith('--requirement=') ? option.slice('--requirement='.length)
-        : option !== '-r' && option.startsWith('-r') ? option.slice(2) : pipArgs[++index];
-      if (!path || path.startsWith('-')) throw new PythonInvocationError(option + ' requires a path');
-      requirements.push(path);
-      continue;
+    if (!uninstall) {
+      const kind = ['requirement','editable'].find(name => option.startsWith('-' + name[0]) || option.split('=',1)[0] === '--' + name);
+      if (kind) {
+        const prefix = '--' + kind;
+        const path = option.startsWith(prefix + '=') ? option.slice(prefix.length + 1)
+          : option === prefix || option.length === 2 ? pipArgs[++index] : option.slice(2);
+        if (!path || path.startsWith('-')) throw new PythonInvocationError(option + ' requires a path');
+        (kind === 'editable' ? controls.editable ??= [] : requirements).push(path);
+        continue;
+      }
     }
     throw new PythonInvocationError('unsupported pip option ' + option);
   }
-  if (!help && packages.length === 0 && requirements.length === 0) throw new PythonInvocationError('pip ' + pipArgs[0] + ' requires at least one package or requirements file');
+  if (!help && packages.length === 0 && requirements.length === 0 && !controls.editable?.length) throw new PythonInvocationError('pip ' + pipArgs[0] + ' requires at least one package or requirements file');
   return { packages, requirements, help, controls, ...(uninstall ? {uninstall,yes} : {}) };
 }

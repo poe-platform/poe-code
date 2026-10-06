@@ -16,6 +16,8 @@ export interface PythonPackageProgress {
  readonly totalBytes?: number;
 }
 export interface PythonPackageInstallOptions {
+ /** Local source trees whose installed imports remain linked to caller storage. */
+ readonly editable?: readonly string[];
  /** Include prerelease and development candidates during dependency resolution. */
  readonly pre?: boolean;
  /** Select the newest eligible requested roots, retaining satisfying dependencies. */
@@ -47,7 +49,7 @@ export interface PythonPackageOptions extends PythonPackageInstallOptions {
  readonly maxCacheBytes?: number;
  readonly onProgress?: (event: PythonPackageProgress) => void;
 }
-export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'noCache'> {
+export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'noCache'|'editable'> {
  readonly session: string;
  /** Load installer tooling even when no application requirements are installed. */
  readonly bootstrap?:boolean;
@@ -213,6 +215,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     requirements.push(normalizeRequirement(text,dirname(path)));
    }
   }
+  if((options.editable?.length||context.editable?.length)&&!options.prepareRequirements)throw failure('Editable packages require a source package environment');
   const requested=[...new Set(await options.prepareRequirements?.(requirements,context)??requirements)];
   signal.throwIfAborted();
   const session=String(++counter);

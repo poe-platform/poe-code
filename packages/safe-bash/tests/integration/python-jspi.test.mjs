@@ -636,13 +636,17 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
     assert.deepEqual(result.failures,[]);
     if(mode==='llm-packages') {
       assert.equal(result.plugins.exitCode,0,JSON.stringify(result));
-      assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_tools'],version:'1.0'}]);
+      assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_fragment_loaders','register_tools'],version:'1.0'}]);
       assert.equal(result.plugins.stderr,'');
       assert.equal(result.listed.exitCode,0,JSON.stringify(result));
       assert.match(result.listed.stdout,/installed_tool/);
       assert.equal(result.called.exitCode,0,JSON.stringify(result));
       assert.equal(result.called.stdout,'78\n');
       assert.equal(result.called.stderr,'');
+      assert.equal(result.fragment.exitCode,0,JSON.stringify(result.fragment));
+      assert.match(result.fragment.stdout,/native fragment:hello/);
+      assert.match(result.fragment.stdout,/prompt/);
+      assert.equal(result.fragment.stderr,'');
       assert.equal(result.blocked.exitCode,1);
       assert.match(result.blocked.stderr,/platform-configured providers/);
     }

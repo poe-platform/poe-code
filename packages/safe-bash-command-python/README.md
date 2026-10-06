@@ -75,6 +75,18 @@ The native LLM loader supplies entrypoint names, versions and hooks. Tool,
 template-loader and fragment-loader hooks are allowed; provider registration
 remains platform-owned.
 
+Pass `createPythonLlmFragmentLoader({ ...pythonOptions, plugins: ["my-plugin"] }, "prefix")`
+as the `"prefix"` entry in `llmCommands({ fragmentLoaders: new Map(...) })` to
+execute that installed plugin's native fragment loader with `llm -f prefix:value`.
+Native `llm.Fragment` and `llm.Attachment` results retain order and IDs. Text and
+local attachment bytes stage in caller storage with bounded transfers; URL
+attachments use only the injected fetch capability and download when consumed.
+Each invocation owns an interpreter and borrows one result at a time. Direct SDK
+callers must consume a source before advancing the iterator, and close the iterator
+on early exit. The content byte limit excludes attachment metadata; cancellation
+and iterator closure retire staged files and the interpreter. Template loader
+execution and automatic plugin discovery are not provided by this adapter.
+
 Use `llm plugins` to list the configured interpreter's installed plugin names,
 versions and hooks. `--all` includes built-in plugins; repeated `--hook NAME`
 filters match any requested hook. SDK callers pass

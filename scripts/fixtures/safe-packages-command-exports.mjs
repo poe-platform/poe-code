@@ -58,3 +58,5 @@ try {
   const result = await awkShell.exec('sh /awk-script');
   if (result.exitCode !== 0 || result.stdout !== '10\n') throw new Error('Portable AWK script/pipeline failed: ' + result.stderr);
 } finally { await awkShell.dispose(); }
+
+import "./safe-packages-exiftool-help.mjs";

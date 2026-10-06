@@ -71,6 +71,47 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
           resources.admit("retained", text.length * 5);
           await writeBytes(error ? stderr!.output : stdout!.output, new TextEncoder().encode(text), context.signal);
         };
+        if (context.args.length === 1 && ["--help", "-help", "-?"].includes(context.args[0]!)) {
+          await output(`Usage: exiftool [OPTIONS] [-TAG...] FILE...
+       exiftool --help | -help | -?
+
+Inspect and edit the supported metadata subset in virtual files.
+Standalone help reads no files and never invokes host ExifTool.
+
+Examples:
+  exiftool -j image.png
+  exiftool -n -s3 -ImageWidth image.png
+  exiftool -Title=Example image.png
+  exiftool -Title= -overwrite_original image.png
+  exiftool -j -- --help
+
+Formats:
+  PNG: dimensions, text metadata and timestamps; admitted tag writes.
+  JPEG: dimensions, selected EXIF tags and comments; admitted tag writes.
+  PDF: selected Info metadata reads/writes; no -all= or redaction.
+  WebP, DOCX, PPTX, XLSX, ODT, EPUB: limited metadata inspection only.
+  This is not full upstream format or tag compatibility.
+
+Options:
+  -j, -json       JSON extraction; -csv for CSV extraction
+  -TAG           Select an admitted tag; -TAG=VALUE writes, -TAG= deletes
+  -n, -s3        Numeric conversion, values-only output
+  -overwrite_original  Replace without creating the default FILE_original backup
+  --             Remaining arguments are literal file names
+  -              Read stdin once (extraction only)
+  -@ FILE        Read arguments from a virtual UTF-8 file
+  -ver, --version  Report the reference ExifTool version
+
+Limits:
+  No host files, user config code, directory scanning or stay_open protocol.
+  Unsupported flags, tags and editing operations are refused.
+  SDK limits bound cumulative input, decoded, retained and output bytes,
+  work, arguments, files and argument-file depth; quotas default to unlimited.
+  Configure maxInputBytes, maxOutputBytes, maxWork and other limits through
+  exiftoolCommands({ limits }); cancellation and output budgets apply to help.
+`);
+          return { exitCode: 0 };
+        }
         if (context.args.length === 1 && (context.args[0] === "-ver" || context.args[0] === "--version")) {
           await output(exiftoolRegistry.source.version + "\n");
           return { exitCode: 0 };

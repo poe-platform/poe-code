@@ -4,7 +4,12 @@ Read PNG and JPEG dimensions and inspect and edit admitted metadata in virtual f
 `@poe-platform/safe-bash/commands/exiftool` export; this private implementation
 workspace is never an installation dependency for consumers.
 
+Standalone `--help`, `-help` and `-?` print usage without accessing files.
+Help observes cancellation and output limits. Use `--` before literal file names
+that look like options.
+
 ```sh
+exiftool --help
 exiftool -j -Title /image.png
 exiftool -n -s3 -ImageWidth /image.png
 exiftool -csv -Title -Author /first.png /second.png

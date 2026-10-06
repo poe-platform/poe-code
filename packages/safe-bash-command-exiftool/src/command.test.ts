@@ -870,3 +870,29 @@ test("JPEG CLI admits aliases, resolution selectors, comments and metadata copyi
   const target = await invoke(["-s3","-Artist","-YResolution","-Comment","target.jpg"],fs);
   assert.equal(target.stdout,"Alice\n72.5\nCamera note\n");
 });
+
+
+test("standalone help aliases are useful without any VFS access", async () => {
+  const fs = new Proxy(createMemoryFileSystem(), {
+    get() { throw new Error("Help must not access the VFS"); },
+  });
+  for (const flag of ["--help", "-help", "-?"]) {
+    const result = await invoke([flag], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    for (const text of ["Usage:", "exiftool -j image.png", "-Title=Example", "PNG", "JPEG", "PDF", "maxOutputBytes", "--"]) {
+      assert.ok(result.stdout.includes(text), text);
+    }
+    await assert.rejects(invoke([flag], fs, AbortSignal.abort(new Error("cancel help"))), /cancel help/);
+    await assert.rejects(invoke([flag], fs, undefined, undefined, { limits: { maxOutputBytes: 1 } }), /output budget/);
+  }
+});
+
+test("help names after the option terminator remain literal files", async () => {
+  const fs = createMemoryFileSystem();
+  for (const flag of ["--help", "-help", "-?"]) {
+    await fs.writeFile("/" + flag, fixture("literal"));
+    const result = await invoke(["-s3", "-Title", "--", flag], fs);
+    assert.deepEqual(result, { exitCode: 0, stdout: "literal\n", stderr: "" });
+  }
+});

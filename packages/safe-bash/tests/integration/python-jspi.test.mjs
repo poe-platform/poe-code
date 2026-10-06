@@ -916,3 +916,21 @@ print(json.dumps([sys.path.count('/work/pth-source'),sys._fixture_pth_runs,__mai
   }
   assert.deepEqual(result.failures,[]);assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });
+
+
+test('real workerd verifies every pinned pip direct wheel hash before publication', {timeout:90000},async()=>{
+ const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/wheel-integrity',{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const result=await response.json();
+ assert.equal(response.status,200,JSON.stringify(result));
+ assert.deepEqual(result.rows.map(row=>row.algorithm),['sha1','sha224','sha384','sha256','sha512','md5']);
+ for(const row of result.rows){
+  assert.equal(row.valid.exitCode,0,JSON.stringify(row));
+  assert.notEqual(row.invalid.exitCode,0,JSON.stringify(row));
+  assert.ok(result.diagnostics.some(value=>value.includes('integrity mismatch')));
+  assert.equal(row.unchanged,true,JSON.stringify(row));
+ }
+ assert.equal(result.wheelReads.opened,result.wheelReads.closed);
+ assert.ok(result.wheelReads.largest<=65536);
+ assert.deepEqual(result.failures,[]);
+ assert.deepEqual(nativeFixture.runtimeErrors,[]);
+});

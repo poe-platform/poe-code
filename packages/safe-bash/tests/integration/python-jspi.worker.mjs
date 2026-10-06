@@ -307,7 +307,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  }finally{await shell.dispose();await environment.dispose();}
 }
 
-async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false, buildOnly=false) {
+async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false, buildOnly=false, integrityOnly=false) {
   const wheelReads={opened:0,closed:0,reads:0,largest:0};
   backend=new Proxy(backend,{get(target,key){
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl'))throw Error('Whole canonical wheel read');return target.readFile(path,...args);};
@@ -381,6 +381,20 @@ provider = {
 write_wheel('worker_provider-1.0-py3-none-any.whl', provider)
 `));
     if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
+    if(integrityOnly){
+      const hashes=await shell.exec('python -c '+quote("import hashlib,json; data=open('worker_provider-1.0-py3-none-any.whl','rb').read(); print(json.dumps({name:hashlib.new(name,data).hexdigest() for name in ['sha1','sha224','sha384','sha256','sha512','md5']}))"));
+      if(hashes.exitCode)throw Error(JSON.stringify(hashes));
+      const rows=[];
+      for(const [algorithm,hash] of Object.entries(JSON.parse(hashes.stdout))){
+        const address='file:///work/worker_provider-1.0-py3-none-any.whl#'+algorithm+'=';
+        const valid=await shell.exec(prefix+' install '+quote(address+hash));
+        const before=await manifestStore.get(manifestScope,{signal:new AbortController().signal});
+        const invalid=await shell.exec(prefix+' install '+quote(address+'0'));
+        const after=await manifestStore.get(manifestScope,{signal:new AbortController().signal});
+        rows.push({algorithm,valid,invalid,unchanged:before.revision===after.revision});
+      }
+      return {rows,wheelReads,diagnostics};
+    }
     if(buildOnly){
       const installed=await shell.exec('python -m pip install ./worker_provider-1.0-py3-none-any.whl');
       const context={signal:new AbortController().signal};
@@ -1810,6 +1824,11 @@ export default {
     }
     if (mode === '/legacy-build') {
       try {return Response.json({...await qualifyLegacyBuild(backend,createExecutor,await request.json(),new URL(request.url).searchParams.get('archive')??'directory'),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
+    if (mode === '/wheel-integrity') {
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),false,false,false,false,true),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

@@ -315,3 +315,26 @@ test('micropip resolves metadata and installs through the same retained wheel re
  assert.deepEqual(operations,['package-open','package-retain','package-close','package-read-retained','package-read-retained','package-commit']);
  assert.equal(globals.size,0);
 });
+
+for(const algorithm of ['sha1','sha224','sha384','sha256','sha512','md5'])test('direct wheel URL '+algorithm+' is verified before retaining or reading metadata',async()=>{
+ const {runtime,globals}=nativeFixture(async()=>{});const operations:string[]=[];
+ runtime.runPythonAsync=async source=>{
+  if(source===pythonNativeWheel){
+   const config=JSON.parse(globals.get('_safe_native_wheel_config') as string);
+   assert.deepEqual(config.integrity,[algorithm,'abc']);
+   assert.deepEqual(await (globals.get('_safe_native_wheel_read') as (offset:number,length:number)=>Promise<number[]>)(0,1),[42]);
+   throw new Error('Python package integrity mismatch');
+  }
+  const download=globals.get('_safe_package_wheel_download') as (url:string,expected?:string)=>Promise<string>;
+  await download('https://example.test/fixture-1-py3-none-any.whl#'+algorithm+'=abc');
+  return undefined;
+ };
+ await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},operation=>{
+  operations.push(operation);
+  if(operation==='package-open')return {key:'digest',size:1,headers:[]};
+  if(operation==='package-read')return [42];
+  if(operation==='package-retain')return {token:'lease',key:'digest',size:1};
+ },65536),/integrity mismatch/);
+ assert.deepEqual(operations,['package-open','package-read','package-close']);
+ assert.equal(globals.size,0);
+});

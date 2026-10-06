@@ -44,6 +44,15 @@ def _safe_extract_native_wheel(read, serialized):
 
  _native_config = _native_json.loads(serialized)
  with _NativeWheel(_native_config['size']) as _native_archive:
+  if 'integrity' in _native_config:
+   import hashlib
+   algorithm, expected = _native_config['integrity']
+   checksum = hashlib.new(algorithm)
+   while chunk := _native_archive.read(65536):
+    checksum.update(chunk)
+   if checksum.hexdigest() != expected:
+    raise ValueError('Python package integrity mismatch: ' + algorithm)
+   return '""'
   if 'metadata_name' in _native_config:
    from micropip.metadata import wheel_dist_info_dir as _native_metadata_dir
    from zipfile import Path as _NativeZipPath

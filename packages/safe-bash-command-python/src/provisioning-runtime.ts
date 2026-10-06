@@ -119,7 +119,10 @@ export async function installPythonPackages(
   bind('_safe_package_metadata',async(url:string)=>{
    const result=await fetch(url,undefined,'metadata');return JSON.stringify({text:new TextDecoder().decode(result.bytes),headers:Object.fromEntries(result.headers.map(([name,value])=>[name.toLowerCase(),value]))});
   });
-  bind('_safe_package_wheel_download',async(url:string,expected:string|undefined)=>withArtifact(url,expected,undefined,async opened=>{
+  bind('_safe_package_wheel_download',async(url:string,expected:string|undefined)=>withArtifact(url,expected,undefined,async(opened,read)=>{
+   // pip 21.2.4 Link selects the first supported hash anywhere in the URL.
+   const hash=/(sha1|sha224|sha384|sha256|sha512|md5)=([a-f0-9]+)/.exec(url);
+   if(hash)await wheel(opened.size,read,{integrity:hash.slice(1)});
    return JSON.stringify(await request('package-retain',start.session,opened.key));
   }));
   bind('_safe_package_wheel_metadata',async(serialized:string)=>transfer(async()=>{

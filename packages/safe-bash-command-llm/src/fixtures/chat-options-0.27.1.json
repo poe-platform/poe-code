@@ -1,0 +1,296 @@
+[
+  {
+    "args": [
+      "-o",
+      "count",
+      "bad"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: count\n  Input should be a valid integer, unable to parse string as an integer\n",
+    "exitCode": 1,
+    "calls": [],
+    "stages": [
+      "options"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "count",
+      "bad",
+      "-T",
+      "missing"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: count\n  Input should be a valid integer, unable to parse string as an integer\n",
+    "exitCode": 1,
+    "calls": [],
+    "stages": [
+      "options"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "count",
+      "bad",
+      "--functions",
+      "invalid python"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: count\n  Input should be a valid integer, unable to parse string as an integer\n",
+    "exitCode": 1,
+    "calls": [],
+    "stages": [
+      "options"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "count",
+      "bad",
+      "-f",
+      "missing"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: count\n  Input should be a valid integer, unable to parse string as an integer\n",
+    "exitCode": 1,
+    "calls": [],
+    "stages": [
+      "options"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "unknown",
+      "value",
+      "-o",
+      "count",
+      "bad"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: count\n  Input should be a valid integer, unable to parse string as an integer\nunknown\n  Extra inputs are not permitted\n",
+    "exitCode": 1,
+    "calls": [],
+    "stages": [
+      "options"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "count",
+      "2"
+    ],
+    "configured": {
+      "count": "9",
+      "enabled": "false"
+    },
+    "input": "one\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:one\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one",
+        "options": {
+          "count": 2,
+          "enabled": true
+        }
+      }
+    ],
+    "stages": [
+      "options",
+      "tools"
+    ]
+  },
+  {
+    "args": [],
+    "configured": {
+      "count": "9",
+      "enabled": "false"
+    },
+    "input": "one\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:one\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one",
+        "options": {
+          "count": 9,
+          "enabled": false
+        }
+      }
+    ],
+    "stages": [
+      "options",
+      "tools"
+    ]
+  },
+  {
+    "args": [],
+    "configured": {
+      "count": "bad"
+    },
+    "input": "exit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [],
+    "stages": [
+      "options",
+      "tools"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "count",
+      "2"
+    ],
+    "configured": {
+      "count": "9",
+      "unknown": "value"
+    },
+    "input": "one\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:one\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one",
+        "options": {
+          "count": 2,
+          "enabled": true
+        }
+      }
+    ],
+    "stages": [
+      "options",
+      "tools"
+    ]
+  },
+  {
+    "args": [],
+    "configured": {
+      "count": "9"
+    },
+    "input": "one\ntwo\nexit\n",
+    "mutateConfigured": true,
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:one\n> reply:two\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one",
+        "options": {
+          "count": 9,
+          "enabled": true
+        }
+      },
+      {
+        "prompt": "two",
+        "options": {
+          "count": 9,
+          "enabled": true
+        }
+      }
+    ],
+    "stages": [
+      "options",
+      "tools"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "enabled",
+      "bad",
+      "-o",
+      "count",
+      "bad",
+      "-o",
+      "2",
+      "value",
+      "-o",
+      "1",
+      "value"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: count\n  Input should be a valid integer, unable to parse string as an integer\nenabled\n  Input should be a valid boolean, unable to interpret input\n2\n  Extra inputs are not permitted\n1\n  Extra inputs are not permitted\n",
+    "exitCode": 1,
+    "calls": [],
+    "stages": [
+      "options"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "count",
+      "bad",
+      "-o",
+      "count",
+      "2"
+    ],
+    "input": "one\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:one\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one",
+        "options": {
+          "count": 2,
+          "enabled": true
+        }
+      }
+    ],
+    "stages": [
+      "options",
+      "tools"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "__proto__",
+      "value",
+      "-o",
+      "constructor",
+      "value"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: __proto__\n  Extra inputs are not permitted\nconstructor\n  Extra inputs are not permitted\n",
+    "exitCode": 1,
+    "calls": [],
+    "stages": [
+      "options"
+    ]
+  },
+  {
+    "args": [
+      "-o",
+      "enabled",
+      "bad"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: enabled\n  Input should be a valid boolean, unable to interpret input\n",
+    "exitCode": 1,
+    "calls": [],
+    "stages": [
+      "options"
+    ]
+  }
+]

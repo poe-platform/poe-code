@@ -71,13 +71,14 @@ interface Arguments {
   extract?: "first" | "last";
   params: Record<string, string>;
   options: Record<string, string>;
+  optionNames: string[];
   attachments: { path: string; mimeType?: string }[];
 }
 
 class LlmPromptUsageError extends Error {}
 
 async function parse(length: number, text: (index: number) => string, step: () => Promise<void>, chat = false, toolsDebugEnv?: string): Promise<Arguments> {
-  const parsed: Arguments = { toolNames: [], functions: [], chainLimit: 5, prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
+  const parsed: Arguments = { toolNames: [], functions: [], chainLimit: 5, prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, optionNames: [], options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
   let ended = false, chainLimit: string | undefined;
   for (let index = 0; index < length; index++) {
@@ -130,7 +131,10 @@ async function parse(length: number, text: (index: number) => string, step: () =
       else if (flag === "-p" || flag === "--param") Object.defineProperty(parsed.params, value, { value: text(++index), enumerable: true, configurable: true, writable: true });
       else if (flag === "-m" || flag === "--model") parsed.model = value;
       else if (flag === "-s" || flag === "--system") parsed.system = value;
-      else if (flag === "-o" || flag === "--option") parsed.options[value] = text(++index);
+      else if (flag === "-o" || flag === "--option") {
+        if (!Object.hasOwn(parsed.options, value)) parsed.optionNames.push(value);
+        parsed.options[value] = text(++index);
+      }
       else if (flag === "--at" || flag === "--attachment-type") parsed.attachments.push({ path: value, mimeType: text(++index) });
       else parsed.attachments.push({ path: value });
       break;
@@ -437,6 +441,22 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const streamed = entry !== undefined && service.streamSources !== undefined && entry.provider.completeSources !== undefined && entry.model.inputSources !== false;
     const stagePrompt = streamed && stored === undefined && args.save === undefined;
     if (isChat && args.promptSupplied) throw new LlmPromptUsageError(`Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Got unexpected extra argument (${args.prompt})`);
+    let chatModelOptions: Record<string, string> | undefined;
+    if (isChat) {
+      const configured = await configuration.modelOptions(entry!.model.id);
+      const names = args.optionNames;
+      chatModelOptions = names.length ? args.options : configured;
+      if (names.length) {
+        const rules = entry!.model.options ?? {}, errors: string[] = [];
+        const ordered = [...Object.keys(rules).filter(name => Object.hasOwn(args.options, name)), ...names.filter(name => !Object.hasOwn(rules, name))];
+        for (const name of ordered) {
+          await step();
+          try {validateModelOptions(entry!.model, {[name]: args.options[name]!});}
+          catch (error) {errors.push(error instanceof Error ? error.message : String(error));}
+        }
+        if (errors.length) throw new Error('Error: ' + errors.join('\n'));
+      }
+    }
     const loadSelectedTools = async () => {
       let selectedTools;
       try {
@@ -564,7 +584,6 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     let initialPromptFragments: LlmFragmentInputSource[] = [], initialSystemFragments: LlmFragmentInputSource[] = [];
     const initialAttachments: LlmAttachment[] = [], initialSourceAttachments: LlmSourceAttachment[] = [];
     if (chat) {
-      validateModelOptions(entry!.model, {...await configuration.modelOptions(entry!.model.id), ...args.options});
       initialPromptFragments = await prepareFragments(args.fragments, false);
       initialSystemFragments = await prepareFragments(args.systemFragments, true);
       initialAttachments.push(...pluginAttachments); initialSourceAttachments.push(...pluginSourceAttachments);
@@ -673,7 +692,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       }
       if (chat && (stored ? ['exit', 'quit'].includes(stripPythonWhitespace(prompt)) : chatPrompt!.exit)) return {exitCode: 0};
       if (!entry) throw new Error("No model selected; use --model or configure defaultModel");
-      args.options = { ...await configuration.modelOptions(entry.model.id), ...(chat ? {} : stored?.options), ...args.options };
+      args.options = chat ? {...chatModelOptions!} : { ...await configuration.modelOptions(entry.model.id), ...stored?.options, ...args.options };
       args.attachments = [
         ...(chat ? [] : stored?.attachments ?? []).map(path => ({ path })),
         ...args.attachments.filter(item => item.mimeType === undefined),

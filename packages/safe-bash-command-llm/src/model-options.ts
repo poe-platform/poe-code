@@ -29,7 +29,7 @@ export function validateModelOptions(model: LlmModel, values: Readonly<Record<st
         const text = String(input).toLowerCase();
         if (["true", "1", "yes", "on", "y", "t"].includes(text)) value = true;
         else if (["false", "0", "no", "off", "n", "f"].includes(text)) value = false;
-        else fail("Input should be a valid boolean");
+        else fail(typeof input === "string" ? "Input should be a valid boolean, unable to interpret input" : "Input should be a valid boolean");
         break;
       }
       case "object":

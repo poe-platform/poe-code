@@ -477,6 +477,11 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   assert.equal(result.missingChatFragment.stderr, "Error: Fragment 'missing-fragment' not found\n");
   for (const key of ['initialStdinChatFragment', 'stdinChatFragment']) {assert.equal(result[key].exitCode, 1); assert.equal(result[key].stderr, 'Aborted!\n');}
   assert.ok(result.stdinChatFragment.stdout.endsWith('> 1\n> '), result.stdinChatFragment.stdout);
+  assert.equal(result.invalidChatOptions.exitCode, 1);
+  assert.equal(result.invalidChatOptions.stdout, '');
+  assert.equal(result.invalidChatOptions.stderr, 'Error: count\n  Input should be a valid integer, unable to parse string as an integer\n');
+  for (const key of ['snapshotChatOptions','explicitChatOptions']) assert.equal(result[key].exitCode, 0, result[key].stderr);
+  assert.deepEqual(result.optionCalls, [{count:9,enabled:false},{count:9,enabled:false},{count:2},{count:2}]);
   assert.equal(result.missingChatModel.exitCode, 1);
   assert.equal(result.missingChatModel.stdout, '');
   assert.equal(result.missingChatModel.stderr, "Error: 'missing' is not a known model\n");

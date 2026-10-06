@@ -162,7 +162,8 @@ async function qualifyShells(backend, createExecutor) {
 
 async function qualifyFunctionTools(backend, createExecutor) {
   let cancellation = new AbortController();
-  let cancelRun = false, chatRun = false, wireRun = false;
+  let cancelRun = false, chatRun = false, wireRun = false, optionRun = false;
+  const optionCalls = [];
   const chatWire = [];
   const chatPrompts = [];
   const source = 'import asyncio as _asyncio\n_state = 0\n_event = _asyncio.Event()\ndef add(value: int):\n global _state\n _state += value\n return _state\nasync def first():\n await _event.wait()\n return "first"\nasync def second():\n _event.set()\n return "second"\ndef unicode_text():\n return "😀" * 4096\n';
@@ -187,6 +188,11 @@ _pm.register(_Plugin(), name="fixture")
 `;
   await backend.writeFile('/work/toolbox.py', new TextEncoder().encode(toolbox));
   const complete = async function* (request) {
+    if (optionRun) {
+      optionCalls.push({...request.options});
+      if (optionCalls.length === 1) await backend.writeFile('/work/llm-config/model_options.json', new TextEncoder().encode(JSON.stringify({fixture:{count:'7'}})));
+      yield 'ok'; return;
+    }
     if (wireRun) {
       const read = async value => {
         if (typeof value === 'string') return value;
@@ -227,7 +233,7 @@ _pm.register(_Plugin(), name="fixture")
     return {toolCalls: request.async ? [{id:'a',name:'first',arguments:{}},{id:'b',name:'second',arguments:{}}]
       : [{id:'a',name:'add',arguments:{value:2}},{id:'b',name:'add',arguments:{value:3}},{id:'c',name:'unicode_text',arguments:{}}]};
   };
-  const service = createLlmService({defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture',asyncModel:{},capabilities:['messages','tools']}],complete,completeSources:complete}]});
+  const service = createLlmService({defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture',asyncModel:{},capabilities:['messages','tools'],options:{count:{type:'integer'},enabled:{type:'boolean'}}}],complete,completeSources:complete}]});
   const loadTools = createPythonLlmToolLoader({createExecutor,createCapabilities: context => ({llm:createPythonLlmCapability(context,service)})});
   const shell = new Shell({fs:backend,cwd:'/work',env:{HOME:'/work',LLM_USER_PATH:'/work/llm-config'}}).use(llmCommands({service,loadTools}));
   shell.use({name: 'chat-editor-fixture', setup(host) {
@@ -239,6 +245,7 @@ _pm.register(_Plugin(), name="fixture")
     }});
   }});
   try {
+    const invalidChatOptions = await shell.exec("llm chat -o count bad --functions 'invalid python'");
     const missingChatModel = await shell.exec('llm chat -m missing');
     const chatSuggestion = await shell.exec('llm chat --modle');
     const eagerChatHelp = await shell.exec('llm chat --cl bad --help');
@@ -268,6 +275,12 @@ _pm.register(_Plugin(), name="fixture")
     wireRun = true;
     const wireChat = await shell.exec("llm chat -t wire <<'EOF'\none\none\ntwo\nexit\nEOF");
     wireRun = false;
+    optionRun = true;
+    await backend.writeFile('/work/llm-config/model_options.json', new TextEncoder().encode(JSON.stringify({fixture:{count:'9',enabled:'false'}})));
+    const snapshotChatOptions = await shell.exec("llm chat <<'EOF'\none\ntwo\nexit\nEOF");
+    await backend.writeFile('/work/llm-config/model_options.json', new TextEncoder().encode(JSON.stringify({fixture:{count:'9',enabled:'false'}})));
+    const explicitChatOptions = await shell.exec("llm chat -o count 2 <<'EOF'\none\ntwo\nexit\nEOF");
+    optionRun = false;
     cancelRun = true;
     let cancelled = false;
     try {await shell.exec('llm hello --async --functions functions.py',{signal:cancellation.signal});}
@@ -276,7 +289,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {invalidChatOptions,snapshotChatOptions,explicitChatOptions,optionCalls,missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

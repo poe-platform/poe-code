@@ -1,0 +1,136 @@
+[
+  {
+    "args": [],
+    "template": {
+      "prompt": "$missing"
+    },
+    "input": "hello\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "Error: Missing variables: missing\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [],
+    "template": {
+      "prompt": "$missing"
+    },
+    "input": "exit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "Error: Missing variables: missing\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [],
+    "template": {
+      "prompt": "$missing"
+    },
+    "input": "",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "Aborted!\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [
+      "-o",
+      "count",
+      "bad"
+    ],
+    "template": {
+      "prompt": "$missing"
+    },
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: count\n  Input should be a valid integer, unable to parse string as an integer\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [
+      "-f",
+      "missing"
+    ],
+    "template": {
+      "prompt": "$missing"
+    },
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: Fragment 'missing' not found\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [
+      "-T",
+      "missing"
+    ],
+    "template": {
+      "prompt": "$missing"
+    },
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: Tool(s) missing not found. Available tools: llm_version, llm_time\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [],
+    "template": {
+      "prompt": "$missing $missing"
+    },
+    "input": "hello\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "Error: Missing variables: missing, missing\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [],
+    "template": {
+      "prompt": "$a $b $a"
+    },
+    "input": "hello\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "Error: Missing variables: a, b, a\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [],
+    "template": {
+      "prompt": "$input",
+      "system": "$missing"
+    },
+    "input": "exit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "Error: Missing variables: missing\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [
+      "-p",
+      "missing",
+      "present"
+    ],
+    "template": {
+      "prompt": "$input $missing"
+    },
+    "input": "hello\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:hello present\n> reply:exit present\n> ",
+    "stderr": "Aborted!\n",
+    "exitCode": 1,
+    "calls": [
+      {
+        "prompt": "hello present",
+        "system": ""
+      },
+      {
+        "prompt": "exit present",
+        "system": ""
+      }
+    ]
+  }
+]

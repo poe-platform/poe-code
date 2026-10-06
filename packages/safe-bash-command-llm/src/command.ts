@@ -417,7 +417,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
     if (stored) {
       if (!isChat && stored.schema_object) schema = stored.schema_object;
-      try { validateLlmTemplateParameters(stored, args.params); }
+      try { if (!isChat) validateLlmTemplateParameters(stored, args.params); }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
     }
     const selected = args.model ?? stored?.model ?? (args.save ? undefined : await configuration.defaultModel());

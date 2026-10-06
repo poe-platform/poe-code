@@ -477,6 +477,13 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   assert.equal(result.missingChatFragment.stderr, "Error: Fragment 'missing-fragment' not found\n");
   for (const key of ['initialStdinChatFragment', 'stdinChatFragment']) {assert.equal(result[key].exitCode, 1); assert.equal(result[key].stderr, 'Aborted!\n');}
   assert.ok(result.stdinChatFragment.stdout.endsWith('> 1\n> '), result.stdinChatFragment.stdout);
+  for (const key of ['missingTemplateAtPrompt','missingTemplateAtEof']) {
+    assert.equal(result[key].exitCode, 1);
+    assert.ok(result[key].stdout.startsWith('Chatting with fixture\n'));
+    assert.ok(result[key].stdout.endsWith('> '));
+  }
+  assert.equal(result.missingTemplateAtPrompt.stderr, 'Error: Missing variables: missing, missing\n');
+  assert.equal(result.missingTemplateAtEof.stderr, 'Aborted!\n');
   assert.equal(result.invalidChatOptions.exitCode, 1);
   assert.equal(result.invalidChatOptions.stdout, '');
   assert.equal(result.invalidChatOptions.stderr, 'Error: count\n  Input should be a valid integer, unable to parse string as an integer\n');

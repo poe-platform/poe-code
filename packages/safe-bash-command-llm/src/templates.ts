@@ -69,7 +69,7 @@ function interpolate(text: string | undefined, params: Record<string, string>, v
     while (index + 1 < text.length && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(text[index + 1]!)) name += text[++index];
     if (!name || "0123456789".includes(name[0]!) || braced && text[index + 1] !== "}") throw new Error(`Invalid placeholder in template at position ${start}`);
     if (braced) index++;
-    if (!Object.hasOwn(params, name)) { if (!missing.includes(name)) missing.push(name); }
+    if (!Object.hasOwn(params, name)) missing.push(name);
     else if (!validateOnly) append(String(params[name]));
   }
   if (missing.length) throw new Error(`Missing variables: ${missing.join(", ")}`);

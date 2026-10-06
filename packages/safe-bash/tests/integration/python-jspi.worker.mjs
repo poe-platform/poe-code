@@ -272,6 +272,9 @@ _pm.register(_Plugin(), name="fixture")
     chatRun = false;
     await backend.mkdir('/work/llm-config/templates', {recursive:true});
     await backend.writeFile('/work/llm-config/templates/wire.yaml', new TextEncoder().encode('prompt: "$input"\nsystem: "$input"\n'));
+    await backend.writeFile('/work/llm-config/templates/missing.yaml', new TextEncoder().encode('prompt: "$missing $missing"\n'));
+    const missingTemplateAtPrompt = await shell.exec("llm chat -t missing <<'EOF'\nhello\nEOF");
+    const missingTemplateAtEof = await shell.exec('llm chat -t missing');
     wireRun = true;
     const wireChat = await shell.exec("llm chat -t wire <<'EOF'\none\none\ntwo\nexit\nEOF");
     wireRun = false;
@@ -289,7 +292,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {invalidChatOptions,snapshotChatOptions,explicitChatOptions,optionCalls,missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {missingTemplateAtPrompt,missingTemplateAtEof,invalidChatOptions,snapshotChatOptions,explicitChatOptions,optionCalls,missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

@@ -15,28 +15,8 @@ Compatible wheels; configure transport with the Python package SDK.
 Both accept -h/--help and --. Other pip operations are unsupported.
 `;
 
-/** Recognize only the actual -m pip entrypoint, never application arguments. */
-export function parsePythonInstallation(args: readonly string[]): PythonInstallation | undefined {
-  let pipArgs: readonly string[] | undefined;
-  scan: for (let index = 0; index < args.length; index++) {
-    const option = args[index]!;
-    if (option === '--' || option === '-' || !option.startsWith('-') || option.startsWith('--')) return undefined;
-    for (let offset = 1; offset < option.length; offset++) {
-      const flag = option[offset]!;
-      if ('h?V'.includes(flag)) return undefined;
-      if ('cmWX'.includes(flag)) {
-        const operand = option.slice(offset + 1) || args[++index];
-        if (flag === 'c') return undefined;
-        if (flag === 'm') {
-          if (operand !== 'pip') return undefined;
-          pipArgs = args.slice(index + 1);
-          break scan;
-        }
-        break;
-      }
-    }
-  }
-  if (!pipArgs) return undefined;
+/** Parse arguments after the validated Python pip module entrypoint. */
+export function parsePythonInstallation(pipArgs: readonly string[]): PythonInstallation {
   const packages: string[] = [];
   const requirements: string[] = [];
   if (pipArgs.length === 0) return { packages, requirements, help: true };

@@ -108,8 +108,8 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
     }
     let installation;
     try {
-      parsePythonInvocation(context.args, context.env);
-      installation = parsePythonInstallation(context.args);
+      const invocation = parsePythonInvocation(context.args, context.env);
+      installation = invocation.module?.name === 'pip' ? parsePythonInstallation(invocation.module.args) : undefined;
     } catch (error) {
       if (!(error instanceof PythonInvocationError)) throw error;
       await writeBytes(context.stderr, new TextEncoder().encode('python: ' + error.message + '\n'), context.signal);

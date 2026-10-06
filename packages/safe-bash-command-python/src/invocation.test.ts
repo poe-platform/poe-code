@@ -78,3 +78,13 @@ for (const args of [['--', '--help'], ['-', '--version'], ['script.py', '-h'], [
     assert.throws(() => parsePythonInvocation(args, { PYTHONINSPECT: '1' }), PythonInvocationError);
   });
 }
+
+test('module dispatch shares native option boundaries and suppresses informational execution', () => {
+  for (const args of [['-m', 'pip', 'install', 'fixture'], ['-Bmpip', 'install', 'fixture']]) {
+    assert.deepEqual(parsePythonInvocation(args, {}).module, {name:'pip', args:['install','fixture']});
+  }
+  for (const args of [['-c', '-m pip'], ['script.py', '-m', 'pip'], ['--', '-m', 'pip'], ['-W', '-m', 'file.py'], ['-V', '-m', 'pip'], ['--version', '-mpip'], ['-h', '-mpip']]) {
+    assert.equal(parsePythonInvocation(args, {}).module, undefined);
+  }
+  assert.deepEqual(parsePythonInvocation(['-m', 'other', '-m', 'pip'], {}).module, {name:'other',args:['-m','pip']});
+});

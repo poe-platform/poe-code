@@ -5,11 +5,13 @@ export class PythonInvocationError extends Error {
 
 /** Extract native initialization flags without consuming script/module arguments. */
 export function parsePythonInvocation(args: readonly string[], env: Readonly<Record<string, string>>): {
+  readonly module: {readonly name: string; readonly args: readonly string[]} | undefined;
   readonly startupArgs: string[];
   readonly env: Record<string, string>;
 } {
   const startupArgs: string[] = [];
   let informational = false;
+  let module: {name: string; args: readonly string[]} | undefined;
   scan: for (let index = 0; index < args.length; index++) {
     const option = args[index]!;
     if (option === '--' || option === '-' || !option.startsWith('-')) break;
@@ -23,6 +25,7 @@ export function parsePythonInvocation(args: readonly string[], env: Readonly<Rec
       if ('cmWX'.includes(flag)) {
         const operand = option.slice(offset + 1) || args[++index];
         if (operand === undefined) throw new PythonInvocationError('argument expected for -' + flag);
+        if (flag === 'm' && !informational) module = {name: operand, args: args.slice(index + 1)};
         if (flag === 'c' || flag === 'm') break scan;
         if (flag === 'X') {
           const separator = operand.indexOf('=');
@@ -58,5 +61,5 @@ export function parsePythonInvocation(args: readonly string[], env: Readonly<Rec
   runtimeEnv.PYTHONINSPECT = '';
   // Without a command Pyodide initializes CPython in inspect mode.
   startupArgs.push('-c', '');
-  return { startupArgs, env: runtimeEnv };
+  return { startupArgs, env: runtimeEnv, module };
 }

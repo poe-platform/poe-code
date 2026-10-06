@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonSourceSnapshot, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -287,9 +287,15 @@ factory = Backend()
 `));
         const hook=createPythonBuildBackend({...pythonOptions,environment:buildEnvironment});
         const hookContext={fs:backend,cwd:'/work',env:{},signal:context.signal,maxBytes:512,stdout:{async write(bytes){hookOutput.push(new TextDecoder().decode(bytes));}},stderr:{async write(bytes){throw new Error(new TextDecoder().decode(bytes));}}};
-        const hookRequest={source:'/work/build-source',backend:'backend:factory',backendPath:['.'],configSettings:{feature:['one','two']}};
-        hookRequirements=await hook({...hookRequest,hook:'get_requires_for_build_wheel'},hookContext);
-        built=await hook({...hookRequest,hook:'build_wheel',wheelDirectory:'/work/built-wheels'},hookContext);
+        const snapshot=await createPythonSourceSnapshot('/work/build-source','/work',{...hookContext,command:'python',args:[],stdin:{async *[Symbol.asyncIterator](){}}});
+        try{
+          await backend.writeFile('/work/build-source/input.txt',new TextEncoder().encode('changed original'));
+          const hookRequest={source:snapshot.path,backend:'backend:factory',backendPath:['.'],configSettings:{feature:['one','two']}};
+          hookRequirements=await hook({...hookRequest,hook:'get_requires_for_build_wheel'},hookContext);
+          built=await hook({...hookRequest,hook:'build_wheel',wheelDirectory:'/work/built-wheels'},hookContext);
+        }finally{await snapshot.dispose();}
+        try{await backend.lstat(snapshot.path);throw new Error('Source snapshot survived disposal');}catch(error){if(error.code!=='ENOENT')throw error;}
+        if(new TextDecoder().decode(await backend.readFile('/work/build-source/input.txt'))!=='changed original')throw new Error('Source snapshot modified original');
       }finally{await buildShell.dispose();await buildEnvironment.dispose();}
       const after=await manifestStore.get(manifestScope,context);
       const targetState=await shell.exec(inspect);

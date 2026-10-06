@@ -162,6 +162,18 @@ prepared source tree directly, so hosts own source snapshots, build-dependency
 installation, durable wheel publication and cleanup. Automatic source installs
 and editable installation are not yet supported.
 
+Use `createPythonSourceSnapshot(source, directory, commandContext)` to copy a
+source tree into an existing caller-owned directory before running hooks. Pass
+the returned `path` as the hook source and await `dispose()` after the build.
+Files stream through retained readers; the filesystem must support lazy directory
+iteration, confined writes, conditional directory creation and atomic tree removal.
+The copy excludes top-level `.tox` and `.nox` and its own destination, preserving
+file/directory modes and timestamps where supported and symlink targets without
+following them. Symlink timestamps and special files are not supported. This is
+a copied build tree, not an atomic snapshot of concurrent source edits. Keep
+output wheels outside the snapshot; disposal removes only the owned tree and
+refuses substituted identities.
+
 Pass `--pre` to include prerelease and development candidates. Use
 `--no-cache-dir` to bypass artifact-cache reads and writes while retaining the
 caller-owned environment manifest. Authorization and integrity checks still

@@ -322,6 +322,10 @@ import { shellValueByteLength } from "../contracts/value.js";
 import { stateMonitor } from "./arrays/state.js";
 import type { RootShellState, State } from "./runtime.js";
 import { Budget, Runtime } from "./runtime.js";
+function canWriteBuiltinOutput(budget: Budget, pipe: BudgetedPipeStageSink | undefined, byteLength: number): boolean {
+  return (!pipe || pipe.canWriteSync(byteLength)) && (budget.bytes + byteLength <= budget.maxOutputBytesSmi || byteLength <= budget.limits.maxOutputBytes - budget.bytes);
+}
+
 
 const createFmtEngine = (...args: any[]) => syncCommandEvaluators.createFmtEngine!(...args);
 const parseFmtArguments = (...args: any[]) => syncCommandEvaluators.parseFmtArguments!(...args);
@@ -10407,7 +10411,7 @@ const syncExtraRuntimeMethods = {
             if (disc.status !== 0 || fastSyncSink || fastPipeSink || syncOut) {
               const encoded = disc.status === 0 ? (encodeRedirectTextWithNewlineToScratch(disc.text) ?? fastSharedTextEncoder.encode(`${disc.text}\n`)) : undefined;
               const byteLength = encoded ? encoded.byteLength : 0;
-              if (byteLength === 0 || ((!fastPipeSink || fastPipeSink.canWriteSync(byteLength)) && (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes))) {
+              if (byteLength === 0 || (canWriteBuiltinOutput(this.budget, fastPipeSink, byteLength))) {
                 if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
                 const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
                 this.budget.tick();
@@ -10440,7 +10444,7 @@ const syncExtraRuntimeMethods = {
         if (fastSyncSink || fastPipeSink || syncOut) {
           const encoded = encodeRedirectTextWithNewlineToScratch(rawState.cwd) ?? fastSharedTextEncoder.encode(`${rawState.cwd}\n`);
           const byteLength = encoded.byteLength;
-          if ((!fastPipeSink || fastPipeSink.canWriteSync(byteLength)) && (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes)) {
+          if (canWriteBuiltinOutput(this.budget, fastPipeSink, byteLength)) {
             if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
@@ -10508,7 +10512,7 @@ const syncExtraRuntimeMethods = {
           if (outText !== undefined) {
             const encoded = encodeRedirectTextWithNewlineToScratch(outText) ?? fastSharedTextEncoder.encode(`${outText}\n`);
             const byteLength = encoded.byteLength;
-            if ((!fastPipeSink || fastPipeSink.canWriteSync(byteLength)) && (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes)) {
+            if (canWriteBuiltinOutput(this.budget, fastPipeSink, byteLength)) {
               if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
@@ -10607,7 +10611,7 @@ const syncExtraRuntimeMethods = {
           if (preEncoded !== undefined || formatted !== undefined) {
             const encoded = preEncoded ?? encodeRedirectTextToScratch(formatted!);
             const byteLength = encoded.byteLength;
-            if ((!fastPipeSink || fastPipeSink.canWriteSync(byteLength)) && (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes)) {
+            if (canWriteBuiltinOutput(this.budget, fastPipeSink, byteLength)) {
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
               if (fastSyncSink) {

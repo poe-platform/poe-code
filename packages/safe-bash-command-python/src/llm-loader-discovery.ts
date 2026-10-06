@@ -1,3 +1,4 @@
+import {pythonLlmPluginSetup} from './llm-plugin-setup.js';
 import type {LlmFragmentLoader,LlmLoaderDiscoveryContext,LlmLoaderProvider,LlmTemplateLoader} from 'safe-bash-command-llm';
 import type {PythonLlmToolLoaderOptions} from './llm-functions-loader.js';
 import {createPythonLlmFragmentLoader} from './llm-fragment-loader.js';
@@ -49,17 +50,7 @@ def send(op, **fields):
 
 def main():
  request = send('request')
- import llm.plugins as manager
- manager.load_plugins()
- if request['plugins']:
-  original = (manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded)
-  try:
-   manager.DEFAULT_PLUGINS = ()
-   manager.LLM_LOAD_PLUGINS = ','.join(request['plugins'])
-   manager._loaded = False
-   manager.load_plugins()
-  finally:
-   manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded = original
+${pythonLlmPluginSetup}
  encoder = json.JSONEncoder(ensure_ascii=False, separators=(',', ':'))
  kind = request.get('kind')
  result = dict(fragments=[] if kind == 'templates' else [(prefix, loader.__doc__) for prefix, loader in llm.get_fragment_loaders().items()],

@@ -30,8 +30,8 @@ export function createPythonLlmJsonLoader(options:PythonLlmToolLoaderOptions,cap
     if(!input||typeof input!=='object'||Array.isArray(input)||done)throw new TypeError(`Invalid Python ${label} message`);
     const message=input as Record<string,PythonHostValue>;
     if(message.op==='request')return {...request,plugins};
-    if(message.op==='missing'||message.op==='error'){
-     failure??=message.op==='missing'?new LlmLoaderLookupError(String(message.message)):new Error(String(message.message));done=true;return null;
+    if(message.op==='missing'||message.op==='lookup'||message.op==='error'){
+     failure??=message.op==='error'?new Error(String(message.message)):new LlmLoaderLookupError(String(message.message));done=true;return null;
     }
     if(message.op==='done'){done=true;return null;}
     if(message.op!=='text'||typeof message.text!=='string'||message.text.length>8192)throw new TypeError(`Invalid Python ${label} text window`);

@@ -663,6 +663,11 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
         assert.equal(missing.stdout,'register '+kind+'s\n');
         assert.equal(missing.stderr,'Error: Unknown '+kind+' prefix: missing\n');
       }
+      for(const [kind,failed]of [['fragments',result.failedFragment],['templates',result.failedTemplate]]){
+        assert.equal(failed.exitCode,1,JSON.stringify(failed));
+        assert.equal(failed.stdout,'register '+kind+'\n');
+        assert.equal(failed.stderr,'Error: '+kind+' registration failed\n');
+      }
       assert.equal(result.blocked.exitCode,1);
       assert.match(result.blocked.stderr,/platform-configured providers/);
     }

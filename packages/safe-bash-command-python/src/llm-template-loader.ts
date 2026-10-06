@@ -1,3 +1,4 @@
+import {pythonLlmPluginSetup} from './llm-plugin-setup.js';
 import type {LlmTemplate,LlmTemplateLoader} from 'safe-bash-command-llm';
 import type {PythonLlmToolLoaderOptions} from './llm-functions-loader.js';
 import {createPythonLlmJsonLoader} from './llm-json-loader.js';
@@ -24,18 +25,12 @@ def send(op, **fields):
 
 def main():
  request = send('request')
- import llm.plugins as manager
- manager.load_plugins()
- if request['plugins']:
-  original = (manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded)
-  try:
-   manager.DEFAULT_PLUGINS = ()
-   manager.LLM_LOAD_PLUGINS = ','.join(request['plugins'])
-   manager._loaded = False
-   manager.load_plugins()
-  finally:
-   manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded = original
- loaders = llm.get_template_loaders()
+${pythonLlmPluginSetup}
+ try:
+  loaders = llm.get_template_loaders()
+ except Exception as error:
+  send('lookup', message=str(error))
+  return
  if request['prefix'] not in loaders:
   send('missing', message='Unknown template prefix: ' + request['prefix'])
   return

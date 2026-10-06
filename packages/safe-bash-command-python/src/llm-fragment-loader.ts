@@ -1,3 +1,4 @@
+import {pythonLlmPluginSetup} from './llm-plugin-setup.js';
 import {createLlmSpool,createLlmUrlSource,LlmLoaderLookupError,type LlmFragmentLoader,type LlmInputSource,type LlmLoadedFragment} from 'safe-bash-command-llm';
 import {toByteSource,type CommandContext} from 'safe-bash-contracts';
 import {createPythonExecutorCommands} from './executor.js';
@@ -39,7 +40,7 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
    if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Invalid Python fragment message');
    const message=input as Record<string,PythonHostValue>;
    if(message.op==='request')return {prefix,value,plugins};
-   if(message.op==='missing')throw new LlmLoaderLookupError(String(message.message));
+   if(message.op==='missing'||message.op==='lookup')throw new LlmLoaderLookupError(String(message.message));
    if(message.op==='error')throw new Error(String(message.message));
    if(message.op==='begin'){
     if(current||resume)throw new Error('Python fragment already active');
@@ -136,18 +137,12 @@ def emit_attachment(value):
 
 def main():
  request = send('request')
- import llm.plugins as manager
- manager.load_plugins()
- if request['plugins']:
-  original = (manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded)
-  try:
-   manager.DEFAULT_PLUGINS = ()
-   manager.LLM_LOAD_PLUGINS = ','.join(request['plugins'])
-   manager._loaded = False
-   manager.load_plugins()
-  finally:
-   manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded = original
- loaders = llm.get_fragment_loaders()
+${pythonLlmPluginSetup}
+ try:
+  loaders = llm.get_fragment_loaders()
+ except Exception as error:
+  send('lookup', message=str(error))
+  return
  if request['prefix'] not in loaders:
   send('missing', message='Unknown fragment prefix: ' + request['prefix'])
   return

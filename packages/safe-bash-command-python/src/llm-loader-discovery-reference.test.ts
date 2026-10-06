@@ -4,6 +4,37 @@ import test from 'node:test';
 import {pythonLlmLoaderDiscoveryProgram} from './llm-loader-discovery.js';
 const python=process.env.LLM_TEST_PYTHON??'python3';
 const available=spawnSync(python,['-B','-c','from importlib.metadata import version; assert version("llm") == "0.27.1"'],{timeout:5000}).status===0;
+test('native registration failures remain lookup failures before executing loaders',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned llm==0.27.1':false},async()=>{
+ const {pythonLlmFragmentProgram}=await import('./llm-fragment-loader.js');
+ const {pythonLlmTemplateProgram}=await import('./llm-template-loader.js');
+ const result=spawnSync(python,['-B','-c',String.raw`
+import llm,json,sys,types
+from llm.cli import resolve_fragments,load_template
+programs=json.load(sys.stdin)
+sys.modules['llm_safe_host']=types.SimpleNamespace(_attachment_type=lambda value:value.type)
+class Plugin:
+ @llm.hookimpl
+ def register_fragment_loaders(self,register): raise ValueError('fragment registration failed')
+ @llm.hookimpl
+ def register_template_loaders(self,register): raise ValueError('template registration failed')
+llm.plugins.load_plugins()
+llm.plugins.pm.register(Plugin(),name='failed-registration')
+for kind in ('fragment','template'):
+ try:
+  if kind=='fragment': resolve_fragments(None,['native:value'])
+  else: load_template('native:value')
+  raise AssertionError('registration unexpectedly succeeded')
+ except ValueError as error: expected=str(error)
+ messages=[]
+ def call(capability,message):
+  if message['op']=='request': return dict(plugins=[],prefix='native',value='value')
+  messages.append(message)
+ sys.modules['safe_host']=types.SimpleNamespace(call=call)
+ exec(programs[kind],{})
+ assert messages==[dict(op='lookup',message=expected)],(kind,messages,expected)
+`],{input:JSON.stringify({fragment:pythonLlmFragmentProgram,template:pythonLlmTemplateProgram}),encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
+});
 test('native discovery preserves pinned hook ordering, collisions and raw docstrings',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned llm==0.27.1':false},()=>{
  const result=spawnSync(python,['-B','-c',String.raw`
 import llm,json,sys,types,contextlib,io

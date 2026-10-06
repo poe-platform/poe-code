@@ -220,7 +220,7 @@ if ${legacyOnly ? 'True' : 'False'}:
  dependency['worker_dependency-1.0.dist-info/METADATA'] += 'Provides-Extra: feature\\nRequires-Dist: worker-extra @ file:///work/worker_extra-1.0-py3-none-any.whl ; extra == "feature"\\n'
 write_wheel('worker_dependency-1.0-py3-none-any.whl', dependency)
 files['worker_fixture-1.0.dist-info/METADATA'] += 'Requires-Dist: worker-dependency${legacyOnly ? '[feature]' : ''} @ file:///work/worker_dependency-1.0-py3-none-any.whl\\n'
-files['worker_fixture/plugin.py'] = 'import llm, sys\\ndef native_fragment(value):\\n print("plugin output")\\n print("plugin diagnostic", file=sys.stderr)\\n return llm.Fragment("native fragment:" + value, "fixture")\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n@llm.hookimpl\\ndef register_fragment_loaders(register):\\n print("register fragments")\\n register("native", native_fragment)\\ndef native_template(value):\\n print("template output")\\n print("template diagnostic", file=sys.stderr)\\n return llm.Template(name="native", prompt="native template:" + value + " $name $input", system="native system", defaults={"name":"default"})\\n@llm.hookimpl\\ndef register_template_loaders(register):\\n print("register templates")\\n register("native", native_template)\\n'
+files['worker_fixture/plugin.py'] = 'import llm, sys, os\\ndef native_fragment(value):\\n print("plugin output")\\n print("plugin diagnostic", file=sys.stderr)\\n return llm.Fragment("native fragment:" + value, "fixture")\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n@llm.hookimpl\\ndef register_fragment_loaders(register):\\n print("register fragments")\\n if os.path.exists("/work/fail-register"): raise ValueError("fragments registration failed")\\n register("native", native_fragment)\\ndef native_template(value):\\n print("template output")\\n print("template diagnostic", file=sys.stderr)\\n return llm.Template(name="native", prompt="native template:" + value + " $name $input", system="native system", defaults={"name":"default"})\\n@llm.hookimpl\\ndef register_template_loaders(register):\\n print("register templates")\\n if os.path.exists("/work/fail-register"): raise ValueError("templates registration failed")\\n register("native", native_template)\\n'
 files['worker_fixture-1.0.dist-info/entry_points.txt'] = '[llm]\\nfixture = worker_fixture.plugin\\n'
 if ${artifactOnly ? 'True' : 'False'}:
  files['worker_fixture-1.0.dist-info/METADATA'] += '\\n' + 'unneeded-description' * 8192
@@ -313,7 +313,7 @@ print('worker package verified')
       const result = await shell.exec('llm ' + args.join(' '));
       native.push({args,exitCode:result.exitCode,output:result.stdout+result.stderr});
     }
-    let plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing,missingFragment,missingTemplate;
+    let plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing,missingFragment,missingTemplate,failedFragment,failedTemplate;
     if(useLlm) {
       const added=await shell.exec('llm install ./worker_provider-1.0-py3-none-any.whl');
       if(added.exitCode)throw new Error(JSON.stringify({added,diagnostics}));
@@ -326,6 +326,10 @@ print('worker package verified')
       template=await shell.exec("llm -t native:hello -p name Ada question");
       missingFragment=await shell.exec('llm -f missing:value question');
       missingTemplate=await shell.exec('llm -t missing:value question');
+      await backend.writeFile('/work/fail-register',new Uint8Array());
+      failedFragment=await shell.exec('llm -f native:value question');
+      failedTemplate=await shell.exec('llm -t native:value question');
+      await backend.unlink('/work/fail-register');
       const denied=new Shell({fs:backend,cwd:'/work'}).use(llmCommands({loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-provider']})}));
       try {blocked=await denied.exec('llm plugins');} finally {await denied.dispose();}
     }
@@ -388,7 +392,7 @@ except PackageNotFoundError: pass
 else: raise AssertionError('Removed root reappeared')
 print('root removed; dependency retained')
 `));
-    return {wheelReads, installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, declined, afterDecline, removed, afterRemoval, missing, protectedPackage, restored, afterRestore, rootRemoved, afterRootRemoval, protectedDependency, eof, native, plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing,missingFragment,missingTemplate, requests, diagnostics};
+    return {wheelReads, installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, declined, afterDecline, removed, afterRemoval, missing, protectedPackage, restored, afterRestore, rootRemoved, afterRootRemoval, protectedDependency, eof, native, plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing,missingFragment,missingTemplate,failedFragment,failedTemplate, requests, diagnostics};
   } finally {await shell.dispose();await environment.dispose();manifestStore.dispose();}
 }
 

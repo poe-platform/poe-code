@@ -576,7 +576,7 @@ test('real workerd loads native code from a retained installed wheel', {timeout:
  assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const format of ['directory','zip','tar','named','remote','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds legacy setup projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
+for(const format of ['directory','zip','tar','named','remote','remote-extensionless','remote-extensionless-zip','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds legacy setup projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
   const extras=format==='editable-extras'||format==='editable-file',editable=format==='editable'||format==='llm-editable'||extras;
   const directory=process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT;
   assert.ok(directory,'Set SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT to authenticated runtime build wheels');

@@ -20,6 +20,17 @@ export interface PythonSourceBuildOptions {
 }
 let serial=0;
 const archiveSuffix=(path:string)=>['.zip','.tar','.tar.gz','.tgz','.tar.bz2','.tbz','.tar.xz','.txz'].find(suffix=>path.toLowerCase().endsWith(suffix));
+const wheelLink=(url:URL)=>{
+ let path=url.pathname;while(path.endsWith('/'))path=path.slice(0,-1);
+ const parts=(path.slice(path.lastIndexOf('/')+1)||url.host).split('%');
+ let name=parts.shift()!;
+ for(const part of parts){
+  const hex=part.slice(0,2).toLowerCase();
+  name+=hex.length===2&&[...hex].every(value=>'0123456789abcdef'.includes(value))?String.fromCharCode(Number.parseInt(hex,16))+part.slice(2):'%'+part;
+ }
+ name=name.slice(name.lastIndexOf('/')+1);
+ return name.endsWith('.whl')&&name.slice(0,-4).split('.').some(Boolean);
+};
 
 /** Package environment that builds local PEP 517 and legacy setup projects before normal installation. */
 export function createPythonSourcePackageEnvironment(options:PythonPackageOptions,build:PythonSourceBuildOptions){
@@ -34,7 +45,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
   if(at>=0&&!requirement.startsWith('file:')){
    const tail=requirement.slice(at+1).trimStart();let end=0;
    while(end<tail.length&&![' ','\t','\r','\n'].includes(tail[end]!))end++;
-   try{const url=new URL(tail.slice(0,end));namedSource=url.protocol==='file:'||['http:','https:'].includes(url.protocol)&&!!archiveSuffix(url.pathname);}
+   try{const url=new URL(tail.slice(0,end));namedSource=url.protocol==='file:'||['http:','https:'].includes(url.protocol)&&!wheelLink(url);}
    catch{/* Native requirement validation retains invalid-input diagnostics. */}
   }
   const editableExtras=editable&&requirement.endsWith(']')&&requirement.lastIndexOf('[')>0;
@@ -62,7 +73,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
   else if(source.includes('://')){if(editable)throw new Error('Editable source requires a local directory');return requirement;}
   if(editable&&remote)throw new Error('Editable source requires a local directory');
   const suffix=archiveSuffix(remote?.pathname??source);
-  let archived=!!remote&&!!suffix;
+  let archived=!!remote&&!wheelLink(remote);
   if(remote){if(!archived)return requirement;}
   else{
    source=resolvePath(context.cwd,source);
@@ -99,7 +110,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    const command:CommandContext={...context,env:context.env,stdout:context.stdout,stderr:context.stderr,command:'python',args:[],stdin:toByteSource('')};
    Reflect.deleteProperty(command,'editable');
    let prepared:string;
-   if(archived){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');if(remote){source=resolvePath(path,'archive'+suffix);await downloadPythonSourceArchive(remote,source,options,command);}await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
+   if(archived){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');if(remote){source=resolvePath(path,'archive'+(suffix??''));await downloadPythonSourceArchive(remote,source,options,command);}await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
    else prepared=editable?await fs.realpath(source,settings):(await createPythonSourceSnapshot(source,path,{...command,fs:staging})).path;
    if(subdirectory){
     const selected=resolvePath(prepared,subdirectory);

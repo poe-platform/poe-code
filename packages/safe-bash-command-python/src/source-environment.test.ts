@@ -51,6 +51,15 @@ test('ordinary package requirements do not start a build or require command cont
   await environment.finish(receipt);
  }finally{await environment.dispose();}
 });
+
+for(const filename of ['fixture-1-py3-none-any%2Ewhl','fixture-1-py3-none-any.%77%68%6c','bad%ff-1-py3-none-any%2ewhl'])test('percent-encoded wheel links remain package requirements: '+filename,async()=>{
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/absent',python:{createExecutor:()=>{throw new Error('unexpected source build');}}});
+ const requirements=['https://example.test/'+filename,'fixture @ https://example.test/'+filename];
+ try{
+  const receipt=await environment.prepare({fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal,requirements});
+  assert.deepEqual(receipt.requested,requirements);await environment.finish(receipt);
+ }finally{await environment.dispose();}
+});
 test('failed source backend preserves its exception and cleans only the owned build tree',async()=>{
  const fs=new MemoryFileSystem();await fs.mkdir('/source');await fs.mkdir('/storage');
  await fs.writeFile('/storage/keep',Uint8Array.of(5));

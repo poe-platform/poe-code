@@ -71,7 +71,9 @@ async function qualifyLegacyBuild(backend,createExecutor,assets,format='director
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl')||path.includes('-sha256-'))throw new Error('Whole wheel read');return target.readFile(path,...args);};
     const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
   }});
-  const remote=format==='remote'||format==='subdirectory',sourceDirectory=format==='editable-file'?'/work/legacy source':'/work/legacy-source'+(format==='subdirectory'?'/nested':'');
+  const remote=format==='remote'||format==='subdirectory'||format.startsWith('remote-extensionless'),zipArchive=format==='zip'||format==='remote-extensionless-zip';
+  const sourceURL='https://build.test/'+(format.startsWith('remote-extensionless')?'download':'legacy-source.tar.gz');
+  const sourceDirectory=format==='editable-file'?'/work/legacy source':'/work/legacy-source'+(format==='subdirectory'?'/nested':'');
   await backend.mkdir(sourceDirectory,{recursive:true});await backend.mkdir('/work/builds');
   const setupSource=format==='setup-requires'?`from setuptools import setup
 from setuptools.command.build_py import build_py
@@ -108,19 +110,19 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
 `));
       if(generated.exitCode)throw new Error(JSON.stringify(generated));
     }
-    const archived=format==='zip'||format==='tar'||remote;
+    const archived=zipArchive||format==='tar'||remote;
     const archive=async()=>{
-      const result=await shell.exec(format==='zip'?`python -c 'from zipfile import ZipFile; z=ZipFile("legacy-source.zip","w"); z.write("legacy-source/setup.py","project/setup.py"); z.write("legacy-source/legacy_fixture.py","project/legacy_fixture.py"); z.close()'`:`python -c 'import tarfile; z=tarfile.open("legacy-source.tar.gz","w:gz"); z.add("legacy-source",arcname="project"); z.close()'`);
+      const result=await shell.exec(zipArchive?`python -c 'from zipfile import ZipFile; z=ZipFile("legacy-source.zip","w"); z.write("legacy-source/setup.py","project/setup.py"); z.write("legacy-source/legacy_fixture.py","project/legacy_fixture.py"); z.close()'`:`python -c 'import tarfile; z=tarfile.open("legacy-source.tar.gz","w:gz"); z.add("legacy-source",arcname="project"); z.close()'`);
       if(result.exitCode)throw new Error(JSON.stringify(result));
-      if(remote)wheels.set('https://build.test/legacy-source.tar.gz',await backend.readFile('/work/legacy-source.tar.gz'));
+      if(remote)wheels.set(sourceURL,await backend.readFile('/work/legacy-source'+(zipArchive?'.zip':'.tar.gz')));
     };
     if(archived)await archive();
-    const suffix=format==='zip'?'.zip':'.tar.gz';
+    const suffix=zipArchive?'.zip':'.tar.gz';
     if(format==='editable-file'){
       await backend.mkdir('/work/config');
       await backend.writeFile('/work/config/requirements.txt',new TextEncoder().encode('--editable "./legacy source[FEATURE]" # optional dependency\n'));
     }
-    const install=format==='editable-file'?'python -m pip install -r /work/config/requirements.txt':llmEditable?"llm install -e './legacy-source"+(extras?'[FEATURE]':'')+"'":remote?`python -m pip install 'legacy-fixture @ https://build.test/legacy-source.tar.gz${format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
+    const install=format==='editable-file'?'python -m pip install -r /work/config/requirements.txt':llmEditable?"llm install -e './legacy-source"+(extras?'[FEATURE]':'')+"'":remote?`python -m pip install '${format==='remote-extensionless'?'':'legacy-fixture @ '}${sourceURL}${format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
     if(format==='named'){
       const skipped=await shell.exec(`python -m pip install 'absent @ file:///work/nonexistent ; python_version < "1"'`);
       if(skipped.exitCode)throw new Error(JSON.stringify(skipped));
@@ -133,7 +135,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
     const failed=await shell.exec(install+(remote?' --no-cache-dir':''));
     await backend.unlink(sourceDirectory+'/setup.py');if(!editable)await backend.unlink(sourceDirectory+'/legacy_fixture.py');
     if(archived)await backend.unlink('/work/legacy-source'+suffix);
-    if(remote)wheels.delete('https://build.test/legacy-source.tar.gz');
+    if(remote)wheels.delete(sourceURL);
     if(format==='setup-requires')await backend.unlink('/work/build_helper-1.0-py3-none-any.whl');
     const restored=await shell.exec(inspect);
     const receipt=await environment.prepare({fs:backend,cwd:'/work',signal:new AbortController().signal});

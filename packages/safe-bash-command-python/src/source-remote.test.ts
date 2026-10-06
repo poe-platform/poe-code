@@ -4,22 +4,23 @@ import test from 'node:test';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonSourcePackageEnvironment} from './source-environment.js';
 
-for(const mode of ['allowed','named','denied','integrity','limit','offline'] as const)test('remote source archives use owned transport and retire build storage; '+mode,async()=>{
+for(const mode of ['allowed','named','extensionless','named-extensionless','upper-wheel','denied','integrity','limit','offline'] as const)test('remote source archives use owned transport and retire build storage; '+mode,async()=>{
  const fs=new MemoryFileSystem();await fs.mkdir('/builds');await fs.mkdir('/cache');
  const bytes=new Uint8Array(150000).fill(41),hash=createHash('sha256').update(bytes).digest('hex');
- const url='https://example.test/project.tar.gz';let fetched=0,extracted=0,disposed=0;const authorized:string[]=[];
+ const url='https://example.test/'+(mode.endsWith('extensionless')?'download':mode==='upper-wheel'?'project.WHL':'project.tar.gz');let fetched=0,extracted=0,disposed=0;const authorized:string[]=[];
+ const accepted=['allowed','named','extensionless','named-extensionless','upper-wheel'].includes(mode);
  const reached=new Error('source extraction reached');
  const environment=createPythonSourcePackageEnvironment({cacheDirectory:'/cache',offline:mode==='offline',maxDownloadBytes:mode==='limit'?100:200000,authorize:({url})=>{authorized.push(url);return mode!=='denied';},transport:async()=>{
   fetched++;return {status:200,statusText:'OK',headers:[],body:(async function*(){yield bytes;})(),async dispose(){disposed++;}};
  }},{directory:'/builds',async extractArchive(source,directory,_max,context){
-  extracted++;assert.ok(source.endsWith('.tar.gz'));assert.ok(directory.startsWith('/builds/.python-build-'));
+  extracted++;if(!mode.endsWith('extensionless')&&mode!=='upper-wheel')assert.ok(source.endsWith('.tar.gz'));assert.ok(source.startsWith('/builds/.python-build-'));assert.ok(directory.startsWith('/builds/.python-build-'));
   assert.deepEqual(await fs.readFile(source),bytes);assert.equal(context.fs.capabilities.atomicTreeRemoval,true);throw reached;
  },python:{createExecutor:()=>({terminate(){},async run(start){const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});const request=await send({op:'request'}) as any;assert.equal(request.hook,'read_source_requirement');await send({op:'text',text:JSON.stringify({name:'Fixture',extras:[],url:url+'#sha256='+hash,marker:null,active:true})});await send({op:'done'});return 0;}})}});
  const proxy=new Proxy(fs,{get(target,key){if(key==='readFile')return (...args:Parameters<typeof target.readFile>)=>{if(args[0].includes('-sha256-')||args[0].endsWith('.tar.gz'))throw new Error('Buffered remote source read');return target.readFile(...args);};const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}});
- const context={fs:proxy,cwd:'/',signal:new AbortController().signal,requirements:[(mode==='named'?'Fixture @ ':'')+url+'#sha256='+(mode==='integrity'?'0'.repeat(64):hash)],env:{},stdout:{async write(){}},stderr:{async write(){}}};
+ const context={fs:proxy,cwd:'/',signal:new AbortController().signal,requirements:[(mode.startsWith('named')?'Fixture @ ':'')+url+'#sha256='+(mode==='integrity'?'0'.repeat(64):hash)],env:{},stdout:{async write(){}},stderr:{async write(){}}};
  try{
-  await assert.rejects(environment.prepare(context),error=>mode==='allowed'||mode==='named'?error===reached:error instanceof Error&&error.message.includes(mode==='denied'?'authorization denied':mode==='integrity'?'integrity mismatch':mode==='limit'?'maxDownloadBytes':'Offline'));
-  assert.equal(extracted,mode==='allowed'||mode==='named'?1:0);assert.equal(fetched,mode==='denied'||mode==='offline'?0:1);assert.equal(disposed,fetched);
+  await assert.rejects(environment.prepare(context),error=>accepted?error===reached:error instanceof Error&&error.message.includes(mode==='denied'?'authorization denied':mode==='integrity'?'integrity mismatch':mode==='limit'?'maxDownloadBytes':'Offline'));
+  assert.equal(extracted,accepted?1:0);assert.equal(fetched,mode==='denied'||mode==='offline'?0:1);assert.equal(disposed,fetched);
   assert.deepEqual(await fs.readdir('/builds'),[]);
   if(mode==='allowed'){
    await assert.rejects(environment.prepare({...context,offline:true}),error=>error===reached);

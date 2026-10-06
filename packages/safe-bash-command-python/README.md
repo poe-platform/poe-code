@@ -250,7 +250,8 @@ Inactive markers skip the build.
 Direct and named HTTP(S) ZIP/tar archives use the same authorized package
 transport and caller-backed cache. SHA-256 URL fragments are verified before
 extraction; offline replay and cache bypass use the normal installation controls.
-Remote archives require retained caller storage and streaming writes.
+Remote archives require retained caller storage and streaming writes. ZIP and tar
+contents are also detected when the download URL has no archive extension.
 Local file URLs and remote archives can select a nested project with
 `#subdirectory=path/to/project`. Selection preserves pip’s literal fragment
 spelling and must remain inside the prepared source tree.

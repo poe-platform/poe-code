@@ -6,6 +6,7 @@ import {toByteSource} from 'safe-bash-contracts';
 import {makeZipEntry,writeZipArchive} from 'safe-bash-zip-engine';
 import {DEFAULT_ARCHIVE_LIMITS} from 'safe-bash-io-engine/commands/archive/internal';
 import {extractPythonSourceZip} from './source-zip.js';
+import {extractPythonSourceArchive} from './source-archive.js';
 
 const python=process.env.LLM_TEST_PYTHON??'python3';
 const available=spawnSync(python,['-B','-c','import pip; assert pip.__version__ == "21.2.4"'],{timeout:5000}).status===0;
@@ -18,12 +19,38 @@ async function fixture(names:string[],size?:number){
  const confined=await fs.confineExtraction(['/build']);
  const proxy=new Proxy(confined,{get(target,key){
   if(key==='readFile')return ()=>{throw new Error('Buffered read');};
-  const owner=key==='openReadFile'?fs:target,value=Reflect.get(owner,key);
+  const owner=key==='openReadFile'||key==='confineExtraction'?fs:target,value=Reflect.get(owner,key);
   return typeof value==='function'?value.bind(owner):value;
  }});
  const context={fs:proxy,cwd:'/',env:{},signal,command:'python',args:[],stdin:toByteSource(''),stdout:{async write(){}},stderr:{async write(){}}};
  return {fs,bytes,context};
 }
+for(const name of ['/download','/misleading.tar.gz'])for(const trailing of [0,65536,65537])test(`source archive detection matches pinned pip; name=${name}; trailing=${trailing}`,{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned pip==21.2.4':false},async()=>{
+ const {fs,bytes,context}=await fixture(['project/','project/setup.py']);
+ const archive=new Uint8Array(bytes.length+trailing);archive.set(bytes);
+ const native=spawnSync(python,['-B','-c',String.raw`
+import base64,io,json,sys
+from unittest.mock import patch
+from pip._internal.utils.unpacking import unpack_file
+archive=base64.b64decode(sys.stdin.read());selected=[]
+with patch('builtins.open',side_effect=lambda *args,**kwargs:io.BytesIO(archive)),patch('pip._internal.utils.unpacking.unzip_file',side_effect=lambda *args,**kwargs:selected.append('zip')),patch('pip._internal.utils.unpacking.untar_file',side_effect=lambda *args,**kwargs:selected.append('tar')):
+ try: unpack_file(sys.argv[1],'/target')
+ except Exception: selected.append('error')
+print(json.dumps(selected))
+`,name],{input:Buffer.from(archive).toString('base64'),encoding:'utf8',timeout:5000});
+ assert.ifError(native.error);assert.equal(native.status,0,native.stderr);
+ const zip=JSON.parse(native.stdout)[0]==='zip';assert.equal(zip,trailing<=65536);
+ await fs.writeFile(name,archive);
+ let opened=0,closed=0;
+ const retained=new Proxy(context.fs,{get(target,key){if(key==='openReadFile')return async(...args:Parameters<NonNullable<typeof target.openReadFile>>)=>{
+  const file=await target.openReadFile!(...args);if(args[0]!==name)return file;opened++;
+  return new Proxy(file,{get(handle,operation){if(operation==='read')return (offset:number,length:number,options:any)=>handle.read(offset,Math.min(length,4096),options);if(operation==='close')return async()=>{closed++;await handle.close();};const value=Reflect.get(handle,operation);return typeof value==='function'?value.bind(handle):value;}});
+ };const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}});
+ const extraction=extractPythonSourceArchive(name,'/build/source',Infinity,{...context,fs:retained});
+ if(zip){await extraction;assert.equal(new TextDecoder().decode(await fs.readFile('/build/source/setup.py')),'payload-1');}
+ else await assert.rejects(extraction);
+ assert.equal(opened,1);assert.equal(closed,1);
+});
 for(const names of [['project/','project/setup.py','project/mod.py'],['setup.py','module.py'],['a/input','b/input'],['project/duplicate','project/duplicate'],['project/duplicate','project/duplicate','project/duplicate']])test('source ZIP extraction matches pinned pip paths, bytes and executable modes '+names.join(','),{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned pip==21.2.4':false},async()=>{
  const {fs,bytes,context}=await fixture(names);
  const reference=spawnSync(python,['-B','-c',String.raw`

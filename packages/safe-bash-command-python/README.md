@@ -15,11 +15,15 @@ const result = await shell.exec('python3 -c "print(42)"');
 Provide `fs` and a trusted `createExecutor` for your application. Executor, JSPI,
 worker, and Docker profiles retain their own runtime prerequisites. Runtime assets
 and package provisioning remain explicitly configured; JavaScript interoperability
-does not isolate untrusted Python from its host.
+does not isolate untrusted Python from its host. JSPI package installation uses
+the configured package cache, authorization and transport before guest execution.
+Native extensions still require matching, statically supplied runtime modules;
+installation does not enable arbitrary Worker WebAssembly compilation.
 
 - `python` and `python3`: inline code, stdin, modules, and VFS scripts.
 - Executor pooling, cancellation, cleanup, and bounded filesystem replies.
-- Package provisioning with cache and manifest support.
+- Package provisioning with cache and manifest support, including pure-Python
+  wheels through explicitly configured JSPI host transport.
 - Optional shell and LLM host capabilities.
 
 Use `PythonCommandsOptions` to configure limits, runtime providers, and packages.

@@ -8,7 +8,7 @@ test('installer preserves host transport failure when micropip masks it as missi
  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(){return new Uint8Array();}}},
   globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},
   async runPythonAsync(){
-   try {(globals.get('_safe_package_metadata') as (url:string)=>unknown)('https://packages.example/metadata');}
+   try {await (globals.get('_safe_package_metadata') as (url:string)=>unknown)('https://packages.example/metadata');}
    catch {throw new Error("Can't fetch metadata for 'fixture'");}
   },runPython(){return '[]';}};
  await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:true},op=>{
@@ -84,5 +84,51 @@ test('installer closes each host artifact on success and failed chunk reads',asy
   const result=installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},op=>{operations.push(op);if(op==='package-open')return {key:'artifact',size:1,headers:[]};if(op==='package-read'){if(fail)throw Error('read failure');return [255];}return null;},64);
   if(fail)await assert.rejects(result,/read failure/);else await result;
   assert.deepEqual(operations.slice(0,3),['package-open','package-read','package-close']);
+ }
+});
+
+test('installer awaits asynchronous artifact reads, closure and manifest publication',async()=>{
+ const globals=new Map<string,unknown>(),operations:string[]=[];
+ let committed=false;
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},
+  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){assert.equal(committed,true);globals.delete(name);}},
+  async loadPackage(){const bytes=await runtime._api.packageManager.downloadPackage({normalizedName:'fixture',channel:'https://example.org/fixture.whl'});assert.deepEqual([...bytes],[1,2,3]);assert.deepEqual(operations,['package-open','package-read','package-read','package-close']);},
+  async runPythonAsync(){const metadata=await (globals.get('_safe_package_metadata') as (url:string)=>Promise<string>)('https://example.org/metadata');assert.deepEqual(JSON.parse(metadata),{text:'\u0001\u0002\u0003',headers:{'content-type':'application/json'}});},runPython(){return '["fixture==1"]';}};
+ await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},async(op,...args)=>{
+  await Promise.resolve();operations.push(op);
+  if(op==='package-open')return {key:'artifact',size:3,headers:[['Content-Type','application/json']]};
+  if(op==='package-read')return [1,2,3].slice(args[2] as number,(args[2] as number)+(args[3] as number));
+  if(op==='package-commit'){assert.deepEqual(args,['1',['fixture==1']]);committed=true;}
+  return null;
+ },2);
+ assert.equal(committed,true);assert.equal(globals.size,0);
+});
+
+test('concurrent package downloads serialize artifact lifetimes and retire after loader failure',async()=>{
+ for(const fail of [false,true]){
+  const operations:string[]=[];let opened=false,release!:()=>void,admitted!:()=>void;
+  const gate=new Promise<void>(resolve=>{release=resolve;});
+  const started=new Promise<void>(resolve=>{admitted=resolve;});
+  const readFailure=new Error('late host read failure');
+  let committed=false;
+  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){assert.equal(opened,false);}},
+   async loadPackage(){
+    const first=runtime._api.packageManager.downloadPackage({normalizedName:'one',channel:'one'});
+    const second=runtime._api.packageManager.downloadPackage({normalizedName:'two',channel:'two'});
+    const both=Promise.allSettled([first,second]);
+    if(fail){void both;await started;throw new Error('loader failed early');}
+    await both;
+   },async runPythonAsync(){},runPython(){return '[]';}};
+  const installation=installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},async(op,...args)=>{
+   if(op==='package-open'){assert.equal(opened,false);opened=true;operations.push('open '+args[1]);return {key:args[1],size:1,headers:[]};}
+   if(op==='package-read'){admitted();await gate;if(fail)throw readFailure;return [1];}
+   if(op==='package-close'){await Promise.resolve();opened=false;operations.push('close '+args[1]);}
+   if(op==='package-commit')committed=true;
+  },64);
+  let settled=false;void installation.then(()=>{settled=true;},()=>{settled=true;});
+  await started;await Promise.resolve();assert.equal(settled,false);release();
+  if(fail)await assert.rejects(installation,error=>error===readFailure);else await installation;
+  assert.equal(opened,false);assert.equal(committed,!fail);
+  assert.deepEqual(operations,fail?['open one','close one']:['open one','close one','open two','close two']);
  }
 });

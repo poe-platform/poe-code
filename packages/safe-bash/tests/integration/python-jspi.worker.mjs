@@ -17,6 +17,46 @@ import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
 
+async function qualifyPackages(backend, createExecutor, micropip) {
+  const requests = [], diagnostics = [];
+  const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
+  const shell = new Shell({fs:backend, cwd:'/work'}).use(pythonCommands({createExecutor,maxTransferBytes:32,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event)),
+    provisioning:{authorize:request => request.url === url, transport:async request => {
+      if (request.url !== url) throw new Error('Unexpected package request');
+      requests.push(request.url);
+      return {status:200, headers:[], body:(async function*(){yield micropip;})(), async dispose(){}};
+    }},
+  }));
+  const quote = value => "'" + value.split("'").join("'\\''") + "'";
+  try {
+    const created = await shell.exec('python -c ' + quote(`
+from zipfile import ZipFile
+files = {
+ 'worker_fixture/__init__.py': 'answer = 73',
+ 'worker_fixture/payload.txt': 'caller package data',
+ 'worker_fixture-1.0.dist-info/METADATA': 'Metadata-Version: 2.1\\nName: worker-fixture\\nVersion: 1.0\\n',
+ 'worker_fixture-1.0.dist-info/WHEEL': 'Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n',
+ 'worker_fixture-1.0.dist-info/RECORD': '',
+}
+with ZipFile('worker_fixture-1.0-py3-none-any.whl', 'w') as wheel:
+ for name, contents in files.items(): wheel.writestr(name, contents)
+`));
+    if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
+    const installed = await shell.exec('python -m pip install ./worker_fixture-1.0-py3-none-any.whl');
+    if(installed.exitCode)throw new Error(JSON.stringify({stage:'install',installed,diagnostics}));
+    const imported = await shell.exec('python -c ' + quote(`
+import worker_fixture
+from importlib.metadata import version
+from importlib.resources import files
+assert worker_fixture.answer == 73
+assert version('worker-fixture') == '1.0'
+assert files('worker_fixture').joinpath('payload.txt').read_text() == 'caller package data'
+print('worker package verified')
+`));
+    return {installed, imported, requests};
+  } finally {await shell.dispose();}
+}
+
 async function qualifyPublication(backend, createExecutor, cancel) {
   const versions = new Map();
   let revision = 0;
@@ -1139,7 +1179,7 @@ export default {
         enableRunUntilComplete: false });
       // Keep the legacy adapter contract separate from the genuine calling profile.
       if (mode === '/host') await installStaticPackages(runtime);
-      else installPythonLlmPackages(runtime, llmPackageAssets);
+      else if (mode !== '/packages') installPythonLlmPackages(runtime, llmPackageAssets);
       version = runtime.version;
       memory = runtime._module.HEAPU8.byteLength;
       if (mode === '/proxy') retainedProxy = runtime.globals;
@@ -1154,6 +1194,11 @@ export default {
       }
       return runtime;
     } });
+    if (mode === '/packages') {
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
     if (mode === '/publication' || mode === '/publication-recovery') {
       try { return Response.json({...await qualifyPublication(backend, createExecutor, mode === '/publication-recovery'), failures}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }

@@ -1,5 +1,6 @@
 import { createPythonNativeSyscalls } from '@poe-code/safe-fs/core';
 import type { PythonAsyncExecutor, PythonExecutorStart } from './index.js';
+import { installPythonPackages } from './provisioning-runtime.js';
 import { PythonFailure } from './diagnostics.js';
 import { parsePythonInvocation } from './invocation.js';
 import { pythonExecution } from './execution.js';
@@ -63,7 +64,6 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
     let hostCleanupFailure: { reason: unknown } | undefined;
     try {
       signal.throwIfAborted();
-      if (start.packages?.requirements.length || start.installOnly) throw new PythonFailure('runtime-assets', {cause:new Error('JSPI runtime requires statically qualified packages')});
       runtime = await options.loadRuntime({jsglobals:Object.create(null) as Record<string, never>,
         args:configuration.startupArgs, env:configuration.env,
         bindImports(imports) {
@@ -106,6 +106,18 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       // Callers should not need to import Pyodide or write run_sync themselves.
       runtime._api.config.enableRunUntilComplete = true;
       signal.throwIfAborted();
+      if (start.packages) await installPythonPackages(runtime, start.packages,
+        (op, ...args) => start.dispatch({op, args}), start.maxTransferBytes);
+      const unavailablePackage = () => { throw new Error('Python package transport is only available during installation'); };
+      if ('loadPackage' in runtime) runtime.loadPackage = unavailablePackage;
+      if (runtime._api.packageManager) runtime._api.packageManager.downloadPackage = unavailablePackage;
+      if (start.installOnly) {
+        start.onReady();
+        const message = new TextEncoder().encode('Successfully installed requested Python packages\n');
+        for (let offset = 0; offset < message.length; offset += start.maxTransferBytes) {
+          await start.dispatch({op:'stdout', args:[Array.from(message.subarray(offset, offset + start.maxTransferBytes))]});
+        }
+      } else {
       runtime.runPython('import sys, os, json, runpy, traceback, types, warnings, textwrap, io, struct, linecache, importlib.machinery, shutil, stat, pyodide.ffi');
       runtime.globals.set('_safe_runtime_mount', start.runtimeMount);
       const filesystem = runtime.FS;
@@ -238,6 +250,7 @@ except BaseException:
  _safe_exit = 130
 _safe_exit
 `)) & 255;
+      }
     } finally {
       try {
         if (qualified) {

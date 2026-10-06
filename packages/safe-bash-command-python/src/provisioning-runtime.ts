@@ -24,23 +24,33 @@ export async function installPythonPackages(
  const runtime=supplied as InstallerRuntime;
  if(runtime.version!=='314.0.6'||!runtime._api?.packageManager||!runtime._api.lockfile_packages||typeof runtime.loadPackage!=='function'||typeof runtime.runPythonAsync!=='function')throw new Error('Python package installer ABI requires Pyodide 314.0.6');
  let transportFailure:{error:unknown}|undefined;
- const fetch=(url:string,expected?:string):{bytes:Uint8Array;headers:readonly(readonly[string,string])[]}=>{
+ let accepting=true;
+ let pending=Promise.resolve();
+ // A host session owns one open artifact. Serialize entire transfers, including
+ // closure, even when micropip or the native loader requests dependencies together.
+ const fetch=(url:string,expected?:string):Promise<{bytes:Uint8Array;headers:readonly(readonly[string,string])[]}>=>{
+  if(!accepting)return Promise.reject(new Error('Python package transport is only available during installation'));
+  const transfer=pending.then(async()=>{
+  if(transportFailure)throw transportFailure.error;
   try {
-  const opened=request('package-open',start.session,url,expected) as {key:string;size:number;headers:readonly(readonly[string,string])[]};
+  const opened=await request('package-open',start.session,url,expected) as {key:string;size:number;headers:readonly(readonly[string,string])[]};
   try {
   const bytes=new Uint8Array(opened.size);
   for(let offset=0;offset<bytes.length;){
-   const chunk=request('package-read',start.session,opened.key,offset,Math.min(maxTransferBytes,65536,bytes.length-offset)) as number[];
+   const chunk=await request('package-read',start.session,opened.key,offset,Math.min(maxTransferBytes,65536,bytes.length-offset)) as number[];
    if(!Array.isArray(chunk)||chunk.length===0||offset+chunk.length>bytes.length)throw new Error('Invalid Python package chunk');
    bytes.set(chunk,offset);offset+=chunk.length;
   }
   return {bytes,headers:opened.headers};
-  } finally {request('package-close',start.session,opened.key);}
+  } finally {await request('package-close',start.session,opened.key);}
   } catch(error) {
    // Micropip may replace callback errors with a generic package-index failure.
    transportFailure??={error};
    throw error;
   }
+  });
+  pending=transfer.then(()=>{},()=>{});
+  return transfer;
  };
  // The pinned loader still owns dependency ordering, wheel extraction and dynamic linking.
  // Replacing only its download operation prevents implicit Node/CDN network fallbacks.
@@ -48,9 +58,9 @@ export async function installPythonPackages(
   if(metadata.channel===runtime._api.packageManager.defaultChannel){
    const pkg=runtime._api.lockfile_packages[metadata.normalizedName];
    if(!pkg)throw new Error(`Missing matching Pyodide package: ${metadata.normalizedName}`);
-   return fetch(new URL(pkg.file_name,'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/').href,pkg.sha256).bytes;
+   return (await fetch(new URL(pkg.file_name,'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/').href,pkg.sha256)).bytes;
   }
-  return fetch(metadata.channel).bytes;
+  return (await fetch(metadata.channel)).bytes;
  };
  const loadPackages=async(names:string[])=>{
   const errors:string[]=[];
@@ -62,10 +72,10 @@ export async function installPythonPackages(
   await loadPackages(['micropip']);
   runtime.globals.set('_safe_package_native',loadPackages);
   installedGlobals.push('_safe_package_native');
-  runtime.globals.set('_safe_package_bytes',(url:string,hash?:string)=>fetch(url,hash).bytes);
+  runtime.globals.set('_safe_package_bytes',async(url:string,hash?:string)=>(await fetch(url,hash)).bytes);
   installedGlobals.push('_safe_package_bytes');
-  runtime.globals.set('_safe_package_metadata',(url:string)=>{
-   const result=fetch(url);return JSON.stringify({text:new TextDecoder().decode(result.bytes),headers:Object.fromEntries(result.headers.map(([name,value])=>[name.toLowerCase(),value]))});
+  runtime.globals.set('_safe_package_metadata',async(url:string)=>{
+   const result=await fetch(url);return JSON.stringify({text:new TextDecoder().decode(result.bytes),headers:Object.fromEntries(result.headers.map(([name,value])=>[name.toLowerCase(),value]))});
   });
   installedGlobals.push('_safe_package_metadata');
   runtime.globals.set('_safe_package_requirements_json',JSON.stringify(start.requirements));
@@ -86,10 +96,10 @@ class _SafePackageCompatibility(_safe_compat):
   return await _safe_package_native(names)
  @staticmethod
  async def fetch_bytes(url, kwargs):
-  return _safe_package_bytes(url).to_bytes()
+  return (await _safe_package_bytes(url)).to_bytes()
  @staticmethod
  async def fetch_string_and_headers(url, kwargs):
-  value = _safe_json.loads(_safe_package_metadata(url))
+  value = _safe_json.loads(await _safe_package_metadata(url))
   return value['text'], value['headers']
 
 # Require index/URL digests before publishing wheel bytes to the host cache.
@@ -98,7 +108,7 @@ async def _safe_wheel_fetch(self, url, kwargs, compat):
  expected = self.sha256 if url == self.url else None
  if url == self.metadata_url and isinstance(self.core_metadata, dict):
   expected = self.core_metadata.get('sha256')
- return _safe_package_bytes(url, expected).to_bytes()
+ return (await _safe_package_bytes(url, expected)).to_bytes()
 _SafeWheelInfo._fetch_bytes = _safe_wheel_fetch
 _safe_manager = _SafePackageManager(_SafePackageCompatibility)
 _safe_requirements = _safe_json.loads(_safe_package_requirements_json)
@@ -182,12 +192,24 @@ for _safe_root in _safe_roots:
   if _safe_name(_safe_wheel.name) != _safe_name(_safe_root.name) or not _safe_wheel_pin.specifier.contains(_safe_version, prereleases=True):
    raise ValueError('Python package wheel version conflict: ' + str(_safe_root))
 _safe_installed_json = _safe_json.dumps([name + '==' + version for name, version in sorted(_safe_versions.items())])
+# Metadata discovery caches open bootstrap ZIPs. Retire those descriptors before
+# the runtime namespace is relocated and guest filesystem syscalls are enabled.
+_safe_metadata.MetadataPathFinder.invalidate_caches()
+import gc as _safe_gc
+_safe_gc.collect()
 `);
+  accepting=false;
+  await pending;
+  if(transportFailure)throw transportFailure.error;
   const pinned=JSON.parse(runtime.runPython('_safe_installed_json')) as string[];
-  request('package-commit',start.session,pinned);
+  await request('package-commit',start.session,pinned);
  }catch(error){
+  accepting=false;
+  await pending;
   throw transportFailure ? transportFailure.error : error;
  }finally{
+  accepting=false;
+  await pending;
   runtime._api.packageManager.downloadPackage=async()=>{throw new Error('Python package transport is only available during installation');};
   // These bridge callbacks are not an application Python networking capability.
   for(const name of installedGlobals)runtime.globals.delete(name);

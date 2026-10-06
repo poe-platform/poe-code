@@ -532,3 +532,26 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   assert.deepEqual(result.failures,[]);
   assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });
+
+
+test('real workerd installs and reuses explicitly authorized Python wheels', {timeout:120000}, async()=>{
+  const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
+  assert.ok(path, 'Set SAFE_BASH_PYTHON_MICROPIP_WHEEL to the pinned micropip 0.11.1 wheel');
+  const bytes=readFileSync(path);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),'0ad7104a3cde648e5486a718799f3852f1d782ff19d4bfc13db9dc631df083f8');
+  const {miniflare,runtimeErrors}=nativeFixture;
+  const response=await miniflare.dispatchFetch('http://fixture/packages',{method:'POST',body:bytes});
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.equal(result.installed.exitCode,0,JSON.stringify(result));
+  assert.equal(result.installed.stdout,'Successfully installed requested Python packages\n');
+  assert.equal(result.installed.stderr,'');
+  assert.equal(result.imported.exitCode,0,JSON.stringify(result));
+  assert.equal(result.imported.stdout,'worker package verified\n');
+  assert.equal(result.imported.stderr,'');
+  assert.equal(result.requests.length,1);
+  assert.deepEqual(result.failures,[]);
+  assert.deepEqual(runtimeErrors,[]);
+  const errors=await miniflare.dispatchFetch('http://fixture/unhandled-errors');
+  assert.deepEqual(await errors.json(),[]);
+});

@@ -286,3 +286,12 @@ test('distinguishes drained native descriptor close failures from incomplete ter
     WebAssembly.Table = origTable;
   }
 });
+
+test('JSPI admits explicitly prepared package requests to the configured runtime',async()=>{
+ const failure=new Error('configured loader reached');
+ const executor=createPythonJspiExecutor({trampoline:new WebAssembly.Module(createPythonJspiTrampoline()),
+  nativeCall:new WebAssembly.Module(createPythonJspiNativeCall()),statResult:new WebAssembly.Module(createPythonJspiStatResult()),
+  async loadRuntime(){throw failure;}});
+ await assert.rejects(executor.run({...start(),packages:{session:'prepared',requirements:['fixture==1'],offline:true},installOnly:true}),error=>error===failure);
+ await executor.terminate();
+});

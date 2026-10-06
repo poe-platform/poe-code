@@ -116,3 +116,52 @@ assert output=={1:expected,2:expected},output
 `], {input: JSON.stringify([pythonLlmFunctionsProgram, asynchronous]), encoding: 'utf8', timeout: 5000});
   assert.ifError(result.error); assert.equal(result.status, 0, result.stdout + result.stderr);
 });
+
+test('pinned plugin loading discovers host-selected distribution metadata and callable tools', {skip: !available && !process.env.LLM_TEST_PYTHON ? 'Requires pinned llm==0.27.1' : false},()=>{
+  const result=spawnSync(python,['-B','-c',`
+import asyncio,json,sys,types
+import llm
+from importlib import metadata
+source=json.load(sys.stdin)
+llm.plugins.LLM_LOAD_PLUGINS=''
+llm.plugins.DEFAULT_PLUGINS=()
+plugin=types.ModuleType('fixture_plugin')
+@llm.hookimpl
+def register_tools(register):
+ def greet(name: str): return 'hello ' + name
+ register(greet)
+plugin.register_tools=register_tools
+distribution=types.SimpleNamespace(name='fixture-plugin',metadata={'Name':'fixture-plugin'},version='1.0',entry_points=[types.SimpleNamespace(group='llm',name='fixture',load=lambda:plugin)])
+original=metadata.distribution
+metadata.distribution=lambda name: distribution if name=='fixture-plugin' else original(name)
+registered=[];plugins=[];output={};errors=[]
+queue=[dict(id=1,tool=0,arguments={'name':'Ada'}),None]
+def call(capability,payload):
+ assert capability=='llm_tools'
+ op=payload['op']
+ if op=='definitions': return []
+ if op=='selection': return dict(names=['greet'],plugins=['fixture-plugin'],pluginQuery=dict(all=False,hooks=[]))
+ if op=='plugins': plugins.extend(payload['plugins'])
+ elif op=='register': registered.append(payload)
+ elif op in ('admit','ready','done'): pass
+ elif op=='text': output[payload['id']]=output.get(payload['id'],'')+payload['text']
+ elif op in ('error','failed'): errors.append(payload)
+ else: raise AssertionError(payload)
+class Bridge:
+ async def wait(self,*args,**kwargs):
+  await asyncio.sleep(0)
+  return queue.pop(0)
+sys.modules['safe_host']=types.SimpleNamespace(call=call)
+sys.modules['_poe_llm_capability']=types.SimpleNamespace(bridge=Bridge())
+sys.modules['llm_safe_host']=types.SimpleNamespace(_attachment_type=lambda value:value.type)
+exec(source,{})
+assert not errors,errors
+assert [tool['name'] for tool in registered]==['greet'],registered
+assert registered[0]['plugin']=='fixture',registered
+assert plugins==[dict(name='fixture-plugin',version='1.0',hooks=['register_tools'])],plugins
+assert output=={1:'hello Ada'},output
+assert llm.plugins.LLM_LOAD_PLUGINS==''
+assert llm.plugins.DEFAULT_PLUGINS==()
+`],{input:JSON.stringify(pythonLlmFunctionsProgram),encoding:'utf8',timeout:5000});
+  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
+});

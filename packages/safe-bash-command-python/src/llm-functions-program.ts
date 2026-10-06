@@ -64,6 +64,20 @@ async def main():
     discovery = selection.get("discovery", False)
     tools = []
     try:
+        requested_plugins = selection.get("plugins", [])
+        if requested_plugins:
+            import llm.plugins as plugin_manager
+            plugin_manager.load_plugins()
+            original = (plugin_manager.DEFAULT_PLUGINS, plugin_manager.LLM_LOAD_PLUGINS, plugin_manager._loaded)
+            try:
+                # Reuse native explicit-distribution loading. The host's tooling
+                # registration guard and ambient-entrypoint prohibition stay active.
+                plugin_manager.DEFAULT_PLUGINS = ()
+                plugin_manager.LLM_LOAD_PLUGINS = ",".join(requested_plugins)
+                plugin_manager._loaded = False
+                plugin_manager.load_plugins()
+            finally:
+                plugin_manager.DEFAULT_PLUGINS, plugin_manager.LLM_LOAD_PLUGINS, plugin_manager._loaded = original
         plugin_query = selection.get("pluginQuery")
         if plugin_query is not None:
             plugins = get_plugins(plugin_query["all"])

@@ -557,11 +557,23 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
     assert.equal(result.recovered.stderr,'');
     assert.equal(result.requests.length,1);
     assert.deepEqual(result.failures,[]);
+    if(mode==='llm-packages') {
+      assert.equal(result.plugins.exitCode,0,JSON.stringify(result));
+      assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_tools'],version:'1.0'}]);
+      assert.equal(result.plugins.stderr,'');
+      assert.equal(result.listed.exitCode,0,JSON.stringify(result));
+      assert.match(result.listed.stdout,/installed_tool/);
+      assert.equal(result.called.exitCode,0,JSON.stringify(result));
+      assert.equal(result.called.stdout,'78\n');
+      assert.equal(result.called.stderr,'');
+      assert.equal(result.blocked.exitCode,1);
+      assert.match(result.blocked.stderr,/platform-configured providers/);
+    }
     assert.equal(result.native.length,mode==='llm-packages'?4:0);
     if(mode==='llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT) {
       const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
       assert.ok(output.startsWith(resolve(root,'out')+'/'));
-      await writeFile(output,result.installed.stdout+'\n'+result.native[0].output);
+      await writeFile(output,result.installed.stdout+'\n'+result.plugins.stdout+'\n'+result.called.stdout);
     }
     for(const actual of result.native) {
       const expected=packageCommandReference.find(row=>JSON.stringify(row.args)===JSON.stringify(actual.args));

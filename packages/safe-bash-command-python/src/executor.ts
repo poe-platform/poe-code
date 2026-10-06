@@ -15,7 +15,7 @@ import { createPythonHostBridge, type PythonHostCapability, type PythonHostBridg
 export * from './host-capabilities.js';
 export { createPythonShellCapability } from './shell-capability.js';
 export { createPythonLlmPackageManager } from './llm-package-manager.js';
-export { createPythonLlmToolLoader } from './llm-functions-loader.js';
+export { createPythonLlmToolLoader, type PythonLlmToolLoaderOptions } from './llm-functions-loader.js';
 export { createPythonLlmCapability, type PythonLlmCapabilityOptions } from './llm-capability.js';
 import { pythonShellDispatchActive } from './shell-capability.js';
 

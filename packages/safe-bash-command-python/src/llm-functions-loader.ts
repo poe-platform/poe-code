@@ -15,10 +15,17 @@ function record(value: PythonHostValue): Record<string, PythonHostValue> {
   return value as Record<string, PythonHostValue>;
 }
 
+export interface PythonLlmToolLoaderOptions extends PythonCommandsOptions {
+  /** Explicit installed distributions whose tooling hooks the host authorizes. */
+  readonly plugins?: readonly string[];
+}
+
 /** Reuse one configured interpreter per load, retaining only caller-backed tool
  * payloads. The session must outlive consumption of its borrowed results. */
-export function createPythonLlmToolLoader(options: PythonCommandsOptions): LlmToolLoader {
+export function createPythonLlmToolLoader(options: PythonLlmToolLoaderOptions): LlmToolLoader {
   if (!options.createExecutor) throw new TypeError('Python tool loading requires an asynchronous executor');
+  if (options.plugins !== undefined && (!Array.isArray(options.plugins) || options.plugins.some(name=>typeof name!=='string' || !name || name!==name.trim() || name.includes(',')))) throw new TypeError('Python tool plugins must be explicit distribution names');
+  const pluginNames=Object.freeze([...(options.plugins ?? [])]);
   const capabilitiesByArguments = new WeakMap<readonly string[], PythonHostCapability>();
   const command = createPythonExecutorCommands({...options, createCapabilities: current => {
     const capabilities = options.createCapabilities?.(current) ?? {};
@@ -90,7 +97,7 @@ export function createPythonLlmToolLoader(options: PythonCommandsOptions): LlmTo
       const message = record(value);
       if (message.op !== 'next' && message.op !== 'failed') signal.throwIfAborted();
       if (message.op === 'definitions') return [...definitions];
-      if (message.op === 'selection') return {names: [...toolNames], discovery, ...(pluginQuery ? {pluginQuery: {all: pluginQuery.all, hooks: [...pluginQuery.hooks]}} : {})};
+      if (message.op === 'selection') return {names: [...toolNames], discovery, ...(pluginNames.length ? {plugins:[...pluginNames]} : {}), ...(pluginQuery ? {pluginQuery: {all: pluginQuery.all, hooks: [...pluginQuery.hooks]}} : {})};
       if (message.op === 'admit') {
         if (typeof message.size !== 'number' || !Number.isSafeInteger(message.size) || message.size < 0) throw new TypeError('Invalid Python definition byte count');
         controls += message.size;

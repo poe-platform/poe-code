@@ -179,3 +179,22 @@ for (const [label, metadata, limit] of [['malformed', [{name: 'bad', hooks: [1]}
     await assert.rejects(load({context: context(), definitions: [], pluginQuery: {all: true, hooks: []}, maxInputBytes: limit, maxOutputBytes: 4096}));
     assert.equal(retired, true);
   });
+
+test('tool loader snapshots the host-selected plugin distributions',async()=>{
+  const plugins=['fixture-plugin'];
+  const load=createPythonLlmToolLoader({plugins,createExecutor:()=>({terminate(){},async run(start){
+    start.onReady();
+    const send=(value: Parameters<NonNullable<typeof start.host>['request']>[0])=>start.host!.request({version:1,operation:'call',capability:'llm_tools',value});
+    assert.deepEqual(await send({op:'selection'}),{names:[],discovery:false,plugins:['fixture-plugin']});
+    await send({op:'ready'});
+    assert.equal(await send({op:'next'}),null);
+    return 0;
+  }})});
+  plugins.push('unselected-plugin');
+  const session=await load({context:context(),definitions:[],maxInputBytes:4096,maxOutputBytes:4096});
+  await session.close();
+});
+
+test('an explicit distribution name cannot select additional comma-delimited plugins',()=>{
+  assert.throws(()=>createPythonLlmToolLoader({plugins:['allowed,unselected'],createExecutor(){throw new Error('must not acquire runtime');}}),/explicit distribution names/);
+});

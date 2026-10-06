@@ -26,8 +26,13 @@ async function qualifyPackages(backend, createExecutor, micropip, useLlm) {
       return {status:200, headers:[], body:(async function*(){yield micropip;})(), async dispose(){}};
     }});
   const pythonOptions = {createExecutor,environment,maxTransferBytes:32,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event))};
+  const service=createLlmService({defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture',capabilities:['tools','messages']}],async *complete(request) {
+    const result=request.messages?.findLast(message=>message.role==='tool');
+    if(result){yield result.content;return;}
+    return {toolCalls:[{id:'installed-call',name:'installed_tool',arguments:{value:5}}]};
+  }}]});
   const shell = new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(pythonOptions))
-    .use(llmCommands({managePackages:createPythonLlmPackageManager(pythonOptions)}));
+    .use(llmCommands({service,loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-fixture']}),managePackages:createPythonLlmPackageManager(pythonOptions)}));
   const prefix = useLlm ? 'llm' : 'python -m pip';
   const quote = value => "'" + value.split("'").join("'\\''") + "'";
   try {
@@ -44,8 +49,19 @@ with ZipFile('worker_dependency-1.0-py3-none-any.whl', 'w') as wheel:
  for name, contents in files.items():
   wheel.writestr(name.replace('worker_fixture', 'worker_dependency'), contents.replace('worker-fixture', 'worker-dependency'))
 files['worker_fixture-1.0.dist-info/METADATA'] += 'Requires-Dist: worker-dependency @ file:///work/worker_dependency-1.0-py3-none-any.whl\\n'
+files['worker_fixture/plugin.py'] = 'import llm\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n'
+files['worker_fixture-1.0.dist-info/entry_points.txt'] = '[llm]\\nfixture = worker_fixture.plugin\\n'
 with ZipFile('worker_fixture-1.0-py3-none-any.whl', 'w') as wheel:
  for name, contents in files.items(): wheel.writestr(name, contents)
+provider = {
+ 'worker_provider.py': 'import llm\\n@llm.hookimpl\\ndef register_models(register):\\n pass\\n',
+ 'worker_provider-1.0.dist-info/METADATA': 'Metadata-Version: 2.1\\nName: worker-provider\\nVersion: 1.0\\n',
+ 'worker_provider-1.0.dist-info/WHEEL': files['worker_fixture-1.0.dist-info/WHEEL'],
+ 'worker_provider-1.0.dist-info/entry_points.txt': '[llm]\\nprovider = worker_provider\\n',
+ 'worker_provider-1.0.dist-info/RECORD': '',
+}
+with ZipFile('worker_provider-1.0-py3-none-any.whl','w') as wheel:
+ for name,contents in provider.items(): wheel.writestr(name,contents)
 `));
     if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
     const installed = await shell.exec(prefix + ' install ./worker_fixture-1.0-py3-none-any.whl');
@@ -68,7 +84,17 @@ print('worker package verified')
       const result = await shell.exec('llm ' + args.join(' '));
       native.push({args,exitCode:result.exitCode,output:result.stdout+result.stderr});
     }
-    return {installed, imported, conflict, recovered, native, requests, diagnostics};
+    let plugins,listed,called,blocked;
+    if(useLlm) {
+      const added=await shell.exec('llm install ./worker_provider-1.0-py3-none-any.whl');
+      if(added.exitCode)throw new Error(JSON.stringify({added,diagnostics}));
+      plugins=await shell.exec('llm plugins --hook register_tools');
+      listed=await shell.exec('llm tools list');
+      called=await shell.exec("llm -T installed_tool 'use installed tool'");
+      const denied=new Shell({fs:backend,cwd:'/work'}).use(llmCommands({loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-provider']})}));
+      try {blocked=await denied.exec('llm plugins');} finally {await denied.dispose();}
+    }
+    return {installed, imported, conflict, recovered, native, plugins,listed,called,blocked, requests, diagnostics};
   } finally {await shell.dispose();await environment.dispose();}
 }
 

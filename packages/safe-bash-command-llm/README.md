@@ -203,6 +203,12 @@ Sync/async preparation runs before approvals and method execution. Additional
 model-provider registration and ambient entrypoint loading stay disabled; runtime
 packages remain explicitly provisioned by the host.
 
+Set `plugins: ["my-tool-plugin"]` on `createPythonLlmToolLoader` to load
+host-authorized installed distributions from its shared Python environment.
+The native LLM loader supplies entrypoint names, versions and hooks. Tool,
+template-loader and fragment-loader hooks are allowed; provider registration
+remains platform-owned.
+
 Use `llm plugins` to list the configured interpreter's installed plugin names,
 versions and hooks. `--all` includes built-in plugins; repeated `--hook NAME`
 filters match any requested hook. SDK callers pass

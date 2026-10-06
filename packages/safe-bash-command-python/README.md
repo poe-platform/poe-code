@@ -69,6 +69,12 @@ storage; close direct SDK sessions after consuming their borrowed results.
 Cancellation is cooperative for Python tasks; CPU-bound or cancellation-suppressing
 code still requires runtime-enforced interruption. No conversation history is stored.
 
+Set `plugins: ["my-tool-plugin"]` on `createPythonLlmToolLoader` to load
+host-authorized installed distributions from its shared Python environment.
+The native LLM loader supplies entrypoint names, versions and hooks. Tool,
+template-loader and fragment-loader hooks are allowed; provider registration
+remains platform-owned.
+
 Use `llm plugins` to list the configured interpreter's installed plugin names,
 versions and hooks. `--all` includes built-in plugins; repeated `--hook NAME`
 filters match any requested hook. SDK callers pass

@@ -103,9 +103,10 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
-    "lint": "eslint src && npm run typecheck",
+    "lint": "node scripts/generate-help.mjs --check && eslint src && npm run typecheck",
     "test": "node --import tsx --test src/*.test.ts",
-    "test:unit": "node --import tsx --test src/*.test.ts"
+    "test:unit": "node --import tsx --test src/*.test.ts",
+    "generate:help": "node scripts/generate-help.mjs"
   },
   "devDependencies": {
     "safe-bash-csv-engine": "*",

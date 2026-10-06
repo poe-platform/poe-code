@@ -1,10 +1,11 @@
+import {loadLlmHelp} from './help-text.js';
 import { getLlmModelAliases } from "./model-selection.js";
 export { getLlmModelAliases } from "./model-selection.js";
 import type { CommandContext } from "safe-bash-contracts";
 import type { LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 
-export const modelsGroupHelp = "Usage: llm models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n";
+
 
 export class LlmModelsUsageError extends Error {
   constructor(message: string, usage = true) {
@@ -33,7 +34,7 @@ export async function listLlmModels(context: CommandContext, service: LlmService
   const terminator = tokens.indexOf("--");
   const groupFlags = terminator < 0 ? tokens : tokens.slice(0, terminator);
   if (!explicit && groupFlags.some(token => token === "--help" || token.startsWith("-") && !token.startsWith("--") && token.slice(1).includes("h"))) {
-    await emit(modelsGroupHelp);
+    await emit(await loadLlmHelp("models"));
     return;
   }
   const queries: string[] = [], selected: string[] = [];
@@ -62,7 +63,7 @@ export async function listLlmModels(context: CommandContext, service: LlmService
     (flag === "-q" || flag === "--query" ? queries : selected).push(value);
   }
   if (help) {
-    await emit("Usage: llm models list [OPTIONS]\n\n  List available models\n\nOptions:\n  --options         Show options for each model, if available\n  --async           List async models\n  --schemas         List models that support schemas\n  --tools           List models that support tools\n  -q, --query TEXT  Search for models matching these strings\n  -m, --model TEXT  Specific model IDs\n  -h, --help        Show this message and exit.\n");
+    await emit((await loadLlmHelp("models-list")));
     return;
   }
   if (unexpected.length) throw new LlmModelsUsageError(`Got unexpected extra argument${unexpected.length === 1 ? "" : "s"} (${unexpected.join(" ")})`);

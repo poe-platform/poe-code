@@ -1,3 +1,4 @@
+import {loadLlmHelp} from './help-text.js';
 import { jsonValue } from "./json-value.js";
 import { FsError, type CommandContext } from "safe-bash-contracts";
 import { pathOf } from "safe-bash-contracts/path";
@@ -265,7 +266,7 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
       };
       const usage = `Usage: llm templates ${command} [OPTIONS]${["show", "edit"].includes(command) ? " NAME" : ""}\n`;
       if (grouped) {
-        await output("Usage: llm templates [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available prompt templates\n  edit     Edit the specified prompt template using the default $EDITOR\n  loaders  Show template loaders registered by plugins\n  path     Output the path to the templates directory\n  show     Show the specified prompt template\n");
+        await output((await loadLlmHelp("templates")));
         return 0;
       }
       let optionsEnded = false;

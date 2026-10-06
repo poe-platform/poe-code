@@ -1,5 +1,7 @@
 # llm commands
 
+Use `llm prompt --help` for prompt options; history controls remain host-owned.
+
 Manage an embedding collection catalog using the optional
 `@poe-platform/safe-bash/commands/llm/collections` subpath:
 

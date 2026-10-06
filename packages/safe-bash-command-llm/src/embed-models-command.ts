@@ -1,8 +1,9 @@
+import {loadLlmHelp} from './help-text.js';
 import type {CommandContext} from 'safe-bash-contracts';
 import type {LlmService} from './service.js';
 import {createLlmConfiguration} from './configuration.js';
 
-const groupHelp='Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n';
+
 
 /** Manage embedding discovery and its separate default in canonical caller config. */
 export async function embeddingModelsCommand(
@@ -18,7 +19,7 @@ export async function embeddingModelsCommand(
  };
  const terminator=tokens.indexOf('--');
  const groupFlags=terminator<0?tokens:tokens.slice(0,terminator);
- if(!explicit&&groupFlags.some(token=>token==='--help'||token.startsWith('-')&&!token.startsWith('--')&&token.slice(1).includes('h'))){await emit(groupHelp);return 0;}
+ if(!explicit&&groupFlags.some(token=>token==='--help'||token.startsWith('-')&&!token.startsWith('--')&&token.slice(1).includes('h'))){await emit(await loadLlmHelp("embed-models"));return 0;}
  const args=explicit?tokens.slice(1):tokens.filter((_,index)=>index!==terminator);
  const queries:string[]=[],operands:string[]=[];
  let ended=false,help=false,remove=false;
@@ -49,7 +50,7 @@ export async function embeddingModelsCommand(
   queries.push(value.toLowerCase());
  }
  if(help){
-  await emit(usage+(defaults?'\n  Show or set the default embedding model\n\nOptions:\n  --remove-default  Reset to specifying no default model\n  -h, --help        Show this message and exit.\n':'\n  List available embedding models\n\nOptions:\n  -q, --query TEXT  Search for embedding models matching these strings\n  -h, --help        Show this message and exit.\n'));return 0;
+  await emit(usage+(defaults?(await loadLlmHelp("embed-models-default")):(await loadLlmHelp("embed-models-list"))));return 0;
  }
  const extra=operands.slice(defaults?1:0);
  if(extra.length)return fail(`Got unexpected extra argument${extra.length===1?'':'s'} (${extra.join(' ')})`);

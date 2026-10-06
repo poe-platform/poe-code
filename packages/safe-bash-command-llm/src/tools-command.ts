@@ -1,12 +1,10 @@
+import {loadLlmHelp} from './help-text.js';
 import { referenceJson } from "./reference-json.js";
 import { selectLlmTools, type LlmRegisteredTool, type LlmToolboxDescription } from "./tool-registry.js";
 
 const usage = "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\n";
-const groupHelp =
-  "Usage: llm tools [OPTIONS] COMMAND [ARGS]...\n\n  Manage tools that can be made available to LLMs\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List available tools that have been provided by plugins\n";
-const listHelp =
-  usage +
-  "\n  List available tools that have been provided by plugins\n\nOptions:\n  --json            Output as JSON\n  --functions TEXT  Python code block or file path defining functions to\n                    register as tools\n  -h, --help        Show this message and exit.\n";
+
+
 
 function compareNames(left: string, right: string): number {
   let a = 0,
@@ -55,7 +53,7 @@ export async function toolsCommand(
       groupEager = true;
   }
   if (groupEager) {
-    await output(groupHelp);
+    await output(await loadLlmHelp("tools"));
     return 0;
   }
   const groupArgs = tokens.filter((_, index) => index !== separator);
@@ -97,7 +95,7 @@ export async function toolsCommand(
     return error(`No such option '${flag}'.`, true);
   }
   if (help) {
-    await output(listHelp);
+    await output(await loadLlmHelp("tools-list"));
     return 0;
   }
   if (functions.length && !load) {

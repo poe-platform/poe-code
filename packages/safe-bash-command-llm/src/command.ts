@@ -1,8 +1,8 @@
+import {loadLlmHelp} from './help-text.js';
 import {pluginsCommand} from './plugins-command.js';
 import type {LlmPluginQuery} from './tool-registry.js';
 import {pythonRepr} from "./python-repr.js";
 import {chatOptions, chatOptionSuggestion} from "./chat-options.js";
-import {chatHelp} from "./chat-help.js";
 import {createChatInput} from "./chat-input.js";
 import {validateModelOptions} from "./model-options.js";
 import type {PromptChatMessage} from "./prompt-tool-chain.js";
@@ -39,7 +39,7 @@ import { fileSource } from "./file-source.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { resolveLlmSchemaInput } from "./schema-input.js";
 import { configurationCommand } from "./configuration-command.js";
-import { listLlmModels, LlmModelsUsageError, modelsGroupHelp } from "./models-list.js";
+import { listLlmModels, LlmModelsUsageError } from "./models-list.js";
 
 import { selectLlmModelByQuery } from "./model-selection.js";
 
@@ -90,13 +90,13 @@ async function parse(length: number, text: (index: number) => string, step: () =
     for (let cursor = long ? 0 : 1; cursor < argument.length; cursor++) {
       await step();
       const flag = long ? argument.slice(0, equals < 0 ? undefined : equals) : "-" + argument[cursor];
+      if (flag === '-h' || flag === '--help') {
+        if (long && equals >= 0) throw new LlmPromptUsageError(`Error: Option '${flag}' does not take a value.`);
+        parsed.help = true;
+        if (long) break;
+        continue;
+      }
       if (chat) {
-        if (flag === '-h' || flag === '--help') {
-          if (long && equals >= 0) throw new LlmPromptUsageError(`Error: Option '${flag}' does not take a value.`);
-          parsed.help = true;
-          if (long) break;
-          continue;
-        }
         if (!chatOptions.includes(flag))
           throw new LlmPromptUsageError(`Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: ${flag}${await chatOptionSuggestion(flag, step)}`);
       }
@@ -309,7 +309,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (argumentsValue.args.length === 2 && argumentsValue.args[0] === "models" && ["--help", "-h"].includes(argumentsValue.args[1]!)) {
       argumentText(0);
       argumentText(1);
-      await emitText(modelsGroupHelp);
+      await emitText(await loadLlmHelp("models"));
       return { exitCode: 0 };
     }
     if (argumentsValue.args[0] === 'install' || argumentsValue.args[0] === 'uninstall') {
@@ -404,7 +404,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const isChat = argumentsValue.args[0] === "chat";
     const promptOffset = argumentsValue.args[0] === "prompt" || isChat ? 1 : 0;
     let args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step, isChat, context.env.LLM_TOOLS_DEBUG);
-    if (args.help) {await emitText(chatHelp); return {exitCode: 0};}
+    if (args.help) {await emitText(await loadLlmHelp(isChat ? "chat" : "prompt")); return {exitCode: 0};}
     const configuration = createLlmConfiguration(context, limits?.maxConfigurationBytes, invocationLoaders);
     if (args.model === undefined && args.queries.length) {
       try { args.model = (await selectLlmModelByQuery(service.models, args.queries, await configuration.aliases(), signal)).model.id; }

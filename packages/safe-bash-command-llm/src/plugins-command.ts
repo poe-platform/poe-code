@@ -1,8 +1,9 @@
+import {loadLlmHelp} from './help-text.js';
 import {referenceJson} from './reference-json.js';
 import type {LlmPluginInfo, LlmPluginQuery} from './tool-registry.js';
 
 const usage = 'Usage: llm plugins [OPTIONS]\n';
-const help = usage + '\n  List installed plugins\n\nOptions:\n  --all        Include built-in default plugins\n  --hook TEXT  Filter for plugins that implement this hook\n  -h, --help   Show this message and exit.\n';
+
 
 export async function pluginsCommand(args: readonly string[], output: (text: string) => Promise<void>,
   diagnostic: (text: string) => Promise<void>, step: () => Promise<void>, signal: AbortSignal,
@@ -32,7 +33,7 @@ export async function pluginsCommand(args: readonly string[], output: (text: str
       }
     } else return error(`No such option: ${flag}`, true);
   }
-  if (showHelp) {await output(help); return 0;}
+  if (showHelp) {await output(await loadLlmHelp("plugins")); return 0;}
   if (extra.length) return error(`Got unexpected extra argument${extra.length === 1 ? '' : 's'} (${extra.join(' ')})`, true);
   if (!load) {await diagnostic('Error: Python plugin discovery is not configured\n'); return 1;}
   const plugins = await load({all, hooks});

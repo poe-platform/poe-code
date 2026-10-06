@@ -80,6 +80,20 @@ test("runStandardBenchmarkSuite executes all 26 E2E workloads and produces compl
     assert.ok(s.p50Ms >= 0, `Scenario ${s.name} should have non-negative p50Ms`);
     assert.ok(s.opsPerSec > 0, `Scenario ${s.name} should have positive opsPerSec`);
   }
+
+  const rustRun = await runStandardBenchmarkSuite({
+    runId: "test-rust-suite-check",
+    label: "Test Rust Suite Check",
+    backend: "rust-safe-bash",
+    profile: "warm-memory-fastpath",
+    warmup: 0,
+    iterations: 1,
+  });
+  assert.equal(rustRun.scenarios.length, 26);
+  for (const s of rustRun.scenarios) {
+    assert.ok(s.p50Ms >= 0, `Rust scenario ${s.name} should have non-negative p50Ms`);
+    assert.ok(s.opsPerSec > 0, `Rust scenario ${s.name} should have positive opsPerSec`);
+  }
 });
 
 test("stored baseline benchmark runs in benchmarks/ load cleanly and compare without missing scenarios", () => {
@@ -87,6 +101,9 @@ test("stored baseline benchmark runs in benchmarks/ load cleanly and compare wit
     "ts-baseline-warm-memory-fastpath.json",
     "ts-baseline-overlay-cow-fs.json",
     "ts-baseline-strict-budgets-mount-dev.json",
+    "rust-wasm-warm-memory-fastpath.json",
+    "rust-wasm-overlay-cow-fs.json",
+    "rust-wasm-strict-budgets-mount-dev.json",
   ];
 
   const loaded: BenchmarkRunRecord[] = files.map((file) => {

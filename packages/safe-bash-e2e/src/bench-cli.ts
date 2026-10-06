@@ -69,21 +69,43 @@ async function main(): Promise<void> {
     profile: OptimizationProfile;
     runId: string;
     label: string;
+    backend: string;
   }[] = [
     {
       profile: "warm-memory-fastpath",
       runId: "ts-baseline-warm-memory-fastpath",
       label: "TypeScript safe-bash (Warm MemoryFileSystem + FastPaths)",
+      backend: "ts-safe-bash",
     },
     {
       profile: "overlay-cow-fs",
       runId: "ts-baseline-overlay-cow-fs",
       label: "TypeScript safe-bash (OverlayFileSystem Copy-on-Write)",
+      backend: "ts-safe-bash",
     },
     {
       profile: "strict-budgets-mount-dev",
       runId: "ts-baseline-strict-budgets-mount-dev",
       label: "TypeScript safe-bash (Strict Budgets + Mount /dev + Core Cold-Start)",
+      backend: "ts-safe-bash",
+    },
+    {
+      profile: "warm-memory-fastpath",
+      runId: "rust-wasm-warm-memory-fastpath",
+      label: "Rust Zero-Dep Wasm safe-bash (MemoryVfs FastPath)",
+      backend: "rust-safe-bash",
+    },
+    {
+      profile: "overlay-cow-fs",
+      runId: "rust-wasm-overlay-cow-fs",
+      label: "Rust Zero-Dep Wasm safe-bash (OverlayVfs Copy-on-Write)",
+      backend: "rust-safe-bash",
+    },
+    {
+      profile: "strict-budgets-mount-dev",
+      runId: "rust-wasm-strict-budgets-mount-dev",
+      label: "Rust Zero-Dep Wasm safe-bash (Strict Budgets + Mount /dev)",
+      backend: "rust-safe-bash",
     },
   ];
 
@@ -93,7 +115,7 @@ async function main(): Promise<void> {
     const run = await runStandardBenchmarkSuite({
       runId: entry.runId,
       label: entry.label,
-      backend: "ts-safe-bash",
+      backend: entry.backend,
       profile: entry.profile,
       warmup,
       iterations,
@@ -106,6 +128,9 @@ async function main(): Promise<void> {
     runs.push(run);
   }
 
+  const tsVsRustWarm = compareBenchmarkRuns(runs[0]!, runs[3]!);
+  const tsVsRustOverlay = compareBenchmarkRuns(runs[1]!, runs[4]!);
+  const tsVsRustStrict = compareBenchmarkRuns(runs[2]!, runs[5]!);
   const warmVsOverlay = compareBenchmarkRuns(runs[1]!, runs[0]!);
   const fullVsMinimal = compareBenchmarkRuns(runs[0]!, runs[2]!);
 
@@ -123,6 +148,15 @@ async function main(): Promise<void> {
         `| \`${r.runId}\` | ${r.label} | \`${r.backend}\` | **${r.summary.geometricMeanMs.toFixed(2)}** | ${r.summary.totalDurationMs.toFixed(2)} | ${r.summary.meanOpsPerSec.toFixed(1)} |`,
     ),
     "",
+    "---",
+    "",
+    formatComparisonMarkdown(tsVsRustWarm),
+    "---",
+    "",
+    formatComparisonMarkdown(tsVsRustOverlay),
+    "---",
+    "",
+    formatComparisonMarkdown(tsVsRustStrict),
     "---",
     "",
     formatComparisonMarkdown(warmVsOverlay),

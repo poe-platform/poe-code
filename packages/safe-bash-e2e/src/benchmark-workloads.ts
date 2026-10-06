@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createMemoryFileSystem, createMountFileSystem, createOverlayFileSystem } from "@poe-code/safe-fs";
+import { createRustWasmBash } from "../../safe-bash-rust/dist/index.js";
 import {
   BenchmarkRecorder,
   type BenchmarkRunRecord,
@@ -30,6 +31,17 @@ export interface RunBenchmarkSuiteOptions {
   readonly warmup?: number;
   readonly iterations?: number;
   readonly gitCommit?: string;
+}
+
+interface BenchmarkShellHarness {
+  exec(script: string): Promise<{ stdout: string; stderr: string; exitCode: number }>;
+  shell: {
+    createSession(initialState?: unknown): {
+      readonly state: unknown;
+      exec(script: string): Promise<{ stdout: string; stderr: string; exitCode: number }>;
+    };
+  };
+  dispose(): Promise<void> | void;
 }
 
 export async function createProfileHarness(
@@ -73,18 +85,43 @@ export async function runStandardBenchmarkSuite(
   options: RunBenchmarkSuiteOptions = {},
 ): Promise<BenchmarkRunRecord> {
   const profile: OptimizationProfile = options.profile ?? "warm-memory-fastpath";
+  const isRustBackend =
+    options.backend === "rust-safe-bash" || options.backend === "rust-native-zero-dep";
   const warmup = options.warmup ?? 2;
   const iterations = options.iterations ?? 5;
   const recorder = new BenchmarkRecorder();
 
+  const logsFixture = createObservabilityLogsFixture();
   const fixtureFiles: Record<string, E2EFileInit> = {
     ...createMonorepoFixture(),
-    ...createObservabilityLogsFixture(),
+    ...logsFixture,
+    "/workspace/logs/events.jsonl": logsFixture["/workspace/logs/api.jsonl"]!,
     ...createRelationalCsvFixture(),
+    "/workspace/data/sales.csv": [
+      "order_id,region,amount",
+      "o1001,us,1200",
+      "o1002,eu,3400",
+      "o1003,apac,5600",
+      "",
+    ].join("\n"),
     ...createConfigHierarchyFixture(),
+    "/workspace/config/base.yaml": [
+      "services:",
+      "  api:",
+      "    replicas: 2",
+      "",
+    ].join("\n"),
+    "/workspace/config/prod.yaml": [
+      "services:",
+      "  api:",
+      "    replicas: 6",
+      "",
+    ].join("\n"),
   };
 
-  const h = await createProfileHarness(profile, fixtureFiles);
+  const h: BenchmarkShellHarness = isRustBackend
+    ? createRustWasmBash({ files: fixtureFiles, cwd: "/workspace", profile })
+    : await createProfileHarness(profile, fixtureFiles);
 
   try {
     // 1. Shell Grammar & Parameter Expansion
@@ -265,6 +302,16 @@ export async function runStandardBenchmarkSuite(
     await recorder.measureScenario(
       "shell-cold-start-and-exec",
       async () => {
+        if (isRustBackend) {
+          const cold = createRustWasmBash({ profile });
+          try {
+            const res = await cold.exec("echo 'cold_start_ok' | tr 'a-z' 'A-Z'");
+            assert.equal(res.exitCode, 0);
+            return res.stdout.length;
+          } finally {
+            cold.dispose();
+          }
+        }
         const cold = await SafeBashE2EHarness.create(
           profile === "strict-budgets-mount-dev"
             ? { includeExtendedCommands: false, shellExtensions: false }

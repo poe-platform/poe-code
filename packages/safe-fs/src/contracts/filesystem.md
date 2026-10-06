@@ -1271,6 +1271,26 @@ quota, permission, and unsupported-metadata failures must precede publication of
 any staging entry. Implementations retain their existing file and aggregate
 limits; this contract adds no larger byte allowance.
 
+Receipts may be frozen. After each conditional staging write, callers use the
+returned committed `FileStat` to construct a new receipt with a refreshed
+`file.stat`; a retained writer's `finish()` similarly returns its publication
+stat. The outer receipt and `file` entry therefore are not ownership tokens.
+Callers must preserve the original `parent` and `directory` entries when
+refreshing the file snapshot. Publication and pathname cleanup receive the
+latest successful file revision, including when a later write fails or aborts.
+
+Caller-backed adapters can authenticate ownership with a `WeakMap` keyed by the
+original frozen `directory` entry, retaining the original parent entry, file
+path, and cleanup handle as its value. They must reject unknown directory
+entries, changed parent entries, and changed file paths before effects. This
+ownership check supplements, rather than replaces, atomic validation of the
+supplied file revision, directory/ancestor conditions, and destination condition.
+Do not accept an arbitrary copied directory based only on its path, derive
+ownership through a later lookup, or key ownership solely by the outer receipt.
+Delete ownership only after cleanup completes. Adapters using outer-receipt
+identity must migrate that ownership key before accepting streamed patch writes;
+omitting unsupported options alone does not make them compatible.
+
 `atomicStagedFileMutation: true` additionally qualifies
 `publishStagedFile(staging, destination, { preserveIdentity: true, parent, destination: expected })`.
 It requires an existing regular destination, atomically replaces its contents and

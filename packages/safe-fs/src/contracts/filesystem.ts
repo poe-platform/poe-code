@@ -292,6 +292,11 @@ export interface FileStagingCleanup {
   close(): Promise<void>;
 }
 
+/** A staging receipt is an immutable snapshot, not an object-identity token.
+ * Callers may copy it to refresh file.stat after a conditional write or writer
+ * finish. Authenticate ownership independently of the outer object; unchanged
+ * parent/directory entries can carry provider-owned identity. Always validate
+ * the supplied file revision atomically at publication and cleanup. */
 export interface FileStaging {
   readonly parent: FileStagingEntry;
   readonly directory: FileStagingEntry;

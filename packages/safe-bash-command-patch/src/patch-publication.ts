@@ -100,7 +100,7 @@ export class PatchPublication {
         if (this.trusted) await this.validate(path);
         staging = await context.fs.createStagedFile!(`${dirname(path) === "/" ? "" : dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
           type: "file", data: new Uint8Array(),
-        }, { parent, retainCleanup: retained, signal: context.signal, ...(mode === undefined ? {} : { mode }),
+        }, { parent, ...(retained ? { retainCleanup: true } : {}), signal: context.signal, ...(mode === undefined ? {} : { mode }),
           ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }) });
         if (retained && (!staging.writer || !staging.cleanup)) throw new ToolError("filesystem does not support retained staging writes");
         for await (const bytes of readBytes(typeof source === "string" ? targetBytes(source) : source, context.signal)) {
@@ -111,6 +111,7 @@ export class PatchPublication {
               ...(mode === undefined ? {} : { mode }),
               ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }),
             });
+            // Refresh the revision without replacing the immutable ownership entries.
             staging = { ...staging, file: { ...staging.file, stat } };
           } else await staging.writer!.write(bytes, { signal: context.signal });
         }

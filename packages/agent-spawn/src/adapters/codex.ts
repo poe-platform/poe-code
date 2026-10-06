@@ -210,7 +210,8 @@ export async function* adaptCodex(
         yield { event: "tool_complete", id: item.id, kind, path, ...(status ? { status } : {}) };
         if (itemType === "command_execution" && status === "failed"
           && isNonEmptyString(item.aggregated_output)
-          && item.aggregated_output.includes("failed to register synthetic bubblewrap mount target ")
+          && (item.aggregated_output.includes("failed to register synthetic bubblewrap mount target ")
+            || item.aggregated_output.includes("failed to create synthetic bubblewrap mount marker directory "))
           && item.aggregated_output.includes("No space left on device (os error 28)")) {
           yield {
             event: "error",

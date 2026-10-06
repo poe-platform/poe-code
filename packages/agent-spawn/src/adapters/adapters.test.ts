@@ -840,11 +840,16 @@ describe("adaptCodex", () => {
     expect(diagnostic.message).toContain("host that supports bubblewrap");
   });
 
-  it.each([true, false])("diagnoses sandbox mount ENOSPC (started=%s)", async (started) => {
+  it.each([
+    [true, "failed to register synthetic bubblewrap mount target /tmp/.git"],
+    [false, "failed to register synthetic bubblewrap mount target /tmp/.git"],
+    [true, "failed to create synthetic bubblewrap mount marker directory /tmp/codex-bwrap-synthetic-mount-targets-150124/9dddf21f25fb79fe"],
+    [false, "failed to create synthetic bubblewrap mount marker directory /tmp/codex-bwrap-synthetic-mount-targets-150124/9dddf21f25fb79fe"]
+  ])("diagnoses sandbox mount ENOSPC (started=%s, failure=%s)", async (started, failure) => {
     const item = {
       id: "disk-full", type: "command_execution", command: "git status",
       exit_code: 101,
-      aggregated_output: "thread 'main' panicked at linux-sandbox/src/linux_run_main.rs:994: failed to register synthetic bubblewrap mount target /tmp/.git: No space left on device (os error 28)"
+      aggregated_output: `thread 'main' panicked at linux-sandbox/src/linux_run_main.rs:970: ${failure}: No space left on device (os error 28)`
     };
     const events = await collect(adaptCodex(fromArray([
       ...(started ? [JSON.stringify({ type: "item.started", item })] : []),

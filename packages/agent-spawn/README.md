@@ -88,7 +88,8 @@ the required paths. Do not disable sandboxing or change Git metadata locations
 to evade the restriction. See the official
 [Codex sandbox and approval guidance](https://developers.openai.com/codex/sandboxing).
 
-When Codex reports `failed to register synthetic bubblewrap mount target` with
+When Codex reports `failed to register synthetic bubblewrap mount target` or
+`failed to create synthetic bubblewrap mount marker directory` with
 `No space left on device (os error 28)`, the CLI and SDK event stream preserve the
 original output and explain that sandbox startup failed before the command ran.
 Check free blocks and inodes on the staging filesystem (`df -h /tmp` and

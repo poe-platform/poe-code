@@ -16,6 +16,10 @@ export interface PythonPackageProgress {
 export interface PythonPackageInstallOptions {
  /** Include prerelease and development candidates during dependency resolution. */
  readonly pre?: boolean;
+ /** Select the newest eligible requested roots, retaining satisfying dependencies. */
+ readonly upgrade?: boolean;
+ /** Reinstall the requested dependency graph even when installed versions satisfy it. */
+ readonly forceReinstall?: boolean;
  /** Bypass artifact cache reads and writes; environment snapshots still persist. */
  readonly noCache?: boolean;
 }
@@ -39,9 +43,8 @@ export interface PythonPackageOptions extends PythonPackageInstallOptions {
  readonly maxCacheBytes?: number;
  readonly onProgress?: (event: PythonPackageProgress) => void;
 }
-export interface PythonPackageStart {
+export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'noCache'> {
  readonly session: string;
- readonly pre?: boolean;
  /** Combined requirements for compatibility with custom executors. */
  readonly requirements: readonly string[];
  /** Exact prior installation; restore these without resolving dependencies. */
@@ -187,7 +190,9 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const offline=context.offline??options.offline??false;
   sessions.set(session,{...context,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opened:new Map(),opening:false,closed:false,manifest,aborted});
   context.signal.addEventListener('abort',aborted,{once:true});
-  return {session,requirements:unique,restore,requested,...(context.pre??options.pre) ? {pre:true} : {},...input.uninstall ? {uninstall:input.uninstall} : {},offline};
+  const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
+  for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
+  return {session,requirements:unique,restore,requested,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();

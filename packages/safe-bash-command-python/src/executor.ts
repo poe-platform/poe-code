@@ -251,7 +251,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
       }
       options.onProgress?.({ phase: 'initializing', command: context.command });
       const preparation = environment.prepare({ fs: context.fs, cwd: context.cwd, signal,
-        ...(installation?.pre ? {pre:true} : {}),...(installation?.noCache ? {noCache:true} : {}),
+        ...installation?.controls,
         ...(installation?.uninstall ? {uninstall:{packages:installation.packages,yes:!!installation.yes}} : {}),
         requirements: [...(options.packages ?? []), ...(options.packageProfile ? pythonDocumentPackages : []), ...(installation?.uninstall ? [] : installation?.packages ?? [])],
         requirementFiles: [...(options.requirements ?? []), ...(installation?.requirements ?? [])],

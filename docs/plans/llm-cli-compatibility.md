@@ -30,7 +30,7 @@ The LLM library must not own history or persistence, including through an option
 | `llm fragments remove` | alias | incomplete |
 | `llm fragments set` | alias; fragment | incomplete |
 | `llm fragments show` | alias_or_hash | incomplete |
-| `llm install` | packages; -U/--upgrade; -e/--editable; --force-reinstall; --no-cache-dir; --pre | compatible-wheel installation, prerelease selection and artifact-cache bypass implemented through shared Python CLI/SDK provisioning; pinned native selection, authorization/integrity, saved-state preservation and actual Worker coverage; upgrade, force-reinstall, editable and final hosted qualification remain incomplete |
+| `llm install` | packages; -U/--upgrade; -e/--editable; --force-reinstall; --no-cache-dir; --pre | compatible-wheel installation, prerelease selection and artifact-cache bypass implemented through shared Python CLI/SDK provisioning; pinned native selection, authorization/integrity, saved-state preservation and actual Worker coverage; upgrade and force-reinstall preserve native selection policies, unrelated versions and failure recovery through CLI/SDK; direct-wheel and ordinary pinned replacements are supported; editable and final hosted qualification remain incomplete |
 | `llm keys` |  | incomplete |
 | `llm keys get` | name | incomplete |
 | `llm keys list` |  | incomplete |

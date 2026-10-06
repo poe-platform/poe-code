@@ -1,0 +1,97 @@
+{
+  "reference": "pip 21.2.4; Python 3.9.6",
+  "rows": [
+    {
+      "args": [
+        "replace-root",
+        "replace-orphan"
+      ],
+      "exitCode": 0,
+      "versions": [
+        "1.0",
+        "1.0",
+        "1.0"
+      ]
+    },
+    {
+      "args": [
+        "replace-root"
+      ],
+      "exitCode": 0,
+      "versions": [
+        "1.0",
+        "1.0",
+        "1.0"
+      ]
+    },
+    {
+      "args": [
+        "--upgrade",
+        "replace-root"
+      ],
+      "exitCode": 0,
+      "versions": [
+        "2.0",
+        "1.0",
+        "1.0"
+      ]
+    },
+    {
+      "args": [
+        "--force-reinstall",
+        "replace-root"
+      ],
+      "exitCode": 0,
+      "versions": [
+        "2.0",
+        "2.0",
+        "1.0"
+      ]
+    },
+    {
+      "args": [
+        "replace-root==1.0"
+      ],
+      "exitCode": 0,
+      "versions": [
+        "1.0",
+        "2.0",
+        "1.0"
+      ]
+    },
+    {
+      "args": [
+        "replace-root==9.0"
+      ],
+      "exitCode": 1,
+      "versions": [
+        "1.0",
+        "2.0",
+        "1.0"
+      ]
+    },
+    {
+      "args": [
+        "./replace_root-2.0-py3-none-any.whl"
+      ],
+      "exitCode": 0,
+      "versions": [
+        "2.0",
+        "2.0",
+        "1.0"
+      ]
+    },
+    {
+      "args": [
+        "replace-root==1.0",
+        "replace-root==2.0"
+      ],
+      "exitCode": 1,
+      "versions": [
+        "2.0",
+        "2.0",
+        "1.0"
+      ]
+    }
+  ]
+}

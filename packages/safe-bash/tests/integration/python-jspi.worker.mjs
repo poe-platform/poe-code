@@ -75,6 +75,73 @@ for version in ('1.0', '2.0rc1'):
   return {results,requests};
 }
 
+async function qualifyReplacements(backend,createExecutor,micropip) {
+ const quote=value=>"'"+value.split("'").join("'\\''")+"'";
+ const bootstrap=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor}));
+ try {
+  const built=await bootstrap.exec('python -c '+quote(`
+from zipfile import ZipFile
+for name in ('replace_root', 'replace_dep', 'replace_orphan'):
+ for version in ('1.0', '2.0'):
+  prefix = name + '-' + version + '.dist-info/'
+  metadata = 'Metadata-Version: 2.1\\nName: ' + name + '\\nVersion: ' + version + '\\n'
+  if name == 'replace_root': metadata += 'Requires-Dist: replace-dep>=1\\n'
+  files = {name + '.py': 'version = ' + repr(version), prefix + 'METADATA': metadata, prefix + 'WHEEL': 'Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n', prefix + 'RECORD': ''}
+  files[prefix + 'RECORD'] = ''.join(name + ',,' + chr(10) for name in files)
+  with ZipFile(name + '-' + version + '-py3-none-any.whl', 'w') as wheel:
+   for path, value in files.items(): wheel.writestr(path, value)
+`));
+  if(built.exitCode)throw Error(JSON.stringify(built));
+ }finally{await bootstrap.dispose();}
+ const artifacts=new Map(),indexes=new Map();
+ for(const name of ['replace_root','replace_dep','replace_orphan']){
+  const files=[];
+  for(const version of ['1.0','2.0']){
+   const filename=name+'-'+version+'-py3-none-any.whl',url='https://packages.example/'+filename;
+   const bytes=await backend.readFile('/work/'+filename);
+   const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+   artifacts.set(url,bytes);files.push({filename,url,hashes:{sha256}});
+  }
+  indexes.set('https://pypi.org/simple/'+name.replaceAll('_','-')+'/',files);
+ }
+ artifacts.set('https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl',micropip);
+ let published=false;
+ const manifestStore=createPythonPackageManifestStore();
+ const configuration={scope:'replacement',manifestStore,authorize:({url})=>artifacts.has(url)||indexes.has(url),transport:async({url})=>{
+  const files=indexes.get(url),bytes=files?new TextEncoder().encode(JSON.stringify({name:url.split('/').at(-2),files:published?files:files.slice(0,1)})):artifacts.get(url);
+  return {status:200,headers:[['content-type',files?'application/vnd.pypi.simple.v1+json':'application/octet-stream']],body:(async function*(){yield bytes;})(),async dispose(){}};
+ }};
+ const environment=createPythonPackageEnvironment(configuration);
+ const diagnostics=[];
+ const options={createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event))};
+ const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(options)).use(llmCommands({managePackages:createPythonLlmPackageManager(options)}));
+ const rows=[];
+ try {
+  for(const command of ['python -m pip install replace-root replace-orphan','python -m pip install replace-root','llm install --upgrade replace-root','python -m pip install --force-reinstall replace-root','python -m pip install replace-root==1.0','python -m pip install replace-root==9.0','python -m pip install ./replace_root-2.0-py3-none-any.whl','python -m pip install replace-root==1.0 replace-root==2.0']){
+   const result=await shell.exec(command);
+   const versions=await shell.exec('python -c '+quote('import importlib.metadata as m, json, micropip.package_manager as pm, micropip.transaction as t; assert pm.Transaction is t.Transaction; print(json.dumps([m.version(n) for n in ("replace-root", "replace-dep", "replace-orphan")]))'));
+   rows.push({command,result:{exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr},versions:{exitCode:versions.exitCode,stdout:versions.stdout,stderr:versions.stderr},diagnostics:diagnostics.splice(0)});published=true;
+  }
+  const protectedResults=[];
+  for(const pin of ['micropip==0.11.1','micropip==999']){
+   const result=await shell.exec('python -m pip install --force-reinstall '+pin);
+   protectedResults.push({exitCode:result.exitCode,stderr:result.stderr});
+  }
+  const seeded=await shell.exec('python -m pip install replace-root==1.0 replace-dep==1.0');
+  if(seeded.exitCode)throw Error(JSON.stringify({seeded,diagnostics}));
+  const sdk=[];
+  for(const controls of [{upgrade:true},{forceReinstall:true}]){
+   const environment=createPythonPackageEnvironment({...configuration,requirements:['replace-root'],...controls});
+   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
+   try {
+    const result=await shell.exec('python -c '+quote('import importlib.metadata as m, json; print(json.dumps([m.version(n) for n in ("replace-root", "replace-dep", "replace-orphan")]))'));
+    sdk.push({exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr});
+   }finally{await shell.dispose();await environment.dispose();}
+  }
+  return {rows,sdk,protectedResults};
+ }finally{await shell.dispose();await environment.dispose();}
+}
+
 async function qualifyPackages(backend, createExecutor, micropip, useLlm) {
   const requests = [], diagnostics = [];
   const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
@@ -1381,6 +1448,11 @@ export default {
       }
       return runtime;
     } });
+    if (mode === '/package-replacements') {
+      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
     if (mode === '/package-controls') {
       try {return Response.json({...await qualifyPackageControls(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}

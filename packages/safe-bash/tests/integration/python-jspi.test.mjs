@@ -669,3 +669,23 @@ test('real workerd preserves uncaught asyncio errors and immediately reuses inte
   assert.deepEqual(result.failures,[]);
   assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });
+
+
+test('real workerd replaces requested packages while retaining unrelated installed versions', {timeout:180000}, async()=>{
+ const {miniflare,runtimeErrors}=nativeFixture;
+ const response=await miniflare.dispatchFetch('http://fixture/package-replacements',{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const result=await response.json();
+ assert.equal(response.status,200,JSON.stringify(result));
+ const reference=JSON.parse(readFileSync(new URL('../../../safe-bash-command-python/src/fixtures/package-replacement-pip-21.2.4.json',import.meta.url),'utf8'));
+ const versions=reference.rows.map(row=>row.versions);
+ assert.equal(result.rows.length,versions.length);
+ for(const [index,row] of result.rows.entries()){
+  assert.equal(row.result.exitCode,reference.rows[index].exitCode,JSON.stringify(row));
+  assert.equal(row.versions.exitCode,0,JSON.stringify(row));
+  assert.deepEqual(JSON.parse(row.versions.stdout),versions[index],row.command);
+ }
+ assert.deepEqual(result.protectedResults.map(row=>row.exitCode),[0,1]);
+ assert.equal(result.sdk.length,2);
+ for(const [index,row] of result.sdk.entries()){assert.equal(row.exitCode,0,JSON.stringify(row));assert.deepEqual(JSON.parse(row.stdout),index===0?['2.0','1.0','1.0']:['2.0','2.0','1.0']);}
+ assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});

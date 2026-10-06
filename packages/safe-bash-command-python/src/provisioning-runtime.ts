@@ -80,8 +80,10 @@ export async function installPythonPackages(
   installedGlobals.push('_safe_package_metadata');
   runtime.globals.set('_safe_package_requirements_json',JSON.stringify(start.requested ?? start.requirements));
   installedGlobals.push('_safe_package_requirements_json');
-  runtime.globals.set('_safe_package_pre',!!start.pre);
-  installedGlobals.push('_safe_package_pre');
+  for(const key of ['pre','upgrade','forceReinstall'] as const){
+   runtime.globals.set('_safe_package_'+key,!!start[key]);
+   installedGlobals.push('_safe_package_'+key);
+  }
   runtime.globals.set('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
   installedGlobals.push('_safe_package_restore_json');
   runtime.globals.set('_safe_package_uninstall_json',JSON.stringify(start.uninstall ?? null));
@@ -103,11 +105,20 @@ export async function installPythonPackages(
    return new TextDecoder().decode(Uint8Array.from(bytes));
   });
   installedGlobals.push('_safe_package_line');
+  // The pinned installer owns candidate selection, dependency traversal and wheel
+  // extraction. Its scoped transaction adapter changes only installed satisfaction:
+  // upgrade targets roots; force-reinstall targets the selected dependency graph.
+  // Preloaded/transaction-locked versions stay protected, and the original class
+  // is restored before guest execution, including when resolution fails.
+  // Validate exact restoration before replacement and requested pins afterward.
+  // Preserve wheel origins, extra contexts and unrelated installed distributions;
+  // publish the resulting inventory only after successful resolution/removal.
+  // Native metadata discovery holds bootstrap ZIPs; invalidate and collect them
+  // before relocation and canonical filesystem syscall admission.
   await runtime.runPythonAsync(`
 import json as _safe_json
 import importlib.metadata as _safe_metadata
 _safe_preloaded = [d.metadata['Name'] for d in _safe_metadata.distributions() if d.metadata['Name']]
-import micropip as _safe_micropip
 from micropip._compat import compatibility_layer as _safe_compat
 from micropip.package_manager import PackageManager as _SafePackageManager
 from micropip.wheelinfo import WheelInfo as _SafeWheelInfo
@@ -127,8 +138,6 @@ class _SafePackageCompatibility(_safe_compat):
   value = _safe_json.loads(await _safe_package_metadata(url))
   return value['text'], value['headers']
 
-# Require index/URL digests before publishing wheel bytes to the host cache.
-# Local wheels are host-trusted inputs and receive a content digest on first read.
 async def _safe_wheel_fetch(self, url, kwargs, compat):
  expected = self.sha256 if url == self.url else None
  if url == self.metadata_url and isinstance(self.core_metadata, dict):
@@ -151,20 +160,27 @@ async def _safe_parse_sources(sources):
   if (not root.marker or root.marker.evaluate({'extra': ''})) and root.url:
    direct = _SafeWheelInfo.from_url(root.url)
    _safe_check_compatible(direct.filename)
-   # Validate explicit archives even when micropip's satisfied-name path would
-   # skip them, including restored wheels matching a preloaded distribution.
    await direct.download({}, _SafePackageCompatibility)
  return roots
 
+def _safe_validate(roots):
+ for root in roots:
+  if root.marker and not root.marker.evaluate({'extra': ''}):
+   continue
+  version = _safe_metadata.version(root.name)
+  if not root.specifier.contains(version, prereleases=True):
+   raise ValueError('Python package version conflict: ' + str(root))
+  if root.url:
+   wheel = _SafeWheelInfo.from_url(root.url)
+   pin = _SafeRequirement(wheel.name + '==' + str(wheel.version))
+   if _safe_name(wheel.name) != _safe_name(root.name) or not pin.specifier.contains(version, prereleases=True):
+    raise ValueError('Python package wheel version conflict: ' + str(root))
 _safe_restore = _safe_json.loads(_safe_package_restore_json)
 _safe_restored_roots = await _safe_parse_sources(_safe_restore)
-# Replaying an environment is not a new resolver transaction. Missing or removed
-# dependencies stay missing until a new request explicitly asks to resolve them.
 await _safe_manager.install(_safe_restore, deps=False)
+_safe_validate(_safe_restored_roots)
 _safe_restored_names = {_safe_name(root.name) for root in _safe_restored_roots if not root.marker or root.marker.evaluate({'extra': ''})}
 _safe_requirements = _safe_json.loads(_safe_package_requirements_json)
-# A persisted base wheel may be visited before a newly requested extra. Micropip
-# skips already locked names, so every occurrence must carry the requested extras.
 _safe_roots = await _safe_parse_sources(_safe_requirements)
 _safe_extras = {}
 for _safe_root in _safe_roots:
@@ -172,16 +188,31 @@ for _safe_root in _safe_roots:
   _safe_extras.setdefault(_safe_name(_safe_root.name), set()).update(_safe_root.extras)
 for _safe_root in _safe_roots:
  _safe_root.extras.update(_safe_extras.get(_safe_name(_safe_root.name), set()))
-await _safe_manager.install([str(root) for root in _safe_roots], deps=True, pre=_safe_package_pre)
-# Resolve selected extras from distribution metadata, including extras added to
-# an already satisfied transitive dependency. Micropip skips those names early.
-# Keep its installer and conflict policy; do not infer dependencies from imports.
-import importlib.metadata as _safe_metadata
-# Only requested packages and their dependency closure belong to this install.
-# Unrelated preloaded distributions must not trigger downloads or become roots
-# in the caller's persisted environment.
-_safe_managed = {_safe_name(root.name) for root in _safe_roots if not root.marker or root.marker.evaluate({'extra': ''})}
-_safe_previous_pending = None
+_safe_requested_names = set(_safe_extras)
+import micropip.package_manager as _safe_pm
+_SafeTransaction = _safe_pm.Transaction
+class _SafeReplacementTransaction(_SafeTransaction):
+ def check_version_satisfied(self, req, *, allow_reinstall=False):
+  if req.url:
+   wheel = _SafeWheelInfo.from_url(req.url)
+   if _safe_name(wheel.name) != req.name:
+    raise ValueError('Python package wheel name conflict: ' + str(req))
+   req = _SafeRequirement(req.name + '==' + str(wheel.version))
+  if req.name in _safe_preloaded or req.name in self.locked:
+   return super().check_version_satisfied(req)
+  if _safe_package_forceReinstall or (_safe_package_upgrade and req.name in _safe_requested_names):
+   return False, ''
+  return super().check_version_satisfied(req, allow_reinstall=allow_reinstall)
+async def _safe_install(requirements):
+ _safe_pm.Transaction = _SafeReplacementTransaction
+ try:
+  await _safe_manager.install(requirements, deps=True, pre=_safe_package_pre, reinstall=True)
+ finally:
+  _safe_pm.Transaction = _SafeTransaction
+_safe_validate([root for root in _safe_roots if _safe_name(root.name) in _safe_preloaded])
+await _safe_install([str(root) for root in _safe_roots])
+_safe_managed = set(_safe_requested_names)
+_safe_previous_pending = set()
 while True:
  _safe_distributions = [d for d in _safe_metadata.distributions() if d.metadata['Name']]
  _safe_versions = {_safe_name(d.metadata['Name']): d.version for d in _safe_distributions}
@@ -196,8 +227,6 @@ while True:
     _safe_requirement = _SafeRequirement(_safe_dep)
     if _safe_requirement.marker and not any(_safe_requirement.marker.evaluate({'extra': extra}) for extra in _safe_contexts):
      continue
-    # The marker belongs to the requesting distribution's extra context, already
-    # evaluated above; a separate installer transaction must not reinterpret it.
     _safe_requirement.marker = None
     _safe_dependencies.append(_safe_requirement)
     _safe_dependency_name = _safe_name(_safe_requirement.name)
@@ -213,31 +242,15 @@ while True:
  _safe_pending = set()
  for _safe_requirement in _safe_dependencies:
   _safe_version = _safe_versions.get(_safe_name(_safe_requirement.name))
-  if _safe_version is None:
+  if _safe_version is None or not _safe_requirement.specifier.contains(_safe_version, prereleases=True):
    _safe_pending.add(str(_safe_requirement))
-  elif not _safe_requirement.specifier.contains(_safe_version, prereleases=True):
-   raise ValueError('Python package dependency conflict: ' + str(_safe_requirement))
  if not _safe_pending:
   break
- if _safe_pending == _safe_previous_pending:
+ if frozenset(_safe_pending) in _safe_previous_pending:
   raise ValueError('Python package dependencies remain missing: ' + ', '.join(sorted(_safe_pending)))
- _safe_previous_pending = _safe_pending
- await _safe_manager.install(sorted(_safe_pending), deps=True, pre=_safe_package_pre)
-# Explicit roots also constrain the result: direct URLs can bypass micropip's
-# already-installed version check, including when another root pins that name.
-for _safe_root in _safe_restored_roots + _safe_roots:
- if _safe_root.marker and not _safe_root.marker.evaluate({'extra': ''}):
-  continue
- _safe_version = _safe_versions.get(_safe_name(_safe_root.name))
- if _safe_version is None or not _safe_root.specifier.contains(_safe_version, prereleases=True):
-  raise ValueError('Python package version conflict: ' + str(_safe_root))
- if _safe_root.url:
-  _safe_wheel = _SafeWheelInfo.from_url(_safe_root.url)
-  _safe_wheel_pin = _SafeRequirement(_safe_wheel.name + '==' + str(_safe_wheel.version))
-  if _safe_name(_safe_wheel.name) != _safe_name(_safe_root.name) or not _safe_wheel_pin.specifier.contains(_safe_version, prereleases=True):
-   raise ValueError('Python package wheel version conflict: ' + str(_safe_root))
-# Preserve resolved wheel origins before adding version pins. A dependency from
-# a direct local URL may not exist on an index during the next fresh invocation.
+ _safe_previous_pending.add(frozenset(_safe_pending))
+ await _safe_install(sorted(_safe_pending))
+_safe_validate(_safe_roots)
 _safe_uninstall = _safe_json.loads(_safe_package_uninstall_json)
 _safe_removed = []
 if _safe_uninstall:
@@ -294,8 +307,6 @@ for _safe_dist in _safe_distributions:
   if _safe_origin:
    _safe_sources.append(_safe_dist_name + ' @ ' + _safe_origin.strip())
 _safe_installed_json = _safe_json.dumps(_safe_sources + [name + '==' + version for name, version in sorted(_safe_versions.items()) if name in _safe_managed])
-# Metadata discovery caches open bootstrap ZIPs. Retire those descriptors before
-# the runtime namespace is relocated and guest filesystem syscalls are enabled.
 _safe_metadata.MetadataPathFinder.invalidate_caches()
 import gc as _safe_gc
 _safe_gc.collect()

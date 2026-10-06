@@ -104,5 +104,9 @@ Pass `--pre` to include prerelease and development candidates. Use
 `--no-cache-dir` to bypass artifact-cache reads and writes while retaining the
 caller-owned environment manifest. Authorization and integrity checks still
 apply; cache bypass does not force reinstall an already satisfied requirement.
-SDK callers use `pre` and `noCache` on `PythonPackageOptions` or per-invocation
+Use `--upgrade` (`-U`) to update requested packages while retaining satisfying
+dependencies, or `--force-reinstall` to reinstall their dependency graph. Explicit
+version pins can replace installed versions without either flag. Unrelated
+packages remain installed; failed resolution leaves the saved environment intact.
+SDK callers use `upgrade`, `forceReinstall`, `pre` and `noCache` on `PythonPackageOptions` or per-invocation
 `PythonPackagePrepareContext`; explicit invocation values override defaults.

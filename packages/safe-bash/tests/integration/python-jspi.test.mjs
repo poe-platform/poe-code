@@ -540,17 +540,23 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
   const bytes=readFileSync(path);
   assert.equal(createHash('sha256').update(bytes).digest('hex'),'0ad7104a3cde648e5486a718799f3852f1d782ff19d4bfc13db9dc631df083f8');
   const {miniflare,runtimeErrors}=nativeFixture;
-  const response=await miniflare.dispatchFetch('http://fixture/packages',{method:'POST',body:bytes});
-  const result=await response.json();
-  assert.equal(response.status,200,JSON.stringify(result));
-  assert.equal(result.installed.exitCode,0,JSON.stringify(result));
-  assert.equal(result.installed.stdout,'Successfully installed requested Python packages\n');
-  assert.equal(result.installed.stderr,'');
-  assert.equal(result.imported.exitCode,0,JSON.stringify(result));
-  assert.equal(result.imported.stdout,'worker package verified\n');
-  assert.equal(result.imported.stderr,'');
-  assert.equal(result.requests.length,1);
-  assert.deepEqual(result.failures,[]);
+  for(const mode of ['packages','llm-packages']) {
+    const response=await miniflare.dispatchFetch('http://fixture/'+mode,{method:'POST',body:bytes});
+    const result=await response.json();
+    assert.equal(response.status,200,JSON.stringify(result));
+    assert.equal(result.installed.exitCode,0,JSON.stringify(result));
+    assert.equal(result.installed.stdout,'Successfully installed requested Python packages\n');
+    assert.equal(result.installed.stderr,'');
+    assert.equal(result.imported.exitCode,0,JSON.stringify(result));
+    assert.equal(result.imported.stdout,'worker package verified\n');
+    assert.equal(result.imported.stderr,'');
+    assert.notEqual(result.conflict.exitCode,0);
+    assert.equal(result.recovered.exitCode,0,JSON.stringify(result));
+    assert.equal(result.recovered.stdout,'worker package verified\n');
+    assert.equal(result.recovered.stderr,'');
+    assert.equal(result.requests.length,1);
+    assert.deepEqual(result.failures,[]);
+  }
   assert.deepEqual(runtimeErrors,[]);
   const errors=await miniflare.dispatchFetch('http://fixture/unhandled-errors');
   assert.deepEqual(await errors.json(),[]);

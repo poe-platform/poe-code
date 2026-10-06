@@ -38,22 +38,30 @@ files = {
  'worker_fixture-1.0.dist-info/WHEEL': 'Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n',
  'worker_fixture-1.0.dist-info/RECORD': '',
 }
+with ZipFile('worker_dependency-1.0-py3-none-any.whl', 'w') as wheel:
+ for name, contents in files.items():
+  wheel.writestr(name.replace('worker_fixture', 'worker_dependency'), contents.replace('worker-fixture', 'worker-dependency'))
+files['worker_fixture-1.0.dist-info/METADATA'] += 'Requires-Dist: worker-dependency @ file:///work/worker_dependency-1.0-py3-none-any.whl\\n'
 with ZipFile('worker_fixture-1.0-py3-none-any.whl', 'w') as wheel:
  for name, contents in files.items(): wheel.writestr(name, contents)
 `));
     if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
     const installed = await shell.exec('python -m pip install ./worker_fixture-1.0-py3-none-any.whl');
     if(installed.exitCode)throw new Error(JSON.stringify({stage:'install',installed,diagnostics}));
-    const imported = await shell.exec('python -c ' + quote(`
-import worker_fixture
+    const verify = 'python -c ' + quote(`
+import worker_fixture, worker_dependency
 from importlib.metadata import version
 from importlib.resources import files
-assert worker_fixture.answer == 73
+assert worker_fixture.answer == worker_dependency.answer == 73
+assert version('worker-dependency') == '1.0'
 assert version('worker-fixture') == '1.0'
 assert files('worker_fixture').joinpath('payload.txt').read_text() == 'caller package data'
 print('worker package verified')
-`));
-    return {installed, imported, requests};
+`);
+    const imported = await shell.exec(verify);
+    const conflict = await shell.exec('python -m pip install worker-dependency==2.0');
+    const recovered = await shell.exec(verify);
+    return {installed, imported, conflict, recovered, requests, diagnostics};
   } finally {await shell.dispose();}
 }
 
@@ -1194,7 +1202,7 @@ export default {
       }
       return runtime;
     } });
-    if (mode === '/packages') {
+    if (mode === '/packages' || mode === '/llm-packages') {
       try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}

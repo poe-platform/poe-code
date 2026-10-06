@@ -142,6 +142,10 @@ await _safe_manager.install([str(root) for root in _safe_roots], deps=True)
 # an already satisfied transitive dependency. Micropip skips those names early.
 # Keep its installer and conflict policy; do not infer dependencies from imports.
 import importlib.metadata as _safe_metadata
+# Only requested packages and their dependency closure belong to this install.
+# Unrelated preloaded distributions must not trigger downloads or become roots
+# in the caller's persisted environment.
+_safe_managed = {_safe_name(root.name) for root in _safe_roots if not root.marker or root.marker.evaluate({'extra': ''})}
 _safe_previous_pending = None
 while True:
  _safe_distributions = [d for d in _safe_metadata.distributions() if d.metadata['Name']]
@@ -150,6 +154,8 @@ while True:
   _safe_changed = False
   _safe_dependencies = []
   for _safe_dist in _safe_distributions:
+   if _safe_name(_safe_dist.metadata['Name']) not in _safe_managed:
+    continue
    _safe_contexts = {''} | _safe_extras.get(_safe_name(_safe_dist.metadata['Name']), set())
    for _safe_dep in _safe_dist.requires or []:
     _safe_requirement = _SafeRequirement(_safe_dep)
@@ -159,6 +165,10 @@ while True:
     # evaluated above; a separate installer transaction must not reinterpret it.
     _safe_requirement.marker = None
     _safe_dependencies.append(_safe_requirement)
+    _safe_dependency_name = _safe_name(_safe_requirement.name)
+    if _safe_dependency_name not in _safe_managed:
+     _safe_managed.add(_safe_dependency_name)
+     _safe_changed = True
     _safe_selected = _safe_extras.setdefault(_safe_name(_safe_requirement.name), set())
     if not _safe_requirement.extras.issubset(_safe_selected):
      _safe_selected.update(_safe_requirement.extras)
@@ -191,7 +201,16 @@ for _safe_root in _safe_roots:
   _safe_wheel_pin = _SafeRequirement(_safe_wheel.name + '==' + str(_safe_wheel.version))
   if _safe_name(_safe_wheel.name) != _safe_name(_safe_root.name) or not _safe_wheel_pin.specifier.contains(_safe_version, prereleases=True):
    raise ValueError('Python package wheel version conflict: ' + str(_safe_root))
-_safe_installed_json = _safe_json.dumps([name + '==' + version for name, version in sorted(_safe_versions.items())])
+# Preserve resolved wheel origins before adding version pins. A dependency from
+# a direct local URL may not exist on an index during the next fresh invocation.
+_safe_sources = []
+for _safe_dist in _safe_distributions:
+ _safe_dist_name = _safe_name(_safe_dist.metadata['Name'])
+ if _safe_dist_name in _safe_managed:
+  _safe_origin = _safe_dist.read_text('PYODIDE_URL')
+  if _safe_origin:
+   _safe_sources.append(_safe_dist_name + ' @ ' + _safe_origin.strip())
+_safe_installed_json = _safe_json.dumps(_safe_sources + [name + '==' + version for name, version in sorted(_safe_versions.items()) if name in _safe_managed])
 # Metadata discovery caches open bootstrap ZIPs. Retire those descriptors before
 # the runtime namespace is relocated and guest filesystem syscalls are enabled.
 _safe_metadata.MetadataPathFinder.invalidate_caches()

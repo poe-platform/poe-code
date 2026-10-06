@@ -91,7 +91,8 @@ export function evaluateLlmTemplate(value: LlmTemplate, input: string, params: R
   if (!value.prompt) admitText?.(input);
   return { prompt: value.prompt ? interpolate(value.prompt, variables, false, admitText)! : input, ...(value.system === undefined ? {} : { system: interpolate(value.system, variables, false, admitText)! }) };
 }
-export type LlmTemplateLoader = ((remainder: string, signal: AbortSignal) => Promise<LlmTemplate> | LlmTemplate) & { readonly description?: string };
+export type LlmTemplateLoaderContext = LlmTemplateStoreContext & { readonly maxBytes: number };
+export type LlmTemplateLoader = ((remainder: string, signal: AbortSignal, context?: LlmTemplateLoaderContext) => Promise<LlmTemplate> | LlmTemplate) & { readonly description?: string };
 export interface TemplateLoaderOptions {
   readonly maxRemoteBytes: number;
   readonly maxBytes?: number;
@@ -197,9 +198,9 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
             const loader = loaders?.loaders?.get(prefix);
             if (!loader) throw new Error(`Unknown template prefix: ${prefix}`);
             try {
-              const loaded = await abortLoader(() => loader(name.slice(colon + 1), context.signal), context.signal);
-              context.signal.throwIfAborted();
               const materializedLimit = loaders?.maxBytes ?? Infinity;
+              const loaded = await abortLoader(() => loader(name.slice(colon + 1), context.signal, {...context, maxBytes: materializedLimit}), context.signal);
+              context.signal.throwIfAborted();
               let loadedBytes = 0;
               if (loaders?.admitBytes || materializedLimit !== Infinity) for await (const bytes of jsonValue(loaded, context.signal)) {
                 loadedBytes += bytes.byteLength;

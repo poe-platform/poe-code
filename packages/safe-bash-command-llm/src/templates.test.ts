@@ -207,3 +207,17 @@ test("remote template command defaults are unlimited and finite caps remain enfo
     }
   }
 });
+
+for(const limit of [Infinity,1])test(`template loader output is forwarded within command limit ${limit}`,async()=>{
+ const fs=new MemoryFileSystem();let output='',error='';
+ const loader:LlmTemplateLoader=async(value,signal,context)=>{
+  assert.equal(value,'value');assert.ok(context);assert.equal(context.fs,fs);assert.equal(context.signal,signal);assert.equal(context.cwd,'/');assert.ok(context.maxBytes>0);
+  await context.stdout?.write(new TextEncoder().encode('plugin output\n'));
+  await context.stderr?.write(new TextEncoder().encode('plugin diagnostic\n'));
+  return {name:'native',prompt:'$input',system:'native system'};
+ };
+ const command=createLlmCommand({templateLoaders:new Map([['native',loader]]),limits:{maxOutputBytes:limit},defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture'}],async *complete(request){assert.equal(request.system,'native system');yield request.prompt;}}]});
+ const result=await command.execute({command:'llm',args:['-t','native:value','question'],fs,cwd:'/',env:{},signal:new AbortController().signal,stdin:toByteSource(''),stdout:{async write(bytes){output+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){error+=new TextDecoder().decode(bytes);}}});
+ if(limit===Infinity){assert.equal(result.exitCode,0,error);assert.equal(output,'plugin output\nquestion\n');assert.equal(error,'plugin diagnostic\n');}
+ else{assert.equal(result.exitCode,1);assert.equal(output,'');assert.match(error,/output byte limit exceeded/);}
+});

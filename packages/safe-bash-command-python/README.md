@@ -86,8 +86,18 @@ callers must consume a source before advancing the iterator, and close the itera
 on early exit. Plugin stdout and stderr use the caller streams when supplied; the
 CLI includes both in its output budget without treating them as fragment content.
 The content byte limit excludes attachment metadata; cancellation
-and iterator closure retire staged files and the interpreter. Template loader
-execution and automatic plugin discovery are not provided by this adapter.
+and iterator closure retire staged files and the interpreter. Automatic plugin
+prefix discovery remains host-owned.
+
+Use `createPythonLlmTemplateLoader({ ...pythonOptions, plugins: ["my-plugin"] }, "prefix")`
+as the corresponding `templateLoaders` map entry to execute native `llm.Template`
+loaders with `llm -t prefix:value`. Native fields, parameters and loader diagnostics
+flow through the shared template store. Template JSON uses bounded host messages
+and the caller's remaining materialized-input allowance. Loaded functions keep the
+existing untrusted-template policy. Direct SDK calls supply the loader's third
+argument, `LlmTemplateLoaderContext`, including caller filesystem, environment,
+byte limit and optional output streams. Each call retires its interpreter before
+returning the template.
 
 Use `llm plugins` to list the configured interpreter's installed plugin names,
 versions and hooks. `--all` includes built-in plugins; repeated `--hook NAME`

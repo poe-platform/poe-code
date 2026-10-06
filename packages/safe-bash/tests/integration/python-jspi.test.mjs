@@ -636,7 +636,7 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
     assert.deepEqual(result.failures,[]);
     if(mode==='llm-packages') {
       assert.equal(result.plugins.exitCode,0,JSON.stringify(result));
-      assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_fragment_loaders','register_tools'],version:'1.0'}]);
+      assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_fragment_loaders','register_template_loaders','register_tools'],version:'1.0'}]);
       assert.equal(result.plugins.stderr,'');
       assert.equal(result.listed.exitCode,0,JSON.stringify(result));
       assert.match(result.listed.stdout,/installed_tool/);
@@ -648,6 +648,9 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
       assert.match(result.fragment.stdout,/prompt/);
       assert.ok(result.fragment.stdout.startsWith('plugin output\n'));
       assert.equal(result.fragment.stderr,'plugin diagnostic\n');
+      assert.equal(result.template.exitCode,0,JSON.stringify(result.template));
+      assert.equal(result.template.stdout,'template output\nnative template:hello Ada question\n');
+      assert.equal(result.template.stderr,'template diagnostic\n');
       assert.equal(result.blocked.exitCode,1);
       assert.match(result.blocked.stderr,/platform-configured providers/);
     }

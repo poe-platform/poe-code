@@ -394,7 +394,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     if (argumentsValue.args[0] === "templates") {
       let exitCode = 0;
-      try { exitCode = await createLlmTemplateStore(context, invocationLoaders).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, text => writeDiagnostic(context.stderr, text, signal)); }
+      try { exitCode = await createLlmTemplateStore(loaderContext(), invocationLoaders).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, text => writeDiagnostic(context.stderr, text, signal)); }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
       return { exitCode };
     }
@@ -415,12 +415,12 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const promptOffset = argumentsValue.args[0] === "prompt" || isChat ? 1 : 0;
     let args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step, isChat, context.env.LLM_TOOLS_DEBUG);
     if (args.help) {await emitText(await loadLlmHelp(isChat ? "chat" : "prompt")); return {exitCode: 0};}
-    const configuration = createLlmConfiguration(context, limits?.maxConfigurationBytes, invocationLoaders);
+    const configuration = createLlmConfiguration(loaderContext(), limits?.maxConfigurationBytes, invocationLoaders);
     if (args.model === undefined && args.queries.length) {
       try { args.model = (await selectLlmModelByQuery(service.models, args.queries, await configuration.aliases(), signal)).model.id; }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Model selection failed"}`); }
     }
-    const templateStore = createLlmTemplateStore(context, invocationLoaders);
+    const templateStore = createLlmTemplateStore(loaderContext(), invocationLoaders);
     const schemaInput = args.schemaMulti ?? args.schema;
     let schema = schemaInput ? await resolveLlmSchemaInput({...context, signal}, schemaInput, {
       multi: Boolean(args.schemaMulti), maxBytes: input.remaining(true), admitBytes: admitBuffered,

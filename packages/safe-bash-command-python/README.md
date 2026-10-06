@@ -217,3 +217,22 @@ installer. Digest directories keep distinct builds of the same filename separate
 The caller owns these durable files and their retention policy. Failed staging
 is removed; empty digest directories can remain. Publication requires confined
 writes and retained read/staging capabilities, with no whole-file fallback.
+
+For local PEP 517 projects, configure a source-building environment:
+
+```ts
+const environment = createPythonSourcePackageEnvironment(packageOptions, {
+  directory: "/package-builds", // existing caller-owned durable storage
+  python: { createExecutor }
+});
+const commands = pythonCommands({ createExecutor, environment });
+```
+
+`python -m pip install ./project` then copies the source, installs its isolated
+build dependencies, runs the native backend and installs the published wheel.
+The same environment works with SDK requirements and the LLM package manager.
+Relative project paths in requirements files use the invocation working directory.
+Installed snapshots retain durable wheel URLs, so later runs do not need the
+source directory. Direct `environment.prepare()` calls that build sources must
+supply `env`, `stdout` and `stderr`; Python commands supply these automatically.
+Legacy `setup.py` and editable source installation are not supported yet.

@@ -253,7 +253,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
         hostBridge = createPythonHostBridge(options.createCapabilities({ ...context, stdin: capabilityInput, signal }), { ...options.capabilityLimits, signal });
       }
       options.onProgress?.({ phase: 'initializing', command: context.command });
-      const preparation = environment.prepare({ fs: context.fs, cwd: context.cwd, signal,
+      const preparation = environment.prepare({ ...context, signal,
         ...installation?.controls,
         ...(installation?.uninstall ? {uninstall:{packages:installation.packages,yes:!!installation.yes}} : {}),
         requirements: [...(options.packages ?? []), ...(options.packageProfile ? pythonDocumentPackages : []), ...(installation?.uninstall ? [] : installation?.packages ?? [])],
@@ -463,3 +463,5 @@ export { pythonLlmPackages, installPythonLlmPackages } from './llm-packages.js';
 export type { PythonLlmPackageAsset } from './llm-packages.js';
 
 export { publishPythonBuildWheel, type PythonBuiltWheel } from './build-wheel.js';
+
+export { createPythonSourcePackageEnvironment, type PythonSourceBuildOptions } from './source-environment.js';

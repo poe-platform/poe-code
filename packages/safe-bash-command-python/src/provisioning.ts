@@ -26,6 +26,8 @@ export interface PythonPackageInstallOptions {
  readonly noCache?: boolean;
 }
 export interface PythonPackageOptions extends PythonPackageInstallOptions {
+ /** Resolve requested sources before opening an install session; restored pins are unchanged. */
+ readonly prepareRequirements?:(requirements:readonly string[],context:PythonPackagePrepareContext)=>Promise<readonly string[]>;
  readonly requirements?: readonly string[];
  readonly requirementFiles?: readonly string[];
  readonly profile?: 'documents';
@@ -63,7 +65,7 @@ export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'n
  readonly offline: boolean;
 }
 export interface PythonPackageContext { readonly fs: FileSystem; readonly cwd: string; readonly signal: AbortSignal }
-export interface PythonPackagePrepareContext extends PythonPackageContext, PythonPackageInstallOptions {
+export interface PythonPackagePrepareContext extends PythonPackageContext, PythonPackageInstallOptions, Partial<Pick<import('safe-bash-contracts').CommandContext,'env'|'stdout'|'stderr'|'registerCleanup'>> {
  readonly uninstall?: PythonPackageStart['uninstall'];
  readonly requirements?: readonly string[];
  readonly requirementFiles?: readonly string[];
@@ -171,23 +173,23 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const signal = AbortSignal.any([input.signal, controller.signal, invocation.signal]);
   inheritYieldCheckpoint(input.signal, signal);
   const context = { ...input, signal };
-  context.signal.throwIfAborted();
+  signal.throwIfAborted();
   const directory = options.cacheDirectory === undefined ? undefined : resolve(context.cwd,options.cacheDirectory,runtimeKey);
   const cache = options.cache ?? (directory === undefined ? defaultCache : {
-   async get(key: string) { try { return await context.fs.readFile(resolve(directory,key),{signal:context.signal}); } catch(error) { if(missing(error))return undefined;throw error; } },
-   async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(directory,{recursive:true,signal:context.signal});await context.fs.writeFile(resolve(directory,key),bytes,{signal:context.signal}); },
+   async get(key: string) { try { return await context.fs.readFile(resolve(directory,key),{signal}); } catch(error) { if(missing(error))return undefined;throw error; } },
+   async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(directory,{recursive:true,signal});await context.fs.writeFile(resolve(directory,key),bytes,{signal}); },
   });
   const manifestCache = options.cacheDirectory === undefined ? defaultCache : cache;
   let snapshot: PythonPackageManifest | undefined;
   if(options.manifestStore) {
    try { snapshot=await options.manifestStore.get(manifestKey,context); }
-   catch(error) { context.signal.throwIfAborted();throw failure('Cannot read Python package environment manifest',error); }
+   catch(error) { signal.throwIfAborted();throw failure('Cannot read Python package environment manifest',error); }
   }
-  context.signal.throwIfAborted();
+  signal.throwIfAborted();
   if(snapshot!==undefined && (typeof snapshot!=='object' || snapshot===null || typeof snapshot.revision!=='string' || !snapshot.revision || snapshot.revision.length>1024 || !(snapshot.bytes instanceof Uint8Array))) throw failure('Invalid Python package manifest snapshot');
   const manifestRevision = snapshot?.revision;
   const stored = options.manifestStore ? snapshot?.bytes : await manifestCache.get(manifestKey);
-  context.signal.throwIfAborted();
+  signal.throwIfAborted();
   if(stored && stored.length>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
   const manifest = stored === undefined ? '' : decoder.decode(stored);
   let previous: unknown;
@@ -200,7 +202,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   for (const file of [...options.requirementFiles??[],...context.requirementFiles??[]]) {
    const path = resolve(context.cwd,file);
    let source: string;
-   try { source = decoder.decode(await context.fs.readFile(path,{signal:context.signal,...options.maxRequirementBytes === undefined ? {} : {maxBytes:options.maxRequirementBytes}})); } catch(error) { context.signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
+   try { source = decoder.decode(await context.fs.readFile(path,{signal,...options.maxRequirementBytes === undefined ? {} : {maxBytes:options.maxRequirementBytes}})); } catch(error) { signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
    for (const line of source.split('\n')) {
     // Only whitespace-delimited hashes begin comments; URL integrity fragments survive.
     const comment=line.split('').findIndex((character,index)=>character==='#' && (index===0 || line[index-1]!.trim()===''));
@@ -209,14 +211,14 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     requirements.push(normalizeRequirement(text,dirname(path)));
    }
   }
-  context.signal.throwIfAborted();
+  const requested=[...new Set(await options.prepareRequirements?.(requirements,context)??requirements)];
+  signal.throwIfAborted();
   const session=String(++counter);
-  const requested=[...new Set(requirements)];
   const unique=[...new Set([...restore,...requested])];
   const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;void release(current,true);}};
   const offline=context.offline??options.offline??false;
   sessions.set(session,{...context,cacheDirectory:directory,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
-  context.signal.addEventListener('abort',aborted,{once:true});
+  signal.addEventListener('abort',aborted,{once:true});
   const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
   for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
   return {session,requirements:unique,restore,requested,legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};

@@ -598,6 +598,9 @@ test('real workerd isolates build dependencies and preserves target packages aft
   assert.equal(result.builtInstalled.exitCode,0,JSON.stringify(result));
   assert.equal(result.builtImported.exitCode,0,JSON.stringify(result));
   assert.equal(result.builtImported.stdout,'caller source:73\n');
+  assert.equal(result.sourceInstalled.exitCode,0,JSON.stringify(result));
+  assert.equal(result.sourceImported.exitCode,0,JSON.stringify(result));
+  assert.equal(result.sourceImported.stdout,'changed original:73\n');
   assert.ok(result.wheelReads.opened>0);
   assert.equal(result.wheelReads.closed,result.wheelReads.opened);
   assert.deepEqual(result.failures,[]);

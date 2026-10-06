@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonBuildDependencies, createPythonSourceSnapshot, publishPythonBuildWheel, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonBuildDependencies, createPythonSourceSnapshot, publishPythonBuildWheel, createPythonSourcePackageEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -315,7 +315,17 @@ factory = Backend()
       const targetState=await shell.exec(inspect);
       const builtInstalled=await shell.exec('python -m pip install '+quote(built));
       const builtImported=await shell.exec('python -c '+quote('import built_fixture; print(built_fixture.value)'));
-      return {installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,buildSystem,invalidBuildSystem,hookRequirements,built,hookOutput:hookOutput.join(''),builtInstalled,builtImported,wheelReads,requests,diagnostics};
+      const sourceBackend=new TextDecoder().decode(await backend.readFile('/work/build-source/backend.py')).replaceAll("config_settings == {'feature': ['one', 'two']}","config_settings is None");
+      await backend.writeFile('/work/build-source/backend.py',new TextEncoder().encode(sourceBackend));
+      const sourceEnvironment=createPythonSourcePackageEnvironment({...configuration,scope:'source',maxMetadataBytes:4096},{directory:'/work/published-wheels',python:{createExecutor,maxTransferBytes:32}});
+      const sourceShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:sourceEnvironment,maxTransferBytes:32}));
+      let sourceInstalled,sourceImported;
+      try{
+        sourceInstalled=await sourceShell.exec('python -m pip install ./build-source');
+        for(const file of ['backend.py','input.txt','pyproject.toml'])await backend.unlink('/work/build-source/'+file);
+        sourceImported=await sourceShell.exec('python -c '+quote('import built_fixture; print(built_fixture.value)'));
+      }finally{await sourceShell.dispose();await sourceEnvironment.dispose();}
+      return {sourceInstalled,sourceImported,installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,buildSystem,invalidBuildSystem,hookRequirements,built,hookOutput:hookOutput.join(''),builtInstalled,builtImported,wheelReads,requests,diagnostics};
     }
     if(legacyOnly) {
       const context={signal:new AbortController().signal},rows=[];

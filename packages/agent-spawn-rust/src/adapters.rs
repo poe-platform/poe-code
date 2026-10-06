@@ -959,7 +959,12 @@ impl Adapter {
                 let output_text = String::from_utf16_lossy(output);
                 if (output_text.contains("failed to register synthetic bubblewrap mount target ")
                     || output_text
-                        .contains("failed to create synthetic bubblewrap mount marker directory "))
+                        .contains("failed to create synthetic bubblewrap mount marker directory ")
+                    || output_text.split('\n').any(|line| {
+                        line.contains("linux-sandbox/src/linux_run_main.rs:")
+                            && line.contains("failed to create /")
+                            && line.contains("/codex-bwrap-synthetic-mount-targets-")
+                    }))
                     && output_text.contains("No space left on device (os error 28)")
                 {
                     let mut message = output.to_vec();

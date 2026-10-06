@@ -65,6 +65,8 @@ fn codex_esbuild_diagnostic_preserves_output_and_ecmascript_whitespace() {
 #[test]
 fn codex_mount_enospc_does_not_assume_host_exhaustion() {
     for failure in [
+        "failed to create /tmp/codex-bwrap-synthetic-mount-targets-1/marker",
+        "failed to create /workspace/private-tmp/codex-bwrap-synthetic-mount-targets-1/marker",
         "failed to register synthetic bubblewrap mount target /tmp/.git",
         "failed to create synthetic bubblewrap mount marker directory /tmp/codex-bwrap-synthetic-mount-targets-1/marker",
     ] {
@@ -93,5 +95,23 @@ fn codex_mount_enospc_does_not_assume_host_exhaustion() {
         );
         assert!(message.contains("does not relocate an already running session"));
         assert!(message.contains("does not prevent other writes to the full filesystem"));
+    }
+}
+
+#[test]
+fn codex_staging_enospc_requires_sandbox_context() {
+    for output in [
+        "failed to create /tmp/codex-bwrap-synthetic-mount-targets-1/marker: No space left on device (os error 28)",
+        "linux-sandbox/src/linux_run_main.rs:994: failed to create /tmp/unrelated: No space left on device (os error 28)",
+        "linux-sandbox/src/linux_run_main.rs:994: failed to create /tmp/codex-bwrap-synthetic-mount-targets-1/marker: Permission denied (os error 13)",
+        r"linux-sandbox/src/linux_run_main.rs:994:\nfailed to create /tmp/codex-bwrap-synthetic-mount-targets-1/marker: No space left on device (os error 28)",
+    ] {
+        let mut adapter = Adapter::new("codex").unwrap();
+        let events = adapter.line(
+            &format!(r#"{{"type":"item.completed","item":{{"type":"command_execution","id":"mount","exit_code":101,"aggregated_output":"{output}"}}}}"#)
+                .encode_utf16().collect::<Vec<_>>(),
+        );
+        assert_eq!(events.len(), 2, "unexpected diagnostic for {output}");
+        assert_eq!(adapter.tracked_tools(), 0);
     }
 }

@@ -31,11 +31,19 @@ test("explorer demo exposes original names and parses argv/environment with matc
   assert.deepEqual(trace(native),trace(original));
 });
 
-test("explorer demo retains the reference runtime rejection of its legacy action keys",async()=>{
+test("explorer demo initializes with reference accelerators and preserves printable filtering",async()=>{
   const native=await import("toolcraft-design-rust/explorer/demo");
   for(const mode of ["single-detail-mode","list-detail-mode"]){
     const options={mode,slowDetail:false};
-    assert.deepEqual(outcome(()=>nativeState(native.buildExplorerDemoConfig(options),{cols:104,rows:22})),outcome(()=>originalState(original.buildExplorerDemoConfig(options),{cols:104,rows:22})));
+    const actual=nativeState(native.buildExplorerDemoConfig(options),{cols:104,rows:22});
+    const expected=originalState(original.buildExplorerDemoConfig(options),{cols:104,rows:22});
+    assert.deepEqual(actual.bindings.bindings,expected.bindings.bindings);
+    assert.deepEqual(actual.bindings.keysByTarget,expected.bindings.keysByTarget);
+    for(const [name,id] of [["r","refresh"],["e","archive"],...(mode==="list-detail-mode"?[["x","resolve-comment"]]:[])]){
+      assert.deepEqual(actual.bindings.resolve({name,ctrl:true}),{type:"action",id});
+      assert.equal(actual.bindings.resolve({name}),undefined);
+    }
+    assert.deepEqual(actual.bindings.resolve({name:"a",ctrl:true}),{type:"builtin",id:"selectAll"});
   }
 });
 

@@ -42,8 +42,8 @@ fn actions<H: Host>(host: &mut H) -> Result<H::Value, H::Error> {
             ("primary", yes)
         } else {
             (
-                "key",
-                host.literal(if id == "refresh" { "r" } else { "a" })?,
+                "accelerator",
+                host.literal(if id == "refresh" { "r" } else { "e" })?,
             )
         };
         let key = host.literal(key)?;
@@ -180,7 +180,7 @@ pub fn run<H: Host>(
                     &[
                         ("id", id),
                         ("label", label),
-                        ("key", key),
+                        ("accelerator", key),
                         ("showInFooter", yes),
                         ("handler", handler),
                     ],

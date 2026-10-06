@@ -21,3 +21,43 @@ fn codex_completion_without_start_emits_both_and_releases_tracking() {
     assert_eq!(adapter.tracked_tools(), 0);
     assert!(Adapter::new("constructor").is_err());
 }
+
+#[test]
+fn codex_esbuild_diagnostic_preserves_output_and_ecmascript_whitespace() {
+    for started in [false, true] {
+        for prefix in ["error", "Error"] {
+            let mut adapter = Adapter::new("codex").unwrap();
+            let item = format!(
+                r#"{{"type":"command_execution","id":"build","command":"bun build.ts","exit_code":1,"aggregated_output":"\ufeff{prefix}: The service was stopped\u00a0\n at /node_modules/esbuild/lib/main.js:1230\n\ud800\n"}}"#
+            );
+            if started {
+                adapter.line(
+                    &format!(r#"{{"type":"item.started","item":{item}}}"#)
+                        .encode_utf16()
+                        .collect::<Vec<_>>(),
+                );
+            }
+            let events = adapter.line(
+                &format!(r#"{{"type":"item.completed","item":{item}}}"#)
+                    .encode_utf16()
+                    .collect::<Vec<_>>(),
+            );
+            let diagnostic = events.last().unwrap().get("value").unwrap();
+            assert_eq!(
+                diagnostic.get("event"),
+                Some(&Value::String("error".encode_utf16().collect()))
+            );
+            let Value::String(message) = diagnostic.get("message").unwrap() else {
+                panic!("expected diagnostic text");
+            };
+            let mut expected = format!(
+                "{prefix}: The service was stopped\u{a0}\n at /node_modules/esbuild/lib/main.js:1230\n"
+            )
+            .encode_utf16()
+            .collect::<Vec<_>>();
+            expected.extend([0xd800, 10]);
+            assert!(message.starts_with(&expected));
+            assert_eq!(adapter.tracked_tools(), 0);
+        }
+    }
+}

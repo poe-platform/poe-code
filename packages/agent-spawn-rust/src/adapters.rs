@@ -956,7 +956,20 @@ impl Adapter {
                 && nonempty(f(item, "aggregated_output"))
             {
                 let output = trim_ecmascript(units(f(item, "aggregated_output")));
-                if String::from_utf16_lossy(output)
+                let output_text = String::from_utf16_lossy(output);
+                if output_text.contains("esbuild/lib/main.js:")
+                    && output.split(|unit| *unit == 10).any(|line| {
+                        matches!(
+                            String::from_utf16_lossy(trim_ecmascript(line)).as_ref(),
+                            "error: The service was stopped" | "Error: The service was stopped"
+                        )
+                    })
+                {
+                    let mut message = output.to_vec();
+                    message.extend("\nesbuild's child service stopped; this message alone does not establish a sandbox denial.\nOn Linux, Codex's restricted-network sandbox can reject Bun's sendto on an AF_UNIX\nchild-service socket with EPERM. esbuild then reads EOF and exits without a useful error.\nFor Node-compatible build scripts, try Node in the same directory and same sandbox.\nTo confirm this boundary, capture child syscalls and check for sendto(..., NULL, 0) = -1 EPERM;\ncompare a minimal esbuild transform under Bun and Node on the failing Linux host.\nA successful esbuild --version does not verify the service socket lifecycle.\nIf session policy permits, request the exact failing probe through the existing approval reviewer\nwith sandbox_permissions: \"require_escalated\" to compare execution outside the sandbox.\nDo not retry automatically or bypass a denial. A passing macOS probe does not verify Linux.\nKeep build prerequisite failures separate from application test failures.".encode_utf16());
+                    result.push(e("error", vec![("message", Value::String(message))]));
+                }
+                if output_text
                     .starts_with("bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted")
                 {
                     let mut message = output.to_vec();

@@ -1,5 +1,5 @@
 import {sourceBytes} from "./request-source.js";
-import {configurationArguments} from "./configuration-arguments.js";
+import {commandArguments} from "./command-arguments.js";
 import { validateModelOptions } from "./model-options.js";
 import type { CommandContext } from "safe-bash-contracts";
 import { createLlmConfiguration, type LlmConfiguration } from "./configuration.js";
@@ -8,15 +8,12 @@ import type { LlmService } from "./service.js";
 export async function configurationCommand(
   context: CommandContext, service: LlmService, args: readonly string[],
   output: (text: string) => Promise<void>, diagnostic: (text: string) => Promise<void>, admitInput: (size: number, materialized: boolean) => void, maxConfigurationBytes = Infinity, step: () => Promise<void> = async () => {context.signal.throwIfAborted();},
-): Promise<number | undefined> {
-  if (args.length === 1 && args[0] === "--version") { await output("llm, version 0.27.1\n"); return 0; }
+): Promise<number> {
   const keysCmd = args[0] === "keys";
   const aliases = args[0] === "aliases";
   const defaults = args[0] === "models" && args[1] === "default";
-  const options = args[0] === "models" && args[1] === "options";
-  if (!keysCmd && !aliases && !defaults && !options) return undefined;
   const group = args.slice(0, keysCmd || aliases ? 1 : 2).join(" ");
-  const parsed = await configurationArguments(group, args.slice(keysCmd || aliases ? 1 : 2), defaults ? [] : keysCmd ? ["list", "path", "get", "set"] : aliases ? ["list", "path", "set", "remove"] : ["list", "set", "show", "clear"], output, diagnostic, step, async () => {
+  const parsed = await commandArguments(group, args.slice(keysCmd || aliases ? 1 : 2), defaults ? [] : keysCmd ? ["list", "path", "get", "set"] : aliases ? ["list", "path", "set", "remove"] : ["list", "set", "show", "clear"], output, diagnostic, step, async () => {
     const decoder = new TextDecoder();
     let value = "";
     await output("Enter key: ");

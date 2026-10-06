@@ -1,4 +1,4 @@
-import {loadLlmHelp} from './help-text.js';
+import {commandArguments} from './command-arguments.js';
 import { FsError } from "safe-bash-contracts";
 import { pathOf } from 'safe-bash-contracts/path';
 import type { CommandContext } from 'safe-bash-contracts';
@@ -12,29 +12,11 @@ const usage="Usage: llm embed [OPTIONS] [COLLECTION] [ID]\n";
 export async function embeddingCommand(context:CommandContext,service:LlmService,tokens:readonly string[],write:(bytes:Uint8Array)=>Promise<void>,diagnostic:(text:string)=>Promise<void>,step:()=>Promise<void>,admit:(bytes:number,materialized?:boolean)=>void,maxConfigurationBytes=Infinity,stored?: (request:{collection:string;id:string;values:Readonly<Record<string,string>>;store:boolean;binary:boolean})=>Promise<number>):Promise<number>{
  const encoder=new TextEncoder();
  const fail=async(message:string,code=1,withUsage=false):Promise<number>=>{await diagnostic((withUsage?usage+"Try 'llm embed -h' for help.\n\n":'')+`Error: ${message}\n`);return code;};
- const values:Record<string,string>={},operands:string[]=[];
- let ended=false,wantsHelp=false,store=false,binary=false;
- const names:Record<string,string>={'-m':'model','--model':'model','-c':'content','--content':'content','-i':'input','--input':'input','-f':'format','--format':'format','-d':'database','--database':'database','--metadata':'metadata'};
- for(let index=0;index<tokens.length;index++){
-  await step();const token=tokens[index]!;
-  if(!ended&&token==='--'){ended=true;continue;}
-  if(ended||!token.startsWith('-')||token==='-'){operands.push(token);continue;}
-  const long=token.startsWith('--'),equals=token.indexOf('=');
-  for(let cursor=long?0:1;cursor<token.length;cursor++){
-   const flag=long?token.slice(0,equals<0?undefined:equals):'-'+token[cursor];
-   if(['--help','-h','--store','--binary'].includes(flag)){
-    if(long&&equals>=0)return fail(`Option '${flag}' does not take a value.`,2);
-    if(flag==='--store')store=true;else if(flag==='--binary')binary=true;else wantsHelp=true;
-    if(long)break;continue;
-   }
-   const name=names[flag];if(!name)return fail(`No such option: ${flag}`,2,true);
-   const attached=long?(equals<0?undefined:token.slice(equals+1)):(token.slice(cursor+1)||undefined);
-   const value=attached??tokens[++index];if(value===undefined)return fail(`Option '${flag}' requires an argument.`,2);
-   values[name]=value;break;
-  }
- }
- if(wantsHelp){await write(encoder.encode(await loadLlmHelp('embed')));return 0;}
- if(operands.length>2)return fail(`Got unexpected extra argument${operands.length>3?'s':''} (${operands.slice(2).join(' ')})`,2,true);
+ const parsed=await commandArguments('embed',tokens,[],text=>write(encoder.encode(text)),diagnostic,step);
+ if(typeof parsed==='number')return parsed;
+ const operands=parsed.operands,store=parsed.values.has('--store'),binary=parsed.values.has('--binary');
+ const values:Record<string,string>={};
+ for(const [flag,entries]of parsed.values)if(entries.length)values[flag.slice(2)]=entries.at(-1)!;
  if(values.format!==undefined&&!['json','blob','base64','hex'].includes(values.format))return fail(`Invalid value for '-f' / '--format': '${values.format}' is not one of 'json', 'blob', 'base64', 'hex'.`,2,true);
  if(values.metadata!==undefined){
   let metadata:unknown;try{metadata=JSON.parse(values.metadata);}catch{return fail("Invalid value for '--metadata': metadata must be valid JSON",2,true);}

@@ -1,0 +1,453 @@
+{
+  "version": "0.27.1",
+  "cases": [
+    {
+      "argv": [
+        "embed",
+        "--help"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 0,
+      "stdout": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\n\n  Embed text and store or return the result\n\nOptions:\n  -i, --input PATH                File to embed\n  -m, --model TEXT                Embedding model to use\n  --store                         Store the text itself in the database\n  -d, --database FILE\n  -c, --content TEXT              Content to embed\n  --binary                        Treat input as binary data\n  --metadata TEXT                 JSON object metadata to store\n  -f, --format [json|blob|base64|hex]\n                                  Output format\n  -h, --help                      Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "embed",
+        "-hh"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 0,
+      "stdout": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\n\n  Embed text and store or return the result\n\nOptions:\n  -i, --input PATH                File to embed\n  -m, --model TEXT                Embedding model to use\n  --store                         Store the text itself in the database\n  -d, --database FILE\n  -c, --content TEXT              Content to embed\n  --binary                        Treat input as binary data\n  --metadata TEXT                 JSON object metadata to store\n  -f, --format [json|blob|base64|hex]\n                                  Output format\n  -h, --help                      Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "embed",
+        "--wat"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: No such option: --wat Did you mean --format?\n"
+    },
+    {
+      "argv": [
+        "embed",
+        "--help=1"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "argv": [
+        "embed",
+        "--wat",
+        "--help"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: No such option: --wat Did you mean --format?\n"
+    },
+    {
+      "argv": [
+        "embed",
+        "--help",
+        "--wat"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: No such option: --wat Did you mean --format?\n"
+    },
+    {
+      "argv": [
+        "embed",
+        "-h=x"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: No such option: -=\n"
+    },
+    {
+      "argv": [
+        "embed",
+        "--wat=1"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: No such option: --wat Did you mean --format?\n"
+    },
+    {
+      "argv": [
+        "plugins",
+        "--help"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 0,
+      "stdout": "Usage: llm plugins [OPTIONS]\n\n  List installed plugins\n\nOptions:\n  --all        Include built-in default plugins\n  --hook TEXT  Filter for plugins that implement this hook\n  -h, --help   Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "plugins",
+        "-hh"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 0,
+      "stdout": "Usage: llm plugins [OPTIONS]\n\n  List installed plugins\n\nOptions:\n  --all        Include built-in default plugins\n  --hook TEXT  Filter for plugins that implement this hook\n  -h, --help   Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "plugins",
+        "--wat"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: No such option: --wat Did you mean --all?\n"
+    },
+    {
+      "argv": [
+        "plugins",
+        "--help=1"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "argv": [
+        "plugins",
+        "--wat",
+        "--help"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: No such option: --wat Did you mean --all?\n"
+    },
+    {
+      "argv": [
+        "plugins",
+        "--help",
+        "--wat"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: No such option: --wat Did you mean --all?\n"
+    },
+    {
+      "argv": [
+        "plugins",
+        "-h=x"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: No such option: -=\n"
+    },
+    {
+      "argv": [
+        "plugins",
+        "--wat=1"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: No such option: --wat Did you mean --all?\n"
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "--help"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 0,
+      "stdout": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\n\n  List available tools that have been provided by plugins\n\nOptions:\n  --json            Output as JSON\n  --functions TEXT  Python code block or file path defining functions to\n                    register as tools\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "-hh"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 0,
+      "stdout": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\n\n  List available tools that have been provided by plugins\n\nOptions:\n  --json            Output as JSON\n  --functions TEXT  Python code block or file path defining functions to\n                    register as tools\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "--wat"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "--help=1"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "--wat",
+        "--help"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "--help",
+        "--wat"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "-h=x"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list -h' for help.\n\nError: No such option: -=\n"
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "--wat=1"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "fragments",
+        "loaders",
+        "--help"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 0,
+      "stdout": "Usage: llm fragments loaders [OPTIONS]\n\n  Show fragment loaders registered by plugins\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "fragments",
+        "loaders",
+        "-hh"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 0,
+      "stdout": "Usage: llm fragments loaders [OPTIONS]\n\n  Show fragment loaders registered by plugins\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "fragments",
+        "loaders",
+        "--wat"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm fragments loaders [OPTIONS]\nTry 'llm fragments loaders -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "fragments",
+        "loaders",
+        "--help=1"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "argv": [
+        "fragments",
+        "loaders",
+        "--wat",
+        "--help"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm fragments loaders [OPTIONS]\nTry 'llm fragments loaders -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "fragments",
+        "loaders",
+        "--help",
+        "--wat"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm fragments loaders [OPTIONS]\nTry 'llm fragments loaders -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "fragments",
+        "loaders",
+        "-h=x"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm fragments loaders [OPTIONS]\nTry 'llm fragments loaders -h' for help.\n\nError: No such option: -=\n"
+    },
+    {
+      "argv": [
+        "fragments",
+        "loaders",
+        "--wat=1"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm fragments loaders [OPTIONS]\nTry 'llm fragments loaders -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "argv": [
+        "plugins",
+        "--hoo",
+        "x"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm plugins [OPTIONS]\nTry 'llm plugins -h' for help.\n\nError: No such option: --hoo Did you mean --hook?\n"
+    },
+    {
+      "argv": [
+        "embed",
+        "--mod",
+        "x"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: No such option: --mod Did you mean --model?\n"
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "--fun",
+        "x"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list -h' for help.\n\nError: No such option: --fun Did you mean --functions?\n"
+    },
+    {
+      "argv": [
+        "plugins",
+        "--hook"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--hook' requires an argument.\n"
+    },
+    {
+      "argv": [
+        "embed",
+        "-m"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '-m' requires an argument.\n"
+    },
+    {
+      "argv": [
+        "tools",
+        "list",
+        "--functions"
+      ],
+      "stdin": "",
+      "files": {},
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--functions' requires an argument.\n"
+    }
+  ],
+  "clickVersion": "8.1.8"
+}

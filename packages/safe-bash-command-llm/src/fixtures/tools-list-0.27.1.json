@@ -111,7 +111,7 @@
     ],
     "exitCode": 2,
     "stdout": "",
-    "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list --help' for help.\n\nError: No such option '--wat'.\n"
+    "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list -h' for help.\n\nError: No such option: --wat\n"
   },
   {
     "argv": [
@@ -162,7 +162,7 @@
     ],
     "exitCode": 2,
     "stdout": "",
-    "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list --help' for help.\n\nError: No such option '--wat'.\n"
+    "stderr": "Usage: llm tools list [OPTIONS] [TOOL_DEFS]...\nTry 'llm tools list -h' for help.\n\nError: No such option: --wat\n"
   },
   {
     "argv": [

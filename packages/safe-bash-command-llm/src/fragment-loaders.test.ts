@@ -86,7 +86,7 @@ for(const streamed of [false,true])for(const failure of ['none','mime','loader',
 for(const [args,exitCode,expected]of [
  [['fragments','loaders'],0,'No fragment loaders found\n'],
  [['fragments','loaders','--help'],0,'Usage: llm fragments loaders [OPTIONS]\n\n  Show fragment loaders registered by plugins\n\nOptions:\n  -h, --help  Show this message and exit.\n'],
- [['fragments','loaders','extra'],2,`Usage: llm fragments loaders [OPTIONS]\nTry 'llm fragments loaders --help' for help.\n\nError: Got unexpected extra argument (extra)\n`],
+ [['fragments','loaders','extra'],2,`Usage: llm fragments loaders [OPTIONS]\nTry 'llm fragments loaders -h' for help.\n\nError: Got unexpected extra argument (extra)\n`],
 ]as const)test(`reference loader discovery ${args.join(' ')}`,async()=>{
  let stdout='',stderr='';
  const result=await createLlmCommand().execute({command:'llm',args:[...args],fs:new MemoryFileSystem(),cwd:'/',env:{},signal:new AbortController().signal,stdin:{[Symbol.asyncIterator](){throw new Error('must not read stdin');}},stdout:{async write(bytes){stdout+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});

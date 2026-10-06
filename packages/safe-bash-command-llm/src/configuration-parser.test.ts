@@ -5,7 +5,9 @@ import {toByteSource} from 'safe-bash-contracts';
 import {createLlmCommand} from './command.js';
 import reference from './fixtures/configuration-parser-0.27.1.json' with {type:'json'};
 
-for (const fixture of reference.cases) test(`configuration reference: ${fixture.argv.join(' ')}`, async () => {
+import leafReference from './fixtures/leaf-parser-0.27.1.json' with {type:'json'};
+
+for (const fixture of [...reference.cases,...leafReference.cases]) test(`configuration reference: ${fixture.argv.join(' ')}`, async () => {
   const command = createLlmCommand({defaultModel:'gpt-4o-mini',providers:[{name:'fixture',models:[{id:'gpt-4o-mini',aliases:['mini']}],complete(){throw new Error('Unexpected provider call');}}]});
   const fs=new MemoryFileSystem();
   let stdout='',stderr='';

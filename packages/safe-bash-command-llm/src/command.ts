@@ -345,7 +345,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         return {exitCode:2};
       }
       const tokens = Array.from({length:argumentsValue.args.length-2},(_,index)=>argumentText(index+2));
-      return {exitCode:await fragmentLoaderCommand(tokens,fragmentLoaders,emitText,text=>writeDiagnostic(context.stderr,text,signal))};
+      return {exitCode:await fragmentLoaderCommand(tokens,fragmentLoaders,emitText,text=>writeDiagnostic(context.stderr,text,signal),step)};
     }
     if (argumentsValue.args[0] === "schemas" && argumentsValue.args[1] !== "dsl") {
       await writeDiagnostic(context.stderr, "Error: Stored schema history is host-owned. Use an inline schema, file, template, or 'llm schemas dsl'.\n", signal);
@@ -395,12 +395,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
       return { exitCode };
     }
-    const configurationInvocation = argumentsValue.args[0] === "keys" || argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "") || argumentsValue.args[0] === "--version";
+    const configurationInvocation = argumentsValue.args[0] === "keys" || argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "");
     if (configurationInvocation) {
       try {
         const tokens = Array.from({ length: argumentsValue.args.length }, (_, index) => argumentText(index));
-        const exitCode = await configurationCommand({...context, signal}, service, tokens, emitText, text => writeDiagnostic(context.stderr, text, signal), admitInput, limits?.maxConfigurationBytes, step);
-        if (exitCode !== undefined) return {exitCode};
+        return {exitCode: await configurationCommand({...context, signal}, service, tokens, emitText, text => writeDiagnostic(context.stderr, text, signal), admitInput, limits?.maxConfigurationBytes, step)};
       } catch (error) {
         throw new Error(`Error: ${error instanceof Error ? error.message : "Configuration failed"}`);
       }

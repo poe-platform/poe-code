@@ -1,21 +1,12 @@
+import {unicodeOrder} from "./python-unicode.js";
 import {formatLoaderDescription} from './loader-description.js';
-import {configurationArguments} from './configuration-arguments.js';
+import {commandArguments} from './command-arguments.js';
 import { jsonValue } from "./json-value.js";
 import { FsError, type CommandContext } from "safe-bash-contracts";
 import { pathOf } from "safe-bash-contracts/path";
 import { createLlmConfiguration } from "./configuration.js";
 import { publishConfiguration } from "./configuration-publication.js";
 
-function unicodeOrder(left: string, right: string): number {
-  let a = 0, b = 0;
-  while (a < left.length && b < right.length) {
-    const x = left.codePointAt(a)!, y = right.codePointAt(b)!;
-    if (x !== y) return x - y;
-    a += x > 65535 ? 2 : 1;
-    b += y > 65535 ? 2 : 1;
-  }
-  return (a < left.length ? 1 : 0) - (b < right.length ? 1 : 0);
-}
 
 export interface LlmTemplate {
   name: string;
@@ -252,7 +243,7 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
       await publish(name, new TextEncoder().encode(stringify(value, { indent: 4, lineWidth: 0 })));
     },
     async command(args: readonly string[], output: (text: string) => Promise<void>, diagnostic: (text: string) => Promise<void>): Promise<number> {
-      const parsed = await configurationArguments("templates", args, ["list", "edit", "loaders", "path", "show"], output, diagnostic, async () => {context.signal.throwIfAborted();});
+      const parsed = await commandArguments("templates", args, ["list", "edit", "loaders", "path", "show"], output, diagnostic, async () => {context.signal.throwIfAborted();});
       if (typeof parsed === "number") return parsed;
       const {command, operands} = parsed;
       const name = operands[0];

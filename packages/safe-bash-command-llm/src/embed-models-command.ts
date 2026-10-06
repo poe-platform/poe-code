@@ -1,4 +1,4 @@
-import {configurationArguments} from './configuration-arguments.js';
+import {commandArguments} from './command-arguments.js';
 import type {CommandContext} from 'safe-bash-contracts';
 import type {LlmService} from './service.js';
 import {createLlmConfiguration} from './configuration.js';
@@ -10,7 +10,7 @@ export async function embeddingModelsCommand(
  context:CommandContext,service:LlmService,tokens:readonly string[],
  emit:(text:string)=>Promise<void>,diagnostic:(text:string)=>Promise<void>,step:()=>Promise<void>,maxConfigurationBytes=Infinity,
 ):Promise<number>{
- const parsed=await configurationArguments('embed-models',tokens,['list','default'],emit,diagnostic,step);
+ const parsed=await commandArguments('embed-models',tokens,['list','default'],emit,diagnostic,step);
  if(typeof parsed==='number')return parsed;
  const {command,operands,values}=parsed,defaults=command==='default';
  const queries=(values.get('--query')??[]).map(value=>value.toLowerCase()),remove=values.has('--remove-default');

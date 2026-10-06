@@ -223,6 +223,10 @@ Host diagnostics may observe a different mount namespace or a later filesystem s
 If the host reports free space, investigate sandbox-local tmpfs limits, quotas, and transient allocation pressure;
 record the failing path, mount namespace, and diagnostic time before attributing a cause.
 Moving the worktree to a volume with free space does not move Codex's synthetic mount staging.
+To relocate registry bookkeeping, set TMPDIR before launching a new Codex process:
+use an existing private directory on a filesystem with available blocks and inodes, permitted by the session policy.
+For example, create a private workspace temp directory and launch Codex with TMPDIR pointing to its absolute path.
+This does not relocate an already running session and does not prevent other writes to the full filesystem.
 Only if capacity exhaustion is confirmed, free temporary files you own and no longer need or ask the host administrator;
 then retry the command in the same sandbox. Do not delete other workers' files.
 If even diagnostic commands cannot start, request the exact diagnostic command through the existing approval reviewer

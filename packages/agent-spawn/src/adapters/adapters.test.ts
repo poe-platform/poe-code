@@ -867,6 +867,10 @@ describe("adaptCodex", () => {
     expect(diagnostic.message).toContain("df -h /tmp");
     expect(diagnostic.message).toContain("df -i /tmp");
     expect(diagnostic.message).toContain("Moving the worktree");
+    expect(diagnostic.message).toContain("set TMPDIR before launching a new Codex process");
+    expect(diagnostic.message).toContain("private directory on a filesystem with available blocks and inodes");
+    expect(diagnostic.message).toContain("does not relocate an already running session");
+    expect(diagnostic.message).toContain("does not prevent other writes to the full filesystem");
     expect(diagnostic.message).toContain("existing approval reviewer");
   });
 

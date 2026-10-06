@@ -87,5 +87,11 @@ fn codex_mount_enospc_does_not_assume_host_exhaustion() {
         assert!(message.contains("quotas"));
         assert!(!message.contains("staging ran out of space"));
         assert!(message.contains("existing approval reviewer"));
+        assert!(message.contains("set TMPDIR before launching a new Codex process"));
+        assert!(
+            message.contains("private directory on a filesystem with available blocks and inodes")
+        );
+        assert!(message.contains("does not relocate an already running session"));
+        assert!(message.contains("does not prevent other writes to the full filesystem"));
     }
 }

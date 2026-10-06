@@ -16,7 +16,7 @@ export interface PythonSourceBuildOptions {
 }
 let serial=0;
 
-/** Package environment that builds local PEP 517 projects before normal installation. */
+/** Package environment that builds local PEP 517 and legacy setup projects before normal installation. */
 export function createPythonSourcePackageEnvironment(options:PythonPackageOptions,build:PythonSourceBuildOptions){
  if(options.prepareRequirements||!build.python.createExecutor||!build.directory)throw new TypeError('Source packages require an asynchronous build executor and caller storage');
  const prepareRequirement=async(requirement:string,context:PythonPackagePrepareContext):Promise<string>=>{
@@ -63,9 +63,8 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    await confined.mkdir(wheelDirectory,settings);
    const configuration={...build.python,environment},hook=createPythonBuildBackend(configuration),hookContext={...command,maxBytes:options.maxMetadataBytes??Infinity};
    const buildSystem=await hook({hook:'read_build_system',source:snapshot.path},hookContext);
-   if(!buildSystem)throw new Error('Legacy setup.py source installation is not yet available');
-   await createPythonBuildDependencies(configuration)({source:snapshot.path,buildSystem},hookContext);
-   const filename=await hook({hook:'build_wheel',source:snapshot.path,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory},hookContext);
+   if(buildSystem)await createPythonBuildDependencies(configuration)({source:snapshot.path,buildSystem},hookContext);
+   const filename=await hook(buildSystem?{hook:'build_wheel',source:snapshot.path,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:snapshot.path,wheelDirectory},hookContext);
    const published=await publishPythonBuildWheel(resolvePath(wheelDirectory,filename),root,options.maxDownloadBytes??Infinity,context);
    await cleanup();return published.url;
   }catch(error){

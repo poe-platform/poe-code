@@ -576,6 +576,31 @@ test('real workerd loads native code from a retained installed wheel', {timeout:
  assert.deepEqual(runtimeErrors,[]);
 });
 
+test('real workerd builds legacy setup projects with genuine isolated tooling', {timeout:90000}, async()=>{
+  const directory=process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT;
+  assert.ok(directory,'Set SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT to authenticated runtime build wheels');
+  const lock=JSON.parse(files['pyodide-lock.json']).packages;
+  const assets=['setuptools','pyparsing'].map(name=>{
+    const entry=lock[name],bytes=readFileSync(resolve(directory,entry.file_name));
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);
+    return {file:entry.file_name,bytes:Array.from(bytes)};
+  });
+  const micropip=readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL);
+  assert.equal(createHash('sha256').update(micropip).digest('hex'),'0ad7104a3cde648e5486a718799f3852f1d782ff19d4bfc13db9dc631df083f8');
+  assets.push({file:'micropip-0.11.1-py3-none-any.whl',bytes:Array.from(micropip)});
+  const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/legacy-build',{method:'POST',body:JSON.stringify(assets)});
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  for(const key of ['installed','imported','restored'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
+  assert.equal(result.imported.stdout,'["legacy-original", false, false]\n');
+  assert.equal(result.restored.stdout,result.imported.stdout);
+  assert.notEqual(result.failed.exitCode,0);
+  assert.deepEqual(result.records,['legacy-fixture']);
+  assert.ok(result.buildEntries.every(name=>!name.startsWith('.python-')));
+  assert.ok(result.requests.some(url=>url.endsWith(lock.setuptools.file_name)));
+  assert.deepEqual(result.failures,[]);assert.deepEqual(nativeFixture.runtimeErrors,[]);
+});
+
 test('real workerd isolates build dependencies and preserves target packages after build failure', {timeout:90000}, async()=>{
   const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
   assert.ok(path);

@@ -112,7 +112,7 @@ export async function installPythonPackages(
  const installedGlobals:string[]=[];
  const bind=(name:string,value:unknown)=>{runtime.globals.set(name,value);installedGlobals.push(name);};
  try {
-  await loadPackages(['micropip']);
+  await loadPackages(['micropip',...start.bootstrapPackages??[]]);
   bind('_safe_package_native',loadPackages);
   bind('_safe_package_bytes',async(url:string,hash?:string)=>(await fetch(url,hash)).bytes);
   bind('_safe_package_metadata',async(url:string)=>{

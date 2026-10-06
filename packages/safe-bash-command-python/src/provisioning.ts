@@ -51,6 +51,8 @@ export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'n
  readonly session: string;
  /** Load installer tooling even when no application requirements are installed. */
  readonly bootstrap?:boolean;
+ /** Additional native runtime tooling, excluded from application inventory. */
+ readonly bootstrapPackages?:readonly string[];
  /** Combined requirements for compatibility with custom executors. */
  readonly requirements: readonly string[];
  /** Legacy requirements need one dependency-resolution pass before migration. */
@@ -65,7 +67,7 @@ export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'n
  readonly offline: boolean;
 }
 export interface PythonPackageContext { readonly fs: FileSystem; readonly cwd: string; readonly signal: AbortSignal }
-export interface PythonPackagePrepareContext extends PythonPackageContext, PythonPackageInstallOptions, Partial<Pick<import('safe-bash-contracts').CommandContext,'env'|'stdout'|'stderr'|'registerCleanup'>> {
+export interface PythonPackagePrepareContext extends PythonPackageContext, PythonPackageInstallOptions, Partial<Pick<import('safe-bash-contracts').CommandContext,'env'|'stdout'|'stderr'|'registerCleanup'|'args'>> {
  readonly uninstall?: PythonPackageStart['uninstall'];
  readonly requirements?: readonly string[];
  readonly requirementFiles?: readonly string[];

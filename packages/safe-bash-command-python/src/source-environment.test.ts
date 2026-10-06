@@ -3,7 +3,7 @@ import test from 'node:test';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonSourcePackageEnvironment} from './source-environment.js';
 
-for(const requirementFile of [false,true])test(`source preparation builds a copied tree and installs a durable wheel; requirementFile=${requirementFile}`,async()=>{
+for(const legacy of [false,true])for(const requirementFile of [false,true])test(`source preparation builds a copied tree and installs a durable wheel; legacy=${legacy}; requirementFile=${requirementFile}`,async()=>{
  const fs=new MemoryFileSystem();await fs.mkdir('/work/source',{recursive:true});await fs.mkdir('/storage');await fs.mkdir('/elsewhere');
  await fs.writeFile('/work/source/input.txt',new TextEncoder().encode('original'));
  await fs.writeFile('/elsewhere/requirements.txt',new TextEncoder().encode('./source'));
@@ -16,15 +16,15 @@ for(const requirementFile of [false,true])test(`source preparation builds a copi
   assert.notEqual(request.source,'/work/source');
   assert.equal(new TextDecoder().decode(await fs.readFile(request.source+'/input.txt')),'original');
   let result:unknown;
-  if(request.hook==='read_build_system')result={requires:[],check:[],backend:'backend',backendPath:['.']};
+  if(request.hook==='read_build_system')result=legacy?null:{requires:[],check:[],backend:'backend',backendPath:['.']};
   else if(request.hook==='get_requires_for_build_wheel')result=[];
-  else{assert.equal(request.hook,'build_wheel');result='fixture-1.0-py3-none-any.whl';await fs.writeFile(request.wheelDirectory+'/'+result,Uint8Array.of(42));}
+  else{assert.equal(request.hook,legacy?'build_legacy_wheel':'build_wheel');result='fixture-1.0-py3-none-any.whl';await fs.writeFile(request.wheelDirectory+'/'+result,Uint8Array.of(42));}
   await send({op:'text',text:JSON.stringify(result)});await send({op:'done'});return 0;
  }})}});
  try{
   const receipt=await environment.prepare({...context,...requirementFile?{requirementFiles:['/elsewhere/requirements.txt']}:{requirements:['./source','./source']}});
   try{
-   assert.deepEqual(calls,['read_build_system','get_requires_for_build_wheel','build_wheel']);
+   assert.deepEqual(calls,legacy?['read_build_system','build_legacy_wheel']:['read_build_system','get_requires_for_build_wheel','build_wheel']);
    assert.equal(receipt.requested?.length,1);
    const url=receipt.requested![0]!;assert.ok(url.startsWith('file:///storage/'));assert.ok(url.endsWith('/fixture-1.0-py3-none-any.whl'));
    assert.deepEqual(await fs.readFile(decodeURIComponent(new URL(url).pathname)),Uint8Array.of(42));

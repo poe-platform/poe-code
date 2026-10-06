@@ -159,8 +159,9 @@ the caller's filesystem, working directory, environment, signal, output sinks
 and `maxBytes` metadata budget. Requirements return as strings and wheel builds
 return a filename; wheel bytes stay in caller storage. Backends read the
 prepared source tree directly, so hosts own source snapshots, build-dependency
-installation, durable wheel publication and cleanup. Automatic source installs
-and editable installation are not yet supported.
+installation, durable wheel publication and cleanup. Use the source-building
+environment below to coordinate local source installs; editable installation
+is not yet supported.
 
 The same backend runner accepts `{ hook: 'read_build_system', source, name?,
 usePep517? }` before invoking build hooks. It reads `pyproject.toml` through the
@@ -169,7 +170,9 @@ native TOML parser and returns `{ requires, backend, backendPath, check }`, or
 declared build dependencies; `check` lists implicit backend requirements to
 verify after installing them. The context's `maxBytes` bounds both the TOML input
 and the returned metadata. Inspection does not import the backend or install
-dependencies. Hosts still own the legacy build path.
+dependencies. For legacy projects, pass `{ hook: 'build_legacy_wheel', source,
+wheelDirectory }` to execute `setup.py bdist_wheel` with genuine runtime
+setuptools in the isolated build interpreter. It returns the wheel filename.
 Build invocations bootstrap the existing installer through the configured
 package cache/transport even in an empty environment; bootstrap tooling is not
 added to the environment's installed application inventory.
@@ -218,7 +221,7 @@ The caller owns these durable files and their retention policy. Failed staging
 is removed; empty digest directories can remain. Publication requires confined
 writes and retained read/staging capabilities, with no whole-file fallback.
 
-For local PEP 517 projects, configure a source-building environment:
+For local PEP 517 or legacy `setup.py` projects, configure a source-building environment:
 
 ```ts
 const environment = createPythonSourcePackageEnvironment(packageOptions, {
@@ -229,10 +232,13 @@ const commands = pythonCommands({ createExecutor, environment });
 ```
 
 `python -m pip install ./project` then copies the source, installs its isolated
-build dependencies, runs the native backend and installs the published wheel.
+build dependencies (or bootstraps runtime setuptools for legacy projects), runs
+the native backend and installs the published wheel. Legacy tooling uses the
+configured runtime package transport and stays out of the target inventory.
 The same environment works with SDK requirements and the LLM package manager.
 Relative project paths in requirements files use the invocation working directory.
 Installed snapshots retain durable wheel URLs, so later runs do not need the
 source directory. Direct `environment.prepare()` calls that build sources must
 supply `env`, `stdout` and `stderr`; Python commands supply these automatically.
-Legacy `setup.py` and editable source installation are not supported yet.
+Editable source installation and legacy `setup_requires` dependency resolution
+are not supported yet.

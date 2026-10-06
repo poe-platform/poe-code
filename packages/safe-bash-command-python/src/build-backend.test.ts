@@ -85,3 +85,16 @@ test('wheel hook results must be a wheel filename rather than an arbitrary path'
   for(result of ['../escape.whl','/escape.whl','escape\\wheel.whl','not-a-wheel'])await assert.rejects(backend(build,context()),/wheel filename/);
  }finally{await environment.dispose();}
 });
+
+test('legacy wheel hooks request genuine build tooling only for that invocation',async()=>{
+ const environment=createPythonBuildEnvironment();const bootstraps:unknown[]=[];
+ const backend=createPythonBuildBackend({environment,createExecutor:()=>({terminate(){},async run(start){
+  bootstraps.push(start.packages?.bootstrapPackages);
+  const request=await send(start,{op:'request'}) as any;
+  await send(start,{op:'text',text:JSON.stringify(request.hook==='build_legacy_wheel'?'fixture-1-py3-none-any.whl':[])});await send(start,{op:'done'});return 0;
+ }})});
+ try{
+  assert.equal(await backend({hook:'build_legacy_wheel',source:'/source',wheelDirectory:'/wheels'},context()),'fixture-1-py3-none-any.whl');
+  await backend(request,context());assert.deepEqual(bootstraps,[['setuptools'],undefined]);
+ }finally{await environment.dispose();}
+});

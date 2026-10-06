@@ -34,6 +34,36 @@ async function qualifyNativeWheel(backend,createExecutor,micropip) {
   }finally{await shell.dispose();await environment.dispose();}
 }
 
+async function qualifyLegacyBuild(backend,createExecutor,assets) {
+  const base='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/';
+  const wheels=new Map(assets.map(({file,bytes})=>[base+file,Uint8Array.from(bytes)]));
+  const requests=[];
+  backend=new Proxy(backend,{get(target,key){
+    if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl')||path.includes('-sha256-'))throw new Error('Whole wheel read');return target.readFile(path,...args);};
+    const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+  }});
+  await backend.mkdir('/work/legacy-source');await backend.mkdir('/work/builds');
+  await backend.writeFile('/work/legacy-source/setup.py',new TextEncoder().encode('from setuptools import setup\nsetup(name="legacy-fixture", version="1.0", py_modules=["legacy_fixture"])\n'));
+  await backend.writeFile('/work/legacy-source/legacy_fixture.py',new TextEncoder().encode('value = "legacy-original"\n'));
+  const environment=createPythonSourcePackageEnvironment({cacheDirectory:'/work/packages',authorize:({url})=>wheels.has(url),transport:async({url})=>{
+    requests.push(url);return {status:200,headers:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
+  }},{directory:'/work/builds',python:{createExecutor}});
+  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
+  const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names]))'`;
+  try{
+    const installed=await shell.exec('python -m pip install ./legacy-source');
+    await backend.writeFile('/work/legacy-source/legacy_fixture.py',new TextEncoder().encode('value = "changed"\n'));
+    const imported=await shell.exec(inspect);
+    await backend.writeFile('/work/legacy-source/setup.py',new TextEncoder().encode('raise RuntimeError("legacy-build-failed")\n'));
+    const failed=await shell.exec('python -m pip install ./legacy-source');
+    await backend.unlink('/work/legacy-source/setup.py');await backend.unlink('/work/legacy-source/legacy_fixture.py');
+    const restored=await shell.exec(inspect);
+    const receipt=await environment.prepare({fs:backend,cwd:'/work',signal:new AbortController().signal});
+    let records;try{records=receipt.records?.map(record=>record[0]);}finally{await environment.finish(receipt);}
+    return {installed,imported,failed,restored,records,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
+  }finally{await shell.dispose();await environment.dispose();}
+}
+
 async function qualifyPackageControls(backend, createExecutor, micropip) {
   const quote=value=>"'"+value.split("'").join("'\\''")+"'";
   const bootstrap=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor}));
@@ -1655,6 +1685,11 @@ export default {
       }
       return runtime;
     } });
+    if (mode === '/legacy-build') {
+      try {return Response.json({...await qualifyLegacyBuild(backend,createExecutor,await request.json()),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
     if (mode === '/native-wheel') {
       try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}

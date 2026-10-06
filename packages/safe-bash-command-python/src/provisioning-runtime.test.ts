@@ -49,6 +49,13 @@ test('explicit build tooling bootstrap loads the installer without requesting ap
  assert.deepEqual(commits,[['1',{version:2,installed:[],records:[]}]]);
  assert.equal(globals.size,0);
 });
+test('legacy build tooling is bootstrapped without becoming application inventory',async()=>{
+ const {runtime}=nativeFixture(async()=>{});const loaded:string[][]=[],commits:unknown[]=[];
+ runtime.loadPackage=async(names?:string[])=>{loaded.push(names!);};
+ await installPythonPackages(runtime as never,{session:'1',requirements:[],requested:[],restore:[],offline:false,bootstrap:true,bootstrapPackages:['setuptools']},(op,...args)=>{if(op==='package-commit')commits.push(args);},64);
+ assert.deepEqual(loaded,[['micropip','setuptools']]);
+ assert.deepEqual(commits,[['1',{version:2,installed:[],records:[]}]]);
+});
 test('installer refuses unsupported runtime ABI before any download',async()=>{
  await assert.rejects(installPythonPackages({version:'314.0.6'} as never,{session:'1',requirements:['example==1'],offline:false},()=>{throw Error('unexpected request');},65536),/installer ABI/);
 });

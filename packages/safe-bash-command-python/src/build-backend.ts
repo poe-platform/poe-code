@@ -8,6 +8,11 @@ export type PythonBuildHookRequest = {
  readonly backendPath?:readonly string[];
  readonly configSettings?:Readonly<Record<string,string|readonly string[]>>;
 } & ({readonly hook:'get_requires_for_build_wheel'}|{readonly hook:'build_wheel';readonly wheelDirectory:string;readonly metadataDirectory?:string});
+export interface PythonLegacyBuildRequest {
+ readonly hook:'build_legacy_wheel';
+ readonly source:string;
+ readonly wheelDirectory:string;
+}
 export interface PythonBuildSystemRequest {
  readonly hook:'read_build_system';
  readonly source:string;
@@ -31,8 +36,8 @@ export interface PythonBuildRequirementsStatus {
  readonly conflicting:readonly (readonly [installed:string,wanted:string])[];
  readonly missing:readonly string[];
 }
-type BuildRequest=PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
-type BuildResult<T extends BuildRequest>=T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'}?string:string[];
+type BuildRequest=PythonLegacyBuildRequest|PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
+type BuildResult<T extends BuildRequest>=T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'|'build_legacy_wheel'}?string:string[];
 export interface PythonBuildHookContext extends Pick<CommandContext,'fs'|'cwd'|'env'|'signal'|'stdout'|'stderr'> {
  /** Total UTF-8 result metadata allowance; wheel bytes stay in caller storage. */
  readonly maxBytes:number;
@@ -42,8 +47,8 @@ export interface PythonBuildHookContext extends Pick<CommandContext,'fs'|'cwd'|'
 export function createPythonBuildBackend(options:PythonCommandsOptions & {readonly environment:PythonPackageEnvironment}) {
  if(!options.createExecutor||!options.environment||options.provisioning)throw new TypeError('Python build hooks require an asynchronous executor and explicit environment');
  const capabilities=new WeakMap<readonly string[],PythonHostCapability>();
- const environment=options.environment;
- const command=createPythonExecutorCommands({...options,environment:{...environment,async prepare(context){return {...await environment.prepare(context),bootstrap:true};}},createCapabilities(context){
+ const environment=options.environment,legacy=new WeakSet<readonly string[]>();
+ const command=createPythonExecutorCommands({...options,environment:{...environment,async prepare(context){return {...await environment.prepare(context),bootstrap:true,...context.args&&legacy.has(context.args)?{bootstrapPackages:['setuptools']}: {}};}},createCapabilities(context){
   const provided=options.createCapabilities?.(context)??{};
   if(provided.python_build)throw new Error('Python build capability is reserved');
   const capability=capabilities.get(context.args);
@@ -54,8 +59,10 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   context.signal.throwIfAborted();
   const {maxBytes}=context;
   if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError('Invalid Python build metadata limit');
-  if(!input||!['read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
-  if(input.hook==='check_build_requirements'){
+  if(!input||!['read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
+  if(input.hook==='build_legacy_wheel'){
+   if(typeof input.wheelDirectory!=='string'||!input.wheelDirectory)throw new TypeError('Invalid Python legacy wheel directory');
+  }else if(input.hook==='check_build_requirements'){
    if([input.requirements,input.installed].some(values=>!Array.isArray(values)||values.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python build requirements request');
   }else if(input.hook==='read_build_system'){
    if(input.name!==undefined&&typeof input.name!=='string'||input.usePep517!==undefined&&typeof input.usePep517!=='boolean')throw new TypeError('Invalid Python build system request');
@@ -69,6 +76,7 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   let done=false,size=0,failure:unknown;
   const chunks:string[]=[];
   const invocation:CommandContext={...context,command:'python',args:['-c',pythonBuildBackendProgram],stdin:toByteSource('')};
+  if(request.hook==='build_legacy_wheel')legacy.add(invocation.args);
   capabilities.set(invocation.args,{async call(value){
    try{
     context.signal.throwIfAborted();
@@ -102,11 +110,11 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
      const details=value as Record<string,unknown>;
      if(typeof details.backend!=='string'||!details.backend||['requires','check','backendPath'].some(key=>!Array.isArray(details[key])||(details[key] as unknown[]).some(item=>typeof item!=='string')))throw new TypeError('Invalid Python build system');
     }
-   }else if(request.hook==='build_wheel'){
+   }else if(request.hook==='build_wheel'||request.hook==='build_legacy_wheel'){
     if(typeof value!=='string'||!value.endsWith('.whl')||value.includes('/')||value.includes('\\')||value.includes('\0'))throw new TypeError('Invalid Python build wheel filename');
    }else if(!Array.isArray(value)||value.some(item=>typeof item!=='string'))throw new TypeError('Invalid Python build requirements');
    return value as BuildResult<T>;
-  }finally{capabilities.delete(invocation.args);}
+  }finally{capabilities.delete(invocation.args);legacy.delete(invocation.args);}
  };
 }
 
@@ -179,8 +187,28 @@ def read_build_system(request):
  backend = system.get('build-backend')
  return dict(requires=requirements, backend=backend if backend is not None else 'setuptools.build_meta:__legacy__', check=defaults if backend is None else [], backendPath=system.get('backend-path', []))
 
+def build_legacy_wheel(request):
+ source = os.path.realpath(request['source'])
+ directory = os.path.abspath(request['wheelDirectory'])
+ filename = os.path.join(source, 'setup.py')
+ os.chdir(source)
+ sys.path.insert(0, '')
+ sys.argv = [filename, 'bdist_wheel', '-d', directory]
+ namespace = dict(__name__='__main__', __file__=filename)
+ try:
+  exec("import io, os, sys, setuptools, tokenize\nsys.argv[0] = __file__\nf = getattr(tokenize, 'open', open)(__file__) if os.path.exists(__file__) else io.StringIO('from setuptools import setup; setup()')\ncode = f.read().replace('\\r\\n', '\\n')\nf.close()\nexec(compile(code, __file__, 'exec'))", namespace)
+ except SystemExit as error:
+  if error.code not in (None, 0): raise
+ first = None
+ with os.scandir(directory) as entries:
+  for entry in entries:
+   if first is None or entry.name < first: first = entry.name
+ if first is None: raise RuntimeError('Legacy wheel build created no files')
+ return first
+
 def main():
  request = send('request')
+ if request['hook'] == 'build_legacy_wheel': return build_legacy_wheel(request)
  if request['hook'] == 'read_build_system': return read_build_system(request)
  if request['hook'] == 'check_build_requirements': return check_build_requirements(request)
  source = os.path.realpath(request['source'])

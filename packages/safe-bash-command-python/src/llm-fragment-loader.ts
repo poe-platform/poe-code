@@ -78,12 +78,19 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
    }
    throw new TypeError('Invalid Python fragment operation');
   };
-  const invocation:CommandContext={command:'python',args:['-c',pythonLlmFragmentProgram],fs,cwd,signal,env:{},stdin:toByteSource(''),stdout:context.stdout??{async write(){}},stderr:context.stderr??{async write(){}},...(context.capabilities?{capabilities:context.capabilities}:{})};
+  const invocation:CommandContext={...context,command:'python',args:['-c',pythonLlmFragmentProgram],fs,cwd,signal,env:context.env??{},stdin:toByteSource(''),stdout:context.stdout??{async write(){}},stderr:context.stderr??{async write(){}}};
   capabilities.set(invocation.args,{async call(input){try{return await dispatch(input);}catch(error){fail(error);throw error;}}});
   const running=Promise.resolve().then(()=>command.execute(invocation)).then(result=>{
    if(closed)return;
    if(result.exitCode)fail(new Error(`Python fragment interpreter exited with status ${result.exitCode}`));else ready.resolve(undefined);
   },error=>{if(!closed)fail(error);});
+  let closing:Promise<void>|undefined;
+  const close=()=>closing??=(async()=>{
+   closed=true;resume?.resolve(false);controller.abort(new Error('Python fragment session closed'));
+   await running;capabilities.delete(invocation.args);signal.removeEventListener('abort',aborted);
+   await Promise.all([...sources].map(retire));
+  })();
+  context.registerCleanup?.(close);
   try{
    while(true){
     const fragment=await ready.promise;
@@ -97,11 +104,7 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
      const continuation=resume;resume=undefined;continuation?.resolve(advance);
     }
    }
-  }finally{
-   closed=true;resume?.resolve(false);controller.abort(new Error('Python fragment session closed'));
-   await running;capabilities.delete(invocation.args);signal.removeEventListener('abort',aborted);
-   await Promise.all([...sources].map(retire));
-  }
+  }finally{await close();}
  };
 }
 

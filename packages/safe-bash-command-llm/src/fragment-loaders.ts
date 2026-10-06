@@ -7,7 +7,7 @@ import type {LlmFragmentInputSource} from './fragments.js';
 export type LlmLoadedFragment =
  | {readonly type:'text';readonly source:LlmFragmentInputSource}
  | {readonly type:'attachment';readonly source:LlmInputSource;readonly mimeType:string;readonly id?:string};
-export interface LlmFragmentLoaderContext extends Partial<Pick<CommandContext, 'stdout' | 'stderr'>> {
+export interface LlmFragmentLoaderContext extends Partial<Omit<CommandContext, 'fs' | 'cwd' | 'signal'>> {
  readonly fs:FileSystem;
  readonly cwd:string;
  readonly signal:AbortSignal;

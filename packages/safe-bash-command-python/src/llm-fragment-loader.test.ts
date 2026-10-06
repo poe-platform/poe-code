@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {loadLlmPluginFragments} from 'safe-bash-command-llm';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonLlmFragmentLoader} from './llm-fragment-loader.js';
 
@@ -90,4 +91,36 @@ test('native fragment output reaches caller streams without becoming fragment da
   stderr:{async write(bytes:Uint8Array){error+=new TextDecoder().decode(bytes);}}};
  for await(const fragment of loader('',context))assert.fail(JSON.stringify(fragment));
  assert.equal(output,'out');assert.equal(error,'err');assert.deepEqual(await fs.readdir('/'),[]);
+});
+
+
+test('outer fragment cancellation retains caller ownership of interpreter retirement',async()=>{
+ let began!:()=>void,release!:()=>void,retired=false;
+ const started=new Promise<void>(resolve=>{began=resolve;}),termination=new Promise<void>(resolve=>{release=resolve;});
+ const cleanups:Array<()=>void|Promise<void>>=[],controller=new AbortController(),fs=new MemoryFileSystem();
+ const loader=createPythonLlmFragmentLoader({createExecutor:()=>({async terminate(){await termination;retired=true;},async run(start){start.onReady();began();await new Promise<void>(resolve=>start.signal.addEventListener('abort',()=>resolve(),{once:true}));return 0;}})},'native');
+ const context={fs,cwd:'/',signal:controller.signal,maxBytes:1000,registerCleanup:(cleanup:()=>void|Promise<void>)=>{cleanups.push(cleanup);}};
+ const iterator=loadLlmPluginFragments('native:input',new Map([['native',loader]]),context);
+ const pending=iterator.next();await started;controller.abort(new Error('stop fragment'));await assert.rejects(pending,/stop fragment/);
+ try{assert.ok(cleanups.length>0);assert.equal(retired,false);}finally{release();}
+ await Promise.all(cleanups.map(cleanup=>Promise.resolve().then(cleanup).catch(error=>{assert.match(String(error),/stop fragment/);})));assert.equal(retired,true);
+});
+
+test('caller cleanup waits for partially staged fragment removal',async()=>{
+ let began!:()=>void,removing!:()=>void,release!:()=>void;
+ const started=new Promise<void>(resolve=>{began=resolve;}),removalStarted=new Promise<void>(resolve=>{removing=resolve;}),removal=new Promise<void>(resolve=>{release=resolve;});
+ const fs=new MemoryFileSystem(),stage=fs.createStagedFile.bind(fs);
+ fs.createStagedFile=async(...args)=>{const value=await stage(...args),cleanup=value.cleanup!;return {...value,cleanup:{...cleanup,async remove(){removing();await removal;await cleanup.remove();}}};};
+ const cleanups:Array<()=>void|Promise<void>>=[],controller=new AbortController();
+ const loader=createPythonLlmFragmentLoader({createExecutor:()=>({terminate(){},async run(start){
+  start.onReady();const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'llm_fragments',value});
+  await send({op:'begin',type:'text'});await send({op:'text',text:'partial'});began();
+  await new Promise<void>(resolve=>start.signal.addEventListener('abort',()=>resolve(),{once:true}));return 0;
+ }})},'native');
+ const context={fs,cwd:'/',signal:controller.signal,maxBytes:1000,registerCleanup:(cleanup:()=>void|Promise<void>)=>{cleanups.push(cleanup);}};
+ const pending=loadLlmPluginFragments('native:input',new Map([['native',loader]]),context).next();
+ await started;controller.abort(new Error('stop staged fragment'));await assert.rejects(pending,/stop staged fragment/);
+ let cleaned=false;const cleanup=Promise.all(cleanups.map(callback=>callback())).then(()=>{cleaned=true;});
+ try{await removalStarted;await new Promise<void>(resolve=>setImmediate(resolve));assert.equal(cleaned,false);}finally{release();await cleanup;}
+ assert.deepEqual(await fs.readdir('/'),[]);
 });

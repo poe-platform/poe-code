@@ -4,7 +4,7 @@ import { validateExitCode } from "safe-bash-contracts/command";
 import { openCommandFile } from "safe-bash-contracts/filesystem-descriptor";
 import { encodePythonReply } from './reply.js';
 import { parsePythonInvocation, PythonInvocationError } from './invocation.js';
-import { parsePythonInstallation, pythonInstallationHelp } from './installation.js';
+import { parsePythonInstallation, pythonInstallationHelp, PythonInstallationError } from './installation.js';
 import { createPythonPackageEnvironment, pythonDocumentPackages, type PythonPackageOptions, type PythonPackageStart, type PythonPackageEnvironment } from './provisioning.js';
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation, type OutputOperation } from "safe-bash-contracts/output";
@@ -22,6 +22,7 @@ export { createPythonLlmToolLoader, type PythonLlmToolLoaderOptions } from './ll
 export { createPythonLlmCapability, type PythonLlmCapabilityOptions } from './llm-capability.js';
 import { pythonShellDispatchActive } from './shell-capability.js';
 
+const encoder = new TextEncoder();
 class PythonInputChunkError extends RangeError {}
 
 /** A dedicated interpreter worker. The service event loop must never block. */
@@ -106,7 +107,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
   const environment = options.environment ?? createPythonPackageEnvironment(options.provisioning);
   const execute = async (context: CommandContext) => {
     if (pythonShellDispatchActive(context.executionScope)) {
-      await writeBytes(context.stderr, new TextEncoder().encode('python: nested Python execution is unavailable while the parent interpreter is suspended\n'), context.signal);
+      await writeBytes(context.stderr, encoder.encode('python: nested Python execution is unavailable while the parent interpreter is suspended\n'), context.signal);
       return { exitCode: 1 };
     }
     let installation;
@@ -115,17 +116,17 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
       installation = invocation.module?.name === 'pip' ? parsePythonInstallation(invocation.module.args) : undefined;
     } catch (error) {
       if (!(error instanceof PythonInvocationError)) throw error;
-      await writeBytes(context.stderr, new TextEncoder().encode('python: ' + error.message + '\n'), context.signal);
+      await writeBytes(context.stderr, encoder.encode('python: ' + error.message + '\n'), context.signal);
       return { exitCode: 2 };
     }
     if (installation?.help) {
-      await writeBytes(context.stdout, new TextEncoder().encode(pythonInstallationHelp), context.signal);
+      await writeBytes(context.stdout, encoder.encode(pythonInstallationHelp), context.signal);
       return { exitCode: 0 };
     }
     context.signal.throwIfAborted();
     if (activeWorkers >= maxConcurrentWorkers) {
       const failure = reportPythonFailure('capacity', undefined, options.onDiagnostic);
-      await writeBytes(context.stderr, new TextEncoder().encode('python: ' + failure.message + '\n'), context.signal);
+      await writeBytes(context.stderr, encoder.encode('python: ' + failure.message + '\n'), context.signal);
       return { exitCode: 1 };
     }
     const controller = new AbortController();
@@ -204,7 +205,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
         if (!filesystemDiagnostics.has(category)) {
           filesystemDiagnostics.add(category);
           const failure = reportPythonFailure(category, error, options.onDiagnostic);
-          await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + failure.message + '\n'), signal);
+          await writeBytes(stderrOperation!.output, encoder.encode('python: ' + failure.message + '\n'), signal);
         }
       };
       const dispatch = async (request: { op: string; args: unknown[] }): Promise<unknown> => {
@@ -402,8 +403,8 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
       });
       }
     } catch (reason) {
-      if (!signal.aborted && reason instanceof PythonInputChunkError) {
-        try { await writeBytes(stderrOperation!.output, new TextEncoder().encode('python: ' + reason.message + '\n'), signal); }
+      if (!signal.aborted && (reason instanceof PythonInputChunkError || reason instanceof PythonInstallationError)) {
+        try { await writeBytes(stderrOperation!.output, encoder.encode('python: ' + reason.message + '\n'), signal); }
         catch (error) { primary = {reason:error}; }
       } else if (!signal.aborted && typeof reason === 'object' && reason !== null && 'code' in reason && reason.code === 'EPACKAGE') {
         primary = { reason: reportPythonFailure('runtime-assets', reason, options.onDiagnostic) };
@@ -418,7 +419,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
     if (primary) {
       if (!(primary.reason instanceof PythonFailure)) throw primary.reason;
       const failure = primary.reason;
-      await writeBytes(context.stderr, new TextEncoder().encode('python: ' + failure.message + '\n'), context.signal);
+      await writeBytes(context.stderr, encoder.encode('python: ' + failure.message + '\n'), context.signal);
       return { exitCode: 1 };
     }
     return { exitCode: result };

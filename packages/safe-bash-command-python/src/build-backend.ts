@@ -1,6 +1,7 @@
 import {toByteSource, type CommandContext} from 'safe-bash-contracts';
 import {createPythonExecutorCommands, type PythonCommandsOptions, type PythonPackageEnvironment} from './executor.js';
 import type {PythonHostCapability,PythonHostValue} from './host-capabilities.js';
+import {PythonInstallationError} from './installation.js';
 
 export type PythonBuildHookRequest = {
  readonly source:string;
@@ -24,6 +25,8 @@ export interface PythonBuildSystemRequest {
  readonly source:string;
  readonly name?:string;
  readonly usePep517?:boolean;
+ /** Apply pip installation admission in addition to low-level backend selection. */
+ readonly installation?:'directory'|'archive';
 }
 export interface PythonBuildSystemDetails {
  readonly requires:readonly string[];
@@ -90,6 +93,7 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   }else if(input.hook==='check_build_requirements'){
    if([input.requirements,input.installed].some(values=>!Array.isArray(values)||values.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python build requirements request');
   }else if(input.hook==='read_build_system'){
+   if(input.installation!==undefined&&!['directory','archive'].includes(input.installation))throw new TypeError('Invalid Python source installation');
    if(input.name!==undefined&&typeof input.name!=='string'||input.usePep517!==undefined&&typeof input.usePep517!=='boolean')throw new TypeError('Invalid Python build system request');
   }else if(input.hook!=='read_source_requirement'&&input.hook!=='read_editable_requirement'&&input.hook!=='get_requires_for_legacy_wheel'){
   if(typeof input.backend!=='string'||!input.backend
@@ -110,7 +114,7 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
     if(message.op==='request')return request as unknown as PythonHostValue;
     if(message.op==='error'){
      if(typeof message.type!=='string'||typeof message.message!=='string')throw new TypeError('Invalid Python build failure');
-     failure??=Object.assign(new Error(message.message),{name:message.type});done=true;return null;
+     failure??=Object.assign(message.type==='InstallationError'?new PythonInstallationError(message.message):new Error(message.message),{name:message.type});done=true;return null;
     }
     if(message.op==='done'){done=true;return null;}
     if(message.op!=='text'||typeof message.text!=='string'||message.text.length>8192)throw new TypeError('Invalid Python build metadata window');
@@ -186,6 +190,8 @@ def read_build_system(request):
  source = request['source']
  filename = os.path.join(source, 'pyproject.toml')
  has_project, has_setup = os.path.isfile(filename), os.path.isfile(os.path.join(source, 'setup.py'))
+ if request.get('installation') == 'directory' and not has_project and not has_setup:
+  raise InstallationError("Directory {!r} is not installable. Neither 'setup.py' nor 'pyproject.toml' found.".format(request.get('name', source)))
  system = None
  if has_project:
   limit = request['maxBytes']
@@ -200,7 +206,10 @@ def read_build_system(request):
   if selected is False: raise InstallationError('Disabling PEP 517 processing is invalid: project specifies a build backend of {} in pyproject.toml'.format(system['build-backend']))
   selected = True
  elif selected is None: selected = has_project
- if not selected: return None
+ if not selected:
+  if request.get('installation') and not os.path.exists(os.path.join(source, 'setup.py')):
+   raise InstallationError('File "setup.py" not found for legacy project {}.'.format(request.get('name', source)))
+  return None
  defaults = ['setuptools>=40.8.0', 'wheel']
  if system is None: system = {'requires': defaults, 'build-backend': 'setuptools.build_meta:__legacy__'}
  def invalid(reason):

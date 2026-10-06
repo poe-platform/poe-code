@@ -592,6 +592,10 @@ for(const format of ['directory','zip','tar','named','remote','subdirectory','se
   const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/legacy-build?archive='+format,{method:'POST',body:JSON.stringify(assets)});
   const result=await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
+  if(format==='directory'){
+    assert.notEqual(result.rejected.exitCode,0,JSON.stringify(result.rejected));
+    assert.ok(result.rejected.stderr.includes("Directory './empty-project' is not installable. Neither 'setup.py' nor 'pyproject.toml' found."),result.rejected.stderr);
+  }
   for(const key of ['installed','imported','restored'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
   assert.equal(result.imported.stdout,'["'+(editable?'changed':'legacy-original')+'", false, false, '+extras+']\n');
   assert.equal(result.restored.stdout,result.imported.stdout);

@@ -91,6 +91,12 @@ setup(name="legacy-fixture",version="1.0",py_modules=["legacy_fixture"],setup_re
   if(llmEditable)shell.use(llmCommands({managePackages:createPythonLlmPackageManager({createExecutor,environment})}));
   const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names, "build-helper" in names]))${extras?'; import build_helper; assert build_helper.answer == 41':''}'`;
   try{
+    let rejected;
+    if(format==='directory'){
+      await backend.mkdir('/work/empty-project');
+      await backend.writeFile('/work/empty-project/should_not_install.py',new TextEncoder().encode('answer=99\n'));
+      rejected=await shell.exec('python -m pip install ./empty-project');
+    }
     if(format==='setup-requires'||extras){
       const quote=value=>"'"+value.split("'").join("'\\''")+"'";
       const generated=await shell.exec('python -c '+quote(`import zipfile
@@ -139,7 +145,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
       removed=await shell.exec('python -c "import legacy_fixture"');
       sourceRetained=new TextDecoder().decode(await backend.readFile(sourceDirectory+'/legacy_fixture.py'));
     }
-    return {installed,imported,failed,restored,records,metadata,uninstalled,removed,sourceRetained,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
+    return {rejected,installed,imported,failed,restored,records,metadata,uninstalled,removed,sourceRetained,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
   }finally{await shell.dispose();await environment.dispose();}
 }
 

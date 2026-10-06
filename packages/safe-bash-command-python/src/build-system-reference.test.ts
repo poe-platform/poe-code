@@ -14,6 +14,7 @@ from unittest.mock import patch
 import pip
 assert pip.__version__ == '21.2.4'
 from pip._internal.pyproject import load_pyproject_toml
+from pip._internal.req.constructors import install_req_from_line
 from pip._vendor import tomli
 from pip._vendor.packaging import requirements
 sys.modules['tomllib']=tomli
@@ -46,6 +47,21 @@ for text in fixtures:
    else:
     assert messages[-1]==dict(op='done'),(request,text,messages)
     assert json.loads(''.join(message['text'] for message in messages[:-1]))==expected
+
+# Installation admission must retain the native entry-point diagnostics.
+for installation, name in [('directory', './empty-project'), ('directory', "./a'quote"), ('archive', 'https://fixture.invalid/empty.zip')]:
+ request=dict(hook='read_build_system',source='/source',name=name,maxBytes=4096,installation=installation)
+ messages=[]
+ with patch('os.path.isfile',return_value=False),patch('os.path.exists',return_value=False),patch('os.path.isdir',return_value=True):
+  try:
+   native=install_req_from_line(name)
+   native.source_dir='/source'
+   native.use_pep517=False
+   native._generate_metadata()
+  except Exception as error: expected_error=dict(op='error',type=type(error).__name__,message=str(error))
+  else: raise AssertionError('native accepted missing build files')
+  exec(program,{})
+ assert messages==[expected_error],(request,messages,expected_error)
 
 # A bounded binary read must refuse before TOML parsing, including multibyte text.
 request=dict(hook='read_build_system',source='/source',maxBytes=5)

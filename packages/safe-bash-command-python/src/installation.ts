@@ -1,6 +1,9 @@
 import type {PythonPackageInstallOptions} from './provisioning.js';
 import { PythonInvocationError } from './invocation.js';
 
+/** An expected package failure whose diagnostic is safe to show to the caller. */
+export class PythonInstallationError extends Error {}
+
 export interface PythonInstallation {
   readonly controls: PythonPackageInstallOptions;
   readonly packages: readonly string[];

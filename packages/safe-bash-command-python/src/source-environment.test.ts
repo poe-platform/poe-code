@@ -140,17 +140,20 @@ for(const active of [false,true])test(`named local sources retain name, extras a
  }finally{await environment.dispose();}
 });
 
-for(const extras of ['', '[FEATURE,repeated___extra]'])for(const defaults of [false,true])test(`editable preparation builds from live caller source without leaking editable roots to private tooling; defaults=${defaults}; extras=${extras}`,async()=>{
+for(const extras of ['', '[FEATURE,repeated___extra]'])for(const mode of ['input','defaults','file'])test(`editable preparation builds from live caller source without leaking editable roots to private tooling; mode=${mode}; extras=${extras}`,async()=>{
  const fs=new MemoryFileSystem();await fs.mkdir('/work/source',{recursive:true});await fs.mkdir('/storage');
  await fs.writeFile('/work/source/input.txt',new TextEncoder().encode('live'));
+ const line='--editable "./source'+extras+'"';
+ await fs.writeFile('/requirements.txt',new TextEncoder().encode(line+' # editable source\n'));
  const calls:string[]=[];
- const environment=createPythonSourcePackageEnvironment(defaults?{editable:['./source'+extras]}:{}, {directory:'/storage',python:{createExecutor:()=>({terminate(){},async run(start){
+ const environment=createPythonSourcePackageEnvironment(mode==='defaults'?{editable:['./source'+extras]}:{}, {directory:'/storage',python:{createExecutor:()=>({terminate(){},async run(start){
   const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});
   const request=await send({op:'request'}) as any;calls.push(request.hook);
   let result:unknown=null;
   if(request.hook==='read_editable_requirement'){
-   assert.equal(request.source,'./source'+extras);
-   result={name:'',url:'file:///work/source',extras:['feature','repeated___extra'],marker:null,active:true};
+   assert.equal(request.source,mode==='file'?line:'./source'+extras);
+   assert.equal(request.requirementLine,mode==='file'?true:undefined);
+   result={name:'',url:'file:///work/source',extras:extras?['feature','repeated___extra']:[],marker:null,active:true};
   }else assert.equal(request.source,'/work/source');
   if(request.hook==='get_requires_for_legacy_wheel')result=[];
   if(request.hook==='build_legacy_wheel'){
@@ -160,10 +163,10 @@ for(const extras of ['', '[FEATURE,repeated___extra]'])for(const defaults of [fa
   await send({op:'text',text:JSON.stringify(result)});await send({op:'done'});return 0;
  }})}});
  try{
-  const receipt=await environment.prepare({fs,cwd:'/work',signal:new AbortController().signal,...defaults?{}:{editable:['./source'+extras]},env:{},stdout:{async write(){}},stderr:{async write(){}}});
+  const receipt=await environment.prepare({fs,cwd:'/work',signal:new AbortController().signal,...mode==='file'?{requirementFiles:['/requirements.txt']}:mode==='defaults'?{}:{editable:['./source'+extras]},env:{},stdout:{async write(){}},stderr:{async write(){}}});
   try{
    assert.equal(receipt.requested?.length,1);
-   assert.deepEqual(calls,[...extras?['read_editable_requirement']:[],'read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']);
+   assert.deepEqual(calls,[...extras||mode==='file'?['read_editable_requirement']:[],'read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']);
    if(extras)assert.ok(receipt.requested![0]!.startsWith('fixture[feature,repeated___extra] @ file:///storage/'));
    assert.equal(new TextDecoder().decode(await fs.readFile('/work/source/input.txt')),'live');
    assert.ok((await fs.readdir('/storage')).every(entry=>!entry.name.startsWith('.python-')));
@@ -182,5 +185,16 @@ for(const source of ['/missing','https://example.test/source.zip','git+https://e
  try{
   await assert.rejects(environment.prepare({fs,cwd:'/',signal:new AbortController().signal,editable:[source],env:{},stdout:{async write(){}},stderr:{async write(){}}}),/Editable source requires/);
   assert.deepEqual(await fs.readdir('/storage'),[]);
+ }finally{await environment.dispose();}
+});
+
+test('requirements comments retain URL integrity fragments and ignore only whitespace-delimited hashes',async()=>{
+ const fs=new MemoryFileSystem();
+ await fs.writeFile('/requirements.txt',new TextEncoder().encode('# ignored\nfixture @ https://example.test/fixture.whl#sha256=abc # ignored\na==1#fragment\nb==2\t# ignored\nc==3\u00a0# ignored\n'));
+ const environment=createPythonPackageEnvironment();
+ try{
+  const receipt=await environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirementFiles:['/requirements.txt']});
+  try{assert.deepEqual(receipt.requested,['fixture @ https://example.test/fixture.whl#sha256=abc','a==1#fragment','b==2','c==3']);}
+  finally{await environment.finish(receipt);}
  }finally{await environment.dispose();}
 });

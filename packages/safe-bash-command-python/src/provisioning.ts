@@ -28,7 +28,7 @@ export interface PythonPackageInstallOptions {
  readonly noCache?: boolean;
 }
 export interface PythonPackageOptions extends PythonPackageInstallOptions {
- /** Resolve requested sources before opening an install session; restored pins are unchanged. */
+ /** Resolve sources and requirement-file option lines before installation; restored pins are unchanged. */
  readonly prepareRequirements?:(requirements:readonly string[],context:PythonPackagePrepareContext)=>Promise<readonly string[]>;
  readonly requirements?: readonly string[];
  readonly requirementFiles?: readonly string[];
@@ -209,10 +209,11 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    try { source = decoder.decode(await context.fs.readFile(path,{signal,...options.maxRequirementBytes === undefined ? {} : {maxBytes:options.maxRequirementBytes}})); } catch(error) { signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
    for (const line of source.split('\n')) {
     // Only whitespace-delimited hashes begin comments; URL integrity fragments survive.
-    const comment=line.split('').findIndex((character,index)=>character==='#' && (index===0 || line[index-1]!.trim()===''));
+    let comment=line.indexOf('#');
+    while(comment>0&&line[comment-1]!.trim())comment=line.indexOf('#',comment+1);
     const text=(comment<0?line:line.slice(0,comment)).trim(); if (!text)continue;
-    if (text.endsWith('\\') || text.startsWith('-')) throw failure(`Unsupported requirements option or continuation in ${path}: ${text}`);
-    requirements.push(normalizeRequirement(text,dirname(path)));
+    if (text.endsWith('\\')) throw failure(`Unsupported requirements continuation in ${path}: ${text}`);
+    requirements.push(text[0]==='-'&&options.prepareRequirements?text:normalizeRequirement(text,dirname(path)));
    }
   }
   if((options.editable?.length||context.editable?.length)&&!options.prepareRequirements)throw failure('Editable packages require a source package environment');

@@ -269,12 +269,14 @@ metadata still use the archive engine’s memory limits.
 Local setup projects also support `python -m pip install -e ./project` (repeat
 `-e` for several projects), or `editable: ["./project"]` in the package SDK.
 Use `-e './project[feature]'` (or the same SDK string) to install optional
-dependencies while keeping imports linked to the original source.
+dependencies while keeping imports linked to the original source. Requirements
+files also accept `-e`/`--editable` entries, including quoted paths and extras;
+relative paths use the invocation directory.
 The genuine setuptools compatibility-mode wheel keeps imports linked to the
 original caller-owned source directory; keep that directory available after
 installation. Build dependencies remain isolated and failed builds leave the
 installed environment intact. Custom `develop` commands, VCS
-sources and editable requirements-file entries still need qualification.
+sources and other requirements-file controls still need qualification.
 
 Source URL content-disposition selection
 is not supported yet. ZIP members must

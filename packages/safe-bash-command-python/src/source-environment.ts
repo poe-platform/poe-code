@@ -25,7 +25,8 @@ const archiveSuffix=(path:string)=>['.zip','.tar','.tar.gz','.tgz','.tar.bz2','.
 export function createPythonSourcePackageEnvironment(options:PythonPackageOptions,build:PythonSourceBuildOptions){
  if(options.prepareRequirements||!build.python.createExecutor||!build.directory)throw new TypeError('Source packages require an asynchronous build executor and caller storage');
  const prepareRequirement=async(requirement:string,context:PythonPackagePrepareContext,editable=false):Promise<string>=>{
-  const {fs,signal}=context,settings={signal};
+  const {fs,signal}=context,settings={signal},requirementLine=requirement.startsWith('-');
+  editable||=requirementLine;
   let source=requirement,named:PythonSourceRequirement|null=null;
   let remote:URL|undefined;
   const at=requirement.indexOf('@');
@@ -37,12 +38,12 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    catch{/* Native requirement validation retains invalid-input diagnostics. */}
   }
   const editableExtras=editable&&requirement.endsWith(']')&&requirement.lastIndexOf('[')>0;
-  if(namedSource||editableExtras){
+  if(namedSource||editableExtras||requirementLine){
    if(!context.stdout||!context.stderr||!context.env)throw new TypeError('Source requirement parsing requires command output and environment context');
    const environment=createPythonBuildEnvironment(options);
    const parsing={...context,env:context.env,stdout:context.stdout,stderr:context.stderr,maxBytes:options.maxMetadataBytes??Infinity};
    Reflect.deleteProperty(parsing,'editable');
-   try{named=await createPythonBuildBackend({...build.python,environment})({hook:editableExtras?'read_editable_requirement':'read_source_requirement',source:requirement},parsing);}
+   try{named=await createPythonBuildBackend({...build.python,environment})({hook:editableExtras||requirementLine?'read_editable_requirement':'read_source_requirement',source:requirement,...requirementLine?{requirementLine}: {}},parsing);}
    finally{await environment.dispose();}
    if(named){if(!named.active)return requirement;source=named.url;}
   }

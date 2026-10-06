@@ -49,6 +49,8 @@ export interface PythonSourceRequirementRequest {
 export interface PythonEditableRequirementRequest {
  readonly hook:'read_editable_requirement';
  readonly source:string;
+ /** Parse a requirements-file option line before resolving the editable source. */
+ readonly requirementLine?:boolean;
 }
 export interface PythonSourceRequirement {
  /** Empty when an editable source has no explicit egg name. */
@@ -82,6 +84,7 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   const {maxBytes}=context;
   if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError('Invalid Python build metadata limit');
   if(!input||!['read_editable_requirement','get_requires_for_legacy_wheel','read_source_requirement','read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
+  if(input.hook==='read_editable_requirement'&&input.requirementLine!==undefined&&typeof input.requirementLine!=='boolean')throw new TypeError('Invalid editable requirement line');
   if(input.hook==='build_legacy_wheel'){
    if(typeof input.wheelDirectory!=='string'||!input.wheelDirectory||input.editable!==undefined&&typeof input.editable!=='boolean')throw new TypeError('Invalid Python legacy wheel directory');
   }else if(input.hook==='check_build_requirements'){
@@ -244,6 +247,16 @@ def read_editable_requirement(request):
  from micropip._vendored.packaging.src.packaging.requirements import Requirement
  class InstallationError(Exception): pass
  source, extras = request['source'], None
+ if request.get('requirementLine'):
+  import shlex, optparse
+  class OptionParsingError(Exception): pass
+  class Parser(optparse.OptionParser):
+   def exit(self, status=0, message=None): raise OptionParsingError(message)
+  parser = Parser(add_help_option=False)
+  parser.add_option('-e', '--editable', action='append', dest='editables')
+  options, _ = parser.parse_args(shlex.split(source))
+  if not options.editables: raise InstallationError('Editable requirement line requires -e')
+  source = options.editables[0]
  start = source.rfind('[')
  if start > 0 and source.endswith(']') and start < len(source) - 2 and ']' not in source[start + 1:-1]:
   source, extras = source[:start], source[start:]

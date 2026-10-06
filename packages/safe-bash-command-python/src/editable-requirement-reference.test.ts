@@ -17,7 +17,7 @@ test('editable source extras and file URLs retain pinned pip parsing without nam
   }})})({hook:'read_editable_requirement',source:'/project[FEATURE]'}, {fs:new MemoryFileSystem(),cwd:'/',env:{},signal:new AbortController().signal,maxBytes:4096,stdout:{async write(){}},stderr:{async write(){}}});
  }finally{await environment.dispose();}
  const result=spawnSync(python,['-B','-c',String.raw`
-import json,sys,types,os
+import json,sys,types,os,io,contextlib
 from unittest.mock import patch
 from pip._internal.req.constructors import parse_editable
 from pip._vendor.packaging import requirements
@@ -36,6 +36,29 @@ for value in ['/project[]','/project[foo][FEATURE]','/project # 界[FEATURE]','/
  assert messages[-1]==dict(op='done'),messages
  actual=json.loads(''.join(message['text'] for message in messages[:-1]))
  assert actual==dict(name=name or '',url=url,extras=sorted(extras),marker=None,active=True),(value,actual,(name,url,extras))
+from pip._internal.req.req_file import get_line_parser
+for line in ['-e /project[FEATURE]','--editable=/project[FEATURE]','-e/project[FEATURE]','--editable "/project[FEATURE]"','-e /project[FEATURE] ignored','-e /project[FEATURE] -e /unused']:
+ request=dict(hook='read_editable_requirement',source=line,requirementLine=True)
+ messages=[]
+ with patch('os.path.isdir',side_effect=lambda path:path=='/project'),patch('os.path.exists',return_value=True):
+  args,options=get_line_parser(None)(line)
+  assert args==''
+  name,url,extras=parse_editable(options.editables[0])
+  exec(program,{})
+ assert messages[-1]==dict(op='done'),messages
+ actual=json.loads(''.join(message['text'] for message in messages[:-1]))
+ assert actual==dict(name=name or '',url=url,extras=sorted(extras),marker=None,active=True),(line,actual)
+for line in ['-e','--editable','--unknown','--editable "unterminated']:
+ request=dict(hook='read_editable_requirement',source=line,requirementLine=True)
+ messages=[]
+ native_error,actual_error=io.StringIO(),io.StringIO()
+ with contextlib.redirect_stderr(native_error):
+  try: get_line_parser(None)(line)
+  except Exception as error: expected=dict(op='error',type=type(error).__name__,message=str(error))
+  else: raise AssertionError('native option parser unexpectedly accepted malformed input')
+ with contextlib.redirect_stderr(actual_error): exec(program,{})
+ assert messages==[expected],(line,messages,expected)
+ assert actual_error.getvalue()==native_error.getvalue(),line
 for pyproject in (False,True):
  request=dict(hook='read_editable_requirement',source='/project[FEATURE]')
  messages=[]

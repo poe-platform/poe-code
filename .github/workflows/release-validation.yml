@@ -63,7 +63,7 @@ jobs:
         id: archive
         run: |
           mkdir -p "$RUNNER_TEMP/poe-build"
-          extra=(); [ -f packages/safe-bash-command-git/src/wasm.generated.ts ] && extra+=(packages/safe-bash-command-git/src/wasm.generated.ts); [ -d .turbo/ci-cache/napi-artifacts-v1 ] && extra+=(.turbo/ci-cache/napi-artifacts-v1); tar -cf "$RUNNER_TEMP/poe-build/build.tar" dist packages/*/dist packages/safe-js/src/intl-data/dist "${extra[@]}"
+          extra=(); [ -f packages/safe-bash-command-git/src/wasm.generated.ts ] && extra+=(packages/safe-bash-command-git/src/wasm.generated.ts); [ -d .turbo/ci-cache/napi-artifacts-v1 ] && extra+=(.turbo/ci-cache/napi-artifacts-v1); tar -cf "$RUNNER_TEMP/poe-build/build.tar" dist packages/*/dist packages/safe-js/src/intl-data/dist packages/terminal-pilot/assets packages/terminal-pilot-mcp/assets "${extra[@]}"
           cp "$RUNNER_TEMP/poe-build/build.tar" "$RUNNER_TEMP/build.tar"
           echo "sha256=$(sha256sum "$RUNNER_TEMP/build.tar" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
       - name: Cache fresh build archive

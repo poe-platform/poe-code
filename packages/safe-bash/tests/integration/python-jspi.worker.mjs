@@ -44,9 +44,10 @@ for version in ('1.0', '2.0rc1'):
   const micropipUrl='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
   artifacts.set(micropipUrl,micropip);
   const index='https://pypi.org/simple/worker-candidate/';
-  artifacts.set(index,new TextEncoder().encode(JSON.stringify({name:'worker-candidate',files})));
+  artifacts.set(index,new TextEncoder().encode(JSON.stringify({name:'worker-candidate',files:files.slice(0,1)})));
   const requests=[];
-  const configuration={authorize:request=>artifacts.has(request.url),transport:async request=>{
+  const cache=new Map();
+  const configuration={cache:{async get(key){return cache.get(key);},async set(key,value){cache.set(key,value);}},authorize:request=>artifacts.has(request.url),transport:async request=>{
     requests.push(request.url);
     const bytes=artifacts.get(request.url);
     if(!bytes)throw new Error('Unexpected package transport request');
@@ -54,6 +55,7 @@ for version in ('1.0', '2.0rc1'):
   }};
   const results=[];
   for(const profile of ['stable','pre','sdk']) {
+    if(profile==='pre')artifacts.set(index,new TextEncoder().encode(JSON.stringify({name:'worker-candidate',files})));
     const environment=createPythonPackageEnvironment({...configuration,...profile==='sdk'?{pre:true,noCache:true,requirements:['worker-candidate']}:{}});
     const options={createExecutor,environment};
     const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(options)).use(llmCommands({managePackages:createPythonLlmPackageManager(options)}));

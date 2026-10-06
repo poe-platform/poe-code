@@ -49,3 +49,29 @@ test('cache bypass preserves authorization and integrity checks and allows expli
   assert.equal(requests,2);environment.finish(replay);
  } finally {await environment.dispose();}
 });
+
+test('online index metadata refreshes while wheels remain cached and offline metadata replays',async()=>{
+ let revision=1;
+ const requests:string[]=[];
+ const environment=createPythonPackageEnvironment({authorize:()=>true,transport:async({url})=>{
+  requests.push(url);return {status:200,statusText:'OK',headers:[],body:(async function*(){yield new Uint8Array([revision]);})(),async dispose(){}};
+ }});
+ const context={fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal};
+ const index='https://packages.example/simple/fixture/',wheel='https://packages.example/fixture.whl';
+ async function read(session:string,url:string,metadata=false){
+  const artifact=await environment.dispatch('package-open',[session,url,undefined,...metadata?['metadata']:[]],context) as {key:string};
+  return environment.dispatch('package-read',[session,artifact.key,0,1],context);
+ }
+ try {
+  const first=await environment.prepare(context);
+  assert.deepEqual(await read(first.session,index,true),[1]);
+  assert.deepEqual(await read(first.session,wheel),[1]);environment.finish(first);
+  revision=2;
+  const next=await environment.prepare(context);
+  assert.deepEqual(await read(next.session,index,true),[2]);
+  assert.deepEqual(await read(next.session,wheel),[1]);environment.finish(next);
+  const offline=await environment.prepare({...context,offline:true});
+  assert.deepEqual(await read(offline.session,index,true),[2]);environment.finish(offline);
+  assert.deepEqual(requests,[index,wheel,index]);
+ }finally{await environment.dispose();}
+});

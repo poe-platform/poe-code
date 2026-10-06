@@ -28,12 +28,12 @@ export async function installPythonPackages(
  let pending=Promise.resolve();
  // A host session owns one open artifact. Serialize entire transfers, including
  // closure, even when micropip or the native loader requests dependencies together.
- const fetch=(url:string,expected?:string):Promise<{bytes:Uint8Array;headers:readonly(readonly[string,string])[]}>=>{
+ const fetch=(url:string,expected?:string,metadata?:'metadata'):Promise<{bytes:Uint8Array;headers:readonly(readonly[string,string])[]}>=>{
   if(!accepting)return Promise.reject(new Error('Python package transport is only available during installation'));
   const transfer=pending.then(async()=>{
   if(transportFailure)throw transportFailure.error;
   try {
-  const opened=await request('package-open',start.session,url,expected) as {key:string;size:number;headers:readonly(readonly[string,string])[]};
+  const opened=await request('package-open',start.session,url,expected,...metadata?[metadata]:[]) as {key:string;size:number;headers:readonly(readonly[string,string])[]};
   try {
   const bytes=new Uint8Array(opened.size);
   for(let offset=0;offset<bytes.length;){
@@ -75,7 +75,7 @@ export async function installPythonPackages(
   runtime.globals.set('_safe_package_bytes',async(url:string,hash?:string)=>(await fetch(url,hash)).bytes);
   installedGlobals.push('_safe_package_bytes');
   runtime.globals.set('_safe_package_metadata',async(url:string)=>{
-   const result=await fetch(url);return JSON.stringify({text:new TextDecoder().decode(result.bytes),headers:Object.fromEntries(result.headers.map(([name,value])=>[name.toLowerCase(),value]))});
+   const result=await fetch(url,undefined,'metadata');return JSON.stringify({text:new TextDecoder().decode(result.bytes),headers:Object.fromEntries(result.headers.map(([name,value])=>[name.toLowerCase(),value]))});
   });
   installedGlobals.push('_safe_package_metadata');
   runtime.globals.set('_safe_package_requirements_json',JSON.stringify(start.requested ?? start.requirements));

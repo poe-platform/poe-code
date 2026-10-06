@@ -96,7 +96,7 @@ test('installer awaits asynchronous artifact reads, closure and manifest publica
   async runPythonAsync(){const metadata=await (globals.get('_safe_package_metadata') as (url:string)=>Promise<string>)('https://example.org/metadata');assert.deepEqual(JSON.parse(metadata),{text:'\u0001\u0002\u0003',headers:{'content-type':'application/json'}});},runPython(){return '["fixture==1"]';}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},async(op,...args)=>{
   await Promise.resolve();operations.push(op);
-  if(op==='package-open')return {key:'artifact',size:3,headers:[['Content-Type','application/json']]};
+  if(op==='package-open'){assert.deepEqual(args,args[1]==='https://example.org/metadata'?['1',args[1],undefined,'metadata']:['1',args[1],undefined]);return {key:'artifact',size:3,headers:[['Content-Type','application/json']]};}
   if(op==='package-read')return [1,2,3].slice(args[2] as number,(args[2] as number)+(args[3] as number));
   if(op==='package-commit'){assert.deepEqual(args,['1',['fixture==1']]);committed=true;}
   return null;

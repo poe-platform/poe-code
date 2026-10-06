@@ -239,7 +239,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   if(expected!==undefined && expected!==null && !validDigest(expected))throw failure('Invalid SHA-256 package integrity value');
   const address=runtimeKey+'-url-'+digest(encoder.encode(url));
   const canonicalWheel=url.startsWith('file:')||url.startsWith('emfs:');
-  const metadata=canonicalWheel||session.noCache?undefined:await session.cache.get(address);
+  // Index responses describe mutable candidates; only offline sessions replay them.
+  const metadata=canonicalWheel||session.noCache||(args[3]==='metadata'&&!session.offline)?undefined:await session.cache.get(address);
   checkSession(session);
   let bytes:Uint8Array|undefined;let headers:readonly(readonly[string,string])[]=[];
   if(metadata){

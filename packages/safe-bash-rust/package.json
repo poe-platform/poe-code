@@ -10,7 +10,9 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "workerd": null,
+      "browser": null,
+      "node": "./dist/index.js"
     }
   },
   "scripts": {

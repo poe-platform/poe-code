@@ -9,7 +9,7 @@ Run virtualized, sandboxed shell commands and full `@poe-platform/safe-bash` scr
 | Capability | Description |
 | --- | --- |
 | `Shell` | Stateful virtual shell (`cwd`, `env`, `SafeBashFs`) with `BackendMode::{Hybrid, NativeOnly, TypeScriptOnly}` |
-| `createRustWasmBash` | Zero-dependency WebAssembly (`wasm32-unknown-unknown`) shell for Node.js, Edge, and Browser runtimes |
+| `createRustWasmBash` | Node.js loader for the zero-dependency WebAssembly (`wasm32-unknown-unknown`) shell |
 | `MemoryVfs` / `OverlayVfs` / `MountVfs` | In-memory VFS with quota limits, Copy-on-Write overlays, and path-routed virtual mounts (`/dev`) |
 | `ShellLimits` | Bounded loop iterations, command count, recursion depth, output bytes, and filesystem operations |
 | `PoeAgentShellHost` | Drop-in `poe-agent-rust` shell host with `read`/`edit` policy checks, 128 KiB UTF-16 tail retention, and background handles (`run_in_background`, `read_background`, `kill_background`) |
@@ -47,6 +47,8 @@ assert_eq!(sorted, "v=1\nv=2\nv=3\n");
 ```
 
 ### 2. WebAssembly Shell from JavaScript / TypeScript
+
+The JavaScript entry point requires Node.js to load the packaged WebAssembly binary.
 
 ```ts
 import { createRustWasmBash } from "@poe-code/safe-bash-rust";

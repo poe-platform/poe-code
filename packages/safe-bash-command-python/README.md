@@ -87,7 +87,8 @@ To enable `llm install` and `llm uninstall` for compatible wheels, pass
 `managePackages: createPythonLlmPackageManager({ createExecutor, environment })`
 to `llmCommands`. Share the caller-owned `createPythonPackageEnvironment(...)`
 with Python commands and tool loaders, and dispose it when the host closes.
-The pinned native LLM CLI handles package-command help and argument errors;
+The pinned native LLM CLI handles package-command help and argument errors
+without restoring caller packages or reading their requirement files;
 installation uses the environment’s authorization, cache and manifest. Installed
 state is restored exactly without resolving its dependencies again; new install
 requests resolve their dependency closure. Legacy requirement manifests migrate

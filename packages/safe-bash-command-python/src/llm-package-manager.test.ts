@@ -13,16 +13,17 @@ function context(): CommandContext {
 test('native LLM package planning retires before the authorized install starts',async()=>{
   const environment=createPythonPackageEnvironment();
   const events:string[]=[];
-  const manage=createPythonLlmPackageManager({environment,maxConcurrentWorkers:1,createExecutor:()=>{
+  const manage=createPythonLlmPackageManager({environment,packages:['host==2'],maxConcurrentWorkers:1,createExecutor:()=>{
     let installing=false;
     return {async terminate(){events.push(installing?'installed-retired':'planner-retired');},async run(start){
       start.onReady();installing=!!start.installOnly;
       if(installing){
         assert.deepEqual(events,['planned','planner-retired']);
         assert.deepEqual(start.invocation.args,['-m','pip','install','fixture==1']);
-        assert.deepEqual(start.packages?.requirements,['fixture==1']);
+        assert.deepEqual(start.packages?.requirements,['host==2','fixture==1']);
         events.push('installed');return 0;
       }
+      assert.deepEqual(start.packages?.requirements,[]);
       assert.deepEqual(start.invocation.args.slice(2),['install','fixture==1']);
       await start.host!.request({version:1,operation:'call',capability:'llm_packages',value:['pip','install','fixture==1']});
       events.push('planned');return 0;
@@ -58,4 +59,31 @@ test('failed planning never executes a previously captured package intent',async
     assert.equal((await manage({context:context(),args:['install','fixture==1']})).exitCode,2);
     assert.equal(runs,1);assert.equal(retired,1);
   } finally {await environment.dispose();}
+});
+
+test('native package help does not restore caller packages or read requirement files',async()=>{
+ let prepared=0,runs=0;
+ const environment={async prepare(){prepared++;throw new Error('saved artifact unavailable');},async dispatch(){throw new Error('unexpected package dispatch');},finish(){},async dispose(){}};
+ const manage=createPythonLlmPackageManager({environment,packages:['unavailable==1'],requirements:['/missing.txt'],packageProfile:'documents',createExecutor:()=>({async terminate(){},async run(start){
+  runs++;start.onReady();assert.deepEqual(start.packages?.requirements,[]);return 0;
+ }})});
+ assert.equal((await manage({context:context(),args:['install','--help']})).exitCode,0);
+ assert.equal(prepared,0);assert.equal(runs,1);
+});
+
+test('package planner and installer share interpreter capacity',async()=>{
+ const environment=createPythonPackageEnvironment();
+ let admitted!:()=>void,release!:()=>void;
+ const started=new Promise<void>(resolve=>{admitted=resolve;});
+ const gate=new Promise<void>(resolve=>{release=resolve;});
+ const manage=createPythonLlmPackageManager({environment,maxConcurrentWorkers:1,createExecutor:()=>({async terminate(){},async run(start){
+  start.onReady();
+  if(start.installOnly){admitted();await gate;return 0;}
+  await start.host!.request({version:1,operation:'call',capability:'llm_packages',value:['pip','install','fixture==1']});return 0;
+ }})});
+ const first=manage({context:context(),args:['install','fixture==1']});
+ try {
+  await started;
+  assert.notEqual((await manage({context:context(),args:['install','--help']})).exitCode,0);
+ } finally {release();await first;await environment.dispose();}
 });

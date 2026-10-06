@@ -1,6 +1,7 @@
 import {toByteSource} from 'safe-bash-contracts';
 import type {LlmPackageManager} from 'safe-bash-command-llm';
 import {createPythonExecutorCommands, type PythonCommandsOptions, type PythonPackageEnvironment} from './executor.js';
+import {createPythonExecutorPool} from './executor-pool.js';
 import type {PythonHostCapability} from './host-capabilities.js';
 
 /** Parse with the pinned LLM CLI, then retire it before mutating the shared
@@ -8,12 +9,18 @@ import type {PythonHostCapability} from './host-capabilities.js';
 export function createPythonLlmPackageManager(options: PythonCommandsOptions & {environment: PythonPackageEnvironment}): LlmPackageManager {
   if (!options.createExecutor || !options.environment || options.provisioning) throw new TypeError('LLM package management requires an asynchronous executor and a shared Python environment');
   const planners = new WeakMap<readonly string[], PythonHostCapability>();
-  const command = createPythonExecutorCommands({...options, createCapabilities(context) {
+  const pool = createPythonExecutorPool({createExecutor:options.createExecutor,
+    ...(options.maxConcurrentWorkers === undefined || options.maxConcurrentWorkers === Infinity ? {} : {maxConcurrentExecutors:options.maxConcurrentWorkers})});
+  const configuration: PythonCommandsOptions = {...options,createExecutor:pool.createExecutor,createCapabilities(context) {
     const capabilities = options.createCapabilities?.(context) ?? {};
     if (capabilities.llm_packages) throw new Error('Python package capability is reserved');
     const capability = planners.get(context.args);
     return capability ? {...capabilities,llm_packages:capability} : capabilities;
-  }})[0]!;
+  }};
+  const installer = createPythonExecutorCommands(configuration)[0]!;
+  // Parsing only needs the pinned LLM runtime, never caller-installed packages.
+  const {environment:ignoredEnvironment,packages:ignoredPackages,requirements:ignoredRequirements,packageProfile:ignoredProfile,...planning} = configuration;
+  const command = createPythonExecutorCommands(planning)[0]!;
   return async ({context,args}) => {
     if (!Array.isArray(args) || !['install','uninstall'].includes(args[0]!) || args.some(value=>typeof value!=='string')) throw new TypeError('Invalid LLM package command');
     context.signal.throwIfAborted();
@@ -30,7 +37,7 @@ export function createPythonLlmPackageManager(options: PythonCommandsOptions & {
     finally {planners.delete(invocation.args);}
     if (result.exitCode || !planned) return result;
     context.signal.throwIfAborted();
-    return command.execute({...isolated,command:'python',args:['-m','pip',...planned]});
+    return installer.execute({...isolated,command:'python',args:['-m','pip',...planned]});
   };
 }
 

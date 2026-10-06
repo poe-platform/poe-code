@@ -600,7 +600,7 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
       assert.equal(result.blocked.exitCode,1);
       assert.match(result.blocked.stderr,/platform-configured providers/);
     }
-    assert.equal(result.native.length,mode==='llm-packages'?4:0);
+    assert.equal(result.native.length,mode==='llm-packages'?6:0);
     if(mode==='llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT) {
       const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
       assert.ok(output.startsWith(resolve(root,'out')+'/'));

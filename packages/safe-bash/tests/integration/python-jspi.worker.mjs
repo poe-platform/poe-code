@@ -123,6 +123,10 @@ print('exact package state restored')
     if(!await manifestStore.compareAndSet(manifestScope,retainedManifest.revision,new TextEncoder().encode(JSON.stringify(contradictory)),manifestContext))throw new Error('Unexpected manifest conflict');
     const invalidSnapshot=await manifestStore.get(manifestScope,manifestContext);
     const rejectedSnapshot=await shell.exec('python -c ' + quote('print("must not run")'));
+    if(useLlm)for(const args of [['install','--help'],['uninstall','--unknown']]) {
+      const result=await shell.exec('llm '+args.join(' '));
+      native.push({args,exitCode:result.exitCode,output:result.stdout+result.stderr});
+    }
     const afterRejected=await manifestStore.get(manifestScope,manifestContext);
     if(afterRejected.revision!==invalidSnapshot.revision)throw new Error('Contradictory snapshot was republished');
     if(!await manifestStore.compareAndSet(manifestScope,afterRejected.revision,retainedManifest.bytes,manifestContext))throw new Error('Unexpected manifest conflict');

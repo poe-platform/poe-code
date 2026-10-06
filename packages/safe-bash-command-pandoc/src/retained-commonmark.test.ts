@@ -1,10 +1,15 @@
 import {expect, it, vi} from "vitest";
+import * as commonmark from "./commonmark.js";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convert, convertToOutput} from "./engine.js";
 import {ExecutionContext} from "./execution.js";
 import {createLuaFilterCapability} from "./lua-filters.js";
 
 const samples = [
+  "---\na: { ? [one, two]: value }\n---\nbody",
+  "---\nvalue: [null, !!merge '<<', !!timestamp 2001-12-15]\n---\nbody",
+  "---\nvalue: {__proto__: invalid, constructor: bad}\n---\nbody",
+  "---\n  name: kept\n  2: before\n  1: &loop [*loop]\n---\nbody",
   "---\ntitle: kept\nloop: &loop [*loop]\n---\nbody",
   "", "plain", "# Title\n\nText with *emphasis*, **bold**, [link](target 'title') and ![image](image.png).",
   "> - outer\n>   - inner\n>\n>   paragraph\n", "1. one\n2. two\n\n   three\n",
@@ -99,4 +104,17 @@ it.each([false, true])("preserves unnamed Markdown resource locations scope=%s",
   const actual = await convertToOutput([input], options, {...capabilities, workingFiles: {fs, directory: "/"}, output: {async write() {}, async close() {}, async abort() {}}}).catch(error => error);
   expect(expected).toBeInstanceOf(Error); expect(actual).toMatchObject({code: expected.code, message: expected.message, location: expected.location});
   expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("parses large public YAML frontmatter without the resident metadata parser", async () => {
+  const input = {bytes: new TextEncoder().encode("---\nvalue: '" + "x".repeat(65536) + "'\n---\nbody"), source: "metadata.md"};
+  const expected = await convert([input], {from: "markdown", to: "json"}, {});
+  const native = vi.spyOn(commonmark, "parseCommonMarkMetadata").mockImplementation(() => {throw new Error("Resident YAML forbidden");});
+  const fs = new MemoryFileSystem(); let output = "";
+  try {
+    await convertToOutput([input], {from: "markdown", to: "json"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+      async write(bytes) {output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}
+    }});
+    expect(native).not.toHaveBeenCalled(); expect(output).toBe(expected.kind === "text" ? expected.text : undefined);
+  } finally {native.mockRestore(); expect(await fs.readdir("/")).toEqual([]);}
 });

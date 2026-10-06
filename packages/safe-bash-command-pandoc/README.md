@@ -353,11 +353,10 @@ also retains Markdown source and body nodes, including joined and file-scoped
 operands, for JSON, plain text, HTML, Markdown, RST, LaTeX, RTF and ODT using the
 supported retained options.
 Filters must expose `applyJsonStream`, including the streamed Lua capability.
-YAML frontmatter still
-uses the native YAML parser and retains each document’s metadata while parsing.
-File-scoped metadata merging and image-source identities use backing storage.
-`workingFiles.cacheBytes` bounds backing-page caches, not native YAML metadata or
-total conversion memory. The Safe Bash command uses the
+YAML frontmatter, file-scoped metadata merging and image-source identities use
+backing storage. YAML source, collections, aliases and typed metadata are processed
+with bounded working buffers. `workingFiles.cacheBytes` bounds backing-page caches,
+not total conversion memory. The Safe Bash command uses the
 output-only API for stdout and selects backing storage in the injected filesystem
 at `TMPDIR` or the command directory. `-o` streams into the supplied filesystem’s atomic
 `publishFileConditional` capability when available; byte-only atomic providers

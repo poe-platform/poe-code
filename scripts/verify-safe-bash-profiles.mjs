@@ -267,6 +267,7 @@ export async function verifySafeBashPortableCommands(consumer) {
     ["safe-packages-image-pandoc-shuf.mjs", "verifyImagePandocShuf", { image: true, lua: true, entropy: true }],
     ["safe-packages-image-pandoc-shuf.mjs", "verifyImagePandocShuf", { image: true, lua: true, entropy: true }, true],
     ["safe-packages-markdown-lua.mjs", "verifyMarkdownLua", { markdownLua: true }, true],
+    ["safe-packages-markdown-lua.mjs", "verifyMarkdownYaml", { markdownYaml: true }, true],
     ["safe-packages-markdown-lua.mjs", "verifyMarkdownOperands", { markdownOperands: true, fileScope: false }, true, {fileScope: false}],
     ["safe-packages-markdown-lua.mjs", "verifyMarkdownOperands", { markdownOperands: true, fileScope: true }, true, {fileScope: true}],
   ]) {

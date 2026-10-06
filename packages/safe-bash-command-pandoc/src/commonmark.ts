@@ -25,8 +25,8 @@ import { parseCommonMarkInlines } from "./commonmark-inlines.js";
 import { decodeSyntax } from "./commonmark-syntax.js";
 import { upgradeBracketedCitationsInBlocks } from "./citeproc-filters.js";
 
-/** Existing YAML semantics shared by resident and retained document readers.
- * This remains a native frontmatter boundary until YAML values are backed. */
+/** Resident YAML frontmatter semantics; the retained reader uses caller-backed
+ * composition and conversion with matching metadata behavior. */
 export function parseCommonMarkMetadata(text: string, metadata: Record<string, MetaValue>): boolean {
   try {
     const doc = parseDocument(text);

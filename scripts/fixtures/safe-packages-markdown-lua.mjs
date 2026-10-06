@@ -78,3 +78,46 @@ export async function verifyMarkdownOperands({createStorage, bucket, fileScope})
     throw new Error('Markdown operand storage bounds or cleanup differ');
   return {markdownOperands: true, fileScope};
 }
+
+/** Frontmatter larger than the cache uses caller-backed YAML and real Lua. */
+export async function verifyMarkdownYaml({createStorage, bucket}) {
+  const namespace = createMemoryFileSystem();
+  await namespace.mkdir('/spill');
+  const remote = createStorage(namespace, bucket);
+  const encoder = new TextEncoder();
+  const lua = createLuaFilterCapability({readStream: () => [encoder.encode(`
+function Meta(meta)
+  assert(#meta.payload == 262144)
+  assert(string.sub(meta.payload, 1, 1) == "a")
+  assert(string.sub(meta.payload, -1) == "a")
+  assert(meta.nested.list[1] == true)
+  assert(meta.nested.list[2] == "12")
+  return meta
+end
+function Str(el) return pandoc.Str(string.upper(el.text)) end`)]});
+  let streamed = 0, bytes = 0;
+  await convertToOutput([{chunks: (async function* () {
+    yield encoder.encode('---\npayload: ');
+    for (let index = 0; index < 256; index++) yield new Uint8Array(1024).fill(97);
+    yield encoder.encode('\nnested: {list: [true, 12]}\n---\nbody\n');
+  })()}], {from: 'markdown', to: 'plain', filters: [{kind: 'lua', path: '/filter.lua'}]}, {
+    filters: {
+      ...lua,
+      async apply() { throw new Error('YAML used resident Lua'); },
+      async applyJsonStream(...args) { streamed++; return lua.applyJsonStream(...args); },
+    },
+    workingFiles: {fs: remote.fs, directory: '/spill', cacheBytes: 131072},
+    output: {
+      async write(chunk) {
+        if (chunk.length > 16384) throw new Error('YAML output window exceeded');
+        for (const byte of chunk) if (byte !== [66, 79, 68, 89, 10][bytes++]) throw new Error('YAML body differs');
+      },
+      async close() {}, async abort() {},
+    },
+  });
+  const {opened, closed, reads, writes, largestTransfer} = remote.events;
+  if (streamed !== 1 || bytes !== 5 || !opened || !reads || !writes) throw new Error('YAML stream or storage differs');
+  if (largestTransfer > 16384 || opened !== closed || (await bucket.list({limit: 1})).objects.length || (await namespace.readdir('/spill')).length)
+    throw new Error('YAML storage bounds or cleanup differ');
+  return {markdownYaml: true};
+}

@@ -2,14 +2,14 @@ import {mergeRetainedMetadata} from "./retained-metadata.js";
 import {BackedText} from "./backed-text.js";
 import {BackedTextSet} from "./backed-text-set.js";
 import {RetainedOrigins} from "./retained-origins.js";
-import {normalizeDocumentCooperatively, AstError} from "./ast.js";
+import {AstError} from "./ast.js";
 import {PandocError} from "./errors.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {RetainedSourceText, type SourceRange} from "./retained-source-text.js";
 import {RetainedRtfAst} from "./retained-rtf-ast.js";
 import {RetainedCommonMarkBlocks} from "./retained-commonmark-blocks.js";
 import {assembleRetainedCommonMark} from "./retained-commonmark-document.js";
-import {parseCommonMarkMetadata} from "./commonmark.js";
+import {readRetainedYamlMetadata} from "./retained-yaml-metadata.js";
 import {BackedJson} from "./backed-json.js";
 import {readRetainedJson} from "./retained-json.js";
 import {retainInput} from "./retained-input.js";
@@ -59,8 +59,7 @@ async function frontmatter(source: RetainedSourceText, range: SourceRange, conte
   return;
 }
 
-/** Markdown source and joined operands use caller storage. YAML frontmatter
- * retains the existing native parser boundary; it is not a full-memory claim. */
+/** Markdown source, YAML frontmatter and joined operands use caller storage. */
 export async function readRetainedCommonMark(inputs: readonly InputSource[], context: ExecutionContext, working: WorkingStorageOptions,
   extensions: Readonly<Record<string, boolean>>, fileScope = false, onReaderError?: (error: PandocError) => void) {
   const cache = working.cacheBytes ?? 1048576;
@@ -128,22 +127,20 @@ export async function readRetainedCommonMark(inputs: readonly InputSource[], con
     const parse = async (range: SourceRange) => {
       try {
         astOrigins.clear(); origins.clear();
-        const envelope = await frontmatter(source, range, context), metadata = {};
-        if (envelope) {
-          let yaml = ""; for await (const text of source.chunks(envelope.yaml)) yaml += text;
-          if (parseCommonMarkMetadata(yaml, metadata)) range = {start: envelope.end, end: range.end};
-        }
+        const envelope = await frontmatter(source, range, context);
+        const metadata = await readRetainedYamlMetadata(source, envelope?.yaml, tape, wireStore, units => context.cooperate(units));
+        if (envelope && metadata.parsed) range = {start: envelope.end, end: range.end};
         const parser = new RetainedCommonMarkBlocks(source, tape, context, inputs[readerIndex]!.base, extensions); await parser.parse(range);
         const ast = new RetainedRtfAst(nodes, units => context.cooperate(units));
         const blocks = await assembleRetainedCommonMark(parser, ast, tape, context, {...extensions,
-          citations: !!(extensions.citations || Object.hasOwn(metadata, "bibliography") || Object.hasOwn(metadata, "references"))}, async (target, line) => {await astOrigins.seed(target.position, await sourceAt(line) + 1);});
+          citations: !!(extensions.citations || await metadata.tree.property(metadata.tree.rootPosition, "bibliography") !== undefined || await metadata.tree.property(metadata.tree.rootPosition, "references") !== undefined)}, async (target, line) => {await astOrigins.seed(target.position, await sourceAt(line) + 1);});
         if (envelope) {
-          try {await normalizeDocumentCooperatively({blocks: [], metadata, resources: []}, {}, units => context.cooperateFast(units));}
+          try {await metadata.validate();}
           catch (error) {if (error instanceof AstError) throw new PandocError(error.code, "convert", error.message, undefined, error.path); throw error;}
         }
         const tree = new BackedJson(wireStore, units => context.cooperate(units));
         await tree.begin("object"); await tree.key("pandoc-api-version"); await tree.value([1, 23, 1, 2]);
-        await tree.key("meta"); await tree.value(metadata); await tree.key("blocks"); await ast.write(blocks, tree, async (value, position) => {const source = await astOrigins.source(value.position); if (source) await origins.seed(position, source);}); await tree.end();
+        await tree.key("meta"); await metadata.write(tree); await tree.key("blocks"); await ast.write(blocks, tree, async (value, position) => {const source = await astOrigins.source(value.position); if (source) await origins.seed(position, source);}); await tree.end();
         const document = await readRetainedJson({chunks: tree.chunks()}, context, working, false);
         await origins.transfer(tree, document.tree);
         return document;

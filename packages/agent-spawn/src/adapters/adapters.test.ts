@@ -841,6 +841,9 @@ describe("adaptCodex", () => {
   });
 
   it.each([
+    [true, "failed to create /tmp/codex-bwrap-synthetic-mount-targets-150124/9dddf21f25fb79fe"],
+    [false, "failed to create /tmp/codex-bwrap-synthetic-mount-targets-150124/9dddf21f25fb79fe"],
+    [false, "failed to create /workspace/private-tmp/codex-bwrap-synthetic-mount-targets-150124/9dddf21f25fb79fe"],
     [true, "failed to register synthetic bubblewrap mount target /tmp/.git"],
     [false, "failed to register synthetic bubblewrap mount target /tmp/.git"],
     [true, "failed to create synthetic bubblewrap mount marker directory /tmp/codex-bwrap-synthetic-mount-targets-150124/9dddf21f25fb79fe"],
@@ -877,6 +880,8 @@ describe("adaptCodex", () => {
   it.each([
     { exit_code: 0, aggregated_output: "failed to register synthetic bubblewrap mount target /tmp/.git: No space left on device (os error 28)" },
     { exit_code: 1, aggregated_output: "write: No space left on device (os error 28)" },
+    { exit_code: 101, aggregated_output: "failed to create /tmp/unrelated: No space left on device (os error 28)" },
+    { exit_code: 101, aggregated_output: "failed to create /tmp/codex-bwrap-synthetic-mount-targets-150124/target: No space left on device (os error 28)" },
     { exit_code: 101, aggregated_output: "failed to register synthetic bubblewrap mount target /tmp/.git: Permission denied (os error 13)" },
     { exit_code: 101, aggregated_output: { message: "No space left on device" } }
   ])("does not misdiagnose other output as mount ENOSPC (%j)", async (result) => {

@@ -211,7 +211,10 @@ export async function* adaptCodex(
         if (itemType === "command_execution" && status === "failed"
           && isNonEmptyString(item.aggregated_output)
           && (item.aggregated_output.includes("failed to register synthetic bubblewrap mount target ")
-            || item.aggregated_output.includes("failed to create synthetic bubblewrap mount marker directory "))
+            || item.aggregated_output.includes("failed to create synthetic bubblewrap mount marker directory ")
+            || item.aggregated_output.split("\n").some((line) => line.includes("linux-sandbox/src/linux_run_main.rs:")
+              && line.includes("failed to create /")
+              && line.includes("/codex-bwrap-synthetic-mount-targets-")))
           && item.aggregated_output.includes("No space left on device (os error 28)")) {
           yield {
             event: "error",

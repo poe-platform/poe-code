@@ -860,6 +860,10 @@ describe("adaptCodex", () => {
     expect(diagnostic).toEqual({ event: "error", message: expect.stringContaining(item.aggregated_output) });
     if (diagnostic?.event !== "error") throw new Error("Missing ENOSPC diagnostic");
     expect(diagnostic.message).toContain("before the command ran");
+    expect(diagnostic.message).toContain("does not establish host disk exhaustion");
+    expect(diagnostic.message).toContain("mount namespace");
+    expect(diagnostic.message).toContain("quotas");
+    expect(diagnostic.message).not.toContain("staging ran out of space");
     expect(diagnostic.message).toContain("df -h /tmp");
     expect(diagnostic.message).toContain("df -i /tmp");
     expect(diagnostic.message).toContain("Moving the worktree");

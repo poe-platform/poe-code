@@ -61,3 +61,31 @@ fn codex_esbuild_diagnostic_preserves_output_and_ecmascript_whitespace() {
         }
     }
 }
+
+#[test]
+fn codex_mount_enospc_does_not_assume_host_exhaustion() {
+    for failure in [
+        "failed to register synthetic bubblewrap mount target /tmp/.git",
+        "failed to create synthetic bubblewrap mount marker directory /tmp/codex-bwrap-synthetic-mount-targets-1/marker",
+    ] {
+        let mut adapter = Adapter::new("codex").unwrap();
+        let output = format!(
+            "thread 'main' panicked at linux-sandbox/src/linux_run_main.rs:994: {failure}: No space left on device (os error 28)"
+        );
+        let events = adapter.line(
+            &format!(r#"{{"type":"item.completed","item":{{"type":"command_execution","id":"mount","exit_code":101,"aggregated_output":"{output}"}}}}"#)
+                .encode_utf16().collect::<Vec<_>>(),
+        );
+        let diagnostic = events.last().unwrap().get("value").unwrap();
+        let Value::String(message) = diagnostic.get("message").unwrap() else {
+            panic!("expected diagnostic text");
+        };
+        let message = String::from_utf16(message).unwrap();
+        assert!(message.starts_with(&output));
+        assert!(message.contains("does not establish host disk exhaustion"));
+        assert!(message.contains("mount namespace"));
+        assert!(message.contains("quotas"));
+        assert!(!message.contains("staging ran out of space"));
+        assert!(message.contains("existing approval reviewer"));
+    }
+}

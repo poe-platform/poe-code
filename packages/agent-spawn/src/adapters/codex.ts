@@ -216,10 +216,14 @@ export async function* adaptCodex(
           yield {
             event: "error",
             message: `${item.aggregated_output.trim()}
-Codex sandbox startup failed before the command ran: synthetic mount staging ran out of space (ENOSPC).
+Codex sandbox startup failed before the command ran: synthetic mount staging reported ENOSPC.
+This error alone does not establish host disk exhaustion.
 Check available blocks and inodes on the staging filesystem; for /tmp, use df -h /tmp and df -i /tmp.
+Host diagnostics may observe a different mount namespace or a later filesystem state.
+If the host reports free space, investigate sandbox-local tmpfs limits, quotas, and transient allocation pressure;
+record the failing path, mount namespace, and diagnostic time before attributing a cause.
 Moving the worktree to a volume with free space does not move Codex's synthetic mount staging.
-Free only temporary files you own and no longer need, or ask the host administrator to restore capacity;
+Only if capacity exhaustion is confirmed, free temporary files you own and no longer need or ask the host administrator;
 then retry the command in the same sandbox. Do not delete other workers' files.
 If even diagnostic commands cannot start, request the exact diagnostic command through the existing approval reviewer
 with sandbox_permissions: "require_escalated", only when the session policy permits it.

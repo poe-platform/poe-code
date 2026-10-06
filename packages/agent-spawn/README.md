@@ -93,7 +93,13 @@ When Codex reports `failed to register synthetic bubblewrap mount target` or
 `No space left on device (os error 28)`, the CLI and SDK event stream preserve the
 original output and explain that sandbox startup failed before the command ran.
 Check free blocks and inodes on the staging filesystem (`df -h /tmp` and
-`df -i /tmp` for `/tmp`), restore capacity, and retry in the same sandbox.
+`df -i /tmp` for `/tmp`). ENOSPC alone does not establish host disk exhaustion:
+host diagnostics may observe a different mount namespace or a later state.
+When the host reports free space, investigate sandbox-local tmpfs limits, quotas,
+and transient allocation pressure. Capture the failing path, mount namespace,
+and diagnostic time; restore capacity only if exhaustion is confirmed, then
+retry in the same sandbox. Poe Code reports the failure; the upstream Codex
+Linux sandbox owns mount registration and its panic handling.
 Moving the worktree alone does not relocate Codex's synthetic mount staging.
 If diagnostic commands also cannot start, use the existing approval reviewer for
 that specific command when session policy permits escalation. No automatic

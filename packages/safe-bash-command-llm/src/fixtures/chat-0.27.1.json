@@ -429,5 +429,120 @@
         "previous": []
       }
     ]
+  },
+  {
+    "args": [
+      "-f",
+      "missing"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: Fragment 'missing' not found\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [
+      "--sf",
+      "missing"
+    ],
+    "input": "exit\n",
+    "stdout": "",
+    "stderr": "Error: Fragment 'missing' not found\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [
+      "-f",
+      "missing"
+    ],
+    "input": "hello\nexit\n",
+    "stdout": "",
+    "stderr": "Error: Fragment 'missing' not found\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [
+      "-f",
+      "-"
+    ],
+    "input": "hello\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "Aborted!\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [],
+    "input": "!fragment -\nbody\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:body\nexit\n\n> ",
+    "stderr": "Aborted!\n",
+    "exitCode": 1,
+    "calls": [
+      {
+        "prompt": "body\nexit\n",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [
+      "--sf",
+      "-"
+    ],
+    "input": "hello\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "Aborted!\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [],
+    "input": "!multi\n!fragment missing\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n>  ",
+    "stderr": "Error: Fragment 'missing' not found\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [],
+    "input": "!multi\n!fragment -\nbody\n!end\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n>   ",
+    "stderr": "Aborted!\n",
+    "exitCode": 1,
+    "calls": []
+  },
+  {
+    "args": [],
+    "input": "!multi\n!fragment frag.txt\n!end\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n>   reply:Fragment\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "Fragment",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "!fragment missing\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "Error: Fragment 'missing' not found\n",
+    "exitCode": 1,
+    "calls": []
   }
 ]

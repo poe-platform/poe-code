@@ -472,6 +472,12 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   for (const key of ['plugins','pluginTools','missingPlugins','listing','serial','concurrent','defaultTool','toolboxListing','toolboxSerial','toolboxAsync']) assert.equal(result[key].exitCode,0,result[key].stderr);
   assert.deepEqual(JSON.parse(result.listing.stdout).tools.map(tool=>tool.name),['add','first','llm_time','llm_version','second','unicode_text']);
   for (const key of ['chat', 'freshChat', 'editedChat']) assert.equal(result[key].exitCode, 0, result[key].stderr);
+  assert.equal(result.missingChatFragment.exitCode, 1);
+  assert.equal(result.missingChatFragment.stdout, '');
+  assert.equal(result.missingChatFragment.stderr, "Error: Fragment 'missing-fragment' not found\n");
+  for (const key of ['initialStdinChatFragment', 'stdinChatFragment']) {assert.equal(result[key].exitCode, 1); assert.equal(result[key].stderr, 'Aborted!\n');}
+  assert.ok(result.stdinChatFragment.stdout.endsWith('> 1\n> '), result.stdinChatFragment.stdout);
+  assert.deepEqual(result.chatPrompts, ['one', 'two', 'three', 'edited prompt', 'body\nexit\n']);
   assert.ok(result.chat.stdout.endsWith('> 1\n> 2\n> '), result.chat.stdout);
   assert.ok(result.editedChat.stdout.endsWith('> 1\n> '), result.editedChat.stdout);
   assert.ok(result.freshChat.stdout.endsWith('> 1\n> '), result.freshChat.stdout);

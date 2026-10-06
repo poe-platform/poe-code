@@ -141,3 +141,50 @@ for (const quota of ['input', 'buffered', 'output'] as const) test(`chat obeys $
   assert.equal(result.exitCode, 1); assert.equal(calls, quota === 'output' ? 1 : 0); assert.ok(stderr.includes('byte limit'), stderr);
   assert.deepEqual(await fs.readdir('/'), []);
 });
+
+test('initial chat fragments are snapshotted once before stdin and charged once', async () => {
+  const backing = new MemoryFileSystem(), encoder = new TextEncoder(); let reads = 0, stderr = '';
+  await backing.writeFile('/fragment', encoder.encode('a'.repeat(512)));
+  const fs = new Proxy(backing, {get(target, key) {
+    if (key === 'openReadFile') return async (...args: Parameters<typeof target.openReadFile>) => {if (args[0] === '/fragment') reads++; return target.openReadFile(...args);};
+    const value = Reflect.get(target, key); return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const prompts: string[] = [];
+  const command = createLlmCommand({defaultModel: 'fixture', limits: {maxInputBytes: 700, maxBufferedInputBytes: 128}, providers: [{name: 'fixture', models: [{id: 'fixture', capabilities: ['messages']}],
+    complete() {throw new Error('buffered fallback');}, async *completeSources(request) {let prompt = ''; const decoder = new TextDecoder(); for await (const bytes of request.prompt.bytes) prompt += decoder.decode(bytes, {stream: true}); prompts.push(prompt + decoder.decode()); yield 'ok';}
+  }]});
+  const result = await command.execute({command: 'llm', args: ['chat', '-f', '/fragment'], fs, cwd: '/', env: {}, signal: new AbortController().signal,
+    stdin: {async *[Symbol.asyncIterator]() {await backing.writeFile('/fragment', encoder.encode('changed')); yield encoder.encode('hello\nsecond\nexit\n');}},
+    stdout: {async write() {}}, stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}});
+  assert.equal(result.exitCode, 0, stderr); assert.equal(reads, 1); assert.deepEqual(prompts, ['a'.repeat(512) + '\nhello', 'second']);
+  assert.deepEqual((await backing.readdir('/')).map(entry => entry.name), ['fragment']);
+});
+
+test('invalid UTF8 in an initial fragment fails before banner or stdin acquisition', async () => {
+  const fs = new MemoryFileSystem(); await fs.writeFile('/fragment', Uint8Array.of(255)); let stdout = '', stderr = '', reads = 0;
+  const command = createLlmCommand({defaultModel: 'fixture', providers: [{name: 'fixture', models: [{id: 'fixture'}], complete() {throw new Error('unexpected model call');}}]});
+  const result = await command.execute({command: 'llm', args: ['chat', '-f', '/fragment'], fs, cwd: '/', env: {}, signal: new AbortController().signal,
+    stdin: {async *[Symbol.asyncIterator]() {reads++; yield new TextEncoder().encode('exit\n');}}, stdout: {async write(bytes) {stdout += new TextDecoder().decode(bytes);}}, stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}});
+  assert.equal(result.exitCode, 1); assert.equal(stdout, ''); assert.equal(reads, 0); assert.ok(stderr.includes('encoded data'), stderr);
+  assert.deepEqual((await fs.readdir('/')).map(entry => entry.name), ['fragment']);
+});
+
+test('inline fragment control materialization does not count stdin bytes twice', async () => {
+  const fs = new MemoryFileSystem(); let calls = 0, stderr = '';
+  const command = createLlmCommand({defaultModel: 'fixture', limits: {maxInputBytes: 80, maxBufferedInputBytes: 32}, providers: [{name: 'fixture', models: [{id: 'fixture'}], complete() {throw new Error('buffered fallback');},
+    async *completeSources(request) {let length = 0; for await (const bytes of request.prompt.bytes) length += bytes.length; assert.equal(length, 58); calls++; yield 'ok';}
+  }]});
+  const result = await command.execute({command: 'llm', args: ['chat'], fs, cwd: '/', env: {}, signal: new AbortController().signal,
+    stdin: toByteSource('!fragment -\n' + 'x'.repeat(52) + '\nexit\n'), stdout: {async write() {}}, stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}});
+  assert.equal(result.exitCode, 1); assert.equal(stderr, 'Aborted!\n'); assert.equal(calls, 1); assert.deepEqual(await fs.readdir('/'), []);
+});
+
+test('startup fragment admission bounds an empty plugin stream before retaining every item', async () => {
+  const fs = new MemoryFileSystem(); let loaded = 0, stderr = '';
+  const command = createLlmCommand({defaultModel: 'fixture', limits: {maxInputBytes: 96}, fragmentLoaders: new Map([['empty', async function* () {
+    for (let index = 0; index < 200; index++) {loaded++; yield {type: 'text' as const, source: {bytes: toByteSource(''), async dispose() {}}};}
+  }]]), providers: [{name: 'fixture', models: [{id: 'fixture'}], complete() {throw new Error('unexpected model call');}}]});
+  const result = await command.execute({command: 'llm', args: ['chat', '-f', 'empty:items'], fs, cwd: '/', env: {}, signal: new AbortController().signal,
+    stdin: toByteSource('hello\nexit\n'), stdout: {async write() {}}, stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}});
+  assert.equal(result.exitCode, 1); assert.ok(stderr.includes('byte limit'), stderr); assert.ok(loaded <= 96, String(loaded)); assert.deepEqual(await fs.readdir('/'), []);
+});

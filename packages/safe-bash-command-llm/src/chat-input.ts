@@ -9,11 +9,11 @@ type Spool = Awaited<ReturnType<typeof createLlmSpool>>;
 
 /** One invocation owns stdin and caller-backed prompt staging. */
 export function createChatInput(options: {context: CommandContext; operation: OutputOperation;
+  resolveFragments(paths: readonly string[]): Promise<void>;
   write(text: string): Promise<void>; diagnostic(text: string): Promise<void>; admit(bytes: number, materialized: boolean): void}) {
   const {context, operation} = options, {signal} = context;
   let iterator: AsyncIterator<Uint8Array> | undefined, pending: Uint8Array = new Uint8Array(0), position = 0, ended = false;
   let multi: Spool | undefined, multiSize = 0, endToken = '!end', iterations = 0;
-  const multiFragments: string[] = [];
   const create = () => operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal, 'input'), spool => spool.close());
   const chunk = async (): Promise<IteratorResult<Uint8Array>> => {
     while (position === pending.length) {
@@ -71,7 +71,7 @@ export function createChatInput(options: {context: CommandContext; operation: Ou
   };
   return {
     approvalInput: (): AsyncIterator<Uint8Array> => ({next: chunk}),
-    async next(): Promise<{spool: Spool; fragments: string[]; exit: boolean; includeInitialFragments: boolean}> {
+    async next(): Promise<{spool: Spool; exit: boolean; includeInitialFragments: boolean}> {
       while (true) {
         await options.write(multi ? ' ' : '> ');
         const value = await line();
@@ -94,7 +94,7 @@ export function createChatInput(options: {context: CommandContext; operation: Ou
           for await (const bytes of edited.replay()) value.size += bytes.length;
           inspected = await inspect(edited);
         }
-        let fragments: string[] = [];
+        const fragments: string[] = [];
         if (inspected.probe.startsWith('!fragment ')) {
           includeInitialFragments = false;
           const text = await control(value.spool);
@@ -115,21 +115,21 @@ export function createChatInput(options: {context: CommandContext; operation: Ou
           const bytes = new TextEncoder().encode(promptLines.join('\n'));
           await value.spool.write(bytes); value.size = bytes.length;
         }
+        if (fragments.length) await options.resolveFragments(fragments);
         if (multi) {
           if (stripPythonWhitespace(inspected.exact ? inspected.probe : inspected.probe.startsWith('!end') ? await control(value.spool) : '') === endToken) {
             await value.spool.close(); value.spool = multi; multi = undefined; multiSize = 0;
-            fragments = multiFragments.splice(0);
           } else {
             if (value.size) {
               if (multiSize) {await multi.write(Uint8Array.of(10)); multiSize++; options.admit(1, false);}
               for await (const bytes of value.spool.replay()) await multi.write(bytes);
               multiSize += value.size;
             }
-            multiFragments.push(...fragments); await value.spool.close(); continue;
+            await value.spool.close(); continue;
           }
         }
         const final = await inspect(value.spool);
-        return {spool: value.spool, fragments, includeInitialFragments, exit: final.exact && (final.probe === 'exit' || final.probe === 'quit')};
+        return {spool: value.spool, includeInitialFragments, exit: final.exact && (final.probe === 'exit' || final.probe === 'quit')};
       }
     }
   };

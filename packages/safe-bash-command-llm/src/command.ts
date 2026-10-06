@@ -15,7 +15,7 @@ import { toolsCommand } from './tools-command.js';
 import { getLlmFragmentPrefix, loadLlmPluginFragments } from "./fragment-loaders.js";
 import { sourceBytes } from "./request-source.js";
 import { createLlmUrlFragmentSource } from "./url-fragment-source.js";
-import { createLlmFragmentSource } from "./fragments.js";
+import { createLlmFragmentSource, type LlmFragmentInputSource } from "./fragments.js";
 import { resolveUrlAttachment } from "./url-attachment.js";
 import { createLlmUrlSource } from './url-source.js';
 import { attachmentBytesId, getLlmAttachmentUrlId } from './attachment-id.js';
@@ -458,25 +458,122 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return selectedTools;
     };
     let selectedTools = isChat ? await loadSelectedTools() : undefined;
-    const chat = isChat ? createChatInput({context: {...context, signal, stdout: {write: bytes => write(bytes, true)}}, operation, write: emitText, diagnostic: text => writeDiagnostic(context.stderr, text, signal), admit: admitInput}) : undefined;
+    const pendingChatFragments: LlmFragmentInputSource[] = [];
+    const chat = isChat ? createChatInput({resolveFragments: async paths => {pendingChatFragments.push(...await prepareFragments(paths, false));}, context: {...context, signal, stdout: {write: bytes => write(bytes, true)}}, operation, write: emitText, diagnostic: text => writeDiagnostic(context.stderr, text, signal), admit: (size, materialized) => materialized ? input.materialize(size) : admitInput(size, false)}) : undefined;
+    const textSource = (value: string): LlmInputSource => ({
+      async dispose() {},
+      bytes: { async *[Symbol.asyncIterator]() {
+        for (let offset = 0; offset < value.length;) {
+          await step();
+          let end = Math.min(value.length, offset + 16384);
+          const last = value.charCodeAt(end - 1);
+          if (end < value.length && last >= 0xd800 && last <= 0xdbff) end--;
+          yield new TextEncoder().encode(value.slice(offset, end));
+          offset = end;
+        }
+      } },
+    });
+    const admittedFragments = new WeakSet<LlmInputSource>(), bufferedFragments = new WeakSet<LlmInputSource>();
+    const remoteFragments = new WeakSet<LlmInputSource>();
+    const pluginAttachments: LlmAttachment[] = [], pluginSourceAttachments: LlmSourceAttachment[] = [];
+    const loadFragments = async function* (paths: readonly string[], system: boolean): AsyncIterable<LlmFragmentInputSource> {
+      for (const reference of paths) {
+        await step();
+        // The reference reads fragments after consuming ordinary prompt stdin.
+        if (reference === "-") {
+          if (!chat) {yield textSource(""); continue;}
+          const source: LlmInputSource = {bytes: {async *[Symbol.asyncIterator]() {
+            const input = chat.approvalInput();
+            while (true) {const next = await input.next(); if (next.done) return; yield next.value;}
+          }}, async dispose() {}};
+          admittedFragments.add(source); yield source; continue;
+        }
+        if (reference.startsWith("http://") || reference.startsWith("https://")) {
+          const fetch = context.capabilities?.fetch;
+          if (!fetch) throw new Error("Fragment URL loading is not configured");
+          const source = await operation.acquire(() => createLlmUrlFragmentSource({url:reference,fetch,signal,maxBytes:input.remaining(!streamed),
+            admitBytes:size=>{context.inputBudget?.check(shellInputBytes+size);shellInputBytes+=size;}}),value=>value.dispose());
+          remoteFragments.add(source);
+          yield source;
+          continue;
+        }
+        if (getLlmFragmentPrefix(reference) !== undefined) {
+          try {
+            for await (const loaded of loadLlmPluginFragments(reference,fragmentLoaders,{fs:context.fs,cwd:context.cwd,signal,capabilities:context.capabilities,get maxBytes(){return input.remaining(!streamed);}},!system)) {
+              const source = await operation.acquire(()=>loaded.source,value=>value.dispose());
+              if (loaded.type === "text") { yield source; continue; }
+              input.admitText(loaded.mimeType);
+              if (loaded.id !== undefined) input.admitText(loaded.id);
+              if (!acceptsMimeType(entry!.model.attachmentTypes ?? [], loaded.mimeType)) throw new Error(`Model ${entry!.model.id} does not accept ${loaded.mimeType}`);
+              const identity = loaded.id === undefined ? {} : {id:loaded.id};
+              if (streamed) {
+                const spool = await operation.acquire(()=>createLlmSpool(context.fs,context.cwd,signal,"input"),value=>value.close());
+                for await (const bytes of sourceBytes(source.bytes,signal)) {admitInput(bytes.byteLength,false);await spool.write(bytes);}
+                pluginSourceAttachments.push({mimeType:loaded.mimeType,source:{bytes:spool.replay(),dispose:spool.close},...identity});
+              } else {
+                const chunks:Uint8Array[]=[];let size=0;
+                for await(const bytes of sourceBytes(source.bytes,signal)){admitInput(bytes.byteLength,true);chunks.push(bytes.slice());size+=bytes.byteLength;}
+                const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
+                pluginAttachments.push({mimeType:loaded.mimeType,bytes,...identity});
+              }
+            }
+          } catch(error) {signal.throwIfAborted();throw new Error(`Error: ${error instanceof Error?error.message:String(error)}`);}
+          continue;
+        }
+        const path = pathOf(context, reference);
+        let source: LlmInputSource;
+        try { source = await operation.acquire(() => fileSource({fs:context.fs,path,signal,maxBytes:input.remaining(!streamed)}), value=>value.dispose()); }
+        catch(error) { if(error instanceof FsError && error.code === "ENOENT") throw new Error(`Error: Fragment '${reference}' not found`); throw error; }
+        yield source;
+      }
+    };
+    const admitFragment = (size: number, source: LlmInputSource) => {
+      if (admittedFragments.has(source)) {if (!streamed && !bufferedFragments.has(source)) input.materialize(size);}
+      else if (remoteFragments.has(source)) input.admit(size, !streamed);
+      else admitInput(size, !streamed);
+    };
+    const prepareFragments = async (paths: readonly string[], system: boolean): Promise<LlmFragmentInputSource[]> => {
+      if (!paths.length) return [];
+      let hasText = false;
+      const source = await operation.acquire(() => createLlmFragmentSource({fs: context.fs, directory: context.cwd, signal, system, normalizeNewlines: true,
+        fragments: {async *[Symbol.asyncIterator]() {for await (const source of loadFragments(paths, system)) {hasText = true; yield source;}}},
+        admitBytes: admitFragment, admitSeparator: size => input.admit(size, !streamed),
+      }), value => value.dispose());
+      if (!hasText) {await source.dispose(); return [];}
+      const retained = {...source, normalizeNewlines: false};
+      admittedFragments.add(retained); bufferedFragments.add(retained);
+      return [retained];
+    };
+    const compose = async (paths: readonly string[], tail: LlmInputSource, system: boolean, prepared: readonly LlmFragmentInputSource[] = []): Promise<LlmInputSource> => operation.acquire(
+      () => createLlmFragmentSource({fs:context.fs,directory:context.cwd,signal,fragments: {async *[Symbol.asyncIterator]() {
+        yield* prepared; yield* loadFragments(paths, system);
+      }},tail,system,normalizeNewlines:true,admitBytes:admitFragment,admitSeparator:size=>input.admit(size,!streamed)}),value=>value.dispose());
     const chatMessages: PromptChatMessage[] = [];
     const initialArgs = args;
     let chatTurn = 0;
+    let initialPromptFragments: LlmFragmentInputSource[] = [], initialSystemFragments: LlmFragmentInputSource[] = [];
+    const initialAttachments: LlmAttachment[] = [], initialSourceAttachments: LlmSourceAttachment[] = [];
     if (chat) {
       validateModelOptions(entry!.model, {...await configuration.modelOptions(entry!.model.id), ...args.options});
+      initialPromptFragments = await prepareFragments(args.fragments, false);
+      initialSystemFragments = await prepareFragments(args.systemFragments, true);
+      initialAttachments.push(...pluginAttachments); initialSourceAttachments.push(...pluginSourceAttachments);
       await emitText(`Chatting with ${entry!.model.id}\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n`);
     }
     while (true) {
+      if (chat) {pluginAttachments.length = 0; pluginSourceAttachments.length = 0;}
       const chatPrompt = await chat?.next();
+      const preparedPrompt = [...(chatPrompt?.includeInitialFragments ? initialPromptFragments : []), ...pendingChatFragments.splice(0)];
+      const preparedSystem = chatTurn ? [] : initialSystemFragments;
       if (chat) {
+        if (chatPrompt!.includeInitialFragments) {pluginAttachments.push(...initialAttachments); pluginSourceAttachments.push(...initialSourceAttachments);}
         args = {...initialArgs, options: {...initialArgs.options}, attachments: [...initialArgs.attachments],
-          fragments: [...(chatPrompt!.includeInitialFragments ? initialArgs.fragments : []), ...chatPrompt!.fragments],
-          systemFragments: chatTurn ? [] : initialArgs.systemFragments};
+          fragments: [], systemFragments: []};
         if (chatTurn) delete args.system;
         if (stored) {
           const decoder = new TextDecoder('utf-8', {fatal: true, ignoreBOM: true});
           args.prompt = '';
-          for await (const bytes of chatPrompt!.spool.replay()) {admitBuffered(bytes.length); args.prompt += decoder.decode(bytes, {stream: true});}
+          for await (const bytes of chatPrompt!.spool.replay()) {input.materialize(bytes.length); args.prompt += decoder.decode(bytes, {stream: true});}
           args.prompt += decoder.decode(); args.promptSupplied = true;
         }
       }
@@ -502,7 +599,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
           const chunk = result.value;
           if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
           if (!chat) admitInput(chunk.byteLength, !stagePrompt);
-          else if (!stagePrompt) admitBuffered(chunk.byteLength);
+          else if (!stagePrompt) input.materialize(chunk.byteLength);
           stdinBytes += chunk.byteLength;
           if (stagePrompt) {
             for (let offset = 0; offset < chunk.byteLength; offset += 16384) {
@@ -575,69 +672,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       ];
       const attachments: LlmAttachment[] = [];
       const sourceAttachments: LlmSourceAttachment[] = [];
-      const textSource = (value: string): LlmInputSource => ({
-        async dispose() {},
-        bytes: { async *[Symbol.asyncIterator]() {
-          for (let offset = 0; offset < value.length;) {
-            await step();
-            let end = Math.min(value.length, offset + 16384);
-            const last = value.charCodeAt(end - 1);
-            if (end < value.length && last >= 0xd800 && last <= 0xdbff) end--;
-            yield new TextEncoder().encode(value.slice(offset, end));
-            offset = end;
-          }
-        } },
-      });
       let composedPrompt: LlmInputSource | undefined, composedSystem: LlmInputSource | undefined;
-      const remoteFragments = new WeakSet<LlmInputSource>();
-      const pluginAttachments: LlmAttachment[] = [], pluginSourceAttachments: LlmSourceAttachment[] = [];
-      const loadFragments = async function* (paths: readonly string[], system: boolean): AsyncIterable<LlmInputSource> {
-        for (const reference of paths) {
-          await step();
-          // The reference reads fragments after consuming ordinary prompt stdin.
-          if (reference === "-") { yield textSource(""); continue; }
-          if (reference.startsWith("http://") || reference.startsWith("https://")) {
-            const fetch = context.capabilities?.fetch;
-            if (!fetch) throw new Error("Fragment URL loading is not configured");
-            const source = await operation.acquire(() => createLlmUrlFragmentSource({url:reference,fetch,signal,maxBytes:input.remaining(!streamed),
-              admitBytes:size=>{context.inputBudget?.check(shellInputBytes+size);shellInputBytes+=size;}}),value=>value.dispose());
-            remoteFragments.add(source);
-            yield source;
-            continue;
-          }
-          if (getLlmFragmentPrefix(reference) !== undefined) {
-            try {
-              for await (const loaded of loadLlmPluginFragments(reference,fragmentLoaders,{fs:context.fs,cwd:context.cwd,signal,capabilities:context.capabilities,get maxBytes(){return input.remaining(!streamed);}},!system)) {
-                const source = await operation.acquire(()=>loaded.source,value=>value.dispose());
-                if (loaded.type === "text") { yield source; continue; }
-                input.admitText(loaded.mimeType);
-                if (loaded.id !== undefined) input.admitText(loaded.id);
-                if (!acceptsMimeType(entry.model.attachmentTypes ?? [], loaded.mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${loaded.mimeType}`);
-                const identity = loaded.id === undefined ? {} : {id:loaded.id};
-                if (streamed) {
-                  const spool = await operation.acquire(()=>createLlmSpool(context.fs,context.cwd,signal,"input"),value=>value.close());
-                  for await (const bytes of sourceBytes(source.bytes,signal)) {admitInput(bytes.byteLength,false);await spool.write(bytes);}
-                  pluginSourceAttachments.push({mimeType:loaded.mimeType,source:{bytes:spool.replay(),dispose:spool.close},...identity});
-                } else {
-                  const chunks:Uint8Array[]=[];let size=0;
-                  for await(const bytes of sourceBytes(source.bytes,signal)){admitInput(bytes.byteLength,true);chunks.push(bytes.slice());size+=bytes.byteLength;}
-                  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-                  pluginAttachments.push({mimeType:loaded.mimeType,bytes,...identity});
-                }
-              }
-            } catch(error) {signal.throwIfAborted();throw new Error(`Error: ${error instanceof Error?error.message:String(error)}`);}
-            continue;
-          }
-          const path = pathOf(context, reference);
-          let source: LlmInputSource;
-          try { source = await operation.acquire(() => fileSource({fs:context.fs,path,signal,maxBytes:input.remaining(!streamed)}), value=>value.dispose()); }
-          catch(error) { if(error instanceof FsError && error.code === "ENOENT") throw new Error(`Error: Fragment '${reference}' not found`); throw error; }
-          yield source;
-        }
-      };
-      const compose = async (paths: readonly string[], tail: LlmInputSource, system: boolean): Promise<LlmInputSource> => operation.acquire(
-        () => createLlmFragmentSource({fs:context.fs,directory:context.cwd,signal,fragments:loadFragments(paths,system),tail,system,normalizeNewlines:true,
-          admitBytes:(size,source)=>remoteFragments.has(source)?input.admit(size,!streamed):admitInput(size,!streamed),admitSeparator:size=>input.admit(size,!streamed)}),value=>value.dispose());
       const promptFragments = [...(chat ? [] : stored?.fragments ?? []), ...args.fragments];
       const systemFragments = [...(chat ? [] : stored?.system_fragments ?? []), ...args.systemFragments];
       const materialize = async (source: LlmInputSource): Promise<string> => {
@@ -645,12 +680,12 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         for await (const bytes of source.bytes) result += decoder.decode(bytes,{stream:true});
         return result + decoder.decode();
       };
-      if (promptFragments.length) {
-        composedPrompt = await compose(promptFragments,promptSpool ? {bytes:promptSpool.replay(),dispose:promptSpool.close} : textSource(prompt),false);
+      if (promptFragments.length || preparedPrompt.length) {
+        composedPrompt = await compose(promptFragments,promptSpool ? {bytes:promptSpool.replay(),dispose:promptSpool.close} : textSource(prompt),false,preparedPrompt);
         if (!streamed) prompt = await materialize(composedPrompt);
       }
-      if (systemFragments.length) {
-        composedSystem = await compose(systemFragments,textSource(args.system ?? ""),true);
+      if (systemFragments.length || preparedSystem.length) {
+        composedSystem = await compose(systemFragments,textSource(args.system ?? ""),true,preparedSystem);
         if (!streamed) args.system = await materialize(composedSystem);
       }
       for (const attachment of args.attachments) {

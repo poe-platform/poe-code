@@ -29,6 +29,12 @@ export function createLlmInputBudget(limits: LlmInputLimits = {}, parent?: Comma
       total += size;
       if (materialized) buffered += size;
     },
+    /** Charge materialization of bytes already admitted as streamed input. */
+    materialize(size: number): void {
+      if (!Number.isSafeInteger(size) || size < 0) throw new RangeError('Invalid LLM input size');
+      if (size > bufferedLimit - buffered) throw new FsError('EFBIG', {message:'llm buffered input byte limit exceeded'});
+      buffered += size;
+    },
     admitText(text: string): void {
       const size = shellValueByteLength(text);
       check(size, true); total += size; buffered += size;

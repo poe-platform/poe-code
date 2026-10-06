@@ -168,3 +168,14 @@ test('key stdin charges raw UTF8 bytes once and preserves split characters', asy
   assert.deepEqual(charged,[1,4]);
   assert.equal(JSON.parse(new TextDecoder().decode(await fs.readFile('/settings/keys.json'))).fixture,'€');
 });
+
+test('SDK materialization preserves raw admission while enforcing the independent buffer cap', async () => {
+  const {createLlmInputBudget} = await import('./input-budget.js');
+  const checked: number[] = [];
+  const budget = createLlmInputBudget({maxInputBytes: 4, maxBufferedInputBytes: 2}, {maxBytes: 4, check(size) {checked.push(size);}});
+  budget.admit(4); budget.materialize(2);
+  assert.equal(budget.totalBytes, 4); assert.deepEqual(checked, [4]);
+  assert.throws(() => budget.materialize(1), /buffered input byte limit/);
+  assert.throws(() => budget.admit(1), /input byte limit/);
+  for (const size of [-1, 0.5, Infinity]) assert.throws(() => budget.materialize(size), RangeError);
+});

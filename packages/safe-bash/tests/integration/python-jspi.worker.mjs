@@ -163,6 +163,7 @@ async function qualifyShells(backend, createExecutor) {
 async function qualifyFunctionTools(backend, createExecutor) {
   let cancellation = new AbortController();
   let cancelRun = false, chatRun = false;
+  const chatPrompts = [];
   const source = 'import asyncio as _asyncio\n_state = 0\n_event = _asyncio.Event()\ndef add(value: int):\n global _state\n _state += value\n return _state\nasync def first():\n await _event.wait()\n return "first"\nasync def second():\n _event.set()\n return "second"\ndef unicode_text():\n return "😀" * 4096\n';
   await backend.writeFile('/work/functions.py', new TextEncoder().encode(source));
   const toolbox = `import asyncio as _asyncio
@@ -188,6 +189,7 @@ _pm.register(_Plugin(), name="fixture")
     if (chatRun) {
       let prompt = request.prompt;
       if (typeof prompt !== 'string') {let text = ''; for await (const bytes of prompt.bytes) text += new TextDecoder().decode(bytes); prompt = text;}
+      if (prompt) chatPrompts.push(prompt);
       if (prompt) return {toolCalls: [{id: 'chat', name: 'add', arguments: {value: 1}}]};
       const last = request.messages.filter(message => message.role === 'tool').at(-1);
       if (typeof last.content === 'string') yield last.content;
@@ -238,6 +240,9 @@ _pm.register(_Plugin(), name="fixture")
     const chat = await shell.exec("llm chat --functions functions.py <<'EOF'\none\ntwo\nexit\nEOF");
     const freshChat = await shell.exec("llm chat --functions functions.py <<'EOF'\nthree\nexit\nEOF");
     const editedChat = await shell.exec("EDITOR=fixture-editor llm chat --functions functions.py <<'EOF'\n!edit\nexit\nEOF");
+    const missingChatFragment = await shell.exec("llm chat -f missing-fragment <<'EOF'\nexit\nEOF");
+    const initialStdinChatFragment = await shell.exec("llm chat -f - <<'EOF'\nbody\nexit\nEOF");
+    const stdinChatFragment = await shell.exec("llm chat --functions functions.py <<'EOF'\n!fragment -\nbody\nexit\nEOF");
     chatRun = false;
     cancelRun = true;
     let cancelled = false;
@@ -247,7 +252,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

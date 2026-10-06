@@ -1910,7 +1910,8 @@
             "safe-bash-zip-engine": "*",
             "safe-bash-command-soffice": "*",
             "safe-bash-command-pdftoppm": "*",
-            "@noble/hashes": "2.4.0"
+            "@noble/hashes": "2.4.0",
+            "safe-bash-command-tar": "*"
           },
           "portable": true
         },
@@ -3491,6 +3492,10 @@
     "./commands/python/source-zip": {
       "types": "./dist/commands/python/source-zip.d.ts",
       "import": "./dist/commands/python/source-zip.js"
+    },
+    "./commands/python/source-archive": {
+      "types": "./dist/commands/python/source-archive.d.ts",
+      "import": "./dist/commands/python/source-archive.js"
     }
   },
   "sideEffects": [

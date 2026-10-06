@@ -103,3 +103,15 @@ test('source archive selection requires an explicit host capability',async()=>{
   assert.deepEqual(await fs.readdir('/storage'),[]);
  }finally{await environment.dispose();}
 });
+
+test('local tar sources reach the configured archive capability before native build hooks',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/storage');await fs.writeFile('/source.tar',Uint8Array.of(1));
+ const extracted=new Error('tar extraction reached');let calls=0;
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',async extractArchive(source,directory,_maxBytes,context){
+  calls++;assert.equal(source,'/source.tar');assert.ok(directory.startsWith('/storage/.python-build-'));assert.equal(context.fs.capabilities.atomicTreeRemoval,true);throw extracted;
+ },python:{createExecutor:()=>{throw new Error('unexpected build');}}});
+ try{
+  await assert.rejects(environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:['/source.tar'],env:{},stdout:{async write(){}},stderr:{async write(){}}}),error=>error===extracted);
+  assert.equal(calls,1);assert.deepEqual(await fs.readdir('/storage'),[]);
+ }finally{await environment.dispose();}
+});

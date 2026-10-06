@@ -31,8 +31,8 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    source=decodeURIComponent(url.pathname);
   }else if(source.includes('://'))return requirement;
   source=resolvePath(context.cwd,source);
-  let zipped=false;
-  try{const stat=await fs.stat(source,settings);zipped=stat.type==='file'&&source.toLowerCase().endsWith('.zip');if(stat.type!=='directory'&&!zipped)return requirement;}
+  let archived=false;
+  try{const stat=await fs.stat(source,settings);archived=stat.type==='file'&&['.zip','.tar','.tar.gz','.tgz','.tar.bz2','.tbz','.tar.xz','.txz'].some(suffix=>source.toLowerCase().endsWith(suffix));if(stat.type!=='directory'&&!archived)return requirement;}
   catch(error){if(error instanceof FsError&&error.code==='ENOENT')return requirement;throw error;}
   if(!context.stdout||!context.stderr||!context.env)throw new TypeError('Source package preparation requires command output and environment context');
   if(!fs.prepareDirectory||!fs.removeTreeConditional||!fs.confineExtraction)throw new Error('Source packages require conditional caller storage');
@@ -63,7 +63,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    }});
    const command:CommandContext={...context,env:context.env,stdout:context.stdout,stderr:context.stderr,command:'python',args:[],stdin:toByteSource('')};
    let prepared:string;
-   if(zipped){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
+   if(archived){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
    else prepared=(await createPythonSourceSnapshot(source,path,{...command,fs:staging})).path;
    const wheelDirectory=resolvePath(path,'wheels');
    await confined.mkdir(wheelDirectory,settings);

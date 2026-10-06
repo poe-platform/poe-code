@@ -95,6 +95,10 @@
     "./source-zip": {
       "types": "./dist/source-zip.d.ts",
       "import": "./dist/source-zip.js"
+    },
+    "./source-archive": {
+      "types": "./dist/source-archive.d.ts",
+      "import": "./dist/source-archive.js"
     }
   },
   "files": [
@@ -118,6 +122,7 @@
     "safe-bash-zip-engine": "*",
     "safe-bash-command-soffice": "*",
     "safe-bash-command-pdftoppm": "*",
-    "@noble/hashes": "2.4.0"
+    "@noble/hashes": "2.4.0",
+    "safe-bash-command-tar": "*"
   }
 }

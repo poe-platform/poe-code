@@ -1,3 +1,4 @@
+import {splitPythonSourcePath} from './source-archive-path.js';
 import type {CommandContext} from 'safe-bash-contracts';
 import {resolvePath,dirname} from 'safe-bash-contracts/path';
 import {readZipIndexedArchive,decodeZipEntry,type ZipIndexedArchive} from 'safe-bash-zip-engine';
@@ -17,22 +18,16 @@ export async function extractPythonSourceZip(source:string,directory:string,maxB
  let archive:ZipIndexedArchive|undefined,primary:unknown,failed=false;
  try{
   archive=await readZipIndexedArchive(input,limits,signal,scratch,{allowUnreferencedData:true});
-  const split=(name:string):[string,string]=>{
-   while(name.startsWith('/'))name=name.slice(1);
-   while(name.startsWith('\\'))name=name.slice(1);
-   const slash=name.indexOf('/'),backslash=name.indexOf('\\');
-   const at=slash<0?backslash:backslash<0?slash:Math.min(slash,backslash);
-   return at<0?[name,'']:[name.slice(0,at),name.slice(at+1)];
-  };
+
   let prefix:string|undefined,flatten=true;
   for await(const entry of archive.entries){
-   const [part]=split(entry.name);
+   const [part]=splitPythonSourcePath(entry.name);
    if(!part||prefix!==undefined&&part!==prefix){flatten=false;break;}
    prefix=part;
   }
   for await(const entry of archive.entries){
    signal.throwIfAborted();
-   const name=flatten?split(entry.name)[1]:entry.name,path=resolvePath(directory,name);
+   const name=flatten?splitPythonSourcePath(entry.name)[1]:entry.name,path=resolvePath(directory,name);
    if(path!==directory&&!path.startsWith(directory+'/'))throw new Error('Source ZIP member escapes the build directory');
    if(path.includes('\0'))throw new Error('Invalid source ZIP member');
    if(!name||name.endsWith('/')||name.endsWith('\\'))await fs.mkdir(path,{recursive:true,mode:0o755,signal});

@@ -1,6 +1,6 @@
 import { standardCommands } from '@poe-platform/safe-bash/core';
 import libraryExamples from 'python-library-examples';
-import { installStaticPackages, llmPackageAssets } from 'python-static-assets';
+import { installStaticPackages, llmPackageAssets, nativeWheelAssets } from 'python-static-assets';
 import standardLlmProgram from 'standard-llm-program';
 import { loadPyodide } from 'pinned-pyodide-loader';
 import createPyodideModule from 'pinned-pyodide-module';
@@ -16,6 +16,23 @@ import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/c
 import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
+
+async function qualifyNativeWheel(backend,createExecutor,micropip) {
+  const base='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/';
+  const artifacts=new Map(nativeWheelAssets.map(({file,bytes})=>[base+file,bytes]));
+  artifacts.set(base+'micropip-0.11.1-py3-none-any.whl',micropip);
+  const requests=[],diagnostics=[];
+  const environment=createPythonPackageEnvironment({requirements:['pydantic-core==2.41.5'],cacheDirectory:'/work/wheel-cache',
+    authorize:({url})=>artifacts.has(url),transport:async({url})=>{
+      requests.push(url);
+      return {status:200,headers:[],body:(async function*(){yield artifacts.get(url);})(),async dispose(){}};
+    }});
+  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause??event))}));
+  try {
+    const result=await shell.exec(`python -c 'from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`);
+    return {result,requests,diagnostics};
+  }finally{await shell.dispose();await environment.dispose();}
+}
 
 async function qualifyPackageControls(backend, createExecutor, micropip) {
   const quote=value=>"'"+value.split("'").join("'\\''")+"'";
@@ -1508,7 +1525,7 @@ export default {
         enableRunUntilComplete: false });
       // Keep the legacy adapter contract separate from the genuine calling profile.
       if (mode === '/host') await installStaticPackages(runtime);
-      else if (mode !== '/packages') installPythonLlmPackages(runtime, llmPackageAssets);
+      else if (mode !== '/packages' && mode !== '/native-wheel') installPythonLlmPackages(runtime, llmPackageAssets);
       version = runtime.version;
       memory = runtime._module.HEAPU8.byteLength;
       if (mode === '/proxy') retainedProxy = runtime.globals;
@@ -1523,6 +1540,11 @@ export default {
       }
       return runtime;
     } });
+    if (mode === '/native-wheel') {
+      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
     if (mode === '/package-replacements') {
       try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}

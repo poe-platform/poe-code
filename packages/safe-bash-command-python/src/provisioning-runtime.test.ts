@@ -1,6 +1,25 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { pythonNativeWheel } from "./native-wheel.js";
 import { installPythonPackages } from "./provisioning-runtime.js";
+
+function nativeFixture(extract:(name:string,read:(offset:number,length:number)=>Promise<number[]>)=>Promise<void>) {
+ const globals=new Map<string,unknown>();
+ const packages=Object.fromEntries(['fixture','one','two'].map(name=>[name,{file_name:name+'-1-py3-none-any.whl',sha256:'hash'}]));
+ const runtime={version:'314.0.6',_api:{lockfile_packages:packages,async loadDynlib(){},
+  packageManager:{defaultChannel:'default',async downloadPackage(_metadata:{normalizedName:string;channel:string}):Promise<unknown>{return null;},
+   async installPackage(_metadata:{normalizedName:string;channel:string},_source:unknown):Promise<unknown>{throw new Error('buffered installer called');}}},
+  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},
+  async loadPackage(){},
+  async runPythonAsync(source:string){
+   if(source===pythonNativeWheel){
+    const config=JSON.parse(globals.get('_safe_native_wheel_config') as string);
+    await extract(config.filename.split('-')[0],globals.get('_safe_native_wheel_read') as (offset:number,length:number)=>Promise<number[]>);
+    return '[]';
+   }
+  },runPython(_source?:string){return '[]';}};
+ return {runtime,globals};
+}
 
 test('installer preserves host transport failure when micropip masks it as missing metadata',async()=>{
  const globals=new Map<string,unknown>();let committed=false;
@@ -80,7 +99,8 @@ test('dependency verification failures never commit the environment and remove i
 test('installer closes each host artifact on success and failed chunk reads',async()=>{
  for(const fail of [false,true]){
   const operations:string[]=[];
-  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){}},async loadPackage(){const metadata={normalizedName:'fixture',channel:'https://example.org/fixture'};await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));},async runPythonAsync(){},runPython(){return '[]';}};
+  const {runtime}=nativeFixture(async(_name,read)=>{assert.deepEqual(await read(0,1),[255]);});
+  runtime.loadPackage=async()=>{const metadata={normalizedName:'fixture',channel:'https://example.org/fixture'};await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));};
   const result=installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},op=>{operations.push(op);if(op==='package-open')return {key:'artifact',size:1,headers:[]};if(op==='package-read'){if(fail)throw Error('read failure');return [255];}return null;},64);
   if(fail)await assert.rejects(result,/read failure/);else await result;
   assert.deepEqual(operations.slice(0,3),['package-open','package-read','package-close']);
@@ -88,12 +108,16 @@ test('installer closes each host artifact on success and failed chunk reads',asy
 });
 
 test('installer awaits asynchronous artifact reads, closure and manifest publication',async()=>{
- const globals=new Map<string,unknown>(),operations:string[]=[];
- let committed=false;
- const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},
-  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){assert.equal(committed,true);globals.delete(name);}},
-  async loadPackage(){const metadata={normalizedName:'fixture',channel:'https://example.org/fixture.whl'};const bytes=await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));assert.deepEqual([...bytes],[1,2,3]);assert.deepEqual(operations,['package-open','package-read','package-read','package-close']);},
-  async runPythonAsync(){const metadata=await (globals.get('_safe_package_metadata') as (url:string)=>Promise<string>)('https://example.org/metadata');assert.deepEqual(JSON.parse(metadata),{text:'\u0001\u0002\u0003',headers:{'content-type':'application/json'}});},runPython(){return '["fixture==1"]';}};
+ const operations:string[]=[];let committed=false;
+ const {runtime,globals}=nativeFixture(async(_name,read)=>{assert.deepEqual([...(await read(0,2)),...(await read(2,1))],[1,2,3]);});
+ const execute=runtime.runPythonAsync.bind(runtime);
+ runtime.runPythonAsync=async source=>{
+  if(source===pythonNativeWheel)return execute(source);
+  const metadata=await (globals.get('_safe_package_metadata') as (url:string)=>Promise<string>)('https://example.org/metadata');
+  assert.deepEqual(JSON.parse(metadata),{text:'\u0001\u0002\u0003',headers:{'content-type':'application/json'}});
+ };
+ runtime.loadPackage=async()=>{const metadata={normalizedName:'fixture',channel:'https://example.org/fixture.whl'};await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));assert.deepEqual(operations,['package-open','package-read','package-read','package-close']);};
+ runtime.runPython=()=> '["fixture==1"]';
  await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},async(op,...args)=>{
   await Promise.resolve();operations.push(op);
   if(op==='package-open'){assert.deepEqual(args,args[1]==='https://example.org/metadata'?['1',args[1],undefined,'metadata']:['1',args[1],undefined]);return {key:'artifact',size:3,headers:[['Content-Type','application/json']]};}
@@ -111,14 +135,14 @@ test('concurrent package downloads serialize artifact lifetimes and retire after
   const started=new Promise<void>(resolve=>{admitted=resolve;});
   const readFailure=new Error('late host read failure');
   let committed=false;
-  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){assert.equal(opened,false);}},
-   async loadPackage(){
-    const one={normalizedName:'one',channel:'one'};const first=runtime._api.packageManager.installPackage(one,await runtime._api.packageManager.downloadPackage(one));
-    const two={normalizedName:'two',channel:'two'};const second=runtime._api.packageManager.installPackage(two,await runtime._api.packageManager.downloadPackage(two));
-    const both=Promise.allSettled([first,second]);
-    if(fail){void both;await started;throw new Error('loader failed early');}
-    await both;
-   },async runPythonAsync(){},runPython(){return '[]';}};
+  const {runtime}=nativeFixture(async(_name,read)=>{await read(0,1);});
+  runtime.loadPackage=async()=>{
+   const one={normalizedName:'one',channel:'one'};const first=runtime._api.packageManager.installPackage(one,await runtime._api.packageManager.downloadPackage(one));
+   const two={normalizedName:'two',channel:'two'};const second=runtime._api.packageManager.installPackage(two,await runtime._api.packageManager.downloadPackage(two));
+   const both=Promise.allSettled([first,second]);
+   if(fail){void both;await started;throw new Error('loader failed early');}
+   await both;
+  };
   const installation=installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},async(op,...args)=>{
    if(op==='package-open'){assert.equal(opened,false);opened=true;operations.push('open '+args[1]);return {key:args[1],size:1,headers:[]};}
    if(op==='package-read'){admitted();await gate;if(fail)throw readFailure;return [1];}
@@ -178,22 +202,18 @@ test('native extraction admits one payload at a time and drains before bootstrap
   let release!:()=>void,entered!:()=>void,active=0,settled=false;
   const gate=new Promise<void>(resolve=>{release=resolve;}),started=new Promise<void>(resolve=>{entered=resolve;});
   const reads:string[]=[],installed:string[]=[];
-  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',
-   async downloadPackage(_metadata:{normalizedName:string;channel:string}):Promise<unknown>{return null;},
-   async installPackage(metadata:{normalizedName:string;channel:string},bytes:unknown){
-    assert.ok(bytes instanceof Uint8Array);assert.equal(++active,1);
-    installed.push(metadata.normalizedName);
-    if(metadata.normalizedName==='one'){entered();await gate;}
-    active--;
-   }}},globals:{set(){},delete(){assert.equal(active,0);}},
-   async loadPackage(){
-    const one={normalizedName:'one',channel:'one'},two={normalizedName:'two',channel:'two'};
-    const sources=await Promise.all([runtime._api.packageManager.downloadPackage(one),runtime._api.packageManager.downloadPackage(two)]);
-    assert.deepEqual(reads,[]);
-    const both=Promise.all([runtime._api.packageManager.installPackage(one,sources[0]),runtime._api.packageManager.installPackage(two,sources[1])]);
-    if(fail){void both.catch(()=>{});await started;throw new Error('early native loader failure');}
-    await both;
-   },async runPythonAsync(){},runPython(){return '[]';}};
+  const {runtime}=nativeFixture(async(name,read)=>{
+   assert.equal(++active,1);assert.deepEqual(await read(0,1),[23]);installed.push(name);
+   if(name==='one'){entered();await gate;}active--;
+  });
+  runtime.loadPackage=async()=>{
+   const one={normalizedName:'one',channel:'one'},two={normalizedName:'two',channel:'two'};
+   const sources=await Promise.all([runtime._api.packageManager.downloadPackage(one),runtime._api.packageManager.downloadPackage(two)]);
+   assert.deepEqual(reads,[]);
+   const both=Promise.all([runtime._api.packageManager.installPackage(one,sources[0]),runtime._api.packageManager.installPackage(two,sources[1])]);
+   if(fail){void both.catch(()=>{});await started;throw new Error('early native loader failure');}
+   await both;
+  };
   const pending=installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},(operation,...args)=>{
    if(operation==='package-open'){reads.push(args[1] as string);return {key:args[1],size:1,headers:[]};}
    if(operation==='package-read')return [23];
@@ -207,5 +227,46 @@ test('native extraction admits one payload at a time and drains before bootstrap
   assert.equal(active,0);assert.deepEqual(installed,['one','two']);
   assert.deepEqual(reads,['one','two']);
   await assert.rejects(runtime._api.packageManager.installPackage({normalizedName:'late',channel:'late'},{}),/only available during installation/);
+ }
+});
+
+
+test('native wheel extraction reads its retained source without invoking the buffered installer',async()=>{
+ const globals=new Map<string,unknown>();
+ const operations:string[]=[];
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{fixture:{file_name:'fixture-1-py3-none-any.whl',sha256:'hash',install_dir:'site'}},
+  async loadDynlib(path:string){operations.push('dynlib '+path);},
+  packageManager:{defaultChannel:'default',async downloadPackage(_metadata:unknown):Promise<unknown>{return null;},
+   async installPackage(_metadata:unknown,_source:unknown){throw new Error('whole-wheel buffer reached native installer');}}},
+  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},
+  async loadPackage(){const metadata={normalizedName:'fixture',channel:'default'};await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));},
+  async runPythonAsync(){
+   if(globals.has('_safe_native_wheel_read')){
+    const read=globals.get('_safe_native_wheel_read') as (offset:number,length:number)=>Promise<number[]>;
+    assert.deepEqual(await read(65536,3),[4,5,6]);
+    return '["/lib/fixture.so"]';
+   }
+  },runPython(){return '[]';}};
+ await installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},async(op,...args)=>{
+  operations.push(op);
+  if(op==='package-open')return {key:'wheel',size:65539,headers:[]};
+  if(op==='package-read'){assert.deepEqual(args,['1','wheel',65536,3]);return [4,5,6];}
+ },65536);
+ assert.deepEqual(operations,['package-open','package-read','dynlib /lib/fixture.so','package-close','package-commit']);
+ assert.equal(globals.size,0);
+});
+
+test('native extraction preserves host read failure identity across the Python exception bridge',async()=>{
+ for(const asyncRead of [false,true]){
+  const failure=new Error('cancelled retained wheel read');
+  const {runtime}=nativeFixture(async(_name,read)=>{try{await read(0,1);}catch{throw new Error('PythonError: masked host exception');}});
+  runtime.loadPackage=async()=>{const metadata={normalizedName:'fixture',channel:'default'};await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));};
+  let closed=false;
+  await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},op=>{
+   if(op==='package-open')return {key:'wheel',size:1,headers:[]};
+   if(op==='package-read'){if(asyncRead)return Promise.reject(failure);throw failure;}
+   if(op==='package-close')closed=true;
+  },65536),error=>error===failure);
+  assert.equal(closed,true);
  }
 });

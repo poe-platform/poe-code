@@ -120,6 +120,7 @@ ${llmNativeNames.map((name, index) => `import llmNative${index} from '${name}';`
 ${llmNativeBytesNames.map((name, index) => `import llmNativeBytes${index} from '${name}';`).join('\n')}
 ${llmWheelNames.map((name, index) => `import llmWheel${index} from '${name}';`).join('\n')}
 export const llmPackageAssets = [${llmWheels.map(({distribution}, index) => `{file:${JSON.stringify(distribution.file)},bytes:new Uint8Array(llmWheel${index})}`).join(',')}];
+export const nativeWheelAssets = [${dependencyArchives.map((archive,index) => `{file:${JSON.stringify(archive.fileName)},bytes:new Uint8Array(dependency${index})}`).join(',')}];
 import { createPythonJspiAssets, installPythonLlmDependencies } from '@poe-platform/safe-bash/commands/python';
 const assets = createPythonJspiAssets({ main, stdlib:new Uint8Array(stdlib), modules:[
 ${llmNativeNames.map((name, index) => ` {module:llmNative${index},bytes:new Uint8Array(llmNativeBytes${index})},`).join('\n')}
@@ -556,6 +557,20 @@ test('real workerd applies prerelease selection and cache bypass through CLI and
     }
   }
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});
+
+test('real workerd loads native code from a retained installed wheel', {timeout:60000},async()=>{
+ const {miniflare,runtimeErrors}=nativeFixture;
+ const response=await miniflare.dispatchFetch('http://fixture/native-wheel',{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const result=await response.json();
+ assert.equal(response.status,200,JSON.stringify(result));
+ assert.equal(result.result.exitCode,0,JSON.stringify(result));
+ assert.equal(result.result.stdout,'42\n');
+ assert.equal(result.result.stderr,'');
+ assert.deepEqual(result.diagnostics,[]);
+ assert.deepEqual(result.failures,[]);
+ assert.ok(result.requests.some(url=>url.includes('pydantic_core-2.41.5')));
+ assert.deepEqual(runtimeErrors,[]);
 });
 
 test('real workerd installs and reuses explicitly authorized Python wheels', {timeout:240000}, async()=>{

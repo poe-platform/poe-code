@@ -166,6 +166,19 @@ metadata, native-library loading and manifest publication when replacing the
 byte handoff. Acquisition errors, cancellation and abandoned downloads must retire
 retained sources before an interpreter is released.
 
+Native package extraction now uses a seekable host-backed Python file instead of
+allocating the complete JavaScript wheel and a second `NamedTemporaryFile` copy.
+A shared artifact lifetime serializes native extraction with micropip transfers;
+short reads, cancellation identity, closure and bootstrap failure draining retain
+coverage. Extraction still delegates to pinned `shutil`/`zipfile`, wheel metadata,
+data-file relocation and dynamic-library helpers. The optional native integration
+oracle compares installed files and failure categories with the unchanged Pyodide
+installer for four noncontiguous layouts, stored/deflated 2 MiB payloads, CRC
+failures and truncated archives. A genuine workerd case installs Pydantic Core
+without preloaded LLM packages and executes its compiled extension. This does not
+move ZIP metadata or extracted files out of interpreter memory, nor remove
+micropip's separate whole-wheel buffers. Those remain completion requirements.
+
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use
 caller-owned backing storage for each. A lazy descriptor followed by `BytesIO`,

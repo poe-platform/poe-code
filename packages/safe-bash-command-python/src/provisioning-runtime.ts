@@ -1,12 +1,15 @@
+import { pythonNativeWheel } from './native-wheel.js';
 import type { PythonWorkerRuntime } from './worker.js';
 import type { PythonPackageStart } from './provisioning.js';
 
-interface NativePackage { normalizedName:string;channel:string }
+interface NativePackage { normalizedName:string;channel:string;packageData?:NativePackageData }
+interface NativePackageData {file_name:string;sha256:string;install_dir?:string}
 interface PackageSource {url:string;expected?:string}
 
 interface InstallerRuntime extends PythonWorkerRuntime {
  readonly _api: {
-  readonly lockfile_packages: Record<string,{file_name:string;sha256:string}>;
+  readonly lockfile_packages: Record<string,NativePackageData>;
+  loadDynlib(path:string):Promise<unknown>;
   readonly packageManager: {
    readonly defaultChannel:string;
    downloadPackage(metadata:NativePackage):Promise<PackageSource>;
@@ -32,33 +35,43 @@ export async function installPythonPackages(
  let pending=Promise.resolve();
  let installing:Promise<unknown>=Promise.resolve();
  const manager=runtime._api.packageManager;
- const install=manager.installPackage.bind(manager);
+
  // A host session owns one open artifact. Serialize entire transfers, including
  // closure, even when micropip or the native loader requests dependencies together.
- const fetch=(url:string,expected?:string,metadata?:'metadata'):Promise<{bytes:Uint8Array;headers:readonly(readonly[string,string])[]}>=>{
+ const withArtifact=<T>(url:string,expected:string|undefined,metadata:'metadata'|undefined,consume:(opened:{key:string;size:number;headers:readonly(readonly[string,string])[]},read:(offset:number,length:number)=>any)=>Promise<T>):Promise<T>=>{
   if(!accepting)return Promise.reject(new Error('Python package transport is only available during installation'));
   const transfer=pending.then(async()=>{
-  if(transportFailure)throw transportFailure.error;
-  try {
-  const opened=await request('package-open',start.session,url,expected,...metadata?[metadata]:[]) as {key:string;size:number;headers:readonly(readonly[string,string])[]};
-  try {
-  const bytes=new Uint8Array(opened.size);
-  for(let offset=0;offset<bytes.length;){
-   const chunk=await request('package-read',start.session,opened.key,offset,Math.min(maxTransferBytes,65536,bytes.length-offset)) as number[];
-   if(!Array.isArray(chunk)||chunk.length===0||offset+chunk.length>bytes.length)throw new Error('Invalid Python package chunk');
-   bytes.set(chunk,offset);offset+=chunk.length;
-  }
-  return {bytes,headers:opened.headers};
-  } finally {await request('package-close',start.session,opened.key);}
-  } catch(error) {
-   // Micropip may replace callback errors with a generic package-index failure.
-   transportFailure??={error};
-   throw error;
-  }
+   if(transportFailure)throw transportFailure.error;
+   try {
+    const opened=await request('package-open',start.session,url,expected,...metadata?[metadata]:[]) as {key:string;size:number;headers:readonly(readonly[string,string])[]};
+    try {
+     return await consume(opened,(offset,length)=>{
+      const failed=(error:unknown):never=>{transportFailure??={error};throw error;};
+      try {
+       const result=request('package-read',start.session,opened.key,offset,Math.min(length,maxTransferBytes,65536));
+       // Keep the worker callback synchronous; JSPI awaits the asynchronous host.
+       return result instanceof Promise?result.catch(failed):result;
+      }catch(error){return failed(error);}
+     });
+    } finally {await request('package-close',start.session,opened.key);}
+   } catch(error) {
+    // Micropip may replace callback errors with a generic package-index failure.
+    transportFailure??={error};
+    throw error;
+   }
   });
   pending=transfer.then(()=>{},()=>{});
   return transfer;
  };
+ const fetch=(url:string,expected?:string,metadata?:'metadata')=>withArtifact(url,expected,metadata,async(opened,read)=>{
+  const bytes=new Uint8Array(opened.size);
+  for(let offset=0;offset<bytes.length;){
+   const chunk=await read(offset,bytes.length-offset) as number[];
+   if(!Array.isArray(chunk)||chunk.length===0||offset+chunk.length>bytes.length)throw new Error('Invalid Python package chunk');
+   bytes.set(chunk,offset);offset+=chunk.length;
+  }
+  return {bytes,headers:opened.headers};
+ });
  // Native dependency ordering retains source descriptors, not complete wheel buffers.
  // The pinned installer still owns extraction and dynamic linking. Serialize the
  // entire fetch/install lifetime so dependency downloads cannot accumulate payloads.
@@ -75,7 +88,20 @@ export async function installPythonPackages(
   if(!accepting)return Promise.reject(new Error('Python package transport is only available during installation'));
   const work=installing.then(async()=>{
    if(source instanceof Uint8Array)throw new Error('Expected retained Python package source');
-   return install(metadata,(await fetch(source.url,source.expected)).bytes);
+   const pkg=runtime._api.lockfile_packages[metadata.normalizedName]??metadata.packageData;
+   if(!pkg)throw new Error(`Missing matching Pyodide package: ${metadata.normalizedName}`);
+   return withArtifact(source.url,source.expected,undefined,async(opened,read)=>{
+    const globals=['_safe_native_wheel_read','_safe_native_wheel_config','_safe_extract_native_wheel'];
+    try {
+     runtime.globals.set(globals[0]!,read);
+     runtime.globals.set(globals[1]!,JSON.stringify({size:opened.size,filename:pkg.file_name,target:pkg.install_dir??null,
+      metadata:{INSTALLER:'pyodide.loadPackage',PYODIDE_SOURCE:metadata.channel===manager.defaultChannel?'pyodide':metadata.channel}}));
+     const libraries=JSON.parse(await runtime.runPythonAsync(pythonNativeWheel) as string) as string[];
+     for(const path of libraries)await runtime._api.loadDynlib(path);
+    } finally {
+     for(const name of globals)runtime.globals.delete(name);
+    }
+   });
   });
   installing=work.then(()=>{},()=>{});
   return work;

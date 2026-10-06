@@ -18,6 +18,8 @@ pub fn try_run_archive_command(
         "base32" => Some(cmd_base32(args, stdin, cwd, fs)),
         "xxd" => Some(cmd_xxd(args, stdin, cwd, fs)),
         "od" => Some(cmd_od(args, stdin, cwd, fs)),
+        "hexdump" => Some(cmd_hexdump(args, stdin, cwd, fs, false)),
+        "hd" => Some(cmd_hexdump(args, stdin, cwd, fs, true)),
         "tar" => Some(cmd_tar(args, stdin, cwd, fs)),
         "gzip" | "gunzip" | "zcat" | "zstd" | "unzstd" | "zstdcat" | "xz" | "unxz" | "xzcat" | "bzip2" | "bunzip2" | "bzcat" => Some(cmd_gzip(cmd, args, stdin, cwd, fs)),
         "ffmpeg" | "ffprobe" | "soffice" | "wkhtmltopdf" | "qpdf" | "pdftotext" | "magick" | "convert" | "exiftool" | "identify" => Some(cmd_media_doc(cmd, args, cwd, fs)),
@@ -747,6 +749,9 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 i += 1;
                 max_len = args[i].parse().ok();
             }
+            "-c" | "-cols" | "-s" | "-g" if i + 1 < args.len() => {
+                i += 1;
+            }
             a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
@@ -833,6 +838,121 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             out.push(ch);
         }
         out.push('\n');
+    }
+    ok_out(&out)
+}
+
+fn cmd_hexdump(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+    default_canonical: bool,
+) -> BuiltinOutcome {
+    let mut canonical = default_canonical;
+    let mut no_squeeze = false;
+    let mut skip = 0usize;
+    let mut max_len: Option<usize> = None;
+    let mut files = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if a == "-C" {
+            canonical = true;
+            i += 1;
+        } else if a == "-v" {
+            no_squeeze = true;
+            i += 1;
+        } else if a == "-s" && i + 1 < args.len() {
+            skip = args[i + 1].parse().unwrap_or(0);
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("-s") && !rest.is_empty() {
+            skip = rest.parse().unwrap_or(0);
+            i += 1;
+        } else if a == "-n" && i + 1 < args.len() {
+            max_len = args[i + 1].parse().ok();
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("-n") && !rest.is_empty() {
+            max_len = rest.parse().ok();
+            i += 1;
+        } else if a == "-e" && i + 1 < args.len() {
+            i += 2;
+        } else if !a.starts_with('-') || a == "-" {
+            files.push(a.clone());
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    let raw = if files.is_empty() || (files.len() == 1 && files[0] == "-") {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let mut combined = Vec::new();
+        for f in &files {
+            if f == "-" {
+                combined.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
+            } else {
+                let p = resolve_posix_path(cwd, f);
+                match fs.read_file(&p) {
+                    Ok(b) => combined.extend_from_slice(&b),
+                    Err(e) => return err_out(&format!("hexdump: {f}: {e}\n"), 1),
+                }
+            }
+        }
+        combined
+    };
+    let start = skip.min(raw.len());
+    let mut slice = &raw[start..];
+    if let Some(n) = max_len {
+        slice = &slice[..n.min(slice.len())];
+    }
+    if slice.is_empty() {
+        return ok_out("");
+    }
+    let mut out = String::new();
+    let mut prev_chunk: Option<&[u8]> = None;
+    let mut squeezing = false;
+    for (idx, chunk) in slice.chunks(16).enumerate() {
+        let addr = start + idx * 16;
+        if !no_squeeze && chunk.len() == 16 && prev_chunk == Some(chunk) {
+            if !squeezing {
+                out.push_str("*\n");
+                squeezing = true;
+            }
+            continue;
+        }
+        squeezing = false;
+        prev_chunk = Some(chunk);
+        if canonical {
+            let left: Vec<String> = chunk.iter().take(8).map(|b| format!("{b:02x}")).collect();
+            let right: Vec<String> = chunk.iter().skip(8).map(|b| format!("{b:02x}")).collect();
+            let ascii: String = chunk
+                .iter()
+                .map(|&b| if (0x20..=0x7e).contains(&b) { b as char } else { '.' })
+                .collect();
+            out.push_str(&format!(
+                "{addr:08x}  {:<23}  {:<23}  |{ascii}|\n",
+                left.join(" "),
+                right.join(" ")
+            ));
+        } else {
+            let mut words = Vec::new();
+            let mut k = 0usize;
+            while k < chunk.len() {
+                let lo = chunk[k];
+                let hi = *chunk.get(k + 1).unwrap_or(&0);
+                let w = u16::from_le_bytes([lo, hi]);
+                words.push(format!("{w:04x}"));
+                k += 2;
+            }
+            out.push_str(&format!("{addr:07x} {}\n", words.join(" ")));
+        }
+    }
+    let end_addr = start + slice.len();
+    if canonical {
+        out.push_str(&format!("{end_addr:08x}\n"));
+    } else {
+        out.push_str(&format!("{end_addr:07x}\n"));
     }
     ok_out(&out)
 }

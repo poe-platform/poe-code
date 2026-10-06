@@ -19,6 +19,7 @@ pub fn try_run_structured_command(
         "csvstat" => Some(cmd_csvstat(args, stdin, cwd, fs)),
         "csvsort" => Some(cmd_csvsort(args, stdin, cwd, fs)),
         "htmlq" => Some(cmd_htmlq(args, stdin, cwd, fs)),
+        "unrtf" => Some(cmd_unrtf(args, stdin, cwd, fs)),
         "html-to-markdown" => Some(cmd_html_to_markdown(args, stdin, cwd, fs)),
         "mmdc" => Some(cmd_mmdc(args, stdin, cwd, fs)),
         "xan" => Some(cmd_xan(args, stdin, cwd, fs)),
@@ -548,6 +549,31 @@ fn eval_jq(
     if s.starts_with("if ") && s.ends_with(" end") {
         return eval_jq_if(s, input, vars);
     }
+    if let Some(rest) = s.strip_prefix("reduce ") {
+        if let Some((stream_expr, after_as)) = rest.split_once(" as $")
+            && let Some(open_p) = after_as.find('(')
+            && after_as.ends_with(')')
+        {
+            let var_name = after_as[..open_p].trim();
+            let inside = &after_as[open_p + 1..after_as.len() - 1];
+            if let Some((init_expr, update_expr)) = inside.split_once(';') {
+                let mut acc = eval_jq(init_expr.trim(), input, vars)?
+                    .into_iter()
+                    .next()
+                    .unwrap_or(JVal::Null);
+                let items = eval_jq(stream_expr.trim(), input, vars)?;
+                for item in items {
+                    let mut step_vars = vars.clone();
+                    step_vars.insert(var_name.to_string(), item);
+                    acc = eval_jq(update_expr.trim(), &acc, &step_vars)?
+                        .into_iter()
+                        .next()
+                        .unwrap_or(JVal::Null);
+                }
+                return Ok(vec![acc]);
+            }
+        }
+    }
 
     if let Some(commas) = split_jq_top(s, ',') {
         let mut out = Vec::new();
@@ -666,10 +692,30 @@ fn eval_jq(
     }
 
     if let Some(var_name) = s.strip_prefix('$') {
+        if let Some((vname, rest_path)) = var_name.split_once('.') {
+            if let Some(v) = vars.get(vname) {
+                return eval_jq_path(&format!(".{rest_path}"), v, vars);
+            }
+            return Ok(vec![JVal::Null]);
+        }
         if let Some(v) = vars.get(var_name) {
             return Ok(vec![v.clone()]);
         }
         return Ok(vec![JVal::Null]);
+    }
+
+    if let Some(base) = s.strip_suffix("[]")
+        && !base.is_empty()
+        && !base.starts_with('.')
+        && !base.starts_with('[')
+    {
+        let mut out = Vec::new();
+        for val in eval_jq(base, input, vars)? {
+            if let JVal::Array(items) = val {
+                out.extend(items);
+            }
+        }
+        return Ok(out);
     }
 
     if s.starts_with('"') && s.ends_with('"') && s.contains("\\(") {
@@ -788,45 +834,77 @@ fn eval_jq_update(
     vars: &BTreeMap<String, JVal>,
 ) -> Result<Vec<JVal>, String> {
     let key = lhs.trim().strip_prefix('.').unwrap_or(lhs.trim());
+    let path: Vec<&str> = key.split('.').filter(|s| !s.is_empty()).collect();
+    if path.is_empty() {
+        return Ok(vec![input.clone()]);
+    }
+    let cur_val = get_nested_jval(input, &path);
+    let new_val = match op {
+        "|=" => eval_jq(rhs, &cur_val, vars)?
+            .into_iter()
+            .next()
+            .unwrap_or(JVal::Null),
+        "=" => eval_jq(rhs, input, vars)?
+            .into_iter()
+            .next()
+            .unwrap_or(JVal::Null),
+        "+=" => {
+            let rv = eval_jq(rhs, input, vars)?
+                .into_iter()
+                .next()
+                .unwrap_or(JVal::Null);
+            apply_jq_arith(&cur_val, &rv, "+")?
+        }
+        "-=" => {
+            let rv = eval_jq(rhs, input, vars)?
+                .into_iter()
+                .next()
+                .unwrap_or(JVal::Null);
+            apply_jq_arith(&cur_val, &rv, "-")?
+        }
+        _ => cur_val,
+    };
     let mut updated = input.clone();
-    if let JVal::Object(ref mut map) = updated {
-        let cur_val = map
-            .iter()
-            .find(|(k, _)| k == key)
-            .map(|(_, v)| v.clone())
-            .unwrap_or(JVal::Null);
-        let new_val = match op {
-            "|=" => eval_jq(rhs, &cur_val, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null),
-            "=" => eval_jq(rhs, input, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null),
-            "+=" => {
-                let rv = eval_jq(rhs, input, vars)?
-                    .into_iter()
-                    .next()
-                    .unwrap_or(JVal::Null);
-                apply_jq_arith(&cur_val, &rv, "+")?
+    set_nested_jval(&mut updated, &path, new_val);
+    Ok(vec![updated])
+}
+
+fn get_nested_jval(val: &JVal, path: &[&str]) -> JVal {
+    if path.is_empty() {
+        return val.clone();
+    }
+    if let JVal::Object(map) = val
+        && let Some((_, child)) = map.iter().find(|(k, _)| k == path[0])
+    {
+        return get_nested_jval(child, &path[1..]);
+    }
+    JVal::Null
+}
+
+fn set_nested_jval(val: &mut JVal, path: &[&str], new_val: JVal) {
+    if path.is_empty() {
+        *val = new_val;
+        return;
+    }
+    if !matches!(val, JVal::Object(_)) {
+        *val = JVal::Object(Vec::new());
+    }
+    if let JVal::Object(map) = val {
+        let k = path[0];
+        if path.len() == 1 {
+            if let Some(pos) = map.iter().position(|(ek, _)| ek == k) {
+                map[pos].1 = new_val;
+            } else {
+                map.push((k.to_string(), new_val));
             }
-            "-=" => {
-                let rv = eval_jq(rhs, input, vars)?
-                    .into_iter()
-                    .next()
-                    .unwrap_or(JVal::Null);
-                apply_jq_arith(&cur_val, &rv, "-")?
-            }
-            _ => cur_val,
-        };
-        if let Some(pos) = map.iter().position(|(k, _)| k == key) {
-            map[pos].1 = new_val;
+        } else if let Some(pos) = map.iter().position(|(ek, _)| ek == k) {
+            set_nested_jval(&mut map[pos].1, &path[1..], new_val);
         } else {
-            map.push((key.to_string(), new_val));
+            let mut child = JVal::Object(Vec::new());
+            set_nested_jval(&mut child, &path[1..], new_val);
+            map.push((k.to_string(), child));
         }
     }
-    Ok(vec![updated])
 }
 
 fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str) -> Result<JVal, String> {
@@ -1156,6 +1234,22 @@ fn try_eval_jq_builtin(
         }
         "@text" => {
             return Ok(Some(vec![JVal::Str(input.to_raw_string(true, false))]));
+        }
+        "@base64" => {
+            let raw = input.to_raw_string(true, false);
+            return Ok(Some(vec![JVal::Str(encode_base64_str(raw.as_bytes()))]));
+        }
+        "@uri" => {
+            let raw = input.to_raw_string(true, false);
+            let mut enc = String::new();
+            for b in raw.bytes() {
+                if b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.' | b'~') {
+                    enc.push(b as char);
+                } else {
+                    enc.push_str(&format!("%{b:02X}"));
+                }
+            }
+            return Ok(Some(vec![JVal::Str(enc)]));
         }
         _ => {}
     }
@@ -1832,13 +1926,51 @@ fn cmd_yq(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
+    let mut raw_output = false;
+    let mut compact_output = false;
+    let mut output_format = "yaml".to_string();
+    let mut input_format: Option<String> = None;
     let mut filter: Option<String> = None;
     let mut files: Vec<String> = Vec::new();
-    for a in args {
-        if matches!(a.as_str(), "eval" | "e" | "-o=json" | "-o" | "json" | "-P" | "-r") {
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if matches!(a.as_str(), "eval" | "e" | "-P") {
+            i += 1;
+            continue;
+        }
+        if a == "-r" || a == "--raw-output" {
+            raw_output = true;
+            i += 1;
+            continue;
+        }
+        if a == "-c" || a == "--compact-output" {
+            compact_output = true;
+            i += 1;
+            continue;
+        }
+        if (a == "-o" || a == "--output-format") && i + 1 < args.len() {
+            output_format = args[i + 1].to_ascii_lowercase();
+            i += 2;
+            continue;
+        }
+        if let Some(fmt) = a.strip_prefix("-o=").or_else(|| a.strip_prefix("--output-format=")) {
+            output_format = fmt.to_ascii_lowercase();
+            i += 1;
+            continue;
+        }
+        if (a == "-p" || a == "--input-format") && i + 1 < args.len() {
+            input_format = Some(args[i + 1].to_ascii_lowercase());
+            i += 2;
+            continue;
+        }
+        if let Some(fmt) = a.strip_prefix("-p=").or_else(|| a.strip_prefix("--input-format=")) {
+            input_format = Some(fmt.to_ascii_lowercase());
+            i += 1;
             continue;
         }
         if a.starts_with('-') {
+            i += 1;
             continue;
         }
         if filter.is_none() {
@@ -1846,85 +1978,465 @@ fn cmd_yq(
         } else {
             files.push(a.clone());
         }
+        i += 1;
     }
-    let jq_args = vec![filter.unwrap_or_else(|| ".".to_string())];
-    if files.is_empty() {
-        let json_val = if stdin.trim_start().starts_with('{') || stdin.trim_start().starts_with('[') {
-            parse_json_stream(stdin).ok().and_then(|mut v| v.pop()).unwrap_or(JVal::Null)
-        } else {
-            parse_nested_yaml(stdin)
-        };
-        let json_text = json_val.to_json_string(true, false, 0);
-        return cmd_jq_with_env(&jq_args, &json_text, cwd, env, fs);
+    let mut jq_args = Vec::new();
+    if raw_output {
+        jq_args.push("-r".to_string());
     }
+    if compact_output || output_format == "yaml" {
+        jq_args.push("-c".to_string());
+    }
+    jq_args.push(filter.unwrap_or_else(|| ".".to_string()));
+
     let mut docs = Vec::new();
-    for f in &files {
-        let full = resolve_posix_path(cwd, f);
-        if let Ok(b) = fs.read_file(&full) {
-            let s = String::from_utf8_lossy(&b);
-            let jv = parse_nested_yaml(&s);
+    if files.is_empty() {
+        for jv in parse_yq_input_docs(stdin, input_format.as_deref(), None) {
             docs.push(jv.to_json_string(true, false, 0));
         }
+    } else {
+        for f in &files {
+            let full = resolve_posix_path(cwd, f);
+            if let Ok(b) = fs.read_file(&full) {
+                let s = String::from_utf8_lossy(&b);
+                for jv in parse_yq_input_docs(&s, input_format.as_deref(), Some(f)) {
+                    docs.push(jv.to_json_string(true, false, 0));
+                }
+            }
+        }
     }
-    cmd_jq_with_env(&jq_args, &docs.join("\n"), cwd, env, fs)
+    let outcome = cmd_jq_with_env(&jq_args, &docs.join("\n"), cwd, env, fs);
+    if outcome.exit_code != 0 || raw_output || output_format == "json" {
+        return outcome;
+    }
+    if let Ok(vals) = parse_json_stream(&outcome.stdout) {
+        let mut yaml_docs = Vec::new();
+        for v in vals {
+            yaml_docs.push(jval_to_yaml(&v, 0));
+        }
+        let joined = if yaml_docs.len() > 1 {
+            format!("---\n{}", yaml_docs.join("---\n"))
+        } else {
+            yaml_docs.join("")
+        };
+        return ok_out(&joined);
+    }
+    outcome
+}
+
+fn parse_yq_input_docs(input: &str, fmt: Option<&str>, filename: Option<&str>) -> Vec<JVal> {
+    let is_toml = fmt == Some("toml")
+        || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
+    if is_toml {
+        return vec![parse_toml_to_jval(input)];
+    }
+    let trimmed = input.trim_start();
+    if (trimmed.starts_with('{') || trimmed.starts_with('['))
+        && let Ok(vals) = parse_json_stream(trimmed)
+        && !vals.is_empty()
+    {
+        return vals;
+    }
+    let mut docs = Vec::new();
+    let mut current_doc = String::new();
+    for line in input.lines() {
+        if line.trim() == "---" {
+            if !current_doc.trim().is_empty() {
+                docs.push(parse_nested_yaml(&current_doc));
+                current_doc.clear();
+            }
+        } else {
+            current_doc.push_str(line);
+            current_doc.push('\n');
+        }
+    }
+    if !current_doc.trim().is_empty() {
+        docs.push(parse_nested_yaml(&current_doc));
+    }
+    if docs.is_empty() {
+        docs.push(JVal::Null);
+    }
+    docs
+}
+
+fn jval_to_yaml(val: &JVal, indent: usize) -> String {
+    let pad = " ".repeat(indent);
+    match val {
+        JVal::Null => "null\n".to_string(),
+        JVal::Bool(b) => format!("{b}\n"),
+        JVal::Number(n) => {
+            if n.fract() == 0.0 {
+                format!("{}\n", *n as i64)
+            } else {
+                format!("{n}\n")
+            }
+        }
+        JVal::Str(s) => format!("{s}\n"),
+        JVal::Array(items) => {
+            let mut out = String::new();
+            for item in items {
+                match item {
+                    JVal::Object(_) | JVal::Array(_) => {
+                        out.push_str(&format!("{pad}-\n"));
+                        out.push_str(&jval_to_yaml(item, indent + 2));
+                    }
+                    _ => {
+                        out.push_str(&format!("{pad}- {}", jval_to_yaml(item, 0)));
+                    }
+                }
+            }
+            out
+        }
+        JVal::Object(entries) => {
+            let mut out = String::new();
+            for (k, v) in entries {
+                match v {
+                    JVal::Object(_) | JVal::Array(_) => {
+                        out.push_str(&format!("{pad}{k}:\n"));
+                        out.push_str(&jval_to_yaml(v, indent + 2));
+                    }
+                    _ => {
+                        out.push_str(&format!("{pad}{k}: {}", jval_to_yaml(v, 0)));
+                    }
+                }
+            }
+            out
+        }
+    }
+}
+
+fn parse_toml_to_jval(input: &str) -> JVal {
+    let mut root: Vec<(String, JVal)> = Vec::new();
+    let mut cur_section: Option<(String, bool)> = None;
+
+    for raw_line in input.lines() {
+        let line = raw_line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if let Some(arr_sec) = line.strip_prefix("[[").and_then(|s| s.strip_suffix("]]")) {
+            let sec = arr_sec.trim().to_string();
+            if let Some((_, JVal::Array(arr))) = root.iter_mut().find(|(k, _)| k == &sec) {
+                arr.push(JVal::Object(Vec::new()));
+            } else {
+                root.push((sec.clone(), JVal::Array(vec![JVal::Object(Vec::new())])));
+            }
+            cur_section = Some((sec, true));
+            continue;
+        }
+        if let Some(sec) = line.strip_prefix('[').and_then(|s| s.strip_suffix(']')) {
+            let sec_name = sec.trim().to_string();
+            if !root.iter().any(|(k, _)| k == &sec_name) {
+                root.push((sec_name.clone(), JVal::Object(Vec::new())));
+            }
+            cur_section = Some((sec_name, false));
+            continue;
+        }
+        if let Some((k, v)) = line.split_once('=') {
+            let key = k.trim().trim_matches('"').to_string();
+            let val = parse_toml_value(v.trim());
+            match &cur_section {
+                None => root.push((key, val)),
+                Some((sec_name, false)) => {
+                    if let Some((_, JVal::Object(obj))) =
+                        root.iter_mut().find(|(k, _)| k == sec_name)
+                    {
+                        obj.push((key, val));
+                    }
+                }
+                Some((sec_name, true)) => {
+                    if let Some((_, JVal::Array(arr))) =
+                        root.iter_mut().find(|(k, _)| k == sec_name)
+                        && let Some(JVal::Object(obj)) = arr.last_mut()
+                    {
+                        obj.push((key, val));
+                    }
+                }
+            }
+        }
+    }
+    JVal::Object(root)
+}
+
+fn parse_toml_value(s: &str) -> JVal {
+    let s = s.trim();
+    if let Some(inner) = s.strip_prefix('{').and_then(|v| v.strip_suffix('}')) {
+        let mut entries = Vec::new();
+        for part in split_top_level_comma(inner) {
+            if let Some((k, v)) = part.split_once('=') {
+                entries.push((
+                    k.trim().trim_matches('"').trim_matches('\'').to_string(),
+                    parse_toml_value(v.trim()),
+                ));
+            }
+        }
+        return JVal::Object(entries);
+    }
+    if let Some(inner) = s.strip_prefix('[').and_then(|v| v.strip_suffix(']')) {
+        let items: Vec<JVal> = split_top_level_comma(inner)
+            .into_iter()
+            .filter(|p| !p.trim().is_empty())
+            .map(|p| parse_toml_value(p.trim()))
+            .collect();
+        return JVal::Array(items);
+    }
+    if (s.starts_with('"') && s.ends_with('"')) || (s.starts_with('\'') && s.ends_with('\'')) {
+        return JVal::Str(s[1..s.len() - 1].to_string());
+    }
+    if s == "true" {
+        return JVal::Bool(true);
+    }
+    if s == "false" {
+        return JVal::Bool(false);
+    }
+    if let Ok(n) = s.parse::<f64>() {
+        return JVal::Number(n);
+    }
+    JVal::Str(s.to_string())
+}
+
+fn split_top_level_comma(s: &str) -> Vec<&str> {
+    let mut out = Vec::new();
+    let mut depth = 0i32;
+    let mut in_quotes = false;
+    let mut start = 0usize;
+    for (i, c) in s.char_indices() {
+        if c == '"' {
+            in_quotes = !in_quotes;
+        } else if !in_quotes {
+            match c {
+                '[' | '{' | '(' => depth += 1,
+                ']' | '}' | ')' => depth -= 1,
+                ',' if depth == 0 => {
+                    out.push(&s[start..i]);
+                    start = i + 1;
+                }
+                _ => {}
+            }
+        }
+    }
+    if start <= s.len() {
+        out.push(&s[start..]);
+    }
+    out
 }
 
 fn parse_nested_yaml(input: &str) -> JVal {
+    let trimmed = input.trim_start();
+    if (trimmed.starts_with('{') || trimmed.starts_with('['))
+        && let Ok(mut vals) = parse_json_stream(trimmed)
+        && let Some(first) = vals.drain(..).next()
+    {
+        return first;
+    }
     let lines: Vec<(usize, &str)> = input
         .lines()
         .filter_map(|l| {
-            let trimmed = l.trim();
-            if trimmed.is_empty() || trimmed.starts_with('#') {
+            let trimmed = l.trim_end();
+            let stripped = trimmed.trim_start();
+            if stripped.is_empty() || stripped.starts_with('#') || stripped == "---" {
                 None
             } else {
-                let indent = l.len() - l.trim_start().len();
-                Some((indent, trimmed))
+                let indent = trimmed.len() - stripped.len();
+                Some((indent, stripped))
             }
         })
         .collect();
     let mut idx = 0usize;
-    parse_yaml_block(&lines, &mut idx, 0)
+    let mut anchors = BTreeMap::new();
+    parse_yaml_block(&lines, &mut idx, 0, &mut anchors)
 }
 
-fn parse_yaml_block(lines: &[(usize, &str)], idx: &mut usize, min_indent: usize) -> JVal {
+fn parse_yaml_scalar(raw: &str, anchors: &mut BTreeMap<String, JVal>) -> JVal {
+    let mut s = raw.trim();
+    let mut anchor_name: Option<String> = None;
+    if let Some(rest) = s.strip_prefix('&') {
+        let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
+        anchor_name = Some(rest[..end].to_string());
+        s = rest[end..].trim();
+    }
+    if let Some(alias) = s.strip_prefix('*') {
+        return anchors.get(alias.trim()).cloned().unwrap_or(JVal::Null);
+    }
+    let val = if let Some(inner) = s.strip_prefix('{').and_then(|v| v.strip_suffix('}')) {
+        let mut entries = Vec::new();
+        for part in split_top_level_comma(inner) {
+            if let Some((k, v)) = part.split_once(':') {
+                let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
+                entries.push((key, parse_yaml_scalar(v.trim(), anchors)));
+            }
+        }
+        JVal::Object(entries)
+    } else if let Some(inner) = s.strip_prefix('[').and_then(|v| v.strip_suffix(']')) {
+        let items = split_top_level_comma(inner)
+            .into_iter()
+            .filter(|p| !p.trim().is_empty())
+            .map(|p| parse_yaml_scalar(p.trim(), anchors))
+            .collect();
+        JVal::Array(items)
+    } else {
+        let clean = s.trim_matches('"').trim_matches('\'');
+        if clean == "true" {
+            JVal::Bool(true)
+        } else if clean == "false" {
+            JVal::Bool(false)
+        } else if clean == "null" || clean == "~" {
+            JVal::Null
+        } else if !s.starts_with('"') && !s.starts_with('\'') && let Ok(n) = clean.parse::<f64>() {
+            JVal::Number(n)
+        } else {
+            JVal::Str(clean.to_string())
+        }
+    };
+    if let Some(aname) = anchor_name {
+        anchors.insert(aname, val.clone());
+    }
+    val
+}
+
+fn parse_yaml_block(
+    lines: &[(usize, &str)],
+    idx: &mut usize,
+    min_indent: usize,
+    anchors: &mut BTreeMap<String, JVal>,
+) -> JVal {
+    if *idx < lines.len() && lines[*idx].0 >= min_indent {
+        let first_text = lines[*idx].1;
+        if first_text == "-" || first_text.starts_with("- ") {
+            let list_indent = lines[*idx].0;
+            let mut arr = Vec::new();
+            while *idx < lines.len() {
+                let (indent, text) = lines[*idx];
+                if indent < list_indent || !(text == "-" || text.starts_with("- ")) {
+                    break;
+                }
+                let after_dash = text.strip_prefix('-').unwrap_or("").trim();
+                *idx += 1;
+                if after_dash.is_empty() {
+                    if *idx < lines.len() && lines[*idx].0 > indent {
+                        let child_indent = lines[*idx].0;
+                        arr.push(parse_yaml_block(lines, idx, child_indent, anchors));
+                    } else {
+                        arr.push(JVal::Null);
+                    }
+                } else if let Some((k, v)) = after_dash.split_once(':') {
+                    let mut item_map = Vec::new();
+                    let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
+                    let val_s = v.trim();
+                    let first_val = parse_yaml_key_value(lines, idx, indent, val_s, anchors);
+                    item_map.push((key, first_val));
+                    if *idx < lines.len() && lines[*idx].0 > indent {
+                        let child_indent = lines[*idx].0;
+                        if let JVal::Object(more) =
+                            parse_yaml_block(lines, idx, child_indent, anchors)
+                        {
+                            item_map.extend(more);
+                        }
+                    }
+                    arr.push(JVal::Object(item_map));
+                } else {
+                    arr.push(parse_yaml_scalar(after_dash, anchors));
+                }
+            }
+            return JVal::Array(arr);
+        }
+    }
+
     let mut map = Vec::new();
     while *idx < lines.len() {
         let (indent, text) = lines[*idx];
-        if indent < min_indent {
+        if indent < min_indent || text == "-" || text.starts_with("- ") {
             break;
         }
         if let Some((k, v)) = text.split_once(':') {
             let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
             let val_s = v.trim();
             *idx += 1;
-            if val_s.is_empty() {
-                if *idx < lines.len() && lines[*idx].0 > indent {
-                    let child_indent = lines[*idx].0;
-                    let child = parse_yaml_block(lines, idx, child_indent);
-                    map.push((key, child));
-                } else {
-                    map.push((key, JVal::Null));
-                }
-            } else {
-                let clean = val_s.trim_matches('"').trim_matches('\'');
-                let jv = if clean == "true" {
-                    JVal::Bool(true)
-                } else if clean == "false" {
-                    JVal::Bool(false)
-                } else if clean == "null" {
-                    JVal::Null
-                } else if let Ok(n) = clean.parse::<f64>() {
-                    JVal::Number(n)
-                } else {
-                    JVal::Str(clean.to_string())
-                };
-                map.push((key, jv));
-            }
+            let val = parse_yaml_key_value(lines, idx, indent, val_s, anchors);
+            map.push((key, val));
         } else {
             *idx += 1;
         }
     }
     JVal::Object(map)
+}
+
+fn parse_yaml_key_value(
+    lines: &[(usize, &str)],
+    idx: &mut usize,
+    parent_indent: usize,
+    val_s: &str,
+    anchors: &mut BTreeMap<String, JVal>,
+) -> JVal {
+    if val_s == "|" || val_s == ">" {
+        let mut block_lines = Vec::new();
+        let mut block_indent: Option<usize> = None;
+        while *idx < lines.len() && lines[*idx].0 > parent_indent {
+            let (li, lt) = lines[*idx];
+            let base = *block_indent.get_or_insert(li);
+            let extra = " ".repeat(li.saturating_sub(base));
+            block_lines.push(format!("{extra}{lt}"));
+            *idx += 1;
+        }
+        let sep = if val_s == ">" { " " } else { "\n" };
+        return JVal::Str(format!("{}\n", block_lines.join(sep)));
+    }
+    if val_s.is_empty() || (val_s.starts_with('&') && !val_s.contains(' ')) {
+        let anchor = val_s.strip_prefix('&').map(|s| s.trim().to_string());
+        let child = if *idx < lines.len() && lines[*idx].0 > parent_indent {
+            let child_indent = lines[*idx].0;
+            parse_yaml_block(lines, idx, child_indent, anchors)
+        } else {
+            JVal::Null
+        };
+        if let Some(a) = anchor {
+            anchors.insert(a, child.clone());
+        }
+        return child;
+    }
+    parse_yaml_scalar(val_s, anchors)
+}
+
+fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut files = Vec::new();
+    for a in args {
+        if !a.starts_with('-') {
+            files.push(a.clone());
+        }
+    }
+    let text = match read_csv_input(&files, stdin, cwd, fs) {
+        Ok(t) => t,
+        Err(e) => return err_out(&format!("unrtf: {e}"), 1),
+    };
+    let mut out = String::new();
+    let chars: Vec<char> = text.chars().collect();
+    let mut i = 0usize;
+    while i < chars.len() {
+        match chars[i] {
+            '{' | '}' => {
+                i += 1;
+            }
+            '\\' => {
+                i += 1;
+                let start = i;
+                while i < chars.len() && chars[i].is_ascii_alphanumeric() {
+                    i += 1;
+                }
+                let word: String = chars[start..i].iter().collect();
+                if i < chars.len() && chars[i] == ' ' {
+                    i += 1;
+                }
+                if word == "par" || word == "line" {
+                    out.push('\n');
+                }
+            }
+            c => {
+                out.push(c);
+                i += 1;
+            }
+        }
+    }
+    ok_out(&out)
 }
 
 fn parse_csv_rows(text: &str, delim: char) -> Vec<Vec<String>> {
@@ -2355,13 +2867,14 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut xpath: Option<String> = None;
     let mut noout = false;
+    let mut format_xml = false;
     let mut files = Vec::new();
 
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
             "--noout" => noout = true,
-            "--format" => {}
+            "--format" => format_xml = true,
             "--xpath" if i + 1 < args.len() => {
                 i += 1;
                 xpath = Some(args[i].clone());
@@ -2404,8 +2917,40 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             return ok_out("\n");
         }
-        let want_text = xp.ends_with("/text()");
-        let clean = xp
+        let want_text = xp.starts_with("string(") || inner_xp.ends_with("/text()");
+        let mut search_scope = text.as_str();
+        for seg in inner_xp.trim_start_matches('/').split('/') {
+            if let Some(bracket_pos) = seg.find("[@")
+                && let Some(end_bracket) = seg[bracket_pos..].find(']')
+            {
+                let ptag = &seg[..bracket_pos];
+                let pred = &seg[bracket_pos + 2..bracket_pos + end_bracket];
+                if let Some((attr_k, attr_v)) = pred.split_once('=') {
+                    let clean_v = attr_v.trim().trim_matches('"').trim_matches('\'');
+                    let open_pat = format!("<{ptag}");
+                    let close_pat = format!("</{ptag}>");
+                    let attr_pat = format!("{}=\"{clean_v}\"", attr_k.trim());
+                    let mut cur = search_scope;
+                    while let Some(p) = cur.find(&open_pat) {
+                        let after = &cur[p..];
+                        if let Some(cpos) = after.find(&close_pat) {
+                            let elem = &after[..cpos + close_pat.len()];
+                            if let Some(gt) = elem.find('>')
+                                && elem[..gt].contains(&attr_pat)
+                            {
+                                search_scope = elem;
+                                break;
+                            }
+                            cur = &after[cpos + close_pat.len()..];
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        let clean = inner_xp
             .trim_end_matches("/text()")
             .trim_start_matches('/')
             .split('/')
@@ -2415,7 +2960,7 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         let open_tag = format!("<{tag}");
         let close_tag = format!("</{tag}>");
         let mut results = Vec::new();
-        let mut rest = text.as_str();
+        let mut rest = search_scope;
         while let Some(pos) = rest.find(&open_tag) {
             let after_open = &rest[pos..];
             if let Some(end_pos) = after_open.find(&close_tag) {
@@ -2438,6 +2983,9 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 
     if noout {
         return ok_out("");
+    }
+    if format_xml && !text.trim_start().starts_with("<?xml") {
+        return ok_out(&format!("<?xml version=\"1.0\"?>\n{text}"));
     }
     ok_out(&text)
 }
@@ -2669,8 +3217,12 @@ fn exec_sql_select(
 ) -> String {
     let upper = stmt.to_ascii_uppercase();
     let Some(from_pos) = upper.find(" FROM ") else {
-        let expr = stmt[6..].trim().trim_matches('\'').trim_matches('"');
-        return format!("{expr}\n");
+        let raw_exprs = split_top_level_comma(&stmt[6..]);
+        let vals: Vec<String> = raw_exprs
+            .into_iter()
+            .map(|e| eval_sql_scalar_expr(e.trim()))
+            .collect();
+        return format!("{}\n", vals.join(sep));
     };
     let select_part = stmt[6..from_pos].trim();
     let after_from = &stmt[from_pos + 6..];
@@ -2821,6 +3373,50 @@ fn exec_sql_select(
     out
 }
 
+fn eval_sql_scalar_expr(expr: &str) -> String {
+    let s = expr.trim();
+    let upper = s.to_ascii_uppercase();
+    if upper.starts_with("LENGTH(") && s.ends_with(')') {
+        let inner = eval_sql_scalar_expr(&s[7..s.len() - 1]);
+        return inner.chars().count().to_string();
+    }
+    if upper.starts_with("SUBSTR(") && s.ends_with(')') {
+        let parts = split_top_level_comma(&s[7..s.len() - 1]);
+        if parts.len() >= 2 {
+            let text = eval_sql_scalar_expr(parts[0]);
+            let start = parts[1]
+                .trim()
+                .parse::<usize>()
+                .unwrap_or(1)
+                .saturating_sub(1);
+            let chs: Vec<char> = text.chars().collect();
+            if start >= chs.len() {
+                return String::new();
+            }
+            if parts.len() >= 3 {
+                let len = parts[2].trim().parse::<usize>().unwrap_or(0);
+                return chs[start..(start + len).min(chs.len())].iter().collect();
+            }
+            return chs[start..].iter().collect();
+        }
+    }
+    if upper.starts_with("HEX(") && s.ends_with(')') {
+        let inner = eval_sql_scalar_expr(&s[4..s.len() - 1]);
+        let mut hex = String::new();
+        for b in inner.as_bytes() {
+            hex.push_str(&format!("{b:02X}"));
+        }
+        return hex;
+    }
+    if upper.starts_with("CAST(") && s.ends_with(')') {
+        let inner = &s[5..s.len() - 1];
+        if let Some(as_pos) = inner.to_ascii_uppercase().find(" AS ") {
+            return eval_sql_scalar_expr(&inner[..as_pos]);
+        }
+    }
+    s.trim_matches('\'').trim_matches('"').to_string()
+}
+
 fn eval_sql_where(clause: &str, columns: &[String], row: &[String]) -> bool {
     for op in ["!=", ">=", "<=", "=", ">", "<"] {
         if let Some((lhs, rhs)) = clause.split_once(op) {
@@ -2865,6 +3461,9 @@ fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut file: Option<String> = None;
     let mut attr: Option<String> = None;
+    let mut remove_nodes: Vec<String> = Vec::new();
+    let mut text_only = false;
+    let mut selector: Option<String> = None;
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
@@ -2872,27 +3471,90 @@ fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 i += 1;
                 file = Some(args[i].clone());
             }
-            "-a" | "--attribute" if i + 1 < args.len() => {
+            "-a" | "--attribute" | "--attributes" if i + 1 < args.len() => {
                 i += 1;
                 attr = Some(args[i].clone());
+            }
+            "-r" | "--remove-nodes" if i + 1 < args.len() => {
+                i += 1;
+                remove_nodes.push(args[i].clone());
+            }
+            "-t" | "--text" => {
+                text_only = true;
+            }
+            a if !a.starts_with('-') => {
+                selector = Some(a.to_string());
             }
             _ => {}
         }
         i += 1;
     }
-    let html = if let Some(f) = file {
+    let mut html = if let Some(f) = file {
         let full = resolve_posix_path(cwd, &f);
         fs.read_file(&full).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default()
     } else {
         stdin.to_string()
     };
+    for rm in &remove_nodes {
+        if let Some(cls) = rm.strip_prefix('.') {
+            let needle = format!("class=\"{cls}\"");
+            while let Some(pos) = html.find(&needle) {
+                if let Some(open_lt) = html[..pos].rfind('<') {
+                    let tag_part = &html[open_lt + 1..pos];
+                    let tag_name = tag_part.split_whitespace().next().unwrap_or("");
+                    let close_pat = format!("</{tag_name}>");
+                    if let Some(close_rel) = html[pos..].find(&close_pat) {
+                        let end_idx = pos + close_rel + close_pat.len();
+                        html.replace_range(open_lt..end_idx, "");
+                        continue;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    let mut target_slice = html.as_str();
+    if let Some(ref sel) = selector {
+        let last_tag = sel
+            .split(|c: char| c.is_whitespace() || c == '>')
+            .rfind(|s| !s.is_empty())
+            .unwrap_or("");
+        if !last_tag.is_empty() && !last_tag.starts_with('.') && !last_tag.starts_with('#') {
+            let open_pat = format!("<{last_tag}");
+            let close_pat = format!("</{last_tag}>");
+            if let Some(p) = target_slice.find(&open_pat) {
+                let after = &target_slice[p..];
+                if let Some(cpos) = after.find(&close_pat) {
+                    target_slice = &after[..cpos + close_pat.len()];
+                }
+            }
+        }
+    }
     if let Some(at) = attr {
         let needle = format!("{at}=\"");
-        if let Some(pos) = html.find(&needle) {
-            let rest = &html[pos + needle.len()..];
+        if let Some(pos) = target_slice.find(&needle) {
+            let rest = &target_slice[pos + needle.len()..];
             if let Some(end) = rest.find('"') {
                 return ok_out(&format!("{}\n", &rest[..end]));
             }
+        }
+    }
+    if text_only || selector.is_some() {
+        let mut stripped = String::new();
+        let mut in_tag = false;
+        for c in target_slice.chars() {
+            if c == '<' {
+                in_tag = true;
+            } else if c == '>' {
+                in_tag = false;
+                stripped.push(' ');
+            } else if !in_tag {
+                stripped.push(c);
+            }
+        }
+        let collapsed = stripped.split_whitespace().collect::<Vec<_>>().join(" ");
+        if !collapsed.is_empty() {
+            return ok_out(&format!("{collapsed}\n"));
         }
     }
     ok_out("Fast shell\n")
@@ -2999,4 +3661,28 @@ fn eval_jq_interpolated_string(
         }
     }
     Ok(out)
+}
+
+fn encode_base64_str(bytes: &[u8]) -> String {
+    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::new();
+    for chunk in bytes.chunks(3) {
+        let b0 = chunk[0] as u32;
+        let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
+        let b2 = if chunk.len() > 2 { chunk[2] as u32 } else { 0 };
+        let n = (b0 << 16) | (b1 << 8) | b2;
+        out.push(TABLE[((n >> 18) & 0x3f) as usize] as char);
+        out.push(TABLE[((n >> 12) & 0x3f) as usize] as char);
+        if chunk.len() > 1 {
+            out.push(TABLE[((n >> 6) & 0x3f) as usize] as char);
+        } else {
+            out.push('=');
+        }
+        if chunk.len() > 2 {
+            out.push(TABLE[(n & 0x3f) as usize] as char);
+        } else {
+            out.push('=');
+        }
+    }
+    out
 }

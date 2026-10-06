@@ -17,7 +17,7 @@ pub fn try_run_coreutil(
         "cat" => Some(cmd_cat(args, stdin, cwd, fs)),
         "head" => Some(cmd_head(args, stdin, cwd, fs)),
         "tail" => Some(cmd_tail(args, stdin, cwd, fs)),
-        "wc" => Some(cmd_wc(args, stdin, cwd, fs)),
+        "wc" => Some(cmd_wc(args, stdin, cwd, env, fs)),
         "sort" => Some(cmd_sort(args, stdin, cwd, fs)),
         "uniq" => Some(cmd_uniq(args, stdin, cwd, fs)),
         "cut" => Some(cmd_cut(args, stdin, cwd, fs)),
@@ -31,6 +31,7 @@ pub fn try_run_coreutil(
         "getopt" => Some(cmd_getopt(args)),
         "dos2unix" => Some(cmd_dos2unix(args, stdin, cwd, fs, false)),
         "unix2dos" => Some(cmd_dos2unix(args, stdin, cwd, fs, true)),
+        "iconv" => Some(cmd_iconv(args, stdin, cwd, fs)),
         "tee" => Some(cmd_tee(args, stdin, cwd, fs)),
         "sponge" => Some(cmd_sponge(args, stdin, cwd, fs)),
         "seq" => Some(cmd_seq(args)),
@@ -38,7 +39,14 @@ pub fn try_run_coreutil(
         "basename" => Some(cmd_basename(args)),
         "dirname" => Some(cmd_dirname(args)),
         "env" | "printenv" => Some(cmd_printenv(args, env)),
-        "envsubst" => Some(cmd_envsubst(stdin, env)),
+        "envsubst" => Some(cmd_envsubst(args, stdin, env)),
+        "date" => Some(cmd_date(args)),
+        "cal" => Some(cmd_cal(args)),
+        "getconf" => Some(cmd_getconf(args, cwd, fs)),
+        "locale" => Some(cmd_locale(args, env)),
+        "less" | "more" => Some(cmd_cat(args, stdin, cwd, fs)),
+        "pathchk" => Some(cmd_pathchk(args)),
+        "df" => Some(cmd_df(args)),
         "expr" => Some(cmd_expr(args)),
         "bc" => Some(cmd_bc(args, stdin, cwd, fs)),
         "numfmt" => Some(cmd_numfmt(args, stdin)),
@@ -406,7 +414,7 @@ fn cmd_tail(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
 
     if let Some((bc, from_start)) = bytes_limit {
-        let bytes = text.as_bytes();
+        let bytes = crate::vfs::stream_string_to_bytes(&text);
         let slice = if from_start {
             let start = bc.saturating_sub(1).min(bytes.len());
             &bytes[start..]
@@ -414,7 +422,7 @@ fn cmd_tail(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             let start = bytes.len().saturating_sub(bc);
             &bytes[start..]
         };
-        return ok_out(&String::from_utf8_lossy(slice));
+        return ok_out(&crate::vfs::bytes_to_stream_string(slice));
     }
 
     let (n, from_start) = lines_limit.unwrap_or((10, false));
@@ -449,15 +457,26 @@ fn parse_size_mult(s: &str) -> usize {
     base.saturating_mul(mult)
 }
 
-fn cmd_wc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_wc(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut show_l = false;
     let mut show_w = false;
     let mut show_c = false;
     let mut show_m = false;
     let mut show_max_l = false;
+    let mut inline_c_locale = false;
     let mut files = Vec::new();
 
     for a in args {
+        if a == "LC_ALL=C" || a == "LC_ALL=POSIX" {
+            inline_c_locale = true;
+            continue;
+        }
         if a.starts_with('-') && a.len() > 1 && !a.starts_with("--") {
             for ch in a[1..].chars() {
                 match ch {
@@ -490,11 +509,16 @@ fn cmd_wc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         show_c = true;
     }
 
+    let is_c_locale = inline_c_locale
+        || matches!(
+            env.get("LC_ALL").or_else(|| env.get("LANG")).map(|s| s.as_str()),
+            Some("C") | Some("POSIX")
+        );
     let count_one = |s: &str| -> (usize, usize, usize, usize, usize) {
         let l = s.bytes().filter(|&b| b == b'\n').count();
         let w = s.split_whitespace().count();
         let c = stream_string_to_bytes(s).len();
-        let m = s.chars().count();
+        let m = if is_c_locale { c } else { s.chars().count() };
         let max_l = s.lines().map(|line| line.chars().count()).max().unwrap_or(0);
         (l, w, c, m, max_l)
     };
@@ -977,6 +1001,7 @@ fn cmd_cut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut out_delim: Option<String> = None;
     let mut fields_spec = String::new();
     let mut chars_spec = String::new();
+    let mut bytes_mode = false;
     let mut only_delimited = false;
     let mut complement = false;
     let mut files = Vec::new();
@@ -1005,6 +1030,9 @@ fn cmd_cut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if a == "-f" {
                 fields_spec = args[i + 1].clone();
             } else {
+                if a == "-b" {
+                    bytes_mode = true;
+                }
                 chars_spec = args[i + 1].clone();
             }
             i += 2;
@@ -1016,6 +1044,9 @@ fn cmd_cut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else if let Some(rest) = a.strip_prefix("-c").or_else(|| a.strip_prefix("-b"))
             && !rest.is_empty()
         {
+            if a.starts_with("-b") {
+                bytes_mode = true;
+            }
             chars_spec = rest.to_string();
             i += 1;
         } else if a == "-s" || a == "--only-delimited" {
@@ -1069,11 +1100,23 @@ fn cmd_cut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut out = String::new();
     for line in text.lines() {
         if !chars_spec.is_empty() {
-            let chs: Vec<char> = line.chars().collect();
-            let idxs = parse_ranges(&chars_spec, chs.len(), complement);
-            for idx in idxs {
-                if let Some(&c) = chs.get(idx) {
-                    out.push(c);
+            if bytes_mode {
+                let raw = crate::vfs::stream_string_to_bytes(line);
+                let idxs = parse_ranges(&chars_spec, raw.len(), complement);
+                let mut picked = Vec::new();
+                for idx in idxs {
+                    if let Some(&b) = raw.get(idx) {
+                        picked.push(b);
+                    }
+                }
+                out.push_str(&crate::vfs::bytes_to_stream_string(&picked));
+            } else {
+                let chs: Vec<char> = line.chars().collect();
+                let idxs = parse_ranges(&chars_spec, chs.len(), complement);
+                for idx in idxs {
+                    if let Some(&c) = chs.get(idx) {
+                        out.push(c);
+                    }
                 }
             }
             out.push('\n');
@@ -1559,17 +1602,96 @@ fn cmd_sponge(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 }
 
+fn format_seq_num(fmt_opt: Option<&str>, val: f64, width: usize, equal_width: bool, decimals: usize) -> String {
+    if let Some(fmt) = fmt_opt {
+        if let Some(pct) = fmt.find('%') {
+            let before = &fmt[..pct];
+            let rest = &fmt[pct + 1..];
+            let zero_pad = rest.starts_with('0');
+            let mut idx = 0usize;
+            let bytes = rest.as_bytes();
+            while idx < bytes.len() && bytes[idx].is_ascii_digit() {
+                idx += 1;
+            }
+            let w = rest[..idx].parse::<usize>().unwrap_or(0);
+            let mut prec: Option<usize> = None;
+            if idx < bytes.len() && bytes[idx] == b'.' {
+                idx += 1;
+                let p_start = idx;
+                while idx < bytes.len() && bytes[idx].is_ascii_digit() {
+                    idx += 1;
+                }
+                prec = rest[p_start..idx].parse::<usize>().ok();
+            }
+            let conv = if idx < bytes.len() { bytes[idx] as char } else { 'g' };
+            let after = if idx < bytes.len() { &rest[idx + 1..] } else { "" };
+            let num_str = match (conv, prec) {
+                ('f' | 'F', Some(p)) => format!("{val:.p$}"),
+                ('f' | 'F', None) => format!("{val:.6}"),
+                (_, Some(p)) => format!("{val:.p$}"),
+                _ => {
+                    if decimals == 0 && (val - val.round()).abs() < 1e-9 {
+                        let iv = val.round() as i64;
+                        if zero_pad && w > 0 {
+                            format!("{iv:0w$}")
+                        } else if w > 0 {
+                            format!("{iv:w$}")
+                        } else {
+                            iv.to_string()
+                        }
+                    } else {
+                        format!("{val:.decimals$}")
+                    }
+                }
+            };
+            let padded = if zero_pad && w > num_str.len() && !num_str.starts_with('-') {
+                format!("{}{num_str}", "0".repeat(w - num_str.len()))
+            } else if w > num_str.len() {
+                format!("{num_str:>w$}")
+            } else {
+                num_str
+            };
+            return format!("{before}{padded}{after}");
+        }
+    }
+    if decimals == 0 {
+        let iv = val.round() as i64;
+        if equal_width {
+            format!("{iv:0width$}")
+        } else {
+            iv.to_string()
+        }
+    } else {
+        let rendered = format!("{val:.decimals$}");
+        if equal_width && width > rendered.len() {
+            format!("{}{rendered}", "0".repeat(width - rendered.len()))
+        } else {
+            rendered
+        }
+    }
+}
+
 fn cmd_seq(args: &[String]) -> BuiltinOutcome {
     let mut sep = "\n".to_string();
+    let mut fmt_str: Option<String> = None;
     let mut equal_width = false;
     let mut nums = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-s" && i + 1 < args.len() {
+        if (a == "-s" || a == "--separator") && i + 1 < args.len() {
             sep = args[i + 1].clone();
             i += 2;
-        } else if a == "-w" {
+        } else if let Some(rest) = a.strip_prefix("--separator=").or_else(|| a.strip_prefix("-s")) && !rest.is_empty() {
+            sep = rest.to_string();
+            i += 1;
+        } else if (a == "-f" || a == "--format") && i + 1 < args.len() {
+            fmt_str = Some(args[i + 1].clone());
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--format=").or_else(|| a.strip_prefix("-f")) && !rest.is_empty() {
+            fmt_str = Some(rest.to_string());
+            i += 1;
+        } else if a == "-w" || a == "--equal-width" {
             equal_width = true;
             i += 1;
         } else {
@@ -1577,21 +1699,26 @@ fn cmd_seq(args: &[String]) -> BuiltinOutcome {
             i += 1;
         }
     }
+    let decimals = nums
+        .iter()
+        .map(|n| n.split_once('.').map(|(_, frac)| frac.len()).unwrap_or(0))
+        .max()
+        .unwrap_or(0);
     let (first, step, last) = match nums.len() {
-        1 => (1i64, 1i64, nums[0].parse::<i64>().unwrap_or(1)),
+        1 => (1.0f64, 1.0f64, nums[0].parse::<f64>().unwrap_or(1.0)),
         2 => (
-            nums[0].parse::<i64>().unwrap_or(1),
-            1i64,
-            nums[1].parse::<i64>().unwrap_or(1),
+            nums[0].parse::<f64>().unwrap_or(1.0),
+            1.0f64,
+            nums[1].parse::<f64>().unwrap_or(1.0),
         ),
         3 => (
-            nums[0].parse::<i64>().unwrap_or(1),
-            nums[1].parse::<i64>().unwrap_or(1),
-            nums[2].parse::<i64>().unwrap_or(1),
+            nums[0].parse::<f64>().unwrap_or(1.0),
+            nums[1].parse::<f64>().unwrap_or(1.0),
+            nums[2].parse::<f64>().unwrap_or(1.0),
         ),
         _ => return ok_out(""),
     };
-    if step == 0 {
+    if step == 0.0 {
         return err_out("seq: zero increment\n", 1);
     }
     let width = if equal_width {
@@ -1600,14 +1727,17 @@ fn cmd_seq(args: &[String]) -> BuiltinOutcome {
         0
     };
     let mut items = Vec::new();
-    let mut cur = first;
-    while (step > 0 && cur <= last) || (step < 0 && cur >= last) {
-        if equal_width {
-            items.push(format!("{cur:0width$}"));
-        } else {
-            items.push(cur.to_string());
+    let mut idx = 0usize;
+    loop {
+        let cur = first + (idx as f64) * step;
+        if (step > 0.0 && cur > last + 1e-9) || (step < 0.0 && cur < last - 1e-9) {
+            break;
         }
-        cur += step;
+        items.push(format_seq_num(fmt_str.as_deref(), cur, width, equal_width, decimals));
+        idx += 1;
+        if idx > 100_000 {
+            break;
+        }
     }
     if items.is_empty() {
         ok_out("")
@@ -1695,7 +1825,65 @@ fn cmd_printenv(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutco
     }
 }
 
-fn cmd_envsubst(stdin: &str, env: &BTreeMap<String, String>) -> BuiltinOutcome {
+fn extract_envsubst_vars(spec: &str) -> Vec<String> {
+    let mut vars = Vec::new();
+    let mut chars = spec.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '$' {
+            if chars.peek() == Some(&'{') {
+                chars.next();
+                let mut name = String::new();
+                for nc in chars.by_ref() {
+                    if nc == '}' {
+                        break;
+                    }
+                    name.push(nc);
+                }
+                if !name.is_empty() {
+                    vars.push(name);
+                }
+            } else {
+                let mut name = String::new();
+                while let Some(&nc) = chars.peek() {
+                    if nc.is_ascii_alphanumeric() || nc == '_' {
+                        name.push(chars.next().unwrap());
+                    } else {
+                        break;
+                    }
+                }
+                if !name.is_empty() {
+                    vars.push(name);
+                }
+            }
+        }
+    }
+    vars
+}
+
+fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) -> BuiltinOutcome {
+    let mut list_vars = false;
+    let mut shell_format: Option<String> = None;
+    for a in args {
+        if a == "-v" || a == "--variables" {
+            list_vars = true;
+        } else if !a.starts_with('-') {
+            shell_format = Some(a.clone());
+        }
+    }
+    if list_vars {
+        let src = shell_format.as_deref().unwrap_or(stdin);
+        let vars = extract_envsubst_vars(src);
+        let mut out = String::new();
+        for v in vars {
+            out.push_str(&v);
+            out.push('\n');
+        }
+        return ok_out(&out);
+    }
+    let whitelist: Option<BTreeSet<String>> = shell_format
+        .as_deref()
+        .map(|sf| extract_envsubst_vars(sf).into_iter().collect());
+
     let mut out = String::with_capacity(stdin.len());
     let mut chars = stdin.chars().peekable();
     while let Some(c) = chars.next() {
@@ -1709,8 +1897,13 @@ fn cmd_envsubst(stdin: &str, env: &BTreeMap<String, String>) -> BuiltinOutcome {
                     }
                     name.push(nc);
                 }
-                if let Some(v) = env.get(&name) {
-                    out.push_str(v);
+                let allowed = whitelist.as_ref().map(|w| w.contains(&name)).unwrap_or(true);
+                if allowed {
+                    if let Some(v) = env.get(&name) {
+                        out.push_str(v);
+                    }
+                } else {
+                    out.push_str(&format!("${{{name}}}"));
                 }
             } else {
                 let mut name = String::new();
@@ -1723,8 +1916,16 @@ fn cmd_envsubst(stdin: &str, env: &BTreeMap<String, String>) -> BuiltinOutcome {
                 }
                 if name.is_empty() {
                     out.push('$');
-                } else if let Some(v) = env.get(&name) {
-                    out.push_str(v);
+                } else {
+                    let allowed = whitelist.as_ref().map(|w| w.contains(&name)).unwrap_or(true);
+                    if allowed {
+                        if let Some(v) = env.get(&name) {
+                            out.push_str(v);
+                        }
+                    } else {
+                        out.push('$');
+                        out.push_str(&name);
+                    }
                 }
             }
         } else {
@@ -1738,33 +1939,190 @@ fn cmd_expr(args: &[String]) -> BuiltinOutcome {
     if args.is_empty() {
         return err_out("expr: missing operand\n", 2);
     }
-    if args.len() == 2 && args[0] == "length" {
-        let len = args[1].chars().count();
-        return BuiltinOutcome {
-            stdout: format!("{len}\n"),
-            stderr: String::new(),
-            exit_code: if len == 0 { 1 } else { 0 },
+    let mut pos = 0usize;
+    match eval_expr_or(args, &mut pos) {
+        Ok(res) => {
+            let is_zero = res == "0" || res.is_empty();
+            BuiltinOutcome {
+                stdout: format!("{res}\n"),
+                stderr: String::new(),
+                exit_code: if is_zero { 1 } else { 0 },
+            }
+        }
+        Err((msg, code)) => err_out(&msg, code),
+    }
+}
+
+fn is_expr_truthy(v: &str) -> bool {
+    !v.is_empty() && v != "0"
+}
+
+fn eval_expr_or(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_and(args, pos)?;
+    while *pos < args.len() && args[*pos] == "|" {
+        *pos += 1;
+        let right = eval_expr_and(args, pos)?;
+        if !is_expr_truthy(&left) {
+            left = if is_expr_truthy(&right) { right } else { "0".to_string() };
+        }
+    }
+    Ok(left)
+}
+
+fn eval_expr_and(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_cmp(args, pos)?;
+    while *pos < args.len() && args[*pos] == "&" {
+        *pos += 1;
+        let right = eval_expr_cmp(args, pos)?;
+        if !(is_expr_truthy(&left) && is_expr_truthy(&right)) {
+            left = "0".to_string();
+        }
+    }
+    Ok(left)
+}
+
+fn eval_expr_cmp(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_add(args, pos)?;
+    while *pos < args.len() && matches!(args[*pos].as_str(), "=" | "==" | "!=" | "<" | "<=" | ">" | ">=") {
+        let op = args[*pos].clone();
+        *pos += 1;
+        let right = eval_expr_add(args, pos)?;
+        let res = if let (Ok(a), Ok(b)) = (left.parse::<i64>(), right.parse::<i64>()) {
+            match op.as_str() {
+                "=" | "==" => a == b,
+                "!=" => a != b,
+                "<" => a < b,
+                "<=" => a <= b,
+                ">" => a > b,
+                ">=" => a >= b,
+                _ => false,
+            }
+        } else {
+            match op.as_str() {
+                "=" | "==" => left == right,
+                "!=" => left != right,
+                "<" => left < right,
+                "<=" => left <= right,
+                ">" => left > right,
+                ">=" => left >= right,
+                _ => false,
+            }
+        };
+        left = if res { "1".to_string() } else { "0".to_string() };
+    }
+    Ok(left)
+}
+
+fn eval_expr_add(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_mul(args, pos)?;
+    while *pos < args.len() && matches!(args[*pos].as_str(), "+" | "-") {
+        let op = args[*pos].clone();
+        *pos += 1;
+        let right = eval_expr_mul(args, pos)?;
+        let a = left.parse::<i64>().unwrap_or(0);
+        let b = right.parse::<i64>().unwrap_or(0);
+        left = if op == "+" { (a + b).to_string() } else { (a - b).to_string() };
+    }
+    Ok(left)
+}
+
+fn eval_expr_mul(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_match(args, pos)?;
+    while *pos < args.len() && matches!(args[*pos].as_str(), "*" | "/" | "%") {
+        let op = args[*pos].clone();
+        *pos += 1;
+        let right = eval_expr_match(args, pos)?;
+        let a = left.parse::<i64>().unwrap_or(0);
+        let b = right.parse::<i64>().unwrap_or(0);
+        left = match op.as_str() {
+            "*" => (a * b).to_string(),
+            "/" => {
+                if b == 0 {
+                    return Err(("expr: division by zero\n".to_string(), 2));
+                }
+                (a / b).to_string()
+            }
+            "%" => {
+                if b == 0 {
+                    return Err(("expr: division by zero\n".to_string(), 2));
+                }
+                (a % b).to_string()
+            }
+            _ => "0".to_string(),
         };
     }
-    if args.len() == 4 && args[0] == "substr" {
-        let s: Vec<char> = args[1].chars().collect();
-        let pos = args[2].parse::<usize>().unwrap_or(0);
-        let len = args[3].parse::<usize>().unwrap_or(0);
-        let sub: String = if pos == 0 || len == 0 || pos > s.len() {
+    Ok(left)
+}
+
+fn eval_expr_colon(lhs: &str, pat: &str) -> String {
+    let has_group = pat.contains("\\(") || pat.contains('(');
+    let anchored = format!("^{}", pat.strip_prefix('^').unwrap_or(pat));
+    if let Some(caps) = crate::commands::search::regex_captures(&anchored, lhs, false) {
+        if has_group {
+            caps.get(1).cloned().unwrap_or_default()
+        } else {
+            caps.first().map(|m| m.chars().count().to_string()).unwrap_or_else(|| "0".to_string())
+        }
+    } else if has_group {
+        String::new()
+    } else {
+        "0".to_string()
+    }
+}
+
+fn eval_expr_match(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_primary(args, pos)?;
+    while *pos < args.len() && args[*pos] == ":" {
+        *pos += 1;
+        let right = eval_expr_primary(args, pos)?;
+        left = eval_expr_colon(&left, &right);
+    }
+    Ok(left)
+}
+
+fn eval_expr_primary(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
+    if *pos >= args.len() {
+        return Err(("expr: syntax error\n".to_string(), 2));
+    }
+    let tok = &args[*pos];
+    if tok == "(" {
+        *pos += 1;
+        let val = eval_expr_or(args, pos)?;
+        if *pos < args.len() && args[*pos] == ")" {
+            *pos += 1;
+        }
+        return Ok(val);
+    }
+    if tok == "length" && *pos + 1 < args.len() {
+        *pos += 1;
+        let s = eval_expr_primary(args, pos)?;
+        return Ok(s.chars().count().to_string());
+    }
+    if tok == "match" && *pos + 2 < args.len() {
+        *pos += 1;
+        let s = eval_expr_primary(args, pos)?;
+        let pat = eval_expr_primary(args, pos)?;
+        return Ok(eval_expr_colon(&s, &pat));
+    }
+    if tok == "substr" && *pos + 3 < args.len() {
+        *pos += 1;
+        let s_str = eval_expr_primary(args, pos)?;
+        let p_str = eval_expr_primary(args, pos)?;
+        let l_str = eval_expr_primary(args, pos)?;
+        let chars: Vec<char> = s_str.chars().collect();
+        let p = p_str.parse::<usize>().unwrap_or(0);
+        let l = l_str.parse::<usize>().unwrap_or(0);
+        let sub: String = if p == 0 || l == 0 || p > chars.len() {
             String::new()
         } else {
-            s[pos - 1..(pos - 1 + len).min(s.len())].iter().collect()
+            chars[p - 1..(p - 1 + l).min(chars.len())].iter().collect()
         };
-        let empty = sub.is_empty();
-        return BuiltinOutcome {
-            stdout: format!("{sub}\n"),
-            stderr: String::new(),
-            exit_code: if empty { 1 } else { 0 },
-        };
+        return Ok(sub);
     }
-    if args.len() == 3 && args[0] == "index" {
-        let s = &args[1];
-        let chars_set = &args[2];
+    if tok == "index" && *pos + 2 < args.len() {
+        *pos += 1;
+        let s = eval_expr_primary(args, pos)?;
+        let chars_set = eval_expr_primary(args, pos)?;
         let mut found = 0usize;
         for (i, ch) in s.chars().enumerate() {
             if chars_set.contains(ch) {
@@ -1772,53 +2130,96 @@ fn cmd_expr(args: &[String]) -> BuiltinOutcome {
                 break;
             }
         }
-        return BuiltinOutcome {
-            stdout: format!("{found}\n"),
-            stderr: String::new(),
-            exit_code: if found == 0 { 1 } else { 0 },
-        };
+        return Ok(found.to_string());
     }
-    if args.len() == 3 {
-        let a = args[0].parse::<i64>().unwrap_or(0);
-        let b = args[2].parse::<i64>().unwrap_or(0);
-        let res = match args[1].as_str() {
-            "+" => (a + b).to_string(),
-            "-" => (a - b).to_string(),
-            "*" => (a * b).to_string(),
-            "/" => {
-                if b == 0 {
-                    return err_out("expr: division by zero\n", 2);
-                }
-                (a / b).to_string()
-            }
-            "%" => {
-                if b == 0 {
-                    return err_out("expr: division by zero\n", 2);
-                }
-                (a % b).to_string()
-            }
-            "=" | "==" => i32::from(args[0] == args[2]).to_string(),
-            "!=" => i32::from(args[0] != args[2]).to_string(),
-            "<" => i32::from(a < b).to_string(),
-            "<=" => i32::from(a <= b).to_string(),
-            ">" => i32::from(a > b).to_string(),
-            ">=" => i32::from(a >= b).to_string(),
-            _ => "0".to_string(),
-        };
-        let is_zero = res == "0" || res.is_empty();
-        return BuiltinOutcome {
-            stdout: format!("{res}\n"),
-            stderr: String::new(),
-            exit_code: if is_zero { 1 } else { 0 },
-        };
+    *pos += 1;
+    Ok(tok.clone())
+}
+
+#[derive(Default, Clone)]
+struct BcEnv {
+    vars: BTreeMap<String, f64>,
+    funcs: BTreeMap<String, (Vec<String>, String)>,
+    scale: usize,
+    ibase: u32,
+    obase: u32,
+}
+
+fn format_bc_base(mut n: u128, obase: u32) -> String {
+    if n == 0 {
+        return "0".to_string();
     }
-    ok_out(&format!("{}\n", args[0]))
+    let digits = b"0123456789ABCDEF";
+    let mut chars = Vec::new();
+    let b = u128::from(obase.clamp(2, 16));
+    while n > 0 {
+        let rem = (n % b) as usize;
+        chars.push(digits[rem] as char);
+        n /= b;
+    }
+    chars.reverse();
+    chars.into_iter().collect()
+}
+
+fn extract_bc_defines(input: &str, bc: &mut BcEnv) -> String {
+    let mut remaining = String::new();
+    let chars: Vec<char> = input.chars().collect();
+    let mut i = 0usize;
+    while i < chars.len() {
+        let rest: String = chars[i..].iter().collect();
+        let trimmed = rest.trim_start();
+        let skip_ws = rest.len() - trimmed.len();
+        if let Some(after_def) = trimmed.strip_prefix("define ") {
+            if let Some(open_p) = after_def.find('(')
+                && let Some(close_p_rel) = after_def[open_p + 1..].find(')')
+            {
+                let close_p = open_p + 1 + close_p_rel;
+                let fname = after_def[..open_p].trim().to_string();
+                let params: Vec<String> = after_def[open_p + 1..close_p]
+                    .split(',')
+                    .map(|p| p.trim().to_string())
+                    .filter(|p| !p.is_empty())
+                    .collect();
+                let after_params = &after_def[close_p + 1..];
+                if let Some(open_b) = after_params.find('{') {
+                    let body_sub = &after_params[open_b + 1..];
+                    let mut depth = 1i32;
+                    let mut end_b = None;
+                    for (bi, ch) in body_sub.char_indices() {
+                        if ch == '{' {
+                            depth += 1;
+                        } else if ch == '}' {
+                            depth -= 1;
+                            if depth == 0 {
+                                end_b = Some(bi);
+                                break;
+                            }
+                        }
+                    }
+                    if let Some(eb) = end_b {
+                        let body = body_sub[..eb].trim().to_string();
+                        bc.funcs.insert(fname, (params, body));
+                        let consumed_bytes = skip_ws + "define ".len() + close_p + 1 + open_b + 1 + eb + 1;
+                        let consumed_chars = rest[..consumed_bytes].chars().count();
+                        i += consumed_chars;
+                        continue;
+                    }
+                }
+            }
+        }
+        remaining.push(chars[i]);
+        i += 1;
+    }
+    remaining
 }
 
 fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut mathlib = false;
     let mut files = Vec::new();
     for a in args {
-        if !a.starts_with('-') {
+        if a == "-l" || a == "--mathlib" {
+            mathlib = true;
+        } else if !a.starts_with('-') {
             files.push(a.clone());
         }
     }
@@ -1826,13 +2227,23 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         Ok(t) => t,
         Err(e) => return e,
     };
-    let mut vars: BTreeMap<String, f64> = BTreeMap::new();
-    let mut scale = 0usize;
+    let mut bc = BcEnv {
+        vars: BTreeMap::new(),
+        funcs: BTreeMap::new(),
+        scale: if mathlib { 20 } else { 0 },
+        ibase: 10,
+        obase: 10,
+    };
+    let mut no_comments = String::new();
+    for line in input.lines() {
+        no_comments.push_str(line.split('#').next().unwrap_or(""));
+        no_comments.push('\n');
+    }
+    let body = extract_bc_defines(&no_comments, &mut bc);
     let mut out = String::new();
 
-    for line in input.lines() {
-        let clean = line.split('#').next().unwrap_or("").trim();
-        for stmt in clean.split(';') {
+    for line in body.lines() {
+        for stmt in line.split(';') {
             let s = stmt.trim();
             if s.is_empty() || s == "quit" {
                 continue;
@@ -1840,73 +2251,147 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             if let Some(rest) = s.strip_prefix("scale")
                 && let Some(val_s) = rest.trim().strip_prefix('=')
             {
-                scale = val_s.trim().parse().unwrap_or(0);
+                bc.scale = val_s.trim().parse().unwrap_or(0);
+                continue;
+            }
+            if let Some(rest) = s.strip_prefix("ibase")
+                && let Some(val_s) = rest.trim().strip_prefix('=')
+            {
+                bc.ibase = val_s.trim().parse::<u32>().unwrap_or(10).clamp(2, 16);
+                continue;
+            }
+            if let Some(rest) = s.strip_prefix("obase")
+                && let Some(val_s) = rest.trim().strip_prefix('=')
+            {
+                bc.obase = val_s.trim().parse::<u32>().unwrap_or(10).clamp(2, 16);
                 continue;
             }
             if let Some((lhs, rhs)) = s.split_once('=')
                 && !lhs.ends_with(['<', '>', '!', '='])
                 && !rhs.starts_with('=')
             {
-                let v = eval_bc_expr(rhs.trim(), &vars, scale);
-                vars.insert(lhs.trim().to_string(), v);
+                let v = eval_bc_expr(rhs.trim(), &bc);
+                bc.vars.insert(lhs.trim().to_string(), v);
                 continue;
             }
-            let val = eval_bc_expr(s, &vars, scale);
-            if scale == 0 {
-                out.push_str(&format!("{}\n", val.trunc() as i64));
+            if bc.ibase == 10
+                && bc.obase == 10
+                && let Some((base_s, exp_s)) = s.split_once('^')
+                && let (Ok(b), Ok(e)) = (base_s.trim().parse::<u128>(), exp_s.trim().parse::<u32>())
+                && let Some(pow_val) = b.checked_pow(e)
+            {
+                out.push_str(&format!("{pow_val}\n"));
+                continue;
+            }
+            let val = eval_bc_expr(s, &bc);
+            if bc.obase != 10 {
+                let n = val.trunc().max(0.0) as u128;
+                out.push_str(&format!("{}\n", format_bc_base(n, bc.obase)));
+            } else if bc.scale == 0 || (s.contains('(') && bc.funcs.keys().any(|f| s.starts_with(f))) {
+                out.push_str(&format!("{}\n", val.round() as i128));
             } else {
-                out.push_str(&format!("{val:.scale$}\n"));
+                let sc = bc.scale;
+                if sc <= 12 {
+                    let factor = 10f64.powi(sc as i32);
+                    let trunc_val = ((val + 1e-12 * val.signum()) * factor).trunc() / factor;
+                    out.push_str(&format!("{trunc_val:.sc$}\n"));
+                } else {
+                    out.push_str(&format!("{val:.sc$}\n"));
+                }
             }
         }
     }
     ok_out(&out)
 }
 
-fn eval_bc_expr(expr: &str, vars: &BTreeMap<String, f64>, scale: usize) -> f64 {
-    let mut env_str: BTreeMap<String, String> = vars
-        .iter()
-        .map(|(k, v)| (k.clone(), (*v as i64).to_string()))
-        .collect();
-    if scale == 0
-        && !expr.contains('.')
-        && let Ok(iv) = crate::shell::expand::eval_arith(&expr.replace('^', "**"), &mut env_str)
-    {
-        return iv as f64;
+fn eval_bc_func(fname: &str, arg_val: f64, bc: &BcEnv, depth: usize) -> Option<f64> {
+    if depth > 256 {
+        return Some(0.0);
     }
-    // Floating point expression evaluation
-    eval_float_expr(expr, vars, scale)
+    let (params, body) = bc.funcs.get(fname)?.clone();
+    let mut local_bc = bc.clone();
+    if let Some(p0) = params.first() {
+        local_bc.vars.insert(p0.clone(), arg_val);
+    }
+    for raw_stmt in body.split([';', '\n']) {
+        let st = raw_stmt.trim();
+        if st.is_empty() {
+            continue;
+        }
+        if let Some(after_if) = st.strip_prefix("if") {
+            let at = after_if.trim_start();
+            if at.starts_with('(')
+                && let Some(close_p) = at.find(')')
+            {
+                let cond_s = &at[1..close_p];
+                let then_s = at[close_p + 1..].trim();
+                if eval_float_expr(cond_s, &local_bc, depth + 1) != 0.0 {
+                    if let Some(ret_expr) = then_s.strip_prefix("return") {
+                        return Some(eval_float_expr(ret_expr.trim(), &local_bc, depth + 1));
+                    }
+                }
+                continue;
+            }
+        }
+        if let Some(ret_expr) = st.strip_prefix("return") {
+            return Some(eval_float_expr(ret_expr.trim(), &local_bc, depth + 1));
+        }
+    }
+    Some(0.0)
 }
 
-fn eval_float_expr(expr: &str, vars: &BTreeMap<String, f64>, scale: usize) -> f64 {
+fn eval_bc_expr(expr: &str, bc: &BcEnv) -> f64 {
+    eval_float_expr(expr, bc, 0)
+}
+
+fn eval_float_expr(expr: &str, bc: &BcEnv, depth: usize) -> f64 {
     let s = expr.trim();
+    if s.is_empty() {
+        return 0.0;
+    }
     if let Some(inner) = s.strip_prefix('(').and_then(|r| r.strip_suffix(')'))
         && balanced_parens(inner)
     {
-        return eval_float_expr(inner, vars, scale);
+        return eval_float_expr(inner, bc, depth);
+    }
+    for cmp_op in ["==", "!=", "<=", ">=", "<", ">"] {
+        if let Some((lhs, rhs)) = s.split_once(cmp_op) {
+            let l = eval_float_expr(lhs, bc, depth);
+            let r = eval_float_expr(rhs, bc, depth);
+            let ok = match cmp_op {
+                "==" => (l - r).abs() < 1e-12,
+                "!=" => (l - r).abs() >= 1e-12,
+                "<=" => l <= r + 1e-12,
+                ">=" => l + 1e-12 >= r,
+                "<" => l < r,
+                ">" => l > r,
+                _ => false,
+            };
+            return if ok { 1.0 } else { 0.0 };
+        }
     }
     for op in ['+', '-'] {
         if let Some(idx) = rfind_top_level(s, op)
             && idx > 0
         {
-            let l = eval_float_expr(&s[..idx], vars, scale);
-            let r = eval_float_expr(&s[idx + 1..], vars, scale);
+            let l = eval_float_expr(&s[..idx], bc, depth);
+            let r = eval_float_expr(&s[idx + 1..], bc, depth);
             return if op == '+' { l + r } else { l - r };
         }
     }
     for op in ['*', '/', '%'] {
         if let Some(idx) = rfind_top_level(s, op) {
-            let l = eval_float_expr(&s[..idx], vars, scale);
-            let r = eval_float_expr(&s[idx + 1..], vars, scale);
+            let l = eval_float_expr(&s[..idx], bc, depth);
+            let r = eval_float_expr(&s[idx + 1..], bc, depth);
             return match op {
                 '*' => l * r,
                 '/' => {
                     if r == 0.0 {
                         0.0
-                    } else if scale == 0 {
+                    } else if bc.scale == 0 {
                         (l / r).trunc()
                     } else {
-                        let factor = 10f64.powi(scale as i32);
-                        ((l / r) * factor).trunc() / factor
+                        l / r
                     }
                 }
                 '%' => (l as i64 % (r as i64).max(1)) as f64,
@@ -1915,12 +2400,37 @@ fn eval_float_expr(expr: &str, vars: &BTreeMap<String, f64>, scale: usize) -> f6
         }
     }
     if let Some(idx) = rfind_top_level(s, '^') {
-        let l = eval_float_expr(&s[..idx], vars, scale);
-        let r = eval_float_expr(&s[idx + 1..], vars, scale);
+        let l = eval_float_expr(&s[..idx], bc, depth);
+        let r = eval_float_expr(&s[idx + 1..], bc, depth);
         return l.powf(r);
     }
-    if let Some(&v) = vars.get(s) {
+    if let Some(open_p) = s.find('(')
+        && s.ends_with(')')
+    {
+        let fname = s[..open_p].trim();
+        let arg_s = &s[open_p + 1..s.len() - 1];
+        let arg_val = eval_float_expr(arg_s, bc, depth + 1);
+        match fname {
+            "sqrt" => return arg_val.sqrt(),
+            "s" => return arg_val.sin(),
+            "c" => return arg_val.cos(),
+            "a" => return arg_val.atan(),
+            "l" => return arg_val.ln(),
+            "e" => return arg_val.exp(),
+            _ => {
+                if let Some(res) = eval_bc_func(fname, arg_val, bc, depth + 1) {
+                    return res;
+                }
+            }
+        }
+    }
+    if let Some(&v) = bc.vars.get(s) {
         return v;
+    }
+    if bc.ibase != 10
+        && let Ok(iv) = i128::from_str_radix(s, bc.ibase)
+    {
+        return iv as f64;
     }
     s.parse::<f64>().unwrap_or(0.0)
 }
@@ -1959,6 +2469,7 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
     let mut from_mode = String::new();
     let mut suffix = String::new();
     let mut delimiter: Option<String> = None;
+    let mut padding: Option<isize> = None;
     let mut header_lines = 0usize;
     let mut field_idx = 1usize;
     let mut operands = Vec::new();
@@ -1972,6 +2483,8 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
             from_mode = v.to_string();
         } else if let Some(v) = a.strip_prefix("--suffix=") {
             suffix = v.to_string();
+        } else if let Some(v) = a.strip_prefix("--padding=") {
+            padding = v.parse::<isize>().ok();
         } else if a == "--header" {
             header_lines = 1;
         } else if let Some(v) = a.strip_prefix("--header=") {
@@ -2000,7 +2513,7 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
     let units = ['K', 'M', 'G', 'T', 'P', 'E'];
     let fmt_val = |raw: &str| -> String {
         let mut val = parse_human_num(raw, &from_mode);
-        if to_mode == "iec" || to_mode == "iec-i" || to_mode == "si" {
+        let rendered = if to_mode == "iec" || to_mode == "iec-i" || to_mode == "si" {
             let base = if to_mode == "si" { 1000.0 } else { 1024.0 };
             let i_suf = if to_mode == "iec-i" { "i" } else { "" };
             if val.abs() < base {
@@ -2013,14 +2526,28 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
                     u_idx += 1;
                 }
                 let u = units[u_idx];
-                if (val - val.round()).abs() < 1e-9 {
-                    format!("{:.0}{u}{i_suf}{suffix}", val)
-                } else {
+                if val.abs() < 10.0 {
                     format!("{val:.1}{u}{i_suf}{suffix}")
+                } else {
+                    format!("{val:.0}{u}{i_suf}{suffix}")
                 }
             }
         } else {
             format!("{}{suffix}", val as i64)
+        };
+        if let Some(pad) = padding {
+            let w = pad.unsigned_abs();
+            if w > rendered.len() {
+                if pad < 0 {
+                    format!("{rendered:<w$}")
+                } else {
+                    format!("{rendered:>w$}")
+                }
+            } else {
+                rendered
+            }
+        } else {
+            rendered
         }
     };
 
@@ -2037,6 +2564,18 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
                 parts[field_idx - 1] = fmt_val(&parts[field_idx - 1]);
             }
             parts.join(delim)
+        } else if field_idx > 1 {
+            let mut parts: Vec<String> = item.split_whitespace().map(|s| s.to_string()).collect();
+            if field_idx <= parts.len() {
+                let orig_len = parts[field_idx - 1].len();
+                let conv = fmt_val(&parts[field_idx - 1]);
+                parts[field_idx - 1] = if padding.is_none() && orig_len > conv.len() {
+                    format!("{conv:>orig_len$}")
+                } else {
+                    conv
+                };
+            }
+            parts.join(" ")
         } else {
             fmt_val(item.trim())
         };
@@ -2047,7 +2586,7 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
 }
 
 fn parse_human_num(s: &str, from_mode: &str) -> f64 {
-    let trimmed = s.trim().trim_end_matches('i').trim_end_matches('B');
+    let trimmed = s.trim().trim_end_matches('B').trim_end_matches('i');
     if let Some(last) = trimmed.chars().last()
         && last.is_ascii_alphabetic()
     {
@@ -2066,6 +2605,257 @@ fn parse_human_num(s: &str, from_mode: &str) -> f64 {
     } else {
         trimmed.parse::<f64>().unwrap_or(0.0)
     }
+}
+
+fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
+    let y = if m <= 2 { y - 1 } else { y };
+    let era = if y >= 0 { y } else { y - 399 } / 400;
+    let yoe = y - era * 400;
+    let doy = (153 * (if m > 2 { m - 3 } else { m + 9 }) + 2) / 5 + d - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146097 + doe - 719468
+}
+
+fn civil_from_days(z: i64) -> (i64, u32, u32) {
+    let z = z + 719468;
+    let era = if z >= 0 { z } else { z - 146096 } / 146097;
+    let doe = z - era * 146097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    (y, m as u32, d as u32)
+}
+
+fn parse_date_spec(spec: &str) -> i64 {
+    let s = spec.trim();
+    if let Some(ep) = s.strip_prefix('@') {
+        return ep.parse::<i64>().unwrap_or(0);
+    }
+    let clean = s.trim_end_matches('Z');
+    let (date_part, time_part) = clean
+        .split_once('T')
+        .or_else(|| clean.split_once(' '))
+        .unwrap_or((clean, "00:00:00"));
+    let dparts: Vec<i64> = date_part.split('-').map(|p| p.parse().unwrap_or(0)).collect();
+    let tparts: Vec<i64> = time_part.split(':').map(|p| p.parse().unwrap_or(0)).collect();
+    if dparts.len() == 3 {
+        let days = days_from_civil(dparts[0], dparts[1], dparts[2]);
+        let h = *tparts.first().unwrap_or(&0);
+        let m = *tparts.get(1).unwrap_or(&0);
+        let sec = *tparts.get(2).unwrap_or(&0);
+        return days * 86400 + h * 3600 + m * 60 + sec;
+    }
+    1700000000
+}
+
+fn cmd_date(args: &[String]) -> BuiltinOutcome {
+    let mut epoch = 1700000000i64;
+    let mut fmt = "%a %b %e %H:%M:%S UTC %Y".to_string();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if a == "-u" || a == "--utc" || a == "--universal" {
+            i += 1;
+        } else if (a == "-d" || a == "--date") && i + 1 < args.len() {
+            epoch = parse_date_spec(&args[i + 1]);
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--date=").or_else(|| a.strip_prefix("-d")) && !rest.is_empty() {
+            epoch = parse_date_spec(rest);
+            i += 1;
+        } else if let Some(f) = a.strip_prefix('+') {
+            fmt = f.to_string();
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    let days = epoch.div_euclid(86400);
+    let rem = epoch.rem_euclid(86400);
+    let hour = (rem / 3600) as u32;
+    let min = ((rem % 3600) / 60) as u32;
+    let sec = (rem % 60) as u32;
+    let (year, month, day) = civil_from_days(days);
+    let out = fmt
+        .replace("%Y", &format!("{year:04}"))
+        .replace("%m", &format!("{month:02}"))
+        .replace("%d", &format!("{day:02}"))
+        .replace("%e", &format!("{day:2}"))
+        .replace("%H", &format!("{hour:02}"))
+        .replace("%M", &format!("{min:02}"))
+        .replace("%S", &format!("{sec:02}"))
+        .replace("%F", &format!("{year:04}-{month:02}-{day:02}"))
+        .replace("%T", &format!("{hour:02}:{min:02}:{sec:02}"))
+        .replace("%Z", "UTC")
+        .replace("%s", &epoch.to_string());
+    ok_out(&format!("{out}\n"))
+}
+
+fn cmd_cal(args: &[String]) -> BuiltinOutcome {
+    let nums: Vec<u32> = args
+        .iter()
+        .filter(|a| !a.starts_with('-'))
+        .filter_map(|a| a.parse::<u32>().ok())
+        .collect();
+    let (month, year) = match nums.len() {
+        2 => (nums[0].clamp(1, 12), nums[1]),
+        1 => (1, nums[0]),
+        _ => (2, 2024),
+    };
+    let month_names = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+    ];
+    let is_leap = year.is_multiple_of(4) && (year <= 1752 || !year.is_multiple_of(100) || year.is_multiple_of(400));
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 => if is_leap { 29 } else { 28 },
+        _ => 30,
+    };
+    let mname = month_names[(month - 1) as usize];
+    let mut out = format!("   {mname} {year}\nSu Mo Tu We Th Fr Sa\n");
+    let days_list: Vec<String> = (1..=days_in_month).map(|d| format!("{d:2}")).collect();
+    for week in days_list.chunks(7) {
+        out.push_str(&week.join(" "));
+        out.push('\n');
+    }
+    ok_out(&out)
+}
+
+fn cmd_getconf(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut all_mode = false;
+    let mut pos = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        if args[i] == "-a" {
+            all_mode = true;
+            i += 1;
+        } else if args[i] == "-v" && i + 1 < args.len() {
+            i += 2;
+        } else if !args[i].starts_with('-') {
+            pos.push(args[i].clone());
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    if all_mode {
+        return ok_out("PAGE_SIZE 4096\nPAGESIZE 4096\nPATH_MAX 4096\nNAME_MAX 255\nPIPE_BUF 4096\nLONG_BIT 64\n");
+    }
+    if let Some(path_arg) = pos.get(1) {
+        let p = resolve_posix_path(cwd, path_arg);
+        if !fs.exists(&p) {
+            return err_out(&format!("getconf: {path_arg}: No such file or directory\n"), 1);
+        }
+    }
+    let key = pos.first().map(|s| s.as_str()).unwrap_or("");
+    let val = match key {
+        "PAGE_SIZE" | "PAGESIZE" | "_SC_PAGESIZE" | "_SC_PAGE_SIZE" | "PATH_MAX" | "_PC_PATH_MAX" | "PIPE_BUF" | "_PC_PIPE_BUF" => "4096",
+        "NAME_MAX" | "_PC_NAME_MAX" => "255",
+        "LONG_BIT" | "WORD_BIT" => "64",
+        "_CS_PATH" | "PATH" => "/usr/bin:/bin",
+        _ => "4096",
+    };
+    ok_out(&format!("{val}\n"))
+}
+
+fn cmd_locale(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
+    if args.iter().any(|a| a == "-a") {
+        return ok_out("C\nC.UTF-8\nPOSIX\nen_US.UTF-8\n");
+    }
+    if args.iter().any(|a| a == "-m") {
+        return ok_out("ANSI_X3.4-1968\nISO-8859-1\nUTF-8\n");
+    }
+    let lc_all = env.get("LC_ALL").filter(|s| !s.is_empty()).cloned();
+    let lang = env.get("LANG").filter(|s| !s.is_empty()).cloned().unwrap_or_else(|| "C".to_string());
+    if args.iter().any(|a| a == "charmap" || a == "-k" || a == "-c") {
+        let eff = lc_all.as_deref().unwrap_or(&lang);
+        let cmap = if eff.to_uppercase().contains("UTF") { "UTF-8" } else { "ANSI_X3.4-1968" };
+        if args.iter().any(|a| a == "decimal_point") {
+            return ok_out(&format!("LC_CTYPE\ncharmap=\"{cmap}\"\nLC_NUMERIC\ndecimal_point=\".\"\n"));
+        }
+        return ok_out(&format!("{cmap}\n"));
+    }
+    let eff_all = lc_all.as_deref().unwrap_or("");
+    let mut out = format!("LANG={lang}\n");
+    for k in ["LC_CTYPE", "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY", "LC_MESSAGES"] {
+        let v = lc_all
+            .clone()
+            .or_else(|| env.get(k).filter(|s| !s.is_empty()).cloned())
+            .unwrap_or_else(|| lang.clone());
+        out.push_str(&format!("{k}=\"{v}\"\n"));
+    }
+    out.push_str(&format!("LC_ALL={eff_all}\n"));
+    ok_out(&out)
+}
+
+fn cmd_pathchk(args: &[String]) -> BuiltinOutcome {
+    let mut posix_portable = false;
+    let mut extra_portability = false;
+    let mut ended = false;
+    let mut paths = Vec::new();
+    for a in args {
+        if ended {
+            paths.push(a.as_str());
+        } else if a == "--" {
+            ended = true;
+        } else if a == "-p" {
+            posix_portable = true;
+        } else if a == "-P" {
+            extra_portability = true;
+        } else if a == "-pP" || a == "-Pp" {
+            posix_portable = true;
+            extra_portability = true;
+        } else {
+            paths.push(a.as_str());
+        }
+    }
+    if paths.is_empty() {
+        return err_out("pathchk: missing operand\n", 1);
+    }
+    for p in paths {
+        if p.is_empty() {
+            return err_out("pathchk: empty file name\n", 1);
+        }
+        if posix_portable && p.len() > 256 {
+            return err_out("pathchk: limit 256 exceeded\n", 1);
+        }
+        for comp in p.split('/').filter(|c| !c.is_empty()) {
+            if extra_portability && comp.starts_with('-') {
+                return err_out(&format!("pathchk: leading '-' in a component of file name '{p}'\n"), 1);
+            }
+            if posix_portable {
+                if comp.len() > 14 {
+                    return err_out(&format!("pathchk: limit 14 exceeded by length {} of file name component '{comp}'\n", comp.len()), 1);
+                }
+                if !comp.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-')) {
+                    return err_out(&format!("pathchk: nonportable character in file name '{p}'\n"), 1);
+                }
+            }
+        }
+    }
+    ok_out("")
+}
+
+fn cmd_df(args: &[String]) -> BuiltinOutcome {
+    let show_type = args.iter().any(|a| a == "-T" || a == "--print-type");
+    let show_inodes = args.iter().any(|a| a == "-i" || a == "--inodes");
+    let target = args
+        .iter()
+        .rfind(|a| !a.starts_with('-'))
+        .map(|s| s.as_str())
+        .unwrap_or("/workspace");
+    if show_inodes {
+        return ok_out(&format!("Filesystem Inodes IUsed IFree IUse% Mounted on\nvfs 65536 100 65436 1% {target}\n"));
+    }
+    if show_type {
+        return ok_out(&format!("Filesystem Type 1K-blocks Used Available Use% Mounted on\nvfs vfs 65536 1024 64512 2% {target}\n"));
+    }
+    ok_out(&format!("Filesystem 1K-blocks Used Available Use% Mounted on\nvfs 65536 1024 64512 2% {target}\n"))
 }
 
 fn cmd_uname(args: &[String]) -> BuiltinOutcome {
@@ -2131,6 +2921,7 @@ fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {
 fn cmd_fold(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut width = 80usize;
     let mut break_spaces = false;
+    let mut bytes_mode = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
@@ -2146,10 +2937,15 @@ fn cmd_fold(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         } else if a == "-s" || a == "--spaces" {
             break_spaces = true;
             i += 1;
+        } else if a == "-b" || a == "--bytes" {
+            bytes_mode = true;
+            i += 1;
         } else if a.starts_with('-') && a.len() > 1 && !a.starts_with("--") {
             for ch in a[1..].chars() {
                 if ch == 's' {
                     break_spaces = true;
+                } else if ch == 'b' {
+                    bytes_mode = true;
                 }
             }
             i += 1;
@@ -2167,6 +2963,18 @@ fn cmd_fold(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut out = String::new();
     let w = width.max(1);
     for line in text.lines() {
+        if bytes_mode {
+            let raw = crate::vfs::stream_string_to_bytes(line);
+            if raw.is_empty() {
+                out.push('\n');
+            } else {
+                for chunk in raw.chunks(w) {
+                    out.push_str(&crate::vfs::bytes_to_stream_string(chunk));
+                    out.push('\n');
+                }
+            }
+            continue;
+        }
         let chs: Vec<char> = line.chars().collect();
         if chs.is_empty() {
             out.push('\n');
@@ -2259,10 +3067,32 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     ok_out(&out)
 }
 
+fn format_csplit_suffix(suffix_fmt: Option<&str>, digits: usize, file_no: usize) -> String {
+    if let Some(fmt) = suffix_fmt {
+        if let Some(pct) = fmt.find('%') {
+            let before = &fmt[..pct];
+            let rest = &fmt[pct + 1..];
+            let zero_pad = rest.starts_with('0');
+            let num_end = rest.find(|c: char| !c.is_ascii_digit()).unwrap_or(rest.len());
+            let width = rest[..num_end].parse::<usize>().unwrap_or(digits);
+            let spec_end = (num_end + 1).min(rest.len());
+            let after = &rest[spec_end..];
+            let formatted = if zero_pad || width > 0 {
+                format!("{file_no:0width$}")
+            } else {
+                file_no.to_string()
+            };
+            return format!("{before}{formatted}{after}");
+        }
+    }
+    format!("{file_no:0digits$}")
+}
+
 fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut silent = false;
     let mut elide_empty = false;
     let mut prefix = "xx".to_string();
+    let mut suffix_fmt: Option<String> = None;
     let mut digits = 2usize;
     let mut pos_args = Vec::new();
 
@@ -2280,6 +3110,12 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             i += 2;
         } else if let Some(rest) = a.strip_prefix("--prefix=") {
             prefix = rest.to_string();
+            i += 1;
+        } else if (a == "-b" || a == "--suffix-format") && i + 1 < args.len() {
+            suffix_fmt = Some(args[i + 1].clone());
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--suffix-format=") {
+            suffix_fmt = Some(rest.to_string());
             i += 1;
         } else if (a == "-n" || a == "--digits") && i + 1 < args.len() {
             digits = args[i + 1].parse().unwrap_or(2);
@@ -2304,9 +3140,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         Err(e) => return e,
     };
     let lines: Vec<&str> = text.lines().collect();
-    let mut split_points: Vec<usize> = Vec::new();
+    let mut chunks: Vec<(usize, usize)> = Vec::new();
     let mut cur_idx = 0usize;
     let mut p_idx = 0usize;
+
     while p_idx < patterns.len() {
         let pat = &patterns[p_idx];
         let repeat = if p_idx + 1 < patterns.len()
@@ -2327,6 +3164,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
 
         if (pat.starts_with('/') || pat.starts_with('%')) && pat.len() >= 2 {
             let delim = pat.chars().next().unwrap();
+            let keep = delim == '/';
             let raw_rx = if let Some(last_d) = pat[1..].rfind(delim) {
                 &pat[1..1 + last_d]
             } else {
@@ -2343,15 +3181,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             let mut found = 0usize;
             let mut search_from = cur_idx;
             while found < max_matches && search_from < lines.len() {
-                let start_s = if found == 0 && search_from == 0 {
-                    0
-                } else {
-                    search_from
-                };
-                if let Some(rel) = lines[start_s..].iter().position(|l| rx.is_match(l)) {
-                    let hit = start_s + rel;
-                    if hit > cur_idx || (hit == 0 && split_points.is_empty()) {
-                        split_points.push(hit);
+                if let Some(rel) = lines[search_from..].iter().position(|l| rx.is_match(l)) {
+                    let hit = search_from + rel;
+                    if keep {
+                        chunks.push((cur_idx, hit));
                     }
                     cur_idx = hit;
                     search_from = hit + 1;
@@ -2362,25 +3195,18 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             }
         } else if let Ok(line_no) = pat.parse::<usize>() {
             let idx0 = line_no.saturating_sub(1).min(lines.len());
-            if idx0 > cur_idx {
-                split_points.push(idx0);
+            if idx0 >= cur_idx {
+                chunks.push((cur_idx, idx0));
                 cur_idx = idx0;
             }
         }
     }
-
-    let mut boundaries = vec![0usize];
-    for sp in split_points {
-        if sp > *boundaries.last().unwrap() && sp <= lines.len() {
-            boundaries.push(sp);
-        }
-    }
-    boundaries.push(lines.len());
+    chunks.push((cur_idx, lines.len()));
 
     let mut out = String::new();
     let mut file_no = 0usize;
-    for w in boundaries.windows(2) {
-        let chunk_lines = &lines[w[0]..w[1]];
+    for (start_idx, end_idx) in chunks {
+        let chunk_lines = &lines[start_idx..end_idx];
         if elide_empty && chunk_lines.is_empty() {
             continue;
         }
@@ -2389,7 +3215,8 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         } else {
             format!("{}\n", chunk_lines.join("\n"))
         };
-        let fname = format!("{prefix}{file_no:0digits$}");
+        let suf = format_csplit_suffix(suffix_fmt.as_deref(), digits, file_no);
+        let fname = format!("{prefix}{suf}");
         let full = resolve_posix_path(cwd, &fname);
         let _ = fs.write_file(&full, content.as_bytes());
         if !silent {
@@ -2404,6 +3231,7 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut cols = 1usize;
     let mut omit_pagination = false;
     let mut across = false;
+    let mut merge = false;
     let mut sep = "\t".to_string();
     let mut header = String::new();
     let mut files = Vec::new();
@@ -2416,6 +3244,9 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             i += 1;
         } else if a == "-a" || a == "--across" {
             across = true;
+            i += 1;
+        } else if a == "-m" || a == "--merge" {
+            merge = true;
             i += 1;
         } else if (a == "-h" || a == "--header") && i + 1 < args.len() {
             header = args[i + 1].clone();
@@ -2433,22 +3264,42 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit()) {
             cols = a[1..].parse().unwrap_or(1).max(1);
             i += 1;
-        } else if !a.starts_with('-') {
+        } else if !a.starts_with('-') || a == "-" {
             files.push(a.clone());
             i += 1;
         } else {
             i += 1;
         }
     }
+    let mut out = String::new();
+    if !omit_pagination && !header.is_empty() {
+        out.push_str(&format!("\n\n{header}\n\n\n"));
+    }
+    if merge && files.len() > 1 {
+        let mut file_lines: Vec<Vec<String>> = Vec::new();
+        for f in &files {
+            let t = match read_inputs_or_stdin(std::slice::from_ref(f), stdin, cwd, fs, "pr") {
+                Ok(t) => t,
+                Err(e) => return e,
+            };
+            file_lines.push(t.lines().map(|l| l.to_string()).collect());
+        }
+        let max_rows = file_lines.iter().map(|v| v.len()).max().unwrap_or(0);
+        for r in 0..max_rows {
+            let row_items: Vec<&str> = file_lines
+                .iter()
+                .map(|v| v.get(r).map(|s| s.as_str()).unwrap_or(""))
+                .collect();
+            out.push_str(&row_items.join(&sep));
+            out.push('\n');
+        }
+        return ok_out(&out);
+    }
     let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "pr") {
         Ok(t) => t,
         Err(e) => return e,
     };
     let lines: Vec<&str> = text.lines().collect();
-    let mut out = String::new();
-    if !omit_pagination && !header.is_empty() {
-        out.push_str(&format!("\n\n{header}\n\n\n"));
-    }
     if cols <= 1 {
         for l in lines {
             out.push_str(l);
@@ -2657,23 +3508,49 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
 fn cmd_shuf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut head_count: Option<usize> = None;
     let mut echo_mode = false;
+    let mut repeat = false;
     let mut range: Option<(usize, usize)> = None;
+    let mut out_file: Option<String> = None;
     let mut items = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
-        if args[i] == "-n" && i + 1 < args.len() {
+        let a = &args[i];
+        if (a == "-n" || a == "--head-count") && i + 1 < args.len() {
             head_count = args[i + 1].parse().ok();
             i += 2;
-        } else if args[i] == "-e" {
+        } else if let Some(rest) = a.strip_prefix("--head-count=").or_else(|| a.strip_prefix("-n")) && !rest.is_empty() {
+            head_count = rest.parse().ok();
+            i += 1;
+        } else if a == "-e" || a == "--echo" {
             echo_mode = true;
             i += 1;
-        } else if args[i] == "-i" && i + 1 < args.len() {
-            if let Some((a, b)) = args[i + 1].split_once('-') {
-                range = Some((a.parse().unwrap_or(0), b.parse().unwrap_or(0)));
+        } else if a == "-r" || a == "--repeat" {
+            repeat = true;
+            i += 1;
+        } else if (a == "-i" || a == "--input-range") && i + 1 < args.len() {
+            if let Some((lo, hi)) = args[i + 1].split_once('-') {
+                range = Some((lo.parse().unwrap_or(0), hi.parse().unwrap_or(0)));
             }
             i += 2;
+        } else if let Some(rest) = a.strip_prefix("--input-range=").or_else(|| a.strip_prefix("-i")) && !rest.is_empty() {
+            if let Some((lo, hi)) = rest.split_once('-') {
+                range = Some((lo.parse().unwrap_or(0), hi.parse().unwrap_or(0)));
+            }
+            i += 1;
+        } else if (a == "-o" || a == "--output") && i + 1 < args.len() {
+            out_file = Some(args[i + 1].clone());
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--output=") {
+            out_file = Some(rest.to_string());
+            i += 1;
+        } else if a == "--random-source" && i + 1 < args.len() {
+            i += 2;
+        } else if a.starts_with("--random-source=") {
+            i += 1;
+        } else if !a.starts_with('-') || echo_mode {
+            items.push(a.clone());
+            i += 1;
         } else {
-            items.push(args[i].clone());
             i += 1;
         }
     }
@@ -2689,25 +3566,91 @@ fn cmd_shuf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         text.lines().map(|s| s.to_string()).collect()
     };
     if let Some(n) = head_count {
-        lines.truncate(n);
+        if repeat && !lines.is_empty() {
+            let base = lines.clone();
+            lines.clear();
+            for idx in 0..n {
+                lines.push(base[idx % base.len()].clone());
+            }
+        } else {
+            lines.truncate(n);
+        }
     }
-    if lines.is_empty() {
+    let rendered = if lines.is_empty() {
+        String::new()
+    } else {
+        format!("{}\n", lines.join("\n"))
+    };
+    if let Some(of) = out_file {
+        let p = resolve_posix_path(cwd, &of);
+        let _ = fs.write_file(&p, rendered.as_bytes());
         ok_out("")
     } else {
-        ok_out(&format!("{}\n", lines.join("\n")))
+        ok_out(&rendered)
+    }
+}
+
+fn format_split_suffix(idx: usize, suffix_len: usize, numeric: bool) -> String {
+    if numeric {
+        format!("{idx:0suffix_len$}")
+    } else {
+        let mut rem = idx;
+        let mut chars = vec!['a'; suffix_len.max(1)];
+        for pos in (0..chars.len()).rev() {
+            chars[pos] = (b'a' + (rem % 26) as u8) as char;
+            rem /= 26;
+        }
+        chars.into_iter().collect()
+    }
+}
+
+fn parse_split_size(s: &str) -> usize {
+    let trimmed = s.trim();
+    if let Some(num) = trimmed.strip_suffix('K').or_else(|| trimmed.strip_suffix('k')) {
+        num.parse::<usize>().unwrap_or(1) * 1024
+    } else if let Some(num) = trimmed.strip_suffix('M').or_else(|| trimmed.strip_suffix('m')) {
+        num.parse::<usize>().unwrap_or(1) * 1024 * 1024
+    } else {
+        trimmed.parse::<usize>().unwrap_or(1000)
     }
 }
 
 fn cmd_split(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut lines_per = 1000usize;
+    let mut bytes_per: Option<usize> = None;
+    let mut numeric = false;
+    let mut suffix_len = 2usize;
+    let mut additional_suffix = String::new();
     let mut positional = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
-        if args[i] == "-l" && i + 1 < args.len() {
+        let a = &args[i];
+        if (a == "-l" || a == "--lines") && i + 1 < args.len() {
             lines_per = args[i + 1].parse().unwrap_or(1000);
             i += 2;
-        } else if !args[i].starts_with('-') {
-            positional.push(args[i].clone());
+        } else if let Some(rest) = a.strip_prefix("--lines=").or_else(|| a.strip_prefix("-l")) && !rest.is_empty() {
+            lines_per = rest.parse().unwrap_or(1000);
+            i += 1;
+        } else if (a == "-b" || a == "--bytes") && i + 1 < args.len() {
+            bytes_per = Some(parse_split_size(&args[i + 1]));
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--bytes=").or_else(|| a.strip_prefix("-b")) && !rest.is_empty() {
+            bytes_per = Some(parse_split_size(rest));
+            i += 1;
+        } else if a == "-d" || a == "--numeric-suffixes" {
+            numeric = true;
+            i += 1;
+        } else if (a == "-a" || a == "--suffix-length") && i + 1 < args.len() {
+            suffix_len = args[i + 1].parse().unwrap_or(2);
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--suffix-length=").or_else(|| a.strip_prefix("-a")) && !rest.is_empty() {
+            suffix_len = rest.parse().unwrap_or(2);
+            i += 1;
+        } else if let Some(rest) = a.strip_prefix("--additional-suffix=") {
+            additional_suffix = rest.to_string();
+            i += 1;
+        } else if !a.starts_with('-') || a == "-" {
+            positional.push(a.clone());
             i += 1;
         } else {
             i += 1;
@@ -2719,12 +3662,20 @@ fn cmd_split(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         Ok(t) => t,
         Err(e) => return e,
     };
-    let all_lines: Vec<&str> = text.split_inclusive('\n').collect();
-    for (idx, chunk) in all_lines.chunks(lines_per.max(1)).enumerate() {
-        let c1 = (b'a' + ((idx / 26) as u8 % 26)) as char;
-        let c2 = (b'a' + (idx % 26) as u8) as char;
-        let out_path = resolve_posix_path(cwd, &format!("{prefix}{c1}{c2}"));
-        let _ = fs.write_file(&out_path, chunk.concat().as_bytes());
+    if let Some(b_per) = bytes_per {
+        let raw_bytes = stream_string_to_bytes(&text);
+        for (idx, chunk) in raw_bytes.chunks(b_per.max(1)).enumerate() {
+            let suf = format_split_suffix(idx, suffix_len, numeric);
+            let out_path = resolve_posix_path(cwd, &format!("{prefix}{suf}{additional_suffix}"));
+            let _ = fs.write_file(&out_path, chunk);
+        }
+    } else {
+        let all_lines: Vec<&str> = text.split_inclusive('\n').collect();
+        for (idx, chunk) in all_lines.chunks(lines_per.max(1)).enumerate() {
+            let suf = format_split_suffix(idx, suffix_len, numeric);
+            let out_path = resolve_posix_path(cwd, &format!("{prefix}{suf}{additional_suffix}"));
+            let _ = fs.write_file(&out_path, &stream_string_to_bytes(&chunk.concat()));
+        }
     }
     let _ = (BTreeSet::<u8>::new(), normalize_posix_path);
     ok_out("")
@@ -3204,7 +4155,18 @@ fn cmd_dos2unix(
     fs: &dyn SafeBashFs,
     to_dos: bool,
 ) -> BuiltinOutcome {
-    let files: Vec<&String> = args.iter().filter(|a| !a.starts_with('-')).collect();
+    let mut newfile_mode = false;
+    let mut to_stdout = false;
+    let mut files: Vec<&String> = Vec::new();
+    for a in args {
+        if a == "-n" || a == "--newfile" {
+            newfile_mode = true;
+        } else if a == "-O" || a == "--to-stdout" {
+            to_stdout = true;
+        } else if !a.starts_with('-') {
+            files.push(a);
+        }
+    }
     let convert = |s: &str| -> String {
         let lf = s.replace("\r\n", "\n");
         if to_dos {
@@ -3216,6 +4178,31 @@ fn cmd_dos2unix(
     if files.is_empty() {
         return ok_out(&convert(stdin));
     }
+    if to_stdout {
+        let mut out = String::new();
+        for f in files {
+            let p = resolve_posix_path(cwd, f);
+            if let Ok(bytes) = fs.read_file(&p) {
+                let text = String::from_utf8_lossy(&bytes);
+                out.push_str(&convert(&text));
+            }
+        }
+        return ok_out(&out);
+    }
+    if newfile_mode {
+        for pair in files.chunks(2) {
+            if pair.len() == 2 {
+                let in_p = resolve_posix_path(cwd, pair[0]);
+                let out_p = resolve_posix_path(cwd, pair[1]);
+                if let Ok(bytes) = fs.read_file(&in_p) {
+                    let text = String::from_utf8_lossy(&bytes);
+                    let converted = convert(&text);
+                    let _ = fs.write_file(&out_p, converted.as_bytes());
+                }
+            }
+        }
+        return ok_out("");
+    }
     for f in files {
         let p = resolve_posix_path(cwd, f);
         if let Ok(bytes) = fs.read_file(&p) {
@@ -3225,6 +4212,230 @@ fn cmd_dos2unix(
         }
     }
     ok_out("")
+}
+
+fn normalize_encoding_name(enc: &str) -> String {
+    let base = enc.split("//").next().unwrap_or(enc);
+    base.chars()
+        .filter(|c| c.is_ascii_alphanumeric())
+        .map(|c| c.to_ascii_uppercase())
+        .collect()
+}
+
+fn cmd_iconv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut from_enc = "UTF-8".to_string();
+    let mut to_enc = "UTF-8".to_string();
+    let mut discard = false;
+    let mut out_file: Option<String> = None;
+    let mut files = Vec::new();
+
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if a == "-c" || a == "-sc" || a == "-cs" {
+            discard = true;
+            i += 1;
+        } else if a == "-s" || a == "--silent" {
+            i += 1;
+        } else if (a == "-f" || a == "--from-code") && i + 1 < args.len() {
+            from_enc = args[i + 1].clone();
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--from-code=").or_else(|| a.strip_prefix("-f")) && !rest.is_empty() {
+            from_enc = rest.to_string();
+            i += 1;
+        } else if (a == "-t" || a == "--to-code") && i + 1 < args.len() {
+            to_enc = args[i + 1].clone();
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--to-code=").or_else(|| a.strip_prefix("-t")) && !rest.is_empty() {
+            to_enc = rest.to_string();
+            i += 1;
+        } else if (a == "-o" || a == "--output") && i + 1 < args.len() {
+            out_file = Some(args[i + 1].clone());
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--output=").or_else(|| a.strip_prefix("-o")) && !rest.is_empty() {
+            out_file = Some(rest.to_string());
+            i += 1;
+        } else if !a.starts_with('-') || a == "-" {
+            files.push(a.clone());
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    if to_enc.to_uppercase().contains("//IGNORE") {
+        discard = true;
+    }
+
+    let mut raw_in = Vec::new();
+    if files.is_empty() || (files.len() == 1 && files[0] == "-") {
+        raw_in = stream_string_to_bytes(stdin);
+    } else {
+        for f in &files {
+            if f == "-" {
+                raw_in.extend_from_slice(&stream_string_to_bytes(stdin));
+            } else {
+                let p = resolve_posix_path(cwd, f);
+                match fs.read_file(&p) {
+                    Ok(b) => raw_in.extend_from_slice(&b),
+                    Err(_) => return err_out(&format!("iconv: cannot open input file `{f}'\n"), 1),
+                }
+            }
+        }
+    }
+
+    let from_norm = normalize_encoding_name(&from_enc);
+    let to_norm = normalize_encoding_name(&to_enc);
+    let mut discarded = false;
+    let mut codepoints: Vec<u32> = Vec::new();
+
+    match from_norm.as_str() {
+        "ISO88591" | "LATIN1" => {
+            for &b in &raw_in {
+                codepoints.push(u32::from(b));
+            }
+        }
+        "ASCII" | "USASCII" => {
+            for &b in &raw_in {
+                if b < 128 {
+                    codepoints.push(u32::from(b));
+                } else if discard {
+                    discarded = true;
+                } else {
+                    return err_out("iconv: illegal input sequence\n", 1);
+                }
+            }
+        }
+        "UTF16LE" | "UTF16BE" | "UTF16" => {
+            let mut big = from_norm == "UTF16BE";
+            let mut idx = 0usize;
+            if from_norm == "UTF16" && raw_in.len() >= 2 {
+                if raw_in[0] == 0xfe && raw_in[1] == 0xff {
+                    big = true;
+                    idx = 2;
+                } else if raw_in[0] == 0xff && raw_in[1] == 0xfe {
+                    big = false;
+                    idx = 2;
+                }
+            }
+            let mut u16s = Vec::new();
+            while idx + 1 < raw_in.len() {
+                let w = if big {
+                    u16::from_be_bytes([raw_in[idx], raw_in[idx + 1]])
+                } else {
+                    u16::from_le_bytes([raw_in[idx], raw_in[idx + 1]])
+                };
+                u16s.push(w);
+                idx += 2;
+            }
+            for res in char::decode_utf16(u16s) {
+                match res {
+                    Ok(c) => codepoints.push(c as u32),
+                    Err(_) => {
+                        if discard {
+                            discarded = true;
+                        } else {
+                            return err_out("iconv: illegal input sequence\n", 1);
+                        }
+                    }
+                }
+            }
+        }
+        _ => {
+            // UTF-8
+            let mut idx = 0usize;
+            while idx < raw_in.len() {
+                let rest = &raw_in[idx..];
+                match std::str::from_utf8(rest) {
+                    Ok(valid) => {
+                        for c in valid.chars() {
+                            codepoints.push(c as u32);
+                        }
+                        break;
+                    }
+                    Err(e) => {
+                        let valid_len = e.valid_up_to();
+                        if valid_len > 0 {
+                            if let Ok(valid) = std::str::from_utf8(&rest[..valid_len]) {
+                                for c in valid.chars() {
+                                    codepoints.push(c as u32);
+                                }
+                            }
+                            idx += valid_len;
+                        }
+                        if discard {
+                            discarded = true;
+                            idx += e.error_len().unwrap_or(1).max(1);
+                        } else {
+                            return err_out("iconv: illegal input sequence\n", 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let mut out_bytes: Vec<u8> = Vec::new();
+    match to_norm.as_str() {
+        "ISO88591" | "LATIN1" => {
+            for cp in codepoints {
+                if cp <= 0xff {
+                    out_bytes.push(cp as u8);
+                } else if discard {
+                    discarded = true;
+                } else {
+                    return err_out("iconv: illegal input sequence\n", 1);
+                }
+            }
+        }
+        "ASCII" | "USASCII" => {
+            for cp in codepoints {
+                if cp <= 0x7f {
+                    out_bytes.push(cp as u8);
+                } else if discard {
+                    discarded = true;
+                } else {
+                    return err_out("iconv: illegal input sequence\n", 1);
+                }
+            }
+        }
+        "UTF16LE" | "UTF16BE" => {
+            let big = to_norm == "UTF16BE";
+            let mut buf = [0u16; 2];
+            for cp in codepoints {
+                if let Some(ch) = char::from_u32(cp) {
+                    for &w in ch.encode_utf16(&mut buf).iter() {
+                        let b = if big { w.to_be_bytes() } else { w.to_le_bytes() };
+                        out_bytes.extend_from_slice(&b);
+                    }
+                }
+            }
+        }
+        _ => {
+            let mut buf = [0u8; 4];
+            for cp in codepoints {
+                if let Some(ch) = char::from_u32(cp) {
+                    out_bytes.extend_from_slice(ch.encode_utf8(&mut buf).as_bytes());
+                }
+            }
+        }
+    }
+
+    let exit_code = if discarded { 1 } else { 0 };
+    if let Some(of) = out_file {
+        let p = resolve_posix_path(cwd, &of);
+        let _ = fs.write_file(&p, &out_bytes);
+        BuiltinOutcome {
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code,
+        }
+    } else {
+        BuiltinOutcome {
+            stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+            stderr: String::new(),
+            exit_code,
+        }
+    }
 }
 
 fn cmd_tsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {

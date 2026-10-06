@@ -937,18 +937,79 @@ fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         ));
     }
     let mut out = format!("{target}\n");
-    if let Ok(mut names) = fs.list_dir(&root) {
+    fn render_tree_text(
+        dir_path: &str,
+        prefix: &str,
+        depth: usize,
+        max_depth: Option<usize>,
+        show_all: bool,
+        dirs_only: bool,
+        ignore_pat: Option<&str>,
+        match_pat: Option<&str>,
+        fs: &dyn SafeBashFs,
+        out: &mut String,
+    ) {
+        if let Some(md) = max_depth && depth >= md {
+            return;
+        }
+        let Ok(mut names) = fs.list_dir(dir_path) else {
+            return;
+        };
         names.sort();
-        for n in names {
-            if !show_all && n.starts_with('.') {
-                continue;
+        let filtered: Vec<String> = names
+            .into_iter()
+            .filter(|n| {
+                if !show_all && n.starts_with('.') {
+                    return false;
+                }
+                if let Some(ig) = ignore_pat && crate::shell::expand::glob_match(ig, n) {
+                    return false;
+                }
+                let child = resolve_posix_path(dir_path, n);
+                let is_d = fs.is_dir(&child);
+                if dirs_only && !is_d {
+                    return false;
+                }
+                if !is_d && let Some(mp) = match_pat && !crate::shell::expand::glob_match(mp, n) {
+                    return false;
+                }
+                true
+            })
+            .collect();
+        for (idx, n) in filtered.iter().enumerate() {
+            let last = idx + 1 == filtered.len();
+            let branch = if last { "`-- " } else { "|-- " };
+            out.push_str(&format!("{prefix}{branch}{n}\n"));
+            let child = resolve_posix_path(dir_path, n);
+            if fs.is_dir(&child) {
+                let next_prefix = format!("{prefix}{}", if last { "    " } else { "|   " });
+                render_tree_text(
+                    &child,
+                    &next_prefix,
+                    depth + 1,
+                    max_depth,
+                    show_all,
+                    dirs_only,
+                    ignore_pat,
+                    match_pat,
+                    fs,
+                    out,
+                );
             }
-            if let Some(ref ig) = ignore_pat && crate::shell::expand::glob_match(ig, &n) {
-                continue;
-            }
-            out.push_str(&format!("|-- {n}\n"));
         }
     }
+    render_tree_text(
+        &root,
+        "",
+        0,
+        max_depth,
+        show_all,
+        dirs_only,
+        ignore_pat.as_deref(),
+        match_pat.as_deref(),
+        fs,
+        &mut out,
+    );
     ok_out(&out)
 }
 

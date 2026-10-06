@@ -29,7 +29,7 @@ where
         "rg" => Some(cmd_rg(args, stdin, cwd, fs)),
         "find" => Some(cmd_find(args, cwd, env, fs, &mut exec_sub)),
         "fd" => Some(cmd_fd(args, cwd, env, fs, &mut exec_sub)),
-        "xargs" => Some(cmd_xargs(args, stdin, cwd, env, &mut exec_sub)),
+        "xargs" => Some(cmd_xargs(args, stdin, cwd, env, fs, &mut exec_sub)),
         "which" => Some(cmd_which(args, cwd, env, fs)),
         _ => None,
     }
@@ -246,6 +246,8 @@ pub fn is_known_command(name: &str) -> bool {
             | "csvstat"
             | "xan"
             | "xmllint"
+            | "htmlq"
+            | "unrtf"
             | "sqlite3"
             | "tar"
             | "gzip"
@@ -262,6 +264,18 @@ pub fn is_known_command(name: &str) -> bool {
             | "base32"
             | "xxd"
             | "od"
+            | "hexdump"
+            | "hd"
+            | "iconv"
+            | "csplit"
+            | "pr"
+            | "date"
+            | "cal"
+            | "getconf"
+            | "locale"
+            | "less"
+            | "more"
+            | "pathchk"
     )
 }
 
@@ -3558,6 +3572,7 @@ fn cmd_xargs<F>(
     stdin: &str,
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
     exec_sub: &mut F,
 ) -> BuiltinOutcome
 where
@@ -3565,6 +3580,9 @@ where
 {
     let mut null_delim = false;
     let mut max_args: Option<usize> = None;
+    let mut max_lines: Option<usize> = None;
+    let mut eof_marker: Option<String> = None;
+    let mut arg_file: Option<String> = None;
     let mut replace_str: Option<String> = None;
     let mut custom_delim: Option<char> = None;
     let mut no_run_if_empty = false;
@@ -3577,9 +3595,21 @@ where
             match a.as_str() {
                 "-0" | "--null" => null_delim = true,
                 "-r" | "--no-run-if-empty" => no_run_if_empty = true,
-                "-n" | "-L" if i + 1 < args.len() => {
+                "-n" if i + 1 < args.len() => {
                     i += 1;
                     max_args = args[i].parse().ok();
+                }
+                "-L" if i + 1 < args.len() => {
+                    i += 1;
+                    max_lines = args[i].parse().ok();
+                }
+                "-E" | "-e" if i + 1 < args.len() => {
+                    i += 1;
+                    eof_marker = Some(args[i].clone());
+                }
+                "-a" if i + 1 < args.len() => {
+                    i += 1;
+                    arg_file = Some(args[i].clone());
                 }
                 "-P" | "-s" if i + 1 < args.len() => {
                     i += 1;
@@ -3600,6 +3630,12 @@ where
                 _ => {
                     if let Some(rest) = a.strip_prefix("-n") {
                         max_args = rest.parse().ok();
+                    } else if let Some(rest) = a.strip_prefix("-L") {
+                        max_lines = rest.parse().ok();
+                    } else if let Some(rest) = a.strip_prefix("-E").or_else(|| a.strip_prefix("-e")) && !rest.is_empty() {
+                        eof_marker = Some(rest.to_string());
+                    } else if let Some(rest) = a.strip_prefix("--arg-file=").or_else(|| a.strip_prefix("-a")) && !rest.is_empty() {
+                        arg_file = Some(rest.to_string());
                     } else if let Some(rest) = a.strip_prefix("-I") {
                         replace_str = Some(rest.to_string());
                     }
@@ -3615,27 +3651,104 @@ where
         cmd_words.push("echo".to_string());
     }
 
-    let items: Vec<String> = if null_delim {
+    let input_buf: String;
+    let input_str: &str = if let Some(ref af) = arg_file {
+        let p = resolve_posix_path(cwd, af);
+        match fs.read_file(&p) {
+            Ok(b) => {
+                input_buf = String::from_utf8_lossy(&b).into_owned();
+                &input_buf
+            }
+            Err(e) => return BuiltinOutcome { stdout: String::new(), stderr: format!("xargs: {af}: {e}\n"), exit_code: 1 },
+        }
+    } else {
         stdin
+    };
+
+    if let Some(l_limit) = max_lines
+        && !null_delim
+        && custom_delim.is_none()
+        && replace_str.is_none()
+    {
+        let mut line_batches: Vec<Vec<String>> = Vec::new();
+        let mut current_batch: Vec<String> = Vec::new();
+        let mut lines_in_batch = 0usize;
+        for line in input_str.lines() {
+            let mut toks = tokenize_xargs_input(line);
+            if let Some(ref eof) = eof_marker {
+                if let Some(pos) = toks.iter().position(|t| t == eof) {
+                    toks.truncate(pos);
+                    if !toks.is_empty() {
+                        current_batch.extend(toks);
+                    }
+                    break;
+                }
+            }
+            if toks.is_empty() {
+                continue;
+            }
+            current_batch.extend(toks);
+            lines_in_batch += 1;
+            if lines_in_batch >= l_limit.max(1) {
+                line_batches.push(std::mem::take(&mut current_batch));
+                lines_in_batch = 0;
+            }
+        }
+        if !current_batch.is_empty() {
+            line_batches.push(current_batch);
+        }
+        if line_batches.is_empty() {
+            if no_run_if_empty {
+                return ok_out("");
+            }
+            return exec_sub(&cmd_words, "", cwd, env);
+        }
+        let mut out = String::new();
+        let mut err = String::new();
+        let mut exit_code = 0;
+        for batch in line_batches {
+            let mut invoke = cmd_words.clone();
+            invoke.extend(batch);
+            let res = exec_sub(&invoke, "", cwd, env);
+            out.push_str(&res.stdout);
+            err.push_str(&res.stderr);
+            if res.exit_code != 0 {
+                exit_code = res.exit_code;
+            }
+        }
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: err,
+            exit_code,
+        };
+    }
+
+    let mut items: Vec<String> = if null_delim {
+        input_str
             .split('\0')
             .filter(|s| !s.is_empty())
             .map(|s| s.to_string())
             .collect()
     } else if let Some(d) = custom_delim {
-        stdin
+        input_str
             .split(d)
             .map(|s| s.trim_end_matches('\n').to_string())
             .filter(|s| !s.is_empty())
             .collect()
     } else if replace_str.is_some() {
-        stdin
+        input_str
             .lines()
             .filter(|l| !l.trim().is_empty())
             .map(|l| l.to_string())
             .collect()
     } else {
-        tokenize_xargs_input(stdin)
+        tokenize_xargs_input(input_str)
     };
+    if let Some(ref eof) = eof_marker
+        && let Some(pos) = items.iter().position(|t| t == eof)
+    {
+        items.truncate(pos);
+    }
 
     if items.is_empty() {
         if no_run_if_empty || replace_str.is_some() {

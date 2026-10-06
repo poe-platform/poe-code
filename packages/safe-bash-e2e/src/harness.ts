@@ -108,6 +108,14 @@ const PURE_RUST_SUITE_FILES = [
   "diff-patch-diff3-apply-patch-merge-conflict-matrix.test.ts",
   "diff-patch-diff3-apply-patch-workflow-matrix.test.ts",
   "text-processing-awk-sed.test.ts",
+  "git-diff-patch-sed-awk-grep-find-xargs-end-to-end-repo-refactoring.test.ts",
+  "graph-sorting-splitting-formatting.test.ts",
+  "tsort-factor-expr-pr-iconv-line-endings-getopt-coreutils-matrix.test.ts",
+  "xargs-env-timeout-date-seq-shuf-split-csplit-matrix.test.ts",
+  "math-system-utilities.test.ts",
+  "yq-fd-envsubst-sponge-numfmt-cal-pathchk-extended-cli-matrix.test.ts",
+  "posix-gnu-oracle-differential-parity.test.ts",
+  "unicode-locale-byte-safety.test.ts",
   "benchmark-suite.test.ts",
 ];
 

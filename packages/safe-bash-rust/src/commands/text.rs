@@ -1744,7 +1744,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             } else {
                 eval_awk_expr(&args[0], state)
             };
-            Some(target.chars().count().to_string())
+            Some(target.len().to_string())
         }
         "tolower" => {
             let t = args
@@ -1769,15 +1769,16 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
                 .parse::<usize>()
                 .unwrap_or(1)
                 .saturating_sub(1);
-            let chars: Vec<char> = text.chars().collect();
-            if start >= chars.len() {
+            let bytes = text.as_bytes();
+            if start >= bytes.len() {
                 return Some(String::new());
             }
             if args.len() >= 3 {
                 let len = eval_awk_expr(&args[2], state).parse::<usize>().unwrap_or(0);
-                Some(chars[start..(start + len).min(chars.len())].iter().collect())
+                let end = (start + len).min(bytes.len());
+                Some(crate::vfs::bytes_to_stream_string(&bytes[start..end]))
             } else {
-                Some(chars[start..].iter().collect())
+                Some(crate::vfs::bytes_to_stream_string(&bytes[start..]))
             }
         }
         "index" => {
@@ -1787,8 +1788,34 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             let hay = eval_awk_expr(&args[0], state);
             let needle = eval_awk_expr(&args[1], state);
             match hay.find(&needle) {
-                Some(byte_idx) => Some((hay[..byte_idx].chars().count() + 1).to_string()),
+                Some(byte_idx) => Some((byte_idx + 1).to_string()),
                 None => Some("0".to_string()),
+            }
+        }
+        "match" => {
+            if args.len() < 2 {
+                state.set_var("RSTART", "0".to_string());
+                state.set_var("RLENGTH", "-1".to_string());
+                return Some("0".to_string());
+            }
+            let hay = eval_awk_expr(&args[0], state);
+            let raw_pat = args[1].trim();
+            let pat = if raw_pat.starts_with('/') && raw_pat.ends_with('/') && raw_pat.len() >= 2 {
+                raw_pat[1..raw_pat.len() - 1].to_string()
+            } else {
+                eval_awk_expr(raw_pat, state)
+            };
+            let rx = ZeroRegex::new(vec![pat], false, false, false, false);
+            if let Some((st, en)) = rx.find_all(&hay).into_iter().next() {
+                let rstart = st + 1;
+                let rlen = en - st;
+                state.set_var("RSTART", rstart.to_string());
+                state.set_var("RLENGTH", rlen.to_string());
+                Some(rstart.to_string())
+            } else {
+                state.set_var("RSTART", "0".to_string());
+                state.set_var("RLENGTH", "-1".to_string());
+                Some("0".to_string())
             }
         }
         "split" => {
@@ -1797,13 +1824,35 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
             }
             let text = eval_awk_expr(&args[0], state);
             let arr_name = args[1].trim().to_string();
-            let sep = if args.len() >= 3 {
-                eval_awk_expr(&args[2], state)
+            let raw_sep = args.get(2).map(|a| a.trim()).unwrap_or("");
+            let (sep, is_rx) = if raw_sep.starts_with('/') && raw_sep.ends_with('/') && raw_sep.len() >= 2 {
+                (raw_sep[1..raw_sep.len() - 1].to_string(), true)
+            } else if args.len() >= 3 {
+                let v = eval_awk_expr(&args[2], state);
+                let rx = v.len() > 1;
+                (v, rx)
             } else {
-                state.fs.clone()
+                let v = state.fs.clone();
+                let rx = v.len() > 1;
+                (v, rx)
             };
-            let parts: Vec<String> = if sep == " " {
+            let parts: Vec<String> = if text.is_empty() {
+                Vec::new()
+            } else if sep == " " {
                 text.split_whitespace().map(|p| p.to_string()).collect()
+            } else if is_rx {
+                let rx = ZeroRegex::new(vec![sep], false, false, false, false);
+                let spans = rx.find_all(&text);
+                let mut res = Vec::new();
+                let mut last = 0usize;
+                for (st, en) in spans {
+                    if st >= last && en > st {
+                        res.push(text[last..st].to_string());
+                        last = en;
+                    }
+                }
+                res.push(text[last..].to_string());
+                res
             } else {
                 text.split(&sep).map(|p| p.to_string()).collect()
             };
@@ -3263,6 +3312,8 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
 fn cmd_cmp(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut silent = false;
     let mut verbose_list = false;
+    let mut print_bytes = false;
+    let mut ignore_initial: Option<(usize, usize)> = None;
     let mut max_bytes: Option<usize> = None;
     let mut files = Vec::new();
     let mut i = 0usize;
@@ -3273,6 +3324,26 @@ fn cmd_cmp(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             i += 1;
         } else if a == "-l" || a == "--verbose" {
             verbose_list = true;
+            i += 1;
+        } else if a == "-b" || a == "--print-bytes" {
+            print_bytes = true;
+            i += 1;
+        } else if (a == "-i" || a == "--ignore-initial") && i + 1 < args.len() {
+            let v = &args[i + 1];
+            if let Some((s1, s2)) = v.split_once(':') {
+                ignore_initial = Some((s1.parse().unwrap_or(0), s2.parse().unwrap_or(0)));
+            } else {
+                let n = v.parse().unwrap_or(0);
+                ignore_initial = Some((n, n));
+            }
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--ignore-initial=").or_else(|| a.strip_prefix("-i")) && !rest.is_empty() {
+            if let Some((s1, s2)) = rest.split_once(':') {
+                ignore_initial = Some((s1.parse().unwrap_or(0), s2.parse().unwrap_or(0)));
+            } else {
+                let n = rest.parse().unwrap_or(0);
+                ignore_initial = Some((n, n));
+            }
             i += 1;
         } else if (a == "-n" || a == "--bytes") && i + 1 < args.len() {
             max_bytes = args[i + 1].parse().ok();
@@ -3293,8 +3364,12 @@ fn cmd_cmp(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if files.len() < 2 {
         return err_out("cmp: missing operand\n", 2);
     }
-    let skip1 = files.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
-    let skip2 = files.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+    let (skip1, skip2) = ignore_initial.unwrap_or_else(|| {
+        (
+            files.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0),
+            files.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0),
+        )
+    });
     let read_b = |f: &str| -> Result<Vec<u8>, String> {
         if f == "-" {
             return Ok(crate::vfs::stream_string_to_bytes(stdin));
@@ -3352,9 +3427,28 @@ fn cmd_cmp(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             line_num += 1;
         }
     }
+    if print_bytes && diff_pos < min_len {
+        let c1 = b1[diff_pos];
+        let c2 = b2[diff_pos];
+        return BuiltinOutcome {
+            stdout: format!(
+                "{} {} differ: byte {}, line {} is {:o} {} {:o} {}\n",
+                files[0],
+                files[1],
+                diff_pos + 1,
+                line_num,
+                c1,
+                c1 as char,
+                c2,
+                c2 as char
+            ),
+            stderr: String::new(),
+            exit_code: 1,
+        };
+    }
     BuiltinOutcome {
         stdout: format!(
-            "{} {} differ: byte {}, line {}\n",
+            "{} {} differ: char {}, line {}\n",
             files[0],
             files[1],
             diff_pos + 1,

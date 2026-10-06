@@ -3776,7 +3776,16 @@ impl<'a> EvalState<'a> {
                         }
                     }
                     if chars[idx] == '$' {
+                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
                         let exp = self.expand_dollar(&chars, &mut idx)?;
+                        match prev_dq {
+                            Some(v) => {
+                                self.env.insert("__in_dquote".to_string(), v);
+                            }
+                            None => {
+                                self.env.remove("__in_dquote");
+                            }
+                        }
                         if escape_quoted_glob {
                             for ec in exp.chars() {
                                 if matches!(ec, '*' | '?' | '[' | '\\') {
@@ -3913,7 +3922,8 @@ impl<'a> EvalState<'a> {
                 while let Some(ch) = chars_it.next() {
                     if ifs.contains(ch) {
                         if ch.is_whitespace() {
-                            if !cur.is_empty() || has_token {
+                            let emitted = !cur.is_empty() || has_token;
+                            if emitted {
                                 words.push(std::mem::take(&mut cur));
                                 has_token = false;
                             }
@@ -3922,6 +3932,20 @@ impl<'a> EvalState<'a> {
                                     chars_it.next();
                                 } else {
                                     break;
+                                }
+                            }
+                            if emitted
+                                && let Some(&nc) = chars_it.peek()
+                                && ifs.contains(nc)
+                                && !nc.is_whitespace()
+                            {
+                                chars_it.next();
+                                while let Some(&nc2) = chars_it.peek() {
+                                    if ifs.contains(nc2) && nc2.is_whitespace() {
+                                        chars_it.next();
+                                    } else {
+                                        break;
+                                    }
                                 }
                             }
                         } else {

@@ -245,22 +245,26 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
 }
 
 pub fn decode_ansi_c_escapes(input: &str) -> String {
-    let mut out = String::new();
+    let mut out_bytes: Vec<u8> = Vec::with_capacity(input.len());
     let mut chars = input.chars().peekable();
+    let push_char = |buf: &mut Vec<u8>, ch: char| {
+        let mut tmp = [0u8; 4];
+        buf.extend_from_slice(ch.encode_utf8(&mut tmp).as_bytes());
+    };
     while let Some(c) = chars.next() {
         if c == '\\' {
             match chars.next() {
-                Some('n') => out.push('\n'),
-                Some('r') => out.push('\r'),
-                Some('t') => out.push('\t'),
-                Some('a') => out.push('\x07'),
-                Some('b') => out.push('\x08'),
-                Some('f') => out.push('\x0c'),
-                Some('v') => out.push('\x0b'),
-                Some('e') | Some('E') => out.push('\x1b'),
-                Some('\\') => out.push('\\'),
-                Some('\'') => out.push('\''),
-                Some('"') => out.push('"'),
+                Some('n') => out_bytes.push(b'\n'),
+                Some('r') => out_bytes.push(b'\r'),
+                Some('t') => out_bytes.push(b'\t'),
+                Some('a') => out_bytes.push(0x07),
+                Some('b') => out_bytes.push(0x08),
+                Some('f') => out_bytes.push(0x0c),
+                Some('v') => out_bytes.push(0x0b),
+                Some('e') | Some('E') => out_bytes.push(0x1b),
+                Some('\\') => out_bytes.push(b'\\'),
+                Some('\'') => out_bytes.push(b'\''),
+                Some('"') => out_bytes.push(b'"'),
                 Some('x') => {
                     let mut hex = String::new();
                     for _ in 0..2 {
@@ -271,7 +275,7 @@ pub fn decode_ansi_c_escapes(input: &str) -> String {
                         }
                     }
                     if let Ok(val) = u8::from_str_radix(&hex, 16) {
-                        out.push(val as char);
+                        out_bytes.push(val);
                     }
                 }
                 Some('u') => {
@@ -286,33 +290,49 @@ pub fn decode_ansi_c_escapes(input: &str) -> String {
                     if let Ok(val) = u32::from_str_radix(&hex, 16)
                         && let Some(ch) = char::from_u32(val)
                     {
-                        out.push(ch);
+                        push_char(&mut out_bytes, ch);
+                    }
+                }
+                Some('U') => {
+                    let mut hex = String::new();
+                    for _ in 0..8 {
+                        if let Some(&hc) = chars.peek()
+                            && hc.is_ascii_hexdigit()
+                        {
+                            hex.push(chars.next().unwrap());
+                        }
+                    }
+                    if let Ok(val) = u32::from_str_radix(&hex, 16)
+                        && let Some(ch) = char::from_u32(val)
+                    {
+                        push_char(&mut out_bytes, ch);
                     }
                 }
                 Some(oct) if ('0'..='7').contains(&oct) => {
                     let mut s = String::from(oct);
-                    for _ in 0..2 {
+                    let max_more = if oct == '0' { 3 } else { 2 };
+                    for _ in 0..max_more {
                         if let Some(&oc) = chars.peek()
                             && ('0'..='7').contains(&oc)
                         {
                             s.push(chars.next().unwrap());
                         }
                     }
-                    if let Ok(val) = u8::from_str_radix(&s, 8) {
-                        out.push(val as char);
+                    if let Ok(val) = u16::from_str_radix(&s, 8) {
+                        out_bytes.push((val & 0xff) as u8);
                     }
                 }
                 Some(other) => {
-                    out.push('\\');
-                    out.push(other);
+                    out_bytes.push(b'\\');
+                    push_char(&mut out_bytes, other);
                 }
-                None => out.push('\\'),
+                None => out_bytes.push(b'\\'),
             }
         } else {
-            out.push(c);
+            push_char(&mut out_bytes, c);
         }
     }
-    out
+    crate::vfs::bytes_to_stream_string(&out_bytes)
 }
 
 pub fn eval_arith(expr: &str, env: &mut BTreeMap<String, String>) -> Result<i64, String> {
@@ -1380,7 +1400,7 @@ pub fn expand_parameter_expr(
             let val = lookup_var(var, env, last_exit, pos_args);
             let lc = env.get("LC_ALL").or_else(|| env.get("LANG")).map(|s| s.as_str());
             if lc == Some("C") || lc == Some("POSIX") {
-                let bytes = val.as_bytes();
+                let bytes = crate::vfs::stream_string_to_bytes(&val);
                 let total_len = bytes.len();
                 let start = if off < 0 {
                     (total_len as isize + off).max(0) as usize
@@ -1396,7 +1416,7 @@ pub fn expand_parameter_expr(
                 } else {
                     total_len
                 };
-                return Ok(String::from_utf8_lossy(&bytes[start..end]).into_owned());
+                return Ok(crate::vfs::bytes_to_stream_string(&bytes[start..end]));
             }
             let chars: Vec<char> = val.chars().collect();
             let total_len = chars.len();
@@ -1601,6 +1621,7 @@ fn expand_nested_operand(
     last_exit: i32,
     pos_args: &[String],
 ) -> Result<String, String> {
+    let in_dquote = env.get("__in_dquote").map(|v| v == "1").unwrap_or(false);
     let chars: Vec<char> = raw.chars().collect();
     let mut i = 0usize;
     let mut out = String::new();
@@ -1624,7 +1645,7 @@ fn expand_nested_operand(
             if i < chars.len() {
                 i += 1;
             }
-        } else if c == '\'' {
+        } else if c == '\'' && !in_dquote {
             i += 1;
             while i < chars.len() && chars[i] != '\'' {
                 out.push(chars[i]);

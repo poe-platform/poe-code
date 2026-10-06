@@ -24,14 +24,22 @@ where
     if cmd == "env" && !args.is_empty() {
         let mut idx = 0usize;
         let mut ignore_env = false;
+        let mut unsets = Vec::new();
         let mut overrides = Vec::new();
         while idx < args.len() {
             let a = &args[idx];
-            if a == "-i" || a == "--ignore-environment" {
+            if a == "-i" || a == "--ignore-environment" || a == "-" {
                 ignore_env = true;
                 idx += 1;
             } else if a == "-u" && idx + 1 < args.len() {
+                unsets.push(args[idx + 1].clone());
                 idx += 2;
+            } else if let Some(rest) = a.strip_prefix("--unset=") {
+                unsets.push(rest.to_string());
+                idx += 1;
+            } else if let Some(rest) = a.strip_prefix("-u") && !rest.is_empty() {
+                unsets.push(rest.to_string());
+                idx += 1;
             } else if let Some((k, v)) = a.split_once('=') {
                 if !k.is_empty() && !k.starts_with('-') {
                     overrides.push((k.to_string(), v.to_string()));
@@ -43,17 +51,22 @@ where
                 break;
             }
         }
+        let mut sub_env = if ignore_env {
+            BTreeMap::new()
+        } else {
+            env.clone()
+        };
+        for u in unsets {
+            sub_env.remove(&u);
+        }
+        for (k, v) in overrides {
+            sub_env.remove(&format!("__unexported__{k}"));
+            sub_env.insert(k, v);
+        }
         if idx < args.len() {
-            let mut sub_env = if ignore_env {
-                BTreeMap::new()
-            } else {
-                env.clone()
-            };
-            for (k, v) in overrides {
-                sub_env.insert(k, v);
-            }
             return Some(exec_sub(&args[idx..], stdin, cwd, &mut sub_env));
         }
+        return coreutils::try_run_coreutil("printenv", &[], stdin, cwd, &sub_env, fs);
     }
 
     if cmd == "timeout" && !args.is_empty() {

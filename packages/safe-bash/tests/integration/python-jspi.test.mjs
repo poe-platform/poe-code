@@ -478,6 +478,7 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   assert.equal(result.missingChatFragment.stderr, "Error: Fragment 'missing-fragment' not found\n");
   for (const key of ['initialStdinChatFragment', 'stdinChatFragment']) {assert.equal(result[key].exitCode, 1); assert.equal(result[key].stderr, 'Aborted!\n');}
   assert.ok(result.stdinChatFragment.stdout.endsWith('> 1\n> '), result.stdinChatFragment.stdout);
+  assert.deepEqual(result.iso2022Texts,Object.fromEntries([["iso2022_jp", "A\n\u65e5\u672c\n\u4e2d\n"], ["iso2022_jp_1", "A\n\u65e5\u672c\n\u4e2d\n"], ["iso2022_jp_2", "A\n\u65e5\u672c\n\u4e2d\n"], ["iso2022_jp_2004", "A\n\u65e5\u672c\n\u4e2d\n\ud840\udc0b\n"], ["iso2022_jp_3", "A\n\u65e5\u672c\n\u4e2d\n\ud840\udc0b\n"], ["iso2022_jp_ext", "A\n\u65e5\u672c\n\u4e2d\n\uff76\n"], ["iso2022_kr", "A\n\u65e5\u672c\n\u4e2d\n"]].map(([encoding,text])=>[encoding,'A'.repeat(4095)+text])));
   assert.equal(result.hzText, 'A'.repeat(4095)+'中\n');
   for (const key of ['missingTemplateAtPrompt','missingTemplateAtEof']) {
     assert.equal(result[key].exitCode, 1);

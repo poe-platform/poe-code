@@ -1,0 +1,37 @@
+[
+  {
+    "encoding": "iso2022_jp",
+    "hex": "410d0a1b2442467c4b5c1b28420d1b244243661b28420a",
+    "text": "A\n\u65e5\u672c\n\u4e2d\n"
+  },
+  {
+    "encoding": "iso2022_jp_1",
+    "hex": "410d0a1b2442467c4b5c1b28420d1b244243661b28420a",
+    "text": "A\n\u65e5\u672c\n\u4e2d\n"
+  },
+  {
+    "encoding": "iso2022_jp_2",
+    "hex": "410d0a1b2442467c4b5c1b28420d1b244243661b28420a",
+    "text": "A\n\u65e5\u672c\n\u4e2d\n"
+  },
+  {
+    "encoding": "iso2022_jp_2004",
+    "hex": "410d0a1b2442467c4b5c1b28420d1b244243661b28420a1b2428512e221b28420a",
+    "text": "A\n\u65e5\u672c\n\u4e2d\n\ud840\udc0b\n"
+  },
+  {
+    "encoding": "iso2022_jp_3",
+    "hex": "410d0a1b2442467c4b5c1b28420d1b244243661b28420a1b24284f2e221b28420a",
+    "text": "A\n\u65e5\u672c\n\u4e2d\n\ud840\udc0b\n"
+  },
+  {
+    "encoding": "iso2022_jp_ext",
+    "hex": "410d0a1b2442467c4b5c1b28420d1b244243661b28420a1b2849361b28420a",
+    "text": "A\n\u65e5\u672c\n\u4e2d\n\uff76\n"
+  },
+  {
+    "encoding": "iso2022_kr",
+    "hex": "410d0a1b2429430e6c6d5c620f0d0e71690f0a",
+    "text": "A\n\u65e5\u672c\n\u4e2d\n"
+  }
+]

@@ -280,6 +280,16 @@ _pm.register(_Plugin(), name="fixture")
       for await(const entry of entries){const decoder=new TextDecoder();for await(const bytes of entry.input.bytes)hzText+=decoder.decode(bytes,{stream:true});hzText+=decoder.decode();}
     });
     await backend.unlink('/work/hz.txt');
+    const iso2022Texts={};
+    for(const fixture of [{"encoding":"iso2022_jp","bytes":[65,13,10,27,36,66,70,124,75,92,27,40,66,13,27,36,66,67,102,27,40,66,10]},{"encoding":"iso2022_jp_1","bytes":[65,13,10,27,36,66,70,124,75,92,27,40,66,13,27,36,66,67,102,27,40,66,10]},{"encoding":"iso2022_jp_2","bytes":[65,13,10,27,36,66,70,124,75,92,27,40,66,13,27,36,66,67,102,27,40,66,10]},{"encoding":"iso2022_jp_2004","bytes":[65,13,10,27,36,66,70,124,75,92,27,40,66,13,27,36,66,67,102,27,40,66,10,27,36,40,81,46,34,27,40,66,10]},{"encoding":"iso2022_jp_3","bytes":[65,13,10,27,36,66,70,124,75,92,27,40,66,13,27,36,66,67,102,27,40,66,10,27,36,40,79,46,34,27,40,66,10]},{"encoding":"iso2022_jp_ext","bytes":[65,13,10,27,36,66,70,124,75,92,27,40,66,13,27,36,66,67,102,27,40,66,10,27,40,73,54,27,40,66,10]},{"encoding":"iso2022_kr","bytes":[65,13,10,27,36,41,67,14,108,109,92,98,15,13,14,113,105,15,10]}]){
+      const bytes=new Uint8Array(4095+fixture.bytes.length);bytes.fill(65,0,4095);bytes.set(fixture.bytes,4095);
+      await backend.writeFile('/work/iso2022.txt',bytes);let text='';
+      await withFileEmbeddingEntries({fs:backend,directory:'/work',signal:new AbortController().signal,encodings:[fixture.encoding]},{async *[Symbol.asyncIterator](){yield {path:'/work/iso2022.txt',id:'iso2022'};}},async entries=>{
+        for await(const entry of entries){const decoder=new TextDecoder();for await(const chunk of entry.input.bytes)text+=decoder.decode(chunk,{stream:true});text+=decoder.decode();}
+      });
+      iso2022Texts[fixture.encoding]=text;
+    }
+    await backend.unlink('/work/iso2022.txt');
     const missingTemplateAtPrompt = await shell.exec("llm chat -t missing <<'EOF'\nhello\nEOF");
     const missingTemplateAtEof = await shell.exec('llm chat -t missing');
     wireRun = true;
@@ -299,7 +309,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {hzText,missingTemplateAtPrompt,missingTemplateAtEof,invalidChatOptions,snapshotChatOptions,explicitChatOptions,optionCalls,missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {iso2022Texts,hzText,missingTemplateAtPrompt,missingTemplateAtEof,invalidChatOptions,snapshotChatOptions,explicitChatOptions,optionCalls,missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

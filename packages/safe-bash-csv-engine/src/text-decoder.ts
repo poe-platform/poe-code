@@ -1,3 +1,4 @@
+import { PythonIso2022Decoder, pythonIso2022Charsets } from "./python-iso2022.js";
 import { PythonHzDecoder } from "./python-hz.js";
 import { PythonMultibyteDecoder } from "./python-multibyte.js";
 import { pythonMultibyteTables } from "./python-multibyte-tables.js";
@@ -11,25 +12,26 @@ import { normalizeEncoding, pythonCodecAliases } from "./python-codec-aliases.js
  * feed bounded chunks; this decoder never owns filesystem or payload storage. */
 const fileCodepages={...pythonSingleByteCodepages,...pythonFileCodepages};
 const utf8Signature=Uint8Array.of(0xef,0xbb,0xbf);
+export { PythonIso2022PendingError } from "./python-iso2022.js";
 export { PythonTextDecodeError } from "./python-codepages.js";
 export class PythonTextDecoder {
  readonly encoding:string;
- private readonly decoder:TextDecoder|PythonHzDecoder|PythonUtf16Decoder|PythonUtf32Decoder|PythonMultibyteDecoder;
+ private readonly decoder:TextDecoder|PythonIso2022Decoder|PythonHzDecoder|PythonUtf16Decoder|PythonUtf32Decoder|PythonMultibyteDecoder;
  private readonly codepoints:readonly number[]|undefined;
  private signatureOffset=0;
  private signatureComplete:boolean;
  constructor(encoding:string){
   const name=normalizeEncoding(encoding);
   const canonical=Object.hasOwn(pythonCodecAliases,name)?pythonCodecAliases[name]:undefined;
-  if(canonical===undefined||(!['hz','utf-8-sig','utf-8','utf-16','utf-16-le','utf-16-be','utf-32','utf-32-le','utf-32-be'].includes(canonical)&&!Object.hasOwn(fileCodepages,canonical)&&!Object.hasOwn(pythonMultibyteTables,canonical)))throw new RangeError(`unknown encoding: ${encoding}`);
+  if(canonical===undefined||(!['hz','utf-8-sig','utf-8','utf-16','utf-16-le','utf-16-be','utf-32','utf-32-le','utf-32-be'].includes(canonical)&&!Object.hasOwn(pythonIso2022Charsets,canonical)&&!Object.hasOwn(fileCodepages,canonical)&&!Object.hasOwn(pythonMultibyteTables,canonical)))throw new RangeError(`unknown encoding: ${encoding}`);
   this.encoding=canonical;
   this.codepoints=fileCodepages[canonical];
   this.signatureComplete=canonical!=='utf-8-sig';
-  this.decoder=canonical==='hz'?new PythonHzDecoder():pythonMultibyteTables[canonical]?new PythonMultibyteDecoder(pythonMultibyteTables[canonical]!):canonical==='utf-16'||canonical==='utf-16-le'||canonical==='utf-16-be'?new PythonUtf16Decoder(canonical):canonical==='utf-32'||canonical==='utf-32-le'||canonical==='utf-32-be'?new PythonUtf32Decoder(canonical):new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
+  this.decoder=Object.hasOwn(pythonIso2022Charsets,canonical)?new PythonIso2022Decoder(canonical):canonical==='hz'?new PythonHzDecoder():pythonMultibyteTables[canonical]?new PythonMultibyteDecoder(pythonMultibyteTables[canonical]!):canonical==='utf-16'||canonical==='utf-16-le'||canonical==='utf-16-be'?new PythonUtf16Decoder(canonical):canonical==='utf-32'||canonical==='utf-32-le'||canonical==='utf-32-be'?new PythonUtf32Decoder(canonical):new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
  }
  decode(bytes?:Uint8Array,options?:{stream?:boolean}):string{
   if(this.codepoints)return decodePythonSingleByte(bytes??new Uint8Array(),this.codepoints,this.encoding);
-  if(this.decoder instanceof PythonHzDecoder||this.decoder instanceof PythonUtf16Decoder||this.decoder instanceof PythonUtf32Decoder||this.decoder instanceof PythonMultibyteDecoder)return this.decoder.decode(bytes,options);
+  if(this.decoder instanceof PythonIso2022Decoder||this.decoder instanceof PythonHzDecoder||this.decoder instanceof PythonUtf16Decoder||this.decoder instanceof PythonUtf32Decoder||this.decoder instanceof PythonMultibyteDecoder)return this.decoder.decode(bytes,options);
   try{
    let offset=0;
    if(!this.signatureComplete){

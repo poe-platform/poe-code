@@ -190,3 +190,30 @@ test('HZ file imports retain shift state across reads and clean rejected staging
   assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['hz']);
  }
 });
+
+test('ISO-2022 imports preserve native shift state across reads and retire invalid input',async()=>{
+ const {default:fixtures}=await import('./fixtures/iso2022-files-python39.json',{with:{type:'json'}});
+ const fs=new MemoryFileSystem();
+ for(const fixture of fixtures)for(const invalid of [false,true]){
+  const suffix=Uint8Array.from(Buffer.from(fixture.hex,'hex')),bytes=new Uint8Array(4095+suffix.length+Number(invalid));
+  bytes.fill(65,0,4095);bytes.set(suffix,4095);if(invalid)bytes[bytes.length-1]=27;
+  await fs.writeFile('/iso2022',bytes);const values:string[]=[],warnings:string[]=[];
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:[fixture.encoding],undecodable(path){warnings.push(path);}},{async *[Symbol.asyncIterator](){yield {path:'/iso2022',id:'one'};}},async entries=>{
+   for await(const entry of entries){let text='';const decoder=new TextDecoder();for await(const bytes of entry.input.bytes)text+=decoder.decode(bytes,{stream:true});values.push(text+decoder.decode());}
+  });
+  assert.deepEqual(values,invalid?[]:['A'.repeat(4095)+fixture.text]);
+  assert.deepEqual(warnings,invalid?['/iso2022']:[]);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['iso2022']);
+ }
+});
+
+test('ISO-2022 whole-file malformed escapes remain skippable at chunk boundaries',async()=>{
+ const fs=new MemoryFileSystem();
+ await fs.writeFile('/invalid',new TextEncoder().encode('A'.repeat(4087)+'\x1b$'+' '.repeat(7)+'B'));
+ const warnings:string[]=[];
+ await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:['iso2022_jp'],undecodable(path){warnings.push(path);}},{async *[Symbol.asyncIterator](){yield {path:'/invalid',id:'one'};}},async entries=>{
+  for await(const _entry of entries)assert.fail('Native whole-file decoding rejects the escape');
+ });
+ assert.deepEqual(warnings,['/invalid']);
+ assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['invalid']);
+});

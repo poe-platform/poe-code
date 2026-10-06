@@ -1,5 +1,5 @@
 import {FsError,type FileSystem} from 'safe-bash-contracts';
-import {PythonTextDecoder,PythonTextDecodeError} from 'safe-bash-csv-engine/text-decoder';
+import {PythonTextDecoder,PythonTextDecodeError,PythonIso2022PendingError} from 'safe-bash-csv-engine/text-decoder';
 import {fileSource} from './file-source.js';
 import {createLlmSpool} from './retained-spool.js';
 import {embeddingText} from './embed-input.js';
@@ -48,7 +48,9 @@ export async function withFileEmbeddingEntries<T>(options:LlmFileEmbeddingOption
        if(bytes.length>maxBytes-size)throw new RangeError('Embedding input byte limit exceeded');size+=bytes.length;await candidate.write(bytes);
       }
       accepted=true;
-     }catch(error){failedAttempt=true;signal.throwIfAborted();if(!(error instanceof PythonTextDecodeError))throw error;failedAttempt=false;}
+     // An ISO-2022 escape longer than the incremental carry cannot be valid;
+     // native whole-file decoding reports it as undecodable, not carry overflow.
+     }catch(error){failedAttempt=true;signal.throwIfAborted();if(!(error instanceof PythonTextDecodeError)&&!(error instanceof PythonIso2022PendingError))throw error;failedAttempt=false;}
      finally{if(!accepted)try{await candidate.close();}catch(error){if(!failedAttempt)await Promise.reject(error);}}
      if(accepted){const previous=selected;selected=candidate;await previous?.close();}
     }

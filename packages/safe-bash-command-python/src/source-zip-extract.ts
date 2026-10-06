@@ -20,7 +20,7 @@ export async function pythonSourceZipSize(input:SourceFile):Promise<number|undef
 }
 
 /** Consume and retire the retained archive already admitted by the source host. */
-export async function extractPythonSourceZipFile(input:SourceFile,directory:string,maxBytes:number,context:CommandContext,zipSize?:number):Promise<void>{
+export async function extractPythonSourceZipFile(input:SourceFile,directory:string,maxBytes:number,context:CommandContext,zipSize?:number,flatten=true):Promise<void>{
  const {fs,signal}=context;
  const limits={...DEFAULT_ARCHIVE_LIMITS,maxArchiveBytes:maxBytes};
  let scratch:ReturnType<typeof createArchiveScratchFactory>|undefined;
@@ -30,7 +30,7 @@ export async function extractPythonSourceZipFile(input:SourceFile,directory:stri
   const size=zipSize??await pythonSourceZipSize(input)??input.size;
   archive=await readZipIndexedArchive({...input,size},limits,signal,scratch,{allowUnreferencedData:true});
 
-  let prefix:string|undefined,flatten=true;
+  let prefix:string|undefined;
   for await(const entry of archive.entries){
    const [part]=splitPythonSourcePath(entry.name);
    if(!part||prefix!==undefined&&part!==prefix){flatten=false;break;}

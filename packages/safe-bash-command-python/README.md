@@ -252,6 +252,8 @@ transport and caller-backed cache. SHA-256 URL fragments are verified before
 extraction; offline replay and cache bypass use the normal installation controls.
 Remote archives require retained caller storage and streaming writes. ZIP and tar
 contents are also detected when the download URL has no archive extension.
+Response filenames follow pinned pip header, MIME and redirect rules; filenames
+and content types guide extraction without becoming filesystem staging paths.
 Local file URLs and remote archives can select a nested project with
 `#subdirectory=path/to/project`. Selection preserves pip’s literal fragment
 spelling and must remain inside the prepared source tree.

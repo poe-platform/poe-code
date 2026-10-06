@@ -71,7 +71,8 @@ async function qualifyLegacyBuild(backend,createExecutor,assets,format='director
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl')||path.includes('-sha256-'))throw new Error('Whole wheel read');return target.readFile(path,...args);};
     const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
   }});
-  const remote=format==='remote'||format==='remote-redirect'||format==='subdirectory'||format.startsWith('remote-extensionless'),zipArchive=format==='zip'||format==='remote-extensionless-zip';
+  const remote=format.startsWith('remote-metadata')||format==='remote'||format==='remote-redirect'||format==='subdirectory'||format.startsWith('remote-extensionless'),zipArchive=format==='zip'||format==='remote-extensionless-zip'||format==='remote-metadata-zip';
+  let invalidMetadata=format.startsWith('remote-metadata');
   const sourceURL='https://build.test/'+(format.startsWith('remote-extensionless')?'download':'legacy-source.tar.gz');
   const sourceRequestURL=format==='remote-redirect'?'https://build.test/redirect':sourceURL;
   const sourceDirectory=format==='editable-file'?'/work/legacy source':'/work/legacy-source'+(format==='subdirectory'?'/nested':'');
@@ -90,7 +91,7 @@ setup(name="legacy-fixture",version="1.0",py_modules=["legacy_fixture"],setup_re
   const environment=createPythonSourcePackageEnvironment({cacheDirectory:'/work/packages',authorize:({url})=>wheels.has(url)||format==='remote-redirect'&&url===sourceRequestURL,transport:async({url})=>{
     requests.push(url);
     if(format==='remote-redirect'&&url===sourceRequestURL)return {status:302,headers:[['location',sourceURL]],body:(async function*(){})(),async dispose(){}};
-    return {status:200,headers:format==='remote-redirect'&&url===sourceURL?[['content-disposition','attachment; filename="legacy-source.tar.gz"']]:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
+    return {status:200,headers:format.startsWith('remote-metadata')&&url===sourceURL?(invalidMetadata?(zipArchive?[['content-disposition','attachment; filename="../../source.whl"']]:[['content-type','application/zip']]):[['content-disposition','attachment; filename="../../project.'+(zipArchive?'zip':'tar.gz')+'"']]):format==='remote-redirect'&&url===sourceURL?[['content-disposition','attachment; filename="legacy-source.tar.gz"']]:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
   }},{directory:'/work/builds',extractArchive:extractPythonSourceArchive,python:{createExecutor}});
   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
   if(llmEditable)shell.use(llmCommands({managePackages:createPythonLlmPackageManager({createExecutor,environment})}));
@@ -130,7 +131,8 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
       const skipped=await shell.exec(`python -m pip install 'absent @ file:///work/nonexistent ; python_version < "1"'`);
       if(skipped.exitCode)throw new Error(JSON.stringify(skipped));
     }
-    const installed=await shell.exec(install);
+    if(invalidMetadata){rejected=await shell.exec(install);invalidMetadata=false;}
+    const installed=await shell.exec(install+(format.startsWith('remote-metadata')?' --no-cache-dir':''));
     await backend.writeFile(sourceDirectory+'/legacy_fixture.py',new TextEncoder().encode('value = "changed"\n'));
     const imported=await shell.exec(inspect);
     await backend.writeFile(sourceDirectory+'/setup.py',new TextEncoder().encode('raise RuntimeError("legacy-build-failed")\n'));

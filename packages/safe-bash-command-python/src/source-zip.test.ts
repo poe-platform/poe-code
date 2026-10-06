@@ -115,3 +115,9 @@ test('invalid ZIP input retains its original failure when closing the retained i
  }});
  await assert.rejects(extractPythonSourceZip('/input.zip','/build/source',Infinity,{...context,fs:observed}),error=>error instanceof AggregateError&&error.errors.length===2&&error.errors[1]===retirement);
 });
+
+for(const filename of ['payload.whl','payload.WHL','payload.zip'])test('download filename controls native ZIP flattening: '+filename,async()=>{
+ const {fs,context}=await fixture(['project/','project/setup.py']);
+ await extractPythonSourceArchive('/input.zip','/build/source',Infinity,context,{filename});
+ assert.equal(new TextDecoder().decode(await fs.readFile('/build/source/'+(filename.endsWith('.whl')?'project/':'')+'setup.py')),'payload-1');
+});

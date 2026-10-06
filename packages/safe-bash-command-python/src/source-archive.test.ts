@@ -79,3 +79,8 @@ test('tar hard links resolve archive symlinks without reading extraction paths',
  await extractPythonSourceArchive(source,'/build/source',Infinity,context);
  assert.equal(new TextDecoder().decode(await fs.readFile('/build/source/copy')),'payload-1');
 });
+
+test('response ZIP content type takes precedence over genuine tar bytes',async()=>{
+ const {source,context}=await fixture([{name:'project/setup.py'}]);
+ await assert.rejects(extractPythonSourceArchive(source,'/build/source',Infinity,context,{filename:'download',contentType:'application/zip'}));
+});

@@ -1,3 +1,4 @@
+import {pythonDownloadFilenameProgram} from './source-filename-program.js';
 import {toByteSource, type CommandContext} from 'safe-bash-contracts';
 import {createPythonExecutorCommands, type PythonCommandsOptions, type PythonPackageEnvironment} from './executor.js';
 import type {PythonHostCapability,PythonHostValue} from './host-capabilities.js';
@@ -45,6 +46,12 @@ export interface PythonBuildRequirementsStatus {
  readonly conflicting:readonly (readonly [installed:string,wanted:string])[];
  readonly missing:readonly string[];
 }
+export interface PythonDownloadFilenameRequest {
+ readonly hook:'read_download_filename';
+ readonly source:string;
+ readonly responseUrl:string;
+ readonly headers:readonly (readonly [string,string])[];
+}
 export interface PythonSourceRequirementRequest {
  readonly hook:'read_source_requirement';
  readonly source:string;
@@ -63,8 +70,8 @@ export interface PythonSourceRequirement {
  readonly marker:string|null;
  readonly active:boolean;
 }
-type BuildRequest=PythonEditableRequirementRequest|PythonLegacyRequirementsRequest|PythonSourceRequirementRequest|PythonLegacyBuildRequest|PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
-type BuildResult<T extends BuildRequest>=T extends PythonSourceRequirementRequest|PythonEditableRequirementRequest?PythonSourceRequirement|null:T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'|'build_legacy_wheel'}?string:string[];
+type BuildRequest=PythonDownloadFilenameRequest|PythonEditableRequirementRequest|PythonLegacyRequirementsRequest|PythonSourceRequirementRequest|PythonLegacyBuildRequest|PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
+type BuildResult<T extends BuildRequest>=T extends PythonDownloadFilenameRequest?string:T extends PythonSourceRequirementRequest|PythonEditableRequirementRequest?PythonSourceRequirement|null:T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'|'build_legacy_wheel'}?string:string[];
 export interface PythonBuildHookContext extends Pick<CommandContext,'fs'|'cwd'|'env'|'signal'|'stdout'|'stderr'> {
  /** Total UTF-8 result metadata allowance; wheel bytes stay in caller storage. */
  readonly maxBytes:number;
@@ -86,9 +93,11 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   context.signal.throwIfAborted();
   const {maxBytes}=context;
   if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError('Invalid Python build metadata limit');
-  if(!input||!['read_editable_requirement','get_requires_for_legacy_wheel','read_source_requirement','read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
+  if(!input||!['read_download_filename','read_editable_requirement','get_requires_for_legacy_wheel','read_source_requirement','read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
   if(input.hook==='read_editable_requirement'&&input.requirementLine!==undefined&&typeof input.requirementLine!=='boolean')throw new TypeError('Invalid editable requirement line');
-  if(input.hook==='build_legacy_wheel'){
+  if(input.hook==='read_download_filename'){
+   if(typeof input.responseUrl!=='string'||!Array.isArray(input.headers)||input.headers.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python download metadata');
+  }else if(input.hook==='build_legacy_wheel'){
    if(typeof input.wheelDirectory!=='string'||!input.wheelDirectory||input.editable!==undefined&&typeof input.editable!=='boolean')throw new TypeError('Invalid Python legacy wheel directory');
   }else if(input.hook==='check_build_requirements'){
    if([input.requirements,input.installed].some(values=>!Array.isArray(values)||values.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python build requirements request');
@@ -130,7 +139,9 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
    if(result.exitCode)throw new Error(`Python build interpreter exited with status ${result.exitCode}`);
    if(!done)throw new Error('Python build interpreter returned no result');
    const value:unknown=JSON.parse(chunks.join(''));
-   if(request.hook==='read_source_requirement'||request.hook==='read_editable_requirement'){
+   if(request.hook==='read_download_filename'){
+    if(typeof value!=='string')throw new TypeError('Invalid Python download filename');
+   }else if(request.hook==='read_source_requirement'||request.hook==='read_editable_requirement'){
     const result=value as PythonSourceRequirement|null;
     if(result!==null&&(!result||typeof result.name!=='string'||typeof result.url!=='string'||typeof result.active!=='boolean'||result.marker!==null&&typeof result.marker!=='string'||!Array.isArray(result.extras)||result.extras.some(extra=>typeof extra!=='string')))throw new TypeError('Invalid Python source requirement');
    }else if(request.hook==='check_build_requirements'){
@@ -152,6 +163,7 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
 
 export const pythonBuildBackendProgram=/* @__PURE__ */ (()=>String.raw`
 import importlib, json, os, sys, safe_host
+${pythonDownloadFilenameProgram}
 
 def send(op, **fields):
  return safe_host.call('python_build', dict(op=op, **fields))
@@ -286,6 +298,7 @@ def read_editable_requirement(request):
 def main():
  request = send('request')
  if request['hook'] == 'get_requires_for_legacy_wheel': request.update(hook='get_requires_for_build_wheel', backend='setuptools.build_meta:__legacy__')
+ if request['hook'] == 'read_download_filename': return read_download_filename(request)
  if request['hook'] == 'read_source_requirement': return read_source_requirement(request)
  if request['hook'] == 'read_editable_requirement': return read_editable_requirement(request)
  if request['hook'] == 'build_legacy_wheel':

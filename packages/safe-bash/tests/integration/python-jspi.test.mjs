@@ -576,7 +576,7 @@ test('real workerd loads native code from a retained installed wheel', {timeout:
  assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const format of ['directory','zip','tar','named','remote','remote-redirect','remote-extensionless','remote-extensionless-zip','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds legacy setup projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
+for(const format of ['directory','zip','tar','named','remote','remote-metadata','remote-metadata-zip','remote-redirect','remote-extensionless','remote-extensionless-zip','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds legacy setup projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
   const extras=format==='editable-extras'||format==='editable-file',editable=format==='editable'||format==='llm-editable'||extras;
   const directory=process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT;
   assert.ok(directory,'Set SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT to authenticated runtime build wheels');
@@ -592,6 +592,8 @@ for(const format of ['directory','zip','tar','named','remote','remote-redirect',
   const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/legacy-build?archive='+format,{method:'POST',body:JSON.stringify(assets)});
   const result=await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
+  if(format.startsWith('remote-metadata'))assert.notEqual(result.rejected.exitCode,0,JSON.stringify(result));
+  if(format==='remote-metadata-zip')assert.ok(result.rejected.stderr.includes('File "setup.py" not found'),result.rejected.stderr);
   if(format==='directory'){
     assert.notEqual(result.rejected.exitCode,0,JSON.stringify(result.rejected));
     assert.ok(result.rejected.stderr.includes("Directory './empty-project' is not installable. Neither 'setup.py' nor 'pyproject.toml' found."),result.rejected.stderr);

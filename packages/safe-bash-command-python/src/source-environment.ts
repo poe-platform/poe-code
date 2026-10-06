@@ -7,7 +7,7 @@ import {createPythonBuildBackend,type PythonSourceRequirement} from './build-bac
 import {createPythonBuildDependencies} from './build-dependencies.js';
 import {downloadPythonSourceArchive} from './source-download.js';
 import {createPythonSourceSnapshot} from './source-snapshot.js';
-import type {extractPythonSourceZip} from './source-zip.js';
+import type {extractPythonSourceZip,PythonSourceArchiveMetadata} from './source-zip.js';
 import {publishPythonBuildWheel} from './build-wheel.js';
 import type {PythonCommandsOptions} from './executor.js';
 
@@ -109,8 +109,21 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    }});
    const command:CommandContext={...context,env:context.env,stdout:context.stdout,stderr:context.stderr,command:'python',args:[],stdin:toByteSource('')};
    Reflect.deleteProperty(command,'editable');
+   const configuration={...build.python,environment},hook=createPythonBuildBackend(configuration),hookContext={...command,maxBytes:options.maxMetadataBytes??Infinity};
    let prepared:string;
-   if(archived){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');if(remote){source=resolvePath(path,'archive'+(suffix??''));await downloadPythonSourceArchive(remote,source,options,command);}await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
+   if(archived){
+    prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);
+    if(!build.extractArchive)throw new Error('Source archives require an extraction capability');
+    let metadata:PythonSourceArchiveMetadata|undefined;
+    if(remote){
+     source=resolvePath(path,'archive');
+     const response=await downloadPythonSourceArchive(remote,source,options,command);
+     const filename=await hook({hook:'read_download_filename',source:remote.href,responseUrl:response.url,headers:response.headers},hookContext);
+     const headers=new Map(response.headers.map(([key,value])=>[key.toLowerCase(),value]));
+     metadata={filename,...headers.has('content-type')?{contentType:headers.get('content-type')!}:{}};
+    }
+    await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging},metadata);
+   }
    else prepared=editable?await fs.realpath(source,settings):(await createPythonSourceSnapshot(source,path,{...command,fs:staging})).path;
    if(subdirectory){
     const selected=resolvePath(prepared,subdirectory);
@@ -121,7 +134,6 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    }
    const wheelDirectory=resolvePath(path,'wheels');
    await confined.mkdir(wheelDirectory,settings);
-   const configuration={...build.python,environment},hook=createPythonBuildBackend(configuration),hookContext={...command,maxBytes:options.maxMetadataBytes??Infinity};
    const buildSystem=await hook({hook:'read_build_system',source:prepared,name:requirement,installation:archived?'archive':'directory'},hookContext);
    await createPythonBuildDependencies(configuration)({source:prepared,buildSystem},hookContext);
    const filename=await hook(editable?{hook:'build_legacy_wheel',source:prepared,wheelDirectory,editable:true}:buildSystem?{hook:'build_wheel',source:prepared,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:prepared,wheelDirectory},hookContext);

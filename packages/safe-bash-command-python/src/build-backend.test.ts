@@ -98,3 +98,19 @@ test('legacy wheel hooks request genuine build tooling only for that invocation'
   await backend(request,context());assert.deepEqual(bootstraps,[['setuptools'],undefined]);
  }finally{await environment.dispose();}
 });
+
+test('download filename hooks validate metadata and bounded string results',async()=>{
+ const environment=createPythonBuildEnvironment();let value:unknown='source.tar.gz',runs=0;
+ const backend=createPythonBuildBackend({environment,createExecutor:()=>({terminate(){},async run(start){
+  runs++;await send(start,{op:'text',text:JSON.stringify(value)});await send(start,{op:'done'});return 0;
+ }})});
+ const request={hook:'read_download_filename' as const,source:'https://source.test/download',responseUrl:'https://cdn.test/download',headers:[['content-type','application/zip']] as const};
+ try{
+  assert.equal(await backend(request,context()),value);
+  value=[];await assert.rejects(backend(request,context()),/Invalid Python download filename/);
+  value='too long';await assert.rejects(backend(request,{...context(),maxBytes:2}));
+  const before=runs;
+  await assert.rejects(backend({...request,headers:[['bad']] as any},context()),/Invalid Python download metadata/);
+  assert.equal(runs,before);
+ }finally{await environment.dispose();}
+});

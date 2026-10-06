@@ -7,12 +7,13 @@ import {parseOptions} from 'safe-bash-command-tar/options';
 import {autodetected} from 'safe-bash-command-tar/stream';
 import {Budget,DEFAULT_ARCHIVE_LIMITS} from 'safe-bash-io-engine/commands/archive/internal';
 import {openPythonPackageFile} from './package-file.js';
-import {extractPythonSourceZip} from './source-zip.js';
+import {extractPythonSourceZip,type PythonSourceArchiveMetadata} from './source-zip.js';
 import {extractPythonSourceZipFile,pythonSourceZipSize} from './source-zip-extract.js';
 
 /** Optional source-archive host capability, using the existing ZIP and tar engines. */
-export async function extractPythonSourceArchive(source:string,directory:string,maxBytes:number,context:CommandContext):Promise<void>{
- if(source.toLowerCase().endsWith('.zip'))return extractPythonSourceZip(source,directory,maxBytes,context);
+export async function extractPythonSourceArchive(source:string,directory:string,maxBytes:number,context:CommandContext,metadata?:PythonSourceArchiveMetadata):Promise<void>{
+ const filename=metadata?.filename??source;
+ if(metadata?.contentType==='application/zip'||['.zip','.whl'].some(suffix=>filename.toLowerCase().endsWith(suffix)))return extractPythonSourceZip(source,directory,maxBytes,context,metadata);
  const {fs,signal}=context,settings={signal};
  if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError('Invalid Python source archive size limit');
  if(!fs.confineExtraction||!fs.writeStream)throw new Error('Python tar sources require confined streaming writes');
@@ -83,7 +84,7 @@ export async function extractPythonSourceArchive(source:string,directory:string,
    }});
   }
  }catch(error){primary=error;failed=true;}
- if(!failed&&zipSize!==undefined)return extractPythonSourceZipFile(input,directory,maxBytes,context,zipSize);
+ if(!failed&&zipSize!==undefined)return extractPythonSourceZipFile(input,directory,maxBytes,context,zipSize,!filename.endsWith('.whl'));
  try{await input.close();}catch(error){if(failed)throw new AggregateError([primary,error],'Python source tar cleanup failed');throw error;}
  if(failed)throw primary;
 }

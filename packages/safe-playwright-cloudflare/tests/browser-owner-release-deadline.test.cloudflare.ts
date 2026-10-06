@@ -5,9 +5,16 @@ import { ownedProvider } from "./shell-browser-resource-private.fixture";
 
 test.each([
 	200, 503,
-])("owner release deadline rejects without confirming a held control socket after DELETE %i", async (deleteStatus) => {
-	const provider = ownedProvider(deleteStatus, { deferCloseAt: 0 });
-	const deadline = new AbortController();
+])("owner release retries a deadline without confirming a held control socket after DELETE %i", async (deleteStatus) => {
+	let deletions = 0;
+	const provider = ownedProvider(
+		async () => {
+			deletions++;
+			return new Response(null, { status: deletions === 1 ? deleteStatus : 204 });
+		},
+		{ deferCloseAt: 0 },
+	);
+	let deadline = new AbortController();
 	const nativeTimeout = AbortSignal.timeout.bind(AbortSignal);
 	const timeout = vi
 		.spyOn(AbortSignal, "timeout")
@@ -34,7 +41,11 @@ test.each([
 			return error;
 		},
 	);
+	const observed: Promise<unknown>[] = [outcome];
 	try {
+		const concurrent = resource.release();
+		observed.push(concurrent.catch((error: unknown) => error));
+		expect(concurrent).toBe(closing);
 		await provider.closes[0];
 		deadline.abort(new DOMException("Owner deadline expired", "TimeoutError"));
 		await vi.waitFor(() => expect(failure).toBeInstanceOf(AggregateError), {
@@ -58,14 +69,48 @@ test.each([
 			);
 		expect(upstream.readyState).toBe(WebSocket.CLOSING);
 		expect(confirmed).toBe(false);
-		expect(resource.release()).toBe(closing);
 		expect(
 			provider.requests.filter((method) => method === "DELETE"),
 		).toHaveLength(1);
+
+		// Each retry has its own budget; the first deadline is already aborted.
+		deadline = new AbortController();
+		const retry = resource.release();
+		let retrySettled = false;
+		const retryOutcome = retry.then(
+			() => {
+				retrySettled = true;
+			},
+			(error: unknown) => {
+				retrySettled = true;
+				return error;
+			},
+		);
+		observed.push(retryOutcome);
+		const sharedRetry = resource.release();
+		observed.push(sharedRetry.catch((error: unknown) => error));
+		expect(retry).not.toBe(closing);
+		expect(sharedRetry).toBe(retry);
+		const expectedDeletions = deleteStatus === 503 ? 2 : 1;
+		await vi.waitFor(() => expect(deletions).toBe(expectedDeletions), {
+			timeout: 100,
+			interval: 1,
+		});
+		expect(upstream.readyState).toBe(WebSocket.CLOSING);
+		expect(confirmed).toBe(false);
+		expect(retrySettled).toBe(false);
+		provider.peers[0]!.close(1000);
+		await physicallyClosed;
+		expect(await retryOutcome).toBeUndefined();
+		const completed = resource.release();
+		observed.push(completed.catch((error: unknown) => error));
+		expect(completed).toBe(retry);
+		expect(deletions).toBe(expectedDeletions);
 	} finally {
 		provider.peers[0]!.close(1000);
 		await physicallyClosed;
-		await outcome;
+		deadline.abort();
+		await Promise.all(observed);
 		timeout.mockRestore();
 	}
 	expect(confirmed).toBe(true);

@@ -294,3 +294,27 @@ test('native creation syscalls use the invocation guest mask', async () => {
     await native.invoke('fd_close',[fd]);
   } finally {await native.close(); await filesystem.close();}
 });
+
+test('native utimensat updates caller timestamps and preserves omitted fields', async () => {
+  const calls: unknown[] = [];
+  const native=fixture(async request=>{calls.push(request);return {atimeMs:123,mtimeMs:456};});
+  const view=new DataView(native.memory.buffer);
+  view.setBigInt64(512,2n,true);view.setInt32(520,500000000,true);
+  view.setBigInt64(528,0n,true);view.setInt32(536,1073741822,true);
+  assert.equal(await native.invoke('__syscall_utimensat',[-100,native.text('module.py'),512,0]),0);
+  assert.deepEqual(calls,[{op:'stat',args:['/work/module.py']},{op:'utimes',args:['/work/module.py',2500,456]}]);
+  calls.length=0;
+  view.setInt32(520,1073741822,true);
+  assert.equal(await native.invoke('__syscall_utimensat',[-100,128,512,0]),0);
+  assert.deepEqual(calls,[]);
+  const before=Date.now();
+  assert.equal(await native.invoke('__syscall_utimensat',[-100,128,0,0]),0);
+  const update=calls[0] as {op:string;args:[string,number,number]};
+  assert.equal(update.op,'utimes');assert.equal(update.args[1],update.args[2]);
+  assert.ok(update.args[1]>=before&&update.args[1]<=Date.now());
+  view.setInt32(520,1000000000,true);
+  assert.equal(await native.invoke('__syscall_utimensat',[-100,128,512,0]),-28);
+  assert.equal(await native.invoke('__syscall_utimensat',[-100,128,65530,0]),-28);
+  assert.equal(await native.invoke('__syscall_utimensat',[-100,native.text('/.runtime/file'),0,0]),-69);
+  assert.equal(await native.invoke('__syscall_utimensat',[-100,native.text('module.py'),0,256]),-138);
+});

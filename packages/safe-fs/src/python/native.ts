@@ -303,6 +303,28 @@ export function createPythonNativeSyscalls(options: PythonNativeSyscallOptions):
         else await request(name === '__syscall_chmod' ? 'chmod' : 'truncate', path, second);
         return 0;
       }
+      case '__syscall_utimensat': {
+        if (fourth !== 0) fail('ENOTSUP');
+        const path = pathAt(first, second);
+        if (privatePath(path)) fail('EROFS');
+        if (third) range(third, 32);
+        const now = Date.now();
+        const timestamp = (offset: number): number | null => {
+          if (!third) return now;
+          const nanos = view().getInt32(third + offset + 8, true);
+          if (nanos === 1073741823) return now;
+          if (nanos === 1073741822) return null;
+          if (nanos < 0 || nanos >= 1000000000) fail('EINVAL');
+          const value = integer(view().getBigInt64(third + offset, true)) * 1000 + nanos / 1000000;
+          if (Math.abs(value) > Number.MAX_SAFE_INTEGER) fail('EOVERFLOW');
+          return value;
+        };
+        const atime = timestamp(0), mtime = timestamp(16);
+        if (atime === null && mtime === null) return 0;
+        const previous = atime === null || mtime === null ? await request('stat', path) : undefined;
+        await request('utimes', path, atime ?? previous.atimeMs, mtime ?? previous.mtimeMs);
+        return 0;
+      }
       case '__syscall_renameat': {
         const source = pathAt(first, second);
         const destination = pathAt(third, fourth);

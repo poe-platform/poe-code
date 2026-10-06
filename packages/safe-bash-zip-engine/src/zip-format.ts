@@ -237,7 +237,7 @@ async function copyBytes(source: Uint8Array, destination: Uint8Array, start: num
   }
 }
 
-async function openZipDirectory(input: Uint8Array | ZipReadSource, limits: ArchiveLimits, signal: AbortSignal, profile: Readonly<{ grow?: boolean; prefix?: boolean; disks?: ZipDisks }> = {}) {
+async function openZipDirectory(input: Uint8Array | ZipReadSource, limits: ArchiveLimits, signal: AbortSignal, profile: ZipReadProfile = {}) {
   const chunkSize = admit(limits, signal);
   const buffered = input instanceof Uint8Array;
   const bytes = new ZipRanges(buffered ? { size: input.length, read: async (offset, length) => input.slice(offset, offset + length) } : input, signal, chunkSize);
@@ -386,7 +386,13 @@ async function openZipDirectory(input: Uint8Array | ZipReadSource, limits: Archi
   return { bytes, chunkSize, members, centralStart, centralEnd, end, diskMembers, finalDisk, zip64Disk, zip64DiskMembers, readEntry };
 }
 
-type ZipReadProfile = Readonly<{ grow?: boolean; prefix?: boolean; disks?: ZipDisks }>;
+export type ZipReadProfile = Readonly<{
+  grow?: boolean;
+  prefix?: boolean;
+  disks?: ZipDisks;
+  /** Accept unused local records and gaps, as Python wheel readers do; referenced spans still cannot overlap. */
+  allowUnreferencedData?: boolean;
+}>;
 type ZipDirectory = Awaited<ReturnType<typeof openZipDirectory>>;
 
 async function* scanZipDirectory(reader: ZipDirectory, limits: ArchiveLimits, signal: AbortSignal, profile: ZipReadProfile) {
@@ -419,10 +425,10 @@ export async function readZipArchive(input: Uint8Array | ZipReadSource, limits: 
   const prefix = profile.disks ? 4 : profile.prefix ? spans[0]?.start ?? reader.centralStart : 0;
   let covered = prefix;
   for (const span of spans) {
-    if (span.start !== covered) fail("ZIP overlapping spans, gaps or self-extracting prefix are unsupported");
+    if (span.start < covered || !profile.allowUnreferencedData && span.start !== covered) fail("ZIP overlapping spans, gaps or self-extracting prefix are unsupported");
     covered = span.end;
   }
-  if (covered !== reader.centralStart) fail("ZIP unreferenced local data is unsupported");
+  if (!profile.allowUnreferencedData && covered !== reader.centralStart) fail("ZIP unreferenced local data is unsupported");
   if (profile.grow) for (const entry of entries) {
     const start = entry.growStart!, length = entry.growLength!;
     zipGrowRecords.set(entry, input instanceof Uint8Array
@@ -457,7 +463,7 @@ export async function readZipIndexedArchive(input: ZipReadSource, limits: Archiv
   try {
     for await (const record of scanZipDirectory(reader, limits, signal, profile)) await spool.append(encodeZipSpan(record));
     const index = await spool.finish();
-    const prefix = await validateZipSpans(index, reader.members, createSpool, signal, reader.chunkSize, profile.disks ? 4 : profile.prefix ? undefined : 0, reader.centralStart);
+    const prefix = await validateZipSpans(index, reader.members, createSpool, signal, reader.chunkSize, profile.disks ? 4 : profile.prefix ? undefined : 0, reader.centralStart, profile.allowUnreferencedData);
     const entries: ZipEntryCollection = {
       length: reader.members,
       async get(position) {

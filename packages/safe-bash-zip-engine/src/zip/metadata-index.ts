@@ -35,10 +35,10 @@ export async function readZipSpan(source: ZipReadSource, index: number, signal: 
 }
 
 /** External merge sort keeps two input windows and one output window regardless of member count. */
-export async function validateZipSpans(index: ZipReadSource, count: number, factory: ZipMetadataFactory, signal: AbortSignal, chunkSize: number, initial: number | undefined, centralStart: number): Promise<number> {
+export async function validateZipSpans(index: ZipReadSource, count: number, factory: ZipMetadataFactory, signal: AbortSignal, chunkSize: number, initial: number | undefined, centralStart: number, allowUnreferencedData = false): Promise<number> {
   if (!count) {
     const start = initial ?? centralStart;
-    if (start !== centralStart) fail("ZIP unreferenced local data is unsupported");
+    if (!allowUnreferencedData && start !== centralStart) fail("ZIP unreferenced local data is unsupported");
     return start;
   }
   const windowRecords = Math.max(1, Math.floor(Math.min(chunkSize, 65536) / recordBytes));
@@ -95,10 +95,10 @@ export async function validateZipSpans(index: ZipReadSource, count: number, fact
     let covered = prefix;
     while (record) {
       signal.throwIfAborted();
-      if (record.start !== covered) fail("ZIP overlapping spans, gaps or self-extracting prefix are unsupported");
+      if (record.start < covered || !allowUnreferencedData && record.start !== covered) fail("ZIP overlapping spans, gaps or self-extracting prefix are unsupported");
       covered = record.end; record = await sorted.next();
     }
-    if (covered !== centralStart) fail("ZIP unreferenced local data is unsupported");
+    if (!allowUnreferencedData && covered !== centralStart) fail("ZIP unreferenced local data is unsupported");
     return prefix;
   } finally {
     try { await pending?.close(); } finally { await current?.close(); }

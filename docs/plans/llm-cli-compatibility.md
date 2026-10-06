@@ -170,10 +170,18 @@ The next implementation must cover three separate retention points: authenticate
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use
 caller-owned backing storage for each. A lazy descriptor followed by `BytesIO`,
 Python's in-memory ZIP entry dictionary, or extraction into bootstrap MEMFS is
-not completion. Reusing the existing ZIP engine also requires differential proof
-for accepted wheel variants: its strict span validation rejects gaps and
-unreferenced local data that native `ZipFile` may accept. Do not silently reduce
-wheel compatibility to avoid this work. Qualify the final implementation with
+not completion. Pinned Python 3.9.6 captures now prove acceptance of leading,
+middle and trailing gaps, discarded local members and empty archives with unused data.
+The ZIP engine offers an explicit `allowUnreferencedData` mode for buffered and
+caller-indexed reads, and authenticated Python wheel tooling selects it.
+Referenced spans still cannot overlap; strict contiguous validation remains the
+default for other consumers. These layout captures are a prerequisite for
+streamed wheel extraction, not full `ZipFile` compatibility. All 71 ZIP and
+302 Python tests, lint/types, ten installed Node/workerd layout cases, integrity
+checks for 26 pinned wheels and two native modules, and unchanged bundle limits
+pass. Other accepted wheel variants and exact error timing still require differential qualification; do not
+silently reduce wheel compatibility to avoid this work. Qualify the final
+implementation with
 pinned wheel installs, dependency/data/native-library behavior, failed extraction,
 cancellation, external caller storage, packed public artifacts, actual workerd
 and the unchanged bundle limits.

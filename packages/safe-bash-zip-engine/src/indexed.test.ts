@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { collectBytes } from "safe-bash-contracts";
 import { settings } from "safe-bash-io-engine/commands/archive/internal";
-import { decodeZipEntry, makeZipEntry, readZipIndexedArchive, writeZipArchive, type ZipMetadataSpool } from "./zip-format.js";
+import { decodeZipEntry, makeZipEntry, readZipArchive, readZipIndexedArchive, writeZipArchive, type ZipMetadataSpool } from "./zip-format.js";
 
 function backing() {
   const active = new Set<ZipMetadataSpool>();
@@ -35,6 +35,8 @@ function backing() {
     },
   };
 }
+
+import wheelLayouts from "./fixtures/python-wheel-layouts.json" with {type:"json"};
 
 const signal = new AbortController().signal;
 const limits = settings({ limits: { chunkSize: 512 } });
@@ -90,13 +92,13 @@ test("indexed ZIP metadata closes every owned backing on validation failure", as
 });
 
 
-test("indexed ZIP external span sorting rejects overlapping aliases and retires runs", async () => {
+for(const allowUnreferencedData of [false,true])test(`indexed ZIP rejects overlapping aliases; allowUnreferencedData=${allowUnreferencedData}`, async () => {
   const bytes = await fixture(50, true), storage = backing();
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
   const central = view.getUint32(bytes.length - 6, true);
   const second = central + 46 + view.getUint16(central + 28, true) + view.getUint16(central + 30, true) + view.getUint16(central + 32, true);
   view.setUint32(second + 42, view.getUint32(central + 42, true), true);
-  await assert.rejects(readZipIndexedArchive({ size: bytes.length, read: async (offset, length) => bytes.slice(offset, offset + length) }, limits, signal, storage.create), /overlapping spans/);
+  await assert.rejects(readZipIndexedArchive({ size: bytes.length, read: async (offset, length) => bytes.slice(offset, offset + length) }, limits, signal, storage.create,{allowUnreferencedData}), /overlapping spans/);
   assert.equal(storage.active.size, 0);
   assert.ok(storage.peak <= 3);
 });
@@ -113,4 +115,29 @@ test("indexed ZIP cancellation while sorting retires every backing and preserves
   };
   await assert.rejects(readZipIndexedArchive({ size: bytes.length, read: async (offset, length) => bytes.slice(offset, offset + length) }, limits, controller.signal, create), reason => reason === false);
   assert.equal(storage.active.size, 0);
+});
+
+
+for(const row of wheelLayouts.rows)for(const indexed of [false,true])test(`Python wheel layout ${row.layout}, indexed=${indexed}`,async()=>{
+ const bytes=Uint8Array.from(Buffer.from(row.bytes,'hex')),storage=backing();
+ const profile={allowUnreferencedData:true};
+ const archive=indexed?await readZipIndexedArchive({size:bytes.length,async read(offset,length){assert.ok(length<=65536);return bytes.slice(offset,offset+length);}},limits,signal,storage.create,profile)
+  :await readZipArchive(bytes,limits,signal,profile);
+ try{
+  const actual=[];
+  for await(const entry of archive.entries)actual.push({name:entry.name,data:Buffer.from(await collectBytes(decodeZipEntry(entry,limits,signal),{signal})).toString('hex')});
+  assert.deepEqual(actual,row.entries);
+  assert.ok(storage.maximum<=512);assert.ok(storage.peak<=3);
+ }finally{if('close' in archive)await archive.close();}
+ assert.equal(storage.active.size,0);
+ await assert.rejects(readZipArchive(bytes,limits,signal),/unreferenced|gaps|prefix/);
+});
+
+test('unused wheel data still counts toward archive byte admission',async()=>{
+ const row=wheelLayouts.rows.find(row=>row.layout==='unreferenced-member')!;
+ const bytes=Uint8Array.from(Buffer.from(row.bytes,'hex')),storage=backing();
+ const bounded={...limits,maxArchiveBytes:bytes.length-1},profile={allowUnreferencedData:true};
+ await assert.rejects(readZipArchive(bytes,bounded,signal,profile),/archive byte/);
+ await assert.rejects(readZipIndexedArchive({size:bytes.length,async read(offset,length){return bytes.slice(offset,offset+length);}},bounded,signal,storage.create,profile),/archive byte/);
+ assert.equal(storage.active.size,0);
 });

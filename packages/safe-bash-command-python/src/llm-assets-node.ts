@@ -72,7 +72,7 @@ export async function readPythonLlmAssets(directory: string): Promise<{
       maxTotalBytes:distribution.expandedBytes, maxBufferedFileBytes:distribution.expandedBytes * 3,
       maxMembers:10000, maxPathBytes:1024, maxDepth:32, maxPaxBytes:65536,
       maxTextBytes:distribution.expandedBytes};
-    const archive = await readZipArchive(bytes, limits, signal);
+    const archive = await readZipArchive(bytes, limits, signal, {allowUnreferencedData:true});
     for (const native of distribution.nativeModules) {
       const entry = archive.entries.find(entry=>entry.name === native.path);
       if (!entry || entry.directory || entry.symlink || entry.size !== native.bytes) throw new Error('Missing pinned Python native module: ' + native.path);

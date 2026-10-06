@@ -25,14 +25,14 @@ for(const zipped of [false,true])for(const legacy of [false,true])for(const requ
   assert.equal(new TextDecoder().decode(await fs.readFile(request.source+'/input.txt')),'original');
   let result:unknown;
   if(request.hook==='read_build_system')result=legacy?null:{requires:[],check:[],backend:'backend',backendPath:['.']};
-  else if(request.hook==='get_requires_for_build_wheel')result=[];
+  else if((request.hook==='get_requires_for_build_wheel'||request.hook==='get_requires_for_legacy_wheel'))result=[];
   else{assert.equal(request.hook,legacy?'build_legacy_wheel':'build_wheel');result='fixture-1.0-py3-none-any.whl';await fs.writeFile(request.wheelDirectory+'/'+result,Uint8Array.of(42));}
   await send({op:'text',text:JSON.stringify(result)});await send({op:'done'});return 0;
  }})}});
  try{
   const receipt=await environment.prepare({...context,...requirementFile?{requirementFiles:['/elsewhere/requirements.txt']}:{requirements:[requirement,requirement]}});
   try{
-   assert.deepEqual(calls,legacy?['read_build_system','build_legacy_wheel']:['read_build_system','get_requires_for_build_wheel','build_wheel']);
+   assert.deepEqual(calls,legacy?['read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']:['read_build_system','get_requires_for_build_wheel','build_wheel']);
    assert.equal(receipt.requested?.length,1);
    const url=receipt.requested![0]!;assert.ok(url.startsWith('file:///storage/'));assert.ok(url.endsWith('/fixture-1.0-py3-none-any.whl'));
    assert.deepEqual(await fs.readFile(decodeURIComponent(new URL(url).pathname)),Uint8Array.of(42));
@@ -125,13 +125,14 @@ for(const active of [false,true])test(`named local sources retain name, extras a
   const request=await send({op:'request'}) as any;calls.push(request.hook);let value:unknown;
   if(request.hook==='read_source_requirement')value={name:'Fixture',extras:['feature'],url:'file:///source',marker:'python_version '+(active?'>= "3"':'< "1"'),active};
   else if(request.hook==='read_build_system')value=null;
+  else if(request.hook==='get_requires_for_legacy_wheel')value=[];
   else{assert.equal(request.hook,'build_legacy_wheel');value='fixture-1-py3-none-any.whl';await fs.writeFile(request.wheelDirectory+'/'+value,Uint8Array.of(42));}
   await send({op:'text',text:JSON.stringify(value)});await send({op:'done'});return 0;
  }})}});
  try{
   const receipt=await environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:[requirement],env:{},stdout:{async write(){}},stderr:{async write(){}}});
   try{
-   assert.deepEqual(calls,active?['read_source_requirement','read_build_system','build_legacy_wheel']:['read_source_requirement']);
+   assert.deepEqual(calls,active?['read_source_requirement','read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']:['read_source_requirement']);
    if(active){assert.ok(receipt.requested![0]!.startsWith('Fixture[feature] @ file:///storage/'));assert.ok(receipt.requested![0]!.endsWith('/fixture-1-py3-none-any.whl ; python_version >= "3"'));}
    else{assert.deepEqual(receipt.requested,[requirement]);assert.deepEqual(await fs.readdir('/storage'),[]);}
   }finally{await environment.finish(receipt);}

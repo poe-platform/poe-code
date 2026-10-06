@@ -22,6 +22,7 @@ print(json.dumps(request.unpacked_source_directory))
   const request=await send({op:'request'}) as any;
   assert.equal(new TextDecoder().decode(await fs.readFile(request.source+'/proof')),fragment);let result:unknown;
   if(request.hook==='read_build_system'){inspected=true;result=null;}
+  else if(request.hook==='get_requires_for_legacy_wheel')result=[];
   else{assert.equal(request.hook,'build_legacy_wheel');result='fixture-1-py3-none-any.whl';await fs.writeFile(request.wheelDirectory+'/'+result,Uint8Array.of(42));}
   await send({op:'text',text:JSON.stringify(result)});await send({op:'done'});return 0;
  }})}});

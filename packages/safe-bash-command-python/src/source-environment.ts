@@ -106,7 +106,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    await confined.mkdir(wheelDirectory,settings);
    const configuration={...build.python,environment},hook=createPythonBuildBackend(configuration),hookContext={...command,maxBytes:options.maxMetadataBytes??Infinity};
    const buildSystem=await hook({hook:'read_build_system',source:prepared},hookContext);
-   if(buildSystem)await createPythonBuildDependencies(configuration)({source:prepared,buildSystem},hookContext);
+   await createPythonBuildDependencies(configuration)({source:prepared,buildSystem},hookContext);
    const filename=await hook(buildSystem?{hook:'build_wheel',source:prepared,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:prepared,wheelDirectory},hookContext);
    const published=await publishPythonBuildWheel(resolvePath(wheelDirectory,filename),root,options.maxDownloadBytes??Infinity,context);
    await cleanup();return named?named.name+(named.extras.length?'['+named.extras.join(',')+']':'')+' @ '+published.url+(named.marker?' ; '+named.marker:''):published.url;

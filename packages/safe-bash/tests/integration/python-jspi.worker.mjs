@@ -45,14 +45,34 @@ async function qualifyLegacyBuild(backend,createExecutor,assets,format='director
   }});
   const remote=format==='remote'||format==='subdirectory',sourceDirectory='/work/legacy-source'+(format==='subdirectory'?'/nested':'');
   await backend.mkdir(sourceDirectory,{recursive:true});await backend.mkdir('/work/builds');
-  await backend.writeFile(sourceDirectory+'/setup.py',new TextEncoder().encode('from setuptools import setup\nsetup(name="legacy-fixture", version="1.0", py_modules=["legacy_fixture"])\n'));
+  const setupSource=format==='setup-requires'?`from setuptools import setup
+from setuptools.command.build_py import build_py
+class Build(build_py):
+ def run(self):
+  import build_helper
+  assert build_helper.answer == 41
+  super().run()
+setup(name="legacy-fixture",version="1.0",py_modules=["legacy_fixture"],setup_requires=["build-helper @ file:///work/build_helper-1.0-py3-none-any.whl"],cmdclass={"build_py":Build})
+`:'from setuptools import setup\nsetup(name="legacy-fixture", version="1.0", py_modules=["legacy_fixture"])\n';
+  await backend.writeFile(sourceDirectory+'/setup.py',new TextEncoder().encode(setupSource));
   await backend.writeFile(sourceDirectory+'/legacy_fixture.py',new TextEncoder().encode('value = "legacy-original"\n'));
   const environment=createPythonSourcePackageEnvironment({cacheDirectory:'/work/packages',authorize:({url})=>wheels.has(url),transport:async({url})=>{
     requests.push(url);return {status:200,headers:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
   }},{directory:'/work/builds',extractArchive:extractPythonSourceArchive,python:{createExecutor}});
   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
-  const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names]))'`;
+  const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names, "build-helper" in names]))'`;
   try{
+    if(format==='setup-requires'){
+      const quote=value=>"'"+value.split("'").join("'\\''")+"'";
+      const generated=await shell.exec('python -c '+quote(`import zipfile
+with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
+ wheel.writestr("build_helper.py","answer = 41\\n")
+ wheel.writestr("build_helper-1.0.dist-info/METADATA","Metadata-Version: 2.1\\nName: build-helper\\nVersion: 1.0\\n")
+ wheel.writestr("build_helper-1.0.dist-info/WHEEL","Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n")
+ wheel.writestr("build_helper-1.0.dist-info/RECORD","")
+`));
+      if(generated.exitCode)throw new Error(JSON.stringify(generated));
+    }
     const archived=format==='zip'||format==='tar'||remote;
     const archive=async()=>{
       const result=await shell.exec(format==='zip'?`python -c 'from zipfile import ZipFile; z=ZipFile("legacy-source.zip","w"); z.write("legacy-source/setup.py","project/setup.py"); z.write("legacy-source/legacy_fixture.py","project/legacy_fixture.py"); z.close()'`:`python -c 'import tarfile; z=tarfile.open("legacy-source.tar.gz","w:gz"); z.add("legacy-source",arcname="project"); z.close()'`);
@@ -75,6 +95,7 @@ async function qualifyLegacyBuild(backend,createExecutor,assets,format='director
     await backend.unlink(sourceDirectory+'/setup.py');await backend.unlink(sourceDirectory+'/legacy_fixture.py');
     if(archived)await backend.unlink('/work/legacy-source'+suffix);
     if(remote)wheels.delete('https://build.test/legacy-source.tar.gz');
+    if(format==='setup-requires')await backend.unlink('/work/build_helper-1.0-py3-none-any.whl');
     const restored=await shell.exec(inspect);
     const receipt=await environment.prepare({fs:backend,cwd:'/work',signal:new AbortController().signal});
     let records;try{records=receipt.records?.map(record=>record[0]);}finally{await environment.finish(receipt);}

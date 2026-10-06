@@ -576,7 +576,7 @@ test('real workerd loads native code from a retained installed wheel', {timeout:
  assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const format of ['directory','zip','tar','named','remote','subdirectory'])test(`real workerd builds legacy setup projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
+for(const format of ['directory','zip','tar','named','remote','subdirectory','setup-requires'])test(`real workerd builds legacy setup projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
   const directory=process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT;
   assert.ok(directory,'Set SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT to authenticated runtime build wheels');
   const lock=JSON.parse(files['pyodide-lock.json']).packages;
@@ -592,7 +592,7 @@ for(const format of ['directory','zip','tar','named','remote','subdirectory'])te
   const result=await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
   for(const key of ['installed','imported','restored'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
-  assert.equal(result.imported.stdout,'["legacy-original", false, false]\n');
+  assert.equal(result.imported.stdout,'["legacy-original", false, false, false]\n');
   assert.equal(result.restored.stdout,result.imported.stdout);
   assert.notEqual(result.failed.exitCode,0);
   assert.deepEqual(result.records,['legacy-fixture']);

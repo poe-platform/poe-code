@@ -65,3 +65,16 @@ test('missing fallback requirements warn before backend invocation without insta
   assert.equal(diagnostic,"Missing build requirements in pyproject.toml for fixture.\nThe project does not specify a build backend, and pip cannot fall back to setuptools without 'wheel'.\n");
  }finally{await environment.dispose();}
 });
+
+test('legacy setup requirements are discovered with native tooling and installed in the private build environment',async()=>{
+ const environment=createPythonBuildEnvironment(),calls:unknown[]=[];
+ const prepare=createPythonBuildDependencies({environment,createExecutor:()=>({terminate(){},async run(start){
+  if(start.installOnly){calls.push(start.packages?.requested);return 0;}
+  const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});
+  const request=await send({op:'request'}) as any;calls.push(request.hook);
+  if(request.hook==='get_requires_for_legacy_wheel')assert.deepEqual(start.packages?.bootstrapPackages,['setuptools']);
+  await send({op:'text',text:JSON.stringify(request.hook==='get_requires_for_legacy_wheel'?['helper==1']:{missing:['helper==1'],conflicting:[]})});await send({op:'done'});return 0;
+ }})});
+ try{await prepare({source:'/source',buildSystem:null} as any,context());assert.deepEqual(calls,['get_requires_for_legacy_wheel','check_build_requirements',['helper==1']]);}
+ finally{await environment.dispose();}
+});

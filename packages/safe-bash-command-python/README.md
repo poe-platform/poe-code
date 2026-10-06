@@ -239,6 +239,8 @@ const commands = pythonCommands({ createExecutor, environment });
 build dependencies (or bootstraps runtime setuptools for legacy projects), runs
 the native backend and installs the published wheel. Legacy tooling uses the
 configured runtime package transport and stays out of the target inventory.
+Legacy `setup_requires` dependencies are discovered by genuine setuptools and
+installed in that private build environment before building the wheel.
 The same environment works with SDK requirements and the LLM package manager.
 Named local references such as `project[feature] @ file:///sources/project`
 retain the requested package name, extras and environment marker after building.
@@ -262,6 +264,6 @@ Tar sources support plain, gzip, bzip2 and xz archives with streamed file writes
 executable permissions, timestamps and links confined to the build directory.
 Hard links copy retained archive contents. Tar extended headers and global PAX
 metadata still use the archive engine’s memory limits.
-Editable source installation, source URL content-disposition selection and legacy
-`setup_requires` dependency resolution are not supported yet. ZIP members must
+Editable source installation and source URL content-disposition selection
+are not supported yet. ZIP members must
 use canonical relative paths; broader archive path compatibility remains incomplete.

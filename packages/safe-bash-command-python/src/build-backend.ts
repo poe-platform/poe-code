@@ -36,8 +36,19 @@ export interface PythonBuildRequirementsStatus {
  readonly conflicting:readonly (readonly [installed:string,wanted:string])[];
  readonly missing:readonly string[];
 }
-type BuildRequest=PythonLegacyBuildRequest|PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
-type BuildResult<T extends BuildRequest>=T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'|'build_legacy_wheel'}?string:string[];
+export interface PythonSourceRequirementRequest {
+ readonly hook:'read_source_requirement';
+ readonly source:string;
+}
+export interface PythonSourceRequirement {
+ readonly name:string;
+ readonly extras:readonly string[];
+ readonly url:string;
+ readonly marker:string|null;
+ readonly active:boolean;
+}
+type BuildRequest=PythonSourceRequirementRequest|PythonLegacyBuildRequest|PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
+type BuildResult<T extends BuildRequest>=T extends PythonSourceRequirementRequest?PythonSourceRequirement|null:T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'|'build_legacy_wheel'}?string:string[];
 export interface PythonBuildHookContext extends Pick<CommandContext,'fs'|'cwd'|'env'|'signal'|'stdout'|'stderr'> {
  /** Total UTF-8 result metadata allowance; wheel bytes stay in caller storage. */
  readonly maxBytes:number;
@@ -59,14 +70,14 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   context.signal.throwIfAborted();
   const {maxBytes}=context;
   if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError('Invalid Python build metadata limit');
-  if(!input||!['read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
+  if(!input||!['read_source_requirement','read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel','build_legacy_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
   if(input.hook==='build_legacy_wheel'){
    if(typeof input.wheelDirectory!=='string'||!input.wheelDirectory)throw new TypeError('Invalid Python legacy wheel directory');
   }else if(input.hook==='check_build_requirements'){
    if([input.requirements,input.installed].some(values=>!Array.isArray(values)||values.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python build requirements request');
   }else if(input.hook==='read_build_system'){
    if(input.name!==undefined&&typeof input.name!=='string'||input.usePep517!==undefined&&typeof input.usePep517!=='boolean')throw new TypeError('Invalid Python build system request');
-  }else{
+  }else if(input.hook!=='read_source_requirement'){
   if(typeof input.backend!=='string'||!input.backend
    ||input.backendPath!==undefined&&(!Array.isArray(input.backendPath)||input.backendPath.some(path=>typeof path!=='string'))
    ||input.hook==='build_wheel'&&(typeof input.wheelDirectory!=='string'||!input.wheelDirectory||input.metadataDirectory!==undefined&&typeof input.metadataDirectory!=='string'))throw new TypeError('Invalid Python build hook request');
@@ -101,7 +112,10 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
    if(result.exitCode)throw new Error(`Python build interpreter exited with status ${result.exitCode}`);
    if(!done)throw new Error('Python build interpreter returned no result');
    const value:unknown=JSON.parse(chunks.join(''));
-   if(request.hook==='check_build_requirements'){
+   if(request.hook==='read_source_requirement'){
+    const result=value as PythonSourceRequirement|null;
+    if(result!==null&&(!result||typeof result.name!=='string'||typeof result.url!=='string'||typeof result.active!=='boolean'||result.marker!==null&&typeof result.marker!=='string'||!Array.isArray(result.extras)||result.extras.some(extra=>typeof extra!=='string')))throw new TypeError('Invalid Python source requirement');
+   }else if(request.hook==='check_build_requirements'){
     const result=value as PythonBuildRequirementsStatus|null;
     if(!result||!Array.isArray(result.missing)||result.missing.some(value=>typeof value!=='string')||!Array.isArray(result.conflicting)||result.conflicting.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python build requirement status');
    }else if(request.hook==='read_build_system'){
@@ -206,8 +220,17 @@ def build_legacy_wheel(request):
  if first is None: raise RuntimeError('Legacy wheel build created no files')
  return first
 
+def read_source_requirement(request):
+ from micropip._vendored.packaging.src.packaging.requirements import InvalidRequirement
+ try: requirement = parse_build_requirement(request['source'])
+ except InvalidRequirement: return None
+ if not requirement.url: return None
+ marker = requirement.marker
+ return dict(name=requirement.name, extras=sorted({'_'.join(part for part in extra.lower().split('_') if part) for extra in requirement.extras}), url=requirement.url, marker=str(marker) if marker else None, active=not marker or marker.evaluate({'extra': ''}))
+
 def main():
  request = send('request')
+ if request['hook'] == 'read_source_requirement': return read_source_requirement(request)
  if request['hook'] == 'build_legacy_wheel': return build_legacy_wheel(request)
  if request['hook'] == 'read_build_system': return read_build_system(request)
  if request['hook'] == 'check_build_requirements': return check_build_requirements(request)

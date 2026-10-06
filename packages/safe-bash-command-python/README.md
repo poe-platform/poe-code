@@ -240,6 +240,9 @@ build dependencies (or bootstraps runtime setuptools for legacy projects), runs
 the native backend and installs the published wheel. Legacy tooling uses the
 configured runtime package transport and stays out of the target inventory.
 The same environment works with SDK requirements and the LLM package manager.
+Named local references such as `project[feature] @ file:///sources/project`
+retain the requested package name, extras and environment marker after building.
+Inactive markers skip the build.
 Select the optional `extractArchive` capability above to enable ZIP and tar sources;
 source-directory hosts can omit its import. ZIP sources use retained reads, storage-backed directory metadata and streamed
 extraction inside the build directory. A shared top-level directory is removed
@@ -252,6 +255,6 @@ Tar sources support plain, gzip, bzip2 and xz archives with streamed file writes
 executable permissions, timestamps and links confined to the build directory.
 Hard links copy retained archive contents. Tar extended headers and global PAX
 metadata still use the archive engine’s memory limits.
-Editable source installation, named source URLs and legacy
+Editable source installation, remote source URLs and legacy
 `setup_requires` dependency resolution are not supported yet. ZIP members must
 use canonical relative paths; broader archive path compatibility remains incomplete.

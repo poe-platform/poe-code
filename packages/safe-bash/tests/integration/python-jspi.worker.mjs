@@ -52,14 +52,18 @@ async function qualifyLegacyBuild(backend,createExecutor,assets,format='director
   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
   const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names]))'`;
   try{
-    const archived=format!=='directory';
+    const archived=format==='zip'||format==='tar';
     const archive=async()=>{
       const result=await shell.exec(format==='zip'?`python -c 'from zipfile import ZipFile; z=ZipFile("legacy-source.zip","w"); z.write("legacy-source/setup.py","project/setup.py"); z.write("legacy-source/legacy_fixture.py","project/legacy_fixture.py"); z.close()'`:`python -c 'import tarfile; z=tarfile.open("legacy-source.tar.gz","w:gz"); z.add("legacy-source",arcname="project"); z.close()'`);
       if(result.exitCode)throw new Error(JSON.stringify(result));
     };
     if(archived)await archive();
     const suffix=format==='zip'?'.zip':'.tar.gz';
-    const install='python -m pip install ./legacy-source'+(archived?suffix:'');
+    const install=format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install ./legacy-source'+(archived?suffix:'');
+    if(format==='named'){
+      const skipped=await shell.exec(`python -m pip install 'absent @ file:///work/nonexistent ; python_version < "1"'`);
+      if(skipped.exitCode)throw new Error(JSON.stringify(skipped));
+    }
     const installed=await shell.exec(install);
     await backend.writeFile('/work/legacy-source/legacy_fixture.py',new TextEncoder().encode('value = "changed"\n'));
     const imported=await shell.exec(inspect);

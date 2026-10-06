@@ -3,7 +3,7 @@ import {FsError,toByteSource,type CommandContext,type FileStat} from 'safe-bash-
 import {resolvePath} from 'safe-bash-contracts/path';
 import {createPythonPackageEnvironment,type PythonPackageOptions,type PythonPackagePrepareContext} from './provisioning.js';
 import {createPythonBuildEnvironment} from './build-environment.js';
-import {createPythonBuildBackend} from './build-backend.js';
+import {createPythonBuildBackend,type PythonSourceRequirement} from './build-backend.js';
 import {createPythonBuildDependencies} from './build-dependencies.js';
 import {createPythonSourceSnapshot} from './source-snapshot.js';
 import type {extractPythonSourceZip} from './source-zip.js';
@@ -24,7 +24,15 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
  if(options.prepareRequirements||!build.python.createExecutor||!build.directory)throw new TypeError('Source packages require an asynchronous build executor and caller storage');
  const prepareRequirement=async(requirement:string,context:PythonPackagePrepareContext):Promise<string>=>{
   const {fs,signal}=context,settings={signal};
-  let source=requirement;
+  let source=requirement,named:PythonSourceRequirement|null=null;
+  const at=requirement.indexOf('@');
+  if(at>=0&&!requirement.startsWith('file:')&&requirement.slice(at+1).trimStart().startsWith('file:')){
+   if(!context.stdout||!context.stderr||!context.env)throw new TypeError('Source requirement parsing requires command output and environment context');
+   const environment=createPythonBuildEnvironment(options);
+   try{named=await createPythonBuildBackend({...build.python,environment})({hook:'read_source_requirement',source:requirement},{...context,env:context.env,stdout:context.stdout,stderr:context.stderr,maxBytes:options.maxMetadataBytes??Infinity});}
+   finally{await environment.dispose();}
+   if(named){if(!named.active)return requirement;source=named.url;}
+  }
   if(source.startsWith('file:')){
    const url=new URL(source);
    if(url.host&&url.host!=='localhost')return requirement;
@@ -72,7 +80,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    if(buildSystem)await createPythonBuildDependencies(configuration)({source:prepared,buildSystem},hookContext);
    const filename=await hook(buildSystem?{hook:'build_wheel',source:prepared,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:prepared,wheelDirectory},hookContext);
    const published=await publishPythonBuildWheel(resolvePath(wheelDirectory,filename),root,options.maxDownloadBytes??Infinity,context);
-   await cleanup();return published.url;
+   await cleanup();return named?named.name+(named.extras.length?'['+named.extras.join(',')+']':'')+' @ '+published.url+(named.marker?' ; '+named.marker:''):published.url;
   }catch(error){
    try{await cleanup();}catch(retirement){if(retirement===error)throw error;throw new AggregateError([error,retirement],'Python source build cleanup failed');}
    throw error;

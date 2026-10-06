@@ -45,8 +45,8 @@ test('ordinary package requirements do not start a build or require command cont
  const fs=new MemoryFileSystem();let runs=0;
  const environment=createPythonSourcePackageEnvironment({}, {directory:'/absent',python:{createExecutor:()=>{runs++;throw new Error('unexpected build');}}});
  try{
-  const receipt=await environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:['fixture==1','https://example.test/fixture-1-py3-none-any.whl']});
-  assert.deepEqual(receipt.requested,['fixture==1','https://example.test/fixture-1-py3-none-any.whl']);assert.equal(runs,0);
+  const receipt=await environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:['fixture==1','https://example.test/fixture-1-py3-none-any.whl','fixture @ https://example.test/fixture-1-py3-none-any.whl']});
+  assert.deepEqual(receipt.requested,['fixture==1','https://example.test/fixture-1-py3-none-any.whl','fixture @ https://example.test/fixture-1-py3-none-any.whl']);assert.equal(runs,0);
   await environment.finish(receipt);
  }finally{await environment.dispose();}
 });
@@ -113,5 +113,27 @@ test('local tar sources reach the configured archive capability before native bu
  try{
   await assert.rejects(environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:['/source.tar'],env:{},stdout:{async write(){}},stderr:{async write(){}}}),error=>error===extracted);
   assert.equal(calls,1);assert.deepEqual(await fs.readdir('/storage'),[]);
+ }finally{await environment.dispose();}
+});
+
+for(const active of [false,true])test(`named local sources retain name, extras and markers through wheel publication; active=${active}`,async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/source');await fs.mkdir('/storage');
+ const requirement='Fixture[feature] @ file:///source ; python_version '+(active?'>= "3"':'< "1"');
+ const calls:string[]=[];
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',python:{createExecutor:()=>({terminate(){},async run(start){
+  const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});
+  const request=await send({op:'request'}) as any;calls.push(request.hook);let value:unknown;
+  if(request.hook==='read_source_requirement')value={name:'Fixture',extras:['feature'],url:'file:///source',marker:'python_version '+(active?'>= "3"':'< "1"'),active};
+  else if(request.hook==='read_build_system')value=null;
+  else{assert.equal(request.hook,'build_legacy_wheel');value='fixture-1-py3-none-any.whl';await fs.writeFile(request.wheelDirectory+'/'+value,Uint8Array.of(42));}
+  await send({op:'text',text:JSON.stringify(value)});await send({op:'done'});return 0;
+ }})}});
+ try{
+  const receipt=await environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:[requirement],env:{},stdout:{async write(){}},stderr:{async write(){}}});
+  try{
+   assert.deepEqual(calls,active?['read_source_requirement','read_build_system','build_legacy_wheel']:['read_source_requirement']);
+   if(active){assert.ok(receipt.requested![0]!.startsWith('Fixture[feature] @ file:///storage/'));assert.ok(receipt.requested![0]!.endsWith('/fixture-1-py3-none-any.whl ; python_version >= "3"'));}
+   else{assert.deepEqual(receipt.requested,[requirement]);assert.deepEqual(await fs.readdir('/storage'),[]);}
+  }finally{await environment.finish(receipt);}
  }finally{await environment.dispose();}
 });

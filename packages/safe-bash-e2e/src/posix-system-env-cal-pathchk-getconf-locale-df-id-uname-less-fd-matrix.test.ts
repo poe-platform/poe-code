@@ -16,7 +16,7 @@ describe("POSIX system, environment, and file inspection matrix (cal, pathchk, g
       assert.match(r.stdout, /September 1752\s*\nSu Mo Tu We Th Fr Sa\s*\n {7}1 {2}2 14 15 16/);
       assert.match(r.stdout, /February 2024\s*\nMo Tu We Th Fr Sa Su\s*\n {10}1 {2}2 {2}3 {2}4/);
       assert.match(r.stdout, /25 26 27 28 29/);
-      assert.match(r.stdout, /January 2026\s*\n Su  Mo  Tu  We  Th  Fr  Sa\s*\n {18}1 {3}2 {3}3/);
+      assert.match(r.stdout, /January 2026\s*\n Su {2}Mo {2}Tu {2}We {2}Th {2}Fr {2}Sa\s*\n {18}1 {3}2 {3}3/);
     });
   });
 

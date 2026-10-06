@@ -3,7 +3,7 @@ import type { FileSystem } from "safe-bash-contracts/filesystem";
 import { resolvePath as resolve, dirname } from "safe-bash-contracts/path";
 import type { HttpTransport, NetworkAuthorizer } from "safe-bash-network-engine/types";
 import { inheritYieldCheckpoint } from "safe-bash-contracts/yield";
-import { readPackageManifest, PythonPackageConflictError, type PythonPackageManifest, type PythonPackageManifestStore } from './manifest.js';
+import { readPackageManifest, PythonPackageConflictError, type PythonPackageManifest, type PythonPackageManifestStore, type PythonInstalledSnapshot, type PythonPackageRecord } from './manifest.js';
 import { createPythonPackageCache, pythonPackageRuntimeKey as runtimeKey, type PythonPackageCache } from './cache.js';
 
 export type { PythonPackageCache } from './cache.js';
@@ -49,6 +49,8 @@ export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'n
  readonly requirements: readonly string[];
  /** Legacy requirements need one dependency-resolution pass before migration. */
  readonly legacy?: boolean;
+ /** Installed metadata used only by uninstall; application startup still restores code. */
+ readonly records?: readonly PythonPackageRecord[] | undefined;
  /** Prior installation; only legacy manifests resolve dependencies during restore. */
  readonly restore?: readonly string[];
  /** New or host-configured requirements whose dependency closure is resolved. */
@@ -117,15 +119,13 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  const manifestKey = options.manifestStore ? runtimeKey+'-environment-'+digest(encoder.encode(JSON.stringify(options.scope))) : runtimeKey+'-environment';
  if (options.profile !== undefined && options.profile !== 'documents') throw new TypeError('Unknown Python package profile');
  const maxBytes = options.maxDownloadBytes ?? Infinity;
- if (options.maxDownloadBytes !== undefined && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) throw new RangeError('maxDownloadBytes must be a positive integer');
  const maxManifestBytes = options.maxManifestBytes ?? Infinity;
  const maxMetadataBytes = options.maxMetadataBytes ?? Infinity;
- for (const name of ['maxManifestBytes', 'maxMetadataBytes', 'maxRequirementBytes'] as const) {
+ for (const name of ['maxDownloadBytes', 'maxManifestBytes', 'maxMetadataBytes', 'maxRequirementBytes', 'maxCacheBytes'] as const) {
   const value = options[name];
   if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`${name} must be a positive integer`);
  }
  const maxCacheBytes = options.maxCacheBytes;
- if (maxCacheBytes !== undefined && (!Number.isSafeInteger(maxCacheBytes) || maxCacheBytes < 1)) throw new RangeError('maxCacheBytes must be a positive integer');
  const defaultCache = createPythonPackageCache(maxCacheBytes === undefined ? {} : {maxBytes:maxCacheBytes});
  const sessions = new Map<string,Session>();
  const controller = new AbortController();
@@ -194,7 +194,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   context.signal.addEventListener('abort',aborted,{once:true});
   const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
   for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
-  return {session,requirements:unique,restore,requested,legacy,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
+  return {session,requirements:unique,restore,requested,legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();
@@ -207,7 +207,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    if(!saved)throw failure('Invalid installed package manifest');
    // Legacy executors publish supplemental pins. Modern executors publish the
    // complete installed state, so removed roots cannot reappear on startup.
-   const state=Array.isArray(pinned) ? [...new Set([...session.requirements,...saved])] : {version:1,installed:[...new Set(saved)]};
+   const state=Array.isArray(pinned) ? [...new Set([...session.requirements,...saved])] : {...(pinned as PythonInstalledSnapshot),installed:[...new Set(saved)]};
    const manifestBytes=encoder.encode(JSON.stringify(state));
    if(manifestBytes.length>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
    const commit = committing.then(async()=>{

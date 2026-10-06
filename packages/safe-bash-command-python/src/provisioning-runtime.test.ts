@@ -142,7 +142,7 @@ test('uninstall reports success only after exact manifest publication',async()=>
    runPython(source:string){return source==='_safe_uninstalled_json'?'["fixture-1.0"]':'[]';}};
   const work=installPythonPackages(runtime as never,{session:'1',requirements:[],restore:[],uninstall:{packages:['fixture'],yes:true},offline:true},async(operation,...args)=>{
    if(operation==='package-commit'){
-    events.push('commit');assert.deepEqual(args,['1',{version:1,installed:[]}]);
+    events.push('commit');assert.deepEqual(args,['1',{version:2,installed:[],records:[]}]);
     if(conflict)throw new Error('manifest conflict');
    }
    if(operation==='stdout')events.push(new TextDecoder().decode(Uint8Array.from(args[0])));

@@ -96,8 +96,10 @@ on the next successful operation, including uninstall. Migration keeps saved pac
 Use `llm uninstall PACKAGE` (or `python -m pip uninstall PACKAGE`) to remove
 a distribution with confirmation; `-y` skips the prompt. Dependencies remain
 installed. Host-required distributions cannot be removed. Removal publishes an
-exact environment snapshot only after success, and requires the artifacts needed
-to restore that environment. Editable installs and other pip lifecycle flags
+exact environment snapshot only after success. New snapshots retain native distribution
+metadata and removal listings, so uninstall works after the original wheels are
+deleted or unavailable. Older snapshots need one successful restore to acquire
+that metadata. Ordinary Python execution still restores the installed code. Editable installs and other pip lifecycle flags
 still require additional installer support.
 
 Pass `--pre` to include prerelease and development candidates. Use

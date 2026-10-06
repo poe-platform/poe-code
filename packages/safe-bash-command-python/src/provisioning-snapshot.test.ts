@@ -70,3 +70,15 @@ test('legacy uninstall separates saved packages from current host requirements',
  assert.deepEqual(removal.requested,['host==1']);assert.equal(removal.legacy,true);
  env.finish(removal);await env.dispose();
 });
+
+test('metadata snapshots survive publication and prepare for artifact-independent uninstall',async()=>{
+ const env=createPythonPackageEnvironment();const ctx=context();const start=await env.prepare(ctx);
+ const records=[['fixture','Metadata-Version: 2.1\nName: fixture\nVersion: 1\n','file:///fixture-1-py3-none-any.whl',['/lib/site/fixture/*'],[]]];
+ await env.dispatch('package-commit',[start.session,{version:2,installed:['fixture==1'],records}],ctx);
+ env.finish(start);
+ const removal=await env.prepare({...ctx,uninstall:{packages:['fixture'],yes:false}});
+ assert.deepEqual((removal as unknown as {records:unknown}).records,records);
+ assert.deepEqual(removal.restore,['fixture==1']);
+ for(const value of [{version:2,installed:[],records:[['fixture']]},{version:2,installed:[],records:[[1,'','',[],[]]]},{version:2,installed:[],records:[['fixture','','',[1],[]]]}])await assert.rejects(env.dispatch('package-commit',[removal.session,value],ctx),/Invalid installed package manifest/);
+ env.finish(removal);await env.dispose();
+});

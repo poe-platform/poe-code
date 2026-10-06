@@ -1,15 +1,19 @@
-/** Exact installed requirements, restored without resolving dependency metadata. */
-export interface PythonInstalledSnapshot {
-  readonly version: 1;
-  readonly installed: readonly string[];
-}
+/** Native distribution metadata and pip-compatible removal listings. */
+export type PythonPackageRecord = readonly [name:string, metadata:string, origin:string, remove:readonly string[], skip:readonly string[]];
 
-/** Accept legacy requirements or a versioned installed snapshot. */
+/** Exact installed requirements; newer snapshots can uninstall without wheels. */
+export type PythonInstalledSnapshot = {readonly version:1;readonly installed:readonly string[]} |
+ {readonly version:2;readonly installed:readonly string[];readonly records:readonly PythonPackageRecord[]};
+
+/** Accept legacy requirements and validated versioned installed snapshots. */
 export function readPackageManifest(value: unknown): readonly string[] | undefined {
-  const record = value as PythonInstalledSnapshot;
-  const entries = Array.isArray(value) ? value
-    : value && typeof value === 'object' && record.version === 1 && Object.keys(value).length === 2 ? record.installed : undefined;
-  return Array.isArray(entries) && entries.every(item => typeof item === 'string') ? entries : undefined;
+ const strings=(values:unknown):values is string[]=>Array.isArray(values)&&values.every(item=>typeof item==='string');
+ if(Array.isArray(value))return strings(value)?value:undefined;
+ if(!value||typeof value!=='object')return;
+ const record=value as PythonInstalledSnapshot;
+ if(![1,2].includes(record.version)||Object.keys(value).length!==record.version+1)return;
+ if(record.version===2&&(!Array.isArray(record.records)||!record.records.every(row=>Array.isArray(row)&&row.length===5&&row.every((part,index)=>index<3?typeof part==='string':strings(part)))))return;
+ return strings(record.installed)?record.installed:undefined;
 }
 
 export interface PythonPackageManifest {

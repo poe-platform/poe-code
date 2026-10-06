@@ -142,7 +142,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  }finally{await shell.dispose();await environment.dispose();}
 }
 
-async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false) {
+async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false) {
   const requests = [], diagnostics = [];
   const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
   const manifestStore=createPythonPackageManifestStore();
@@ -189,6 +189,8 @@ write_wheel('worker_dependency-1.0-py3-none-any.whl', dependency)
 files['worker_fixture-1.0.dist-info/METADATA'] += 'Requires-Dist: worker-dependency${legacyOnly ? '[feature]' : ''} @ file:///work/worker_dependency-1.0-py3-none-any.whl\\n'
 files['worker_fixture/plugin.py'] = 'import llm\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n'
 files['worker_fixture-1.0.dist-info/entry_points.txt'] = '[llm]\\nfixture = worker_fixture.plugin\\n'
+if ${artifactOnly ? 'True' : 'False'}:
+ files['worker_fixture-1.0.dist-info/METADATA'] += '\\n' + 'unneeded-description' * 8192
 write_wheel('worker_fixture-1.0-py3-none-any.whl', files)
 provider = {
  'worker_provider.py': 'import llm\\n@llm.hookimpl\\ndef register_models(register):\\n pass\\n',
@@ -227,6 +229,39 @@ print(json.dumps(result))
     }
     const installed = await shell.exec(prefix + ' install ./worker_fixture-1.0-py3-none-any.whl');
     if(installed.exitCode)throw new Error(JSON.stringify({stage:'install',installed,diagnostics}));
+    if(artifactOnly){
+      await backend.unlink('/work/worker_fixture-1.0-py3-none-any.whl');
+      await backend.unlink('/work/worker_dependency-1.0-py3-none-any.whl');
+      const manifestContext={signal:new AbortController().signal}, rejected=[];
+      const original=await manifestStore.get(manifestScope,manifestContext);
+      if(new TextDecoder().decode(original.bytes).includes('unneeded-description'))throw Error('Snapshot retained an unused package description');
+      for(const kind of ['name','version','duplicate','missing']){
+        const corrupted=JSON.parse(new TextDecoder().decode(original.bytes));
+        const record=corrupted.records.find(row=>row[0]==='worker-fixture');
+        if(kind==='name')record[1]=record[1].replace('Name: worker-fixture','Name: other-fixture');
+        if(kind==='version')record[1]=record[1].replace('\nVersion: 1.0\n','\nVersion: 2.0\n');
+        if(kind==='duplicate')corrupted.records.push(record);
+        if(kind==='missing')corrupted.records=corrupted.records.filter(row=>row[0]!=='worker-fixture');
+        const before=await manifestStore.get(manifestScope,manifestContext);
+        if(!await manifestStore.compareAndSet(manifestScope,before.revision,new TextEncoder().encode(JSON.stringify(corrupted)),manifestContext))throw Error('Snapshot seed conflict');
+        const invalid=await manifestStore.get(manifestScope,manifestContext);
+        const result=await shell.exec(prefix+' uninstall worker-fixture -y');
+        const after=await manifestStore.get(manifestScope,manifestContext);
+        rejected.push({kind,exitCode:result.exitCode,untouched:after.revision===invalid.revision});
+        if(!await manifestStore.compareAndSet(manifestScope,after.revision,original.bytes,manifestContext))throw Error('Snapshot repair conflict');
+      }
+      const declined=await shell.exec(prefix+' uninstall worker-fixture',{stdin:'n\n'});
+      const protectedShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({...pythonOptions,packages:['worker-fixture==1.0']}));
+      let protectedResult;
+      try {protectedResult=await protectedShell.exec('python -m pip uninstall worker-dependency -y');}
+      finally {await protectedShell.dispose();}
+      const removed=await shell.exec(prefix+' uninstall worker-fixture',{stdin:'y\n'});
+      const dependency=await shell.exec(prefix+' uninstall worker-dependency -y');
+      const missing=await shell.exec(prefix+' uninstall worker-fixture -y');
+      const state=await shell.exec('python -c '+quote('print("empty environment recovered")'));
+      const snapshot=await manifestStore.get(manifestScope,{signal:new AbortController().signal});
+      return {declined,protectedResult,removed,dependency,missing,state,rejected,manifest:JSON.parse(new TextDecoder().decode(snapshot.bytes)),requests,diagnostics};
+    }
     const verify = 'python -c ' + quote(`
 import worker_fixture, worker_dependency
 from importlib.metadata import version
@@ -260,7 +295,7 @@ print('worker package verified')
     const manifestContext={signal:new AbortController().signal};
     const before=await manifestStore.get(manifestScope,manifestContext);
     const snapshot=JSON.parse(new TextDecoder().decode(before.bytes));
-    if(snapshot.version!==1)throw new Error('Expected exact installed snapshot');
+    if(snapshot.version!==2)throw new Error('Expected exact installed snapshot');
     snapshot.installed=snapshot.installed.filter(source=>!source.startsWith('worker-dependency'));
     if(!await manifestStore.compareAndSet(manifestScope,before.revision,new TextEncoder().encode(JSON.stringify(snapshot)),manifestContext))throw new Error('Unexpected manifest conflict');
     const retained = await shell.exec('python -c ' + quote(`
@@ -1484,6 +1519,11 @@ export default {
     }
     if (mode === '/package-controls') {
       try {return Response.json({...await qualifyPackageControls(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
+    if (mode === '/artifact-uninstall' || mode === '/artifact-llm-uninstall') {
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/artifact-llm-uninstall',false,true),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

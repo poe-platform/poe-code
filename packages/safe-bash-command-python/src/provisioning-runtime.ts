@@ -86,6 +86,8 @@ export async function installPythonPackages(
   }
   runtime.globals.set('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
   installedGlobals.push('_safe_package_restore_json');
+  runtime.globals.set('_safe_package_records_json',JSON.stringify(start.records ?? null));
+  installedGlobals.push('_safe_package_records_json');
   runtime.globals.set('_safe_package_uninstall_json',JSON.stringify(start.uninstall ?? null));
   installedGlobals.push('_safe_package_uninstall_json');
   runtime.globals.set('_safe_package_emit',async(stream:string,message:string)=>{
@@ -146,7 +148,7 @@ async def _safe_wheel_fetch(self, url, kwargs, compat):
 _SafeWheelInfo._fetch_bytes = _safe_wheel_fetch
 _safe_preloaded = {_safe_name(name) for name in _safe_preloaded}
 _safe_manager = _SafePackageManager(_SafePackageCompatibility)
-async def _safe_parse_sources(sources):
+async def _safe_parse_sources(sources, download=True):
  roots = []
  for source in sources:
   try:
@@ -160,7 +162,8 @@ async def _safe_parse_sources(sources):
   if (not root.marker or root.marker.evaluate({'extra': ''})) and root.url:
    direct = _SafeWheelInfo.from_url(root.url)
    _safe_check_compatible(direct.filename)
-   await direct.download({}, _SafePackageCompatibility)
+   if download:
+    await direct.download({}, _SafePackageCompatibility)
  return roots
 
 def _safe_validate(roots):
@@ -246,19 +249,76 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False):
   await _safe_install(sorted(_safe_pending))
  _safe_validate(_safe_roots)
  return _safe_managed
+def _safe_removal_listing(_safe_dist):
+ from micropip._utils import get_files_in_distribution as _safe_distribution_files
+ import os as _safe_os
+ def _safe_compact(paths):
+  compact = []
+  for path in sorted(paths, key=len):
+   if not any(path.startswith(parent.rstrip('*').rstrip('/') + '/') for parent in compact):
+    compact.append(path)
+  return compact
+ _safe_files = {str(path) for path in _safe_distribution_files(_safe_dist) if not str(path).endswith('.pyc')}
+ _safe_folders = _safe_compact({_safe_os.path.dirname(path) for path in _safe_files if path.endswith('__init__.py') or '.dist-info' in path})
+ _safe_skipped = set()
+ for _safe_folder in _safe_folders:
+  for _safe_dir, _, _safe_names in _safe_os.walk(_safe_folder):
+   for _safe_name_ in _safe_names:
+    _safe_path = _safe_os.path.join(_safe_dir, _safe_name_)
+    if not _safe_name_.endswith('.pyc') and _safe_os.path.isfile(_safe_path) and _safe_path not in _safe_files:
+     _safe_skipped.add(_safe_path)
+ _safe_listing = set(_safe_files) | {_safe_os.path.join(folder, '*') for folder in _safe_folders}
+ return [sorted(_safe_compact(_safe_listing)), sorted(_safe_compact(_safe_skipped))]
+_safe_uninstall = _safe_json.loads(_safe_package_uninstall_json)
+_safe_records = _safe_json.loads(_safe_package_records_json)
+_safe_metadata_only = _safe_uninstall is not None and _safe_records is not None
+_safe_record_by_name = {}
+_safe_snapshot_paths = {}
+if _safe_records is not None:
+ for _safe_record in _safe_records:
+  _safe_record_name = _safe_record[0]
+  if _SafeRequirement(_safe_record_name).name != _safe_record_name or _safe_name(_safe_record_name) != _safe_record_name or _safe_record_name in _safe_record_by_name:
+   raise ValueError('Invalid Python package metadata snapshot')
+  _safe_record_by_name[_safe_record_name] = _safe_record
+if _safe_metadata_only:
+ from pathlib import Path as _SafePath
+ import sysconfig as _safe_sysconfig
+ for _safe_record_name, _safe_record in _safe_record_by_name.items():
+  if _safe_record_name in _safe_preloaded:
+   continue
+  _safe_path = (_SafePath(_safe_sysconfig.get_path('purelib')) / (_safe_record_name.replace('-', '_') + '-snapshot.dist-info')).resolve()
+  _safe_path.mkdir()
+  (_safe_path / 'METADATA').write_text(_safe_record[1])
+  (_safe_path / 'PYODIDE_URL').write_text(_safe_record[2])
+  (_safe_path / 'RECORD').write_text('')
+  _safe_dist = _safe_metadata.Distribution.at(_safe_path)
+  if _safe_name(_safe_dist.metadata['Name']) != _safe_record_name:
+   raise ValueError('Python package metadata name conflict: ' + _safe_record_name)
+  _SafeRequirement(_safe_record_name + '==' + _safe_dist.version)
+  _safe_snapshot_paths[_safe_record_name] = str(_safe_path)
+ _safe_metadata.MetadataPathFinder.invalidate_caches()
 _safe_restore = _safe_json.loads(_safe_package_restore_json)
-_safe_restored_roots = await _safe_parse_sources(_safe_restore)
+_safe_restored_roots = await _safe_parse_sources(_safe_restore, not _safe_metadata_only)
 if _safe_package_legacy:
  _safe_restored_names = await _safe_resolve(_safe_restored_roots)
 else:
- await _safe_manager.install(_safe_restore, deps=False)
+ if not _safe_metadata_only:
+  await _safe_manager.install(_safe_restore, deps=False)
  _safe_validate(_safe_restored_roots)
  _safe_restored_names = {_safe_name(root.name) for root in _safe_restored_roots if not root.marker or root.marker.evaluate({'extra': ''})}
-_safe_roots = await _safe_parse_sources(_safe_json.loads(_safe_package_requirements_json))
+if _safe_metadata_only and set(_safe_record_by_name) != _safe_restored_names:
+ raise ValueError('Python package metadata snapshot does not match installed requirements')
+_safe_roots = await _safe_parse_sources(_safe_json.loads(_safe_package_requirements_json), not _safe_metadata_only)
+if _safe_metadata_only:
+ for _safe_root in _safe_roots:
+  if _safe_root.url and _safe_name(_safe_root.name) in _safe_snapshot_paths:
+   _safe_wheel = _SafeWheelInfo.from_url(_safe_root.url)
+   if _safe_name(_safe_wheel.name) == _safe_name(_safe_root.name) and str(_safe_wheel.version) == _safe_metadata.version(_safe_root.name):
+    _safe_root.url = None
+    _safe_root.specifier = _SafeRequirement(_safe_root.name + '==' + str(_safe_wheel.version)).specifier
 _safe_managed = await _safe_resolve(_safe_roots, _safe_package_upgrade, _safe_package_forceReinstall)
 _safe_distributions = [d for d in _safe_metadata.distributions() if d.metadata['Name']]
 _safe_versions = {_safe_name(d.metadata['Name']): d.version for d in _safe_distributions}
-_safe_uninstall = _safe_json.loads(_safe_package_uninstall_json)
 _safe_removed = []
 if _safe_uninstall:
  _safe_targets = list(dict.fromkeys(_safe_name(_SafeRequirement(source).name) for source in _safe_uninstall['packages']))
@@ -273,28 +333,12 @@ if _safe_uninstall:
   _safe_version = _safe_dist.version
   await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\\nUninstalling ' + _safe_target + '-' + _safe_version + ':\\n')
   if not _safe_uninstall['yes']:
-   from micropip._utils import get_files_in_distribution as _safe_distribution_files
-   import os as _safe_os
-   def _safe_compact(paths):
-    compact = []
-    for path in sorted(paths, key=len):
-     if not any(path.startswith(parent.rstrip('*').rstrip('/') + '/') for parent in compact):
-      compact.append(path)
-    return compact
-   _safe_files = {str(path) for path in _safe_distribution_files(_safe_dist) if not str(path).endswith('.pyc')}
-   _safe_folders = _safe_compact({_safe_os.path.dirname(path) for path in _safe_files if path.endswith('__init__.py') or '.dist-info' in path})
-   _safe_skipped = set()
-   for _safe_folder in _safe_folders:
-    for _safe_dir, _, _safe_names in _safe_os.walk(_safe_folder):
-     for _safe_name_ in _safe_names:
-      _safe_path = _safe_os.path.join(_safe_dir, _safe_name_)
-      if not _safe_name_.endswith('.pyc') and _safe_os.path.isfile(_safe_path) and _safe_path not in _safe_files:
-       _safe_skipped.add(_safe_path)
-   _safe_listing = set(_safe_files) | {_safe_os.path.join(folder, '*') for folder in _safe_folders}
-   for _safe_heading, _safe_paths in [('Would remove:', _safe_listing), ('Would not remove (might be manually added):', _safe_skipped)]:
+   _safe_record = _safe_record_by_name.get(_safe_target)
+   _safe_lists = _safe_record[3:] if _safe_snapshot_paths.get(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
+   for _safe_heading, _safe_paths in zip(['Would remove:', 'Would not remove (might be manually added):'], _safe_lists):
     if _safe_paths:
      await _safe_package_emit('stdout', '  ' + _safe_heading + '\\n')
-     for _safe_path in sorted(_safe_compact(_safe_paths)):
+     for _safe_path in _safe_paths:
       await _safe_package_emit('stdout', '    ' + _safe_path + '\\n')
    while True:
     await _safe_package_emit('stdout', 'Proceed (Y/n)? ')
@@ -326,13 +370,21 @@ if _safe_uninstall:
 _safe_uninstalled_json = _safe_json.dumps(_safe_removed)
 _safe_managed.update(_safe_restored_names)
 _safe_sources = []
+_safe_final_records = []
 for _safe_dist in _safe_distributions:
  _safe_dist_name = _safe_name(_safe_dist.metadata['Name'])
  if _safe_dist_name in _safe_managed:
   _safe_origin = _safe_dist.read_text('PYODIDE_URL')
   if _safe_origin:
    _safe_sources.append(_safe_dist_name + ' @ ' + _safe_origin.strip())
+  if _safe_snapshot_paths.get(_safe_dist_name) == str(_safe_dist._path):
+   _safe_final_records.append(_safe_record_by_name[_safe_dist_name])
+  else:
+   _safe_headers = _safe_dist.metadata
+   _safe_metadata_text = ''.join(key + ': ' + value + '\\n' for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra'] for value in _safe_headers.get_all(key, []))
+   _safe_final_records.append([_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip(), *_safe_removal_listing(_safe_dist)])
 _safe_installed_json = _safe_json.dumps(_safe_sources + [name + '==' + version for name, version in sorted(_safe_versions.items()) if name in _safe_managed])
+_safe_records_json = _safe_json.dumps(_safe_final_records)
 _safe_metadata.MetadataPathFinder.invalidate_caches()
 import gc as _safe_gc
 _safe_gc.collect()
@@ -341,7 +393,7 @@ _safe_gc.collect()
   await pending;
   if(transportFailure)throw transportFailure.error;
   const pinned=JSON.parse(runtime.runPython('_safe_installed_json')) as string[];
-  await request('package-commit',start.session,start.restore === undefined ? pinned : {version:1,installed:pinned});
+  await request('package-commit',start.session,start.restore === undefined ? pinned : {version:2,installed:pinned,records:JSON.parse(runtime.runPython('_safe_records_json'))});
   if(start.uninstall){
    const removed=JSON.parse(runtime.runPython('_safe_uninstalled_json')) as string[];
    for(const name of removed){

@@ -12,6 +12,7 @@ import ts from 'typescript';
 
 import packageControlsReference from '../../../safe-bash-command-python/src/fixtures/package-controls-pip-21.2.4.json' with {type:'json'};
 import uninstallReference from '../../../safe-bash-command-python/src/fixtures/uninstall-pip-21.2.4.json' with {type:'json'};
+import missingArtifactReference from '../../../safe-bash-command-python/src/fixtures/uninstall-missing-artifacts-pip-21.2.4.json' with {type:'json'};
 import packageCommandReference from '../../../safe-bash-command-llm/src/fixtures/package-commands-0.27.1.json' with {type:'json'};
 import { createPythonJspiCallbackCatalog } from './python-jspi-catalog.mjs';
 
@@ -708,13 +709,48 @@ test('real workerd migrates legacy requirements before uninstall without making 
    assert.ok(row.stdout.includes('Successfully uninstalled '+row.target+'-1.0'),JSON.stringify(row));
    assert.equal(row.state.exitCode,0,JSON.stringify(row));
    assert.deepEqual(JSON.parse(row.state.stdout),index===0?['1.0',null,'1.0']:[null,'1.0','1.0']);
-   assert.equal(row.manifest.version,1);
+   assert.equal(row.manifest.version,2);
    assert.ok(!row.manifest.installed.some(source=>source.startsWith(row.target)),JSON.stringify(row));
   }
   if(mode==='legacy-llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT){
    const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
    assert.ok(output.startsWith(resolve(root,'out')+'/'));
    await writeFile(output,result.rows.map(row=>row.stdout).join('\n'));
+  }
+  assert.deepEqual(result.failures,[]);
+ }
+ assert.deepEqual(runtimeErrors,[]);
+});
+
+
+test('real workerd uninstalls packages after their wheel artifacts are gone', {timeout:120000}, async()=>{
+ const {miniflare,runtimeErrors}=nativeFixture;
+ for(const mode of ['artifact-uninstall','artifact-llm-uninstall']){
+  const response=await miniflare.dispatchFetch('http://fixture/'+mode,{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+  const result=await response.json();assert.equal(response.status,200,JSON.stringify(result));
+  for(const name of ['declined','removed','dependency','missing','state'])assert.equal(result[name].exitCode,0,JSON.stringify(result));
+  assert.notEqual(result.protectedResult.exitCode,0,JSON.stringify(result));
+  assert.ok(result.diagnostics.some(value=>value.includes('host-required')),JSON.stringify(result));
+  assert.ok(result.declined.stdout.includes('/worker_fixture/*'),JSON.stringify(result));
+  assert.ok(!result.declined.stdout.includes('Successfully uninstalled'));
+  assert.ok(result.removed.stdout.endsWith('Successfully uninstalled worker-fixture-1.0\n'));
+  assert.ok(result.dependency.stdout.endsWith('Successfully uninstalled worker-dependency-1.0\n'));
+  assert.equal(result.missing.stderr,'WARNING: Skipping worker-fixture as it is not installed.\n');
+  for(const [index,key] of ['declined','removed','dependency','missing'].entries()){
+   const output=result[key].stdout;
+   const firstPath=output.split('\n').find(line=>line.startsWith('    /'));
+   const site=firstPath?.trim().split('/worker_fixture')[0];
+   assert.equal(site?output.replaceAll(site,'<site>'):output,missingArtifactReference.rows[index].stdout);
+   assert.equal(result[key].stderr,missingArtifactReference.rows[index].stderr);
+  }
+  assert.equal(result.rejected.length,4);
+  for(const row of result.rejected){assert.notEqual(row.exitCode,0,JSON.stringify(row));assert.equal(row.untouched,true,JSON.stringify(row));}
+  assert.deepEqual(result.manifest.installed,[]);
+  assert.equal(result.state.stdout,'empty environment recovered\n');
+  if(mode==='artifact-llm-uninstall' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT){
+   const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
+   assert.ok(output.startsWith(resolve(root,'out')+'/'));
+   await writeFile(output,result.removed.stdout+result.dependency.stdout);
   }
   assert.deepEqual(result.failures,[]);
  }

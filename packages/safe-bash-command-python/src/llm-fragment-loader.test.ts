@@ -75,3 +75,19 @@ test('native failure after staged content preserves its message and retires stor
  await assert.rejects(async()=>{for await(const fragment of loader('input',{fs,cwd:'/',signal:new AbortController().signal,maxBytes:100})){assert.fail(JSON.stringify(fragment));}},/native loader failure/);
  assert.deepEqual(await fs.readdir('/'),[]);
 });
+
+test('native fragment output reaches caller streams without becoming fragment data',async()=>{
+ let output='',error='';
+ const fs=new MemoryFileSystem();
+ const loader=createPythonLlmFragmentLoader({createExecutor:()=>({terminate(){},async run(start){
+  start.onReady();
+  await start.dispatch({op:'stdout',args:[[111,117,116]]});
+  await start.dispatch({op:'stderr',args:[[101,114,114]]});
+  return 0;
+ }})},'fixture');
+ const context={fs,cwd:'/',signal:new AbortController().signal,maxBytes:0,
+  stdout:{async write(bytes:Uint8Array){output+=new TextDecoder().decode(bytes);}},
+  stderr:{async write(bytes:Uint8Array){error+=new TextDecoder().decode(bytes);}}};
+ for await(const fragment of loader('',context))assert.fail(JSON.stringify(fragment));
+ assert.equal(output,'out');assert.equal(error,'err');assert.deepEqual(await fs.readdir('/'),[]);
+});

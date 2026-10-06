@@ -78,7 +78,7 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
    }
    throw new TypeError('Invalid Python fragment operation');
   };
-  const invocation:CommandContext={command:'python',args:['-c',pythonLlmFragmentProgram],fs,cwd,signal,env:{},stdin:toByteSource(''),stdout:{async write(){}},stderr:{async write(){}},...(context.capabilities?{capabilities:context.capabilities}:{})};
+  const invocation:CommandContext={command:'python',args:['-c',pythonLlmFragmentProgram],fs,cwd,signal,env:{},stdin:toByteSource(''),stdout:context.stdout??{async write(){}},stderr:context.stderr??{async write(){}},...(context.capabilities?{capabilities:context.capabilities}:{})};
   capabilities.set(invocation.args,{async call(input){try{return await dispatch(input);}catch(error){fail(error);throw error;}}});
   const running=Promise.resolve().then(()=>command.execute(invocation)).then(result=>{
    if(closed)return;

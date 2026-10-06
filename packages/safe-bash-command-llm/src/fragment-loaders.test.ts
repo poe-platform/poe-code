@@ -92,3 +92,16 @@ for(const [args,exitCode,expected]of [
  const result=await createLlmCommand().execute({command:'llm',args:[...args],fs:new MemoryFileSystem(),cwd:'/',env:{},signal:new AbortController().signal,stdin:{[Symbol.asyncIterator](){throw new Error('must not read stdin');}},stdout:{async write(bytes){stdout+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});
  assert.equal(result.exitCode,exitCode);assert.equal(exitCode?stderr:stdout,expected);
 });
+
+for(const limit of [Infinity,1,14])test(`CLI fragment output streams respect limit ${limit}`,async()=>{
+ let output='',error='';
+ const loader:LlmFragmentLoader=async function*(_value,context){
+  await context.stdout?.write(new TextEncoder().encode('plugin output\n'));
+  await context.stderr?.write(new TextEncoder().encode('plugin diagnostic\n'));
+  yield {type:'text',source:{bytes:toByteSource('fragment'),async dispose(){}}};
+ };
+ const command=createLlmCommand({fragmentLoaders:new Map([['native',loader]]),limits:{maxOutputBytes:limit},defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture'}],async *complete(){yield 'response';}}]});
+ const result=await command.execute({command:'llm',args:['-f','native:input','prompt'],fs:new MemoryFileSystem(),cwd:'/',env:{},signal:new AbortController().signal,stdin:toByteSource(''),stdout:{async write(bytes){output+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){error+=new TextDecoder().decode(bytes);}}});
+ if(limit===Infinity){assert.equal(result.exitCode,0,error);assert.equal(output,'plugin output\nresponse\n');assert.equal(error,'plugin diagnostic\n');}
+ else{assert.equal(result.exitCode,1);assert.equal(output,limit===14?'plugin output\n':'');assert.match(error,/output byte limit exceeded/);}
+});

@@ -83,7 +83,9 @@ local attachment bytes stage in caller storage with bounded transfers; URL
 attachments use only the injected fetch capability and download when consumed.
 Each invocation owns an interpreter and borrows one result at a time. Direct SDK
 callers must consume a source before advancing the iterator, and close the iterator
-on early exit. The content byte limit excludes attachment metadata; cancellation
+on early exit. Plugin stdout and stderr use the caller streams when supplied; the
+CLI includes both in its output budget without treating them as fragment content.
+The content byte limit excludes attachment metadata; cancellation
 and iterator closure retire staged files and the interpreter. Template loader
 execution and automatic plugin discovery are not provided by this adapter.
 

@@ -248,11 +248,14 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   };
   const admitBuffered = (size: number): void => input.admit(size, true);
   const functionSessions = new Set<Awaited<ReturnType<NonNullable<LlmCommandsOptions['loadTools']>>>>();
+  const loaderContext = (): CommandContext => {
+    const diagnostic = operation.child(context.stderr).output;
+    return {...context, signal, stdout: {write: bytes => write(bytes, true)}, stderr: {write: async bytes => {admitOutput(bytes.length); await writeOutput(diagnostic, bytes);}}};
+  };
   const loadDefinitions = async (definitions: readonly string[], toolNames: readonly string[] = [], discovery = false, pluginQuery?: LlmPluginQuery) => {
     if (!loadTools) throw new Error("Python tool loading is not configured");
-    const diagnostic = operation.child(context.stderr).output;
     const loaded = await operation.acquire(async () => {const value = await loadTools({definitions, toolNames, discovery, ...(pluginQuery ? {pluginQuery} : {}),
-      context: {...context, signal, stdout: {write: bytes => write(bytes, true)}, stderr: {write: async bytes => {admitOutput(bytes.length); await writeOutput(diagnostic, bytes);}}},
+      context: loaderContext(),
       maxInputBytes: input.remaining(true), maxOutputBytes: limits?.maxOutputBytes ?? Infinity});
       let closing: Promise<void> | undefined;
       return {tools: value.tools, ...(value.plugins ? {plugins: value.plugins} : {}), ...(value.toolboxes ? {toolboxes: value.toolboxes} : {}), close: () => closing ??= Promise.resolve().then(() => value.close())};
@@ -541,7 +544,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         }
         if (getLlmFragmentPrefix(reference) !== undefined) {
           try {
-            for await (const loaded of loadLlmPluginFragments(reference,fragmentLoaders,{fs:context.fs,cwd:context.cwd,signal,capabilities:context.capabilities,get maxBytes(){return input.remaining(!streamed);}},!system)) {
+            for await (const loaded of loadLlmPluginFragments(reference,fragmentLoaders,{...loaderContext(),get maxBytes(){return input.remaining(!streamed);}},!system)) {
               const source = await operation.acquire(()=>loaded.source,value=>value.dispose());
               if (loaded.type === "text") { yield source; continue; }
               input.admitText(loaded.mimeType);

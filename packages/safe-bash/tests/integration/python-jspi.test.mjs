@@ -646,7 +646,8 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
       assert.equal(result.fragment.exitCode,0,JSON.stringify(result.fragment));
       assert.match(result.fragment.stdout,/native fragment:hello/);
       assert.match(result.fragment.stdout,/prompt/);
-      assert.equal(result.fragment.stderr,'');
+      assert.ok(result.fragment.stdout.startsWith('plugin output\n'));
+      assert.equal(result.fragment.stderr,'plugin diagnostic\n');
       assert.equal(result.blocked.exitCode,1);
       assert.match(result.blocked.stderr,/platform-configured providers/);
     }

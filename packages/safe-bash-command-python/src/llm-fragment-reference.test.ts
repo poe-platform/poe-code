@@ -91,3 +91,26 @@ assert opened[-1].closed
 `],{input:JSON.stringify(pythonLlmFragmentProgram),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });
+
+test('pinned native fragment resolution preserves plugin stdout and stderr',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned llm==0.27.1':false},()=>{
+ const result=spawnSync(python,['-B','-c',String.raw`
+import llm,sys,json,io,contextlib
+from llm.cli import resolve_fragments
+class Plugin:
+ @llm.hookimpl
+ def register_fragment_loaders(self,register):
+  def fragment(value):
+   print('plugin output')
+   print('plugin diagnostic',file=sys.stderr)
+   return llm.Fragment('native fragment:'+value,'fixture')
+  register('native',fragment)
+llm.plugins.load_plugins()
+llm.plugins.pm.register(Plugin(),name='fragment-output')
+output,error=io.StringIO(),io.StringIO()
+with contextlib.redirect_stdout(output),contextlib.redirect_stderr(error):
+ fragments=resolve_fragments(None,['native:hello'],allow_attachments=True)
+print(json.dumps(dict(output=output.getvalue(),error=error.getvalue(),fragments=fragments)))
+`],{encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);assert.equal(result.status,0,result.stderr);
+ assert.deepEqual(JSON.parse(result.stdout),{output:'plugin output\n',error:'plugin diagnostic\n',fragments:['native fragment:hello']});
+});

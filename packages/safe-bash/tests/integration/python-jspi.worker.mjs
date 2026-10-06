@@ -35,6 +35,33 @@ async function qualifyNativeWheel(backend,createExecutor,micropip) {
   }finally{await shell.dispose();await environment.dispose();}
 }
 
+async function qualifyPackagePaths(backend,createExecutor,micropip) {
+  const quote=value=>"'"+value.split("'").join("'\\''")+"'";
+  await backend.mkdir('/work/pth-source');
+  await backend.writeFile('/work/pth-source/linked_fixture.py',new TextEncoder().encode('value = 13\n'));
+  const bootstrap=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor}));
+  try{
+    const generated=await bootstrap.exec('python -c '+quote(`import zipfile
+with zipfile.ZipFile("pth_fixture-1.0-py3-none-any.whl","w") as wheel:
+ wheel.writestr("fixture.pth", "# comment\\n/work/pth-source\\n/work/pth-source\\n/work/missing\\nimport sys, __main__; sys._fixture_pth_runs = getattr(sys, '_fixture_pth_runs', 0) + 1; __main__._pth_marker = 'ready'; sys._fixture_pth_argv = list(sys.argv)\\n")
+ wheel.writestr("pth_fixture-1.0.dist-info/METADATA", "Metadata-Version: 2.1\\nName: pth-fixture\\nVersion: 1.0\\n")
+ wheel.writestr("pth_fixture-1.0.dist-info/WHEEL", "Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n")
+ wheel.writestr("pth_fixture-1.0.dist-info/RECORD", "")
+`));
+    if(generated.exitCode)throw new Error(JSON.stringify(generated));
+  }finally{await bootstrap.dispose();}
+  const url='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
+  const environment=createPythonPackageEnvironment({requirements:['file:///work/pth_fixture-1.0-py3-none-any.whl'],cacheDirectory:'/work/packages',authorize:request=>request.url===url,transport:async()=>({status:200,headers:[],body:(async function*(){yield micropip;})(),async dispose(){}})});
+  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
+  const command='python -c '+quote('import json, sys, __main__, linked_fixture; print(json.dumps([linked_fixture.value, sys.path.count("/work/pth-source"), getattr(sys, "_fixture_pth_runs", 0), getattr(__main__, "_pth_marker", None), getattr(sys, "_fixture_pth_argv", None)]))');
+  try{
+    const first=await shell.exec(command);
+    await backend.writeFile('/work/pth-source/linked_fixture.py',new TextEncoder().encode('value = 1313\n'));
+    const changed=await shell.exec(command);
+    return {first,changed};
+  }finally{await shell.dispose();await environment.dispose();}
+}
+
 async function qualifyLegacyBuild(backend,createExecutor,assets,format='directory') {
   const base='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/';
   const wheels=new Map(assets.map(({file,bytes})=>[base+file,Uint8Array.from(bytes)]));
@@ -1724,6 +1751,11 @@ export default {
       }
       return runtime;
     } });
+    if (mode === '/package-paths') {
+      try {return Response.json({...await qualifyPackagePaths(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
     if (mode === '/legacy-build') {
       try {return Response.json({...await qualifyLegacyBuild(backend,createExecutor,await request.json(),new URL(request.url).searchParams.get('archive')??'directory'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}

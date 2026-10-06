@@ -241,6 +241,8 @@ the native backend and installs the published wheel. Legacy tooling uses the
 configured runtime package transport and stays out of the target inventory.
 Legacy `setup_requires` dependencies are discovered by genuine setuptools and
 installed in that private build environment before building the wheel.
+Installed `.pth` paths and import hooks initialize against caller storage before
+user code runs, so linked source modules retain live file updates.
 The same environment works with SDK requirements and the LLM package manager.
 Named local references such as `project[feature] @ file:///sources/project`
 retain the requested package name, extras and environment marker after building.

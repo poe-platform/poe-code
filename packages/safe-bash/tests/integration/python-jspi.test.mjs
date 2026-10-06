@@ -866,3 +866,26 @@ test('real workerd uninstalls packages after their wheel artifacts are gone', {t
  }
  assert.deepEqual(runtimeErrors,[]);
 });
+
+test('real workerd processes installed package paths like native Python before user imports',{timeout:90000},async()=>{
+  const reference=spawnSync(process.env.SAFE_BASH_LLM_REFERENCE_PYTHON,['-B','-c',String.raw`
+import io,json,site,sys,__main__
+from unittest.mock import patch
+content=b"# comment\n/work/pth-source\n/work/pth-source\n/work/missing\nimport sys, __main__; sys._fixture_pth_runs = getattr(sys, '_fixture_pth_runs', 0) + 1; __main__._pth_marker = 'ready'; sys._fixture_pth_argv = list(sys.argv)\n"
+sys.argv=['-c']
+exists=site.os.path.exists
+with patch('site.os.listdir',return_value=['fixture.pth']),patch('site.io.open_code',side_effect=lambda _:io.BytesIO(content)),patch('site.os.path.exists',side_effect=lambda path:path=='/work/pth-source' or exists(path)):
+ site.addsitedir('/fixture-site')
+print(json.dumps([sys.path.count('/work/pth-source'),sys._fixture_pth_runs,__main__._pth_marker,sys._fixture_pth_argv]))
+`],{encoding:'utf8',timeout:5000});
+  assert.ifError(reference.error);assert.equal(reference.status,0,reference.stderr);
+  const bytes=readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),'0ad7104a3cde648e5486a718799f3852f1d782ff19d4bfc13db9dc631df083f8');
+  const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/package-paths',{method:'POST',body:bytes});
+  const result=await response.json();assert.equal(response.status,200,JSON.stringify(result));
+  for(const [name,value] of [['first',13],['changed',1313]]){
+    assert.equal(result[name].exitCode,0,JSON.stringify(result));
+    assert.deepEqual(JSON.parse(result[name].stdout),[value,...JSON.parse(reference.stdout)]);
+  }
+  assert.deepEqual(result.failures,[]);assert.deepEqual(nativeFixture.runtimeErrors,[]);
+});

@@ -123,6 +123,10 @@ def _safe_launch():
  main = types.ModuleType('__main__')
  main.__dict__.update(__package__=None, __spec__=None, __loader__=__import__('importlib.machinery', fromlist=['BuiltinImporter']).BuiltinImporter, __builtins__=__builtins__)
  sys.modules['__main__'] = main
+ if not sys.flags.no_site:
+  sys.argv = [args[0]] + args[2:] if not options_terminated and args and args[0] in ('-c', '-m') else args or ['']
+  import site
+  site.addsitepackages(site.addusersitepackages(None), [_safe_runtime_mount])
  if not options_terminated and args and args[0] == '-c':
   sys.argv = ['-c'] + args[2:]
   if not safe_path: sys.path.insert(0, '')

@@ -211,6 +211,15 @@ pinned wheel installs, dependency/data/native-library behavior, failed extractio
 cancellation, external caller storage, packed public artifacts, actual workerd
 and the unchanged bundle limits.
 
+Collection command parsing now uses the same native-qualified default-group and
+leaf parser as configuration commands. The collection help catalog remains in
+its optional storage module. Pinned LLM 0.27.1 / Click 8.1.8 captures cover 104
+cases across implicit list, explicit list, delete and path: eager group help,
+short clusters, terminators, option suggestions, missing values, extra operands
+and help/error ordering. This closes the demonstrated collection parser gaps;
+SQL imports, arbitrary query-result streaming and wider collection semantics
+remain separate incomplete requirements.
+
 ## Private command ownership
 
 Revalidated extraction against remote main `c8f7ac43fb` on 2026-10-02.

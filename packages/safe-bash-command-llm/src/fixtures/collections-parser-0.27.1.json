@@ -1,0 +1,1066 @@
+{
+  "reference": {
+    "llm": "0.27.1",
+    "click": "8.1.8"
+  },
+  "cases": [
+    {
+      "args": [
+        "collections",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "--help=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "-h=x"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "--bad",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "--help",
+        "--bad"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "-xh"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "-hx"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "--databas"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: --databas Did you mean --database?\n"
+    },
+    {
+      "args": [
+        "collections",
+        "--databas",
+        "x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: --databas Did you mean --database?\n"
+    },
+    {
+      "args": [
+        "collections",
+        "--json=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--json' does not take a value.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "--database"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--database' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "-d"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '-d' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "--database=x",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "extra",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "--",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "extra",
+        "more"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: Got unexpected extra arguments (extra more)\n"
+    },
+    {
+      "args": [
+        "collections",
+        "--help",
+        "extra"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "--help",
+        "--database"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "--database",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "--json",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "-dh"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "-hd"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "-hdx"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "-hh"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "--bad"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: --bad\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--help=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "-h=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: -=\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--bad",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: --bad\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--help",
+        "--bad"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: --bad\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "-xh"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "-hx"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--databas"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: --databas Did you mean --database?\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--databas",
+        "x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: --databas Did you mean --database?\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--json=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--json' does not take a value.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--database"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--database' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "-d"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '-d' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--database=x",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "extra",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "extra",
+        "more"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: Got unexpected extra arguments (extra more)\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--help",
+        "extra"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--help",
+        "--database"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--database' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--database",
+        "--help"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: No collections table found in --help\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--json",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "-dh"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: No collections table found in h\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "-hd"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '-d' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "-hdx"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "-hh"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "list",
+        "--bad"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections list [OPTIONS]\nTry 'llm collections list -h' for help.\n\nError: No such option: --bad\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections delete [OPTIONS] COLLECTION\n\n  Delete the specified collection\n\n  Example usage:\n\n      llm collections delete my-collection\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections delete [OPTIONS] COLLECTION\n\n  Delete the specified collection\n\n  Example usage:\n\n      llm collections delete my-collection\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--help=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "-h=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: -=\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--bad",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: --bad\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--help",
+        "--bad"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: --bad\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "-xh"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "-hx"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--databas"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: --databas Did you mean --database?\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--databas",
+        "x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: --databas Did you mean --database?\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--json=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: --json\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--database"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--database' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "-d"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '-d' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--database=x",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections delete [OPTIONS] COLLECTION\n\n  Delete the specified collection\n\n  Example usage:\n\n      llm collections delete my-collection\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "extra",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections delete [OPTIONS] COLLECTION\n\n  Delete the specified collection\n\n  Example usage:\n\n      llm collections delete my-collection\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--",
+        "--help"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Error: Collection does not exist\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "extra",
+        "more"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: Got unexpected extra argument (more)\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--help",
+        "extra"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections delete [OPTIONS] COLLECTION\n\n  Delete the specified collection\n\n  Example usage:\n\n      llm collections delete my-collection\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--help",
+        "--database"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--database' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--database",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: Missing argument 'COLLECTION'.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--json",
+        "-h"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: --json\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "-dh"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: Missing argument 'COLLECTION'.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "-hd"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '-d' requires an argument.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "-hdx"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections delete [OPTIONS] COLLECTION\n\n  Delete the specified collection\n\n  Example usage:\n\n      llm collections delete my-collection\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "-hh"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections delete [OPTIONS] COLLECTION\n\n  Delete the specified collection\n\n  Example usage:\n\n      llm collections delete my-collection\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  -h, --help           Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "delete",
+        "--bad"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections delete [OPTIONS] COLLECTION\nTry 'llm collections delete -h' for help.\n\nError: No such option: --bad\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections path [OPTIONS]\n\n  Output the path to the embeddings database\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "-h"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections path [OPTIONS]\n\n  Output the path to the embeddings database\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--help=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "-h=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: -=\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--bad",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --bad\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--help",
+        "--bad"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --bad\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "-xh"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "-hx"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: -x\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--databas"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --databas\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--databas",
+        "x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --databas\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--json=x"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --json\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--database"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --database\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "-d"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: -d\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--database=x",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --database\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "extra",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections path [OPTIONS]\n\n  Output the path to the embeddings database\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: Got unexpected extra argument (--help)\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "extra",
+        "more"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: Got unexpected extra arguments (extra more)\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--help",
+        "extra"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections path [OPTIONS]\n\n  Output the path to the embeddings database\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--help",
+        "--database"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --database\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--database",
+        "--help"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --database\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--json",
+        "-h"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --json\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "-dh"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: -d\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "-hd"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: -d\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "-hdx"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: -d\n"
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "-hh"
+      ],
+      "exitCode": 0,
+      "stdout": "Usage: llm collections path [OPTIONS]\n\n  Output the path to the embeddings database\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collections",
+        "path",
+        "--bad"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Usage: llm collections path [OPTIONS]\nTry 'llm collections path -h' for help.\n\nError: No such option: --bad\n"
+    }
+  ]
+}

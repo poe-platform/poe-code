@@ -6,8 +6,8 @@ import {chatOptionSuggestion} from './chat-options.js';
 export async function commandArguments(
   group: string, tokens: readonly string[], commands: readonly string[],
   emit: (text: string) => Promise<void>, diagnostic: (text: string) => Promise<void>, step: () => Promise<void>, prompt?: () => Promise<string | undefined>,
+  help: (name:string)=>string|Promise<string> = name => loadLlmHelp(name.replaceAll(' ', '-') as LlmHelpName),
 ): Promise<number | {command: string; operands: string[]; values: Map<string, string[]>}> {
-  const help = (name: string) => loadLlmHelp(name.replaceAll(' ', '-') as LlmHelpName);
   if (commands.length) {
     let groupHelp = false;
     for (const token of tokens) {

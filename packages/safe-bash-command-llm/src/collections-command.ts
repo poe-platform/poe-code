@@ -1,3 +1,4 @@
+import {commandArguments} from './command-arguments.js';
 import {FsError} from 'safe-bash-contracts';
 import {pathOf} from 'safe-bash-contracts/path';
 import {withLlmCollections} from './collections.js';
@@ -64,35 +65,11 @@ export function createLlmCollectionCommands(options:{readonly maxFileBytes:numbe
     throw error;
    }
   });
-  if(tokens[0]==='--help'||tokens[0]==='-h'){await emit(groupHelp);return 0;}
-  let command:keyof typeof usages='list',start=tokens[0]==='--'?1:0;
-  if(tokens[start]&&Object.hasOwn(usages,tokens[start]!)){
-   command=tokens[start] as keyof typeof usages;start++;
-  }
-  const fail=async(message:string,code=1,usage=false)=>{await diagnostic((usage?usages[command]+`Try 'llm collections ${command} -h' for help.\n\n`:'')+`Error: ${message}\n`);return code;};
-  let database:string|undefined,json=false,ended=false,wantsHelp=false;const operands:string[]=[];
-  for(let index=start;index<tokens.length;index++){
-   await step();const token=tokens[index]!;
-   if(!ended&&token==='--'){ended=true;continue;}
-   if(ended||!token.startsWith('-')||token==='-'){operands.push(token);continue;}
-   const equals=token.indexOf('='),long=token.startsWith('--');
-   for(let cursor=long?0:1;cursor<token.length;cursor++){
-    const flag=long?token.slice(0,equals<0?undefined:equals):'-'+token[cursor];
-    if(flag==='--help'||flag==='-h'||flag==='--json'&&command==='list'){
-     if(long&&equals>=0)return fail(`Option '${flag}' does not take a value.`,2);
-     if(flag==='--json')json=true;else wantsHelp=true;
-     if(long)break;continue;
-    }
-    if(command==='path'||flag!=='-d'&&flag!=='--database')return fail(`No such option: ${flag}`,2,true);
-    database=(long?(equals<0?undefined:token.slice(equals+1)):(token.slice(cursor+1)||undefined))??tokens[++index];
-    if(database===undefined)return fail(`Option '${flag}' requires an argument.`,2);
-    break;
-   }
-  }
-  if(wantsHelp){await emit(help[command]);return 0;}
-  if(command==='delete'&&!operands.length)return fail("Missing argument 'COLLECTION'.",2,true);
-  const extra=operands.slice(command==='delete'?1:0);
-  if(extra.length)return fail(`Got unexpected extra argument${extra.length===1?'':'s'} (${extra.join(' ')})`,2,true);
+  const parsed=await commandArguments('collections',tokens,['list','delete','path'],emit,diagnostic,step,undefined,name=>name==='collections'?groupHelp:help[name.slice(12) as keyof typeof help]);
+  if(typeof parsed==='number')return parsed;
+  const {command,operands,values}=parsed;
+  const database=values.get('--database')?.at(-1),json=values.has('--json');
+  const fail=async(message:string,code=1,usage=false)=>{await diagnostic((usage?`Usage: llm collections ${command} [OPTIONS]${command==='delete'?' COLLECTION':''}\nTry 'llm collections ${command} -h' for help.\n\n`:'')+`Error: ${message}\n`);return code;};
   const config=createLlmConfiguration(context,maxConfigurationBytes);
   if(command==='path'){await emit(config.directory+'/embeddings.db\n');return 0;}
   const display=database||context.env.LLM_EMBEDDINGS_DB||config.directory+'/embeddings.db',path=pathOf(context,display);

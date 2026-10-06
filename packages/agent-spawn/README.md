@@ -54,6 +54,16 @@ retry commands, switch to unrestricted mode, or bypass managed requirements.
 With `approval_policy=never`, or when managed policy forbids escalation, use a
 host supporting bubblewrap and the required sandbox policy.
 
+When Codex reports `failed to register synthetic bubblewrap mount target` with
+`No space left on device (os error 28)`, the CLI and SDK event stream preserve the
+original output and explain that sandbox startup failed before the command ran.
+Check free blocks and inodes on the staging filesystem (`df -h /tmp` and
+`df -i /tmp` for `/tmp`), restore capacity, and retry in the same sandbox.
+Moving the worktree alone does not relocate Codex's synthetic mount staging.
+If diagnostic commands also cannot start, use the existing approval reviewer for
+that specific command when session policy permits escalation. No automatic
+retry or sandbox policy change occurs.
+
 When a failed Codex command reports esbuild's `The service was stopped` with an
 esbuild stack trace, the CLI and SDK event stream retain the original output and
 explain a verified Linux failure: Codex's restricted-network sandbox can reject

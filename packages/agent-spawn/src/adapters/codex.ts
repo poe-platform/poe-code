@@ -210,6 +210,23 @@ export async function* adaptCodex(
         yield { event: "tool_complete", id: item.id, kind, path, ...(status ? { status } : {}) };
         if (itemType === "command_execution" && status === "failed"
           && isNonEmptyString(item.aggregated_output)
+          && item.aggregated_output.includes("failed to register synthetic bubblewrap mount target ")
+          && item.aggregated_output.includes("No space left on device (os error 28)")) {
+          yield {
+            event: "error",
+            message: `${item.aggregated_output.trim()}
+Codex sandbox startup failed before the command ran: synthetic mount staging ran out of space (ENOSPC).
+Check available blocks and inodes on the staging filesystem; for /tmp, use df -h /tmp and df -i /tmp.
+Moving the worktree to a volume with free space does not move Codex's synthetic mount staging.
+Free only temporary files you own and no longer need, or ask the host administrator to restore capacity;
+then retry the command in the same sandbox. Do not delete other workers' files.
+If even diagnostic commands cannot start, request the exact diagnostic command through the existing approval reviewer
+with sandbox_permissions: "require_escalated", only when the session policy permits it.
+Do not retry automatically outside the sandbox or bypass a denied approval.`
+          };
+        }
+        if (itemType === "command_execution" && status === "failed"
+          && isNonEmptyString(item.aggregated_output)
           && item.aggregated_output.includes("esbuild/lib/main.js:")
           && item.aggregated_output.split("\n").some((line) => line.trim() === "error: The service was stopped"
             || line.trim() === "Error: The service was stopped")) {

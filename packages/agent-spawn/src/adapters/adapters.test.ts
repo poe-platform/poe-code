@@ -840,6 +840,39 @@ describe("adaptCodex", () => {
     expect(diagnostic.message).toContain("host that supports bubblewrap");
   });
 
+  it.each([true, false])("diagnoses sandbox mount ENOSPC (started=%s)", async (started) => {
+    const item = {
+      id: "disk-full", type: "command_execution", command: "git status",
+      exit_code: 101,
+      aggregated_output: "thread 'main' panicked at linux-sandbox/src/linux_run_main.rs:994: failed to register synthetic bubblewrap mount target /tmp/.git: No space left on device (os error 28)"
+    };
+    const events = await collect(adaptCodex(fromArray([
+      ...(started ? [JSON.stringify({ type: "item.started", item })] : []),
+      JSON.stringify({ type: "item.completed", item })
+    ])));
+    expect(events).toContainEqual(expect.objectContaining({ event: "tool_complete", status: "failed" }));
+    const diagnostic = events.find((event) => event.event === "error");
+    expect(diagnostic).toEqual({ event: "error", message: expect.stringContaining(item.aggregated_output) });
+    if (diagnostic?.event !== "error") throw new Error("Missing ENOSPC diagnostic");
+    expect(diagnostic.message).toContain("before the command ran");
+    expect(diagnostic.message).toContain("df -h /tmp");
+    expect(diagnostic.message).toContain("df -i /tmp");
+    expect(diagnostic.message).toContain("Moving the worktree");
+    expect(diagnostic.message).toContain("existing approval reviewer");
+  });
+
+  it.each([
+    { exit_code: 0, aggregated_output: "failed to register synthetic bubblewrap mount target /tmp/.git: No space left on device (os error 28)" },
+    { exit_code: 1, aggregated_output: "write: No space left on device (os error 28)" },
+    { exit_code: 101, aggregated_output: "failed to register synthetic bubblewrap mount target /tmp/.git: Permission denied (os error 13)" },
+    { exit_code: 101, aggregated_output: { message: "No space left on device" } }
+  ])("does not misdiagnose other output as mount ENOSPC (%j)", async (result) => {
+    const events = await collect(adaptCodex(fromArray([JSON.stringify({
+      type: "item.completed", item: { id: "disk-full", type: "command_execution", ...result }
+    })])));
+    expect(events.filter((event) => event.event === "error")).toEqual([]);
+  });
+
   it.each([
     { status: "completed", exit_code: 0, aggregated_output: "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted" },
     { status: "failed", exit_code: 1, aggregated_output: "fatal: not a git repository" },

@@ -627,7 +627,7 @@ embedding_model = llm.get_embedding_model('fake')
 assert embedding_model.embed('ordinary') == [1.0, 2.0]
 assert list(embedding_model.embed_multi(iter(['one', 'two', 'three']), batch_size=2)) == [[1.0, 2.0]] * 3
 from pyodide.ffi import run_sync
-from poe_llm import Client as LlmClient, CapabilityError, Attachment, Message, LimitError
+from poe_llm import Client as LlmClient, LlmError, CapabilityError, Attachment, Message, LimitError
 import asyncio
 from poe_shell import Client as ShellClient
 import subprocess
@@ -794,8 +794,16 @@ async def qualify_libraries():
   try:
    await client.complete('error-call')
    raise AssertionError('host error was lost')
-  except CapabilityError as error:
-   assert 'private-host-error' not in str(error)
+  except LlmError as error:
+   assert type(error) is LlmError
+   assert error.code == 'service'
+   assert str(error) == 'Python host operation failed'
+ try:
+  await client.complete('closed-client')
+  raise AssertionError('closed client retained its capability')
+ except CapabilityError as error:
+  assert type(error) is CapabilityError
+  assert error.code == 'capability'
  async with ShellClient() as child:
   result = await child.run(['rg', 'changed', '/work/shared.txt'], text=True)
   assert result.stdout == 'changed\n'

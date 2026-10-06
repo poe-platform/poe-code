@@ -247,6 +247,9 @@ Direct and named HTTP(S) ZIP/tar archives use the same authorized package
 transport and caller-backed cache. SHA-256 URL fragments are verified before
 extraction; offline replay and cache bypass use the normal installation controls.
 Remote archives require retained caller storage and streaming writes.
+Local file URLs and remote archives can select a nested project with
+`#subdirectory=path/to/project`. Selection preserves pip’s literal fragment
+spelling and must remain inside the prepared source tree.
 Select the optional `extractArchive` capability above to enable ZIP and tar sources;
 source-directory hosts can omit its import. ZIP sources use retained reads, storage-backed directory metadata and streamed
 extraction inside the build directory. A shared top-level directory is removed
@@ -259,6 +262,6 @@ Tar sources support plain, gzip, bzip2 and xz archives with streamed file writes
 executable permissions, timestamps and links confined to the build directory.
 Hard links copy retained archive contents. Tar extended headers and global PAX
 metadata still use the archive engine’s memory limits.
-Editable source installation, source URL subdirectories/content-disposition selection and legacy
+Editable source installation, source URL content-disposition selection and legacy
 `setup_requires` dependency resolution are not supported yet. ZIP members must
 use canonical relative paths; broader archive path compatibility remains incomplete.

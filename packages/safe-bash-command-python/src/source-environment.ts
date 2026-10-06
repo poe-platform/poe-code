@@ -43,6 +43,13 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    finally{await environment.dispose();}
    if(named){if(!named.active)return requirement;source=named.url;}
   }
+  let subdirectory:string|undefined;
+  if(source.startsWith('file:')||source.startsWith('https://')||source.startsWith('http://')){
+   for(let index=0;index<source.length;index++)if((source[index]==='#'||source[index]==='&')&&source.startsWith('subdirectory=',index+1)){
+    const start=index+1+'subdirectory='.length,end=source.indexOf('&',start);
+    subdirectory=source.slice(start,end<0?undefined:end);break;
+   }
+  }
   if(source.startsWith('file:')){
    const url=new URL(source);
    if(url.host&&url.host!=='localhost')return requirement;
@@ -88,6 +95,13 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    let prepared:string;
    if(archived){prepared=resolvePath(path,'source');await confined.mkdir(prepared,settings);if(!build.extractArchive)throw new Error('Source archives require an extraction capability');if(remote){source=resolvePath(path,'archive'+suffix);await downloadPythonSourceArchive(remote,source,options,command);}await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging});}
    else prepared=(await createPythonSourceSnapshot(source,path,{...command,fs:staging})).path;
+   if(subdirectory){
+    const selected=resolvePath(prepared,subdirectory);
+    if(selected!==prepared&&!selected.startsWith(prepared+'/'))throw new Error('Source subdirectory escapes the build tree');
+    const root=await fs.realpath(prepared,settings),actual=await fs.realpath(selected,settings);
+    if(actual!==root&&!actual.startsWith(root+'/'))throw new Error('Source subdirectory escapes the build tree');
+    prepared=actual;
+   }
    const wheelDirectory=resolvePath(path,'wheels');
    await confined.mkdir(wheelDirectory,settings);
    const configuration={...build.python,environment},hook=createPythonBuildBackend(configuration),hookContext={...command,maxBytes:options.maxMetadataBytes??Infinity};

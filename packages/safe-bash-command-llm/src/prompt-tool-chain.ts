@@ -7,11 +7,20 @@ import { createLlmSpool } from "./retained-spool.js";
 import { sourceBytes } from "./request-source.js";
 import { jsonValue } from "./json-value.js";
 
+type Spool = Awaited<ReturnType<typeof createLlmSpool>>;
+type Content = {spool: Spool; size: number};
+type Attachment = Omit<LlmSourceAttachment, "source"> & {content?: Content};
+export type PromptChatMessage = Omit<LlmMessage, "content" | "attachments"> & {
+  content: Content; chatAttachments?: Attachment[]; turn?: number;
+};
+
 /** Command-local request context, destroyed with its output operation. This is
  * not saved conversation state: no identifiers, lookup, logging or reuse across
  * invocations. The shared service and chain executor remain stateless. */
 export async function* promptToolChain(options: {
   context: CommandContext;
+  chatMessages?: PromptChatMessage[];
+  chatTurn?: number;
   operation: OutputOperation;
   service: LlmService;
   request: Omit<LlmServiceSourceRequest, "messages">;
@@ -27,10 +36,7 @@ export async function* promptToolChain(options: {
 }): AsyncGenerator<LlmStreamEvent> {
   const {context, operation, request, service, tools, streamed, textSource} = options;
   const signal = request.signal;
-  type Spool = Awaited<ReturnType<typeof createLlmSpool>>;
-  type Content = {spool: Spool; size: number};
-  type Attachment = Omit<LlmSourceAttachment, "source"> & {content?: Content};
-  type Message = Omit<LlmMessage, "content" | "attachments"> & {content: Content};
+  type Message = PromptChatMessage;
   const create = () => operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal, "input"), spool => spool.close());
   const retain = async (source: LlmInputSource, admit: boolean, text: boolean): Promise<Content> => {
     const spool = await create(); let size = 0;
@@ -64,7 +70,9 @@ export async function* promptToolChain(options: {
     : {mimeType: attachment.mimeType, ...(attachment.id === undefined ? {} : {id: attachment.id}), url: attachment.url!}));
   const materialize = async (content: Content): Promise<string> => {
     let value = ""; const decoder = new TextDecoder("utf-8", {fatal: true, ignoreBOM: true});
-    for await (const bytes of content.spool.replay()) value += decoder.decode(bytes, {stream: true});
+    const source = await lease(content, signal);
+    try {for await (const bytes of source.bytes) value += decoder.decode(bytes, {stream: true});}
+    finally {await source.dispose();}
     return value + decoder.decode();
   };
   const bufferedAttachments = async (attachments: Attachment[]) => Promise.all(attachments.map(async attachment => {
@@ -80,7 +88,7 @@ export async function* promptToolChain(options: {
   const system = request.system === undefined ? undefined : await retain(request.system, false, true);
   const initialAttachments = await retainAttachments(request.attachments, false);
   const empty = await retain(textSource(""), false, true);
-  const messages: Message[] = [];
+  const messages: Message[] = options.chatMessages ?? [];
   let currentPrompt = prompt, currentAttachments = initialAttachments, currentSystem = system;
   let responseContent: Content | undefined, responseCalls: readonly LlmToolCall[] = [], prepared = false;
   let nextAttachments: Attachment[] = [];
@@ -105,10 +113,12 @@ export async function* promptToolChain(options: {
           ...(!index && request.schema !== undefined ? {schema: request.schema} : {})};
         const events = streamed ? service.streamSources!({...base, prompt: await lease(currentPrompt, activeSignal),
           ...(currentSystem ? {system: await lease(currentSystem, activeSignal)} : {}), attachments: await sourceAttachments(currentAttachments, activeSignal),
-          messages: await Promise.all(messages.map(async message => ({...message, content: await lease(message.content, activeSignal)})))
+          messages: await Promise.all(messages.map(async ({chatAttachments, turn, ...message}) => ({...message, content: await lease(message.content, activeSignal),
+            ...(chatAttachments && turn !== options.chatTurn ? {attachments: await sourceAttachments(chatAttachments, activeSignal)} : {})})))
         }) : service.stream({...base, prompt: await materialize(currentPrompt),
           ...(currentSystem ? {system: await materialize(currentSystem)} : {}), attachments: await bufferedAttachments(currentAttachments),
-          messages: await Promise.all(messages.map(async message => ({...message, content: await materialize(message.content)})))
+          messages: await Promise.all(messages.map(async ({chatAttachments, turn, ...message}) => ({...message, content: await materialize(message.content),
+            ...(chatAttachments && turn !== options.chatTurn ? {attachments: await bufferedAttachments(chatAttachments)} : {})})))
         });
         responseContent = {spool: await create(), size: 0};
         let surrogate = "";
@@ -138,7 +148,8 @@ export async function* promptToolChain(options: {
           if (currentSystem?.size) messages.push({role: "system", content: currentSystem});
           // Pinned live chains do not replay prompt attachments from prior rounds.
           // Assistant text and calls are distinct messages in the reference wire.
-          if (currentPrompt.size) messages.push({role: "user", content: currentPrompt});
+          if (currentPrompt.size || options.chatMessages && currentAttachments.length) messages.push({role: "user", content: currentPrompt,
+            ...(options.chatMessages ? {chatAttachments: currentAttachments, turn: options.chatTurn ?? 0} : {})});
           if (responseContent!.size) messages.push({role: "assistant", content: responseContent!});
           messages.push({role: "assistant", content: empty, toolCalls: responseCalls});
         }
@@ -163,4 +174,10 @@ export async function* promptToolChain(options: {
       }
     }
   });
+  if (options.chatMessages && responseContent && !prepared) {
+    options.admitInput(responseContent.size, !streamed);
+    if (currentSystem?.size) messages.push({role: "system", content: currentSystem});
+    if (currentPrompt.size || currentAttachments.length) messages.push({role: "user", content: currentPrompt, chatAttachments: currentAttachments, turn: options.chatTurn ?? 0});
+    messages.push({role: "assistant", content: responseContent});
+  }
 }

@@ -471,6 +471,10 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   assert.equal(response.status,200,JSON.stringify(result));
   for (const key of ['plugins','pluginTools','missingPlugins','listing','serial','concurrent','defaultTool','toolboxListing','toolboxSerial','toolboxAsync']) assert.equal(result[key].exitCode,0,result[key].stderr);
   assert.deepEqual(JSON.parse(result.listing.stdout).tools.map(tool=>tool.name),['add','first','llm_time','llm_version','second','unicode_text']);
+  for (const key of ['chat', 'freshChat', 'editedChat']) assert.equal(result[key].exitCode, 0, result[key].stderr);
+  assert.ok(result.chat.stdout.endsWith('> 1\n> 2\n> '), result.chat.stdout);
+  assert.ok(result.editedChat.stdout.endsWith('> 1\n> '), result.editedChat.stdout);
+  assert.ok(result.freshChat.stdout.endsWith('> 1\n> '), result.freshChat.stdout);
   assert.equal(result.serial.stdout,'2,5,'+'😀'.repeat(4096)+'\n');
   assert.equal(result.concurrent.stdout,'first,second\n');
   assert.equal(result.defaultTool.stdout,'0.27.1\n');

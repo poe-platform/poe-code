@@ -1,0 +1,433 @@
+[
+  {
+    "args": [],
+    "input": "hello\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:hello\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "hello",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "one\ntwo\nquit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:one\n> reply:two\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      },
+      {
+        "prompt": "two",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": [
+          {
+            "prompt": "one",
+            "text": "reply:one"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "\nhello\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> > reply:hello\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "hello",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "!multi\none\ntwo\n!end\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n>    reply:one\ntwo\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one\ntwo",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "!multi custom end\none\n!end\n!end custom end\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n>    reply:one\n!end\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one\n!end",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "hello\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:hello\n> ",
+    "stderr": "Aborted!\n",
+    "exitCode": 1,
+    "calls": [
+      {
+        "prompt": "hello",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "exit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": []
+  },
+  {
+    "args": [
+      "-s",
+      "system",
+      "--no-stream",
+      "-o",
+      "count",
+      "2"
+    ],
+    "input": "one\ntwo\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:one\n> reply:two\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one",
+        "system": "system",
+        "options": {
+          "count": 2
+        },
+        "stream": false,
+        "previous": []
+      },
+      {
+        "prompt": "two",
+        "system": "",
+        "options": {
+          "count": 2
+        },
+        "stream": false,
+        "previous": [
+          {
+            "prompt": "one",
+            "text": "reply:one"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "hello\r\nexit\r\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:hello\r\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "hello\r",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "  exit  \n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": []
+  },
+  {
+    "args": [],
+    "input": "!multi\n\nhello\n\n!end\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n>     reply:hello\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "hello",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [
+      "--help"
+    ],
+    "input": "",
+    "stdout": "Usage: llm chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to\n                                add to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": []
+  },
+  {
+    "args": [
+      "--async"
+    ],
+    "input": "",
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --async\n",
+    "exitCode": 2,
+    "calls": []
+  },
+  {
+    "args": [
+      "extra"
+    ],
+    "input": "",
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Got unexpected extra argument (extra)\n",
+    "exitCode": 2,
+    "calls": []
+  },
+  {
+    "args": [
+      "--model"
+    ],
+    "input": "",
+    "stdout": "",
+    "stderr": "Error: Option '--model' requires an argument.\n",
+    "exitCode": 2,
+    "calls": []
+  },
+  {
+    "args": [
+      "-t",
+      "input"
+    ],
+    "input": "one\ntwo\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:one\n> reply:two\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one",
+        "system": "Template system",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      },
+      {
+        "prompt": "two",
+        "system": "Template system",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": [
+          {
+            "prompt": "one",
+            "text": "reply:one"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "-t",
+      "prefix",
+      "-s",
+      "Override"
+    ],
+    "input": "one\ntwo\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:Prefix\none\n> reply:Prefix\ntwo\n> ",
+    "stderr": "Aborted!\n",
+    "exitCode": 1,
+    "calls": [
+      {
+        "prompt": "Prefix\none",
+        "system": "Override",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      },
+      {
+        "prompt": "Prefix\ntwo",
+        "system": "Template system",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": [
+          {
+            "prompt": "Prefix\none",
+            "text": "reply:Prefix\none"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "-f",
+      "frag.txt"
+    ],
+    "input": "one\ntwo\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:Fragment\none\n> reply:two\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "Fragment\none",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      },
+      {
+        "prompt": "two",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": [
+          {
+            "prompt": "Fragment\none",
+            "text": "reply:Fragment\none"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "-f",
+      "frag.txt"
+    ],
+    "input": "!multi\none\n!end\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n>   reply:one\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "one",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "!fragment frag.txt\nnext\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n> reply:Fragment\n> reply:next\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "Fragment",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      },
+      {
+        "prompt": "next",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": [
+          {
+            "prompt": "Fragment",
+            "text": "reply:Fragment"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "args": [],
+    "input": "!multi\n!fragment frag.txt\nbody\n!end\nexit\n",
+    "stdout": "Chatting with fixture\nType 'exit' or 'quit' to exit\nType '!multi' to enter multiple lines, then '!end' to finish\nType '!edit' to open your default editor and modify the prompt\nType '!fragment <my_fragment> [<another_fragment> ...]' to insert one or more fragments\n>    reply:Fragment\nbody\n> ",
+    "stderr": "",
+    "exitCode": 0,
+    "calls": [
+      {
+        "prompt": "Fragment\nbody",
+        "system": "",
+        "options": {
+          "count": 1
+        },
+        "stream": false,
+        "previous": []
+      }
+    ]
+  }
+]

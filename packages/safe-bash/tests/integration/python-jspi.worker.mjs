@@ -162,7 +162,7 @@ async function qualifyShells(backend, createExecutor) {
 
 async function qualifyFunctionTools(backend, createExecutor) {
   let cancellation = new AbortController();
-  let cancelRun = false;
+  let cancelRun = false, chatRun = false;
   const source = 'import asyncio as _asyncio\n_state = 0\n_event = _asyncio.Event()\ndef add(value: int):\n global _state\n _state += value\n return _state\nasync def first():\n await _event.wait()\n return "first"\nasync def second():\n _event.set()\n return "second"\ndef unicode_text():\n return "😀" * 4096\n';
   await backend.writeFile('/work/functions.py', new TextEncoder().encode(source));
   const toolbox = `import asyncio as _asyncio
@@ -185,6 +185,16 @@ _pm.register(_Plugin(), name="fixture")
 `;
   await backend.writeFile('/work/toolbox.py', new TextEncoder().encode(toolbox));
   const complete = async function* (request) {
+    if (chatRun) {
+      let prompt = request.prompt;
+      if (typeof prompt !== 'string') {let text = ''; for await (const bytes of prompt.bytes) text += new TextDecoder().decode(bytes); prompt = text;}
+      if (prompt) return {toolCalls: [{id: 'chat', name: 'add', arguments: {value: 1}}]};
+      const last = request.messages.filter(message => message.role === 'tool').at(-1);
+      if (typeof last.content === 'string') yield last.content;
+      else {const decoder = new TextDecoder(); for await (const bytes of last.content.bytes) yield decoder.decode(bytes, {stream: true}); yield decoder.decode();}
+      return;
+    }
+
     const results = request.messages?.filter(message => message.role === 'tool') ?? [];
     if (results.length) {
       const values = [];
@@ -203,6 +213,14 @@ _pm.register(_Plugin(), name="fixture")
   const service = createLlmService({defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture',asyncModel:{},capabilities:['messages','tools']}],complete,completeSources:complete}]});
   const loadTools = createPythonLlmToolLoader({createExecutor,createCapabilities: context => ({llm:createPythonLlmCapability(context,service)})});
   const shell = new Shell({fs:backend,cwd:'/work',env:{HOME:'/work',LLM_USER_PATH:'/work/llm-config'}}).use(llmCommands({service,loadTools}));
+  shell.use({name: 'chat-editor-fixture', setup(host) {
+    host.commands.register({name: 'fixture-editor', async execute(context) {
+      const path = context.args[0], before = await context.fs.stat(path);
+      await context.fs.writeFile(path, new TextEncoder().encode('edited prompt'));
+      await context.fs.utimes(path, before.atimeMs, before.mtimeMs + 1000);
+      return {exitCode: 0};
+    }});
+  }});
   try {
     const plugins = await shell.exec('llm plugins');
     const pluginTools = await shell.exec('llm plugins --all --hook register_tools');
@@ -216,6 +234,11 @@ _pm.register(_Plugin(), name="fixture")
     const toolboxListing = await shell.exec('llm tools list --functions toolbox.py "Counter(3)" --json');
     const toolboxSerial = await shell.exec('llm hello --functions toolbox.py -T "Counter(3)"');
     const toolboxAsync = await shell.exec('llm hello --async --functions toolbox.py -T "Counter(3)"');
+    chatRun = true;
+    const chat = await shell.exec("llm chat --functions functions.py <<'EOF'\none\ntwo\nexit\nEOF");
+    const freshChat = await shell.exec("llm chat --functions functions.py <<'EOF'\nthree\nexit\nEOF");
+    const editedChat = await shell.exec("EDITOR=fixture-editor llm chat --functions functions.py <<'EOF'\n!edit\nexit\nEOF");
+    chatRun = false;
     cancelRun = true;
     let cancelled = false;
     try {await shell.exec('llm hello --async --functions functions.py',{signal:cancellation.signal});}
@@ -224,7 +247,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

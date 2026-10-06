@@ -25,7 +25,14 @@ for (const [script, stdout] of [
 for (const frozen of [false, true]) {
   test(`completed executions release caller signal listeners, frozen=${frozen}`, async context => {
     const signal = new AbortController().signal;
-    if (frozen) Object.freeze(signal);
+    if (frozen) {
+      // Initialize Node's lazy EventTarget storage before freezing. The adapter
+      // must still attach and release listeners without adding signal properties.
+      const initialize = () => {};
+      signal.addEventListener('abort', initialize);
+      signal.removeEventListener('abort', initialize);
+      Object.freeze(signal);
+    }
     const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(createAgentCommands()) });
     context.after(() => shell.dispose());
     for (const script of ["echo hi", "echo hi | cat", "false", "echo hi"]) {

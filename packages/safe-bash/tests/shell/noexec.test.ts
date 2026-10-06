@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { bashExecutable } from "../helpers/bash-oracle.js";
 import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
@@ -21,7 +22,7 @@ for (const source of [
   test(`noexec matches Bash: ${source}`, async () => {
     const { shell, commands } = setup();
     for (const command of basicCommands()) commands.register(command);
-    const reference = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", timeout: 1000, env: { PATH: process.env.PATH, LC_ALL: "C", TZ: "UTC" } });
+    const reference = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8", timeout: 1000, env: { PATH: process.env.PATH, LC_ALL: "C", TZ: "UTC" } });
     assert.ifError(reference.error);
     const result = await shell.exec(source);
     assert.equal(result.exitCode, reference.status, result.stderr);

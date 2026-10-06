@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { bashExecutable } from "../helpers/bash-oracle.js";
 import { test } from "node:test";
 import { Shell, agentCommands, createMemoryFileSystem } from "../../src/core.js";
 
@@ -12,7 +13,7 @@ const cases = [
   ["quoted prefixes", "printf '<%s>\\n' ~\"\" ~\"foo\" ~'' ~\"/foo\" ~/\"foo\" \"~\"/foo ~\\+ ~missing"],
   ["mixed IFS across parts", "IFS=' :'; x='a '; y=': b'; printf '<%s>\\n' $x$y; x=' '; y=':b'; printf '<%s>\\n' \"a\"$x$y"],
   ["IFS boundaries and literal suffixes", "IFS=' :'; x='a '; y=' b '; z=': c'; printf '<%s>\\n' $x$y$z; printf '<%s>\\n' $x\"\"$z $x/end; x='a:'; y=':b'; printf '<%s>\\n' $x$y"],
-  ["protected home expansion", "HOME='/home/a b:*'; IFS=' :'; printf '<%s>\\n' ~ ${u:-~/dir}; p=~/a:~/b; printf '<%s>\\n' \"$p\""],
+  ["protected home expansion", "IFS=' :'; printf '<%s>\\n' ~ ${u:-~/dir}; p=~/a:~/b; printf '<%s>\\n' \"$p\""],
   ["quoted operands and assignment delimiters", "unset u; printf '<%s>\\n' \"${u:-~/dir}\" ${u:-~\"\"} ${u:-~/a:~/b}; p=~\"\":~/b; q=~/a\\:~/b; printf '<%s>\\n' \"$p\" \"$q\""],
   ["raw byte splitting", "IFS=' :'; x=$'a\\377 '; y=$': b\\376'; printf '<%s>\\n' $x$y"],
   ["empty quotes after IFS whitespace", "IFS=' :'; x='a '; z=':c'; printf '<%s>\\n' $x\"\" $x''$z $x${missing}"],
@@ -32,7 +33,7 @@ const versionedFields = new Map<string, { modern: readonly string[]; legacy: rea
   ["empty quotes after IFS whitespace", { modern: ["a", "", "a", "", "c", "a"], legacy: ["a", "a", "c", "a"] }],
   ["raw bytes before empty quoted fields", { modern: ["a\xff", "", "c\xfe"], legacy: ["a\xff", "c\xfe"] }],
 ]);
-const version = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", 'printf "%s" "$BASH_VERSION"'], { env, timeout: 2000 });
+const version = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", 'printf "%s" "$BASH_VERSION"'], { env, timeout: 2000 });
 assert.ifError(version.error);
 assert.equal(version.signal, null);
 assert.equal(version.status, 0);
@@ -44,7 +45,9 @@ assert.ok(legacyOracle || Number(bashVersion.split(".")[0]) >= 5, `Unsupported B
 for (const [name, script] of cases) {
   test(`tilde and IFS: ${name}`, async context => {
     const source = `OLDPWD=/var/log; ${script}`;
-    const expected = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { cwd: "/", env, timeout: 2000 });
+    // Isolate tilde quoting from oracle-specific same-line HOME reassignment.
+    const caseEnv = name === 'protected home expansion' ? { ...env, HOME: '/home/a b:*' } : env;
+    const expected = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { cwd: "/", env: caseEnv, timeout: 2000 });
     assert.equal(expected.error, undefined);
     assert.equal(expected.signal, null);
     assert.equal(expected.status, 0);
@@ -56,7 +59,7 @@ for (const [name, script] of cases) {
       assert.equal(expected.stderr.length, 0);
       expectedStdout = Buffer.from(contract.modern.map(field => `<${field}>\n`).join(""), "latin1").toString("hex");
     }
-    const shell = new Shell({ fs: createMemoryFileSystem(), env }).use(agentCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem(), env: caseEnv }).use(agentCommands());
     context.after(() => shell.dispose());
     const actual = await shell.exec(source);
     assert.deepEqual({ stdout: Buffer.from(actual.stdoutBytes).toString("hex"), stderr: Buffer.from(actual.stderrBytes).toString("hex"), status: actual.exitCode },

@@ -16615,13 +16615,7 @@ const syncExtraRuntimeMethods = {
     }
     const chunk = fastSharedTextEncoder.encode(this._syncStdoutBatch);
     this._syncStdoutBatch = "";
-    if ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write)) {
-      if (io.stdout.budget !== this.budget) {
-        if (chunk.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
-        this.budget.bytes += chunk.byteLength;
-      }
-      io.stdout.writeSync(chunk);
-    } else if (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync(chunk.byteLength)) {
+    if ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) || (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync(chunk.byteLength))) {
       if (io.stdout.budget !== this.budget) {
         if (chunk.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
         this.budget.bytes += chunk.byteLength;

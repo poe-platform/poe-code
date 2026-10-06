@@ -143,6 +143,9 @@ jobs:
           const next = semver.inc(versions.sort(semver.rcompare)[0], "patch");
           appendFileSync(process.env.GITHUB_OUTPUT, `next=${next}\n`);
           NODE
+      - name: Install Rust WebAssembly target
+        if: steps.queue-check.outputs.publish == 'true'
+        run: rustup target add wasm32-unknown-unknown
       - run: npm run build
         if: steps.queue-check.outputs.publish == 'true'
       - name: Save check cache

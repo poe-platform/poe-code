@@ -30,6 +30,8 @@ jobs:
           node-version: 22
       - uses: actions/configure-pages@v5
       - run: npm clean-install
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
       - run: npm run build
       - run: npm run build:site --workspace toolcraft-landing-page
       - run: npm run build:site --workspace packages/safe-bash-playground

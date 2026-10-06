@@ -25,6 +25,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
       - run: npm run build
       - run: npm run codegen:plan-schemas
       - name: Check generated plan schemas are fresh
@@ -67,6 +69,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
       - name: Build root public peer and workspace dependencies
         run: npm run build
       - uses: ./.github/actions/setup-bash-oracle
@@ -101,6 +105,8 @@ jobs:
           bun --version
           bun --revision
       - run: npm ci
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
       - run: npm run build
       - name: Install packed artifact and test direct imports
         run: |-

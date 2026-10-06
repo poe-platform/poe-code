@@ -588,6 +588,8 @@ test('real workerd isolates build dependencies and preserves target packages aft
   assert.equal(result.buildRecovered.stdout,result.buildState.stdout);
   assert.equal(result.targetState.stdout,'["1.0", null, null]\n');
   assert.equal(result.targetUnchanged,true);
+  assert.deepEqual(result.buildSystem,{requires:['worker-dependency==1.0'],backend:'backend:factory',backendPath:['.'],check:[]});
+  assert.deepEqual(result.invalidBuildSystem,{name:'InstallationError',message:"fixture has a pyproject.toml file that does not comply with PEP 518: 'build-system.requires' contains an invalid requirement: 'bad @@@'"});
   assert.deepEqual(result.hookRequirements,['worker-dependency==1.0']);
   assert.equal(result.built,'built_fixture-1.0-py3-none-any.whl');
   assert.equal(result.hookOutput,'native build requirements\nnative build wheel\n');

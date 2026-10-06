@@ -251,7 +251,7 @@ for name in ('worker-provider', 'worker-fixture', 'worker-dependency'):
  except PackageNotFoundError: result.append(None)
 print(json.dumps(result))
 `);
-      let buildInstalled,buildState,failed,buildRecovered,hookRequirements,built;
+      let buildInstalled,buildState,failed,buildRecovered,hookRequirements,built,buildSystem,invalidBuildSystem;
       const hookOutput=[];
       try{
         buildInstalled=await buildShell.exec('python -m pip install ./worker_fixture-1.0-py3-none-any.whl');
@@ -261,6 +261,7 @@ print(json.dumps(result))
         await backend.mkdir('/work/build-source',{recursive:true});
         await backend.mkdir('/work/built-wheels',{recursive:true});
         await backend.writeFile('/work/build-source/input.txt',new TextEncoder().encode('caller source'));
+        await backend.writeFile('/work/build-source/pyproject.toml',new TextEncoder().encode('[build-system]\nrequires = ["worker-dependency==1.0"]\nbuild-backend = "backend:factory"\nbackend-path = ["."]\n'));
         await backend.writeFile('/work/build-source/backend.py',new TextEncoder().encode(String.raw`
 import os, zipfile, worker_dependency
 class Backend:
@@ -290,9 +291,12 @@ factory = Backend()
         const snapshot=await createPythonSourceSnapshot('/work/build-source','/work',{...hookContext,command:'python',args:[],stdin:{async *[Symbol.asyncIterator](){}}});
         try{
           await backend.writeFile('/work/build-source/input.txt',new TextEncoder().encode('changed original'));
-          const hookRequest={source:snapshot.path,backend:'backend:factory',backendPath:['.'],configSettings:{feature:['one','two']}};
+          buildSystem=await hook({hook:'read_build_system',source:snapshot.path,name:'fixture'},hookContext);
+          const hookRequest={source:snapshot.path,backend:buildSystem.backend,backendPath:buildSystem.backendPath,configSettings:{feature:['one','two']}};
           hookRequirements=await hook({...hookRequest,hook:'get_requires_for_build_wheel'},hookContext);
           built=await hook({...hookRequest,hook:'build_wheel',wheelDirectory:'/work/built-wheels'},hookContext);
+          await backend.writeFile(snapshot.path+'/pyproject.toml',new TextEncoder().encode('[build-system]\nrequires=["bad @@@"]'));
+          try{await hook({hook:'read_build_system',source:snapshot.path,name:'fixture'},hookContext);}catch(error){invalidBuildSystem={name:error.name,message:error.message};}
         }finally{await snapshot.dispose();}
         try{await backend.lstat(snapshot.path);throw new Error('Source snapshot survived disposal');}catch(error){if(error.code!=='ENOENT')throw error;}
         if(new TextDecoder().decode(await backend.readFile('/work/build-source/input.txt'))!=='changed original')throw new Error('Source snapshot modified original');
@@ -301,7 +305,7 @@ factory = Backend()
       const targetState=await shell.exec(inspect);
       const builtInstalled=await shell.exec('python -m pip install /work/built-wheels/'+built);
       const builtImported=await shell.exec('python -c '+quote('import built_fixture; print(built_fixture.value)'));
-      return {installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,hookRequirements,built,hookOutput:hookOutput.join(''),builtInstalled,builtImported,wheelReads,requests,diagnostics};
+      return {installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,buildSystem,invalidBuildSystem,hookRequirements,built,hookOutput:hookOutput.join(''),builtInstalled,builtImported,wheelReads,requests,diagnostics};
     }
     if(legacyOnly) {
       const context={signal:new AbortController().signal},rows=[];

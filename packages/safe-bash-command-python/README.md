@@ -162,6 +162,15 @@ prepared source tree directly, so hosts own source snapshots, build-dependency
 installation, durable wheel publication and cleanup. Automatic source installs
 and editable installation are not yet supported.
 
+The same backend runner accepts `{ hook: 'read_build_system', source, name?,
+usePep517? }` before invoking build hooks. It reads `pyproject.toml` through the
+native TOML parser and returns `{ requires, backend, backendPath, check }`, or
+`null` when the project selects the legacy `setup.py` path. `requires` contains
+declared build dependencies; `check` lists implicit backend requirements to
+verify after installing them. The context's `maxBytes` bounds both the TOML input
+and the returned metadata. Inspection does not import the backend or install
+dependencies. Hosts still own dependency orchestration and the legacy build path.
+
 Use `createPythonSourceSnapshot(source, directory, commandContext)` to copy a
 source tree into an existing caller-owned directory before running hooks. Pass
 the returned `path` as the hook source and await `dispose()` after the build.

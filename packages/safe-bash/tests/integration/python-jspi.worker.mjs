@@ -410,6 +410,28 @@ _pm.register(_Plugin(), name="fixture")
 }
 
 
+async function qualifyAsyncErrors(backend, createExecutor) {
+  const service = createLlmService({providers:[{name:'fixture',models:[{id:'fixture',asyncModel:{}}],async *complete() {yield 'ok';}}],defaultModel:'fixture'});
+  const shell = new Shell({fs:backend,cwd:'/work',env:{HOME:'/work'}})
+    .use(pythonCommands({createExecutor,maxConcurrentWorkers:1,createCapabilities(context) {
+      return {llm:createPythonLlmCapability(context,service)};
+    }}));
+  const results = [];
+  try {
+    for (const body of [
+      "llm.get_async_model('missing-model')",
+      "raise ValueError('async failure')",
+      "raise SystemExit(7)",
+      "raise asyncio.CancelledError('cancelled task')",
+    ]) {
+      const program = 'import asyncio, llm\nasync def main():\n    await asyncio.sleep(0)\n    ' + body + '\nasyncio.run(main())\n';
+      await backend.writeFile('/work/failure.py',new TextEncoder().encode(program));
+      results.push({body,result:await shell.exec('python failure.py'),recovery:await shell.exec(`python -c 'print("recovered")'`)});
+    }
+    return {results};
+  } finally {await shell.dispose();}
+}
+
 async function qualifyStandardLlm(backend, createExecutor, cancel = false, policy = false) {
   const calls = [];
   const controller = new AbortController();
@@ -1247,6 +1269,11 @@ export default {
     }
     if (mode === '/llm-functions') {
       try {return Response.json({...await qualifyFunctionTools(backend,createExecutor),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
+    if (mode === '/llm-async-errors') {
+      try {return Response.json({...await qualifyAsyncErrors(backend,createExecutor),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

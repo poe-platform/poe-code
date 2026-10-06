@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { lstatSync, readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -584,4 +584,36 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
   assert.deepEqual(runtimeErrors,[]);
   const errors=await miniflare.dispatchFetch('http://fixture/unhandled-errors');
   assert.deepEqual(await errors.json(),[]);
+});
+
+
+test('real workerd preserves uncaught asyncio errors and immediately reuses interpreter capacity', {timeout:120000}, async () => {
+  const response = await nativeFixture.miniflare.dispatchFetch('http://fixture/llm-async-errors');
+  const result = await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  const expected = [ [1, "UnknownModelError: 'Unknown model: missing-model'"], [1,'ValueError: async failure'], [7,''], [1,'asyncio.exceptions.CancelledError'] ];
+  assert.equal(result.results.length,expected.length);
+  if (process.env.SAFE_BASH_ASYNC_ERROR_OUTPUT) {
+    assert.ok(resolve(process.env.SAFE_BASH_ASYNC_ERROR_OUTPUT).startsWith(resolve(root,'out') + '/'));
+    await writeFile(process.env.SAFE_BASH_ASYNC_ERROR_OUTPUT,result.results.map(item=>item.result.stderr + item.recovery.stdout).join('\n'));
+  }
+  for (const [index,item] of result.results.entries()) {
+    const referencePython = process.env.SAFE_BASH_LLM_REFERENCE_PYTHON;
+    assert.ok(referencePython, 'Set SAFE_BASH_LLM_REFERENCE_PYTHON to pinned llm==0.27.1');
+    const reference = spawnSync(referencePython,['-c','import asyncio, llm\nasync def main():\n    await asyncio.sleep(0)\n    ' + item.body + '\nasyncio.run(main())\n'],{encoding:'utf8',timeout:5000});
+    assert.ifError(reference.error);
+    assert.equal(reference.status,expected[index][0],reference.stderr);
+    assert.equal(item.result.exitCode,reference.status,item.result.stderr);
+    assert.equal(item.result.stdout,reference.stdout);
+    const exceptionType = expected[index][1].split(':')[0];
+    if (exceptionType) assert.ok(reference.stderr.includes(exceptionType),reference.stderr);
+    assert.equal(item.result.stdout,'');
+    if (expected[index][1]) assert.ok(item.result.stderr.includes(expected[index][1]),item.result.stderr);
+    else assert.equal(item.result.stderr,'');
+    assert.equal(item.recovery.exitCode,0,item.recovery.stderr);
+    assert.equal(item.recovery.stdout,'recovered\n');
+    assert.equal(item.recovery.stderr,'');
+  }
+  assert.deepEqual(result.failures,[]);
+  assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });

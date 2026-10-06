@@ -2,7 +2,7 @@ import type { BrowserContext } from "@cloudflare/playwright";
 import { expect } from "vitest";
 
 export function ownedProvider(
-	deleteStatus = 200,
+	deleteStatus: number | ((signal: AbortSignal) => Promise<Response>) = 200,
 	fault?: { stallAt?: number; failAt?: number; deferCloseAt?: number },
 ) {
 	const controller = new AbortController();
@@ -23,7 +23,9 @@ export function ownedProvider(
 				if (request.method === "POST")
 					return Response.json({ sessionId: "owned-session" });
 				if (request.method === "DELETE")
-					return new Response(null, { status: deleteStatus });
+					return typeof deleteStatus === "number"
+						? new Response(null, { status: deleteStatus })
+						: deleteStatus(request.signal);
 				expect(new URL(request.url).pathname).toBe(
 					"/v1/devtools/browser/owned-session",
 				);

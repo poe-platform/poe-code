@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { createBrowserPrivateTransport } from "../src/browser-private-transport";
 import { createBrowserStorageControl } from "../src/browser-storage-control";
 import { acquireCloudflareBrowser } from "../src/shell-browser-resource";
@@ -119,7 +119,7 @@ test("owner release waits for physical control close while independently attempt
 		await expect(closing).rejects.toThrow("Owned browser release failed");
 	}
 	expect(settled).toBe(true);
-	expect(resource.release()).toBe(closing);
+	await expect(resource.release()).rejects.toThrow("Owned browser release failed");
 	await Promise.all(provider.closes);
 });
 
@@ -293,4 +293,64 @@ test("settled native command deadline cannot fail a later pending command", asyn
 		"timed out: Runtime.evaluate",
 	);
 	await control.close();
+});
+
+test.each(["failure", "timeout", "uncertain"])("owner release retries %s without replaying completed cleanup", async (mode) => {
+	let deletions = 0;
+	const pending = Promise.withResolvers<Response>();
+	const provider = ownedProvider(async signal => {
+		deletions++;
+		if (deletions > 1) return new Response(null, { status: 204 });
+		if (mode === "failure") return new Response(null, { status: 503 });
+		if (mode === "uncertain") return pending.promise;
+		return new Promise<Response>((_resolve, reject) => {
+			signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+		});
+	});
+	const resource = await acquireCloudflareBrowser({
+		binding: provider.binding, signal: provider.controller.signal,
+		limits: { releaseTimeoutMs: 50 },
+	});
+	const close = vi.spyOn(resource.browser, "close");
+	const first = resource.release();
+	expect(resource.release()).toBe(first);
+	await expect(first).rejects.toThrow("Owned browser release failed");
+	await Promise.all(provider.closes);
+	if (mode === "uncertain") {
+		const retry = resource.release();
+		expect(deletions).toBe(1);
+		pending.resolve(new Response(null, { status: 204 }));
+		await retry;
+	} else {
+		// The outer deadline may expire just before the DELETE abort settles.
+		await new Promise(resolve => setTimeout(resolve, 0));
+		await resource.release();
+	}
+	await resource.release();
+	expect(deletions).toBe(mode === "uncertain" ? 1 : 2);
+	expect(close).toHaveBeenCalledTimes(1);
+});
+
+test("release retains pending public cleanup after deletion succeeds", async () => {
+	const provider = ownedProvider();
+	const resource = await acquireCloudflareBrowser({
+		binding: provider.binding, signal: provider.controller.signal,
+		limits: { releaseTimeoutMs: 50 },
+	});
+	const pending = Promise.withResolvers<void>();
+	const originalClose = resource.browser.close.bind(resource.browser);
+	const close = vi.spyOn(resource.browser, "close").mockImplementation(async () => {
+		await originalClose();
+		await pending.promise;
+	});
+	const first = resource.release();
+	await expect(first).rejects.toThrow("pending: public connection");
+	const retry = resource.release();
+	expect(resource.release()).toBe(retry);
+	pending.resolve();
+	await retry;
+	expect(resource.release()).toBe(retry);
+	expect(close).toHaveBeenCalledTimes(1);
+	expect(provider.requests.filter(method => method === "DELETE")).toHaveLength(1);
+	await Promise.all(provider.closes);
 });

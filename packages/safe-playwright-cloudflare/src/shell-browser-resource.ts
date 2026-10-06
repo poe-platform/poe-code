@@ -133,25 +133,33 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string, trans
 		snapshots.stop(interruption);
 		clients.abort(interruption);
 	}
-	function attempt(operation: () => void | Promise<void>): Promise<void> {
-		try {
-			return Promise.resolve(operation());
-		} catch (error) {
-			return Promise.reject(error);
-		}
+	// Keep successful and uncertain work across caller deadlines. Only a settled
+	// failure permits another attempt at that phase.
+	const cleanup = new Map<string, Promise<void>>();
+	function attempt(phase: string, operation: () => void | Promise<void>): Promise<void> {
+		const existing = cleanup.get(phase);
+		if (existing) return existing;
+		const completion = Promise.resolve().then(operation).catch(error => {
+			cleanup.delete(phase);
+			throw error;
+		});
+		cleanup.set(phase, completion);
+		return completion;
 	}
 	function release() {
 		if (releasing) return releasing;
-		released = true;
-		beginBrowserOwnerShutdown(upstreams);
-		disconnect();
+		if (!released) {
+			released = true;
+			beginBrowserOwnerShutdown(upstreams);
+			disconnect();
+		}
 		releasing = finishOwnedBrowserCleanup(
 			[
-				["snapshot capture", attempt(() => snapshots.settled())],
-				["storage control", attempt(() => control?.close())],
-				["private transport", attempt(() => privacy.close())],
-				["public connection", attempt(() => browser?.close())],
-				["provider deletion", attempt(async () => {
+				["snapshot capture", attempt("snapshot capture", () => snapshots.settled())],
+				["storage control", attempt("storage control", () => control?.close())],
+				["private transport", attempt("private transport", () => privacy.close())],
+				["public connection", attempt("public connection", () => browser?.close())],
+				["provider deletion", attempt("provider deletion", async () => {
 					try {
 						await deleteBrowser();
 						finalizeBrowserOwnerTermination(upstreams, true);
@@ -160,7 +168,7 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string, trans
 						throw error;
 					}
 				})],
-				["upstream closure", attempt(async () => {
+				["upstream closure", attempt("upstream closure", async () => {
 					const outcomes = await Promise.allSettled(
 						[...upstreams].map(waitForBrowserSocketClose),
 					);
@@ -175,7 +183,10 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string, trans
 				})],
 			],
 			releaseTimeoutMs === Infinity ? new AbortController().signal : AbortSignal.timeout(releaseTimeoutMs),
-		);
+		).catch(error => {
+			releasing = undefined;
+			throw error;
+		});
 		return releasing;
 	}
 	async function setup(
@@ -271,7 +282,7 @@ async function finishOwnedBrowserCleanup(
 	}
 }
 
-/** Concurrent cleanup paths share one deletion and the same provider outcome. */
+/** Share in-flight deletion and retain success; settled failures permit retry. */
 export function createCloudflareBrowserRelease(options: {
 	binding: BrowserWorker;
 	sessionId: string;
@@ -280,7 +291,10 @@ export function createCloudflareBrowserRelease(options: {
 	validateDeadline(options.releaseTimeoutMs);
 	let releasing: Promise<void> | undefined;
 	return () => {
-		releasing ??= deleteOwnedBrowser(options);
+		releasing ??= deleteOwnedBrowser(options).catch(error => {
+			releasing = undefined;
+			throw error;
+		});
 		return releasing;
 	};
 }
@@ -296,6 +310,7 @@ async function deleteOwnedBrowser(options: {
 		{ method: "DELETE", signal: timeout === Infinity ? new AbortController().signal : AbortSignal.timeout(timeout) },
 	);
 	await response.body?.cancel();
-	if (!response.ok)
+	// A previous DELETE may have succeeded despite a lost response.
+	if (!response.ok && response.status !== 404)
 		throw new Error(`Owned browser release failed: HTTP ${response.status}`);
 }

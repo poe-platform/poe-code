@@ -79,7 +79,7 @@ test("concurrent browser cleanup deletes only its owned ID once and cancels the 
 	expect(requests).toHaveLength(1);
 });
 
-test("a failed browser deletion preserves the provider error across repeated cleanup", async () => {
+test("a failed browser deletion retries and caches only success", async () => {
 	let requests = 0;
 	const release = createCloudflareBrowserRelease({
 		sessionId: "owned-session",
@@ -87,7 +87,7 @@ test("a failed browser deletion preserves the provider error across repeated cle
 			fetch: Object.assign(
 				async () => {
 					requests++;
-					return new Response(null, { status: 503 });
+					return new Response(null, { status: requests === 1 ? 503 : 204 });
 				},
 				{ preconnect: fetch.preconnect },
 			),
@@ -95,9 +95,15 @@ test("a failed browser deletion preserves the provider error across repeated cle
 	});
 	const first = release();
 	await expect(first).rejects.toThrow("Owned browser release failed: HTTP 503");
-	expect(release()).toBe(first);
-	await expect(release()).rejects.toThrow(
-		"Owned browser release failed: HTTP 503",
-	);
-	expect(requests).toBe(1);
+	await release();
+	await release();
+	expect(requests).toBe(2);
+});
+
+test("an already absent owned session is successfully released", async () => {
+	const binding = { fetch: vi.fn(async () => new Response(null, { status: 404 })) };
+	const release = createCloudflareBrowserRelease({ binding: binding as never, sessionId: "owned" });
+	await release();
+	await release();
+	expect(binding.fetch).toHaveBeenCalledTimes(1);
 });

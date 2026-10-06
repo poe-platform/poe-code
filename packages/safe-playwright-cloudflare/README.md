@@ -60,6 +60,11 @@ Cloudflare's own session lifetime constraints still apply.
 Owned browser release errors name failed cleanup phases and phases still pending
 at an explicitly configured deadline. The aggregate retains the original errors; its
 message contains only fixed phase names, without session IDs or protocol data.
+Call release again after a failure to retry settled failed phases. Concurrent calls
+share an attempt; completed cleanup is retained. A deadline does not prove pending
+work stopped: retries continue waiting for it rather than replaying it. Successful
+release is idempotent, and DELETE HTTP 404 counts as success because the owned
+session is already absent. Other unsuccessful HTTP statuses remain errors.
 
 An optional second argument supplies `loadState(session, signal)`. Explicit
 `contextOptions.storageState`, including an empty state, overrides that callback.

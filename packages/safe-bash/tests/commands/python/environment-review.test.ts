@@ -246,12 +246,12 @@ test('host disposal drains an active download iterator and response cleanup befo
 
 test('disposal drains an admitted cache write but never publishes its late URL metadata', { timeout: 2000 }, async () => {
   const host = context();
-  await host.fs.writeFile('/demo.whl', new Uint8Array([7, 8, 9]));
   const entered = deferred();
   const release = deferred();
   const writes: string[] = [];
   const values = new Map<string, Uint8Array>();
-  const environment = python.createPythonPackageEnvironment({ cache: {
+  const environment = python.createPythonPackageEnvironment({ authorize:()=>true,
+    transport:async()=>({status:200,statusText:'OK',headers:[],body:(async function*(){yield new Uint8Array([7,8,9]);})(),async dispose(){}}), cache: {
     async get(key) { return values.get(key); },
     async set(key, bytes) {
       writes.push(key);
@@ -261,7 +261,7 @@ test('disposal drains an admitted cache write but never publishes its late URL m
     },
   } });
   const start = await environment.prepare(host);
-  const opening = assert.rejects(environment.dispatch('package-open', [start.session, 'file:///demo.whl'], host), /disposed/);
+  const opening = assert.rejects(environment.dispatch('package-open', [start.session, 'https://review.invalid/demo.whl'], host), /disposed/);
   try {
     await entered.promise;
     const disposal = environment.dispose();

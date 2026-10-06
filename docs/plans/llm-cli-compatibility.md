@@ -138,6 +138,8 @@ All rows require deterministic differential fixtures against the pinned distribu
 | Packed consumer/workerd/Miniflare/hosted Poe | Required final acceptance, not established by unit tests. |
 
 
+Canonical wheel transport now authenticates and replays through caller-filesystem retained handles, with bounded reads, version/identity revalidation, cancellation checkpoints and awaited retirement. Canonical files no longer populate a redundant full-byte artifact cache. Buffered filesystem fallback, network/cache acquisition and interpreter extraction remain explicit transport gaps. Cleanup failures are reported after confirmed interpreter capacity is released.
+
 ## Private command ownership
 
 Revalidated extraction against remote main `c8f7ac43fb` on 2026-10-02.

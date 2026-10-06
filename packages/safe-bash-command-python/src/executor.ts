@@ -165,7 +165,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
         const results = await Promise.allSettled([subscription, termination, filesystemRetirement, hostBridge?.close(), stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
         await input.return?.(undefined);
         fragment = undefined;
-        if (packages) environment.finish(packages);
+        if (packages) results.push(...await Promise.allSettled([Promise.resolve().then(() => environment.finish(packages!))]));
         // Operation failures remain reportable after all work drains. Only an
         // unconfirmed interpreter termination must keep its capacity occupied.
         if (results[1]?.status === 'fulfilled' && admitted) { activeWorkers--; admitted = false; }

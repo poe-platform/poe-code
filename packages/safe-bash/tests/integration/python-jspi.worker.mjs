@@ -143,6 +143,17 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
 }
 
 async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false) {
+  const wheelReads={opened:0,closed:0,reads:0,largest:0};
+  backend=new Proxy(backend,{get(target,key){
+    if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl'))throw Error('Whole canonical wheel read');return target.readFile(path,...args);};
+    if(key==='openReadFile')return async(path,...args)=>{
+      const handle=await target.openReadFile(path,...args);
+      if(!path.endsWith('.whl'))return handle;
+      wheelReads.opened++;
+      return {stat:handle.stat.bind(handle),async read(offset,count,options){wheelReads.reads++;wheelReads.largest=Math.max(wheelReads.largest,count);return handle.read(offset,count,options);},async close(){wheelReads.closed++;await handle.close();}};
+    };
+    const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+  }});
   const requests = [], diagnostics = [];
   const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
   const manifestStore=createPythonPackageManifestStore();
@@ -349,7 +360,7 @@ except PackageNotFoundError: pass
 else: raise AssertionError('Removed root reappeared')
 print('root removed; dependency retained')
 `));
-    return {installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, declined, afterDecline, removed, afterRemoval, missing, protectedPackage, restored, afterRestore, rootRemoved, afterRootRemoval, protectedDependency, eof, native, plugins,listed,called,blocked, requests, diagnostics};
+    return {wheelReads, installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, declined, afterDecline, removed, afterRemoval, missing, protectedPackage, restored, afterRestore, rootRemoved, afterRootRemoval, protectedDependency, eof, native, plugins,listed,called,blocked, requests, diagnostics};
   } finally {await shell.dispose();await environment.dispose();manifestStore.dispose();}
 }
 

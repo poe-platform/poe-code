@@ -570,6 +570,10 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
     assert.equal(response.status,200,JSON.stringify(result));
     assert.equal(result.installed.exitCode,0,JSON.stringify(result));
     assert.equal(result.installed.stdout,'Successfully installed requested Python packages\n');
+    assert.ok(result.wheelReads.opened>0);
+    assert.equal(result.wheelReads.closed,result.wheelReads.opened);
+    assert.ok(result.wheelReads.reads>result.wheelReads.opened);
+    assert.ok(result.wheelReads.largest<=65536);
     assert.equal(result.installed.stderr,'');
     assert.equal(result.imported.exitCode,0,JSON.stringify(result));
     assert.equal(result.imported.stdout,'worker package verified\n');

@@ -1,3 +1,4 @@
+import {openPythonPackageFile} from './package-file.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import type { FileSystem } from "safe-bash-contracts/filesystem";
 import { resolvePath as resolve, dirname } from "safe-bash-contracts/path";
@@ -68,7 +69,7 @@ export interface PythonPackagePrepareContext extends PythonPackageContext, Pytho
 export interface PythonPackageEnvironment {
  prepare(context: PythonPackagePrepareContext): Promise<PythonPackageStart>;
  dispatch(operation: string, args: unknown[], context: PythonPackageContext): Promise<unknown>;
- finish(start: PythonPackageStart): void;
+ finish(start: PythonPackageStart): void | Promise<void>;
  dispose(): Promise<void>;
 }
 export const pythonDocumentPackages: readonly string[] = Object.freeze([
@@ -96,7 +97,8 @@ interface Session extends PythonPackageContext {
  readonly cache: PythonPackageCache;
  readonly offline: boolean;
  readonly requirements: readonly string[];
- readonly opened: Map<string, Uint8Array>;
+ opened?: {readonly key:string;readonly size:number;read(offset:number,length:number):Uint8Array|Promise<Uint8Array>;close?():Promise<void>} | undefined;
+ retiring?: Promise<void>;
  opening: boolean;
  closed: boolean;
  readonly manifest: string;
@@ -130,6 +132,15 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  const sessions = new Map<string,Session>();
  const controller = new AbortController();
  const pending = new Set<Promise<unknown>>();
+ let cleanupFailure: {error:unknown} | undefined;
+ function release(session:Session):Promise<void> {
+  if(!session.opened)return session.retiring??Promise.resolve();
+  const artifact=session.opened;session.opened=undefined;
+  const work=session.retiring=Promise.resolve().then(()=>artifact.close?.());
+  pending.add(work);
+  void work.then(()=>pending.delete(work),error=>{cleanupFailure??={error};pending.delete(work);});
+  return work;
+ }
  let disposed = false;
  let disposing: Promise<void> | undefined;
  const admit = <Args extends unknown[], Result>(operation: (...args: Args) => Promise<Result>) => (...args: Args): Promise<Result> => {
@@ -188,9 +199,9 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const session=String(++counter);
   const requested=[...new Set(requirements)];
   const unique=[...new Set([...restore,...requested])];
-  const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;current.opened.clear();}sessions.delete(session);};
+  const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;void release(current);}};
   const offline=context.offline??options.offline??false;
-  sessions.set(session,{...context,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opened:new Map(),opening:false,closed:false,manifest,aborted});
+  sessions.set(session,{...context,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,closed:false,manifest,aborted});
   context.signal.addEventListener('abort',aborted,{once:true});
   const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
   for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
@@ -232,24 +243,25 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    return null;
   }
   if(op==='package-read') {
-   const bytes=session.opened.get(String(args[1]));const offset=args[2];const length=args[3];
-   if(!bytes||!Number.isSafeInteger(offset)||!Number.isSafeInteger(length)||(offset as number)<0||(length as number)<1||(length as number)>65536)throw failure('Invalid package chunk request');
-   return Array.from(bytes.subarray(offset as number,(offset as number)+(length as number)));
+   const artifact=session.opened,offset=args[2],length=args[3];
+   if(!artifact||artifact.key!==String(args[1])||!Number.isSafeInteger(offset)||!Number.isSafeInteger(length)||(offset as number)<0||(length as number)<1||(length as number)>65536)throw failure('Invalid package chunk request');
+   const bytes=await artifact.read(offset as number,length as number);checkSession(session);return Array.from(bytes);
   }
-  if(op==='package-close') {session.opened.delete(String(args[1]));return null;}
+  if(op==='package-close') {if(session.opened?.key===String(args[1]))await release(session);return null;}
   if(op!=='package-open'||typeof args[1]!=='string')throw failure('Invalid package operation');
   if(session.opening)throw failure('Package download already in progress');
   session.opening=true;
-  session.opened.clear();
   try {
+  await release(session);checkSession(session);
   const url=args[1];const expected=args[2];
+  const verifyIntegrity=(key:string)=>{if(expected&&key!==expected)throw failure(`Package integrity mismatch: ${url}`);};
   if(expected!==undefined && expected!==null && !validDigest(expected))throw failure('Invalid SHA-256 package integrity value');
   const address=runtimeKey+'-url-'+digest(encoder.encode(url));
   const canonicalWheel=url.startsWith('file:')||url.startsWith('emfs:');
   // Index responses describe mutable candidates; only offline sessions replay them.
   const metadata=canonicalWheel||session.noCache||(args[3]==='metadata'&&!session.offline)?undefined:await session.cache.get(address);
   checkSession(session);
-  let bytes:Uint8Array|undefined;let headers:readonly(readonly[string,string])[]=[];
+  let key="",bytes:Uint8Array|undefined;let headers:readonly(readonly[string,string])[]=[];
   if(metadata){
    if(metadata.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
    let record: {digest:string,headers:readonly(readonly[string,string])[]};
@@ -260,14 +272,22 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    if(bytes && bytes.length>maxBytes)throw failure('Cached package exceeds maxDownloadBytes');
    // Cache implementations may lend mutable buffers; retain the bytes we authenticate.
    if(bytes)bytes=Uint8Array.from(bytes);
-   if(bytes && digest(bytes)!==record.digest)throw failure(`Package cache integrity mismatch: ${url}`);
+   if(bytes && (key=digest(bytes))!==record.digest)throw failure(`Package cache integrity mismatch: ${url}`);
    if(bytes)options.onProgress?.({phase:'cached',url,bytes:bytes.length});
   }
   if(!bytes){
    if(canonicalWheel){
     const path = new URL(url);
     if(path.host && path.host!=='localhost')throw failure('Local wheels must use the canonical filesystem');
-    try { bytes=await session.fs.readFile(decodeURIComponent(path.pathname),{signal:session.signal,...Number.isFinite(maxBytes)?{maxBytes}:{} }); } catch(error) { checkSession(session);throw failure(`Cannot read canonical Python wheel ${path.pathname}: ${error instanceof Error ? error.message : String(error)}`); }
+    try {
+     const artifact=await openPythonPackageFile(session,decodeURIComponent(path.pathname),maxBytes);
+     if(artifact){
+      session.opened=artifact;
+      try {checkSession(session);verifyIntegrity(artifact.key);}
+      catch(error){await release(session);throw error;}
+      return {key:artifact.key,size:artifact.size,headers};
+     }
+     bytes=Uint8Array.from(await session.fs.readFile(decodeURIComponent(path.pathname),{signal:session.signal,...Number.isFinite(maxBytes)?{maxBytes}:{} })); } catch(error) { checkSession(session);throw failure(`Cannot read canonical Python wheel ${path.pathname}: ${error instanceof Error ? error.message : String(error)}`); }
    }else{
     if(session.offline)throw failure(`Offline package cache miss: ${url}`);
     if(!options.transport||!options.authorize)throw failure('Python package download requires configured transport and authorization');
@@ -302,20 +322,18 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     }
    }
    checkSession(session);
-   if(expected&&digest(bytes)!==expected)throw failure(`Package integrity mismatch: ${url}`);
+   verifyIntegrity(key=digest(bytes));
    if(!session.noCache){
-   const hash=digest(bytes);
-   const metadataBytes=encoder.encode(JSON.stringify({digest:hash,headers}));
+   const metadataBytes=encoder.encode(JSON.stringify({digest:key,headers}));
    if(metadataBytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
-   await session.cache.set(runtimeKey+'-sha256-'+hash,Uint8Array.from(bytes));
+   await session.cache.set(runtimeKey+'-sha256-'+key,Uint8Array.from(bytes));
    checkSession(session);
    if(!canonicalWheel)await session.cache.set(address,metadataBytes);
    }
-   checkSession(session);
   }
   checkSession(session);
-  if(expected&&digest(bytes)!==expected)throw failure(`Package integrity mismatch: ${url}`);
-  const key=digest(bytes);session.opened.set(key,bytes);
+  verifyIntegrity(key);
+  const value=bytes;session.opened={key,size:bytes.length,read:(offset,length)=>value.subarray(offset,offset+length)};
   return {key,size:bytes.length,headers};
   } finally {session.opening=false;}
  }
@@ -323,14 +341,13 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   prepare:admit(prepare),dispatch:admit(dispatch),
   finish(start:PythonPackageStart){
    const session=sessions.get(start.session);
-   if(session){session.closed=true;session.opened.clear();session.signal.removeEventListener('abort',session.aborted);session.controller.abort(failure('Python package session is closed'));}
-   sessions.delete(start.session);
+   if(session){session.closed=true;session.signal.removeEventListener('abort',session.aborted);session.controller.abort(failure('Python package session is closed'));sessions.delete(start.session);return release(session);}
   },
   dispose(){
    if(!disposing){
     disposed=true;
     controller.abort(failure('Python package environment is disposed'));
-    disposing=Promise.allSettled([...pending]).then(()=>{sessions.clear();defaultCache.dispose();});
+    disposing=Promise.allSettled([...pending]).then(()=>{sessions.clear();defaultCache.dispose();if(cleanupFailure)throw cleanupFailure.error;});
    }
    return disposing;
   },

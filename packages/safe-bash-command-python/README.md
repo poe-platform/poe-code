@@ -16,7 +16,7 @@ Provide `fs` and a trusted `createExecutor` for your application. Executor, JSPI
 worker, and Docker profiles retain their own runtime prerequisites. Runtime assets
 and package provisioning remain explicitly configured; JavaScript interoperability
 does not isolate untrusted Python from its host. JSPI package installation uses
-the configured package cache, authorization and transport before guest execution.
+the configured package cache, authorization and transport before guest execution. Canonical wheels use retained file handles and 64 KiB authentication/replay reads when the caller filesystem supports retained reads; they are not duplicated into the artifact cache. Content changes are rejected. Direct environment users should await `environment.finish(start)` so retained handles close before proceeding. Filesystems without retained reads retain the buffered fallback. Network downloads and interpreter extraction still buffer full wheels.
 Native extensions still require matching, statically supplied runtime modules;
 installation does not enable arbitrary Worker WebAssembly compilation.
 

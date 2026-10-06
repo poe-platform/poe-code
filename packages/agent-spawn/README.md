@@ -101,6 +101,26 @@ and diagnostic time; restore capacity only if exhaustion is confirmed, then
 retry in the same sandbox. Poe Code reports the failure; the upstream Codex
 Linux sandbox owns mount registration and its panic handling.
 Moving the worktree alone does not relocate Codex's synthetic mount staging.
+In [Codex 0.157.0](https://github.com/openai/codex/blob/rust-v0.157.0/codex-rs/linux-sandbox/src/linux_run_main.rs),
+`synthetic_mount_registry_root` uses Rust's `std::env::temp_dir()` and caches the
+canonical directory for the process. On Linux, you can place that registry on a
+workspace filesystem with available blocks and inodes by creating a private temp
+directory there and setting `TMPDIR` **before launching a new Codex process**:
+
+```sh
+mkdir -m 700 "$PWD/.codex-tmp"
+TMPDIR="$PWD/.codex-tmp" codex
+```
+
+Use a new directory owned by you, keep its contents out of version control, and
+check its capacity with `df -h "$PWD/.codex-tmp"` and `df -i "$PWD/.codex-tmp"`.
+For Poe Code, set `TMPDIR` on the process launching the agent. Setting it only on
+a command inside an already running session cannot relocate the registry used
+to start that command's sandbox. Keep the existing sandbox and approval policy;
+the selected directory must be permitted by that policy. Do not replace the
+registry with a symlink or remove it while other sessions use it. This relocates
+registry bookkeeping, not every write to `/tmp` or the root filesystem, and does
+not fix the upstream panic when the selected filesystem runs out of capacity.
 If diagnostic commands also cannot start, use the existing approval reviewer for
 that specific command when session policy permits escalation. No automatic
 retry or sandbox policy change occurs.

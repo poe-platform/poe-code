@@ -54,6 +54,40 @@ retry commands, switch to unrestricted mode, or bypass managed requirements.
 With `approval_policy=never`, or when managed policy forbids escalation, use a
 host supporting bubblewrap and the required sandbox policy.
 
+A writable checkout does not guarantee writable Git metadata. In managed
+sessions, `.git` can remain explicitly read-only. `git worktree add -b` writes
+both a branch ref and worktree registration in the common Git directory, even
+when its destination is a writable temporary directory. A linked worktree's
+`.git` file points back to that metadata; moving the checkout does not remove
+the restriction. Inspect the paths from the affected checkout with:
+
+```sh
+git rev-parse --absolute-git-dir
+git rev-parse --path-format=absolute --git-common-dir
+git worktree list
+```
+
+If Git reports `cannot lock ref` with `Read-only file system` or
+`Operation not permitted`, compare the reported lock path with the active
+session's filesystem policy. These errors alone do not prove a sandbox denial;
+check for ordinary ownership or filesystem problems too. When policy protects
+that metadata and permits approval requests, submit the exact authorized
+`git worktree add -b <branch> <path> <start-point>` command with
+`sandbox_permissions: "require_escalated"` and a justification naming the
+worktree destination and required shared Git metadata writes. The configured
+reviewer can approve that scoped operation, including through automatic review;
+Poe Code does not automatically retry it or grant permission itself. The same
+boundary can affect later commits, rebases, and worktree removal.
+
+After approval, verify the branch and checkout with `git worktree list` and
+`git -C <path> status --short --branch`. If a failed attempt left a branch or
+worktree, inspect and reuse the intended state before retrying; do not delete
+another worker's refs, locks, or checkout. If escalation is unavailable or
+rejected, report the denial and request a host-approved permission profile for
+the required paths. Do not disable sandboxing or change Git metadata locations
+to evade the restriction. See the official
+[Codex sandbox and approval guidance](https://developers.openai.com/codex/sandboxing).
+
 When Codex reports `failed to register synthetic bubblewrap mount target` with
 `No space left on device (os error 28)`, the CLI and SDK event stream preserve the
 original output and explain that sandbox startup failed before the command ran.

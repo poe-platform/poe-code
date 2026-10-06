@@ -1,3 +1,4 @@
+import {stagePythonPackage} from "./package-download.js";
 import {openPythonPackageFile} from './package-file.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import type { FileSystem } from "safe-bash-contracts/filesystem";
@@ -93,6 +94,7 @@ function normalizeRequirement(value: string, cwd: string): string {
  return requirement;
 }
 interface Session extends PythonPackageContext {
+ readonly cacheDirectory: string | undefined;
  readonly noCache: boolean;
  readonly cache: PythonPackageCache;
  readonly offline: boolean;
@@ -201,7 +203,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const unique=[...new Set([...restore,...requested])];
   const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;void release(current);}};
   const offline=context.offline??options.offline??false;
-  sessions.set(session,{...context,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,closed:false,manifest,aborted});
+  sessions.set(session,{...context,cacheDirectory:directory,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,closed:false,manifest,aborted});
   context.signal.addEventListener('abort',aborted,{once:true});
   const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
   for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
@@ -267,7 +269,19 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    let record: {digest:string,headers:readonly(readonly[string,string])[]};
    try { record=JSON.parse(decoder.decode(metadata)) as typeof record; } catch { throw failure(`Invalid package cache metadata: ${url}`); }
    if(typeof record!=='object'||record===null||!validDigest(record.digest)||!Array.isArray(record.headers)||record.headers.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw failure(`Invalid package cache metadata: ${url}`);
-   bytes=await session.cache.get(runtimeKey+'-sha256-'+record.digest);headers=record.headers;
+   headers=record.headers;
+   let absent=false;
+   if(session.cacheDirectory){
+    let artifact;
+    try{artifact=await openPythonPackageFile(session,resolve(session.cacheDirectory,runtimeKey+'-sha256-'+record.digest),maxBytes);}catch(error){if(!missing(error))throw error;absent=true;}
+    if(artifact){
+     session.opened=artifact;
+     try{checkSession(session);if(artifact.key!==record.digest)throw failure(`Package cache integrity mismatch: ${url}`);verifyIntegrity(artifact.key);options.onProgress?.({phase:'cached',url,bytes:artifact.size});}
+     catch(error){await release(session);throw error;}
+     return {key:artifact.key,size:artifact.size,headers};
+    }
+   }
+   bytes=absent?undefined:await session.cache.get(runtimeKey+'-sha256-'+record.digest);
    checkSession(session);
    if(bytes && bytes.length>maxBytes)throw failure('Cached package exceeds maxDownloadBytes');
    // Cache implementations may lend mutable buffers; retain the bytes we authenticate.
@@ -314,6 +328,27 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
       const encoding=headers.find(([key])=>key.toLowerCase()==='content-encoding')?.[1].trim().toLowerCase();
       const length=headers.find(([key])=>key.toLowerCase()==='content-length')?.[1];const total=length===undefined||(encoding!==undefined&&encoding!=='identity')?undefined:Number(length);
       if(total!==undefined&&Number.isFinite(total)&&total>maxBytes)throw failure('Package download exceeds maxDownloadBytes');
+      if(session.cacheDirectory||session.noCache){
+       const directory=session.cacheDirectory??session.cwd;
+       if(session.cacheDirectory)await session.fs.mkdir(directory,{recursive:true,signal:session.signal});
+       let metadataBytes:Uint8Array|undefined;
+       const artifact=await stagePythonPackage(session,directory,response.body,maxBytes,
+        count=>options.onProgress?.({phase:'download',url,bytes:count,...typeof total==='number'&&Number.isSafeInteger(total)?{totalBytes:total}:{}}),key=>{
+         verifyIntegrity(key);
+         if(!session.noCache){metadataBytes=encoder.encode(JSON.stringify({digest:key,headers}));if(metadataBytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');}
+        },
+        session.noCache?undefined:key=>resolve(directory,runtimeKey+'-sha256-'+key));
+       if(artifact){
+        session.opened=artifact;
+        try{
+         checkSession(session);
+         if(!session.noCache){
+          await session.cache.set(address,metadataBytes!);checkSession(session);
+         }
+         return {key:artifact.key,size:artifact.size,headers};
+        }catch(error){await release(session);throw error;}
+       }
+      }
       const chunks:Uint8Array[]=[];let count=0;
       for await(const chunk of response.body){checkSession(session);if(chunk.length===0)continue;count+=chunk.length;if(count>maxBytes)throw failure('Package download exceeds maxDownloadBytes');chunks.push(Uint8Array.from(chunk));options.onProgress?.({phase:'download',url,bytes:count,...typeof total==='number'&&Number.isSafeInteger(total)?{totalBytes:total}:{}});}
       bytes=new Uint8Array(count);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}

@@ -1,10 +1,11 @@
 import {yieldTurn} from 'safe-bash-contracts/yield';
 import {sha256} from '@noble/hashes/sha2.js';
 import {compareIdentity,compareFileVersion} from '@poe-code/safe-fs/runtime-core';
+import type {FileStat} from 'safe-bash-contracts';
 import type {PythonPackageContext} from './provisioning.js';
 
 /** Retain canonical identity and authenticate without materializing the artifact. */
-export async function openPythonPackageFile({fs,signal}:PythonPackageContext,path:string,maxBytes:number) {
+export async function openPythonPackageFile({fs,signal}:PythonPackageContext,path:string,maxBytes:number,expected?:FileStat) {
  const settings={signal};
  const capabilities=await fs.capabilitiesFor?.(path,settings)??fs.capabilities;
  if(!capabilities.retainedRead||!fs.openReadFile)return undefined;
@@ -12,6 +13,7 @@ export async function openPythonPackageFile({fs,signal}:PythonPackageContext,pat
  try {
   signal.throwIfAborted();
   const state={...await file.stat(settings)};
+  if(expected&&(compareIdentity(expected,state)!=='same'||!compareFileVersion(expected,state)))throw new Error('Canonical Python wheel changed');
   if(state.type!=='file'||!Number.isSafeInteger(state.size)||state.size<0)throw new Error('Invalid canonical Python wheel');
   if(state.size>maxBytes)throw new Error('Canonical package exceeds maxDownloadBytes');
   const check=async()=>{

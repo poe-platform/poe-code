@@ -451,6 +451,8 @@ test('real workerd retires standard llm inputs after cancellation', {timeout:120
   const result = await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
   assert.match(result.failure,/LLM input cancelled/);
+  const errors = await nativeFixture.miniflare.dispatchFetch('http://fixture/unhandled-errors');
+  assert.deepEqual(await errors.json(), [], 'LLM input cancellation must settle every owned promise');
   assert.deepEqual(result.retainedInputs,[]);
   assert.deepEqual(result.calls,[]);
   assert.deepEqual(result.failures,[]);

@@ -862,7 +862,11 @@ async function qualifyStandardLlm(backend, createExecutor, cancel = false, polic
         await writer.close();
         const sha256 = Array.from(new Uint8Array(await digest.digest),byte=>byte.toString(16).padStart(2,'0')).join('');
         return total > 1024 ? {bytes:total,sha256} : text+decoder.decode();
-      } catch(error) { await writer.abort(error).catch(()=>{}); throw error; }
+      } catch(error) {
+        // Aborting the writer also rejects the independently owned digest promise.
+        await Promise.allSettled([writer.abort(error), digest.digest]);
+        throw error;
+      }
     };
     return yield* this.complete({...request,prompt:await read(request.prompt),
       ...(request.system ? {system:await read(request.system)} : {}),

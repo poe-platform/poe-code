@@ -97,6 +97,10 @@ make transport decisions without parsing error messages. Legacy HTTP/SSE
 reporting ready. Completion failures reject the connection and expose
 `rpcMethod: "notifications/initialized"`; they are not setup transport mismatches.
 
+When automatic protocol discovery falls back to legacy initialization, the transport
+aborts superseded discovery requests. Late probe responses or failures cannot
+terminate the active legacy request, even when a custom fetch ignores abort.
+
 `HttpTransport.closeReason` resolves with the original failure as disposal begins.
 Client requests retain that reason even if session deletion is slow or fails.
 Await `transport.closed` to finish cleanup; its reason reports a deletion failure

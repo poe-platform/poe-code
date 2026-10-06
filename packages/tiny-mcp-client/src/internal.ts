@@ -2802,6 +2802,11 @@ export class HttpTransport implements McpTransport {
       typeof metadata["io.modelcontextprotocol/protocolVersion"] === "string";
     if (modern) this.modernMode = true;
     if (parsed.type === "request" && parsed.message.method === "initialize") {
+      // Legacy initialization supersedes optional discovery. Retire its ownership
+      // before aborting so late fetch failures cannot dispose the legacy exchange.
+      const superseded = [...this.modernRequests.values()];
+      this.modernRequests.clear();
+      for (const controller of superseded) controller.abort();
       this.modernMode = false;
       this.initializationRequestId = parsed.message.id;
       this.legacyProtocolVersion = MCP_PROTOCOL_VERSION;

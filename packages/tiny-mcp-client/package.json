@@ -12,7 +12,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "typecheck:contracts": "node scripts/check-http-headers-type-contract.mjs",
-    "test:unit": "cd ../.. && vitest run packages/tiny-mcp-client/src"
+    "test:unit": "cd ../.. && vitest run packages/tiny-mcp-client/src",
+    "test:slow": "cd ../.. && vitest run packages/tiny-mcp-client/tests"
   },
   "repository": {
     "type": "git",

@@ -477,6 +477,8 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   assert.equal(result.missingChatFragment.stderr, "Error: Fragment 'missing-fragment' not found\n");
   for (const key of ['initialStdinChatFragment', 'stdinChatFragment']) {assert.equal(result[key].exitCode, 1); assert.equal(result[key].stderr, 'Aborted!\n');}
   assert.ok(result.stdinChatFragment.stdout.endsWith('> 1\n> '), result.stdinChatFragment.stdout);
+  assert.equal(result.chatSuggestion.exitCode, 2);
+  assert.equal(result.chatSuggestion.stderr, "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --modle (Possible options: --model, --tool)\n");
   assert.equal(result.eagerChatHelp.exitCode, 0, result.eagerChatHelp.stderr);
   assert.ok(result.eagerChatHelp.stdout.startsWith('Usage: llm chat [OPTIONS]\n'));
   assert.equal(result.invalidChatEnvironment.exitCode, 2);

@@ -1,6 +1,7 @@
 import {pluginsCommand} from './plugins-command.js';
 import type {LlmPluginQuery} from './tool-registry.js';
 import {pythonRepr} from "./python-repr.js";
+import {chatOptions, chatOptionSuggestion} from "./chat-options.js";
 import {chatHelp} from "./chat-help.js";
 import {createChatInput} from "./chat-input.js";
 import {validateModelOptions} from "./model-options.js";
@@ -95,8 +96,8 @@ async function parse(length: number, text: (index: number) => string, step: () =
           if (long) break;
           continue;
         }
-        if (!["--td", "--tools-debug", "--ta", "--tools-approve", "--no-stream", "--functions", "-T", "--tool", "--cl", "--chain-limit", "-f", "--fragment", "--sf", "--system-fragment", "-m", "--model", "-s", "--system", "-o", "--option", "-t", "--template", "-p", "--param", "--key"].includes(flag))
-          throw new LlmPromptUsageError(`Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: ${flag}`);
+        if (!chatOptions.includes(flag))
+          throw new LlmPromptUsageError(`Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: ${flag}${await chatOptionSuggestion(flag, step)}`);
       }
       const boolean = ["--async", "--td", "--tools-debug", "--ta", "--tools-approve", "--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
       if (boolean) {

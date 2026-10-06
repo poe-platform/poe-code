@@ -1,0 +1,530 @@
+[
+  {
+    "args": [
+      "--unknown"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --unknown Did you mean --functions?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--modle"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --modle (Possible options: --model, --tool)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--sys"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --sys (Possible options: --key, --sf, --system)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--templat"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --templat (Possible options: --ta, --template)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tools"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tools (Possible options: --tool, --tools-approve, --tools-debug)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--foo"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --foo (Possible options: --option, --sf, --tool)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--async"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --async\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--modelx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --modelx Did you mean --model?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--SYSTEM"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --SYSTEM\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--model\ud83d\ude00"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --model\ud83d\ude00 Did you mean --model?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--\ud83d\ude00model"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --\ud83d\ude00model Did you mean --model?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--no-streams"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --no-streams (Possible options: --no-stream, --system)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tool-debug"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tool-debug (Possible options: --tool, --tools-debug)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--cid"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --cid (Possible options: --cl, --td)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--database"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --database\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--syste"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --syste Did you mean --system?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--systemx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --systemx (Possible options: --no-stream, --system, --system-fragment)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--sstem"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --sstem (Possible options: --no-stream, --system)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--mode"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --mode (Possible options: --model, --td)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--mdel"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --mdel (Possible options: --help, --model, --td)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--fragmen"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --fragmen (Possible options: --fragment, --param, --system-fragment)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--fragmentx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --fragmentx (Possible options: --fragment, --system-fragment)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--fagment"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --fagment (Possible options: --fragment, --system-fragment)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--s"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --s Did you mean --sf?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--sfx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --sfx Did you mean --sf?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--system-fragmen"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --system-fragmen (Possible options: --fragment, --system, --system-fragment)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--system-fragmentx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --system-fragmentx (Possible options: --fragment, --system, --system-fragment)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--sstem-fragment"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --sstem-fragment (Possible options: --fragment, --system-fragment)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--templatex"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --templatex Did you mean --template?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tmplate"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tmplate (Possible options: --ta, --template)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--para"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --para (Possible options: --param, --ta)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--paramx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --paramx Did you mean --param?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--pram"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --pram (Possible options: --fragment, --param, --ta)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--optio"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --optio (Possible options: --option, --tool)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--optionx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --optionx (Possible options: --functions, --option)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--otion"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --otion (Possible options: --functions, --option, --tool)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--no-strea"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --no-strea Did you mean --no-stream?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--no-streamx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --no-streamx (Possible options: --no-stream, --system)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--n-stream"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --n-stream (Possible options: --no-stream, --system)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--ke"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --ke (Possible options: --help, --key)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--keyx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --keyx Did you mean --key?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--ky"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --ky Did you mean --key?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--too"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --too (Possible options: --ta, --td, --tool)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--toolx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --toolx (Possible options: --tool, --tools-debug)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tol"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tol (Possible options: --ta, --td, --tool)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--function"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --function (Possible options: --functions, --option)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--functionsx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --functionsx (Possible options: --functions, --option)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--fnctions"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --fnctions (Possible options: --functions, --option)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--t"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --t (Possible options: --ta, --td, --tool)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tdx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tdx (Possible options: --ta, --td)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tools-debu"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tools-debu (Possible options: --tool, --tools-approve, --tools-debug)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tools-debugx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tools-debugx (Possible options: --tool, --tools-approve, --tools-debug)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tols-debug"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tols-debug Did you mean --tools-debug?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tax"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tax (Possible options: --ta, --td)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tools-approv"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tools-approv (Possible options: --tool, --tools-approve)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tools-approvex"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tools-approvex (Possible options: --tools-approve, --tools-debug)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--tols-approve"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --tols-approve Did you mean --tools-approve?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--c"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --c Did you mean --cl?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--clx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --clx Did you mean --cl?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--chain-limi"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --chain-limi Did you mean --chain-limit?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--chain-limitx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --chain-limitx Did you mean --chain-limit?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--cain-limit"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --cain-limit Did you mean --chain-limit?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--hel"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --hel (Possible options: --cl, --help, --model)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--helpx"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --helpx Did you mean --help?\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--hlp"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: --hlp (Possible options: --cl, --help)\n",
+    "exitCode": 2
+  }
+]

@@ -239,6 +239,8 @@ _pm.register(_Plugin(), name="fixture")
     }});
   }});
   try {
+    const eagerChatHelp = await shell.exec('llm chat --cl bad --help');
+    const invalidChatEnvironment = await shell.exec('LLM_TOOLS_DEBUG=invalid llm chat extra');
     const plugins = await shell.exec('llm plugins');
     const pluginTools = await shell.exec('llm plugins --all --hook register_tools');
     const missingPlugins = await shell.exec('llm plugins --hook missing');
@@ -272,7 +274,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

@@ -477,6 +477,10 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
   assert.equal(result.missingChatFragment.stderr, "Error: Fragment 'missing-fragment' not found\n");
   for (const key of ['initialStdinChatFragment', 'stdinChatFragment']) {assert.equal(result[key].exitCode, 1); assert.equal(result[key].stderr, 'Aborted!\n');}
   assert.ok(result.stdinChatFragment.stdout.endsWith('> 1\n> '), result.stdinChatFragment.stdout);
+  assert.equal(result.eagerChatHelp.exitCode, 0, result.eagerChatHelp.stderr);
+  assert.ok(result.eagerChatHelp.stdout.startsWith('Usage: llm chat [OPTIONS]\n'));
+  assert.equal(result.invalidChatEnvironment.exitCode, 2);
+  assert.equal(result.invalidChatEnvironment.stderr, "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Invalid value for '--td' / '--tools-debug': 'invalid' is not a valid boolean.\n");
   assert.equal(result.wireChat.exitCode, 0, result.wireChat.stderr);
   const system = content => ({role:'system',content}), user = content => ({role:'user',content});
   assert.deepEqual(result.chatWire, [

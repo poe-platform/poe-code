@@ -1,0 +1,263 @@
+[
+  {
+    "args": [
+      "--help"
+    ],
+    "stdout": "Usage: llm chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to\n                                add to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--cl",
+      "bad"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': 'bad' is not a valid integer.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--cl",
+      "bad",
+      "--help"
+    ],
+    "stdout": "Usage: llm chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to\n                                add to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--help",
+      "--cl",
+      "bad"
+    ],
+    "stdout": "Usage: llm chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to\n                                add to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "extra",
+      "--help"
+    ],
+    "stdout": "Usage: llm chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to\n                                add to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--help",
+      "extra"
+    ],
+    "stdout": "Usage: llm chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to\n                                add to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--help",
+      "--model"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '--model' requires an argument.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--help=true"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '--help' does not take a value.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--no-stream=true"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '--no-stream' does not take a value.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "-hX"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: -X\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "-Xh"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: No such option: -X\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--cl",
+      "1.1"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': '1.1' is not a valid integer.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "-o",
+      "a"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '-o' requires 2 arguments.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--help",
+      "-o",
+      "a"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '-o' requires 2 arguments.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--",
+      "--help"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Got unexpected extra argument (--help)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--model=x",
+      "extra"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Got unexpected extra argument (extra)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--cl",
+      "bad",
+      "--cl",
+      "5",
+      "--help"
+    ],
+    "stdout": "Usage: llm chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to\n                                add to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--cl",
+      "bad",
+      "--cl",
+      "5",
+      "extra"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Got unexpected extra argument (extra)\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--cl",
+      "bad",
+      "extra"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': 'bad' is not a valid integer.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "extra",
+      "--cl",
+      "bad"
+    ],
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': 'bad' is not a valid integer.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--cl",
+      "bad",
+      "--model"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '--model' requires an argument.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--cl",
+      "bad",
+      "--no-stream=true"
+    ],
+    "stdout": "",
+    "stderr": "Error: Option '--no-stream' does not take a value.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [],
+    "env": {
+      "LLM_TOOLS_DEBUG": "invalid"
+    },
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Invalid value for '--td' / '--tools-debug': 'invalid' is not a valid boolean.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--help"
+    ],
+    "env": {
+      "LLM_TOOLS_DEBUG": "invalid"
+    },
+    "stdout": "Usage: llm chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to\n                                add to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "--cl",
+      "bad"
+    ],
+    "env": {
+      "LLM_TOOLS_DEBUG": "invalid"
+    },
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': 'bad' is not a valid integer.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "extra"
+    ],
+    "env": {
+      "LLM_TOOLS_DEBUG": "invalid"
+    },
+    "stdout": "",
+    "stderr": "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Invalid value for '--td' / '--tools-debug': 'invalid' is not a valid boolean.\n",
+    "exitCode": 2
+  },
+  {
+    "args": [
+      "--td",
+      "--help"
+    ],
+    "env": {
+      "LLM_TOOLS_DEBUG": "invalid"
+    },
+    "stdout": "Usage: llm chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to\n                                add to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+    "stderr": "",
+    "exitCode": 0
+  }
+]

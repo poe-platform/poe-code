@@ -75,10 +75,10 @@ interface Arguments {
 
 class LlmPromptUsageError extends Error {}
 
-async function parse(length: number, text: (index: number) => string, step: () => Promise<void>, chat = false): Promise<Arguments> {
+async function parse(length: number, text: (index: number) => string, step: () => Promise<void>, chat = false, toolsDebugEnv?: string): Promise<Arguments> {
   const parsed: Arguments = { toolNames: [], functions: [], chainLimit: 5, prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
-  let ended = false;
+  let ended = false, chainLimit: string | undefined;
   for (let index = 0; index < length; index++) {
     await step();
     const argument = text(index);
@@ -117,11 +117,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
       const value = attached ?? text(++index);
       if (flag === "--functions") parsed.functions.push(value);
       else if (flag === "-T" || flag === "--tool") parsed.toolNames.push(value);
-      else if (flag === "--cl" || flag === "--chain-limit") {
-        const integer = tokenInteger(value);
-        if (integer === undefined) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Invalid value for '--cl' / '--chain-limit': '${value}' is not a valid integer.`);
-        parsed.chainLimit = BigInt(integer);
-      }
+      else if (flag === "--cl" || flag === "--chain-limit") chainLimit = value;
       else if (flag === "-f" || flag === "--fragment") parsed.fragments.push(value);
       else if (flag === "--sf" || flag === "--system-fragment") parsed.systemFragments.push(value);
       else if (flag === "-q" || flag === "--query") parsed.queries.push(value);
@@ -140,6 +136,20 @@ async function parse(length: number, text: (index: number) => string, step: () =
     }
   }
   if (parsed.help) return parsed;
+  const usage = chat ? "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help." : "Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.";
+  if (chainLimit !== undefined) {
+    const integer = tokenInteger(chainLimit);
+    if (integer === undefined) throw new LlmPromptUsageError(`${usage}\n\nError: Invalid value for '--cl' / '--chain-limit': '${chainLimit}' is not a valid integer.`);
+    parsed.chainLimit = BigInt(integer);
+  }
+  if (!parsed.toolsDebug && toolsDebugEnv) {
+    const raw = toolsDebugEnv, value = stripPythonWhitespace(raw).toLowerCase();
+    if (["1", "true", "t", "yes", "y", "on"].includes(value)) parsed.toolsDebug = true;
+    else if (!["", "0", "false", "f", "no", "n", "off"].includes(value)) {
+      const detail = chat ? "" : " Recognized values: , 0, 1, f, false, n, no, off, on, t, true, y, yes";
+      throw new LlmPromptUsageError(`${usage}\n\nError: Invalid value for '--td' / '--tools-debug': '${raw}' is not a valid boolean.${detail}`);
+    }
+  }
   if (chat && operands.length) throw new LlmPromptUsageError(`Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.\n\nError: Got unexpected extra argument${operands.length === 1 ? "" : "s"} (${operands.join(" ")})`);
   if (operands.length > 1) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Got unexpected extra argument${operands.length === 2 ? "" : "s"} (${operands.slice(1).join(" ")})`);
   parsed.prompt = operands[0] ?? "";
@@ -383,13 +393,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     const isChat = argumentsValue.args[0] === "chat";
     const promptOffset = argumentsValue.args[0] === "prompt" || isChat ? 1 : 0;
-    let args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step, isChat);
+    let args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step, isChat, context.env.LLM_TOOLS_DEBUG);
     if (args.help) {await emitText(chatHelp); return {exitCode: 0};}
-    if (!args.toolsDebug && context.env.LLM_TOOLS_DEBUG) {
-      const raw = context.env.LLM_TOOLS_DEBUG, value = stripPythonWhitespace(raw).toLowerCase();
-      if (["1", "true", "t", "yes", "y", "on"].includes(value)) args.toolsDebug = true;
-      else if (!["", "0", "false", "f", "no", "n", "off"].includes(value)) throw new LlmPromptUsageError(`Usage: llm prompt [OPTIONS] [PROMPT]\nTry 'llm prompt --help' for help.\n\nError: Invalid value for '--td' / '--tools-debug': '${raw}' is not a valid boolean. Recognized values: , 0, 1, f, false, n, no, off, on, t, true, y, yes`);
-    }
     const configuration = createLlmConfiguration(context, limits?.maxConfigurationBytes, invocationLoaders);
     if (args.model === undefined && args.queries.length) {
       try { args.model = (await selectLlmModelByQuery(service.models, args.queries, await configuration.aliases(), signal)).model.id; }

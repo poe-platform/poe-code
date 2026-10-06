@@ -105,8 +105,8 @@ test('invalid package options and malformed manifests fail clearly',async()=>{
  const bad=createPythonPackageEnvironment({requirements:['--upgrade']});await assert.rejects(bad.prepare(context()),/Unsupported requirement/);
 });
 test('cancelled preparation sessions retire even before the caller assigns its start result',async()=>{
- const controller=new AbortController();const ctx={...context(),signal:controller.signal};const env=createPythonPackageEnvironment();const start=await env.prepare(ctx);controller.abort(new Error('retired'));
- await assert.rejects(env.dispatch('package-read',[start.session,'unused',0,1],context()),/session is closed/);
+ const controller=new AbortController();const reason=new Error('retired');const ctx={...context(),signal:controller.signal};const env=createPythonPackageEnvironment();const start=await env.prepare(ctx);controller.abort(reason);
+ await assert.rejects(env.dispatch('package-read',[start.session,'unused',0,1],context()),error=>error===reason);
 });
 test('decoded compressed downloads do not report a misleading encoded content length total',async()=>{
  const events:{bytes?:number;totalBytes?:number}[]=[];const compressed:HttpTransport=async()=>({status:200,statusText:'OK',headers:[['content-encoding','gzip'],['content-length','4']],body:(async function*(){yield bytes;})(),async dispose(){}});

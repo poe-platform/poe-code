@@ -1372,7 +1372,7 @@ class BudgetedPipeStageOwnedSink {
   }
 }
 export class BudgetedPipeStageSink implements ByteSink {
-  declare canWriteSync: () => boolean;
+  declare canWriteSync: (byteLength?: number) => boolean;
   readonly isPipeStage = true;
   declare readonly self: ByteSink;
   declare readonly budget: Budget;
@@ -1419,11 +1419,17 @@ export class BudgetedPipeStageSink implements ByteSink {
       return Promise.reject(this.signal.aborted ? this.signal.reason : error);
     }
   }
-  writeSync(chunk: Uint8Array): void {
-    this.budget.assertPipelineInput(chunk.byteLength);
-    this.budget.bytes += chunk.byteLength;
+  writeSync(chunk: Uint8Array): boolean {
+    if (!this.canWriteSync(chunk.byteLength)) return false;
+    this.signal.throwIfAborted();
+    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    const budget = this.budget;
+    if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+    budget.assertPipelineInput(chunk.byteLength);
+    budget.bytes += chunk.byteLength;
     this.writable.write(chunk);
     if (chunk.byteLength && this.written) this.written.add(this.index);
+    return true;
   }
   write(chunk: Uint8Array): Promise<void> {
     try {

@@ -1127,3 +1127,23 @@ for (const [args, text, prefix] of [
     });
   }
 }
+
+test("pipeline stage writeSync returns boolean and avoids duplicate output or EPIPE", async () => {
+  const fs = await fixture({
+    "/work/a.txt": "alpha\n",
+    "/work/b.txt": "beta\n",
+    "/work/rows.jsonl": "{\"v\":10}\n{\"v\":20}\n{\"v\":30}\n",
+  });
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const rgSort = await shell.exec("rg --files /work | sort");
+    assert.equal(rgSort.exitCode, 0, rgSort.stderr);
+    assert.equal(rgSort.stdout, "/work/a.txt\n/work/b.txt\n/work/rows.jsonl\n");
+
+    const jqCount = await shell.exec("jq -c 'select(.v >= 20)' /work/rows.jsonl | wc -l | tr -d ' '");
+    assert.equal(jqCount.exitCode, 0, jqCount.stderr);
+    assert.equal(jqCount.stdout, "2\n");
+  } finally {
+    await shell.dispose();
+  }
+});

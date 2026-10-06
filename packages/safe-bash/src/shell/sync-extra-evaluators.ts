@@ -490,11 +490,13 @@ Object.assign(Capture.prototype, {
 });
 
 Object.assign(BudgetedPipeStageSink.prototype, {
-  canWriteSync(this: any): boolean {
+  canWriteSync(this: any, byteLength = 0): boolean {
     if (this.signal.aborted) return false;
     const w = this.writable;
     const pipe = w._pipe;
-    return Boolean(w.open && pipe && !pipe.failed && !pipe.signal?.aborted && pipe.readerReferences && (!pipe.writes || pipe.writes.size === 0) && (pipe.availableBytes ?? 0) < (pipe.highWaterMark ?? 0));
+    const avail = pipe?.availableBytes ?? 0;
+    const hwm = pipe?.highWaterMark ?? 0;
+    return Boolean(w.open && pipe && !pipe.failed && !pipe.signal?.aborted && pipe.readerReferences && (!pipe.writes || pipe.writes.size === 0) && (byteLength > 0 ? avail + byteLength <= hwm : avail < hwm));
   },
 });
 
@@ -16619,8 +16621,11 @@ const syncExtraRuntimeMethods = {
         this.budget.bytes += chunk.byteLength;
       }
       io.stdout.writeSync(chunk);
-    } else if (io.stdout instanceof BudgetedPipeStageSink && io.stdout.canWriteSync()) {
-      if (chunk.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+    } else if (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync(chunk.byteLength)) {
+      if (io.stdout.budget !== this.budget) {
+        if (chunk.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+        this.budget.bytes += chunk.byteLength;
+      }
       io.stdout.writeSync(chunk);
     } else {
       if (budgetedSinks.get(io.stdout)?.budget !== this.budget) {

@@ -1,3 +1,4 @@
+import {formatLoaderDescription} from './loader-description.js';
 import {loadLlmHelp} from './help-text.js';
 import type {LlmFragmentLoader} from './fragment-loaders.js';
 
@@ -16,15 +17,7 @@ export async function fragmentLoaderCommand(tokens:readonly string[],loaders:Rea
  let found=false;
  for(const [prefix,loader]of loaders){
   if(found)await output('\n');found=true;await output(`${prefix}:\n`);
-  const lines=(loader.description||'Undocumented').split('\n');let common:string|undefined;
-  for(const line of lines){
-   if(!line.trim())continue;
-   let width=0;while(line[width]===' '||line[width]==='\t')width++;
-   const indent=line.slice(0,width);
-   if(common===undefined)common=indent;else{let i=0;while(i<common.length&&common[i]===indent[i])i++;common=common.slice(0,i);}
-  }
-  const description=lines.map(line=>line.trim()?line.slice(common?.length??0):'').join('\n').trim();
-  for(const line of description.split('\n'))await output((line.trim()?`  ${line}`:line)+'\n');
+  for(const line of formatLoaderDescription(loader.description))await output(line+'\n');
  }
  if(!found)await output('No fragment loaders found\n');
  return 0;

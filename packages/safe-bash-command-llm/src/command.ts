@@ -79,13 +79,21 @@ class LlmPromptUsageError extends Error {}
 
 const chatUsage = "Usage: llm chat [OPTIONS]\nTry 'llm chat -h' for help.";
 
-const promptValueOptions: Record<string, string> = Object.fromEntries(Object.entries({
-  functions: ['--functions'], toolNames: ['-T', '--tool'], chainLimit: ['--cl', '--chain-limit'],
-  fragments: ['-f', '--fragment'], systemFragments: ['--sf', '--system-fragment'], queries: ['-q', '--query'],
-  template: ['-t', '--template'], schema: ['--schema'], schemaMulti: ['--schema-multi'], key: ['--key'], save: ['--save'],
-  params: ['-p', '--param'], model: ['-m', '--model'], system: ['-s', '--system'], options: ['-o', '--option'],
-  attachmentType: ['--at', '--attachment-type'], attachment: ['-a', '--attachment'],
-}).flatMap(([name, flags]) => flags.map(flag => [flag, name])));
+function optionAliases(groups:Record<string,string>):Record<string,string> {
+  return Object.fromEntries(Object.entries(groups).flatMap(([name,flags])=>flags.split(' ').map(flag=>[flag,name])));
+}
+const promptSwitches = optionAliases({
+  async: "--async", toolsDebug: "--td --tools-debug", toolsApprove: "--ta --tools-approve",
+  noLog: "--no-log -n", extract: "-x --extract", extractLast: "--xl --extract-last",
+  usage: "-u --usage", noStream: "--no-stream",
+});
+const promptValueOptions = optionAliases({
+  functions: "--functions", toolNames: "-T --tool", chainLimit: "--cl --chain-limit",
+  fragments: "-f --fragment", systemFragments: "--sf --system-fragment", queries: "-q --query",
+  template: "-t --template", schema: "--schema", schemaMulti: "--schema-multi", key: "--key", save: "--save",
+  params: "-p --param", model: "-m --model", system: "-s --system", options: "-o --option",
+  attachmentType: "--at --attachment-type", attachment: "-a --attachment",
+});
 
 async function parse(length: number, text: (index: number) => string, step: () => Promise<void>, chat = false, toolsDebugEnv?: string): Promise<Arguments> {
   const parsed: Arguments = { toolNames: [], functions: [], chainLimit: 5, prompt: "", queries: [], fragments: [], systemFragments: [], params: {}, optionNames: [], options: Object.create(null) as Record<string, string>, attachments: [] };
@@ -111,15 +119,12 @@ async function parse(length: number, text: (index: number) => string, step: () =
         if (!chatOptions.includes(flag))
           throw new LlmPromptUsageError(`${usage}\n\nError: No such option: ${flag}${await chatOptionSuggestion(flag, step)}`);
       }
-      const boolean = ["--async", "--td", "--tools-debug", "--ta", "--tools-approve", "--no-log", "-n", "-x", "--extract", "--xl", "--extract-last", "-u", "--usage", "--no-stream"].includes(flag);
+      const boolean = promptSwitches[flag];
       if (boolean) {
         if (long && equals >= 0) throw new LlmPromptUsageError(`Error: Option '${flag}' does not take a value.`);
-        if (["-x", "--extract", "--xl", "--extract-last"].includes(flag)) { parsed.extract = flag === "--xl" || flag === "--extract-last" ? "last" : parsed.extract ?? "first"; parsed.noStream = true; }
-        else if (flag === "-u" || flag === "--usage") parsed.usage = true;
-        else if (flag === "--no-stream") parsed.noStream = true;
-        else if (flag === "--async") parsed.async = true;
-        else if (flag === "--ta" || flag === "--tools-approve") parsed.toolsApprove = true;
-        else if (flag === "--td" || flag === "--tools-debug") parsed.toolsDebug = true;
+        if (boolean === "extract" || boolean === "extractLast") {
+          parsed.extract = boolean === "extractLast" ? "last" : parsed.extract ?? "first"; parsed.noStream = true;
+        } else if (boolean !== "noLog") parsed[boolean as "async" | "toolsDebug" | "toolsApprove" | "usage" | "noStream"] = true;
         if (long) break;
         continue;
       }

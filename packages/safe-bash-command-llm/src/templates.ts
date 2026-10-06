@@ -1,3 +1,4 @@
+import {formatLoaderDescription} from './loader-description.js';
 import {loadLlmHelp} from './help-text.js';
 import { jsonValue } from "./json-value.js";
 import { FsError, type CommandContext } from "safe-bash-contracts";
@@ -255,15 +256,9 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
       const grouped = args.length === 1 && ["--help", "-h"].includes(args[0]!);
       const routed = args[0] === "--" ? args.slice(1) : args;
       const explicit = actions.includes(routed[0] ?? "");
-      const command = explicit ? routed[0]! : "list";
+      const command = (explicit ? routed[0]! : "list") as "list" | "edit" | "loaders" | "path" | "show";
       const tokens = explicit ? routed.slice(1) : routed;
-      const descriptions: Record<string, string> = {
-        list: "List available prompt templates",
-        edit: "Edit the specified prompt template using the default $EDITOR",
-        loaders: "Show template loaders registered by plugins",
-        path: "Output the path to the templates directory",
-        show: "Show the specified prompt template",
-      };
+
       const usage = `Usage: llm templates ${command} [OPTIONS]${["show", "edit"].includes(command) ? " NAME" : ""}\n`;
       if (grouped) {
         await output((await loadLlmHelp("templates")));
@@ -290,7 +285,7 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
         } else operands.push(token);
       }
       if (help && !failure) {
-        await output(usage + `\n  ${descriptions[command]}\n\nOptions:\n  -h, --help  Show this message and exit.\n`);
+        await output(await loadLlmHelp(`templates-${command}`));
         return 0;
       }
       const needsName = ["show", "edit"].includes(command);
@@ -304,22 +299,7 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
         if (!loaders?.loaders?.size) await output("No template loaders found\n");
         else for (const [prefix, loader] of loaders.loaders) {
           context.signal.throwIfAborted();
-          const lines = (loader.description || "Undocumented").split("\n");
-          let margin: string | undefined;
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            let length = 0;
-            while (length < line.length && (line[length] === " " || line[length] === "\t")) length++;
-            const leading = line.slice(0, length);
-            if (margin === undefined) margin = leading;
-            else {
-              let common = 0;
-              while (common < margin.length && common < leading.length && margin[common] === leading[common]) common++;
-              margin = margin.slice(0, common);
-            }
-          }
-          const docs = lines.map(line => (line.trim() ? line.slice(margin?.length ?? 0) : "")).join("\n").trim();
-          await output(prefix + ":\n" + docs.split("\n").map(line => (line.trim() ? "  " + line : line)).join("\n") + "\n");
+          await output(prefix + ":\n" + formatLoaderDescription(loader.description).join("\n") + "\n");
         }
         return 0;
       }

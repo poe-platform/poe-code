@@ -588,6 +588,12 @@ test('real workerd isolates build dependencies and preserves target packages aft
   assert.equal(result.buildRecovered.stdout,result.buildState.stdout);
   assert.equal(result.targetState.stdout,'["1.0", null, null]\n');
   assert.equal(result.targetUnchanged,true);
+  assert.deepEqual(result.hookRequirements,['worker-dependency==1.0']);
+  assert.equal(result.built,'built_fixture-1.0-py3-none-any.whl');
+  assert.equal(result.hookOutput,'native build requirements\nnative build wheel\n');
+  assert.equal(result.builtInstalled.exitCode,0,JSON.stringify(result));
+  assert.equal(result.builtImported.exitCode,0,JSON.stringify(result));
+  assert.equal(result.builtImported.stdout,'caller source:73\n');
   assert.ok(result.wheelReads.opened>0);
   assert.equal(result.wheelReads.closed,result.wheelReads.opened);
   assert.deepEqual(result.failures,[]);

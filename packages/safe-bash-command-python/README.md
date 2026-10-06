@@ -148,9 +148,19 @@ has a private installed snapshot, ignoring the target's manifest, scope, default
 requirements, requirement files and document profile. Explicit cache, transport,
 authorization and budget settings remain in effect; supply build requirements
 through install commands or `environment.prepare(...)`. Dispose the environment
-after the build; caller-owned caches remain usable. This provisions isolated
-build dependencies only; source-build hooks and editable installation are not
-yet supported.
+after the build; caller-owned caches remain usable.
+
+Use `createPythonBuildBackend({ createExecutor, environment })` to invoke
+`get_requires_for_build_wheel` or `build_wheel` in that environment. Pass the
+hook name, prepared `source` directory, `backend` module/object name, optional
+relative `backendPath` entries and `configSettings`; wheel builds also take
+`wheelDirectory` and optional `metadataDirectory`. Its second argument supplies
+the caller's filesystem, working directory, environment, signal, output sinks
+and `maxBytes` metadata budget. Requirements return as strings and wheel builds
+return a filename; wheel bytes stay in caller storage. Backends read the
+prepared source tree directly, so hosts own source snapshots, build-dependency
+installation, durable wheel publication and cleanup. Automatic source installs
+and editable installation are not yet supported.
 
 Pass `--pre` to include prerelease and development candidates. Use
 `--no-cache-dir` to bypass artifact-cache reads and writes while retaining the

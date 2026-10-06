@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -251,16 +251,51 @@ for name in ('worker-provider', 'worker-fixture', 'worker-dependency'):
  except PackageNotFoundError: result.append(None)
 print(json.dumps(result))
 `);
-      let buildInstalled,buildState,failed,buildRecovered;
+      let buildInstalled,buildState,failed,buildRecovered,hookRequirements,built;
+      const hookOutput=[];
       try{
         buildInstalled=await buildShell.exec('python -m pip install ./worker_fixture-1.0-py3-none-any.whl');
         buildState=await buildShell.exec(inspect);
         failed=await buildShell.exec('python -m pip install ./missing-1.0-py3-none-any.whl');
         buildRecovered=await buildShell.exec(inspect);
+        await backend.mkdir('/work/build-source',{recursive:true});
+        await backend.mkdir('/work/built-wheels',{recursive:true});
+        await backend.writeFile('/work/build-source/input.txt',new TextEncoder().encode('caller source'));
+        await backend.writeFile('/work/build-source/backend.py',new TextEncoder().encode(String.raw`
+import os, zipfile, worker_dependency
+class Backend:
+ def get_requires_for_build_wheel(self, config_settings):
+  print('native build requirements')
+  assert config_settings == {'feature': ['one', 'two']}
+  return ['worker-dependency==1.0']
+ def build_wheel(self, wheel_directory, config_settings, metadata_directory):
+  print('native build wheel')
+  assert config_settings == {'feature': ['one', 'two']} and metadata_directory is None
+  with open('input.txt') as source: value = source.read() + ':' + str(worker_dependency.answer)
+  files = {
+   'built_fixture.py': 'value = ' + repr(value),
+   'built_fixture-1.0.dist-info/METADATA': 'Metadata-Version: 2.1\nName: built-fixture\nVersion: 1.0\n',
+   'built_fixture-1.0.dist-info/WHEEL': 'Wheel-Version: 1.0\nRoot-Is-Purelib: true\nTag: py3-none-any\n',
+   'built_fixture-1.0.dist-info/RECORD': '',
+  }
+  files['built_fixture-1.0.dist-info/RECORD'] = ''.join(name + ',,\n' for name in files)
+  name = 'built_fixture-1.0-py3-none-any.whl'
+  with zipfile.ZipFile(os.path.join(wheel_directory, name), 'w') as wheel:
+   for path, contents in files.items(): wheel.writestr(path, contents)
+  return name
+factory = Backend()
+`));
+        const hook=createPythonBuildBackend({...pythonOptions,environment:buildEnvironment});
+        const hookContext={fs:backend,cwd:'/work',env:{},signal:context.signal,maxBytes:512,stdout:{async write(bytes){hookOutput.push(new TextDecoder().decode(bytes));}},stderr:{async write(bytes){throw new Error(new TextDecoder().decode(bytes));}}};
+        const hookRequest={source:'/work/build-source',backend:'backend:factory',backendPath:['.'],configSettings:{feature:['one','two']}};
+        hookRequirements=await hook({...hookRequest,hook:'get_requires_for_build_wheel'},hookContext);
+        built=await hook({...hookRequest,hook:'build_wheel',wheelDirectory:'/work/built-wheels'},hookContext);
       }finally{await buildShell.dispose();await buildEnvironment.dispose();}
       const after=await manifestStore.get(manifestScope,context);
       const targetState=await shell.exec(inspect);
-      return {installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,wheelReads,requests,diagnostics};
+      const builtInstalled=await shell.exec('python -m pip install /work/built-wheels/'+built);
+      const builtImported=await shell.exec('python -c '+quote('import built_fixture; print(built_fixture.value)'));
+      return {installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,hookRequirements,built,hookOutput:hookOutput.join(''),builtInstalled,builtImported,wheelReads,requests,diagnostics};
     }
     if(legacyOnly) {
       const context={signal:new AbortController().signal},rows=[];

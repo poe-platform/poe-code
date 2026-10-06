@@ -1,0 +1,147 @@
+[
+  {
+    "args": [
+      "-m",
+      "missing"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'missing' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "--model",
+      "--help"
+    ],
+    "stdout": "",
+    "stderr": "Error: '--help' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "a'b"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'a'b' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "a\nb"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'a\nb' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "\ud83d\ude00"
+    ],
+    "stdout": "",
+    "stderr": "Error: '\ud83d\ude00' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "missing",
+      "-o",
+      "invalid",
+      "value"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'missing' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "missing",
+      "-T",
+      "missing"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'missing' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "missing",
+      "--functions",
+      "invalid python"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'missing' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "missing",
+      "-f",
+      "missing"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'missing' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "missing",
+      "--sf",
+      "missing"
+    ],
+    "stdout": "",
+    "stderr": "Error: 'missing' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "missing",
+      "-t",
+      "missing"
+    ],
+    "stdout": "",
+    "stderr": "Error: Invalid template: missing\n",
+    "exitCode": 1
+  },
+  {
+    "args": [],
+    "files": {
+      "default_model.txt": "missing"
+    },
+    "stdout": "",
+    "stderr": "Error: 'missing' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-m",
+      "alias"
+    ],
+    "files": {
+      "aliases.json": "{\"alias\":\"missing\"}"
+    },
+    "stdout": "",
+    "stderr": "Error: 'alias' is not a known model\n",
+    "exitCode": 1
+  },
+  {
+    "args": [
+      "-t",
+      "model"
+    ],
+    "files": {
+      "templates/model.yaml": "model: missing\nprompt: $input\n"
+    },
+    "stdout": "",
+    "stderr": "Error: 'missing' is not a known model\n",
+    "exitCode": 1
+  }
+]

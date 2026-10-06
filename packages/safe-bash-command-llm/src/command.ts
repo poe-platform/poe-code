@@ -421,6 +421,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     let entry: ReturnType<LlmService["resolve"]> | undefined;
     try { entry = args.save && selected === undefined ? undefined : service.resolve(model, args.async && !args.save ? {async: true} : undefined); }
     catch (error) {
+      if (isChat && error instanceof Error && error.message.startsWith("Unknown model: ")) {
+        const missing = selected ?? error.message.slice("Unknown model: ".length);
+        throw new Error(`Error: '${missing}' is not a known model`);
+      }
       if (!args.async || args.save) throw error;
       let detail = "";
       for await (const bytes of pythonRepr(error instanceof Error ? error.message : String(error), signal)) {

@@ -76,3 +76,12 @@ filters match any requested hook. SDK callers pass
 `session.plugins`, then close the session. Metadata obeys the loader input limit;
 CLI JSON output streams under the output limit. Package installation and provider
 provisioning remain host-controlled.
+
+To enable `llm install` for compatible wheels, pass
+`managePackages: createPythonLlmPackageManager({ createExecutor, environment })`
+to `llmCommands`. Share the caller-owned `createPythonPackageEnvironment(...)`
+with Python commands and tool loaders, and dispose it when the host closes.
+The pinned native LLM CLI handles package-command help and argument errors;
+installation uses the environment’s authorization, cache and manifest.
+Uninstall, editable installs and pip lifecycle flags still require additional
+installer support and currently report unsupported-operation errors.

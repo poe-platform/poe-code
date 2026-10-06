@@ -1,6 +1,6 @@
 import type { LlmFragmentLoader } from "./fragment-loaders.js";
 import type { LlmRegisteredTool, LlmToolLoader } from "./tool-registry.js";
-import type { ByteSource } from "safe-bash-contracts";
+import type { ByteSource, CommandContext, CommandResult } from "safe-bash-contracts";
 import type { LlmService } from "./service.js";
 import type { LlmTemplateLoader } from "./templates.js";
 import type {LlmCollectionCommands} from './collections-command-types.js';
@@ -113,7 +113,10 @@ export interface LlmLimits {
   readonly maxBufferedInputBytes?: number;
   readonly maxOutputBytes: number;
 }
+export type LlmPackageManager = (request: {readonly context: CommandContext; readonly args: readonly string[]}) => Promise<CommandResult>;
+
 export interface LlmCommandsOptions {
+  readonly managePackages?: LlmPackageManager;
   readonly collections?:LlmCollectionCommands;
   readonly limits?: Partial<LlmLimits>;
   readonly service?: LlmService;

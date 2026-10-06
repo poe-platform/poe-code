@@ -14,6 +14,7 @@ import { PythonFailure, isPythonFailureCategory, reportPythonFailure, type Pytho
 import { createPythonHostBridge, type PythonHostCapability, type PythonHostBridgeOptions } from './host-capabilities.js';
 export * from './host-capabilities.js';
 export { createPythonShellCapability } from './shell-capability.js';
+export { createPythonLlmPackageManager } from './llm-package-manager.js';
 export { createPythonLlmToolLoader } from './llm-functions-loader.js';
 export { createPythonLlmCapability, type PythonLlmCapabilityOptions } from './llm-capability.js';
 import { pythonShellDispatchActive } from './shell-capability.js';

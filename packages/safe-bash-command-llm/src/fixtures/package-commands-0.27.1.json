@@ -1,0 +1,520 @@
+[
+  {
+    "args": [
+      "install"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "one"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install",
+          "one"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "one",
+      "two"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install",
+          "one",
+          "two"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "-U",
+      "--pre",
+      "one",
+      "two"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install",
+          "--upgrade",
+          "--pre",
+          "one",
+          "two"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "--upgrade",
+      "one",
+      "--upgrade"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install",
+          "--upgrade",
+          "one"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "-e",
+      "../project",
+      "one"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install",
+          "--editable",
+          "../project",
+          "one"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "-e",
+      "first",
+      "-e",
+      "second"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install",
+          "--editable",
+          "second"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "--editable=../project",
+      "--force-reinstall",
+      "--no-cache-dir",
+      "--pre",
+      "one"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install",
+          "--editable",
+          "../project",
+          "--force-reinstall",
+          "--no-cache-dir",
+          "--pre",
+          "one"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "-Ue../project",
+      "one"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install",
+          "--upgrade",
+          "--editable",
+          "../project",
+          "one"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "--",
+      "-U"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "install",
+          "-U"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "--help"
+    ],
+    "exitCode": 0,
+    "output": "Usage: llm install [OPTIONS] [PACKAGES]...\n\n  Install packages from PyPI into the same environment as LLM\n\nOptions:\n  -U, --upgrade        Upgrade packages to latest version\n  -e, --editable TEXT  Install a project in editable mode from this path\n  --force-reinstall    Reinstall all packages even if they are already up-to-\n                       date\n  --no-cache-dir       Disable the cache\n  --pre                Include pre-release and development versions\n  -h, --help           Show this message and exit.\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--help"
+    ],
+    "exitCode": 0,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\n\n  Uninstall Python packages from the LLM environment\n\nOptions:\n  -y, --yes   Don't ask for confirmation\n  -h, --help  Show this message and exit.\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: Missing argument 'PACKAGES...'.\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "one"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "uninstall",
+          "one"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "uninstall",
+      "one",
+      "two",
+      "-y"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "uninstall",
+          "one",
+          "two",
+          "-y"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "uninstall",
+      "--yes",
+      "one"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "uninstall",
+          "one",
+          "-y"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "uninstall",
+      "--",
+      "-y"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "calls": [
+      {
+        "module": "pip",
+        "run_name": "__main__",
+        "argv": [
+          "pip",
+          "uninstall",
+          "-y"
+        ]
+      }
+    ]
+  },
+  {
+    "args": [
+      "install",
+      "--unknown"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm install [OPTIONS] [PACKAGES]...\nTry 'llm install -h' for help.\n\nError: No such option: --unknown\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "install",
+      "--unknown",
+      "--help"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm install [OPTIONS] [PACKAGES]...\nTry 'llm install -h' for help.\n\nError: No such option: --unknown\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "install",
+      "--help",
+      "--unknown"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm install [OPTIONS] [PACKAGES]...\nTry 'llm install -h' for help.\n\nError: No such option: --unknown\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "install",
+      "--help",
+      "--editable"
+    ],
+    "exitCode": 2,
+    "output": "Error: Option '--editable' requires an argument.\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "install",
+      "--pre=false"
+    ],
+    "exitCode": 2,
+    "output": "Error: Option '--pre' does not take a value.\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "install",
+      "--upgrade=false"
+    ],
+    "exitCode": 2,
+    "output": "Error: Option '--upgrade' does not take a value.\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "install",
+      "--editable"
+    ],
+    "exitCode": 2,
+    "output": "Error: Option '--editable' requires an argument.\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "install",
+      "-x"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm install [OPTIONS] [PACKAGES]...\nTry 'llm install -h' for help.\n\nError: No such option: -x\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "install",
+      "--hepl"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm install [OPTIONS] [PACKAGES]...\nTry 'llm install -h' for help.\n\nError: No such option: --hepl Did you mean --help?\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "install",
+      "--help",
+      "-y"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm install [OPTIONS] [PACKAGES]...\nTry 'llm install -h' for help.\n\nError: No such option: -y\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--unknown"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: No such option: --unknown\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--unknown",
+      "--help"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: No such option: --unknown\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--help",
+      "--unknown"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: No such option: --unknown\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--help",
+      "--editable"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: No such option: --editable\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--pre=false"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: No such option: --pre Did you mean --yes?\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--upgrade=false"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: No such option: --upgrade\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--editable"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: No such option: --editable\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "-x"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: No such option: -x\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--hepl"
+    ],
+    "exitCode": 2,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\nTry 'llm uninstall -h' for help.\n\nError: No such option: --hepl Did you mean --help?\n",
+    "calls": []
+  },
+  {
+    "args": [
+      "uninstall",
+      "--help",
+      "-y"
+    ],
+    "exitCode": 0,
+    "output": "Usage: llm uninstall [OPTIONS] PACKAGES...\n\n  Uninstall Python packages from the LLM environment\n\nOptions:\n  -y, --yes   Don't ask for confirmation\n  -h, --help  Show this message and exit.\n",
+    "calls": []
+  }
+]

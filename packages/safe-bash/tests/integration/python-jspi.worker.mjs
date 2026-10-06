@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonLlmToolLoader, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonLlmPackageManager, createPythonLlmToolLoader, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -17,16 +17,18 @@ import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
 
-async function qualifyPackages(backend, createExecutor, micropip) {
+async function qualifyPackages(backend, createExecutor, micropip, useLlm) {
   const requests = [], diagnostics = [];
   const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
-  const shell = new Shell({fs:backend, cwd:'/work'}).use(pythonCommands({createExecutor,maxTransferBytes:32,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event)),
-    provisioning:{authorize:request => request.url === url, transport:async request => {
+  const environment = createPythonPackageEnvironment({authorize:request => request.url === url, transport:async request => {
       if (request.url !== url) throw new Error('Unexpected package request');
       requests.push(request.url);
       return {status:200, headers:[], body:(async function*(){yield micropip;})(), async dispose(){}};
-    }},
-  }));
+    }});
+  const pythonOptions = {createExecutor,environment,maxTransferBytes:32,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event))};
+  const shell = new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(pythonOptions))
+    .use(llmCommands({managePackages:createPythonLlmPackageManager(pythonOptions)}));
+  const prefix = useLlm ? 'llm' : 'python -m pip';
   const quote = value => "'" + value.split("'").join("'\\''") + "'";
   try {
     const created = await shell.exec('python -c ' + quote(`
@@ -46,7 +48,7 @@ with ZipFile('worker_fixture-1.0-py3-none-any.whl', 'w') as wheel:
  for name, contents in files.items(): wheel.writestr(name, contents)
 `));
     if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
-    const installed = await shell.exec('python -m pip install ./worker_fixture-1.0-py3-none-any.whl');
+    const installed = await shell.exec(prefix + ' install ./worker_fixture-1.0-py3-none-any.whl');
     if(installed.exitCode)throw new Error(JSON.stringify({stage:'install',installed,diagnostics}));
     const verify = 'python -c ' + quote(`
 import worker_fixture, worker_dependency
@@ -59,10 +61,15 @@ assert files('worker_fixture').joinpath('payload.txt').read_text() == 'caller pa
 print('worker package verified')
 `);
     const imported = await shell.exec(verify);
-    const conflict = await shell.exec('python -m pip install worker-dependency==2.0');
+    const conflict = await shell.exec(prefix + ' install worker-dependency==2.0');
     const recovered = await shell.exec(verify);
-    return {installed, imported, conflict, recovered, requests, diagnostics};
-  } finally {await shell.dispose();}
+    const native = [];
+    if(useLlm)for(const args of [['install','--help'],['uninstall','--help'],['install','--unknown'],['uninstall']]) {
+      const result = await shell.exec('llm ' + args.join(' '));
+      native.push({args,exitCode:result.exitCode,output:result.stdout+result.stderr});
+    }
+    return {installed, imported, conflict, recovered, native, requests, diagnostics};
+  } finally {await shell.dispose();await environment.dispose();}
 }
 
 async function qualifyPublication(backend, createExecutor, cancel) {
@@ -1203,7 +1210,7 @@ export default {
       return runtime;
     } });
     if (mode === '/packages' || mode === '/llm-packages') {
-      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

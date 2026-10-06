@@ -209,8 +209,11 @@ filters match any requested hook. SDK callers pass
 `pluginQuery: { all: true, hooks: ["register_tools"] }` to the same loader and read
 `session.plugins`, then close the session. Metadata obeys the loader input limit;
 CLI JSON output streams under the output limit. Package installation and provider
-provisioning remain host-controlled.
-
+provisioning remain host-controlled. Supply `managePackages` for package commands;
+`createPythonLlmPackageManager` from the Python executor entrypoint uses native
+LLM argument parsing and a shared caller-owned package environment. Compatible
+wheel installs work through that environment. Uninstall, editable installs and
+pip lifecycle flags remain incomplete in the supplied installer.
 
 Run selected tools with `llm -T lookup "Find an answer"`. Repeat `-T`/`--tool`
 for multiple registrations. The CLI executes calls serially by default; `--async` runs declared coroutine tools concurrently and sends results

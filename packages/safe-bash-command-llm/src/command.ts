@@ -174,7 +174,7 @@ async function interrupted<Value>(start: () => Value | PromiseLike<Value>, signa
   });
 }
 
-async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections'], fragmentLoaders: NonNullable<LlmCommandsOptions['fragmentLoaders']>, tools: NonNullable<LlmCommandsOptions['tools']>, loadTools: LlmCommandsOptions['loadTools']) {
+async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections'], fragmentLoaders: NonNullable<LlmCommandsOptions['fragmentLoaders']>, tools: NonNullable<LlmCommandsOptions['tools']>, loadTools: LlmCommandsOptions['loadTools'], managePackages: LlmCommandsOptions['managePackages']) {
   context.signal.throwIfAborted();
   const controller = new AbortController();
   const operation = createOutputOperation(context, context.stdout);
@@ -311,6 +311,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       argumentText(1);
       await emitText(modelsGroupHelp);
       return { exitCode: 0 };
+    }
+    if (argumentsValue.args[0] === 'install' || argumentsValue.args[0] === 'uninstall') {
+      const args = Array.from({length:argumentsValue.args.length},(_,index)=>argumentText(index));
+      if (!managePackages) {await writeDiagnostic(context.stderr,'Error: Python package management is not configured\n',signal);return {exitCode:1};}
+      return await managePackages({args,context:{...context,signal,stdout:{write:chunk=>write(chunk,true)},registerCleanup:operation.registerCleanup}});
     }
     if (argumentsValue.args[0] === 'plugins') {
       argumentText(0);
@@ -903,7 +908,7 @@ export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefin
   const templateLoaderOptions: TemplateLoaderOptions = { maxRemoteBytes, ...(options.templateLoaders ? { loaders: options.templateLoaders } : {}) };
   const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
   const collections=options.collections;
-  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections, options.fragmentLoaders ?? new Map(), options.tools ?? new Map(), options.loadTools) };
+  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections, options.fragmentLoaders ?? new Map(), options.tools ?? new Map(), options.loadTools, options.managePackages) };
 }
 
 export function createLlmCommands(options: LlmCommandsOptions = {}): readonly CommandDefinition[] {

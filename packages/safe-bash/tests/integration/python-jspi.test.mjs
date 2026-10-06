@@ -10,6 +10,7 @@ import { after, before, test } from 'node:test';
 import { build } from 'esbuild';
 import ts from 'typescript';
 
+import packageCommandReference from '../../../safe-bash-command-llm/src/fixtures/package-commands-0.27.1.json' with {type:'json'};
 import { createPythonJspiCallbackCatalog } from './python-jspi-catalog.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -556,6 +557,17 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
     assert.equal(result.recovered.stderr,'');
     assert.equal(result.requests.length,1);
     assert.deepEqual(result.failures,[]);
+    assert.equal(result.native.length,mode==='llm-packages'?4:0);
+    if(mode==='llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT) {
+      const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
+      assert.ok(output.startsWith(resolve(root,'out')+'/'));
+      await writeFile(output,result.installed.stdout+'\n'+result.native[0].output);
+    }
+    for(const actual of result.native) {
+      const expected=packageCommandReference.find(row=>JSON.stringify(row.args)===JSON.stringify(actual.args));
+      assert.ok(expected);
+      assert.deepEqual(actual,{args:expected.args,exitCode:expected.exitCode,output:expected.output});
+    }
   }
   assert.deepEqual(runtimeErrors,[]);
   const errors=await miniflare.dispatchFetch('http://fixture/unhandled-errors');

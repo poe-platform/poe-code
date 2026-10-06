@@ -1,0 +1,65 @@
+import type {LlmFragmentLoader,LlmFragmentLoaderContext,LlmTemplateLoader} from 'safe-bash-command-llm';
+import type {PythonLlmToolLoaderOptions} from './llm-functions-loader.js';
+import {createPythonLlmFragmentLoader} from './llm-fragment-loader.js';
+import {createPythonLlmTemplateLoader} from './llm-template-loader.js';
+import {createPythonLlmJsonLoader} from './llm-json-loader.js';
+
+export interface PythonLlmDiscoveredLoaders {
+ readonly fragmentLoaders:ReadonlyMap<string,LlmFragmentLoader>;
+ readonly templateLoaders:ReadonlyMap<string,LlmTemplateLoader>;
+}
+
+/** Discover native prefixes only from explicitly authorized installed plugins.
+ * Invoke again after changing the environment; no ambient registry is retained. */
+export function createPythonLlmLoaderDiscovery(options:PythonLlmToolLoaderOptions):(context:LlmFragmentLoaderContext)=>Promise<PythonLlmDiscoveredLoaders> {
+ const load=createPythonLlmJsonLoader(options,'llm_loaders',pythonLlmLoaderDiscoveryProgram,'loader discovery');
+ const configured={...options,plugins:Object.freeze([...(options.plugins??[])])};
+ return async context=>{
+  const result=await load({},context);
+  if(!result||typeof result!=='object'||Array.isArray(result))throw new TypeError('Invalid native loader discovery');
+  function loaders<T extends LlmFragmentLoader|LlmTemplateLoader>(entries:unknown,create:(options:PythonLlmToolLoaderOptions,prefix:string)=>T):ReadonlyMap<string,T>{
+   if(!Array.isArray(entries))throw new TypeError('Invalid native loader discovery');
+   const values=new Map<string,T>();
+   for(const entry of entries){
+    if(!Array.isArray(entry)||entry.length!==2||typeof entry[0]!=='string'||!entry[0]||values.has(entry[0])||(entry[1]!==null&&typeof entry[1]!=='string'))throw new TypeError('Invalid native loader registration');
+    const loader=create(configured,entry[0]);
+    if(entry[1]!==null)Object.defineProperty(loader,'description',{value:entry[1],enumerable:true});
+    values.set(entry[0],loader);
+   }
+   return values;
+  }
+  const data=result as Record<string,unknown>;
+  return {fragmentLoaders:loaders(data.fragments,createPythonLlmFragmentLoader),templateLoaders:loaders(data.templates,createPythonLlmTemplateLoader)};
+ };
+}
+
+export const pythonLlmLoaderDiscoveryProgram=/* @__PURE__ */ (()=>String.raw`
+import json, llm, safe_host
+
+def send(op, **fields):
+ return safe_host.call('llm_loaders', dict(op=op, **fields))
+
+def main():
+ request = send('request')
+ import llm.plugins as manager
+ manager.load_plugins()
+ if request['plugins']:
+  original = (manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded)
+  try:
+   manager.DEFAULT_PLUGINS = ()
+   manager.LLM_LOAD_PLUGINS = ','.join(request['plugins'])
+   manager._loaded = False
+   manager.load_plugins()
+  finally:
+   manager.DEFAULT_PLUGINS, manager.LLM_LOAD_PLUGINS, manager._loaded = original
+ encoder = json.JSONEncoder(ensure_ascii=False, separators=(',', ':'))
+ result = dict(fragments=[(prefix, loader.__doc__) for prefix, loader in llm.get_fragment_loaders().items()],
+               templates=[(prefix, loader.__doc__) for prefix, loader in llm.get_template_loaders().items()])
+ for part in encoder.iterencode(result):
+  for offset in range(0, len(part), 4096): send('text', text=part[offset:offset + 4096])
+ send('done')
+try:
+ main()
+except Exception as error:
+ send('error', message=str(error))
+`)();

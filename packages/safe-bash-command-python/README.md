@@ -86,8 +86,16 @@ callers must consume a source before advancing the iterator, and close the itera
 on early exit. Plugin stdout and stderr use the caller streams when supplied; the
 CLI includes both in its output budget without treating them as fragment content.
 The content byte limit excludes attachment metadata; cancellation
-and iterator closure retire staged files and the interpreter. Automatic plugin
-prefix discovery remains host-owned.
+and iterator closure retire staged files and the interpreter.
+
+To discover prefixes from authorized installed plugins, call
+`createPythonLlmLoaderDiscovery({ ...pythonOptions, plugins: ["my-plugin"] })(context)`.
+Supply `fs`, `cwd`, `signal` and a finite metadata `maxBytes` in `context`; optional
+output streams and `registerCleanup` retain caller-owned diagnostics and retirement.
+Spread the returned `{ fragmentLoaders, templateLoaders }` into `llmCommands` or
+use the maps directly through the SDK. Native ordering, collision suffixes and
+docstrings are preserved. Discovery does not execute the loaders. Discover again
+after changing the installed environment; it does not load ambient distributions.
 
 Use `createPythonLlmTemplateLoader({ ...pythonOptions, plugins: ["my-plugin"] }, "prefix")`
 as the corresponding `templateLoaders` map entry to execute native `llm.Template`

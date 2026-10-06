@@ -638,6 +638,11 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
       assert.equal(result.plugins.exitCode,0,JSON.stringify(result));
       assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_fragment_loaders','register_template_loaders','register_tools'],version:'1.0'}]);
       assert.equal(result.plugins.stderr,'');
+      for(const listing of [result.fragmentListing,result.templateListing]){
+        assert.equal(listing.exitCode,0,JSON.stringify(listing));
+        assert.equal(listing.stdout,'native:\n  Undocumented\n');
+        assert.equal(listing.stderr,'');
+      }
       assert.equal(result.listed.exitCode,0,JSON.stringify(result));
       assert.match(result.listed.stdout,/installed_tool/);
       assert.equal(result.called.exitCode,0,JSON.stringify(result));

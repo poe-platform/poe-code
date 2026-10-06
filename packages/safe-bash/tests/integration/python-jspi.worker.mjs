@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmFragmentLoader, createPythonLlmTemplateLoader, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderDiscovery, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -194,8 +194,9 @@ async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacy
     if(result){yield result.content;return;}
     return {toolCalls:[{id:'installed-call',name:'installed_tool',arguments:{value:5}}]};
   }}]});
+  const fragmentLoaders=new Map(),templateLoaders=new Map();
   const shell = new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(pythonOptions))
-    .use(llmCommands({service,templateLoaders:new Map([['native',createPythonLlmTemplateLoader({...pythonOptions,plugins:['worker-fixture']},'native')]]),fragmentLoaders:new Map([['native',createPythonLlmFragmentLoader({...pythonOptions,plugins:['worker-fixture']},'native')]]),loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-fixture']}),managePackages:createPythonLlmPackageManager(pythonOptions)}));
+    .use(llmCommands({service,templateLoaders,fragmentLoaders,loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-fixture']}),managePackages:createPythonLlmPackageManager(pythonOptions)}));
   const prefix = useLlm ? 'llm' : 'python -m pip';
   const quote = value => "'" + value.split("'").join("'\\''") + "'";
   try {
@@ -313,10 +314,15 @@ print('worker package verified')
       const result = await shell.exec('llm ' + args.join(' '));
       native.push({args,exitCode:result.exitCode,output:result.stdout+result.stderr});
     }
-    let plugins,listed,called,blocked,fragment,template;
+    let plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing;
     if(useLlm) {
       const added=await shell.exec('llm install ./worker_provider-1.0-py3-none-any.whl');
       if(added.exitCode)throw new Error(JSON.stringify({added,diagnostics}));
+      const discovered=await createPythonLlmLoaderDiscovery({...pythonOptions,plugins:['worker-fixture']})({fs:backend,cwd:'/work',signal:new AbortController().signal,maxBytes:65536});
+      for(const [prefix,loader]of discovered.fragmentLoaders)fragmentLoaders.set(prefix,loader);
+      for(const [prefix,loader]of discovered.templateLoaders)templateLoaders.set(prefix,loader);
+      fragmentListing=await shell.exec('llm fragments loaders');
+      templateListing=await shell.exec('llm templates loaders');
       plugins=await shell.exec('llm plugins --hook register_tools');
       listed=await shell.exec('llm tools list');
       called=await shell.exec("llm -T installed_tool 'use installed tool'");
@@ -384,7 +390,7 @@ except PackageNotFoundError: pass
 else: raise AssertionError('Removed root reappeared')
 print('root removed; dependency retained')
 `));
-    return {wheelReads, installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, declined, afterDecline, removed, afterRemoval, missing, protectedPackage, restored, afterRestore, rootRemoved, afterRootRemoval, protectedDependency, eof, native, plugins,listed,called,blocked,fragment,template, requests, diagnostics};
+    return {wheelReads, installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, declined, afterDecline, removed, afterRemoval, missing, protectedPackage, restored, afterRestore, rootRemoved, afterRootRemoval, protectedDependency, eof, native, plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing, requests, diagnostics};
   } finally {await shell.dispose();await environment.dispose();manifestStore.dispose();}
 }
 

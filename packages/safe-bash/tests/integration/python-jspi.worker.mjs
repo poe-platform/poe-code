@@ -71,8 +71,9 @@ async function qualifyLegacyBuild(backend,createExecutor,assets,format='director
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl')||path.includes('-sha256-'))throw new Error('Whole wheel read');return target.readFile(path,...args);};
     const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
   }});
-  const remote=format==='remote'||format==='subdirectory'||format.startsWith('remote-extensionless'),zipArchive=format==='zip'||format==='remote-extensionless-zip';
+  const remote=format==='remote'||format==='remote-redirect'||format==='subdirectory'||format.startsWith('remote-extensionless'),zipArchive=format==='zip'||format==='remote-extensionless-zip';
   const sourceURL='https://build.test/'+(format.startsWith('remote-extensionless')?'download':'legacy-source.tar.gz');
+  const sourceRequestURL=format==='remote-redirect'?'https://build.test/redirect':sourceURL;
   const sourceDirectory=format==='editable-file'?'/work/legacy source':'/work/legacy-source'+(format==='subdirectory'?'/nested':'');
   await backend.mkdir(sourceDirectory,{recursive:true});await backend.mkdir('/work/builds');
   const setupSource=format==='setup-requires'?`from setuptools import setup
@@ -86,8 +87,10 @@ setup(name="legacy-fixture",version="1.0",py_modules=["legacy_fixture"],setup_re
 `:'from setuptools import setup\nsetup(name="legacy-fixture", version="1.0", py_modules=["legacy_fixture"]'+(extras?', extras_require={"feature": ["build-helper @ file:///work/build_helper-1.0-py3-none-any.whl"]}':'')+')\n';
   await backend.writeFile(sourceDirectory+'/setup.py',new TextEncoder().encode(setupSource));
   await backend.writeFile(sourceDirectory+'/legacy_fixture.py',new TextEncoder().encode('value = "legacy-original"\n'));
-  const environment=createPythonSourcePackageEnvironment({cacheDirectory:'/work/packages',authorize:({url})=>wheels.has(url),transport:async({url})=>{
-    requests.push(url);return {status:200,headers:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
+  const environment=createPythonSourcePackageEnvironment({cacheDirectory:'/work/packages',authorize:({url})=>wheels.has(url)||format==='remote-redirect'&&url===sourceRequestURL,transport:async({url})=>{
+    requests.push(url);
+    if(format==='remote-redirect'&&url===sourceRequestURL)return {status:302,headers:[['location',sourceURL]],body:(async function*(){})(),async dispose(){}};
+    return {status:200,headers:format==='remote-redirect'&&url===sourceURL?[['content-disposition','attachment; filename="legacy-source.tar.gz"']]:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
   }},{directory:'/work/builds',extractArchive:extractPythonSourceArchive,python:{createExecutor}});
   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
   if(llmEditable)shell.use(llmCommands({managePackages:createPythonLlmPackageManager({createExecutor,environment})}));
@@ -122,7 +125,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
       await backend.mkdir('/work/config');
       await backend.writeFile('/work/config/requirements.txt',new TextEncoder().encode('--editable "./legacy source[FEATURE]" # optional dependency\n'));
     }
-    const install=format==='editable-file'?'python -m pip install -r /work/config/requirements.txt':llmEditable?"llm install -e './legacy-source"+(extras?'[FEATURE]':'')+"'":remote?`python -m pip install '${format==='remote-extensionless'?'':'legacy-fixture @ '}${sourceURL}${format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
+    const install=format==='editable-file'?'python -m pip install -r /work/config/requirements.txt':llmEditable?"llm install -e './legacy-source"+(extras?'[FEATURE]':'')+"'":remote?`python -m pip install '${format==='remote-extensionless'?'':'legacy-fixture @ '}${sourceRequestURL}${format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
     if(format==='named'){
       const skipped=await shell.exec(`python -m pip install 'absent @ file:///work/nonexistent ; python_version < "1"'`);
       if(skipped.exitCode)throw new Error(JSON.stringify(skipped));
@@ -138,8 +141,12 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
     if(remote)wheels.delete(sourceURL);
     if(format==='setup-requires')await backend.unlink('/work/build_helper-1.0-py3-none-any.whl');
     const restored=await shell.exec(inspect);
-    const receipt=await environment.prepare({fs:backend,cwd:'/work',signal:new AbortController().signal});
-    let records;try{records=receipt.records?.map(record=>record[0]);}finally{await environment.finish(receipt);}
+    const replayContext={fs:backend,cwd:'/work',signal:new AbortController().signal,offline:true};
+    const receipt=await environment.prepare(replayContext);
+    let records,sourceReplay,replayedWithoutNetwork;try{
+      records=receipt.records?.map(record=>record[0]);
+      if(format==='remote-redirect'){const before=requests.length;sourceReplay=await environment.dispatch('package-open',[receipt.session,sourceRequestURL],replayContext);replayedWithoutNetwork=requests.length===before;}
+    }finally{await environment.finish(receipt);}
     let metadata,uninstalled,removed,sourceRetained;
     if(editable){
       metadata=await shell.exec(`python -c 'from importlib.metadata import distribution; d=distribution("legacy-fixture"); print(d.version); print(d.read_text("direct_url.json"))'`);
@@ -147,7 +154,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
       removed=await shell.exec('python -c "import legacy_fixture"');
       sourceRetained=new TextDecoder().decode(await backend.readFile(sourceDirectory+'/legacy_fixture.py'));
     }
-    return {rejected,installed,imported,failed,restored,records,metadata,uninstalled,removed,sourceRetained,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
+    return {rejected,installed,imported,failed,restored,records,metadata,uninstalled,removed,sourceRetained,sourceReplay,replayedWithoutNetwork,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
   }finally{await shell.dispose();await environment.dispose();}
 }
 

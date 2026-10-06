@@ -139,8 +139,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const value = options[name];
   if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`${name} must be a positive integer`);
  }
- const cacheRecord=(key:string,headers:readonly(readonly[string,string])[])=>{
-  const bytes=encoder.encode(JSON.stringify({digest:key,headers}));
+ const cacheRecord=(key:string,headers:readonly(readonly[string,string])[],url:string)=>{
+  const bytes=encoder.encode(JSON.stringify({digest:key,headers,url}));
   if(bytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
   return bytes;
  };
@@ -283,30 +283,30 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   session.opening=true;
   try {
   await release(session);checkSession(session);
-  const url=args[1];const expected=args[2];
+  const url=args[1],{cacheDirectory,noCache}=session;const expected=args[2];let responseUrl=url;
   const verifyIntegrity=(key:string)=>{if(expected&&key!==expected)throw failure(`Package integrity mismatch: ${url}`);};
   if(expected!==undefined && expected!==null && !validDigest(expected))throw failure('Invalid SHA-256 package integrity value');
   const address=runtimeKey+'-url-'+digest(encoder.encode(url));
   const canonicalWheel=url.startsWith('file:')||url.startsWith('emfs:');
   // Index responses describe mutable candidates; only offline sessions replay them.
-  const metadata=canonicalWheel||session.noCache||(args[3]==='metadata'&&!session.offline)?undefined:await session.cache.get(address);
+  const metadata=canonicalWheel||noCache||(args[3]==='metadata'&&!session.offline)?undefined:await session.cache.get(address);
   checkSession(session);
   let key="",bytes:Uint8Array|undefined;let headers:readonly(readonly[string,string])[]=[];
   const adopt=async(artifact:PackageArtifact,ready:()=>void|Promise<void>)=>{
    session.opened=artifact;
-   try{checkSession(session);await ready();checkSession(session);return {key:artifact.key,size:artifact.size,headers};}
+   try{checkSession(session);await ready();checkSession(session);return {key:artifact.key,size:artifact.size,headers,url:responseUrl};}
    catch(error){await release(session);throw error;}
   };
   if(metadata){
    if(metadata.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
-   let record: {digest:string,headers:readonly(readonly[string,string])[]} | undefined;
+   let record: {digest:string,url?:string,headers:readonly(readonly[string,string])[]} | undefined;
    try { record=JSON.parse(decoder.decode(metadata)) as typeof record; } catch { /* Invalid JSON follows the same validation path as malformed records. */ }
-   if(typeof record!=='object'||record===null||!validDigest(record.digest)||!Array.isArray(record.headers)||record.headers.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw failure(`Invalid package cache metadata: ${url}`);
-   headers=record.headers;
+   if(typeof record!=='object'||record===null||!validDigest(record.digest)||record.url!==undefined&&typeof record.url!=='string'||!Array.isArray(record.headers)||record.headers.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw failure(`Invalid package cache metadata: ${url}`);
+   headers=record.headers;responseUrl=record.url??url;
    let absent=false;
-   if(session.cacheDirectory){
+   if(cacheDirectory){
     let artifact;
-    try{artifact=await openPythonPackageFile(session,resolve(session.cacheDirectory,runtimeKey+'-sha256-'+record.digest),maxBytes);}catch(error){if(!missing(error))throw error;absent=true;}
+    try{artifact=await openPythonPackageFile(session,resolve(cacheDirectory,runtimeKey+'-sha256-'+record.digest),maxBytes);}catch(error){if(!missing(error))throw error;absent=true;}
     if(artifact){
      return await adopt(artifact,()=>{if(artifact.key!==record.digest)throw failure(`Package cache integrity mismatch: ${url}`);verifyIntegrity(artifact.key);options.onProgress?.({phase:'cached',url,bytes:artifact.size});});
     }
@@ -351,23 +351,23 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
        redirectFrom=current.href;current=new URL(location,current);continue;
       }
       if(response.status<200||response.status>=300)throw failure(`Package download failed: HTTP ${response.status} ${current.href}`);
-      headers=response.headers;
+      headers=response.headers;responseUrl=current.href;
       const encoding=headers.find(([key])=>key.toLowerCase()==='content-encoding')?.[1].trim().toLowerCase();
       const length=headers.find(([key])=>key.toLowerCase()==='content-length')?.[1];const total=length===undefined||(encoding!==undefined&&encoding!=='identity')?undefined:Number(length);
       if(total!==undefined&&Number.isFinite(total)&&total>maxBytes)throw failure('Package download exceeds maxDownloadBytes');
       const progress=(count:number)=>options.onProgress?.({phase:'download',url,bytes:count,...typeof total==='number'&&Number.isSafeInteger(total)?{totalBytes:total}:{}});
-      if(session.cacheDirectory||session.noCache){
-       const directory=session.cacheDirectory??session.cwd;
-       if(session.cacheDirectory)await session.fs.mkdir(directory,{recursive:true,signal:session.signal});
+      if(cacheDirectory||noCache){
+       const directory=cacheDirectory??session.cwd;
+       if(cacheDirectory)await session.fs.mkdir(directory,{recursive:true,signal:session.signal});
        let metadataBytes:Uint8Array|undefined;
        const artifact=await stagePythonPackage(session,directory,response.body,maxBytes,
         progress,key=>{
          verifyIntegrity(key);
-         if(!session.noCache)metadataBytes=cacheRecord(key,headers);
+         if(!noCache)metadataBytes=cacheRecord(key,headers,responseUrl);
         },
-        session.noCache?undefined:key=>resolve(directory,runtimeKey+'-sha256-'+key));
+        noCache?undefined:key=>resolve(directory,runtimeKey+'-sha256-'+key));
        if(artifact){
-        return await adopt(artifact,async()=>{if(!session.noCache)await session.cache.set(address,metadataBytes!);});
+        return await adopt(artifact,async()=>{if(!noCache)await session.cache.set(address,metadataBytes!);});
        }
       }
       const chunks:Uint8Array[]=[];let count=0;
@@ -379,8 +379,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    }
    checkSession(session);
    verifyIntegrity(key=digest(bytes));
-   if(!session.noCache){
-   const metadataBytes=cacheRecord(key,headers);
+   if(!noCache){
+   const metadataBytes=cacheRecord(key,headers,responseUrl);
    await session.cache.set(runtimeKey+'-sha256-'+key,Uint8Array.from(bytes));
    checkSession(session);
    if(!canonicalWheel)await session.cache.set(address,metadataBytes);
@@ -389,7 +389,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   checkSession(session);
   verifyIntegrity(key);
   const value=bytes;session.opened={key,size:bytes.length,read:(offset,length)=>value.subarray(offset,offset+length)};
-  return {key,size:bytes.length,headers};
+  return {key,size:bytes.length,headers,url:responseUrl};
   } finally {session.opening=false;}
  }
  return {

@@ -3,6 +3,39 @@ import test from 'node:test';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonPackageEnvironment} from './provisioning.js';
 
+for(const retained of [false,true])test('package acquisition preserves the final response URL through offline replay; retained='+retained,async()=>{
+ const fs=new MemoryFileSystem(),context={fs,cwd:'/',signal:new AbortController().signal};let requests=0;
+ const initial='https://packages.example/download',final='https://packages.example/fixture.tar.gz';
+ const headers:readonly(readonly[string,string])[]=[['content-disposition','attachment; filename="fixture.tar.gz"']];
+ const environment=createPythonPackageEnvironment({...retained?{cacheDirectory:'/cache'}:{},authorize:()=>true,transport:async({url})=>{
+  requests++;return {status:url===initial?302:200,statusText:'OK',headers:url===initial?[['location',final]]:headers,body:(async function*(){if(url===final)yield Uint8Array.of(1,2,3);})(),async dispose(){}};
+ }});
+ try{
+  for(const offline of [false,true]){
+   const start=await environment.prepare({...context,offline});
+   try{const result=await environment.dispatch('package-open',[start.session,initial],context) as {url:string;headers:unknown};assert.equal(result.url,final);assert.deepEqual(result.headers,headers);}
+   finally{await environment.finish(start);}
+  }
+  assert.equal(requests,2);
+ }finally{await environment.dispose();}
+});
+
+test('old cache records remain replayable and malformed response URLs fail before reading content',async()=>{
+ for(const url of [undefined,null,42]){
+  let contentReads=0;
+  const environment=createPythonPackageEnvironment({offline:true,cache:{async get(key){
+   if(key.includes('-url-'))return new TextEncoder().encode(JSON.stringify({digest:'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',headers:[],url}));
+   contentReads++;return new Uint8Array();
+  },async set(){throw new Error('offline replay must not write');}}});
+  const context={fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal},start=await environment.prepare(context);
+  try{
+   const request=environment.dispatch('package-open',[start.session,'https://packages.example/original'],context);
+   if(url===undefined){assert.equal((await request as {url:string}).url,'https://packages.example/original');assert.equal(contentReads,1);}
+   else {await assert.rejects(request,/Invalid package cache metadata/);assert.equal(contentReads,0);}
+  }finally{await environment.finish(start);await environment.dispose();}
+ }
+});
+
 for(const noCache of [false,true])test(`network wheel uses bounded caller staging; noCache=${noCache}`,async()=>{
  const backing=new MemoryFileSystem();let written=0,requests=0,disposed=0;
  const fs=new Proxy(backing,{get(target,key){

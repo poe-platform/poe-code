@@ -576,7 +576,7 @@ test('real workerd loads native code from a retained installed wheel', {timeout:
  assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const format of ['directory','zip','tar','named','remote','remote-extensionless','remote-extensionless-zip','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds legacy setup projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
+for(const format of ['directory','zip','tar','named','remote','remote-redirect','remote-extensionless','remote-extensionless-zip','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds legacy setup projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
   const extras=format==='editable-extras'||format==='editable-file',editable=format==='editable'||format==='llm-editable'||extras;
   const directory=process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT;
   assert.ok(directory,'Set SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT to authenticated runtime build wheels');
@@ -603,6 +603,11 @@ for(const format of ['directory','zip','tar','named','remote','remote-extensionl
   assert.deepEqual(result.records,[...extras?['build-helper']:[],'legacy-fixture']);
   assert.ok(result.buildEntries.every(name=>!name.startsWith('.python-')));
   assert.ok(result.requests.some(url=>url.endsWith(lock.setuptools.file_name)));
+  if(format==='remote-redirect'){
+    assert.equal(result.sourceReplay.url,'https://build.test/legacy-source.tar.gz');
+    assert.deepEqual(result.sourceReplay.headers,[['content-disposition','attachment; filename="legacy-source.tar.gz"']]);
+    assert.equal(result.replayedWithoutNetwork,true);
+  }
   if(editable){
     assert.equal(result.metadata.exitCode,0,JSON.stringify(result));
     assert.equal(result.metadata.stdout,'1.0\nNone\n');

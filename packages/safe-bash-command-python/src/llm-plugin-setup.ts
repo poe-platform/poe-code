@@ -1,5 +1,6 @@
 /** Shared native plugin initialization; restore the caller's registry settings. */
 export const pythonLlmPluginSetup=/* @__PURE__ */ (()=>String.raw`
+def load_plugins(request):
  import llm.plugins as manager
  manager.load_plugins()
  if request['plugins']:

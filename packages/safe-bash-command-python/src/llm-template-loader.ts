@@ -20,13 +20,15 @@ export function createPythonLlmTemplateLoader(options:PythonLlmToolLoaderOptions
 export const pythonLlmTemplateProgram=/* @__PURE__ */ (()=>String.raw`
 import json, llm, safe_host
 
+${pythonLlmPluginSetup}
+
 def send(op, **fields):
  return safe_host.call('llm_templates', dict(op=op, **fields))
 
 def main():
  request = send('request')
-${pythonLlmPluginSetup}
  try:
+  load_plugins(request)
   loaders = llm.get_template_loaders()
  except Exception as error:
   send('lookup', message=str(error))

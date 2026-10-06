@@ -668,6 +668,11 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
         assert.equal(failed.stdout,'register '+kind+'\n');
         assert.equal(failed.stderr,'Error: '+kind+' registration failed\n');
       }
+      for(const failed of [result.importFragment,result.importTemplate]){
+        assert.equal(failed.exitCode,1,JSON.stringify(failed));
+        assert.equal(failed.stdout,'');
+        assert.equal(failed.stderr,'Error: plugin import failed\n');
+      }
       assert.equal(result.blocked.exitCode,1);
       assert.match(result.blocked.stderr,/platform-configured providers/);
     }

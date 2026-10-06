@@ -45,12 +45,14 @@ export function createPythonLlmLoaderDiscovery(options:PythonLlmToolLoaderOption
 export const pythonLlmLoaderDiscoveryProgram=/* @__PURE__ */ (()=>String.raw`
 import json, llm, safe_host
 
+${pythonLlmPluginSetup}
+
 def send(op, **fields):
  return safe_host.call('llm_loaders', dict(op=op, **fields))
 
 def main():
  request = send('request')
-${pythonLlmPluginSetup}
+ load_plugins(request)
  encoder = json.JSONEncoder(ensure_ascii=False, separators=(',', ':'))
  kind = request.get('kind')
  result = dict(fragments=[] if kind == 'templates' else [(prefix, loader.__doc__) for prefix, loader in llm.get_fragment_loaders().items()],

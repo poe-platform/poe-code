@@ -114,6 +114,8 @@ export const pythonLlmFragmentProgram=/* @__PURE__ */ (()=>String.raw`
 import hashlib, llm, safe_host
 from llm_safe_host import _attachment_type
 
+${pythonLlmPluginSetup}
+
 def send(op, **fields):
  return safe_host.call('llm_fragments', dict(op=op, **fields))
 
@@ -137,8 +139,8 @@ def emit_attachment(value):
 
 def main():
  request = send('request')
-${pythonLlmPluginSetup}
  try:
+  load_plugins(request)
   loaders = llm.get_fragment_loaders()
  except Exception as error:
   send('lookup', message=str(error))

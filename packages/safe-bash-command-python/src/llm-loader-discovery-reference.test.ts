@@ -4,6 +4,47 @@ import test from 'node:test';
 import {pythonLlmLoaderDiscoveryProgram} from './llm-loader-discovery.js';
 const python=process.env.LLM_TEST_PYTHON??'python3';
 const available=spawnSync(python,['-B','-c','from importlib.metadata import version; assert version("llm") == "0.27.1"'],{timeout:5000}).status===0;
+test('native plugin import failures precede execution and restore explicit registry settings',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned llm==0.27.1':false},async()=>{
+ const {pythonLlmFragmentProgram}=await import('./llm-fragment-loader.js');
+ const {pythonLlmTemplateProgram}=await import('./llm-template-loader.js');
+ const result=spawnSync(python,['-B','-c',String.raw`
+import llm,json,sys,types
+import llm.plugins as manager
+from llm.cli import resolve_fragments,load_template
+programs=json.load(sys.stdin)
+sys.modules['llm_safe_host']=types.SimpleNamespace(_attachment_type=lambda value:value.type)
+calls=[]
+def fail_import():
+ calls.append('import')
+ raise ImportError('broken plugin import')
+entry=types.SimpleNamespace(group='llm',name='broken',load=fail_import)
+manager.metadata.distribution=lambda name: types.SimpleNamespace(entry_points=[entry])
+manager.DEFAULT_PLUGINS=()
+for kind in ('fragment','template'):
+ for phase in ('initial','explicit'):
+  calls.clear()
+  manager._loaded,manager.LLM_LOAD_PLUGINS=False,'broken'
+  try:
+   if kind=='fragment': resolve_fragments(None,['native:value'])
+   else: load_template('native:value')
+   raise AssertionError('native import unexpectedly succeeded')
+  except ImportError as error: expected=str(error)
+  expected_calls=list(calls)
+  calls.clear()
+  manager._loaded,manager.LLM_LOAD_PLUGINS=(True,'') if phase=='explicit' else (False,'broken')
+  original=manager.DEFAULT_PLUGINS,manager.LLM_LOAD_PLUGINS,manager._loaded
+  messages=[]
+  def call(capability,message):
+   if message['op']=='request': return dict(plugins=['broken'] if phase=='explicit' else [],prefix='native',value='value')
+   messages.append(message)
+  sys.modules['safe_host']=types.SimpleNamespace(call=call)
+  exec(programs[kind],{})
+  assert messages==[dict(op='lookup',message=expected)],(kind,phase,messages,expected)
+  assert calls==expected_calls,(calls,expected_calls)
+  if phase=='explicit': assert (manager.DEFAULT_PLUGINS,manager.LLM_LOAD_PLUGINS,manager._loaded)==original
+`],{input:JSON.stringify({fragment:pythonLlmFragmentProgram,template:pythonLlmTemplateProgram}),encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
+});
 test('native registration failures remain lookup failures before executing loaders',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned llm==0.27.1':false},async()=>{
  const {pythonLlmFragmentProgram}=await import('./llm-fragment-loader.js');
  const {pythonLlmTemplateProgram}=await import('./llm-template-loader.js');

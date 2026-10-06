@@ -55,8 +55,11 @@ pub fn try_run_coreutil(
         "expand" => Some(cmd_expand(args, stdin, cwd, fs)),
         "unexpand" => Some(cmd_unexpand(args, stdin, cwd, fs)),
         "tsort" => Some(cmd_tsort(args, stdin, cwd, fs)),
+        "truncate" => Some(cmd_truncate(args, cwd, fs)),
         "fold" => Some(cmd_fold(args, stdin, cwd, fs)),
         "fmt" => Some(cmd_fmt(args, stdin, cwd, fs)),
+        "csplit" => Some(cmd_csplit(args, stdin, cwd, fs)),
+        "pr" => Some(cmd_pr(args, stdin, cwd, fs)),
         "column" => Some(cmd_column(args, stdin, cwd, fs)),
         "shuf" => Some(cmd_shuf(args, stdin, cwd, fs)),
         "split" => Some(cmd_split(args, stdin, cwd, fs)),
@@ -229,6 +232,8 @@ fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 fn cmd_head(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut lines_limit: Option<(usize, bool)> = Some((10, false));
     let mut bytes_limit: Option<(usize, bool)> = None;
+    let mut quiet = false;
+    let mut verbose = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
@@ -270,7 +275,13 @@ fn cmd_head(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 bytes_limit = None;
             }
             i += 1;
-        } else if a == "-q" || a == "-v" {
+        } else if a == "-q" || a == "--quiet" || a == "--silent" {
+            quiet = true;
+            verbose = false;
+            i += 1;
+        } else if a == "-v" || a == "--verbose" {
+            verbose = true;
+            quiet = false;
             i += 1;
         } else {
             files.push(a.clone());
@@ -278,31 +289,58 @@ fn cmd_head(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     }
 
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "head") {
-        Ok(t) => t,
-        Err(e) => return e,
+    let take_head_one = |text: &str| -> String {
+        if let Some((bc, neg)) = bytes_limit {
+            let raw = crate::vfs::stream_string_to_bytes(text);
+            let take = if neg {
+                raw.len().saturating_sub(bc)
+            } else {
+                bc.min(raw.len())
+            };
+            return crate::vfs::bytes_to_stream_string(&raw[..take]);
+        }
+        let (n, neg) = lines_limit.unwrap_or((10, false));
+        let all_lines: Vec<&str> = text.split_inclusive('\n').collect();
+        let take = if neg {
+            all_lines.len().saturating_sub(n)
+        } else {
+            n.min(all_lines.len())
+        };
+        let mut s = String::new();
+        for line in &all_lines[..take] {
+            s.push_str(line);
+        }
+        s
     };
 
-    if let Some((bc, neg)) = bytes_limit {
-        let raw = crate::vfs::stream_string_to_bytes(&text);
-        let take = if neg {
-            raw.len().saturating_sub(bc)
-        } else {
-            bc.min(raw.len())
+    if files.len() <= 1 && !verbose {
+        let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "head") {
+            Ok(t) => t,
+            Err(e) => return e,
         };
-        return ok_out(&crate::vfs::bytes_to_stream_string(&raw[..take]));
+        return ok_out(&take_head_one(&text));
     }
 
-    let (n, neg) = lines_limit.unwrap_or((10, false));
-    let all_lines: Vec<&str> = text.split_inclusive('\n').collect();
-    let take = if neg {
-        all_lines.len().saturating_sub(n)
-    } else {
-        n.min(all_lines.len())
-    };
     let mut out = String::new();
-    for line in &all_lines[..take] {
-        out.push_str(line);
+    let show_headers = verbose || (!quiet && files.len() > 1);
+    let targets = if files.is_empty() {
+        vec!["-".to_string()]
+    } else {
+        files
+    };
+    for (idx, f) in targets.iter().enumerate() {
+        let single = match read_inputs_or_stdin(std::slice::from_ref(f), stdin, cwd, fs, "head") {
+            Ok(t) => t,
+            Err(e) => return e,
+        };
+        if show_headers {
+            if idx > 0 {
+                out.push('\n');
+            }
+            let name = if f == "-" { "standard input" } else { f.as_str() };
+            out.push_str(&format!("==> {name} <==\n"));
+        }
+        out.push_str(&take_head_one(&single));
     }
     ok_out(&out)
 }
@@ -524,7 +562,7 @@ fn cmd_wc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     }
 }
 
-fn parse_leading_f64(s: &str) -> f64 {
+pub(crate) fn parse_leading_f64(s: &str) -> f64 {
     let trimmed = s.trim();
     let mut num_end = 0usize;
     for (idx, ch) in trimmed.char_indices() {
@@ -2092,19 +2130,31 @@ fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {
 
 fn cmd_fold(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut width = 80usize;
+    let mut break_spaces = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
-        if args[i] == "-w" && i + 1 < args.len() {
+        let a = &args[i];
+        if (a == "-w" || a == "--width") && i + 1 < args.len() {
             width = args[i + 1].parse().unwrap_or(80);
             i += 2;
-        } else if let Some(rest) = args[i].strip_prefix("-w")
+        } else if let Some(rest) = a.strip_prefix("-w").or_else(|| a.strip_prefix("--width="))
             && !rest.is_empty()
         {
             width = rest.parse().unwrap_or(80);
             i += 1;
-        } else if !args[i].starts_with('-') {
-            files.push(args[i].clone());
+        } else if a == "-s" || a == "--spaces" {
+            break_spaces = true;
+            i += 1;
+        } else if a.starts_with('-') && a.len() > 1 && !a.starts_with("--") {
+            for ch in a[1..].chars() {
+                if ch == 's' {
+                    break_spaces = true;
+                }
+            }
+            i += 1;
+        } else if !a.starts_with('-') {
+            files.push(a.clone());
             i += 1;
         } else {
             i += 1;
@@ -2115,14 +2165,35 @@ fn cmd_fold(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Err(e) => return e,
     };
     let mut out = String::new();
+    let w = width.max(1);
     for line in text.lines() {
         let chs: Vec<char> = line.chars().collect();
         if chs.is_empty() {
             out.push('\n');
-        } else {
-            for chunk in chs.chunks(width.max(1)) {
+        } else if !break_spaces {
+            for chunk in chs.chunks(w) {
                 out.push_str(&chunk.iter().collect::<String>());
                 out.push('\n');
+            }
+        } else {
+            let mut start = 0usize;
+            while start < chs.len() {
+                if chs.len() - start <= w {
+                    out.push_str(&chs[start..].iter().collect::<String>());
+                    out.push('\n');
+                    break;
+                }
+                let window = &chs[start..start + w];
+                if let Some(rel_sp) = window.iter().rposition(|&c| c == ' ' || c == '\t') {
+                    let end = start + rel_sp + 1;
+                    out.push_str(&chs[start..end].iter().collect::<String>());
+                    out.push('\n');
+                    start = end;
+                } else {
+                    out.push_str(&window.iter().collect::<String>());
+                    out.push('\n');
+                    start += w;
+                }
             }
         }
     }
@@ -2130,7 +2201,278 @@ fn cmd_fold(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
 }
 
 fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    cmd_fold(args, stdin, cwd, fs)
+    let mut width = 75usize;
+    let mut files = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if (a == "-w" || a == "--width") && i + 1 < args.len() {
+            width = args[i + 1].parse().unwrap_or(75);
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("-w").or_else(|| a.strip_prefix("--width="))
+            && !rest.is_empty()
+        {
+            width = rest.parse().unwrap_or(75);
+            i += 1;
+        } else if !a.starts_with('-') {
+            files.push(a.clone());
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "fmt") {
+        Ok(t) => t,
+        Err(e) => return e,
+    };
+    let goal = ((width * 93) / 100).max(1);
+    let mut out = String::new();
+    let mut cur_line = String::new();
+    for line in text.lines() {
+        if line.trim().is_empty() {
+            if !cur_line.is_empty() {
+                out.push_str(&cur_line);
+                out.push('\n');
+                cur_line.clear();
+            }
+            out.push('\n');
+            continue;
+        }
+        for word in line.split_whitespace() {
+            if cur_line.is_empty() {
+                cur_line.push_str(word);
+            } else if cur_line.len() + 1 + word.len() <= goal {
+                cur_line.push(' ');
+                cur_line.push_str(word);
+            } else {
+                out.push_str(&cur_line);
+                out.push('\n');
+                cur_line.clear();
+                cur_line.push_str(word);
+            }
+        }
+    }
+    if !cur_line.is_empty() {
+        out.push_str(&cur_line);
+        out.push('\n');
+    }
+    ok_out(&out)
+}
+
+fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut silent = false;
+    let mut elide_empty = false;
+    let mut prefix = "xx".to_string();
+    let mut digits = 2usize;
+    let mut pos_args = Vec::new();
+
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if matches!(a.as_str(), "-s" | "-q" | "--quiet" | "--silent") {
+            silent = true;
+            i += 1;
+        } else if a == "-z" || a == "--elide-empty-files" {
+            elide_empty = true;
+            i += 1;
+        } else if (a == "-f" || a == "--prefix") && i + 1 < args.len() {
+            prefix = args[i + 1].clone();
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--prefix=") {
+            prefix = rest.to_string();
+            i += 1;
+        } else if (a == "-n" || a == "--digits") && i + 1 < args.len() {
+            digits = args[i + 1].parse().unwrap_or(2);
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--digits=") {
+            digits = rest.parse().unwrap_or(2);
+            i += 1;
+        } else if !a.starts_with('-') || a == "-" {
+            pos_args.push(a.clone());
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    if pos_args.is_empty() {
+        return err_out("csplit: missing operand\n", 1);
+    }
+    let input_file = &pos_args[0];
+    let patterns = &pos_args[1..];
+    let text = match read_inputs_or_stdin(std::slice::from_ref(input_file), stdin, cwd, fs, "csplit") {
+        Ok(t) => t,
+        Err(e) => return e,
+    };
+    let lines: Vec<&str> = text.lines().collect();
+    let mut split_points: Vec<usize> = Vec::new();
+    let mut cur_idx = 0usize;
+    let mut p_idx = 0usize;
+    while p_idx < patterns.len() {
+        let pat = &patterns[p_idx];
+        let repeat = if p_idx + 1 < patterns.len()
+            && patterns[p_idx + 1].starts_with('{')
+            && patterns[p_idx + 1].ends_with('}')
+        {
+            let inner = &patterns[p_idx + 1][1..patterns[p_idx + 1].len() - 1];
+            p_idx += 2;
+            if inner == "*" {
+                usize::MAX
+            } else {
+                inner.parse::<usize>().unwrap_or(0)
+            }
+        } else {
+            p_idx += 1;
+            0
+        };
+
+        if (pat.starts_with('/') || pat.starts_with('%')) && pat.len() >= 2 {
+            let delim = pat.chars().next().unwrap();
+            let raw_rx = if let Some(last_d) = pat[1..].rfind(delim) {
+                &pat[1..1 + last_d]
+            } else {
+                &pat[1..]
+            };
+            let rx = crate::commands::search::ZeroRegex::new(
+                vec![raw_rx.to_string()],
+                false,
+                false,
+                false,
+                false,
+            );
+            let max_matches = repeat.saturating_add(1);
+            let mut found = 0usize;
+            let mut search_from = cur_idx;
+            while found < max_matches && search_from < lines.len() {
+                let start_s = if found == 0 && search_from == 0 {
+                    0
+                } else {
+                    search_from
+                };
+                if let Some(rel) = lines[start_s..].iter().position(|l| rx.is_match(l)) {
+                    let hit = start_s + rel;
+                    if hit > cur_idx || (hit == 0 && split_points.is_empty()) {
+                        split_points.push(hit);
+                    }
+                    cur_idx = hit;
+                    search_from = hit + 1;
+                    found += 1;
+                } else {
+                    break;
+                }
+            }
+        } else if let Ok(line_no) = pat.parse::<usize>() {
+            let idx0 = line_no.saturating_sub(1).min(lines.len());
+            if idx0 > cur_idx {
+                split_points.push(idx0);
+                cur_idx = idx0;
+            }
+        }
+    }
+
+    let mut boundaries = vec![0usize];
+    for sp in split_points {
+        if sp > *boundaries.last().unwrap() && sp <= lines.len() {
+            boundaries.push(sp);
+        }
+    }
+    boundaries.push(lines.len());
+
+    let mut out = String::new();
+    let mut file_no = 0usize;
+    for w in boundaries.windows(2) {
+        let chunk_lines = &lines[w[0]..w[1]];
+        if elide_empty && chunk_lines.is_empty() {
+            continue;
+        }
+        let content = if chunk_lines.is_empty() {
+            String::new()
+        } else {
+            format!("{}\n", chunk_lines.join("\n"))
+        };
+        let fname = format!("{prefix}{file_no:0digits$}");
+        let full = resolve_posix_path(cwd, &fname);
+        let _ = fs.write_file(&full, content.as_bytes());
+        if !silent {
+            out.push_str(&format!("{}\n", content.len()));
+        }
+        file_no += 1;
+    }
+    ok_out(&out)
+}
+
+fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut cols = 1usize;
+    let mut omit_pagination = false;
+    let mut across = false;
+    let mut sep = "\t".to_string();
+    let mut header = String::new();
+    let mut files = Vec::new();
+
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if a == "-T" || a == "-t" || a == "--omit-pagination" || a == "--omit-header" {
+            omit_pagination = true;
+            i += 1;
+        } else if a == "-a" || a == "--across" {
+            across = true;
+            i += 1;
+        } else if (a == "-h" || a == "--header") && i + 1 < args.len() {
+            header = args[i + 1].clone();
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("-s").or_else(|| a.strip_prefix("--separator=")) {
+            sep = if rest.is_empty() {
+                "\t".to_string()
+            } else {
+                rest.to_string()
+            };
+            i += 1;
+        } else if let Some(num_s) = a.strip_prefix("--columns=") {
+            cols = num_s.parse().unwrap_or(1).max(1);
+            i += 1;
+        } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit()) {
+            cols = a[1..].parse().unwrap_or(1).max(1);
+            i += 1;
+        } else if !a.starts_with('-') {
+            files.push(a.clone());
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "pr") {
+        Ok(t) => t,
+        Err(e) => return e,
+    };
+    let lines: Vec<&str> = text.lines().collect();
+    let mut out = String::new();
+    if !omit_pagination && !header.is_empty() {
+        out.push_str(&format!("\n\n{header}\n\n\n"));
+    }
+    if cols <= 1 {
+        for l in lines {
+            out.push_str(l);
+            out.push('\n');
+        }
+    } else if across {
+        for chunk in lines.chunks(cols) {
+            out.push_str(&chunk.join(&sep));
+            out.push('\n');
+        }
+    } else {
+        let rows = lines.len().div_ceil(cols);
+        for r in 0..rows {
+            let mut row_items = Vec::new();
+            for c in 0..cols {
+                if let Some(&item) = lines.get(r + c * rows) {
+                    row_items.push(item);
+                }
+            }
+            out.push_str(&row_items.join(&sep));
+            out.push('\n');
+        }
+    }
+    ok_out(&out)
 }
 
 fn cmd_expand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -2944,4 +3286,59 @@ fn cmd_tsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         stderr: if had_cycle { "tsort: cycle detected\n".to_string() } else { String::new() },
         exit_code: if had_cycle { 1 } else { 0 },
     }
+}
+
+fn cmd_truncate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut size_spec = String::from("0");
+    let mut files = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if (a == "-s" || a == "--size") && i + 1 < args.len() {
+            size_spec = args[i + 1].clone();
+            i += 2;
+        } else if let Some(s) = a.strip_prefix("--size=") {
+            size_spec = s.to_string();
+            i += 1;
+        } else if let Some(s) = a.strip_prefix("-s") && !s.is_empty() {
+            size_spec = s.to_string();
+            i += 1;
+        } else if !a.starts_with('-') {
+            files.push(a.clone());
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    let trimmed = size_spec.trim();
+    let (op, rest) = if let Some(r) = trimmed.strip_prefix('+') {
+        ('+', r)
+    } else if let Some(r) = trimmed.strip_prefix('-') {
+        ('-', r)
+    } else {
+        ('=', trimmed)
+    };
+    let num_len = rest.chars().take_while(|c| c.is_ascii_digit()).count();
+    let base_num = rest[..num_len].parse::<usize>().unwrap_or(0);
+    let unit = rest[num_len..].to_ascii_uppercase();
+    let mult = match unit.as_str() {
+        "K" | "KB" | "KIB" => 1024usize,
+        "M" | "MB" | "MIB" => 1024 * 1024,
+        "G" | "GB" | "GIB" => 1024 * 1024 * 1024,
+        _ => 1usize,
+    };
+    let delta = base_num.saturating_mul(mult);
+
+    for f in files {
+        let full = resolve_posix_path(cwd, &f);
+        let mut bytes = fs.read_file(&full).unwrap_or_default();
+        let target_len = match op {
+            '+' => bytes.len().saturating_add(delta),
+            '-' => bytes.len().saturating_sub(delta),
+            _ => delta,
+        };
+        bytes.resize(target_len, 0u8);
+        let _ = fs.write_file(&full, &bytes);
+    }
+    ok_out("")
 }

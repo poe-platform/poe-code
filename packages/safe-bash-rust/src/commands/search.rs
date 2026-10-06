@@ -30,7 +30,7 @@ where
         "find" => Some(cmd_find(args, cwd, env, fs, &mut exec_sub)),
         "fd" => Some(cmd_fd(args, cwd, env, fs, &mut exec_sub)),
         "xargs" => Some(cmd_xargs(args, stdin, cwd, env, &mut exec_sub)),
-        "which" => Some(cmd_which(args)),
+        "which" => Some(cmd_which(args, cwd, env, fs)),
         _ => None,
     }
 }
@@ -43,24 +43,71 @@ fn ok_out(stdout: &str) -> BuiltinOutcome {
     }
 }
 
-fn cmd_which(args: &[String]) -> BuiltinOutcome {
-    if args.is_empty() {
+fn cmd_which(
+    args: &[String],
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut show_all = false;
+    let mut silent = false;
+    let mut names = Vec::new();
+    for a in args {
+        if let Some(flags) = a.strip_prefix('-') {
+            for ch in flags.chars() {
+                if ch == 'a' {
+                    show_all = true;
+                } else if ch == 's' {
+                    silent = true;
+                }
+            }
+        } else {
+            names.push(a.clone());
+        }
+    }
+    if names.is_empty() {
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: String::new(),
             exit_code: 1,
         };
     }
+    let path_str = env
+        .get("PATH")
+        .cloned()
+        .unwrap_or_else(|| "/usr/local/bin:/usr/bin:/bin".to_string());
+    let path_dirs: Vec<&str> = path_str.split(':').filter(|s| !s.is_empty()).collect();
+
     let mut out = String::new();
     let mut code = 0;
-    for a in args {
-        if a.starts_with('-') {
-            continue;
-        }
-        if is_known_command(a) {
-            out.push_str(&format!("/usr/bin/{a}\n"));
+    for name in &names {
+        let mut found = Vec::new();
+        if name.contains('/') {
+            let full = resolve_posix_path(cwd, name);
+            if fs.exists(&full) && !fs.is_dir(&full) {
+                found.push(name.clone());
+            }
         } else {
+            for dir in &path_dirs {
+                let cand = resolve_posix_path(cwd, &format!("{dir}/{name}"));
+                if fs.exists(&cand) && !fs.is_dir(&cand) {
+                    found.push(cand);
+                    if !show_all {
+                        break;
+                    }
+                }
+            }
+            if found.is_empty() && is_known_command(name) {
+                found.push(format!("/usr/bin/{name}"));
+            }
+        }
+        if found.is_empty() {
             code = 1;
+        } else if !silent {
+            for f in found {
+                out.push_str(&f);
+                out.push('\n');
+            }
         }
     }
     BuiltinOutcome {
@@ -124,6 +171,7 @@ pub fn is_known_command(name: &str) -> bool {
             | "paste"
             | "comm"
             | "tsort"
+            | "truncate"
             | "expand"
             | "unexpand"
             | "tee"
@@ -267,6 +315,15 @@ impl ZeroRegex {
     }
 }
 
+fn has_unescaped_trailing_dollar(pat: &str) -> bool {
+    if !pat.ends_with('$') {
+        return false;
+    }
+    let before = &pat[..pat.len() - 1];
+    let backslashes = before.chars().rev().take_while(|&c| c == '\\').count();
+    backslashes.is_multiple_of(2)
+}
+
 fn find_single_pattern(
     pat: &str,
     text: &str,
@@ -303,7 +360,7 @@ fn find_single_pattern(
     }
 
     let anchored_start = !fixed_strings && pat.starts_with('^');
-    let anchored_end = !fixed_strings && pat.ends_with('$') && !pat.ends_with("\\$");
+    let anchored_end = !fixed_strings && has_unescaped_trailing_dollar(pat);
     let core_pat = if !fixed_strings {
         let s = pat.strip_prefix('^').unwrap_or(pat);
         if anchored_end {
@@ -469,7 +526,7 @@ fn has_unescaped_ere_syntax(pat: &str) -> bool {
 }
 
 fn normalize_bre_escapes(pat: &str) -> String {
-    if has_unescaped_ere_syntax(pat) {
+    if has_unescaped_ere_syntax(pat) || pat.contains("\\(\\)") {
         return pat.to_string();
     }
     if !pat.contains("\\(")
@@ -1006,11 +1063,12 @@ pub fn replace_regex_in_text(
     if matches.is_empty() {
         return (text.to_string(), false);
     }
-    let core_pat = pat
-        .strip_prefix('^')
-        .unwrap_or(pat)
-        .strip_suffix('$')
-        .unwrap_or(pat.strip_prefix('^').unwrap_or(pat));
+    let no_caret = pat.strip_prefix('^').unwrap_or(pat);
+    let core_pat = if has_unescaped_trailing_dollar(no_caret) {
+        &no_caret[..no_caret.len() - 1]
+    } else {
+        no_caret
+    };
     let mut out = String::new();
     let mut last_end = 0usize;
     let mut replaced = false;
@@ -1162,7 +1220,7 @@ fn cmd_grep(
             match a.as_str() {
                 "--ignore-case" => ignore_case = true,
                 "--invert-match" => invert = true,
-                "--count" => count_only = true,
+                "--count" | "--count-matches" => count_only = true,
                 "--line-number" => line_number = true,
                 "--byte-offset" => byte_offset = true,
                 "--null" => null_delim = true,
@@ -1395,7 +1453,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "--ignore-case" => ignore_case = true,
                 "--smart-case" => smart_case = true,
                 "--invert-match" => invert = true,
-                "--count" => count_only = true,
+                "--count" | "--count-matches" => count_only = true,
                 "--line-number" => line_number = true,
                 "--no-line-number" => line_number = false,
                 "--byte-offset" => byte_offset = true,
@@ -1952,6 +2010,7 @@ fn run_grep_engine(
         if cfg.multiline && !cfg.invert {
             let full_spans = rx.find_all(content);
             for (s, e) in full_spans {
+                let mut span_matched = false;
                 for (idx, line) in lines.iter().enumerate() {
                     let l_start = line_offsets[idx];
                     let l_end = l_start + line.len();
@@ -1960,14 +2019,17 @@ fn run_grep_engine(
                         if cfg.quiet {
                             return ok_out("");
                         }
+                        span_matched = true;
                         if !match_indices.iter().any(|(i, _)| *i == idx) {
                             let rel_s = s.saturating_sub(l_start).min(line.len());
                             let rel_e = e.saturating_sub(l_start).min(line.len());
                             match_indices.push((idx, vec![(rel_s, rel_e)]));
-                            matched_count += 1;
-                            file_submatch_count += 1;
                         }
                     }
+                }
+                if span_matched {
+                    matched_count += 1;
+                    file_submatch_count += 1;
                 }
             }
         } else {
@@ -2214,6 +2276,7 @@ enum FindPred {
     Newer(u64),
     Prune,
     Print { null_delim: bool },
+    Printf(String),
     Group(Box<FindPred>),
     Not(Box<FindPred>),
     And(Box<FindPred>, Box<FindPred>),
@@ -2298,6 +2361,21 @@ fn eval_find_pred(
         }
         FindPred::Print { null_delim } => {
             printed.push((disp_path.to_string(), *null_delim));
+            true
+        }
+        FindPred::Printf(fmt) => {
+            let base = basename_posix_path(disp_path);
+            let dir = crate::vfs::dirname_posix_path(disp_path);
+            let sz = fs.stat(full_path).map(|st| st.size).unwrap_or(0);
+            let rendered = fmt
+                .replace("%f", &base)
+                .replace("%p", disp_path)
+                .replace("%h", &dir)
+                .replace("%s", &sz.to_string())
+                .replace("\\n", "\n")
+                .replace("\\t", "\t");
+            let trimmed = rendered.strip_suffix('\n').unwrap_or(&rendered);
+            printed.push((trimmed.to_string(), false));
             true
         }
         FindPred::Group(inner) => {
@@ -2418,6 +2496,16 @@ where
                     &mut pending_or,
                 );
                 idx += 1;
+            }
+            "-printf" if idx + 1 < args.len() => {
+                explicit_print = true;
+                combine_pred(
+                    &mut pred,
+                    FindPred::Printf(args[idx + 1].clone()),
+                    &mut pending_not,
+                    &mut pending_or,
+                );
+                idx += 2;
             }
             "-print0" => {
                 print0 = true;

@@ -103,6 +103,11 @@ const PURE_RUST_SUITE_FILES = [
   "rg-grep-fd-find-search-traversal-matrix.test.ts",
   "text-columns-sort-uniq-join-cut-paste-comm-tr-matrix.test.ts",
   "search-find-xargs-refactor.test.ts",
+  "search-rg-grep-fd-find-tree-du-stat-file-glob-ignore-matrix.test.ts",
+  "diff-patch-merge-workflows.test.ts",
+  "diff-patch-diff3-apply-patch-merge-conflict-matrix.test.ts",
+  "diff-patch-diff3-apply-patch-workflow-matrix.test.ts",
+  "text-processing-awk-sed.test.ts",
   "benchmark-suite.test.ts",
 ];
 

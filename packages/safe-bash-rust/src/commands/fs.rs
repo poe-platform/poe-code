@@ -489,25 +489,117 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     }
 }
 
+fn resolve_canonical_target(p: &str, fs: &dyn SafeBashFs) -> String {
+    if let Ok(link_t) = fs.readlink(p) {
+        let parent = crate::vfs::dirname_posix_path(p);
+        resolve_posix_path(&parent, &link_t)
+    } else {
+        p.to_string()
+    }
+}
+
+fn relative_posix_path(base: &str, target: &str) -> String {
+    let b_parts: Vec<&str> = base.split('/').filter(|s| !s.is_empty()).collect();
+    let t_parts: Vec<&str> = target.split('/').filter(|s| !s.is_empty()).collect();
+    let mut common = 0usize;
+    while common < b_parts.len() && common < t_parts.len() && b_parts[common] == t_parts[common] {
+        common += 1;
+    }
+    let mut rel = vec![".."; b_parts.len() - common];
+    for &p in &t_parts[common..] {
+        rel.push(p);
+    }
+    if rel.is_empty() {
+        ".".to_string()
+    } else {
+        rel.join("/")
+    }
+}
+
 fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut out = String::new();
-    for a in args {
-        if a.starts_with('-') {
-            continue;
-        }
-        let p = resolve_posix_path(cwd, a);
-        if let Ok(link_t) = fs.readlink(&p) {
-            let parent = crate::vfs::dirname_posix_path(&p);
-            out.push_str(&format!("{}\n", resolve_posix_path(&parent, &link_t)));
+    let mut rel_to: Option<String> = None;
+    let mut targets = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if let Some(r) = a.strip_prefix("--relative-to=") {
+            rel_to = Some(r.to_string());
+            i += 1;
+        } else if a == "--relative-to" && i + 1 < args.len() {
+            rel_to = Some(args[i + 1].clone());
+            i += 2;
+        } else if !a.starts_with('-') {
+            targets.push(a.clone());
+            i += 1;
         } else {
-            out.push_str(&format!("{p}\n"));
+            i += 1;
+        }
+    }
+    let base_resolved = rel_to.map(|b| resolve_canonical_target(&resolve_posix_path(cwd, &b), fs));
+    let mut out = String::new();
+    for a in targets {
+        let p = resolve_posix_path(cwd, &a);
+        let resolved = resolve_canonical_target(&p, fs);
+        if let Some(ref base) = base_resolved {
+            out.push_str(&format!("{}\n", relative_posix_path(base, &resolved)));
+        } else {
+            out.push_str(&format!("{resolved}\n"));
         }
     }
     ok_out(&out)
 }
 
-fn apply_chmod_recursive(path: &str, mode: u32, recursive: bool, fs: &dyn SafeBashFs) -> Result<(), String> {
-    fs.chmod(path, mode)?;
+fn eval_chmod_mode(spec: &str, current: u32) -> u32 {
+    if let Ok(oct) = u32::from_str_radix(spec, 8) {
+        return oct;
+    }
+    let mut mode = current & 0o7777;
+    for clause in spec.split(',') {
+        let mut chars = clause.chars().peekable();
+        let mut who_mask = 0u32;
+        while let Some(&c) = chars.peek() {
+            match c {
+                'u' => { who_mask |= 0o700; chars.next(); }
+                'g' => { who_mask |= 0o070; chars.next(); }
+                'o' => { who_mask |= 0o007; chars.next(); }
+                'a' => { who_mask |= 0o777; chars.next(); }
+                _ => break,
+            }
+        }
+        if who_mask == 0 {
+            who_mask = 0o777;
+        }
+        while let Some(op) = chars.next() {
+            if !matches!(op, '+' | '-' | '=') {
+                break;
+            }
+            let mut perm_bits = 0u32;
+            while let Some(&p) = chars.peek() {
+                match p {
+                    'r' => { perm_bits |= 0o444; chars.next(); }
+                    'w' => { perm_bits |= 0o222; chars.next(); }
+                    'x' | 'X' => { perm_bits |= 0o111; chars.next(); }
+                    _ => break,
+                }
+            }
+            let masked = perm_bits & who_mask;
+            match op {
+                '+' => mode |= masked,
+                '-' => mode &= !masked,
+                '=' => {
+                    mode = (mode & !who_mask) | masked;
+                }
+                _ => {}
+            }
+        }
+    }
+    mode
+}
+
+fn apply_chmod_recursive(path: &str, mode_spec: &str, recursive: bool, fs: &dyn SafeBashFs) -> Result<(), String> {
+    let cur = fs.stat(path).map(|st| st.mode).unwrap_or(0o644);
+    let new_mode = eval_chmod_mode(mode_spec, cur);
+    fs.chmod(path, new_mode)?;
     if recursive && fs.is_dir(path) {
         for name in fs.list_dir(path)? {
             let child = if path == "/" {
@@ -515,7 +607,7 @@ fn apply_chmod_recursive(path: &str, mode: u32, recursive: bool, fs: &dyn SafeBa
             } else {
                 format!("{path}/{name}")
             };
-            apply_chmod_recursive(&child, mode, true, fs)?;
+            apply_chmod_recursive(&child, mode_spec, true, fs)?;
         }
     }
     Ok(())
@@ -539,12 +631,11 @@ fn cmd_chmod(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
         };
     }
     let mode_str = &positional[0];
-    let mode = u32::from_str_radix(mode_str, 8).unwrap_or(0o755);
     let mut stderr = String::new();
     let mut code = 0;
     for t in &positional[1..] {
         let p = resolve_posix_path(cwd, t);
-        if let Err(e) = apply_chmod_recursive(&p, mode, recursive, fs) {
+        if let Err(e) = apply_chmod_recursive(&p, mode_str, recursive, fs) {
             stderr.push_str(&format!("chmod: {t}: {e}\n"));
             code = 1;
         }
@@ -620,7 +711,11 @@ fn cmd_stat(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     }
 }
 
-fn dir_bytes(path: &str, fs: &dyn SafeBashFs) -> usize {
+fn dir_bytes(path: &str, excludes: &[String], fs: &dyn SafeBashFs) -> usize {
+    let base = basename_posix_path(path);
+    if excludes.iter().any(|ex| crate::shell::expand::glob_match(ex, &base) || crate::shell::expand::glob_match(ex, path)) {
+        return 0;
+    }
     if fs.is_dir(path) {
         let mut sum = 0usize;
         for name in fs.list_dir(path).unwrap_or_default() {
@@ -629,7 +724,7 @@ fn dir_bytes(path: &str, fs: &dyn SafeBashFs) -> usize {
             } else {
                 format!("{path}/{name}")
             };
-            sum += dir_bytes(&child, fs);
+            sum += dir_bytes(&child, excludes, fs);
         }
         sum
     } else {
@@ -639,12 +734,25 @@ fn dir_bytes(path: &str, fs: &dyn SafeBashFs) -> usize {
 
 fn cmd_du(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut bytes_mode = false;
+    let mut excludes = Vec::new();
     let mut targets = Vec::new();
-    for a in args {
-        if a.contains('b') {
-            bytes_mode = true;
-        } else if !a.starts_with('-') {
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if let Some(ex) = a.strip_prefix("--exclude=") {
+            excludes.push(ex.to_string());
+            i += 1;
+        } else if a == "--exclude" && i + 1 < args.len() {
+            excludes.push(args[i + 1].clone());
+            i += 2;
+        } else if a.starts_with('-') {
+            if a.contains('b') {
+                bytes_mode = true;
+            }
+            i += 1;
+        } else {
             targets.push(a.clone());
+            i += 1;
         }
     }
     if targets.is_empty() {
@@ -653,7 +761,7 @@ fn cmd_du(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut out = String::new();
     for t in targets {
         let p = resolve_posix_path(cwd, &t);
-        let b = dir_bytes(&p, fs);
+        let b = dir_bytes(&p, &excludes, fs);
         let val = if bytes_mode { b } else { b.div_ceil(1024).max(1) };
         out.push_str(&format!("{val}\t{t}\n"));
     }
@@ -665,8 +773,51 @@ fn cmd_df() -> BuiltinOutcome {
 }
 
 fn cmd_mktemp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let is_dir = args.iter().any(|a| a == "-d");
-    let path = normalize_posix_path(&format!("{cwd}/tmp.safebash001"));
+    let mut is_dir = false;
+    let mut parent_dir = "/tmp".to_string();
+    let mut template: Option<String> = None;
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if a == "-d" {
+            is_dir = true;
+            i += 1;
+        } else if a == "-p" && i + 1 < args.len() {
+            parent_dir = args[i + 1].clone();
+            i += 2;
+        } else if let Some(p) = a.strip_prefix("--tmpdir=") {
+            parent_dir = p.to_string();
+            i += 1;
+        } else if !a.starts_with('-') {
+            template = Some(a.clone());
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    let tpl = template.unwrap_or_else(|| "tmp.XXXXXX".to_string());
+    let base_dir = resolve_posix_path(cwd, &parent_dir);
+    let _ = fs.mkdir_all(&base_dir);
+    let mut path = String::new();
+    for seq in 1..10000usize {
+        let suffix = format!("{seq:06}");
+        let name = if tpl.contains("XXXXXX") {
+            tpl.replacen("XXXXXX", &suffix, 1)
+        } else if tpl.contains("XXX") {
+            tpl.replacen("XXX", &suffix[3..], 1)
+        } else {
+            format!("{tpl}.{suffix}")
+        };
+        let cand = if name.starts_with('/') {
+            normalize_posix_path(&name)
+        } else {
+            normalize_posix_path(&format!("{base_dir}/{name}"))
+        };
+        if !fs.exists(&cand) {
+            path = cand;
+            break;
+        }
+    }
     if is_dir {
         let _ = fs.mkdir_all(&path);
     } else {
@@ -675,17 +826,126 @@ fn cmd_mktemp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome
     ok_out(&format!("{path}\n"))
 }
 
+fn build_tree_json(
+    full: &str,
+    name: &str,
+    depth: usize,
+    max_depth: Option<usize>,
+    show_all: bool,
+    dirs_only: bool,
+    ignore_pat: Option<&str>,
+    match_pat: Option<&str>,
+    fs: &dyn SafeBashFs,
+    dir_count: &mut usize,
+    file_count: &mut usize,
+) -> String {
+    if let Some(md) = max_depth && depth >= md {
+        return format!("{{\"type\":\"directory\",\"name\":\"{name}\",\"contents\":[]}}");
+    }
+    let mut names = fs.list_dir(full).unwrap_or_default();
+    names.sort();
+    let mut items = Vec::new();
+    for n in names {
+        if !show_all && n.starts_with('.') {
+            continue;
+        }
+        if let Some(ig) = ignore_pat && crate::shell::expand::glob_match(ig, &n) {
+            continue;
+        }
+        let child = if full == "/" { format!("/{n}") } else { format!("{full}/{n}") };
+        if fs.is_dir(&child) {
+            *dir_count += 1;
+            items.push(build_tree_json(
+                &child,
+                &n,
+                depth + 1,
+                max_depth,
+                show_all,
+                dirs_only,
+                ignore_pat,
+                match_pat,
+                fs,
+                dir_count,
+                file_count,
+            ));
+        } else if !dirs_only {
+            if let Some(mp) = match_pat && !crate::shell::expand::glob_match(mp, &n) {
+                continue;
+            }
+            *file_count += 1;
+            items.push(format!("{{\"type\":\"file\",\"name\":\"{n}\"}}"));
+        }
+    }
+    format!("{{\"type\":\"directory\",\"name\":\"{name}\",\"contents\":[{}]}}", items.join(","))
+}
+
 fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let target = args
-        .iter()
-        .find(|a| !a.starts_with('-'))
-        .map(|s| s.as_str())
-        .unwrap_or(".");
-    let root = resolve_posix_path(cwd, target);
+    let mut json_mode = false;
+    let mut show_all = false;
+    let mut dirs_only = false;
+    let mut max_depth: Option<usize> = None;
+    let mut ignore_pat: Option<String> = None;
+    let mut match_pat: Option<String> = None;
+    let mut target = ".".to_string();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if a == "-J" {
+            json_mode = true;
+            i += 1;
+        } else if a == "-a" {
+            show_all = true;
+            i += 1;
+        } else if a == "-d" {
+            dirs_only = true;
+            i += 1;
+        } else if a == "-L" && i + 1 < args.len() {
+            max_depth = args[i + 1].parse().ok();
+            i += 2;
+        } else if a == "-I" && i + 1 < args.len() {
+            ignore_pat = Some(args[i + 1].clone());
+            i += 2;
+        } else if a == "-P" && i + 1 < args.len() {
+            match_pat = Some(args[i + 1].clone());
+            i += 2;
+        } else if !a.starts_with('-') {
+            target = a.clone();
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+    let root = resolve_posix_path(cwd, &target);
+    if json_mode {
+        let mut dir_count = 1usize;
+        let mut file_count = 0usize;
+        let tree_obj = build_tree_json(
+            &root,
+            &target,
+            0,
+            max_depth,
+            show_all,
+            dirs_only,
+            ignore_pat.as_deref(),
+            match_pat.as_deref(),
+            fs,
+            &mut dir_count,
+            &mut file_count,
+        );
+        return ok_out(&format!(
+            "[{tree_obj},{{\"type\":\"report\",\"directories\":{dir_count},\"files\":{file_count}}}]\n"
+        ));
+    }
     let mut out = format!("{target}\n");
     if let Ok(mut names) = fs.list_dir(&root) {
         names.sort();
         for n in names {
+            if !show_all && n.starts_with('.') {
+                continue;
+            }
+            if let Some(ref ig) = ignore_pat && crate::shell::expand::glob_match(ig, &n) {
+                continue;
+            }
             out.push_str(&format!("|-- {n}\n"));
         }
     }
@@ -712,10 +972,18 @@ fn cmd_file(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 if mime { "application/gzip" } else { "gzip compressed data" }
             } else if data.starts_with(b"PK\x03\x04") {
                 if mime { "application/zip" } else { "Zip archive data" }
+            } else if data.starts_with(b"#!") {
+                if mime { "text/x-shellscript" } else { "POSIX shell script, ASCII text executable" }
+            } else if data.starts_with(b"<?xml") || data.starts_with(b"<svg") {
+                if mime { "text/xml" } else { "XML 1.0 document, ASCII text" }
+            } else if data.starts_with(b"{") || data.starts_with(b"[") {
+                if mime { "application/json" } else { "JSON text data" }
             } else if data.is_empty() {
                 if mime { "inode/x-empty" } else { "empty" }
+            } else if mime {
+                "text/plain"
             } else {
-                if mime { "text/plain" } else { "ASCII text" }
+                "ASCII text"
             }
         } else {
             "cannot open"

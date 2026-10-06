@@ -2060,6 +2060,7 @@ impl<'a> EvalState<'a> {
         let mut type_only = false;
         let mut path_only = false;
         let mut silent = false;
+        let mut show_all = false;
         let mut targets = Vec::new();
         for a in args {
             if a.starts_with('-') && a.len() > 1 {
@@ -2068,6 +2069,7 @@ impl<'a> EvalState<'a> {
                         't' => type_only = true,
                         'P' | 'p' => path_only = true,
                         's' => silent = true,
+                        'a' => show_all = true,
                         _ => {}
                     }
                 }
@@ -2079,6 +2081,37 @@ impl<'a> EvalState<'a> {
         let mut all_found = !targets.is_empty();
         for t in targets {
             if invoked == "which" {
+                if show_all && !t.contains('/') {
+                    let path_env = self
+                        .env
+                        .get("PATH")
+                        .cloned()
+                        .unwrap_or_else(|| "/usr/local/bin:/usr/bin:/bin".to_string());
+                    let mut matches = Vec::new();
+                    for dir in path_env.split(':') {
+                        if dir.is_empty() {
+                            continue;
+                        }
+                        let cand = resolve_posix_path(self.cwd, &format!("{dir}/{t}"));
+                        if self.fs.exists(&cand) && !self.fs.is_dir(&cand) {
+                            matches.push(cand);
+                        }
+                    }
+                    if matches.is_empty()
+                        && (crate::commands::search::is_known_command(t)
+                            || self.custom_commands.contains_key(t))
+                    {
+                        matches.push(format!("/usr/bin/{t}"));
+                    }
+                    if matches.is_empty() {
+                        all_found = false;
+                    } else if !silent {
+                        for m in matches {
+                            out.push_str(&format!("{m}\n"));
+                        }
+                    }
+                    continue;
+                }
                 if let Some(vfs_p) = self.resolve_vfs_executable(t) {
                     if !silent {
                         out.push_str(&format!("{vfs_p}\n"));

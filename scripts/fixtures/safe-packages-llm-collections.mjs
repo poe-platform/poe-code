@@ -2,7 +2,7 @@ import { S3FileSystem, MockS3Client } from "@poe-platform/safe-fs/fs/s3";
 import { MemoryFileSystem, createMountFileSystem, createOverlayFileSystem } from "@poe-platform/safe-fs/core";
 import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries, withEmbeddingFileGlob } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
-import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs, singleByteFileInputs, multibyteFileInputs, iso2022FileInputs } from "./safe-packages-llm-collections-reference.mjs";
+import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs, singleByteFileInputs, multibyteFileInputs, iso2022FileInputs, utf7FileInputs } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
 import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
 
@@ -71,7 +71,7 @@ export async function verifyLlmCollections() {
   });
   if(signatureRows!==1)throw new Error('Incomplete signature did not yield an empty row');
   await globFs.unlink('/signature');
-  for(const fixture of [...singleByteFileInputs,...multibyteFileInputs,...iso2022FileInputs]){
+  for(const fixture of [...singleByteFileInputs,...multibyteFileInputs,...iso2022FileInputs,...utf7FileInputs]){
     await globFs.writeFile('/legacy',Uint8Array.from(atob(fixture.base64),char=>char.charCodeAt(0)));let count=0;
     const options={fs:globFs,directory:'/',signal:new AbortController().signal,encodings:[fixture.encoding]};
     const files={async *[Symbol.asyncIterator](){yield {path:'/legacy',id:'legacy'};}};
@@ -92,6 +92,16 @@ export async function verifyLlmCollections() {
     for await(const entry of entries)throw new Error('Invalid ISO-2022 escape accepted',{cause:entry});
   });
   if(invalidEscapeWarnings!==1||(await globFs.readdir('/')).length!==1)throw new Error('Invalid ISO-2022 escape timing or cleanup changed');
+  await globFs.writeFile('/legacy',new TextEncoder().encode('+2AA-'));
+  for(const encodings of [['utf7'],['latin-1','utf7'],['utf7','latin-1']]){
+    let text='',failure;
+    try{await withFileEmbeddingEntries({fs:globFs,directory:'/',signal:new AbortController().signal,encodings},{async *[Symbol.asyncIterator](){yield {path:'/legacy',id:'legacy'};}},async entries=>{
+      for await(const entry of entries){const decoder=new TextDecoder();for await(const chunk of entry.input.bytes)text+=decoder.decode(chunk,{stream:true});text+=decoder.decode();}
+    });}catch(error){failure=error;}
+    if(encodings.at(-1)==='utf7'){if(!(failure instanceof TypeError)||failure.message!=='surrogates not allowed'||text)throw new Error('UTF-7 surrogate admission changed');}
+    else if(failure||text!=='+2AA-')throw new Error('UTF-7 encoding override changed');
+    if((await globFs.readdir('/')).length!==1)throw new Error('UTF-7 staging leaked');
+  }
   await globFs.unlink('/legacy');
   for(const [encoding,bytes,expected]of [['utf-16',[255,254,0,216,0,220],'𐀀'],['utf-16-be',[254,255,0,65],'\ufeffA'],['utf-16-le',[255,254,65,0],'\ufeffA'],['utf32',[255,254,0,0,0,0,1,0],'𐀀'],['utf-32-be',[0,0,254,255,0,0,0,65],'\ufeffA'],['utf_32_le',[255,254,0,0,65,0,0,0],'\ufeffA']]){
     await globFs.writeFile('/utf16',Uint8Array.from(bytes));let count=0;

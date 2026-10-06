@@ -1,5 +1,5 @@
 import {FsError,type FileSystem} from 'safe-bash-contracts';
-import {PythonTextDecoder,PythonTextDecodeError,PythonIso2022PendingError} from 'safe-bash-csv-engine/text-decoder';
+import {PythonTextDecoder,PythonTextDecodeError,PythonIso2022PendingError,PythonUtf7EncodingError} from 'safe-bash-csv-engine/text-decoder';
 import {fileSource} from './file-source.js';
 import {createLlmSpool} from './retained-spool.js';
 import {embeddingText} from './embed-input.js';
@@ -27,6 +27,7 @@ export async function withFileEmbeddingEntries<T>(options:LlmFileEmbeddingOption
    signal.throwIfAborted();
    const stat=await fs.stat(file.path,{signal});if(stat.type==='directory')continue;
    const input=await fileSource({fs,path:file.path,signal,maxBytes,expectedStat:stat});
+   let selectedEncodingError:PythonUtf7EncodingError|undefined;
    let raw:Spool|undefined,selected:Spool|undefined,failed=false,retire:(()=>void)|undefined;
    try{
     raw=await createLlmSpool(fs,directory,signal,'input');
@@ -37,7 +38,7 @@ export async function withFileEmbeddingEntries<T>(options:LlmFileEmbeddingOption
     else if(options.binary)selected=await createLlmSpool(fs,directory,signal,'input');
     else for(const encoding of options.encodings?.length?options.encodings:['utf-8','latin-1']){
      const decoder=new PythonTextDecoder(encoding),candidate=await createLlmSpool(fs,directory,signal,'input');
-     let accepted=false,failedAttempt=false;
+     let accepted=false,failedAttempt=false,encodingError:PythonUtf7EncodingError|undefined;
      try{
       const decoded={async *[Symbol.asyncIterator](){
        for await(const bytes of raw!.replay())for(let offset=0;offset<bytes.length;offset+=4096){signal.throwIfAborted();yield encoder.encode(decoder.decode(bytes.subarray(offset,offset+4096),{stream:true}));}
@@ -50,11 +51,17 @@ export async function withFileEmbeddingEntries<T>(options:LlmFileEmbeddingOption
       accepted=true;
      // An ISO-2022 escape longer than the incremental carry cannot be valid;
      // native whole-file decoding reports it as undecodable, not carry overflow.
-     }catch(error){failedAttempt=true;signal.throwIfAborted();if(!(error instanceof PythonTextDecodeError)&&!(error instanceof PythonIso2022PendingError))throw error;failedAttempt=false;}
+     }catch(error){
+      failedAttempt=true;signal.throwIfAborted();
+      if(error instanceof PythonUtf7EncodingError){accepted=true;encodingError=error;}
+      else if(!(error instanceof PythonTextDecodeError)&&!(error instanceof PythonIso2022PendingError))throw error;
+      failedAttempt=false;
+     }
      finally{if(!accepted)try{await candidate.close();}catch(error){if(!failedAttempt)await Promise.reject(error);}}
-     if(accepted){const previous=selected;selected=candidate;await previous?.close();}
+     if(accepted){selectedEncodingError=encodingError;const previous=selected;selected=candidate;await previous?.close();}
     }
     if(!selected){await options.undecodable?.(file.displayPath??file.path);continue;}
+    if(selectedEncodingError)throw selectedEncodingError;
     const retained=selected;let closed=false,consumed=false;retire=()=>{closed=true;};
     yield {id:(options.prefix??'')+file.id,binary,input:{async dispose(){closed=true;await retained.close();},bytes:{async *[Symbol.asyncIterator](){
      if(closed||consumed)throw new FsError('EBADF',{message:'File embedding lease is closed'});consumed=true;

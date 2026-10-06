@@ -290,6 +290,21 @@ _pm.register(_Plugin(), name="fixture")
       iso2022Texts[fixture.encoding]=text;
     }
     await backend.unlink('/work/iso2022.txt');
+    const utf7Results=[];
+    for(const fixture of [
+      {input:'A'.repeat(4095)+'+'+'AGEAYQBh'.repeat(4096)+'-\r\n',encodings:['utf7']},
+      {input:'+2AA-',encodings:['utf7','latin-1']},
+      {input:'+2AA-',encodings:['utf7']},
+      {input:'+2AA-+A-',encodings:['utf7']}
+    ]){
+      await backend.writeFile('/work/utf7.txt',new TextEncoder().encode(fixture.input));
+      const result={text:'',error:null,warnings:0};
+      try{await withFileEmbeddingEntries({fs:backend,directory:'/work',signal:new AbortController().signal,encodings:fixture.encodings,undecodable(){result.warnings++;}},{async *[Symbol.asyncIterator](){yield {path:'/work/utf7.txt',id:'utf7'};}},async entries=>{
+        for await(const entry of entries){const decoder=new TextDecoder();for await(const chunk of entry.input.bytes)result.text+=decoder.decode(chunk,{stream:true});result.text+=decoder.decode();}
+      });}catch(error){result.error=error.message;}
+      utf7Results.push(result);
+    }
+    await backend.unlink('/work/utf7.txt');
     const missingTemplateAtPrompt = await shell.exec("llm chat -t missing <<'EOF'\nhello\nEOF");
     const missingTemplateAtEof = await shell.exec('llm chat -t missing');
     wireRun = true;
@@ -309,7 +324,7 @@ _pm.register(_Plugin(), name="fixture")
     let preparationCancelled = false;
     try {await shell.exec('llm hello --async --functions toolbox.py -T "Counter(-1)"',{signal:cancellation.signal});}
     catch(error) {preparationCancelled = error === cancellation.signal.reason;}
-    return {iso2022Texts,hzText,missingTemplateAtPrompt,missingTemplateAtEof,invalidChatOptions,snapshotChatOptions,explicitChatOptions,optionCalls,missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
+    return {utf7Results,iso2022Texts,hzText,missingTemplateAtPrompt,missingTemplateAtEof,invalidChatOptions,snapshotChatOptions,explicitChatOptions,optionCalls,missingChatModel,chatSuggestion,eagerChatHelp,invalidChatEnvironment,wireChat,chatWire,missingChatFragment,initialStdinChatFragment,stdinChatFragment,chatPrompts,chat,freshChat,editedChat,plugins,pluginTools,missingPlugins,listing,serial,concurrent,defaultTool,unknownTool,brokenFunction,toolboxListing,toolboxSerial,toolboxAsync,cancelled,preparationCancelled,retained:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-'))};
   } finally {await shell.dispose();}
 }
 

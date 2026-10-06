@@ -217,3 +217,30 @@ test('ISO-2022 whole-file malformed escapes remain skippable at chunk boundaries
  assert.deepEqual(warnings,['/invalid']);
  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['invalid']);
 });
+
+test('UTF-7 validates only the last successful encoding before UTF8 materialization',async()=>{
+ const fs=new MemoryFileSystem();
+ await fs.writeFile('/utf7',new TextEncoder().encode('+2AA-'));
+ for(const encodings of [['utf7'],['latin-1','utf7'],['utf7','latin-1']]){
+  const values:string[]=[];
+  const run=()=>withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings},{async *[Symbol.asyncIterator](){yield {path:'/utf7',id:'one'};}},async entries=>{
+   for await(const entry of entries){let text='';const decoder=new TextDecoder();for await(const bytes of entry.input.bytes)text+=decoder.decode(bytes,{stream:true});values.push(text+decoder.decode());}
+  });
+  if(encodings.at(-1)==='utf7')await assert.rejects(run(),/surrogates not allowed/);else{await run();assert.deepEqual(values,['+2AA-']);}
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['utf7']);
+ }
+});
+
+test('UTF-7 long shifts and late failures use caller staging with native newline conversion',async()=>{
+ const fs=new MemoryFileSystem();
+ for(const suffix of ['-\r\n','-+2AA-+A-']){
+  await fs.writeFile('/utf7',new TextEncoder().encode('A'.repeat(4095)+'+'+'AGEAYQBh'.repeat(4096)+suffix));
+  const values:string[]=[],warnings:string[]=[];
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:['utf-7'],undecodable(path){warnings.push(path);}},{async *[Symbol.asyncIterator](){yield {path:'/utf7',id:'one'};}},async entries=>{
+   for await(const entry of entries){let text='';const decoder=new TextDecoder();for await(const bytes of entry.input.bytes)text+=decoder.decode(bytes,{stream:true});values.push(text+decoder.decode());}
+  });
+  assert.deepEqual(values,suffix==='-\r\n'?['A'.repeat(4095)+'a'.repeat(12288)+'\n']:[]);
+  assert.deepEqual(warnings,suffix==='-\r\n'?[]:['/utf7']);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['utf7']);
+ }
+});

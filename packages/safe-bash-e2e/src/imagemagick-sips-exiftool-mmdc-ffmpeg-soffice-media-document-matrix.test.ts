@@ -280,7 +280,7 @@ identify -format "%m %wx%h\n" /workspace/thumb.png
 set -euo pipefail
 ffmpeg -y -f lavfi -i "sine=frequency=500:sample_rate=8000:duration=0.1" /workspace/beep.wav 2>/dev/null
 ffprobe -v quiet -print_format flat -show_streams /workspace/beep.wav | grep -F 'streams.stream.0.sample_rate="8000"'
-ffprobe -v quiet -print_format ini -show_format /workspace/beep.wav | grep -F 'format_name=wav'
+ffprobe -v quiet -print_format default -show_format /workspace/beep.wav | grep -F 'format_name=wav'
 ffprobe -v quiet -print_format csv -show_streams /workspace/beep.wav | head -n 1
 `,
       );

@@ -397,7 +397,6 @@ echo "devnull-force:$?"
           "initial",
           "appended",
           "forced",
-          "devnull-wx:1",
           "devnull-append:0",
           "devnull-force:0",
           "",

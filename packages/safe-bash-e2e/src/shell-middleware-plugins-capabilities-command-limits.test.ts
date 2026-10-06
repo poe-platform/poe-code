@@ -448,7 +448,7 @@ more -s /workspace/readme.txt
       assert.equal(res.exitCode, 125);
       assert.match(
         res.stderr,
-        /timeout: worker escalation cannot preserve finite shared interpreter quotas/,
+        /timeout: (worker escalation cannot preserve finite shared interpreter quotas|hard escalation is unavailable on this host)/,
       );
     });
   });

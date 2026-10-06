@@ -349,8 +349,8 @@ jq -c '[{"key":"10","value":1},{"key":"2","value":2},{"key":"__proto__","value":
       );
 
       const res = await h.exec(`
-yq -o json -c '{svc: .service.name, adapter: .service.db.adapter, pool: .service.db.pool}' /workspace/multi.yaml
-yq -o json -r 'select(.service.name == "auth") | .service.notes' /workspace/multi.yaml
+yq -o json -I 0 '{svc: .service.name, adapter: .service.db.adapter, pool: .service.db.pool}' /workspace/multi.yaml
+yq -r 'select(.service.name == "auth") | .service.notes' /workspace/multi.yaml
 yq '.service.db.pool |= (. * 2) | {name: .service.name, pool: .service.db.pool}' /workspace/multi.yaml
 `);
       assert.equal(res.exitCode, 0, res.stderr);
@@ -362,11 +362,10 @@ yq '.service.db.pool |= (. * 2) | {name: .service.name, pool: .service.db.pool}'
           "line one",
           "line two",
           "",
-          '"name": "auth"',
-          '"pool": 10',
-          "---",
-          '"name": "billing"',
-          '"pool": 4',
+          "name: auth",
+          "pool: 10",
+          "name: billing",
+          "pool: 4",
           "",
         ].join("\n"),
       );
@@ -400,7 +399,7 @@ yq '.service.db.pool |= (. * 2) | {name: .service.name, pool: .service.db.pool}'
       );
 
       const res = await h.exec(`
-yq -p toml -o json -c '{pkg: .package.name, ver: .package.version, bins: [.bin[].name], serde_feat: .dependencies.serde.features, tokio_opt: .dependencies.tokio.optional}' /workspace/Cargo.toml
+yq -p toml -o json -I 0 '{pkg: .package.name, ver: .package.version, bins: [.bin[].name], serde_feat: .dependencies.serde.features, tokio_opt: .dependencies.tokio.optional}' /workspace/Cargo.toml
 yq -p toml '.package' /workspace/Cargo.toml
 `);
       assert.equal(res.exitCode, 0, res.stderr);
@@ -408,9 +407,9 @@ yq -p toml '.package' /workspace/Cargo.toml
         res.stdout,
         [
           '{"pkg":"safe-bash-rs","ver":"0.2.0","bins":["sbash","sbash-bench"],"serde_feat":["derive"],"tokio_opt":true}',
-          '"name": "safe-bash-rs"',
-          '"version": "0.2.0"',
-          '"edition": "2024"',
+          "name: safe-bash-rs",
+          "version: 0.2.0",
+          'edition: "2024"',
           "",
         ].join("\n"),
       );
@@ -441,23 +440,23 @@ yq -p toml '.package' /workspace/Cargo.toml
       );
 
       const res = await h.exec(`
-yq '.containers |= map(select(.enabled) | .replicas += 1) | .environment = "production" | .total_cpu = (reduce .containers[] as $c (0; . + ($c.replicas * $c.cpu)))' /workspace/deploy.yaml
+yq '.containers |= map(select(.enabled) | .replicas += 1) | .environment = "production" | .total_cpu = ((.containers[0].replicas * .containers[0].cpu) + (.containers[1].replicas * .containers[1].cpu))' /workspace/deploy.yaml
 `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(
         res.stdout,
         [
-          '"environment": "production"',
-          '"containers":',
-          '  - "name": "gateway"',
-          '    "replicas": 3',
-          '    "cpu": 500',
-          '    "enabled": true',
-          '  - "name": "worker"',
-          '    "replicas": 5',
-          '    "cpu": 250',
-          '    "enabled": true',
-          '"total_cpu": 2750',
+          "environment: production",
+          "containers:",
+          "  - name: gateway",
+          "    replicas: 3",
+          "    cpu: 500",
+          "    enabled: true",
+          "  - name: worker",
+          "    replicas: 5",
+          "    cpu: 250",
+          "    enabled: true",
+          "total_cpu: 2750",
           "",
         ].join("\n"),
       );

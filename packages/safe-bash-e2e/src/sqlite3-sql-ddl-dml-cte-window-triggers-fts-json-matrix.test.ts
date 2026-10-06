@@ -430,7 +430,7 @@ INSERT INTO docs VALUES
 
 SELECT id, title, REPLACE(title, 'Rust', '[Rust]') AS hi
 FROM docs
-WHERE title MATCH '^Rust' AND body GLOB '*Rust*' OR (title LIKE 'Rust%' AND id = 1)
+WHERE title REGEXP '^Rust' AND body GLOB '*Rust*' OR (title LIKE 'Rust%' AND id = 1)
 ORDER BY id;
 SQL`,
       );

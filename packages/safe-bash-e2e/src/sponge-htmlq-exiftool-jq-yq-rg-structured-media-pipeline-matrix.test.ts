@@ -205,7 +205,7 @@ describe("sponge, htmlq, exiftool, jq, yq, and rg structured & media pipeline ma
 
       const r = await h.exec(`
         yq -o yaml '.replicas = 5 | .env.LOG_LEVEL = "warn" | .env.REGION = "us-east-1"' deploy.yaml | sponge deploy.yaml
-        yq -o json -c '.' deploy.yaml
+        yq -o json -I 0 '.' deploy.yaml
       `);
       assert.equal(r.exitCode, 0, r.stderr);
       assert.equal(
@@ -223,7 +223,7 @@ describe("sponge, htmlq, exiftool, jq, yq, and rg structured & media pipeline ma
       );
 
       const r = await h.exec(`
-        yq -p toml -o json -c '.package' Cargo.toml
+        yq -p toml -o json -I 0 '.package' Cargo.toml
       `);
       assert.equal(r.exitCode, 0, r.stderr);
       assert.equal(
@@ -324,12 +324,12 @@ describe("sponge, htmlq, exiftool, jq, yq, and rg structured & media pipeline ma
         g=$(xmllint --xpath 'string(/project/groupId)' pom.xml)
         a=$(xmllint --xpath 'string(/project/artifactId)' pom.xml)
         v=$(xmllint --xpath 'string(/project/version)' pom.xml)
-        jq -n --arg g "$g" --arg a "$a" --arg v "$v" '{group:$g, artifact:$a, version:$v}' | yq -o yaml '.'
+        jq -n --arg g "$g" --arg a "$a" --arg v "$v" '{group:$g, artifact:$a, version:$v}' | yq -P '.'
       `);
       assert.equal(r.exitCode, 0, r.stderr);
       assert.equal(
         r.stdout,
-        "\"group\": \"com.example\"\n\"artifact\": \"demo-engine\"\n\"version\": \"3.1.4\"\n",
+        "group: com.example\nartifact: demo-engine\nversion: 3.1.4\n",
       );
     });
   });

@@ -13,10 +13,10 @@ describe("POSIX system, environment, and file inspection matrix (cal, pathchk, g
         cal -j 1 2026
       `);
       assert.equal(r.exitCode, 0, r.stderr);
-      assert.match(r.stdout, /September 1752\nSu Mo Tu We Th Fr Sa\n {7}1 {2}2 14 15 16/);
-      assert.match(r.stdout, /February 2024\nMo Tu We Th Fr Sa Su\n {10}1 {2}2 {2}3 {2}4/);
+      assert.match(r.stdout, /September 1752\s*\nSu Mo Tu We Th Fr Sa\s*\n {7}1 {2}2 14 15 16/);
+      assert.match(r.stdout, /February 2024\s*\nMo Tu We Th Fr Sa Su\s*\n {10}1 {2}2 {2}3 {2}4/);
       assert.match(r.stdout, /25 26 27 28 29/);
-      assert.match(r.stdout, /January 2026\nSun Mon Tue Wed Thu Fri Sat\n {18}1 {3}2 {3}3/);
+      assert.match(r.stdout, /January 2026\s*\n Su  Mo  Tu  We  Th  Fr  Sa\s*\n {18}1 {3}2 {3}3/);
     });
   });
 
@@ -32,7 +32,7 @@ describe("POSIX system, environment, and file inspection matrix (cal, pathchk, g
       assert.equal(r.exitCode, 0, r.stderr);
       assert.match(r.stdout, /January 2024/);
       assert.match(r.stdout, /May 2026\s+June 2026\s+July 2026/);
-      assert.match(r.stdout, /October 2026\nSu Mo Tu We Th Fr Sa/);
+      assert.match(r.stdout, /October 2026\s*\nSu Mo Tu We Th Fr Sa/);
     });
   });
 

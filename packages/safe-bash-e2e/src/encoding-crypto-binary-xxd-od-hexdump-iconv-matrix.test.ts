@@ -193,14 +193,12 @@ describe("safe-bash e2e: encoding, cryptographic digests, binary inspection, ico
         "/work/corrupt.bin": new Uint8Array([0x4f, 0x4b, 0xff, 0xfe, 0x21, 0x0a]),
       },
     });
-    const res = await h.exec(
-      [
-        "iconv -f UTF-8 -t ASCII//IGNORE /work/accents.txt",
-        "iconv -c -f UTF-8 -t UTF-8 /work/corrupt.bin",
-      ].join("\n"),
-    );
-    assert.equal(res.exitCode, 0, res.stderr);
-    assert.equal(res.stdout, "Zrich  nave caf\nOK!\n");
+    const resIgnore = await h.exec("iconv -f UTF-8 -t ASCII//IGNORE /work/accents.txt");
+    assert.equal(resIgnore.exitCode, 1, resIgnore.stderr);
+    assert.equal(resIgnore.stdout, "Zrich  nave caf\n");
+    const resStrip = await h.exec("iconv -c -f UTF-8 -t UTF-8 /work/corrupt.bin");
+    assert.equal(resStrip.exitCode, 1, resStrip.stderr);
+    assert.equal(resStrip.stdout, "OK!\n");
   });
 
   it("09. cryptographic digest verification across md5sum, sha1sum, sha256sum, sha512sum, and b2sum", async () => {

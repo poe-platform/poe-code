@@ -80,11 +80,11 @@ describe("xan and csvkit tabular analytics, column expressions, slicing, joins, 
       assert.equal(fileRes.exitCode, 0);
       assert.equal(fileRes.stdout, "unit_price\n3\n2\n");
 
-      const rejected = await h.exec(
+      const exprRes = await h.exec(
         "xan select -e 'qty * unit_price' /workspace/orders.csv",
       );
-      assert.equal(rejected.exitCode, 1);
-      assert.match(rejected.stderr, /unsupported in bounded CSV profile: expression syntax/);
+      assert.equal(exprRes.exitCode, 0);
+      assert.equal(exprRes.stdout, "qty * unit_price\n30\n50\n");
     });
   });
 
@@ -310,14 +310,14 @@ describe("xan and csvkit tabular analytics, column expressions, slicing, joins, 
       const csvsqlQuery = await h.exec(
         "csvsql --query 'SELECT * FROM events' /workspace/events.csv",
       );
-      assert.equal(csvsqlQuery.exitCode, 78);
-      assert.match(csvsqlQuery.stderr, /database capability sqlite/);
+      assert.equal(csvsqlQuery.exitCode, 0, csvsqlQuery.stderr);
+      assert.equal(csvsqlQuery.stdout, "id,kind\n1,login\n");
 
       const sql2csvRes = await h.exec(
-        "sql2csv --db 'sqlite:///:memory:' --query 'SELECT 1'",
+        "sql2csv --db 'sqlite:///:memory:' --query 'SELECT 1 AS ok'",
       );
-      assert.equal(sql2csvRes.exitCode, 78);
-      assert.match(sql2csvRes.stderr, /database capability sqlite/);
+      assert.equal(sql2csvRes.exitCode, 0, sql2csvRes.stderr);
+      assert.equal(sql2csvRes.stdout, "ok\n1\n");
     });
   });
 

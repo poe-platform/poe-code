@@ -623,10 +623,10 @@ SQL
 *** End Patch
 PATCH
       `);
-      assert.notEqual(rMounted.exitCode, 0);
-      assert.match(rMounted.stderr, /operation not supported/);
+      assert.equal(rMounted.exitCode, 0, rMounted.stderr);
+      assert.equal(rMounted.stdout, "Success. Updated the following files:\nM config.ts\n");
       const content = Buffer.from(await pkgFs.readFile("/pkg/config.ts")).toString("utf8");
-      assert.equal(content, 'export const BASE = "v1";\n');
+      assert.equal(content, 'export const BASE = "v2-mounted";\n');
     });
 
     const lower = createMemoryFileSystem();

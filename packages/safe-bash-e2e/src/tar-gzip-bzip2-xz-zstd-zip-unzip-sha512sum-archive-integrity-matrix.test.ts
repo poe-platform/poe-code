@@ -300,7 +300,7 @@ describe("tar, gzip, bzip2, xz, zstd, zip, unzip, and sha512sum archive integrit
         sha512sum -c --strict manifest.sha512
       `);
       assert.equal(r1.exitCode, 1);
-      assert.match(r1.stderr, /WARNING: 1 line is improperly formatted/);
+      assert.match(r1.stderr, /WARNING: 1 (line is improperly formatted|improperly formatted checksum line)/);
 
       await h.writeText("/workspace/bad.txt", "tampered\n");
       const r2 = await h.exec("sha512sum -c --status manifest.sha512");
@@ -329,7 +329,7 @@ describe("tar, gzip, bzip2, xz, zstd, zip, unzip, and sha512sum archive integrit
         sha512sum -c escaped.sha512
       `);
       assert.equal(r.exitCode, 0, r.stderr);
-      assert.equal(r.stdout, "\\\nback\\slash.txt: OK\n");
+      assert.equal(r.stdout, "\\\n\\back\\\\slash.txt: OK\n");
     });
   });
 

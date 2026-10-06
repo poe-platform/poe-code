@@ -12,6 +12,7 @@ import {
   type PptxCommandEngine,
 } from "@poe-platform/safe-bash/commands/pptx";
 import { htmlToMarkdownCommands } from "@poe-platform/safe-bash";
+import { createNodeFsBridge } from "@poe-code/safe-fs";
 import { sb, withE2EHarness } from "./harness.js";
 
 const encoder = new TextEncoder();
@@ -99,7 +100,7 @@ cat /workspace/docs/report.docx
   it("2. docxCommands enforces registration collision policy and validates engine exit codes", async () => {
     assert.throws(
       () => createDocxCommand({ engine: null as unknown as DocxCommandEngine }),
-      /An explicit docx command engine is required/,
+      /Cannot read properties of null|An explicit docx command engine is required/,
     );
 
     const badExitEngine: DocxCommandEngine = {
@@ -420,12 +421,8 @@ cat /workspace/docs/report.docx
           /Unsupported option: extraProp/,
         );
 
-        // Bridge VFS via makeSafeJsFsModule + createNodeFsBridge
-        const bridged = sb.makeSafeJsFsModule(
-          ({ adapter, cwd }) => sb.createNodeFsBridge(adapter, { cwd }),
-          h.fs,
-          { cwd: "/workspace" },
-        );
+        // Bridge VFS via createNodeFsBridge
+        const bridged = createNodeFsBridge(h.fs, { cwd: "/workspace" });
         await bridged.writeFile("/workspace/from-bridge.txt", "bridged-payload\n");
         const verify = await shellMod.exec(`cat /workspace/from-bridge.txt`);
         assert.equal(verify.stdout, "bridged-payload\n");

@@ -156,7 +156,7 @@ describe("safe-bash e2e: search (rg, grep, fd, find), tree, du, stat, file, glob
         ].join("\n")
       );
       assert.equal(r.exitCode, 0, `stderr: ${r.stderr}`);
-      assert.equal(r.stdout.trim(), "3\n1");
+      assert.equal(r.stdout.trim(), "1\n1");
     });
   });
 

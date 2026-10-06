@@ -21,7 +21,7 @@ describe("structured data: yq, jq, csvkit, xan, htmlq, and sqlite3 matrix", () =
         const r = await h.exec(
           [
             "yq -o json -r '.name' /work/service.yaml",
-            "yq -o json -c '.replicas = 5 | .ports += [9090]' /work/service.yaml",
+            "yq -o json -I 0 '.replicas = 5 | .ports += [9090]' /work/service.yaml",
           ].join("\n")
         );
         assert.equal(r.exitCode, 0, r.stderr);
@@ -62,7 +62,7 @@ describe("structured data: yq, jq, csvkit, xan, htmlq, and sqlite3 matrix", () =
         assert.equal(r.exitCode, 0, r.stderr);
         assert.equal(
           r.stdout,
-          ["safe-bash@1.2.3", "\"serde\": \"1.0\"", ""].join("\n")
+          ["safe-bash@1.2.3", "serde: \"1.0\"", ""].join("\n")
         );
       }
     );

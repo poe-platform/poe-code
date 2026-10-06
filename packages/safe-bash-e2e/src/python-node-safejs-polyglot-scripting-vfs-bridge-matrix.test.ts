@@ -3,7 +3,10 @@ import { describe, it } from "node:test";
 import vm from "node:vm";
 import { sb, withE2EHarness } from "./harness.js";
 import {
+  NODE_PROFILE,
   nodeCommands,
+  type NodeHostRequest,
+  type NodeRuntimeProvider,
   type NodeSafeJsCommandOptions,
 } from "@poe-platform/safe-bash/commands/node";
 import {
@@ -285,7 +288,7 @@ SELECT user, SUM(CAST(pts AS INTEGER)) AS total FROM scores GROUP BY user ORDER 
 SQL
         `);
         assert.equal(r.exitCode, 0, r.stderr);
-        const lines = r.stdout.trim().split("\n");
+        const lines = r.stdout.trim().split(/\r?\n/);
         assert.deepEqual(JSON.parse(lines[0]!), {
           names: ["scores.csv"],
           isFile: true,
@@ -507,20 +510,20 @@ SQL
   });
 
   it("11. node with NodeRuntimeProvider (NODE_PROFILE) reads JSON modules and enforces authority grants", async () => {
-    const provider: sb.NodeRuntimeProvider = {
-      profile: sb.NODE_PROFILE,
+    const provider: NodeRuntimeProvider = {
+      profile: NODE_PROFILE,
       identity: "matrix-provider",
       prepare(request, services) {
         return {
           async start() {
             let seq = 0;
             const hostOp = async (
-              op: sb.NodeHostRequest["op"],
-              authority: sb.NodeHostRequest["authority"],
+              op: NodeHostRequest["op"],
+              authority: NodeHostRequest["authority"],
               path: string | null,
-              flag: sb.NodeHostRequest["flag"],
+              flag: NodeHostRequest["flag"],
               text: string | null,
-              moduleKey: sb.NodeHostRequest["moduleKey"]
+              moduleKey: NodeHostRequest["moduleKey"]
             ) => {
               const s = ++seq;
               const res = await services.request({
@@ -590,7 +593,7 @@ SQL
       {
         files: { "/workspace/config.json": '{"port":8080}\n' },
         plugins: [
-          sb.nodeCommands({
+          nodeCommands({
             provider,
             grants: { dataRead: true, jsonModules: true, dataWrite: false, stdoutWrite: true },
             replace: true,

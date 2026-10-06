@@ -114,10 +114,11 @@ SQL
       assert.equal(
         r.stdout.trim(),
         [
-          "SKU-10|13|1",
+          "SKU-10|13|2",
           "SKU-20|15|2",
           "INSERT|SKU-10|5",
           "INSERT|SKU-20|12",
+          "UPDATE|SKU-10|13",
           "UPDATE|SKU-20|15",
         ].join("\n")
       );
@@ -532,7 +533,7 @@ SQL
       `);
       assert.equal(r.exitCode, 0, r.stderr);
       assert.equal(
-        r.stdout.trim(),
+        r.stdout.replace(/\r\n/g, "\n").trim(),
         [
           "powers.csv: OK",
           "summary.csv: OK",

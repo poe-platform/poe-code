@@ -218,14 +218,14 @@ describe("safe-bash e2e: XML, HTML, Markdown, XPath & document transform pipelin
         `<service><name>auth-api</name><port>8443</port><tls>true</tls></service>`,
       );
       const res = await h.exec(
-        `xq '{ service: { name: .service.name, port: (.service.port | tonumber), tls: (.service.tls == "true") } }' /work/service.xml | yq '.'`,
+        `xq '{ service: { name: .service.name, port: (.service.port | tonumber), tls: (.service.tls == "true") } }' /work/service.xml | yq -P '.'`,
       );
       assert.equal(res.exitCode, 0);
       assert.deepEqual(res.stdout.trim().split("\n"), [
-        `"service":`,
-        `  "name": "auth-api"`,
-        `  "port": 8443`,
-        `  "tls": true`,
+        "service:",
+        "  name: auth-api",
+        "  port: 8443",
+        "  tls: true",
       ]);
     });
   });

@@ -628,9 +628,9 @@ SQL
       assert.equal(
         res.stdout,
         [
-          "Acme|1300|enterprise",
-          "Globex|150|standard",
-          "Initech|0|prospect",
+          "Acme|1300.0|enterprise",
+          "Globex|150.0|standard",
+          "Initech|0.0|prospect",
           "Initech",
           ""
         ].join("\n")

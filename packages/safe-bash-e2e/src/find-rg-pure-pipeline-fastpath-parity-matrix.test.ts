@@ -474,8 +474,9 @@ describe("safe-bash e2e: find, rg, grep, fd, and pure pipeline fast-path parity 
         const rReplace = await h.expectOk("rg -o 'user=[a-z]+&role=[a-z]+' -r 'REDACTED_AUTH' /text/sample.txt");
         assert.equal(rReplace.stdout, "REDACTED_AUTH\n");
 
-        const rCaptureRejected = await h.exec("rg -o 'user=([a-z]+)' -r '$1' /text/sample.txt");
-        assert.equal(rCaptureRejected.exitCode, 2);
+        const rCaptureGroup = await h.exec("rg -o 'user=([a-z]+)' -r '$1' /text/sample.txt");
+        assert.equal(rCaptureGroup.exitCode, 0);
+        assert.equal(rCaptureGroup.stdout, "alice\n");
       },
     );
   });

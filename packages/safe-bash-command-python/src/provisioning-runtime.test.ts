@@ -5,7 +5,7 @@ import { installPythonPackages } from "./provisioning-runtime.js";
 test('installer preserves host transport failure when micropip masks it as missing metadata',async()=>{
  const globals=new Map<string,unknown>();let committed=false;
  const integrity=new Error('Package cache integrity mismatch: https://packages.example/metadata');
- const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(){return new Uint8Array();}}},
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},
   globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},
   async runPythonAsync(){
    try {await (globals.get('_safe_package_metadata') as (url:string)=>unknown)('https://packages.example/metadata');}
@@ -26,14 +26,14 @@ test('installer refuses unsupported runtime ABI before any download',async()=>{
  await assert.rejects(installPythonPackages({version:'314.0.6'} as never,{session:'1',requirements:['example==1'],offline:false},()=>{throw Error('unexpected request');},65536),/installer ABI/);
 });
 test('installer closes package transport callbacks before user Python starts',async()=>{
- const deleted:string[]=[];const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(){return new Uint8Array();}}},globals:{set(){},delete(name:string){deleted.push(name);}},async loadPackage(){},async runPythonAsync(){},runPython(){return '[]';}};
+ const deleted:string[]=[];const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},globals:{set(){},delete(name:string){deleted.push(name);}},async loadPackage(){},async runPythonAsync(){},runPython(){return '[]';}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['example==1'],offline:false},()=>null,64);
  await assert.rejects(runtime._api.packageManager.downloadPackage(),/only available during installation/);
  assert.ok(deleted.includes('_safe_package_bytes'));assert.ok(deleted.includes('_safe_package_metadata'));
 });
 test('bootstrap and native dependency loading use supported callbacks instead of worker console output',async()=>{
  const globals=new Map<string,unknown>();const calls:string[][]=[];
- const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(){return new Uint8Array();}}},globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},
   async loadPackage(names:string[],options?:{messageCallback?:(message:string)=>void;errorCallback?:(message:string)=>void}){
    assert.equal(typeof options?.messageCallback,'function');assert.equal(typeof options?.errorCallback,'function');
    options!.messageCallback!('Loading '+names.join(','));options!.messageCallback!('Loaded '+names.join(','));calls.push(names);
@@ -44,13 +44,13 @@ test('bootstrap and native dependency loading use supported callbacks instead of
 });
 test('native loader error callbacks fail installation instead of silently succeeding',async()=>{
  let committed=false;
- const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(){return new Uint8Array();}}},globals:{set(){},delete(){}},
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},globals:{set(){},delete(){}},
   async loadPackage(_names:string[],options?:{errorCallback?:(message:string)=>void}){options?.errorCallback?.('wheel loading failed');},async runPythonAsync(){},runPython(){return '[]';}};
  await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['example==1'],offline:false},()=>{committed=true;},64),/wheel loading failed/);
  assert.equal(committed,false);
 });
 test('failed installer bootstrap closes package transport before returning',async()=>{
- const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){}},
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){}},
   async loadPackage(){throw new Error('bootstrap cancelled');},async runPythonAsync(){},runPython(){return '[]';}};
  await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['example==1'],offline:false},()=>{throw new Error('host package bridge remains reachable');},64),/bootstrap cancelled/);
  await assert.rejects(runtime._api.packageManager.downloadPackage({normalizedName:'example',channel:'https://packages.example/example.whl'}),/only available during installation/);
@@ -58,7 +58,7 @@ test('failed installer bootstrap closes package transport before returning',asyn
 test('reported bootstrap errors and callback setup failures close installer transport',async()=>{
  for(const stage of ['errorCallback','globals.set']){
   const deleted:string[]=[];const globals=new Map<string,unknown>();
-  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},
+  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},
    globals:{set(name:string,value:unknown){if(stage==='globals.set'&&name==='_safe_package_metadata')throw new Error('callback setup failed');globals.set(name,value);},delete(name:string){if(!globals.has(name))throw new Error('missing global '+name);globals.delete(name);deleted.push(name);}},
    async loadPackage(_names:string[],options:{errorCallback:(message:string)=>void}){if(stage==='errorCallback')options.errorCallback('reported bootstrap error');},
    async runPythonAsync(){throw new Error('must not execute Python');},runPython(){return '[]';}};
@@ -70,7 +70,7 @@ test('reported bootstrap errors and callback setup failures close installer tran
 });
 test('dependency verification failures never commit the environment and remove installer callbacks',async()=>{
  const globals=new Map<string,unknown>();const operations:string[]=[];
- const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(){return new Uint8Array();}}},
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},
   globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){assert.ok(globals.delete(name));}},
   async loadPackage(){},async runPythonAsync(){throw new Error('Python package wheel version conflict: fixture==1.0');},runPython(){throw new Error('must not read failed inventory');}};
  await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1.0'],offline:false},operation=>{operations.push(operation);},64),/wheel version conflict/);
@@ -80,7 +80,7 @@ test('dependency verification failures never commit the environment and remove i
 test('installer closes each host artifact on success and failed chunk reads',async()=>{
  for(const fail of [false,true]){
   const operations:string[]=[];
-  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){}},async loadPackage(){await runtime._api.packageManager.downloadPackage({normalizedName:'fixture',channel:'https://example.org/fixture'});},async runPythonAsync(){},runPython(){return '[]';}};
+  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){}},async loadPackage(){const metadata={normalizedName:'fixture',channel:'https://example.org/fixture'};await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));},async runPythonAsync(){},runPython(){return '[]';}};
   const result=installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},op=>{operations.push(op);if(op==='package-open')return {key:'artifact',size:1,headers:[]};if(op==='package-read'){if(fail)throw Error('read failure');return [255];}return null;},64);
   if(fail)await assert.rejects(result,/read failure/);else await result;
   assert.deepEqual(operations.slice(0,3),['package-open','package-read','package-close']);
@@ -90,9 +90,9 @@ test('installer closes each host artifact on success and failed chunk reads',asy
 test('installer awaits asynchronous artifact reads, closure and manifest publication',async()=>{
  const globals=new Map<string,unknown>(),operations:string[]=[];
  let committed=false;
- const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},
   globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){assert.equal(committed,true);globals.delete(name);}},
-  async loadPackage(){const bytes=await runtime._api.packageManager.downloadPackage({normalizedName:'fixture',channel:'https://example.org/fixture.whl'});assert.deepEqual([...bytes],[1,2,3]);assert.deepEqual(operations,['package-open','package-read','package-read','package-close']);},
+  async loadPackage(){const metadata={normalizedName:'fixture',channel:'https://example.org/fixture.whl'};const bytes=await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));assert.deepEqual([...bytes],[1,2,3]);assert.deepEqual(operations,['package-open','package-read','package-read','package-close']);},
   async runPythonAsync(){const metadata=await (globals.get('_safe_package_metadata') as (url:string)=>Promise<string>)('https://example.org/metadata');assert.deepEqual(JSON.parse(metadata),{text:'\u0001\u0002\u0003',headers:{'content-type':'application/json'}});},runPython(){return '["fixture==1"]';}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},async(op,...args)=>{
   await Promise.resolve();operations.push(op);
@@ -111,10 +111,10 @@ test('concurrent package downloads serialize artifact lifetimes and retire after
   const started=new Promise<void>(resolve=>{admitted=resolve;});
   const readFailure=new Error('late host read failure');
   let committed=false;
-  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){assert.equal(opened,false);}},
+  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){assert.equal(opened,false);}},
    async loadPackage(){
-    const first=runtime._api.packageManager.downloadPackage({normalizedName:'one',channel:'one'});
-    const second=runtime._api.packageManager.downloadPackage({normalizedName:'two',channel:'two'});
+    const one={normalizedName:'one',channel:'one'};const first=runtime._api.packageManager.installPackage(one,await runtime._api.packageManager.downloadPackage(one));
+    const two={normalizedName:'two',channel:'two'};const second=runtime._api.packageManager.installPackage(two,await runtime._api.packageManager.downloadPackage(two));
     const both=Promise.allSettled([first,second]);
     if(fail){void both;await started;throw new Error('loader failed early');}
     await both;
@@ -136,7 +136,7 @@ test('concurrent package downloads serialize artifact lifetimes and retire after
 test('uninstall reports success only after exact manifest publication',async()=>{
  for(const conflict of [false,true]){
   const globals=new Map<string,unknown>();const events:string[]=[];
-  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(){return new Uint8Array();}}},
+  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},
    globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},
    async runPythonAsync(){assert.deepEqual(JSON.parse(globals.get('_safe_package_uninstall_json') as string),{packages:['fixture'],yes:true});},
    runPython(source:string){return source==='_safe_uninstalled_json'?'["fixture-1.0"]':'[]';}};
@@ -151,5 +151,61 @@ test('uninstall reports success only after exact manifest publication',async()=>
   assert.equal(events[0],'commit');
   assert.equal(events.slice(1).join(''),conflict?'':'  Successfully uninstalled fixture-1.0\n');
   assert.equal(globals.size,0);
+ }
+});
+
+
+test('native package handoff retains the wheel source instead of materializing it',async()=>{
+ const operations:string[]=[];
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}):Promise<unknown>{return new Uint8Array();}}},
+  globals:{set(){},delete(){}},
+  async loadPackage(){
+   const archive=await runtime._api.packageManager.downloadPackage({normalizedName:'fixture',channel:'https://example.org/fixture.whl'});
+   assert.equal(ArrayBuffer.isView(archive),false,'native installer must receive a retained archive source, not the complete wheel');
+   assert.equal(operations.includes('package-read'),false,'wheel reads belong to bounded extraction, not an eager download buffer');
+  },async runPythonAsync(){},runPython(){return '[]';}};
+ await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},(op,...args)=>{
+  operations.push(op);
+  if(op==='package-open')return {key:'artifact',size:65536*4+7,headers:[]};
+  if(op==='package-read')return Array<number>(args[3] as number).fill(23);
+  return null;
+ },65536);
+});
+
+
+test('native extraction admits one payload at a time and drains before bootstrap failure returns',async()=>{
+ for(const fail of [false,true]){
+  let release!:()=>void,entered!:()=>void,active=0,settled=false;
+  const gate=new Promise<void>(resolve=>{release=resolve;}),started=new Promise<void>(resolve=>{entered=resolve;});
+  const reads:string[]=[],installed:string[]=[];
+  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',
+   async downloadPackage(_metadata:{normalizedName:string;channel:string}):Promise<unknown>{return null;},
+   async installPackage(metadata:{normalizedName:string;channel:string},bytes:unknown){
+    assert.ok(bytes instanceof Uint8Array);assert.equal(++active,1);
+    installed.push(metadata.normalizedName);
+    if(metadata.normalizedName==='one'){entered();await gate;}
+    active--;
+   }}},globals:{set(){},delete(){assert.equal(active,0);}},
+   async loadPackage(){
+    const one={normalizedName:'one',channel:'one'},two={normalizedName:'two',channel:'two'};
+    const sources=await Promise.all([runtime._api.packageManager.downloadPackage(one),runtime._api.packageManager.downloadPackage(two)]);
+    assert.deepEqual(reads,[]);
+    const both=Promise.all([runtime._api.packageManager.installPackage(one,sources[0]),runtime._api.packageManager.installPackage(two,sources[1])]);
+    if(fail){void both.catch(()=>{});await started;throw new Error('early native loader failure');}
+    await both;
+   },async runPythonAsync(){},runPython(){return '[]';}};
+  const pending=installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},(operation,...args)=>{
+   if(operation==='package-open'){reads.push(args[1] as string);return {key:args[1],size:1,headers:[]};}
+   if(operation==='package-read')return [23];
+   return null;
+  },65536);
+  void pending.then(()=>{settled=true;},()=>{settled=true;});
+  await started;await Promise.resolve();
+  assert.deepEqual(reads,['one']);assert.equal(settled,false);
+  release();
+  if(fail)await assert.rejects(pending,/early native loader failure/);else await pending;
+  assert.equal(active,0);assert.deepEqual(installed,['one','two']);
+  assert.deepEqual(reads,['one','two']);
+  await assert.rejects(runtime._api.packageManager.installPackage({normalizedName:'late',channel:'late'},{}),/only available during installation/);
  }
 });

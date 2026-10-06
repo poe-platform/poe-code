@@ -1,12 +1,16 @@
 import type { PythonWorkerRuntime } from './worker.js';
 import type { PythonPackageStart } from './provisioning.js';
 
+interface NativePackage { normalizedName:string;channel:string }
+interface PackageSource {url:string;expected?:string}
+
 interface InstallerRuntime extends PythonWorkerRuntime {
  readonly _api: {
   readonly lockfile_packages: Record<string,{file_name:string;sha256:string}>;
   readonly packageManager: {
    readonly defaultChannel:string;
-   downloadPackage(metadata:{normalizedName:string;channel:string}):Promise<Uint8Array>;
+   downloadPackage(metadata:NativePackage):Promise<PackageSource>;
+   installPackage(metadata:NativePackage,source:PackageSource|Uint8Array):Promise<unknown>;
   };
  };
  loadPackage(names:string[], options:{messageCallback:(message:string)=>void;errorCallback:(message:string)=>void}):Promise<unknown>;
@@ -22,10 +26,13 @@ export async function installPythonPackages(
 ):Promise<void> {
  if(start.requirements.length===0&&!start.uninstall)return;
  const runtime=supplied as InstallerRuntime;
- if(runtime.version!=='314.0.6'||!runtime._api?.packageManager||!runtime._api.lockfile_packages||typeof runtime.loadPackage!=='function'||typeof runtime.runPythonAsync!=='function')throw new Error('Python package installer ABI requires Pyodide 314.0.6');
+ if(runtime.version!=='314.0.6'||!runtime._api?.packageManager||!runtime._api.lockfile_packages||typeof runtime._api.packageManager.installPackage!=='function'||typeof runtime.loadPackage!=='function'||typeof runtime.runPythonAsync!=='function')throw new Error('Python package installer ABI requires Pyodide 314.0.6');
  let transportFailure:{error:unknown}|undefined;
  let accepting=true;
  let pending=Promise.resolve();
+ let installing:Promise<unknown>=Promise.resolve();
+ const manager=runtime._api.packageManager;
+ const install=manager.installPackage.bind(manager);
  // A host session owns one open artifact. Serialize entire transfers, including
  // closure, even when micropip or the native loader requests dependencies together.
  const fetch=(url:string,expected?:string,metadata?:'metadata'):Promise<{bytes:Uint8Array;headers:readonly(readonly[string,string])[]}>=>{
@@ -52,15 +59,26 @@ export async function installPythonPackages(
   pending=transfer.then(()=>{},()=>{});
   return transfer;
  };
- // The pinned loader still owns dependency ordering, wheel extraction and dynamic linking.
- // Replacing only its download operation prevents implicit Node/CDN network fallbacks.
- runtime._api.packageManager.downloadPackage=async metadata=>{
-  if(metadata.channel===runtime._api.packageManager.defaultChannel){
+ // Native dependency ordering retains source descriptors, not complete wheel buffers.
+ // The pinned installer still owns extraction and dynamic linking. Serialize the
+ // entire fetch/install lifetime so dependency downloads cannot accumulate payloads.
+ manager.downloadPackage=async metadata=>{
+  if(!accepting)throw new Error('Python package transport is only available during installation');
+  if(metadata.channel===manager.defaultChannel){
    const pkg=runtime._api.lockfile_packages[metadata.normalizedName];
    if(!pkg)throw new Error(`Missing matching Pyodide package: ${metadata.normalizedName}`);
-   return (await fetch(new URL(pkg.file_name,'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/').href,pkg.sha256)).bytes;
+   return {url:new URL(pkg.file_name,'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/').href,expected:pkg.sha256};
   }
-  return (await fetch(metadata.channel)).bytes;
+  return {url:metadata.channel};
+ };
+ manager.installPackage=(metadata,source)=>{
+  if(!accepting)return Promise.reject(new Error('Python package transport is only available during installation'));
+  const work=installing.then(async()=>{
+   if(source instanceof Uint8Array)throw new Error('Expected retained Python package source');
+   return install(metadata,(await fetch(source.url,source.expected)).bytes);
+  });
+  installing=work.then(()=>{},()=>{});
+  return work;
  };
  const loadPackages=async(names:string[])=>{
   const errors:string[]=[];
@@ -389,6 +407,7 @@ _safe_metadata.MetadataPathFinder.invalidate_caches()
 import gc as _safe_gc
 _safe_gc.collect()
 `);
+  await installing;
   accepting=false;
   await pending;
   if(transportFailure)throw transportFailure.error;
@@ -402,13 +421,15 @@ _safe_gc.collect()
    }
   }
  }catch(error){
+  await installing;
   accepting=false;
   await pending;
   throw transportFailure ? transportFailure.error : error;
  }finally{
+  await installing;
   accepting=false;
   await pending;
-  runtime._api.packageManager.downloadPackage=async()=>{throw new Error('Python package transport is only available during installation');};
+  manager.downloadPackage=manager.installPackage=async()=>{throw new Error('Python package transport is only available during installation');};
   // These bridge callbacks are not an application Python networking capability.
   for(const name of installedGlobals)runtime.globals.delete(name);
  }

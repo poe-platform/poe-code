@@ -140,6 +140,44 @@ All rows require deterministic differential fixtures against the pinned distribu
 
 Canonical wheel transport now authenticates and replays through caller-filesystem retained handles, with bounded reads, version/identity revalidation, cancellation checkpoints and awaited retirement. Canonical files no longer populate a redundant full-byte artifact cache. Cache-directory network acquisition now writes caller staging in at most 64 KiB chunks and publishes only after integrity and sealed-identity checks; cache replay uses retained reads. No-cache acquisition uses the same staging path. Stalled response cancellation, source/integrity/limit/progress failures, corrupted/missing cache artifacts and staging races have regressions. Buffered filesystem fallback, legacy/memory-cache acquisition and interpreter extraction remain explicit transport gaps. Cleanup failures are reported after confirmed interpreter capacity is released.
 
+
+## Remaining interpreter extraction boundary
+
+Revalidated against main `69d186fa45` and the pinned Pyodide 314.0.6 / micropip
+0.11.1 artifacts. At that baseline, `installPythonPackages` allocated
+`opened.size` before handing native packages to the loader. Micropip additionally wraps whole
+wheel bytes in `BytesIO`; Pyodide's `unpack_buffer` then copies them into a private
+`NamedTemporaryFile`. Both worker executors install before mounting the caller
+filesystem. Streaming network acquisition therefore does not qualify extraction.
+
+The `native package handoff retains the wheel source instead of materializing
+it` regression reproduced that eager handoff. Native dependency ordering now
+retains source descriptors, and fetch/install lifetimes serialize through the
+pinned installer. Early bootstrap failures drain admitted installs, and both
+callbacks become unavailable before guest execution. Regression tests cover
+the handoff, single-payload admission and delayed retirement. All 302 Python
+workspace tests and lint/types pass. Source workerd cache controls and the
+independently packed workerd install/reuse/uninstall/recovery/plugin flows pass,
+as do the unchanged bundle profile checks. Individual wheel
+materialization and extraction remain unqualified. The pinned package manager
+separates `downloadPackage` from `installPackage`, and its installer separates archive extraction from
+`loadDynlibsFromPackage`. Preserve dependency ordering, wheel data-file handling,
+metadata, native-library loading and manifest publication when replacing the
+byte handoff. Acquisition errors, cancellation and abandoned downloads must retire
+retained sources before an interpreter is released.
+
+The next implementation must cover three separate retention points: authenticated
+wheel bytes, ZIP directory/global metadata, and extracted package storage. Use
+caller-owned backing storage for each. A lazy descriptor followed by `BytesIO`,
+Python's in-memory ZIP entry dictionary, or extraction into bootstrap MEMFS is
+not completion. Reusing the existing ZIP engine also requires differential proof
+for accepted wheel variants: its strict span validation rejects gaps and
+unreferenced local data that native `ZipFile` may accept. Do not silently reduce
+wheel compatibility to avoid this work. Qualify the final implementation with
+pinned wheel installs, dependency/data/native-library behavior, failed extraction,
+cancellation, external caller storage, packed public artifacts, actual workerd
+and the unchanged bundle limits.
+
 ## Private command ownership
 
 Revalidated extraction against remote main `c8f7ac43fb` on 2026-10-02.

@@ -142,6 +142,16 @@ deleted or unavailable. Older snapshots need one successful restore to acquire
 that metadata. Ordinary Python execution still restores the installed code. Editable installs and other pip lifecycle flags
 still require additional installer support.
 
+Hosts provisioning build tools can use `createPythonBuildEnvironment(options)`
+with `pythonCommands({ createExecutor, environment })`. Each build environment
+has a private installed snapshot, ignoring the target's manifest, scope, default
+requirements, requirement files and document profile. Explicit cache, transport,
+authorization and budget settings remain in effect; supply build requirements
+through install commands or `environment.prepare(...)`. Dispose the environment
+after the build; caller-owned caches remain usable. This provisions isolated
+build dependencies only; source-build hooks and editable installation are not
+yet supported.
+
 Pass `--pre` to include prerelease and development candidates. Use
 `--no-cache-dir` to bypass artifact-cache reads and writes while retaining the
 caller-owned environment manifest. Authorization and integrity checks still

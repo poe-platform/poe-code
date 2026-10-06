@@ -574,6 +574,26 @@ test('real workerd loads native code from a retained installed wheel', {timeout:
  assert.deepEqual(runtimeErrors,[]);
 });
 
+test('real workerd isolates build dependencies and preserves target packages after build failure', {timeout:90000}, async()=>{
+  const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
+  assert.ok(path);
+  const bytes=readFileSync(path);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),'0ad7104a3cde648e5486a718799f3852f1d782ff19d4bfc13db9dc631df083f8');
+  const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/build-environment',{method:'POST',body:bytes});
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  for(const key of ['installed','buildInstalled','buildState','buildRecovered','targetState'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
+  assert.notEqual(result.failed.exitCode,0);
+  assert.equal(result.buildState.stdout,'[null, "1.0", "1.0"]\n');
+  assert.equal(result.buildRecovered.stdout,result.buildState.stdout);
+  assert.equal(result.targetState.stdout,'["1.0", null, null]\n');
+  assert.equal(result.targetUnchanged,true);
+  assert.ok(result.wheelReads.opened>0);
+  assert.equal(result.wheelReads.closed,result.wheelReads.opened);
+  assert.deepEqual(result.failures,[]);
+  assert.deepEqual(nativeFixture.runtimeErrors,[]);
+});
+
 test('real workerd installs and reuses explicitly authorized Python wheels', {timeout:240000}, async()=>{
   const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
   assert.ok(path, 'Set SAFE_BASH_PYTHON_MICROPIP_WHEEL to the pinned micropip 0.11.1 wheel');

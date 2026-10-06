@@ -440,6 +440,7 @@ export function pythonExecutorCommands(options: PythonCommandsOptions): VirtualS
 }
 
 export { createPythonPackageEnvironment, pythonDocumentPackages } from './provisioning.js';
+export { createPythonBuildEnvironment } from './build-environment.js';
 export type { PythonPackageInstallOptions, PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext, PythonPackageEnvironment, PythonPackagePrepareContext } from './provisioning.js';
 export { PythonPackageConflictError, createPythonPackageManifestStore } from './manifest.js';
 export type { PythonPackageManifest, PythonPackageManifestStore } from './manifest.js';

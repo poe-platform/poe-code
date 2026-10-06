@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -162,7 +162,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  }finally{await shell.dispose();await environment.dispose();}
 }
 
-async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false) {
+async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false, buildOnly=false) {
   const wheelReads={opened:0,closed:0,reads:0,largest:0};
   backend=new Proxy(backend,{get(target,key){
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl'))throw Error('Whole canonical wheel read');return target.readFile(path,...args);};
@@ -178,14 +178,15 @@ async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacy
   const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
   const manifestStore=createPythonPackageManifestStore();
   let manifestScope;
-  const environment = createPythonPackageEnvironment({scope:'fixture',manifestStore:{
+  const configuration = {scope:'fixture',manifestStore:{
     get(scope,options) {manifestScope=scope;return manifestStore.get(scope,options);},
     compareAndSet:manifestStore.compareAndSet,
   },authorize:request => request.url === url, transport:async request => {
       if (request.url !== url) throw new Error('Unexpected package request');
       requests.push(request.url);
       return {status:200, headers:[], body:(async function*(){yield micropip;})(), async dispose(){}};
-    }});
+    }};
+  const environment = createPythonPackageEnvironment(configuration);
   const pythonOptions = {createExecutor,environment,maxTransferBytes:32,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event))};
   const service=createLlmService({defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture',capabilities:['tools','messages']}],async *complete(request) {
     if(request.prompt?.includes('native template:')){if(request.system!=='native system')throw new Error('Lost template system');yield request.prompt;return;}
@@ -235,6 +236,32 @@ provider = {
 write_wheel('worker_provider-1.0-py3-none-any.whl', provider)
 `));
     if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
+    if(buildOnly){
+      const installed=await shell.exec('python -m pip install ./worker_provider-1.0-py3-none-any.whl');
+      const context={signal:new AbortController().signal};
+      const before=await manifestStore.get(manifestScope,context);
+      const buildEnvironment=createPythonBuildEnvironment({...configuration,requirements:['must-not-install==1'],requirementFiles:['/absent.txt']});
+      const buildShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({...pythonOptions,environment:buildEnvironment}));
+      const inspect='python -c '+quote(`
+import json
+from importlib.metadata import version, PackageNotFoundError
+result = []
+for name in ('worker-provider', 'worker-fixture', 'worker-dependency'):
+ try: result.append(version(name))
+ except PackageNotFoundError: result.append(None)
+print(json.dumps(result))
+`);
+      let buildInstalled,buildState,failed,buildRecovered;
+      try{
+        buildInstalled=await buildShell.exec('python -m pip install ./worker_fixture-1.0-py3-none-any.whl');
+        buildState=await buildShell.exec(inspect);
+        failed=await buildShell.exec('python -m pip install ./missing-1.0-py3-none-any.whl');
+        buildRecovered=await buildShell.exec(inspect);
+      }finally{await buildShell.dispose();await buildEnvironment.dispose();}
+      const after=await manifestStore.get(manifestScope,context);
+      const targetState=await shell.exec(inspect);
+      return {installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,wheelReads,requests,diagnostics};
+    }
     if(legacyOnly) {
       const context={signal:new AbortController().signal},rows=[];
       for(const target of ['worker-dependency','worker-fixture']) {
@@ -1584,8 +1611,8 @@ export default {
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/packages' || mode === '/llm-packages') {
-      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages'),failures});}
+    if (mode === '/packages' || mode === '/llm-packages' || mode === '/build-environment') {
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages',false,false,mode === '/build-environment'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

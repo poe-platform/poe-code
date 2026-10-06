@@ -47,6 +47,8 @@ export interface PythonPackageOptions extends PythonPackageInstallOptions {
 }
 export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'noCache'> {
  readonly session: string;
+ /** Load installer tooling even when no application requirements are installed. */
+ readonly bootstrap?:boolean;
  /** Combined requirements for compatibility with custom executors. */
  readonly requirements: readonly string[];
  /** Legacy requirements need one dependency-resolution pass before migration. */

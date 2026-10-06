@@ -28,7 +28,7 @@ export async function installPythonPackages(
  request:(operation:string,...args:any[])=>any,
  maxTransferBytes:number,
 ):Promise<void> {
- if(start.requirements.length===0&&!start.uninstall)return;
+ if(!start.requirements.length&&!start.uninstall&&!start.bootstrap)return;
  const runtime=supplied as InstallerRuntime;
  if(runtime.version!=='314.0.6'||!runtime._api?.packageManager||!runtime._api.lockfile_packages||typeof runtime._api.packageManager.installPackage!=='function'||typeof runtime.loadPackage!=='function'||typeof runtime.runPythonAsync!=='function')throw new Error('Python package installer ABI requires Pyodide 314.0.6');
  let transportFailure:{error:unknown}|undefined;

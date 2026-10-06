@@ -13,6 +13,7 @@ test('native build hooks use the explicit environment and return bounded metadat
  const environment=createPythonBuildEnvironment();let retired=0;
  const backend=createPythonBuildBackend({environment,createExecutor:()=>({terminate(){retired++;},async run(start){
   assert.deepEqual(start.packages?.requested,[]);
+  assert.equal(start.packages?.bootstrap,true);
   assert.deepEqual(await send(start,{op:'request'}),request);
   await start.dispatch({op:'stdout',args:[[98]]});
   await send(start,{op:'text',text:'["extra'});await send(start,{op:'text',text:'==1"]'});await send(start,{op:'done'});return 0;

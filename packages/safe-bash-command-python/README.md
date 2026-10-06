@@ -169,7 +169,22 @@ native TOML parser and returns `{ requires, backend, backendPath, check }`, or
 declared build dependencies; `check` lists implicit backend requirements to
 verify after installing them. The context's `maxBytes` bounds both the TOML input
 and the returned metadata. Inspection does not import the backend or install
-dependencies. Hosts still own dependency orchestration and the legacy build path.
+dependencies. Hosts still own the legacy build path.
+Build invocations bootstrap the existing installer through the configured
+package cache/transport even in an empty environment; bootstrap tooling is not
+added to the environment's installed application inventory.
+
+Pass the returned build system to
+`createPythonBuildDependencies({ createExecutor, environment })` with
+`{ source, buildSystem, name?, configSettings? }` and the same hook context.
+Use a dedicated `createPythonBuildEnvironment(...)`: preparation installs declared
+requirements, checks implicit backend requirements, invokes the requirements hook,
+then installs only missing dynamic dependencies. Conflicting installed versions
+stop the build; missing implicit fallback requirements produce diagnostics before
+the backend runs. Checks use the environment's installed metadata manifest, so
+unrecorded runtime bootstrap packages cannot satisfy build dependencies. The host
+owns environment disposal, wheel building and publication; preparation does not
+modify the target environment or implement automatic source/editable installation.
 
 Use `createPythonSourceSnapshot(source, directory, commandContext)` to copy a
 source tree into an existing caller-owned directory before running hooks. Pass

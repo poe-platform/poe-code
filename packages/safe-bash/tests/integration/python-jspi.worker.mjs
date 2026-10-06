@@ -9,7 +9,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonSourceSnapshot, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonBuildDependencies, createPythonSourceSnapshot, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/collections';
@@ -241,6 +241,7 @@ write_wheel('worker_provider-1.0-py3-none-any.whl', provider)
       const context={signal:new AbortController().signal};
       const before=await manifestStore.get(manifestScope,context);
       const buildEnvironment=createPythonBuildEnvironment({...configuration,requirements:['must-not-install==1'],requirementFiles:['/absent.txt']});
+      const wheelEnvironment=createPythonBuildEnvironment(configuration);
       const buildShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({...pythonOptions,environment:buildEnvironment}));
       const inspect='python -c '+quote(`
 import json
@@ -261,15 +262,17 @@ print(json.dumps(result))
         await backend.mkdir('/work/build-source',{recursive:true});
         await backend.mkdir('/work/built-wheels',{recursive:true});
         await backend.writeFile('/work/build-source/input.txt',new TextEncoder().encode('caller source'));
-        await backend.writeFile('/work/build-source/pyproject.toml',new TextEncoder().encode('[build-system]\nrequires = ["worker-dependency==1.0"]\nbuild-backend = "backend:factory"\nbackend-path = ["."]\n'));
+        await backend.writeFile('/work/build-source/pyproject.toml',new TextEncoder().encode('[build-system]\nrequires = ["worker-dependency @ file:///work/worker_dependency-1.0-py3-none-any.whl"]\nbuild-backend = "backend:factory"\nbackend-path = ["."]\n'));
         await backend.writeFile('/work/build-source/backend.py',new TextEncoder().encode(String.raw`
 import os, zipfile, worker_dependency
 class Backend:
  def get_requires_for_build_wheel(self, config_settings):
   print('native build requirements')
   assert config_settings == {'feature': ['one', 'two']}
-  return ['worker-dependency==1.0']
+  return ['worker-fixture @ file:///work/worker_fixture-1.0-py3-none-any.whl']
  def build_wheel(self, wheel_directory, config_settings, metadata_directory):
+  import worker_fixture
+  assert worker_fixture.answer == worker_dependency.answer
   print('native build wheel')
   assert config_settings == {'feature': ['one', 'two']} and metadata_directory is None
   with open('input.txt') as source: value = source.read() + ':' + str(worker_dependency.answer)
@@ -286,13 +289,16 @@ class Backend:
   return name
 factory = Backend()
 `));
-        const hook=createPythonBuildBackend({...pythonOptions,environment:buildEnvironment});
+        const wheelOptions={...pythonOptions,environment:wheelEnvironment};
+        const hook=createPythonBuildBackend(wheelOptions);
+        const prepareBuild=createPythonBuildDependencies(wheelOptions);
         const hookContext={fs:backend,cwd:'/work',env:{},signal:context.signal,maxBytes:512,stdout:{async write(bytes){hookOutput.push(new TextDecoder().decode(bytes));}},stderr:{async write(bytes){throw new Error(new TextDecoder().decode(bytes));}}};
         const snapshot=await createPythonSourceSnapshot('/work/build-source','/work',{...hookContext,command:'python',args:[],stdin:{async *[Symbol.asyncIterator](){}}});
         try{
           await backend.writeFile('/work/build-source/input.txt',new TextEncoder().encode('changed original'));
           buildSystem=await hook({hook:'read_build_system',source:snapshot.path,name:'fixture'},hookContext);
           const hookRequest={source:snapshot.path,backend:buildSystem.backend,backendPath:buildSystem.backendPath,configSettings:{feature:['one','two']}};
+          await prepareBuild({source:snapshot.path,name:'fixture',buildSystem,configSettings:hookRequest.configSettings},hookContext);
           hookRequirements=await hook({...hookRequest,hook:'get_requires_for_build_wheel'},hookContext);
           built=await hook({...hookRequest,hook:'build_wheel',wheelDirectory:'/work/built-wheels'},hookContext);
           await backend.writeFile(snapshot.path+'/pyproject.toml',new TextEncoder().encode('[build-system]\nrequires=["bad @@@"]'));
@@ -300,7 +306,7 @@ factory = Backend()
         }finally{await snapshot.dispose();}
         try{await backend.lstat(snapshot.path);throw new Error('Source snapshot survived disposal');}catch(error){if(error.code!=='ENOENT')throw error;}
         if(new TextDecoder().decode(await backend.readFile('/work/build-source/input.txt'))!=='changed original')throw new Error('Source snapshot modified original');
-      }finally{await buildShell.dispose();await buildEnvironment.dispose();}
+      }finally{await buildShell.dispose();await buildEnvironment.dispose();await wheelEnvironment.dispose();}
       const after=await manifestStore.get(manifestScope,context);
       const targetState=await shell.exec(inspect);
       const builtInstalled=await shell.exec('python -m pip install /work/built-wheels/'+built);

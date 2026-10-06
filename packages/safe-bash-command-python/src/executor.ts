@@ -441,8 +441,9 @@ export function pythonExecutorCommands(options: PythonCommandsOptions): VirtualS
 
 export { createPythonPackageEnvironment, pythonDocumentPackages } from './provisioning.js';
 export { createPythonBuildEnvironment } from './build-environment.js';
+export { createPythonBuildDependencies,type PythonBuildDependenciesRequest } from './build-dependencies.js';
 export { createPythonSourceSnapshot, type PythonSourceSnapshot } from './source-snapshot.js';
-export { createPythonBuildBackend, type PythonBuildHookRequest, type PythonBuildHookContext, type PythonBuildSystemRequest, type PythonBuildSystemDetails } from './build-backend.js';
+export { createPythonBuildBackend, type PythonBuildHookRequest, type PythonBuildHookContext, type PythonBuildSystemRequest, type PythonBuildSystemDetails, type PythonBuildRequirementsRequest, type PythonBuildRequirementsStatus } from './build-backend.js';
 export type { PythonPackageInstallOptions, PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext, PythonPackageEnvironment, PythonPackagePrepareContext } from './provisioning.js';
 export { PythonPackageConflictError, createPythonPackageManifestStore } from './manifest.js';
 export type { PythonPackageManifest, PythonPackageManifestStore } from './manifest.js';

@@ -588,11 +588,12 @@ test('real workerd isolates build dependencies and preserves target packages aft
   assert.equal(result.buildRecovered.stdout,result.buildState.stdout);
   assert.equal(result.targetState.stdout,'["1.0", null, null]\n');
   assert.equal(result.targetUnchanged,true);
-  assert.deepEqual(result.buildSystem,{requires:['worker-dependency==1.0'],backend:'backend:factory',backendPath:['.'],check:[]});
+  assert.deepEqual(result.buildSystem,{requires:['worker-dependency @ file:///work/worker_dependency-1.0-py3-none-any.whl'],backend:'backend:factory',backendPath:['.'],check:[]});
   assert.deepEqual(result.invalidBuildSystem,{name:'InstallationError',message:"fixture has a pyproject.toml file that does not comply with PEP 518: 'build-system.requires' contains an invalid requirement: 'bad @@@'"});
-  assert.deepEqual(result.hookRequirements,['worker-dependency==1.0']);
+  assert.deepEqual(result.hookRequirements,['worker-fixture @ file:///work/worker_fixture-1.0-py3-none-any.whl']);
   assert.equal(result.built,'built_fixture-1.0-py3-none-any.whl');
-  assert.equal(result.hookOutput,'native build requirements\nnative build wheel\n');
+  assert.ok(result.hookOutput.endsWith('native build requirements\nnative build wheel\n'));
+  assert.equal(result.hookOutput.split('native build requirements\n').length,3);
   assert.equal(result.builtInstalled.exitCode,0,JSON.stringify(result));
   assert.equal(result.builtImported.exitCode,0,JSON.stringify(result));
   assert.equal(result.builtImported.stdout,'caller source:73\n');

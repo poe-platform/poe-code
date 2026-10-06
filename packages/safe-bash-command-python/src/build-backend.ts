@@ -20,8 +20,19 @@ export interface PythonBuildSystemDetails {
  readonly check:readonly string[];
  readonly backendPath:readonly string[];
 }
-type BuildRequest=PythonBuildHookRequest|PythonBuildSystemRequest;
-type BuildResult<T extends BuildRequest>=T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends {readonly hook:'build_wheel'}?string:string[];
+export interface PythonBuildRequirementsRequest {
+ readonly hook:'check_build_requirements';
+ readonly source:string;
+ readonly requirements:readonly string[];
+ /** Distribution names from the build environment's installed manifest. */
+ readonly installed:readonly string[];
+}
+export interface PythonBuildRequirementsStatus {
+ readonly conflicting:readonly (readonly [installed:string,wanted:string])[];
+ readonly missing:readonly string[];
+}
+type BuildRequest=PythonBuildHookRequest|PythonBuildSystemRequest|PythonBuildRequirementsRequest;
+type BuildResult<T extends BuildRequest>=T extends PythonBuildSystemRequest?PythonBuildSystemDetails|null:T extends PythonBuildRequirementsRequest?PythonBuildRequirementsStatus:T extends {readonly hook:'build_wheel'}?string:string[];
 export interface PythonBuildHookContext extends Pick<CommandContext,'fs'|'cwd'|'env'|'signal'|'stdout'|'stderr'> {
  /** Total UTF-8 result metadata allowance; wheel bytes stay in caller storage. */
  readonly maxBytes:number;
@@ -31,7 +42,8 @@ export interface PythonBuildHookContext extends Pick<CommandContext,'fs'|'cwd'|'
 export function createPythonBuildBackend(options:PythonCommandsOptions & {readonly environment:PythonPackageEnvironment}) {
  if(!options.createExecutor||!options.environment||options.provisioning)throw new TypeError('Python build hooks require an asynchronous executor and explicit environment');
  const capabilities=new WeakMap<readonly string[],PythonHostCapability>();
- const command=createPythonExecutorCommands({...options,createCapabilities(context){
+ const environment=options.environment;
+ const command=createPythonExecutorCommands({...options,environment:{...environment,async prepare(context){return {...await environment.prepare(context),bootstrap:true};}},createCapabilities(context){
   const provided=options.createCapabilities?.(context)??{};
   if(provided.python_build)throw new Error('Python build capability is reserved');
   const capability=capabilities.get(context.args);
@@ -42,8 +54,10 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   context.signal.throwIfAborted();
   const {maxBytes}=context;
   if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<0))throw new RangeError('Invalid Python build metadata limit');
-  if(!input||!['read_build_system','get_requires_for_build_wheel','build_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
-  if(input.hook==='read_build_system'){
+  if(!input||!['read_build_system','check_build_requirements','get_requires_for_build_wheel','build_wheel'].includes(input.hook)||typeof input.source!=='string'||!input.source)throw new TypeError('Invalid Python build hook request');
+  if(input.hook==='check_build_requirements'){
+   if([input.requirements,input.installed].some(values=>!Array.isArray(values)||values.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python build requirements request');
+  }else if(input.hook==='read_build_system'){
    if(input.name!==undefined&&typeof input.name!=='string'||input.usePep517!==undefined&&typeof input.usePep517!=='boolean')throw new TypeError('Invalid Python build system request');
   }else{
   if(typeof input.backend!=='string'||!input.backend
@@ -79,7 +93,10 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
    if(result.exitCode)throw new Error(`Python build interpreter exited with status ${result.exitCode}`);
    if(!done)throw new Error('Python build interpreter returned no result');
    const value:unknown=JSON.parse(chunks.join(''));
-   if(request.hook==='read_build_system'){
+   if(request.hook==='check_build_requirements'){
+    const result=value as PythonBuildRequirementsStatus|null;
+    if(!result||!Array.isArray(result.missing)||result.missing.some(value=>typeof value!=='string')||!Array.isArray(result.conflicting)||result.conflicting.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw new TypeError('Invalid Python build requirement status');
+   }else if(request.hook==='read_build_system'){
     if(value!==null){
      if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError('Invalid Python build system');
      const details=value as Record<string,unknown>;
@@ -99,10 +116,36 @@ import importlib, json, os, sys, safe_host
 def send(op, **fields):
  return safe_host.call('python_build', dict(op=op, **fields))
 
-def read_build_system(request):
- import tomllib
+def parse_build_requirement(value):
  from urllib.parse import urlparse, urlunparse
  from micropip._vendored.packaging.src.packaging.requirements import Requirement, InvalidRequirement
+ requirement = Requirement(value)
+ if requirement.url:
+  url = urlparse(requirement.url)
+  if (url.scheme == 'file' and urlunparse(url) != requirement.url) or (url.scheme != 'file' and not (url.scheme and url.netloc)): raise InvalidRequirement(value)
+ return requirement
+
+def check_build_requirements(request):
+ from importlib.metadata import distribution, PackageNotFoundError
+ from micropip._vendored.packaging.src.packaging.utils import canonicalize_name
+ from micropip._vendored.packaging.src.packaging.version import Version
+ installed = {canonicalize_name(name) for name in request['installed']}
+ conflicting, missing = set(), set()
+ for value in request['requirements']:
+  requirement = parse_build_requirement(value)
+  if canonicalize_name(requirement.name) not in installed:
+   missing.add(value)
+   continue
+  try: version = Version(distribution(requirement.name).version)
+  except PackageNotFoundError:
+   missing.add(value)
+   continue
+  if version not in requirement.specifier: conflicting.add((requirement.name + '==' + str(version), value))
+ return dict(conflicting=sorted(conflicting), missing=sorted(missing))
+
+def read_build_system(request):
+ import tomllib
+ from micropip._vendored.packaging.src.packaging.requirements import InvalidRequirement
  class InstallationError(Exception): pass
  source = request['source']
  filename = os.path.join(source, 'pyproject.toml')
@@ -131,10 +174,7 @@ def read_build_system(request):
  if not isinstance(requirements, list) or not all(isinstance(value, str) for value in requirements): invalid("'build-system.requires' is not a list of strings.")
  for value in requirements:
   try:
-   requirement = Requirement(value)
-   if requirement.url:
-    url = urlparse(requirement.url)
-    if (url.scheme == 'file' and urlunparse(url) != requirement.url) or (url.scheme != 'file' and not (url.scheme and url.netloc)): raise InvalidRequirement(value)
+   parse_build_requirement(value)
   except InvalidRequirement: invalid("'build-system.requires' contains an invalid requirement: {!r}".format(value))
  backend = system.get('build-backend')
  return dict(requires=requirements, backend=backend if backend is not None else 'setuptools.build_meta:__legacy__', check=defaults if backend is None else [], backendPath=system.get('backend-path', []))
@@ -142,6 +182,7 @@ def read_build_system(request):
 def main():
  request = send('request')
  if request['hook'] == 'read_build_system': return read_build_system(request)
+ if request['hook'] == 'check_build_requirements': return check_build_requirements(request)
  source = os.path.realpath(request['source'])
  wheel_directory = os.path.abspath(request['wheelDirectory']) if request['hook'] == 'build_wheel' else None
  metadata_directory = os.path.abspath(request['metadataDirectory']) if request.get('metadataDirectory') is not None else None

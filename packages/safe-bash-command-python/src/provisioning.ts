@@ -93,13 +93,15 @@ function normalizeRequirement(value: string, cwd: string): string {
  if (requirement.endsWith('.whl') && !requirement.includes('://')) return 'file://' + resolve(cwd,requirement).split('/').map(encodeURIComponent).join('/');
  return requirement;
 }
+interface PackageArtifact {readonly key:string;readonly size:number;read(offset:number,length:number):Uint8Array|Promise<Uint8Array>;close?():Promise<void>}
 interface Session extends PythonPackageContext {
  readonly cacheDirectory: string | undefined;
  readonly noCache: boolean;
  readonly cache: PythonPackageCache;
  readonly offline: boolean;
  readonly requirements: readonly string[];
- opened?: {readonly key:string;readonly size:number;read(offset:number,length:number):Uint8Array|Promise<Uint8Array>;close?():Promise<void>} | undefined;
+ opened?: PackageArtifact | undefined;
+ readonly retained:Map<string,PackageArtifact>;
  retiring?: Promise<void>;
  opening: boolean;
  closed: boolean;
@@ -129,29 +131,37 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const value = options[name];
   if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`${name} must be a positive integer`);
  }
+ const cacheRecord=(key:string,headers:readonly(readonly[string,string])[])=>{
+  const bytes=encoder.encode(JSON.stringify({digest:key,headers}));
+  if(bytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
+  return bytes;
+ };
  const maxCacheBytes = options.maxCacheBytes;
  const defaultCache = createPythonPackageCache(maxCacheBytes === undefined ? {} : {maxBytes:maxCacheBytes});
  const sessions = new Map<string,Session>();
  const controller = new AbortController();
  const pending = new Set<Promise<unknown>>();
  let cleanupFailure: {error:unknown} | undefined;
- function release(session:Session):Promise<void> {
-  if(!session.opened)return session.retiring??Promise.resolve();
-  const artifact=session.opened;session.opened=undefined;
-  const work=session.retiring=Promise.resolve().then(()=>artifact.close?.());
+ const track=<T>(work:Promise<T>,cleanup=false):Promise<T>=>{
   pending.add(work);
-  void work.then(()=>pending.delete(work),error=>{cleanupFailure??={error};pending.delete(work);});
+  void work.then(()=>pending.delete(work),error=>{if(cleanup)cleanupFailure??={error};pending.delete(work);});
   return work;
+ };
+ function release(session:Session,all=false):Promise<void> {
+  const artifacts=all?[...session.retained.values()]:[];
+  if(all)session.retained.clear();
+  if(session.opened){artifacts.push(session.opened);session.opened=undefined;}
+  if(!artifacts.length)return session.retiring??Promise.resolve();
+  return track(session.retiring=Promise.allSettled([session.retiring,...artifacts.map(artifact=>Promise.resolve().then(()=>artifact.close?.()))]).then(results=>{
+   for(const result of results)if(result.status==='rejected')throw result.reason;
+  }),true);
  }
  let disposed = false;
  let disposing: Promise<void> | undefined;
- const admit = <Args extends unknown[], Result>(operation: (...args: Args) => Promise<Result>) => (...args: Args): Promise<Result> => {
-  if(disposed)return Promise.reject(failure('Python package environment is disposed'));
-  const work=Promise.resolve().then(()=>{if(disposed)throw failure('Python package environment is disposed');return operation(...args);});
-  pending.add(work);
-  void work.then(()=>{pending.delete(work);},()=>{pending.delete(work);});
-  return work;
- };
+ const admit = <Args extends unknown[], Result>(operation: (...args: Args) => Promise<Result>) => (...args: Args): Promise<Result> => track(Promise.resolve().then(()=>{
+  if(disposed)throw failure('Python package environment is disposed');
+  return operation(...args);
+ }));
  let counter = 0;
  let committing = Promise.resolve();
  async function prepare(input: PythonPackagePrepareContext): Promise<PythonPackageStart> {
@@ -201,9 +211,9 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const session=String(++counter);
   const requested=[...new Set(requirements)];
   const unique=[...new Set([...restore,...requested])];
-  const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;void release(current);}};
+  const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;void release(current,true);}};
   const offline=context.offline??options.offline??false;
-  sessions.set(session,{...context,cacheDirectory:directory,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,closed:false,manifest,aborted});
+  sessions.set(session,{...context,cacheDirectory:directory,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
   context.signal.addEventListener('abort',aborted,{once:true});
   const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
   for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
@@ -215,6 +225,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   if(!session)throw failure('Python package session is closed');
   checkSession(session);
   if(op==='package-commit') {
+   await release(session,true);checkSession(session);
    const pinned=args[1];
    const saved=readPackageManifest(pinned);
    if(!saved)throw failure('Invalid installed package manifest');
@@ -244,10 +255,17 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    options.onProgress?.({phase:'installed'});
    return null;
   }
-  if(op==='package-read') {
-   const artifact=session.opened,offset=args[2],length=args[3];
-   if(!artifact||artifact.key!==String(args[1])||!Number.isSafeInteger(offset)||!Number.isSafeInteger(length)||(offset as number)<0||(length as number)<1||(length as number)>65536)throw failure('Invalid package chunk request');
+  if(op==='package-read'||op==='package-read-retained') {
+   const artifact=op==='package-read'?session.opened:session.retained.get(String(args[1])),offset=args[2],length=args[3];
+   if(!artifact||(op==='package-read'&&artifact.key!==String(args[1]))||!Number.isSafeInteger(offset)||!Number.isSafeInteger(length)||(offset as number)<0||(length as number)<1||(length as number)>65536)throw failure('Invalid package chunk request');
    const bytes=await artifact.read(offset as number,length as number);checkSession(session);return Array.from(bytes);
+  }
+  if(op==='package-retain'){
+   const artifact=session.opened;
+   if(!artifact||artifact.key!==String(args[1]))throw failure('Invalid package retention request');
+   const token=String(++counter);
+   session.retained.set(token,artifact);session.opened=undefined;
+   return {token,key:artifact.key,size:artifact.size};
   }
   if(op==='package-close') {if(session.opened?.key===String(args[1]))await release(session);return null;}
   if(op!=='package-open'||typeof args[1]!=='string')throw failure('Invalid package operation');
@@ -264,10 +282,15 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const metadata=canonicalWheel||session.noCache||(args[3]==='metadata'&&!session.offline)?undefined:await session.cache.get(address);
   checkSession(session);
   let key="",bytes:Uint8Array|undefined;let headers:readonly(readonly[string,string])[]=[];
+  const adopt=async(artifact:PackageArtifact,ready:()=>void|Promise<void>)=>{
+   session.opened=artifact;
+   try{checkSession(session);await ready();checkSession(session);return {key:artifact.key,size:artifact.size,headers};}
+   catch(error){await release(session);throw error;}
+  };
   if(metadata){
    if(metadata.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
-   let record: {digest:string,headers:readonly(readonly[string,string])[]};
-   try { record=JSON.parse(decoder.decode(metadata)) as typeof record; } catch { throw failure(`Invalid package cache metadata: ${url}`); }
+   let record: {digest:string,headers:readonly(readonly[string,string])[]} | undefined;
+   try { record=JSON.parse(decoder.decode(metadata)) as typeof record; } catch { /* Invalid JSON follows the same validation path as malformed records. */ }
    if(typeof record!=='object'||record===null||!validDigest(record.digest)||!Array.isArray(record.headers)||record.headers.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw failure(`Invalid package cache metadata: ${url}`);
    headers=record.headers;
    let absent=false;
@@ -275,10 +298,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     let artifact;
     try{artifact=await openPythonPackageFile(session,resolve(session.cacheDirectory,runtimeKey+'-sha256-'+record.digest),maxBytes);}catch(error){if(!missing(error))throw error;absent=true;}
     if(artifact){
-     session.opened=artifact;
-     try{checkSession(session);if(artifact.key!==record.digest)throw failure(`Package cache integrity mismatch: ${url}`);verifyIntegrity(artifact.key);options.onProgress?.({phase:'cached',url,bytes:artifact.size});}
-     catch(error){await release(session);throw error;}
-     return {key:artifact.key,size:artifact.size,headers};
+     return await adopt(artifact,()=>{if(artifact.key!==record.digest)throw failure(`Package cache integrity mismatch: ${url}`);verifyIntegrity(artifact.key);options.onProgress?.({phase:'cached',url,bytes:artifact.size});});
     }
    }
    bytes=absent?undefined:await session.cache.get(runtimeKey+'-sha256-'+record.digest);
@@ -296,10 +316,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     try {
      const artifact=await openPythonPackageFile(session,decodeURIComponent(path.pathname),maxBytes);
      if(artifact){
-      session.opened=artifact;
-      try {checkSession(session);verifyIntegrity(artifact.key);}
-      catch(error){await release(session);throw error;}
-      return {key:artifact.key,size:artifact.size,headers};
+      return await adopt(artifact,()=>verifyIntegrity(artifact.key));
      }
      bytes=Uint8Array.from(await session.fs.readFile(decodeURIComponent(path.pathname),{signal:session.signal,...Number.isFinite(maxBytes)?{maxBytes}:{} })); } catch(error) { checkSession(session);throw failure(`Cannot read canonical Python wheel ${path.pathname}: ${error instanceof Error ? error.message : String(error)}`); }
    }else{
@@ -328,29 +345,23 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
       const encoding=headers.find(([key])=>key.toLowerCase()==='content-encoding')?.[1].trim().toLowerCase();
       const length=headers.find(([key])=>key.toLowerCase()==='content-length')?.[1];const total=length===undefined||(encoding!==undefined&&encoding!=='identity')?undefined:Number(length);
       if(total!==undefined&&Number.isFinite(total)&&total>maxBytes)throw failure('Package download exceeds maxDownloadBytes');
+      const progress=(count:number)=>options.onProgress?.({phase:'download',url,bytes:count,...typeof total==='number'&&Number.isSafeInteger(total)?{totalBytes:total}:{}});
       if(session.cacheDirectory||session.noCache){
        const directory=session.cacheDirectory??session.cwd;
        if(session.cacheDirectory)await session.fs.mkdir(directory,{recursive:true,signal:session.signal});
        let metadataBytes:Uint8Array|undefined;
        const artifact=await stagePythonPackage(session,directory,response.body,maxBytes,
-        count=>options.onProgress?.({phase:'download',url,bytes:count,...typeof total==='number'&&Number.isSafeInteger(total)?{totalBytes:total}:{}}),key=>{
+        progress,key=>{
          verifyIntegrity(key);
-         if(!session.noCache){metadataBytes=encoder.encode(JSON.stringify({digest:key,headers}));if(metadataBytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');}
+         if(!session.noCache)metadataBytes=cacheRecord(key,headers);
         },
         session.noCache?undefined:key=>resolve(directory,runtimeKey+'-sha256-'+key));
        if(artifact){
-        session.opened=artifact;
-        try{
-         checkSession(session);
-         if(!session.noCache){
-          await session.cache.set(address,metadataBytes!);checkSession(session);
-         }
-         return {key:artifact.key,size:artifact.size,headers};
-        }catch(error){await release(session);throw error;}
+        return await adopt(artifact,async()=>{if(!session.noCache)await session.cache.set(address,metadataBytes!);});
        }
       }
       const chunks:Uint8Array[]=[];let count=0;
-      for await(const chunk of response.body){checkSession(session);if(chunk.length===0)continue;count+=chunk.length;if(count>maxBytes)throw failure('Package download exceeds maxDownloadBytes');chunks.push(Uint8Array.from(chunk));options.onProgress?.({phase:'download',url,bytes:count,...typeof total==='number'&&Number.isSafeInteger(total)?{totalBytes:total}:{}});}
+      for await(const chunk of response.body){checkSession(session);if(chunk.length===0)continue;count+=chunk.length;if(count>maxBytes)throw failure('Package download exceeds maxDownloadBytes');chunks.push(Uint8Array.from(chunk));progress(count);}
       bytes=new Uint8Array(count);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
       break;
      }finally{await response.dispose();}
@@ -359,8 +370,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    checkSession(session);
    verifyIntegrity(key=digest(bytes));
    if(!session.noCache){
-   const metadataBytes=encoder.encode(JSON.stringify({digest:key,headers}));
-   if(metadataBytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
+   const metadataBytes=cacheRecord(key,headers);
    await session.cache.set(runtimeKey+'-sha256-'+key,Uint8Array.from(bytes));
    checkSession(session);
    if(!canonicalWheel)await session.cache.set(address,metadataBytes);
@@ -376,7 +386,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   prepare:admit(prepare),dispatch:admit(dispatch),
   finish(start:PythonPackageStart){
    const session=sessions.get(start.session);
-   if(session){session.closed=true;session.signal.removeEventListener('abort',session.aborted);session.controller.abort(failure('Python package session is closed'));sessions.delete(start.session);return release(session);}
+   if(session){session.closed=true;session.signal.removeEventListener('abort',session.aborted);session.controller.abort(failure('Python package session is closed'));sessions.delete(start.session);return release(session,true);}
   },
   dispose(){
    if(!disposing){

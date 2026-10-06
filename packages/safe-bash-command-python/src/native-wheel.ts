@@ -43,9 +43,15 @@ def _safe_extract_native_wheel(read, serialized):
    return bytes(output)
 
  _native_config = _native_json.loads(serialized)
- _native_target = _NativePath(_native_loader.get_install_dir(_native_config['target']))
- _native_target.mkdir(parents=True, exist_ok=True)
  with _NativeWheel(_native_config['size']) as _native_archive:
+  if 'metadata_name' in _native_config:
+   from micropip.metadata import wheel_dist_info_dir as _native_metadata_dir
+   from zipfile import Path as _NativeZipPath
+   with _NativeZip(_native_archive) as _native_zip:
+    path = _NativePath(_native_metadata_dir(_native_zip, _native_config['metadata_name'])) / 'METADATA'
+    return _native_json.dumps(_NativeZipPath(_native_zip, str(path)).read_text(encoding='utf-8'))
+  _native_target = _NativePath(_native_config['extract_dir'] if 'extract_dir' in _native_config else _native_loader.get_install_dir(_native_config['target']))
+  _native_target.mkdir(parents=True, exist_ok=True)
   _native_shutil._unpack_zipfile(_native_archive, _native_target)
   with _NativeZip(_native_archive) as _native_zip:
    if _NativePath(_native_config['filename']).suffix == '.whl':

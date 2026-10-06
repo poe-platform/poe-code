@@ -556,6 +556,7 @@ test('real workerd applies prerelease selection and cache bypass through CLI and
       assert.ok(row.additionalRequests.includes('https://packages.example/worker_candidate-1.0-py3-none-any.whl'));
     }
   }
+  assert.ok(result.requests.some(url=>url.endsWith('worker_candidate-2.0rc1-py3-none-any.whl.metadata')));
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
 

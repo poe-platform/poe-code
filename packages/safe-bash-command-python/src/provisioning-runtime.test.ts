@@ -270,3 +270,33 @@ test('native extraction preserves host read failure identity across the Python e
   assert.equal(closed,true);
  }
 });
+
+test('micropip resolves metadata and installs through the same retained wheel receipt',async()=>{
+ const globals=new Map<string,unknown>(),operations:string[]=[];
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},async loadDynlib(){},packageManager:{defaultChannel:'default',async installPackage(){},async downloadPackage(){}}},
+  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},runPython(){return '[]';},
+  async runPythonAsync(source:string):Promise<string|undefined>{
+   if(source===pythonNativeWheel){
+    const config=JSON.parse(globals.get('_safe_native_wheel_config') as string);
+    const read=globals.get('_safe_native_wheel_read') as (offset:number,length:number)=>Promise<number[]>;
+    assert.deepEqual(await read(99,3),[1,2,3]);
+    return config.metadata_name?JSON.stringify('Name: fixture\nVersion: 1\n'):'[]';
+   }
+   const download=globals.get('_safe_package_wheel_download') as (url:string,expected:undefined)=>Promise<string>;
+   const metadata=globals.get('_safe_package_wheel_metadata') as (source:string)=>Promise<string>;
+   const install=globals.get('_safe_package_wheel_install') as (source:string)=>Promise<void>;
+   const receipt=JSON.parse(await download('https://fixture/wheel.whl',undefined));
+   assert.deepEqual(receipt,{token:'lease',key:'digest',size:102});
+   assert.equal(await metadata(JSON.stringify({source:receipt,name:'fixture'})),'Name: fixture\nVersion: 1\n');
+   await install(JSON.stringify({source:receipt,filename:'fixture-1-py3-none-any.whl',extract_dir:'/target',metadata:{INSTALLER:'micropip'}}));
+  }};
+ await installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},async(op,...args)=>{
+  operations.push(op);
+  if(op==='package-open')return {key:'digest',size:102,headers:[]};
+  if(op==='package-read'){assert.deepEqual(args,['1','digest',99,3]);return [1,2,3];}
+  if(op==='package-retain')return {token:'lease',key:'digest',size:102};
+  if(op==='package-read-retained'){assert.deepEqual(args,['1','lease',99,3]);return [1,2,3];}
+ },65536);
+ assert.deepEqual(operations,['package-open','package-retain','package-close','package-read-retained','package-read-retained','package-commit']);
+ assert.equal(globals.size,0);
+});

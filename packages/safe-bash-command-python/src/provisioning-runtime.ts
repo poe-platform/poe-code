@@ -5,6 +5,7 @@ import type { PythonPackageStart } from './provisioning.js';
 interface NativePackage { normalizedName:string;channel:string;packageData?:NativePackageData }
 interface NativePackageData {file_name:string;sha256:string;install_dir?:string}
 interface PackageSource {url:string;expected?:string}
+interface WheelReceipt {token:string;key:string;size:number}
 
 interface InstallerRuntime extends PythonWorkerRuntime {
  readonly _api: {
@@ -38,30 +39,37 @@ export async function installPythonPackages(
 
  // A host session owns one open artifact. Serialize entire transfers, including
  // closure, even when micropip or the native loader requests dependencies together.
- const withArtifact=<T>(url:string,expected:string|undefined,metadata:'metadata'|undefined,consume:(opened:{key:string;size:number;headers:readonly(readonly[string,string])[]},read:(offset:number,length:number)=>any)=>Promise<T>):Promise<T>=>{
+ const transfer=<T>(consume:()=>Promise<T>):Promise<T>=>{
   if(!accepting)return Promise.reject(new Error('Python package transport is only available during installation'));
-  const transfer=pending.then(async()=>{
+  const work=pending.then(async()=>{
    if(transportFailure)throw transportFailure.error;
-   try {
-    const opened=await request('package-open',start.session,url,expected,...metadata?[metadata]:[]) as {key:string;size:number;headers:readonly(readonly[string,string])[]};
-    try {
-     return await consume(opened,(offset,length)=>{
-      const failed=(error:unknown):never=>{transportFailure??={error};throw error;};
-      try {
-       const result=request('package-read',start.session,opened.key,offset,Math.min(length,maxTransferBytes,65536));
-       // Keep the worker callback synchronous; JSPI awaits the asynchronous host.
-       return result instanceof Promise?result.catch(failed):result;
-      }catch(error){return failed(error);}
-     });
-    } finally {await request('package-close',start.session,opened.key);}
-   } catch(error) {
-    // Micropip may replace callback errors with a generic package-index failure.
-    transportFailure??={error};
-    throw error;
-   }
+   try{return await consume();}catch(error){transportFailure??={error};throw error;}
   });
-  pending=transfer.then(()=>{},()=>{});
-  return transfer;
+  pending=work.then(()=>{},()=>{});
+  return work;
+ };
+ const readArtifact=(operation:string,key:string,offset:number,length:number)=>{
+  const failed=(error:unknown):never=>{transportFailure??={error};throw error;};
+  try {
+   const result=request(operation,start.session,key,offset,Math.min(length,maxTransferBytes,65536));
+   // Keep the worker callback synchronous; JSPI awaits the asynchronous host.
+   return result instanceof Promise?result.catch(failed):result;
+  }catch(error){return failed(error);}
+ };
+ const withArtifact=<T>(url:string,expected:string|undefined,metadata:'metadata'|undefined,consume:(opened:{key:string;size:number;headers:readonly(readonly[string,string])[]},read:(offset:number,length:number)=>any)=>Promise<T>):Promise<T>=>transfer(async()=>{
+  const opened=await request('package-open',start.session,url,expected,...metadata?[metadata]:[]) as {key:string;size:number;headers:readonly(readonly[string,string])[]};
+  try{return await consume(opened,(offset,length)=>readArtifact('package-read',opened.key,offset,length));}
+  finally{await request('package-close',start.session,opened.key);}
+ });
+ const wheel=async(size:number,read:(offset:number,length:number)=>any,configuration:Record<string,unknown>)=>{
+  const globals=['_safe_native_wheel_read','_safe_native_wheel_config','_safe_extract_native_wheel'];
+  try {
+   runtime.globals.set(globals[0]!,read);
+   runtime.globals.set(globals[1]!,JSON.stringify({...configuration,size}));
+   const result=JSON.parse(await runtime.runPythonAsync(pythonNativeWheel) as string) as string|string[];
+   if(Array.isArray(result))for(const path of result)await runtime._api.loadDynlib(path);
+   return result;
+  }finally{for(const name of globals)runtime.globals.delete(name);}
  };
  const fetch=(url:string,expected?:string,metadata?:'metadata')=>withArtifact(url,expected,metadata,async(opened,read)=>{
   const bytes=new Uint8Array(opened.size);
@@ -90,18 +98,8 @@ export async function installPythonPackages(
    if(source instanceof Uint8Array)throw new Error('Expected retained Python package source');
    const pkg=runtime._api.lockfile_packages[metadata.normalizedName]??metadata.packageData;
    if(!pkg)throw new Error(`Missing matching Pyodide package: ${metadata.normalizedName}`);
-   return withArtifact(source.url,source.expected,undefined,async(opened,read)=>{
-    const globals=['_safe_native_wheel_read','_safe_native_wheel_config','_safe_extract_native_wheel'];
-    try {
-     runtime.globals.set(globals[0]!,read);
-     runtime.globals.set(globals[1]!,JSON.stringify({size:opened.size,filename:pkg.file_name,target:pkg.install_dir??null,
-      metadata:{INSTALLER:'pyodide.loadPackage',PYODIDE_SOURCE:metadata.channel===manager.defaultChannel?'pyodide':metadata.channel}}));
-     const libraries=JSON.parse(await runtime.runPythonAsync(pythonNativeWheel) as string) as string[];
-     for(const path of libraries)await runtime._api.loadDynlib(path);
-    } finally {
-     for(const name of globals)runtime.globals.delete(name);
-    }
-   });
+   return withArtifact(source.url,source.expected,undefined,(opened,read)=>wheel(opened.size,read,{filename:pkg.file_name,target:pkg.install_dir??null,
+    metadata:{INSTALLER:'pyodide.loadPackage',PYODIDE_SOURCE:metadata.channel===manager.defaultChannel?'pyodide':metadata.channel}}));
   });
   installing=work.then(()=>{},()=>{});
   return work;
@@ -112,35 +110,38 @@ export async function installPythonPackages(
   if(errors.length)throw new Error(errors.join('\n'));
  };
  const installedGlobals:string[]=[];
+ const bind=(name:string,value:unknown)=>{runtime.globals.set(name,value);installedGlobals.push(name);};
  try {
   await loadPackages(['micropip']);
-  runtime.globals.set('_safe_package_native',loadPackages);
-  installedGlobals.push('_safe_package_native');
-  runtime.globals.set('_safe_package_bytes',async(url:string,hash?:string)=>(await fetch(url,hash)).bytes);
-  installedGlobals.push('_safe_package_bytes');
-  runtime.globals.set('_safe_package_metadata',async(url:string)=>{
+  bind('_safe_package_native',loadPackages);
+  bind('_safe_package_bytes',async(url:string,hash?:string)=>(await fetch(url,hash)).bytes);
+  bind('_safe_package_metadata',async(url:string)=>{
    const result=await fetch(url,undefined,'metadata');return JSON.stringify({text:new TextDecoder().decode(result.bytes),headers:Object.fromEntries(result.headers.map(([name,value])=>[name.toLowerCase(),value]))});
   });
-  installedGlobals.push('_safe_package_metadata');
-  runtime.globals.set('_safe_package_requirements_json',JSON.stringify(start.requested ?? start.requirements));
-  installedGlobals.push('_safe_package_requirements_json');
+  bind('_safe_package_wheel_download',async(url:string,expected:string|undefined)=>withArtifact(url,expected,undefined,async opened=>{
+   return JSON.stringify(await request('package-retain',start.session,opened.key));
+  }));
+  bind('_safe_package_wheel_metadata',async(serialized:string)=>transfer(async()=>{
+   const {source,name}=JSON.parse(serialized) as {source:WheelReceipt;name:string};
+   return wheel(source.size,(offset,length)=>readArtifact('package-read-retained',source.token,offset,length),{metadata_name:name});
+  }));
+  bind('_safe_package_wheel_install',async(serialized:string)=>transfer(async()=>{
+   const {source,...configuration}=JSON.parse(serialized) as {source:WheelReceipt;filename:string;extract_dir:string;metadata:Record<string,string>};
+   await wheel(source.size,(offset,length)=>readArtifact('package-read-retained',source.token,offset,length),configuration);
+  }));
+  bind('_safe_package_requirements_json',JSON.stringify(start.requested ?? start.requirements));
   for(const key of ['pre','upgrade','forceReinstall','legacy'] as const){
-   runtime.globals.set('_safe_package_'+key,!!start[key]);
-   installedGlobals.push('_safe_package_'+key);
+   bind('_safe_package_'+key,!!start[key]);
   }
-  runtime.globals.set('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
-  installedGlobals.push('_safe_package_restore_json');
-  runtime.globals.set('_safe_package_records_json',JSON.stringify(start.records ?? null));
-  installedGlobals.push('_safe_package_records_json');
-  runtime.globals.set('_safe_package_uninstall_json',JSON.stringify(start.uninstall ?? null));
-  installedGlobals.push('_safe_package_uninstall_json');
-  runtime.globals.set('_safe_package_emit',async(stream:string,message:string)=>{
+  bind('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
+  bind('_safe_package_records_json',JSON.stringify(start.records ?? null));
+  bind('_safe_package_uninstall_json',JSON.stringify(start.uninstall ?? null));
+  bind('_safe_package_emit',async(stream:string,message:string)=>{
    if(stream!=='stdout'&&stream!=='stderr')throw new Error('Invalid package output stream');
    const bytes=new TextEncoder().encode(message);
    for(let offset=0;offset<bytes.length;offset+=maxTransferBytes)await request(stream,Array.from(bytes.subarray(offset,offset+maxTransferBytes)));
   });
-  installedGlobals.push('_safe_package_emit');
-  runtime.globals.set('_safe_package_line',async()=>{
+  bind('_safe_package_line',async()=>{
    const bytes:number[]=[];
    while(true){
     const chunk=await request('stdin',1) as number[];
@@ -150,7 +151,6 @@ export async function installPythonPackages(
    }
    return new TextDecoder().decode(Uint8Array.from(bytes));
   });
-  installedGlobals.push('_safe_package_line');
   // The pinned installer owns candidate selection, dependency traversal and wheel
   // extraction. Its scoped transaction adapter changes only installed satisfaction:
   // upgrade targets roots; force-reinstall targets the selected dependency graph.
@@ -190,6 +190,25 @@ async def _safe_wheel_fetch(self, url, kwargs, compat):
   expected = self.core_metadata.get('sha256')
  return (await _safe_package_bytes(url, expected)).to_bytes()
 _SafeWheelInfo._fetch_bytes = _safe_wheel_fetch
+from micropip.metadata import Metadata as _SafeWheelMetadata
+async def _safe_wheel_download(self, fetch_kwargs, compat_layer):
+ if self._data is not None:
+  return
+ self._data = _safe_json.loads(await _safe_package_wheel_download(self.url, self.sha256))
+ if self._metadata is None:
+  metadata = await _safe_package_wheel_metadata(_safe_json.dumps({'source': self._data, 'name': self.name}))
+  self._metadata = _SafeWheelMetadata(metadata.encode('utf-8'))
+async def _safe_wheel_install(self, target, compat_layer):
+ if not self._data:
+  raise RuntimeError('Micropip internal error: attempted to install wheel before downloading it?')
+ source = 'pypi' if self.sha256 is not None else self.url
+ metadata = {'PYODIDE_SOURCE': source, 'PYODIDE_URL': self.url, 'PYODIDE_SHA256': self._data['key'], 'INSTALLER': 'micropip'}
+ if self._requires:
+  metadata['PYODIDE_REQUIRES'] = _safe_json.dumps(sorted(x.name for x in self._requires))
+ await _safe_package_wheel_install(_safe_json.dumps({'source': self._data, 'filename': self.filename, 'extract_dir': str(target), 'metadata': metadata}))
+ setattr(compat_layer.loadedPackages, self._project_name, source)
+_SafeWheelInfo.download = _safe_wheel_download
+_SafeWheelInfo.install = _safe_wheel_install
 _safe_preloaded = {_safe_name(name) for name in _safe_preloaded}
 _safe_manager = _SafePackageManager(_SafePackageCompatibility)
 async def _safe_parse_sources(sources, download=True):

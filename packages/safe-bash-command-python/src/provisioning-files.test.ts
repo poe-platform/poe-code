@@ -155,3 +155,42 @@ test('finish after cancellation waits for the already retiring canonical handle'
  assert.equal(premature,false);
  assert.equal(f.count().closes,1);
 });
+
+for(const retire of ['commit','finish','abort','dispose'] as const)test(`leased wheel sources survive other downloads and retire exactly once on ${retire}`,async()=>{
+ const f=await fixture();
+ try {
+  const opened=await f.environment.dispatch('package-open',[f.start.session,'file:///wheel.whl'],f.context) as {key:string};
+  const retained=await f.environment.dispatch('package-retain',[f.start.session,opened.key],f.context) as {token:string;key:string};
+  assert.equal(retained.key,opened.key);
+  await f.environment.dispatch('package-close',[f.start.session,opened.key],f.context);
+  await f.environment.dispatch('package-open',[f.start.session,'file:///wheel.whl'],f.context);
+  assert.equal(f.count().closes,0);
+  assert.deepEqual(await f.environment.dispatch('package-read-retained',[f.start.session,retained.token,65530,32],f.context),Array.from(f.bytes.subarray(65530,65562)));
+  if(retire==='commit')await f.environment.dispatch('package-commit',[f.start.session,[]],f.context);
+  if(retire==='finish')await f.environment.finish(f.start);
+  if(retire==='abort')f.controller.abort(new Error('cancelled'));
+ }finally{await f.environment.dispose();}
+ assert.equal(f.count().closes,2);
+});
+
+test('retained wheel reads reject changed content and close every source after one close fails',async()=>{
+ const f=await fixture(),failure=new Error('retained close failed');
+ await f.environment.finish(f.start);
+ let sequence=0;
+ const fs=new Proxy(f.fs,{get(target,key){
+  if(key==='openReadFile')return async(...args:Parameters<typeof target.openReadFile>)=>{
+   const handle=await target.openReadFile(...args),index=++sequence;
+   return {...handle,async close(){await handle.close();if(index===1)throw failure;}};
+  };
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const context={...f.context,fs},start=await f.environment.prepare(context);
+ const opened=await f.environment.dispatch('package-open',[start.session,'file:///wheel.whl'],context) as {key:string};
+ const receipt=await f.environment.dispatch('package-retain',[start.session,opened.key],context) as {token:string};
+ await f.environment.dispatch('package-open',[start.session,'file:///wheel.whl'],context);
+ await f.fs.writeFile('/wheel.whl',new Uint8Array(f.bytes.length));
+ await assert.rejects(f.environment.dispatch('package-read-retained',[start.session,receipt.token,0,1],context),/changed/);
+ await assert.rejects(Promise.resolve(f.environment.finish(start)),error=>error===failure);
+ await assert.rejects(f.environment.dispose(),error=>error===failure);
+ assert.equal(f.count().closes,2);
+});

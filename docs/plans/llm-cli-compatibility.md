@@ -176,8 +176,20 @@ oracle compares installed files and failure categories with the unchanged Pyodid
 installer for four noncontiguous layouts, stored/deflated 2 MiB payloads, CRC
 failures and truncated archives. A genuine workerd case installs Pydantic Core
 without preloaded LLM packages and executes its compiled extension. This does not
-move ZIP metadata or extracted files out of interpreter memory, nor remove
-micropip's separate whole-wheel buffers. Those remain completion requirements.
+move ZIP metadata or extracted files out of interpreter memory. At that stage,
+micropip still retained separate whole-wheel buffers.
+
+Micropip now keeps authenticated session-owned wheel receipts instead of Python
+wheel bytes. Metadata and extraction use bounded reads from the same retained
+source, without refetching after dependency resolution. The decision to read
+archive metadata remains after acquisition, preserving concurrent PEP 658 sidecar
+completion. Existing micropip source/hash/requirements metadata and loaded-package
+registration remain intact. Successful publication, finish,
+cancellation and disposal retire retained sources; publication closes them before
+user Python can execute. Close failures still drain every handle and remain
+observable. ZIP directory/package metadata and extracted package files still use
+interpreter memory. Legacy/memory-cache acquisition is still buffered, so this is
+not full caller-backed storage qualification.
 
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use

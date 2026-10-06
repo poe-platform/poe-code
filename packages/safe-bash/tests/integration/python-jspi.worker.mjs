@@ -56,7 +56,10 @@ for version in ('1.0', '2.0rc1'):
     const bytes=await backend.readFile('/work/'+filename);
     const url='https://packages.example/'+filename;
     const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),byte=>byte.toString(16).padStart(2,'0')).join('');
-    files.push({filename,url,hashes:{sha256}});artifacts.set(url,bytes);
+    const metadata=new TextEncoder().encode('Metadata-Version: 2.1\nName: worker-candidate\nVersion: '+version+'\n');
+    const metadataHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',metadata)),byte=>byte.toString(16).padStart(2,'0')).join('');
+    files.push({filename,url,hashes:{sha256},...version==='2.0rc1'?{'core-metadata':{sha256:metadataHash}}:{}});
+    artifacts.set(url,bytes);artifacts.set(url+'.metadata',metadata);
   }
   const micropipUrl='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
   artifacts.set(micropipUrl,micropip);

@@ -113,7 +113,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       if (runtime._api.packageManager) runtime._api.packageManager.downloadPackage = unavailablePackage;
       if (start.installOnly) {
         start.onReady();
-        const message = new TextEncoder().encode('Successfully installed requested Python packages\n');
+        const message = new TextEncoder().encode(start.packages?.uninstall ? '' : 'Successfully installed requested Python packages\n');
         for (let offset = 0; offset < message.length; offset += start.maxTransferBytes) {
           await start.dispatch({op:'stdout', args:[Array.from(message.subarray(offset, offset + start.maxTransferBytes))]});
         }

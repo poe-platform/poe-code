@@ -41,10 +41,12 @@ export interface PythonPackageStart {
  readonly restore?: readonly string[];
  /** New or host-configured requirements whose dependency closure is resolved. */
  readonly requested?: readonly string[];
+ readonly uninstall?: { readonly packages: readonly string[]; readonly yes: boolean };
  readonly offline: boolean;
 }
 export interface PythonPackageContext { readonly fs: FileSystem; readonly cwd: string; readonly signal: AbortSignal }
 export interface PythonPackagePrepareContext extends PythonPackageContext {
+ readonly uninstall?: PythonPackageStart['uninstall'];
  readonly requirements?: readonly string[];
  readonly requirementFiles?: readonly string[];
  readonly offline?: boolean;
@@ -171,7 +173,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;current.opened.clear();}sessions.delete(session);};
   sessions.set(session,{...context,cache,manifestCache,manifestRevision,controller:invocation,offline:context.offline??options.offline??false,requirements:unique,opened:new Map(),opening:false,closed:false,manifest,aborted});
   context.signal.addEventListener('abort',aborted,{once:true});
-  return {session,requirements:unique,restore,requested,offline:context.offline??options.offline??false};
+  return {session,requirements:unique,restore,requested,...input.uninstall ? {uninstall:input.uninstall} : {},offline:context.offline??options.offline??false};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();

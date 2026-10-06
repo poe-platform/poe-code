@@ -43,6 +43,12 @@ async function qualifyPackages(backend, createExecutor, micropip, useLlm) {
   try {
     const created = await shell.exec('python -c ' + quote(`
 from zipfile import ZipFile
+def write_wheel(path, files):
+ for name in files:
+  if name.endswith('/RECORD'):
+   files[name] = ''.join(entry + ',,' + chr(10) for entry in files)
+ with ZipFile(path, 'w') as wheel:
+  for name, contents in files.items(): wheel.writestr(name, contents)
 files = {
  'worker_fixture/__init__.py': 'answer = 73',
  'worker_fixture/payload.txt': 'caller package data',
@@ -50,14 +56,11 @@ files = {
  'worker_fixture-1.0.dist-info/WHEEL': 'Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n',
  'worker_fixture-1.0.dist-info/RECORD': '',
 }
-with ZipFile('worker_dependency-1.0-py3-none-any.whl', 'w') as wheel:
- for name, contents in files.items():
-  wheel.writestr(name.replace('worker_fixture', 'worker_dependency'), contents.replace('worker-fixture', 'worker-dependency'))
+write_wheel('worker_dependency-1.0-py3-none-any.whl', {name.replace('worker_fixture', 'worker_dependency'): contents.replace('worker-fixture', 'worker-dependency') for name, contents in files.items()})
 files['worker_fixture-1.0.dist-info/METADATA'] += 'Requires-Dist: worker-dependency @ file:///work/worker_dependency-1.0-py3-none-any.whl\\n'
 files['worker_fixture/plugin.py'] = 'import llm\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n'
 files['worker_fixture-1.0.dist-info/entry_points.txt'] = '[llm]\\nfixture = worker_fixture.plugin\\n'
-with ZipFile('worker_fixture-1.0-py3-none-any.whl', 'w') as wheel:
- for name, contents in files.items(): wheel.writestr(name, contents)
+write_wheel('worker_fixture-1.0-py3-none-any.whl', files)
 provider = {
  'worker_provider.py': 'import llm\\n@llm.hookimpl\\ndef register_models(register):\\n pass\\n',
  'worker_provider-1.0.dist-info/METADATA': 'Metadata-Version: 2.1\\nName: worker-provider\\nVersion: 1.0\\n',
@@ -65,8 +68,7 @@ provider = {
  'worker_provider-1.0.dist-info/entry_points.txt': '[llm]\\nprovider = worker_provider\\n',
  'worker_provider-1.0.dist-info/RECORD': '',
 }
-with ZipFile('worker_provider-1.0-py3-none-any.whl','w') as wheel:
- for name,contents in provider.items(): wheel.writestr(name,contents)
+write_wheel('worker_provider-1.0-py3-none-any.whl', provider)
 `));
     if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
     const installed = await shell.exec(prefix + ' install ./worker_fixture-1.0-py3-none-any.whl');
@@ -126,7 +128,35 @@ print('exact package state restored')
     if(!await manifestStore.compareAndSet(manifestScope,afterRejected.revision,retainedManifest.bytes,manifestContext))throw new Error('Unexpected manifest conflict');
     const repaired = await shell.exec(prefix + ' install ./worker_fixture-1.0-py3-none-any.whl');
     const repairVerified = await shell.exec(verify);
-    return {installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, native, plugins,listed,called,blocked, requests, diagnostics};
+    const declined=await shell.exec(prefix+' uninstall worker-dependency',{stdin:'n\n'});
+    const afterDecline=await shell.exec(verify);
+    const removed=await shell.exec(prefix+' uninstall worker-dependency',{stdin:'invalid\ny\n'});
+    const afterRemoval=await shell.exec('python -c '+quote(`
+from importlib.metadata import version, PackageNotFoundError
+assert version('worker-fixture') == '1.0'
+try: version('worker-dependency')
+except PackageNotFoundError: pass
+else: raise AssertionError('Removed dependency reappeared')
+print('dependency removed')
+`));
+    const missing=await shell.exec(prefix+' uninstall worker-dependency -y');
+    const protectedPackage=await shell.exec(prefix+' uninstall micropip -y');
+    const restored=await shell.exec(prefix+' install ./worker_fixture-1.0-py3-none-any.whl');
+    const afterRestore=await shell.exec(verify);
+    const hostShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({...pythonOptions,packages:['worker-fixture==1.0']}));
+    let protectedDependency;
+    try {protectedDependency=await hostShell.exec('python -m pip uninstall worker-dependency -y');} finally {await hostShell.dispose();}
+    const eof=await shell.exec(prefix+' uninstall worker-fixture',{stdin:''});
+    const rootRemoved=await shell.exec(prefix+' uninstall worker-fixture -y');
+    const afterRootRemoval=await shell.exec('python -c '+quote(`
+from importlib.metadata import version, PackageNotFoundError
+assert version('worker-dependency') == '1.0'
+try: version('worker-fixture')
+except PackageNotFoundError: pass
+else: raise AssertionError('Removed root reappeared')
+print('root removed; dependency retained')
+`));
+    return {installed, imported, conflict, recovered, retained, rejectedSnapshot, repaired, repairVerified, declined, afterDecline, removed, afterRemoval, missing, protectedPackage, restored, afterRestore, rootRemoved, afterRootRemoval, protectedDependency, eof, native, plugins,listed,called,blocked, requests, diagnostics};
   } finally {await shell.dispose();await environment.dispose();manifestStore.dispose();}
 }
 

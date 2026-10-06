@@ -166,7 +166,7 @@ export async function runPythonWorker(options: {
     if ('loadPackage' in publicRuntime) publicRuntime.loadPackage = unavailablePackage;
     if (publicRuntime._api?.packageManager) publicRuntime._api.packageManager.downloadPackage = unavailablePackage;
     if (start.installOnly) {
-      startupWrite('stdout', 'Successfully installed requested Python packages');
+      if (!start.packages?.uninstall) startupWrite('stdout', 'Successfully installed requested Python packages');
       postMessage({type:'exit', exitCode:0});
       return;
     }

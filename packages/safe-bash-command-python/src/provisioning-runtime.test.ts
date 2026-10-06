@@ -132,3 +132,24 @@ test('concurrent package downloads serialize artifact lifetimes and retire after
   assert.deepEqual(operations,fail?['open one','close one']:['open one','close one','open two','close two']);
  }
 });
+
+test('uninstall reports success only after exact manifest publication',async()=>{
+ for(const conflict of [false,true]){
+  const globals=new Map<string,unknown>();const events:string[]=[];
+  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async downloadPackage(){return new Uint8Array();}}},
+   globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},
+   async runPythonAsync(){assert.deepEqual(JSON.parse(globals.get('_safe_package_uninstall_json') as string),{packages:['fixture'],yes:true});},
+   runPython(source:string){return source==='_safe_uninstalled_json'?'["fixture-1.0"]':'[]';}};
+  const work=installPythonPackages(runtime as never,{session:'1',requirements:[],restore:[],uninstall:{packages:['fixture'],yes:true},offline:true},async(operation,...args)=>{
+   if(operation==='package-commit'){
+    events.push('commit');assert.deepEqual(args,['1',{version:1,installed:[]}]);
+    if(conflict)throw new Error('manifest conflict');
+   }
+   if(operation==='stdout')events.push(new TextDecoder().decode(Uint8Array.from(args[0])));
+  },8);
+  if(conflict)await assert.rejects(work,/manifest conflict/);else await work;
+  assert.equal(events[0],'commit');
+  assert.equal(events.slice(1).join(''),conflict?'':'  Successfully uninstalled fixture-1.0\n');
+  assert.equal(globals.size,0);
+ }
+});

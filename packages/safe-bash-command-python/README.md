@@ -83,7 +83,7 @@ filters match any requested hook. SDK callers pass
 CLI JSON output streams under the output limit. Package installation and provider
 provisioning remain host-controlled.
 
-To enable `llm install` for compatible wheels, pass
+To enable `llm install` and `llm uninstall` for compatible wheels, pass
 `managePackages: createPythonLlmPackageManager({ createExecutor, environment })`
 to `llmCommands`. Share the caller-owned `createPythonPackageEnvironment(...)`
 with Python commands and tool loaders, and dispose it when the host closes.
@@ -92,5 +92,9 @@ installation uses the environment’s authorization, cache and manifest. Install
 state is restored exactly without resolving its dependencies again; new install
 requests resolve their dependency closure. Legacy requirement manifests migrate
 on the next successful installation.
-Uninstall, editable installs and pip lifecycle flags still require additional
-installer support and currently report unsupported-operation errors.
+Use `llm uninstall PACKAGE` (or `python -m pip uninstall PACKAGE`) to remove
+a distribution with confirmation; `-y` skips the prompt. Dependencies remain
+installed. Host-required distributions cannot be removed. Removal publishes an
+exact environment snapshot only after success, and requires the artifacts needed
+to restore that environment. Editable installs and other pip lifecycle flags
+still require additional installer support.

@@ -10,6 +10,7 @@ import { after, before, test } from 'node:test';
 import { build } from 'esbuild';
 import ts from 'typescript';
 
+import uninstallReference from '../../../safe-bash-command-python/src/fixtures/uninstall-pip-21.2.4.json' with {type:'json'};
 import packageCommandReference from '../../../safe-bash-command-llm/src/fixtures/package-commands-0.27.1.json' with {type:'json'};
 import { createPythonJspiCallbackCatalog } from './python-jspi-catalog.mjs';
 
@@ -535,7 +536,7 @@ test('real workerd loads Python functions for LLM discovery and sync/async tool 
 });
 
 
-test('real workerd installs and reuses explicitly authorized Python wheels', {timeout:120000}, async()=>{
+test('real workerd installs and reuses explicitly authorized Python wheels', {timeout:240000}, async()=>{
   const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
   assert.ok(path, 'Set SAFE_BASH_PYTHON_MICROPIP_WHEEL to the pinned micropip 0.11.1 wheel');
   const bytes=readFileSync(path);
@@ -563,6 +564,28 @@ test('real workerd installs and reuses explicitly authorized Python wheels', {ti
     assert.equal(result.repaired.exitCode,0,JSON.stringify(result));
     assert.equal(result.repairVerified.exitCode,0,JSON.stringify(result));
     assert.equal(result.repairVerified.stdout,'worker package verified\n');
+    for(const key of ['declined','afterDecline','removed','afterRemoval','missing','restored','afterRestore','rootRemoved','afterRootRemoval'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
+    assert.ok(result.declined.stdout.includes('Proceed (Y/n)? '));
+    assert.ok(!result.declined.stdout.includes('Successfully uninstalled'));
+    assert.equal(result.afterDecline.stdout,'worker package verified\n');
+    assert.ok(result.removed.stdout.includes('Successfully uninstalled worker-dependency-1.0'));
+    assert.equal(result.afterRemoval.stdout,'dependency removed\n');
+    assert.equal(result.missing.stderr,'WARNING: Skipping worker-dependency as it is not installed.\n');
+    // File listings are platform-specific; compare native prompt/response text separately.
+    for (const [key,row] of [['declined',0],['removed',1]]) {
+      const expected=uninstallReference.rows[row];
+      assert.equal(result[key].stdout.slice(result[key].stdout.indexOf('Proceed (Y/n)? ')).replaceAll('worker-dependency','worker-fixture'),expected.stdout.slice(expected.stdout.indexOf('Proceed (Y/n)? ')));
+      assert.equal(result[key].stderr,expected.stderr);
+    }
+    assert.equal(result.missing.stderr.replaceAll('worker-dependency','worker-fixture'),uninstallReference.rows[2].stderr);
+    assert.equal(result.rootRemoved.stdout,uninstallReference.rows[3].stdout);
+    assert.equal(result.rootRemoved.stderr,uninstallReference.rows[3].stderr);
+    assert.notEqual(result.protectedDependency.exitCode,0);
+    assert.notEqual(result.eof.exitCode,0);
+    assert.ok(!result.eof.stdout.includes('Successfully uninstalled'));
+    assert.notEqual(result.protectedPackage.exitCode,0);
+    assert.equal(result.afterRestore.stdout,'worker package verified\n');
+    assert.equal(result.afterRootRemoval.stdout,'root removed; dependency retained\n');
     assert.equal(result.requests.length,1);
     assert.deepEqual(result.failures,[]);
     if(mode==='llm-packages') {

@@ -20,7 +20,7 @@ export async function installPythonPackages(
  request:(operation:string,...args:any[])=>any,
  maxTransferBytes:number,
 ):Promise<void> {
- if(start.requirements.length===0)return;
+ if(start.requirements.length===0&&!start.uninstall)return;
  const runtime=supplied as InstallerRuntime;
  if(runtime.version!=='314.0.6'||!runtime._api?.packageManager||!runtime._api.lockfile_packages||typeof runtime.loadPackage!=='function'||typeof runtime.runPythonAsync!=='function')throw new Error('Python package installer ABI requires Pyodide 314.0.6');
  let transportFailure:{error:unknown}|undefined;
@@ -82,8 +82,29 @@ export async function installPythonPackages(
   installedGlobals.push('_safe_package_requirements_json');
   runtime.globals.set('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
   installedGlobals.push('_safe_package_restore_json');
+  runtime.globals.set('_safe_package_uninstall_json',JSON.stringify(start.uninstall ?? null));
+  installedGlobals.push('_safe_package_uninstall_json');
+  runtime.globals.set('_safe_package_emit',async(stream:string,message:string)=>{
+   if(stream!=='stdout'&&stream!=='stderr')throw new Error('Invalid package output stream');
+   const bytes=new TextEncoder().encode(message);
+   for(let offset=0;offset<bytes.length;offset+=maxTransferBytes)await request(stream,Array.from(bytes.subarray(offset,offset+maxTransferBytes)));
+  });
+  installedGlobals.push('_safe_package_emit');
+  runtime.globals.set('_safe_package_line',async()=>{
+   const bytes:number[]=[];
+   while(true){
+    const chunk=await request('stdin',1) as number[];
+    if(!chunk.length){if(!bytes.length)throw new Error('EOF when reading package confirmation');break;}
+    if(chunk[0]===10)break;
+    bytes.push(chunk[0]!);
+   }
+   return new TextDecoder().decode(Uint8Array.from(bytes));
+  });
+  installedGlobals.push('_safe_package_line');
   await runtime.runPythonAsync(`
 import json as _safe_json
+import importlib.metadata as _safe_metadata
+_safe_preloaded = [d.metadata['Name'] for d in _safe_metadata.distributions() if d.metadata['Name']]
 import micropip as _safe_micropip
 from micropip._compat import compatibility_layer as _safe_compat
 from micropip.package_manager import PackageManager as _SafePackageManager
@@ -112,6 +133,7 @@ async def _safe_wheel_fetch(self, url, kwargs, compat):
   expected = self.core_metadata.get('sha256')
  return (await _safe_package_bytes(url, expected)).to_bytes()
 _SafeWheelInfo._fetch_bytes = _safe_wheel_fetch
+_safe_preloaded = {_safe_name(name) for name in _safe_preloaded}
 _safe_manager = _SafePackageManager(_SafePackageCompatibility)
 async def _safe_parse_sources(sources):
  roots = []
@@ -214,6 +236,53 @@ for _safe_root in _safe_restored_roots + _safe_roots:
    raise ValueError('Python package wheel version conflict: ' + str(_safe_root))
 # Preserve resolved wheel origins before adding version pins. A dependency from
 # a direct local URL may not exist on an index during the next fresh invocation.
+_safe_uninstall = _safe_json.loads(_safe_package_uninstall_json)
+_safe_removed = []
+if _safe_uninstall:
+ _safe_targets = list(dict.fromkeys(_safe_name(_SafeRequirement(source).name) for source in _safe_uninstall['packages']))
+ for _safe_target in _safe_targets:
+  if _safe_target in _safe_preloaded or _safe_target in _safe_managed:
+   raise ValueError('Cannot uninstall host-required Python package: ' + _safe_target)
+ for _safe_target in _safe_targets:
+  if _safe_target not in _safe_versions:
+   await _safe_package_emit('stderr', 'WARNING: Skipping ' + _safe_target + ' as it is not installed.\\n')
+   continue
+  _safe_dist = _safe_metadata.distribution(_safe_target)
+  _safe_version = _safe_dist.version
+  await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\\nUninstalling ' + _safe_target + '-' + _safe_version + ':\\n')
+  if not _safe_uninstall['yes']:
+   from micropip._utils import get_files_in_distribution as _safe_distribution_files
+   await _safe_package_emit('stdout', '  Would remove:\\n')
+   for _safe_path in sorted(_safe_distribution_files(_safe_dist)):
+    await _safe_package_emit('stdout', '    ' + str(_safe_path) + '\\n')
+   while True:
+    await _safe_package_emit('stdout', 'Proceed (Y/n)? ')
+    _safe_answer = (await _safe_package_line()).strip().lower()
+    if _safe_answer in ('y', 'n', ''):
+     break
+    await _safe_package_emit('stdout', 'Your response (' + repr(_safe_answer) + ') was not one of the expected responses: y, n, \\n')
+   if _safe_answer == 'n':
+    continue
+  import logging as _safe_logging
+  _safe_logger = _safe_logging.getLogger('micropip')
+  _safe_disabled = _safe_logger.disabled
+  try:
+   _safe_logger.disabled = True
+   _safe_manager.uninstall([_safe_target])
+  finally:
+   _safe_logger.disabled = _safe_disabled
+  _safe_metadata.MetadataPathFinder.invalidate_caches()
+  try:
+   _safe_metadata.distribution(_safe_target)
+  except _safe_metadata.PackageNotFoundError:
+   pass
+  else:
+   raise ValueError('Python package removal did not complete: ' + _safe_target)
+  _safe_restored_names.discard(_safe_target)
+  _safe_removed.append(_safe_target + '-' + _safe_version)
+ _safe_distributions = [d for d in _safe_metadata.distributions() if d.metadata['Name']]
+ _safe_versions = {_safe_name(d.metadata['Name']): d.version for d in _safe_distributions}
+_safe_uninstalled_json = _safe_json.dumps(_safe_removed)
 _safe_managed.update(_safe_restored_names)
 _safe_sources = []
 for _safe_dist in _safe_distributions:
@@ -234,6 +303,13 @@ _safe_gc.collect()
   if(transportFailure)throw transportFailure.error;
   const pinned=JSON.parse(runtime.runPython('_safe_installed_json')) as string[];
   await request('package-commit',start.session,start.restore === undefined ? pinned : {version:1,installed:pinned});
+  if(start.uninstall){
+   const removed=JSON.parse(runtime.runPython('_safe_uninstalled_json')) as string[];
+   for(const name of removed){
+    const bytes=new TextEncoder().encode('  Successfully uninstalled '+name+'\n');
+    for(let offset=0;offset<bytes.length;offset+=maxTransferBytes)await request('stdout',Array.from(bytes.subarray(offset,offset+maxTransferBytes)));
+   }
+  }
  }catch(error){
   accepting=false;
   await pending;

@@ -28,18 +28,29 @@ async function rawProgram(filename,name,substitutions={}){
  }
  return result;
 }
+const runtimeSource=await readFile(new URL('../src/runtime-scripts.ts',import.meta.url),'utf8');
+const runtimeTree=ts.createSourceFile('runtime-scripts.ts',runtimeSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
+const runtimePrograms={};
+for(const statement of runtimeTree.statements){
+ if(!ts.isVariableStatement(statement))throw new Error('Runtime programs must be static declarations');
+ for(const declaration of statement.declarationList.declarations){
+  if(!ts.isIdentifier(declaration.name)||!declaration.initializer||!ts.isNoSubstitutionTemplateLiteral(declaration.initializer))throw new Error('Runtime programs must be static templates');
+  runtimePrograms[declaration.name.text]=declaration.initializer.text;
+ }
+}
 const buildProgram=await rawProgram('build-backend.ts','pythonBuildBackendProgram',{
  pythonSourceOriginProgram:origin,
  pythonDownloadFilenameProgram:await rawProgram('source-filename-program.ts','pythonDownloadFilenameProgram'),
 });
 for(const [name,source,variable] of [
+ ['runtime-programs',JSON.stringify(runtimePrograms),'pythonRuntimeProgramsGzip'],
  ['package-program',origin+await readFile(new URL('../src/package-program.py',import.meta.url),'utf8'),'pythonPackageProgramGzip'],
  ['native-wheel',declaration.initializer.text,'pythonNativeWheelGzip'],
  ['build-backend',buildProgram,'pythonBuildBackendProgramGzip'],
 ]){
  const encoded=gzipSync(source,{level:9}).toString('base64');
  const output=new URL('../src/'+name+'.generated.ts',import.meta.url);
- const contents='// Generated from '+name+(name==='package-program'?'.py':'.ts')+'. Run npm run build to regenerate.\nexport const '+variable+' = '+JSON.stringify(encoded)+';\n';
+ const contents='// Generated from '+(name==='runtime-programs'?'runtime-scripts.ts':name+(name==='package-program'?'.py':'.ts'))+'. Run npm run build to regenerate.\nexport const '+variable+' = '+JSON.stringify(encoded)+';\n';
  if(process.argv.includes('--check')){
   if(await readFile(output,'utf8')!==contents)throw new Error(name+' is stale; run npm run build in safe-bash-command-python');
  }else await writeFile(output,contents);

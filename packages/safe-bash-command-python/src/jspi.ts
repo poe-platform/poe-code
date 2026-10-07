@@ -13,7 +13,7 @@ import { pythonHostFailureCode } from './host-capabilities.js';
 import { pythonHostModule } from './host-module.js';
 import { pythonJspiSignatures } from './jspi-trampoline.js';
 import { createPythonJspiScheduler, type PythonJspiCallback } from './jspi-scheduler.js';
-import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup } from './runtime-scripts.js';
+import {loadPythonRuntimePrograms} from './runtime-programs.js';
 
 export interface PythonJspiRuntimeConfiguration {
   readonly jsglobals: Record<string, never>;
@@ -115,6 +115,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       filesystem.mount(filesystem.filesystems.MEMFS, {}, '/');
       filesystem.mkdir(start.runtimeMount);
       filesystem.mount({mount:() => bootstrap}, {}, start.runtimeMount);
+      const {pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup} = await loadPythonRuntimePrograms();
       runtime.runPython(pythonRuntimeRelocation);
       filesystem.currentPath = start.invocation.cwd;
       native = createPythonNativeSyscalls({getUmask: () => guestMask, runtime:runtime._module, cwd:start.invocation.cwd,

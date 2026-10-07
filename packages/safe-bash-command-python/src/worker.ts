@@ -1,6 +1,6 @@
 import { mountPythonFileSystem } from '@poe-code/safe-fs/core';
 import { pythonExecution } from './execution.js';
-import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonHardLinks, pythonTreeCleanup } from './runtime-scripts.js';
+import {loadPythonRuntimePrograms} from './runtime-programs.js';
 import { parsePythonInvocation } from './invocation.js';
 import { installPythonPackages } from './provisioning-runtime.js';
 import type { PythonPackageStart } from './provisioning.js';
@@ -196,6 +196,7 @@ export async function runPythonWorker(options: {
       if (name.startsWith('/lib/')) libraries[start.runtimeMount + name] = library;
     }
     runtime.globals.set('_safe_runtime_mount', start.runtimeMount);
+    const {pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonHardLinks, pythonTreeCleanup} = await loadPythonRuntimePrograms();
     runtime.runPython(pythonRuntimeRelocation);
     // Importlib needs only type, modification time and size. Its internal stat
     // consumer must not force fabrication of optional POSIX metadata in os.stat.

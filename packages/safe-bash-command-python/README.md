@@ -215,7 +215,9 @@ Use `--no-deps` (or `--no-dependencies`) to install only the requested packages.
 This leaves existing dependencies untouched and does not suppress isolated build dependencies.
 Select a package index with `-i`/`--index-url`, add candidates with repeated
 `--extra-index-url`, or disable index lookup with `--no-index`. Direct wheels
-remain available when indexes are disabled. SDK callers use `indexUrl`,
+remain available when indexes are disabled. Requirement and constraint files can
+also set indexes and enable prereleases with `--pre`; their effective controls
+apply to the whole installation and to source builds. SDK callers use `indexUrl`,
 `extraIndexUrls` and `noIndex`; every fetch still uses caller authorization.
 SDK callers use `noDeps`, `upgrade`, `forceReinstall`, `pre` and `noCache` on `PythonPackageOptions` or per-invocation
 `PythonPackagePrepareContext`; explicit invocation values override defaults.

@@ -325,7 +325,7 @@ for version in ('1.0', '2.0rc1'):
   return {results,requests};
 }
 
-async function qualifyReplacements(backend,createExecutor,micropip,constraintsOnly=false,noDepsOnly=false,indexesOnly=false) {
+async function qualifyReplacements(backend,createExecutor,micropip,qualification='') {
  const quote=value=>"'"+value.split("'").join("'\\''")+"'";
  const bootstrap=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor}));
  try {
@@ -369,7 +369,8 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(options)).use(llmCommands({managePackages:createPythonLlmPackageManager(options)}));
  const rows=[];
  try {
-  if(indexesOnly){
+  if(qualification==='/package-indexes'||qualification==='/requirement-indexes'){
+   const fromFile=qualification==='/requirement-indexes';
    published=true;
    const all=indexes.get('https://pypi.org/simple/replace-root/');
    indexes.delete('https://pypi.org/simple/replace-root/');
@@ -379,15 +380,18 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
    for(const command of ['-i https://primary.example/simple replace-root','-i https://primary.example/simple/ --extra-index-url https://extra.example/simple/ replace-root','--no-index -i https://primary.example/simple replace-root','--no-index ./replace_root-1.0-py3-none-any.whl']){
     const isolated=createPythonPackageEnvironment({...configuration,scope:'indexes-'+rows.length});
     const child=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
-    try{rows.push({result:await child.exec('python -m pip install --no-deps '+command),versions:await child.exec('python -c '+quote(inspect)),queries:indexRequests.splice(0)});}
+    const fileLines=['--index-url https://primary.example/simple\nreplace-root','--index-url https://primary.example/simple/\n--extra-index-url https://extra.example/simple/\nreplace-root --index-url https://ignored.example/simple','--no-index\nreplace-root','--no-index\n./replace_root-1.0-py3-none-any.whl'];
+    if(fromFile)await backend.writeFile('/work/indexes.txt',new TextEncoder().encode(fileLines[rows.length]));
+    try{rows.push({result:await child.exec('python -m pip install --no-deps '+(fromFile?'-r indexes.txt':command)),versions:await child.exec('python -c '+quote(inspect)),queries:indexRequests.splice(0)});}
     finally{await child.dispose();await isolated.dispose();}
    }
-   const isolated=createPythonPackageEnvironment({...configuration,scope:'indexes-sdk',requirements:['replace-root'],noDeps:true,indexUrl:'https://primary.example/simple/',extraIndexUrls:['https://extra.example/simple/']});
+   if(fromFile)await backend.writeFile('/work/indexes-sdk.txt',new TextEncoder().encode('--index-url https://primary.example/simple/\n--extra-index-url https://extra.example/simple/\nreplace-root'));
+   const isolated=createPythonPackageEnvironment({...configuration,scope:'indexes-sdk',noDeps:true,...fromFile?{requirementFiles:['indexes-sdk.txt']}:{requirements:['replace-root'],indexUrl:'https://primary.example/simple/',extraIndexUrls:['https://extra.example/simple/']}});
    const child=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
    try{return {rows,sdk:await child.exec('python -c '+quote(inspect))};}
    finally{await child.dispose();await isolated.dispose();}
   }
-  if(noDepsOnly){
+  if(qualification==='/package-no-deps'){
    published=true;
    const inspect='import importlib.metadata as m, json; print(json.dumps({d.metadata["Name"].replace("_","-"): d.version for d in m.distributions() if d.metadata["Name"].startswith("replace")}))';
    for(const command of ['python -m pip install --no-deps replace-root==1','python -m pip install --no-dependencies --upgrade replace-root','python -m pip install replace-root','python -m pip install --no-deps --force-reinstall replace-root==1']){
@@ -399,7 +403,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
    try{return {rows,sdk:await sdkShell.exec('python -c '+quote(inspect)),diagnostics};}
    finally{await sdkShell.dispose();await isolated.dispose();}
   }
-  if(constraintsOnly){
+  if(qualification==='/package-constraints'){
    published=true;
    await backend.writeFile('/work/pins.txt',new TextEncoder().encode('replace-dep<2\nreplace-orphan==1.0'));
    await backend.writeFile('/work/direct.txt',new TextEncoder().encode('replace-root @ https://packages.example/replace_root-1.0-py3-none-any.whl\nreplace-root<2'));
@@ -2124,8 +2128,8 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/package-replacements'||mode==='/package-constraints'||mode==='/package-no-deps'||mode==='/package-indexes') {
-      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode==='/package-constraints',mode==='/package-no-deps',mode==='/package-indexes'),failures});}
+    if (mode === '/package-replacements'||mode==='/package-constraints'||mode==='/package-no-deps'||mode==='/package-indexes'||mode==='/requirement-indexes') {
+      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

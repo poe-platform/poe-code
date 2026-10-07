@@ -142,8 +142,11 @@ function expandRequirement(source:string,env:Readonly<Record<string,string|undef
  }
  return text;
 }
-function requirementInclude(line:string):readonly [string,boolean]|undefined {
- if(!['-r','-c','--requirem','--const'].some(prefix=>line.startsWith(prefix)))return;
+function requirementOptions(line:string):{requirement?:string;include?:readonly [string,boolean];indexUrl?:string;extraIndexUrls:string[];noIndex?:boolean;pre?:boolean}|undefined {
+ const tokens=line.split(' '),start=tokens.findIndex(token=>token.startsWith('-'));
+ if(start<0)return;
+ const requirement=tokens.slice(0,start).join(' ');line=tokens.slice(start).join(' ');
+ if(!['-r','-c','-i','--requirem','--const','--index-url','--extra-index-url','--no-index','--pre'].some(prefix=>line.startsWith(prefix)))return;
  const words:string[]=[];let word='',quote='',active=false;
  for(let index=0;index<line.length;index++){
   const char=line[index]!;
@@ -159,15 +162,22 @@ function requirementInclude(line:string):readonly [string,boolean]|undefined {
  if(quote)throw failure('No closing quotation');
  if(active)words.push(word);
  let included:string|undefined,constrained:string|undefined;
+ const options:{requirement?:string;indexUrl?:string;extraIndexUrls:string[];noIndex?:boolean;pre?:boolean}={extraIndexUrls:[],...requirement?{requirement}:{}};
  for(let index=0;index<words.length;index++){
   const word=words[index]!,option=word.split('=',1)[0]!;
-  const kind=['requirement','constraint'].find(name=>word.startsWith('-'+name[0])||option.startsWith('--'+name.slice(0,name==='requirement'?8:5))&&('--'+name).startsWith(option));
+  if(word==='--pre'){options.pre=true;continue;}
+  if(word==='--no-index'){options.noIndex=true;continue;}
+  const indexKind=word.startsWith('-i')||option==='--index-url'?'indexUrl':option==='--extra-index-url'?'extraIndexUrls':undefined;
+  const kind=indexKind??['requirement','constraint'].find(name=>word.startsWith('-'+name[0])||option.startsWith('--'+name.slice(0,name==='requirement'?8:5))&&('--'+name).startsWith(option));
   if(!kind){if(word.startsWith('-'))throw failure(`Unsupported requirement option: ${word}`);continue;}
   const path=word.startsWith('--')?(word.length===option.length?words[++index]:word.slice(option.length+1)):(word.length===2?words[++index]:word.slice(2));
   if(path===undefined)throw failure(`Requirement option needs a file: ${word}`);
-  if(kind==='requirement')included??=path;else constrained??=path;
+  if(kind==='requirement')included??=path;
+  else if(kind==='constraint')constrained??=path;
+  else if(kind==='indexUrl')options.indexUrl=path;
+  else options.extraIndexUrls.push(path);
  }
- return included!==undefined?[included,false]:constrained!==undefined?[constrained,true]:undefined;
+ return included!==undefined?{...options,include:[included,false]}:constrained!==undefined?{...options,include:[constrained,true]}:options;
 }
 function normalizeRequirement(value: string, cwd: string): string {
  const requirement = value.trim();
@@ -287,6 +297,9 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const restore = saved.map(value=>normalizeRequirement(value,context.cwd));
   const requirements = [...(options.profile ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
   const constraints=[...options.constraints??[],...context.constraints??[]];
+  const controls: {noDeps?:boolean;pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
+  for(const key of ['pre','upgrade','forceReinstall','noDeps'] as const)if(context[key]??options[key])controls[key]=true;
+  let indexUrls=(context.noIndex??options.noIndex)?[]:[context.indexUrl??options.indexUrl??'https://pypi.org/simple',...context.extraIndexUrls??options.extraIndexUrls??[]];
   const activeFiles=new Set<string>();let requirementBytes=0;
   const readRequirements=async(path:string,constraint=false):Promise<void>=>{
    signal.throwIfAborted();
@@ -306,16 +319,23 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     while(comment>0&&line[comment-1]!.trim())comment=line.indexOf('#',comment+1);
     const text=(comment<0?line:line.slice(0,comment)).trim(); if (!text)continue;
     const expanded=expandRequirement(text,context.env);
-    const included=requirementInclude(expanded);
-    if(included!==undefined)await readRequirements(resolve(dirname(path),included[0]),included[1]);
+    const parsed=requirementOptions(expanded);
+    if(parsed?.requirement)(constraint?constraints:requirements).push(normalizeRequirement(parsed.requirement,dirname(path)));
+    else if(parsed?.include)await readRequirements(resolve(dirname(path),parsed.include[0]),parsed.include[1]);
+    else if(parsed){
+     if(parsed.indexUrl)indexUrls=[parsed.indexUrl];
+     if(parsed.noIndex)indexUrls=[];
+     indexUrls.push(...parsed.extraIndexUrls);
+     if(parsed.pre)controls.pre=true;
+    }
     else (constraint?constraints:requirements).push(expanded[0]==='-'&&options.prepareRequirements?expanded:normalizeRequirement(expanded,dirname(path)));
    }
    activeFiles.delete(identity);
   };
-  for(const file of [...options.requirementFiles??[],...context.requirementFiles??[]])await readRequirements(resolve(context.cwd,file));
   for(const file of [...options.constraintFiles??[],...context.constraintFiles??[]])await readRequirements(resolve(context.cwd,file),true);
+  for(const file of [...options.requirementFiles??[],...context.requirementFiles??[]])await readRequirements(resolve(context.cwd,file));
   if((options.editable?.length||context.editable?.length)&&!options.prepareRequirements)throw failure('Editable packages require a source package environment');
-  const requested=[...new Set(await options.prepareRequirements?.(requirements,context)??requirements)];
+  const requested=[...new Set(await options.prepareRequirements?.(requirements,{...context,...controls,noIndex:indexUrls.length===0,...indexUrls.length?{indexUrl:indexUrls[0]!,extraIndexUrls:indexUrls.slice(1)}:{}})??requirements)];
   signal.throwIfAborted();
   const session=String(++counter);
   const unique=[...new Set([...restore,...requested])];
@@ -323,9 +343,6 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const offline=context.offline??options.offline??false;
   sessions.set(session,{...context,cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
   signal.addEventListener('abort',aborted,{once:true});
-  const controls: {noDeps?:boolean;pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
-  for(const key of ['pre','upgrade','forceReinstall','noDeps'] as const)if(context[key]??options[key])controls[key]=true;
-  const indexUrls=(context.noIndex??options.noIndex)?[]:[context.indexUrl??options.indexUrl??'https://pypi.org/simple',...context.extraIndexUrls??options.extraIndexUrls??[]];
   return {session,indexUrls,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {

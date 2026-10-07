@@ -81,3 +81,43 @@ with patch('pip._internal.req.req_file.get_file_content',side_effect=lambda path
   await environment.finish(prepared);
  }finally{await environment.dispose();}
 });
+
+for(const lines of [
+ '--index-url https://first/simple\n--extra-index-url https://extra/simple\nalpha',
+ '--extra-index-url https://ignored/simple\n-i "https://last/simple"\nalpha',
+ '--no-index\nalpha',
+ '--no-index --extra-index-url https://extra/simple\nalpha',
+ '--no-index\n--index-url https://restored/simple\nalpha',
+ '-r /child --index-url https://ignored/simple\nalpha',
+ '--pre\n--index-url ${INDEX}\nalpha',
+ 'alpha --index-url https://ignored/simple',
+ 'alpha --pre',
+ 'alpha -r /missing',
+])test('requirements file index directives match native pip: '+JSON.stringify(lines),async()=>{
+ const files={'/req':lines,'/child':'beta','/pins':'--index-url https://constraint/simple\nalpha<3'};
+ const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import json,sys,os
+from unittest.mock import patch
+from pip._internal.commands.install import InstallCommand
+from pip._internal.network.session import PipSession
+files=json.load(sys.stdin)
+command=InstallCommand('install','install')
+options,args=command.parse_args(['-r','/req','-c','/pins'])
+session=PipSession()
+finder=command._build_package_finder(options,session)
+with patch.dict(os.environ,{'INDEX':'https://expanded/simple'}),patch('pip._internal.req.req_file.get_file_content',side_effect=lambda path,session:(path,files[path])):
+ roots=command.get_requirements(args,options,finder,session)
+ print(json.dumps({'indexes':finder.index_urls,'pre':finder.allow_all_prereleases,'roots':[str(req.req) for req in roots if not req.constraint]}))
+session.close()
+`],{input:JSON.stringify(files),encoding:'utf8',timeout:5000});
+ assert.ifError(native.error);assert.equal(native.status,0,native.stderr);
+ const expected=JSON.parse(native.stdout) as {indexes:string[];pre:boolean;roots:string[]};
+ const fs=new MemoryFileSystem();for(const [path,value]of Object.entries(files))await fs.writeFile(path,new TextEncoder().encode(value));
+ let sourceControls:unknown;
+ const environment=createPythonPackageEnvironment({prepareRequirements:async(requirements,context)=>{sourceControls={indexes:context.noIndex?[]:[context.indexUrl,...context.extraIndexUrls??[]],pre:!!context.pre};return requirements;}});
+ try{
+  const prepared=await environment.prepare({fs,cwd:'/',requirementFiles:['/req'],constraintFiles:['/pins'],env:{INDEX:'https://expanded/simple'},signal:new AbortController().signal});
+  assert.deepEqual(prepared.indexUrls,expected.indexes);assert.equal(!!prepared.pre,expected.pre);assert.deepEqual(prepared.requested,expected.roots);
+  assert.deepEqual(sourceControls,{indexes:expected.indexes,pre:expected.pre});await environment.finish(prepared);
+ }finally{await environment.dispose();}
+});

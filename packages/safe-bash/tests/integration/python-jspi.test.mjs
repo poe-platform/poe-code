@@ -1119,9 +1119,9 @@ test('real workerd applies package constraints without installing unused roots',
  assert.deepEqual(result.diagnostics,[]);assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
  });
 
-test('real workerd selects candidates across package indexes and honors no-index', {timeout:180000}, async()=>{
+for(const fromFile of [false,true])test('real workerd selects candidates across package indexes and honors no-index; requirement files='+fromFile, {timeout:180000}, async()=>{
  const {miniflare,runtimeErrors}=nativeFixture;
- const response=await miniflare.dispatchFetch('http://fixture/package-indexes',{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const response=await miniflare.dispatchFetch('http://fixture/'+(fromFile?'requirement-indexes':'package-indexes'),{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
  const result=await response.json();assert.equal(response.status,200,JSON.stringify(result));
  const reference=JSON.parse(readFileSync(new URL('../../../safe-bash-command-python/src/fixtures/package-indexes-pip-21.2.4.json',import.meta.url),'utf8'));
  assert.equal(result.rows.length,reference.rows.length);

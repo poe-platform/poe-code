@@ -84,7 +84,7 @@ Attachments are validated in order before collection setup, including for non-SQ
 SDK callers use `withSqlEmbeddingEntries({ fs, path, directory, signal, sql, attachments, maxFileBytes, maxIndexBytes, maxOpenFiles, prefix?, prepend?, admit? }, callback)` from the collections entry point.
 Query results live in private caller storage; text and blob fields replay in bounded chunks, and cancellation retires native work and temporary files before returning.
 Original column names preserve duplicate-key ordering, and UTF-16 database text is converted incrementally to UTF-8.
-The result database counts against the existing file budget. SQLite expression evaluation still uses native memory; this does not establish bounded native allocation for arbitrary expressions.
+The result file counts against the existing file budget and consumes no SQL attachment slot. SQLite expression evaluation still uses native memory; this does not establish bounded native allocation for arbitrary expressions.
 Full SQL introspection/diagnostic parity remains unqualified.
 This optional catalog does not store conversation or response history.
 

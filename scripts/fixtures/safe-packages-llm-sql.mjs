@@ -26,6 +26,17 @@ export async function verifyLlmSqlImports(){
   for await(const entry of entries)for await(const bytes of entry.input.bytes){if(bytes.length>65536)throw new Error('Unbounded SQL result transfer');largeBytes+=bytes.length;}
  });
  if(largeBytes!==393219)throw new Error('Large SQL text changed');
+ const attachmentNames=[];
+ await withSqlEmbeddingEntries({...limits,fs,path:'/source.db',directory:'/',signal,sql:'SELECT seq,name FROM pragma_database_list'},async entries=>{
+  for await(const entry of entries){let name='';for await(const bytes of entry.input.bytes)name+=new TextDecoder().decode(bytes);attachmentNames.push(name);}
+ });
+ if(JSON.stringify(attachmentNames)!=='["main"]')throw new Error('Query sees result storage: '+JSON.stringify(attachmentNames));
+ const attachments=Array.from({length:10},(_,index)=>({alias:'db'+index,path:'/source.db'}));
+ let attachedCount='';
+ await withSqlEmbeddingEntries({...limits,fs,path:'/source.db',directory:'/',signal,attachments,sql:'SELECT count(*),\'content\' FROM pragma_database_list'},async entries=>{
+  for await(const entry of entries){attachedCount=entry.id;await entry.input.dispose();}
+ });
+ if(attachedCount!=='11')throw new Error('Result storage consumed native attachment capacity');
  const after=await fs.readFile('/source.db');if(after.length!==before.length||after.some((byte,index)=>byte!==before[index]))throw new Error('SQL source changed');
  if(JSON.stringify((await fs.readdir('/')).map(entry=>entry.name))!=='["broken.db","created.db","empty.db","failed.db","new.db","prepared.db","source.db","target.db"]')throw new Error('SQL result storage leaked');
  return {sqlImports:true,largeBytes};

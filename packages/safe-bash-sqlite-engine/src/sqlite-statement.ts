@@ -1,11 +1,12 @@
 import {FsError} from 'safe-bash-contracts';
 import {yieldTurn} from 'safe-bash-contracts/yield';
+import type {SqliteRecordValue} from './sqlite-record.js';
 import type {SqliteBlobModule} from './sqlite-blob.js';
 export type SqliteBinding=null|bigint|number|string|Uint8Array;
 export type SqliteColumn='blob'|'text'|'integer'|'real'|'null';
-export interface SqliteStatement {columns():readonly string[];rows(bindings:readonly SqliteBinding[],columns:readonly SqliteColumn[]):AsyncIterable<SqliteBinding[]>}
-// Private bounded control/scalar queries only. Large record fields use retained
-// physical spans or incremental blobs; do not select arbitrary large values here.
+export interface SqliteStatement {columns():readonly string[];rows(bindings:readonly SqliteBinding[],columns:readonly SqliteColumn[]):AsyncIterable<SqliteBinding[]>;records():AsyncIterable<SqliteRecordValue[]>}
+// rows() is for bounded controls/scalars. records() borrows native field windows
+// for staging; it does not bound SQLite expression allocations.
 export async function withSqliteStatement<T>(module:SqliteBlobModule,options:{database:number;sql:string;single?:boolean;signal:AbortSignal;check():void},operation:(statement:SqliteStatement)=>Promise<T>):Promise<T>{
  const {database,sql,signal,check}=options;
  signal.throwIfAborted();check();
@@ -41,7 +42,7 @@ export async function withSqliteStatement<T>(module:SqliteBlobModule,options:{da
   }
   throw new FsError('EIO',{message});
  };
- let out=0,sqlPointer=0,statement=0,accepting=true,current:AsyncGenerator<SqliteBinding[]>|undefined,value!:T;
+ let out=0,sqlPointer=0,statement=0,accepting=true,current:AsyncGenerator<unknown>|undefined,value!:T;
  const errors:unknown[]=[];
  const resetCursor=async(failed:boolean,failure:unknown):Promise<void>=>{
   try{const code=await reset(statement);if(!failed)result(code);}
@@ -113,6 +114,52 @@ export async function withSqliteStatement<T>(module:SqliteBlobModule,options:{da
   }
   const iterator=iterate();return iterator;
  };
+ // Arbitrary fields stay in native memory only until the next step. Consumers
+ // must copy these borrowed windows into caller storage before advancing.
+ const records=():AsyncGenerator<SqliteRecordValue[]>=>{
+  async function* iterate():AsyncGenerator<SqliteRecordValue[]>{
+   if(!accepting)throw new FsError('EBADF',{message:'SQLite statement is closed'});
+   if(current)throw new FsError('EBUSY',{message:'SQLite cursor is already active'});
+   current=iterator;
+   let failed=false,failure:unknown;
+   try{
+    const readonly=module.cwrap('sqlite3_stmt_readonly','number',['number']) as (statement:number)=>number;
+    if(!readonly(statement)||parameters(statement))throw new TypeError('Expected an unbound read-only SQLite query');
+    const size=count(statement);if(size>2000)throw new RangeError('SQLite record exceeds column budget');
+    while(true){
+     await yieldTurn(signal);check();
+     const code=await step(statement);check();signal.throwIfAborted();
+     if(code===101)return;if(code!==100){result(code);return;}
+     let active=true;
+     try{
+      const values:SqliteRecordValue[]=[];
+      for(let column=0;column<size;column++){
+       const kind=type(statement,column);
+       if(kind===5){values.push(null);continue;}
+       if(kind===2){values.push(real(statement,column));continue;}
+       // Ask for UTF-8 before its length: SQLite may convert a UTF-16 value.
+       const pointer=kind===4?blob(statement,column):text(statement,column);
+       const bytes=length(statement,column);
+       if(bytes<0||bytes&&(!pointer||pointer+bytes>module.HEAPU8.length))throw new RangeError('Invalid SQLite field address');
+       if(kind===1){
+        if(bytes>20)throw new RangeError('Invalid SQLite integer');
+        values.push(BigInt(decoder.decode(module.HEAPU8.subarray(pointer,pointer+bytes))));continue;
+       }
+       if(kind!==3&&kind!==4)throw new TypeError('Unexpected SQLite field type');
+       values.push({type:kind===3?'text':'blob',size:bytes,bytes:{async *[Symbol.asyncIterator](){
+        const ready=()=>{signal.throwIfAborted();check();if(!active||!accepting)throw new FsError('EBADF',{message:'SQLite row lease is closed'});};
+        ready();
+        for(let offset=0;offset<bytes;offset+=16384){await yieldTurn(signal);ready();yield module.HEAPU8.slice(pointer+offset,pointer+Math.min(offset+16384,bytes));}
+       }}});
+      }
+      yield values;
+     }finally{active=false;}
+    }
+   }catch(error){failed=true;failure=error;throw error;}
+   finally{await resetCursor(failed,failure);}
+  }
+  const iterator=iterate();return iterator;
+ };
  try{
   out=module._malloc(options.single?8:4);if(!out)throw new RangeError('SQLite memory allocation failed');
   new DataView(module.HEAPU8.buffer).setInt32(out,0,true);
@@ -129,7 +176,7 @@ export async function withSqliteStatement<T>(module:SqliteBlobModule,options:{da
    for(let position=tail;position<sqlPointer+bytes.length;position++)if(![9,10,11,12,13,32].includes(module.HEAPU8[position]!))throw new TypeError('Expected a single SQLite statement');
   }else{code=await prepare(database,sql,-1,out,0);statement=new DataView(module.HEAPU8.buffer).getInt32(out,true);}
   result(code);signal.throwIfAborted();if(!statement)throw new FsError('EIO',{message:'SQLite returned an empty statement'});
-  value=await operation({rows,columns(){
+  value=await operation({rows,records,columns(){
    if(!accepting)throw new FsError('EBADF',{message:'SQLite statement is closed'});
    signal.throwIfAborted();check();
    const names:string[]=[],size=count(statement);

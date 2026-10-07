@@ -81,3 +81,42 @@ test('result staging preserves query value types without inferred column affinit
  await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:"SELECT id FROM sample UNION ALL SELECT '001'"},async rows=>{for await(const row of rows){const field=row[0];if(field&&typeof field==='object'){let text='';for await(const bytes of field.bytes)text+=new TextDecoder().decode(bytes);values.push(text);}else values.push(field);}});
  assert.deepEqual(values,[7n,'001']);
 });
+
+test('query staging is absent from the native attachment namespace',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ const names:string[]=[];
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:'SELECT name FROM pragma_database_list'},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');let name='';for await(const bytes of field.bytes)name+=new TextDecoder().decode(bytes);names.push(name);}});
+ assert.deepEqual(names,['main']);
+});
+test('query staging preserves all ten native attachment slots',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ const attachments=Array.from({length:10},(_,index)=>({alias:'db'+index,path:'/main'}));
+ const values:unknown[]=[];
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,attachments,sql:'SELECT count(*) FROM pragma_database_list'},async rows=>{for await(const row of rows)values.push(row[0]);});
+ assert.deepEqual(values,[11n]);
+});
+test('result spool budget failure precedes the consumer and retires caller files',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ let admitted=false;
+ await assert.rejects(withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,maxFileBytes:16384,sql:'SELECT zeroblob(16384)'},async()=>{admitted=true;}),{code:'EFBIG'});
+ assert.equal(admitted,false);assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
+});
+test('late native query failure does not publish partial staged results',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ let admitted=false;
+ await assert.rejects(withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:'SELECT 1 UNION ALL SELECT abs(-9223372036854775808)'},async()=>{admitted=true;}),/integer overflow/);
+ assert.equal(admitted,false);assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
+});
+test('staged query fields reject changes to their retained caller snapshot',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,sql:"SELECT 'unchanged'"},async rows=>{
+  for await(const row of rows){
+   const field=row[0];assert.ok(field&&typeof field==='object');
+   const directory=(await fs.readdir('/')).find(entry=>entry.name.startsWith('.sqlite-'))!.name;
+   const file=await fs.open('/'+directory+'/results',{access:'readwrite',creation:'never',signal});
+   try{const stat=await file.stat({signal});await file.write(Uint8Array.of(120),stat.size-1,{signal});}finally{await file.close();}
+   await assert.rejects(async()=>{for await(const ignored of field.bytes){ /* Observe the retained version before exposing bytes. */ }},{code:'EBUSY'});
+  }
+ });
+ assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
+});

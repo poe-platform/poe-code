@@ -102,3 +102,22 @@ test('admits a binary scalar spanning multiple filesystem transfer windows',asyn
  await withSqliteStatement(n.module,options(),async s=>{for await(const ignoredRow of s.rows([new Uint8Array(32769)],['blob'])){ /* Consume the cursor to exercise native validation. */ }});
  assert.equal(n.bound[0]?.size,32769);
 });
+test('native query field windows expire on advancement and own transferred bytes',async()=>{
+ const n=native(),wrap=n.module.cwrap.bind(n.module);
+ n.module.cwrap=name=>name==='sqlite3_stmt_readonly'?()=>1:name==='sqlite3_bind_parameter_count'?()=>0:wrap(name);
+ await withSqliteStatement(n.module,options(),async statement=>{
+  const cursor=statement.records()[Symbol.asyncIterator](),first=await cursor.next();assert.equal(first.done,false);
+  const field=first.value[0];assert.ok(field&&typeof field==='object');
+  const chunks=[];for await(const chunk of field.bytes)chunks.push(chunk);
+  chunks[0]![0]=99;assert.equal(n.module.HEAPU8[150000],1);
+  assert.equal((await cursor.next()).done,true);
+  await assert.rejects(async()=>{for await(const ignored of field.bytes)assert.fail('expired native bytes');},{code:'EBADF'});
+ });
+ assert.equal(n.calls.at(-1),'finalize');
+});
+for(const writable of [false,true])test('native query fields reject '+(writable?'writes':'unbound parameters'),async()=>{
+ const n=native(),wrap=n.module.cwrap.bind(n.module);
+ n.module.cwrap=name=>name==='sqlite3_stmt_readonly'?()=>writable?0:1:wrap(name);
+ await assert.rejects(withSqliteStatement(n.module,options(),async statement=>{for await(const ignored of statement.records())assert.fail('unadmitted query');}),/unbound read-only/);
+ assert.ok(!n.calls.includes('step'));assert.equal(n.calls.at(-1),'finalize');
+});

@@ -848,7 +848,7 @@ test('real workerd migrates legacy requirements before uninstall without making 
    assert.ok(row.stdout.includes('Successfully uninstalled '+row.target+'-1.0'),JSON.stringify(row));
    assert.equal(row.state.exitCode,0,JSON.stringify(row));
    assert.deepEqual(JSON.parse(row.state.stdout),index===0?['1.0',null,'1.0']:[null,'1.0','1.0']);
-   assert.equal(row.manifest.version,2);
+   assert.equal(row.manifest.version,3);
    assert.ok(!row.manifest.installed.some(source=>source.startsWith(row.target)),JSON.stringify(row));
   }
   if(mode==='legacy-llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT){
@@ -935,4 +935,17 @@ test('real workerd verifies every pinned pip direct wheel hash before publicatio
  assert.ok(result.wheelReads.largest<=65536);
  assert.deepEqual(result.failures,[]);
  assert.deepEqual(nativeFixture.runtimeErrors,[]);
+});
+
+
+test('real workerd retains direct wheel provenance for roots and dependencies across restoration', {timeout:90000},async()=>{
+ const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/wheel-provenance',{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const result=await response.json();
+ assert.equal(response.status,200,JSON.stringify(result));
+ for(const key of ['installed','provenance','restored','indexed','indexProvenance','indexRestored','removed','retained'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
+ const expected=Object.fromEntries(['worker-fixture','worker-dependency'].map(name=>[name,{url:'file:///work/'+name.replaceAll('-','_')+'-1.0-py3-none-any.whl',archive_info:{}}]));
+ for(const key of ['provenance','restored','retained'])assert.deepEqual(Object.fromEntries(Object.entries(JSON.parse(result[key].stdout)).map(([name,value])=>[name,JSON.parse(value)])),expected);
+ for(const key of ['indexProvenance','indexRestored'])assert.equal(result[key].stdout,'None\n',JSON.stringify(result));
+ assert.equal(result.wheelReads.opened,result.wheelReads.closed);assert.ok(result.wheelReads.largest<=65536);
+ assert.deepEqual(result.failures,[]);assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });

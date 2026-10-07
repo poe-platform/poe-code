@@ -247,6 +247,9 @@ The same environment works with SDK requirements and the LLM package manager.
 Named local references such as `project[feature] @ file:///sources/project`
 retain the requested package name, extras and environment marker after building.
 Inactive markers skip the build.
+Direct wheel installations retain their original URL and supplied hash in
+`direct_url.json`, including direct URL dependencies. Index-selected wheels do
+not acquire direct-install provenance.
 PEP 517 installations retain the original source URL, optional archive hash and
 subdirectory in `direct_url.json`, including after source cleanup and offline
 restoration through the source environment. Authentication is redacted following

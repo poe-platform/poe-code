@@ -316,7 +316,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  }finally{await shell.dispose();await environment.dispose();}
 }
 
-async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false, buildOnly=false, integrityOnly=false) {
+async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false, buildOnly=false, integrityOnly=false, provenanceOnly=false) {
   const wheelReads={opened:0,closed:0,reads:0,largest:0};
   backend=new Proxy(backend,{get(target,key){
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl'))throw Error('Whole canonical wheel read');return target.readFile(path,...args);};
@@ -330,15 +330,17 @@ async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacy
   }});
   const requests = [], diagnostics = [];
   const url = 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
+  const provenanceArtifacts=new Map();
+  const provenanceIndex='https://pypi.org/simple/worker-provider/';
   const manifestStore=createPythonPackageManifestStore();
   let manifestScope;
   const configuration = {scope:'fixture',manifestStore:{
     get(scope,options) {manifestScope=scope;return manifestStore.get(scope,options);},
     compareAndSet:manifestStore.compareAndSet,
-  },authorize:request => request.url === url, transport:async request => {
-      if (request.url !== url) throw new Error('Unexpected package request');
+  },authorize:request => request.url === url||provenanceArtifacts.has(request.url), transport:async request => {
+      if (request.url !== url&&!provenanceArtifacts.has(request.url)) throw new Error('Unexpected package request');
       requests.push(request.url);
-      return {status:200, headers:[], body:(async function*(){yield micropip;})(), async dispose(){}};
+      return {status:200, headers:request.url===provenanceIndex?[['content-type','application/vnd.pypi.simple.v1+json']]:[], body:(async function*(){yield provenanceArtifacts.get(request.url)??micropip;})(), async dispose(){}};
     }};
   const environment = createPythonPackageEnvironment(configuration);
   const pythonOptions = {createExecutor,environment,maxTransferBytes:32,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event))};
@@ -390,6 +392,27 @@ provider = {
 write_wheel('worker_provider-1.0-py3-none-any.whl', provider)
 `));
     if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
+    if(provenanceOnly){
+      const installed=await shell.exec(prefix+' install ./worker_fixture-1.0-py3-none-any.whl');
+      const inspect='python -c '+quote('import json; from importlib.metadata import distribution; print(json.dumps({name:distribution(name).read_text("direct_url.json") for name in ["worker-fixture","worker-dependency"]}))');
+      const provenance=await shell.exec(inspect);
+      const restored=await shell.exec(inspect);
+      const file=await backend.openReadFile('/work/worker_provider-1.0-py3-none-any.whl');
+      let bytes;
+      try{
+        bytes=new Uint8Array((await file.stat()).size);
+        for(let offset=0;offset<bytes.length;){const chunk=await file.read(offset,Math.min(65536,bytes.length-offset));if(!chunk.length)throw Error('Fixture wheel ended early');bytes.set(chunk,offset);offset+=chunk.length;}
+      }finally{await file.close();}
+      const indexWheel='https://wheels.test/worker_provider-1.0-py3-none-any.whl';
+      provenanceArtifacts.set(indexWheel,bytes);
+      provenanceArtifacts.set(provenanceIndex,new TextEncoder().encode(JSON.stringify({name:'worker-provider',files:[{filename:'worker_provider-1.0-py3-none-any.whl',url:indexWheel,hashes:{}}]})));
+      const indexed=await shell.exec(prefix+' install worker-provider');
+      const inspectIndex='python -c '+quote('from importlib.metadata import distribution; print(distribution("worker-provider").read_text("direct_url.json"))');
+      const indexProvenance=await shell.exec(inspectIndex),indexRestored=await shell.exec(inspectIndex);
+      const removed=await shell.exec(prefix+' uninstall worker-provider --yes');
+      const retained=await shell.exec(inspect);
+      return {installed,provenance,restored,indexed,indexProvenance,indexRestored,removed,retained,wheelReads,diagnostics};
+    }
     if(integrityOnly){
       const hashes=await shell.exec('python -c '+quote("import hashlib,json; data=open('worker_provider-1.0-py3-none-any.whl','rb').read(); print(json.dumps({name:hashlib.new(name,data).hexdigest() for name in ['sha1','sha224','sha384','sha256','sha512','md5']}))"));
       if(hashes.exitCode)throw Error(JSON.stringify(hashes));
@@ -605,7 +628,7 @@ print('worker package verified')
     const manifestContext={signal:new AbortController().signal};
     const before=await manifestStore.get(manifestScope,manifestContext);
     const snapshot=JSON.parse(new TextDecoder().decode(before.bytes));
-    if(snapshot.version!==2)throw new Error('Expected exact installed snapshot');
+    if(snapshot.version!==3)throw new Error('Expected provenance-bearing installed snapshot');
     snapshot.installed=snapshot.installed.filter(source=>!source.startsWith('worker-dependency'));
     if(!await manifestStore.compareAndSet(manifestScope,before.revision,new TextEncoder().encode(JSON.stringify(snapshot)),manifestContext))throw new Error('Unexpected manifest conflict');
     const retained = await shell.exec('python -c ' + quote(`
@@ -1833,6 +1856,11 @@ export default {
     }
     if (mode === '/legacy-build') {
       try {return Response.json({...await qualifyLegacyBuild(backend,createExecutor,await request.json(),new URL(request.url).searchParams.get('archive')??'directory'),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
+    if (mode === '/wheel-provenance') {
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),false,false,false,false,false,true),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

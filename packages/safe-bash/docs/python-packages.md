@@ -185,7 +185,9 @@ receives a runtime/ABI-prefixed key derived from the configured scope, not a
 filesystem path. Implement it with the store's actual version/ETag precondition.
 No directory listing or `mkdir` operation is required.
 
-The manifest stores a JSON array of original requirements and resolved pins.
+The manifest stores a versioned JSON snapshot of exact requirements, native
+package metadata and original direct-link provenance. Legacy arrays and version
+1/2 snapshots remain readable; absent historical provenance is preserved.
 Host storage quotas belong to their owner. The built-in manifest store has
 optional `maxBytes` (total payload bytes), `maxEntries`, and `maxScopeLength`
 (UTF-16 code units) budgets. Each defaults to `Infinity` and accepts a positive
@@ -262,6 +264,10 @@ when resolution cannot find a valid set.
 
 Pyodide native artifacts are checked against the matching runtime lock's
 SHA-256; PyPI wheel and metadata digests are checked when supplied by the index.
+Direct wheels and direct URL dependencies retain pinned pip-compatible
+`direct_url.json` metadata, including supplied URL hashes and redacted
+authentication. Provenance and its absence survive package restoration and
+uninstall snapshots. Index-selected wheels do not receive direct-install metadata.
 Direct wheel URLs support pip's SHA-1, SHA-224, SHA-256, SHA-384, SHA-512 and MD5
 hashes, verified through bounded reads before extraction. Local source archive
 file URLs also verify these hashes while creating an owned snapshot, and extract

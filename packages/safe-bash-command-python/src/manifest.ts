@@ -1,18 +1,19 @@
 /** Native distribution metadata and pip-compatible removal listings. */
-export type PythonPackageRecord = readonly [name:string, metadata:string, origin:string, remove:readonly string[], skip:readonly string[]];
+export type PythonPackageRecord = readonly [name:string, metadata:string, origin:string, remove:readonly string[], skip:readonly string[],directUrl?:string|null];
 
 /** Exact installed requirements; newer snapshots can uninstall without wheels. */
 export type PythonInstalledSnapshot = {readonly version:1;readonly installed:readonly string[]} |
- {readonly version:2;readonly installed:readonly string[];readonly records:readonly PythonPackageRecord[]};
+ {readonly version:2;readonly installed:readonly string[];readonly records:readonly PythonPackageRecord[]} |
+ {readonly version:3;readonly installed:readonly string[];readonly records:readonly PythonPackageRecord[]};
 
 /** Accept legacy requirements and validated versioned installed snapshots. */
 export function readPackageManifest(value: unknown): readonly string[] | undefined {
  const strings=(values:unknown):values is string[]=>Array.isArray(values)&&values.every(item=>typeof item==='string');
  if(Array.isArray(value))return strings(value)?value:undefined;
  if(!value||typeof value!=='object')return;
- const record=value as PythonInstalledSnapshot;
- if(![1,2].includes(record.version)||Object.keys(value).length!==record.version+1)return;
- if(record.version===2&&(!Array.isArray(record.records)||!record.records.every(row=>Array.isArray(row)&&row.length===5&&row.every((part,index)=>index<3?typeof part==='string':strings(part)))))return;
+ const record=value as PythonInstalledSnapshot,version=record.version;
+ if(![1,2,3].includes(version)||Object.keys(value).length!==(version===1?2:3))return;
+ if(version!==1&&(!Array.isArray(record.records)||!record.records.every(row=>Array.isArray(row)&&row.length===version+3&&row.every((part,index)=>index>2&&index<5?strings(part):typeof part==='string'||index===5&&part===null))))return;
  return strings(record.installed)?record.installed:undefined;
 }
 

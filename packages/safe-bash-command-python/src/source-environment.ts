@@ -148,7 +148,7 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
    const filename=await hook(editable?{hook:'build_legacy_wheel',source:prepared,wheelDirectory,editable:true}:buildSystem?{hook:'build_wheel',source:prepared,backend:buildSystem.backend,backendPath:buildSystem.backendPath,wheelDirectory}:{hook:'build_legacy_wheel',source:prepared,wheelDirectory},hookContext);
    const published=await publishPythonBuildWheel(resolvePath(wheelDirectory,filename),root,options.maxDownloadBytes??Infinity,context);
    const origin=buildSystem&&!editable?await hook({hook:'read_source_origin',source:originSource,directory:!archived},hookContext):undefined;
-   const url=published.url+(origin===undefined?'':'#python-source='+encodeURIComponent(origin));
+   const url=published.url+'#python-source='+encodeURIComponent(origin??'null');
    await cleanup();return named?(named.name||filename.slice(0,filename.indexOf('-')))+(named.extras.length?'['+named.extras.join(',')+']':'')+' @ '+url+(named.marker?' ; '+named.marker:''):url;
   }catch(error){
    try{await cleanup();}catch(retirement){if(retirement===error)throw error;throw new AggregateError([error,retirement],'Python source build cleanup failed');}

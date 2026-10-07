@@ -82,3 +82,15 @@ test('metadata snapshots survive publication and prepare for artifact-independen
  for(const value of [{version:2,installed:[],records:[['fixture']]},{version:2,installed:[],records:[[1,'','',[],[]]]},{version:2,installed:[],records:[['fixture','','',[1],[]]]}])await assert.rejects(env.dispatch('package-commit',[removal.session,value],ctx),/Invalid installed package manifest/);
  env.finish(removal);await env.dispose();
 });
+
+test('provenance snapshots distinguish direct and indexed wheels across restoration',async()=>{
+ const env=createPythonPackageEnvironment(),ctx=context(),start=await env.prepare(ctx);
+ const records=[['direct','Name: direct\nVersion: 1\n','file:///direct-1-py3-none-any.whl',[],[],'{"url":"file:///direct-1-py3-none-any.whl","archive_info":{}}'],['indexed','Name: indexed\nVersion: 1\n','https://index.test/indexed-1-py3-none-any.whl',[],[],null]];
+ const snapshot={version:3,installed:['direct==1','indexed==1'],records};
+ await env.dispatch('package-commit',[start.session,snapshot],ctx);await env.finish(start);
+ const next=await env.prepare(ctx);
+ try{
+  assert.deepEqual(next.records,records);
+  for(const record of [records[0]!.slice(0,5),[...records[0]!,null],[...records[0]!.slice(0,5),1]])await assert.rejects(env.dispatch('package-commit',[next.session,{...snapshot,records:[record]}],ctx),/Invalid installed package manifest/);
+ }finally{await env.finish(next);await env.dispose();}
+});

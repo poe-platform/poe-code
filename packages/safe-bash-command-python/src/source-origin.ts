@@ -24,7 +24,7 @@ export function withPythonSourceOrigins(environment:PythonPackageEnvironment,dir
     }
    }else if(operation==='package-retain'){
     const origin=origins.get(session);origins.delete(session);
-    if(origin!==undefined)return {...result as object,metadata:{'direct_url.json':origin.origin}};
+    if(origin!==undefined)return {...result as object,metadata:origin.origin==='null'?{}:{'direct_url.json':origin.origin}};
    }else if(operation==='package-close'&&origins.get(session)?.key===String(args[1]))origins.delete(session);
    return result;
   },

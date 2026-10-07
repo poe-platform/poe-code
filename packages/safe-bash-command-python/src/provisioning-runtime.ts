@@ -171,7 +171,7 @@ export async function installPythonPackages(
   await pending;
   if(transportFailure)throw transportFailure.error;
   const pinned=JSON.parse(runtime.runPython('_safe_installed_json')) as string[];
-  await request('package-commit',start.session,start.restore === undefined ? pinned : {version:2,installed:pinned,records:JSON.parse(runtime.runPython('_safe_records_json'))});
+  await request('package-commit',start.session,start.restore === undefined ? pinned : {version:3,installed:pinned,records:JSON.parse(runtime.runPython('_safe_records_json'))});
   if(start.uninstall){
    const removed=JSON.parse(runtime.runPython('_safe_uninstalled_json')) as string[];
    for(const name of removed){

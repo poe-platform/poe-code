@@ -1,5 +1,6 @@
 
 import json as _safe_json
+_safe_restoring = False
 import importlib.metadata as _safe_metadata
 _safe_preloaded = [d.metadata['Name'] for d in _safe_metadata.distributions() if d.metadata['Name']]
 from micropip._compat import compatibility_layer as _safe_compat
@@ -27,6 +28,11 @@ async def _safe_wheel_fetch(self, url, kwargs, compat):
   expected = self.core_metadata.get('sha256')
  return (await _safe_package_bytes(url, expected)).to_bytes()
 _SafeWheelInfo._fetch_bytes = _safe_wheel_fetch
+def _safe_wheel_from_url(cls, url, original=_SafeWheelInfo.from_url):
+ wheel = original(url)
+ wheel._safe_direct_url = url
+ return wheel
+_SafeWheelInfo.from_url = classmethod(_safe_wheel_from_url)
 from micropip.metadata import Metadata as _SafeWheelMetadata
 async def _safe_wheel_download(self, fetch_kwargs, compat_layer):
  if self._data is not None:
@@ -40,6 +46,11 @@ async def _safe_wheel_install(self, target, compat_layer):
   raise RuntimeError('Micropip internal error: attempted to install wheel before downloading it?')
  source = 'pypi' if self.sha256 is not None else self.url
  metadata = {'PYODIDE_SOURCE': source, 'PYODIDE_URL': self.url, 'PYODIDE_SHA256': self._data['key'], 'INSTALLER': 'micropip'}
+ if _safe_restoring:
+  origin = (_safe_prior_origins or {}).get(_safe_name(self.name))
+  if origin is not None: metadata['direct_url.json'] = origin
+ elif hasattr(self, '_safe_direct_url') and 'metadata' not in self._data:
+  metadata['direct_url.json'] = read_source_origin({'source': self._safe_direct_url, 'directory': False})
  metadata.update(self._data.get('metadata', {}))
  if self._requires:
   metadata['PYODIDE_REQUIRES'] = _safe_json.dumps(sorted(x.name for x in self._requires))
@@ -180,7 +191,8 @@ if _safe_records is not None:
   _safe_record_name = _safe_record[0]
   if _SafeRequirement(_safe_record_name).name != _safe_record_name or _safe_name(_safe_record_name) != _safe_record_name or _safe_record_name in _safe_record_by_name:
    raise ValueError('Invalid Python package metadata snapshot')
-  _safe_record_by_name[_safe_record_name] = _safe_record
+  _safe_record_by_name[_safe_record_name] = _safe_record if len(_safe_record) == 6 else _safe_record + [None]
+_safe_prior_origins = {name: record[5] for name, record in _safe_record_by_name.items()}
 if _safe_metadata_only:
  from pathlib import Path as _SafePath
  import sysconfig as _safe_sysconfig
@@ -192,12 +204,15 @@ if _safe_metadata_only:
   (_safe_path / 'METADATA').write_text(_safe_record[1])
   (_safe_path / 'PYODIDE_URL').write_text(_safe_record[2])
   (_safe_path / 'RECORD').write_text('')
+  _safe_origin = (_safe_prior_origins or {}).get(_safe_record_name)
+  if _safe_origin is not None: (_safe_path / 'direct_url.json').write_text(_safe_origin)
   _safe_dist = _safe_metadata.Distribution.at(_safe_path)
   if _safe_name(_safe_dist.metadata['Name']) != _safe_record_name:
    raise ValueError('Python package metadata name conflict: ' + _safe_record_name)
   _SafeRequirement(_safe_record_name + '==' + _safe_dist.version)
   _safe_snapshot_paths[_safe_record_name] = str(_safe_path)
  _safe_metadata.MetadataPathFinder.invalidate_caches()
+_safe_restoring = True
 _safe_restore = _safe_json.loads(_safe_package_restore_json)
 _safe_restored_roots = await _safe_parse_sources(_safe_restore, not _safe_metadata_only)
 if _safe_package_legacy:
@@ -209,6 +224,7 @@ else:
  _safe_restored_names = {_safe_name(root.name) for root in _safe_restored_roots if not root.marker or root.marker.evaluate({'extra': ''})}
 if _safe_metadata_only and set(_safe_record_by_name) != _safe_restored_names:
  raise ValueError('Python package metadata snapshot does not match installed requirements')
+_safe_restoring = False
 _safe_roots = await _safe_parse_sources(_safe_json.loads(_safe_package_requirements_json), not _safe_metadata_only)
 if _safe_metadata_only:
  for _safe_root in _safe_roots:
@@ -235,7 +251,7 @@ if _safe_uninstall:
   await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\nUninstalling ' + _safe_target + '-' + _safe_version + ':\n')
   if not _safe_uninstall['yes']:
    _safe_record = _safe_record_by_name.get(_safe_target)
-   _safe_lists = _safe_record[3:] if _safe_snapshot_paths.get(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
+   _safe_lists = _safe_record[3:5] if _safe_snapshot_paths.get(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
    for _safe_heading, _safe_paths in zip(['Would remove:', 'Would not remove (might be manually added):'], _safe_lists):
     if _safe_paths:
      await _safe_package_emit('stdout', '  ' + _safe_heading + '\n')
@@ -283,7 +299,7 @@ for _safe_dist in _safe_distributions:
   else:
    _safe_headers = _safe_dist.metadata
    _safe_metadata_text = ''.join(key + ': ' + value + '\n' for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra'] for value in _safe_headers.get_all(key, []))
-   _safe_final_records.append([_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip(), *_safe_removal_listing(_safe_dist)])
+   _safe_final_records.append([_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip(), *_safe_removal_listing(_safe_dist), _safe_dist.read_text('direct_url.json')])
 _safe_installed_json = _safe_json.dumps(_safe_sources + [name + '==' + version for name, version in sorted(_safe_versions.items()) if name in _safe_managed])
 _safe_records_json = _safe_json.dumps(_safe_final_records)
 _safe_metadata.MetadataPathFinder.invalidate_caches()

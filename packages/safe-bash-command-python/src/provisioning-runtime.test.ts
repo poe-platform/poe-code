@@ -17,7 +17,7 @@ function nativeFixture(extract:(name:string,read:(offset:number,length:number)=>
     await extract(config.filename.split('-')[0],globals.get('_safe_native_wheel_read') as (offset:number,length:number)=>Promise<number[]>);
     return '[]';
    }
-  },runPython(_source?:string){return '[]';}};
+  },runPython(_source?:string):string{return '[]';}};
  return {runtime,globals};
 }
 
@@ -29,7 +29,7 @@ test('installer preserves host transport failure when micropip masks it as missi
   async runPythonAsync(){
    try {await (globals.get('_safe_package_metadata') as (url:string)=>unknown)('https://packages.example/metadata');}
    catch {throw new Error("Can't fetch metadata for 'fixture'");}
-  },runPython(){return '[]';}};
+  },runPython(_source?:string):string{return '[]';}};
  await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:true},op=>{
   if(op==='package-open')throw integrity;
   if(op==='package-commit')committed=true;
@@ -46,7 +46,7 @@ test('explicit build tooling bootstrap loads the installer without requesting ap
  runtime.loadPackage=async(names?:string[])=>{loaded.push(names!);};
  await installPythonPackages(runtime as never,{session:'1',requirements:[],requested:[],restore:[],offline:false,bootstrap:true},(op,...args)=>{if(op==='package-commit')commits.push(args);},64);
  assert.deepEqual(loaded,[['micropip']]);
- assert.deepEqual(commits,[['1',{version:2,installed:[],records:[]}]]);
+ assert.deepEqual(commits,[['1',{version:3,installed:[],records:[]}]]);
  assert.equal(globals.size,0);
 });
 test('legacy build tooling is bootstrapped without becoming application inventory',async()=>{
@@ -54,13 +54,13 @@ test('legacy build tooling is bootstrapped without becoming application inventor
  runtime.loadPackage=async(names?:string[])=>{loaded.push(names!);};
  await installPythonPackages(runtime as never,{session:'1',requirements:[],requested:[],restore:[],offline:false,bootstrap:true,bootstrapPackages:['setuptools']},(op,...args)=>{if(op==='package-commit')commits.push(args);},64);
  assert.deepEqual(loaded,[['micropip','setuptools']]);
- assert.deepEqual(commits,[['1',{version:2,installed:[],records:[]}]]);
+ assert.deepEqual(commits,[['1',{version:3,installed:[],records:[]}]]);
 });
 test('installer refuses unsupported runtime ABI before any download',async()=>{
  await assert.rejects(installPythonPackages({version:'314.0.6'} as never,{session:'1',requirements:['example==1'],offline:false},()=>{throw Error('unexpected request');},65536),/installer ABI/);
 });
 test('installer closes package transport callbacks before user Python starts',async()=>{
- const deleted:string[]=[];const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},globals:{set(){},delete(name:string){deleted.push(name);}},async loadPackage(){},async runPythonAsync(){},runPython(){return '[]';}};
+ const deleted:string[]=[];const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},globals:{set(){},delete(name:string){deleted.push(name);}},async loadPackage(){},async runPythonAsync(){},runPython(_source?:string):string{return '[]';}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['example==1'],offline:false},()=>null,64);
  await assert.rejects(runtime._api.packageManager.downloadPackage(),/only available during installation/);
  assert.ok(deleted.includes('_safe_package_bytes'));assert.ok(deleted.includes('_safe_package_metadata'));
@@ -72,20 +72,20 @@ test('bootstrap and native dependency loading use supported callbacks instead of
    assert.equal(typeof options?.messageCallback,'function');assert.equal(typeof options?.errorCallback,'function');
    options!.messageCallback!('Loading '+names.join(','));options!.messageCallback!('Loaded '+names.join(','));calls.push(names);
   },
-  async runPythonAsync(){await (globals.get('_safe_package_native') as (names:string[])=>Promise<unknown>)(['lxml']);},runPython(){return '[]';}};
+  async runPythonAsync(){await (globals.get('_safe_package_native') as (names:string[])=>Promise<unknown>)(['lxml']);},runPython(_source?:string):string{return '[]';}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['lxml==6.0.2'],offline:false},()=>null,64);
  assert.deepEqual(calls,[['micropip'],['lxml']]);assert.equal(globals.has('_safe_package_native'),false);
 });
 test('native loader error callbacks fail installation instead of silently succeeding',async()=>{
  let committed=false;
  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},globals:{set(){},delete(){}},
-  async loadPackage(_names:string[],options?:{errorCallback?:(message:string)=>void}){options?.errorCallback?.('wheel loading failed');},async runPythonAsync(){},runPython(){return '[]';}};
+  async loadPackage(_names:string[],options?:{errorCallback?:(message:string)=>void}){options?.errorCallback?.('wheel loading failed');},async runPythonAsync(){},runPython(_source?:string):string{return '[]';}};
  await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['example==1'],offline:false},()=>{committed=true;},64),/wheel loading failed/);
  assert.equal(committed,false);
 });
 test('failed installer bootstrap closes package transport before returning',async()=>{
  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},globals:{set(){},delete(){}},
-  async loadPackage(){throw new Error('bootstrap cancelled');},async runPythonAsync(){},runPython(){return '[]';}};
+  async loadPackage(){throw new Error('bootstrap cancelled');},async runPythonAsync(){},runPython(_source?:string):string{return '[]';}};
  await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['example==1'],offline:false},()=>{throw new Error('host package bridge remains reachable');},64),/bootstrap cancelled/);
  await assert.rejects(runtime._api.packageManager.downloadPackage({normalizedName:'example',channel:'https://packages.example/example.whl'}),/only available during installation/);
 });
@@ -95,7 +95,7 @@ test('reported bootstrap errors and callback setup failures close installer tran
   const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(_metadata?:{normalizedName:string;channel:string}){return new Uint8Array();}}},
    globals:{set(name:string,value:unknown){if(stage==='globals.set'&&name==='_safe_package_metadata')throw new Error('callback setup failed');globals.set(name,value);},delete(name:string){if(!globals.has(name))throw new Error('missing global '+name);globals.delete(name);deleted.push(name);}},
    async loadPackage(_names:string[],options:{errorCallback:(message:string)=>void}){if(stage==='errorCallback')options.errorCallback('reported bootstrap error');},
-   async runPythonAsync(){throw new Error('must not execute Python');},runPython(){return '[]';}};
+   async runPythonAsync(){throw new Error('must not execute Python');},runPython(_source?:string):string{return '[]';}};
   await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['example==1'],offline:false},()=>{throw new Error('host package bridge remains reachable');},64),stage==='errorCallback'?/reported bootstrap error/:/callback setup failed/);
   await assert.rejects(runtime._api.packageManager.downloadPackage({normalizedName:'example',channel:'https://packages.example/example.whl'}),/only available during installation/);
   assert.deepEqual(deleted,stage==='globals.set'?['_safe_package_native','_safe_package_bytes']:[]);
@@ -181,7 +181,7 @@ test('uninstall reports success only after exact manifest publication',async()=>
    runPython(source:string){return source==='_safe_uninstalled_json'?'["fixture-1.0"]':'[]';}};
   const work=installPythonPackages(runtime as never,{session:'1',requirements:[],restore:[],uninstall:{packages:['fixture'],yes:true},offline:true},async(operation,...args)=>{
    if(operation==='package-commit'){
-    events.push('commit');assert.deepEqual(args,['1',{version:2,installed:[],records:[]}]);
+    events.push('commit');assert.deepEqual(args,['1',{version:3,installed:[],records:[]}]);
     if(conflict)throw new Error('manifest conflict');
    }
    if(operation==='stdout')events.push(new TextDecoder().decode(Uint8Array.from(args[0])));
@@ -202,7 +202,7 @@ test('native package handoff retains the wheel source instead of materializing i
    const archive=await runtime._api.packageManager.downloadPackage({normalizedName:'fixture',channel:'https://example.org/fixture.whl'});
    assert.equal(ArrayBuffer.isView(archive),false,'native installer must receive a retained archive source, not the complete wheel');
    assert.equal(operations.includes('package-read'),false,'wheel reads belong to bounded extraction, not an eager download buffer');
-  },async runPythonAsync(){},runPython(){return '[]';}};
+  },async runPythonAsync(){},runPython(_source?:string):string{return '[]';}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},(op,...args)=>{
   operations.push(op);
   if(op==='package-open')return {key:'artifact',size:65536*4+7,headers:[]};
@@ -261,7 +261,7 @@ test('native wheel extraction reads its retained source without invoking the buf
     assert.deepEqual(await read(65536,3),[4,5,6]);
     return '["/lib/fixture.so"]';
    }
-  },runPython(){return '[]';}};
+  },runPython(_source?:string):string{return '[]';}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},async(op,...args)=>{
   operations.push(op);
   if(op==='package-open')return {key:'wheel',size:65539,headers:[]};
@@ -289,7 +289,7 @@ test('native extraction preserves host read failure identity across the Python e
 test('micropip resolves metadata and installs through the same retained wheel receipt',async()=>{
  const globals=new Map<string,unknown>(),operations:string[]=[];
  const runtime={version:'314.0.6',_api:{lockfile_packages:{},async loadDynlib(){},packageManager:{defaultChannel:'default',async installPackage(){},async downloadPackage(){}}},
-  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},runPython(){return '[]';},
+  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},runPython(_source?:string):string{return '[]';},
   async runPythonAsync(source:string):Promise<string|undefined>{
    if(source===pythonNativeWheel){
     const config=JSON.parse(globals.get('_safe_native_wheel_config') as string);

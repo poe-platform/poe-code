@@ -46,7 +46,7 @@ for(const zipped of [false,true])for(const legacy of [false,true])for(const requ
    const opened=await environment.dispatch('package-open',[receipt.session,url],context) as {key:string};
    await environment.dispatch('package-close',[receipt.session,'not-open-artifact'],context);
    const retained=await environment.dispatch('package-retain',[receipt.session,opened.key],context) as {metadata?:Record<string,string>};
-   assert.deepEqual(retained.metadata,legacy?undefined:{'direct_url.json':JSON.stringify({url:'file:///work/source'+(zipped?'.zip':''),[zipped?'archive_info':'dir_info']:{}})});
+   assert.deepEqual(retained.metadata,legacy?{}:{'direct_url.json':JSON.stringify({url:'file:///work/source'+(zipped?'.zip':''),[zipped?'archive_info':'dir_info']:{}})});
    if(!legacy){
     const restored=createPythonSourcePackageEnvironment({}, {directory:'/storage',python:{createExecutor:()=>{throw new Error('must not rebuild');}}});
     const replay=await restored.prepare({...context,requirements:[url]});
@@ -164,7 +164,7 @@ for(const active of [false,true])test(`named local sources retain name, extras a
   const receipt=await environment.prepare({fs,cwd:'/',signal:new AbortController().signal,requirements:[requirement],env:{},stdout:{async write(){}},stderr:{async write(){}}});
   try{
    assert.deepEqual(calls,active?['read_source_requirement','read_build_system','get_requires_for_legacy_wheel','build_legacy_wheel']:['read_source_requirement']);
-   if(active){assert.ok(receipt.requested![0]!.startsWith('Fixture[feature] @ file:///storage/'));assert.ok(receipt.requested![0]!.endsWith('/fixture-1-py3-none-any.whl ; python_version >= "3"'));}
+   if(active){assert.ok(receipt.requested![0]!.startsWith('Fixture[feature] @ file:///storage/'));assert.ok(receipt.requested![0]!.endsWith('/fixture-1-py3-none-any.whl#python-source=null ; python_version >= "3"'));}
    else{assert.deepEqual(receipt.requested,[requirement]);assert.deepEqual(await fs.readdir('/storage'),[]);}
   }finally{await environment.finish(receipt);}
  }finally{await environment.dispose();}

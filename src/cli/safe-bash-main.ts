@@ -532,8 +532,8 @@ export async function runSafeBashCli(
     : await createWorkspaceFileSystem({
         workspaceRoot: hostWorkspaceRoot,
         cwd: hostCwd,
-        homeDir: options.homeDir,
-        workspaceBackend: options.workspaceBackend
+        ...(options.homeDir === undefined ? {} : {homeDir: options.homeDir}),
+        ...(options.workspaceBackend === undefined ? {} : {workspaceBackend: options.workspaceBackend})
       });
 
   let source = parsed.command;

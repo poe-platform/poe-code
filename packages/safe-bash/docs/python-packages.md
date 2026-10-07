@@ -262,7 +262,8 @@ when resolution cannot find a valid set.
 
 Pyodide native artifacts are checked against the matching runtime lock's
 SHA-256; PyPI wheel and metadata digests are checked when supplied by the index.
-Direct wheel URLs may carry the installer's SHA-256 fragment. Local wheels and
+Direct wheel URLs support pip's SHA-1, SHA-224, SHA-256, SHA-384, SHA-512 and MD5
+hashes, verified through bounded reads before extraction. Local wheels and
 direct URLs without an expected digest are trusted inputs on their first read.
 Every cached artifact is rehashed before reuse. Hash mismatch or malformed cache
 metadata fails clearly; it never silently retries with unchecked bytes. The

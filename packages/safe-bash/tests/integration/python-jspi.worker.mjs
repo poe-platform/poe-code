@@ -71,7 +71,7 @@ async function qualifyLegacyBuild(backend,createExecutor,assets,format='director
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl')||path.includes('-sha256-'))throw new Error('Whole wheel read');return target.readFile(path,...args);};
     const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
   }});
-  const pep517=format==='remote-pep517';
+  const pep517=format.startsWith('remote-pep517'),hashName=format==='remote-pep517-md5'?'md5':format==='remote-pep517-sha512'?'sha512':'sha256';
   const remote=pep517||format.startsWith('remote-metadata')||format==='remote'||format==='remote-redirect'||format==='subdirectory'||format.startsWith('remote-extensionless'),zipArchive=format==='zip'||format==='remote-extensionless-zip'||format==='remote-metadata-zip';
   let invalidMetadata=format.startsWith('remote-metadata');
   const sourceURL='https://build.test/'+(format.startsWith('remote-extensionless')?'download':'legacy-source.tar.gz');
@@ -113,7 +113,7 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
   if(llmEditable)shell.use(llmCommands({managePackages:createPythonLlmPackageManager({createExecutor,environment})}));
   const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names, "build-helper" in names]))${extras?'; import build_helper; assert build_helper.answer == 41':''}'`;
   try{
-    let rejected;
+    let rejected,rejectedBuildEntries;
     if(format==='directory'){
       await backend.mkdir('/work/empty-project');
       await backend.writeFile('/work/empty-project/should_not_install.py',new TextEncoder().encode('answer=99\n'));
@@ -142,11 +142,20 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
       await backend.mkdir('/work/config');
       await backend.writeFile('/work/config/requirements.txt',new TextEncoder().encode('--editable "./legacy source[FEATURE]" # optional dependency\n'));
     }
-    const sourceDigest=pep517?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',wheels.get(sourceURL))),byte=>byte.toString(16).padStart(2,'0')).join(''):undefined;
-    const install=format==='editable-file'?'python -m pip install -r /work/config/requirements.txt':llmEditable?"llm install -e './legacy-source"+(extras?'[FEATURE]':'')+"'":remote?`python -m pip install '${format==='remote-extensionless'?'':'legacy-fixture @ '}${sourceRequestURL}${pep517?'#sha256='+sourceDigest+'&subdirectory=nested':format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
+    let sourceDigest;
+    if(pep517){
+      const hashed=await shell.exec(`python -c 'import hashlib; print(hashlib.file_digest(open("legacy-source.tar.gz","rb"),"${hashName}").hexdigest())'`);
+      if(hashed.exitCode)throw Error(JSON.stringify(hashed));
+      sourceDigest=hashed.stdout.trim();
+    }
+    const install=format==='editable-file'?'python -m pip install -r /work/config/requirements.txt':llmEditable?"llm install -e './legacy-source"+(extras?'[FEATURE]':'')+"'":remote?`python -m pip install '${format==='remote-extensionless'?'':'legacy-fixture @ '}${sourceRequestURL}${pep517?'#'+hashName+'='+sourceDigest+'&subdirectory=nested':format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
     if(format==='named'){
       const skipped=await shell.exec(`python -m pip install 'absent @ file:///work/nonexistent ; python_version < "1"'`);
       if(skipped.exitCode)throw new Error(JSON.stringify(skipped));
+    }
+    if(pep517){
+      rejected=await shell.exec(install.replace(sourceDigest,'0'.repeat(sourceDigest.length)));
+      rejectedBuildEntries=(await backend.readdir('/work/builds')).map(entry=>entry.name);
     }
     if(invalidMetadata){rejected=await shell.exec(install);invalidMetadata=false;}
     const installed=await shell.exec(install+(format.startsWith('remote-metadata')?' --no-cache-dir':''));
@@ -175,7 +184,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
       removed=await shell.exec('python -c "import legacy_fixture"');
       sourceRetained=new TextDecoder().decode(await backend.readFile(sourceDirectory+'/legacy_fixture.py'));
     }
-    return {rejected,installed,imported,failed,restored,records,provenance,sourceDigest,metadata,uninstalled,removed,sourceRetained,sourceReplay,replayedWithoutNetwork,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
+    return {rejected,rejectedBuildEntries,installed,imported,failed,restored,records,provenance,sourceDigest,hashName,metadata,uninstalled,removed,sourceRetained,sourceReplay,replayedWithoutNetwork,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
   }finally{await shell.dispose();await environment.dispose();}
 }
 

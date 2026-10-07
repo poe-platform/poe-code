@@ -252,8 +252,10 @@ subdirectory in `direct_url.json`, including after source cleanup and offline
 restoration through the source environment. Authentication is redacted following
 pinned pip rules. Legacy and editable installs keep the pinned legacy behavior.
 Direct and named HTTP(S) ZIP/tar archives use the same authorized package
-transport and caller-backed cache. SHA-256 URL fragments are verified before
-extraction; offline replay and cache bypass use the normal installation controls.
+transport and caller-backed cache. URL hashes (SHA-1, SHA-224, SHA-256, SHA-384,
+SHA-512 and MD5) follow pinned pip selection rules and are verified before cache
+publication and extraction. Cached archives are checked again before extraction;
+offline replay and cache bypass use the normal installation controls.
 Remote archives require retained caller storage and streaming writes. ZIP and tar
 contents are also detected when the download URL has no archive extension.
 Response filenames follow pinned pip header, MIME and redirect rules; filenames

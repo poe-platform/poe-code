@@ -31,13 +31,63 @@ for(const mode of ['allowed','named','extensionless','named-extensionless','uppe
  }finally{await environment.dispose();}
 });
 
-test('cancelling a stalled remote source download retires transport and owned build storage',async()=>{
+for(const hashed of [false,true])test('cancelling a stalled remote source download retires transport and owned build storage; hashed='+hashed,async()=>{
  const fs=new MemoryFileSystem();await fs.mkdir('/builds');let enter!:()=>void;
  const started=new Promise<void>(resolve=>{enter=resolve;}),controller=new AbortController();let disposed=0;
  const environment=createPythonSourcePackageEnvironment({authorize:()=>true,transport:async()=>({status:200,statusText:'OK',headers:[],body:{[Symbol.asyncIterator](){return {next(){enter();return new Promise<IteratorResult<Uint8Array>>(()=>{});},async return(){return {done:true,value:undefined};}};}},async dispose(){disposed++;}})}, {directory:'/builds',async extractArchive(){throw new Error('must not extract');},python:{createExecutor:()=>{throw new Error('must not build');}}});
  try{
-  const error=new Error('cancel source'),running=environment.prepare({fs,cwd:'/',signal:controller.signal,requirements:['https://example.test/project.zip'],env:{},stdout:{async write(){}},stderr:{async write(){}}});
+  const error=new Error('cancel source'),running=environment.prepare({fs,cwd:'/',signal:controller.signal,requirements:['https://example.test/project.zip'+(hashed?'#sha256='+'0'.repeat(64):'')],env:{},stdout:{async write(){}},stderr:{async write(){}}});
   const rejected=assert.rejects(running,caught=>caught===error);await started;controller.abort(error);await rejected;
+  assert.equal(disposed,1);assert.deepEqual(await fs.readdir('/builds'),[]);
+ }finally{await environment.dispose();}
+});
+
+for(const algorithm of ['sha1','sha224','sha384','sha256','sha512','md5'])test('remote source '+algorithm+' is verified before extraction, including cached replay',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/builds');await fs.mkdir('/cache');
+ const bytes=new Uint8Array(196615).fill(37),hash=createHash(algorithm).update(bytes).digest('hex');
+ let requests=0,extractions=0;
+ const reached=new Error('verified extraction');
+ const environment=createPythonSourcePackageEnvironment({cacheDirectory:'/cache',authorize:()=>true,transport:async()=>{
+  requests++;return {status:200,statusText:'OK',headers:[],body:(async function*(){for(let offset=0;offset<bytes.length;offset+=32768)yield bytes.subarray(offset,offset+32768);})(),async dispose(){}};
+ }},{directory:'/builds',async extractArchive(){extractions++;throw reached;},python:{createExecutor:()=>({terminate(){},async run(start){
+  const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});
+  const request=await send({op:'request'}) as {hook:string};assert.equal(request.hook,'read_download_filename');
+  await send({op:'text',text:JSON.stringify('source.zip')});await send({op:'done'});return 0;
+ }})}});
+ const context={fs,cwd:'/',signal:new AbortController().signal,env:{},stdout:{async write(){}},stderr:{async write(){}}};
+ try{
+  await assert.rejects(environment.prepare({...context,requirements:['https://example.test/rejected.zip#'+algorithm+'='+'0'.repeat(hash.length)]}),/integrity mismatch/);
+  const cacheEntries=await fs.readdir('/cache');
+  for(const entry of cacheEntries)assert.deepEqual(await fs.readdir('/cache/'+entry.name),[],'a mismatched source must not publish a cache entry');
+  for(const offline of [false,true]){
+   await assert.rejects(environment.prepare({...context,offline,requirements:['https://example.test/source.zip#'+algorithm+'='+hash]}),error=>error===reached);
+   await assert.rejects(environment.prepare({...context,offline,requirements:['https://example.test/source.zip#'+algorithm+'='+'0'.repeat(hash.length)]}),/integrity mismatch/);
+   assert.deepEqual(await fs.readdir('/builds'),[]);
+  }
+  assert.equal(extractions,2);assert.equal(requests,2);
+ }finally{await environment.dispose();}
+});
+
+
+test('source integrity preserves transport capability and response disposal ownership',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/builds');let disposed=0;
+ const bytes=Uint8Array.of(17,23),hash=createHash('sha512').update(bytes).digest('hex');
+ class Response {
+  #closed=false;
+  get status(){return 200;}
+  get statusText(){return 'OK';}
+  get headers(){return [] as const;}
+  get body(){return (async function*(){yield bytes;})();}
+  async dispose(){assert.equal(this.#closed,false);this.#closed=true;disposed++;}
+ }
+ const reached=new Error('verified source');
+ const transport=Object.assign(async(request:{denyPrivateNetworks?:boolean})=>{assert.equal(request.denyPrivateNetworks,true);return new Response();},{supportsPrivateNetworkDeny:true as const});
+ const environment=createPythonSourcePackageEnvironment({authorize:request=>{request.requirePrivateNetworkDeny!();return true;},transport},{directory:'/builds',async extractArchive(){throw reached;},python:{createExecutor:()=>({terminate(){},async run(start){
+  const send=(value:any)=>start.host!.request({version:1,operation:'call',capability:'python_build',value});
+  await send({op:'request'});await send({op:'text',text:JSON.stringify('source.zip')});await send({op:'done'});return 0;
+ }})}});
+ try{
+  await assert.rejects(environment.prepare({fs,cwd:'/',signal:new AbortController().signal,env:{},stdout:{async write(){}},stderr:{async write(){}},requirements:['https://example.test/source.zip#sha512='+hash]}),error=>error===reached);
   assert.equal(disposed,1);assert.deepEqual(await fs.readdir('/builds'),[]);
  }finally{await environment.dispose();}
 });

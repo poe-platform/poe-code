@@ -286,7 +286,8 @@ Local setup projects also support `python -m pip install -e ./project` (repeat
 `-e` for several projects), or `editable: ["./project"]` in the package SDK.
 Use `-e './project[feature]'` (or the same SDK string) to install optional
 dependencies while keeping imports linked to the original source. Requirements
-files also accept `-e`/`--editable` entries, including quoted paths and extras;
+files support backslash continuations and whitespace-delimited comments, and
+also accept `-e`/`--editable` entries, including quoted paths and extras;
 relative paths use the invocation directory.
 The genuine setuptools compatibility-mode wheel keeps imports linked to the
 original caller-owned source directory; keep that directory available after

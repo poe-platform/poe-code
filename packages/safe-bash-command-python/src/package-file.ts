@@ -1,3 +1,4 @@
+import {bytesToHex} from 'safe-bash-io-engine/byte-encoding';
 import {yieldTurn} from 'safe-bash-contracts/yield';
 import {sha256} from '@noble/hashes/sha2.js';
 import {compareIdentity,compareFileVersion} from '@poe-code/safe-fs/runtime-core';
@@ -33,6 +34,6 @@ export async function openPythonPackageFile({fs,signal}:PythonPackageContext,pat
   const hash=sha256.create();
   for(let offset=0,pulls=0;offset<state.size;){if(++pulls%16===0)await yieldTurn(signal);const bytes=await read(offset,65536);hash.update(bytes);offset+=bytes.length;}
   await check();
-  return {key:Array.from(hash.digest(),byte=>byte.toString(16).padStart(2,'0')).join(''),size:state.size,read,close:()=>file.close()};
+  return {key:bytesToHex(hash.digest()),size:state.size,read,close:()=>file.close()};
  }catch(error){await file.close();throw error;}
 }

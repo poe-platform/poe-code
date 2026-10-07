@@ -1,3 +1,5 @@
+import {header} from 'safe-bash-network-engine/shared';
+import {bytesToHex} from 'safe-bash-io-engine/byte-encoding';
 import {PythonInstallationRoot} from './installation-root.js';
 import {PythonWheelIndex} from './wheel-index.js';
 import {publishPythonBuildWheel} from './build-wheel.js';
@@ -90,7 +92,7 @@ export const pythonDocumentPackages: readonly string[] = Object.freeze([
 ]);
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-function digest(value: Uint8Array): string { return Array.from(sha256(value),byte=>byte.toString(16).padStart(2,'0')).join(''); }
+function digest(value: Uint8Array): string { return bytesToHex(sha256(value)); }
 function validDigest(value: unknown): value is string {
  if(typeof value!=='string'||value.length!==64)return false;
  for(const char of value)if(!'0123456789abcdef'.includes(char))return false;
@@ -98,6 +100,24 @@ function validDigest(value: unknown): value is string {
 }
 function failure(message: string, cause?: unknown): Error & {code:string} { return Object.assign(new Error(message,{cause}),{code:'EPACKAGE'}); }
 function missing(error: unknown): boolean { return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT'; }
+function* requirementLines(source:string):Generator<string> {
+ let start=0,pending='';
+ for(let end=0;end<=source.length;end++) {
+  if(end<source.length&&!"\n\r\v\f\x1c\x1d\x1e\u0085\u2028\u2029".includes(source[end]!))continue;
+  let line=source.slice(start,end);
+  if(source[end]==='\r'&&source[end+1]==='\n')end++;
+  start=end+1;
+  if(line.trimStart()[0]==='#')line=' '+line;
+  else if(line.endsWith('\\')) {
+   let first=0,last=line.length;
+   while(line[first]==='\\')first++;
+   while(line[last-1]==='\\')last--;
+   pending+=line.slice(first,last);continue;
+  }
+  yield pending+line;pending='';
+ }
+ yield pending;
+}
 function normalizeRequirement(value: string, cwd: string): string {
  const requirement = value.trim();
  if (!requirement || requirement.startsWith('-')) throw failure(`Unsupported requirement: ${value}`);
@@ -134,7 +154,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  if (options.cache && options.cacheDirectory) throw new TypeError('Choose package cache or cacheDirectory, not both');
  if (options.manifestStore && (typeof options.scope !== 'string' || !options.scope.trim())) throw new TypeError('Shared Python manifests require an explicit nonempty scope');
  if (options.scope !== undefined && !options.manifestStore) throw new TypeError('Python scope requires a manifestStore');
- const manifestKey = options.manifestStore ? runtimeKey+'-environment-'+digest(encoder.encode(JSON.stringify(options.scope))) : runtimeKey+'-environment';
+ const manifestKey = runtimeKey+'-environment'+(options.manifestStore ? '-'+digest(encoder.encode(JSON.stringify(options.scope))) : '');
  if (options.profile !== undefined && options.profile !== 'documents') throw new TypeError('Unknown Python package profile');
  const maxBytes = options.maxDownloadBytes ?? Infinity;
  const maxManifestBytes = options.maxManifestBytes ?? Infinity;
@@ -151,8 +171,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   return bytes;
  };
  const cacheRecord=(key:string,headers:readonly(readonly[string,string])[],url:string)=>checkMetadata(encoder.encode(JSON.stringify({digest:key,headers,url})));
- const maxCacheBytes = options.maxCacheBytes;
- const defaultCache = createPythonPackageCache(maxCacheBytes === undefined ? {} : {maxBytes:maxCacheBytes});
+ const defaultCache = createPythonPackageCache({maxBytes:options.maxCacheBytes});
  const sessions = new Map<string,Session>();
  const controller = new AbortController();
  const pending = new Set<Promise<unknown>>();
@@ -192,11 +211,11 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   // Keep the implicit environment manifest in its original owner. Artifact
   // payloads default to caller storage instead of an unbounded memory cache.
   const artifactDirectory=directory??(!options.cache&&!noCache?resolve(context.cwd,'.python-packages','cache',runtimeKey):undefined);
-  const cache = options.cache ?? (artifactDirectory === undefined ? defaultCache : {
+  const cache = options.cache ?? (!artifactDirectory ? defaultCache : {
    async get(key: string) { try { return await context.fs.readFile(resolve(artifactDirectory,key),{signal}); } catch(error) { if(missing(error))return undefined;throw error; } },
    async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(artifactDirectory,{recursive:true,signal});await context.fs.writeFile(resolve(artifactDirectory,key),bytes,{signal}); },
   });
-  const manifestCache = options.cacheDirectory === undefined ? defaultCache : cache;
+  const manifestCache = directory ? cache : defaultCache;
   let snapshot: PythonPackageManifest | undefined;
   if(options.manifestStore) {
    try { snapshot=await options.manifestStore.get(manifestKey,context); }
@@ -215,17 +234,16 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   if (!saved) throw failure('Invalid Python package environment manifest');
   const legacy = Array.isArray(previous);
   const restore = saved.map(value=>normalizeRequirement(value,context.cwd));
-  const requirements = [...(options.profile === 'documents' ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
+  const requirements = [...(options.profile ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
   for (const file of [...options.requirementFiles??[],...context.requirementFiles??[]]) {
    const path = resolve(context.cwd,file);
    let source: string;
-   try { source = decoder.decode(await context.fs.readFile(path,{signal,...options.maxRequirementBytes === undefined ? {} : {maxBytes:options.maxRequirementBytes}})); } catch(error) { signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
-   for (const line of source.split('\n')) {
+   try { source = decoder.decode(await context.fs.readFile(path,{signal,...options.maxRequirementBytes ? {maxBytes:options.maxRequirementBytes} : {}})); } catch(error) { signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
+   for (const line of requirementLines(source)) {
     // Only whitespace-delimited hashes begin comments; URL integrity fragments survive.
     let comment=line.indexOf('#');
     while(comment>0&&line[comment-1]!.trim())comment=line.indexOf('#',comment+1);
     const text=(comment<0?line:line.slice(0,comment)).trim(); if (!text)continue;
-    if (text.endsWith('\\')) throw failure(`Unsupported requirements continuation in ${path}: ${text}`);
     requirements.push(text[0]==='-'&&options.prepareRequirements?text:normalizeRequirement(text,dirname(path)));
    }
   }
@@ -440,13 +458,13 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
       check();
       if([301,302,303,307,308].includes(response.status)){
        if(redirect>=5)throw failure('Too many package redirects');
-       const location=response.headers.find(([key])=>key.toLowerCase()==='location')?.[1];if(!location)throw failure('Package redirect has no location');
+       const location=header(response.headers,'location');if(!location)throw failure('Package redirect has no location');
        redirectFrom=current.href;current=new URL(location,current);continue;
       }
       if(response.status<200||response.status>=300)throw failure(`Package download failed: HTTP ${response.status} ${current.href}`);
       headers=response.headers;responseUrl=current.href;
-      const encoding=headers.find(([key])=>key.toLowerCase()==='content-encoding')?.[1].trim().toLowerCase();
-      const length=headers.find(([key])=>key.toLowerCase()==='content-length')?.[1];const total=length===undefined||(encoding!==undefined&&encoding!=='identity')?undefined:Number(length);
+      const encoding=header(headers,'content-encoding')?.trim().toLowerCase();
+      const length=header(headers,'content-length');const total=length===undefined||(encoding!==undefined&&encoding!=='identity')?undefined:Number(length);
       if(Number.isFinite(total)&&total!>maxBytes)throw failure('Package download exceeds maxDownloadBytes');
       const progress=(count:number)=>options.onProgress?.({phase:'download',url,bytes:count,...Number.isSafeInteger(total)?{totalBytes:total!}:{}});
       if(cacheDirectory||noCache){

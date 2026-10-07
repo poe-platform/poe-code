@@ -1,3 +1,4 @@
+import {bytesToHex} from 'safe-bash-io-engine/byte-encoding';
 import type {CommandContext} from 'safe-bash-contracts';
 import {dirname,resolvePath} from 'safe-bash-contracts/path';
 import {createPythonBuildEnvironment} from './build-environment.js';
@@ -22,7 +23,7 @@ async function* verifiedBytes(source:AsyncIterable<Uint8Array>,expected:ReturnTy
     checksum?.update(chunk);yield chunk;
    }
   }
-  if(checksum&&Array.from(checksum.digest(),byte=>byte.toString(16).padStart(2,'0')).join('')!==expected![1])throw new Error('Python source archive integrity mismatch: '+expected![0]);
+  if(checksum&&bytesToHex(checksum.digest())!==expected![1])throw new Error('Python source archive integrity mismatch: '+expected![0]);
  }finally{checksum?.destroy();}
 }
 

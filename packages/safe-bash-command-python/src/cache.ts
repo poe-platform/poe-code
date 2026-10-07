@@ -5,7 +5,7 @@ export interface PythonPackageCache {
   set(key: string, bytes: Uint8Array): Promise<void>;
 }
 
-export function createPythonPackageCache(options: { readonly maxBytes?: number } = {}): PythonPackageCache & { dispose(): void } {
+export function createPythonPackageCache(options: { readonly maxBytes?: number | undefined } = {}): PythonPackageCache & { dispose(): void } {
   const maxBytes = options.maxBytes ?? Infinity;
   if (options.maxBytes !== undefined && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) throw new RangeError('Python cache maxBytes must be a positive integer');
   const values = new Map<string, Uint8Array>();

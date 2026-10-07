@@ -10733,11 +10733,13 @@ var Commands = class {
     this.onAllocation = onAllocation;
   }
   cmds = [];
+  hasPoints = false;
   transformStack = [];
   currentTransform = [1, 0, 0, 1, 0, 0];
   add(cmd, args) {
     this.onAllocation?.(64 + (args?.length ?? 0) * 16);
     if (args) {
+      this.hasPoints = true;
       const { currentTransform } = this;
       for (let i = 0, ii = args.length; i < ii; i += 2) {
         Util.applyTransform(args, currentTransform, i);
@@ -10822,7 +10824,9 @@ var CompiledFont = class _CompiledFont {
     const cmds = new Commands(onAllocation);
     cmds.transform(fontMatrix.slice());
     this.compileGlyphImpl(code, cmds, glyphId);
-    cmds.add(DrawOPS.closePath);
+    if (cmds.hasPoints) {
+      cmds.add(DrawOPS.closePath);
+    }
     return cmds.getPath();
   }
   compileGlyphImpl() {
@@ -10862,8 +10866,10 @@ var Type2Compiled = class extends CompiledFont {
     cmds.onFrameAllocation = onAllocation;
     cmds.transform(matrix.slice());
     yield* compileCharString(code, cmds, this, glyphId);
-    cmds.add(DrawOPS.closePath);
-    yield cmds.getPath();
+    if (cmds.hasPoints) {
+      cmds.add(DrawOPS.closePath);
+      yield cmds.getPath();
+    }
   }
   compileGlyphImpl(code, cmds, glyphId) {
     for (const ignored of compileCharString(code, cmds, this, glyphId)) { /* synchronous collector */ }

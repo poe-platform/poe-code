@@ -84,3 +84,29 @@ it("selects an embedded CFF glyph through the font Encoding CMap", () => {
   expect(display.glyphs[0]!.unicode).toBe("Z");
   expect(display.glyphs[0]!.outline!.segments).toHaveLength(23);
 });
+
+it("omits orphan close segments for width-only CFF space glyphs in outlines and SVG", async () => {
+  const { CFFParser, Stream } = await import("../vendor/pdfjs-fonts.mjs");
+  const { createCffGlyphRenderer } = await import("./cff.js");
+  const bytes = Uint8Array.from(atob(STANDARD_FONT_CFF_BASE64["Helvetica"]), char => char.charCodeAt(0));
+  const cff = new CFFParser(new Stream(bytes), {}, false).parse();
+  const spaceGid = cff.charset.charset.indexOf("space");
+  expect(spaceGid).toBeGreaterThan(0);
+  const render = createCffGlyphRenderer(cff);
+  expect(render(spaceGid)).toEqual([]);
+  expect([...render.segments(spaceGid)]).toEqual([]);
+
+  const doc = PdfDocument.create();
+  const page = doc.addPage([200, 100]);
+  const font = doc.cos.allocateObject(cosDict({
+    Type: cosName("Font"),
+    Subtype: cosName("Type1"),
+    BaseFont: cosName("Helvetica"),
+    Encoding: cosName("WinAnsiEncoding"),
+  }));
+  dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: font }) }));
+  page.setRawContentStream("BT /F1 24 Tf 20 40 Td (A B) Tj ET");
+  const display = PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList();
+  const svg = renderDisplayListToSvg(display);
+  expect(svg).not.toContain('d="Z"');
+});

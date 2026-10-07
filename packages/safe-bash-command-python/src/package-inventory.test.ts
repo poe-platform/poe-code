@@ -57,7 +57,7 @@ namespace = {
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
  '_safe_uninstall':None if mode == 'install' else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},
  '_safe_package_record':record, '_safe_preloaded':set(), '_safe_restored_names':{'remove'}, '_safe_package_emit':emit, '_safe_package_line':line,
- '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_paths':{name:'/installed/'+name for name in records}, '_safe_record_by_name':records,
+ '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:'/installed/'+name if name in records else None, '_safe_record_by_name':records,
 }
 asyncio.run(eval(code, namespace))
 expected = ['file:///active.whl', 'active==1']

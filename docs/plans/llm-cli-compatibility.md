@@ -210,7 +210,9 @@ Saved-record restoration now uses a separate caller-backed ordinal index and laz
 native mapping; records cross the runtime boundary individually in both directions.
 Legacy normalization, duplicate/name validation, provenance and metadata-only
 uninstall are preserved. Host manifest snapshots and individual records remain
-buffered, and snapshot-path/dependency names still retain native global state.
+buffered, and dependency names still retain native global state. Restored metadata
+snapshot paths now derive from one resolved package root and the existing saved-record
+index instead of retaining a second path table; preloaded packages remain excluded.
 Python scandir now forwards lazy caller-directory enumeration through both interpreter
 transports, sharing file-handle admission and cleanup. Listdir, fixed bootstrap
 directories and non-lazy backend fallbacks remain buffered. Package environments

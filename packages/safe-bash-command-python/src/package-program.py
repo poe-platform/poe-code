@@ -291,14 +291,19 @@ class _SafeRecords(_SafeMapping):
   return record[5] if record is not None else None
 _safe_record_by_name, _safe_records_present = await _SafeRecords.prepare()
 _safe_metadata_only = _safe_uninstall is not None and _safe_records_present
-_safe_snapshot_paths = {}
+_safe_snapshot_root = None
+def _safe_snapshot_path(name):
+ if _safe_snapshot_root is None or name in _safe_preloaded or name not in _safe_record_by_name:
+  return None
+ return str(_safe_snapshot_root / (name.replace('-', '_') + '-snapshot.dist-info'))
 if _safe_metadata_only:
  from pathlib import Path as _SafePath
  import sysconfig as _safe_sysconfig
+ _safe_snapshot_root = _SafePath(_safe_sysconfig.get_path('purelib')).resolve()
  for _safe_record_name, _safe_record in _safe_record_by_name.items():
   if _safe_record_name in _safe_preloaded:
    continue
-  _safe_path = (_SafePath(_safe_sysconfig.get_path('purelib')) / (_safe_record_name.replace('-', '_') + '-snapshot.dist-info')).resolve()
+  _safe_path = _safe_snapshot_root / (_safe_record_name.replace('-', '_') + '-snapshot.dist-info')
   _safe_path.mkdir()
   (_safe_path / 'METADATA').write_text(_safe_record[1])
   (_safe_path / 'PYODIDE_URL').write_text(_safe_record[2])
@@ -309,7 +314,6 @@ if _safe_metadata_only:
   if _safe_name(_safe_dist.metadata['Name']) != _safe_record_name:
    raise ValueError('Python package metadata name conflict: ' + _safe_record_name)
   _SafeRequirement(_safe_record_name + '==' + _safe_dist.version)
-  _safe_snapshot_paths[_safe_record_name] = str(_safe_path)
  _safe_metadata.MetadataPathFinder.invalidate_caches()
 _safe_restoring = True
 _safe_restore = _safe_json.loads(_safe_package_restore_json)
@@ -327,7 +331,7 @@ _safe_restoring = False
 _safe_roots = await _safe_parse_sources(_safe_json.loads(_safe_package_requirements_json), not _safe_metadata_only)
 if _safe_metadata_only:
  for _safe_root in _safe_roots:
-  if _safe_root.url and _safe_name(_safe_root.name) in _safe_snapshot_paths:
+  if _safe_root.url and _safe_snapshot_path(_safe_name(_safe_root.name)) is not None:
    _safe_wheel = _SafeWheelInfo.from_url(_safe_root.url)
    if _safe_name(_safe_wheel.name) == _safe_name(_safe_root.name) and str(_safe_wheel.version) == _safe_metadata.version(_safe_root.name):
     _safe_root.url = None
@@ -349,7 +353,7 @@ if _safe_uninstall:
   await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\nUninstalling ' + _safe_target + '-' + _safe_version + ':\n')
   if not _safe_uninstall['yes']:
    _safe_record = _safe_record_by_name.get(_safe_target)
-   _safe_lists = _safe_record[3:5] if _safe_snapshot_paths.get(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
+   _safe_lists = _safe_record[3:5] if _safe_snapshot_path(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
    for _safe_heading, _safe_paths in zip(['Would remove:', 'Would not remove (might be manually added):'], _safe_lists):
     if _safe_paths:
      await _safe_package_emit('stdout', '  ' + _safe_heading + '\n')
@@ -394,7 +398,7 @@ for _safe_dist in _safe_metadata.distributions():
   _safe_origin = _safe_dist.read_text('PYODIDE_URL')
   if _safe_origin:
    _safe_sources.append(_safe_dist_name + ' @ ' + _safe_origin.strip())
-  if _safe_snapshot_paths.get(_safe_dist_name) == str(_safe_dist._path):
+  if _safe_snapshot_path(_safe_dist_name) == str(_safe_dist._path):
    await _safe_package_record('append', _safe_json.dumps(_safe_record_by_name[_safe_dist_name]))
   else:
    _safe_headers = _safe_dist.metadata

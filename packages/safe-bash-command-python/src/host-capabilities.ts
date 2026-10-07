@@ -39,6 +39,9 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
   for (const limit of [maxMessageBytes, maxMessageDepth, maxConcurrentCalls, maxStreams, maxStreamBytes]) {
     if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python host capability limit');
   }
+  const checkMessageLimit = (size:number,maximum=maxMessageBytes):void => {
+    if(size>maximum)throw new RangeError('Python host message limit exceeded');
+  };
   const registry = new Map(Object.entries(capabilities));
   const controller = new AbortController();
   const signal = AbortSignal.any([options.signal, controller.signal]);
@@ -57,20 +60,20 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
     let nodes = 0;
     let estimatedBytes = 0;
     const inspect = (item: unknown, depth: number): void => {
-      if (++nodes > maxMessageBytes || depth > maxMessageDepth) throw new RangeError('Python host message limit exceeded');
+      checkMessageLimit(++nodes);checkMessageLimit(depth,maxMessageDepth);
       if (item === null || typeof item === 'boolean' || typeof item === 'number' && Number.isFinite(item)) {
         estimatedBytes += JSON.stringify(item).length;
-        if (estimatedBytes > maxMessageBytes) throw new RangeError('Python host message limit exceeded');
+        checkMessageLimit(estimatedBytes);
         return;
       }
       if (typeof item === 'string') {
-        if (item.length > maxMessageBytes) throw new RangeError('Python host message limit exceeded');
+        checkMessageLimit(item.length);
         estimatedBytes += new TextEncoder().encode(JSON.stringify(item)).length;
-        if (estimatedBytes > maxMessageBytes) throw new RangeError('Python host message limit exceeded');
+        checkMessageLimit(estimatedBytes);
         return;
       }
       if (typeof item !== 'object' || item === null || !Array.isArray(item) && Object.getPrototypeOf(item) !== Object.prototype && Object.getPrototypeOf(item) !== null) throw new TypeError('Python host messages must contain data only');
-      if (Array.isArray(item) && item.length > maxMessageBytes) throw new RangeError('Python host message limit exceeded');
+      if(Array.isArray(item))checkMessageLimit(item.length);
       if (ancestors.has(item)) throw new TypeError('Python host messages must not contain cycles');
       ancestors.add(item);
       estimatedBytes += 2;
@@ -78,7 +81,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
       for (const key in item) {
         if (!Object.hasOwn(item, key)) continue;
         estimatedBytes += 2;
-        if (estimatedBytes > maxMessageBytes) throw new RangeError('Python host message limit exceeded');
+        checkMessageLimit(estimatedBytes);
         if (Array.isArray(item) && key === 'length') continue;
         if (typeof key !== 'string') throw new TypeError('Python host messages must contain data only');
         const descriptor = Object.getOwnPropertyDescriptor(item, key)!;
@@ -90,7 +93,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
     };
     inspect(value, 0);
     const encoded = JSON.stringify(value);
-    if (new TextEncoder().encode(encoded).length > maxMessageBytes) throw new RangeError('Python host message limit exceeded');
+    checkMessageLimit(new TextEncoder().encode(encoded).length);
     return JSON.parse(encoded) as PythonHostValue;
   };
   const assertLive = (): void => {
@@ -124,7 +127,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
           if (chunkBytes > maxStreamBytes - stream.bytes) throw new RangeError('Python host stream byte limit exceeded');
           stream.bytes += chunkBytes;
           const value = result.value instanceof Uint8Array
-            ? (() => { if (result.value.length > maxMessageBytes / 4) throw new RangeError('Python host message limit exceeded'); return { type: 'bytes', bytes: Array.from(result.value) }; })()
+            ? (() => { checkMessageLimit(result.value.length,maxMessageBytes/4); return { type: 'bytes', bytes: Array.from(result.value) }; })()
             : typeof result.value === 'string' ? { type: 'text', text: result.value } : { type: 'data', value: result.value };
           return data({ done: false, value });
         } catch (error) {

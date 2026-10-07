@@ -118,6 +118,17 @@ function* requirementLines(source:string):Generator<string> {
  }
  yield pending;
 }
+function expandRequirement(source:string,env:Readonly<Record<string,string|undefined>>={}):string {
+ let text=source;
+ for(let start=source.indexOf('${');start>=0;start=source.indexOf('${',start+2)){
+  let end=start+2;
+  while(end<source.length&&'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'.includes(source[end]!))end++;
+  if(end===start+2||source[end]!=='}')continue;
+  const name=source.slice(start+2,end),value=Object.hasOwn(env,name)&&env[name];
+  if(value)text=text.replaceAll(source.slice(start,end+1),()=>value);
+ }
+ return text;
+}
 function normalizeRequirement(value: string, cwd: string): string {
  const requirement = value.trim();
  if (!requirement || requirement.startsWith('-')) throw failure(`Unsupported requirement: ${value}`);
@@ -244,7 +255,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     let comment=line.indexOf('#');
     while(comment>0&&line[comment-1]!.trim())comment=line.indexOf('#',comment+1);
     const text=(comment<0?line:line.slice(0,comment)).trim(); if (!text)continue;
-    requirements.push(text[0]==='-'&&options.prepareRequirements?text:normalizeRequirement(text,dirname(path)));
+    const expanded=expandRequirement(text,context.env);
+    requirements.push(expanded[0]==='-'&&options.prepareRequirements?expanded:normalizeRequirement(expanded,dirname(path)));
    }
   }
   if((options.editable?.length||context.editable?.length)&&!options.prepareRequirements)throw failure('Editable packages require a source package environment');

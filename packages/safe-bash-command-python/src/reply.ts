@@ -4,13 +4,13 @@ import { FsError } from "safe-bash-contracts/errors";
 export function encodePythonReply(value: unknown, maxBytes: number): Uint8Array {
   let used = 0;
   const ancestors = new Set<object>();
-  const reserve = (bytes: number): void => {
-    used += bytes;
-    if (used > maxBytes) throw new FsError('EFBIG', { syscall: 'python reply' });
+  const checkSize = (bytes:number,remaining=maxBytes-used):void => {
+    if(bytes>remaining)throw new FsError('EFBIG', {syscall:'python reply'});
   };
+  const reserve = (bytes: number): void => {checkSize(bytes);used+=bytes;};
   const string = (text: string): string => {
     // Every UTF-16 code unit needs at least one output byte, even before quoting.
-    if (text.length + 2 > maxBytes - used) throw new FsError('EFBIG', { syscall: 'python reply' });
+    checkSize(text.length+2);
     reserve(2);
     for (let index = 0; index < text.length; index++) {
       const code = text.charCodeAt(index);
@@ -24,7 +24,7 @@ export function encodePythonReply(value: unknown, maxBytes: number): Uint8Array 
     return text;
   };
   const own = (input: unknown, depth: number): unknown => {
-    if (depth > 64) throw new FsError('EFBIG', { syscall: 'python reply' });
+    checkSize(depth,64);
     if (input === null || input === undefined) { reserve(4); return null; }
     if (typeof input === 'string') return string(input);
     if (typeof input === 'number') { reserve(Number.isFinite(input) ? String(input).length : 4); return input; }
@@ -35,7 +35,7 @@ export function encodePythonReply(value: unknown, maxBytes: number): Uint8Array 
     try {
       if (input instanceof Uint8Array || Array.isArray(input)) {
         // Each slot contributes at least one value byte and one separator.
-        if (input.length > maxBytes - used) throw new FsError('EFBIG', { syscall: 'python reply' });
+        checkSize(input.length);
         reserve(2);
         const output: unknown[] = [];
         for (let index = 0; index < input.length; index++) {
@@ -52,7 +52,7 @@ export function encodePythonReply(value: unknown, maxBytes: number): Uint8Array 
       let visited = 0;
       for (const key in input) {
         if (!Object.hasOwn(input, key)) continue;
-        if (++visited > maxBytes) throw new FsError('EFBIG', { syscall: 'python reply' });
+        checkSize(++visited,maxBytes);
         const descriptor = Object.getOwnPropertyDescriptor(input, key)!;
         if (!('value' in descriptor)) throw new TypeError('Accessor Python reply');
         if (descriptor.value === undefined || typeof descriptor.value === 'function') continue;

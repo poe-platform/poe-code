@@ -129,6 +129,35 @@ function expandRequirement(source:string,env:Readonly<Record<string,string|undef
  }
  return text;
 }
+function requirementInclude(line:string):string|undefined {
+ if(!line.startsWith('-r')&&!line.startsWith('--requirem'))return;
+ const words:string[]=[];let word='',quote='',active=false;
+ for(let index=0;index<line.length;index++){
+  const char=line[index]!;
+  if(char==='\\'&&quote!=="'"){
+   const next=line[++index];if(next===undefined)throw failure('No escaped character');
+   if(quote&&next!==quote&&next!=='\\')word+='\\';
+   word+=next;active=true;
+  }else if(quote){if(char===quote)quote='';else word+=char;}
+  else if(char==='"'||char==="'"){quote=char;active=true;}
+  else if(' \t\r\n'.includes(char)){if(active){words.push(word);word='';active=false;}}
+  else{word+=char;active=true;}
+ }
+ if(quote)throw failure('No closing quotation');
+ if(active)words.push(word);
+ let included:string|undefined;
+ for(let index=0;index<words.length;index++){
+  const word=words[index]!,option=word.split('=',1)[0]!;let path:string|undefined;
+  if(word==='-r')path=words[++index];
+  else if(word.startsWith('-r'))path=word.slice(2);
+  else if(option.startsWith('--requirem')&&'--requirement'.startsWith(option))path=word.length===option.length?words[++index]:word.slice(option.length+1);
+  else if(word.startsWith('-'))throw failure(`Unsupported requirement option: ${word}`);
+  else continue;
+  if(path===undefined)throw failure(`Requirement option needs a file: ${word}`);
+  included??=path;
+ }
+ return included;
+}
 function normalizeRequirement(value: string, cwd: string): string {
  const requirement = value.trim();
  if (!requirement || requirement.startsWith('-')) throw failure(`Unsupported requirement: ${value}`);
@@ -246,19 +275,32 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const legacy = Array.isArray(previous);
   const restore = saved.map(value=>normalizeRequirement(value,context.cwd));
   const requirements = [...(options.profile ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
-  for (const file of [...options.requirementFiles??[],...context.requirementFiles??[]]) {
-   const path = resolve(context.cwd,file);
-   let source: string;
-   try { source = decoder.decode(await context.fs.readFile(path,{signal,...options.maxRequirementBytes ? {maxBytes:options.maxRequirementBytes} : {}})); } catch(error) { signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
+  const activeFiles=new Set<string>();let requirementBytes=0;
+  const readRequirements=async(path:string):Promise<void>=>{
+   signal.throwIfAborted();
+   let source:string,identity:string;
+   try {
+    identity=await context.fs.realpath(path,{signal});
+    if(activeFiles.has(identity))throw failure(`Recursive Python requirements: ${path}`);
+    activeFiles.add(identity);
+    const bytes=await context.fs.readFile(path,{signal,...options.maxRequirementBytes!==undefined?{maxBytes:options.maxRequirementBytes-requirementBytes}:{}});
+    requirementBytes+=bytes.length;
+    if(requirementBytes>(options.maxRequirementBytes??Infinity))throw failure('Python requirements byte limit exceeded');
+    source=decoder.decode(bytes);
+   } catch(error) { signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
    for (const line of requirementLines(source)) {
     // Only whitespace-delimited hashes begin comments; URL integrity fragments survive.
     let comment=line.indexOf('#');
     while(comment>0&&line[comment-1]!.trim())comment=line.indexOf('#',comment+1);
     const text=(comment<0?line:line.slice(0,comment)).trim(); if (!text)continue;
     const expanded=expandRequirement(text,context.env);
-    requirements.push(expanded[0]==='-'&&options.prepareRequirements?expanded:normalizeRequirement(expanded,dirname(path)));
+    const included=requirementInclude(expanded);
+    if(included!==undefined)await readRequirements(resolve(dirname(path),included));
+    else requirements.push(expanded[0]==='-'&&options.prepareRequirements?expanded:normalizeRequirement(expanded,dirname(path)));
    }
-  }
+   activeFiles.delete(identity);
+  };
+  for(const file of [...options.requirementFiles??[],...context.requirementFiles??[]])await readRequirements(resolve(context.cwd,file));
   if((options.editable?.length||context.editable?.length)&&!options.prepareRequirements)throw failure('Editable packages require a source package environment');
   const requested=[...new Set(await options.prepareRequirements?.(requirements,context)??requirements)];
   signal.throwIfAborted();

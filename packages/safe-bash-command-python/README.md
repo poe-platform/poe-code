@@ -288,7 +288,9 @@ Use `-e './project[feature]'` (or the same SDK string) to install optional
 dependencies while keeping imports linked to the original source. Requirements
 files support backslash continuations, whitespace-delimited comments and
 `${NAME}` expansion from the caller environment. Missing or empty variables remain
-unchanged. They also accept `-e`/`--editable` entries, including quoted paths and extras;
+unchanged. Local `-r`/`--requirement` includes resolve relative to the containing
+file, preserve entry order and share `maxRequirementBytes`; recursive includes
+are rejected. They also accept `-e`/`--editable` entries, including quoted paths and extras;
 relative paths use the invocation directory.
 The genuine setuptools compatibility-mode wheel keeps imports linked to the
 original caller-owned source directory; keep that directory available after

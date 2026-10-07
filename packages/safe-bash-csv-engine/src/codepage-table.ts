@@ -19,10 +19,15 @@ export function encodeBase64Latin1(bytes:string):string{
  }
  return out;
 }
-/** Fixed UTF-16LE metadata; short tables omit the identity ASCII half. */
-export function unpackCodepage(encoded:string):readonly number[]{
- const bytes=decodeBase64Latin1(encoded),offset=bytes.length===256?128:0;
- const values=Array.from({length:offset},(_,byte)=>byte);
- for(let i=0;i<bytes.length;i+=2){const point=bytes.charCodeAt(i)|(bytes.charCodeAt(i+1)<<8);values.push(point===65535?-1:point);}
+/** Fixed metadata runs override an identity or related pinned character map. */
+export function unpackCodepage(encoded:string,base?:readonly number[]):readonly number[]{
+ const bytes=decodeBase64Latin1(encoded);
+ const values=base?[...base]:Array.from({length:256},(_,byte)=>byte);
+ for(let i=0;i<bytes.length;){
+  const start=bytes.charCodeAt(i++),point=bytes.charCodeAt(i++)|(bytes.charCodeAt(i++)<<8);
+  // Starts strictly increase. A repeated start therefore marks a longer run.
+  const length=bytes.charCodeAt(i)===start?(i++,bytes.charCodeAt(i++)+1):1;
+  for(let offset=0;offset<length;offset++)values[start+offset]=point===65535?-1:point+offset;
+ }
  return Object.freeze(values);
 }

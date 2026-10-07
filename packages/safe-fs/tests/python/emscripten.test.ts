@@ -105,3 +105,28 @@ test('native stat uses an unknown sentinel for absent optional storage geometry'
   assert.throws(()=>writePythonStat(bytes,0,{...stat,[key]:value}),/EOVERFLOW/);
  }
 });
+
+for (const scenario of ['fragmented','short','nonseekable'] as const) test(`Python JS filesystem reads ${scenario} host transfers without truncating guest buffers`,()=>{
+ const seekable=scenario!=='nonseekable';
+ const FS:Record<string,any>={root:{},cwd:()=>'/work',createNode:()=>({}),mount:()=>{},isFile:()=>true,isDir:()=>false,createStream:(stream:any)=>stream};
+ for(const method of ['chdir','lookupNode','open','stat','lstat','fstat','unlink','rmdir','chmod','truncate','utime','mkdir','rename','symlink','readdir','readlink','mknod','write'])FS[method]=()=>{};
+ const reads:unknown[][]=[];
+ const request=(op:string,...args:any[])=>{
+  if(op==='open')return 1;
+  if(op==='realpath')return '/work';
+  if(op==='descriptorCapabilities')return {positionedRead:seekable};
+  if(op==='read'){
+   reads.push(args);
+   const [,length,position]=args;
+   return Array.from({length:scenario==='short'?1:length},(_,index)=>(position??10)+index);
+  }
+  return {type:'file',mode:0o600};
+ };
+ mountPythonFileSystem(FS,{request,cwd:'/work',runtimeMount:'/.runtime',maxTransferBytes:2,errno:{},synchronizationFlags:0,runtimeModule:{SYSCALLS:{writeStat:()=>{}}}});
+ const stream=FS.open('/file',0),buffer=new Uint8Array(9).fill(99);
+ const length=stream.stream_ops.read(stream,buffer,2,5,10);
+ const expected=scenario==='fragmented'?5:scenario==='short'?1:2;
+ assert.equal(length,expected);
+ assert.deepEqual([...buffer],[99,99,...Array.from({length:expected},(_,index)=>10+index),...Array(7-expected).fill(99)]);
+ assert.deepEqual(reads,scenario==='fragmented'?[[1,2,10],[1,2,12],[1,1,14]]:[[1,2,seekable?10:null]]);
+});

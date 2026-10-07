@@ -80,7 +80,18 @@ const streamOps = {
   dup: (stream: any) => { if (stream.retained) stream.retained.references++; },
   close: (stream: any) => { if (stream.handle && --stream.retained.references === 0) rpc('close', stream.handle); },
   fsync: (stream: any) => { rpc('sync', stream.handle, false); return 0; },
-  read(stream: any, buffer: Uint8Array, offset: number, length: number, position: number) { const data = rpc('read', stream.handle, Math.min(length, maxTransferBytes), stream.seekable ? position : null); buffer.set(data, offset); return data.length; },
+  read(stream: any, buffer: Uint8Array, offset: number, length: number, position: number) {
+    let received = 0;
+    while (received < length) {
+      const requested = Math.min(length - received, maxTransferBytes);
+      const data = rpc('read', stream.handle, requested, stream.seekable ? position + received : null);
+      if (data.length > requested) throw new FS.ErrnoError(errno.EIO);
+      buffer.set(data, offset + received);
+      received += data.length;
+      if (data.length < requested || !stream.seekable) break;
+    }
+    return received;
+  },
   write: (stream: any, buffer: Uint8Array, offset: number, length: number, position: number) => rpc('write', stream.handle, Uint8Array.from(buffer.subarray(offset, offset + Math.min(length, maxTransferBytes))), stream.pythonExplicitPosition ?? (stream.flags & 1024 || !stream.seekable ? null : position)),
   llseek(stream: any, offset: number, whence: number) { if (![0,1,2].includes(whence) || !Number.isSafeInteger(offset)) throw new FS.ErrnoError(errno.EINVAL); const position = whence === 0 ? offset : whence === 1 ? stream.position + offset : rpc('fstat', stream.handle).size + offset; if (!Number.isSafeInteger(position) || position < 0) throw new FS.ErrnoError(28); return position; },
 };

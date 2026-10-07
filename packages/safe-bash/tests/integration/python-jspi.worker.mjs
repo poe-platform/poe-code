@@ -325,7 +325,7 @@ for version in ('1.0', '2.0rc1'):
   return {results,requests};
 }
 
-async function qualifyReplacements(backend,createExecutor,micropip,constraintsOnly=false,noDepsOnly=false) {
+async function qualifyReplacements(backend,createExecutor,micropip,constraintsOnly=false,noDepsOnly=false,indexesOnly=false) {
  const quote=value=>"'"+value.split("'").join("'\\''")+"'";
  const bootstrap=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor}));
  try {
@@ -356,9 +356,11 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  }
  artifacts.set('https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl',micropip);
  let published=false;
+ const indexRequests=[];
  const manifestStore=createPythonPackageManifestStore();
  const configuration={scope:'replacement',manifestStore,authorize:({url})=>artifacts.has(url)||indexes.has(url),transport:async({url})=>{
   const files=indexes.get(url),bytes=files?new TextEncoder().encode(JSON.stringify({name:url.split('/').at(-2),files:published?files:files.slice(0,1)})):artifacts.get(url);
+  if(files)indexRequests.push(url);
   return {status:200,headers:[['content-type',files?'application/vnd.pypi.simple.v1+json':'application/octet-stream']],body:(async function*(){yield bytes;})(),async dispose(){}};
  }};
  const environment=createPythonPackageEnvironment(configuration);
@@ -367,6 +369,24 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(options)).use(llmCommands({managePackages:createPythonLlmPackageManager(options)}));
  const rows=[];
  try {
+  if(indexesOnly){
+   published=true;
+   const all=indexes.get('https://pypi.org/simple/replace-root/');
+   indexes.delete('https://pypi.org/simple/replace-root/');
+   indexes.set('https://primary.example/simple/replace-root/',all.slice(0,1));
+   indexes.set('https://extra.example/simple/replace-root/',all.slice(1));
+   const inspect='import importlib.metadata as m,json;print(json.dumps({d.metadata["Name"].replace("_","-"):d.version for d in m.distributions() if d.metadata["Name"].startswith("replace")}))';
+   for(const command of ['-i https://primary.example/simple replace-root','-i https://primary.example/simple/ --extra-index-url https://extra.example/simple/ replace-root','--no-index -i https://primary.example/simple replace-root','--no-index ./replace_root-1.0-py3-none-any.whl']){
+    const isolated=createPythonPackageEnvironment({...configuration,scope:'indexes-'+rows.length});
+    const child=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
+    try{rows.push({result:await child.exec('python -m pip install --no-deps '+command),versions:await child.exec('python -c '+quote(inspect)),queries:indexRequests.splice(0)});}
+    finally{await child.dispose();await isolated.dispose();}
+   }
+   const isolated=createPythonPackageEnvironment({...configuration,scope:'indexes-sdk',requirements:['replace-root'],noDeps:true,indexUrl:'https://primary.example/simple/',extraIndexUrls:['https://extra.example/simple/']});
+   const child=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
+   try{return {rows,sdk:await child.exec('python -c '+quote(inspect))};}
+   finally{await child.dispose();await isolated.dispose();}
+  }
   if(noDepsOnly){
    published=true;
    const inspect='import importlib.metadata as m, json; print(json.dumps({d.metadata["Name"].replace("_","-"): d.version for d in m.distributions() if d.metadata["Name"].startswith("replace")}))';
@@ -2104,8 +2124,8 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/package-replacements'||mode==='/package-constraints'||mode==='/package-no-deps') {
-      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode==='/package-constraints',mode==='/package-no-deps'),failures});}
+    if (mode === '/package-replacements'||mode==='/package-constraints'||mode==='/package-no-deps'||mode==='/package-indexes') {
+      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode==='/package-constraints',mode==='/package-no-deps',mode==='/package-indexes'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

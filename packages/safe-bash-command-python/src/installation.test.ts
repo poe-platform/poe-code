@@ -8,7 +8,7 @@ test('pip installation parses explicit pins, local wheels and requirement files'
   });
 });
 test('unsupported pip commands and every unknown option fail explicitly', () => {
-  for (const option of ['--no-index', '--target=/tmp', '--user', '--index-url', '--trusted-host', '--require-hashes', '--dry-run', '--quiet']) {
+  for (const option of ['--target=/tmp', '--user', '--trusted-host', '--require-hashes', '--dry-run', '--quiet']) {
     assert.throws(() => parsePythonInstallation(['install', option]), new RegExp('unsupported pip option'));
   }
   assert.throws(() => parsePythonInstallation(['list', 'x']), /unsupported pip command/);
@@ -18,7 +18,7 @@ test('unsupported pip commands and every unknown option fail explicitly', () => 
 test('pip help is available without packages', () => {
   assert.equal(parsePythonInstallation(['--help'])?.help, true);
   assert.equal(parsePythonInstallation(['install', '--help'])?.help, true);
-  assert.throws(() => parsePythonInstallation(['--help', '--index-url', 'bad']), /unsupported pip option/);
+  assert.throws(() => parsePythonInstallation(['--help', 'bad']), /unsupported pip option/);
 });
 
 test('pip uninstall preserves targets and explicit confirmation without treating targets as installs',()=>{
@@ -58,3 +58,10 @@ test('pip constraint arguments stay independent of requested packages',()=>{
   assert.throws(()=>parsePythonInstallation(['uninstall',flag,'root']),/unsupported pip option/);
  }
  });
+
+test('pip package index options preserve repeated extras and final primary selection',()=>{
+ assert.deepEqual(parsePythonInstallation(['install','root','-i','https://first/simple','--index-url=https://second/simple','--extra-index-url','https://extra/simple','--extra-index-url=https://last/simple','--no-index']).controls,{indexUrl:'https://second/simple',extraIndexUrls:['https://extra/simple','https://last/simple'],noIndex:true});
+ assert.equal(parsePythonInstallation(['install','-ihttps://short/simple','root']).controls.indexUrl,'https://short/simple');
+ for(const flag of ['-i','--index-url','--extra-index-url'])assert.throws(()=>parsePythonInstallation(['install','root',flag]),/requires a URL/);
+ assert.throws(()=>parsePythonInstallation(['uninstall','--no-index','root']),/unsupported pip option/);
+});

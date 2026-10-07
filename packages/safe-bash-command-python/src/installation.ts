@@ -17,13 +17,14 @@ export const pythonInstallationHelp = `Usage: python -m pip install [OPTIONS] PA
        python -m pip uninstall [-y/--yes] PACKAGE ...
 Install: -r/--requirement FILE, -c/--constraint FILE, -e/--editable PATH,
          --pre, --no-deps/--no-dependencies, -U/--upgrade,
-         --force-reinstall, --no-cache-dir
+         --force-reinstall, --no-cache-dir, --no-index
+         -i/--index-url URL, --extra-index-url URL
 Both accept -h/--help and --.
 `;
 
 /** Parse arguments after the validated Python pip module entrypoint. */
 export function parsePythonInstallation(pipArgs: readonly string[]): PythonInstallation {
-  const controls: {noDeps?:boolean;pre?:boolean;noCache?:boolean;upgrade?:boolean;forceReinstall?:boolean;editable?:string[];constraintFiles?:string[]} = {};
+  const controls: { -readonly [K in keyof PythonPackageInstallOptions]: PythonPackageInstallOptions[K] } = {};
   const packages: string[] = [];
   const requirements: string[] = [];
   if (pipArgs.length === 0 || pipArgs[0] === '--help' || pipArgs[0] === '-h') {
@@ -38,19 +39,28 @@ export function parsePythonInstallation(pipArgs: readonly string[]): PythonInsta
   for (let index = 1; index < pipArgs.length; index++) {
     const option = pipArgs[index]!;
     if (operands || !option.startsWith('-')) { packages.push(option); continue; }
-    const flag = ({'--no-deps':'noDeps','--no-dependencies':'noDeps','--pre':'pre','--no-cache-dir':'noCache','-U':'upgrade','--upgrade':'upgrade','--force-reinstall':'forceReinstall'} as Partial<Record<string,'noDeps'|'pre'|'noCache'|'upgrade'|'forceReinstall'>>)[option];
+    const flag = ({'--no-index':'noIndex','--no-deps':'noDeps','--no-dependencies':'noDeps','--pre':'pre','--no-cache-dir':'noCache','-U':'upgrade','--upgrade':'upgrade','--force-reinstall':'forceReinstall'} as Partial<Record<string,'noIndex'|'noDeps'|'pre'|'noCache'|'upgrade'|'forceReinstall'>>)[option];
     if (!uninstall && flag) { controls[flag] = true; continue; }
     if (option === '--') { operands = true; continue; }
     if (option === '--help' || option === '-h') { help = true; continue; }
     if (uninstall && (option === '-y' || option === '--yes')) { yes = true; continue; }
     if (!uninstall) {
+      const indexOption=option.split('=',1)[0];
+      if(option.startsWith('-i')||indexOption==='--index-url'||indexOption==='--extra-index-url'){
+        const value=option.startsWith('-i')&&option.length>2?option.slice(2):option.includes('=')?option.slice(option.indexOf('=')+1):pipArgs[++index];
+        if(!value||value.startsWith('-'))throw new PythonInvocationError(option+' requires a URL');
+        if(indexOption==='--extra-index-url')controls.extraIndexUrls=[...controls.extraIndexUrls??[],value];else controls.indexUrl=value;
+        continue;
+      }
       const kind = ['requirement','editable','constraint'].find(name => option.startsWith('-' + name[0]) || option.split('=',1)[0] === '--' + name);
       if (kind) {
         const prefix = '--' + kind;
         const path = option.startsWith(prefix + '=') ? option.slice(prefix.length + 1)
           : option === prefix || option.length === 2 ? pipArgs[++index] : option.slice(2);
         if (!path || path.startsWith('-')) throw new PythonInvocationError(option + ' requires a path');
-        (kind==='constraint'?controls.constraintFiles??=[]:kind === 'editable' ? controls.editable ??= [] : requirements).push(path);
+        if(kind==='constraint')controls.constraintFiles=[...controls.constraintFiles??[],path];
+        else if(kind==='editable')controls.editable=[...controls.editable??[],path];
+        else requirements.push(path);
         continue;
       }
     }

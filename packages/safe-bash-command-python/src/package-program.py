@@ -60,6 +60,30 @@ _SafeWheelInfo.download = _safe_wheel_download
 _SafeWheelInfo.install = _safe_wheel_install
 _safe_preloaded = {_safe_name(name) for name in _safe_preloaded}
 _safe_manager = _SafePackageManager(_SafePackageCompatibility)
+_safe_indexes = _safe_json.loads(_safe_package_indexes_json)
+if _safe_indexes is not None:
+ _safe_manager.index_urls = [url.rstrip('/') for url in _safe_indexes]
+if _safe_indexes and len(_safe_indexes) > 1:
+ from micropip import package_index as _safe_index
+ from itertools import chain as _safe_chain
+ _safe_query = _safe_index.query_package
+ async def _safe_query_all(name, index_urls, **kwargs):
+  releases = {}
+  found = False
+  last_error = None
+  for url in index_urls:
+   try:
+    project = await _safe_query(name, [url], **kwargs)
+   except ValueError as error:
+    last_error = error
+    continue
+   found = True
+   for version, wheels in project.releases.items():
+    releases[version] = _safe_chain(releases.get(version, ()), wheels)
+  if not found:
+   raise last_error or ValueError('No package indexes configured')
+  return _safe_index.ProjectInfo(name, dict(sorted(releases.items())))
+ _safe_index.query_package = _safe_query_all
 async def _safe_parse_sources(sources, download=True):
  roots = []
  for source in sources:

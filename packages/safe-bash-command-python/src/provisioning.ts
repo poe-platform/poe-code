@@ -21,6 +21,12 @@ export interface PythonPackageProgress {
  readonly totalBytes?: number;
 }
 export interface PythonPackageInstallOptions {
+ /** Primary Simple API package index. Defaults to PyPI. */
+ readonly indexUrl?:string;
+ /** Additional indexes searched alongside the primary index. */
+ readonly extraIndexUrls?:readonly string[];
+ /** Disable index lookup; direct wheel sources remain available. */
+ readonly noIndex?:boolean;
  /** Install requested packages without resolving their runtime dependencies. */
  readonly noDeps?:boolean;
  /** Limit selected versions without installing unrequested packages. */
@@ -60,7 +66,8 @@ export interface PythonPackageOptions extends PythonPackageInstallOptions {
  readonly maxCacheBytes?: number;
  readonly onProgress?: (event: PythonPackageProgress) => void;
 }
-export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'noCache'|'editable'|'constraintFiles'> {
+export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'noCache'|'editable'|'constraintFiles'|'indexUrl'|'extraIndexUrls'|'noIndex'> {
+ readonly indexUrls?:readonly string[];
  readonly session: string;
  /** Load installer tooling even when no application requirements are installed. */
  readonly bootstrap?:boolean;
@@ -318,7 +325,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   signal.addEventListener('abort',aborted,{once:true});
   const controls: {noDeps?:boolean;pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
   for(const key of ['pre','upgrade','forceReinstall','noDeps'] as const)if(context[key]??options[key])controls[key]=true;
-  return {session,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
+  const indexUrls=(context.noIndex??options.noIndex)?[]:[context.indexUrl??options.indexUrl??'https://pypi.org/simple',...context.extraIndexUrls??options.extraIndexUrls??[]];
+  return {session,indexUrls,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();

@@ -86,3 +86,16 @@ test('replacement controls preserve SDK defaults and explicit per-invocation ove
   assert.equal(overridden.noDeps,undefined);assert.equal(overridden.upgrade,undefined);assert.equal(overridden.forceReinstall,undefined);environment.finish(overridden);
  }finally{await environment.dispose();}
 });
+
+test('package indexes preserve SDK defaults and explicit invocation overrides',async()=>{
+ const environment=createPythonPackageEnvironment({indexUrl:'https://default/simple',extraIndexUrls:['https://extra/simple'],noIndex:true});
+ const context={fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal};
+ try{
+  const defaults=await environment.prepare(context);
+  assert.deepEqual(defaults.indexUrls,[]);await environment.finish(defaults);
+  const indexed=await environment.prepare({...context,noIndex:false});
+  assert.deepEqual(indexed.indexUrls,['https://default/simple','https://extra/simple']);await environment.finish(indexed);
+  const override=await environment.prepare({...context,noIndex:false,indexUrl:'https://override/simple',extraIndexUrls:[]});
+  assert.deepEqual(override.indexUrls,['https://override/simple']);await environment.finish(override);
+ }finally{await environment.dispose();}
+});

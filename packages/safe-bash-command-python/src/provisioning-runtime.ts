@@ -174,6 +174,7 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
    const {source,...configuration}=JSON.parse(serialized) as {source:WheelReceipt;filename:string;extract_dir:string;metadata:Record<string,string>};
    await wheel(source.size,(offset,length)=>readArtifact('package-read-retained',source.token,offset,length),configuration);
   }));
+  bind('_safe_package_indexes_json',JSON.stringify(start.indexUrls??null));
   bind('_safe_package_constraints_json',JSON.stringify(start.constraints??[]));
   bind('_safe_package_requirements_json',JSON.stringify(start.requested ?? start.requirements));
   for(const key of ['pre','upgrade','forceReinstall','legacy','noDeps'] as const){

@@ -41,7 +41,7 @@ export function createPythonLlmPackageManager(options: PythonCommandsOptions & {
   };
 }
 
-const pythonLlmPackageProgram = String.raw`
+const pythonLlmPackageProgram = `
 import sys
 import safe_host
 import llm.cli

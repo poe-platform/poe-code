@@ -441,14 +441,28 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
        const directory=cacheDirectory??cwd;
        if(cacheDirectory)await fs.mkdir(directory,{recursive:true,signal});
        let metadataBytes:Uint8Array|undefined;
-       const artifact=await stagePythonPackage(session,directory,response.body,maxBytes,
-        progress,key=>{
-         verifyIntegrity(key);
-         if(!noCache)metadataBytes=cacheRecord(key,headers,responseUrl);
-        },
-        noCache?undefined:key=>resolve(directory,runtimeKey+'-sha256-'+key));
+       const verify=(key:string)=>{
+        verifyIntegrity(key);
+        if(!noCache)metadataBytes=cacheRecord(key,headers,responseUrl);
+       };
+       const destination=(key:string)=>resolve(directory,runtimeKey+'-sha256-'+key);
+       let artifact=await stagePythonPackage(session,directory,response.body,maxBytes,progress,verify,noCache?undefined:destination);
+       let streamed=false;
+       if(!artifact&&directory!==cwd&&(noCache||fs.writeStream&&(await fs.capabilitiesFor?.(directory,settings)??fs.capabilities).streamingWrite)){
+        artifact=await stagePythonPackage(session,cwd,response.body,maxBytes,progress,verify);
+        streamed=true;
+       }
        if(artifact){
-        return await adopt(artifact,async()=>{if(!noCache)await session.cache.set(address,metadataBytes!);});
+        const retained=artifact;
+        return await adopt(retained,async()=>{
+         if(!noCache){
+          if(streamed)await fs.writeStream!(destination(retained.key),(async function*(){
+           for(let offset=0;offset<retained.size;){const chunk=await retained.read(offset,65536);offset+=chunk.length;yield chunk;}
+          })(),settings);
+          checkSession(session);
+          await session.cache.set(address,metadataBytes!);
+         }
+        });
        }
       }
       const chunks:Uint8Array[]=[];let count=0;

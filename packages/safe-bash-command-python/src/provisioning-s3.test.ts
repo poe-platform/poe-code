@@ -85,3 +85,71 @@ for(const cached of [false,true])for(const corrupt of [false,true])test(`S3 pack
  }finally{await environment.dispose();}
  assert.deepEqual(await root.readdir('/'),[],'invocation staging must retire');
 });
+
+for(const noCache of [false,true])for(const outcome of ['success','integrity','upload','cancel'] as const){
+ if(noCache&&outcome==='upload')continue;
+ test(`network wheels stage in caller storage before weak-cache publication; noCache=${noCache}; outcome=${outcome}`,async()=>{
+  const client=new MockS3Client({buckets:['packages']}),root=new MemoryFileSystem();
+  const controller=new AbortController(),reason=new Error('cancel cache upload');
+  const bytes=new Uint8Array(131079).fill(42);
+  let uploads=0,maximum=0,disposed=0,requests=0;
+  const transport=new Proxy(client,{get(target,key){
+   if(key==='putObjectStream')return async(...args:Parameters<typeof target.putObjectStream>)=>{
+    if(!args[0].Key.includes('-sha256-'))return target.putObjectStream(...args);
+    uploads++;
+    const source=args[0].Body;
+    return target.putObjectStream({...args[0],Body:(async function*(){for await(const chunk of source){
+     maximum=Math.max(maximum,chunk.length);
+     if(outcome==='upload')throw new Error('cache upload failed');
+     if(outcome==='cancel')controller.abort(reason);
+     yield chunk;
+    }})()},args[1]);
+   };
+   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+  }});
+  const remote=new S3FileSystem({bucket:'packages',transport});
+  const guarded=new Proxy(remote,{get(target,key){
+   if(key==='readFile'||key==='writeFile')return (...args:Parameters<typeof target.writeFile>)=>{
+    if(args[0].includes('-sha256-'))assert.fail('wheel content must never use whole-file cache APIs');
+    return Reflect.apply(target[key],target,args);
+   };
+   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+  }});
+  const fs=new MountFileSystem({root,mounts:{'/packages':guarded}}),context={fs,cwd:'/',signal:controller.signal};
+  const environment=createPythonPackageEnvironment({cacheDirectory:'/packages/cache',noCache,authorize:()=>true,transport:async()=>{
+   requests++;
+   return {status:200,statusText:'OK',headers:[],body:(async function*(){
+    assert.ok((await root.readdir('/')).some(entry=>entry.name.startsWith('.python-package-')),'download must enter caller staging before pulling bytes');
+    for(let offset=0;offset<bytes.length;offset+=32768){
+     if(noCache&&outcome==='cancel')controller.abort(reason);
+     yield bytes.subarray(offset,offset+32768);
+    }
+   })(),async dispose(){disposed++;}};
+  }});
+  const start=await environment.prepare(context),url='https://packages.example/streamed.whl';
+  try{
+   const opened=environment.dispatch('package-open',[start.session,url,outcome==='integrity'?'0'.repeat(64):undefined],context);
+   if(outcome!=='success')await assert.rejects(opened,outcome==='integrity'?/integrity mismatch/:outcome==='upload'?/EIO:.*writeStream/:()=>controller.signal.aborted);
+   else{
+    const artifact=await opened as {key:string;size:number};
+    assert.equal(artifact.size,bytes.length);
+    assert.deepEqual(await environment.dispatch('package-read',[start.session,artifact.key,65530,16],context),Array(16).fill(42));
+   }
+  }finally{await environment.finish(start);}
+  assert.equal(disposed,1);assert.equal(uploads,noCache||outcome==='integrity'?0:1);
+  assert.ok(maximum<=65536);
+  assert.deepEqual(await root.readdir('/'),[],'download staging retires');
+  if(!noCache){
+   const offlineContext={...context,signal:new AbortController().signal};
+   const offline=await environment.prepare({...offlineContext,offline:true});
+   try{
+    const opened=environment.dispatch('package-open',[offline.session,url],offlineContext);
+    if(outcome==='success'){
+     const artifact=await opened as {key:string};
+     assert.deepEqual(await environment.dispatch('package-read',[offline.session,artifact.key,0,2],offlineContext),[42,42]);
+    }else await assert.rejects(opened,/Offline package cache miss/);
+   }finally{await environment.finish(offline);}
+  }
+  await environment.dispose();assert.equal(requests,1);assert.deepEqual(await root.readdir('/'),[]);
+ });
+}

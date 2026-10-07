@@ -1,3 +1,4 @@
+import {MockS3Client,S3FileSystem} from '@poe-platform/safe-fs/fs/s3';
 import {extractPythonSourceArchive} from "@poe-platform/safe-bash/commands/python/source-archive";
 import { standardCommands } from '@poe-platform/safe-bash/core';
 import libraryExamples from 'python-library-examples';
@@ -9,7 +10,7 @@ import lockFileContents from 'pinned-pyodide-lock';
 import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
-import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
+import { createDeviceFileSystem, MemoryFileSystem, MountFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
 import { createPythonJspiExecutor, createPythonPackageEnvironment, createPythonBuildEnvironment, createPythonBuildBackend, createPythonBuildDependencies, createPythonSourceSnapshot, publishPythonBuildWheel, createPythonSourcePackageEnvironment, createPythonPackageManifestStore, createPythonLlmPackageManager, createPythonLlmToolLoader, createPythonLlmLoaderProvider, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
@@ -17,6 +18,45 @@ import { withFileEmbeddingEntries } from '@poe-platform/safe-bash/commands/llm/c
 import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
+
+async function qualifyNetworkCache(backend) {
+ const client=new MockS3Client({buckets:['packages']});
+ let uploads=0,maximum=0,requests=0,disposed=0;
+ const remote=new S3FileSystem({bucket:'packages',transport:new Proxy(client,{get(target,key){
+  if(key==='putObjectStream')return (input,options)=>{
+   if(!input.Key.includes('-sha256-'))return target.putObjectStream(input,options);
+   uploads++;
+   return target.putObjectStream({...input,Body:(async function*(){for await(const chunk of input.Body){maximum=Math.max(maximum,chunk.length);yield chunk;}})()},options);
+  };
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }})});
+ const fs=new MountFileSystem({root:backend,mounts:{'/cache':new Proxy(remote,{get(target,key){
+  if(key==='readFile'||key==='writeFile')return (...args)=>{
+   if(args[0].includes('-sha256-'))throw new Error('Whole cache payload access');
+   return target[key](...args);
+  };
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }})}});
+ const environment=createPythonPackageEnvironment({cacheDirectory:'/cache',authorize:()=>true,transport:async()=>{
+  requests++;
+  return {status:200,statusText:'OK',headers:[],body:(async function*(){
+   if(!(await backend.readdir('/work')).some(entry=>entry.name.startsWith('.python-package-')))throw new Error('Missing caller staging');
+   for(let offset=0;offset<150000;offset+=30000)yield new Uint8Array(30000).fill(42);
+  })(),async dispose(){disposed++;}};
+ }});
+ const context={fs,cwd:'/work',signal:new AbortController().signal},url='https://packages.example/wheel.whl';
+ const results=[];
+ try{
+  for(const offline of [false,true]){
+   const start=await environment.prepare({...context,offline});
+   try{
+    const artifact=await environment.dispatch('package-open',[start.session,url],context);
+    results.push({size:artifact.size,bytes:await environment.dispatch('package-read',[start.session,artifact.key,149998,2],context)});
+   }finally{await environment.finish(start);}
+  }
+ }finally{await environment.dispose();}
+ return {results,uploads,maximum,requests,disposed,staging:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.python-package-')).length};
+}
 
 async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=false,invalidNative=false,streamOnly=false) {
   let stagedBytes=0,maxWrite=0,canonicalBytes=0;
@@ -2053,6 +2093,10 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       try { return Response.json({...await qualifyPublication(backend, createExecutor, mode === '/publication-recovery'), failures}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
       finally { clearInterval(timer); await filesystem.close(); }
+    }
+    if(mode === '/network-cache'){
+      try{return Response.json({...await qualifyNetworkCache(backend),failures});}
+      catch(error){return Response.json({error:String(error?.stack??error),failures},{status:500});}
     }
     if (mode === '/llm-tool-exits' || mode === '/llm-tool-aborts') {
       try {return Response.json({...await qualifyToolExits(backend,createExecutor,mode === '/llm-tool-aborts'),failures});}

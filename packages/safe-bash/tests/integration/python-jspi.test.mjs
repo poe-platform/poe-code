@@ -1066,3 +1066,15 @@ for(const mode of ['eof','abort'])test('real workerd preserves native plugin abo
     ['register templates\n','register fragments\n','register templates\n','register fragments\n',''].map(stdout=>({exitCode:1,stdout,stderr:mode==='eof'?'\nAborted!\n':'Aborted!\n'})));
   assert.deepEqual(result.diagnostics,[]);assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
+
+
+test('real workerd streams network wheels through caller staging and an S3 cache',{timeout:60000},async()=>{
+ const {miniflare,runtimeErrors}=nativeFixture;
+ const response=await miniflare.dispatchFetch('http://fixture/network-cache');
+ const result=await response.json();
+ assert.equal(response.status,200,JSON.stringify(result));
+ assert.deepEqual(result.results,[{size:150000,bytes:[42,42]},{size:150000,bytes:[42,42]}]);
+ assert.equal(result.uploads,1);assert.equal(result.requests,1);assert.equal(result.disposed,1);
+ assert.ok(result.maximum>0&&result.maximum<=65536);assert.equal(result.staging,0);
+ assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});

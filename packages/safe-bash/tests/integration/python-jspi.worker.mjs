@@ -32,14 +32,33 @@ async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=f
   const artifacts=new Map(nativeWheelAssets.map(({file,bytes})=>[base+file,bytes]));
   artifacts.set(base+'micropip-0.11.1-py3-none-any.whl',micropip);
   const requests=[],diagnostics=[];
-  const environment=createPythonPackageEnvironment({requirements:['pydantic-core==2.41.5'],...defaultCache?{}:{cacheDirectory:'/work/wheel-cache'},
+  const requirements=['pydantic-core==2.41.5'];
+  if(defaultCache){
+    const bootstrap=new Shell({fs:storage,cwd:'/work'}).use(pythonCommands({createExecutor}));
+    try{
+      const generated=await bootstrap.exec(`python - <<'PY'
+import io, zipfile
+output = io.BytesIO()
+with zipfile.ZipFile(output, "w") as archive:
+ archive.writestr("directory_fixture/__init__.py", "value = 42")
+ archive.writestr("directory_fixture-1.0.dist-info/METADATA", "Metadata-Version: 2.1\\nName: directory-fixture\\nVersion: 1.0\\n")
+ archive.writestr("directory_fixture-1.0.dist-info/WHEEL", "Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n")
+ archive.writestr("directory_fixture-1.0.dist-info/RECORD", "")
+ for index in range(4096):archive.writestr("directory_fixture/data/%08d.dat" % index, b"")
+with open("directory_fixture-1.0-py3-none-any.whl", "wb") as target:target.write(output.getvalue())
+PY`);
+      if(generated.exitCode)throw new Error(JSON.stringify(generated));
+    }finally{await bootstrap.dispose();}
+    requirements.push('file:///work/directory_fixture-1.0-py3-none-any.whl');
+  }
+  const environment=createPythonPackageEnvironment({requirements,...defaultCache?{}:{cacheDirectory:'/work/wheel-cache'},
     authorize:({url})=>artifacts.has(url),transport:async({url})=>{
       requests.push(url);
       return {status:200,headers:[],body:(async function*(){const bytes=artifacts.get(url),start=stagedBytes;for(let offset=0;offset<bytes.length;offset+=65536){if(stagedBytes-start!==offset)throw new Error('Package download did not apply storage backpressure');yield bytes.subarray(offset,offset+65536);}})(),async dispose(){}};
     }});
   const shell=new Shell({fs:storage,cwd:'/work'}).use(pythonCommands({createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause??event))}));
   try {
-    const result=await shell.exec(`python -c 'from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`);
+    const result=await shell.exec(`python -c '${defaultCache?'from directory_fixture import value; assert value == 42; ':''}from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`);
     return {result,requests,diagnostics,stagedBytes,maxWrite};
   }finally{await shell.dispose();await environment.dispose();}
 }
@@ -1826,7 +1845,7 @@ export default {
     let retainedProxy;
     let activeRequests = 0;
     let maximumRequests = 0;
-    let wheelReadMaximum = 0, wheelIndexEntries = 0;
+    let wheelReadMaximum = 0, wheelIndexEntries = 0, wheelLiveMaximum = 0;
     let ticks = 0;
     const timer = setInterval(() => { ticks++; }, 1);
     const createExecutor = () => createPythonJspiExecutor({ trampoline, nativeCall, statResult, async loadRuntime(configuration) {
@@ -1848,6 +1867,7 @@ export default {
       if (mode === '/host') await installStaticPackages(runtime);
       else if (mode !== '/packages' && mode !== '/native-wheel') installPythonLlmPackages(runtime, llmPackageAssets);
       if(mode === '/native-wheel'){
+        runtime.globals.set('_observe_wheel_live',count=>{wheelLiveMaximum=Math.max(wheelLiveMaximum,count);});
         runtime.globals.set('_observe_wheel_entry',name=>{if(name==='pydantic_core/core_schema.py')wheelIndexEntries++;});
         runtime.globals.set('_observe_wheel_buffer',size=>{wheelReadMaximum=Math.max(wheelReadMaximum,size);if(size>65558)throw new Error('Unbounded interpreter wheel buffer: '+size);});
         runtime.runPython(`class _ObservedWheelBuffer(bytearray):
@@ -1856,6 +1876,17 @@ export default {
   _observe_wheel_buffer(len(self))
 bytearray = _ObservedWheelBuffer
 import zipfile as _observed_zipfile
+_live_zip_entries = set()
+def _observe_new_zip_info(cls, *args, **kwargs):
+ entry = object.__new__(cls)
+ if '_safe_native_wheel_config' in globals():
+  _live_zip_entries.add(id(entry))
+  _observe_wheel_live(len(_live_zip_entries))
+ return entry
+def _observe_del_zip_info(self):
+ _live_zip_entries.discard(id(self))
+_observed_zipfile.ZipInfo.__new__ = staticmethod(_observe_new_zip_info)
+_observed_zipfile.ZipInfo.__del__ = _observe_del_zip_info
 _original_zip_info_init = _observed_zipfile.ZipInfo.__init__
 def _observe_zip_info(self, *args, **kwargs):
  _original_zip_info_init(self, *args, **kwargs)
@@ -1897,7 +1928,7 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/native-wheel') {
-      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache')),wheelReadMaximum,wheelIndexEntries,failures});}
+      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

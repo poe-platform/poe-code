@@ -1,3 +1,4 @@
+import {PythonWheelIndex} from './wheel-index.js';
 import {publishPythonBuildWheel} from './build-wheel.js';
 import {stagePythonPackage} from "./package-download.js";
 import {openPythonPackageFile} from './package-file.js';
@@ -112,6 +113,7 @@ interface Session extends PythonPackageContext {
  readonly requirements: readonly string[];
  opened?: PackageArtifact | undefined;
  readonly retained:Map<string,PackageArtifact>;
+ wheelIndex?:PythonWheelIndex|undefined;
  retiring?: Promise<void>;
  retaining?: Promise<void> | undefined;
  opening: boolean;
@@ -159,7 +161,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   return work;
  };
  function release(session:Session,all=false):Promise<void> {
-  const artifacts=all?[...session.retained.values()]:[];
+  const artifacts:Array<Pick<PackageArtifact,'close'>>=all?[...session.retained.values()]:[];
+  if(all&&session.wheelIndex){artifacts.push(session.wheelIndex);session.wheelIndex=undefined;}
   if(all)session.retained.clear();
   if(session.opened){artifacts.push(session.opened);session.opened=undefined;}
   if(!artifacts.length)return session.retiring??Promise.resolve();
@@ -271,6 +274,20 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    await commit;
    options.onProgress?.({phase:'installed'});
    return null;
+  }
+  if(op==='package-index'){
+   const operation=args[1];
+   if(operation==='start'){
+    if(session.wheelIndex)throw failure('Python wheel index already open');
+    session.wheelIndex=new PythonWheelIndex({...session,cwd:session.cacheDirectory?dirname(session.cacheDirectory):session.cwd});
+    return null;
+   }
+   if(operation==='close'){
+    const index=session.wheelIndex;session.wheelIndex=undefined;
+    await index?.close();return null;
+   }
+   if(!session.wheelIndex)throw failure('Python wheel index is closed');
+   return session.wheelIndex.execute(operation,args.slice(2));
   }
   if(op==='package-read'||op==='package-read-retained') {
    const artifact=op==='package-read'?session.opened:session.retained.get(String(args[1])),offset=args[2],length=args[3];

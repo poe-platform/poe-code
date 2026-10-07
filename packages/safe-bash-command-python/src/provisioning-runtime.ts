@@ -64,14 +64,26 @@ export async function installPythonPackages(
   finally{await request('package-close',start.session,opened.key);}
  });
  const wheel=async(size:number,read:(offset:number,length:number)=>any,configuration:Record<string,unknown>)=>{
-  const globals=['_safe_native_wheel_read','_safe_native_wheel_config','_safe_extract_native_wheel'];
+  const globals=['_safe_native_wheel_read','_safe_native_wheel_config','_safe_extract_native_wheel','_safe_native_wheel_index'];
+  let indexed=false;
   try {
    runtime.globals.set(globals[0]!,read);
+   runtime.globals.set(globals[3]!, (operation:string,...args:unknown[])=>{
+    if(operation==='start')indexed=true;
+    const failed=(error:unknown):never=>{transportFailure??={error};throw error;};
+    try{
+     const result=request('package-index',start.session,operation,...args);
+     return result instanceof Promise?result.catch(failed):result;
+    }catch(error){return failed(error);}
+   });
    runtime.globals.set(globals[1]!,JSON.stringify({...configuration,size}));
    const result=JSON.parse(await runtime.runPythonAsync(await loadPythonNativeWheel()) as string) as string|string[];
    if(Array.isArray(result))for(const path of result)await runtime._api.loadDynlib(path);
    return result;
-  }finally{for(const name of globals)runtime.globals.delete(name);}
+  }finally{
+   try{if(indexed)await request('package-index',start.session,'close');}
+   finally{for(const name of globals)runtime.globals.delete(name);}
+  }
  };
  const fetch=(url:string,expected?:string,metadata?:'metadata')=>withArtifact(url,expected,metadata,async(opened,read)=>{
   const bytes=new Uint8Array(opened.size);

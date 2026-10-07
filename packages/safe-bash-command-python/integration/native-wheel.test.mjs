@@ -6,6 +6,8 @@ import {pathToFileURL} from 'node:url';
 assert.ok(process.env.SAFE_BASH_PYTHON_RUNTIME_ROOT,'Set SAFE_BASH_PYTHON_RUNTIME_ROOT to pinned Pyodide 314.0.6');
 const runtimeRoot=resolve(process.env.SAFE_BASH_PYTHON_RUNTIME_ROOT);
 const {loadPyodide}=await import(pathToFileURL(resolve(runtimeRoot,'pyodide.mjs')).href);
+const {MemoryFileSystem}=await import('@poe-code/safe-fs/core');
+const {createPythonPackageEnvironment}=await import('../src/provisioning.ts');
 const {pythonNativeWheel}=await import(new URL('../src/native-wheel.ts',import.meta.url).href);
 test('retained native wheels match the pinned buffer installer with bounded short reads', {timeout:30000},async()=>{
 const runtime=await loadPyodide({indexURL:runtimeRoot+'/'});
@@ -22,6 +24,18 @@ class ObservedWheelBuffer(bytearray):
 bytearray = ObservedWheelBuffer
 _original_zip_info_init = zipfile.ZipInfo.__init__
 _zip_info_count = 0
+_zip_live = _zip_peak = 0
+def _observe_new_info(cls, *args, **kwargs):
+ global _zip_live, _zip_peak
+ result = object.__new__(cls)
+ _zip_live += 1
+ _zip_peak = max(_zip_peak, _zip_live)
+ return result
+def _observe_del_info(self):
+ global _zip_live
+ _zip_live -= 1
+zipfile.ZipInfo.__new__ = staticmethod(_observe_new_info)
+zipfile.ZipInfo.__del__ = _observe_del_info
 def _observe_zip_info(self, *args, **kwargs):
  global _zip_info_count
  _original_zip_info_init(self, *args, **kwargs)
@@ -64,16 +78,26 @@ for(const row of rows){
  if(row.error)await assert.rejects(original,error=>error.type===row.error);else await original;
  const baseline=JSON.parse(runtime.runPython("json.dumps(snapshot('/reference'))"));
  const reads=[];
+ const storage=new MemoryFileSystem(),signal=new AbortController().signal;
+ const environment=createPythonPackageEnvironment(),context={fs:storage,cwd:'/',signal};
+ const start=await environment.prepare(context);
+ runtime.globals.set('_safe_native_wheel_index',(operation,...args)=>environment.dispatch('package-index',[start.session,operation,...args],context));
  runtime.globals.set('_safe_native_wheel_read',(offset,length)=>{assert.ok(length<=65536);reads.push([offset,length]);return Uint8Array.from(bytes.subarray(offset,offset+Math.min(length,997)));});
  runtime.globals.set('_safe_native_wheel_config',JSON.stringify({filename:'fixture-1.0-py3-none-any.whl',target:'actual',size:bytes.length,metadata:{INSTALLER:'fixture',PYODIDE_SOURCE:'fixture'}}));
- runtime.runPython('ObservedWheelBuffer.maximum = 0; _zip_info_count = 0');
+ runtime.runPython('import gc; gc.collect(); ObservedWheelBuffer.maximum = 0; _zip_info_count = 0; _zip_peak = _zip_live');
  const retained=runtime.runPythonAsync(pythonNativeWheel);
  if(row.error)await assert.rejects(retained,error=>error.type===row.error);else assert.equal(await retained,'[]');
  assert.deepEqual(JSON.parse(runtime.runPython("json.dumps(snapshot('/actual'))")),baseline);
- if(row.layout==='large-directory')assert.equal(runtime.runPython('_zip_info_count'),4100,'one native ZIP index per retained wheel');
+ if(row.layout==='large-directory'){
+  assert.equal(runtime.runPython('_zip_info_count'),4100,'one native ZIP index per retained wheel');
+  assert.ok(reads.length<5000,'bounded read-ahead must coalesce native header probes: '+reads.length);
+  assert.ok(runtime.runPython('_zip_peak')<10,'bounded live native entry objects: '+runtime.runPython('_zip_peak'));
+ }
  assert.equal(runtime.runPython('zipfile.ZipFile._RealGetContents is _original_directory_parser'),true,'native parser restored after '+row.layout);
  assert.ok(runtime.runPython('ObservedWheelBuffer.maximum')<=65558,'interpreter buffer '+runtime.runPython('ObservedWheelBuffer.maximum')+': '+row.layout);
  if(row.layout==='truncated')assert.equal(reads.length,0);else assert.ok(reads.length);
+ await environment.finish(start);await environment.dispose();
+ assert.deepEqual(await storage.readdir('/'),[],'retire caller index '+row.layout);
  if(row.layout.startsWith('large'))assert.equal(runtime.runPython("Path('/native-wheel-data').read_text()"),'hello data');
  assert.ok(reads.every(([,length])=>length<=65536),row.layout);
 }

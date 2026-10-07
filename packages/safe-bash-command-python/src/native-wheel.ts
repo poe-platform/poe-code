@@ -6,20 +6,21 @@ export function loadPythonNativeWheel():Promise<string>{
 }
 
 /** Pinned Pyodide extraction helpers, with a seekable host source in place of
- * the whole-wheel JsBuffer/NamedTemporaryFile handoff. ZIP metadata and extracted
- * files still belong to the interpreter; this does not qualify their storage.
+ * the whole-wheel JsBuffer/NamedTemporaryFile handoff. Native entry records use
+ * caller scratch; discovery name lists and extracted files remain interpreter-owned.
  */
 export const pythonNativeWheel = `
 def _safe_extract_native_wheel(read, serialized):
  import io as _native_io, json as _native_json, shutil as _native_shutil
  from pathlib import Path as _NativePath
- from zipfile import ZipFile as _NativeZip
+ from zipfile import ZipFile as _NativeZip, ZipInfo as _NativeInfo
  from pyodide import _package_loader as _native_loader
  from pyodide.ffi import run_sync as _native_sync
 
  class _NativeWheel(_native_io.RawIOBase):
   def __init__(self, size):
    self.size, self.position = size, 0
+   self.window, self.window_offset = b'', 0
   def readable(self):
    return True
   def seekable(self):
@@ -42,14 +43,19 @@ def _safe_extract_native_wheel(read, serialized):
    size = min(size, 65558)
    output = bytearray()
    while len(output) < size:
-    result = read(self.position, min(size-len(output), 65536))
-    if hasattr(result, 'then'):
-     result = _native_sync(result)
-    chunk = bytes(result)
-    if not chunk or len(chunk) > size-len(output):
-     raise OSError('Invalid Python package chunk')
-    output.extend(chunk)
-    self.position += len(chunk)
+    if not self.window_offset <= self.position < self.window_offset + len(self.window):
+     requested = min(65536, self.size-self.position)
+     result = read(self.position, requested)
+     if hasattr(result, 'then'):
+      result = _native_sync(result)
+     self.window = bytes(result)
+     self.window_offset = self.position
+     if not self.window or len(self.window) > requested:
+      raise OSError('Invalid Python package chunk')
+    start = self.position-self.window_offset
+    length = min(size-len(output), len(self.window)-start)
+    output.extend(self.window[start:start+length])
+    self.position += length
    return bytes(output)
 
  # Retain the pinned interpreter parser and replace only its eager directory
@@ -63,10 +69,59 @@ def _safe_extract_native_wheel(read, serialized):
   tree = ast.parse(textwrap.dedent(inspect.getsource(original)))
   read = ast.dump(ast.parse('data = fp.read(size_cd)').body[0])
   buffer = ast.dump(ast.parse('fp = io.BytesIO(data)').body[0])
+  index = globals().get('_safe_native_wheel_index')
+  def call(operation, *args):
+   result = index(operation, *args)
+   return _native_sync(result) if hasattr(result, 'then') else result
+  def lookup(operation, key):
+   chunks, offset = [], 0
+   while True:
+    chunk = call(operation, key, offset)
+    chunks.append(chunk)
+    offset += len(chunk)
+    if len(chunk) < 8192:break
+   record = _native_json.loads(''.join(chunks))
+   if record is None:raise KeyError(key)
+   payload, end = record
+   entry = _NativeInfo.__new__(_NativeInfo)
+   for name, value in _native_json.loads(payload):
+    if isinstance(value, dict):value = bytes.fromhex(value['bytes'])
+    elif name == 'date_time':value = tuple(value)
+    setattr(entry, name, value)
+   entry._end_offset = int(end)
+   return entry
+  class Entries:
+   count = 0
+   def append(self, entry):
+    payload = _native_json.dumps([(name, {'bytes':value.hex()} if isinstance(value, bytes) else value) for name in _NativeInfo.__slots__ if hasattr(entry, name) for value in [getattr(entry, name)]])
+    call('append', entry.filename, str(entry.header_offset), payload)
+    self.count += 1
+   def __len__(self):return self.count
+   def __iter__(self):
+    for ordinal in range(self.count):yield lookup('get', ordinal)
+   def __getitem__(self, ordinal):
+    if ordinal < 0:ordinal += self.count
+    if not 0 <= ordinal < self.count:raise IndexError(ordinal)
+    return lookup('get', ordinal)
+  class Names:
+   def __getitem__(self, name):return lookup('name', name)
+   def get(self, name, default=None):
+    try:return self[name]
+    except KeyError:return default
+  def store_name(archive, entry):
+   if not isinstance(archive.filelist, Entries):archive.NameToInfo[entry.filename] = entry
+  def seal(archive):call('seal', str(archive.start_dir))
+  assignment = ast.dump(ast.parse('self.NameToInfo[x.filename] = x').body[0])
+  order = ast.parse('''for zinfo in reversed(sorted(self.filelist, key=lambda zinfo: zinfo.header_offset)):
+ zinfo._end_offset = end_offset
+ end_offset = zinfo.header_offset''').body[0]
   class Rewrite(ast.NodeTransformer):
-   reads = buffers = 0
+   reads = buffers = names = orders = 0
    def visit_Assign(self, node):
     shape = ast.dump(node)
+    if index is not None and shape == assignment:
+     self.names += 1
+     return ast.copy_location(ast.parse('_safe_store_name(self, x)').body[0], node)
     if shape == read:
      self.reads += 1
      return None
@@ -74,9 +129,17 @@ def _safe_extract_native_wheel(read, serialized):
      self.buffers += 1
      return ast.copy_location(ast.parse('fp = _safe_directory_window(fp, size_cd)').body[0], node)
     return node
+   def visit_For(self, node):
+    if index is not None and ast.dump(node) == ast.dump(order):
+     self.orders += 1
+     replacement = ast.parse('''if isinstance(self.filelist, _safe_native_entries):
+ _safe_index_seal(self)''').body[0]
+     replacement.orelse = [node]
+     return ast.copy_location(replacement, node)
+    return self.generic_visit(node)
   rewrite = Rewrite()
   tree = rewrite.visit(tree)
-  if rewrite.reads != 1 or rewrite.buffers != 1:
+  if rewrite.reads != 1 or rewrite.buffers != 1 or index is not None and (rewrite.names != 1 or rewrite.orders != 1):
    raise RuntimeError('Unsupported native ZIP directory parser')
   class Window:
    def __init__(self, source, size):
@@ -86,7 +149,7 @@ def _safe_extract_native_wheel(read, serialized):
     data = self.source.read(size)
     self.remaining -= len(data)
     return data
-  namespace = dict(original.__globals__, _safe_directory_window=Window)
+  namespace = dict(original.__globals__, _safe_directory_window=Window, _safe_store_name=store_name, _safe_native_entries=Entries, _safe_index_seal=seal)
   exec(compile(ast.fix_missing_locations(tree), '<safe ZIP directory>', 'exec'), namespace)
   parse = namespace['_RealGetContents']
   cached = None
@@ -102,6 +165,10 @@ def _safe_extract_native_wheel(read, serialized):
     _, archive._comment, archive.start_dir, archive.filelist, archive.NameToInfo, position = cached
     archive.fp.seek(position)
     return
+   if cached is not None:return parse(archive)
+   if index is not None:
+    call('start')
+    archive.filelist, archive.NameToInfo = Entries(), Names()
    parse(archive)
    cached = (encoding, archive._comment, archive.start_dir, archive.filelist, archive.NameToInfo, archive.fp.tell())
   _NativeZip._RealGetContents = contents

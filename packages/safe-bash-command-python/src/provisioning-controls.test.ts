@@ -77,12 +77,12 @@ test('online index metadata refreshes while wheels remain cached and offline met
 });
 
 test('replacement controls preserve SDK defaults and explicit per-invocation overrides',async()=>{
- const environment=createPythonPackageEnvironment({upgrade:true,forceReinstall:true});
+ const environment=createPythonPackageEnvironment({upgrade:true,forceReinstall:true,noDeps:true});
  const context={fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal};
  try {
   const defaults=await environment.prepare(context);
-  assert.equal(defaults.upgrade,true);assert.equal(defaults.forceReinstall,true);environment.finish(defaults);
-  const overridden=await environment.prepare({...context,upgrade:false,forceReinstall:false});
-  assert.equal(overridden.upgrade,undefined);assert.equal(overridden.forceReinstall,undefined);environment.finish(overridden);
+  assert.equal(defaults.noDeps,true);assert.equal(defaults.upgrade,true);assert.equal(defaults.forceReinstall,true);environment.finish(defaults);
+  const overridden=await environment.prepare({...context,upgrade:false,forceReinstall:false,noDeps:false});
+  assert.equal(overridden.noDeps,undefined);assert.equal(overridden.upgrade,undefined);assert.equal(overridden.forceReinstall,undefined);environment.finish(overridden);
  }finally{await environment.dispose();}
 });

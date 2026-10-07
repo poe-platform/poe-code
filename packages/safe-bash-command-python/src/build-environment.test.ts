@@ -116,10 +116,10 @@ test('build dependency fetches cannot bypass the target network policy',async()=
 
 test('application constraints do not constrain isolated build dependencies',async()=>{
  const ctx=context();
- const build=createPythonBuildEnvironment({constraints:['backend<1'],constraintFiles:['/absent-target-constraints']});
+ const build=createPythonBuildEnvironment({noDeps:true,constraints:['backend<1'],constraintFiles:['/absent-target-constraints']});
  try{
-  const prepared=await build.prepare({...ctx,requirements:['backend==2'],constraints:['backend<1'],constraintFiles:['/absent-invocation-constraints']});
-  assert.deepEqual(prepared.requested,['backend==2']);assert.equal(prepared.constraints,undefined);
+  const prepared=await build.prepare({...ctx,requirements:['backend==2'],noDeps:true,constraints:['backend<1'],constraintFiles:['/absent-invocation-constraints']});
+  assert.deepEqual(prepared.requested,['backend==2']);assert.equal(prepared.constraints,undefined);assert.equal(prepared.noDeps,undefined);
   await build.finish(prepared);
  }finally{await build.dispose();}
 });

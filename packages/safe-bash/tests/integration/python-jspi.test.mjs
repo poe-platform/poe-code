@@ -1102,3 +1102,19 @@ test('real workerd applies package constraints without installing unused roots',
  assert.deepEqual(Object.fromEntries(Object.entries(JSON.parse(result.sdk.stdout)).map(([name,value])=>[name.replaceAll('_','-'),value])),reference.rows[3].versions);
  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
+
+ test('real workerd suppresses runtime dependencies through CLI and SDK', {timeout:180000}, async()=>{
+ const {miniflare,runtimeErrors}=nativeFixture;
+ const response=await miniflare.dispatchFetch('http://fixture/package-no-deps',{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const result=await response.json();
+ assert.equal(response.status,200,JSON.stringify(result));
+ const reference=JSON.parse(readFileSync(new URL('../../../safe-bash-command-python/src/fixtures/package-no-deps-pip-21.2.4.json',import.meta.url),'utf8'));
+ for(const [index,row] of result.rows.entries()){
+  assert.equal(row.result.exitCode,reference.rows[index].exitCode,JSON.stringify(row));
+  assert.equal(row.versions.exitCode,0,JSON.stringify(row));
+  assert.deepEqual(JSON.parse(row.versions.stdout),reference.rows[index].versions);
+ }
+ assert.equal(result.sdk.exitCode,0,JSON.stringify(result.sdk));
+ assert.deepEqual(JSON.parse(result.sdk.stdout),reference.rows[4].versions);
+ assert.deepEqual(result.diagnostics,[]);assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+ });

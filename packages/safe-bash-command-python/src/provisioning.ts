@@ -21,6 +21,8 @@ export interface PythonPackageProgress {
  readonly totalBytes?: number;
 }
 export interface PythonPackageInstallOptions {
+ /** Install requested packages without resolving their runtime dependencies. */
+ readonly noDeps?:boolean;
  /** Limit selected versions without installing unrequested packages. */
  readonly constraints?:readonly string[];
  /** Local constraint files; nested -r entries remain requirements. */
@@ -314,8 +316,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const offline=context.offline??options.offline??false;
   sessions.set(session,{...context,cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
   signal.addEventListener('abort',aborted,{once:true});
-  const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
-  for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
+  const controls: {noDeps?:boolean;pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
+  for(const key of ['pre','upgrade','forceReinstall','noDeps'] as const)if(context[key]??options[key])controls[key]=true;
   return {session,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {

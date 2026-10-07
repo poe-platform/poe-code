@@ -8,7 +8,7 @@ test('pip installation parses explicit pins, local wheels and requirement files'
   });
 });
 test('unsupported pip commands and every unknown option fail explicitly', () => {
-  for (const option of ['--no-index', '--no-deps', '--target=/tmp', '--user', '--index-url', '--trusted-host', '--require-hashes', '--dry-run', '--quiet']) {
+  for (const option of ['--no-index', '--target=/tmp', '--user', '--index-url', '--trusted-host', '--require-hashes', '--dry-run', '--quiet']) {
     assert.throws(() => parsePythonInstallation(['install', option]), new RegExp('unsupported pip option'));
   }
   assert.throws(() => parsePythonInstallation(['list', 'x']), /unsupported pip command/);
@@ -51,3 +51,10 @@ test('pip constraint arguments stay independent of requested packages',()=>{
  assert.throws(()=>parsePythonInstallation(['uninstall','alpha','-c','pins']),/unsupported pip option/);
  assert.throws(()=>parsePythonInstallation(['install','-c']),/requires a path/);
 });
+
+ test('pip dependency suppression accepts native aliases only for installation',()=>{
+ for(const flag of ['--no-deps','--no-dependencies']){
+  assert.deepEqual(parsePythonInstallation(['install',flag,'root']).controls,{noDeps:true});
+  assert.throws(()=>parsePythonInstallation(['uninstall',flag,'root']),/unsupported pip option/);
+ }
+ });

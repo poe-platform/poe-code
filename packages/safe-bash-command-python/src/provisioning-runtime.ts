@@ -176,7 +176,7 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
   }));
   bind('_safe_package_constraints_json',JSON.stringify(start.constraints??[]));
   bind('_safe_package_requirements_json',JSON.stringify(start.requested ?? start.requirements));
-  for(const key of ['pre','upgrade','forceReinstall','legacy'] as const){
+  for(const key of ['pre','upgrade','forceReinstall','legacy','noDeps'] as const){
    bind('_safe_package_'+key,!!start[key]);
   }
   bind('_safe_package_restore_json',JSON.stringify(start.restore ?? []));

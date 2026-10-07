@@ -90,7 +90,7 @@ def _safe_validate(roots):
    pin = _SafeRequirement(wheel.name + '==' + str(wheel.version))
    if _safe_name(wheel.name) != _safe_name(root.name) or not pin.specifier.contains(version, prereleases=True):
     raise ValueError('Python package wheel version conflict: ' + str(root))
-async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=()):
+async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(), no_deps=False):
  _safe_constraints = {}
  for source in constraints:
   constraint = _SafeRequirement(source)
@@ -141,12 +141,15 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=())
  async def _safe_install(requirements):
   _safe_pm.Transaction = _SafeReplacementTransaction
   try:
-   await _safe_manager.install(requirements, deps=True, pre=_safe_package_pre, reinstall=True, **({'constraints': list(constraints)} if constraints else {}))
+   await _safe_manager.install(requirements, deps=not no_deps, pre=_safe_package_pre, reinstall=True, **({'constraints': list(constraints)} if constraints else {}))
   finally:
    _safe_pm.Transaction = _SafeTransaction
  _safe_validate([root for root in _safe_roots if _safe_name(root.name) in _safe_preloaded])
  await _safe_install([str(root) for root in _safe_roots])
  _safe_managed = set(_safe_requested_names)
+ if no_deps:
+  _safe_validate(_safe_roots)
+  return _safe_managed
  _safe_previous_pending = set()
  while True:
   while True:
@@ -264,7 +267,7 @@ if _safe_metadata_only:
    if _safe_name(_safe_wheel.name) == _safe_name(_safe_root.name) and str(_safe_wheel.version) == _safe_metadata.version(_safe_root.name):
     _safe_root.url = None
     _safe_root.specifier = _SafeRequirement(_safe_root.name + '==' + str(_safe_wheel.version)).specifier
-_safe_managed = await _safe_resolve(_safe_roots, _safe_package_upgrade, _safe_package_forceReinstall, _safe_json.loads(_safe_package_constraints_json))
+_safe_managed = await _safe_resolve(_safe_roots, _safe_package_upgrade, _safe_package_forceReinstall, _safe_json.loads(_safe_package_constraints_json), _safe_package_noDeps)
 _safe_removed = []
 if _safe_uninstall:
  _safe_targets = list(dict.fromkeys(_safe_name(_SafeRequirement(source).name) for source in _safe_uninstall['packages']))

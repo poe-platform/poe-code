@@ -211,7 +211,9 @@ Use `--upgrade` (`-U`) to update requested packages while retaining satisfying
 dependencies, or `--force-reinstall` to reinstall their dependency graph. Explicit
 version pins can replace installed versions without either flag. Unrelated
 packages remain installed; failed resolution leaves the saved environment intact.
-SDK callers use `upgrade`, `forceReinstall`, `pre` and `noCache` on `PythonPackageOptions` or per-invocation
+Use `--no-deps` (or `--no-dependencies`) to install only the requested packages.
+This leaves existing dependencies untouched and does not suppress isolated build dependencies.
+SDK callers use `noDeps`, `upgrade`, `forceReinstall`, `pre` and `noCache` on `PythonPackageOptions` or per-invocation
 `PythonPackagePrepareContext`; explicit invocation values override defaults.
 
 Hosts can call `publishPythonBuildWheel(source, directory, maxBytes, context)`

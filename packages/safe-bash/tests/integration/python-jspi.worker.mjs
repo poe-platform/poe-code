@@ -325,7 +325,7 @@ for version in ('1.0', '2.0rc1'):
   return {results,requests};
 }
 
-async function qualifyReplacements(backend,createExecutor,micropip,constraintsOnly=false) {
+async function qualifyReplacements(backend,createExecutor,micropip,constraintsOnly=false,noDepsOnly=false) {
  const quote=value=>"'"+value.split("'").join("'\\''")+"'";
  const bootstrap=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor}));
  try {
@@ -367,6 +367,18 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(options)).use(llmCommands({managePackages:createPythonLlmPackageManager(options)}));
  const rows=[];
  try {
+  if(noDepsOnly){
+   published=true;
+   const inspect='import importlib.metadata as m, json; print(json.dumps({d.metadata["Name"].replace("_","-"): d.version for d in m.distributions() if d.metadata["Name"].startswith("replace")}))';
+   for(const command of ['python -m pip install --no-deps replace-root==1','python -m pip install --no-dependencies --upgrade replace-root','python -m pip install replace-root','python -m pip install --no-deps --force-reinstall replace-root==1']){
+    const result=await shell.exec(command),versions=await shell.exec('python -c '+quote(inspect));
+    rows.push({result,versions});
+   }
+   const isolated=createPythonPackageEnvironment({...configuration,scope:'no-deps-sdk',requirements:['replace-root'],noDeps:true});
+   const sdkShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
+   try{return {rows,sdk:await sdkShell.exec('python -c '+quote(inspect)),diagnostics};}
+   finally{await sdkShell.dispose();await isolated.dispose();}
+  }
   if(constraintsOnly){
    published=true;
    await backend.writeFile('/work/pins.txt',new TextEncoder().encode('replace-dep<2\nreplace-orphan==1.0'));
@@ -2092,8 +2104,8 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/package-replacements'||mode==='/package-constraints') {
-      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode==='/package-constraints'),failures});}
+    if (mode === '/package-replacements'||mode==='/package-constraints'||mode==='/package-no-deps') {
+      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode==='/package-constraints',mode==='/package-no-deps'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

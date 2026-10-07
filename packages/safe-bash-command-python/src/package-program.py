@@ -206,15 +206,19 @@ class _SafeValues(_SafeNames):
   with open(self.path(name, 'value'), encoding='utf-8') as source:return json.load(source)
 
 async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(), no_deps=False):
- _safe_constraints = {}
+ _safe_constraints = _SafeValues()
  for source in constraints:
   constraint = _SafeRequirement(source)
   if constraint.extras:
    raise ValueError('Constraints cannot have extras')
   if not constraint.marker or constraint.marker.evaluate({'extra': ''}):
-   _safe_constraints.setdefault(_safe_name(constraint.name), []).append(constraint)
+   name = _safe_name(constraint.name)
+   sources = _safe_constraints.get(name, [])
+   sources.append(source)
+   _safe_constraints.put(name, sources)
  def constrain(requirement):
-  for constraint in _safe_constraints.get(_safe_name(requirement.name), ()):
+  for source in _safe_constraints.get(_safe_name(requirement.name), ()):
+   constraint = _SafeRequirement(source)
    requirement.specifier &= constraint.specifier
    if constraint.url:
     if requirement.url and requirement.url != constraint.url:
@@ -265,6 +269,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
  _safe_managed = _SafeNames(_safe_requested_names)
  if no_deps:
   _safe_validate(_safe_roots)
+  _safe_constraints.close()
   _safe_extras.close()
   _safe_requested_names.close()
   return _safe_managed
@@ -321,6 +326,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
   await _safe_install(sorted(_safe_pending))
  _safe_validate(_safe_roots)
  _safe_versions.close()
+ _safe_constraints.close()
  _safe_extras.close()
  _safe_requested_names.close()
  return _safe_managed

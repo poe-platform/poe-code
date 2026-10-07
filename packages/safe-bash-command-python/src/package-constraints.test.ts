@@ -6,13 +6,20 @@ import test from 'node:test';
 test('native package resolver applies constraints without installing unused roots',async()=>{
  const source=await readFile(new URL('./package-program.py',import.meta.url),'utf8');
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
-import ast,asyncio,json,sys,types
-from pip._vendor.packaging.requirements import Requirement
+import ast,asyncio,gc,json,sys,types
+from pip._vendor.packaging.requirements import Requirement as NativeRequirement
 from pip._vendor.packaging.utils import canonicalize_name,parse_wheel_filename
 from urllib.parse import urlsplit
 source=json.load(sys.stdin)
 selected=[node for node in ast.parse(source).body if isinstance(node,ast.AsyncFunctionDef) and node.name=='_safe_resolve']
 calls=[]
+class Requirement(NativeRequirement):
+ live=0
+ def __init__(self,value):
+  super().__init__(value);self.counted=True;Requirement.live+=1
+ def __del__(self):
+  if getattr(self,'counted',False):Requirement.live-=1
+expected_constraints=None
 class Transaction:
  ctx={}
  ctx_extras=[]
@@ -21,6 +28,8 @@ pm=types.ModuleType('micropip.package_manager');pm.Transaction=Transaction
 micropip=types.ModuleType('micropip');micropip.package_manager=pm
 sys.modules['micropip']=micropip;sys.modules['micropip.package_manager']=pm
 async def install(requirements,**options):
+ gc.collect();assert Requirement.live<=8,('parsed constraints retained',Requirement.live)
+ if expected_constraints is not None:assert options['constraints']==expected_constraints
  for req in requirements:await pm.Transaction().add_requirement_inner(Requirement(req))
 def wheel(url):
  name,version,_,_=parse_wheel_filename(urlsplit(url).path.rsplit('/',1)[-1])
@@ -57,6 +66,12 @@ async def verify():
   except ValueError:pass
   else:raise AssertionError('invalid constraint silently discarded: '+invalid)
  assert pm.Transaction is Transaction
+ global expected_constraints
+ expected_constraints=['unused-'+str(i)+'<2' for i in range(1024)]
+ for no_deps in [False,True]:
+  calls.clear()
+  assert await namespace['_safe_resolve']([Requirement('root')],constraints=expected_constraints,no_deps=no_deps)=={'root'}
+  assert len(calls)==1 and calls[0].name=='root'
 asyncio.run(verify())
 `],{input:JSON.stringify(source),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);

@@ -6,3 +6,9 @@ test('the cached package program preserves its maintained Python source exactly'
  const first=loadPythonPackageProgram();assert.equal(loadPythonPackageProgram(),first);
  assert.equal(await first,await readFile(new URL('./package-program.py',import.meta.url),'utf8'));
 });
+
+import {loadPythonNativeWheel,pythonNativeWheel} from './native-wheel.js';
+test('the cached native wheel program preserves its maintained source exactly',async()=>{
+ const first=loadPythonNativeWheel();assert.equal(loadPythonNativeWheel(),first);
+ assert.equal(await first,pythonNativeWheel);
+});

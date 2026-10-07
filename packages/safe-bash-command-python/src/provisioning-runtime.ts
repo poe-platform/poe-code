@@ -1,5 +1,5 @@
 import {loadPythonPackageProgram} from './package-program.js';
-import { pythonNativeWheel } from './native-wheel.js';
+import { loadPythonNativeWheel } from './native-wheel.js';
 import {pythonPackageUrlHash} from './package-url-hash.js';
 import type { PythonWorkerRuntime } from './worker.js';
 import type { PythonPackageStart } from './provisioning.js';
@@ -68,7 +68,7 @@ export async function installPythonPackages(
   try {
    runtime.globals.set(globals[0]!,read);
    runtime.globals.set(globals[1]!,JSON.stringify({...configuration,size}));
-   const result=JSON.parse(await runtime.runPythonAsync(pythonNativeWheel) as string) as string|string[];
+   const result=JSON.parse(await runtime.runPythonAsync(await loadPythonNativeWheel()) as string) as string|string[];
    if(Array.isArray(result))for(const path of result)await runtime._api.loadDynlib(path);
    return result;
   }finally{for(const name of globals)runtime.globals.delete(name);}

@@ -1,3 +1,10 @@
+import {pythonNativeWheelGzip} from './native-wheel.generated.js';
+let decoded:Promise<string>|undefined;
+/** Decode the trusted installer once; production bundles omit the source template. */
+export function loadPythonNativeWheel():Promise<string>{
+ return decoded??=new Response(new Blob([Uint8Array.from(atob(pythonNativeWheelGzip),character=>character.charCodeAt(0))]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+}
+
 /** Pinned Pyodide extraction helpers, with a seekable host source in place of
  * the whole-wheel JsBuffer/NamedTemporaryFile handoff. ZIP metadata and extracted
  * files still belong to the interpreter; this does not qualify their storage.

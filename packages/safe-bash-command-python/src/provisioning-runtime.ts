@@ -66,10 +66,15 @@ export async function installPythonPackages(
   finally{await request('package-close',start.session,opened.key);}
  });
  const wheel=async(size:number,read:(offset:number,length:number)=>any,configuration:Record<string,unknown>)=>{
-  const globals=['_safe_native_wheel_read','_safe_native_wheel_config','_safe_extract_native_wheel','_safe_native_wheel_index'];
+  const globals=['_safe_native_wheel_read','_safe_native_wheel_config','_safe_extract_native_wheel','_safe_native_wheel_index','_safe_native_wheel_dynlib'];
   let indexed=false;
   try {
    runtime.globals.set(globals[0]!,read);
+   runtime.globals.set(globals[4]!,async(path:string)=>{
+    // Never unwind a rejected native JS call through a suspended Python frame.
+    try{await runtime._api.loadDynlib(path);return '';}
+    catch(error){return String(error);}
+   });
    runtime.globals.set(globals[3]!, (operation:string,...args:unknown[])=>{
     if(operation==='start')indexed=true;
     const failed=(error:unknown):never=>{transportFailure??={error};throw error;};
@@ -79,8 +84,8 @@ export async function installPythonPackages(
     }catch(error){return failed(error);}
    });
    runtime.globals.set(globals[1]!,JSON.stringify({...configuration,size}));
-   const result=JSON.parse(await runtime.runPythonAsync(await loadPythonNativeWheel()) as string) as string|string[];
-   if(Array.isArray(result))for(const path of result)await runtime._api.loadDynlib(path);
+   const result=JSON.parse(await runtime.runPythonAsync(await loadPythonNativeWheel()) as string) as string|string[]|{dynlibError:string};
+   if(result && typeof result==='object' && 'dynlibError' in result)throw new Error(result.dynlibError);
    return result;
   }finally{
    try{if(indexed)await request('package-index',start.session,'close');}

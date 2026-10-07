@@ -44,9 +44,9 @@ with zipfile.ZipFile(output, "w") as archive:
  archive.writestr("directory_fixture-1.0.dist-info/METADATA", "Metadata-Version: 2.1\\nName: directory-fixture\\nVersion: 1.0\\n")
  archive.writestr("directory_fixture-1.0.dist-info/WHEEL", "Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n")
  archive.writestr("directory_fixture-1.0.dist-info/RECORD", "")
- for index in range(4096):archive.writestr("directory_fixture/data/%08d.dat" % index, b"")
+ for index in range(${invalidNative?'16':'4096'}):archive.writestr("directory_fixture/data/%08d.dat" % index, b"")
  archive.writestr("directory_fixture/data/payload.bin", b"x" * (2 * 1024 * 1024 + 7))
- ${invalidNative?'archive.writestr("directory_fixture/broken.cpython-314-wasm32-emscripten.so", b"invalid native library")':''}
+ ${invalidNative?'archive.writestr("directory_fixture/broken.cpython-314-wasm32-emscripten.so", b"invalid native library"); archive.writestr("directory_fixture/second.cpython-314-wasm32-emscripten.so", b"another invalid library")':''}
 with open("directory_fixture-1.0-py3-none-any.whl", "wb") as target:target.write(output.getvalue())
 PY`);
       if(generated.exitCode)throw new Error(JSON.stringify(generated));
@@ -1847,7 +1847,7 @@ export default {
     let retainedProxy;
     let activeRequests = 0;
     let maximumRequests = 0;
-    let wheelReadMaximum = 0, wheelIndexEntries = 0, wheelLiveMaximum = 0, wheelNameMaximum = 0, wheelNameQueries = 0, wheelExtractedMaximum = 0;
+    let wheelReadMaximum = 0, wheelIndexEntries = 0, wheelLiveMaximum = 0, wheelNameMaximum = 0, wheelNameQueries = 0, wheelExtractedMaximum = 0, wheelDynlibCandidates = 0;
     let ticks = 0;
     const timer = setInterval(() => { ticks++; }, 1);
     const createExecutor = () => createPythonJspiExecutor({ trampoline, nativeCall, statResult, async loadRuntime(configuration) {
@@ -1869,6 +1869,14 @@ export default {
       if (mode === '/host') await installStaticPackages(runtime);
       else if (mode !== '/packages' && mode !== '/native-wheel') installPythonLlmPackages(runtime, llmPackageAssets);
       if(mode === '/native-wheel'){
+        runtime.globals.set('_observe_dynlib_candidate',()=>{wheelDynlibCandidates++;});
+        runtime.runPython(`import pyodide._package_loader as _observed_loader
+_observed_predicate = _observed_loader.should_load_dynlib
+def _observe_dynlib_predicate(path):
+ selected = _observed_predicate(path)
+ if selected:_observe_dynlib_candidate()
+ return selected
+_observed_loader.should_load_dynlib = _observe_dynlib_predicate`);
         const runPythonAsync = runtime.runPythonAsync.bind(runtime);
         runtime.runPythonAsync = async (...args) => {
           const result = await runPythonAsync(...args);
@@ -1950,7 +1958,7 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/native-wheel') {
-      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache'),new URL(request.url).searchParams.has('invalid-native')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,wheelNameMaximum,wheelNameQueries,wheelExtractedMaximum,failures});}
+      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache'),new URL(request.url).searchParams.has('invalid-native')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,wheelNameMaximum,wheelNameQueries,wheelExtractedMaximum,wheelDynlibCandidates,failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

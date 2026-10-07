@@ -7,8 +7,8 @@ export function loadPythonNativeWheel():Promise<string>{
 
 /** Pinned Pyodide extraction helpers, with a seekable host source in place of
  * the whole-wheel JsBuffer/NamedTemporaryFile handoff. Native entry records use
- * caller scratch and extraction uses caller storage; some metadata and dynamic-library
- * discovery still materializes interpreter-owned lists.
+ * caller scratch and extraction uses caller storage; dynamic libraries load one at a
+ * time, while some package metadata still materializes interpreter-owned lists.
  */
 export const pythonNativeWheel = `
 def _safe_extract_native_wheel(read, serialized):
@@ -228,7 +228,28 @@ def _safe_extract_native_wheel(read, serialized):
     if _NativePath(_native_config['filename']).suffix == '.whl':
      _native_loader.set_wheel_metadata(_native_config['filename'], _native_zip, _native_target, _native_config['metadata'])
      _native_loader.install_datafiles(_native_config['filename'], _native_zip, _native_target)
-   _native_dynlibs = _native_loader.get_dynlibs(_native_archive, _NativePath(_native_config['filename']).suffix, _native_target)
+   emit = globals().get('_safe_native_wheel_dynlib')
+   discover = _native_loader.get_dynlibs
+   if emit is not None:
+    # Preserve the pinned predicate, order and path resolution. Only defer
+    # each native result until the previous library has finished loading.
+    import ast, inspect, textwrap
+    tree = ast.parse(textwrap.dedent(inspect.getsource(discover)))
+    returns = [node for node in ast.walk(tree) if isinstance(node, ast.Return)]
+    if len(returns) != 1 or not isinstance(returns[0].value, ast.ListComp):
+     raise RuntimeError('Unsupported native dynamic library discovery')
+    values = returns[0].value
+    returns[0].value = ast.copy_location(ast.GeneratorExp(elt=values.elt, generators=values.generators), values)
+    namespace = dict(discover.__globals__)
+    exec(compile(ast.fix_missing_locations(tree), '<safe native library discovery>', 'exec'), namespace)
+    discover = namespace[discover.__name__]
+   _native_dynlibs = discover(_native_archive, _NativePath(_native_config['filename']).suffix, _native_target)
+   if emit is not None:
+    for path in _native_dynlibs:
+     result = emit(path)
+     if hasattr(result, 'then'):result = _native_sync(result)
+     if result != '':return _native_json.dumps({'dynlibError':result})
+    return '[]'
   return _native_json.dumps(_native_dynlibs)
 _safe_extract_native_wheel(_safe_native_wheel_read, _safe_native_wheel_config)
 `;

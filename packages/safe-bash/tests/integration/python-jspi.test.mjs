@@ -592,6 +592,7 @@ test('real workerd settles invalid native wheel loading without fatal interprete
  assert.equal(response.status,200,JSON.stringify(result));
  assert.notEqual(result.result.exitCode,0,JSON.stringify(result));
  assert.ok(result.diagnostics.some(message=>message.includes("broken.cpython-314-wasm32-emscripten.so") && message.includes("RangeError: byte length of Uint32Array should be a multiple of 4")),JSON.stringify(result));
+ assert.equal(result.wheelDynlibCandidates,1,'discovery must stop at the first rejected library');
  assert.deepEqual(result.failures,[]);
  assert.deepEqual(runtimeErrors,[]);
 });

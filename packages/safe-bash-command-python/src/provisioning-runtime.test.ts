@@ -246,11 +246,11 @@ test('native extraction admits one payload at a time and drains before bootstrap
 });
 
 
-test('native wheel extraction reads its retained source without invoking the buffered installer',async()=>{
+for(const fail of [false,true])test(`native wheel extraction streams native loading and retires its retained source; failure=${fail}`,async()=>{
  const globals=new Map<string,unknown>();
  const operations:string[]=[];
  const runtime={version:'314.0.6',_api:{lockfile_packages:{fixture:{file_name:'fixture-1-py3-none-any.whl',sha256:'hash',install_dir:'site'}},
-  async loadDynlib(path:string){operations.push('dynlib '+path);},
+  async loadDynlib(path:string){operations.push('dynlib '+path);if(fail)throw new Error('native rejected');},
   packageManager:{defaultChannel:'default',async downloadPackage(_metadata:unknown):Promise<unknown>{return null;},
    async installPackage(_metadata:unknown,_source:unknown){throw new Error('whole-wheel buffer reached native installer');}}},
   globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},
@@ -259,15 +259,18 @@ test('native wheel extraction reads its retained source without invoking the buf
    if(globals.has('_safe_native_wheel_read')){
     const read=globals.get('_safe_native_wheel_read') as (offset:number,length:number)=>Promise<number[]>;
     assert.deepEqual(await read(65536,3),[4,5,6]);
-    return '["/lib/fixture.so"]';
+    const emit=globals.get('_safe_native_wheel_dynlib') as (path:string)=>Promise<string>;
+    const diagnostic=await emit('/lib/fixture.so');
+    return JSON.stringify(diagnostic?{dynlibError:diagnostic}:[]);
    }
   },runPython(_source?:string):string{return '[]';}};
- await installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},async(op,...args)=>{
+ const installing=installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},async(op,...args)=>{
   operations.push(op);
   if(op==='package-open')return {key:'wheel',size:65539,headers:[]};
   if(op==='package-read'){assert.deepEqual(args,['1','wheel',65536,3]);return [4,5,6];}
  },65536);
- assert.deepEqual(operations,['package-open','package-read','dynlib /lib/fixture.so','package-close','package-commit']);
+ if(fail)await assert.rejects(installing,{message:'Error: native rejected'});else await installing;
+ assert.deepEqual(operations,['package-open','package-read','dynlib /lib/fixture.so','package-close',...fail?[]:['package-commit']]);
  assert.equal(globals.size,0);
 });
 

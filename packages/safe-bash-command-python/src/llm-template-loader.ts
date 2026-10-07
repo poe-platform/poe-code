@@ -1,3 +1,4 @@
+import {pythonLlmExitHandlers,pythonLlmLookupErrors} from './llm-exit-handlers.js';
 import {pythonLlmPluginSetup} from './llm-plugin-setup.js';
 import type {LlmTemplate,LlmTemplateLoader} from 'safe-bash-command-llm';
 import type {PythonLlmToolLoaderOptions} from './llm-functions-loader.js';
@@ -18,7 +19,7 @@ export function createPythonLlmTemplateLoader(options:PythonLlmToolLoaderOptions
 }
 
 export const pythonLlmTemplateProgram=/* @__PURE__ */ (()=>String.raw`
-from click import ClickException, echo
+from click import Abort, ClickException, echo
 import json, llm, safe_host
 
 ${pythonLlmPluginSetup}
@@ -31,29 +32,21 @@ def main():
  try:
   load_plugins(request)
   loaders = llm.get_template_loaders()
- except ClickException as error:
-  error.show()
-  raise SystemExit(error.exit_code)
- except Exception as error:
-  send('lookup', message=str(error))
-  return
+${pythonLlmLookupErrors}
  if request['prefix'] not in loaders:
   send('missing', message='Unknown template prefix: ' + request['prefix'])
   return
- template = loaders[request['prefix']](request['value'])
- encoder = json.JSONEncoder(ensure_ascii=False, separators=(',', ':'))
- for part in encoder.iterencode(template.model_dump(exclude_none=True)):
-  for offset in range(0, len(part), 4096): send('text', text=part[offset:offset + 4096])
- send('done')
+ try:
+  template = loaders[request['prefix']](request['value'])
+  encoder = json.JSONEncoder(ensure_ascii=False, separators=(',', ':'))
+  for part in encoder.iterencode(template.model_dump(exclude_none=True)):
+   for offset in range(0, len(part), 4096): send('text', text=part[offset:offset + 4096])
+  send('done')
+ except Exception as error:
+  send('error', message=str(error))
 try:
  main()
-except KeyboardInterrupt:
- echo("\nAborted!", err=True)
- send("exit")
- raise SystemExit(1)
-except SystemExit:
- send('exit')
- raise
+${pythonLlmExitHandlers}
 except Exception as error:
  send('error', message=str(error))
 `)();

@@ -1,3 +1,4 @@
+import {pythonLlmExitHandlers} from './llm-exit-handlers.js';
 import {pythonLlmPluginSetup} from './llm-plugin-setup.js';
 import type {LlmFragmentLoader,LlmLoaderDiscoveryContext,LlmLoaderProvider,LlmTemplateLoader} from 'safe-bash-command-llm';
 import type {PythonLlmToolLoaderOptions} from './llm-functions-loader.js';
@@ -43,7 +44,7 @@ export function createPythonLlmLoaderDiscovery(options:PythonLlmToolLoaderOption
 }
 
 export const pythonLlmLoaderDiscoveryProgram=/* @__PURE__ */ (()=>String.raw`
-from click import ClickException, echo
+from click import Abort, ClickException, echo
 import json, llm, safe_host
 
 ${pythonLlmPluginSetup}
@@ -63,13 +64,7 @@ def main():
  send('done')
 try:
  main()
-except KeyboardInterrupt:
- echo("\nAborted!", err=True)
- send("exit")
- raise SystemExit(1)
-except SystemExit:
- send('exit')
- raise
+${pythonLlmExitHandlers}
 except ClickException as error:
  error.show()
  send('exit')

@@ -1,3 +1,4 @@
+import {pythonLlmExitHandlers,pythonLlmLookupErrors} from './llm-exit-handlers.js';
 import {pythonLlmPluginSetup} from './llm-plugin-setup.js';
 import {createLlmSpool,createLlmUrlSource,LlmLoaderLookupError,LlmPluginExit,type LlmFragmentLoader,type LlmInputSource,type LlmLoadedFragment} from 'safe-bash-command-llm';
 import {toByteSource,type CommandContext} from 'safe-bash-contracts';
@@ -113,7 +114,7 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
 }
 
 export const pythonLlmFragmentProgram=/* @__PURE__ */ (()=>String.raw`
-from click import ClickException, echo
+from click import Abort, ClickException, echo
 import hashlib, llm, safe_host
 from llm_safe_host import _attachment_type
 
@@ -145,33 +146,25 @@ def main():
  try:
   load_plugins(request)
   loaders = llm.get_fragment_loaders()
- except ClickException as error:
-  error.show()
-  raise SystemExit(error.exit_code)
- except Exception as error:
-  send('lookup', message=str(error))
-  return
+${pythonLlmLookupErrors}
  if request['prefix'] not in loaders:
   send('missing', message='Unknown fragment prefix: ' + request['prefix'])
   return
- result = loaders[request['prefix']](request['value'])
- if not isinstance(result, list): result = [result]
- for value in result:
-  if isinstance(value, llm.Attachment): emit_attachment(value)
-  elif isinstance(value, str):
-   send('begin', type='text')
-   for offset in range(0, len(value), 4096): send('text', text=value[offset:offset + 4096])
-  else: raise TypeError('Fragment loader must return text or attachments')
-  if not send('end'): return
+ try:
+  result = loaders[request['prefix']](request['value'])
+  if not isinstance(result, list): result = [result]
+  for value in result:
+   if isinstance(value, llm.Attachment): emit_attachment(value)
+   elif isinstance(value, str):
+    send('begin', type='text')
+    for offset in range(0, len(value), 4096): send('text', text=value[offset:offset + 4096])
+   else: raise TypeError('Fragment loader must return text or attachments')
+   if not send('end'): return
+ except Exception as error:
+  send('error', message=str(error))
 try:
  main()
-except KeyboardInterrupt:
- echo("\nAborted!", err=True)
- send("exit")
- raise SystemExit(1)
-except SystemExit:
- send('exit')
- raise
+${pythonLlmExitHandlers}
 except Exception as error:
  send('error', message=str(error))
 `)();

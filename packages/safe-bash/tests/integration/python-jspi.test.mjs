@@ -1045,3 +1045,24 @@ test('real workerd preserves native plugin keyboard interrupts',{timeout:60000},
   assert.deepEqual(result.diagnostics,[]);
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
+
+
+test('real workerd preserves native toolbox EOF and Click aborts',{timeout:60000},async()=>{
+  const {miniflare,runtimeErrors}=nativeFixture;
+  const response=await miniflare.dispatchFetch('http://fixture/llm-tool-aborts');
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.deepEqual(result.results.map(({exitCode,stdout,stderr,requests})=>({exitCode,stdout,stderr,requests})),
+    ['\nAborted!\n','\nAborted!\n','Aborted!\n','Aborted!\n'].map(stderr=>({exitCode:1,stdout:'tool stdout\n',stderr,requests:1})));
+  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});
+
+for(const mode of ['eof','abort'])test('real workerd preserves native plugin abort boundaries; mode='+mode,{timeout:60000},async()=>{
+  const {miniflare,runtimeErrors}=nativeFixture;
+  const response=await miniflare.dispatchFetch('http://fixture/llm-'+mode,{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.deepEqual(result.results.map(({exitCode,stdout,stderr})=>({exitCode,stdout,stderr})),
+    ['register templates\n','register fragments\n','register templates\n','register fragments\n',''].map(stdout=>({exitCode:1,stdout,stderr:mode==='eof'?'\nAborted!\n':'Aborted!\n'})));
+  assert.deepEqual(result.diagnostics,[]);assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});

@@ -63,7 +63,7 @@ registered tool-only plugins and shows toolbox methods. The configured executor 
 provide genuine `llm==0.27.1` and the standard host bridge. Each invocation owns
 one interpreter, shares the loader's configured worker capacity, and preserves
 function globals and toolbox instances across calls. Native constructor parsing,
-method schemas, plugin names and sync/async preparation are preserved. Tool-only,
+method schemas, plugin names and sync/async preparation are preserved. Discovery and preparation preserve native `EOFError` and Click `Abort` exit status and diagnostics. Exceptions inside tool implementations or fragment/template loader calls retain their native ordinary-error behavior. Tool-only,
 template-loader and fragment-loader hooks can register with the native plugin
 manager; additional model hooks and ambient entrypoint discovery remain blocked,
 so model transport and credentials stay platform-owned. Result text and attachments use caller-backed

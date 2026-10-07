@@ -223,3 +223,43 @@ for(const args of [['tools','--functions','raise SystemExit(7)'],['plugins'],['-
   const result=await command.execute({...ctx,args,stdout:{async write(bytes){stdout+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});
   assert.equal(result.exitCode,exitCode);assert.equal(stdout,'');assert.equal(stderr,'');assert.equal(retired,1);assert.deepEqual(await ctx.fs.readdir('/'),[]);
 });
+
+for(const prepare of [false,true])for(const asynchronous of [false,true])for(const exitCode of [0,7])test(`tool ${prepare?'preparation':'execution'} exit ${exitCode} stops ${asynchronous?'async':'sync'} CLI chain`,async()=>{
+  const {createLlmCommand}=await import('safe-bash-command-llm');
+  let retired=0,requests=0,stdout='',stderr='';
+  const loadTools=createPythonLlmToolLoader({createExecutor:()=>({terminate(){retired++;},async run(start){
+    start.onReady();
+    const send=(value:Parameters<NonNullable<typeof start.host>['request']>[0])=>start.host!.request({version:1,operation:'call',capability:'llm_tools',value});
+    await send({op:'register',index:0,name:'halt',inputSchema:{},signature:'()',asynchronous});
+    await send({op:'ready',prepare});
+    const call=await send({op:'next'}) as {prepare?:boolean};
+    assert.equal(call.prepare===true,prepare);
+    await send({op:'exit'});return exitCode;
+  }})});
+  const command=createLlmCommand({loadTools,defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture',asyncModel:{},capabilities:['messages','tools']}],async *complete(){requests++;assert.equal(requests,1);yield '';return {toolCalls:[{name:'halt',arguments:{}}]};}}]});
+  const ctx=context();
+  const result=await command.execute({...ctx,args:[...(asynchronous?['--async']:[]),'--functions','def halt(): pass','question'],stdout:{async write(bytes){stdout+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});
+  assert.equal(result.exitCode,exitCode);assert.equal(stdout,'');assert.equal(stderr,'');assert.equal(retired,1);assert.equal(requests,1);assert.deepEqual(await ctx.fs.readdir('/'),[]);
+});
+
+test('explicit tool exit releases the pending host queue read before runtime retirement',async()=>{
+  const {LlmPluginExit}=await import('safe-bash-command-llm');
+  let releaseObserved=false;
+  const load=createPythonLlmToolLoader({createExecutor:()=>({terminate(){},async run(start){
+    start.onReady();
+    const send=(value:Parameters<NonNullable<typeof start.host>['request']>[0])=>start.host!.request({version:1,operation:'call',capability:'llm_tools',value});
+    await send({op:'register',index:0,name:'halt',inputSchema:{},signature:'()',asynchronous:false});
+    await send({op:'ready'});
+    await send({op:'next'});
+    const read=send({op:'next'}).then(value=>{releaseObserved=value===null;});
+    await send({op:'exit'});
+    await new Promise<void>(resolve=>setImmediate(resolve));
+    if(!releaseObserved)await send({op:'failed',message:'process exit left the host request waiting'});
+    await read;
+    return 7;
+  }})});
+  const ctx=context();
+  const session=await load({context:ctx,definitions:[],maxInputBytes:4096,maxOutputBytes:4096});
+  await assert.rejects(async()=>session.tools[0]!.implementation!({}, {...ctx,maxBytes:4096}),error=>error instanceof LlmPluginExit&&error.exitCode===7);
+  await session.close();assert.equal(releaseObserved,true);
+});

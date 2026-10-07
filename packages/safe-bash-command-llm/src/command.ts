@@ -182,6 +182,10 @@ async function interrupted<Value>(start: () => Value | PromiseLike<Value>, signa
   });
 }
 
+function commandError(error: unknown, fallback?: string): Error {
+  return error instanceof LlmPluginExit ? error : new Error(`Error: ${error instanceof Error ? error.message : fallback ?? String(error)}`);
+}
+
 async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections'], fragmentLoaders: NonNullable<LlmCommandsOptions['fragmentLoaders']>, tools: NonNullable<LlmCommandsOptions['tools']>, loadTools: LlmCommandsOptions['loadTools'], managePackages: LlmCommandsOptions['managePackages']) {
   context.signal.throwIfAborted();
   const controller = new AbortController();
@@ -395,7 +399,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     if (argumentsValue.args[0] === "templates") {
       try { return {exitCode: await createLlmTemplateStore(loaderContext(), invocationLoaders).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, text => writeDiagnostic(context.stderr, text, signal))}; }
-      catch (error) { if(error instanceof LlmPluginExit)throw error; throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
+      catch (error) { throw commandError(error, "Template failed"); }
     }
     const configurationInvocation = argumentsValue.args[0] === "keys" || argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "");
     if (configurationInvocation) {
@@ -428,7 +432,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (args.save && args.template) throw new Error("Error: --save cannot be used with --template");
     let stored;
     try { stored = args.template === undefined ? undefined : await templateStore.load(args.template); }
-    catch (error) { if(error instanceof LlmPluginExit)throw error; throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
+    catch (error) { throw commandError(error, "Invalid template"); }
     if (stored) {
       if (!isChat && stored.schema_object) schema = stored.schema_object;
       try { if (!isChat) validateLlmTemplateParameters(stored, args.params); }
@@ -497,7 +501,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
           }
         }
       }
-      catch (error) { if(error instanceof LlmPluginExit)throw error; throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`); }
+      catch (error) { throw commandError(error); }
 
       return selectedTools;
     };
@@ -561,7 +565,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
                 pluginAttachments.push({mimeType:loaded.mimeType,bytes,...identity});
               }
             }
-          } catch(error) {signal.throwIfAborted();if(error instanceof LlmPluginExit)throw error;throw new Error(`Error: ${error instanceof Error?error.message:String(error)}`);}
+          } catch(error) {signal.throwIfAborted();throw commandError(error);}
           continue;
         }
         const path = pathOf(context, reference);
@@ -838,7 +842,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
                 await usageSpool.write(Uint8Array.of(10));
               }
             }
-          } catch (error) {signal.throwIfAborted(); if (outputFailed) throw error; throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`);}
+          } catch (error) {signal.throwIfAborted(); if (outputFailed) throw error; throw commandError(error);}
         })()[Symbol.asyncIterator]();
       } else if (streamed) {
         const events = service.streamSources!({ ...(args.async ? {async: true} : {}), model: request.model, options: request.options, signal, stream: request.stream, prompt: composedPrompt ?? (promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt)),

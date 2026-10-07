@@ -995,3 +995,18 @@ test('real workerd preserves explicit native plugin exit statuses', {timeout:600
   assert.deepEqual(result.failures,[]);
   assert.deepEqual(runtimeErrors,[]);
 });
+
+
+test('real workerd preserves tool execution and preparation process exits',{timeout:60000},async()=>{
+  const {miniflare,runtimeErrors}=nativeFixture;
+  const response=await miniflare.dispatchFetch('http://fixture/llm-tool-exits');
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.deepEqual(result.results.map(({exitCode,stdout,stderr,requests})=>({exitCode,stdout,stderr,requests})),[
+    {exitCode:0,stdout:'tool stdout\n',stderr:'',requests:1},
+    {exitCode:7,stdout:'tool stdout\n',stderr:'',requests:1},
+    {exitCode:0,stdout:'tool stdout\n',stderr:'',requests:1},
+    {exitCode:1,stdout:'tool stdout\n',stderr:'tool exit\n',requests:1},
+  ]);
+  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});

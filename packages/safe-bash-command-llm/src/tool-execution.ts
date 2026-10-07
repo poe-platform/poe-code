@@ -1,3 +1,4 @@
+import {LlmPluginExit} from "./loader-provider.js";
 import type { CommandContext, FileSystem } from "safe-bash-contracts";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { sourceBytes, waitForSource } from "./request-source.js";
@@ -219,6 +220,7 @@ export async function executeLlmToolCalls(
             throw new TypeError("Invalid tool output source");
         } catch (error) {
           signal.throwIfAborted();
+          if(error instanceof LlmPluginExit)throw error;
           exception = error;
           output = { output: "Error: " + (error instanceof Error ? error.message : String(error)) };
         }

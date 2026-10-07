@@ -116,17 +116,17 @@ async def main():
         plugin=tool.plugin, selectionIndex=selection_index, inputSchema=tool.input_schema,
         signature=str(inspect.signature(tool.implementation)),
         asynchronous=inspect.iscoroutinefunction(tool.implementation))
-  except SystemExit:
-    send("exit")
-    raise
   except Exception as error:
     send("failed", message=getattr(error, "message", str(error)))
     return
   send("ready", prepare=any(isinstance(_get_instance(tool.implementation), Toolbox) for tool in tools))
   pending = set()
   cancelled = False
+  exit_error = None
+  owner = asyncio.current_task()
 
   async def execute(command):
+    nonlocal exit_error
     identifier = command["id"]
     try:
       if command.get("prepare"):
@@ -157,6 +157,10 @@ async def main():
       for attachment in attachments:
         write_attachment(identifier, attachment)
       send("done", id=identifier)
+    except SystemExit as error:
+      if exit_error is None:
+        exit_error = error
+        owner.cancel()
     except Exception as error:
       send("error", id=identifier, message=str(error))
 
@@ -178,11 +182,20 @@ async def main():
       task.add_done_callback(completed)
     if pending and not cancelled:
       await asyncio.gather(*pending)
+  except asyncio.CancelledError:
+    if exit_error is None:
+      raise
   finally:
     for task in pending:
       task.cancel()
     if pending:
       await asyncio.gather(*pending, return_exceptions=True)
+  if exit_error is not None:
+    raise exit_error
 
-asyncio.run(main())
+try:
+  asyncio.run(main())
+except SystemExit:
+  send("exit")
+  raise
 `)();

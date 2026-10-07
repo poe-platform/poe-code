@@ -419,3 +419,10 @@ test('cancellation during preparation preserves identity and prevents approval',
   }, implementation() {assert.fail('executed');}}], calls: [{name: 'one', arguments: {}}],
     context: {fs: new MemoryFileSystem(), cwd: '/', signal: controller.signal}, beforeCall() {assert.fail('approved');}}, () => {assert.fail('visited');}), error => error === reason);
 });
+
+for(const asynchronous of [false,true])for(const exitCode of [0,7])test(`explicit plugin exit ${exitCode} escapes ${asynchronous?'async':'sync'} tool results`,async()=>{
+  const {LlmPluginExit}=await import('./loader-provider.js');
+  const exit=new LlmPluginExit(exitCode),fs=new MemoryFileSystem();
+  await assert.rejects(executeLlmToolCalls({async:asynchronous,context:{fs,cwd:'/',signal:new AbortController().signal},tools:[{name:'halt',inputSchema:{},async:asynchronous,implementation(){throw exit;}}],calls:[{name:'halt',arguments:{}}]},()=>assert.fail('process exit became a tool result')),error=>error===exit);
+  assert.deepEqual(await fs.readdir('/'),[]);
+});

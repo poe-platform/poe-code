@@ -869,6 +869,33 @@ async function qualifyShells(backend, createExecutor) {
   }
 }
 
+async function qualifyToolExits(backend,createExecutor) {
+  let requests=0;
+  const complete=async function* (request) {
+    requests++;
+    yield '';
+    return {toolCalls:[{name:request.tools[0].name,arguments:{}}]};
+  };
+  const service=createLlmService({defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture',asyncModel:{},capabilities:['messages','tools']}],complete,completeSources:complete}]});
+  const shell=new Shell({fs:backend,cwd:'/work'}).use(llmCommands({service,loadTools:createPythonLlmToolLoader({createExecutor})}));
+  const results=[];
+  try {
+    for(const [prepare,asynchronous,code] of [[false,false,'0'],[false,true,'7'],[true,false,'None'],[true,true,"'tool exit'"]]) {
+      let definition=(asynchronous?'async ':'')+'def halt():\n print("tool stdout")\n raise SystemExit('+code+')';
+      let selection='';
+      if(prepare){
+        definition='import llm as _llm\nclass _ExitBox(_llm.Toolbox):\n '+(asynchronous?'async def prepare_async':'def prepare')+'(self):\n  print("tool stdout")\n  raise SystemExit('+code+')\n def halt(self): return "unreachable"\nclass _Plugin:\n @_llm.hookimpl\n def register_tools(self,register):register(_ExitBox,name="ExitBox")\n_llm.plugins.pm.register(_Plugin())';
+        selection=' -T ExitBox';
+      }
+      requests=0;
+      await backend.writeFile('/work/exit.py',new TextEncoder().encode(definition));
+      const result=await shell.exec('llm question '+(asynchronous?'--async ':'')+'--functions /work/exit.py'+selection);
+      results.push({...result,requests});
+    }
+    return {results};
+  }finally{await shell.dispose();}
+}
+
 async function qualifyFunctionTools(backend, createExecutor) {
   let cancellation = new AbortController();
   let cancelRun = false, chatRun = false, wireRun = false, optionRun = false;
@@ -1998,6 +2025,11 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       try { return Response.json({...await qualifyPublication(backend, createExecutor, mode === '/publication-recovery'), failures}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
       finally { clearInterval(timer); await filesystem.close(); }
+    }
+    if (mode === '/llm-tool-exits') {
+      try {return Response.json({...await qualifyToolExits(backend,createExecutor),failures});}
+      catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/llm-functions') {
       try {return Response.json({...await qualifyFunctionTools(backend,createExecutor),failures});}

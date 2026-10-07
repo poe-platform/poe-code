@@ -104,7 +104,7 @@ export function createPythonLlmToolLoader(options: PythonLlmToolLoaderOptions): 
         if (controls > maxInputBytes) {const error = new RangeError('Python tool definition byte limit exceeded'); fail(error); throw error;}
         return null;
       }
-      if (message.op === 'exit') {exited = true; return null;}
+      if (message.op === 'exit') {exited = true; waiter?.resolve(null); return null;}
       if (message.op === 'failed') {initializationFailed = true; fail(new Error(String(message.message))); return null;}
       if (message.op === 'register' || message.op === 'toolbox' || message.op === 'plugins') {
         controls += encoder.encode(JSON.stringify(message)).length;

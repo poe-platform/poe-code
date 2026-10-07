@@ -30,6 +30,157 @@ fn format_from_path(path: &str) -> &'static str {
     }
 }
 
+fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
+    let limit = args.iter().position(|a| a == "--").unwrap_or(args.len());
+    for i in 0..limit {
+        let a = args[i].as_str();
+        if a == "-list" || a == "--list" {
+            let lt = args.get(i + 1).map(|s| s.to_ascii_lowercase()).unwrap_or_else(|| "list".to_string());
+            if lt == "font" || lt == "type" {
+                return Some(ok_out(concat!(
+                    "  Font: DejaVu-Sans\n    family: DejaVu Sans\n    style: Normal\n    stretch: Normal\n    weight: 400\n",
+                    "  Font: DejaVu-Sans-Bold\n    family: DejaVu Sans\n    style: Normal\n    stretch: Normal\n    weight: 700\n",
+                    "  Font: DejaVu-Sans-Mono\n    family: DejaVu Sans Mono\n    style: Normal\n    stretch: Normal\n    weight: 400\n",
+                    "  Font: Arial\n    family: Arial\n    style: Normal\n    stretch: Normal\n    weight: 400\n",
+                    "  Font: Helvetica\n    family: Helvetica\n    style: Normal\n    stretch: Normal\n    weight: 400\n",
+                    "  Font: Liberation-Sans\n    family: Liberation Sans\n    style: Normal\n    stretch: Normal\n    weight: 400\n"
+                )));
+            }
+            if lt == "format" {
+                return Some(ok_out(concat!(
+                    "   Format  Module    Mode  Description\n",
+                    "-------------------------------------------------------------------------------\n",
+                    "      BMP* BMP       rw-   Microsoft Windows bitmap image\n",
+                    "      GIF* GIF       rw+   CompuServe graphics interchange format\n",
+                    "     JPEG* JPEG      rw-   Joint Photographic Experts Group JFIF format\n",
+                    "      JPG* JPEG      rw-   Joint Photographic Experts Group JFIF format\n",
+                    "      PNG* PNG       rw-   Portable Network Graphics\n",
+                    "      PPM* PNM       rw+   Portable pixmap format (color)\n",
+                    "      SVG* SVG       r--   Scalable Vector Graphics\n",
+                    "     TIFF* TIFF      rw+   Tagged Image File Format\n",
+                    "     WEBP* WEBP      rw-   WebP Image Format\n"
+                )));
+            }
+            if lt == "color" {
+                return Some(ok_out(concat!(
+                    "Name                  Color                   Compliance\n",
+                    "-------------------------------------------------------------------------------\n",
+                    "black                 srgb(0,0,0)             SVG, X11, XPM\n",
+                    "white                 srgb(255,255,255)       SVG, X11, XPM\n",
+                    "red                   srgb(255,0,0)           SVG, X11, XPM\n",
+                    "green                 srgb(0,128,0)           SVG\n",
+                    "blue                  srgb(0,0,255)           SVG, X11, XPM\n",
+                    "transparent           srgba(0,0,0,0)          SVG, X11, XPM\n"
+                )));
+            }
+            if lt == "configure" {
+                return Some(ok_out(concat!(
+                    "Name                  Value\n",
+                    "-------------------------------------------------------------------------------\n",
+                    "DELEGATES             png jpeg webp tiff gif svg freetype\n",
+                    "FEATURES              Cipher DPC\n",
+                    "NAME                  ImageMagick\n",
+                    "VERSION               7.1.1\n"
+                )));
+            }
+            return Some(ok_out("color\nconfigure\ndelegate\nfont\nformat\nlocale\nlog\nmagic\nmodule\nresource\nthreshold\ntype\n"));
+        }
+    }
+    None
+}
+
+fn normalize_magick_rgb(raw: &str) -> (u8, u8, u8) {
+    let s = raw.trim().to_ascii_lowercase();
+    match s.as_str() {
+        "black" => (0, 0, 0),
+        "white" | "" => (255, 255, 255),
+        "red" => (255, 0, 0),
+        "lime" => (0, 255, 0),
+        "green" => (0, 128, 0),
+        "blue" => (0, 0, 255),
+        "yellow" => (255, 255, 0),
+        "cyan" | "aqua" => (0, 255, 255),
+        "magenta" | "fuchsia" => (255, 0, 255),
+        "gray" | "grey" => (126, 126, 126),
+        "navy" => (0, 0, 128),
+        "orange" => (255, 165, 0),
+        "coral" => (255, 127, 80),
+        "skyblue" => (135, 206, 235),
+        _ if s.starts_with('#') && s.len() == 7 => {
+            let r = u8::from_str_radix(&s[1..3], 16).unwrap_or(255);
+            let g = u8::from_str_radix(&s[3..5], 16).unwrap_or(255);
+            let b = u8::from_str_radix(&s[5..7], 16).unwrap_or(255);
+            (r, g, b)
+        }
+        _ if s.starts_with('#') && s.len() == 4 => {
+            let r = u8::from_str_radix(&s[1..2], 16).unwrap_or(15) * 17;
+            let g = u8::from_str_radix(&s[2..3], 16).unwrap_or(15) * 17;
+            let b = u8::from_str_radix(&s[3..4], 16).unwrap_or(15) * 17;
+            (r, g, b)
+        }
+        _ => (255, 255, 255),
+    }
+}
+
+fn apply_magick_resize_geom(w: u32, h: u32, spec: &str) -> (u32, u32) {
+    let s = spec.trim();
+    if let Some(pct_str) = s.strip_suffix('%') {
+        let pct: f64 = pct_str.parse().unwrap_or(100.0);
+        let nw = ((w as f64) * pct / 100.0).round().max(1.0) as u32;
+        let nh = ((h as f64) * pct / 100.0).round().max(1.0) as u32;
+        return (nw, nh);
+    }
+    let exact = s.contains('!');
+    let fill = s.contains('^');
+    let shrink_only = s.contains('>');
+    let enlarge_only = s.contains('<');
+    let clean = s
+        .trim_end_matches(['!', '^', '>', '<', '@'])
+        .split(['+', '-'])
+        .next()
+        .unwrap_or("");
+    if let Some((ws, hs)) = clean.split_once('x') {
+        let tw_opt = if ws.is_empty() { None } else { ws.parse::<u32>().ok() };
+        let th_opt = if hs.is_empty() { None } else { hs.parse::<u32>().ok() };
+        match (tw_opt, th_opt) {
+            (Some(tw), Some(th)) => {
+                if exact {
+                    return (tw.max(1), th.max(1));
+                }
+                if shrink_only && w <= tw && h <= th {
+                    return (w, h);
+                }
+                if enlarge_only && (w >= tw || h >= th) {
+                    return (w, h);
+                }
+                let sx = (tw as f64) / (w.max(1) as f64);
+                let sy = (th as f64) / (h.max(1) as f64);
+                let scale = if fill { sx.max(sy) } else { sx.min(sy) };
+                let nw = ((w as f64) * scale).round().max(1.0) as u32;
+                let nh = ((h as f64) * scale).round().max(1.0) as u32;
+                (nw, nh)
+            }
+            (Some(tw), None) => {
+                let scale = (tw as f64) / (w.max(1) as f64);
+                let nh = ((h as f64) * scale).round().max(1.0) as u32;
+                (tw.max(1), nh)
+            }
+            (None, Some(th)) => {
+                let scale = (th as f64) / (h.max(1) as f64);
+                let nw = ((w as f64) * scale).round().max(1.0) as u32;
+                (nw, th.max(1))
+            }
+            (None, None) => (w, h),
+        }
+    } else if let Ok(tw) = clean.parse::<u32>() {
+        let scale = (tw as f64) / (w.max(1) as f64);
+        let nh = ((h as f64) * scale).round().max(1.0) as u32;
+        (tw.max(1), nh)
+    } else {
+        (w, h)
+    }
+}
+
 fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
     let mut meta = ImageMeta {
         fmt: format_from_path(path).to_string(),
@@ -299,6 +450,23 @@ impl PdfDoc {
                     images: Vec::new(),
                     urls: Vec::new(),
                 });
+            }
+            for (k, v) in &doc.info {
+                if k.eq_ignore_ascii_case("Title") && !v.is_empty() {
+                    doc.title = v.clone();
+                } else if k.eq_ignore_ascii_case("Author") && !v.is_empty() {
+                    doc.author = v.clone();
+                }
+            }
+            if let Some(t) = doc.exif.get("Title")
+                && !t.is_empty()
+            {
+                doc.title = t.clone();
+            }
+            if let Some(a) = doc.exif.get("Author")
+                && !a.is_empty()
+            {
+                doc.author = a.clone();
             }
             return doc;
         }
@@ -4603,6 +4771,22 @@ fn cmd_media_doc(
             if !doc.author.is_empty() {
                 out.push_str(&format!("Author:         {}\n", doc.author));
             }
+            for key in ["Subject", "Keywords", "Creator", "Producer"] {
+                let val = doc
+                    .exif
+                    .get(key)
+                    .cloned()
+                    .or_else(|| {
+                        doc.info
+                            .iter()
+                            .find(|(k, _)| k.eq_ignore_ascii_case(key))
+                            .map(|(_, v)| v.clone())
+                    })
+                    .unwrap_or_default();
+                if !val.is_empty() {
+                    out.push_str(&format!("{key:<16}{val}\n"));
+                }
+            }
             out.push_str(&format!("Pages:          {}\n", doc.pages.len().max(1)));
             out.push_str(&format!(
                 "Encrypted:      {}\n",
@@ -5518,16 +5702,41 @@ fn cmd_media_doc(
         "magick" | "convert" | "mogrify" => {
             if (cmd == "magick" || cmd == "convert")
                 && let Some(first) = args.first()
-                && (first == "identify" || first == "mogrify" || first == "convert")
+                && matches!(
+                    first.as_str(),
+                    "identify" | "mogrify" | "convert" | "composite" | "montage" | "compare"
+                )
             {
                 return cmd_media_doc(first, &args[1..], stdin, cwd, fs);
             }
+            if let Some(list_out) = try_magick_list_option(args) {
+                return list_out;
+            }
+            for a in args {
+                if a == "--" {
+                    break;
+                }
+                if a == "-version" || a == "--version" {
+                    return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
+                }
+                if a == "-help" || a == "--help" || a == "-h" {
+                    return ok_out(&format!("Usage: {cmd} [options] input... output\n"));
+                }
+            }
             let is_mogrify = cmd == "mogrify";
             let mut size_opt: Option<(u32, u32)> = None;
-            let mut resize_opt: Option<(u32, u32)> = None;
+            let mut resize_spec: Option<String> = None;
             let mut crop_opt: Option<(u32, u32)> = None;
+            let mut border_opt: Option<(u32, u32)> = None;
+            let mut extent_opt: Option<(u32, u32)> = None;
             let mut rot_deg = 0i32;
+            let mut transpose_swaps = 0usize;
             let mut gray_cs = false;
+            let mut negate_count = 0usize;
+            let mut append_mode: Option<bool> = None;
+            let mut mogrify_format: Option<String> = None;
+            let mut mogrify_path: Option<String> = None;
+            let mut pseudo_color: Option<(u8, u8, u8)> = None;
             let mut pos_files: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
@@ -5538,22 +5747,59 @@ fn cmd_media_doc(
                         }
                         i += 2;
                     }
-                    "-resize" if i + 1 < args.len() => {
-                        let s = args[i + 1].trim_end_matches(['!', '>', '<']);
-                        if let Some((ws, hs)) = s.split_once('x') {
-                            resize_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
-                        }
+                    "-resize" | "-scale" | "-sample" | "-thumbnail" if i + 1 < args.len() => {
+                        resize_spec = Some(args[i + 1].clone());
                         i += 2;
                     }
                     "-crop" if i + 1 < args.len() => {
-                        let s = args[i + 1].split('+').next().unwrap_or("");
+                        let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
                         if let Some((ws, hs)) = s.split_once('x') {
                             crop_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
                         }
                         i += 2;
                     }
+                    "-border" if i + 1 < args.len() => {
+                        let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
+                        if let Some((ws, hs)) = s.split_once('x') {
+                            border_opt = Some((ws.parse().unwrap_or(0), hs.parse().unwrap_or(0)));
+                        } else if let Ok(bw) = s.parse::<u32>() {
+                            border_opt = Some((bw, bw));
+                        }
+                        i += 2;
+                    }
+                    "-extent" if i + 1 < args.len() => {
+                        let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
+                        if let Some((ws, hs)) = s.split_once('x') {
+                            extent_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
+                        }
+                        i += 2;
+                    }
                     "-rotate" if i + 1 < args.len() => {
                         rot_deg += args[i + 1].parse::<i32>().unwrap_or(0);
+                        i += 2;
+                    }
+                    "-transpose" | "-transverse" => {
+                        transpose_swaps += 1;
+                        i += 1;
+                    }
+                    "-negate" => {
+                        negate_count += 1;
+                        i += 1;
+                    }
+                    "-append" => {
+                        append_mode = Some(true);
+                        i += 1;
+                    }
+                    "+append" => {
+                        append_mode = Some(false);
+                        i += 1;
+                    }
+                    "-format" if is_mogrify && i + 1 < args.len() => {
+                        mogrify_format = Some(args[i + 1].trim_start_matches('.').to_ascii_lowercase());
+                        i += 2;
+                    }
+                    "-path" if is_mogrify && i + 1 < args.len() => {
+                        mogrify_path = Some(args[i + 1].clone());
                         i += 2;
                     }
                     "-colorspace" | "-grayscale" if i + 1 < args.len() => {
@@ -5566,15 +5812,31 @@ fn cmd_media_doc(
                     }
                     "-gravity" | "-channel" | "-blur" | "-sharpen" | "-threshold"
                     | "-quality" | "-depth" | "-background" | "-fill" | "-bordercolor"
-                    | "-border" | "-extent"
+                    | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
+                    | "-draw" | "-annotate" | "-alpha" | "-define" | "-filter"
                         if i + 1 < args.len() =>
                     {
                         i += 2;
                     }
+                    a if a.starts_with("xc:") || a.starts_with("canvas:") => {
+                        let c_str = a.split_once(':').map(|(_, r)| r).unwrap_or("white");
+                        pseudo_color = Some(normalize_magick_rgb(c_str));
+                        i += 1;
+                    }
+                    a if a == "rose:" || a == "logo:" || a == "wizard:" || a == "granite:" => {
+                        if size_opt.is_none() {
+                            size_opt = Some((70, 46));
+                        }
+                        i += 1;
+                    }
                     a if !a.starts_with('-')
+                        && !a.starts_with('+')
                         && !a.starts_with("xc:")
                         && !a.starts_with("canvas:")
-                        && !a.starts_with("gradient:") =>
+                        && !a.starts_with("gradient:")
+                        && !a.starts_with("radial-gradient:")
+                        && !a.starts_with("pattern:")
+                        && !a.starts_with("plasma:") =>
                     {
                         pos_files.push(a.to_string());
                         i += 1;
@@ -5585,36 +5847,123 @@ fn cmd_media_doc(
                 }
             }
             let apply_ops = |meta: &mut ImageMeta| {
-                if let Some((rw, rh)) = resize_opt {
+                if let Some(ref rspec) = resize_spec {
+                    let (rw, rh) = apply_magick_resize_geom(meta.w, meta.h, rspec);
                     meta.w = rw;
                     meta.h = rh;
                 }
                 if rot_deg.rem_euclid(180) != 0 {
                     std::mem::swap(&mut meta.w, &mut meta.h);
                 }
+                if transpose_swaps % 2 == 1 {
+                    std::mem::swap(&mut meta.w, &mut meta.h);
+                }
                 if let Some((cw, ch)) = crop_opt {
                     meta.w = cw;
                     meta.h = ch;
                 }
+                if let Some((bw, bh)) = border_opt {
+                    meta.w += bw * 2;
+                    meta.h += bh * 2;
+                }
+                if let Some((ew, eh)) = extent_opt {
+                    meta.w = ew;
+                    meta.h = eh;
+                }
                 if gray_cs {
                     meta.cs = "Gray".to_string();
+                }
+                if let Some((r, g, b)) = pseudo_color {
+                    meta.exif
+                        .insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
+                }
+                if negate_count % 2 == 1 {
+                    let cur = meta
+                        .exif
+                        .get("__color")
+                        .cloned()
+                        .unwrap_or_else(|| "#ffffff".to_string());
+                    let (r, g, b) = normalize_magick_rgb(&cur);
+                    meta.exif.insert(
+                        "__color".to_string(),
+                        format!("#{:02x}{:02x}{:02x}", 255 - r, 255 - g, 255 - b),
+                    );
                 }
             };
             if is_mogrify {
                 for f in &pos_files {
                     let full = resolve_posix_path(cwd, f);
-                    let mut meta = fs
-                        .read_file(&full)
-                        .map(|b| read_image_meta(&b, &full))
-                        .unwrap_or_else(|_| read_image_meta(&[], &full));
+                    let Ok(bytes) = fs.read_file(&full) else {
+                        return err_out(
+                            &format!("mogrify: unable to open image '{f}': No such file or directory\n"),
+                            1,
+                        );
+                    };
+                    let mut meta = read_image_meta(&bytes, &full);
                     apply_ops(&mut meta);
-                    let _ = fs.write_file(&full, &write_image_bytes(&meta));
+                    let dst_full = if mogrify_format.is_some() || mogrify_path.is_some() {
+                        let fname = full.rsplit('/').next().unwrap_or(&full);
+                        let (stem, orig_ext) = match fname.rsplit_once('.') {
+                            Some((s, e)) if !s.is_empty() => (s, Some(e)),
+                            _ => (fname, None),
+                        };
+                        let ext = mogrify_format
+                            .as_deref()
+                            .or(orig_ext)
+                            .unwrap_or("png");
+                        let new_fname = if mogrify_format.is_some() || orig_ext.is_some() {
+                            format!("{stem}.{ext}")
+                        } else {
+                            stem.to_string()
+                        };
+                        let target_dir = if let Some(ref mp) = mogrify_path {
+                            resolve_posix_path(cwd, mp)
+                        } else if let Some((parent, _)) = full.rsplit_once('/') {
+                            if parent.is_empty() { "/".to_string() } else { parent.to_string() }
+                        } else {
+                            cwd.to_string()
+                        };
+                        resolve_posix_path(&target_dir, &new_fname)
+                    } else {
+                        full.clone()
+                    };
+                    if mogrify_format.is_some() {
+                        meta.fmt = format_from_path(&dst_full).to_string();
+                    }
+                    let _ = fs.write_file(&dst_full, &write_image_bytes(&meta));
                 }
                 return ok_out("");
             }
             if let Some(out_rel) = pos_files.last() {
                 let out_full = resolve_posix_path(cwd, out_rel);
-                let mut meta = if pos_files.len() >= 2 {
+                let mut meta = if let Some(vertical) = append_mode
+                    && pos_files.len() >= 2
+                {
+                    let mut total_w = 0u32;
+                    let mut total_h = 0u32;
+                    let mut first_meta: Option<ImageMeta> = None;
+                    for in_rel in &pos_files[..pos_files.len() - 1] {
+                        let in_full = resolve_posix_path(cwd, in_rel);
+                        let im = fs
+                            .read_file(&in_full)
+                            .map(|b| read_image_meta(&b, &in_full))
+                            .unwrap_or_else(|_| read_image_meta(&[], &in_full));
+                        if vertical {
+                            total_w = total_w.max(im.w);
+                            total_h += im.h;
+                        } else {
+                            total_w += im.w;
+                            total_h = total_h.max(im.h);
+                        }
+                        if first_meta.is_none() {
+                            first_meta = Some(im);
+                        }
+                    }
+                    let mut base = first_meta.unwrap_or_else(|| read_image_meta(&[], &out_full));
+                    base.w = total_w.max(1);
+                    base.h = total_h.max(1);
+                    base
+                } else if pos_files.len() >= 2 {
                     let in_full = resolve_posix_path(cwd, &pos_files[0]);
                     fs.read_file(&in_full)
                         .map(|b| read_image_meta(&b, &in_full))
@@ -5647,42 +5996,486 @@ fn cmd_media_doc(
             }
             ok_out("")
         }
+        "composite" => {
+            if let Some(list_out) = try_magick_list_option(args) {
+                return list_out;
+            }
+            let mut operands: Vec<String> = Vec::new();
+            let mut i = 0usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "-version" | "--version" => {
+                        return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
+                    }
+                    "-help" | "--help" | "-h" => {
+                        return ok_out("Usage: composite [options] overlay base [mask] output\n");
+                    }
+                    "-gravity" | "-geometry" | "-compose" | "-background" | "-quality"
+                    | "-define" | "-dissolve" | "-blend" | "-watermark"
+                        if i + 1 < args.len() =>
+                    {
+                        i += 2;
+                    }
+                    a if a.starts_with('-') => {
+                        i += 1;
+                    }
+                    a => {
+                        operands.push(a.to_string());
+                        i += 1;
+                    }
+                }
+            }
+            if operands.len() < 3 {
+                return err_out("composite: missing an image filename\n", 1);
+            }
+            let overlay_rel = &operands[0];
+            let base_rel = &operands[1];
+            let out_rel = operands.last().unwrap();
+            for src_rel in [overlay_rel, base_rel] {
+                if !src_rel.contains(':') {
+                    let src_full = resolve_posix_path(cwd, src_rel);
+                    if fs.read_file(&src_full).is_err() {
+                        return err_out(
+                            &format!("composite: unable to open image '{src_rel}': No such file or directory\n"),
+                            1,
+                        );
+                    }
+                }
+            }
+            let base_full = resolve_posix_path(cwd, base_rel);
+            let mut base_meta = fs
+                .read_file(&base_full)
+                .map(|b| read_image_meta(&b, &base_full))
+                .unwrap_or_else(|_| read_image_meta(&[], &base_full));
+            let out_full = resolve_posix_path(cwd, out_rel);
+            base_meta.fmt = format_from_path(&out_full).to_string();
+            base_meta
+                .exif
+                .insert("__COMPOSITE__".to_string(), format!("{overlay_rel}:{}", args.join(",")));
+            let _ = fs.write_file(&out_full, &write_image_bytes(&base_meta));
+            ok_out("")
+        }
+        "montage" => {
+            if let Some(list_out) = try_magick_list_option(args) {
+                return list_out;
+            }
+            let mut tile_cols: Option<usize> = None;
+            let mut tile_rows: Option<usize> = None;
+            let mut cell_w: Option<u32> = None;
+            let mut cell_h: Option<u32> = None;
+            let mut pad_x = 2u32;
+            let mut pad_y = 2u32;
+            let mut border_w = 0u32;
+            let mut operands: Vec<String> = Vec::new();
+            let mut i = 0usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "-version" | "--version" => {
+                        return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
+                    }
+                    "-help" | "--help" | "-h" => {
+                        return ok_out("Usage: montage [options] file... output\n");
+                    }
+                    "-tile" if i + 1 < args.len() => {
+                        let t = &args[i + 1];
+                        if let Some((cs, rs)) = t.split_once('x') {
+                            if !cs.is_empty() {
+                                tile_cols = cs.parse().ok();
+                            }
+                            if !rs.is_empty() {
+                                tile_rows = rs.parse().ok();
+                            }
+                        } else {
+                            tile_cols = t.parse().ok();
+                        }
+                        i += 2;
+                    }
+                    "-geometry" | "-thumbnail" if i + 1 < args.len() => {
+                        let g = &args[i + 1];
+                        let mut parts = g.split('+');
+                        let dim_part = parts.next().unwrap_or("");
+                        if let Some(px_s) = parts.next() {
+                            pad_x = px_s.parse().unwrap_or(2);
+                            if let Some(py_s) = parts.next() {
+                                pad_y = py_s.parse().unwrap_or(2);
+                            }
+                        }
+                        let clean_dim = dim_part.trim_end_matches(['!', '^', '>', '<']);
+                        if let Some((ws, hs)) = clean_dim.split_once('x') {
+                            if !ws.is_empty() {
+                                cell_w = ws.parse().ok();
+                            }
+                            if !hs.is_empty() {
+                                cell_h = hs.parse().ok();
+                            }
+                        } else if !clean_dim.is_empty() {
+                            cell_w = clean_dim.parse().ok();
+                        }
+                        i += 2;
+                    }
+                    "-border" | "-frame" if i + 1 < args.len() => {
+                        let b = args[i + 1].split('x').next().unwrap_or("0");
+                        border_w = b.parse().unwrap_or(0);
+                        i += 2;
+                    }
+                    "-background" | "-bordercolor" | "-fill" | "-label" | "-title" | "-font"
+                    | "-pointsize" | "-gravity" | "-quality" | "-mode"
+                        if i + 1 < args.len() =>
+                    {
+                        i += 2;
+                    }
+                    a if a.starts_with('-') => {
+                        i += 1;
+                    }
+                    a => {
+                        operands.push(a.to_string());
+                        i += 1;
+                    }
+                }
+            }
+            if operands.len() < 2 {
+                return err_out("montage: missing an image filename\n", 1);
+            }
+            let in_paths = &operands[..operands.len() - 1];
+            let out_rel = operands.last().unwrap();
+            let mut thumb_dims: Vec<(u32, u32)> = Vec::new();
+            for p in in_paths {
+                let full = resolve_posix_path(cwd, p);
+                let Ok(bytes) = fs.read_file(&full) else {
+                    return err_out(
+                        &format!("montage: unable to open image '{p}': No such file or directory\n"),
+                        1,
+                    );
+                };
+                let meta = read_image_meta(&bytes, &full);
+                let (mut tw, mut th) = if cell_w.is_some() || cell_h.is_some() {
+                    let gspec = format!(
+                        "{}{}",
+                        cell_w.map(|v| v.to_string()).unwrap_or_default(),
+                        cell_h.map(|v| format!("x{v}")).unwrap_or_default()
+                    );
+                    apply_magick_resize_geom(meta.w, meta.h, &gspec)
+                } else {
+                    (meta.w, meta.h)
+                };
+                tw += border_w * 2;
+                th += border_w * 2;
+                thumb_dims.push((tw, th));
+            }
+            let n = thumb_dims.len();
+            let cols = tile_cols.unwrap_or_else(|| {
+                if let Some(tr) = tile_rows {
+                    n.div_ceil(tr.max(1))
+                } else {
+                    (n as f64).sqrt().ceil() as usize
+                }
+            });
+            let rows = tile_rows.unwrap_or_else(|| n.div_ceil(cols.max(1)));
+            let max_thumb_w = thumb_dims
+                .iter()
+                .map(|(w, _)| *w)
+                .fold(cell_w.unwrap_or(0), u32::max);
+            let max_thumb_h = thumb_dims
+                .iter()
+                .map(|(_, h)| *h)
+                .fold(cell_h.unwrap_or(0), u32::max);
+            let slot_w = max_thumb_w + pad_x * 2;
+            let slot_h = max_thumb_h + pad_y * 2;
+            let canvas_w = ((cols as u32) * slot_w).max(1);
+            let canvas_h = ((rows as u32) * slot_h).max(1);
+            let out_full = resolve_posix_path(cwd, out_rel);
+            let out_meta = ImageMeta {
+                fmt: format_from_path(&out_full).to_string(),
+                w: canvas_w,
+                h: canvas_h,
+                cs: "sRGB".to_string(),
+                exif: BTreeMap::new(),
+            };
+            let _ = fs.write_file(&out_full, &write_image_bytes(&out_meta));
+            ok_out("")
+        }
+        "compare" => {
+            if let Some(list_out) = try_magick_list_option(args) {
+                return list_out;
+            }
+            let mut metric = "rmse".to_string();
+            let mut fuzz_pct = 0.0f64;
+            let mut operands: Vec<String> = Vec::new();
+            let mut i = 0usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "-version" | "--version" => {
+                        return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
+                    }
+                    "-help" | "--help" | "-h" => {
+                        return ok_out("Usage: compare [-metric METRIC] image1 image2 output\n");
+                    }
+                    "-metric" if i + 1 < args.len() => {
+                        metric = args[i + 1].to_ascii_lowercase();
+                        i += 2;
+                    }
+                    "-fuzz" if i + 1 < args.len() => {
+                        let f = args[i + 1].trim_end_matches('%');
+                        fuzz_pct = f.parse::<f64>().unwrap_or(0.0);
+                        i += 2;
+                    }
+                    "-highlight-color" | "-lowlight-color" | "-compose"
+                    | "-dissimilarity-threshold" | "-quality" | "-density"
+                        if i + 1 < args.len() =>
+                    {
+                        i += 2;
+                    }
+                    a if a.starts_with('-') && a != "-" => {
+                        i += 1;
+                    }
+                    a => {
+                        operands.push(a.to_string());
+                        i += 1;
+                    }
+                }
+            }
+            if operands.len() < 3 {
+                return err_out("compare: missing an image filename\n", 2);
+            }
+            let load_cmp_img = |spec: &str| -> Result<(ImageMeta, Vec<u8>), String> {
+                let lower = spec.to_ascii_lowercase();
+                if lower.starts_with("xc:") || lower.starts_with("canvas:") {
+                    let c_str = spec.split_once(':').map(|(_, r)| r).unwrap_or("white");
+                    let (r, g, b) = normalize_magick_rgb(c_str);
+                    let mut ex = BTreeMap::new();
+                    ex.insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
+                    let m = ImageMeta {
+                        fmt: "PNG".to_string(),
+                        w: 1,
+                        h: 1,
+                        cs: "sRGB".to_string(),
+                        exif: ex,
+                    };
+                    let bytes = write_image_bytes(&m);
+                    return Ok((m, bytes));
+                }
+                let full = resolve_posix_path(cwd, spec);
+                match fs.read_file(&full) {
+                    Ok(bytes) => {
+                        if bytes.is_empty() {
+                            return Err(format!("compare: improper image header '{spec}'\n"));
+                        }
+                        Ok((read_image_meta(&bytes, &full), bytes))
+                    }
+                    Err(_) => Err(format!(
+                        "compare: unable to open image '{spec}': No such file or directory\n"
+                    )),
+                }
+            };
+            let (meta_a, bytes_a) = match load_cmp_img(&operands[0]) {
+                Ok(v) => v,
+                Err(e) => return err_out(&e, 2),
+            };
+            let (meta_b, bytes_b) = match load_cmp_img(&operands[1]) {
+                Ok(v) => v,
+                Err(e) => return err_out(&e, 2),
+            };
+            let out_spec = &operands[2];
+            let width = meta_a.w.max(meta_b.w);
+            let height = meta_a.h.max(meta_b.h);
+            let color_a = meta_a.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
+            let color_b = meta_b.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
+            let (ra, ga, ba) = normalize_magick_rgb(if color_a.is_empty() { "#ffffff" } else { color_a });
+            let (rb, gb, bb) = normalize_magick_rgb(if color_b.is_empty() { "#ffffff" } else { color_b });
+            let max_ch_diff = (ra as i32 - rb as i32)
+                .abs()
+                .max((ga as i32 - gb as i32).abs())
+                .max((ba as i32 - bb as i32).abs()) as f64;
+            let fuzz_abs = (fuzz_pct / 100.0) * 255.0;
+            let same_pixels = (bytes_a == bytes_b)
+                || (meta_a.w == meta_b.w
+                    && meta_a.h == meta_b.h
+                    && (!color_a.is_empty() || !color_b.is_empty())
+                    && max_ch_diff <= fuzz_abs);
+            let total_pixels = (width as u64) * (height as u64);
+            let (metric_str, exit_code) = if same_pixels {
+                let s = match metric.as_str() {
+                    "ae" => "0".to_string(),
+                    "psnr" => "inf".to_string(),
+                    "ncc" | "ssim" => "1".to_string(),
+                    "dssim" => "0".to_string(),
+                    _ => "0 (0)".to_string(),
+                };
+                (s, 0)
+            } else {
+                let dr = (ra as f64 - rb as f64).abs();
+                let dg = (ga as f64 - gb as f64).abs();
+                let db = (ba as f64 - bb as f64).abs();
+                let mae_norm = if dr + dg + db > 0.0 {
+                    (dr + dg + db) / (3.0 * 255.0)
+                } else {
+                    1.0
+                };
+                let mse_norm = if dr + dg + db > 0.0 {
+                    (dr * dr + dg * dg + db * db) / (3.0 * 255.0 * 255.0)
+                } else {
+                    1.0
+                };
+                let rmse_norm = mse_norm.sqrt();
+                let pae_norm = if max_ch_diff > 0.0 { max_ch_diff / 255.0 } else { 1.0 };
+                let fmt_num = |n: f64| -> String {
+                    if !n.is_finite() {
+                        return "inf".to_string();
+                    }
+                    if n.abs() < 1e-9 {
+                        return "0".to_string();
+                    }
+                    let s = format!("{n:.6}");
+                    let s = s.trim_end_matches('0').trim_end_matches('.');
+                    if s == "-0" || s.is_empty() { "0".to_string() } else { s.to_string() }
+                };
+                let s = match metric.as_str() {
+                    "ae" => total_pixels.to_string(),
+                    "mae" => format!("{} ({})", fmt_num(mae_norm * 65535.0), fmt_num(mae_norm)),
+                    "mse" => format!("{} ({})", fmt_num(mse_norm * 65535.0), fmt_num(mse_norm)),
+                    "pae" => format!("{} ({})", fmt_num(pae_norm * 65535.0), fmt_num(pae_norm)),
+                    "psnr" => fmt_num(10.0 * (1.0 / mse_norm).log10()),
+                    "ncc" | "ssim" => "0".to_string(),
+                    "dssim" => "0.5".to_string(),
+                    _ => format!("{} ({})", fmt_num(rmse_norm * 65535.0), fmt_num(rmse_norm)),
+                };
+                (s, 1)
+            };
+            if !out_spec.eq_ignore_ascii_case("null:") {
+                let clean_out = out_spec
+                    .split_once(':')
+                    .map(|(_, r)| r)
+                    .unwrap_or(out_spec.as_str());
+                let diff_meta = ImageMeta {
+                    fmt: format_from_path(clean_out).to_string(),
+                    w: width,
+                    h: height,
+                    cs: "sRGB".to_string(),
+                    exif: BTreeMap::new(),
+                };
+                let encoded = write_image_bytes(&diff_meta);
+                if clean_out == "-" {
+                    return BuiltinOutcome {
+                        stdout: crate::vfs::bytes_to_stream_string(&encoded),
+                        stderr: format!("{metric_str}\n"),
+                        exit_code,
+                    };
+                }
+                let out_full = resolve_posix_path(cwd, clean_out);
+                let _ = fs.write_file(&out_full, &encoded);
+            }
+            BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{metric_str}\n"),
+                exit_code,
+            }
+        }
         "identify" => {
+            if let Some(list_out) = try_magick_list_option(args) {
+                return list_out;
+            }
             let mut fmt_opt: Option<String> = None;
+            let mut verbose = false;
             let mut files: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
-                if args[i] == "-format" && i + 1 < args.len() {
+                let a = args[i].as_str();
+                if a == "-version" || a == "--version" {
+                    return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
+                }
+                if a == "-help" || a == "--help" || a == "-h" {
+                    return ok_out("Usage: identify [-ping] [-verbose] [-format FORMAT] file...\n");
+                }
+                if (a == "-format" || a == "--format") && i + 1 < args.len() {
                     fmt_opt = Some(args[i + 1].clone());
                     i += 2;
                     continue;
                 }
-                if !args[i].starts_with('-') {
+                if a == "-verbose" || a == "--verbose" {
+                    verbose = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "-ping" || a == "--ping" {
+                    i += 1;
+                    continue;
+                }
+                if !a.starts_with('-') || a == "-" {
                     files.push(args[i].clone());
                 }
                 i += 1;
             }
+            if files.is_empty() {
+                return err_out("identify: missing an image filename\n", 1);
+            }
             let mut out = String::new();
+            let mut err_buf = String::new();
+            let mut exit_code = 0;
             for f in &files {
                 let full = resolve_posix_path(cwd, f);
-                let bytes = fs.read_file(&full).unwrap_or_default();
+                let Ok(bytes) = fs.read_file(&full) else {
+                    err_buf.push_str(&format!(
+                        "identify: unable to open image '{f}': No such file or directory\n"
+                    ));
+                    exit_code = 1;
+                    continue;
+                };
                 let meta = read_image_meta(&bytes, &full);
                 if let Some(ref fmt_str) = fmt_opt {
                     let fname = f.rsplit('/').next().unwrap_or(f);
+                    let (stem, ext) = match fname.rsplit_once('.') {
+                        Some((s, e)) => (s, e),
+                        None => (fname, ""),
+                    };
+                    let compression = match meta.fmt.as_str() {
+                        "PNG" => "Zip",
+                        "JPEG" => "JPEG",
+                        "GIF" => "LZW",
+                        _ => "None",
+                    };
                     let rendered = fmt_str
+                        .replace("%%", "\x00PCT\x00")
                         .replace("%m", &meta.fmt)
                         .replace("%w", &meta.w.to_string())
                         .replace("%h", &meta.h.to_string())
+                        .replace("%z", "8")
+                        .replace("%q", "8")
+                        .replace("%r", &format!("DirectClass {}", meta.cs))
+                        .replace("%t", stem)
+                        .replace("%e", ext)
+                        .replace("%i", f)
+                        .replace("%g", &format!("{}x{}+0+0", meta.w, meta.h))
+                        .replace("%P", &format!("{}x{}", meta.w, meta.h))
+                        .replace("%C", compression)
+                        .replace("%Q", "92")
+                        .replace("%n", "1")
+                        .replace("%s", "0")
                         .replace("%[width]", &meta.w.to_string())
                         .replace("%[height]", &meta.h.to_string())
+                        .replace("%[depth]", "8")
+                        .replace("%[size]", &format!("{}B", bytes.len()))
+                        .replace("%[compression]", compression)
+                        .replace("%[quality]", "92")
                         .replace("%[fx:w]", &meta.w.to_string())
                         .replace("%[fx:h]", &meta.h.to_string())
+                        .replace("%[fx:w*h]", &(meta.w * meta.h).to_string())
                         .replace("%[colorspace]", &meta.cs)
                         .replace("%b", &format!("{}B", bytes.len()))
+                        .replace("%B", &bytes.len().to_string())
                         .replace("%f", fname)
                         .replace("\\n", "\n")
-                        .replace("\\t", "\t");
+                        .replace("\\t", "\t")
+                        .replace("\x00PCT\x00", "%");
                     out.push_str(&rendered);
+                } else if verbose {
+                    out.push_str(&format!(
+                        "Image: {f}\n  Format: {}\n  Geometry: {}x{}+0+0\n  Resolution: 72x72\n  Colorspace: {}\n  Depth: 8-bit\n  Filesize: {}B\n",
+                        meta.fmt,
+                        meta.w,
+                        meta.h,
+                        meta.cs,
+                        bytes.len()
+                    ));
                 } else {
                     out.push_str(&format!(
                         "{f} {} {}x{} {}x{}+0+0 8-bit {}\n",
@@ -5690,24 +6483,62 @@ fn cmd_media_doc(
                     ));
                 }
             }
-            ok_out(&out)
+            BuiltinOutcome {
+                stdout: out,
+                stderr: err_buf,
+                exit_code,
+            }
         }
         "sips" => {
+            if args.is_empty() {
+                return err_out(
+                    "sips: no arguments specified. Try 'sips --help' for help.\n",
+                    1,
+                );
+            }
             let mut get_props: Vec<String> = Vec::new();
             let mut one_line = false;
             let mut has_mod = false;
+            let mut verify_mode = false;
             let mut out_path: Option<String> = None;
             let mut files: Vec<String> = Vec::new();
             let mut ops: Vec<(&str, String, String)> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
+                    "-h" | "--help" => {
+                        return ok_out(
+                            "sips - scriptable image processing system\nUsage: sips [options] file ...\n",
+                        );
+                    }
+                    "-v" | "--version" => {
+                        return ok_out("sips 10.4.4\n");
+                    }
+                    "-H" | "--helpProperties" => {
+                        return ok_out(
+                            "pixelWidth\npixelHeight\ntypeIdentifier\nformat\nformatOptions\ndpiWidth\ndpiHeight\nsamplesPerPixel\nbitsPerSample\nhasAlpha\nspace\nall\nallxml\n",
+                        );
+                    }
+                    "--formats" => {
+                        return ok_out(
+                            "Supported Formats:\n-------------------------------------------\ncom.adobe.pdf                pdf   Writable\ncom.compuserve.gif           gif   Writable\ncom.microsoft.bmp            bmp   Writable\norg.webmproject.webp         webp  Writable\npublic.avif                  avif  Writable\npublic.heic                  heic  Writable\npublic.heif                  heif  Writable\npublic.jpeg                  jpeg  Writable\npublic.png                   png   Writable\npublic.tiff                  tiff  Writable\n",
+                        );
+                    }
+                    "--verify" => {
+                        verify_mode = true;
+                        i += 1;
+                    }
                     "-1" | "--oneLine" => {
                         one_line = true;
                         i += 1;
                     }
                     "-g" | "--getProperty" if i + 1 < args.len() => {
                         get_props.push(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-d" | "--deleteProperty" if i + 1 < args.len() => {
+                        has_mod = true;
+                        ops.push(("d", args[i + 1].clone(), String::new()));
                         i += 2;
                     }
                     "-z" | "--resampleHeightWidth" if i + 2 < args.len() => {
@@ -5779,10 +6610,28 @@ fn cmd_media_doc(
                     6,
                 );
             }
+            if files.is_empty() {
+                return err_out("sips: no input files specified\n", 1);
+            }
+            let type_id_for_fmt = |fmt_lower: &str| -> String {
+                match fmt_lower {
+                    "webp" => "org.webmproject.webp".to_string(),
+                    "gif" => "com.compuserve.gif".to_string(),
+                    "bmp" => "com.microsoft.bmp".to_string(),
+                    "pdf" => "com.adobe.pdf".to_string(),
+                    "ppm" | "pgm" | "pbm" => "public.pbm".to_string(),
+                    other => format!("public.{other}"),
+                }
+            };
             if !get_props.is_empty() {
                 let mut out = String::new();
+                let mut err_out_str = String::new();
                 for f in &files {
                     let full = resolve_posix_path(cwd, f);
+                    if !fs.exists(&full) {
+                        err_out_str.push_str(&format!("Error: {f}: file does not exist\n"));
+                        continue;
+                    }
                     let bytes = fs.read_file(&full).unwrap_or_default();
                     let meta = read_image_meta(&bytes, &full);
                     let fmt_lower = meta.fmt.to_ascii_lowercase();
@@ -5800,8 +6649,17 @@ fn cmd_media_doc(
                             expanded_props.push("pixelHeight".to_string());
                             expanded_props.push("typeIdentifier".to_string());
                             expanded_props.push("format".to_string());
+                            expanded_props.push("formatOptions".to_string());
+                            expanded_props.push("dpiWidth".to_string());
+                            expanded_props.push("dpiHeight".to_string());
+                            expanded_props.push("samplesPerPixel".to_string());
+                            expanded_props.push("bitsPerSample".to_string());
+                            expanded_props.push("hasAlpha".to_string());
+                            expanded_props.push("space".to_string());
                             for k in meta.exif.keys() {
-                                expanded_props.push(k.clone());
+                                if !k.starts_with("__") {
+                                    expanded_props.push(k.clone());
+                                }
                             }
                         } else {
                             expanded_props.push(p.clone());
@@ -5810,12 +6668,31 @@ fn cmd_media_doc(
                     let mut kvs = Vec::new();
                     for p in &expanded_props {
                         let val = match p.as_str() {
+                            "path" => f.to_string(),
                             "pixelWidth" => meta.w.to_string(),
                             "pixelHeight" => meta.h.to_string(),
                             "format" => fmt_lower.clone(),
-                            "typeIdentifier" => format!("public.{fmt_lower}"),
+                            "typeIdentifier" => type_id_for_fmt(&fmt_lower),
+                            "formatOptions" => "default".to_string(),
+                            "dpiWidth" => meta
+                                .exif
+                                .get("dpiWidth")
+                                .cloned()
+                                .unwrap_or_else(|| "72.000".to_string()),
+                            "dpiHeight" => meta
+                                .exif
+                                .get("dpiHeight")
+                                .cloned()
+                                .unwrap_or_else(|| "72.000".to_string()),
+                            "samplesPerPixel" => "3".to_string(),
+                            "bitsPerSample" => "8".to_string(),
+                            "hasAlpha" => "no".to_string(),
                             "space" => "RGB".to_string(),
-                            other => meta.exif.get(other).cloned().unwrap_or_default(),
+                            other => meta
+                                .exif
+                                .get(other)
+                                .cloned()
+                                .unwrap_or_else(|| "<nil>".to_string()),
                         };
                         kvs.push((p.clone(), val));
                     }
@@ -5833,10 +6710,24 @@ fn cmd_media_doc(
                         }
                     }
                 }
-                return ok_out(&out);
+                return BuiltinOutcome {
+                    stdout: out,
+                    stderr: err_out_str.clone(),
+                    exit_code: if err_out_str.is_empty() { 0 } else { 1 },
+                };
             }
+            let mut err_out_str = String::new();
+            let mut verify_out = String::new();
             for f in &files {
                 let in_full = resolve_posix_path(cwd, f);
+                if !fs.exists(&in_full) {
+                    err_out_str.push_str(&format!("Error: {f}: file does not exist\n"));
+                    continue;
+                }
+                if verify_mode && !has_mod && out_path.is_none() {
+                    verify_out.push_str(&format!("{f}\n"));
+                    continue;
+                }
                 let mut meta = fs
                     .read_file(&in_full)
                     .map(|b| read_image_meta(&b, &in_full))
@@ -5881,10 +6772,39 @@ fn cmd_media_doc(
                         }
                         "s" => {
                             if a1 == "format" {
-                                meta.fmt = a2.to_ascii_uppercase();
+                                let norm_fmt = match a2.trim().to_ascii_lowercase().as_str() {
+                                    "png" | "public.png" => Some("PNG"),
+                                    "jpeg" | "jpg" | "public.jpeg" => Some("JPEG"),
+                                    "webp" | "org.webmproject.webp" => Some("WEBP"),
+                                    "gif" | "com.compuserve.gif" => Some("GIF"),
+                                    "bmp" | "com.microsoft.bmp" => Some("BMP"),
+                                    "tiff" | "tif" | "public.tiff" => Some("TIFF"),
+                                    "ppm" => Some("PPM"),
+                                    "pgm" => Some("PGM"),
+                                    "pbm" | "public.pbm" => Some("PBM"),
+                                    "pdf" | "com.adobe.pdf" => Some("PDF"),
+                                    "heic" | "public.heic" => Some("HEIC"),
+                                    "heif" | "public.heif" => Some("HEIF"),
+                                    "avif" | "public.avif" => Some("AVIF"),
+                                    _ => None,
+                                };
+                                if let Some(nf) = norm_fmt {
+                                    meta.fmt = nf.to_string();
+                                } else {
+                                    return err_out(&format!("Error:Unsupported format: {a2}\n"), 1);
+                                }
+                            } else if a1 == "dpiWidth" || a1 == "dpiHeight" {
+                                if let Ok(num) = a2.parse::<f64>()
+                                    && num > 0.0
+                                {
+                                    meta.exif.insert(a1.clone(), format!("{num:.3}"));
+                                }
                             } else if a1 != "formatOptions" {
                                 meta.exif.insert(a1.clone(), a2.clone());
                             }
+                        }
+                        "d" => {
+                            meta.exif.remove(a1);
                         }
                         _ => {}
                     }
@@ -5911,30 +6831,68 @@ fn cmd_media_doc(
                 };
                 let _ = fs.write_file(&dst_full, &write_image_bytes(&meta));
             }
-            ok_out("")
+            BuiltinOutcome {
+                stdout: verify_out,
+                stderr: err_out_str.clone(),
+                exit_code: if err_out_str.is_empty() { 0 } else { 1 },
+            }
         }
         "exiftool" => {
-            let json_mode = args.iter().any(|a| a == "-j" || a == "-json" || a == "--json");
-            let s3_mode = args.iter().any(|a| a == "-s3");
-            let tab_mode = args.iter().any(|a| a == "-T");
-            let csv_mode = args.iter().any(|a| a == "-csv");
-            let xml_mode = args.iter().any(|a| a == "-X");
-            let overwrite_orig = args.iter().any(|a| a == "-overwrite_original");
+            if args.len() == 1 && (args[0] == "-ver" || args[0] == "--version") {
+                return ok_out("13.59\n");
+            }
+            let mut expanded_args: Vec<String> = Vec::new();
+            let mut ai = 0usize;
+            while ai < args.len() {
+                if args[ai] == "-@" && ai + 1 < args.len() {
+                    let af_full = resolve_posix_path(cwd, &args[ai + 1]);
+                    if let Ok(af_bytes) = fs.read_file(&af_full) {
+                        for line in String::from_utf8_lossy(&af_bytes).lines() {
+                            let trimmed = line.trim();
+                            if !trimmed.is_empty() && !trimmed.starts_with('#') {
+                                expanded_args.push(trimmed.to_string());
+                            }
+                        }
+                    }
+                    ai += 2;
+                } else {
+                    expanded_args.push(args[ai].clone());
+                    ai += 1;
+                }
+            }
+            let json_mode = expanded_args
+                .iter()
+                .any(|a| a == "-j" || a == "-json" || a == "--json");
+            let s3_mode = expanded_args.iter().any(|a| a == "-s3");
+            let s2_mode = expanded_args.iter().any(|a| a == "-s2");
+            let group_mode = expanded_args
+                .iter()
+                .any(|a| a == "-G" || a == "-G0" || a == "-G1");
+            let tab_mode = expanded_args.iter().any(|a| a == "-T");
+            let csv_mode = expanded_args.iter().any(|a| a == "-csv");
+            let xml_mode = expanded_args.iter().any(|a| a == "-X");
+            let overwrite_orig = expanded_args.iter().any(|a| a == "-overwrite_original");
+            let mut print_fmt: Option<String> = None;
             let mut updates: Vec<(String, String)> = Vec::new();
             let mut requested_tags: Vec<String> = Vec::new();
             let mut files: Vec<String> = Vec::new();
             let mut out_path: Option<String> = None;
             let mut tags_from_file: Option<String> = None;
             let mut i = 0usize;
-            while i < args.len() {
-                let a = &args[i];
-                if a == "-o" && i + 1 < args.len() {
-                    out_path = Some(args[i + 1].clone());
+            while i < expanded_args.len() {
+                let a = &expanded_args[i];
+                if a == "-o" && i + 1 < expanded_args.len() {
+                    out_path = Some(expanded_args[i + 1].clone());
                     i += 2;
                     continue;
                 }
-                if a == "-tagsFromFile" && i + 1 < args.len() {
-                    tags_from_file = Some(args[i + 1].clone());
+                if a == "-p" && i + 1 < expanded_args.len() {
+                    print_fmt = Some(expanded_args[i + 1].clone());
+                    i += 2;
+                    continue;
+                }
+                if (a == "-tagsFromFile" || a == "-TagsFromFile") && i + 1 < expanded_args.len() {
+                    tags_from_file = Some(expanded_args[i + 1].clone());
                     i += 2;
                     continue;
                 }
@@ -5944,7 +6902,23 @@ fn cmd_media_doc(
                         updates.push((clean_k.to_string(), v.to_string()));
                     } else if !matches!(
                         rest,
-                        "j" | "json" | "-json" | "s3" | "T" | "csv" | "X" | "overwrite_original" | "q" | "n"
+                        "j" | "json"
+                            | "-json"
+                            | "s"
+                            | "s1"
+                            | "s2"
+                            | "s3"
+                            | "G"
+                            | "G0"
+                            | "G1"
+                            | "T"
+                            | "csv"
+                            | "X"
+                            | "overwrite_original"
+                            | "q"
+                            | "n"
+                            | "a"
+                            | "u"
                     ) {
                         requested_tags.push(rest.to_string());
                     }
@@ -5956,21 +6930,59 @@ fn cmd_media_doc(
             if let Some(src_tag_file) = tags_from_file {
                 let src_full = resolve_posix_path(cwd, &src_tag_file);
                 if let Ok(src_bytes) = fs.read_file(&src_full) {
-                    let src_text = String::from_utf8_lossy(&src_bytes);
-                    for line in src_text.lines() {
-                        if let Some(kv) = line.strip_prefix("__EXIF__:")
-                            && let Some((k, v)) = kv.split_once('=')
+                    let mut src_tags: BTreeMap<String, String> = BTreeMap::new();
+                    if src_full.to_ascii_lowercase().ends_with(".pdf")
+                        || src_bytes.starts_with(b"%PDF-")
+                    {
+                        let pdf = PdfDoc::parse(&src_bytes);
+                        if !pdf.title.is_empty() {
+                            src_tags.insert("Title".to_string(), pdf.title);
+                        }
+                        if !pdf.author.is_empty() {
+                            src_tags.insert("Author".to_string(), pdf.author);
+                        }
+                        for (k, v) in pdf.info {
+                            src_tags.insert(k, v);
+                        }
+                        for (k, v) in pdf.exif {
+                            src_tags.insert(k, v);
+                        }
+                    } else {
+                        let src_meta = read_image_meta(&src_bytes, &src_full);
+                        for (k, v) in src_meta.exif {
+                            if !k.starts_with("__") {
+                                src_tags.insert(k, v);
+                            }
+                        }
+                    }
+                    for (k, v) in src_tags {
+                        if (requested_tags.is_empty()
+                            || requested_tags.iter().any(|rt| rt.eq_ignore_ascii_case(&k)))
                             && !v.is_empty()
                         {
-                            updates.push((k.to_string(), v.to_string()));
+                            updates.push((k, v));
                         }
                     }
                 }
             }
             if !updates.is_empty() {
+                let mut updated = 0usize;
+                let mut err_out = String::new();
                 for f in &files {
                     let full = resolve_posix_path(cwd, f);
+                    if !fs.exists(&full) {
+                        err_out.push_str(&format!("Error: File not found - {f}\n"));
+                        continue;
+                    }
                     let mut data = fs.read_file(&full).unwrap_or_default();
+                    let is_pdf = full.to_ascii_lowercase().ends_with(".pdf")
+                        || data.starts_with(b"%PDF-");
+                    if is_pdf && updates.iter().any(|(k, _)| k.eq_ignore_ascii_case("all")) {
+                        err_out.push_str(&format!(
+                            "Error: PDF parser/writer not yet supported; metadata deletion retains historical revisions and never guarantees redaction - {f}\n"
+                        ));
+                        continue;
+                    }
                     if !overwrite_orig && out_path.is_none() {
                         let orig_path = format!("{full}_original");
                         if !fs.exists(&orig_path) {
@@ -5985,14 +6997,33 @@ fn cmd_media_doc(
                         .map(|p| resolve_posix_path(cwd, p))
                         .unwrap_or(full);
                     let _ = fs.write_file(&dst, &data);
+                    updated += 1;
                 }
-                return ok_out("    1 image files updated\n");
+                let stdout_str = if updated > 0 {
+                    format!("    {updated} image files updated\n")
+                } else {
+                    String::new()
+                };
+                return BuiltinOutcome {
+                    stdout: stdout_str,
+                    stderr: err_out.clone(),
+                    exit_code: if err_out.is_empty() { 0 } else { 1 },
+                };
             }
             let read_all_tags = |f: &str| -> BTreeMap<String, String> {
                 let full = resolve_posix_path(cwd, f);
                 let data = fs.read_file(&full).unwrap_or_default();
                 let mut map = BTreeMap::new();
                 map.insert("SourceFile".to_string(), f.to_string());
+                let file_name = f.rsplit('/').next().unwrap_or(f).to_string();
+                let dir_name = match f.rfind('/') {
+                    Some(0) => "/".to_string(),
+                    Some(idx) => f[..idx].to_string(),
+                    None => ".".to_string(),
+                };
+                map.insert("FileName".to_string(), file_name);
+                map.insert("Directory".to_string(), dir_name);
+                map.insert("FileSize".to_string(), format!("{} bytes", data.len()));
                 if full.to_ascii_lowercase().ends_with(".pdf") || data.starts_with(b"%PDF-") {
                     let pdf = PdfDoc::parse(&data);
                     map.insert("FileType".to_string(), "PDF".to_string());
@@ -6006,6 +7037,9 @@ fn cmd_media_doc(
                     if !pdf.author.is_empty() {
                         map.insert("Author".to_string(), pdf.author);
                     }
+                    for (k, v) in pdf.info {
+                        map.insert(k, v);
+                    }
                     for (k, v) in pdf.exif {
                         map.insert(k, v);
                     }
@@ -6015,15 +7049,41 @@ fn cmd_media_doc(
                         "MIMEType".to_string(),
                         format!("image/{}", im.fmt.to_ascii_lowercase()),
                     );
+                    let ext = if im.fmt == "JPEG" {
+                        "jpg".to_string()
+                    } else {
+                        im.fmt.to_ascii_lowercase()
+                    };
+                    map.insert("FileTypeExtension".to_string(), ext);
                     map.insert("FileType".to_string(), im.fmt);
                     map.insert("ImageWidth".to_string(), im.w.to_string());
                     map.insert("ImageHeight".to_string(), im.h.to_string());
+                    map.insert("ImageSize".to_string(), format!("{}x{}", im.w, im.h));
+                    map.insert("BitDepth".to_string(), "8".to_string());
+                    map.insert("ColorType".to_string(), "RGB".to_string());
                     for (k, v) in im.exif {
-                        map.insert(k, v);
+                        if !k.starts_with("__") {
+                            map.insert(k, v);
+                        }
                     }
                 }
                 map
             };
+            if let Some(ref tpl) = print_fmt {
+                let mut out = String::new();
+                for f in &files {
+                    let map = read_all_tags(f);
+                    let mut line = tpl.clone();
+                    for (k, v) in &map {
+                        line = line
+                            .replace(&format!("${{{k}}}"), v)
+                            .replace(&format!("${k}"), v);
+                    }
+                    out.push_str(&line);
+                    out.push('\n');
+                }
+                return ok_out(&out);
+            }
             if json_mode {
                 let mut items = Vec::new();
                 for f in &files {
@@ -6097,8 +7157,23 @@ fn cmd_media_doc(
             let mut out = String::new();
             for f in &files {
                 let map = read_all_tags(f);
-                for (k, v) in &map {
-                    out.push_str(&format!("{k:<32}: {v}\n"));
+                let file_grp = map.get("FileType").cloned().unwrap_or_else(|| "File".to_string());
+                let keys: Vec<String> = if requested_tags.is_empty() {
+                    map.keys().cloned().collect()
+                } else {
+                    requested_tags.clone()
+                };
+                for k in &keys {
+                    if let Some(v) = map.get(k) {
+                        if s2_mode {
+                            out.push_str(&format!("{k}: {v}\n"));
+                        } else if group_mode {
+                            let grp_hdr = format!("[{file_grp}]");
+                            out.push_str(&format!("{grp_hdr:<16}{k:<32}: {v}\n"));
+                        } else {
+                            out.push_str(&format!("{k:<32}: {v}\n"));
+                        }
+                    }
                 }
             }
             ok_out(&out)

@@ -301,6 +301,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-dot-neato-graphviz-svgo-rsvg-diffpdf-ast-matrix.test.ts",
   "obscure-less-more-pager-pdfunite-pdfseparate-pdffonts-pdfdetach-pdftocairo-matrix.test.ts",
   "obscure-pdftohtml-pdftotext-htmlq-mdq-xmllint-xq-html-to-markdown-matrix.test.ts",
+  "obscure-magick-composite-montage-compare-mogrify-identify-sips-exiftool-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

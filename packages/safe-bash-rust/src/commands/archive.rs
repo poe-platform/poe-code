@@ -28,7 +28,7 @@ pub fn try_run_archive_command(
         "hd" => Some(cmd_hexdump(args, stdin, cwd, fs, true)),
         "tar" => Some(cmd_tar(args, stdin, cwd, fs)),
         "gzip" | "gunzip" | "zcat" | "zstd" | "unzstd" | "zstdcat" | "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" | "bzip2" | "bunzip2" | "bzcat" => Some(cmd_gzip(cmd, args, stdin, cwd, fs)),
-        "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf" | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts" | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo" | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "rsvg-convert" | "sox" | "soxi" | "qrencode" | "magick" | "convert" | "mogrify" | "sips" | "exiftool" | "identify" => Some(cmd_media_doc(cmd, args, stdin, cwd, fs)),
+        "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf" | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts" | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo" | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "rsvg-convert" | "sox" | "soxi" | "qrencode" | "magick" | "convert" | "mogrify" | "composite" | "montage" | "compare" | "sips" | "exiftool" | "identify" => Some(cmd_media_doc(cmd, args, stdin, cwd, fs)),
         "zip" => Some(cmd_zip(args, stdin, cwd, fs)),
         "unzip" => Some(cmd_unzip(args, cwd, fs)),
         "openssl" => Some(cmd_openssl(args, stdin, cwd, env, fs)),

@@ -234,11 +234,10 @@ if _safe_metadata_only:
     _safe_root.url = None
     _safe_root.specifier = _SafeRequirement(_safe_root.name + '==' + str(_safe_wheel.version)).specifier
 _safe_managed = await _safe_resolve(_safe_roots, _safe_package_upgrade, _safe_package_forceReinstall)
-_safe_distributions = [d for d in _safe_metadata.distributions() if d.metadata['Name']]
-_safe_versions = {_safe_name(d.metadata['Name']): d.version for d in _safe_distributions}
 _safe_removed = []
 if _safe_uninstall:
  _safe_targets = list(dict.fromkeys(_safe_name(_SafeRequirement(source).name) for source in _safe_uninstall['packages']))
+ _safe_versions = {_safe_name(d.metadata['Name']): d.version for d in _safe_metadata.distributions() if d.metadata['Name'] and _safe_name(d.metadata['Name']) in _safe_targets}
  for _safe_target in _safe_targets:
   if _safe_target in _safe_preloaded or _safe_target in _safe_managed:
    raise ValueError('Cannot uninstall host-required Python package: ' + _safe_target)
@@ -282,15 +281,18 @@ if _safe_uninstall:
    raise ValueError('Python package removal did not complete: ' + _safe_target)
   _safe_restored_names.discard(_safe_target)
   _safe_removed.append(_safe_target + '-' + _safe_version)
- _safe_distributions = [d for d in _safe_metadata.distributions() if d.metadata['Name']]
- _safe_versions = {_safe_name(d.metadata['Name']): d.version for d in _safe_distributions}
 _safe_uninstalled_json = _safe_json.dumps(_safe_removed)
 _safe_managed.update(_safe_restored_names)
 _safe_sources = []
 _safe_final_records = []
-for _safe_dist in _safe_distributions:
- _safe_dist_name = _safe_name(_safe_dist.metadata['Name'])
+_safe_versions = {}
+for _safe_dist in _safe_metadata.distributions():
+ _safe_dist_name = _safe_dist.metadata['Name']
+ if not _safe_dist_name:
+  continue
+ _safe_dist_name = _safe_name(_safe_dist_name)
  if _safe_dist_name in _safe_managed:
+  _safe_versions[_safe_dist_name] = _safe_dist.version
   _safe_origin = _safe_dist.read_text('PYODIDE_URL')
   if _safe_origin:
    _safe_sources.append(_safe_dist_name + ' @ ' + _safe_origin.strip())

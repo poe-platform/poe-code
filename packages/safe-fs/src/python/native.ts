@@ -162,7 +162,7 @@ export function createPythonNativeSyscalls(options: PythonNativeSyscallOptions):
         if (position !== null) position += transferred;
         if (entry && !positioned) entry.position = writing && entry.flags & 1024
           ? await request('position', entry.handle) : entry.position + transferred;
-        if (transferred < size || !writing) {
+        if (transferred < size || !writing && !entry?.seekable) {
           view().setUint32(output, total, true);
           return 0;
         }

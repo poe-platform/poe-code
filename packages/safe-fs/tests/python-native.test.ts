@@ -39,10 +39,10 @@ test('native open/read uses retained canonical bytes and bounded requests', asyn
     await backend.rename('/work/input', '/work/moved');
     native.vector();
     assert.equal(await native.invoke('fd_read', [fd, 512, 1, 600]), 0);
-    assert.deepEqual(Array.from(native.memory.slice(1024, 1026)), [0, 255]);
-    assert.equal(new DataView(native.memory.buffer).getUint32(600, true), 2);
+    assert.deepEqual(Array.from(native.memory.slice(1024, 1027)), [0, 255, 42]);
+    assert.equal(new DataView(native.memory.buffer).getUint32(600, true), 3);
     assert.equal(await native.invoke('fd_close', [fd]), 0);
-    assert.deepEqual(requests, ['open', 'descriptorCapabilities', 'read', 'close']);
+    assert.deepEqual(requests, ['open', 'descriptorCapabilities', 'read', 'read', 'close']);
   } finally { await filesystem.close(); }
 });
 
@@ -333,4 +333,29 @@ test('native stat accepts caller storage without optional allocation observation
     assert.equal(view.getInt32(1024 + 36, true), -1);
     assert.equal((await native.metadata('library.so', true)).blocks, undefined);
   } finally { await native.close(); await filesystem.close(); }
+});
+
+test('seekable native reads fill the guest buffer through bounded host fragments', async () => {
+ const backend=new MemoryFileSystem();await backend.mkdir('/work');
+ await backend.writeFile('/work/input',Uint8Array.of(1,2,3,4,5));
+ const filesystem=new PythonFileSystem(backend,{cwd:'/work',maxTransferBytes:2});
+ const reads:unknown[][]=[];
+ const native=fixture(request=>{if(request.op==='read')reads.push(request.args.slice(1));return filesystem.dispatch(request);});
+ try{
+  const fd=await native.invoke('__syscall_openat',[-100,native.text('input'),0,0]);
+  native.vector(1024,5);
+  assert.equal(await native.invoke('fd_read',[fd,512,1,600]),0);
+  assert.equal(new DataView(native.memory.buffer).getUint32(600,true),5);
+  assert.deepEqual(Array.from(native.memory.slice(1024,1029)),[1,2,3,4,5]);
+  assert.deepEqual(reads,[[2,0],[2,2],[1,4]]);
+ }finally{await native.close();await filesystem.close();}
+});
+
+test('streaming stdin reads return after one fragment instead of waiting to fill the guest buffer',async()=>{
+ let reads=0;
+ const native=fixture(async request=>{assert.equal(request.op,'stdin');assert.equal(++reads,1);return [1,2];});
+ native.vector(1024,5);
+ assert.equal(await native.invoke('fd_read',[0,512,1,600]),0);
+ assert.equal(new DataView(native.memory.buffer).getUint32(600,true),2);
+ await native.close();
 });

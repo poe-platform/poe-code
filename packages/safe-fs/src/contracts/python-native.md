@@ -22,7 +22,9 @@ fail with ENOTSUP or ENOSYS. This component alone does not disable unrelated
 runtime host/network APIs or provide confinement.
 
 Transfers respect `maxTransferBytes`, await backpressure and copy outgoing
-fragments before awaiting the host. Native reads may return short reads.
+fragments before awaiting the host. Seekable reads fill guest buffers through
+bounded host fragments without resuming the interpreter between fragments.
+Actual short reads still return immediately, as do stdin and non-seekable reads.
 Descriptors retain canonical identity across pathname changes; seek does not
 reopen the path. Each invocation has independent stdio-close state and native
 descriptor bookkeeping. Native errno uses the pinned guest ABI, not host errno

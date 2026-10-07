@@ -319,15 +319,18 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     const source=artifact;
     const retaining=(async()=>{
     const path=decodeURIComponent(new URL(source.url!).pathname);
-    const directory=resolve(configuredCache??resolve(cwd,'.python-packages'),'installed');
     if(!fs.confineExtraction||!fs.prepareDirectory)return;
-    let probe=directory,capabilities;
-    for(;;){
-     try{capabilities=await fs.capabilitiesFor?.(probe,settings)??fs.capabilities;break;}
-     catch(error){check();if(!missing(error)||dirname(probe)===probe)throw error;probe=dirname(probe);}
-    }
+    const fallback=resolve(cwd,'.python-packages','installed');
+    let directory=configuredCache?resolve(configuredCache,'installed'):fallback,probe=directory;
     const required=['retainedStagingWrite','retainedStagingCleanup','retainedRead','atomicFileStaging'] as const;
-    if(!required.every(key=>capabilities[key]))return;
+    for(;;){
+     try{
+      const capabilities=await fs.capabilitiesFor?.(probe,settings)??fs.capabilities;
+      if(required.every(key=>capabilities[key]))break;
+      if(directory===fallback)return;
+      probe=directory=fallback;
+     }catch(error){check();if(!missing(error)||dirname(probe)===probe)throw error;probe=dirname(probe);}
+    }
     await fs.mkdir(directory,{recursive:true,signal});
     const target=resolve(directory,source.key,basename(path));
     if(path!==target||probe!==directory){

@@ -87,7 +87,7 @@ with zipfile.ZipFile(output, "w") as archive:
  archive.writestr("directory_fixture-1.0.dist-info/METADATA", "Metadata-Version: 2.1\\nName: directory-fixture\\nVersion: 1.0\\n")
  archive.writestr("directory_fixture-1.0.dist-info/WHEEL", "Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n")
  archive.writestr("directory_fixture-1.0.dist-info/RECORD", "")
- for index in range(${invalidNative?'16':'4096'}):archive.writestr("directory_fixture/data/%08d.dat" % index, b"")
+ for index in range(${invalidNative||weakCache?'16':'4096'}):archive.writestr("directory_fixture/data/%08d.dat" % index, b"")
  archive.writestr("directory_fixture/data/payload.bin", b"x" * (2 * 1024 * 1024 + 7))
  ${invalidNative?'archive.writestr("directory_fixture/broken.cpython-314-wasm32-emscripten.so", b"invalid native library"); archive.writestr("directory_fixture/second.cpython-314-wasm32-emscripten.so", b"another invalid library")':''}
 with open("directory_fixture-1.0-py3-none-any.whl", "wb") as target:target.write(output.getvalue())
@@ -96,7 +96,7 @@ PY`);
     }finally{await bootstrap.dispose();}
     requirements.push('file:///work/directory_fixture-1.0-py3-none-any.whl');
   }
-  const environment=createPythonPackageEnvironment({requirements,...defaultCache?{}:{cacheDirectory:'/work/wheel-cache'},
+  const environment=createPythonPackageEnvironment({requirements,...defaultCache&&!weakCache?{}:{cacheDirectory:'/work/wheel-cache'},
     authorize:({url})=>artifacts.has(url),transport:async({url})=>{
       requests.push(url);
       return {status:200,headers:[],body:(async function*(){const bytes=artifacts.get(url),start=stagedBytes;for(let offset=0;offset<bytes.length;offset+=65536){if(stagedBytes-start!==offset)throw new Error('Package download did not apply storage backpressure');yield bytes.subarray(offset,offset+65536);}})(),async dispose(){}};
@@ -105,6 +105,7 @@ PY`);
   try {
     const command=`python -c '${defaultCache?'from directory_fixture import value; import importlib.resources; assert value == 42; resource = importlib.resources.files("directory_fixture").joinpath("data/payload.bin"); assert resource.stat().st_size == 2097159; source = resource.open("rb"); assert sum(len(chunk) if chunk == b"x" * len(chunk) else -1 for chunk in iter(lambda: source.read(65536), b"")) == 2097159; source.close(); ':''}from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`;
     const result=await shell.exec(command),before=requests.length;
+    if(weakCache&&defaultCache&&result.exitCode===0){await backend.unlink(canonicalSource);requirements.length=0;}
     const replay=weakCache&&result.exitCode===0?await shell.exec(command):undefined;
     return {result,requests,diagnostics,stagedBytes,maxWrite,canonicalBytes,...weakCache?{replay,replayRequests:requests.length-before}:{}};
   }finally{await shell.dispose();await environment.dispose();}

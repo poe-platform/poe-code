@@ -564,9 +564,9 @@ test('real workerd applies prerelease selection and cache bypass through CLI and
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const [defaultCache,streamOnly,weakCache] of [[false,false,false],[true,false,false],[true,true,false],[false,false,true]])test('real workerd loads native code from a retained installed wheel; defaultCache='+defaultCache+(streamOnly?'; streamOnly=true':'')+(weakCache?'; weakCache=true':''), {timeout:60000},async()=>{
+for(const [defaultCache,streamOnly,weakCache] of [[false,false,false],[true,false,false],[true,true,false],[false,false,true],[true,false,true]])test('real workerd loads native code from a retained installed wheel; defaultCache='+defaultCache+(streamOnly?'; streamOnly=true':'')+(weakCache?'; weakCache=true':''), {timeout:60000},async()=>{
  const {miniflare,runtimeErrors}=nativeFixture;
- const response=await miniflare.dispatchFetch('http://fixture/native-wheel'+(defaultCache?'?default-cache':'')+(streamOnly?'&stream-only':'')+(weakCache?'?weak-cache':''),{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const response=await miniflare.dispatchFetch('http://fixture/native-wheel'+(defaultCache?'?default-cache':'')+(streamOnly?'&stream-only':'')+(weakCache?(defaultCache?'&':'?')+'weak-cache':''),{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
  const result=await response.json();
  assert.equal(response.status,200,JSON.stringify(result));
  assert.equal(result.result.exitCode,0,JSON.stringify(result));

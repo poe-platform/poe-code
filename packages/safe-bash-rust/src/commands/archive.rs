@@ -35,6 +35,7 @@ pub fn try_run_archive_command(
         "gpg" => Some(cmd_gpg(args, stdin, cwd, fs)),
         "ssh" => Some(cmd_ssh(args)),
         "ssh-keygen" => Some(cmd_ssh_keygen(args, stdin, cwd, fs)),
+        "dot" | "neato" => Some(cmd_graphviz(cmd, args, stdin, cwd, fs)),
         _ => None,
     }
 }
@@ -6281,4 +6282,4 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
 }
 
 include!("media.rs");
-
+include!("graphviz.rs");

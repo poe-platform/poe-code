@@ -45,3 +45,9 @@ test('editable install arguments preserve repeated source paths independently of
   for(const flag of ['-e','--editable','--editable='])assert.throws(()=>parsePythonInstallation(['install',flag]),/requires a path/);
   assert.throws(()=>parsePythonInstallation(['uninstall','-e','./source']),/unsupported pip option/);
  });
+
+test('pip constraint arguments stay independent of requested packages',()=>{
+ assert.deepEqual(parsePythonInstallation(['install','alpha','-c','pins','--constraint=more','-cthird']).controls,{constraintFiles:['pins','more','third']});
+ assert.throws(()=>parsePythonInstallation(['uninstall','alpha','-c','pins']),/unsupported pip option/);
+ assert.throws(()=>parsePythonInstallation(['install','-c']),/requires a path/);
+});

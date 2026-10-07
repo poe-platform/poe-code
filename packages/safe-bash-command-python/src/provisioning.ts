@@ -21,6 +21,10 @@ export interface PythonPackageProgress {
  readonly totalBytes?: number;
 }
 export interface PythonPackageInstallOptions {
+ /** Limit selected versions without installing unrequested packages. */
+ readonly constraints?:readonly string[];
+ /** Local constraint files; nested -r entries remain requirements. */
+ readonly constraintFiles?:readonly string[];
  /** Local source trees whose installed imports remain linked to caller storage. */
  readonly editable?: readonly string[];
  /** Include prerelease and development candidates during dependency resolution. */
@@ -54,7 +58,7 @@ export interface PythonPackageOptions extends PythonPackageInstallOptions {
  readonly maxCacheBytes?: number;
  readonly onProgress?: (event: PythonPackageProgress) => void;
 }
-export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'noCache'|'editable'> {
+export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'noCache'|'editable'|'constraintFiles'> {
  readonly session: string;
  /** Load installer tooling even when no application requirements are installed. */
  readonly bootstrap?:boolean;
@@ -129,8 +133,8 @@ function expandRequirement(source:string,env:Readonly<Record<string,string|undef
  }
  return text;
 }
-function requirementInclude(line:string):string|undefined {
- if(!line.startsWith('-r')&&!line.startsWith('--requirem'))return;
+function requirementInclude(line:string):readonly [string,boolean]|undefined {
+ if(!['-r','-c','--requirem','--const'].some(prefix=>line.startsWith(prefix)))return;
  const words:string[]=[];let word='',quote='',active=false;
  for(let index=0;index<line.length;index++){
   const char=line[index]!;
@@ -145,18 +149,16 @@ function requirementInclude(line:string):string|undefined {
  }
  if(quote)throw failure('No closing quotation');
  if(active)words.push(word);
- let included:string|undefined;
+ let included:string|undefined,constrained:string|undefined;
  for(let index=0;index<words.length;index++){
-  const word=words[index]!,option=word.split('=',1)[0]!;let path:string|undefined;
-  if(word==='-r')path=words[++index];
-  else if(word.startsWith('-r'))path=word.slice(2);
-  else if(option.startsWith('--requirem')&&'--requirement'.startsWith(option))path=word.length===option.length?words[++index]:word.slice(option.length+1);
-  else if(word.startsWith('-'))throw failure(`Unsupported requirement option: ${word}`);
-  else continue;
+  const word=words[index]!,option=word.split('=',1)[0]!;
+  const kind=['requirement','constraint'].find(name=>word.startsWith('-'+name[0])||option.startsWith('--'+name.slice(0,name==='requirement'?8:5))&&('--'+name).startsWith(option));
+  if(!kind){if(word.startsWith('-'))throw failure(`Unsupported requirement option: ${word}`);continue;}
+  const path=word.startsWith('--')?(word.length===option.length?words[++index]:word.slice(option.length+1)):(word.length===2?words[++index]:word.slice(2));
   if(path===undefined)throw failure(`Requirement option needs a file: ${word}`);
-  included??=path;
+  if(kind==='requirement')included??=path;else constrained??=path;
  }
- return included;
+ return included!==undefined?[included,false]:constrained!==undefined?[constrained,true]:undefined;
 }
 function normalizeRequirement(value: string, cwd: string): string {
  const requirement = value.trim();
@@ -275,8 +277,9 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const legacy = Array.isArray(previous);
   const restore = saved.map(value=>normalizeRequirement(value,context.cwd));
   const requirements = [...(options.profile ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
+  const constraints=[...options.constraints??[],...context.constraints??[]];
   const activeFiles=new Set<string>();let requirementBytes=0;
-  const readRequirements=async(path:string):Promise<void>=>{
+  const readRequirements=async(path:string,constraint=false):Promise<void>=>{
    signal.throwIfAborted();
    let source:string,identity:string;
    try {
@@ -295,12 +298,13 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     const text=(comment<0?line:line.slice(0,comment)).trim(); if (!text)continue;
     const expanded=expandRequirement(text,context.env);
     const included=requirementInclude(expanded);
-    if(included!==undefined)await readRequirements(resolve(dirname(path),included));
-    else requirements.push(expanded[0]==='-'&&options.prepareRequirements?expanded:normalizeRequirement(expanded,dirname(path)));
+    if(included!==undefined)await readRequirements(resolve(dirname(path),included[0]),included[1]);
+    else (constraint?constraints:requirements).push(expanded[0]==='-'&&options.prepareRequirements?expanded:normalizeRequirement(expanded,dirname(path)));
    }
    activeFiles.delete(identity);
   };
   for(const file of [...options.requirementFiles??[],...context.requirementFiles??[]])await readRequirements(resolve(context.cwd,file));
+  for(const file of [...options.constraintFiles??[],...context.constraintFiles??[]])await readRequirements(resolve(context.cwd,file),true);
   if((options.editable?.length||context.editable?.length)&&!options.prepareRequirements)throw failure('Editable packages require a source package environment');
   const requested=[...new Set(await options.prepareRequirements?.(requirements,context)??requirements)];
   signal.throwIfAborted();
@@ -312,7 +316,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   signal.addEventListener('abort',aborted,{once:true});
   const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
   for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
-  return {session,requirements:unique,restore,requested,legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
+  return {session,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();

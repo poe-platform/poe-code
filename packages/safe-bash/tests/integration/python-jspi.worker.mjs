@@ -325,7 +325,7 @@ for version in ('1.0', '2.0rc1'):
   return {results,requests};
 }
 
-async function qualifyReplacements(backend,createExecutor,micropip) {
+async function qualifyReplacements(backend,createExecutor,micropip,constraintsOnly=false) {
  const quote=value=>"'"+value.split("'").join("'\\''")+"'";
  const bootstrap=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor}));
  try {
@@ -367,6 +367,21 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(options)).use(llmCommands({managePackages:createPythonLlmPackageManager(options)}));
  const rows=[];
  try {
+  if(constraintsOnly){
+   published=true;
+   await backend.writeFile('/work/pins.txt',new TextEncoder().encode('replace-dep<2\nreplace-orphan==1.0'));
+   await backend.writeFile('/work/direct.txt',new TextEncoder().encode('replace-root @ https://packages.example/replace_root-1.0-py3-none-any.whl\nreplace-root<2'));
+   await backend.writeFile('/work/conflict.txt',new TextEncoder().encode('replace-root<1'));
+   const inspect='import importlib.metadata as m, json; print(json.dumps({d.metadata["Name"]: d.version for d in m.distributions() if d.metadata["Name"].startswith("replace-") or d.metadata["Name"].startswith("replace_")}))';
+   for(const command of ['python -m pip install -c pins.txt replace-root','python -m pip install -c direct.txt replace-root','python -m pip install -c conflict.txt replace-root']){
+    const result=await shell.exec(command),versions=await shell.exec('python -c '+quote(inspect));
+    rows.push({command,result,versions,diagnostics:diagnostics.splice(0)});
+   }
+   const constrained=createPythonPackageEnvironment({...configuration,requirements:['replace-root; python_version >= "3"','replace-orphan; python_version < "1"'],constraints:['replace-root==2','replace-dep<2','replace-orphan==1','replace-orphan @ https://packages.example/replace_orphan-1.0-py3-none-any.whl','replace-orphan @ https://packages.example/replace_orphan-2.0-py3-none-any.whl'],forceReinstall:true});
+   const sdkShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:constrained}));
+   try{return {rows,sdk:await sdkShell.exec('python -c '+quote(inspect))};}
+   finally{await sdkShell.dispose();await constrained.dispose();}
+  }
   for(const command of ['python -m pip install replace-root replace-orphan','python -m pip install replace-root','llm install --upgrade replace-root','python -m pip install --force-reinstall replace-root','python -m pip install replace-root==1.0','python -m pip install replace-root==9.0','python -m pip install ./replace_root-2.0-py3-none-any.whl','python -m pip install replace-root==1.0 replace-root==2.0']){
    const result=await shell.exec(command);
    const versions=await shell.exec('python -c '+quote('import importlib.metadata as m, json, micropip.package_manager as pm, micropip.transaction as t; assert pm.Transaction is t.Transaction; print(json.dumps([m.version(n) for n in ("replace-root", "replace-dep", "replace-orphan")]))'));
@@ -2077,8 +2092,8 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/package-replacements') {
-      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+    if (mode === '/package-replacements'||mode==='/package-constraints') {
+      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode==='/package-constraints'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

@@ -1084,3 +1084,21 @@ test('real workerd streams network wheels through caller staging and an S3 cache
  assert.ok(result.maximum>0&&result.maximum<=65536);assert.equal(result.staging,0);
  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
+
+
+test('real workerd applies package constraints without installing unused roots', {timeout:180000}, async()=>{
+ const {miniflare,runtimeErrors}=nativeFixture;
+ const response=await miniflare.dispatchFetch('http://fixture/package-constraints',{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const result=await response.json();
+ assert.equal(response.status,200,JSON.stringify(result));
+ const reference=JSON.parse(readFileSync(new URL('../../../safe-bash-command-python/src/fixtures/package-constraints-pip-21.2.4.json',import.meta.url),'utf8'));
+ assert.deepEqual(result.rows.map(row=>row.result.exitCode),reference.rows.slice(0,3).map(row=>row.exitCode),JSON.stringify(result));
+ for(const [index,row] of result.rows.entries()){
+  assert.equal(row.versions.exitCode,0,JSON.stringify(row));
+  const versions=Object.fromEntries(Object.entries(JSON.parse(row.versions.stdout)).map(([name,value])=>[name.replaceAll('_','-'),value]));
+  assert.deepEqual(versions,reference.rows[index].versions,JSON.stringify(row));
+ }
+ assert.equal(result.sdk.exitCode,0,JSON.stringify(result.sdk));
+ assert.deepEqual(Object.fromEntries(Object.entries(JSON.parse(result.sdk.stdout)).map(([name,value])=>[name.replaceAll('_','-'),value])),reference.rows[3].versions);
+ assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});

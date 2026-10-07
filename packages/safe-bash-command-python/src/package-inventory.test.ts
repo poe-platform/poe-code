@@ -48,7 +48,7 @@ async def emit(channel, value): output.append((channel, value))
 async def line(): return 'n'
 records = {name:[name, 'metadata', '', [], [], None] for name in ('active','remove')}
 namespace = {
- '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':[], '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
+ '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':[], '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
  '_safe_metadata':types.SimpleNamespace(distributions=distributions, distribution=distribution, PackageNotFoundError=Missing, MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)),
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
  '_safe_uninstall':None if mode == 'install' else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},

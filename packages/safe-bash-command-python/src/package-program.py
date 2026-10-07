@@ -90,7 +90,28 @@ def _safe_validate(roots):
    pin = _SafeRequirement(wheel.name + '==' + str(wheel.version))
    if _safe_name(wheel.name) != _safe_name(root.name) or not pin.specifier.contains(version, prereleases=True):
     raise ValueError('Python package wheel version conflict: ' + str(root))
-async def _safe_resolve(_safe_roots, upgrade=False, force=False):
+async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=()):
+ _safe_constraints = {}
+ for source in constraints:
+  constraint = _SafeRequirement(source)
+  if constraint.extras:
+   raise ValueError('Constraints cannot have extras')
+  if not constraint.marker or constraint.marker.evaluate({'extra': ''}):
+   _safe_constraints.setdefault(_safe_name(constraint.name), []).append(constraint)
+ def constrain(requirement):
+  for constraint in _safe_constraints.get(_safe_name(requirement.name), ()):
+   requirement.specifier &= constraint.specifier
+   if constraint.url:
+    if requirement.url and requirement.url != constraint.url:
+     raise ValueError('Conflicting package constraint URLs: ' + requirement.name)
+    requirement.url = constraint.url
+  if requirement.url and _safe_name(requirement.name) in _safe_constraints:
+   wheel = _SafeWheelInfo.from_url(requirement.url)
+   if not requirement.specifier.contains(wheel.version, prereleases=True):
+    raise ValueError('Python package constraint conflict: ' + str(requirement))
+   requirement.specifier = _SafeRequirement(requirement.name).specifier
+  return requirement
+ _safe_roots = [constrain(root) for root in _safe_roots if not root.marker or root.marker.evaluate({'extra': ''})]
  _safe_extras = {}
  for _safe_root in _safe_roots:
   if not _safe_root.marker or _safe_root.marker.evaluate({'extra': ''}):
@@ -101,6 +122,11 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False):
  import micropip.package_manager as _safe_pm
  _SafeTransaction = _safe_pm.Transaction
  class _SafeReplacementTransaction(_SafeTransaction):
+  async def add_requirement_inner(self, req):
+   contexts = [{'extra': ''}] + self.ctx_extras + [{'extra': extra} for extra in req.extras] if req.marker else ()
+   if req.marker and not any(req.marker.evaluate({**self.ctx, **context}) for context in contexts):
+    return
+   return await super().add_requirement_inner(constrain(req))
   def check_version_satisfied(self, req, *, allow_reinstall=False):
    if req.url:
     wheel = _SafeWheelInfo.from_url(req.url)
@@ -115,7 +141,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False):
  async def _safe_install(requirements):
   _safe_pm.Transaction = _SafeReplacementTransaction
   try:
-   await _safe_manager.install(requirements, deps=True, pre=_safe_package_pre, reinstall=True)
+   await _safe_manager.install(requirements, deps=True, pre=_safe_package_pre, reinstall=True, **({'constraints': list(constraints)} if constraints else {}))
   finally:
    _safe_pm.Transaction = _SafeTransaction
  _safe_validate([root for root in _safe_roots if _safe_name(root.name) in _safe_preloaded])
@@ -140,6 +166,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False):
      _safe_requirement = _SafeRequirement(_safe_dep)
      if _safe_requirement.marker and not any(_safe_requirement.marker.evaluate({'extra': extra}) for extra in _safe_contexts):
       continue
+     _safe_requirement = constrain(_safe_requirement)
      _safe_requirement.marker = None
      _safe_dependencies.append(_safe_requirement)
      _safe_dependency_name = _safe_name(_safe_requirement.name)
@@ -237,7 +264,7 @@ if _safe_metadata_only:
    if _safe_name(_safe_wheel.name) == _safe_name(_safe_root.name) and str(_safe_wheel.version) == _safe_metadata.version(_safe_root.name):
     _safe_root.url = None
     _safe_root.specifier = _SafeRequirement(_safe_root.name + '==' + str(_safe_wheel.version)).specifier
-_safe_managed = await _safe_resolve(_safe_roots, _safe_package_upgrade, _safe_package_forceReinstall)
+_safe_managed = await _safe_resolve(_safe_roots, _safe_package_upgrade, _safe_package_forceReinstall, _safe_json.loads(_safe_package_constraints_json))
 _safe_removed = []
 if _safe_uninstall:
  _safe_targets = list(dict.fromkeys(_safe_name(_SafeRequirement(source).name) for source in _safe_uninstall['packages']))

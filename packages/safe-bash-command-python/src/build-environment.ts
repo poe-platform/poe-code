@@ -5,13 +5,18 @@ import {createPythonPackageManifestStore} from './manifest.js';
 export function createPythonBuildEnvironment(options:PythonPackageOptions={}):PythonPackageEnvironment {
  const manifestStore=createPythonPackageManifestStore({maxEntries:1,...options.maxManifestBytes===undefined?{}:{maxBytes:options.maxManifestBytes}});
  const isolated={...options,manifestStore,scope:'build'};
+ delete isolated.constraints;
+ delete isolated.constraintFiles;
  delete isolated.editable;
  delete isolated.requirements;
  delete isolated.requirementFiles;
  delete isolated.profile;
  const environment=createPythonPackageEnvironment(isolated);
  let disposing:Promise<void>|undefined;
- return {...environment,dispose(){
+ return {...environment,prepare(context){
+  const {constraints:ignoredConstraints,constraintFiles:ignoredFiles,...input}=context;
+  return environment.prepare(input);
+ },dispose(){
   return disposing??=environment.dispose().finally(()=>manifestStore.dispose());
  }};
 }

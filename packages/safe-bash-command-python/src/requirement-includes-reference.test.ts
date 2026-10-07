@@ -60,3 +60,24 @@ test('nested requirements share the caller byte allowance and retain cancellatio
  try{await assert.rejects(environment.prepare({fs,cwd:'/',requirementFiles:['one'],signal:controller.signal}),error=>error===reason);}
  finally{await environment.dispose();}
 });
+
+test('constraint files remain separate from roots with native nested include roles',async()=>{
+ const files:Record<string,string>={'/req':'alpha>=1\n-c pins','/pins':'alpha<3\nunused==4\n-r extra\n-c other','/extra':'gamma','/other':'gamma!=2'};
+ const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',`import json,sys,os
+from unittest.mock import patch
+from pip._internal.req.req_file import RequirementsFileParser,get_line_parser
+files=json.load(sys.stdin)
+with patch('pip._internal.req.req_file.get_file_content',side_effect=lambda path,session:(path,files[os.path.normpath(path)])):
+ print(json.dumps([[line.requirement,line.constraint] for line in RequirementsFileParser(None,get_line_parser(None)).parse('/req',False)]))
+`],{input:JSON.stringify(files),encoding:'utf8',timeout:5000});
+ assert.ifError(native.error);assert.equal(native.status,0,native.stderr);
+ const expected=JSON.parse(native.stdout) as [string,boolean][];
+ const fs=new MemoryFileSystem();for(const [path,value]of Object.entries(files))await fs.writeFile(path,new TextEncoder().encode(value));
+ const environment=createPythonPackageEnvironment();
+ try{
+  const prepared=await environment.prepare({fs,cwd:'/',requirementFiles:['req'],signal:new AbortController().signal});
+  assert.deepEqual(prepared.requested,expected.filter(([,constraint])=>!constraint).map(([requirement])=>requirement));
+  assert.deepEqual(prepared.constraints,expected.filter(([,constraint])=>constraint).map(([requirement])=>requirement));
+  await environment.finish(prepared);
+ }finally{await environment.dispose();}
+});

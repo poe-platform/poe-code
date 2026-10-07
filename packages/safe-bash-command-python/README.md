@@ -290,7 +290,10 @@ files support backslash continuations, whitespace-delimited comments and
 `${NAME}` expansion from the caller environment. Missing or empty variables remain
 unchanged. Local `-r`/`--requirement` includes resolve relative to the containing
 file, preserve entry order and share `maxRequirementBytes`; recursive includes
-are rejected. They also accept `-e`/`--editable` entries, including quoted paths and extras;
+are rejected. Use `-c`/`--constraint` files to limit selected versions without
+installing unused packages, or supply `constraints` and `constraintFiles` in the
+package SDK. These limits apply to application dependencies; isolated build
+dependencies keep their own requirements. They also accept `-e`/`--editable` entries, including quoted paths and extras;
 relative paths use the invocation directory.
 The genuine setuptools compatibility-mode wheel keeps imports linked to the
 original caller-owned source directory; keep that directory available after

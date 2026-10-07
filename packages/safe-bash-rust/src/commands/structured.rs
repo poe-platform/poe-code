@@ -9025,19 +9025,41 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut noout = false;
     let mut format_xml = false;
     let mut c14n = false;
+    let mut out_file: Option<String> = None;
+    let mut encoding: Option<String> = None;
     let mut files = Vec::new();
+    let mut literal = false;
 
     let mut i = 0usize;
     while i < args.len() {
-        match args[i].as_str() {
+        let a = args[i].as_str();
+        if literal {
+            files.push(a.to_string());
+            i += 1;
+            continue;
+        }
+        match a {
+            "--" => literal = true,
             "--noout" => noout = true,
             "--format" => format_xml = true,
-            "--c14n" => c14n = true,
+            "--c14n" | "--exc-c14n" => c14n = true,
+            "--noblanks" | "--nocdata" | "--recover" => {}
+            "--output" | "-o" if i + 1 < args.len() => {
+                i += 1;
+                out_file = Some(args[i].clone());
+            }
+            "--encode" if i + 1 < args.len() => {
+                i += 1;
+                encoding = Some(args[i].clone());
+            }
             "--xpath" if i + 1 < args.len() => {
                 i += 1;
+                if args[i] == "--" && i + 1 < args.len() {
+                    i += 1;
+                }
                 xpath = Some(args[i].clone());
             }
-            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
+            _ if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
@@ -9056,29 +9078,44 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     if noout {
         return ok_out("");
     }
-    if c14n {
+    let rendered = if let Some(xp) = xpath {
+        let res = eval_xmllint_xpath(&dom, xp.trim());
+        if res.exit_code != 0 {
+            return res;
+        }
+        res.stdout
+    } else if c14n {
         let mut out = String::new();
         for n in &dom {
             if let HtmlNode::Element(el) = n {
                 out.push_str(&serialize_xml_c14n(el));
             }
         }
-        return ok_out(&out);
-    }
-    if format_xml {
-        let mut out = String::from("<?xml version=\"1.0\"?>\n");
+        out
+    } else if format_xml || out_file.is_some() || encoding.is_some() {
+        let decl = match encoding.as_deref() {
+            Some(enc) => format!("<?xml version=\"1.0\" encoding=\"{enc}\"?>\n"),
+            None => String::from("<?xml version=\"1.0\"?>\n"),
+        };
+        let mut out = decl;
         for n in &dom {
             if let HtmlNode::Element(el) = n {
                 out.push_str(&serialize_xml_pretty(el, 0));
                 out.push('\n');
             }
         }
-        return ok_out(&out);
+        out
+    } else {
+        text
+    };
+    if let Some(of) = out_file && of != "-" {
+        let full = resolve_posix_path(cwd, &of);
+        if let Err(e) = fs.write_file(&full, rendered.as_bytes()) {
+            return err_out(&format!("xmllint: {of}: {e}\n"), 1);
+        }
+        return ok_out("");
     }
-    if let Some(xp) = xpath {
-        return eval_xmllint_xpath(&dom, xp.trim());
-    }
-    ok_out(&text)
+    ok_out(&rendered)
 }
 
 fn parse_xml_strict_dom(src: &str) -> Result<Vec<HtmlNode>, String> {
@@ -16120,74 +16157,103 @@ fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut file: Option<String> = None;
     let mut out_file: Option<String> = None;
-    let mut attr: Option<String> = None;
+    let mut attrs: Vec<String> = Vec::new();
     let mut base_url: Option<String> = None;
     let mut detect_base = false;
     let mut remove_nodes: Vec<String> = Vec::new();
     let mut text_only = false;
     let mut ignore_ws = false;
     let mut pretty = false;
-    let mut selector: Option<String> = None;
+    let mut selectors: Vec<String> = Vec::new();
+    let mut literal = false;
     let mut i = 0usize;
     while i < args.len() {
-        match args[i].as_str() {
-            "-f" | "--filename" if i + 1 < args.len() => {
-                i += 1;
-                file = Some(args[i].clone());
-            }
-            "-o" | "--output" if i + 1 < args.len() => {
-                i += 1;
-                out_file = Some(args[i].clone());
-            }
-            "-a" | "--attribute" | "--attributes" if i + 1 < args.len() => {
-                i += 1;
-                attr = Some(args[i].clone());
-            }
-            "-b" | "--base" if i + 1 < args.len() => {
-                i += 1;
-                base_url = Some(args[i].clone());
-            }
-            "-B" | "--detect-base" => {
-                detect_base = true;
-            }
-            "-r" | "--remove-nodes" if i + 1 < args.len() => {
-                i += 1;
-                remove_nodes.push(args[i].clone());
-            }
-            "-t" | "--text" => {
-                text_only = true;
-            }
-            "-i" | "--ignore-whitespace" => {
-                ignore_ws = true;
-            }
-            "-p" | "--pretty" => {
-                pretty = true;
-            }
-            a if !a.starts_with('-') => {
-                selector = Some(a.to_string());
-            }
-            a if a.starts_with('-') && a.len() > 2 && !a.starts_with("--") => {
-                for ch in a[1..].chars() {
-                    match ch {
-                        't' => text_only = true,
-                        'i' => ignore_ws = true,
-                        'B' => detect_base = true,
-                        'p' => pretty = true,
-                        _ => {}
+        let a = args[i].as_str();
+        if !literal && a == "--" {
+            literal = true;
+            i += 1;
+            continue;
+        }
+        if !literal && (a == "-h" || a == "--help") {
+            return ok_out("Usage: htmlq [OPTIONS] [SELECTOR]...\n");
+        }
+        if !literal && (a == "-V" || a == "--version") {
+            return ok_out("htmlq 0.4.0\n");
+        }
+        if !literal && let Some(v) = a.strip_prefix("--filename=") {
+            file = Some(v.to_string());
+        } else if !literal && let Some(v) = a.strip_prefix("--output=") {
+            out_file = Some(v.to_string());
+        } else if !literal && let Some(v) = a.strip_prefix("--attribute=").or_else(|| a.strip_prefix("--attributes=")) {
+            attrs.push(v.to_string());
+        } else if !literal && let Some(v) = a.strip_prefix("--base=") {
+            base_url = Some(v.to_string());
+        } else if !literal && let Some(v) = a.strip_prefix("--remove-nodes=") {
+            remove_nodes.push(v.to_string());
+        } else if !literal {
+            match a {
+                "-f" | "--filename" if i + 1 < args.len() => {
+                    i += 1;
+                    file = Some(args[i].clone());
+                }
+                "-o" | "--output" if i + 1 < args.len() => {
+                    i += 1;
+                    out_file = Some(args[i].clone());
+                }
+                "-a" | "--attribute" | "--attributes" if i + 1 < args.len() => {
+                    i += 1;
+                    attrs.push(args[i].clone());
+                }
+                "-b" | "--base" if i + 1 < args.len() => {
+                    i += 1;
+                    base_url = Some(args[i].clone());
+                }
+                "-B" | "--detect-base" => {
+                    detect_base = true;
+                }
+                "-r" | "--remove-nodes" if i + 1 < args.len() => {
+                    i += 1;
+                    remove_nodes.push(args[i].clone());
+                }
+                "-t" | "--text" => {
+                    text_only = true;
+                }
+                "-i" | "-w" | "--ignore-whitespace" => {
+                    ignore_ws = true;
+                }
+                "-p" | "--pretty" => {
+                    pretty = true;
+                }
+                _ if !a.starts_with('-') => {
+                    selectors.push(a.to_string());
+                }
+                _ if a.starts_with('-') && a.len() > 2 && !a.starts_with("--") => {
+                    for ch in a[1..].chars() {
+                        match ch {
+                            't' => text_only = true,
+                            'i' | 'w' => ignore_ws = true,
+                            'B' => detect_base = true,
+                            'p' => pretty = true,
+                            _ => {}
+                        }
                     }
                 }
+                _ => {}
             }
-            _ => {}
+        } else {
+            selectors.push(a.to_string());
         }
         i += 1;
     }
-    let html = if let Some(f) = file {
-        let full = resolve_posix_path(cwd, &f);
-        fs.read_file(&full)
-            .map(|b| String::from_utf8_lossy(&b).into_owned())
-            .unwrap_or_default()
-    } else {
-        stdin.to_string()
+    let html = match file.as_deref() {
+        Some(f) if f != "-" => {
+            let full = resolve_posix_path(cwd, f);
+            match fs.read_file(&full) {
+                Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+                Err(e) => return err_out(&format!("htmlq: {f}: {e}\n"), 1),
+            }
+        }
+        _ => stdin.to_string(),
     };
 
     let mut nodes = parse_html_dom(&html);
@@ -16199,21 +16265,27 @@ fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         let mut path = Vec::new();
         remove_html_nodes(&mut nodes, &mut path, &rm_spec);
     }
-    if let Some(ref b) = base_url {
-        resolve_html_urls(&mut nodes, b);
-    }
 
-    let sel_str = selector.as_deref().unwrap_or("html");
+    let sel_joined = if selectors.is_empty() {
+        "html".to_string()
+    } else {
+        selectors.join(", ")
+    };
     let mut matched = Vec::new();
     let mut path = Vec::new();
-    collect_html_matches(&nodes, &mut path, sel_str, &mut matched);
+    collect_html_matches(&nodes, &mut path, &sel_joined, &mut matched);
+    if let Some(ref b) = base_url {
+        resolve_selected_html_urls(&mut matched, b);
+    }
 
     let mut out = String::new();
     for elem in &matched {
-        if let Some(ref at) = attr {
-            if let Some((_, val)) = elem.attrs.iter().find(|(k, _)| k.eq_ignore_ascii_case(at)) {
-                out.push_str(val);
-                out.push('\n');
+        if !attrs.is_empty() {
+            for at in &attrs {
+                if let Some((_, val)) = elem.attrs.iter().find(|(k, _)| k.eq_ignore_ascii_case(at)) {
+                    out.push_str(val);
+                    out.push('\n');
+                }
             }
         } else if text_only {
             if ignore_ws {
@@ -16246,7 +16318,6 @@ fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     }
     ok_out(&out)
 }
-
 #[derive(Clone, Debug)]
 enum HtmlNode {
     Text(String),
@@ -16542,17 +16613,14 @@ fn resolve_relative_url(base: &str, href: &str) -> String {
     format!("{origin}{norm}")
 }
 
-fn resolve_html_urls(nodes: &mut [HtmlNode], base: &str) {
-    for n in nodes.iter_mut() {
-        if let HtmlNode::Element(el) = n {
-            if matches!(el.tag.as_str(), "a" | "area" | "link") {
-                for (k, v) in el.attrs.iter_mut() {
-                    if k.eq_ignore_ascii_case("href") {
-                        *v = resolve_relative_url(base, v);
-                    }
+fn resolve_selected_html_urls(matched: &mut [HtmlElement], base: &str) {
+    for el in matched.iter_mut() {
+        if matches!(el.tag.as_str(), "a" | "area" | "link") {
+            for (k, v) in el.attrs.iter_mut() {
+                if k.eq_ignore_ascii_case("href") {
+                    *v = resolve_relative_url(base, v);
                 }
             }
-            resolve_html_urls(&mut el.children, base);
         }
     }
 }
@@ -17027,27 +17095,67 @@ fn cmd_html_to_markdown(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    let html = if let Some(f) = args.iter().find(|a| !a.starts_with('-')) {
-        let full = resolve_posix_path(cwd, f);
-        fs.read_file(&full).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default()
-    } else {
-        stdin.to_string()
-    };
-    if let Some(max_b) = env
-        .get("__limit_html_to_markdown_max_input_bytes")
-        .and_then(|v| v.parse::<usize>().ok())
-        && html.len() > max_b
-    {
-        return err_out("html-to-markdown: maxInputBytes limit exceeded\n", 1);
+    let mut literal = false;
+    let mut files: Vec<String> = Vec::new();
+    for a in args {
+        if !literal && a == "--" {
+            literal = true;
+            continue;
+        }
+        if !literal && a == "--help" {
+            return ok_out("Usage: html-to-markdown [--] [FILE|-] ...\nRead VFS files or shared stdin; write bounded Markdown to stdout.\nSupports headings, paragraphs, emphasis, links/images, lists, quotes, code and tables.\nDrops scripts/styles/comments; unknown elements retain text. No fetching or execution.\nThis documented HTML subset is a converter, not a sanitizer or browser HTML5 parser.\n");
+        }
+        if !literal && a == "--version" {
+            return ok_out("html-to-markdown (safe-bash bounded HTML profile)\n");
+        }
+        if !literal && a.starts_with('-') && a != "-" {
+            return err_out(&format!("html-to-markdown: unknown option: {a}\n"), 2);
+        }
+        if a.is_empty() {
+            return err_out("html-to-markdown: empty file operand\n", 2);
+        }
+        files.push(a.clone());
     }
-    let nodes = parse_html_dom(&html);
-    let mut out = String::new();
-    render_markdown_nodes(&nodes, &mut out, false);
-    let trimmed = out.trim();
-    if trimmed.is_empty() {
+    if files.is_empty() {
+        files.push("-".to_string());
+    }
+    let max_b = env
+        .get("__limit_html_to_markdown_max_input_bytes")
+        .and_then(|v| v.parse::<usize>().ok());
+    let mut stdin_consumed = false;
+    let mut total_in = 0usize;
+    let mut docs_md: Vec<String> = Vec::new();
+    for f in &files {
+        let html = if f == "-" {
+            if stdin_consumed {
+                String::new()
+            } else {
+                stdin_consumed = true;
+                stdin.to_string()
+            }
+        } else {
+            let full = resolve_posix_path(cwd, f);
+            match fs.read_file(&full) {
+                Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+                Err(e) => return err_out(&format!("html-to-markdown: {f}: {e}\n"), 1),
+            }
+        };
+        total_in += html.len();
+        if let Some(mb) = max_b && total_in > mb {
+            return err_out("html-to-markdown: maxInputBytes limit exceeded\n", 1);
+        }
+        let nodes = parse_html_dom(&html);
+        let mut out = String::new();
+        render_markdown_nodes(&nodes, &mut out, false);
+        let trimmed = out.trim();
+        if !trimmed.is_empty() {
+            docs_md.push(format!("{trimmed}\n"));
+        }
+    }
+    if docs_md.is_empty() {
         ok_out("")
     } else {
-        ok_out(&format!("{trimmed}\n"))
+        ok_out(&docs_md.join("\n"))
     }
 }
 

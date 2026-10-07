@@ -503,7 +503,16 @@ fn extract_html_images(html: &str, base_dir: &str, fs: &dyn SafeBashFs) -> Vec<(
             let r = &tag[sp + 5..];
             if let Some(se) = r.find('"') {
                 let src = &r[..se];
-                if !src.starts_with("data:") {
+                if let Some(rest_data) = src.strip_prefix("data:") {
+                    if let Some(b64_pos) = rest_data.find(";base64,") {
+                        let b64 = &rest_data[b64_pos + 8..];
+                        if let Ok(b) = base64_decode(b64) {
+                            let m = read_image_meta(&b, "inline.png");
+                            w = m.w;
+                            h = m.h;
+                        }
+                    }
+                } else {
                     let full = resolve_posix_path(base_dir, src);
                     if let Ok(b) = fs.read_file(&full) {
                         let m = read_image_meta(&b, &full);
@@ -4645,137 +4654,652 @@ fn cmd_media_doc(
         ),
         "pdftotext" => {
             let mut first_p = 1usize;
-            let mut last_p: Option<usize> = None;
+            let mut last_p = 0usize;
+            let mut last_p_explicit = false;
             let mut bbox_mode = false;
+            let mut bbox_layout = false;
             let mut tsv_mode = false;
-            let mut eol_dos = false;
+            let mut htmlmeta = false;
+            let mut urls_mode = false;
+            let mut eol_mode = "unix";
+            let mut invalid_eol_warn = false;
+            let mut invalid_colspacing = false;
+            let mut quiet = false;
+            let mut listenc = false;
+            let mut version = false;
+            let mut help = false;
             let mut pos: Vec<String> = Vec::new();
+            let mut after_dd = false;
             let mut i = 0usize;
             while i < args.len() {
-                match args[i].as_str() {
-                    "-f" if i + 1 < args.len() => {
-                        first_p = args[i + 1].parse().unwrap_or(1);
+                let a = args[i].as_str();
+                if after_dd {
+                    pos.push(a.to_string());
+                    i += 1;
+                    continue;
+                }
+                if a == "--" {
+                    after_dd = true;
+                    i += 1;
+                    continue;
+                }
+                match a {
+                    "-f" => {
+                        if i + 1 >= args.len() {
+                            return err_out("Invalid -f page number\n", 99);
+                        }
+                        if let Ok(v) = args[i + 1].parse::<usize>() {
+                            first_p = v.max(1);
+                        } else {
+                            return err_out("Invalid -f page number\n", 99);
+                        }
                         i += 2;
                     }
-                    "-l" if i + 1 < args.len() => {
-                        last_p = args[i + 1].parse().ok();
+                    "-l" => {
+                        if i + 1 >= args.len() {
+                            return err_out("Invalid -l page number\n", 99);
+                        }
+                        if let Ok(v) = args[i + 1].parse::<usize>() {
+                            last_p = v;
+                            last_p_explicit = true;
+                        } else {
+                            return err_out("Invalid -l page number\n", 99);
+                        }
                         i += 2;
                     }
-                    "-eol" if i + 1 < args.len() => {
-                        eol_dos = args[i + 1].eq_ignore_ascii_case("dos");
+                    "-r" => {
+                        if i + 1 >= args.len() || args[i + 1].parse::<f64>().map(|v| v <= 0.0).unwrap_or(true) {
+                            return err_out("Invalid -r resolution\n", 99);
+                        }
                         i += 2;
                     }
-                    "-upw" | "-opw" | "-enc" if i + 1 < args.len() => {
+                    "-x" | "-y" | "-W" | "-H" => {
+                        if i + 1 >= args.len() || args[i + 1].parse::<f64>().is_err() {
+                            return err_out(&format!("Command Line Error: Invalid numeric argument for {a}\n"), 99);
+                        }
                         i += 2;
                     }
-                    "-bbox" | "-bbox-layout" => {
+                    "-fixed" | "-linespacing" | "-upw" | "-opw" if i + 1 < args.len() => {
+                        i += 2;
+                    }
+                    "-colspacing" => {
+                        let v = args.get(i + 1).and_then(|s| s.parse::<f64>().ok());
+                        if v.map(|x| x <= 0.0 || x > 10.0).unwrap_or(true) {
+                            invalid_colspacing = true;
+                        }
+                        i += 2;
+                    }
+                    "-enc" => {
+                        let enc = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                        if !matches!(enc, "ASCII7" | "Latin1" | "UTF-8" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                            return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
+                        }
+                        i += 2;
+                    }
+                    "-eol" => {
+                        let v = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                        match v {
+                            "unix" => eol_mode = "unix",
+                            "dos" => eol_mode = "dos",
+                            "mac" => eol_mode = "mac",
+                            _ => invalid_eol_warn = true,
+                        }
+                        i += 2;
+                    }
+                    "-remove-hyphens" => {
+                        if let Some(nxt) = args.get(i + 1) && !nxt.starts_with('-') {
+                            if !matches!(nxt.as_str(), "yes" | "no" | "auto") {
+                                return err_out("Bad '-remove-hyphens' value on command line\n", 99);
+                            }
+                            i += 2;
+                        } else {
+                            i += 1;
+                        }
+                    }
+                    "-bbox" => {
                         bbox_mode = true;
+                        i += 1;
+                    }
+                    "-bbox-layout" => {
+                        bbox_mode = true;
+                        bbox_layout = true;
                         i += 1;
                     }
                     "-tsv" => {
                         tsv_mode = true;
                         i += 1;
                     }
-                    a if !a.starts_with('-') || a == "-" => {
+                    "-htmlmeta" => {
+                        htmlmeta = true;
+                        i += 1;
+                    }
+                    "-urls" => {
+                        urls_mode = true;
+                        i += 1;
+                    }
+                    "-q" => {
+                        quiet = true;
+                        i += 1;
+                    }
+                    "-listenc" => {
+                        listenc = true;
+                        i += 1;
+                    }
+                    "-v" | "--version" => {
+                        version = true;
+                        i += 1;
+                    }
+                    "-h" | "-help" | "--help" | "-?" => {
+                        help = true;
+                        i += 1;
+                    }
+                    "-layout" | "-table" | "-lineprinter" | "-raw" | "-nopgbrk" | "-nodiag" | "-cropbox" | "-clip" => {
+                        i += 1;
+                    }
+                    _ if a.starts_with('-') && a != "-" => {
+                        return err_out(&format!("Command Line Error: Unknown option '{a}'\n"), 99);
+                    }
+                    _ => {
                         pos.push(a.to_string());
                         i += 1;
                     }
-                    _ => {
-                        i += 1;
-                    }
                 }
+            }
+            let warn_prefix = if invalid_eol_warn { "Bad '-eol' value on command line\n" } else { "" };
+            if invalid_colspacing {
+                return err_out(&format!("{warn_prefix}Command Line Error: Invalid column spacing\n"), 99);
+            }
+            if urls_mode && (htmlmeta || bbox_mode || tsv_mode) {
+                return err_out(&format!("{warn_prefix}Command Line Error: '-urls' is not supported with HTML or TSV output\n"), 99);
+            }
+            if pos.len() > 2 {
+                return err_out(if quiet { warn_prefix.to_string() } else { format!("{warn_prefix}Usage: pdftotext [options] [PDF-file [text-file]]\n") }.as_str(), 99);
+            }
+            if listenc {
+                return BuiltinOutcome {
+                    stdout: "Available encodings are:\nASCII7\nLatin1\nUTF-8\nUCS-2\nSymbol\nZapfDingbats\n".to_string(),
+                    stderr: warn_prefix.to_string(),
+                    exit_code: 0,
+                };
+            }
+            if version {
+                return BuiltinOutcome {
+                    stdout: "pdftotext version 26.09.90 (@poe-code/pdf-ast)\n".to_string(),
+                    stderr: warn_prefix.to_string(),
+                    exit_code: 0,
+                };
+            }
+            if help {
+                return BuiltinOutcome {
+                    stdout: "Usage: pdftotext [options] [PDF-file [text-file]]\n  -f <int>          : first page to convert\n  -l <int>          : last page to convert\n  -r <fp>           : resolution, in DPI (default is 72)\n  -x <int>          : x-coordinate of the crop area top left corner\n  -y <int>          : y-coordinate of the crop area top left corner\n  -W <int>          : width of crop area in pixels\n  -H <int>          : height of crop area in pixels\n  -layout           : maintain original physical layout\n  -raw              : keep strings in content stream order\n  -bbox             : output bounding box for each word and page size to html\n  -bbox-layout      : like -bbox but with extra layout bounding box data\n  -tsv              : output bounding box for each word and page size to tsv\n  -htmlmeta         : generate a simple HTML file, including the meta information\n  -nopgbrk          : don't insert page breaks between pages\n  -eol <string>     : output end-of-line convention (unix, dos, or mac)\n  -upw <string>     : user password\n  -opw <string>     : owner password\n".to_string(),
+                    stderr: warn_prefix.to_string(),
+                    exit_code: 0,
+                };
             }
             let in_arg = pos.first().map(|s| s.as_str()).unwrap_or("-");
             let raw_bytes = if in_arg == "-" {
                 crate::vfs::stream_string_to_bytes(stdin)
             } else {
                 let full = resolve_posix_path(cwd, in_arg);
-                fs.read_file(&full).unwrap_or_default()
+                match fs.read_file(&full) {
+                    Ok(b) => b,
+                    Err(_) => {
+                        let msg = if quiet {
+                            String::new()
+                        } else {
+                            format!("{warn_prefix}I/O Error: Couldn't open file '{in_arg}': No such file or directory.\n")
+                        };
+                        return err_out(&msg, 1);
+                    }
+                }
             };
+            if raw_bytes.is_empty() {
+                let msg = if quiet {
+                    String::new()
+                } else {
+                    format!("{warn_prefix}Syntax Error: Document stream is empty\n")
+                };
+                return err_out(&msg, 1);
+            }
             let doc = PdfDoc::parse(&raw_bytes);
-            let end_p = last_p.unwrap_or(doc.pages.len()).min(doc.pages.len());
-            let mut selected_texts = Vec::new();
+            let page_count = doc.pages.len().max(1);
+            let end_p = if !last_p_explicit || last_p == 0 || last_p > page_count {
+                page_count
+            } else {
+                last_p
+            };
+            if first_p > page_count || first_p > end_p {
+                let msg = if quiet {
+                    String::new()
+                } else {
+                    format!("{warn_prefix}Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n")
+                };
+                return err_out(&msg, 99);
+            }
+            let mut selected_pages: Vec<(usize, &PdfPage)> = Vec::new();
             for pno in first_p..=end_p {
                 if let Some(pg) = doc.pages.get(pno - 1) {
-                    selected_texts.push(pg.text.clone());
+                    selected_pages.push((pno, pg));
                 }
+            }
+            let mut selected_texts = Vec::new();
+            for (_pno, pg) in &selected_pages {
+                let mut t = pg.text.clone();
+                if urls_mode {
+                    let mut extra = Vec::new();
+                    for u in &pg.urls {
+                        if !t.contains(u) && !extra.contains(u) {
+                            extra.push(u.clone());
+                        }
+                    }
+                    if !extra.is_empty() {
+                        if !t.is_empty() && !t.ends_with('\n') {
+                            t.push('\n');
+                        }
+                        t.push_str(&extra.join("\n"));
+                    }
+                }
+                selected_texts.push(t);
             }
             let combined = selected_texts.join("\n");
             let mut rendered = if bbox_mode {
-                let mut words_xml = String::new();
-                for w in combined.split_whitespace() {
-                    words_xml.push_str(&format!(
-                        "<word xMin=\"0\" yMin=\"0\" xMax=\"50\" yMax=\"12\">{}</word>\n",
-                        html_escape_str(w)
-                    ));
+                let mut pages_xml = String::new();
+                for (_pno, pg) in &selected_pages {
+                    pages_xml.push_str(&format!("  <page width=\"{:.6}\" height=\"{:.6}\">\n", doc.page_w, doc.page_h));
+                    if bbox_layout {
+                        pages_xml.push_str("    <flow>\n      <block xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"100.000000\" yMax=\"20.000000\">\n        <line xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"100.000000\" yMax=\"20.000000\">\n");
+                    }
+                    for w in pg.text.split_whitespace() {
+                        pages_xml.push_str(&format!(
+                            "          <word xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"50.000000\" yMax=\"12.000000\">{}</word>\n",
+                            html_escape_str(w)
+                        ));
+                    }
+                    if bbox_layout {
+                        pages_xml.push_str("        </line>\n      </block>\n    </flow>\n");
+                    }
+                    pages_xml.push_str("  </page>\n");
                 }
+                let author_meta = if doc.author.is_empty() {
+                    String::new()
+                } else {
+                    format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
+                };
                 format!(
-                    "<!DOCTYPE html>\n<html><head><title>{}</title></head><body><doc><page width=\"612\" height=\"792\"><flow><block xMin=\"0\" yMin=\"0\" xMax=\"100\" yMax=\"20\"><line xMin=\"0\" yMin=\"0\" xMax=\"100\" yMax=\"20\">\n{words_xml}</line></block></flow></page></doc></body></html>\n",
+                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<doc>\n{pages_xml}</doc>\n</body>\n</html>\n",
                     html_escape_str(&doc.title)
                 )
             } else if tsv_mode {
                 let mut tsv = String::from(
                     "level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n",
                 );
-                for (widx, w) in combined.split_whitespace().enumerate() {
-                    tsv.push_str(&format!("5\t1\t1\t1\t1\t{}\t0\t0\t50\t12\t100\t{w}\n", widx + 1));
+                for (pno, pg) in &selected_pages {
+                    tsv.push_str(&format!(
+                        "1\t{pno}\t0\t0\t0\t0\t0.000000\t0.000000\t{:.6}\t{:.6}\t-1\t###PAGE###\n",
+                        doc.page_w, doc.page_h
+                    ));
+                    let non_empty_lines: Vec<&str> = pg.text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
+                    if !non_empty_lines.is_empty() {
+                        tsv.push_str(&format!(
+                            "3\t{pno}\t0\t0\t0\t0\t0.000000\t0.000000\t100.000000\t20.000000\t-1\t###FLOW###\n"
+                        ));
+                        for (lidx, line_str) in non_empty_lines.iter().enumerate() {
+                            tsv.push_str(&format!(
+                                "4\t{pno}\t0\t0\t{lidx}\t0\t0.000000\t0.000000\t100.000000\t20.000000\t-1\t###LINE###\n"
+                            ));
+                            for (widx, w) in line_str.split_whitespace().enumerate() {
+                                tsv.push_str(&format!(
+                                    "5\t{pno}\t0\t0\t{lidx}\t{widx}\t0.00\t0.00\t50.00\t12.00\t100\t{w}\n"
+                                ));
+                            }
+                        }
+                    }
                 }
-                tsv
+                if htmlmeta {
+                    let author_meta = if doc.author.is_empty() {
+                        String::new()
+                    } else {
+                        format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
+                    };
+                    format!(
+                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
+                        html_escape_str(&doc.title),
+                        html_escape_str(&tsv)
+                    )
+                } else {
+                    tsv
+                }
             } else {
-                format!("{combined}\n")
+                let mut plain = format!("{combined}\n");
+                if eol_mode == "dos" {
+                    plain = plain.replace('\n', "\r\n");
+                } else if eol_mode == "mac" {
+                    plain = plain.replace('\n', "\r");
+                }
+                if htmlmeta {
+                    let author_meta = if doc.author.is_empty() {
+                        String::new()
+                    } else {
+                        format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
+                    };
+                    format!(
+                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
+                        html_escape_str(&doc.title),
+                        html_escape_str(&plain)
+                    )
+                } else {
+                    plain
+                }
             };
-            if eol_dos {
+            if (bbox_mode || tsv_mode) && eol_mode == "dos" {
                 rendered = rendered.replace('\n', "\r\n");
             }
             let out_target = if pos.len() >= 2 {
                 pos[1].clone()
             } else if in_arg != "-" {
-                let stem = in_arg.strip_suffix(".pdf").unwrap_or(in_arg);
-                format!("{stem}.txt")
+                let ext = if bbox_mode || htmlmeta {
+                    ".html"
+                } else if tsv_mode {
+                    ".tsv"
+                } else {
+                    ".txt"
+                };
+                let stem = if in_arg.to_ascii_lowercase().ends_with(".pdf") {
+                    &in_arg[..in_arg.len() - 4]
+                } else {
+                    in_arg
+                };
+                format!("{stem}{ext}")
             } else {
                 "-".to_string()
             };
             if out_target == "-" {
-                ok_out(&rendered)
+                BuiltinOutcome {
+                    stdout: rendered,
+                    stderr: warn_prefix.to_string(),
+                    exit_code: 0,
+                }
             } else {
                 let dst = resolve_posix_path(cwd, &out_target);
                 let _ = fs.write_file(&dst, rendered.as_bytes());
-                ok_out("")
+                BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: warn_prefix.to_string(),
+                    exit_code: 0,
+                }
             }
         }
         "pdftohtml" => {
-            let xml_mode = args.iter().any(|a| a == "-xml");
-            let stdout_mode = args.iter().any(|a| a == "-stdout");
-            let pos: Vec<&String> = args.iter().filter(|a| !a.starts_with('-')).collect();
-            let mut doc = PdfDoc::new();
-            if let Some(first) = pos.first() {
-                let full = resolve_posix_path(cwd, first);
-                if let Ok(b) = fs.read_file(&full) {
-                    doc = PdfDoc::parse(&b);
+            let mut xml_mode = false;
+            let mut to_stdout = false;
+            let mut ignore_images = false;
+            let mut data_urls = false;
+            let mut first_p = 1usize;
+            let mut last_p = 0usize;
+            let mut zoom = 1.0f64;
+            let mut image_fmt = "png";
+            let mut pos: Vec<String> = Vec::new();
+            let mut after_dd = false;
+            let mut i = 0usize;
+            while i < args.len() {
+                let a = args[i].as_str();
+                if after_dd {
+                    pos.push(a.to_string());
+                    i += 1;
+                    continue;
                 }
+                if a == "--" {
+                    after_dd = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "-v" || a == "--version" {
+                    return ok_out("pdftohtml version 24.08.0\n");
+                }
+                if a == "-h" || a == "-help" || a == "--help" || a == "-?" {
+                    return ok_out("Usage: pdftohtml [options] <PDF-file> [<html-file>|<xml-file>]\n  -xml / -stdout / -s / -i / -noframes / -c / -f <int> / -l <int>\n");
+                }
+                match a {
+                    "-xml" => xml_mode = true,
+                    "-stdout" => to_stdout = true,
+                    "-i" => ignore_images = true,
+                    "-dataurls" => data_urls = true,
+                    "-f" => {
+                        i += 1;
+                        first_p = args.get(i).and_then(|s| s.parse::<usize>().ok()).unwrap_or(1).max(1);
+                    }
+                    "-l" => {
+                        i += 1;
+                        last_p = args.get(i).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+                    }
+                    "-zoom" => {
+                        i += 1;
+                        if let Some(z) = args.get(i).and_then(|s| s.parse::<f64>().ok()) && z.is_finite() && z > 0.0 {
+                            zoom = z;
+                        }
+                    }
+                    "-fmt" => {
+                        i += 1;
+                        let fv = args.get(i).map(|s| s.to_ascii_lowercase()).unwrap_or_default();
+                        if fv == "png" {
+                            image_fmt = "png";
+                        } else if fv == "jpg" || fv == "jpeg" {
+                            image_fmt = "jpg";
+                        } else {
+                            return err_out(&format!("Command Line Error: Invalid image format '{fv}'\n"), 99);
+                        }
+                    }
+                    "-enc" => {
+                        i += 1;
+                        let enc = args.get(i).map(|s| s.as_str()).unwrap_or("");
+                        if !matches!(enc, "ASCII7" | "Latin1" | "UTF-8" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                            return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
+                        }
+                    }
+                    "-upw" | "-opw" => {
+                        i += 1;
+                    }
+                    "-s" | "-noframes" | "-c" | "-p" | "-q" | "-hidden" | "-nomerge" | "-nodrm" => {}
+                    _ if !a.starts_with('-') || a == "-" => {
+                        pos.push(a.to_string());
+                    }
+                    _ => {}
+                }
+                i += 1;
             }
-            let body_text: String = doc
-                .pages
-                .iter()
-                .map(|p| p.text.clone())
-                .collect::<Vec<_>>()
-                .join("\n");
-            let rendered = if xml_mode {
-                format!(
-                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<pdf2xml producer=\"poppler\">\n<page number=\"1\" position=\"absolute\" top=\"0\" left=\"0\" height=\"792\" width=\"612\">\n<fontspec id=\"0\" size=\"16\" family=\"Helvetica\" color=\"#000000\"/>\n<text top=\"50\" left=\"50\" width=\"200\" height=\"20\" font=\"0\">{}</text>\n</page>\n</pdf2xml>\n",
-                    html_escape_str(&body_text)
-                )
+            let input_path = if let Some(p0) = pos.first() {
+                p0.as_str()
+            } else if !stdin.is_empty() {
+                "-"
             } else {
-                format!(
-                    "<!DOCTYPE html>\n<html><head><title>{}</title></head><body><p>{}</p></body></html>\n",
-                    html_escape_str(&doc.title),
-                    html_escape_str(&body_text)
-                )
+                return err_out("Usage: pdftohtml [options] <PDF-file> [<html-file>]\n", 99);
             };
-            if stdout_mode || pos.len() < 2 {
+            let explicit_out = pos.get(1).map(|s| s.as_str());
+            let stdout_output = to_stdout || explicit_out == Some("-") || (input_path == "-" && explicit_out.is_none());
+            let default_ext = if xml_mode { ".xml" } else { ".html" };
+            let input_stem = if input_path.to_ascii_lowercase().ends_with(".pdf") {
+                &input_path[..input_path.len() - 4]
+            } else {
+                input_path
+            };
+            let out_path = match explicit_out {
+                Some(eo) => {
+                    if eo.ends_with(".html") || eo.ends_with(".xml") {
+                        eo.to_string()
+                    } else {
+                        format!("{eo}{default_ext}")
+                    }
+                }
+                None => format!("{input_stem}{default_ext}"),
+            };
+            let image_dir = match out_path.rfind('/') {
+                Some(idx) => &out_path[..=idx],
+                None => "",
+            };
+            let raw_bytes = if input_path == "-" {
+                let b = crate::vfs::stream_string_to_bytes(stdin);
+                if b.is_empty() {
+                    return err_out("I/O Error: Couldn't open file '-'\n", 1);
+                }
+                b
+            } else {
+                let full = resolve_posix_path(cwd, input_path);
+                match fs.read_file(&full) {
+                    Ok(b) => b,
+                    Err(_) => return err_out(&format!("I/O Error: Couldn't open file '{input_path}'\n"), 1),
+                }
+            };
+            let doc = PdfDoc::parse(&raw_bytes);
+            let total_pages = doc.pages.len().max(1);
+            let end_p = if last_p > 0 { total_pages.min(last_p) } else { total_pages };
+            if first_p > total_pages || (last_p > 0 && first_p > end_p) {
+                return err_out(
+                    &format!("Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n"),
+                    99,
+                );
+            }
+            let pw = (doc.page_w * zoom).round() as i64;
+            let ph = (doc.page_h * zoom).round() as i64;
+            let default_font_size = (12.0 * zoom).round() as i64;
+            let rendered = if xml_mode {
+                let mut lines = vec![
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>".to_string(),
+                    "<!DOCTYPE pdf2xml SYSTEM \"pdf2xml.dtd\">".to_string(),
+                    "<pdf2xml producer=\"@poe-code/pdf-ast\" version=\"24.08.0\">".to_string(),
+                ];
+                for pno in first_p..=end_p {
+                    lines.push(format!(
+                        "  <page number=\"{pno}\" position=\"absolute\" top=\"0\" left=\"0\" height=\"{ph}\" width=\"{pw}\">"
+                    ));
+                    lines.push(format!(
+                        "    <fontspec id=\"0\" size=\"{default_font_size}\" family=\"Helvetica\" color=\"#000000\"/>"
+                    ));
+                    if let Some(pg) = doc.pages.get(pno - 1) {
+                        if !ignore_images {
+                            for (img_idx, (iw, ih, _)) in pg.images.iter().enumerate() {
+                                let img_file = format!("page{pno}_{}.{image_fmt}", img_idx + 1);
+                                let im = ImageMeta {
+                                    fmt: if image_fmt == "jpg" { "JPEG".to_string() } else { "PNG".to_string() },
+                                    w: *iw,
+                                    h: *ih,
+                                    cs: "sRGB".to_string(),
+                                    exif: BTreeMap::new(),
+                                };
+                                let img_bytes = write_image_bytes(&im);
+                                if !data_urls && !stdout_output {
+                                    let full_img = resolve_posix_path(cwd, &format!("{image_dir}{img_file}"));
+                                    let _ = fs.write_file(&full_img, &img_bytes);
+                                }
+                                let src_attr = if data_urls {
+                                    let mime = if image_fmt == "jpg" { "image/jpeg" } else { "image/png" };
+                                    format!("data:{mime};base64,{}", base64_encode(&img_bytes))
+                                } else {
+                                    img_file
+                                };
+                                lines.push(format!(
+                                    "    <image top=\"0\" left=\"0\" width=\"{iw}\" height=\"{ih}\" src=\"{src_attr}\"/>"
+                                ));
+                            }
+                        }
+                        for (lidx, line_str) in pg.text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).enumerate() {
+                            let top = 50 + (lidx as i64) * 20;
+                            let escaped = html_escape_str(line_str);
+                            let inner = if let Some(u) = pg.urls.first() && lidx == 0 {
+                                format!("<a href=\"{}\">{escaped}</a>", html_escape_str(u))
+                            } else {
+                                escaped
+                            };
+                            lines.push(format!(
+                                "    <text top=\"{top}\" left=\"50\" width=\"200\" height=\"20\" font=\"0\">{inner}</text>"
+                            ));
+                        }
+                    }
+                    lines.push("  </page>".to_string());
+                }
+                if !doc.bookmarks.is_empty() {
+                    lines.push("  <outline>".to_string());
+                    for (btitle, _blevel, bpage) in &doc.bookmarks {
+                        lines.push(format!("    <item page=\"{bpage}\">{}</item>", html_escape_str(btitle)));
+                    }
+                    lines.push("  </outline>".to_string());
+                }
+                lines.push("</pdf2xml>".to_string());
+                format!("{}\n", lines.join("\n"))
+            } else {
+                let title = if doc.title.is_empty() {
+                    html_escape_str(input_path)
+                } else {
+                    html_escape_str(&doc.title)
+                };
+                let mut lines = vec![
+                    "<!DOCTYPE html>".to_string(),
+                    "<html>".to_string(),
+                    format!("<head><meta charset=\"utf-8\"/><title>{title}</title></head>"),
+                    "<body>".to_string(),
+                ];
+                for pno in first_p..=end_p {
+                    lines.push(format!(
+                        "<div class=\"page\" id=\"page{pno}\" style=\"position:relative;width:{pw}pt;height:{ph}pt;\">"
+                    ));
+                    if let Some(pg) = doc.pages.get(pno - 1) {
+                        if !ignore_images {
+                            for (img_idx, (iw, ih, _)) in pg.images.iter().enumerate() {
+                                let img_file = format!("page{pno}_{}.{image_fmt}", img_idx + 1);
+                                let im = ImageMeta {
+                                    fmt: if image_fmt == "jpg" { "JPEG".to_string() } else { "PNG".to_string() },
+                                    w: *iw,
+                                    h: *ih,
+                                    cs: "sRGB".to_string(),
+                                    exif: BTreeMap::new(),
+                                };
+                                let img_bytes = write_image_bytes(&im);
+                                if !data_urls && !stdout_output {
+                                    let full_img = resolve_posix_path(cwd, &format!("{image_dir}{img_file}"));
+                                    let _ = fs.write_file(&full_img, &img_bytes);
+                                }
+                                let src_attr = if data_urls {
+                                    let mime = if image_fmt == "jpg" { "image/jpeg" } else { "image/png" };
+                                    format!("data:{mime};base64,{}", base64_encode(&img_bytes))
+                                } else {
+                                    img_file
+                                };
+                                lines.push(format!(
+                                    "  <img src=\"{src_attr}\" width=\"{iw}\" height=\"{ih}\"/>"
+                                ));
+                            }
+                        }
+                        for (lidx, line_str) in pg.text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).enumerate() {
+                            let top = 50 + (lidx as i64) * 20;
+                            let escaped = html_escape_str(line_str);
+                            let inner = if let Some(u) = pg.urls.first() && lidx == 0 {
+                                format!("<a href=\"{}\">{escaped}</a>", html_escape_str(u))
+                            } else {
+                                escaped
+                            };
+                            lines.push(format!(
+                                "  <p style=\"position:absolute;top:{top}pt;left:50pt;margin:0;\">{inner}</p>"
+                            ));
+                        }
+                    }
+                    lines.push("</div>".to_string());
+                }
+                if !doc.bookmarks.is_empty() {
+                    lines.push("<hr/>".to_string());
+                    lines.push("<a name=\"outline\"></a><h1>Document Outline</h1>".to_string());
+                    lines.push("<ul>".to_string());
+                    for (btitle, _blevel, bpage) in &doc.bookmarks {
+                        lines.push(format!("<li><a href=\"#page{bpage}\">{}</a></li>", html_escape_str(btitle)));
+                    }
+                    lines.push("</ul>".to_string());
+                }
+                lines.push("</body>".to_string());
+                lines.push("</html>".to_string());
+                format!("{}\n", lines.join("\n"))
+            };
+            if stdout_output {
                 ok_out(&rendered)
             } else {
-                let dst = resolve_posix_path(cwd, pos[1]);
+                let dst = resolve_posix_path(cwd, &out_path);
                 let _ = fs.write_file(&dst, rendered.as_bytes());
                 ok_out("")
             }

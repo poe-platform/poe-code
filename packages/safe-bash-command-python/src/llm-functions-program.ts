@@ -5,6 +5,7 @@
  * outstanding calls, preventing unobserved task failures. */
 export const pythonLlmFunctionsProgram = /* @__PURE__ */ (() => String.raw`
 import asyncio, codecs, inspect, json
+from click import ClickException
 import safe_host
 from _poe_llm_capability import bridge
 from llm.cli import _tools_from_code, _gather_tools
@@ -116,6 +117,9 @@ async def main():
         plugin=tool.plugin, selectionIndex=selection_index, inputSchema=tool.input_schema,
         signature=str(inspect.signature(tool.implementation)),
         asynchronous=inspect.iscoroutinefunction(tool.implementation))
+  except ClickException as error:
+    error.show()
+    raise SystemExit(error.exit_code)
   except Exception as error:
     send("failed", message=getattr(error, "message", str(error)))
     return

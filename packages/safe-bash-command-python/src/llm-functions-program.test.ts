@@ -54,15 +54,17 @@ def call(capability,payload):
  if payload['op']=='definitions': return [definition]
  if payload['op']=='selection': return {}
  if payload['op']=='admit': return None
- if payload['op']=='failed': failures.append(payload['message']); return None
+ if payload['op']=='exit': failures.append('exit'); return None
  raise AssertionError(payload)
 sys.modules['safe_host']=types.SimpleNamespace(call=call)
 sys.modules['_poe_llm_capability']=types.SimpleNamespace(bridge=None)
 sys.modules['llm_safe_host']=types.SimpleNamespace(_attachment_type=lambda a:a.type)
-exec(source,{})
-assert len(failures)==1 and failures[0].startswith(expected), failures
+try:exec(source,{})
+except SystemExit as error:assert error.code==1
+else:raise AssertionError('missing native CLI failure')
+assert failures==['exit'], failures
 `], {input: JSON.stringify([pythonLlmFunctionsProgram, definition, message]), encoding: 'utf8', timeout: 5000});
-    assert.ifError(result.error); assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.ifError(result.error); assert.equal(result.status, 0, result.stdout + result.stderr); assert.equal(result.stdout, ''); assert.ok(result.stderr.startsWith('Error: ' + message), result.stderr);
   });
 
 for (const asynchronous of [false, true]) test(`pinned registered toolbox preserves preparation and instance state in async=${asynchronous}`, {skip: !available && !process.env.LLM_TEST_PYTHON ? 'Requires pinned llm==0.27.1' : false}, () => {

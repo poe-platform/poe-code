@@ -18,6 +18,7 @@ export function createPythonLlmTemplateLoader(options:PythonLlmToolLoaderOptions
 }
 
 export const pythonLlmTemplateProgram=/* @__PURE__ */ (()=>String.raw`
+from click import ClickException
 import json, llm, safe_host
 
 ${pythonLlmPluginSetup}
@@ -30,6 +31,9 @@ def main():
  try:
   load_plugins(request)
   loaders = llm.get_template_loaders()
+ except ClickException as error:
+  error.show()
+  raise SystemExit(error.exit_code)
  except Exception as error:
   send('lookup', message=str(error))
   return

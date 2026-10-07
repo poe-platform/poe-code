@@ -346,7 +346,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  }finally{await shell.dispose();await environment.dispose();}
 }
 
-async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false, buildOnly=false, integrityOnly=false, provenanceOnly=false, exitsOnly=false) {
+async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false, buildOnly=false, integrityOnly=false, provenanceOnly=false, pluginCheck='') {
   const wheelReads={opened:0,closed:0,reads:0,largest:0};
   backend=new Proxy(backend,{get(target,key){
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl'))throw Error('Whole canonical wheel read');return target.readFile(path,...args);};
@@ -407,7 +407,7 @@ if ${legacyOnly ? 'True' : 'False'}:
  dependency['worker_dependency-1.0.dist-info/METADATA'] += 'Provides-Extra: feature\\nRequires-Dist: worker-extra @ file:///work/worker_extra-1.0-py3-none-any.whl ; extra == "feature"\\n'
 write_wheel('worker_dependency-1.0-py3-none-any.whl', dependency)
 files['worker_fixture-1.0.dist-info/METADATA'] += 'Requires-Dist: worker-dependency${legacyOnly ? '[feature]' : ''} @ file:///work/worker_dependency-1.0-py3-none-any.whl\\n'
-files['worker_fixture/plugin.py'] = 'import llm, sys, os\\nif os.path.exists("/work/fail-import"): raise ImportError("plugin import failed")\\ndef native_fragment(value):\\n if value == "exit": raise SystemExit(0)\\n print("plugin output")\\n print("plugin diagnostic", file=sys.stderr)\\n return llm.Fragment("native fragment:" + value, "fixture")\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n@llm.hookimpl\\ndef register_fragment_loaders(register):\\n print("register fragments")\\n if os.path.exists("/work/fail-register"): raise ValueError("fragments registration failed")\\n register("native", native_fragment)\\ndef native_template(value):\\n if value == "exit": raise SystemExit(7)\\n print("template output")\\n print("template diagnostic", file=sys.stderr)\\n return llm.Template(name="native", prompt="native template:" + value + " $name $input", system="native system", defaults={"name":"default"})\\n@llm.hookimpl\\ndef register_template_loaders(register):\\n print("register templates")\\n if os.path.exists("/work/fail-register"): raise ValueError("templates registration failed")\\n register("native", native_template)\\n'
+files['worker_fixture/plugin.py'] = 'import llm, sys, os, click\\nclass _Failure(click.ClickException):\\n exit_code=9\\n def format_message(self): return "formatted plugin failure"\\nif os.path.exists("/work/fail-import"): raise ImportError("plugin import failed")\\ndef native_fragment(value):\\n if value == "exit": raise SystemExit(0)\\n print("plugin output")\\n print("plugin diagnostic", file=sys.stderr)\\n return llm.Fragment("native fragment:" + value, "fixture")\\ndef installed_tool(value: int):\\n return value + 73\\n@llm.hookimpl\\ndef register_tools(register):\\n register(installed_tool)\\n@llm.hookimpl\\ndef register_fragment_loaders(register):\\n print("register fragments")\\n if os.path.exists("/work/click-error"): raise _Failure("raw plugin failure")\\n if os.path.exists("/work/fail-register"): raise ValueError("fragments registration failed")\\n register("native", native_fragment)\\ndef native_template(value):\\n if value == "exit": raise SystemExit(7)\\n print("template output")\\n print("template diagnostic", file=sys.stderr)\\n return llm.Template(name="native", prompt="native template:" + value + " $name $input", system="native system", defaults={"name":"default"})\\n@llm.hookimpl\\ndef register_template_loaders(register):\\n print("register templates")\\n if os.path.exists("/work/click-error"): raise _Failure("raw plugin failure")\\n if os.path.exists("/work/fail-register"): raise ValueError("templates registration failed")\\n register("native", native_template)\\n'
 files['worker_fixture-1.0.dist-info/entry_points.txt'] = '[llm]\\nfixture = worker_fixture.plugin\\n'
 if ${artifactOnly ? 'True' : 'False'}:
  files['worker_fixture-1.0.dist-info/METADATA'] += '\\n' + 'unneeded-description' * 8192
@@ -580,7 +580,15 @@ print(json.dumps(result))
     }
     const installed = await shell.exec(prefix + ' install ./worker_fixture-1.0-py3-none-any.whl');
     if(installed.exitCode)throw new Error(JSON.stringify({stage:'install',installed,diagnostics}));
-    if(exitsOnly){
+    if(pluginCheck==='click'){
+      await backend.writeFile('/work/click-error',Uint8Array.of(1));
+      const results=[];
+      for(const command of ['llm templates loaders','llm fragments loaders','llm -t native:value question','llm -f native:value question'])results.push(await shell.exec(command));
+      const definition='import click as _click\nclass _Failure(_click.ClickException):\n exit_code=9\n def format_message(self): return "formatted plugin failure"\nraise _Failure("raw plugin failure")';
+      results.push(await shell.exec('llm tools --functions '+quote(definition)));
+      return {results,diagnostics};
+    }
+    if(pluginCheck==='exits'){
       const fragment=await shell.exec('llm -f native:exit question');
       const template=await shell.exec('llm -t native:exit question');
       const tools=[];
@@ -2016,8 +2024,8 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/packages' || mode === '/llm-packages' || mode === '/build-environment' || mode === '/llm-plugin-exits') {
-      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages' || mode === '/llm-plugin-exits',false,false,mode === '/build-environment',false,false,mode === '/llm-plugin-exits'),failures});}
+    if (mode === '/packages' || mode === '/llm-packages' || mode === '/build-environment' || mode === '/llm-plugin-exits' || mode === '/llm-click-errors') {
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages' || mode === '/llm-plugin-exits' || mode === '/llm-click-errors',false,false,mode === '/build-environment',false,false,mode === '/llm-plugin-exits'?'exits':mode === '/llm-click-errors'?'click':''),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

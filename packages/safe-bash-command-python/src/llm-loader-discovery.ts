@@ -43,6 +43,7 @@ export function createPythonLlmLoaderDiscovery(options:PythonLlmToolLoaderOption
 }
 
 export const pythonLlmLoaderDiscoveryProgram=/* @__PURE__ */ (()=>String.raw`
+from click import ClickException
 import json, llm, safe_host
 
 ${pythonLlmPluginSetup}
@@ -65,6 +66,10 @@ try:
 except SystemExit:
  send('exit')
  raise
+except ClickException as error:
+ error.show()
+ send('exit')
+ raise SystemExit(error.exit_code)
 except Exception as error:
  send('error', message=str(error))
 `)();

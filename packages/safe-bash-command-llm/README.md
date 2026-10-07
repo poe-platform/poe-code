@@ -228,7 +228,8 @@ input budget and plugin diagnostics share its output budget. Explicit `fragmentL
 and `templateLoaders` entries take precedence. CLI loader failures retain their complete
 message, including long Unicode diagnostics, through bounded stderr writes. Native loader
 and tool `SystemExit` preserve their process status and diagnostics; SDK callers receive
-`LlmPluginExit` with `exitCode`. SDK hosts can supply `LlmLoaderProvider`
+`LlmPluginExit` with `exitCode`. Click failures during plugin setup and loader discovery
+retain their native formatted diagnostics and custom exit codes. SDK hosts can supply `LlmLoaderProvider`
 to the template store or pass it as the fifth argument to `loadLlmPluginFragments`.
 
 Use `llm plugins` to list the configured interpreter's installed plugin names,

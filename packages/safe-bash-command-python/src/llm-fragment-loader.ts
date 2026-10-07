@@ -113,6 +113,7 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
 }
 
 export const pythonLlmFragmentProgram=/* @__PURE__ */ (()=>String.raw`
+from click import ClickException
 import hashlib, llm, safe_host
 from llm_safe_host import _attachment_type
 
@@ -144,6 +145,9 @@ def main():
  try:
   load_plugins(request)
   loaders = llm.get_fragment_loaders()
+ except ClickException as error:
+  error.show()
+  raise SystemExit(error.exit_code)
  except Exception as error:
   send('lookup', message=str(error))
   return

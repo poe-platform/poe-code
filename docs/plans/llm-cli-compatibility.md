@@ -211,6 +211,11 @@ native mapping; records cross the runtime boundary individually in both directio
 Legacy normalization, duplicate/name validation, provenance and metadata-only
 uninstall are preserved. Host manifest snapshots and individual records remain
 buffered, and snapshot-path/dependency names still retain native global state.
+Python scandir now forwards lazy caller-directory enumeration through both interpreter
+transports, sharing file-handle admission and cleanup. Listdir, fixed bootstrap
+directories and non-lazy backend fallbacks remain buffered. Importlib.metadata
+FastPath/Lookup still materializes and caches grouped metadata paths; lazy scandir
+is a prerequisite, not qualification of that native cache.
 
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use

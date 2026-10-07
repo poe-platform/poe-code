@@ -1135,3 +1135,13 @@ for(const fromFile of [false,true])test('real workerd selects candidates across 
  assert.deepEqual(JSON.parse(result.sdk.stdout),reference.rows[1].versions);
  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
+
+
+test('real workerd scandir consumes caller directory entries lazily and closes early cursors',{timeout:60000},async()=>{
+ const {miniflare,runtimeErrors}=nativeFixture;
+ const response=await miniflare.dispatchFetch('http://fixture/directory-cursors');
+ const result=await response.json();assert.equal(response.status,200,JSON.stringify(result));
+ assert.equal(result.result.exitCode,0,JSON.stringify(result));assert.equal(result.result.stdout,'scandir-ok\n');assert.equal(result.result.stderr,'');
+ assert.equal(result.opened,3);assert.equal(result.closed,3);assert.equal(result.consumed,4);
+ assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});

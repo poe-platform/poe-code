@@ -134,19 +134,50 @@ class _SafeDirEntry:
    return _safe_stat_module.S_ISLNK(self.stat(follow_symlinks=False).st_mode)
   except FileNotFoundError:
    return False
+_safe_cursor_callback = _safe_directory_cursor
+def _safe_cursor(operation, value, path=None):
+ result = json.loads(_safe_cursor_callback(operation, value))
+ if 'errno' in result:
+  raise OSError(result['errno'], 'directory enumeration failed', path)
+ return result.get('value')
 class _SafeScandir:
  def __init__(self, path):
-  self._entries = iter([_SafeDirEntry(path, name) for name in os.listdir(path)])
+  self._handle = None
+  self._entries = iter(())
+  self._path = path
+  if not path:raise FileNotFoundError(errno.ENOENT, 'directory enumeration failed', path)
+  absolute = os.fsdecode(path)
+  if not os.path.isabs(absolute):absolute = os.getcwd() + '/' + absolute
+  if absolute == _safe_runtime_mount or absolute.startswith(_safe_runtime_mount + '/'):
+   self._entries = iter(os.listdir(path))
+  else:
+   self._handle = _safe_cursor('directoryOpen', absolute, path)
  def __iter__(self):
   return self
  def __next__(self):
-  return next(self._entries)
+  try:
+   if self._handle is None:
+    name = next(self._entries)
+   else:
+    name = _safe_cursor('directoryNext', self._handle)
+    if name is None:
+     raise StopIteration
+    if isinstance(self._path, bytes):name = os.fsencode(name)
+   return _SafeDirEntry(self._path, name)
+  except BaseException:
+   self.close()
+   raise
  def close(self):
+  handle, self._handle = self._handle, None
   self._entries = iter(())
+  if handle is not None:_safe_cursor('close', handle)
  def __enter__(self):
   return self
  def __exit__(self, *args):
   self.close()
+ def __del__(self):
+  try:self.close()
+  except Exception:pass
 def _safe_scandir(path='.'):
  if isinstance(path, int):
   raise OSError(errno.ENOTSUP, 'retained directory descriptors are unsupported')

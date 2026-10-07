@@ -139,6 +139,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
               return { errorCode: pythonHostFailureCode(error), error: signal.aborted ? 'Python host operation cancelled' : 'Python host operation failed' };
             }
           }
+          if(payload[0]==='cursor'&&['directoryOpen','directoryNext','close'].includes(payload[1]))return {value:await start.dispatch({op:payload[1],args:[payload[2]]})};
           signal.throwIfAborted();
           const [operation, path, follow] = payload;
           if (operation === 'stat') return native!.metadata(path, follow);
@@ -201,6 +202,8 @@ def _safe_import_stat(path):
  return _safe_stat_projection(path, True)
 def _safe_directory_entries(path):
  return _safe_native_request(json.dumps(['directory', path]))
+def _safe_directory_cursor(operation, value):
+ return _safe_native_request(json.dumps(['cursor', operation, value]))
 def _safe_tree_cleanup(path):
  return _safe_native_request(json.dumps(['tree', path]))
 `);

@@ -2103,6 +2103,41 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       }
       return runtime;
     } });
+    if (mode === '/directory-cursors') {
+      let opened=0,closed=0,consumed=0;
+      const storage=new Proxy(backend,{get(target,key){
+        if(key==='readdir')return (path,...args)=>{if(path==='/work/scan')throw new Error('Buffered scandir');return target.readdir(path,...args);};
+        if(key==='iterateDirectory')return async function*(path,options){
+          if(path!=='/work/scan'){yield* target.iterateDirectory(path,options);return;}
+          opened++;
+          try{for await(const entry of target.iterateDirectory(path,options)){consumed++;yield entry;}}
+          finally{closed++;}
+        };
+        const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+      }});
+      const shell=new Shell({fs:storage,cwd:'/work'}).use(pythonCommands({createExecutor}));
+      try{
+        await backend.mkdir('/work/scan');
+        for(let i=0;i<4096;i++)await backend.writeFile('/work/scan/entry-'+i,new Uint8Array());
+        const result=await shell.exec(`python - <<'PY'
+import os,gc,json
+with os.scandir("scan") as entries:
+ first=next(entries);second=next(entries)
+ assert first.name=="entry-0" and second.path=="scan/entry-1"
+ assert first.is_file() and not first.is_dir() and not first.is_symlink()
+ assert first.inode()==first.stat().st_ino
+with os.scandir(b"scan") as entries:assert next(entries).name==b"entry-0"
+entries=os.scandir("scan");del entries;gc.collect()
+for path in ["missing", "", b""]:
+ try:os.scandir(path)
+ except FileNotFoundError:pass
+ else:raise AssertionError(path)
+print("scandir-ok")
+PY`);
+        return Response.json({result,opened,closed,consumed,failures});
+      }catch(error){return Response.json({error:String(error),stack:error.stack,opened,closed,consumed,failures},{status:500});}
+      finally{shell.dispose();clearInterval(timer);await filesystem.close();}
+    }
     if (mode === '/package-paths') {
       try {return Response.json({...await qualifyPackagePaths(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}

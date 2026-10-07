@@ -119,6 +119,8 @@ identities without a default device-count budget. Their optional `maxDevices` ac
 `Infinity` or a positive safe integer. Explicit budgets remain enforced; device numbers
 must still fit the disjoint application/runtime ranges of the uint32 Python stat ABI.
 
+Python filesystem directory cursors use `iterateDirectory` when available, share open-handle admission with files, and drain pending reads before cleanup. Backends without lazy enumeration retain the buffered `readdir` fallback.
+
 `withObjectFileDescriptors(fs, store)` supports large shell and Python descriptor
 writes when the host supplies `store.createStaging`: private externally backed
 pages keep working memory bounded without publishing the growing file after

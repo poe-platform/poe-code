@@ -1,3 +1,4 @@
+import { PythonDirectory } from "./directory.js";
 import { parsePythonFsRequest } from "./request.js";
 import { composeAbortSignals } from "../contracts/abort.js";
 import { FsError } from "../contracts/errors.js";
@@ -8,10 +9,10 @@ export type PythonFsRequest =
   | { readonly op: "open"; readonly args: readonly [string, OpenFileOptions] }
   | { readonly op: "read"; readonly args: readonly [number, number, number | null] }
   | { readonly op: "write"; readonly args: readonly [number, Uint8Array, number | null] }
-  | { readonly op: "fstat" | "close" | "position" | "descriptorCapabilities"; readonly args: readonly [number] }
+  | { readonly op: "directoryNext" | "fstat" | "close" | "position" | "descriptorCapabilities"; readonly args: readonly [number] }
   | { readonly op: "ftruncate"; readonly args: readonly [number, number] }
   | { readonly op: "sync"; readonly args: readonly [number, boolean] }
-  | { readonly op: "stat" | "lstat" | "readdir" | "realpath" | "readlink" | "rm" | "rmdir" | "rmtree" | "rmtreeSupported"; readonly args: readonly [string] }
+  | { readonly op: "directoryOpen" | "stat" | "lstat" | "readdir" | "realpath" | "readlink" | "rm" | "rmdir" | "rmtree" | "rmtreeSupported"; readonly args: readonly [string] }
   | { readonly op: "rename" | "symlink" | "link"; readonly args: readonly [string, string] }
   | { readonly op: "mkdir"; readonly args: readonly [string, MkdirOptions?] }
   | { readonly op: "chmod" | "truncate" | "access"; readonly args: readonly [string, number] }
@@ -37,7 +38,7 @@ export class PythonFileSystem {
   readonly #open: PythonFileSystemOptions["open"];
   readonly #abort = new AbortController();
   readonly #scope: ReturnType<typeof composeAbortSignals>;
-  readonly #handles = new Map<number, FileDescriptor>();
+  readonly #handles = new Map<number, FileDescriptor | PythonDirectory>();
   readonly #pending = new Set<Promise<unknown>>();
   #acquiring = 0;
   #next = 1;
@@ -77,8 +78,26 @@ export class PythonFileSystem {
 
   #handle(id: number): FileDescriptor {
     const handle = this.#handles.get(id);
-    if (!handle) throw new FsError("EBADF");
+    if (!handle || handle instanceof PythonDirectory) throw new FsError("EBADF");
     return handle;
+  }
+
+  async #acquire(open: () => FileDescriptor | PythonDirectory | Promise<FileDescriptor | PythonDirectory>): Promise<number> {
+    if (this.#handles.size + this.#acquiring >= this.#limit || !Number.isSafeInteger(this.#next)) throw new FsError("EMFILE", { syscall: "open" });
+    this.#acquiring++;
+    let handle: FileDescriptor | PythonDirectory | undefined;
+    try {
+      handle = await open();
+      if (handle instanceof PythonDirectory) await handle.prepare();
+      this.#scope.signal.throwIfAborted();
+      const id = this.#next++;
+      this.#handles.set(id, handle);
+      return id;
+    } catch (error) {
+      if (handle) try { await handle.close(); } catch { /* Preserve acquisition failure. */ }
+      this.#scope.signal.throwIfAborted();
+      throw error;
+    } finally { this.#acquiring--; }
   }
 
   #size(size: number): void {
@@ -89,7 +108,8 @@ export class PythonFileSystem {
   async #execute(request: PythonFsRequest): Promise<unknown> {
     if (request.op === "close") {
       const [id] = request.args;
-      const handle = this.#handle(id);
+      const handle = this.#handles.get(id);
+      if (!handle) throw new FsError("EBADF");
       this.#handles.delete(id);
       await handle.close({ signal: this.#scope.signal });
       return;
@@ -101,28 +121,21 @@ export class PythonFileSystem {
     switch (request.op) {
       case "open": {
         const [path, supplied] = request.args;
-        if (this.#handles.size + this.#acquiring >= this.#limit || !Number.isSafeInteger(this.#next)) throw new FsError("EMFILE", { syscall: "open" });
-        if (!this.#open && !fs.open) throw new FsError("ENOTSUP", { syscall: "open", path });
-        this.#acquiring++;
-        let handle: FileDescriptor | undefined;
-        try {
-          // A following capability query cannot preflight exclusive final-entry acquisition.
-          // The canonical open remains authoritative for selected-path policy and atomic refusal.
+        return this.#acquire(async () => {
+          if (!this.#open && !fs.open) throw new FsError("ENOTSUP", { syscall: "open", path });
+          // Exclusive creation must reach the canonical atomic operation directly.
           const capabilities = supplied.creation !== "exclusive" && fs.capabilitiesFor ? await fs.capabilitiesFor(this.#path(path), { signal, ...(supplied.creation === "ifMissing" ? { create: true } : {}) }) : fs.capabilities;
           if (capabilities.readOnly === true && (supplied.access === "write" || supplied.access === "readwrite" || supplied.creation === "ifMissing" || supplied.creation === "exclusive" || supplied.truncate === true || supplied.append === true)) throw new FsError("EROFS", { syscall: "open", path });
           if (capabilities.open === false) throw new FsError("ENOTSUP", { syscall: "open", path });
           signal.throwIfAborted();
-          const open = this.#open ?? fs.open!.bind(fs);
-          handle = await open(this.#path(path), { ...supplied, signal });
-          signal.throwIfAborted();
-          const id = this.#next++;
-          this.#handles.set(id, handle);
-          return id;
-        } catch (error) {
-          if (handle) try { await handle.close(); } catch { /* Preserve the acquisition failure. */ }
-          signal.throwIfAborted();
-          throw error;
-        } finally { this.#acquiring--; }
+          return (this.#open ?? fs.open!.bind(fs))(this.#path(path), { ...supplied, signal });
+        });
+      }
+      case "directoryOpen": return this.#acquire(() => new PythonDirectory(fs, this.#path(request.args[0]), options, this.#directoryLimit));
+      case "directoryNext": {
+        const handle = this.#handles.get(request.args[0]);
+        if (!(handle instanceof PythonDirectory)) throw new FsError("EBADF");
+        return handle.next();
       }
       case "descriptorCapabilities": return { ...this.#handle(request.args[0]).capabilities };
       case "fstat": return this.#handle(request.args[0]).stat(options);

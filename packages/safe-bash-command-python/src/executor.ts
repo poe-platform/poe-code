@@ -201,7 +201,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
         const category: PythonFailureCategory = operation === 'open' ? 'filesystem-open'
           : operation === 'read' ? 'filesystem-read'
             : operation === 'write' || operation === 'ftruncate' ? 'filesystem-write'
-              : operation === 'readdir' ? 'filesystem-directory' : 'filesystem-operation';
+              : operation === 'readdir' || operation.startsWith('directory') ? 'filesystem-directory' : 'filesystem-operation';
         if (!filesystemDiagnostics.has(category)) {
           filesystemDiagnostics.add(category);
           const failure = reportPythonFailure(category, error, options.onDiagnostic);

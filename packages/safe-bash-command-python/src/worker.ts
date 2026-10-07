@@ -222,6 +222,13 @@ export async function runPythonWorker(options: {
           ctimeMs:value.ctimeMs ?? value.ctime.getTime(), blocks:value.blocks, blksize:value.blksize, rdev:value.rdev});
       } catch (error) { return JSON.stringify({errno:(error as {errno?:number}).errno ?? errno.EIO}); }
     });
+    runtime.globals.set('_safe_directory_cursor', (operation:string,value:string|number) => {
+      try {
+        if(!['directoryOpen','directoryNext','close'].includes(operation))throw new runtime.FS.ErrnoError(errno.EINVAL);
+        return JSON.stringify({value:request(operation,value)});
+      }
+      catch(error) { return JSON.stringify({errno:(error as {errno?:number}).errno ?? errno.EIO}); }
+    });
     runtime.runPython(pythonStatProjection);
     runtime.globals.set('_safe_hard_link', (source: string, destination: string, follow: boolean) => {
       try {

@@ -364,6 +364,19 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    try{checkSession(session);await ready();checkSession(session);return {key:artifact.key,size:artifact.size,headers,url:responseUrl};}
    catch(error){await release(session);throw error;}
   };
+  const openArtifact=async(source:string)=>{
+   const retained=await openPythonPackageFile(session,source,maxBytes);
+   if(retained)return retained;
+   const capabilities=await fs.capabilitiesFor?.(source,settings)??fs.capabilities;
+   if(capabilities.streamingRead&&fs.readStream){
+    for(const directory of configuredCache?[configuredCache,cwd]:[cwd]){
+     if(directory!==cwd)await fs.mkdir(directory,{recursive:true,signal});
+     const body=(async function*(){yield* fs.readStream!(source,settings);})();
+     const staged=await stagePythonPackage(session,directory,body,maxBytes);
+     if(staged)return staged;
+    }
+   }
+  };
   if(metadata){
    if(metadata.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
    let record: {digest:string,url?:string,headers:readonly(readonly[string,string])[]} | undefined;
@@ -373,7 +386,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    let absent=false;
    if(cacheDirectory){
     let artifact;
-    try{artifact=await openPythonPackageFile(session,resolve(cacheDirectory,runtimeKey+'-sha256-'+record.digest),maxBytes);}catch(error){if(!missing(error))throw error;absent=true;}
+    try{artifact=await openArtifact(resolve(cacheDirectory,runtimeKey+'-sha256-'+record.digest));}catch(error){if(!missing(error))throw error;absent=true;}
     if(artifact){
      return await adopt(artifact,()=>{if(artifact.key!==record.digest)throw failure(`Package cache integrity mismatch: ${url}`);verifyIntegrity(artifact.key);options.onProgress?.({phase:'cached',url,bytes:artifact.size});});
     }
@@ -392,17 +405,9 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     if(path.host && path.host!=='localhost')throw failure('Local wheels must use the canonical filesystem');
     try {
      const source=decodeURIComponent(path.pathname);
-     const artifact=await openPythonPackageFile(session,source,maxBytes);
+     const artifact=await openArtifact(source);
      if(artifact){
       return await adopt(artifact,()=>verifyIntegrity(artifact.key));
-     }
-     const capabilities=await fs.capabilitiesFor?.(source,settings)??fs.capabilities;
-     if(capabilities.streamingRead&&fs.readStream){
-      const directory=configuredCache??cwd;
-      if(configuredCache)await fs.mkdir(directory,{recursive:true,...settings});
-      const body=(async function*(){yield* fs.readStream!(source,settings);})();
-      const staged=await stagePythonPackage(session,directory,body,maxBytes,()=>{},verifyIntegrity);
-      if(staged)return await adopt(staged,()=>{});
      }
      bytes=Uint8Array.from(await fs.readFile(source,{signal,...Number.isFinite(maxBytes)?{maxBytes}:{} })); } catch(error) { checkSession(session);throw failure(`Cannot read canonical Python wheel ${path.pathname}: ${error instanceof Error ? error.message : String(error)}`); }
    }else{
@@ -430,8 +435,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
       headers=response.headers;responseUrl=current.href;
       const encoding=headers.find(([key])=>key.toLowerCase()==='content-encoding')?.[1].trim().toLowerCase();
       const length=headers.find(([key])=>key.toLowerCase()==='content-length')?.[1];const total=length===undefined||(encoding!==undefined&&encoding!=='identity')?undefined:Number(length);
-      if(total!==undefined&&Number.isFinite(total)&&total>maxBytes)throw failure('Package download exceeds maxDownloadBytes');
-      const progress=(count:number)=>options.onProgress?.({phase:'download',url,bytes:count,...typeof total==='number'&&Number.isSafeInteger(total)?{totalBytes:total}:{}});
+      if(Number.isFinite(total)&&total!>maxBytes)throw failure('Package download exceeds maxDownloadBytes');
+      const progress=(count:number)=>options.onProgress?.({phase:'download',url,bytes:count,...Number.isSafeInteger(total)?{totalBytes:total!}:{}});
       if(cacheDirectory||noCache){
        const directory=cacheDirectory??cwd;
        if(cacheDirectory)await fs.mkdir(directory,{recursive:true,signal});

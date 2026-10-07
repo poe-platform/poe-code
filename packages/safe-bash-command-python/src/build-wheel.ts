@@ -45,7 +45,7 @@ export async function publishPythonBuildWheel(source:string|{filename:string;art
   if((await destination.lstat(path,settings)).type!=='directory')throw new Error('Python wheel publication directory changed');
   const output=resolvePath(path,filename);
   const body=async function*(){for(let offset=0;offset<retained.size;){const bytes=await (reading=Promise.resolve(retained.read(offset,Math.min(65536,retained.size-offset))));if(!bytes.length||bytes.length>Math.min(65536,retained.size-offset))throw new Error('Invalid Python wheel read');offset+=bytes.length;yield bytes;}};
-  const published=await stagePythonPackage({...context,fs:destination},path,body(),maxBytes,()=>{},key=>{if(key!==retained.key)throw new Error('Built Python wheel integrity mismatch');},()=>output);
+  const published=await stagePythonPackage({...context,fs:destination},path,body(),maxBytes,undefined,key=>{if(key!==retained.key)throw new Error('Built Python wheel integrity mismatch');},()=>output);
   if(!published)throw new Error('Python wheel publication requires retained atomic staging');
   try{return {url:'file://'+output.split('/').map(encodeURIComponent).join('/'),digest:published.key,size:published.size};}
   finally{await published.close();}

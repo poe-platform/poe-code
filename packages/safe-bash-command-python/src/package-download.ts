@@ -10,7 +10,7 @@ let serial=0;
 /** Network bodies stage in the caller's filesystem before integrity/publication. */
 export async function stagePythonPackage(
  context:PythonPackageContext,directory:string,body:AsyncIterable<Uint8Array>,maxBytes:number,
- progress:(bytes:number)=>void,verify:(key:string)=>void,publish?:(key:string)=>string,
+ progress?:((bytes:number)=>void),verify?:((key:string)=>void),publish?:(key:string)=>string,
 ){
  const {fs,signal}=context,settings={signal};
  const caps=await fs.capabilitiesFor?.(directory,settings)??fs.capabilities;
@@ -41,7 +41,7 @@ export async function stagePythonPackage(
     const chunk=Uint8Array.from(bytes.subarray(offset,offset+65536));
     await owner.writer.write(chunk,settings);count+=chunk.length;await yieldTurn(signal);
    }
-   if(bytes.length)progress(count);
+   if(bytes.length)progress?.(count);
   }}finally{
    if(!ended){
     const returned=Promise.resolve().then(()=>iterator.return?.());
@@ -52,7 +52,7 @@ export async function stagePythonPackage(
   if(stat.size!==count)throw new Error('Python package staging size mismatch');
   artifact=await openPythonPackageFile(context,owner.file.path,maxBytes,stat);
   if(!artifact)throw new Error('Python package retained reads unavailable');
-  verify(artifact.key);
+  verify?.(artifact.key);
   if(publish){
    const key=artifact.key,path=publish(key);
    await artifact.close();artifact=undefined;

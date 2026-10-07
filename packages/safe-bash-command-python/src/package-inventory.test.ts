@@ -13,6 +13,10 @@ code = compile(ast.Module(body=tree.body[start:], type_ignores=[]), '<package-in
 live = peak = 0
 removed = False
 output = []
+published = []
+async def record(operation, payload):
+ assert operation == "append"
+ published.append(json.loads(payload))
 class Distribution:
  def __init__(self, name):
   global live, peak
@@ -52,7 +56,7 @@ namespace = {
  '_safe_metadata':types.SimpleNamespace(distributions=distributions, distribution=distribution, PackageNotFoundError=Missing, MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)),
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
  '_safe_uninstall':None if mode == 'install' else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},
- '_safe_preloaded':set(), '_safe_restored_names':{'remove'}, '_safe_package_emit':emit, '_safe_package_line':line,
+ '_safe_package_record':record, '_safe_preloaded':set(), '_safe_restored_names':{'remove'}, '_safe_package_emit':emit, '_safe_package_line':line,
  '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_paths':{name:'/installed/'+name for name in records}, '_safe_record_by_name':records,
 }
 asyncio.run(eval(code, namespace))
@@ -61,7 +65,7 @@ expected = ['file:///active.whl', 'active==1']
 expected[0] = 'active @ ' + expected[0]
 if mode != 'remove': expected.append('remove==2')
 assert json.loads(namespace['_safe_installed_json']) == expected
-assert json.loads(namespace['_safe_records_json']) == [records[name] for name in ('active','remove') if name != 'remove' or mode != 'remove']
+assert published == [records[name] for name in ('active','remove') if name != 'remove' or mode != 'remove']
 assert json.loads(namespace['_safe_uninstalled_json']) == (['remove-2'] if mode == 'remove' else [])
 if mode == 'missing': assert output == [('stderr', 'WARNING: Skipping missing as it is not installed.\n')]
 if mode == 'decline': assert output[-1] == ('stdout', 'Proceed (Y/n)? ')

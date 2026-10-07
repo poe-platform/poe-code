@@ -3,6 +3,7 @@ import {loadPythonPackageProgram} from './package-program.js';
 import { loadPythonNativeWheel } from './native-wheel.js';
 import {pythonPackageUrlHash} from './package-url-hash.js';
 import type { PythonWorkerRuntime } from './worker.js';
+import type {PythonPackageRecord} from './manifest.js';
 import type { PythonPackageStart } from './provisioning.js';
 
 interface NativePackage { normalizedName:string;channel:string;packageData?:NativePackageData }
@@ -182,7 +183,23 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
    bind('_safe_package_'+key,!!start[key]);
   }
   bind('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
-  bind('_safe_package_records_json',JSON.stringify(start.records ?? null));
+  const inputRecords=start.records?.map((row):PythonPackageRecord=>[row[0],row[1],row[2],[...row[3]],[...row[4]],row[5]??null]);
+  const outputRecords:unknown[]=[];
+  bind('_safe_package_record',(operation:string,key?:unknown,value?:unknown)=>transfer(async()=>{
+   if(operation==='start'){await request('package-index',start.session,'records-start');return inputRecords?.length??-1;}
+   if(operation==='append'){
+    if(typeof key!=='string')throw new Error('Invalid Python package record');
+    if(start.restore!==undefined)outputRecords.push(JSON.parse(key));
+    return null;
+   }
+   if(operation==='read'||operation==='get'){
+    const ordinal=operation==='get'?await request('package-index',start.session,'records-get',key):key;
+    if(ordinal===null)return 'null';
+    if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=(inputRecords?.length??0))throw new Error('Invalid Python package record ordinal');
+    return JSON.stringify(inputRecords![ordinal as number]);
+   }
+   return request('package-index',start.session,'records-'+operation,...key===undefined?[]:[key],...value===undefined?[]:[value]);
+  }));
   bind('_safe_package_uninstall_json',JSON.stringify(start.uninstall ?? null));
   bind('_safe_package_emit',async(stream:string,message:string)=>{
    if(stream!=='stdout'&&stream!=='stderr')throw new Error('Invalid package output stream');
@@ -232,7 +249,7 @@ _safe_installer_failure
   await pending;
   if(transportFailure)throw transportFailure.error;
   const pinned=JSON.parse(runtime.runPython('_safe_installed_json')) as string[];
-  await request('package-commit',start.session,start.restore === undefined ? pinned : {version:3,installed:pinned,records:JSON.parse(runtime.runPython('_safe_records_json'))});
+  await request('package-commit',start.session,start.restore === undefined ? pinned : {version:3,installed:pinned,records:outputRecords});
   if(start.uninstall){
    const removed=JSON.parse(runtime.runPython('_safe_uninstalled_json')) as string[];
    for(const name of removed){

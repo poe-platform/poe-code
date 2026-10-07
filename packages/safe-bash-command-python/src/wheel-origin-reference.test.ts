@@ -15,7 +15,7 @@ class Wheel:
  def from_url(cls,url):
   return types.SimpleNamespace(name='fixture',url=url,sha256=None,_data={'key':'digest'},_requires=[],filename='fixture-1-py3-none-any.whl',_project_name='fixture')
 async def install(value):captured.append(json.loads(value))
-namespace={'_safe_restoring':False,'_safe_prior_origins':None,'_safe_name':lambda name:name,'_SafeWheelInfo':Wheel,'_safe_json':json,'_safe_package_wheel_install':install}
+namespace={'_safe_restoring':False,'_safe_record_by_name':types.SimpleNamespace(origin=lambda name:None),'_safe_name':lambda name:name,'_SafeWheelInfo':Wheel,'_safe_json':json,'_safe_package_wheel_install':install}
 selected=[node for node in program.body if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)) and node.name in ['read_source_origin','_safe_wheel_from_url','_safe_wheel_install'] or isinstance(node,ast.Assign) and any(isinstance(target,ast.Attribute) and isinstance(target.value,ast.Name) and target.value.id=='_SafeWheelInfo' and target.attr=='from_url' for target in node.targets)]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<maintained-package-program>','exec'),namespace)
 async def check():
@@ -33,7 +33,7 @@ async def check():
    else:assert 'direct_url.json' not in metadata,(kind,metadata)
    assert metadata['PYODIDE_SHA256']=='digest'
    namespace['_safe_restoring']=True
-   namespace['_safe_prior_origins']={'fixture':metadata.get('direct_url.json')}
+   namespace['_safe_record_by_name']=types.SimpleNamespace(origin=lambda name:metadata.get('direct_url.json'))
    restored=Wheel.from_url(url)
    await namespace['_safe_wheel_install'](restored,'/target',types.SimpleNamespace(loadedPackages=types.SimpleNamespace()))
    assert captured[-1]['metadata'].get('direct_url.json')==metadata.get('direct_url.json'),(kind,captured[-1])

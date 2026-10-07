@@ -206,6 +206,11 @@ loading still need full memory qualification. Preloaded package protection now
 snapshots normalized names one distribution at a time into the same bounded
 caller-backed index machinery. The snapshot is immutable during restore/install/
 uninstall, independent of wheel indexes, and retires on publication or failure.
+Saved-record restoration now uses a separate caller-backed ordinal index and lazy
+native mapping; records cross the runtime boundary individually in both directions.
+Legacy normalization, duplicate/name validation, provenance and metadata-only
+uninstall are preserved. Host manifest snapshots and individual records remain
+buffered, and snapshot-path/dependency names still retain native global state.
 
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use

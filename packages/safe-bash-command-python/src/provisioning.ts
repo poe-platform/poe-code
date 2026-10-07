@@ -195,8 +195,7 @@ interface Session extends PythonPackageContext {
  readonly requirements: readonly string[];
  opened?: PackageArtifact | undefined;
  readonly retained:Map<string,PackageArtifact>;
- wheelIndex?:PythonPackageIndex|undefined;
- packageNames?:PythonPackageIndex|undefined;
+ indexes:Partial<Record<'wheel'|'names'|'records',PythonPackageIndex>>;
  installationRoot?:PythonInstallationRoot|undefined;
  retiring?: Promise<void>;
  retaining?: Promise<void> | undefined;
@@ -245,8 +244,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  };
  function release(session:Session,all=false):Promise<void> {
   const artifacts:Array<Pick<PackageArtifact,'close'>>=all?[...session.retained.values()]:[];
-  if(all&&session.wheelIndex){artifacts.push(session.wheelIndex);session.wheelIndex=undefined;}
-  if(all&&session.packageNames){artifacts.push(session.packageNames);session.packageNames=undefined;}
+  if(all){artifacts.push(...Object.values(session.indexes));session.indexes={};}
   if(all)session.retained.clear();
   if(session.closed&&session.installationRoot){artifacts.push(session.installationRoot);session.installationRoot=undefined;}
   if(session.opened){artifacts.push(session.opened);session.opened=undefined;}
@@ -343,7 +341,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const unique=[...new Set([...restore,...requested])];
   const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;void release(current,true);}};
   const offline=context.offline??options.offline??false;
-  sessions.set(session,{...context,cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
+  sessions.set(session,{...context,indexes:{},cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
   signal.addEventListener('abort',aborted,{once:true});
   return {session,indexUrls,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
@@ -388,8 +386,10 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    options.onProgress?.({phase:'installed'});
    return null;
   }
-  const root=op==='package-root',names=op==='package-index'&&typeof args[1]==='string'&&args[1].startsWith('names-');
-  if(root||op==='package-index'&&(args[1]==='start'||args[1]==='names-start')){
+  const root=op==='package-root',prefix=typeof args[1]==='string'?args[1].split('-',1)[0]:undefined;
+  const kind=prefix==='names'||prefix==='records'?prefix:'wheel';
+  const operation=kind==='wheel'?args[1]:(args[1] as string).slice(prefix!.length+1);
+  if(root||op==='package-index'&&operation==='start'){
    if(root&&session.installationRoot)return session.installationRoot.path();
    let directory=configuredCache?dirname(configuredCache):cwd;
    if(configuredCache){
@@ -399,18 +399,16 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    check();
    const storage={fs,signal,cwd:directory};
    if(root)return (session.installationRoot??=new PythonInstallationRoot(storage)).path();
-   const field=names?'packageNames':'wheelIndex';
-   if(session[field])throw failure('Python package index already open');
-   session[field]=new PythonPackageIndex(storage,names?'names':'wheel');
+   if(session.indexes[kind])throw failure('Python package index already open');
+   session.indexes[kind]=new PythonPackageIndex(storage,kind);
    return null;
   }
   if(op==='package-index'){
-   const operation=names?(args[1] as string).slice(6):args[1],field=names?'packageNames':'wheelIndex';
    if(operation==='close'){
-    const index=session[field];session[field]=undefined;
+    const index=session.indexes[kind];delete session.indexes[kind];
     await index?.close();return null;
    }
-   const index=session[field];
+   const index=session.indexes[kind];
    if(!index)throw failure('Python package index is closed');
    return index.execute(operation,args.slice(2));
   }

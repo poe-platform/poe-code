@@ -35,7 +35,7 @@ export class PythonPackageIndex {
  private failed:{error:unknown}|undefined;
  private tail:Promise<unknown>=Promise.resolve();
  private closing:Promise<void>|undefined;
- constructor(private readonly context:PythonPackageContext,private readonly mode:'wheel'|'names'='wheel'){
+ constructor(private readonly context:PythonPackageContext,private readonly mode:'wheel'|'names'|'records'='wheel'){
   const discard={async write(){}};
   this.scratch=createArchiveScratchFactory({context:{...context,command:'python',args:[],env:{},stdin:toByteSource(''),stdout:discard,stderr:discard},limits:DEFAULT_ARCHIVE_LIMITS,operation:action=>Promise.resolve().then(action)},context.cwd);
   // Immutable sorted runs share four small read pages. Binary searches otherwise
@@ -73,11 +73,16 @@ export class PythonPackageIndex {
   const work=this.tail.then(async()=>{
    this.context.signal.throwIfAborted();
    if(this.failed)throw this.failed.error;
-   if(this.mode==='names'){
+   if(this.mode!=='wheel'){
     const name=args[0];
-    if(operation==='has'&&this.sealed&&typeof name==='string')return this.names.has(name);
+    if(operation==='has'&&(this.sealed||this.mode==='records')&&typeof name==='string')return this.names.has(name);
+    if(operation==='get'&&this.mode==='records'&&this.sealed&&typeof name==='string')return await this.names.get(name)??null;
     if(this.sealed)throw new Error('Python package names are sealed');
-    if(operation==='add'&&typeof name==='string'){await this.names.set(name,0);return null;}
+    if(operation==='add'&&typeof name==='string'){
+     const value=this.mode==='records'?args[1]:0;
+     if(!Number.isSafeInteger(value)||(value as number)<0)throw new Error('Invalid package record ordinal');
+     await this.names.set(name,value as number);return null;
+    }
     if(operation==='seal'){this.sealed=true;return null;}
     throw new Error('Invalid Python package name operation');
    }

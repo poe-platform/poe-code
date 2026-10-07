@@ -290,7 +290,7 @@ fn hex_dec_str(s: &str) -> String {
     String::from_utf8_lossy(&hex_dec(s)).to_string()
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 struct PdfPage {
     rot: i32,
     text: String,
@@ -304,10 +304,13 @@ struct PdfDoc {
     version: String,
     title: String,
     author: String,
+    pdf_id0: String,
+    pdf_id1: String,
     encrypted: Option<String>,
     linearized: bool,
     page_w: f64,
     page_h: f64,
+    page_media: BTreeMap<usize, (f64, f64, Option<[f64; 4]>)>,
     info: Vec<(String, String)>,
     bookmarks: Vec<(String, String, String)>,
     page_labels: Vec<(String, String, String, String)>,
@@ -322,10 +325,13 @@ impl PdfDoc {
             version: "1.4".to_string(),
             title: String::new(),
             author: String::new(),
+            pdf_id0: "00000000000000000000000000000000".to_string(),
+            pdf_id1: "00000000000000000000000000000000".to_string(),
             encrypted: None,
             linearized: false,
             page_w: 612.0,
             page_h: 792.0,
+            page_media: BTreeMap::new(),
             info: Vec::new(),
             bookmarks: Vec::new(),
             page_labels: Vec::new(),
@@ -365,10 +371,36 @@ impl PdfDoc {
                     doc.author = hex_dec_str(v);
                 } else if line == "LIN:1" {
                     doc.linearized = true;
+                } else if let Some(v) = line.strip_prefix("ID0:") {
+                    doc.pdf_id0 = v.to_string();
+                } else if let Some(v) = line.strip_prefix("ID1:") {
+                    doc.pdf_id1 = v.to_string();
                 } else if let Some(v) = line.strip_prefix("SIZE:") {
                     if let Some((ws, hs)) = v.split_once(':') {
                         doc.page_w = ws.parse().unwrap_or(612.0);
                         doc.page_h = hs.parse().unwrap_or(792.0);
+                    }
+                } else if let Some(v) = line.strip_prefix("PMEDIA:") {
+                    let parts: Vec<&str> = v.splitn(4, ':').collect();
+                    if parts.len() == 4
+                        && let Ok(pno) = parts[0].parse::<usize>()
+                    {
+                        let pw = parts[1].parse::<f64>().unwrap_or(doc.page_w);
+                        let ph = parts[2].parse::<f64>().unwrap_or(doc.page_h);
+                        let crop = if parts[3].is_empty() {
+                            None
+                        } else {
+                            let nums: Vec<f64> = parts[3]
+                                .split(',')
+                                .filter_map(|s| s.parse::<f64>().ok())
+                                .collect();
+                            if nums.len() == 4 {
+                                Some([nums[0], nums[1], nums[2], nums[3]])
+                            } else {
+                                None
+                            }
+                        };
+                        doc.page_media.insert(pno, (pw, ph, crop));
                     }
                 } else if let Some(v) = line.strip_prefix("ENC:") {
                     if !v.is_empty() {
@@ -506,8 +538,21 @@ impl PdfDoc {
         if self.linearized {
             out.push_str("LIN:1\n");
         }
+        if self.pdf_id0 != "00000000000000000000000000000000" {
+            out.push_str(&format!("ID0:{}\n", self.pdf_id0));
+        }
+        if self.pdf_id1 != "00000000000000000000000000000000" {
+            out.push_str(&format!("ID1:{}\n", self.pdf_id1));
+        }
         if (self.page_w - 612.0).abs() > 1e-6 || (self.page_h - 792.0).abs() > 1e-6 {
             out.push_str(&format!("SIZE:{}:{}\n", self.page_w, self.page_h));
+        }
+        for (pno, (pw, ph, crop)) in &self.page_media {
+            let crop_str = match crop {
+                Some([c0, c1, c2, c3]) => format!("{c0},{c1},{c2},{c3}"),
+                None => String::new(),
+            };
+            out.push_str(&format!("PMEDIA:{pno}:{pw}:{ph}:{crop_str}\n"));
         }
         if let Some(ref pw) = self.encrypted {
             out.push_str(&format!("ENC:{}\n", hex_enc(pw.as_bytes())));
@@ -667,17 +712,26 @@ fn extract_html_images(html: &str, base_dir: &str, fs: &dyn SafeBashFs) -> Vec<(
                 h = r[..he].parse().unwrap_or(24);
             }
         }
+        let mut fmt = "PNG".to_string();
         if let Some(sp) = tag.find("src=\"") {
             let r = &tag[sp + 5..];
             if let Some(se) = r.find('"') {
                 let src = &r[..se];
                 if let Some(rest_data) = src.strip_prefix("data:") {
+                    if rest_data.starts_with("image/jpeg") || rest_data.starts_with("image/jpg") {
+                        fmt = "JPEG".to_string();
+                    } else if rest_data.starts_with("image/tiff") {
+                        fmt = "TIFF".to_string();
+                    }
                     if let Some(b64_pos) = rest_data.find(";base64,") {
                         let b64 = &rest_data[b64_pos + 8..];
                         if let Ok(b) = base64_decode(b64) {
-                            let m = read_image_meta(&b, "inline.png");
+                            let m = read_image_meta(&b, if fmt == "JPEG" { "inline.jpg" } else { "inline.png" });
                             w = m.w;
                             h = m.h;
+                            if !m.fmt.is_empty() {
+                                fmt = m.fmt;
+                            }
                         }
                     }
                 } else {
@@ -686,11 +740,14 @@ fn extract_html_images(html: &str, base_dir: &str, fs: &dyn SafeBashFs) -> Vec<(
                         let m = read_image_meta(&b, &full);
                         w = m.w;
                         h = m.h;
+                        if !m.fmt.is_empty() {
+                            fmt = m.fmt;
+                        }
                     }
                 }
             }
         }
-        imgs.push((w, h, "PNG".to_string()));
+        imgs.push((w, h, fmt));
         rest = &rest[end..];
     }
     imgs
@@ -1488,6 +1545,252 @@ fn parse_qpdf_page_spec(spec: &str, total: usize) -> Vec<usize> {
         }
     }
     selected
+}
+
+fn extract_html_headings(html: &str) -> Vec<(String, String)> {
+    let mut out = Vec::new();
+    let lower = html.to_ascii_lowercase();
+    let mut pos = 0usize;
+    while pos < lower.len() {
+        let mut best: Option<(usize, &str, &str)> = None;
+        for (tag, lvl) in [("h1", "1"), ("h2", "2"), ("h3", "3")] {
+            let open = format!("<{tag}");
+            if let Some(rel) = lower[pos..].find(&open) {
+                let abs = pos + rel;
+                let after_ch = lower[abs + open.len()..].chars().next().unwrap_or('>');
+                if after_ch == '>' || after_ch.is_ascii_whitespace() {
+                    if best.is_none() || abs < best.unwrap().0 {
+                        best = Some((abs, tag, lvl));
+                    }
+                }
+            }
+        }
+        let Some((abs, tag, lvl)) = best else {
+            break;
+        };
+        let Some(gt_rel) = lower[abs..].find('>') else {
+            break;
+        };
+        let content_start = abs + gt_rel + 1;
+        let close = format!("</{tag}>");
+        let Some(close_rel) = lower[content_start..].find(&close) else {
+            pos = content_start;
+            continue;
+        };
+        let inner = strip_html_tags(&html[content_start..content_start + close_rel]);
+        let trimmed = inner.split_whitespace().collect::<Vec<_>>().join(" ");
+        if !trimmed.is_empty() {
+            out.push((trimmed, lvl.to_string()));
+        }
+        pos = content_start + close_rel + close.len();
+    }
+    out
+}
+
+fn format_qpdf_split_name(template: &str, total: usize, group: usize, start: usize, end: usize) -> String {
+    let pad_len = total.max(1).to_string().len();
+    let bytes = template.as_bytes();
+    let mut out = String::new();
+    let mut replaced = false;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] != b'%' {
+            out.push(bytes[i] as char);
+            i += 1;
+            continue;
+        }
+        if i + 1 < bytes.len() && bytes[i + 1] == b'%' {
+            out.push('%');
+            i += 2;
+            continue;
+        }
+        if !replaced {
+            let mut j = i + 1;
+            let mut zero_pad = false;
+            if j < bytes.len() && bytes[j] == b'0' {
+                zero_pad = true;
+                j += 1;
+            }
+            let mut digits = String::new();
+            while j < bytes.len() && bytes[j].is_ascii_digit() {
+                digits.push(bytes[j] as char);
+                j += 1;
+            }
+            if j < bytes.len() && bytes[j] == b'd' {
+                let width = if digits.is_empty() {
+                    pad_len
+                } else {
+                    digits.parse::<usize>().unwrap_or(pad_len)
+                };
+                let fmt_n = |n: usize| -> String {
+                    if zero_pad || digits.is_empty() {
+                        format!("{n:0>width$}")
+                    } else {
+                        format!("{n}")
+                    }
+                };
+                if group == 1 {
+                    out.push_str(&fmt_n(start));
+                } else {
+                    out.push_str(&format!("{}-{}", fmt_n(start), fmt_n(end)));
+                }
+                replaced = true;
+                i = j + 1;
+                continue;
+            }
+        }
+        out.push('%');
+        i += 1;
+    }
+    if replaced {
+        return out;
+    }
+    let stem = if template.to_ascii_lowercase().ends_with(".pdf") {
+        &template[..template.len() - 4]
+    } else {
+        template
+    };
+    let first = format!("{start:0>pad_len$}");
+    let last = format!("{end:0>pad_len$}");
+    if group == 1 {
+        format!("{stem}-{first}.pdf")
+    } else {
+        format!("{stem}-{first}-{last}.pdf")
+    }
+}
+
+fn decode_pdftk_entities(raw: &str) -> String {
+    let mut out = String::new();
+    let mut rest = raw;
+    while let Some(amp) = rest.find("&#") {
+        out.push_str(&rest[..amp]);
+        let after = &rest[amp + 2..];
+        if let Some(semi) = after.find(';') {
+            let token = &after[..semi];
+            let cp_opt = if let Some(hex) = token.strip_prefix('x').or_else(|| token.strip_prefix('X')) {
+                u32::from_str_radix(hex, 16).ok()
+            } else {
+                token.parse::<u32>().ok()
+            };
+            if let Some(cp) = cp_opt
+                && let Some(ch) = char::from_u32(cp)
+            {
+                out.push(ch);
+                rest = &after[semi + 1..];
+                continue;
+            }
+        }
+        out.push_str("&#");
+        rest = after;
+    }
+    out.push_str(rest);
+    out
+}
+
+fn encode_pdftk_text(s: &str, utf8: bool) -> String {
+    if utf8 {
+        return s.to_string();
+    }
+    let mut out = String::new();
+    for ch in s.chars() {
+        let cp = ch as u32;
+        if cp > 127 {
+            out.push_str(&format!("&#{cp};"));
+        } else {
+            out.push(ch);
+        }
+    }
+    out
+}
+
+fn format_pdf_date(raw: &str, mode: &str) -> String {
+    if mode == "raw" {
+        return raw.to_string();
+    }
+    let trimmed = raw.strip_prefix("D:").unwrap_or(raw);
+    let bytes = trimmed.as_bytes();
+    if bytes.len() < 4 || !bytes[..4].iter().all(|b| b.is_ascii_digit()) {
+        return raw.to_string();
+    }
+    let year = &trimmed[0..4];
+    let mut pos = 4usize;
+    let take_pair = |p: &mut usize| -> Option<&str> {
+        if *p + 2 <= bytes.len() && bytes[*p].is_ascii_digit() && bytes[*p + 1].is_ascii_digit() {
+            let s = &trimmed[*p..*p + 2];
+            *p += 2;
+            Some(s)
+        } else {
+            None
+        }
+    };
+    let month = take_pair(&mut pos).unwrap_or("01");
+    let day = take_pair(&mut pos).unwrap_or("01");
+    let hour = take_pair(&mut pos).unwrap_or("00");
+    let minute = take_pair(&mut pos).unwrap_or("00");
+    let second = take_pair(&mut pos).unwrap_or("00");
+    let mut tz_sign: Option<char> = None;
+    let mut tz_hour = "00";
+    let mut tz_min = "00";
+    if pos < bytes.len() {
+        let sc = bytes[pos] as char;
+        if matches!(sc, 'Z' | 'z' | '+' | '-') {
+            tz_sign = Some(sc);
+            pos += 1;
+            if let Some(th) = take_pair(&mut pos) {
+                tz_hour = th;
+                if pos < bytes.len() && bytes[pos] == b'\'' {
+                    pos += 1;
+                }
+                if let Some(tm) = take_pair(&mut pos) {
+                    tz_min = tm;
+                }
+            }
+        }
+    }
+    if mode == "iso" {
+        let suffix = match tz_sign {
+            None | Some('Z') | Some('z') => "Z".to_string(),
+            Some(_) if tz_hour == "00" && tz_min == "00" => "Z".to_string(),
+            Some(s) if tz_min == "00" => format!("{s}{tz_hour}"),
+            Some(s) => format!("{s}{tz_hour}:{tz_min}"),
+        };
+        return format!("{year}-{month}-{day}T{hour}:{minute}:{second}{suffix}");
+    }
+    let y_num = year.parse::<i64>().unwrap_or(1970);
+    let m_num = month.parse::<usize>().unwrap_or(1).clamp(1, 12);
+    let d_num = day.parse::<i64>().unwrap_or(1).clamp(1, 31);
+    let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    let t: [i64; 12] = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+    let y_adj = if m_num < 3 { y_num - 1 } else { y_num };
+    let dow = ((y_adj + y_adj / 4 - y_adj / 100 + y_adj / 400 + t[m_num - 1] + d_num)
+        .rem_euclid(7)) as usize;
+    format!(
+        "{} {} {:2} {hour}:{minute}:{second} {year} UTC",
+        days[dow], months[m_num - 1], d_num
+    )
+}
+
+fn paper_size_label(w: f64, h: f64) -> &'static str {
+    let matches_dim = |cw: f64, ch: f64, tol: f64| -> bool {
+        ((w - cw).abs() <= tol && (h - ch).abs() <= tol)
+            || ((w - ch).abs() <= tol && (h - cw).abs() <= tol)
+    };
+    if matches_dim(612.0, 792.0, 1.0) {
+        " (letter)"
+    } else if matches_dim(595.28, 841.89, 2.5) {
+        " (A4)"
+    } else if matches_dim(841.89, 1190.55, 3.0) {
+        " (A3)"
+    } else if matches_dim(419.53, 595.28, 2.0) {
+        " (A5)"
+    } else if matches_dim(612.0, 1008.0, 2.0) {
+        " (legal)"
+    } else if matches_dim(498.9, 708.66, 2.5) {
+        " (B5)"
+    } else {
+        ""
+    }
 }
 
 fn format_printf_num(pattern: &str, num: usize) -> String {
@@ -4973,6 +5276,12 @@ fn cmd_media_doc(
             ok_out(&stdout_msg)
         }
         "wkhtmltopdf" => {
+            if args.iter().any(|a| a == "-V" || a == "--version") {
+                return ok_out("wkhtmltopdf 0.12.6 (safe-bash html-to-pdf)\n");
+            }
+            if args.iter().any(|a| a == "-h" || a == "--help") {
+                return ok_out("Usage: wkhtmltopdf [GLOBAL OPTION]... [OBJECT]... <input file> [PAGE OPTION]... <output file>\n");
+            }
             if args.iter().any(|a| a == "--read-args-from-stdin") {
                 for line in stdin.lines() {
                     let t = line.trim();
@@ -4986,7 +5295,21 @@ fn cmd_media_doc(
                 return ok_out("");
             }
             let mut title_opt: Option<String> = None;
-            let mut pos_args: Vec<String> = Vec::new();
+            let mut page_size = "A4".to_string();
+            let mut orientation = "Portrait".to_string();
+            let mut outline = true;
+            let mut copies: usize = 1;
+            let mut collate = true;
+            let mut page_offset: i64 = 0;
+            let mut hdr_left = String::new();
+            let mut hdr_center = String::new();
+            let mut hdr_right = String::new();
+            let mut ftr_left = String::new();
+            let mut ftr_center = String::new();
+            let mut ftr_right = String::new();
+            let mut replacements: Vec<(String, String)> = Vec::new();
+            let mut pos_args: Vec<(String, bool)> = Vec::new();
+            let mut next_is_cover = false;
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
@@ -4994,19 +5317,96 @@ fn cmd_media_doc(
                         title_opt = Some(args[i + 1].clone());
                         i += 2;
                     }
-                    "-s" | "--page-size" | "-O" | "--orientation" | "-T" | "-B" | "-L" | "-R"
-                    | "--margin-top" | "--margin-bottom" | "--margin-left" | "--margin-right"
-                    | "--header-left" | "--header-right" | "--header-center" | "--footer-left"
-                    | "--footer-right" | "--footer-center" | "--encoding" | "--dpi" | "--zoom"
+                    "-s" | "--page-size" if i + 1 < args.len() => {
+                        page_size = args[i + 1].clone();
+                        i += 2;
+                    }
+                    "-O" | "--orientation" if i + 1 < args.len() => {
+                        orientation = args[i + 1].clone();
+                        i += 2;
+                    }
+                    "--outline" => {
+                        outline = true;
+                        i += 1;
+                    }
+                    "--no-outline" => {
+                        outline = false;
+                        i += 1;
+                    }
+                    "--copies" if i + 1 < args.len() => {
+                        copies = args[i + 1].parse().unwrap_or(1).max(1);
+                        i += 2;
+                    }
+                    "--collate" => {
+                        collate = true;
+                        i += 1;
+                    }
+                    "--no-collate" => {
+                        collate = false;
+                        i += 1;
+                    }
+                    "--page-offset" if i + 1 < args.len() => {
+                        page_offset = args[i + 1].parse().unwrap_or(0);
+                        i += 2;
+                    }
+                    "--header-left" if i + 1 < args.len() => {
+                        hdr_left = args[i + 1].clone();
+                        i += 2;
+                    }
+                    "--header-center" if i + 1 < args.len() => {
+                        hdr_center = args[i + 1].clone();
+                        i += 2;
+                    }
+                    "--header-right" if i + 1 < args.len() => {
+                        hdr_right = args[i + 1].clone();
+                        i += 2;
+                    }
+                    "--footer-left" if i + 1 < args.len() => {
+                        ftr_left = args[i + 1].clone();
+                        i += 2;
+                    }
+                    "--footer-center" if i + 1 < args.len() => {
+                        ftr_center = args[i + 1].clone();
+                        i += 2;
+                    }
+                    "--footer-right" if i + 1 < args.len() => {
+                        ftr_right = args[i + 1].clone();
+                        i += 2;
+                    }
+                    "--replace" if i + 2 < args.len() => {
+                        replacements.push((args[i + 1].clone(), args[i + 2].clone()));
+                        i += 3;
+                    }
+                    "-T" | "-B" | "-L" | "-R" | "--margin-top" | "--margin-bottom"
+                    | "--margin-left" | "--margin-right" | "--encoding" | "--dpi" | "--zoom"
+                    | "--page-width" | "--page-height" | "--outline-depth"
+                    | "--user-style-sheet" | "--xsl-style-sheet"
+                    | "--header-html" | "--footer-html" | "--header-spacing"
+                    | "--footer-spacing" | "--header-font-name" | "--footer-font-name"
+                    | "--header-font-size" | "--footer-font-size"
+                    | "--minimum-font-size" | "--javascript-delay"
+                    | "--window-status" | "--viewport-size" | "--cookie-jar"
                         if i + 1 < args.len() =>
                     {
                         i += 2;
                     }
-                    "cover" | "toc" | "page" => {
+                    "toc" => {
+                        return err_out("wkhtmltopdf: UNSUPPORTED_CAPABILITY: TOC requires a qualified outline/XSLT engine\n", 1);
+                    }
+                    "--no-pages-count" => {
+                        next_is_cover = true;
+                        i += 1;
+                    }
+                    "cover" => {
+                        i += 1;
+                    }
+                    "page" => {
+                        next_is_cover = false;
                         i += 1;
                     }
                     a if a == "-" || !a.starts_with('-') => {
-                        pos_args.push(a.to_string());
+                        pos_args.push((a.to_string(), next_is_cover));
+                        next_is_cover = false;
                         i += 1;
                     }
                     _ => {
@@ -5014,222 +5414,548 @@ fn cmd_media_doc(
                     }
                 }
             }
-            if pos_args.len() >= 2 {
-                let mut doc = PdfDoc::new();
-                for src in &pos_args[..pos_args.len() - 1] {
-                    if src.ends_with(".txt") {
-                        return err_out("wkhtmltopdf: unsupported .txt input
-", 1);
-                    }
-                    let raw_and_dir = if src == "-" {
-                        Some((stdin.to_string(), cwd.to_string()))
-                    } else {
-                        let full = resolve_posix_path(cwd, src);
-                        fs.read_file(&full).ok().map(|b| {
-                            let bd = full
-                                .rsplit_once('/')
-                                .map(|(d, _)| if d.is_empty() { "/" } else { d })
-                                .unwrap_or(cwd)
-                                .to_string();
-                            (String::from_utf8_lossy(&b).to_string(), bd)
-                        })
-                    };
-                    if let Some((raw_html, base_dir_str)) = raw_and_dir {
-                        let base_dir = base_dir_str.as_str();
-                        if doc.title.is_empty()
-                            && let Some(t) = extract_html_title(&raw_html)
-                        {
-                            doc.title = t;
-                        }
-                        for page_html in split_html_pages(&raw_html) {
-                            let text = strip_html_tags(&page_html);
-                            let images = extract_html_images(&page_html, base_dir, fs);
-                            let urls = extract_html_urls(&page_html);
-                            doc.pages.push(PdfPage {
-                                rot: 0,
-                                text,
-                                html: page_html,
-                                images,
-                                urls,
-                            });
-                        }
+            if pos_args.len() < 2 {
+                return err_out("wkhtmltopdf: You need to specify at least one input file, and exactly one output file\n", 1);
+            }
+            let (mut pw, mut ph) = match page_size.to_ascii_lowercase().as_str() {
+                "letter" => (612.0, 792.0),
+                "legal" => (612.0, 1008.0),
+                "a3" => (841.89, 1190.55),
+                "a5" => (419.53, 595.28),
+                "b5" => (498.90, 708.66),
+                _ => (595.28, 841.89),
+            };
+            if orientation.eq_ignore_ascii_case("landscape") {
+                std::mem::swap(&mut pw, &mut ph);
+            }
+            let mut doc = PdfDoc::new();
+            doc.page_w = pw;
+            doc.page_h = ph;
+            let mut all_headings: Vec<(String, String, usize)> = Vec::new();
+            let mut page_meta: Vec<(String, bool)> = Vec::new();
+            for (src, is_cover) in &pos_args[..pos_args.len() - 1] {
+                if src.ends_with(".txt") {
+                    return err_out("wkhtmltopdf: unsupported .txt input\n", 1);
+                }
+                let raw_and_dir = if src == "-" {
+                    Some((stdin.to_string(), cwd.to_string()))
+                } else {
+                    let full = resolve_posix_path(cwd, src);
+                    fs.read_file(&full).ok().map(|b| {
+                        let bd = full
+                            .rsplit_once('/')
+                            .map(|(d, _)| if d.is_empty() { "/" } else { d })
+                            .unwrap_or(cwd)
+                            .to_string();
+                        (String::from_utf8_lossy(&b).to_string(), bd)
+                    })
+                };
+                let Some((mut raw_html, base_dir_str)) = raw_and_dir else {
+                    return err_out(&format!("wkhtmltopdf: cannot read {src}\n"), 1);
+                };
+                for (rk, rv) in &replacements {
+                    if !rk.is_empty() {
+                        raw_html = raw_html.replace(rk, rv);
                     }
                 }
-                if let Some(t) = title_opt {
+                let base_dir = base_dir_str.as_str();
+                if doc.title.is_empty()
+                    && let Some(t) = extract_html_title(&raw_html)
+                {
                     doc.title = t;
                 }
-                let dst = resolve_posix_path(cwd, pos_args.last().unwrap());
-                let _ = fs.write_file(&dst, &doc.serialize());
+                for page_html in split_html_pages(&raw_html) {
+                    let page_num = doc.pages.len() + 1;
+                    for (ht, hl) in extract_html_headings(&page_html) {
+                        all_headings.push((ht, hl, page_num));
+                    }
+                    let text = strip_html_tags(&page_html);
+                    let images = extract_html_images(&page_html, base_dir, fs);
+                    let urls = extract_html_urls(&page_html);
+                    doc.pages.push(PdfPage {
+                        rot: 0,
+                        text,
+                        html: page_html,
+                        images,
+                        urls,
+                    });
+                    page_meta.push((src.clone(), *is_cover));
+                }
             }
+            if let Some(t) = title_opt {
+                doc.title = t;
+            }
+            if doc.title.is_empty() {
+                doc.title = "Document".to_string();
+            }
+            let counted_total = page_meta.iter().filter(|(_, is_cov)| !*is_cov).count() as i64;
+            let topage_val = counted_total + page_offset;
+            let mut logical_page = 1 + page_offset;
+            let sub_tokens = |tmpl: &str, pno: i64, webpage: &str, title: &str| -> String {
+                let mut out = tmpl
+                    .replace("[page]", &pno.to_string())
+                    .replace("[topage]", &topage_val.to_string())
+                    .replace("[toPage]", &topage_val.to_string())
+                    .replace("[webpage]", webpage)
+                    .replace("[title]", title);
+                for (rk, rv) in &replacements {
+                    out = out.replace(&format!("[{rk}]"), rv);
+                }
+                out
+            };
+            for (idx, pg) in doc.pages.iter_mut().enumerate() {
+                let (ref wp, is_cov) = page_meta[idx];
+                let cur_pno = logical_page;
+                if !is_cov {
+                    logical_page += 1;
+                }
+                let mut extra = Vec::new();
+                for t in [&hdr_left, &hdr_center, &hdr_right, &ftr_left, &ftr_center, &ftr_right] {
+                    if !t.is_empty() {
+                        extra.push(sub_tokens(t, cur_pno, wp, &doc.title));
+                    }
+                }
+                if !extra.is_empty() {
+                    pg.text = format!("{}\n{}", pg.text, extra.join(" "));
+                }
+            }
+            if outline {
+                for (ht, hl, pno) in &all_headings {
+                    doc.bookmarks.push((ht.clone(), hl.clone(), pno.to_string()));
+                }
+            }
+            if copies > 1 && !doc.pages.is_empty() {
+                let orig = doc.pages.clone();
+                doc.pages.clear();
+                if collate {
+                    for _ in 0..copies {
+                        doc.pages.extend(orig.clone());
+                    }
+                } else {
+                    for pg in &orig {
+                        for _ in 0..copies {
+                            doc.pages.push(pg.clone());
+                        }
+                    }
+                }
+            }
+            if !doc.info.iter().any(|(k, _)| k.eq_ignore_ascii_case("Creator")) {
+                doc.info.push(("Creator".to_string(), "wkhtmltopdf (pdf-ast-static)".to_string()));
+            }
+            if !doc.info.iter().any(|(k, _)| k.eq_ignore_ascii_case("Producer")) {
+                doc.info.push(("Producer".to_string(), "@poe-code/pdf-ast".to_string()));
+            }
+            let out_arg = &pos_args.last().unwrap().0;
+            let serialized = doc.serialize();
+            if out_arg == "-" {
+                return ok_out(&crate::vfs::bytes_to_stream_string(&serialized));
+            }
+            let dst = resolve_posix_path(cwd, out_arg);
+            let _ = fs.write_file(&dst, &serialized);
             ok_out("")
         }
         "pdfunite" => {
-            let non_flags: Vec<&String> = args.iter().filter(|a| !a.starts_with('-')).collect();
-            if non_flags.len() >= 2 {
-                let mut out_doc = PdfDoc::new();
-                for src in &non_flags[..non_flags.len() - 1] {
-                    let full = resolve_posix_path(cwd, src);
-                    if let Ok(b) = fs.read_file(&full) {
-                        let sub = PdfDoc::parse(&b);
-                        if out_doc.title.is_empty() {
-                            out_doc.title = sub.title;
-                        }
-                        out_doc.pages.extend(sub.pages);
+            if args.iter().any(|a| a == "-v" || a == "--version") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "pdfunite version 24.02.0\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            let mut pos: Vec<String> = Vec::new();
+            for a in args {
+                if a.starts_with('-') {
+                    return err_out(&format!("pdfunite: unknown option {a}\n"), 99);
+                }
+                pos.push(a.clone());
+            }
+            if pos.len() < 3 {
+                return err_out("Syntax Warning: pdfunite requires at least two input files and an output file.\n", 99);
+            }
+            let mut out_doc = PdfDoc::new();
+            for (idx, src) in pos[..pos.len() - 1].iter().enumerate() {
+                let full = resolve_posix_path(cwd, src);
+                let Ok(b) = fs.read_file(&full) else {
+                    return err_out(&format!("I/O Error: Couldn't open file '{src}'\n"), 255);
+                };
+                if !b.starts_with(b"%PDF-") {
+                    return err_out(&format!("Syntax Error: '{src}' is not a valid PDF\n"), 255);
+                }
+                let sub = PdfDoc::parse(&b);
+                if sub.encrypted.is_some() {
+                    return err_out(&format!("Command Line Error: Could not merge encrypted files ('{src}')\n"), 255);
+                }
+                let page_offset = out_doc.pages.len();
+                if idx == 0 {
+                    out_doc.version = sub.version.clone();
+                    out_doc.title = sub.title.clone();
+                    out_doc.author = sub.author.clone();
+                    out_doc.page_w = sub.page_w;
+                    out_doc.page_h = sub.page_h;
+                    out_doc.info = sub.info.clone();
+                    out_doc.exif = sub.exif.clone();
+                }
+                for (pno, media) in &sub.page_media {
+                    out_doc.page_media.insert(page_offset + pno, *media);
+                }
+                for (bt, bl, bp) in &sub.bookmarks {
+                    let shifted = bp.parse::<usize>().unwrap_or(1) + page_offset;
+                    out_doc.bookmarks.push((bt.clone(), bl.clone(), shifted.to_string()));
+                }
+                for (ni, st, pf, sy) in &sub.page_labels {
+                    let shifted = ni.parse::<usize>().unwrap_or(1) + page_offset;
+                    out_doc.page_labels.push((shifted.to_string(), st.clone(), pf.clone(), sy.clone()));
+                }
+                for att in &sub.attachments {
+                    if !out_doc.attachments.iter().any(|x| x.0 == att.0) {
+                        out_doc.attachments.push(att.clone());
                     }
                 }
-                let dst = resolve_posix_path(cwd, non_flags.last().unwrap());
-                let _ = fs.write_file(&dst, &out_doc.serialize());
+                out_doc.pages.extend(sub.pages);
             }
+            let dst = resolve_posix_path(cwd, pos.last().unwrap());
+            let _ = fs.write_file(&dst, &out_doc.serialize());
             ok_out("")
         }
         "pdfseparate" => {
+            if args.iter().any(|a| a == "-v" || a == "--version") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "pdfseparate version 24.02.0\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n".to_string(),
+                    exit_code: 0,
+                };
+            }
             let mut first_p = 1usize;
             let mut last_p: Option<usize> = None;
             let mut pos: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
-                    "-f" if i + 1 < args.len() => {
-                        first_p = args[i + 1].parse().unwrap_or(1);
+                    "-f" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out("pdfseparate: invalid -f argument\n", 99);
+                        };
+                        if v == 0 {
+                            return err_out("pdfseparate: invalid -f argument\n", 99);
+                        }
+                        first_p = v;
                         i += 2;
                     }
-                    "-l" if i + 1 < args.len() => {
-                        last_p = args[i + 1].parse().ok();
+                    "-l" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out("pdfseparate: invalid -l argument\n", 99);
+                        };
+                        if v == 0 {
+                            return err_out("pdfseparate: invalid -l argument\n", 99);
+                        }
+                        last_p = Some(v);
                         i += 2;
                     }
                     a if !a.starts_with('-') => {
                         pos.push(a.to_string());
                         i += 1;
                     }
-                    _ => {
-                        i += 1;
+                    a => {
+                        return err_out(&format!("pdfseparate: unknown option {a}\n"), 99);
                     }
                 }
             }
-            if pos.len() >= 2 {
-                let src = resolve_posix_path(cwd, &pos[0]);
-                let pat = &pos[1];
-                if let Ok(b) = fs.read_file(&src) {
-                    let doc = PdfDoc::parse(&b);
-                    let end_p = last_p.unwrap_or(doc.pages.len()).min(doc.pages.len());
-                    for pno in first_p..=end_p {
-                        if let Some(pg) = doc.pages.get(pno - 1) {
-                            let mut single = PdfDoc::new();
-                            single.version = doc.version.clone();
-                            single.title = doc.title.clone();
-                            single.pages.push(pg.clone());
-                            let out_p = resolve_posix_path(cwd, &format_printf_num(pat, pno));
-                            let _ = fs.write_file(&out_p, &single.serialize());
-                        }
+            if pos.len() != 2 {
+                return err_out("Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n", 99);
+            }
+            let src = resolve_posix_path(cwd, &pos[0]);
+            let pat = &pos[1];
+            let Ok(b) = fs.read_file(&src) else {
+                return err_out(&format!("I/O Error: Couldn't open file '{}'\n", pos[0]), 99);
+            };
+            let doc = PdfDoc::parse(&b);
+            let total = doc.pages.len().max(1);
+            let end_p = last_p.unwrap_or(total);
+            if first_p > end_p || end_p > total {
+                return err_out("Wrong page range given: the first page can not be after the last page.\n", 99);
+            }
+            let count = end_p - first_p + 1;
+            let has_spec = pat.contains("%d")
+                || (pat.contains('%') && pat.ends_with("d.pdf"))
+                || pat.contains("%0");
+            if count > 1 && !has_spec {
+                return err_out(&format!("Error: '{pat}' must contain '%d' if more than one page should be extracted\n"), 99);
+            }
+            for pno in first_p..=end_p {
+                if let Some(pg) = doc.pages.get(pno - 1) {
+                    let mut single = PdfDoc::new();
+                    single.version = doc.version.clone();
+                    single.title = doc.title.clone();
+                    single.author = doc.author.clone();
+                    single.page_w = doc.page_w;
+                    single.page_h = doc.page_h;
+                    if let Some(m) = doc.page_media.get(&pno) {
+                        single.page_media.insert(1, *m);
                     }
+                    single.pages.push(pg.clone());
+                    let formatted = if has_spec {
+                        format_printf_num(pat, pno)
+                    } else {
+                        pat.replace("%%", "%")
+                    };
+                    let out_p = resolve_posix_path(cwd, &formatted);
+                    let _ = fs.write_file(&out_p, &single.serialize());
                 }
             }
             ok_out("")
         }
         "qpdf" => {
-            if args.iter().any(|a| a == "--show-npages") {
-                if let Some(f) = args.iter().find(|a| !a.starts_with('-')) {
-                    let full = resolve_posix_path(cwd, f);
-                    if let Ok(b) = fs.read_file(&full) {
-                        let doc = PdfDoc::parse(&b);
-                        return ok_out(&format!("{}\n", doc.pages.len()));
-                    }
-                }
-                return ok_out("1\n");
+            if args.iter().any(|a| a == "--version") {
+                return ok_out("qpdf version 11.9.0 (safe-bash pdf-ast)\n");
             }
-            if args.iter().any(|a| a == "--check") {
-                return ok_out("checking pdf\nNo syntax or stream encoding errors found\n");
+            if args.iter().any(|a| a == "--help" || a == "-h" || a.starts_with("--help=")) {
+                return ok_out("Usage: qpdf [ options ] infilename [ outfilename ]\n");
             }
-            if args.iter().any(|a| a == "--is-encrypted") {
-                if let Some(f) = args.iter().find(|a| !a.starts_with('-')) {
-                    let full = resolve_posix_path(cwd, f);
-                    if let Ok(b) = fs.read_file(&full) {
-                        let doc = PdfDoc::parse(&b);
-                        if doc.encrypted.is_some() {
-                            return ok_out("");
-                        }
-                    }
-                }
-                return err_out("", 2);
-            }
-            if args.iter().any(|a| a == "--json") {
-                return ok_out("{\"version\": 2, \"qpdf\": [{\"jsonversion\": 2}, {}]}\n");
-            }
-            if args.iter().any(|a| a == "--list-attachments") {
-                if let Some(f) = args.iter().find(|a| !a.starts_with('-')) {
-                    let full = resolve_posix_path(cwd, f);
-                    if let Ok(b) = fs.read_file(&full) {
-                        let doc = PdfDoc::parse(&b);
-                        let mut out = String::new();
-                        for (k, fname, _, _) in &doc.attachments {
-                            out.push_str(&format!("{k} -> {fname}\n"));
-                        }
-                        return ok_out(&out);
-                    }
-                }
-                return ok_out("");
-            }
-            for a in args {
-                if let Some(key) = a.strip_prefix("--show-attachment=") {
-                    if let Some(f) = args.iter().find(|x| !x.starts_with('-')) {
-                        let full = resolve_posix_path(cwd, f);
-                        if let Ok(b) = fs.read_file(&full) {
-                            let doc = PdfDoc::parse(&b);
-                            for (k, fname, _, data) in &doc.attachments {
-                                if k == key || fname == key {
-                                    return ok_out(&String::from_utf8_lossy(data));
-                                }
-                            }
-                        }
-                    }
-                    return ok_out("");
-                }
-            }
-            for a in args {
-                if let Some(sp) = a.strip_prefix("--split-pages") {
-                    let chunk_sz: usize = sp
-                        .strip_prefix('=')
-                        .and_then(|s| s.parse().ok())
-                        .unwrap_or(1);
-                    let pos: Vec<&String> = args.iter().filter(|x| !x.starts_with('-')).collect();
-                    if pos.len() >= 2 {
-                        let src = resolve_posix_path(cwd, pos[0]);
-                        let pat = pos[1];
-                        if let Ok(b) = fs.read_file(&src) {
-                            let doc = PdfDoc::parse(&b);
-                            let mut idx = 0usize;
-                            while idx < doc.pages.len() {
-                                let end = (idx + chunk_sz).min(doc.pages.len());
-                                let mut sub = PdfDoc::new();
-                                sub.pages = doc.pages[idx..end].to_vec();
-                                let label = if chunk_sz > 1 {
-                                    format!("{}-{}", idx + 1, end)
-                                } else {
-                                    format!("{}", idx + 1)
-                                };
-                                let out_p = resolve_posix_path(cwd, &pat.replace("%d", &label));
-                                let _ = fs.write_file(&out_p, &sub.serialize());
-                                idx = end;
-                            }
-                        }
-                    }
-                    return ok_out("");
-                }
-            }
-            let replace_input = args.iter().any(|a| a == "--replace-input");
+            let mut password: Option<String> = None;
+            let mut empty_input = false;
+            let mut replace_input = false;
+            let mut check_mode = false;
+            let mut show_npages = false;
+            let mut show_enc = false;
+            let mut is_enc = false;
+            let mut req_pw = false;
+            let mut show_lin = false;
+            let mut show_xref = false;
+            let mut show_pages = false;
+            let mut with_images = false;
+            let mut show_object: Option<String> = None;
+            let mut raw_stream_data = false;
+            let mut filtered_stream_data = false;
+            let mut json_version: Option<u32> = None;
+            let mut json_keys: Vec<String> = Vec::new();
+            let mut json_objects: Vec<String> = Vec::new();
+            let mut json_stream_data = "none".to_string();
+            let mut json_input = false;
+            let mut update_from_json: Option<String> = None;
+            let mut list_att = false;
+            let mut show_att: Option<String> = None;
+            let mut remove_atts: Vec<String> = Vec::new();
+            let mut add_atts: Vec<(String, String, String, bool)> = Vec::new();
+            let mut copy_atts: Vec<(String, String)> = Vec::new();
+            let mut split_pages_group: Option<usize> = None;
             let mut encrypt_pw: Option<String> = None;
             let mut decrypt_mode = false;
+            let mut linearize = false;
+            let mut qdf_mode = false;
+            let mut min_version: Option<String> = None;
+            let mut force_version: Option<String> = None;
             let mut rotations: Vec<(bool, i32, String)> = Vec::new();
-            let mut add_att: Option<(String, String, String)> = None;
-            let mut overlay_pdf: Option<String> = None;
+            let mut flatten_rotation = false;
+            let mut overlay_specs: Vec<(bool, String, String, String, String)> = Vec::new();
             let mut page_specs: Vec<(String, String)> = Vec::new();
+            let mut collate_group: Option<usize> = None;
+            let mut set_page_labels: Vec<String> = Vec::new();
+            let mut remove_page_labels = false;
+            let mut remove_info = false;
+            let mut remove_metadata = false;
             let mut pos_files: Vec<String> = Vec::new();
+
             let mut i = 0usize;
             while i < args.len() {
-                let a = &args[i];
-                if a == "--encrypt" && i + 3 < args.len() {
-                    encrypt_pw = Some(args[i + 1].clone());
-                    i += 4;
+                let a = args[i].as_str();
+                if a == "--empty" {
+                    empty_input = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--replace-input" {
+                    replace_input = true;
+                    i += 1;
+                    continue;
+                }
+                if let Some(pw) = a.strip_prefix("--password=") {
+                    password = Some(pw.to_string());
+                    i += 1;
+                    continue;
+                }
+                if a == "--check" {
+                    check_mode = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--show-npages" || a == "--npages" {
+                    show_npages = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--show-encryption" {
+                    show_enc = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--is-encrypted" {
+                    is_enc = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--requires-password" {
+                    req_pw = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--show-linearization" || a == "--check-linearization" {
+                    show_lin = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--show-xref" {
+                    show_xref = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--show-pages" {
+                    show_pages = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--with-images" {
+                    with_images = true;
+                    i += 1;
+                    continue;
+                }
+                if let Some(obj) = a.strip_prefix("--show-object=") {
+                    show_object = Some(obj.to_string());
+                    i += 1;
+                    continue;
+                }
+                if a == "--raw-stream-data" {
+                    raw_stream_data = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--filtered-stream-data" {
+                    filtered_stream_data = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--json" || a == "--json=latest" || a == "--json=2" {
+                    json_version = Some(2);
+                    i += 1;
+                    continue;
+                }
+                if a == "--json=1" {
+                    json_version = Some(1);
+                    i += 1;
+                    continue;
+                }
+                if let Some(k) = a.strip_prefix("--json-key=") {
+                    json_keys.push(k.to_string());
+                    i += 1;
+                    continue;
+                }
+                if let Some(o) = a.strip_prefix("--json-object=") {
+                    json_objects.push(o.to_string());
+                    i += 1;
+                    continue;
+                }
+                if let Some(m) = a.strip_prefix("--json-stream-data=") {
+                    json_stream_data = m.to_string();
+                    i += 1;
+                    continue;
+                }
+                if a == "--json-input" {
+                    json_input = true;
+                    i += 1;
+                    continue;
+                }
+                if let Some(uf) = a.strip_prefix("--update-from-json=") {
+                    update_from_json = Some(uf.to_string());
+                    i += 1;
+                    continue;
+                }
+                if a == "--list-attachments" {
+                    list_att = true;
+                    i += 1;
+                    continue;
+                }
+                if let Some(key) = a.strip_prefix("--show-attachment=") {
+                    show_att = Some(key.to_string());
+                    i += 1;
+                    continue;
+                }
+                if let Some(key) = a.strip_prefix("--remove-attachment=") {
+                    remove_atts.push(key.to_string());
+                    i += 1;
+                    continue;
+                }
+                if a == "--add-attachment" && i + 1 < args.len() {
+                    let att_file = args[i + 1].clone();
+                    let mut key = att_file.rsplit('/').next().unwrap_or(&att_file).to_string();
+                    let mut fname = key.clone();
+                    let mut replace = false;
+                    i += 2;
+                    while i < args.len() && args[i] != "--" {
+                        if let Some(k) = args[i].strip_prefix("--key=") {
+                            key = k.to_string();
+                        } else if let Some(f) = args[i].strip_prefix("--filename=") {
+                            fname = f.to_string();
+                        } else if args[i] == "--replace" {
+                            replace = true;
+                        }
+                        i += 1;
+                    }
+                    if i < args.len() && args[i] == "--" {
+                        i += 1;
+                    }
+                    add_atts.push((att_file, key, fname, replace));
+                    continue;
+                }
+                if a == "--copy-attachments-from" && i + 1 < args.len() {
+                    let src_pdf = args[i + 1].clone();
+                    let mut pfx = String::new();
+                    i += 2;
+                    while i < args.len() && args[i] != "--" {
+                        if let Some(p) = args[i].strip_prefix("--prefix=") {
+                            pfx = p.to_string();
+                        }
+                        i += 1;
+                    }
+                    if i < args.len() && args[i] == "--" {
+                        i += 1;
+                    }
+                    copy_atts.push((src_pdf, pfx));
+                    continue;
+                }
+                if a == "--split-pages" {
+                    let mut grp = 1usize;
+                    if i + 1 < args.len() && args[i + 1].chars().all(|c| c.is_ascii_digit()) {
+                        grp = args[i + 1].parse::<usize>().unwrap_or(1).max(1);
+                        i += 2;
+                    } else {
+                        i += 1;
+                    }
+                    split_pages_group = Some(grp);
+                    continue;
+                }
+                if let Some(sp) = a.strip_prefix("--split-pages=") {
+                    split_pages_group = Some(sp.parse::<usize>().unwrap_or(1).max(1));
+                    i += 1;
+                    continue;
+                }
+                if a == "--encrypt" {
+                    let upw = args.get(i + 1).cloned().unwrap_or_default();
+                    let opw = args.get(i + 2).cloned().unwrap_or_default();
+                    encrypt_pw = Some(if !upw.is_empty() { upw } else { opw });
+                    i += 1;
                     while i < args.len() && args[i] != "--" {
                         i += 1;
                     }
@@ -5243,69 +5969,117 @@ fn cmd_media_doc(
                     i += 1;
                     continue;
                 }
-                if let Some(rot_spec) = a.strip_prefix("--rotate=") {
-                    if let Some((deg_s, rng_s)) = rot_spec.split_once(':') {
-                        let rel = deg_s.starts_with('+') || deg_s.starts_with('-');
-                        let deg: i32 = deg_s.trim_start_matches('+').parse().unwrap_or(0);
-                        rotations.push((rel, deg, rng_s.to_string()));
-                    }
+                if a == "--linearize" {
+                    linearize = true;
                     i += 1;
                     continue;
                 }
-                if a == "--add-attachment" && i + 1 < args.len() {
-                    let att_file = args[i + 1].clone();
-                    let mut key = att_file
-                        .rsplit('/')
-                        .next()
-                        .unwrap_or(&att_file)
-                        .to_string();
-                    let mut fname = key.clone();
+                if a == "--no-linearize" {
+                    linearize = false;
+                    i += 1;
+                    continue;
+                }
+                if a == "--qdf" {
+                    qdf_mode = true;
+                    i += 1;
+                    continue;
+                }
+                if let Some(mv) = a.strip_prefix("--min-version=") {
+                    min_version = Some(mv.to_string());
+                    i += 1;
+                    continue;
+                }
+                if let Some(fv) = a.strip_prefix("--force-version=") {
+                    force_version = Some(fv.to_string());
+                    i += 1;
+                    continue;
+                }
+                if let Some(rot_spec) = a.strip_prefix("--rotate=") {
+                    let (deg_s, rng_s) = rot_spec.split_once(':').unwrap_or((rot_spec, "1-z"));
+                    let rel = deg_s.starts_with('+') || deg_s.starts_with('-');
+                    let deg: i32 = deg_s.trim_start_matches('+').parse().unwrap_or(0);
+                    rotations.push((rel, deg, rng_s.to_string()));
+                    i += 1;
+                    continue;
+                }
+                if a == "--flatten-rotation" {
+                    flatten_rotation = true;
+                    i += 1;
+                    continue;
+                }
+                if (a == "--overlay" || a == "--underlay") && i + 1 < args.len() {
+                    let is_over = a == "--overlay";
+                    let ov_file = args[i + 1].clone();
+                    let mut to_rng = "1-z".to_string();
+                    let mut from_rng = "1-z".to_string();
+                    let mut rep_rng = String::new();
                     i += 2;
                     while i < args.len() && args[i] != "--" {
-                        if let Some(k) = args[i].strip_prefix("--key=") {
-                            key = k.to_string();
-                        } else if let Some(f) = args[i].strip_prefix("--filename=") {
-                            fname = f.to_string();
+                        if let Some(t) = args[i].strip_prefix("--to=") {
+                            to_rng = t.to_string();
+                        } else if let Some(f) = args[i].strip_prefix("--from=") {
+                            from_rng = f.to_string();
+                        } else if let Some(r) = args[i].strip_prefix("--repeat=") {
+                            rep_rng = r.to_string();
                         }
                         i += 1;
                     }
                     if i < args.len() && args[i] == "--" {
                         i += 1;
                     }
-                    add_att = Some((att_file, key, fname));
+                    overlay_specs.push((is_over, ov_file, to_rng, from_rng, rep_rng));
                     continue;
                 }
-                if (a == "--overlay" || a == "--underlay") && i + 1 < args.len() {
-                    overlay_pdf = Some(args[i + 1].clone());
-                    i += 2;
-                    while i < args.len() && args[i] != "--" {
-                        i += 1;
-                    }
-                    if i < args.len() && args[i] == "--" {
-                        i += 1;
-                    }
+                if a == "--collate" {
+                    collate_group = Some(1);
+                    i += 1;
+                    continue;
+                }
+                if let Some(cg) = a.strip_prefix("--collate=") {
+                    collate_group = Some(cg.parse::<usize>().unwrap_or(1).max(1));
+                    i += 1;
                     continue;
                 }
                 if a == "--pages" {
                     i += 1;
                     while i < args.len() && args[i] != "--" {
+                        if args[i].starts_with("--password=") {
+                            i += 1;
+                            continue;
+                        }
                         let src_f = args[i].clone();
-                        let next_is_range = i + 1 < args.len()
-                            && args[i + 1] != "--"
-                            && args[i + 1] != "."
-                            && !args[i + 1].to_ascii_lowercase().ends_with(".pdf")
-                            && args[i + 1]
+                        let mut rng = "1-z".to_string();
+                        let mut j = i + 1;
+                        if j < args.len() && args[j].starts_with("--password=") {
+                            j += 1;
+                        }
+                        let next_is_range = j < args.len()
+                            && args[j] != "--"
+                            && args[j] != "."
+                            && !args[j].starts_with('-')
+                            && !args[j].to_ascii_lowercase().ends_with(".pdf")
+                            && args[j]
                                 .chars()
                                 .next()
                                 .map(|c| c.is_ascii_digit() || matches!(c, 'z' | 'r' | 'x'))
                                 .unwrap_or(false);
-                        let rng = if next_is_range {
-                            i += 1;
-                            args[i].clone()
+                        if next_is_range {
+                            rng = args[j].clone();
+                            i = j + 1;
                         } else {
-                            "1-z".to_string()
-                        };
+                            i = j;
+                        }
                         page_specs.push((src_f, rng));
+                    }
+                    if i < args.len() && args[i] == "--" {
+                        i += 1;
+                    }
+                    continue;
+                }
+                if a == "--set-page-labels" {
+                    i += 1;
+                    while i < args.len() && args[i] != "--" {
+                        set_page_labels.push(args[i].clone());
                         i += 1;
                     }
                     if i < args.len() && args[i] == "--" {
@@ -5313,59 +6087,601 @@ fn cmd_media_doc(
                     }
                     continue;
                 }
+                if a == "--remove-page-labels" {
+                    remove_page_labels = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--remove-info" {
+                    remove_info = true;
+                    i += 1;
+                    continue;
+                }
+                if a == "--remove-metadata" {
+                    remove_metadata = true;
+                    i += 1;
+                    continue;
+                }
                 if !a.starts_with('-') || a == "-" {
-                    pos_files.push(a.clone());
+                    pos_files.push(a.to_string());
                 }
                 i += 1;
             }
-            if pos_files.is_empty() {
-                return ok_out("");
-            }
-            let primary_in = if pos_files[0] == "-" {
-                "-".to_string()
-            } else {
-                resolve_posix_path(cwd, &pos_files[0])
-            };
-            let dst_is_stdout = !replace_input
-                && (pos_files.len() >= 2 || !page_specs.is_empty())
-                && pos_files.last().map(|s| s.as_str()) == Some("-");
-            let dst_path = if replace_input {
-                primary_in.clone()
-            } else if dst_is_stdout {
-                "-".to_string()
-            } else if pos_files.len() >= 2 || !page_specs.is_empty() {
-                resolve_posix_path(cwd, pos_files.last().unwrap())
-            } else {
-                return ok_out("");
-            };
-            let mut doc = if primary_in == "-" {
-                PdfDoc::parse(&crate::vfs::stream_string_to_bytes(stdin))
-            } else {
-                fs.read_file(&primary_in)
-                    .map(|b| PdfDoc::parse(&b))
-                    .unwrap_or_else(|_| PdfDoc::new())
-            };
-            if !page_specs.is_empty() {
-                let mut new_pages = Vec::new();
-                for (sf, rng) in &page_specs {
-                    let s_full = if sf == "." {
-                        primary_in.clone()
-                    } else {
-                        resolve_posix_path(cwd, sf)
-                    };
-                    if let Ok(sb) = fs.read_file(&s_full) {
-                        let sdoc = PdfDoc::parse(&sb);
-                        for pno in parse_qpdf_page_spec(rng, sdoc.pages.len()) {
-                            if let Some(pg) = sdoc.pages.get(pno - 1) {
-                                new_pages.push(pg.clone());
+
+            let parse_qpdf_json_doc = |s: &str| -> PdfDoc {
+                let mut d = PdfDoc::new();
+                let mut rem = s;
+                while let Some(pos) = rem.find("\"data\":") {
+                    rem = &rem[pos + 7..];
+                    if let Some(q1) = rem.find('"') {
+                        let after_q1 = &rem[q1 + 1..];
+                        let mut val = String::new();
+                        let mut chars = after_q1.chars();
+                        let mut consumed = 0usize;
+                        while let Some(ch) = chars.next() {
+                            consumed += ch.len_utf8();
+                            if ch == '\\' {
+                                if let Some(esc) = chars.next() {
+                                    consumed += esc.len_utf8();
+                                    match esc {
+                                        'n' => val.push('\n'),
+                                        'r' => val.push('\r'),
+                                        't' => val.push('\t'),
+                                        other => val.push(other),
+                                    }
+                                }
+                            } else if ch == '"' {
+                                break;
+                            } else {
+                                val.push(ch);
                             }
+                        }
+                        let decoded_txt = if let Ok(dec_bytes) = base64_decode(&val)
+                            && !dec_bytes.is_empty()
+                            && dec_bytes.iter().all(|b| b.is_ascii_graphic() || b.is_ascii_whitespace())
+                        {
+                            String::from_utf8_lossy(&dec_bytes).to_string()
+                        } else {
+                            val
+                        };
+                        d.pages.push(PdfPage {
+                            rot: 0,
+                            text: decoded_txt,
+                            html: String::new(),
+                            images: Vec::new(),
+                            urls: Vec::new(),
+                        });
+                        rem = &after_q1[consumed..];
+                    } else {
+                        break;
+                    }
+                }
+                if d.pages.is_empty() {
+                    d.pages.push(PdfPage::default());
+                }
+                d
+            };
+            let load_input = |path_arg: &str| -> Result<PdfDoc, BuiltinOutcome> {
+                if path_arg == "-" {
+                    let b = crate::vfs::stream_string_to_bytes(stdin);
+                    if json_input {
+                        return Ok(parse_qpdf_json_doc(&String::from_utf8_lossy(&b)));
+                    }
+                    return Ok(PdfDoc::parse(&b));
+                }
+                let full = resolve_posix_path(cwd, path_arg);
+                let Ok(b) = fs.read_file(&full) else {
+                    return Err(err_out(&format!("qpdf: {path_arg}: No such file or directory\n"), 2));
+                };
+                if json_input {
+                    return Ok(parse_qpdf_json_doc(&String::from_utf8_lossy(&b)));
+                }
+                if !b.starts_with(b"%PDF-") {
+                    return Err(err_out(&format!("qpdf: {path_arg}: not a PDF file\n"), 2));
+                }
+                Ok(PdfDoc::parse(&b))
+            };
+
+            let primary_arg = if empty_input {
+                None
+            } else {
+                pos_files.first().cloned()
+            };
+
+            if is_enc {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                return if doc.encrypted.is_some() {
+                    ok_out("")
+                } else {
+                    err_out("", 2)
+                };
+            }
+            if req_pw {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                let Some(ref enc_pw) = doc.encrypted else {
+                    return err_out("", 2);
+                };
+                let supplied = password.as_deref().unwrap_or("");
+                if !enc_pw.is_empty() && supplied != enc_pw {
+                    return ok_out("");
+                }
+                return err_out("", 3);
+            }
+            if show_enc {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                if let Some(ref enc_pw) = doc.encrypted {
+                    let supplied = password.as_deref().unwrap_or("");
+                    if !enc_pw.is_empty() && supplied != enc_pw {
+                        return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
+                    }
+                    return ok_out("R = 6\nP = -4\nUser password = \nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: allowed\nmodify forms: allowed\nmodify annotations: allowed\nmodify other: allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n");
+                }
+                return ok_out("File is not encrypted\n");
+            }
+            if show_lin {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                if doc.linearized {
+                    return ok_out(&format!("{f}: linearized\nno linearization errors\n"));
+                }
+                return ok_out(&format!("{f}: not linearized\n"));
+            }
+            if show_npages {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                return ok_out(&format!("{}\n", doc.pages.len()));
+            }
+            if check_mode {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                if let Some(ref enc_pw) = doc.encrypted {
+                    let supplied = password.as_deref().unwrap_or("");
+                    if !enc_pw.is_empty() && supplied != enc_pw {
+                        return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
+                    }
+                }
+                let lines = vec![
+                    format!("checking {f}"),
+                    format!("PDF Version: {}", doc.version),
+                    if doc.encrypted.is_some() {
+                        "File is encrypted".to_string()
+                    } else {
+                        "File is not encrypted".to_string()
+                    },
+                    if doc.linearized {
+                        "File is linearized".to_string()
+                    } else {
+                        "File is not linearized".to_string()
+                    },
+                    "No syntax or stream encoding errors found; the file may still contain".to_string(),
+                    "errors that qpdf cannot detect".to_string(),
+                ];
+                return ok_out(&format!("{}\n", lines.join("\n")));
+            }
+            if show_xref {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                let mut lines = vec![
+                    "1/0: uncompressed; offset = 15".to_string(),
+                    "2/0: uncompressed; offset = 64".to_string(),
+                ];
+                for p in 0..doc.pages.len() {
+                    let obj_id = 3 + p * 2;
+                    lines.push(format!("{obj_id}/0: uncompressed; offset = {}", 120 + p * 120));
+                    lines.push(format!("{}/0: uncompressed; offset = {}", obj_id + 1, 180 + p * 120));
+                }
+                return ok_out(&format!("{}\n", lines.join("\n")));
+            }
+            if show_pages {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                let mut lines = Vec::new();
+                for (p, pg) in doc.pages.iter().enumerate() {
+                    let content_obj = 4 + p * 4;
+                    let page_obj = 5 + p * 4;
+                    lines.push(format!("page {}: {page_obj} 0 R", p + 1));
+                    if with_images {
+                        lines.push("  images:".to_string());
+                        for (im_idx, (w, h, _)) in pg.images.iter().enumerate() {
+                            let im_obj = 8 + p * 4 + im_idx;
+                            lines.push(format!("    /Im{}: {im_obj} 0 R ({w} x {h})", im_idx + 1));
+                        }
+                    }
+                    lines.push("  content:".to_string());
+                    lines.push(format!("    {content_obj} 0 R"));
+                }
+                return ok_out(&format!("{}\n", lines.join("\n")));
+            }
+            if let Some(ref obj_spec) = show_object {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                let obj_num: usize = obj_spec
+                    .split([',', ' '])
+                    .next()
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(0);
+                if obj_num == 1 {
+                    return ok_out("<< /Type /Catalog /Pages 2 0 R >>\n");
+                }
+                if obj_num == 2 {
+                    let kids: Vec<String> = (0..doc.pages.len())
+                        .map(|p| format!("{} 0 R", 5 + p * 4))
+                        .collect();
+                    return ok_out(&format!("<< /Type /Pages /Count {} /Kids [ {} ] >>\n", doc.pages.len(), kids.join(" ")));
+                }
+                if obj_num == 3 {
+                    return ok_out(&format!("<< /Producer (@poe-code/pdf-ast) /Title ({}) /Creator (wkhtmltopdf (pdf-ast-static)) >>\n", doc.title));
+                }
+                if obj_num >= 4 {
+                    let rem = obj_num - 4;
+                    let page_idx = rem / 4;
+                    let slot = rem % 4;
+                    if let Some(pg) = doc.pages.get(page_idx) {
+                        if slot == 0 {
+                            let stream_str = format!("BT /F1 12 Tf 72 720 Td ({}) Tj ET\n", pg.text);
+                            if raw_stream_data || filtered_stream_data {
+                                return ok_out(&stream_str);
+                            }
+                            return ok_out(&format!("<< /Filter /FlateDecode /Length {} >>\n", stream_str.len()));
+                        } else if slot == 1 {
+                            let (pw, ph) = doc
+                                .page_media
+                                .get(&(page_idx + 1))
+                                .map(|(w, h, _)| (*w, *h))
+                                .unwrap_or((doc.page_w, doc.page_h));
+                            return ok_out(&format!(
+                                "<< /Type /Page /Parent 2 0 R /MediaBox [ 0 0 {pw} {ph} ] /Rotate {} /Contents {} 0 R >>\n",
+                                pg.rot,
+                                obj_num - 1
+                            ));
                         }
                     }
                 }
-                if !new_pages.is_empty() {
-                    doc.pages = new_pages;
+                return ok_out("null\n");
+            }
+            if list_att {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                let mut out = String::new();
+                for (k, fname, _, _) in &doc.attachments {
+                    out.push_str(&format!("{k} -> {fname}\n"));
+                }
+                return ok_out(&out);
+            }
+            if let Some(ref key) = show_att {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: input file required\n", 2);
+                };
+                let doc = match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                for (k, fname, _, data) in &doc.attachments {
+                    if k == key || fname == key {
+                        return ok_out(&crate::vfs::bytes_to_stream_string(data));
+                    }
+                }
+                return err_out(&format!("qpdf: attachment {key} not found\n"), 2);
+            }
+            if let Some(jv) = json_version {
+                let doc = if let Some(f) = primary_arg.as_deref() {
+                    match load_input(f) {
+                        Ok(d) => d,
+                        Err(e) => return e,
+                    }
+                } else {
+                    PdfDoc::new()
+                };
+                let out_file = if !empty_input && pos_files.len() >= 2 {
+                    Some(pos_files[1].clone())
+                } else if empty_input && !pos_files.is_empty() {
+                    Some(pos_files[0].clone())
+                } else {
+                    None
+                };
+                let stream_prefix = out_file
+                    .as_ref()
+                    .map(|of| format!("{of}-"))
+                    .unwrap_or_else(|| "qpdf-stream-".to_string());
+                let esc_json = |s: &str| -> String {
+                    let mut out = String::new();
+                    for ch in s.chars() {
+                        match ch {
+                            '"' => out.push_str("\\\""),
+                            '\\' => out.push_str("\\\\"),
+                            '\n' => out.push_str("\\n"),
+                            '\r' => out.push_str("\\r"),
+                            '\t' => out.push_str("\\t"),
+                            c => out.push(c),
+                        }
+                    }
+                    out
+                };
+                let include_obj = |id: usize| -> bool {
+                    if json_objects.is_empty() {
+                        return true;
+                    }
+                    json_objects.iter().any(|s| {
+                        let clean = s.strip_prefix("obj:").unwrap_or(s);
+                        let num = clean.split([',', ' ', '/']).next().and_then(|x| x.parse::<usize>().ok());
+                        num == Some(id) || s == "trailer"
+                    })
+                };
+                let keep_objs = json_keys.is_empty() || json_keys.iter().any(|k| k == "objects" || k == "qpdf");
+                let mut obj_entries: Vec<String> = Vec::new();
+                if keep_objs {
+                    if include_obj(1) {
+                        obj_entries.push("      \"obj:1 0 R\": {\n        \"value\": {\n          \"/Type\": \"/Catalog\",\n          \"/Pages\": \"2 0 R\"\n        }\n      }".to_string());
+                    }
+                    if include_obj(2) {
+                        let kids: Vec<String> = (0..doc.pages.len()).map(|p| format!("\"{} 0 R\"", 5 + p * 4)).collect();
+                        obj_entries.push(format!(
+                            "      \"obj:2 0 R\": {{\n        \"value\": {{\n          \"/Type\": \"/Pages\",\n          \"/Count\": {},\n          \"/Kids\": [ {} ]\n        }}\n      }}",
+                            doc.pages.len(),
+                            kids.join(", ")
+                        ));
+                    }
+                    if include_obj(3) {
+                        obj_entries.push(format!(
+                            "      \"obj:3 0 R\": {{\n        \"value\": {{\n          \"/Producer\": \"u:@poe-code/pdf-ast\",\n          \"/Title\": \"u:{}\"\n        }}\n      }}",
+                            esc_json(&doc.title)
+                        ));
+                    }
+                    for (p, pg) in doc.pages.iter().enumerate() {
+                        let content_obj = 4 + p * 4;
+                        let page_obj = 5 + p * 4;
+                        let (pw, ph) = doc
+                            .page_media
+                            .get(&(p + 1))
+                            .map(|(w, h, _)| (*w, *h))
+                            .unwrap_or((doc.page_w, doc.page_h));
+                        if include_obj(content_obj) {
+                            let raw_str = pg.text.clone();
+                            let mut stream_fields = vec![format!("          \"dict\": {{ \"/Filter\": \"/FlateDecode\", \"/Length\": {} }}", raw_str.len())];
+                            if json_stream_data == "inline" {
+                                let b64 = base64_encode(raw_str.as_bytes());
+                                stream_fields.push(format!("          \"data\": \"{b64}\""));
+                            } else if json_stream_data == "file" {
+                                let sf_rel = format!("{stream_prefix}{content_obj}");
+                                let sf_full = resolve_posix_path(cwd, &sf_rel);
+                                let _ = fs.write_file(&sf_full, raw_str.as_bytes());
+                                stream_fields.push(format!("          \"datafile\": \"{}\"", esc_json(&sf_rel)));
+                            }
+                            obj_entries.push(format!(
+                                "      \"obj:{content_obj} 0 R\": {{\n        \"stream\": {{\n{}\n        }}\n      }}",
+                                stream_fields.join(",\n")
+                            ));
+                        }
+                        if include_obj(page_obj) {
+                            obj_entries.push(format!(
+                                "      \"obj:{page_obj} 0 R\": {{\n        \"value\": {{\n          \"/Type\": \"/Page\",\n          \"/Parent\": \"2 0 R\",\n          \"/MediaBox\": [ 0, 0, {pw}, {ph} ],\n          \"/Rotate\": {},\n          \"/Contents\": \"{content_obj} 0 R\"\n        }}\n      }}",
+                                pg.rot
+                            ));
+                        }
+                    }
+                    obj_entries.push(format!(
+                        "      \"trailer\": {{\n        \"value\": {{\n          \"/Root\": \"1 0 R\",\n          \"/Info\": \"3 0 R\",\n          \"/Size\": {}\n        }}\n      }}",
+                        4 + doc.pages.len() * 4
+                    ));
+                }
+                let objs_block = if obj_entries.is_empty() {
+                    "    {}".to_string()
+                } else {
+                    format!("    {{\n{}\n    }}", obj_entries.join(",\n"))
+                };
+                let max_obj = 3 + doc.pages.len() * 4;
+                let rendered = format!(
+                    "{{\n  \"version\": {jv},\n  \"qpdf\": [\n    {{\n      \"jsonversion\": {jv},\n      \"pdfversion\": \"{}\",\n      \"maxobjectid\": {max_obj}\n    }},\n{objs_block}\n  ]\n}}\n",
+                    doc.version
+                );
+                if let Some(of) = out_file
+                    && of != "-"
+                {
+                    let dst = resolve_posix_path(cwd, &of);
+                    let _ = fs.write_file(&dst, rendered.as_bytes());
+                    return ok_out("");
+                }
+                return ok_out(&rendered);
+            }
+
+            if let Some(group_sz) = split_pages_group {
+                if pos_files.len() < 2 {
+                    return err_out("qpdf: --split-pages requires input and output pattern\n", 2);
+                }
+                let doc = match load_input(&pos_files[0]) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                let pat = &pos_files[1];
+                let total = doc.pages.len();
+                let mut start = 1usize;
+                while start <= total {
+                    let end = (start + group_sz - 1).min(total);
+                    let mut sub = PdfDoc::new();
+                    sub.version = doc.version.clone();
+                    sub.title = doc.title.clone();
+                    sub.author = doc.author.clone();
+                    sub.page_w = doc.page_w;
+                    sub.page_h = doc.page_h;
+                    sub.pages = doc.pages[(start - 1)..end].to_vec();
+                    let fname = format_qpdf_split_name(pat, total, group_sz, start, end);
+                    let out_p = resolve_posix_path(cwd, &fname);
+                    let _ = fs.write_file(&out_p, &sub.serialize());
+                    start = end + 1;
+                }
+                return ok_out("");
+            }
+
+            let out_arg = if replace_input {
+                pos_files.first().cloned()
+            } else if empty_input {
+                pos_files.first().cloned()
+            } else if pos_files.len() >= 2 {
+                pos_files.last().cloned()
+            } else {
+                None
+            };
+            let Some(dst_arg) = out_arg else {
+                return ok_out("");
+            };
+            let mut doc = if empty_input {
+                PdfDoc::new()
+            } else if let Some(f) = primary_arg.as_deref() {
+                match load_input(f) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                }
+            } else {
+                PdfDoc::new()
+            };
+
+            if let Some(ref enc_pw) = doc.encrypted {
+                let supplied = password.as_deref().unwrap_or("");
+                if !enc_pw.is_empty() && supplied != enc_pw {
+                    let f = primary_arg.as_deref().unwrap_or("input");
+                    return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
                 }
             }
+
+            if let Some(ref ujson) = update_from_json {
+                let ufull = resolve_posix_path(cwd, ujson);
+                if let Ok(ub) = fs.read_file(&ufull) {
+                    let us = String::from_utf8_lossy(&ub);
+                    let mut rem = us.as_ref();
+                    while let Some(pos) = rem.find("\"obj:") {
+                        rem = &rem[pos + 5..];
+                        let num = rem
+                            .split(|c: char| !c.is_ascii_digit())
+                            .next()
+                            .and_then(|s| s.parse::<usize>().ok())
+                            .unwrap_or(0);
+                        let next_obj = rem.find("\"obj:").unwrap_or(rem.len());
+                        let chunk = &rem[..next_obj];
+                        if num >= 3 {
+                            let page_idx = if num >= 5 && (num - 5) % 4 == 0 {
+                                (num - 5) / 4
+                            } else {
+                                (num - 3) / 2
+                            };
+                            if let Some(rpos) = chunk.find("\"/Rotate\":") {
+                                let after_r = chunk[rpos + 10..].trim_start();
+                                let rot_s: String = after_r
+                                    .chars()
+                                    .take_while(|c| c.is_ascii_digit() || *c == '-' || *c == '+')
+                                    .collect();
+                                if let Ok(rot) = rot_s.parse::<i32>()
+                                    && let Some(pg) = doc.pages.get_mut(page_idx)
+                                {
+                                    pg.rot = rot.rem_euclid(360);
+                                }
+                            }
+                        }
+                        rem = &rem[next_obj..];
+                    }
+                }
+            }
+
+            if !page_specs.is_empty() {
+                let mut groups: Vec<Vec<PdfPage>> = Vec::new();
+                for (sf, rng) in &page_specs {
+                    let sdoc = if sf == "." {
+                        doc.clone()
+                    } else {
+                        match load_input(sf) {
+                            Ok(d) => d,
+                            Err(e) => return e,
+                        }
+                    };
+                    if doc.title.is_empty() && !sdoc.title.is_empty() {
+                        doc.title = sdoc.title.clone();
+                    }
+                    let mut group_pages = Vec::new();
+                    for pno in parse_qpdf_page_spec(rng, sdoc.pages.len()) {
+                        if let Some(pg) = sdoc.pages.get(pno - 1) {
+                            group_pages.push(pg.clone());
+                        }
+                    }
+                    groups.push(group_pages);
+                }
+                let mut new_pages = Vec::new();
+                if let Some(cg) = collate_group {
+                    let mut offsets = vec![0usize; groups.len()];
+                    loop {
+                        let mut any = false;
+                        for (gi, g) in groups.iter().enumerate() {
+                            let start = offsets[gi];
+                            if start < g.len() {
+                                any = true;
+                                let end = (start + cg).min(g.len());
+                                new_pages.extend_from_slice(&g[start..end]);
+                                offsets[gi] = end;
+                            }
+                        }
+                        if !any {
+                            break;
+                        }
+                    }
+                } else {
+                    for g in groups {
+                        new_pages.extend(g);
+                    }
+                }
+                doc.pages = new_pages;
+            }
+
             for (rel, deg, rng) in &rotations {
                 for pno in parse_qpdf_page_spec(rng, doc.pages.len()) {
                     if let Some(pg) = doc.pages.get_mut(pno - 1) {
@@ -5377,242 +6693,551 @@ fn cmd_media_doc(
                     }
                 }
             }
+
+            if flatten_rotation {
+                for (idx, pg) in doc.pages.iter_mut().enumerate() {
+                    if pg.rot == 90 || pg.rot == 270 {
+                        let pno = idx + 1;
+                        let (w, h, crop) = doc
+                            .page_media
+                            .get(&pno)
+                            .copied()
+                            .unwrap_or((doc.page_w, doc.page_h, None));
+                        doc.page_media.insert(pno, (h, w, crop));
+                    }
+                    pg.rot = 0;
+                }
+            }
+
+            for (is_over, ov_file, to_rng, from_rng, rep_rng) in &overlay_specs {
+                let odoc = if ov_file == "." {
+                    doc.clone()
+                } else {
+                    match load_input(ov_file) {
+                        Ok(d) => d,
+                        Err(e) => return e,
+                    }
+                };
+                let to_pages = parse_qpdf_page_spec(to_rng, doc.pages.len());
+                let from_pages = parse_qpdf_page_spec(from_rng, odoc.pages.len());
+                let rep_pages = if rep_rng.is_empty() {
+                    Vec::new()
+                } else {
+                    parse_qpdf_page_spec(rep_rng, from_pages.len())
+                };
+                if !from_pages.is_empty() {
+                    for (idx, dst_pno) in to_pages.into_iter().enumerate() {
+                        let src_pno = if idx < from_pages.len() {
+                            from_pages[idx]
+                        } else if !rep_pages.is_empty() {
+                            let r_idx = (idx - from_pages.len()) % rep_pages.len();
+                            from_pages[rep_pages[r_idx] - 1]
+                        } else {
+                            *from_pages.last().unwrap()
+                        };
+                        if let Some(src_pg) = odoc.pages.get(src_pno - 1)
+                            && let Some(dst_pg) = doc.pages.get_mut(dst_pno - 1)
+                        {
+                            if *is_over {
+                                dst_pg.text = format!("{}\n{}", dst_pg.text, src_pg.text);
+                            } else {
+                                dst_pg.text = format!("{}\n{}", src_pg.text, dst_pg.text);
+                            }
+                        }
+                    }
+                }
+            }
+
+            for key in &remove_atts {
+                doc.attachments.retain(|(k, fname, _, _)| k != key && fname != key);
+            }
+            for (att_p, key, fname, replace) in add_atts {
+                let afull = resolve_posix_path(cwd, &att_p);
+                let Ok(ab) = fs.read_file(&afull) else {
+                    return err_out(&format!("qpdf: {att_p}: No such file or directory\n"), 2);
+                };
+                if let Some(pos) = doc.attachments.iter().position(|(k, _, _, _)| k == &key) {
+                    if !replace {
+                        return err_out(&format!("qpdf: attachment key {key} already exists (use --replace)\n"), 2);
+                    }
+                    doc.attachments.remove(pos);
+                }
+                doc.attachments.push((key, fname, String::new(), ab));
+            }
+            for (src_pdf, pfx) in copy_atts {
+                let sdoc = match load_input(&src_pdf) {
+                    Ok(d) => d,
+                    Err(e) => return e,
+                };
+                for (k, fname, mime, data) in sdoc.attachments {
+                    let nk = format!("{pfx}{k}");
+                    doc.attachments.retain(|(ek, _, _, _)| ek != &nk);
+                    doc.attachments.push((nk, fname, mime, data));
+                }
+            }
+
+            if remove_page_labels {
+                doc.page_labels.clear();
+            }
+            if !set_page_labels.is_empty() {
+                doc.page_labels.clear();
+                for spec in &set_page_labels {
+                    if let Some((pno_s, rest)) = spec.split_once(':') {
+                        let pno = pno_s.parse::<usize>().unwrap_or(1).to_string();
+                        let mut style_code = "D";
+                        let mut start_num = "1".to_string();
+                        let mut prefix = String::new();
+                        let parts: Vec<&str> = rest.split('/').collect();
+                        if let Some(first) = parts.first()
+                            && matches!(*first, "D" | "r" | "R" | "a" | "A" | "n" | "none")
+                        {
+                            style_code = first;
+                        }
+                        for (t_idx, token) in parts.iter().enumerate().skip(1) {
+                            if let Some(st) = token.strip_prefix("st=") {
+                                start_num = st.to_string();
+                            } else if let Some(pr) = token.strip_prefix("pr=") {
+                                prefix = pr.to_string();
+                            } else if t_idx == 1 && token.chars().all(|c| c.is_ascii_digit()) && !token.is_empty() {
+                                start_num = token.to_string();
+                            } else if !token.is_empty() {
+                                prefix = token.to_string();
+                            }
+                        }
+                        let pdftk_style = match style_code {
+                            "D" => "DecimalArabicNumerals",
+                            "R" => "UppercaseRomanNumerals",
+                            "r" => "LowercaseRomanNumerals",
+                            "A" => "UppercaseLetters",
+                            "a" => "LowercaseLetters",
+                            _ => "NoNumber",
+                        };
+                        doc.page_labels.push((pno, start_num, prefix, pdftk_style.to_string()));
+                    }
+                }
+            }
+
+            if remove_info {
+                doc.title.clear();
+                doc.author.clear();
+                doc.info.clear();
+            }
+            if remove_metadata {
+                doc.exif.clear();
+            }
+            if let Some(fv) = force_version {
+                doc.version = fv;
+            } else if let Some(mv) = min_version
+                && doc.version < mv
+            {
+                doc.version = mv;
+            }
             if let Some(pw) = encrypt_pw {
                 doc.encrypted = Some(pw);
             }
             if decrypt_mode {
                 doc.encrypted = None;
             }
-            if args.iter().any(|a| a == "--linearize") {
+            if linearize {
                 doc.linearized = true;
             }
-            if let Some((att_p, key, fname)) = add_att {
-                let afull = resolve_posix_path(cwd, &att_p);
-                if let Ok(ab) = fs.read_file(&afull) {
-                    doc.attachments.push((key, fname, String::new(), ab));
-                }
-            }
-            if let Some(ov_p) = overlay_pdf {
-                let ofull = resolve_posix_path(cwd, &ov_p);
-                if let Ok(ob) = fs.read_file(&ofull) {
-                    let odoc = PdfDoc::parse(&ob);
-                    let ov_text = odoc
-                        .pages
-                        .first()
-                        .map(|p| p.text.clone())
-                        .unwrap_or_default();
-                    for pg in &mut doc.pages {
-                        pg.text = format!("{}\n{ov_text}", pg.text);
-                    }
-                }
-            }
+            let _ = qdf_mode;
             let serialized = doc.serialize();
-            if dst_path == "-" {
+            if dst_arg == "-" {
                 ok_out(&crate::vfs::bytes_to_stream_string(&serialized))
             } else {
-                let _ = fs.write_file(&dst_path, &serialized);
+                let dst = resolve_posix_path(cwd, &dst_arg);
+                let _ = fs.write_file(&dst, &serialized);
                 ok_out("")
             }
         }
         "pdftk" => {
+            if args.iter().any(|a| a == "--version" || a == "-version") {
+                return ok_out("pdftk port to safe-bash 3.3.3 a Handy Tool for Manipulating PDF Documents\n");
+            }
+            if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h" || a == "-help") {
+                return ok_out("SYNOPSIS\n       pdftk <input PDF files | - | PROMPT>\n            [ input_pw <input PDF owner/user passwords | PROMPT> ]\n            [ <operation> <operation arguments> ]\n            [ output <output filename | - | PROMPT> ]\n");
+            }
+            let ops = [
+                "cat",
+                "shuffle",
+                "burst",
+                "dump_data",
+                "dump_data_utf8",
+                "dump_data_fields",
+                "dump_data_fields_utf8",
+                "dump_data_annots",
+                "update_info",
+                "update_info_utf8",
+                "attach_files",
+                "unpack_files",
+                "background",
+                "multibackground",
+                "stamp",
+                "multistamp",
+                "fill_form",
+                "generate_fdf",
+            ];
             let mut handles: BTreeMap<String, PdfDoc> = BTreeMap::new();
             let mut input_docs: Vec<PdfDoc> = Vec::new();
             let mut op = String::new();
             let mut op_idx = args.len();
-            for (idx, a) in args.iter().enumerate() {
-                if matches!(
-                    a.as_str(),
-                    "cat"
-                        | "shuffle"
-                        | "dump_data"
-                        | "dump_data_utf8"
-                        | "update_info"
-                        | "update_info_utf8"
-                        | "burst"
-                        | "attach_files"
-                        | "unpack_files"
-                        | "stamp"
-                        | "background"
-                ) {
-                    op = a.clone();
-                    op_idx = idx;
+            let mut i = 0usize;
+            while i < args.len() {
+                let a = args[i].as_str();
+                if ops.contains(&a) {
+                    op = a.to_string();
+                    op_idx = i;
                     break;
                 }
-                if let Some((h, path)) = a.split_once('=') {
-                    let full = resolve_posix_path(cwd, path);
-                    if let Ok(b) = fs.read_file(&full) {
-                        let d = PdfDoc::parse(&b);
-                        handles.insert(h.to_string(), d.clone());
-                        input_docs.push(d);
-                    }
-                } else if !a.starts_with('-') {
-                    let full = resolve_posix_path(cwd, a);
-                    if let Ok(b) = fs.read_file(&full) {
-                        let d = PdfDoc::parse(&b);
-                        if handles.is_empty() {
-                            handles.insert("A".to_string(), d.clone());
-                        }
-                        input_docs.push(d);
-                    }
+                if a == "output" {
+                    op = "passthrough".to_string();
+                    op_idx = i;
+                    break;
                 }
+                if a == "input_pw" {
+                    i += 1;
+                    while i < args.len() && !ops.contains(&args[i].as_str()) && args[i] != "output" {
+                        i += 1;
+                    }
+                    continue;
+                }
+                if let Some((h, path)) = a.split_once('=')
+                    && !h.is_empty()
+                    && h.chars().all(|c| c.is_ascii_uppercase())
+                {
+                    let d = if path == "-" {
+                        PdfDoc::parse(&crate::vfs::stream_string_to_bytes(stdin))
+                    } else {
+                        let full = resolve_posix_path(cwd, path);
+                        let Ok(b) = fs.read_file(&full) else {
+                            return err_out(&format!("Error: Unable to find file.\nError: Failed to open PDF file: \n   {path}\n"), 1);
+                        };
+                        PdfDoc::parse(&b)
+                    };
+                    handles.insert(h.to_string(), d.clone());
+                    input_docs.push(d);
+                } else if !a.starts_with('-') || a == "-" {
+                    let d = if a == "-" {
+                        PdfDoc::parse(&crate::vfs::stream_string_to_bytes(stdin))
+                    } else {
+                        let full = resolve_posix_path(cwd, a);
+                        let Ok(b) = fs.read_file(&full) else {
+                            return err_out(&format!("Error: Unable to find file.\nError: Failed to open PDF file: \n   {a}\n"), 1);
+                        };
+                        PdfDoc::parse(&b)
+                    };
+                    let auto_handle = ((b'A' + (input_docs.len() as u8)) as char).to_string();
+                    handles.entry(auto_handle).or_insert_with(|| d.clone());
+                    input_docs.push(d);
+                }
+                i += 1;
             }
-            let format_dump = |doc: &PdfDoc| -> String {
+            if op.is_empty() {
+                op = "cat".to_string();
+            }
+
+            let format_dump = |doc: &PdfDoc, utf8: bool| -> String {
                 let mut out = String::new();
                 if !doc.title.is_empty() {
                     out.push_str(&format!(
                         "InfoBegin\nInfoKey: Title\nInfoValue: {}\n",
-                        doc.title
+                        encode_pdftk_text(&doc.title, utf8)
                     ));
                 }
                 if !doc.author.is_empty() {
                     out.push_str(&format!(
                         "InfoBegin\nInfoKey: Author\nInfoValue: {}\n",
-                        doc.author
+                        encode_pdftk_text(&doc.author, utf8)
                     ));
                 }
                 for (k, v) in &doc.info {
-                    out.push_str(&format!("InfoBegin\nInfoKey: {k}\nInfoValue: {v}\n"));
+                    out.push_str(&format!(
+                        "InfoBegin\nInfoKey: {k}\nInfoValue: {}\n",
+                        encode_pdftk_text(v, utf8)
+                    ));
                 }
+                out.push_str(&format!("PdfID0: {}\n", doc.pdf_id0));
+                out.push_str(&format!("PdfID1: {}\n", doc.pdf_id1));
                 out.push_str(&format!("NumberOfPages: {}\n", doc.pages.len()));
                 for (t, l, p) in &doc.bookmarks {
                     out.push_str(&format!(
-                        "BookmarkBegin\nBookmarkTitle: {t}\nBookmarkLevel: {l}\nBookmarkPageNumber: {p}\n"
+                        "BookmarkBegin\nBookmarkTitle: {}\nBookmarkLevel: {l}\nBookmarkPageNumber: {p}\n",
+                        encode_pdftk_text(t, utf8)
                     ));
                 }
                 for (idx, pg) in doc.pages.iter().enumerate() {
+                    let pno = idx + 1;
+                    let (pw, ph, crop_opt) = doc
+                        .page_media
+                        .get(&pno)
+                        .copied()
+                        .unwrap_or((doc.page_w, doc.page_h, None));
                     out.push_str(&format!(
-                        "PageMediaBegin\nPageMediaNumber: {}\nPageMediaRotation: {}\nPageMediaRect: 0 0 612 792\nPageMediaDimensions: 612 792\n",
-                        idx + 1,
-                        pg.rot
+                        "PageMediaBegin\nPageMediaNumber: {pno}\nPageMediaRotation: {}\nPageMediaRect: 0 0 {} {}\nPageMediaDimensions: {} {}\n",
+                        pg.rot,
+                        pw as i64,
+                        ph as i64,
+                        pw as i64,
+                        ph as i64
                     ));
+                    if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
+                        out.push_str(&format!(
+                            "PageMediaCropBox: {} {} {} {}\nPageMediaCropRect: {} {} {} {}\n",
+                            cx0 as i64, cy0 as i64, cx1 as i64, cy1 as i64,
+                            cx0 as i64, cy0 as i64, cx1 as i64, cy1 as i64
+                        ));
+                    }
                 }
                 for (ni, st, pf, sy) in &doc.page_labels {
-                    out.push_str(&format!(
-                        "PageLabelBegin\nPageLabelNewIndex: {ni}\nPageLabelStart: {st}\nPageLabelPrefix: {pf}\nPageLabelNumStyle: {sy}\n"
-                    ));
+                    out.push_str(&format!("PageLabelBegin\nPageLabelNewIndex: {ni}\nPageLabelStart: {st}\n"));
+                    if !pf.is_empty() {
+                        out.push_str(&format!("PageLabelPrefix: {}\n", encode_pdftk_text(pf, utf8)));
+                    }
+                    out.push_str(&format!("PageLabelNumStyle: {sy}\n"));
                 }
                 out
             };
-            let primary = input_docs.first().cloned().unwrap_or_else(PdfDoc::new);
-            match op.as_str() {
-                "dump_data" | "dump_data_utf8" => ok_out(&format_dump(&primary)),
-                "update_info" | "update_info_utf8" => {
-                    let rest = &args[op_idx + 1..];
-                    if !rest.is_empty() {
-                        let info_full = resolve_posix_path(cwd, &rest[0]);
-                        let mut doc = primary;
-                        if let Ok(ib) = fs.read_file(&info_full) {
-                            let txt = String::from_utf8_lossy(&ib);
-                            doc.info.clear();
-                            doc.bookmarks.clear();
-                            doc.page_labels.clear();
-                            let mut cur_kind = "";
-                            let mut k = String::new();
-                            let mut v = String::new();
-                            let mut bt = String::new();
-                            let mut bl = String::new();
-                            let mut bp = String::new();
-                            let mut pni = String::new();
-                            let mut pst = String::new();
-                            let mut ppf = String::new();
-                            let mut psy = String::new();
-                            let flush = |kind: &str,
-                                         doc: &mut PdfDoc,
-                                         k: &mut String,
-                                         v: &mut String,
-                                         bt: &mut String,
-                                         bl: &mut String,
-                                         bp: &mut String,
-                                         pni: &mut String,
-                                         pst: &mut String,
-                                         ppf: &mut String,
-                                         psy: &mut String| {
-                                match kind {
-                                    "info" if !k.is_empty() => {
-                                        if k == "Title" {
-                                            doc.title = v.clone();
-                                        } else if k == "Author" {
-                                            doc.author = v.clone();
-                                        } else {
-                                            doc.info.push((k.clone(), v.clone()));
-                                        }
-                                        k.clear();
-                                        v.clear();
-                                    }
-                                    "bm" if !bt.is_empty() => {
-                                        doc.bookmarks.push((bt.clone(), bl.clone(), bp.clone()));
-                                        bt.clear();
-                                        bl.clear();
-                                        bp.clear();
-                                    }
-                                    "pl" if !pni.is_empty() => {
-                                        doc.page_labels.push((
-                                            pni.clone(),
-                                            pst.clone(),
-                                            ppf.clone(),
-                                            psy.clone(),
-                                        ));
-                                        pni.clear();
-                                        pst.clear();
-                                        ppf.clear();
-                                        psy.clear();
-                                    }
-                                    _ => {}
-                                }
-                            };
-                            for line in txt.lines() {
-                                let l = line.trim();
-                                if l == "InfoBegin" {
-                                    flush(
-                                        cur_kind, &mut doc, &mut k, &mut v, &mut bt, &mut bl,
-                                        &mut bp, &mut pni, &mut pst, &mut ppf, &mut psy,
-                                    );
-                                    cur_kind = "info";
-                                } else if l == "BookmarkBegin" {
-                                    flush(
-                                        cur_kind, &mut doc, &mut k, &mut v, &mut bt, &mut bl,
-                                        &mut bp, &mut pni, &mut pst, &mut ppf, &mut psy,
-                                    );
-                                    cur_kind = "bm";
-                                } else if l == "PageLabelBegin" {
-                                    flush(
-                                        cur_kind, &mut doc, &mut k, &mut v, &mut bt, &mut bl,
-                                        &mut bp, &mut pni, &mut pst, &mut ppf, &mut psy,
-                                    );
-                                    cur_kind = "pl";
-                                } else if let Some(r) = l.strip_prefix("InfoKey:") {
-                                    k = r.trim().to_string();
-                                } else if let Some(r) = l.strip_prefix("InfoValue:") {
-                                    v = r.trim().to_string();
-                                } else if let Some(r) = l.strip_prefix("BookmarkTitle:") {
-                                    bt = r.trim().to_string();
-                                } else if let Some(r) = l.strip_prefix("BookmarkLevel:") {
-                                    bl = r.trim().to_string();
-                                } else if let Some(r) = l.strip_prefix("BookmarkPageNumber:") {
-                                    bp = r.trim().to_string();
-                                } else if let Some(r) = l.strip_prefix("PageLabelNewIndex:") {
-                                    pni = r.trim().to_string();
-                                } else if let Some(r) = l.strip_prefix("PageLabelStart:") {
-                                    pst = r.trim().to_string();
-                                } else if let Some(r) = l.strip_prefix("PageLabelPrefix:") {
-                                    ppf = r.trim().to_string();
-                                } else if let Some(r) = l.strip_prefix("PageLabelNumStyle:") {
-                                    psy = r.trim().to_string();
-                                }
-                            }
-                            flush(
-                                cur_kind, &mut doc, &mut k, &mut v, &mut bt, &mut bl, &mut bp,
-                                &mut pni, &mut pst, &mut ppf, &mut psy,
-                            );
+
+            let write_pdftk_output = |doc: &mut PdfDoc, tail: &[String]| -> BuiltinOutcome {
+                let mut out_target: Option<String> = None;
+                let mut idx = 0usize;
+                while idx < tail.len() {
+                    match tail[idx].as_str() {
+                        "output" if idx + 1 < tail.len() => {
+                            out_target = Some(tail[idx + 1].clone());
+                            idx += 2;
                         }
-                        if let Some(out_pos) = rest.iter().position(|x| x == "output")
-                            && out_pos + 1 < rest.len()
-                        {
-                            let dst = resolve_posix_path(cwd, &rest[out_pos + 1]);
-                            let _ = fs.write_file(&dst, &doc.serialize());
+                        "owner_pw" | "user_pw" if idx + 1 < tail.len() => {
+                            doc.encrypted = Some(tail[idx + 1].clone());
+                            idx += 2;
+                        }
+                        _ => {
+                            idx += 1;
                         }
                     }
+                }
+                let Some(of) = out_target else {
+                    return err_out("Error: Output filename required.\n", 1);
+                };
+                let serialized = doc.serialize();
+                if of == "-" {
+                    ok_out(&crate::vfs::bytes_to_stream_string(&serialized))
+                } else {
+                    let dst = resolve_posix_path(cwd, &of);
+                    let _ = fs.write_file(&dst, &serialized);
                     ok_out("")
+                }
+            };
+
+            let primary = input_docs.first().cloned().unwrap_or_else(PdfDoc::new);
+            match op.as_str() {
+                "passthrough" => {
+                    let mut doc = primary;
+                    write_pdftk_output(&mut doc, &args[op_idx..])
+                }
+                "dump_data" | "dump_data_utf8" => {
+                    let utf8 = op == "dump_data_utf8";
+                    let dump_txt = format_dump(&primary, utf8);
+                    let rest = &args[op_idx + 1..];
+                    if let Some(pos) = rest.iter().position(|x| x == "output")
+                        && pos + 1 < rest.len()
+                        && rest[pos + 1] != "-"
+                    {
+                        let dst = resolve_posix_path(cwd, &rest[pos + 1]);
+                        let _ = fs.write_file(&dst, dump_txt.as_bytes());
+                        return ok_out("");
+                    }
+                    ok_out(&dump_txt)
+                }
+                "dump_data_fields" | "dump_data_fields_utf8" | "dump_data_annots" => ok_out(""),
+                "update_info" | "update_info_utf8" => {
+                    let rest = &args[op_idx + 1..];
+                    if rest.is_empty() {
+                        return err_out("Error: update_info requires a data file.\n", 1);
+                    }
+                    let info_src = &rest[0];
+                    let txt = if info_src == "-" {
+                        stdin.to_string()
+                    } else {
+                        let info_full = resolve_posix_path(cwd, info_src);
+                        let Ok(ib) = fs.read_file(&info_full) else {
+                            return err_out(&format!("Error: Unable to open data file {info_src}\n"), 1);
+                        };
+                        String::from_utf8_lossy(&ib).to_string()
+                    };
+                    let mut doc = primary;
+                    let has_info_blocks = txt.lines().any(|l| l.trim() == "InfoBegin");
+                    let has_bm_blocks = txt.lines().any(|l| l.trim() == "BookmarkBegin");
+                    let has_pl_blocks = txt.lines().any(|l| l.trim() == "PageLabelBegin");
+                    if has_info_blocks {
+                        doc.info.clear();
+                    }
+                    if has_bm_blocks {
+                        doc.bookmarks.clear();
+                    }
+                    if has_pl_blocks {
+                        doc.page_labels.clear();
+                    }
+                    let mut cur_kind = "";
+                    let mut k = String::new();
+                    let mut v = String::new();
+                    let mut bt = String::new();
+                    let mut bl = String::new();
+                    let mut bp = String::new();
+                    let mut pni = String::new();
+                    let mut pst = String::new();
+                    let mut ppf = String::new();
+                    let mut psy = String::new();
+                    let mut pm_num: usize = 0;
+                    let mut pm_rot: Option<i32> = None;
+                    let mut pm_dim: Option<(f64, f64)> = None;
+                    let mut pm_crop: Option<[f64; 4]> = None;
+
+                    let flush = |kind: &str,
+                                 doc: &mut PdfDoc,
+                                 k: &mut String,
+                                 v: &mut String,
+                                 bt: &mut String,
+                                 bl: &mut String,
+                                 bp: &mut String,
+                                 pni: &mut String,
+                                 pst: &mut String,
+                                 ppf: &mut String,
+                                 psy: &mut String,
+                                 pm_num: &mut usize,
+                                 pm_rot: &mut Option<i32>,
+                                 pm_dim: &mut Option<(f64, f64)>,
+                                 pm_crop: &mut Option<[f64; 4]>| {
+                        match kind {
+                            "info" if !k.is_empty() => {
+                                let dec_v = decode_pdftk_entities(v);
+                                if k == "Title" {
+                                    doc.title = dec_v;
+                                } else if k == "Author" {
+                                    doc.author = dec_v;
+                                } else {
+                                    doc.info.push((k.clone(), dec_v));
+                                }
+                                k.clear();
+                                v.clear();
+                            }
+                            "bm" if !bt.is_empty() => {
+                                doc.bookmarks.push((
+                                    decode_pdftk_entities(bt),
+                                    bl.clone(),
+                                    bp.clone(),
+                                ));
+                                bt.clear();
+                                bl.clear();
+                                bp.clear();
+                            }
+                            "pl" if !pni.is_empty() => {
+                                doc.page_labels.push((
+                                    pni.clone(),
+                                    if pst.is_empty() { "1".to_string() } else { pst.clone() },
+                                    decode_pdftk_entities(ppf),
+                                    if psy.is_empty() { "DecimalArabicNumerals".to_string() } else { psy.clone() },
+                                ));
+                                pni.clear();
+                                pst.clear();
+                                ppf.clear();
+                                psy.clear();
+                            }
+                            "pm" if *pm_num >= 1 => {
+                                if let Some(rot) = *pm_rot
+                                    && let Some(pg) = doc.pages.get_mut(*pm_num - 1)
+                                {
+                                    pg.rot = rot.rem_euclid(360);
+                                }
+                                let (mut w, mut h, mut crop) = doc
+                                    .page_media
+                                    .get(pm_num)
+                                    .copied()
+                                    .unwrap_or((doc.page_w, doc.page_h, None));
+                                if let Some((dw, dh)) = *pm_dim {
+                                    w = dw;
+                                    h = dh;
+                                    if *pm_num == 1 {
+                                        doc.page_w = dw;
+                                        doc.page_h = dh;
+                                    }
+                                }
+                                if pm_crop.is_some() {
+                                    crop = *pm_crop;
+                                }
+                                doc.page_media.insert(*pm_num, (w, h, crop));
+                                *pm_num = 0;
+                                *pm_rot = None;
+                                *pm_dim = None;
+                                *pm_crop = None;
+                            }
+                            _ => {}
+                        }
+                    };
+                    for line in txt.lines() {
+                        let l = line.trim();
+                        if matches!(l, "InfoBegin" | "BookmarkBegin" | "PageLabelBegin" | "PageMediaBegin") {
+                            flush(
+                                cur_kind, &mut doc, &mut k, &mut v, &mut bt, &mut bl, &mut bp,
+                                &mut pni, &mut pst, &mut ppf, &mut psy, &mut pm_num, &mut pm_rot,
+                                &mut pm_dim, &mut pm_crop,
+                            );
+                            cur_kind = match l {
+                                "InfoBegin" => "info",
+                                "BookmarkBegin" => "bm",
+                                "PageLabelBegin" => "pl",
+                                _ => "pm",
+                            };
+                        } else if let Some(r) = l.strip_prefix("PdfID0:") {
+                            doc.pdf_id0 = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("PdfID1:") {
+                            doc.pdf_id1 = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("InfoKey:") {
+                            k = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("InfoValue:") {
+                            v = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("BookmarkTitle:") {
+                            bt = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("BookmarkLevel:") {
+                            bl = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("BookmarkPageNumber:") {
+                            bp = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("PageLabelNewIndex:") {
+                            pni = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("PageLabelStart:") {
+                            pst = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("PageLabelPrefix:") {
+                            ppf = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("PageLabelNumStyle:") {
+                            psy = r.trim().to_string();
+                        } else if let Some(r) = l.strip_prefix("PageMediaNumber:") {
+                            pm_num = r.trim().parse().unwrap_or(0);
+                        } else if let Some(r) = l.strip_prefix("PageMediaRotation:") {
+                            pm_rot = r.trim().parse().ok();
+                        } else if let Some(r) = l.strip_prefix("PageMediaDimensions:") {
+                            let nums: Vec<f64> = r.split_whitespace().filter_map(|x| x.parse().ok()).collect();
+                            if nums.len() >= 2 {
+                                pm_dim = Some((nums[0], nums[1]));
+                            }
+                        } else if let Some(r) = l.strip_prefix("PageMediaRect:") {
+                            let nums: Vec<f64> = r.split_whitespace().filter_map(|x| x.parse().ok()).collect();
+                            if nums.len() >= 4 && pm_dim.is_none() {
+                                pm_dim = Some((nums[2] - nums[0], nums[3] - nums[1]));
+                            }
+                        } else if let Some(r) = l.strip_prefix("PageMediaCropRect:") {
+                            let nums: Vec<f64> = r.split_whitespace().filter_map(|x| x.parse().ok()).collect();
+                            if nums.len() >= 4 {
+                                pm_crop = Some([nums[0], nums[1], nums[2], nums[3]]);
+                            }
+                        }
+                    }
+                    flush(
+                        cur_kind, &mut doc, &mut k, &mut v, &mut bt, &mut bl, &mut bp,
+                        &mut pni, &mut pst, &mut ppf, &mut psy, &mut pm_num, &mut pm_rot,
+                        &mut pm_dim, &mut pm_crop,
+                    );
+                    write_pdftk_output(&mut doc, &rest[1..])
                 }
                 "burst" => {
                     let rest = &args[op_idx + 1..];
@@ -5631,45 +7256,46 @@ fn cmd_media_doc(
                     let _ = fs.mkdir_all(burst_dir);
                     for (idx, pg) in primary.pages.iter().enumerate() {
                         let mut single = PdfDoc::new();
+                        single.version = primary.version.clone();
+                        single.title = primary.title.clone();
+                        single.author = primary.author.clone();
+                        single.page_w = primary.page_w;
+                        single.page_h = primary.page_h;
                         single.pages.push(pg.clone());
                         let out_p = resolve_posix_path(cwd, &format_printf_num(&pat, idx + 1));
                         let _ = fs.write_file(&out_p, &single.serialize());
                     }
                     let doc_data_p = format!("{}/doc_data.txt", burst_dir.trim_end_matches('/'));
-                    let _ = fs.write_file(&doc_data_p, format_dump(&primary).as_bytes());
+                    let _ = fs.write_file(&doc_data_p, format_dump(&primary, false).as_bytes());
                     ok_out("")
                 }
                 "attach_files" => {
                     let rest = &args[op_idx + 1..];
                     let mut doc = primary;
-                    let mut i = 0usize;
-                    let mut out_file = None;
-                    while i < rest.len() {
-                        if rest[i] == "to_page" && i + 1 < rest.len() {
-                            i += 2;
+                    let mut idx = 0usize;
+                    let mut out_pos = rest.len();
+                    while idx < rest.len() {
+                        if rest[idx] == "to_page" && idx + 1 < rest.len() {
+                            idx += 2;
                             continue;
                         }
-                        if rest[i] == "output" && i + 1 < rest.len() {
-                            out_file = Some(rest[i + 1].clone());
+                        if rest[idx] == "output" {
+                            out_pos = idx;
                             break;
                         }
-                        let afull = resolve_posix_path(cwd, &rest[i]);
-                        if let Ok(ab) = fs.read_file(&afull) {
-                            let fname = rest[i]
-                                .rsplit('/')
-                                .next()
-                                .unwrap_or(&rest[i])
-                                .to_string();
-                            doc.attachments
-                                .push((fname.clone(), fname, String::new(), ab));
-                        }
-                        i += 1;
+                        let afull = resolve_posix_path(cwd, &rest[idx]);
+                        let Ok(ab) = fs.read_file(&afull) else {
+                            return err_out(&format!("Error: Unable to find attachment file {}\n", rest[idx]), 1);
+                        };
+                        let fname = rest[idx]
+                            .rsplit('/')
+                            .next()
+                            .unwrap_or(&rest[idx])
+                            .to_string();
+                        doc.attachments.push((fname.clone(), fname, String::new(), ab));
+                        idx += 1;
                     }
-                    if let Some(of) = out_file {
-                        let dst = resolve_posix_path(cwd, &of);
-                        let _ = fs.write_file(&dst, &doc.serialize());
-                    }
-                    ok_out("")
+                    write_pdftk_output(&mut doc, &rest[out_pos..])
                 }
                 "unpack_files" => {
                     let rest = &args[op_idx + 1..];
@@ -5687,210 +7313,462 @@ fn cmd_media_doc(
                     }
                     ok_out("")
                 }
-                "stamp" | "background" => {
+                "stamp" | "multistamp" | "background" | "multibackground" => {
+                    let is_multi = op == "multistamp" || op == "multibackground";
+                    let is_stamp = op == "stamp" || op == "multistamp";
                     let rest = &args[op_idx + 1..];
                     let mut doc = primary;
                     if !rest.is_empty() {
-                        let sfull = resolve_posix_path(cwd, &rest[0]);
-                        if let Ok(sb) = fs.read_file(&sfull) {
-                            let sdoc = PdfDoc::parse(&sb);
-                            let stxt = sdoc
-                                .pages
-                                .first()
-                                .map(|p| p.text.clone())
-                                .unwrap_or_default();
-                            for pg in &mut doc.pages {
-                                pg.text = format!("{}\n{stxt}", pg.text);
+                        let sdoc = if rest[0] == "-" {
+                            PdfDoc::parse(&crate::vfs::stream_string_to_bytes(stdin))
+                        } else {
+                            let sfull = resolve_posix_path(cwd, &rest[0]);
+                            let Ok(sb) = fs.read_file(&sfull) else {
+                                return err_out(&format!("Error: Unable to open stamp/background file {}\n", rest[0]), 1);
+                            };
+                            PdfDoc::parse(&sb)
+                        };
+                        if !sdoc.pages.is_empty() {
+                            for (p_idx, pg) in doc.pages.iter_mut().enumerate() {
+                                let spg = if is_multi {
+                                    sdoc.pages.get(p_idx).unwrap_or_else(|| sdoc.pages.last().unwrap())
+                                } else {
+                                    &sdoc.pages[0]
+                                };
+                                if is_stamp {
+                                    pg.text = format!("{}\n{}", pg.text, spg.text);
+                                } else {
+                                    pg.text = format!("{}\n{}", spg.text, pg.text);
+                                }
                             }
                         }
                     }
-                    if let Some(pos) = rest.iter().position(|x| x == "output")
-                        && pos + 1 < rest.len()
-                    {
-                        let dst = resolve_posix_path(cwd, &rest[pos + 1]);
-                        let _ = fs.write_file(&dst, &doc.serialize());
-                    }
-                    ok_out("")
+                    let out_pos = rest.iter().position(|x| x == "output").unwrap_or(rest.len());
+                    write_pdftk_output(&mut doc, &rest[out_pos..])
                 }
                 "cat" | "shuffle" => {
                     let rest = &args[op_idx + 1..];
                     let out_pos = rest.iter().position(|x| x == "output").unwrap_or(rest.len());
                     let specs = &rest[..out_pos];
-                    let eval_spec = |sp: &str| -> Vec<PdfPage> {
+                    let mut handle_keys: Vec<String> = handles.keys().cloned().collect();
+                    handle_keys.sort_by(|a, b| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
+
+                    let eval_spec = |sp: &str| -> Vec<(String, usize, PdfPage)> {
                         if let Some(d) = handles.get(sp) {
-                            return d.pages.clone();
+                            return d
+                                .pages
+                                .iter()
+                                .enumerate()
+                                .map(|(idx, p)| (sp.to_string(), idx + 1, p.clone()))
+                                .collect();
                         }
                         let mut s = sp;
+                        let mut doc_key = "A".to_string();
                         let mut doc_ref = &primary;
-                        if let Some(first_ch) = s.chars().next()
-                            && first_ch.is_ascii_uppercase()
-                        {
-                            let h_key = first_ch.to_string();
-                            if let Some(hd) = handles.get(&h_key) {
-                                doc_ref = hd;
-                                s = &s[1..];
-                            }
-                        }
-                        let mut rot_delta = 0i32;
-                        for (suf, deg) in [
-                            ("east", 90),
-                            ("right", 90),
-                            ("south", 180),
-                            ("down", 180),
-                            ("west", 270),
-                            ("left", 270),
-                            ("north", 0),
-                        ] {
-                            if let Some(stripped) = s.strip_suffix(suf) {
-                                s = stripped;
-                                rot_delta = deg;
+                        for hk in &handle_keys {
+                            if let Some(after) = s.strip_prefix(hk.as_str())
+                                && after
+                                    .chars()
+                                    .next()
+                                    .map(|c| c.is_ascii_digit() || after.starts_with("end") || after.starts_with("even") || after.starts_with("odd"))
+                                    .unwrap_or(true)
+                            {
+                                doc_key = hk.clone();
+                                doc_ref = handles.get(hk).unwrap_or(&primary);
+                                s = after;
                                 break;
                             }
                         }
-                        let pnos = if s.is_empty() {
+                        let mut rot_mode: Option<(bool, i32)> = None;
+                        let mut filter_odd_even: Option<bool> = None;
+                        loop {
+                            let mut matched = false;
+                            for (suf, is_rel, deg) in [
+                                ("north", false, 0),
+                                ("east", false, 90),
+                                ("south", false, 180),
+                                ("west", false, 270),
+                                ("right", true, 90),
+                                ("left", true, -90),
+                                ("down", true, 180),
+                            ] {
+                                if let Some(stripped) = s.strip_suffix(suf) {
+                                    s = stripped;
+                                    rot_mode = Some((is_rel, deg));
+                                    matched = true;
+                                    break;
+                                }
+                            }
+                            if matched {
+                                continue;
+                            }
+                            if let Some(stripped) = s.strip_suffix("even") {
+                                s = stripped;
+                                filter_odd_even = Some(true);
+                                continue;
+                            }
+                            if let Some(stripped) = s.strip_suffix("odd") {
+                                s = stripped;
+                                filter_odd_even = Some(false);
+                                continue;
+                            }
+                            for (suf, is_rel, deg) in [
+                                ("N", false, 0),
+                                ("E", false, 90),
+                                ("S", false, 180),
+                                ("W", false, 270),
+                                ("R", true, 90),
+                                ("L", true, -90),
+                                ("D", true, 180),
+                            ] {
+                                if let Some(stripped) = s.strip_suffix(suf)
+                                    && !stripped.is_empty()
+                                {
+                                    s = stripped;
+                                    rot_mode = Some((is_rel, deg));
+                                    matched = true;
+                                    break;
+                                }
+                            }
+                            if !matched {
+                                break;
+                            }
+                        }
+                        let mut pnos = if s.is_empty() {
                             (1..=doc_ref.pages.len()).collect()
                         } else {
                             parse_qpdf_page_spec(s, doc_ref.pages.len())
                         };
+                        if let Some( want_even ) = filter_odd_even {
+                            pnos.retain(|p| (*p % 2 == 0) == want_even);
+                        }
                         let mut res = Vec::new();
                         for pno in pnos {
                             if let Some(pg) = doc_ref.pages.get(pno - 1) {
                                 let mut c = pg.clone();
-                                c.rot = (c.rot + rot_delta).rem_euclid(360);
-                                res.push(c);
+                                if let Some((is_rel, deg)) = rot_mode {
+                                    c.rot = if is_rel {
+                                        (c.rot + deg).rem_euclid(360)
+                                    } else {
+                                        deg.rem_euclid(360)
+                                    };
+                                }
+                                res.push((doc_key.clone(), pno, c));
                             }
                         }
                         res
                     };
+
                     let mut out_doc = PdfDoc::new();
+                    out_doc.version = primary.version.clone();
+                    out_doc.title = primary.title.clone();
+                    out_doc.author = primary.author.clone();
+                    out_doc.page_w = primary.page_w;
+                    out_doc.page_h = primary.page_h;
+                    out_doc.info = primary.info.clone();
+                    let mut chosen: Vec<(String, usize, PdfPage)> = Vec::new();
                     if specs.is_empty() {
-                        for d in &input_docs {
+                        for (idx, d) in input_docs.iter().enumerate() {
                             if out_doc.title.is_empty() {
                                 out_doc.title = d.title.clone();
                             }
-                            out_doc.pages.extend(d.pages.clone());
+                            let hk = ((b'A' + (idx as u8)) as char).to_string();
+                            for (p_idx, pg) in d.pages.iter().enumerate() {
+                                chosen.push((hk.clone(), p_idx + 1, pg.clone()));
+                            }
                         }
                     } else if op == "shuffle" {
-                        let lists: Vec<Vec<PdfPage>> = specs.iter().map(|s| eval_spec(s)).collect();
+                        let lists: Vec<Vec<(String, usize, PdfPage)>> =
+                            specs.iter().map(|s| eval_spec(s)).collect();
                         let max_len = lists.iter().map(|l| l.len()).max().unwrap_or(0);
                         for idx in 0..max_len {
                             for l in &lists {
-                                if let Some(pg) = l.get(idx) {
-                                    out_doc.pages.push(pg.clone());
+                                if let Some(item) = l.get(idx) {
+                                    chosen.push(item.clone());
                                 }
                             }
                         }
                     } else {
                         for s in specs {
-                            out_doc.pages.extend(eval_spec(s));
+                            chosen.extend(eval_spec(s));
                         }
                     }
-                    if out_pos + 1 < rest.len() {
-                        let dst = resolve_posix_path(cwd, &rest[out_pos + 1]);
-                        let _ = fs.write_file(&dst, &out_doc.serialize());
+                    for (new_idx0, (hk, old_pno, pg)) in chosen.iter().enumerate() {
+                        let new_pno = new_idx0 + 1;
+                        if let Some(src_doc) = handles.get(hk) {
+                            if let Some(m) = src_doc.page_media.get(old_pno) {
+                                out_doc.page_media.insert(new_pno, *m);
+                            }
+                            for (bt, bl, bp) in &src_doc.bookmarks {
+                                if bp.parse::<usize>().ok() == Some(*old_pno) {
+                                    out_doc.bookmarks.push((bt.clone(), bl.clone(), new_pno.to_string()));
+                                }
+                            }
+                        }
+                        out_doc.pages.push(pg.clone());
                     }
-                    ok_out("")
+                    write_pdftk_output(&mut out_doc, &rest[out_pos..])
                 }
                 _ => ok_out(""),
             }
         }
         "pdfdetach" => {
+            if args.iter().any(|a| a == "-v" || a == "--version") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "pdfdetach version 24.02.0\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "Usage: pdfdetach [options] <PDF-file>\n".to_string(),
+                    exit_code: 0,
+                };
+            }
             let mut list_mode = false;
             let mut save_all = false;
             let mut save_idx: Option<usize> = None;
+            let mut save_file: Option<String> = None;
             let mut out_target: Option<String> = None;
+            let mut pw_opt: Option<String> = None;
             let mut pdf_file: Option<String> = None;
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
                     "-list" => list_mode = true,
                     "-saveall" => save_all = true,
-                    "-save" if i + 1 < args.len() => {
+                    "-save" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out("pdfdetach: invalid -save argument\n", 99);
+                        };
+                        save_idx = Some(v);
                         i += 1;
-                        save_idx = args[i].parse().ok();
                     }
-                    "-o" if i + 1 < args.len() => {
+                    "-savefile" => {
+                        let Some(v) = args.get(i + 1) else {
+                            return err_out("pdfdetach: missing -savefile argument\n", 99);
+                        };
+                        save_file = Some(v.clone());
                         i += 1;
-                        out_target = Some(args[i].clone());
                     }
-                    "-upw" | "-opw" | "-enc" if i + 1 < args.len() => {
+                    "-o" => {
+                        let Some(v) = args.get(i + 1) else {
+                            return err_out("pdfdetach: missing -o argument\n", 99);
+                        };
+                        out_target = Some(v.clone());
+                        i += 1;
+                    }
+                    "-upw" | "-opw" => {
+                        if let Some(v) = args.get(i + 1) {
+                            pw_opt = Some(v.clone());
+                            i += 1;
+                        }
+                    }
+                    "-enc" => {
+                        let Some(enc) = args.get(i + 1) else {
+                            return err_out("pdfdetach: missing -enc argument\n", 99);
+                        };
+                        if !matches!(enc.as_str(), "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                            return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
+                        }
                         i += 1;
                     }
                     a if !a.starts_with('-') => pdf_file = Some(a.to_string()),
-                    _ => {}
+                    a => return err_out(&format!("pdfdetach: unknown option {a}\n"), 99),
                 }
                 i += 1;
             }
-            if let Some(f) = pdf_file {
-                let full = resolve_posix_path(cwd, &f);
-                if let Ok(b) = fs.read_file(&full) {
-                    let doc = PdfDoc::parse(&b);
-                    if list_mode {
-                        let mut out = format!("{} embedded files\n", doc.attachments.len());
-                        for (idx, (_, fname, _, _)) in doc.attachments.iter().enumerate() {
-                            out.push_str(&format!("{}: {fname}\n", idx + 1));
-                        }
-                        return ok_out(&out);
-                    }
-                    if save_all {
-                        let base_dir = out_target
-                            .as_deref()
-                            .map(|d| resolve_posix_path(cwd, d))
-                            .unwrap_or_else(|| cwd.to_string());
-                        let _ = fs.mkdir_all(&base_dir);
-                        for (_, fname, _, payload) in &doc.attachments {
-                            let dst = resolve_posix_path(&base_dir, fname);
-                            let _ = fs.write_file(&dst, payload);
-                        }
-                        return ok_out("");
-                    }
-                    if let Some(idx1) = save_idx
-                        && idx1 >= 1
-                        && let Some((_, fname, _, payload)) = doc.attachments.get(idx1 - 1)
-                    {
-                        let dst = out_target
-                            .as_deref()
-                            .map(|p| resolve_posix_path(cwd, p))
-                            .unwrap_or_else(|| resolve_posix_path(cwd, fname));
-                        let _ = fs.write_file(&dst, payload);
-                        return ok_out("");
-                    }
+            if !list_mode && !save_all && save_idx.is_none() && save_file.is_none() {
+                return err_out("pdfdetach: must specify -list, -save, -savefile, or -saveall\n", 99);
+            }
+            let Some(f) = pdf_file else {
+                return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99);
+            };
+            let full = resolve_posix_path(cwd, &f);
+            let Ok(b) = fs.read_file(&full) else {
+                return err_out(&format!("I/O Error: Couldn't open file '{f}'\n"), 1);
+            };
+            if !b.starts_with(b"%PDF-") {
+                return err_out(&format!("Syntax Error: '{f}' is not a valid PDF\n"), 2);
+            }
+            let doc = PdfDoc::parse(&b);
+            if let Some(ref enc_pw) = doc.encrypted {
+                let supplied = pw_opt.as_deref().unwrap_or("");
+                if !enc_pw.is_empty() && supplied != enc_pw {
+                    return err_out("Command Line Error: Incorrect password\n", 1);
                 }
+            }
+            if list_mode {
+                let mut out = format!("{} embedded files\n", doc.attachments.len());
+                for (idx, (_, fname, _, _)) in doc.attachments.iter().enumerate() {
+                    out.push_str(&format!("{}: {fname}\n", idx + 1));
+                }
+                return ok_out(&out);
+            }
+            if save_all {
+                let base_dir = out_target
+                    .as_deref()
+                    .map(|d| resolve_posix_path(cwd, d))
+                    .unwrap_or_else(|| cwd.to_string());
+                let _ = fs.mkdir_all(&base_dir);
+                for (_, fname, _, payload) in &doc.attachments {
+                    let safe_name = fname.rsplit('/').next().unwrap_or(fname);
+                    let dst = resolve_posix_path(&base_dir, safe_name);
+                    let _ = fs.write_file(&dst, payload);
+                }
+                return ok_out("");
+            }
+            if let Some(ref target_name) = save_file {
+                let Some((_, fname, _, payload)) = doc
+                    .attachments
+                    .iter()
+                    .find(|(k, fnm, _, _)| fnm == target_name || k == target_name)
+                else {
+                    return err_out(&format!("Error: Embedded file '{target_name}' not found\n"), 2);
+                };
+                let dst = out_target
+                    .as_deref()
+                    .map(|p| resolve_posix_path(cwd, p))
+                    .unwrap_or_else(|| resolve_posix_path(cwd, fname.rsplit('/').next().unwrap_or(fname)));
+                let _ = fs.write_file(&dst, payload);
+                return ok_out("");
+            }
+            if let Some(idx1) = save_idx {
+                if idx1 == 0 || idx1 > doc.attachments.len() {
+                    return err_out(&format!("Error: Invalid attachment index {idx1}\n"), 2);
+                }
+                let (_, fname, _, payload) = &doc.attachments[idx1 - 1];
+                let dst = out_target
+                    .as_deref()
+                    .map(|p| resolve_posix_path(cwd, p))
+                    .unwrap_or_else(|| resolve_posix_path(cwd, fname.rsplit('/').next().unwrap_or(fname)));
+                let _ = fs.write_file(&dst, payload);
+                return ok_out("");
             }
             ok_out("")
         }
         "pdfinfo" => {
-            let show_box = args.iter().any(|a| a == "-box");
-            let show_url = args.iter().any(|a| a == "-url");
+            if args.iter().any(|a| a == "-v" || a == "--version") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "pdfinfo version 24.02.0\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "Usage: pdfinfo [options] <PDF-file>\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            if args.iter().any(|a| a == "-listenc") {
+                return ok_out("Available encodings are:\nASCII7\nLatin1\nSymbol\nUCS-2\nUTF-8\nZapfDingbats\n");
+            }
+            let mut show_box = false;
+            let mut show_url = false;
+            let mut show_meta = false;
+            let mut show_js = false;
+            let mut show_struct = false;
+            let mut show_struct_text = false;
+            let mut show_dests = false;
+            let mut show_custom = false;
+            let mut date_mode = "normal";
+            let mut first_p: Option<usize> = None;
+            let mut last_p: Option<usize> = None;
+            let mut pw_opt: Option<String> = None;
             let mut files: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
-                if matches!(args[i].as_str(), "-upw" | "-opw" | "-f" | "-l") && i + 1 < args.len() {
-                    i += 2;
-                    continue;
-                }
-                if !args[i].starts_with('-') {
-                    files.push(args[i].clone());
+                match args[i].as_str() {
+                    "-box" => show_box = true,
+                    "-url" => show_url = true,
+                    "-meta" => show_meta = true,
+                    "-js" => show_js = true,
+                    "-struct" => show_struct = true,
+                    "-struct-text" => {
+                        show_struct = true;
+                        show_struct_text = true;
+                    }
+                    "-dests" => show_dests = true,
+                    "-custom" => show_custom = true,
+                    "-isodates" => date_mode = "iso",
+                    "-rawdates" => date_mode = "raw",
+                    "-f" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out("pdfinfo: invalid -f argument\n", 99);
+                        };
+                        if v == 0 {
+                            return err_out("pdfinfo: invalid -f argument\n", 99);
+                        }
+                        first_p = Some(v);
+                        i += 1;
+                    }
+                    "-l" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out("pdfinfo: invalid -l argument\n", 99);
+                        };
+                        if v == 0 {
+                            return err_out("pdfinfo: invalid -l argument\n", 99);
+                        }
+                        last_p = Some(v);
+                        i += 1;
+                    }
+                    "-upw" | "-opw" => {
+                        if let Some(v) = args.get(i + 1) {
+                            pw_opt = Some(v.clone());
+                            i += 1;
+                        }
+                    }
+                    "-enc" => {
+                        let Some(enc) = args.get(i + 1) else {
+                            return err_out("pdfinfo: missing -enc argument\n", 99);
+                        };
+                        if !matches!(enc.as_str(), "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                            return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
+                        }
+                        i += 1;
+                    }
+                    a if a == "-" || !a.starts_with('-') => files.push(a.to_string()),
+                    a => return err_out(&format!("pdfinfo: unknown option {a}\n"), 99),
                 }
                 i += 1;
             }
-            let mut doc = PdfDoc::new();
-            if let Some(first) = files.first() {
-                let full = resolve_posix_path(cwd, first);
-                if let Ok(b) = fs.read_file(&full) {
-                    doc = PdfDoc::parse(&b);
+            if files.len() != 1 {
+                return err_out("Usage: pdfinfo [options] <PDF-file>\n", 99);
+            }
+            let b = if files[0] == "-" {
+                crate::vfs::stream_string_to_bytes(stdin)
+            } else {
+                let full = resolve_posix_path(cwd, &files[0]);
+                let Ok(bytes) = fs.read_file(&full) else {
+                    return err_out(&format!("I/O Error: Couldn't open file '{}'\n", files[0]), 1);
+                };
+                bytes
+            };
+            if !b.starts_with(b"%PDF-") {
+                return err_out(&format!("Syntax Error: '{}' is not a valid PDF\n", files[0]), 2);
+            }
+            let doc = PdfDoc::parse(&b);
+            if let Some(ref enc_pw) = doc.encrypted {
+                let supplied = pw_opt.as_deref().unwrap_or("");
+                if !enc_pw.is_empty() && supplied != enc_pw {
+                    return err_out("Command Line Error: Incorrect password\n", 3);
                 }
             }
-            let mut out = String::new();
-            if !doc.title.is_empty() {
-                out.push_str(&format!("Title:          {}\n", doc.title));
+            if show_url {
+                let mut u_out = String::from("Page  Type          URL\n");
+                for (p_idx, pg) in doc.pages.iter().enumerate() {
+                    for u in &pg.urls {
+                        u_out.push_str(&format!("{:4}  {:<13} {u}\n", p_idx + 1, "Annotation"));
+                    }
+                }
+                return ok_out(&u_out);
             }
-            if !doc.author.is_empty() {
-                out.push_str(&format!("Author:         {}\n", doc.author));
-            }
-            for key in ["Subject", "Keywords", "Creator", "Producer"] {
-                let val = doc
-                    .exif
+            let get_info_val = |key: &str| -> Option<String> {
+                doc.exif
                     .get(key)
                     .cloned()
                     .or_else(|| {
@@ -5899,15 +7777,80 @@ fn cmd_media_doc(
                             .find(|(k, _)| k.eq_ignore_ascii_case(key))
                             .map(|(_, v)| v.clone())
                     })
-                    .unwrap_or_default();
-                if !val.is_empty() {
-                    out.push_str(&format!("{key:<16}{val}\n"));
-                }
+            };
+            let mut out = String::new();
+            if !doc.title.is_empty() {
+                out.push_str(&format!("{:<17}{}\n", "Title:", doc.title));
             }
-            out.push_str(&format!("Pages:          {}\n", doc.pages.len().max(1)));
+            if let Some(v) = get_info_val("Subject")
+                && !v.is_empty()
+            {
+                out.push_str(&format!("{:<17}{v}\n", "Subject:"));
+            }
+            if let Some(v) = get_info_val("Keywords")
+                && !v.is_empty()
+            {
+                out.push_str(&format!("{:<17}{v}\n", "Keywords:"));
+            }
+            if !doc.author.is_empty() {
+                out.push_str(&format!("{:<17}{}\n", "Author:", doc.author));
+            }
+            if let Some(v) = get_info_val("Creator")
+                && !v.is_empty()
+            {
+                out.push_str(&format!("{:<17}{v}\n", "Creator:"));
+            }
+            if let Some(v) = get_info_val("Producer")
+                && !v.is_empty()
+            {
+                out.push_str(&format!("{:<17}{v}\n", "Producer:"));
+            }
+            if let Some(v) = get_info_val("CreationDate")
+                && !v.is_empty()
+            {
+                out.push_str(&format!("{:<17}{}\n", "CreationDate:", format_pdf_date(&v, date_mode)));
+            }
+            if let Some(v) = get_info_val("ModDate")
+                && !v.is_empty()
+            {
+                out.push_str(&format!("{:<17}{}\n", "ModDate:", format_pdf_date(&v, date_mode)));
+            }
+            if show_custom {
+                let std_keys = ["title", "author", "subject", "keywords", "creator", "producer", "creationdate", "moddate", "trapped"];
+                let mut custom_map: BTreeMap<String, String> = BTreeMap::new();
+                for (k, v) in &doc.info {
+                    if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
+                        custom_map.insert(k.clone(), v.clone());
+                    }
+                }
+                for (k, v) in &doc.exif {
+                    if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
+                        custom_map.insert(k.clone(), v.clone());
+                    }
+                }
+                out.push_str(&format!("{:<17}{}\n", "Custom Metadata:", if custom_map.is_empty() { "no" } else { "yes" }));
+                for (k, v) in &custom_map {
+                    out.push_str(&format!("{:<17}{v}\n", format!("{k}:")));
+                }
+            } else {
+                out.push_str(&format!("{:<17}no\n", "Custom Metadata:"));
+            }
+            out.push_str(&format!("{:<17}no\n", "Metadata Stream:"));
+            out.push_str(&format!("{:<17}no\n", "Tagged:"));
+            out.push_str(&format!("{:<17}no\n", "UserProperties:"));
+            out.push_str(&format!("{:<17}no\n", "Suspects:"));
+            out.push_str(&format!("{:<17}none\n", "Form:"));
+            out.push_str(&format!("{:<17}no\n", "JavaScript:"));
+            let total_pages = doc.pages.len().max(1);
+            out.push_str(&format!("{:<17}{total_pages}\n", "Pages:"));
             out.push_str(&format!(
-                "Encrypted:      {}\n",
-                if doc.encrypted.is_some() { "yes" } else { "no" }
+                "{:<17}{}\n",
+                "Encrypted:",
+                if doc.encrypted.is_some() {
+                    "yes (print:yes copy:yes change:yes addNotes:yes algorithm:AES-256)"
+                } else {
+                    "no"
+                }
             ));
             let fmt_pt = |n: f64| -> String {
                 let r = (n * 100.0).round() / 100.0;
@@ -5917,42 +7860,174 @@ fn cmd_media_doc(
                     format!("{r}")
                 }
             };
-            let paper = if ((doc.page_w - 612.0).abs() <= 1.0 && (doc.page_h - 792.0).abs() <= 1.0)
-                || ((doc.page_w - 792.0).abs() <= 1.0 && (doc.page_h - 612.0).abs() <= 1.0)
-            {
-                " (letter)"
-            } else {
-                ""
-            };
-            out.push_str(&format!(
-                "Page size:      {} x {} pts{paper}\n",
-                fmt_pt(doc.page_w),
-                fmt_pt(doc.page_h)
-            ));
-            let rot0 = doc.pages.first().map(|p| p.rot).unwrap_or(0);
-            out.push_str(&format!("Page rot:       {rot0}\n"));
-            out.push_str(&format!("Optimized:      {}\n", if doc.linearized { "yes" } else { "no" }));
-            if show_box {
-                let bx = format!("0.00     0.00 {:8.2} {:8.2}", doc.page_w, doc.page_h);
-                out.push_str(&format!("MediaBox:       {bx}\n"));
-                out.push_str(&format!("CropBox:        {bx}\n"));
-                out.push_str(&format!("BleedBox:       {bx}\n"));
-                out.push_str(&format!("TrimBox:        {bx}\n"));
-                out.push_str(&format!("ArtBox:         {bx}\n"));
+            let multi_page = first_p.is_some() || last_p.is_some();
+            let start_p = first_p.unwrap_or(1).max(1);
+            let end_p = last_p.unwrap_or(if multi_page { start_p } else { 1 }).min(total_pages);
+            for pno in start_p..=end_p {
+                let (pw, ph, crop_opt) = doc
+                    .page_media
+                    .get(&pno)
+                    .copied()
+                    .unwrap_or((doc.page_w, doc.page_h, None));
+                let (eff_w, eff_h) = if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
+                    ((cx1 - cx0).abs(), (cy1 - cy0).abs())
+                } else {
+                    (pw, ph)
+                };
+                let paper = paper_size_label(eff_w, eff_h);
+                let rot = doc.pages.get(pno - 1).map(|p| p.rot).unwrap_or(0);
+                if multi_page {
+                    out.push_str(&format!(
+                        "{:<17}{} x {} pts{paper}\n",
+                        format!("Page {pno:4} size:"),
+                        fmt_pt(eff_w),
+                        fmt_pt(eff_h)
+                    ));
+                    out.push_str(&format!("{:<17}{rot}\n", format!("Page {pno:4} rot:")));
+                } else {
+                    out.push_str(&format!(
+                        "{:<17}{} x {} pts{paper}\n",
+                        "Page size:",
+                        fmt_pt(eff_w),
+                        fmt_pt(eff_h)
+                    ));
+                    out.push_str(&format!("{:<17}{rot}\n", "Page rot:"));
+                }
+                if show_box {
+                    let mb = format!("{:8.2} {:8.2} {:8.2} {:8.2}", 0.0, 0.0, pw, ph);
+                    let cb = if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
+                        format!("{cx0:8.2} {cy0:8.2} {cx1:8.2} {cy1:8.2}")
+                    } else {
+                        mb.clone()
+                    };
+                    let pfx = if multi_page {
+                        format!("Page {pno:4} ")
+                    } else {
+                        String::new()
+                    };
+                    out.push_str(&format!("{:<17}{mb}\n", format!("{pfx}MediaBox:")));
+                    out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}CropBox:")));
+                    out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}BleedBox:")));
+                    out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}TrimBox:")));
+                    out.push_str(&format!("{:<17}{cb}\n", format!("{pfx}ArtBox:")));
+                }
             }
-            out.push_str(&format!("PDF version:    {}\n", doc.version));
+            out.push_str(&format!("{:<17}{} bytes\n", "File size:", b.len()));
+            out.push_str(&format!("{:<17}{}\n", "Optimized:", if doc.linearized { "yes" } else { "no" }));
+            out.push_str(&format!("{:<17}{}\n", "PDF version:", doc.version));
+            let _ = (show_meta, show_js, show_struct, show_struct_text, show_dests);
             if show_url {
-                for pg in &doc.pages {
+                out.push_str("\nPage  Type          URL\n");
+                for (p_idx, pg) in doc.pages.iter().enumerate() {
                     for u in &pg.urls {
-                        out.push_str(&format!("{u}\n"));
+                        out.push_str(&format!("{:<5} {:<13} {u}\n", p_idx + 1, "Annotation"));
                     }
                 }
             }
             ok_out(&out)
         }
-        "pdffonts" => ok_out(
-            "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nHelvetica                            Type 1            Custom           no  no  no       1  0\nNimbus Sans L                        Type 1            Standard         no  no  no       2  0\n",
-        ),
+        "pdffonts" => {
+            if args.iter().any(|a| a == "-v" || a == "--version") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "pdffonts version 24.02.0\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "Usage: pdffonts [options] <PDF-file>\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            let mut show_subst = false;
+            let mut show_loc = false;
+            let mut show_loc_ps = false;
+            let mut pw_opt: Option<String> = None;
+            let mut files: Vec<String> = Vec::new();
+            let mut i = 0usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "-subst" => show_subst = true,
+                    "-loc" => show_loc = true,
+                    "-locPS" => show_loc_ps = true,
+                    "-f" | "-l" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out("pdffonts: invalid page number\n", 99);
+                        };
+                        if v == 0 {
+                            return err_out("pdffonts: invalid page number\n", 99);
+                        }
+                        i += 1;
+                    }
+                    "-upw" | "-opw" => {
+                        if let Some(v) = args.get(i + 1) {
+                            pw_opt = Some(v.clone());
+                            i += 1;
+                        }
+                    }
+                    a if a == "-" || !a.starts_with('-') => files.push(a.to_string()),
+                    a => return err_out(&format!("pdffonts: unknown option {a}\n"), 99),
+                }
+                i += 1;
+            }
+            if files.len() != 1 {
+                return err_out("Usage: pdffonts [options] <PDF-file>\n", 99);
+            }
+            let b = if files[0] == "-" {
+                crate::vfs::stream_string_to_bytes(stdin)
+            } else {
+                let full = resolve_posix_path(cwd, &files[0]);
+                let Ok(bytes) = fs.read_file(&full) else {
+                    return err_out(&format!("I/O Error: Couldn't open file '{}'\n", files[0]), 1);
+                };
+                bytes
+            };
+            if !b.starts_with(b"%PDF-") {
+                return err_out(&format!("Syntax Error: '{}' is not a valid PDF\n", files[0]), 2);
+            }
+            let doc = PdfDoc::parse(&b);
+            if let Some(ref enc_pw) = doc.encrypted {
+                let supplied = pw_opt.as_deref().unwrap_or("");
+                if !enc_pw.is_empty() && supplied != enc_pw {
+                    return err_out("Command Line Error: Incorrect password\n", 3);
+                }
+            }
+            let has_text = doc.pages.iter().any(|p| !p.text.trim().is_empty());
+            if show_subst {
+                let mut out = String::from(
+                    "name                                 object ID substitute font                      substitute font file\n------------------------------------ --------- ------------------------------------ ------------------------------------\n",
+                );
+                if has_text {
+                    out.push_str("Helvetica                                 6  0 Nimbus Sans                          /usr/share/fonts/type1/urw-base35/NimbusSans.t1\n");
+                }
+                return ok_out(&out);
+            }
+            if show_loc || show_loc_ps {
+                let mut out = String::from(
+                    "name                                 type              encoding         emb sub uni object ID location\n------------------------------------ ----------------- ---------------- --- --- --- --------- --------\n",
+                );
+                if has_text {
+                    let loc = if show_loc_ps {
+                        "Substitute (Helvetica)"
+                    } else {
+                        "/usr/share/fonts/type1/urw-base35/NimbusSans.t1"
+                    };
+                    out.push_str(&format!(
+                        "Helvetica                            Type 1            WinAnsi          no  no  no       6  0 {loc}\n"
+                    ));
+                }
+                return ok_out(&out);
+            }
+            let mut out = String::from(
+                "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\n",
+            );
+            if has_text {
+                out.push_str("Helvetica                            Type 1            WinAnsi          no  no  no       4  0\n");
+            }
+            ok_out(&out)
+        }
         "pdftotext" => {
             let mut first_p = 1usize;
             let mut last_p = 0usize;
@@ -6606,11 +8681,39 @@ fn cmd_media_doc(
             }
         }
         "pdftoppm" | "pdftocairo" => {
+            if args.iter().any(|a| a == "-v" || a == "--version") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{cmd} version 24.02.0\n"),
+                    exit_code: 0,
+                };
+            }
+            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("Usage: {cmd} [options] [PDF-file [PPM-file-prefix]]\n"),
+                    exit_code: 0,
+                };
+            }
             let mut ext = "ppm";
             let mut fmt = "PPM";
             let mut singlefile = false;
             let mut first_p = 1usize;
             let mut last_p: Option<usize> = None;
+            let mut odd_only = false;
+            let mut even_only = false;
+            let mut sep = "-".to_string();
+            let mut force_num = false;
+            let mut set_pageno: Option<usize> = None;
+            let mut progress = false;
+            let mut dpi_x = 150.0f64;
+            let mut dpi_y = 150.0f64;
+            let mut scale_to: Option<i64> = None;
+            let mut scale_to_x: Option<i64> = None;
+            let mut scale_to_y: Option<i64> = None;
+            let mut crop_w: Option<f64> = None;
+            let mut crop_h: Option<f64> = None;
+            let mut pw_opt: Option<String> = None;
             let mut pos: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
@@ -6639,101 +8742,350 @@ fn cmd_media_doc(
                         ext = "svg";
                         fmt = "SVG";
                     }
-                    "-eps" | "-ps" => {
+                    "-eps" => {
                         ext = "eps";
                         fmt = "EPS";
                     }
+                    "-ps" => {
+                        ext = "ps";
+                        fmt = "PS";
+                    }
+                    "-pdf" => {
+                        ext = "pdf";
+                        fmt = "PDF";
+                    }
                     "-singlefile" => singlefile = true,
-                    "-f" if i + 1 < args.len() => {
-                        first_p = args[i + 1].parse().unwrap_or(1);
+                    "-odd" | "-o" => odd_only = true,
+                    "-even" | "-e" => even_only = true,
+                    "-forcenum" => force_num = true,
+                    "-progress" => progress = true,
+                    "-f" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out(&format!("{cmd}: invalid -f argument\n"), 99);
+                        };
+                        if v == 0 {
+                            return err_out(&format!("{cmd}: invalid -f argument\n"), 99);
+                        }
+                        first_p = v;
                         i += 1;
                     }
-                    "-l" if i + 1 < args.len() => {
-                        last_p = args[i + 1].parse().ok();
+                    "-l" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out(&format!("{cmd}: invalid -l argument\n"), 99);
+                        };
+                        if v == 0 {
+                            return err_out(&format!("{cmd}: invalid -l argument\n"), 99);
+                        }
+                        last_p = Some(v);
                         i += 1;
                     }
-                    "-r" | "-rx" | "-ry" | "-scale-to" if i + 1 < args.len() => {
+                    "-r" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) else {
+                            return err_out(&format!("{cmd}: invalid -r argument\n"), 99);
+                        };
+                        if v <= 0.0 {
+                            return err_out(&format!("{cmd}: invalid -r argument\n"), 99);
+                        }
+                        dpi_x = v;
+                        dpi_y = v;
                         i += 1;
                     }
-                    a if !a.starts_with('-') => pos.push(a.to_string()),
+                    "-rx" => {
+                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
+                            dpi_x = v;
+                            i += 1;
+                        }
+                    }
+                    "-ry" => {
+                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
+                            dpi_y = v;
+                            i += 1;
+                        }
+                    }
+                    "-scale-to" => {
+                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<i64>().ok()) {
+                            scale_to = Some(v);
+                            i += 1;
+                        }
+                    }
+                    "-scale-to-x" => {
+                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<i64>().ok()) {
+                            scale_to_x = Some(v);
+                            i += 1;
+                        }
+                    }
+                    "-scale-to-y" => {
+                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<i64>().ok()) {
+                            scale_to_y = Some(v);
+                            i += 1;
+                        }
+                    }
+                    "-W" => {
+                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
+                            crop_w = Some(v);
+                            i += 1;
+                        }
+                    }
+                    "-H" => {
+                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
+                            crop_h = Some(v);
+                            i += 1;
+                        }
+                    }
+                    "-sz" => {
+                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
+                            crop_w = Some(v);
+                            crop_h = Some(v);
+                            i += 1;
+                        }
+                    }
+                    "-x" | "-y" | "-jpegopt" | "-tiffcompression" | "-paper" | "-paperw" | "-paperh" => {
+                        i += 1;
+                    }
+                    "-sep" => {
+                        let Some(s) = args.get(i + 1) else {
+                            return err_out(&format!("{cmd}: -sep requires a single character\n"), 99);
+                        };
+                        if s.len() != 1 {
+                            return err_out(&format!("{cmd}: -sep requires a single character\n"), 99);
+                        }
+                        sep = s.clone();
+                        i += 1;
+                    }
+                    "-setpageno" => {
+                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) {
+                            set_pageno = Some(v);
+                            i += 1;
+                        }
+                    }
+                    "-upw" | "-opw" => {
+                        if let Some(v) = args.get(i + 1) {
+                            pw_opt = Some(v.clone());
+                            i += 1;
+                        }
+                    }
+                    "-cropbox" | "-aa" | "-aaVector" | "-thinlinemode" | "-transp" | "-level2" | "-level3" | "-origpagesizes" | "-nocrop" | "-expand" | "-noshrink" | "-nocenter" | "-duplex" | "-q" => {}
+                    a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
                     _ => {}
                 }
                 i += 1;
             }
-            if pos.len() >= 2 {
-                let src = resolve_posix_path(cwd, &pos[0]);
-                let prefix = resolve_posix_path(cwd, &pos[1]);
-                let doc = fs
-                    .read_file(&src)
-                    .map(|b| PdfDoc::parse(&b))
-                    .unwrap_or_else(|_| PdfDoc::new());
+            let src_arg = pos.first().map(|s| s.as_str()).unwrap_or("-");
+            let prefix_arg = pos.get(1).map(|s| s.as_str());
+            let b = if src_arg == "-" {
+                crate::vfs::stream_string_to_bytes(stdin)
+            } else {
+                let full = resolve_posix_path(cwd, src_arg);
+                let Ok(bytes) = fs.read_file(&full) else {
+                    return err_out(&format!("I/O Error: Couldn't open file '{src_arg}'\n"), 1);
+                };
+                bytes
+            };
+            if !b.starts_with(b"%PDF-") {
+                return err_out(&format!("Syntax Error: '{src_arg}' is not a valid PDF\n"), 2);
+            }
+            let doc = PdfDoc::parse(&b);
+            if let Some(ref enc_pw) = doc.encrypted {
+                let supplied = pw_opt.as_deref().unwrap_or("");
+                if !enc_pw.is_empty() && supplied != enc_pw {
+                    return err_out("Command Line Error: Incorrect password\n", 3);
+                }
+            }
+            let total = doc.pages.len().max(1);
+            let end_p = last_p.unwrap_or(total).min(total);
+            if first_p > end_p {
+                return err_out("Wrong page range given: the first page can not be after the last page.\n", 99);
+            }
+            if matches!(fmt, "SVG" | "EPS" | "PS" | "PDF") {
+                let pfx = prefix_arg.unwrap_or("out");
+                let dst_rel = if pfx.ends_with(&format!(".{ext}")) {
+                    pfx.to_string()
+                } else {
+                    format!("{pfx}.{ext}")
+                };
                 if fmt == "SVG" {
-                    let txt = doc
-                        .pages
-                        .first()
-                        .map(|p| p.text.clone())
-                        .unwrap_or_default();
+                    let txt = doc.pages.get(first_p - 1).map(|p| p.text.clone()).unwrap_or_default();
                     let svg = format!(
-                        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"612\" height=\"792\" viewBox=\"0 0 612 792\"><text x=\"20\" y=\"40\">{}</text></svg>\n",
+                        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}\" height=\"{}\" viewBox=\"0 0 {} {}\"><text x=\"20\" y=\"40\">{}</text></svg>\n",
+                        doc.page_w as i64,
+                        doc.page_h as i64,
+                        doc.page_w as i64,
+                        doc.page_h as i64,
                         html_escape_str(&txt)
                     );
-                    let dst = if prefix.ends_with(".svg") {
-                        prefix
-                    } else {
-                        format!("{prefix}.svg")
-                    };
+                    if pfx == "-" {
+                        return ok_out(&svg);
+                    }
+                    let dst = resolve_posix_path(cwd, &dst_rel);
                     let _ = fs.write_file(&dst, svg.as_bytes());
                     return ok_out("");
                 }
-                if fmt == "EPS" {
-                    let eps = "%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 612 792\n%%EndComments\n";
-                    let dst = if prefix.ends_with(".eps") || prefix.ends_with(".ps") {
-                        prefix
-                    } else {
-                        format!("{prefix}.eps")
-                    };
+                if fmt == "EPS" || fmt == "PS" {
+                    let eps = format!(
+                        "%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 {} {}\n%%EndComments\n",
+                        doc.page_w as i64, doc.page_h as i64
+                    );
+                    if pfx == "-" {
+                        return ok_out(&eps);
+                    }
+                    let dst = resolve_posix_path(cwd, &dst_rel);
                     let _ = fs.write_file(&dst, eps.as_bytes());
                     return ok_out("");
                 }
-                let end_p = last_p.unwrap_or(doc.pages.len().max(1)).min(doc.pages.len().max(1));
-                let (w, h) = doc
-                    .pages
-                    .first()
-                    .and_then(|p| p.images.first())
-                    .map(|(iw, ih, _)| (*iw, *ih))
-                    .unwrap_or((612, 792));
+                if fmt == "PDF" {
+                    let mut sub = doc.clone();
+                    sub.pages = doc.pages[(first_p - 1)..end_p].to_vec();
+                    let ser = sub.serialize();
+                    if pfx == "-" {
+                        return ok_out(&crate::vfs::bytes_to_stream_string(&ser));
+                    }
+                    let dst = resolve_posix_path(cwd, &dst_rel);
+                    let _ = fs.write_file(&dst, &ser);
+                    return ok_out("");
+                }
+            }
+
+            let compute_dims = |pno: usize| -> (u32, u32) {
+                let (mut pw, mut ph, _) = doc
+                    .page_media
+                    .get(&pno)
+                    .copied()
+                    .unwrap_or((doc.page_w, doc.page_h, None));
+                let rot = doc.pages.get(pno - 1).map(|p| p.rot).unwrap_or(0);
+                if rot == 90 || rot == 270 {
+                    std::mem::swap(&mut pw, &mut ph);
+                }
+                let mut w = ((pw * dpi_x) / 72.0).round().max(1.0);
+                let mut h = ((ph * dpi_y) / 72.0).round().max(1.0);
+                let sx = scale_to_x.or(scale_to);
+                let sy = scale_to_y.or(scale_to);
+                if let (Some(tx), Some(ty)) = (sx, sy) {
+                    if tx > 0 && ty > 0 {
+                        let ratio = ((tx as f64) / w).min((ty as f64) / h);
+                        w = (w * ratio).round().max(1.0);
+                        h = (h * ratio).round().max(1.0);
+                    } else if tx > 0 && ty < 0 {
+                        let ratio = (tx as f64) / w;
+                        w = tx as f64;
+                        h = (h * ratio).round().max(1.0);
+                    } else if ty > 0 && tx < 0 {
+                        let ratio = (ty as f64) / h;
+                        h = ty as f64;
+                        w = (w * ratio).round().max(1.0);
+                    }
+                } else if let Some(tx) = sx
+                    && tx > 0
+                {
+                    let ratio = (tx as f64) / w;
+                    w = tx as f64;
+                    h = (h * ratio).round().max(1.0);
+                } else if let Some(ty) = sy
+                    && ty > 0
+                {
+                    let ratio = (ty as f64) / h;
+                    h = ty as f64;
+                    w = (w * ratio).round().max(1.0);
+                }
+                if let Some(cw) = crop_w
+                    && cw > 0.0
+                {
+                    w = cw.round().min(w).max(1.0);
+                }
+                if let Some(ch) = crop_h
+                    && ch > 0.0
+                {
+                    h = ch.round().min(h).max(1.0);
+                }
+                (w as u32, h as u32)
+            };
+
+            let mut selected_pages: Vec<usize> = Vec::new();
+            for pno in first_p..=end_p {
+                if odd_only && pno % 2 == 0 {
+                    continue;
+                }
+                if even_only && pno % 2 == 1 {
+                    continue;
+                }
+                selected_pages.push(pno);
+                if singlefile {
+                    break;
+                }
+            }
+            if prefix_arg.is_none() || prefix_arg == Some("-") {
+                let pno = selected_pages.first().copied().unwrap_or(1);
+                let (w, h) = compute_dims(pno);
                 let im = ImageMeta {
                     fmt: fmt.to_string(),
                     w,
                     h,
-                    cs: if fmt == "PGM" {
-                        "Gray".to_string()
-                    } else {
-                        "sRGB".to_string()
-                    },
+                    cs: if fmt == "PGM" || fmt == "PBM" { "Gray".to_string() } else { "sRGB".to_string() },
                     exif: BTreeMap::new(),
                 };
                 let bytes = write_image_bytes(&im);
-                if singlefile {
-                    let dst = format!("{prefix}.{ext}");
-                    let _ = fs.write_file(&dst, &bytes);
+                return ok_out(&crate::vfs::bytes_to_stream_string(&bytes));
+            }
+            let pfx_rel = prefix_arg.unwrap();
+            let pfx_full = resolve_posix_path(cwd, pfx_rel);
+            let digits = total.to_string().len();
+            let mut stderr_progress = String::new();
+            for pno in &selected_pages {
+                let (w, h) = compute_dims(*pno);
+                let im = ImageMeta {
+                    fmt: fmt.to_string(),
+                    w,
+                    h,
+                    cs: if fmt == "PGM" || fmt == "PBM" { "Gray".to_string() } else { "sRGB".to_string() },
+                    exif: BTreeMap::new(),
+                };
+                let bytes = write_image_bytes(&im);
+                let (rel_dst, dst) = if singlefile && !force_num {
+                    (format!("{pfx_rel}.{ext}"), format!("{pfx_full}.{ext}"))
                 } else {
-                    for pno in first_p..=end_p {
-                        let dst = format!("{prefix}-{pno}.{ext}");
-                        let _ = fs.write_file(&dst, &bytes);
-                    }
+                    let out_num = set_pageno.map(|base| base + *pno - first_p).unwrap_or(*pno);
+                    let width = digits.max(out_num.to_string().len());
+                    let num_str = format!("{out_num:0width$}", width = width);
+                    (
+                        format!("{pfx_rel}{sep}{num_str}.{ext}"),
+                        format!("{pfx_full}{sep}{num_str}.{ext}"),
+                    )
+                };
+                let _ = fs.write_file(&dst, &bytes);
+                if progress {
+                    stderr_progress.push_str(&format!("{pno} {end_p} {rel_dst}\n"));
                 }
             }
-            ok_out("")
+            BuiltinOutcome {
+                stdout: String::new(),
+                stderr: stderr_progress,
+                exit_code: 0,
+            }
         }
         "pdfimages" => {
+            if args.iter().any(|a| a == "-v" || a == "--version") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "pdfimages version 24.02.0\n".to_string(),
+                    exit_code: 0,
+                };
+            }
+            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n".to_string(),
+                    exit_code: 0,
+                };
+            }
             let mut list_mode = false;
             let mut page_nums = false;
             let mut print_names = false;
-            let mut ext = "png";
-            let mut fmt = "PNG";
+            let mut png_mode = false;
+            let mut tiff_mode = false;
+            let mut jpeg_mode = false;
+            let mut all_mode = false;
             let mut first_p: Option<usize> = None;
             let mut last_p: Option<usize> = None;
+            let mut pw_opt: Option<String> = None;
             let mut pos: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
@@ -6741,20 +9093,39 @@ fn cmd_media_doc(
                     "-list" => list_mode = true,
                     "-p" => page_nums = true,
                     "-print-filenames" => print_names = true,
-                    "-tiff" => {
-                        ext = "tif";
-                        fmt = "TIFF";
-                    }
-                    "-f" if i + 1 < args.len() => {
-                        first_p = args[i + 1].parse().ok();
+                    "-png" => png_mode = true,
+                    "-tiff" => tiff_mode = true,
+                    "-j" => jpeg_mode = true,
+                    "-all" => all_mode = true,
+                    "-jp2" | "-jbig2" | "-ccitt" | "-u" | "-q" => {}
+                    "-f" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out("pdfimages: invalid -f argument\n", 99);
+                        };
+                        if v == 0 {
+                            return err_out("pdfimages: invalid -f argument\n", 99);
+                        }
+                        first_p = Some(v);
                         i += 1;
                     }
-                    "-l" if i + 1 < args.len() => {
-                        last_p = args[i + 1].parse().ok();
+                    "-l" => {
+                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
+                            return err_out("pdfimages: invalid -l argument\n", 99);
+                        };
+                        if v == 0 {
+                            return err_out("pdfimages: invalid -l argument\n", 99);
+                        }
+                        last_p = Some(v);
                         i += 1;
                     }
-                    a if !a.starts_with('-') => pos.push(a.to_string()),
-                    _ => {}
+                    "-upw" | "-opw" => {
+                        if let Some(v) = args.get(i + 1) {
+                            pw_opt = Some(v.clone());
+                            i += 1;
+                        }
+                    }
+                    a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
+                    a => return err_out(&format!("pdfimages: unknown option {a}\n"), 99),
                 }
                 i += 1;
             }
@@ -6763,58 +9134,92 @@ fn cmd_media_doc(
             {
                 return err_out("pdfimages: invalid page range\n", 99);
             }
-            let mut doc = PdfDoc::new();
-            if let Some(first) = pos.first() {
-                let full = resolve_posix_path(cwd, first);
-                if let Ok(b) = fs.read_file(&full) {
-                    doc = PdfDoc::parse(&b);
+            if pos.is_empty() || (!list_mode && pos.len() < 2) {
+                return err_out("Usage: pdfimages [options] <PDF-file> <image-root>\n", 99);
+            }
+            let b = if pos[0] == "-" {
+                crate::vfs::stream_string_to_bytes(stdin)
+            } else {
+                let full = resolve_posix_path(cwd, &pos[0]);
+                let Ok(bytes) = fs.read_file(&full) else {
+                    return err_out(&format!("I/O Error: Couldn't open file '{}'\n", pos[0]), 1);
+                };
+                bytes
+            };
+            if !b.starts_with(b"%PDF-") {
+                return err_out(&format!("Syntax Error: '{}' is not a valid PDF\n", pos[0]), 2);
+            }
+            let doc = PdfDoc::parse(&b);
+            if let Some(ref enc_pw) = doc.encrypted {
+                let supplied = pw_opt.as_deref().unwrap_or("");
+                if !enc_pw.is_empty() && supplied != enc_pw {
+                    return err_out("Command Line Error: Incorrect password\n", 3);
                 }
             }
+            let total_pages = doc.pages.len().max(1);
+            let start_p = first_p.unwrap_or(1);
+            let end_p = last_p.unwrap_or(total_pages).min(total_pages);
             let mut all_imgs: Vec<(usize, u32, u32, String)> = Vec::new();
             for (pidx, pg) in doc.pages.iter().enumerate() {
-                for (w, h, im_fmt) in &pg.images {
-                    all_imgs.push((pidx + 1, *w, *h, im_fmt.clone()));
+                let pno = pidx + 1;
+                if pno < start_p || pno > end_p {
+                    continue;
                 }
-            }
-            if all_imgs.is_empty() {
-                all_imgs.push((1, 24, 24, "PNG".to_string()));
+                for (w, h, im_fmt) in &pg.images {
+                    all_imgs.push((pno, *w, *h, im_fmt.clone()));
+                }
             }
             if list_mode {
                 let mut out = String::from(
                     "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio\n--------------------------------------------------------------------------------------------\n",
                 );
-                for (idx, (pno, w, h, _)) in all_imgs.iter().enumerate() {
+                for (idx, (pno, w, h, im_fmt)) in all_imgs.iter().enumerate() {
+                    let enc = if im_fmt.eq_ignore_ascii_case("JPEG") || im_fmt.eq_ignore_ascii_case("JPG") {
+                        "jpeg"
+                    } else {
+                        "image"
+                    };
+                    let obj_id = 5 + idx * 2;
                     out.push_str(&format!(
-                        "{pno:4}  {idx:4} image  {w:5} {h:6} rgb     3   8  image  no         5  0    72    72 128B  10%\n"
+                        "{pno:4}  {idx:4} image  {w:5} {h:6} rgb     3   8  {enc:<5} no      {obj_id:4}  0    72    72 128B  10%\n"
                     ));
                 }
                 return ok_out(&out);
             }
-            if pos.len() >= 2 {
-                let prefix = &pos[1];
-                let mut out = String::new();
-                for (idx, (pno, w, h, _)) in all_imgs.iter().enumerate() {
-                    let rel_name = if page_nums {
-                        format!("{prefix}-{pno:03}-{idx:03}.{ext}")
-                    } else {
-                        format!("{prefix}-{idx:03}.{ext}")
-                    };
-                    let full_out = resolve_posix_path(cwd, &rel_name);
-                    let im = ImageMeta {
-                        fmt: fmt.to_string(),
-                        w: *w,
-                        h: *h,
-                        cs: "sRGB".to_string(),
-                        exif: BTreeMap::new(),
-                    };
-                    let _ = fs.write_file(&full_out, &write_image_bytes(&im));
-                    if print_names {
-                        out.push_str(&format!("{rel_name}\n"));
-                    }
+            let prefix = &pos[1];
+            let mut out = String::new();
+            for (idx, (pno, w, h, im_fmt)) in all_imgs.iter().enumerate() {
+                let is_jpg = im_fmt.eq_ignore_ascii_case("JPEG") || im_fmt.eq_ignore_ascii_case("JPG");
+                let (ext, fmt) = if tiff_mode {
+                    ("tif", "TIFF")
+                } else if all_mode {
+                    if is_jpg { ("jpg", "JPEG") } else { ("png", "PNG") }
+                } else if jpeg_mode && is_jpg {
+                    ("jpg", "JPEG")
+                } else if png_mode {
+                    ("png", "PNG")
+                } else {
+                    ("ppm", "PPM")
+                };
+                let rel_name = if page_nums {
+                    format!("{prefix}-{pno:03}-{idx:03}.{ext}")
+                } else {
+                    format!("{prefix}-{idx:03}.{ext}")
+                };
+                let full_out = resolve_posix_path(cwd, &rel_name);
+                let im = ImageMeta {
+                    fmt: fmt.to_string(),
+                    w: *w,
+                    h: *h,
+                    cs: "sRGB".to_string(),
+                    exif: BTreeMap::new(),
+                };
+                let _ = fs.write_file(&full_out, &write_image_bytes(&im));
+                if print_names {
+                    out.push_str(&format!("{rel_name}\n"));
                 }
-                return ok_out(&out);
             }
-            ok_out("")
+            ok_out(&out)
         }
         "magick" | "convert" | "mogrify" => {
             if (cmd == "magick" || cmd == "convert")
@@ -8346,9 +10751,14 @@ fn cmd_media_doc(
                 if mode == "text" {
                     Some(format!("{lines:?}"))
                 } else {
+                    let (pw, ph) = doc
+                        .page_media
+                        .get(&(idx + 1))
+                        .map(|(w, h, _)| (*w, *h))
+                        .unwrap_or((doc.page_w, doc.page_h));
                     Some(format!(
                         "{:.2}:{:.2}:{}:{lines:?}:{:?}",
-                        doc.page_w, doc.page_h, pg.rot, pg.images
+                        pw, ph, pg.rot, pg.images
                     ))
                 }
             };

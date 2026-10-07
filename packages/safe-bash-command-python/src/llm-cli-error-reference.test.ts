@@ -63,3 +63,89 @@ for kind,args in [('template',['-t','native:value','question']),('fragment',['-f
 `],{input:JSON.stringify({tools:pythonLlmFunctionsProgram,template:pythonLlmTemplateProgram,fragment:pythonLlmFragmentProgram,discovery:pythonLlmLoaderDiscoveryProgram}),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });
+
+test('native toolbox preparation Click errors retain formatting and status',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned llm==0.27.1':false},()=>{
+ const result=spawnSync(python,['-B','-c',String.raw`
+import json,sys,types,asyncio,llm,click,contextlib,io
+from click.testing import CliRunner
+program=json.load(sys.stdin)
+sys.modules['llm_safe_host']=types.SimpleNamespace(_attachment_type=lambda value:value.type)
+llm.plugins.load_plugins()
+for code in (9,7):
+ for asynchronous in (False,True):
+  definition='import click as _click\nclass _Failure(_click.ClickException):\n exit_code='+str(code)+'\n def format_message(self):return "formatted preparation failure"\nimport llm as _llm\nclass _ExitBox(_llm.Toolbox):\n '+('async def prepare_async' if asynchronous else 'def prepare')+'(self):\n  raise _Failure("raw preparation failure")\n def halt(self): return "unreachable"'
+  namespace={}
+  exec(definition,namespace)
+  instance=namespace['_ExitBox']()
+  tool=llm.Tool.function(instance.halt)
+  async def calls():return [llm.ToolCall(name=tool.name,arguments={})]
+  response=types.SimpleNamespace(prompt=types.SimpleNamespace(tools=[tool]),tool_calls=calls if asynchronous else lambda:[llm.ToolCall(name=tool.name,arguments={})])
+  @click.command()
+  def native():
+   if asynchronous:asyncio.run(llm.AsyncResponse.execute_tool_calls(response))
+   else:llm.Response.execute_tool_calls(response)
+  reference=CliRunner(mix_stderr=False).invoke(native,[])
+  assert (reference.exit_code,reference.stdout,reference.stderr)==(code,'','Error: formatted preparation failure\n')
+  definition+='\nclass _Plugin:\n @_llm.hookimpl\n def register_tools(self,register):register(_ExitBox,name="ExitBox")\n_llm.plugins.pm.register(_Plugin(),name="exit-preparation")'
+  messages=[]
+  def call(capability,message):
+   if message['op']=='definitions':return [definition]
+   if message['op']=='selection':return dict(names=['ExitBox'])
+   messages.append(message)
+  sys.modules['safe_host']=types.SimpleNamespace(call=call)
+  called=False
+  async def wait(*args,**kwargs):
+   global called
+   if not called:
+    called=True
+    return dict(id=1,prepare=True,asynchronous=asynchronous)
+   await asyncio.sleep(0)
+   return None
+  sys.modules['_poe_llm_capability']=types.SimpleNamespace(bridge=types.SimpleNamespace(wait=wait))
+  stderr=io.StringIO()
+  try:
+   with contextlib.redirect_stderr(stderr):exec(program,{})
+  except SystemExit as error:assert error.code==code
+  else:raise AssertionError('bridge swallowed preparation exit')
+  finally:llm.plugins.pm.unregister(name='exit-preparation')
+  assert stderr.getvalue()=='Error: formatted preparation failure\n',stderr.getvalue()
+  assert messages[-1]==dict(op='exit'),messages
+  assert not any(message['op'] in ('done','error','failed') for message in messages)
+`],{input:JSON.stringify(pythonLlmFunctionsProgram),encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);assert.equal(result.stderr,'');
+});
+
+test('native tool execution Click errors remain ordinary tool results',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned llm==0.27.1':false},()=>{
+ const result=spawnSync(python,['-B','-c',String.raw`
+import json,sys,types,asyncio,llm
+program=json.load(sys.stdin)
+sys.modules['llm_safe_host']=types.SimpleNamespace(_attachment_type=lambda value:value.type)
+for asynchronous in (False,True):
+ definition='import click as _click\nclass _Failure(_click.ClickException):\n exit_code=9\n def format_message(self):return "formatted tool failure"\n'+('async ' if asynchronous else '')+'def halt():raise _Failure("raw tool failure")'
+ namespace={}
+ exec(definition,namespace)
+ tool=llm.Tool.function(namespace['halt'])
+ response=types.SimpleNamespace(prompt=types.SimpleNamespace(tools=[tool]),tool_calls=lambda:[llm.ToolCall(name='halt',arguments={})])
+ results=llm.Response.execute_tool_calls(response)
+ assert results[0].output=='Error: raw tool failure'
+ messages=[]
+ def call(capability,message):
+  if message['op']=='definitions':return [definition]
+  if message['op']=='selection':return {}
+  messages.append(message)
+ sys.modules['safe_host']=types.SimpleNamespace(call=call)
+ called=False
+ async def wait(*args,**kwargs):
+  global called
+  if not called:
+   called=True
+   return dict(id=1,tool=0,arguments={})
+  await asyncio.sleep(0)
+  return None
+ sys.modules['_poe_llm_capability']=types.SimpleNamespace(bridge=types.SimpleNamespace(wait=wait))
+ exec(program,{})
+ assert messages[-1]==dict(op='error',id=1,message='raw tool failure'),messages
+ assert not any(message['op']=='exit' for message in messages)
+`],{input:JSON.stringify(pythonLlmFunctionsProgram),encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);assert.equal(result.stderr,'');
+});

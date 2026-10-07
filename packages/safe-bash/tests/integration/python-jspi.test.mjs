@@ -1007,6 +1007,8 @@ test('real workerd preserves tool execution and preparation process exits',{time
     {exitCode:7,stdout:'tool stdout\n',stderr:'',requests:1},
     {exitCode:0,stdout:'tool stdout\n',stderr:'',requests:1},
     {exitCode:1,stdout:'tool stdout\n',stderr:'tool exit\n',requests:1},
+    {exitCode:9,stdout:'tool stdout\n',stderr:'Error: formatted preparation failure\n',requests:1},
+    {exitCode:9,stdout:'tool stdout\n',stderr:'Error: formatted preparation failure\n',requests:1},
   ]);
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });

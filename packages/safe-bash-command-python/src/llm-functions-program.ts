@@ -166,7 +166,13 @@ async def main():
         exit_error = error
         owner.cancel()
     except Exception as error:
-      send("error", id=identifier, message=str(error))
+      if command.get("prepare") and isinstance(error, ClickException):
+        if exit_error is None:
+          error.show()
+          exit_error = SystemExit(error.exit_code)
+          owner.cancel()
+      else:
+        send("error", id=identifier, message=str(error))
 
   def completed(task):
     pending.discard(task)

@@ -888,13 +888,14 @@ async function qualifyToolExits(backend,createExecutor) {
   const shell=new Shell({fs:backend,cwd:'/work'}).use(llmCommands({service,loadTools:createPythonLlmToolLoader({createExecutor})}));
   const results=[];
   try {
-    for(const [prepare,asynchronous,code] of [[false,false,'0'],[false,true,'7'],[true,false,'None'],[true,true,"'tool exit'"]]) {
+    for(const [prepare,asynchronous,code] of [[false,false,'0'],[false,true,'7'],[true,false,'None'],[true,true,"'tool exit'"],[true,false,'click'],[true,true,'click']]) {
       let definition=(asynchronous?'async ':'')+'def halt():\n print("tool stdout")\n raise SystemExit('+code+')';
       let selection='';
       if(prepare){
         definition='import llm as _llm\nclass _ExitBox(_llm.Toolbox):\n '+(asynchronous?'async def prepare_async':'def prepare')+'(self):\n  print("tool stdout")\n  raise SystemExit('+code+')\n def halt(self): return "unreachable"\nclass _Plugin:\n @_llm.hookimpl\n def register_tools(self,register):register(_ExitBox,name="ExitBox")\n_llm.plugins.pm.register(_Plugin())';
         selection=' -T ExitBox';
       }
+      if(code==='click') definition='import click as _click\nclass _Failure(_click.ClickException):\n exit_code=9\n def format_message(self):return "formatted preparation failure"\n'+definition.replace('raise SystemExit(click)','raise _Failure("raw preparation failure")');
       requests=0;
       await backend.writeFile('/work/exit.py',new TextEncoder().encode(definition));
       const result=await shell.exec('llm question '+(asynchronous?'--async ':'')+'--functions /work/exit.py'+selection);

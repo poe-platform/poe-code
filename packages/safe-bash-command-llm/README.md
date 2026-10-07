@@ -225,7 +225,8 @@ environment changes. Import the factory from `@poe-platform/safe-bash/commands/p
 Listing discovers the selected family after argument validation; execution resolves
 the requested prefix without a separate discovery pass. Metadata shares the command
 input budget and plugin diagnostics share its output budget. Explicit `fragmentLoaders`
-and `templateLoaders` entries take precedence. SDK hosts can supply `LlmLoaderProvider`
+and `templateLoaders` entries take precedence. CLI loader failures retain their complete
+message, including long Unicode diagnostics, through bounded stderr writes. SDK hosts can supply `LlmLoaderProvider`
 to the template store or pass it as the fifth argument to `loadLlmPluginFragments`.
 
 Use `llm plugins` to list the configured interpreter's installed plugin names,

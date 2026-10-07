@@ -20,6 +20,7 @@ import { createOpenAiProvider, createElevenLabsProvider } from "@poe-platform/sa
 
 export async function verifyLlmCommands() {
   await verifyStreamedInputs();
+  await verifyLlmPluginDiagnostics();
   assert.equal(rootFsError, FsError);
   const commands = new CommandRegistry([{ name: "llm", execute: () => ({ exitCode: 7 }) }]);
   const host = { commands, use() {}, registerFileSystem() {} };
@@ -190,4 +191,29 @@ async function verifyStreamedInputs() {
   try {
     await assert.rejects((async () => { for await (const chunk of cancelled.bytes) void chunk; })(), error => error === abort.signal.reason);
   } finally { await cancelled.dispose(); }
+}
+
+export async function verifyLlmPluginDiagnostics() {
+  const message = '界🐍'.repeat(5000) + ': complete native error';
+  const loader = () => { throw new Error(message); };
+  for (const [flag, kind] of [['-t', 'template'], ['-f', 'fragment']]) {
+    let stderr = '', writes = 0;
+    const command = createLlmCommand({
+      templateLoaders: new Map([['native', loader]]), fragmentLoaders: new Map([['native', loader]]),
+      defaultModel: 'fixture', providers: [{ name: 'fixture', models: [{ id: 'fixture' }], complete() { throw new Error('Unexpected provider execution'); } }],
+    });
+    const result = await command.execute({
+      command: 'llm', args: [flag, 'native:value', 'question'], fs: new MemoryFileSystem(), cwd: '/', env: {},
+      signal: new AbortController().signal, stdin: (async function* () {})(),
+      stdout: { async write() { throw new Error('Unexpected stdout'); } },
+      stderr: { async write(bytes) {
+        if (bytes.length > 16384) throw new Error('Unbounded diagnostic write');
+        stderr += new TextDecoder('utf-8', { fatal: true }).decode(bytes); writes++;
+      } },
+    });
+    assert.equal(result.exitCode, 1);
+    assert.equal(stderr, `Error: Could not load ${kind} native:value: ${message}\n`);
+    if (writes < 2) throw new Error('Missing complete native diagnostic');
+  }
+  return { pluginDiagnostics: true };
 }

@@ -900,7 +900,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     controller.abort(error);
     if (outputFailed) throw error;
     await operation.close();
-    await writeDiagnostic(context.stderr, `${error instanceof Error || error instanceof TypeError ? error.message.slice(0, 4096) : "llm provider failed"}\n`, context.signal);
+    await writeDiagnostic(context.stderr, `${error instanceof Error || error instanceof TypeError ? error.message : "llm provider failed"}\n`, context.signal);
     return { exitCode: error instanceof LlmModelsUsageError || error instanceof LlmPromptUsageError ? 2 : 1 };
   } finally {
     try { await Promise.all([...functionSessions].map(session => session.close())); }

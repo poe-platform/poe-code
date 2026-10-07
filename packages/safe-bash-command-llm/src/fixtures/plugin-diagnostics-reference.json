@@ -1,0 +1,32 @@
+{
+  "reference": "llm 0.27.1 / Click 8.1.8",
+  "message": {
+    "unit": "界🐍",
+    "repetitions": 5000,
+    "suffix": ": complete native error"
+  },
+  "cases": [
+    {
+      "args": [
+        "-t",
+        "native:value",
+        "question"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderrPrefix": "Error: Could not load template native:value: ",
+      "stderrSuffix": "\n"
+    },
+    {
+      "args": [
+        "-f",
+        "native:value",
+        "question"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderrPrefix": "Error: Could not load fragment native:value: ",
+      "stderrSuffix": "\n"
+    }
+  ]
+}

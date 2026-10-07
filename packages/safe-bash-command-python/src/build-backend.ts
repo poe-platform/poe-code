@@ -1,3 +1,4 @@
+import {pythonBuildBackendProgramGzip} from './build-backend.generated.js';
 import {pythonSourceOriginProgram} from './source-origin-program.generated.js';
 import {pythonDownloadFilenameProgram} from './source-filename-program.js';
 import {toByteSource, type CommandContext} from 'safe-bash-contracts';
@@ -121,7 +122,9 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
   const request=structuredClone(input.hook==='read_build_system'?{...input,maxBytes:maxBytes===Infinity?null:maxBytes}:input);
   let done=false,size=0,failure:unknown;
   const chunks:string[]=[];
-  const invocation:CommandContext={...context,command:'python',args:['-c',pythonBuildBackendProgram],stdin:toByteSource('')};
+  const program=await loadPythonBuildBackendProgram();
+  context.signal.throwIfAborted();
+  const invocation:CommandContext={...context,command:'python',args:['-c',program],stdin:toByteSource('')};
   if(request.hook==='build_legacy_wheel'||request.hook==='get_requires_for_legacy_wheel')legacy.add(invocation.args);
   capabilities.set(invocation.args,{async call(value){
    try{
@@ -167,6 +170,12 @@ export function createPythonBuildBackend(options:PythonCommandsOptions & {readon
    return value as BuildResult<T>;
   }finally{capabilities.delete(invocation.args);legacy.delete(invocation.args);}
  };
+}
+
+let decodedBuildProgram:Promise<string>|undefined;
+/** Decode trusted static source once, preserving native tracebacks and program text. */
+export function loadPythonBuildBackendProgram():Promise<string>{
+ return decodedBuildProgram??=new Response(new Blob([Uint8Array.from(atob(pythonBuildBackendProgramGzip),character=>character.charCodeAt(0))]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
 }
 
 export const pythonBuildBackendProgram=/* @__PURE__ */ (()=>String.raw`

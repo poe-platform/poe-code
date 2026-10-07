@@ -114,3 +114,15 @@ test('download filename hooks validate metadata and bounded string results',asyn
   assert.equal(runs,before);
  }finally{await environment.dispose();}
 });
+
+test('cancellation during program loading does not start a build interpreter',async()=>{
+ const environment=createPythonBuildEnvironment();let started=0;
+ const backend=createPythonBuildBackend({environment,createExecutor:()=>{started++;throw new Error('unexpected interpreter');}});
+ const controller=new AbortController(),reason=new Error('cancelled before build');
+ try{
+  const running=backend(request,{...context(),signal:controller.signal});
+  controller.abort(reason);
+  await assert.rejects(running,error=>error===reason);
+  assert.equal(started,0);
+ }finally{await environment.dispose();}
+});

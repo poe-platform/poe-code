@@ -524,10 +524,15 @@ print(json.dumps(result))
       let buildInstalled,buildState,failed,buildRecovered,hookRequirements,built,buildSystem,invalidBuildSystem;
       const hookOutput=[];
       try{
-        buildInstalled=await buildShell.exec('python -m pip install ./worker_fixture-1.0-py3-none-any.whl');
-        buildState=await buildShell.exec(inspect);
-        failed=await buildShell.exec('python -m pip install ./missing-1.0-py3-none-any.whl');
-        buildRecovered=await buildShell.exec(inspect);
+        if(buildOnly==='isolation'){
+          buildInstalled=await buildShell.exec('python -m pip install ./worker_fixture-1.0-py3-none-any.whl');
+          buildState=await buildShell.exec(inspect);
+          failed=await buildShell.exec('python -m pip install ./missing-1.0-py3-none-any.whl');
+          buildRecovered=await buildShell.exec(inspect);
+          const after=await manifestStore.get(manifestScope,context);
+          const targetState=await shell.exec(inspect);
+          return {installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,wheelReads,requests,diagnostics};
+        }
         await backend.mkdir('/work/build-source',{recursive:true});
         await backend.mkdir('/work/built-wheels',{recursive:true});
         await backend.writeFile('/work/build-source/input.txt',new TextEncoder().encode('caller source'));
@@ -558,6 +563,24 @@ class Backend:
   return name
 factory = Backend()
 `));
+        if(buildOnly==='source'){
+          await backend.mkdir('/work/published-wheels');
+          await backend.writeFile('/work/build-source/input.txt',new TextEncoder().encode('changed original'));
+          const sourceBackend=new TextDecoder().decode(await backend.readFile('/work/build-source/backend.py')).replaceAll("config_settings == {'feature': ['one', 'two']}","config_settings is None");
+          await backend.writeFile('/work/build-source/backend.py',new TextEncoder().encode(sourceBackend));
+          const sourceEnvironment=createPythonSourcePackageEnvironment({...configuration,scope:'source',maxMetadataBytes:4096},{directory:'/work/published-wheels',python:{createExecutor,maxTransferBytes:32}});
+          const sourceShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:sourceEnvironment,maxTransferBytes:32}));
+          let sourceInstalled,sourceImported,sourceMetadata,sourceUninstalled,sourceRemoved;
+          try{
+            sourceInstalled=await sourceShell.exec('python -m pip install ./build-source');
+            for(const file of ['backend.py','input.txt','pyproject.toml'])await backend.unlink('/work/build-source/'+file);
+            sourceImported=await sourceShell.exec('python -c '+quote('import built_fixture; print(built_fixture.value)'));
+            sourceMetadata=await sourceShell.exec('python -c '+quote('from importlib.metadata import distribution; print(distribution("built-fixture").read_text("direct_url.json"))'));
+            sourceUninstalled=await sourceShell.exec('python -m pip uninstall -y built-fixture');
+            sourceRemoved=await sourceShell.exec('python -c '+quote('from importlib.metadata import distribution; distribution("built-fixture")'));
+          }finally{await sourceShell.dispose();await sourceEnvironment.dispose();}
+          return {sourceInstalled,sourceImported,sourceMetadata,sourceUninstalled,sourceRemoved,wheelReads,requests,diagnostics};
+        }
         const wheelOptions={...pythonOptions,environment:wheelEnvironment};
         const hook=createPythonBuildBackend(wheelOptions);
         const prepareBuild=createPythonBuildDependencies(wheelOptions);
@@ -584,20 +607,7 @@ factory = Backend()
       const targetState=await shell.exec(inspect);
       const builtInstalled=await shell.exec('python -m pip install '+quote(built));
       const builtImported=await shell.exec('python -c '+quote('import built_fixture; print(built_fixture.value)'));
-      const sourceBackend=new TextDecoder().decode(await backend.readFile('/work/build-source/backend.py')).replaceAll("config_settings == {'feature': ['one', 'two']}","config_settings is None");
-      await backend.writeFile('/work/build-source/backend.py',new TextEncoder().encode(sourceBackend));
-      const sourceEnvironment=createPythonSourcePackageEnvironment({...configuration,scope:'source',maxMetadataBytes:4096},{directory:'/work/published-wheels',python:{createExecutor,maxTransferBytes:32}});
-      const sourceShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:sourceEnvironment,maxTransferBytes:32}));
-      let sourceInstalled,sourceImported,sourceMetadata,sourceUninstalled,sourceRemoved;
-      try{
-        sourceInstalled=await sourceShell.exec('python -m pip install ./build-source');
-        for(const file of ['backend.py','input.txt','pyproject.toml'])await backend.unlink('/work/build-source/'+file);
-        sourceImported=await sourceShell.exec('python -c '+quote('import built_fixture; print(built_fixture.value)'));
-        sourceMetadata=await sourceShell.exec('python -c '+quote('from importlib.metadata import distribution; print(distribution("built-fixture").read_text("direct_url.json"))'));
-        sourceUninstalled=await sourceShell.exec('python -m pip uninstall -y built-fixture');
-        sourceRemoved=await sourceShell.exec('python -c '+quote('from importlib.metadata import distribution; distribution("built-fixture")'));
-      }finally{await sourceShell.dispose();await sourceEnvironment.dispose();}
-      return {sourceInstalled,sourceImported,sourceMetadata,sourceUninstalled,sourceRemoved,installed,buildInstalled,buildState,failed,buildRecovered,targetState,targetUnchanged:before.revision===after.revision,buildSystem,invalidBuildSystem,hookRequirements,built,hookOutput:hookOutput.join(''),builtInstalled,builtImported,wheelReads,requests,diagnostics};
+      return {targetState,targetUnchanged:before.revision===after.revision,buildSystem,invalidBuildSystem,hookRequirements,built,hookOutput:hookOutput.join(''),builtInstalled,builtImported,wheelReads,requests,diagnostics};
     }
     if(legacyOnly) {
       const context={signal:new AbortController().signal},rows=[];
@@ -2087,8 +2097,8 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/packages' || mode === '/llm-packages' || mode === '/build-environment' || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort') {
-      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages' || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort',false,false,mode === '/build-environment',false,false,mode === '/llm-plugin-exits'?'exits':mode === '/llm-click-errors'?'click':mode === '/llm-interrupts'?'interrupt':mode === '/llm-eof'?'eof':mode === '/llm-abort'?'abort':''),failures});}
+    if (mode === '/packages' || mode === '/llm-packages' || mode.startsWith('/build-environment/') || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort') {
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages' || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort',false,false,mode.startsWith('/build-environment/')?mode.slice('/build-environment/'.length):false,false,false,mode === '/llm-plugin-exits'?'exits':mode === '/llm-click-errors'?'click':mode === '/llm-interrupts'?'interrupt':mode === '/llm-eof'?'eof':mode === '/llm-abort'?'abort':''),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

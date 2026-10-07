@@ -12,3 +12,9 @@ test('the cached native wheel program preserves its maintained source exactly',a
  const first=loadPythonNativeWheel();assert.equal(loadPythonNativeWheel(),first);
  assert.equal(await first,pythonNativeWheel);
 });
+
+import {loadPythonBuildBackendProgram,pythonBuildBackendProgram} from './build-backend.js';
+test('the cached build backend program preserves its maintained source exactly',async()=>{
+ const first=loadPythonBuildBackendProgram();assert.equal(loadPythonBuildBackendProgram(),first);
+ assert.equal(await first,pythonBuildBackendProgram);
+});

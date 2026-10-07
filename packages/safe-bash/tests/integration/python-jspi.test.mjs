@@ -649,37 +649,44 @@ for(const format of ['directory','zip','tar','named','remote','remote-pep517','r
   assert.deepEqual(result.failures,[]);assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });
 
-test('real workerd isolates build dependencies and preserves target packages after build failure', {timeout:90000}, async()=>{
+for(const phase of ['isolation','wheel','source'])test('real workerd isolates build dependencies and preserves target packages after build failure; '+phase, {timeout:90000}, async()=>{
   const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
   assert.ok(path);
   const bytes=readFileSync(path);
   assert.equal(createHash('sha256').update(bytes).digest('hex'),'0ad7104a3cde648e5486a718799f3852f1d782ff19d4bfc13db9dc631df083f8');
-  const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/build-environment',{method:'POST',body:bytes});
+  const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/build-environment/'+phase,{method:'POST',body:bytes});
   const result=await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
-  for(const key of ['installed','buildInstalled','buildState','buildRecovered','targetState'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
-  assert.notEqual(result.failed.exitCode,0);
-  assert.equal(result.buildState.stdout,'[null, "1.0", "1.0"]\n');
-  assert.equal(result.buildRecovered.stdout,result.buildState.stdout);
-  assert.equal(result.targetState.stdout,'["1.0", null, null]\n');
-  assert.equal(result.targetUnchanged,true);
-  assert.deepEqual(result.buildSystem,{requires:['worker-dependency @ file:///work/worker_dependency-1.0-py3-none-any.whl'],backend:'backend:factory',backendPath:['.'],check:[]});
-  assert.deepEqual(result.invalidBuildSystem,{name:'InstallationError',message:"fixture has a pyproject.toml file that does not comply with PEP 518: 'build-system.requires' contains an invalid requirement: 'bad @@@'"});
-  assert.deepEqual(result.hookRequirements,['worker-fixture @ file:///work/worker_fixture-1.0-py3-none-any.whl']);
-  assert.ok(result.built.startsWith('file:///work/published-wheels/'));
-  assert.ok(result.built.endsWith('/built_fixture-1.0-py3-none-any.whl'));
-  assert.ok(result.hookOutput.endsWith('native build requirements\nnative build wheel\n'));
-  assert.equal(result.hookOutput.split('native build requirements\n').length,3);
-  assert.equal(result.builtInstalled.exitCode,0,JSON.stringify(result));
-  assert.equal(result.builtImported.exitCode,0,JSON.stringify(result));
-  assert.equal(result.builtImported.stdout,'caller source:73\n');
-  assert.equal(result.sourceInstalled.exitCode,0,JSON.stringify(result));
-  assert.equal(result.sourceImported.exitCode,0,JSON.stringify(result));
-  assert.equal(result.sourceImported.stdout,'changed original:73\n');
-  assert.equal(result.sourceMetadata.exitCode,0,JSON.stringify(result));
-  assert.deepEqual(JSON.parse(result.sourceMetadata.stdout),{dir_info:{},url:'file:///work/build-source'});
-  assert.equal(result.sourceUninstalled.exitCode,0,JSON.stringify(result));
-  assert.notEqual(result.sourceRemoved.exitCode,0);
+  if(phase==='isolation'){
+    for(const key of ['installed','buildInstalled','buildState','buildRecovered','targetState'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
+    assert.notEqual(result.failed.exitCode,0);
+    assert.equal(result.buildState.stdout,'[null, "1.0", "1.0"]\n');
+    assert.equal(result.buildRecovered.stdout,result.buildState.stdout);
+    assert.equal(result.targetState.stdout,'["1.0", null, null]\n');
+    assert.equal(result.targetUnchanged,true);
+  }else if(phase==='wheel'){
+    assert.equal(result.targetState.exitCode,0,JSON.stringify(result));
+    assert.equal(result.targetState.stdout,'["1.0", null, null]\n');
+    assert.equal(result.targetUnchanged,true);
+    assert.deepEqual(result.buildSystem,{requires:['worker-dependency @ file:///work/worker_dependency-1.0-py3-none-any.whl'],backend:'backend:factory',backendPath:['.'],check:[]});
+    assert.deepEqual(result.invalidBuildSystem,{name:'InstallationError',message:"fixture has a pyproject.toml file that does not comply with PEP 518: 'build-system.requires' contains an invalid requirement: 'bad @@@'"});
+    assert.deepEqual(result.hookRequirements,['worker-fixture @ file:///work/worker_fixture-1.0-py3-none-any.whl']);
+    assert.ok(result.built.startsWith('file:///work/published-wheels/'));
+    assert.ok(result.built.endsWith('/built_fixture-1.0-py3-none-any.whl'));
+    assert.ok(result.hookOutput.endsWith('native build requirements\nnative build wheel\n'));
+    assert.equal(result.hookOutput.split('native build requirements\n').length,3);
+    assert.equal(result.builtInstalled.exitCode,0,JSON.stringify(result));
+    assert.equal(result.builtImported.exitCode,0,JSON.stringify(result));
+    assert.equal(result.builtImported.stdout,'caller source:73\n');
+  }else{
+    assert.equal(result.sourceInstalled.exitCode,0,JSON.stringify(result));
+    assert.equal(result.sourceImported.exitCode,0,JSON.stringify(result));
+    assert.equal(result.sourceImported.stdout,'changed original:73\n');
+    assert.equal(result.sourceMetadata.exitCode,0,JSON.stringify(result));
+    assert.deepEqual(JSON.parse(result.sourceMetadata.stdout),{dir_info:{},url:'file:///work/build-source'});
+    assert.equal(result.sourceUninstalled.exitCode,0,JSON.stringify(result));
+    assert.notEqual(result.sourceRemoved.exitCode,0);
+  }
   assert.ok(result.wheelReads.opened>0);
   assert.equal(result.wheelReads.closed,result.wheelReads.opened);
   assert.deepEqual(result.failures,[]);

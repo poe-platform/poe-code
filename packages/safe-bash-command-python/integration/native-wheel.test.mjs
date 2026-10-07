@@ -13,7 +13,7 @@ test('retained native wheels match the pinned buffer installer with bounded shor
 const runtime=await loadPyodide({indexURL:runtimeRoot+'/'});
 assert.equal(runtime.version,'314.0.6');
 runtime.runPython(`
-import io, zipfile, json, hashlib, shutil
+import io, zipfile, json, hashlib, shutil, sys
 from pathlib import Path
 from pyodide import _package_loader
 class ObservedWheelBuffer(bytearray):
@@ -42,14 +42,29 @@ def _observe_zip_info(self, *args, **kwargs):
  if self.filename.startswith('fixture'):_zip_info_count += 1
 zipfile.ZipInfo.__init__ = _observe_zip_info
 _original_directory_parser = zipfile.ZipFile._RealGetContents
+_original_namelist = zipfile.ZipFile.namelist
+_original_name_sets = [(cls, cls._name_set) for cls in (zipfile.CompleteDirs, sys.modules[zipfile.CompleteDirs.__module__].FastLookup)]
 _package_loader.TARGETS['actual'] = Path('/actual')
 _unrelated = io.BytesIO()
 with zipfile.ZipFile(_unrelated, 'w') as archive:archive.writestr('other.txt', 'unrelated archive')
 _unrelated_bytes = _unrelated.getvalue()
 _original_set_metadata = _package_loader.set_wheel_metadata
+_eager_discovery_names = 0
 def _set_metadata(filename, archive, target, metadata):
+ global _eager_discovery_names
+ if type(archive.filelist).__name__ == 'Entries' and len(archive.filelist) > 4000:
+  names = archive.namelist()
+  if isinstance(names, list):_eager_discovery_names = max(_eager_discovery_names, len(names))
+  with zipfile.ZipFile(archive.fp) as copy:
+   path = zipfile.Path(copy, 'fixture/__init__.py')
+   names = path.root._name_set()
+   if isinstance(names, set):_eager_discovery_names = max(_eager_discovery_names, len(names))
+   assert path.read_bytes() == b'answer = 42\\n'
+   assert (zipfile.Path(copy) / 'fixture' / 'data').is_dir()
+   assert not zipfile.Path(copy, 'fixture/missing').exists()
  with zipfile.ZipFile(io.BytesIO(_unrelated_bytes)) as other:
   assert other.read('other.txt') == b'unrelated archive'
+  assert zipfile.Path(other, 'other.txt').read_text() == 'unrelated archive'
  return _original_set_metadata(filename, archive, target, metadata)
 _package_loader.set_wheel_metadata = _set_metadata
 def snapshot(root):
@@ -90,10 +105,12 @@ for(const row of rows){
  assert.deepEqual(JSON.parse(runtime.runPython("json.dumps(snapshot('/actual'))")),baseline);
  if(row.layout==='large-directory'){
   assert.equal(runtime.runPython('_zip_info_count'),4100,'one native ZIP index per retained wheel');
+  assert.equal(runtime.runPython('_eager_discovery_names'),0,'native discovery must not materialize every filename');
   assert.ok(reads.length<5000,'bounded read-ahead must coalesce native header probes: '+reads.length);
   assert.ok(runtime.runPython('_zip_peak')<10,'bounded live native entry objects: '+runtime.runPython('_zip_peak'));
  }
  assert.equal(runtime.runPython('zipfile.ZipFile._RealGetContents is _original_directory_parser'),true,'native parser restored after '+row.layout);
+ assert.equal(runtime.runPython('zipfile.ZipFile.namelist is _original_namelist and all(cls._name_set is method for cls, method in _original_name_sets)'),true,'native discovery restored after '+row.layout);
  assert.ok(runtime.runPython('ObservedWheelBuffer.maximum')<=65558,'interpreter buffer '+runtime.runPython('ObservedWheelBuffer.maximum')+': '+row.layout);
  if(row.layout==='truncated')assert.equal(reads.length,0);else assert.ok(reads.length);
  await environment.finish(start);await environment.dispose();

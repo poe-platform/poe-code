@@ -1845,7 +1845,7 @@ export default {
     let retainedProxy;
     let activeRequests = 0;
     let maximumRequests = 0;
-    let wheelReadMaximum = 0, wheelIndexEntries = 0, wheelLiveMaximum = 0;
+    let wheelReadMaximum = 0, wheelIndexEntries = 0, wheelLiveMaximum = 0, wheelNameMaximum = 0, wheelNameQueries = 0;
     let ticks = 0;
     const timer = setInterval(() => { ticks++; }, 1);
     const createExecutor = () => createPythonJspiExecutor({ trampoline, nativeCall, statResult, async loadRuntime(configuration) {
@@ -1867,6 +1867,7 @@ export default {
       if (mode === '/host') await installStaticPackages(runtime);
       else if (mode !== '/packages' && mode !== '/native-wheel') installPythonLlmPackages(runtime, llmPackageAssets);
       if(mode === '/native-wheel'){
+        runtime.globals.set('_observe_wheel_names',count=>{wheelNameQueries++;wheelNameMaximum=Math.max(wheelNameMaximum,count);});
         runtime.globals.set('_observe_wheel_live',count=>{wheelLiveMaximum=Math.max(wheelLiveMaximum,count);});
         runtime.globals.set('_observe_wheel_entry',name=>{if(name==='pydantic_core/core_schema.py')wheelIndexEntries++;});
         runtime.globals.set('_observe_wheel_buffer',size=>{wheelReadMaximum=Math.max(wheelReadMaximum,size);if(size>65558)throw new Error('Unbounded interpreter wheel buffer: '+size);});
@@ -1876,6 +1877,13 @@ export default {
   _observe_wheel_buffer(len(self))
 bytearray = _ObservedWheelBuffer
 import zipfile as _observed_zipfile
+from pyodide import _package_loader as _observed_loader
+_original_wheel_metadata = _observed_loader.set_wheel_metadata
+def _observe_wheel_metadata(filename, archive, target, metadata):
+ names = archive.namelist()
+ _observe_wheel_names(len(names) if isinstance(names, list) else 0)
+ return _original_wheel_metadata(filename, archive, target, metadata)
+_observed_loader.set_wheel_metadata = _observe_wheel_metadata
 _live_zip_entries = set()
 def _observe_new_zip_info(cls, *args, **kwargs):
  entry = object.__new__(cls)
@@ -1928,7 +1936,7 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/native-wheel') {
-      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,failures});}
+      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,wheelNameMaximum,wheelNameQueries,failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

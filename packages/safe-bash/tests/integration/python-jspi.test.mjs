@@ -577,6 +577,8 @@ for(const defaultCache of [false,true])test('real workerd loads native code from
  assert.ok(result.wheelReadMaximum>0&&result.wheelReadMaximum<=65558);
  assert.equal(result.wheelIndexEntries,1,'native extraction and discovery must share one wheel index');
  assert.ok(result.wheelLiveMaximum>0&&result.wheelLiveMaximum<10,'native entry retention: '+result.wheelLiveMaximum);
+ assert.ok(result.wheelNameQueries>0,'native filename discovery observed');
+ assert.equal(result.wheelNameMaximum,0,'native filename discovery must stay lazy');
  assert.deepEqual(runtimeErrors,[]);
 });
 

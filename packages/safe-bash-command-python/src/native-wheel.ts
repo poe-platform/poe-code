@@ -171,11 +171,36 @@ def _safe_extract_native_wheel(read, serialized):
     archive.filelist, archive.NameToInfo = Entries(), Names()
    parse(archive)
    cached = (encoding, archive._comment, archive.start_dir, archive.filelist, archive.NameToInfo, archive.fp.tell())
-  _NativeZip._RealGetContents = contents
+  # The pinned installer consumes filenames sequentially. ZIP Path only needs
+  # membership for metadata reads; neither needs a second full filename index.
+  from zipfile import CompleteDirs
+  import sys
+  path_module = sys.modules[CompleteDirs.__module__]
+  FastLookup, _parents = path_module.FastLookup, path_module._parents
+  original_names = _NativeZip.namelist
+  original_sets = [(cls, cls._name_set) for cls in (CompleteDirs, FastLookup)]
+  def names(archive):
+   if isinstance(archive.filelist, Entries):
+    return (entry.filename for entry in archive.filelist)
+   return original_names(archive)
+  class NameSet:
+   def __init__(self, archive):self.archive = archive
+   def __contains__(self, name):
+    if self.archive.NameToInfo.get(name) is not None:return True
+    if not name.endswith('/'):return False
+    return any(name == parent + '/' for entry in self.archive.filelist for parent in _parents(entry.filename))
   try:
+   _NativeZip._RealGetContents = contents
+   _NativeZip.namelist = names
+   for cls, original_set in original_sets:
+    def name_set(archive, original_set=original_set):
+     return NameSet(archive) if isinstance(archive.filelist, Entries) else original_set(archive)
+    cls._name_set = name_set
    yield
   finally:
    _NativeZip._RealGetContents = original
+   _NativeZip.namelist = original_names
+   for cls, original_set in original_sets:cls._name_set = original_set
 
  _native_config = _native_json.loads(serialized)
  with _NativeWheel(_native_config['size']) as _native_archive:

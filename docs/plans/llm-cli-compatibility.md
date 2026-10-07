@@ -191,7 +191,13 @@ observable. ZIP directory/package metadata and extracted package files still use
 interpreter memory. Explicit buffered cache adapters still materialize artifacts, so this is
 not full caller-backed storage qualification.
 
-The native directory parser retains CPython parsing and validation while replacing its whole-directory BytesIO copy with a bounded source window. Raw interpreter reads are capped at the fixed 65,558-byte ZIP end-record probe; native payload extraction accepts short reads. Extraction, metadata installation and dynamic-library discovery share one index within each retained-wheel call. The production installer now stores native entry records, filename lookups and header boundaries in guarded caller scratch, using existing archive spools and bounded sorted runs. Entry objects are reconstructed on demand; reversed stable header ordering and last-name-wins behavior remain native-compatible. The native parser adaptation fails closed if its expected AST changes. Cancellation, finish and disposal retire the index. Unrelated archives retain their own parser/index, and failures restore the original parser. Filename discovery lists/sets, package metadata and extracted files still occupy interpreter memory, so complete caller-backed installation remains open.
+The native directory parser retains CPython parsing and validation while replacing its whole-directory BytesIO copy with a bounded source window. Raw interpreter reads are capped at the fixed 65,558-byte ZIP end-record probe; native payload extraction accepts short reads. Extraction, metadata installation and dynamic-library discovery share one index within each retained-wheel call. The production installer now stores native entry records, filename lookups and header boundaries in guarded caller scratch, using existing archive spools and bounded sorted runs. Entry objects are reconstructed on demand; reversed stable header ordering and last-name-wins behavior remain native-compatible. The native parser adaptation fails closed if its expected AST changes. Cancellation, finish and disposal retire the index. Unrelated archives retain their own parser/index, and failures restore the original parser. Global package metadata and extracted files still occupy interpreter memory, so complete caller-backed installation remains open.
+
+The pinned installer's complete filename iteration is now lazy. ZIP Path metadata
+membership uses the retained entry index and native implied-parent iteration instead
+of constructing a full name set. Ordinary archives keep native behavior, and all
+temporary methods restore after success or failure. Top-level metadata-directory
+sets, filtered dynamic-library results and extracted files still need qualification.
 
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use

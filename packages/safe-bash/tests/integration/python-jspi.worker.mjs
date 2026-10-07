@@ -58,10 +58,10 @@ async function qualifyNetworkCache(backend) {
  return {results,uploads,maximum,requests,disposed,staging:(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.python-package-')).length};
 }
 
-async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=false,invalidNative=false,streamOnly=false) {
+async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=false,invalidNative=false,streamOnly=false,weakCache=false) {
   let stagedBytes=0,maxWrite=0,canonicalBytes=0;
   const canonicalSource='/work/directory_fixture-1.0-py3-none-any.whl';
-  const storage=new Proxy(backend,{get(target,key){
+  const storage=new Proxy(weakCache?new MountFileSystem({root:backend,mounts:{'/work/wheel-cache':new S3FileSystem({bucket:'packages',transport:new MockS3Client({buckets:['packages']})})}}):backend,{get(target,key){
     if(streamOnly&&key==='capabilitiesFor')return async(path,options)=>({...(await target.capabilitiesFor?.(path,options)??target.capabilities),...path===canonicalSource?{retainedRead:false}:{}});
     if(streamOnly&&key==='readStream')return async function*(path,options){for await(const bytes of target.readStream(path,options)){if(path===canonicalSource)canonicalBytes+=bytes.length;yield bytes;}};
     if(key==='createStagedFile')return async(...args)=>{
@@ -103,8 +103,10 @@ PY`);
     }});
   const shell=new Shell({fs:storage,cwd:'/work'}).use(pythonCommands({createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause??event))}));
   try {
-    const result=await shell.exec(`python -c '${defaultCache?'from directory_fixture import value; import importlib.resources; assert value == 42; resource = importlib.resources.files("directory_fixture").joinpath("data/payload.bin"); assert resource.stat().st_size == 2097159; source = resource.open("rb"); assert sum(len(chunk) if chunk == b"x" * len(chunk) else -1 for chunk in iter(lambda: source.read(65536), b"")) == 2097159; source.close(); ':''}from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`);
-    return {result,requests,diagnostics,stagedBytes,maxWrite,canonicalBytes};
+    const command=`python -c '${defaultCache?'from directory_fixture import value; import importlib.resources; assert value == 42; resource = importlib.resources.files("directory_fixture").joinpath("data/payload.bin"); assert resource.stat().st_size == 2097159; source = resource.open("rb"); assert sum(len(chunk) if chunk == b"x" * len(chunk) else -1 for chunk in iter(lambda: source.read(65536), b"")) == 2097159; source.close(); ':''}from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`;
+    const result=await shell.exec(command),before=requests.length;
+    const replay=weakCache&&result.exitCode===0?await shell.exec(command):undefined;
+    return {result,requests,diagnostics,stagedBytes,maxWrite,canonicalBytes,...weakCache?{replay,replayRequests:requests.length-before}:{}};
   }finally{await shell.dispose();await environment.dispose();}
 }
 
@@ -2060,7 +2062,7 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/native-wheel') {
-      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache'),new URL(request.url).searchParams.has('invalid-native'),new URL(request.url).searchParams.has('stream-only')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,wheelNameMaximum,wheelNameQueries,wheelExtractedMaximum,wheelDynlibCandidates,failures});}
+      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache'),new URL(request.url).searchParams.has('invalid-native'),new URL(request.url).searchParams.has('stream-only'),new URL(request.url).searchParams.has('weak-cache')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,wheelNameMaximum,wheelNameQueries,wheelExtractedMaximum,wheelDynlibCandidates,failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

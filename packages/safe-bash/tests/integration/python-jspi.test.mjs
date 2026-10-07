@@ -564,9 +564,9 @@ test('real workerd applies prerelease selection and cache bypass through CLI and
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const [defaultCache,streamOnly] of [[false,false],[true,false],[true,true]])test('real workerd loads native code from a retained installed wheel; defaultCache='+defaultCache+(streamOnly?'; streamOnly=true':''), {timeout:60000},async()=>{
+for(const [defaultCache,streamOnly,weakCache] of [[false,false,false],[true,false,false],[true,true,false],[false,false,true]])test('real workerd loads native code from a retained installed wheel; defaultCache='+defaultCache+(streamOnly?'; streamOnly=true':'')+(weakCache?'; weakCache=true':''), {timeout:60000},async()=>{
  const {miniflare,runtimeErrors}=nativeFixture;
- const response=await miniflare.dispatchFetch('http://fixture/native-wheel'+(defaultCache?'?default-cache':'')+(streamOnly?'&stream-only':''),{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const response=await miniflare.dispatchFetch('http://fixture/native-wheel'+(defaultCache?'?default-cache':'')+(streamOnly?'&stream-only':'')+(weakCache?'?weak-cache':''),{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
  const result=await response.json();
  assert.equal(response.status,200,JSON.stringify(result));
  assert.equal(result.result.exitCode,0,JSON.stringify(result));
@@ -578,7 +578,8 @@ for(const [defaultCache,streamOnly] of [[false,false],[true,false],[true,true]])
  assert.ok(result.stagedBytes>0);assert.ok(result.maxWrite>0&&result.maxWrite<=65536);
  if(streamOnly)assert.ok(result.canonicalBytes>2097159,'canonical source must stream into caller storage');
  assert.ok(result.wheelReadMaximum>0&&result.wheelReadMaximum<=65558);
- assert.equal(result.wheelIndexEntries,1,'native extraction and discovery must share one wheel index');
+ assert.equal(result.wheelIndexEntries,weakCache?2:1,'native extraction and discovery must share one wheel index per invocation');
+ if(weakCache){assert.equal(result.replay.exitCode,0,JSON.stringify(result));assert.equal(result.replay.stdout,'42\n');assert.equal(result.replay.stderr,'');assert.equal(result.replayRequests,0);}
  assert.ok(result.wheelLiveMaximum>0&&result.wheelLiveMaximum<10,'native entry retention: '+result.wheelLiveMaximum);
  assert.ok(result.wheelNameQueries>0,'native filename discovery observed');
  assert.equal(result.wheelNameMaximum,0,'native filename discovery must stay lazy');

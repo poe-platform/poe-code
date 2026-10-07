@@ -153,3 +153,21 @@ for(const noCache of [false,true])for(const outcome of ['success','integrity','u
   await environment.dispose();assert.equal(requests,1);assert.deepEqual(await root.readdir('/'),[]);
  });
 }
+
+for(const strongCache of [false,true])test(`extraction and ZIP index storage admit capable cache parents or caller cwd; strongCache=${strongCache}`,async()=>{
+ const root=new MemoryFileSystem();await root.mkdir('/work');
+ const cache=strongCache?new MemoryFileSystem():new S3FileSystem({bucket:'packages',transport:new MockS3Client({buckets:['packages']})});
+ const fs=new MountFileSystem({root,mounts:{'/cache':cache}});
+ const context={fs,cwd:'/work',signal:new AbortController().signal};
+ const environment=createPythonPackageEnvironment({cacheDirectory:'/cache'}),start=await environment.prepare(context);
+ try{
+  const directory=await environment.dispatch('package-root',[start.session],context) as string;
+  assert.ok(directory.startsWith((strongCache?'/cache':'/work')+'/.python-install-'),directory);
+  await fs.writeFile(directory+'/payload',new Uint8Array([42]));
+  const index=(operation:string,...args:unknown[])=>environment.dispatch('package-index',[start.session,operation,...args],context);
+  await index('start');await index('append','fixture','0','payload');await index('seal','7');
+  assert.deepEqual(JSON.parse(await index('name','fixture',0) as string),['payload','7']);
+  assert.ok((await fs.readdir(strongCache?'/cache':'/work')).some(entry=>entry.name.startsWith('.zip-metadata-')));
+ }finally{await environment.finish(start);await environment.dispose();}
+ assert.deepEqual(await root.readdir('/work'),[]);assert.deepEqual(await cache.readdir('/'),[]);
+});

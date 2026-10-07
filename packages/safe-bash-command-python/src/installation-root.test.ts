@@ -65,3 +65,29 @@ test('closing during directory acquisition waits for and removes only its owned 
  release();const path=await opening;await closing;
  await assert.rejects(backend.stat(path),{code:'ENOENT'});
 });
+
+for(const operation of ['package-root','package-index'])for(const retirement of [false,true])test(`storage admission preserves ownership across awaits; operation=${operation}; retire=${retirement}`,async()=>{
+ const backend=new MemoryFileSystem();await backend.mkdir('/cache');
+ let entered!:()=>void,release!:()=>void;
+ const ready=new Promise<void>(resolve=>{entered=resolve;}),gate=new Promise<void>(resolve=>{release=resolve;});
+ const fs=new Proxy(backend,{get(target,key){
+  if(key==='capabilitiesFor')return async(path:string)=>{
+   if(path==='/cache'){entered();await gate;}
+   return target.capabilities;
+  };
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const context={fs,cwd:'/',signal:new AbortController().signal};
+ const environment=createPythonPackageEnvironment({cacheDirectory:'/cache'}),start=await environment.prepare(context);
+ const open=()=>environment.dispatch(operation,[start.session,...operation==='package-index'?['start']:[]],context);
+ const first=open();await ready;
+ if(retirement){
+  await environment.finish(start);release();await assert.rejects(first,/session is closed/);
+ }else{
+  const second=open();release();
+  if(operation==='package-root')assert.equal(await first,await second);
+  else{await first;await assert.rejects(second,/already open/);}
+  await environment.finish(start);
+ }
+ await environment.dispose();assert.deepEqual(await backend.readdir('/cache'),[]);
+});

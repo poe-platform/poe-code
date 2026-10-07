@@ -2775,6 +2775,37 @@ fn build_ustar_header(
 }
 
 fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
+    if data.len() >= 4 && &data[0..4] == b"PK\x03\x04" {
+        let mut zout = Vec::new();
+        let mut zpos = 0usize;
+        while zpos + 30 <= data.len() && &data[zpos..zpos + 4] == b"PK\x03\x04" {
+            let comp_size = u32::from_le_bytes(data[zpos + 18..zpos + 22].try_into().unwrap()) as usize;
+            let name_len = u16::from_le_bytes(data[zpos + 26..zpos + 28].try_into().unwrap()) as usize;
+            let extra_len = u16::from_le_bytes(data[zpos + 28..zpos + 30].try_into().unwrap()) as usize;
+            let name_start = zpos + 30;
+            if name_start + name_len + extra_len > data.len() {
+                break;
+            }
+            let name = String::from_utf8_lossy(&data[name_start..name_start + name_len]).to_string();
+            let data_start = name_start + name_len + extra_len;
+            let data_end = (data_start + comp_size).min(data.len());
+            let content = data[data_start..data_end].to_vec();
+            zout.push(TarEntry {
+                name,
+                typeflag: b'0',
+                mode: 0o644,
+                mtime: 1700000000,
+                uid: 0,
+                gid: 0,
+                linkname: String::new(),
+                content,
+            });
+            zpos = data_end;
+        }
+        if !zout.is_empty() {
+            return zout;
+        }
+    }
     let decompressed;
     let data = if data.len() >= 18 && data[0] == 0x1f && data[1] == 0x8b {
         match gzip_decompress_stored(data) {

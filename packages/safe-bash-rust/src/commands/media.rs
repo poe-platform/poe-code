@@ -774,6 +774,7 @@ struct MediaDoc {
     channels: u32,
     has_audio: bool,
     title: String,
+    tags: BTreeMap<String, String>,
     subtitles: String,
     chapters: Vec<(usize, String)>,
 }
@@ -793,6 +794,7 @@ impl MediaDoc {
             channels: 1,
             has_audio: false,
             title: String::new(),
+            tags: BTreeMap::new(),
             subtitles: String::new(),
             chapters: Vec::new(),
         }
@@ -800,7 +802,8 @@ impl MediaDoc {
 
     fn parse(bytes: &[u8], path: &str) -> Self {
         let mut d = Self::default_video();
-        if path.ends_with(".wav") || bytes.starts_with(b"RIFF") {
+        let lower_path = path.to_ascii_lowercase();
+        if lower_path.ends_with(".wav") || (bytes.len() >= 12 && &bytes[0..4] == b"RIFF" && &bytes[8..12] == b"WAVE") {
             d.codec_type = "audio".to_string();
             d.codec_name = "pcm_s16le".to_string();
             d.format_name = "wav".to_string();
@@ -816,6 +819,32 @@ impl MediaDoc {
                     format!("pcm_s{}le", info.bits_per_sample)
                 };
             }
+        } else if lower_path.ends_with(".png")
+            || lower_path.ends_with(".jpg")
+            || lower_path.ends_with(".jpeg")
+            || lower_path.ends_with(".webp")
+            || lower_path.ends_with(".bmp")
+            || lower_path.ends_with(".ppm")
+            || lower_path.ends_with(".pgm")
+            || lower_path.ends_with(".pbm")
+            || bytes.starts_with(b"\x89PNG\r\n\x1a\n")
+            || bytes.starts_with(b"\xff\xd8\xff")
+        {
+            let im = read_image_meta(bytes, path);
+            d.codec_type = "video".to_string();
+            d.codec_name = match im.fmt.as_str() {
+                "JPEG" => "mjpeg",
+                "GIF" => "gif",
+                "WEBP" => "webp",
+                "BMP" => "bmp",
+                _ => "png",
+            }
+            .to_string();
+            d.format_name = "image2".to_string();
+            d.width = im.w;
+            d.height = im.h;
+            d.nb_frames = 1;
+            d.duration = 0.04;
         }
         let text = String::from_utf8_lossy(bytes);
         for line in text.lines() {
@@ -834,7 +863,26 @@ impl MediaDoc {
                             "sr" => d.sample_rate = v.parse().unwrap_or(d.sample_rate),
                             "ch" => d.channels = v.parse().unwrap_or(d.channels),
                             "ha" => d.has_audio = v == "1",
-                            "title" => d.title = hex_dec_str(v),
+                            "title" => {
+                                d.title = hex_dec_str(v);
+                                if !d.title.is_empty() {
+                                    d.tags.insert("title".to_string(), d.title.clone());
+                                }
+                            }
+                            "tags" => {
+                                if !v.is_empty() {
+                                    for item in v.split(',') {
+                                        if let Some((kh, vh)) = item.split_once(':') {
+                                            let key = hex_dec_str(kh);
+                                            let val = hex_dec_str(vh);
+                                            if key == "title" {
+                                                d.title = val.clone();
+                                            }
+                                            d.tags.insert(key, val);
+                                        }
+                                    }
+                                }
+                            }
                             "subs" => d.subtitles = hex_dec_str(v),
                             "chaps" => {
                                 d.chapters.clear();
@@ -864,8 +912,13 @@ impl MediaDoc {
             .iter()
             .map(|(id, t)| format!("{id}:{}", hex_enc(t.as_bytes())))
             .collect();
+        let tags_encoded: Vec<String> = self
+            .tags
+            .iter()
+            .map(|(k, v)| format!("{}:{}", hex_enc(k.as_bytes()), hex_enc(v.as_bytes())))
+            .collect();
         let meta_line = format!(
-            "__MEDIA__:type={};codec={};fmt={};w={};h={};n={};fps={};dur={:.6};sr={};ch={};ha={};title={};subs={};chaps={}\n",
+            "__MEDIA__:type={};codec={};fmt={};w={};h={};n={};fps={};dur={:.6};sr={};ch={};ha={};title={};tags={};subs={};chaps={}\n",
             self.codec_type,
             self.codec_name,
             self.format_name,
@@ -878,6 +931,7 @@ impl MediaDoc {
             self.channels,
             if self.has_audio { 1 } else { 0 },
             hex_enc(self.title.as_bytes()),
+            tags_encoded.join(","),
             hex_enc(self.subtitles.as_bytes()),
             chaps.join(",")
         );
@@ -887,7 +941,28 @@ impl MediaDoc {
             return s.into_bytes();
         }
         let mut out = if self.format_name == "wav" {
-            b"RIFF\x24\x00\x00\x00WAVEfmt ".to_vec()
+            let ch = self.channels.max(1) as u16;
+            let sr = self.sample_rate.max(1);
+            let block_align = ch * 2;
+            let byte_rate = sr * (block_align as u32);
+            let total_frames = ((self.duration.max(0.0) * (sr as f64)).round() as usize).min(262_144);
+            let data_len = total_frames * (block_align as usize);
+            let riff_size = (36 + data_len) as u32;
+            let mut wav = Vec::with_capacity(44 + data_len + meta_line.len() + 2);
+            wav.extend_from_slice(b"RIFF");
+            wav.extend_from_slice(&riff_size.to_le_bytes());
+            wav.extend_from_slice(b"WAVEfmt ");
+            wav.extend_from_slice(&16u32.to_le_bytes());
+            wav.extend_from_slice(&1u16.to_le_bytes());
+            wav.extend_from_slice(&ch.to_le_bytes());
+            wav.extend_from_slice(&sr.to_le_bytes());
+            wav.extend_from_slice(&byte_rate.to_le_bytes());
+            wav.extend_from_slice(&block_align.to_le_bytes());
+            wav.extend_from_slice(&16u16.to_le_bytes());
+            wav.extend_from_slice(b"data");
+            wav.extend_from_slice(&(data_len as u32).to_le_bytes());
+            wav.resize(44 + data_len, 0u8);
+            wav
         } else if self.format_name == "gif" {
             b"GIF89a".to_vec()
         } else {
@@ -929,6 +1004,84 @@ fn html_escape_str(s: &str) -> String {
     out
 }
 
+fn xml_unescape_str(s: &str) -> String {
+    s.replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&apos;", "'")
+        .replace("&#39;", "'")
+}
+
+fn parse_markdown_pipe_table_rows(source: &str) -> Vec<Vec<String>> {
+    let pipe_cells = |line: &str| -> Option<Vec<String>> {
+        let mut cells = Vec::new();
+        let mut cell = String::new();
+        let chars: Vec<char> = line.chars().collect();
+        let mut idx = 0usize;
+        while idx < chars.len() {
+            let ch = chars[idx];
+            if ch == '\\' && idx + 1 < chars.len() && chars[idx + 1] == '|' {
+                cell.push('|');
+                idx += 2;
+            } else if ch == '|' {
+                cells.push(cell.trim().to_string());
+                cell.clear();
+                idx += 1;
+            } else {
+                cell.push(ch);
+                idx += 1;
+            }
+        }
+        if cells.is_empty() {
+            return None;
+        }
+        cells.push(cell.trim().to_string());
+        if line.trim_start().starts_with('|') && !cells.is_empty() {
+            cells.remove(0);
+        }
+        if line.trim_end().ends_with('|') && cells.last().is_some_and(|c| c.is_empty()) {
+            cells.pop();
+        }
+        Some(cells)
+    };
+
+    let lines: Vec<&str> = source.lines().collect();
+    let mut rows: Vec<Vec<String>> = Vec::new();
+    let mut index = 0usize;
+    while index + 1 < lines.len() {
+        let header = pipe_cells(lines[index]);
+        let delimiter = pipe_cells(lines[index + 1]);
+        if let (Some(hdr), Some(delim)) = (header, delimiter)
+            && !hdr.is_empty()
+            && delim.len() == hdr.len()
+            && delim.iter().all(|c| {
+                let s = c.trim_start_matches(':').trim_end_matches(':');
+                !s.is_empty() && s.chars().all(|ch| ch == '-')
+            })
+        {
+            let col_len = hdr.len();
+            rows.push(hdr);
+            index += 2;
+            while index < lines.len() {
+                if let Some(cells) = pipe_cells(lines[index]) {
+                    let mut row = Vec::with_capacity(col_len);
+                    for col in 0..col_len {
+                        row.push(cells.get(col).cloned().unwrap_or_default());
+                    }
+                    rows.push(row);
+                    index += 1;
+                } else {
+                    break;
+                }
+            }
+            continue;
+        }
+        index += 1;
+    }
+    rows
+}
+
 fn read_office_source(
     full_path: &str,
     bytes: &[u8],
@@ -941,15 +1094,80 @@ fn read_office_source(
         let rows: Vec<Vec<String>> = text
             .lines()
             .filter(|l| !l.trim().is_empty())
-            .map(|l| l.split(delim).map(|c| c.to_string()).collect())
+            .map(|line| {
+                let mut row: Vec<String> = Vec::new();
+                let mut field = String::new();
+                let mut quoted = false;
+                let chars: Vec<char> = line.chars().collect();
+                let mut idx = 0usize;
+                while idx < chars.len() {
+                    let ch = chars[idx];
+                    if ch == '"' {
+                        if quoted && idx + 1 < chars.len() && chars[idx + 1] == '"' {
+                            field.push('"');
+                            idx += 2;
+                            continue;
+                        } else if quoted || field.is_empty() {
+                            quoted = !quoted;
+                            idx += 1;
+                            continue;
+                        } else {
+                            field.push(ch);
+                        }
+                    } else if !quoted && ch == delim {
+                        row.push(field.clone());
+                        field.clear();
+                    } else {
+                        field.push(ch);
+                    }
+                    idx += 1;
+                }
+                row.push(field);
+                row
+            })
             .collect();
         let paras: Vec<String> = rows.iter().map(|r| r.join(",")).collect();
         return (paras, Some(rows));
     }
     if lower.ends_with(".xlsx") || lower.ends_with(".ods") {
         let entries = parse_ustar_archive(bytes);
-        for e in entries {
-            if e.name == "xl/worksheets/sheet1.xml" {
+        let mut shared_strings: Vec<String> = Vec::new();
+        for e in &entries {
+            if e.name == "xl/sharedStrings.xml" {
+                let sst_xml = String::from_utf8_lossy(&e.content);
+                let mut rest = sst_xml.as_ref();
+                while let Some(si_pos) = rest.find("<si") {
+                    rest = &rest[si_pos + 3..];
+                    if let Some(si_end) = rest.find("</si>") {
+                        let si_body = &rest[..si_end];
+                        let mut val = String::new();
+                        let mut s_rest = si_body;
+                        while let Some(t_pos) = s_rest.find("<t") {
+                            let after_t = &s_rest[t_pos + 2..];
+                            if !after_t.starts_with('>') && !after_t.starts_with(' ') {
+                                s_rest = after_t;
+                                continue;
+                            }
+                            if let Some(gt) = after_t.find('>') {
+                                let inner = &after_t[gt + 1..];
+                                if let Some(te) = inner.find("</t>") {
+                                    val.push_str(&xml_unescape_str(&inner[..te]));
+                                    s_rest = &inner[te + 4..];
+                                    continue;
+                                }
+                            }
+                            break;
+                        }
+                        shared_strings.push(val);
+                        rest = &rest[si_end + 5..];
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        for e in &entries {
+            if e.name == "xl/worksheets/sheet1.xml" || e.name.starts_with("xl/worksheets/sheet") {
                 let xml = String::from_utf8_lossy(&e.content);
                 let mut rows = Vec::new();
                 let mut rest = xml.as_ref();
@@ -957,18 +1175,81 @@ fn read_office_source(
                     rest = &rest[rs + 4..];
                     if let Some(re) = rest.find("</row>") {
                         let row_xml = &rest[..re];
-                        let mut cells = Vec::new();
+                        let mut cells: Vec<String> = Vec::new();
                         let mut rcell = row_xml;
-                        while let Some(ts) = rcell.find("<t>") {
-                            rcell = &rcell[ts + 3..];
-                            if let Some(te) = rcell.find("</t>") {
-                                let val = rcell[..te]
-                                    .replace("&amp;", "&")
-                                    .replace("&lt;", "<")
-                                    .replace("&gt;", ">")
-                                    .replace("&quot;", "\"");
-                                cells.push(val);
-                                rcell = &rcell[te + 4..];
+                        while let Some(cs) = rcell.find("<c") {
+                            let after_c = &rcell[cs + 2..];
+                            if !after_c.starts_with(' ') && !after_c.starts_with('>') && !after_c.starts_with('/') {
+                                rcell = after_c;
+                                continue;
+                            }
+                            if let Some(gt) = after_c.find('>') {
+                                let attrs = &after_c[..gt];
+                                if let Some(r_pos) = attrs.find("r=\"") {
+                                    let r_rest = &attrs[r_pos + 3..];
+                                    if let Some(r_end) = r_rest.find('"') {
+                                        let ref_str = &r_rest[..r_end];
+                                        let mut col_idx = 0usize;
+                                        for ch in ref_str.chars() {
+                                            if ch.is_ascii_alphabetic() {
+                                                col_idx = col_idx * 26 + ((ch.to_ascii_uppercase() as u8 - b'A') as usize + 1);
+                                            } else {
+                                                break;
+                                            }
+                                        }
+                                        if col_idx > 0 {
+                                            let target_col = col_idx - 1;
+                                            while cells.len() < target_col {
+                                                cells.push(String::new());
+                                            }
+                                        }
+                                    }
+                                }
+                                if attrs.ends_with('/') {
+                                    cells.push(String::new());
+                                    rcell = &after_c[gt + 1..];
+                                    continue;
+                                }
+                                let body_rest = &after_c[gt + 1..];
+                                if let Some(ce) = body_rest.find("</c>") {
+                                    let cell_body = &body_rest[..ce];
+                                    let is_shared = attrs.contains("t=\"s\"");
+                                    let is_inline = attrs.contains("t=\"inlineStr\"");
+                                    let val = if is_inline {
+                                        if let Some(ts) = cell_body.find("<t")
+                                            && let Some(tgt) = cell_body[ts + 2..].find('>')
+                                        {
+                                            let inner = &cell_body[ts + 2 + tgt + 1..];
+                                            if let Some(te) = inner.find("</t>") {
+                                                xml_unescape_str(&inner[..te])
+                                            } else {
+                                                String::new()
+                                            }
+                                        } else {
+                                            String::new()
+                                        }
+                                    } else if let Some(vs) = cell_body.find("<v>")
+                                        && let Some(ve) = cell_body[vs + 3..].find("</v>")
+                                    {
+                                        let raw = xml_unescape_str(&cell_body[vs + 3..vs + 3 + ve]);
+                                        if is_shared {
+                                            let idx: usize = raw.trim().parse().unwrap_or(usize::MAX);
+                                            shared_strings.get(idx).cloned().unwrap_or_default()
+                                        } else {
+                                            raw
+                                        }
+                                    } else if let Some(ts) = cell_body.find("<t>")
+                                        && let Some(te) = cell_body[ts + 3..].find("</t>")
+                                    {
+                                        xml_unescape_str(&cell_body[ts + 3..ts + 3 + te])
+                                    } else {
+                                        String::new()
+                                    };
+                                    cells.push(val);
+                                    rcell = &body_rest[ce + 4..];
+                                } else {
+                                    break;
+                                }
                             } else {
                                 break;
                             }
@@ -981,34 +1262,126 @@ fn read_office_source(
                         break;
                     }
                 }
-                let paras: Vec<String> = rows.iter().map(|r| r.join(",")).collect();
+                let paras: Vec<String> = rows.iter().map(|r| r.join("\t")).collect();
+                return (paras, Some(rows));
+            }
+        }
+        for e in &entries {
+            if e.name == "content.xml" {
+                let xml = String::from_utf8_lossy(&e.content);
+                let mut rows = Vec::new();
+                let mut rest = xml.as_ref();
+                while let Some(rs) = rest.find("<table:table-row") {
+                    rest = &rest[rs + 16..];
+                    if let Some(re) = rest.find("</table:table-row>") {
+                        let row_xml = &rest[..re];
+                        let mut cells = Vec::new();
+                        let mut rcell = row_xml;
+                        while let Some(cs) = rcell.find("<table:table-cell") {
+                            rcell = &rcell[cs + 17..];
+                            if let Some(gt) = rcell.find('>') {
+                                let inner = &rcell[gt + 1..];
+                                if let Some(ce) = inner.find("</table:table-cell>") {
+                                    let cell_txt = strip_html_tags(&inner[..ce]).trim().to_string();
+                                    cells.push(cell_txt);
+                                    rcell = &inner[ce + 19..];
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                        if !cells.is_empty() {
+                            rows.push(cells);
+                        }
+                        rest = &rest[re + 18..];
+                    } else {
+                        break;
+                    }
+                }
+                let paras: Vec<String> = rows.iter().map(|r| r.join("\t")).collect();
                 return (paras, Some(rows));
             }
         }
     }
     if lower.ends_with(".docx") || lower.ends_with(".odt") || lower.ends_with(".pptx") {
         let entries = parse_ustar_archive(bytes);
-        for e in entries {
+        for e in &entries {
             if e.name == "word/document.xml" {
                 let xml = String::from_utf8_lossy(&e.content);
                 let mut paras = Vec::new();
                 let mut rest = xml.as_ref();
-                while let Some(ts) = rest.find("<w:t>") {
-                    rest = &rest[ts + 5..];
-                    if let Some(te) = rest.find("</w:t>") {
-                        let val = rest[..te]
-                            .replace("&amp;", "&")
-                            .replace("&lt;", "<")
-                            .replace("&gt;", ">")
-                            .replace("&quot;", "\"");
-                        paras.push(val);
-                        rest = &rest[te + 6..];
+                while let Some(ps) = rest.find("<w:p") {
+                    let after_p = &rest[ps + 4..];
+                    if !after_p.starts_with('>') && !after_p.starts_with(' ') && !after_p.starts_with('/') {
+                        rest = after_p;
+                        continue;
+                    }
+                    if let Some(pe) = after_p.find("</w:p>") {
+                        let p_xml = &after_p[..pe];
+                        let mut line = String::new();
+                        let mut p_rest = p_xml;
+                        while let Some(ts) = p_rest.find("<w:t") {
+                            let after_t = &p_rest[ts + 4..];
+                            if let Some(gt) = after_t.find('>') {
+                                let t_inner = &after_t[gt + 1..];
+                                if let Some(te) = t_inner.find("</w:t>") {
+                                    line.push_str(&xml_unescape_str(&t_inner[..te]));
+                                    p_rest = &t_inner[te + 6..];
+                                    continue;
+                                }
+                            }
+                            break;
+                        }
+                        if !line.trim().is_empty() {
+                            paras.push(line.trim().to_string());
+                        }
+                        rest = &after_p[pe + 6..];
                     } else {
                         break;
                     }
                 }
                 return (paras, None);
             }
+            if e.name == "content.xml" {
+                let xml = String::from_utf8_lossy(&e.content);
+                let stripped = strip_html_tags(&xml);
+                let paras: Vec<String> = stripped
+                    .lines()
+                    .map(|l| l.trim().to_string())
+                    .filter(|l| !l.is_empty())
+                    .collect();
+                return (paras, None);
+            }
+        }
+        let mut slide_entries: Vec<&TarEntry> = entries
+            .iter()
+            .filter(|e| e.name.starts_with("ppt/slides/slide") && e.name.ends_with(".xml"))
+            .collect();
+        if !slide_entries.is_empty() {
+            slide_entries.sort_by(|a, b| a.name.cmp(&b.name));
+            let mut paras = Vec::new();
+            for se in slide_entries {
+                let xml = String::from_utf8_lossy(&se.content);
+                let mut rest = xml.as_ref();
+                while let Some(ts) = rest.find("<a:t") {
+                    let after_t = &rest[ts + 4..];
+                    if let Some(gt) = after_t.find('>') {
+                        let inner = &after_t[gt + 1..];
+                        if let Some(te) = inner.find("</a:t>") {
+                            let val = xml_unescape_str(&inner[..te]);
+                            if !val.trim().is_empty() {
+                                paras.push(val.trim().to_string());
+                            }
+                            rest = &inner[te + 6..];
+                            continue;
+                        }
+                    }
+                    break;
+                }
+            }
+            return (paras, None);
         }
     }
     if lower.ends_with(".pdf") || bytes.starts_with(b"%PDF-") {
@@ -1035,6 +1408,15 @@ fn read_office_source(
             .filter(|l| !l.is_empty())
             .collect();
         return (paras, None);
+    }
+    if lower.ends_with(".md") {
+        let md_rows = parse_markdown_pipe_table_rows(&text);
+        let paras = text
+            .lines()
+            .map(|l| l.trim().trim_start_matches("# ").to_string())
+            .filter(|l| !l.is_empty())
+            .collect();
+        return (paras, if md_rows.is_empty() { None } else { Some(md_rows) });
     }
     let paras = text
         .lines()
@@ -3058,6 +3440,341 @@ fn qr_render(
     text.into_bytes()
 }
 
+fn parse_ffmpeg_timestamp(spec: &str) -> Option<f64> {
+    let trimmed = spec.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    if let Some(ms) = trimmed.strip_suffix("ms") {
+        return ms.parse::<f64>().ok().map(|v| v / 1000.0);
+    }
+    if let Some(us) = trimmed.strip_suffix("us") {
+        return us.parse::<f64>().ok().map(|v| v / 1_000_000.0);
+    }
+    if let Some(s) = trimmed.strip_suffix('s')
+        && !trimmed.contains(':')
+    {
+        return s.parse::<f64>().ok();
+    }
+    if trimmed.contains(':') {
+        let parts: Vec<f64> = trimmed
+            .split(':')
+            .map(|x| x.parse::<f64>().unwrap_or(0.0))
+            .collect();
+        if parts.len() == 3 {
+            return Some(parts[0] * 3600.0 + parts[1] * 60.0 + parts[2]);
+        }
+        if parts.len() == 2 {
+            return Some(parts[0] * 60.0 + parts[1]);
+        }
+    }
+    trimmed.parse::<f64>().ok()
+}
+
+fn format_ffmpeg_introspection(flag: &str, cmd: &str) -> Option<String> {
+    match flag {
+        "-version" | "--version" => Some(format!(
+            "{cmd} version 7.1-safe-bash Copyright (c) 2000-2025 the FFmpeg developers\n  built with @poe-code/mp4-ast (registered ASTs: mp4, wav, gif, srt, webvtt, ffmetadata, hls, dash)\n  libavutil      59. 39.100 / 59. 39.100\n  libavcodec     61. 19.100 / 61. 19.100\n  libavformat    61.  7.100 / 61.  7.100\n  libavfilter    10.  4.100 / 10.  4.100\n"
+        )),
+        "-formats" | "-demuxers" | "-muxers" => Some(
+            [
+                "File formats:",
+                " D. = Demuxing supported",
+                " .E = Muxing supported",
+                " --",
+                " DE mov,mp4,m4a,3gp,3g2,mj2 QuickTime / MOV / MP4",
+                " DE matroska,webm        Matroska / WebM",
+                " DE wav                  WAV / WAVE (Waveform Audio)",
+                " DE gif                  CompuServe Graphics Interchange Format (GIF)",
+                " DE srt                  SubRip subtitle",
+                " DE webvtt               WebVTT subtitle",
+                " DE ffmetadata           FFmpeg metadata in text",
+                " DE hls                  Apple HTTP Live Streaming",
+                " DE dash                 Dynamic Adaptive Streaming over HTTP",
+                "",
+            ]
+            .join("\n"),
+        ),
+        "-codecs" | "-decoders" | "-encoders" => Some(
+            [
+                "Codecs:",
+                " D..... = Decoding supported",
+                " .E.... = Encoding supported",
+                " ..V... = Video codec",
+                " ..A... = Audio codec",
+                " ------",
+                " DEV.LS h264               h264 video",
+                " DEV.LS libx264            H.264 / AVC / MPEG-4 AVC",
+                " DEV.LS gif                gif video",
+                " DEV.LS png                png video",
+                " DEV.LS mjpeg              mjpeg video",
+                " DEA.L. aac                aac audio",
+                " DEA.L. pcm_s16le          pcm_s16le audio",
+                " DEA.L. pcm_f32le          pcm_f32le audio",
+                " DEA.L. pcm_u8             pcm_u8 audio",
+                " DEA.L. mp3                mp3 audio",
+                " DEA.L. flac               flac audio",
+                " DEA.L. opus               opus audio",
+                " DEA.L. vorbis             vorbis audio",
+                "",
+            ]
+            .join("\n"),
+        ),
+        "-protocols" => Some(
+            [
+                "Supported file protocols:",
+                "Input:",
+                "  file",
+                "  pipe",
+                "  concat",
+                "Output:",
+                "  file",
+                "  pipe",
+                "",
+            ]
+            .join("\n"),
+        ),
+        "-filters" => Some(
+            [
+                "Filters:",
+                "  scale            V->V       Scale the input video size.",
+                "  crop             V->V       Crop the input video.",
+                "  pad              V->V       Pad the input video.",
+                "  fps              V->V       Force constant framerate.",
+                "  hflip            V->V       Horizontally flip the input video.",
+                "  vflip            V->V       Vertically flip the input video.",
+                "  transpose        V->V       Transpose rows with columns.",
+                "  negate           V->V       Negate input video.",
+                "  drawbox          V->V       Draw a colored box on the input video.",
+                "  overlay          VV->V      Overlay a video source on top of the input.",
+                "  hstack           N->V       Stack video inputs horizontally.",
+                "  vstack           N->V       Stack video inputs vertically.",
+                "  concat           N->N       Concatenate audio and video streams.",
+                "  volume           A->A       Change input volume.",
+                "",
+            ]
+            .join("\n"),
+        ),
+        "-h" | "-help" | "--help" => Some(format!(
+            "{}\nusage: {cmd} [options] ...\n",
+            if cmd == "ffprobe" {
+                "Multimedia stream analyzer (safe-bash pure-AST engine)"
+            } else {
+                "Hyper fast Audio and Video encoder (safe-bash pure-AST engine)"
+            }
+        )),
+        _ => None,
+    }
+}
+
+fn parse_lavfi_input_doc(inp: &str) -> Option<MediaDoc> {
+    if inp.starts_with("color=")
+        || inp.starts_with("testsrc=")
+        || inp.starts_with("smptebars=")
+        || inp == "color"
+        || inp == "testsrc"
+        || inp == "smptebars"
+    {
+        let mut w = 64u32;
+        let mut h = 48u32;
+        let mut r = 10f64;
+        let mut d = 1.0f64;
+        let params = inp
+            .split_once('=')
+            .map(|(_, rest)| if rest.contains('=') { rest } else { inp })
+            .unwrap_or(inp);
+        for part in params.split(':') {
+            if let Some((k, v)) = part.split_once('=') {
+                match k {
+                    "s" | "size" => {
+                        if let Some((ws, hs)) = v.split_once('x') {
+                            w = ws.parse().unwrap_or(64);
+                            h = hs.parse().unwrap_or(48);
+                        }
+                    }
+                    "r" | "rate" => r = v.parse().unwrap_or(10.0),
+                    "d" | "duration" => d = v.parse().unwrap_or(1.0),
+                    _ => {}
+                }
+            }
+        }
+        let mut doc = MediaDoc::default_video();
+        doc.codec_type = "video".to_string();
+        doc.codec_name = "h264".to_string();
+        doc.format_name = "mp4".to_string();
+        doc.width = w;
+        doc.height = h;
+        doc.fps = r.round() as u32;
+        doc.duration = d;
+        doc.nb_frames = (r * d).round().max(1.0) as u32;
+        return Some(doc);
+    }
+    if inp.starts_with("sine=")
+        || inp.starts_with("anoisesrc=")
+        || inp.starts_with("anullsrc=")
+        || inp == "sine"
+        || inp == "anoisesrc"
+        || inp == "anullsrc"
+    {
+        let mut sr = 16000u32;
+        let mut d = 1.0f64;
+        let mut ch = 1u32;
+        let params = inp
+            .split_once('=')
+            .map(|(_, rest)| if rest.contains('=') { rest } else { inp })
+            .unwrap_or(inp);
+        for part in params.split(':') {
+            if let Some((k, v)) = part.split_once('=') {
+                if k == "sample_rate" || k == "r" {
+                    sr = v.parse().unwrap_or(16000);
+                } else if k == "duration" || k == "d" {
+                    d = v.parse().unwrap_or(1.0);
+                } else if k == "channel_layout" || k == "cl" {
+                    ch = if v == "stereo" { 2 } else { 1 };
+                }
+            }
+        }
+        let mut doc = MediaDoc::default_video();
+        doc.codec_type = "audio".to_string();
+        doc.codec_name = "pcm_s16le".to_string();
+        doc.format_name = "wav".to_string();
+        doc.sample_rate = sr;
+        doc.duration = d;
+        doc.channels = ch;
+        return Some(doc);
+    }
+    None
+}
+
+fn eval_dim_expr(expr: &str, iw: u32, ih: u32) -> Option<i32> {
+    let s = expr.trim();
+    if let Ok(v) = s.parse::<i32>() {
+        return Some(v);
+    }
+    let base = if s.starts_with("iw") || s.starts_with("in_w") {
+        Some((iw as f64, s.trim_start_matches("in_w").trim_start_matches("iw")))
+    } else if s.starts_with("ih") || s.starts_with("in_h") {
+        Some((ih as f64, s.trim_start_matches("in_h").trim_start_matches("ih")))
+    } else {
+        None
+    };
+    if let Some((val, rest)) = base {
+        let rest = rest.trim();
+        if rest.is_empty() {
+            return Some(val.round() as i32);
+        }
+        if let Some(div_s) = rest.strip_prefix('/')
+            && let Ok(div) = div_s.trim().parse::<f64>()
+            && div > 0.0
+        {
+            return Some((val / div).round() as i32);
+        }
+        if let Some(mul_s) = rest.strip_prefix('*')
+            && let Ok(mul) = mul_s.trim().parse::<f64>()
+        {
+            return Some((val * mul).round() as i32);
+        }
+    }
+    None
+}
+
+fn apply_vf_chain_to_doc(doc: &mut MediaDoc, vf_chain: &str) {
+    for f in vf_chain.split(',') {
+        let f = f.trim();
+        if f.is_empty() {
+            continue;
+        }
+        let f = if let Some(idx) = f.rfind(']') {
+            f[idx + 1..].trim()
+        } else {
+            f
+        };
+        let f = if let Some(idx) = f.find('[') {
+            f[..idx].trim()
+        } else {
+            f
+        };
+        if let Some(rest) = f.strip_prefix("scale=") {
+            let parts: Vec<&str> = rest.split(':').collect();
+            if parts.len() >= 2 {
+                let w_raw = parts[0].strip_prefix("w=").unwrap_or(parts[0]);
+                let h_raw = parts[1].strip_prefix("h=").unwrap_or(parts[1]);
+                let w_eval = eval_dim_expr(w_raw, doc.width, doc.height).unwrap_or(doc.width as i32);
+                let h_eval = eval_dim_expr(h_raw, doc.width, doc.height).unwrap_or(doc.height as i32);
+                let (new_w, new_h) = if w_eval < 0 && h_eval > 0 {
+                    let mut nw = ((doc.width as f64) * (h_eval as f64) / (doc.height.max(1) as f64)).round() as u32;
+                    if w_eval == -2 && nw % 2 == 1 {
+                        nw += 1;
+                    }
+                    (nw.max(1), h_eval as u32)
+                } else if h_eval < 0 && w_eval > 0 {
+                    let mut nh = ((doc.height as f64) * (w_eval as f64) / (doc.width.max(1) as f64)).round() as u32;
+                    if h_eval == -2 && nh % 2 == 1 {
+                        nh += 1;
+                    }
+                    (w_eval as u32, nh.max(1))
+                } else {
+                    (w_eval.max(1) as u32, h_eval.max(1) as u32)
+                };
+                doc.width = new_w;
+                doc.height = new_h;
+            }
+        } else if let Some(rest) = f.strip_prefix("crop=") {
+            let parts: Vec<&str> = rest.split(':').collect();
+            if parts.len() >= 2 {
+                let w_raw = parts[0].strip_prefix("w=").unwrap_or(parts[0]);
+                let h_raw = parts[1].strip_prefix("h=").unwrap_or(parts[1]);
+                if let Some(w) = eval_dim_expr(w_raw, doc.width, doc.height)
+                    && w > 0
+                {
+                    doc.width = w as u32;
+                }
+                if let Some(h) = eval_dim_expr(h_raw, doc.width, doc.height)
+                    && h > 0
+                {
+                    doc.height = h as u32;
+                }
+            }
+        } else if let Some(rest) = f.strip_prefix("pad=") {
+            let parts: Vec<&str> = rest.split(':').collect();
+            if parts.len() >= 2 {
+                let w_raw = parts[0].strip_prefix("w=").unwrap_or(parts[0]);
+                let h_raw = parts[1].strip_prefix("h=").unwrap_or(parts[1]);
+                if let Some(w) = eval_dim_expr(w_raw, doc.width, doc.height)
+                    && w > 0
+                {
+                    doc.width = w as u32;
+                }
+                if let Some(h) = eval_dim_expr(h_raw, doc.width, doc.height)
+                    && h > 0
+                {
+                    doc.height = h as u32;
+                }
+            }
+        } else if let Some(rest) = f.strip_prefix("transpose") {
+            let arg = rest.strip_prefix('=').unwrap_or("1");
+            if arg == "1" || arg == "2" || arg == "clock" || arg == "cclock" || arg.is_empty() {
+                std::mem::swap(&mut doc.width, &mut doc.height);
+            }
+        } else if let Some(rest) = f.strip_prefix("fps=") {
+            let val_s = rest.strip_prefix("fps=").unwrap_or(rest);
+            if let Ok(fr) = val_s.parse::<f64>()
+                && fr > 0.0
+            {
+                doc.fps = fr.round() as u32;
+                doc.nb_frames = (fr * doc.duration).round().max(1.0) as u32;
+            }
+        } else if let Some(rest) = f.strip_prefix("tile=")
+            && let Some((cs, rs)) = rest.split_once('x')
+        {
+            let cols: u32 = cs.parse().unwrap_or(1);
+            let rows: u32 = rs.parse().unwrap_or(1);
+            doc.width *= cols;
+            doc.height *= rows;
+        }
+    }
+}
+
 fn cmd_media_doc(
     cmd: &str,
     args: &[String],
@@ -3067,20 +3784,48 @@ fn cmd_media_doc(
 ) -> BuiltinOutcome {
     match cmd {
         "ffmpeg" => {
+            for arg in args {
+                if let Some(intro) = format_ffmpeg_introspection(arg, "ffmpeg") {
+                    return ok_out(&intro);
+                }
+            }
             let mut inputs: Vec<String> = Vec::new();
             let mut fmt_flag = String::new();
-            let mut vf_flag = String::new();
+            let mut vf_flags: Vec<String> = Vec::new();
             let mut fc_flag = String::new();
             let mut ar_opt: Option<u32> = None;
             let mut ac_opt: Option<u32> = None;
             let mut framerate_opt: Option<u32> = None;
             let mut ss_opt: Option<f64> = None;
+            let mut to_opt: Option<f64> = None;
             let mut t_opt: Option<f64> = None;
+            let mut vframes_opt: Option<u32> = None;
+            let mut size_opt: Option<(u32, u32)> = None;
+            let mut strip_audio = false;
+            let mut strip_video = false;
+            let mut explicit_no_overwrite = false;
             let mut meta_title: Option<String> = None;
+            let mut meta_tags: BTreeMap<String, String> = BTreeMap::new();
             let mut out_arg: Option<String> = None;
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
+                    "-y" => {
+                        explicit_no_overwrite = false;
+                        i += 1;
+                    }
+                    "-n" => {
+                        explicit_no_overwrite = true;
+                        i += 1;
+                    }
+                    "-an" => {
+                        strip_audio = true;
+                        i += 1;
+                    }
+                    "-vn" => {
+                        strip_video = true;
+                        i += 1;
+                    }
                     "-i" if i + 1 < args.len() => {
                         inputs.push(args[i + 1].clone());
                         i += 2;
@@ -3090,7 +3835,7 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-vf" | "-filter:v" if i + 1 < args.len() => {
-                        vf_flag = args[i + 1].clone();
+                        vf_flags.push(args[i + 1].clone());
                         i += 2;
                     }
                     "-filter_complex" if i + 1 < args.len() => {
@@ -3106,27 +3851,46 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-framerate" | "-r" if i + 1 < args.len() => {
-                        framerate_opt = args[i + 1].parse().ok();
+                        framerate_opt = args[i + 1].parse::<f64>().ok().map(|v| v.round() as u32);
                         i += 2;
                     }
                     "-ss" if i + 1 < args.len() => {
-                        ss_opt = args[i + 1].parse().ok();
+                        ss_opt = parse_ffmpeg_timestamp(&args[i + 1]);
+                        i += 2;
+                    }
+                    "-to" if i + 1 < args.len() => {
+                        to_opt = parse_ffmpeg_timestamp(&args[i + 1]);
                         i += 2;
                     }
                     "-t" if i + 1 < args.len() => {
-                        t_opt = args[i + 1].parse().ok();
+                        t_opt = parse_ffmpeg_timestamp(&args[i + 1]);
                         i += 2;
                     }
-                    "-metadata" if i + 1 < args.len() => {
-                        if let Some((k, v)) = args[i + 1].split_once('=')
-                            && k == "title"
+                    "-frames:v" | "-vframes" if i + 1 < args.len() => {
+                        vframes_opt = args[i + 1].parse().ok();
+                        i += 2;
+                    }
+                    "-s" if i + 1 < args.len() => {
+                        if let Some((ws, hs)) = args[i + 1].split_once('x')
+                            && let (Ok(w), Ok(h)) = (ws.parse::<u32>(), hs.parse::<u32>())
                         {
-                            meta_title = Some(v.to_string());
+                            size_opt = Some((w, h));
                         }
                         i += 2;
                     }
-                    "-af" | "-c" | "-c:a" | "-c:v" | "-frames:v" | "-vframes" | "-safe"
-                    | "-hls_time" | "-b:a" | "-b:v" | "-pix_fmt"
+                    "-metadata" if i + 1 < args.len() => {
+                        if let Some((k, v)) = args[i + 1].split_once('=') {
+                            if k == "title" {
+                                meta_title = Some(v.to_string());
+                            }
+                            meta_tags.insert(k.to_string(), v.to_string());
+                        }
+                        i += 2;
+                    }
+                    "-af" | "-filter:a" | "-c" | "-codec" | "-c:a" | "-acodec" | "-c:v"
+                    | "-vcodec" | "-c:s" | "-scodec" | "-safe" | "-hls_time" | "-b:a" | "-b:v"
+                    | "-pix_fmt" | "-v" | "-loglevel" | "-map" | "-movflags" | "-preset"
+                    | "-crf" | "-threads" | "-start_number" | "-stream_loop"
                         if i + 1 < args.len() =>
                     {
                         i += 2;
@@ -3153,83 +3917,44 @@ fn cmd_media_doc(
                 return err_out("ffmpeg: format AST not registered\n", 1);
             }
             let out_full = resolve_posix_path(cwd, &out_rel);
+            if explicit_no_overwrite && fs.read_file(&out_full).is_ok() {
+                return err_out(&format!("File '{out_rel}' already exists. Exiting.\n"), 1);
+            }
             let mut doc = MediaDoc::default_video();
+            let mut parsed_input_docs: Vec<MediaDoc> = Vec::new();
             for inp in &inputs {
-                if inp.starts_with("color=")
-                    || inp.starts_with("testsrc=")
-                    || inp.starts_with("smptebars=")
-                {
-                    let mut w = 64u32;
-                    let mut h = 48u32;
-                    let mut r = 10f64;
-                    let mut d = 1.0f64;
-                    let params = inp
-                        .split_once('=')
-                        .map(|(_, r)| if r.contains('=') { r } else { inp.as_str() })
-                        .unwrap_or(inp.as_str());
-                    for part in params.split(':') {
-                        if let Some((k, v)) = part.split_once('=') {
-                            match k {
-                                "s" | "size" => {
-                                    if let Some((ws, hs)) = v.split_once('x') {
-                                        w = ws.parse().unwrap_or(64);
-                                        h = hs.parse().unwrap_or(48);
-                                    }
-                                }
-                                "r" | "rate" => r = v.parse().unwrap_or(10.0),
-                                "d" | "duration" => d = v.parse().unwrap_or(1.0),
-                                _ => {}
-                            }
-                        }
-                    }
-                    doc.codec_type = "video".to_string();
-                    doc.codec_name = "h264".to_string();
-                    doc.format_name = "mp4".to_string();
-                    doc.width = w;
-                    doc.height = h;
-                    doc.fps = r.round() as u32;
-                    doc.duration = d;
-                    doc.nb_frames = (r * d).round().max(1.0) as u32;
-                } else if inp.starts_with("sine=") || inp.starts_with("anoisesrc=") {
-                    let mut sr = 16000u32;
-                    let mut d = 1.0f64;
-                    let params = inp
-                        .split_once('=')
-                        .map(|(_, r)| if r.contains('=') { r } else { inp.as_str() })
-                        .unwrap_or(inp.as_str());
-                    for part in params.split(':') {
-                        if let Some((k, v)) = part.split_once('=') {
-                            if k == "sample_rate" || k == "r" {
-                                sr = v.parse().unwrap_or(16000);
-                            } else if k == "duration" || k == "d" {
-                                d = v.parse().unwrap_or(1.0);
-                            }
-                        }
-                    }
-                    if inputs.first() != Some(inp) && doc.codec_type == "video" {
+                if let Some(lavfi_doc) = parse_lavfi_input_doc(inp) {
+                    if parsed_input_docs.is_empty() {
+                        doc = lavfi_doc.clone();
+                    } else if doc.codec_type == "video" && lavfi_doc.codec_type == "audio" {
                         doc.has_audio = true;
-                        doc.sample_rate = sr;
-                        doc.channels = 1;
+                        doc.sample_rate = lavfi_doc.sample_rate;
+                        doc.channels = lavfi_doc.channels;
                     } else {
-                        doc.codec_type = "audio".to_string();
-                        doc.codec_name = "pcm_s16le".to_string();
-                        doc.format_name = "wav".to_string();
-                        doc.sample_rate = sr;
-                        doc.duration = d;
-                        doc.channels = 1;
+                        doc = lavfi_doc.clone();
                     }
+                    parsed_input_docs.push(lavfi_doc);
                 } else if let Some(rest) = inp.strip_prefix("concat:") {
                     let mut total_frames = 0u32;
+                    let mut total_dur = 0.0f64;
                     for p in rest.split('|') {
                         let f = resolve_posix_path(cwd, p);
                         if let Ok(b) = fs.read_file(&f) {
                             let sub = MediaDoc::parse(&b, &f);
                             doc.width = sub.width;
                             doc.height = sub.height;
+                            doc.fps = sub.fps;
                             total_frames += sub.nb_frames;
+                            total_dur += sub.duration;
                         }
                     }
                     doc.nb_frames = total_frames.max(1);
+                    doc.duration = if total_dur > 0.0 {
+                        total_dur
+                    } else {
+                        (doc.nb_frames as f64) / (doc.fps.max(1) as f64)
+                    };
+                    parsed_input_docs.push(doc.clone());
                 } else if inp.contains('%') {
                     let mut count = 0u32;
                     let mut idx = 1usize;
@@ -3251,12 +3976,15 @@ fn cmd_media_doc(
                     if let Some(fr) = framerate_opt {
                         doc.fps = fr;
                     }
+                    doc.duration = (doc.nb_frames as f64) / (doc.fps.max(1) as f64);
+                    parsed_input_docs.push(doc.clone());
                 } else {
                     let full_in = resolve_posix_path(cwd, inp);
                     if let Ok(b) = fs.read_file(&full_in) {
                         let text = String::from_utf8_lossy(&b);
                         if fmt_flag == "concat" || text.starts_with("ffconcat") {
                             let mut total_frames = 0u32;
+                            let mut total_dur = 0.0f64;
                             for line in text.lines() {
                                 let t = line.trim();
                                 if let Some(r) = t.strip_prefix("file ") {
@@ -3266,11 +3994,19 @@ fn cmd_media_doc(
                                         let sub = MediaDoc::parse(&pb, &pf);
                                         doc.width = sub.width;
                                         doc.height = sub.height;
+                                        doc.fps = sub.fps;
                                         total_frames += sub.nb_frames;
+                                        total_dur += sub.duration;
                                     }
                                 }
                             }
                             doc.nb_frames = total_frames.max(1);
+                            doc.duration = if total_dur > 0.0 {
+                                total_dur
+                            } else {
+                                (doc.nb_frames as f64) / (doc.fps.max(1) as f64)
+                            };
+                            parsed_input_docs.push(doc.clone());
                         } else if full_in.ends_with(".srt") {
                             doc.subtitles = text.to_string();
                         } else if full_in.ends_with(".ffmeta") || text.starts_with(";FFMETADATA1") {
@@ -3284,10 +4020,16 @@ fn cmd_media_doc(
                                 {
                                     doc.chapters.push((cid, t.to_string()));
                                     cid += 1;
+                                } else if !in_chap
+                                    && let Some(t) = line.trim().strip_prefix("title=")
+                                {
+                                    doc.title = t.to_string();
                                 }
                             }
-                        } else if inputs.first() == Some(inp) {
-                            doc = MediaDoc::parse(&b, &full_in);
+                        } else if parsed_input_docs.is_empty() {
+                            let parsed = MediaDoc::parse(&b, &full_in);
+                            doc = parsed.clone();
+                            parsed_input_docs.push(parsed);
                         } else {
                             let sub = MediaDoc::parse(&b, &full_in);
                             if doc.codec_type == "video" && sub.codec_type == "audio" {
@@ -3297,58 +4039,46 @@ fn cmd_media_doc(
                             } else if doc.codec_type == "audio" && sub.codec_type == "video" {
                                 let sr = doc.sample_rate;
                                 let ch = doc.channels;
-                                doc = sub;
+                                doc = sub.clone();
                                 doc.has_audio = true;
                                 doc.sample_rate = sr;
                                 doc.channels = ch;
                             }
+                            parsed_input_docs.push(sub);
                         }
+                    } else if inp != "-" && inp != "pipe:0" {
+                        return err_out(&format!("{inp}: No such file or directory\n"), 1);
                     }
                 }
             }
-            if !fc_flag.is_empty() && inputs.len() >= 2 {
-                let f0 = resolve_posix_path(cwd, &inputs[0]);
-                let f1 = resolve_posix_path(cwd, &inputs[1]);
-                let d0 = fs
-                    .read_file(&f0)
-                    .map(|b| MediaDoc::parse(&b, &f0))
-                    .unwrap_or_else(|_| doc.clone());
-                let d1 = fs
-                    .read_file(&f1)
-                    .map(|b| MediaDoc::parse(&b, &f1))
-                    .unwrap_or_else(|_| doc.clone());
-                if fc_flag.contains("vstack") {
-                    doc.width = d0.width;
-                    doc.height = d0.height + d1.height;
-                } else if fc_flag.contains("hstack") {
-                    doc.width = d0.width + d1.width;
-                    doc.height = d0.height;
-                }
-            }
-            if !vf_flag.is_empty() {
-                for f in vf_flag.split(',') {
-                    let f = f.trim();
-                    if let Some(rest) = f.strip_prefix("scale=") {
-                        let parts: Vec<&str> = rest.split(':').collect();
-                        if parts.len() >= 2 {
-                            doc.width = parts[0].parse().unwrap_or(doc.width);
-                            doc.height = parts[1].parse().unwrap_or(doc.height);
-                        }
-                    } else if let Some(rest) = f.strip_prefix("pad=") {
-                        let parts: Vec<&str> = rest.split(':').collect();
-                        if parts.len() >= 2 {
-                            doc.width = parts[0].parse().unwrap_or(doc.width);
-                            doc.height = parts[1].parse().unwrap_or(doc.height);
-                        }
-                    } else if let Some(rest) = f.strip_prefix("tile=")
-                        && let Some((cs, rs)) = rest.split_once('x')
-                    {
-                        let cols: u32 = cs.parse().unwrap_or(1);
-                        let rows: u32 = rs.parse().unwrap_or(1);
-                        doc.width *= cols;
-                        doc.height *= rows;
+            if !fc_flag.is_empty() {
+                if parsed_input_docs.len() >= 2 {
+                    let d0 = &parsed_input_docs[0];
+                    let d1 = &parsed_input_docs[1];
+                    if fc_flag.contains("vstack") {
+                        doc.width = d0.width.max(d1.width);
+                        doc.height = parsed_input_docs.iter().map(|d| d.height).sum();
+                    } else if fc_flag.contains("hstack") {
+                        doc.width = parsed_input_docs.iter().map(|d| d.width).sum();
+                        doc.height = d0.height.max(d1.height);
+                    } else if fc_flag.contains("concat") {
+                        doc.width = d0.width;
+                        doc.height = d0.height;
+                        doc.fps = d0.fps;
+                        doc.nb_frames = parsed_input_docs.iter().map(|d| d.nb_frames).sum();
+                        doc.duration = parsed_input_docs.iter().map(|d| d.duration).sum();
                     }
                 }
+                for stage in fc_flag.split(';') {
+                    apply_vf_chain_to_doc(&mut doc, stage);
+                }
+            }
+            for vf_chain in &vf_flags {
+                apply_vf_chain_to_doc(&mut doc, vf_chain);
+            }
+            if let Some((sw, sh)) = size_opt {
+                doc.width = sw;
+                doc.height = sh;
             }
             if let Some(sr) = ar_opt {
                 doc.sample_rate = sr;
@@ -3356,13 +4086,68 @@ fn cmd_media_doc(
             if let Some(ch) = ac_opt {
                 doc.channels = ch;
             }
+            if let Some(fr) = framerate_opt {
+                doc.fps = fr;
+                doc.nb_frames = ((doc.fps as f64) * doc.duration).round().max(1.0) as u32;
+            }
             if let Some(dur) = t_opt {
                 let _ = ss_opt;
                 doc.duration = dur;
                 doc.nb_frames = ((doc.fps as f64) * dur).round().max(1.0) as u32;
+            } else if let Some(to_val) = to_opt {
+                let start = ss_opt.unwrap_or(0.0);
+                let dur = (to_val - start).max(0.05);
+                doc.duration = dur;
+                doc.nb_frames = ((doc.fps as f64) * dur).round().max(1.0) as u32;
+            } else if let Some(ss_val) = ss_opt
+                && ss_val > 0.0
+                && ss_val < doc.duration
+            {
+                doc.duration = (doc.duration - ss_val).max(0.05);
+                doc.nb_frames = ((doc.fps as f64) * doc.duration).round().max(1.0) as u32;
+            }
+            if let Some(vf_cnt) = vframes_opt {
+                doc.nb_frames = vf_cnt.max(1);
+                doc.duration = (doc.nb_frames as f64) / (doc.fps.max(1) as f64);
+            }
+            if strip_audio {
+                doc.has_audio = false;
+            }
+            if strip_video {
+                doc.codec_type = "audio".to_string();
             }
             if let Some(t) = meta_title {
-                doc.title = t;
+                doc.title = t.clone();
+                doc.tags.insert("title".to_string(), t);
+            }
+            for (k, v) in meta_tags {
+                doc.tags.insert(k, v);
+            }
+            if out_lower.ends_with(".ffmeta") || fmt_flag == "ffmetadata" {
+                let mut ffmeta = String::from(";FFMETADATA1\n");
+                if !doc.title.is_empty() && !doc.tags.contains_key("title") {
+                    ffmeta.push_str(&format!("title={}\n", doc.title));
+                }
+                for (k, v) in &doc.tags {
+                    ffmeta.push_str(&format!("{k}={v}\n"));
+                }
+                for (cid, ctitle) in &doc.chapters {
+                    ffmeta.push_str(&format!(
+                        "[CHAPTER]\nTIMEBASE=1/1000\nSTART={}\nEND={}\ntitle={ctitle}\n",
+                        cid * 1000,
+                        (cid + 1) * 1000
+                    ));
+                }
+                let _ = fs.write_file(&out_full, ffmeta.as_bytes());
+                return ok_out("");
+            }
+            if out_lower.ends_with(".mpd") || fmt_flag == "dash" {
+                let mpd = format!(
+                    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<MPD xmlns=\"urn:mpeg:dash:schema:mpd:2011\" mediaPresentationDuration=\"PT{:.1}S\">\n  <Period>\n    <AdaptationSet mimeType=\"video/mp4\" width=\"{}\" height=\"{}\"/>\n  </Period>\n</MPD>\n",
+                    doc.duration, doc.width, doc.height
+                );
+                let _ = fs.write_file(&out_full, mpd.as_bytes());
+                return ok_out("");
             }
             if out_lower.ends_with(".vtt") {
                 let vtt = format!("WEBVTT\n\n{}", doc.subtitles.replace(',', "."));
@@ -3397,6 +4182,7 @@ fn cmd_media_doc(
                 doc.codec_name = "pcm_s16le".to_string();
                 doc.format_name = "wav".to_string();
             } else if out_lower.ends_with(".gif") {
+                doc.codec_name = "gif".to_string();
                 doc.format_name = "gif".to_string();
             } else {
                 doc.codec_name = "h264".to_string();
@@ -3407,9 +4193,17 @@ fn cmd_media_doc(
             ok_out("")
         }
         "ffprobe" => {
+            for arg in args {
+                if let Some(intro) = format_ffmpeg_introspection(arg, "ffprobe") {
+                    return ok_out(&intro);
+                }
+            }
             let mut of_fmt = "json".to_string();
             let mut in_arg: Option<String> = None;
             let mut show_entries = String::new();
+            let mut select_streams: Option<String> = None;
+            let mut count_frames = false;
+            let mut count_packets = false;
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
@@ -3421,8 +4215,24 @@ fn cmd_media_doc(
                         show_entries = args[i + 1].clone();
                         i += 2;
                     }
-                    "-v" | "-select_streams" if i + 1 < args.len() => {
+                    "-select_streams" if i + 1 < args.len() => {
+                        select_streams = Some(args[i + 1].to_ascii_lowercase());
                         i += 2;
+                    }
+                    "-i" if i + 1 < args.len() => {
+                        in_arg = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-v" | "-loglevel" | "-f" if i + 1 < args.len() => {
+                        i += 2;
+                    }
+                    "-count_frames" => {
+                        count_frames = true;
+                        i += 1;
+                    }
+                    "-count_packets" => {
+                        count_packets = true;
+                        i += 1;
                     }
                     a if !a.starts_with('-') => {
                         in_arg = Some(a.to_string());
@@ -3439,74 +4249,294 @@ fn cmd_media_doc(
                 }
                 Some(p) => {
                     let full = resolve_posix_path(cwd, p);
-                    (fs.read_file(&full).unwrap_or_default(), full)
+                    match fs.read_file(&full) {
+                        Ok(b) => (b, full),
+                        Err(_) => return err_out(&format!("{p}: No such file or directory\n"), 1),
+                    }
                 }
             };
             let doc = MediaDoc::parse(&raw_bytes, &path_str);
+            let dur_val = if doc.duration > 0.0 {
+                doc.duration
+            } else {
+                (doc.nb_frames.max(1) as f64) / (doc.fps.max(1) as f64)
+            };
+            let want_video = match select_streams.as_deref() {
+                Some("a") | Some("a:0") | Some("1") => false,
+                _ => doc.codec_type == "video",
+            };
+            let want_audio = match select_streams.as_deref() {
+                Some("v") | Some("v:0") => false,
+                Some("0") => doc.codec_type == "audio",
+                _ => doc.codec_type == "audio" || doc.has_audio,
+            };
+            let video_field = |f: &str| -> Option<String> {
+                match f.trim() {
+                    "index" => Some("0".to_string()),
+                    "codec_name" => Some(doc.codec_name.clone()),
+                    "codec_type" => Some("video".to_string()),
+                    "width" => Some(doc.width.to_string()),
+                    "height" => Some(doc.height.to_string()),
+                    "nb_frames" | "nb_read_frames" | "nb_read_packets" => {
+                        Some(doc.nb_frames.to_string())
+                    }
+                    "r_frame_rate" | "avg_frame_rate" => Some(format!("{}/1", doc.fps)),
+                    "duration" => Some(format!("{dur_val:.6}")),
+                    _ => None,
+                }
+            };
+            let audio_field = |f: &str| -> Option<String> {
+                let a_codec = if doc.codec_type == "audio" {
+                    doc.codec_name.clone()
+                } else {
+                    "aac".to_string()
+                };
+                let a_idx = if doc.codec_type == "video" { "1" } else { "0" };
+                match f.trim() {
+                    "index" => Some(a_idx.to_string()),
+                    "codec_name" => Some(a_codec),
+                    "codec_type" => Some("audio".to_string()),
+                    "sample_rate" => Some(doc.sample_rate.to_string()),
+                    "channels" => Some(doc.channels.to_string()),
+                    "duration" => Some(format!("{dur_val:.6}")),
+                    "nb_frames" | "nb_read_frames" | "nb_read_packets" => {
+                        Some(doc.nb_frames.to_string())
+                    }
+                    _ => None,
+                }
+            };
+            let format_field = |f: &str| -> Option<String> {
+                match f.trim() {
+                    "filename" => Some(in_arg.clone().unwrap_or_else(|| path_str.clone())),
+                    "nb_streams" => Some(
+                        if doc.codec_type == "video" && doc.has_audio {
+                            "2".to_string()
+                        } else {
+                            "1".to_string()
+                        },
+                    ),
+                    "format_name" => Some(doc.format_name.clone()),
+                    "duration" => Some(format!("{dur_val:.6}")),
+                    "size" => Some(raw_bytes.len().to_string()),
+                    "title" | "tag:title" => Some(doc.title.clone()),
+                    _ => None,
+                }
+            };
+            if of_fmt.starts_with("default") && !show_entries.is_empty() {
+                let nokey = of_fmt.contains("nokey=1") || of_fmt.contains("nk=1");
+                let nowrappers = of_fmt.contains("noprint_wrappers=1") || of_fmt.contains("nw=1");
+                let mut lines: Vec<String> = Vec::new();
+                for sec in show_entries.split(':') {
+                    if let Some((sec_name, fields)) = sec.split_once('=') {
+                        let sec_lower = sec_name.trim().to_ascii_lowercase();
+                        if sec_lower == "stream" {
+                            if want_video {
+                                if !nowrappers {
+                                    lines.push("[STREAM]".to_string());
+                                }
+                                for f in fields.split(',') {
+                                    if let Some(v) = video_field(f) {
+                                        lines.push(if nokey { v } else { format!("{}={v}", f.trim()) });
+                                    }
+                                }
+                                if !nowrappers {
+                                    lines.push("[/STREAM]".to_string());
+                                }
+                            }
+                            if want_audio {
+                                if !nowrappers {
+                                    lines.push("[STREAM]".to_string());
+                                }
+                                for f in fields.split(',') {
+                                    if let Some(v) = audio_field(f) {
+                                        lines.push(if nokey { v } else { format!("{}={v}", f.trim()) });
+                                    }
+                                }
+                                if !nowrappers {
+                                    lines.push("[/STREAM]".to_string());
+                                }
+                            }
+                        } else if sec_lower == "format" || sec_lower == "format_tags" {
+                            if !nowrappers {
+                                lines.push("[FORMAT]".to_string());
+                            }
+                            for f in fields.split(',') {
+                                if let Some(v) = format_field(f) {
+                                    lines.push(if nokey { v } else { format!("{}={v}", f.trim()) });
+                                }
+                            }
+                            if !nowrappers {
+                                lines.push("[/FORMAT]".to_string());
+                            }
+                        }
+                    }
+                }
+                if lines.is_empty() {
+                    lines.push(doc.nb_frames.to_string());
+                }
+                return ok_out(&format!("{}\n", lines.join("\n")));
+            }
             if of_fmt.starts_with("default=noprint_wrappers=1:nokey=1") {
-                if show_entries.contains("width") {
-                    return ok_out(&format!("{}\n", doc.width));
-                }
-                if show_entries.contains("height") {
-                    return ok_out(&format!("{}\n", doc.height));
-                }
                 return ok_out(&format!("{}\n", doc.nb_frames));
+            }
+            if of_fmt == "flat" && !show_entries.is_empty() {
+                let mut lines: Vec<String> = Vec::new();
+                let fmt_flat_val = |k: &str, v: &str| -> String {
+                    if matches!(k, "width" | "height" | "channels" | "index") {
+                        v.to_string()
+                    } else {
+                        format!("\"{v}\"")
+                    }
+                };
+                for sec in show_entries.split(':') {
+                    if let Some((sec_name, fields)) = sec.split_once('=') {
+                        let sec_lower = sec_name.trim().to_ascii_lowercase();
+                        if sec_lower == "stream" {
+                            if want_video {
+                                for f in fields.split(',') {
+                                    let ft = f.trim();
+                                    if let Some(v) = video_field(ft) {
+                                        lines.push(format!("streams.stream.0.{ft}={}", fmt_flat_val(ft, &v)));
+                                    }
+                                }
+                            }
+                            if want_audio {
+                                let a_idx = if doc.codec_type == "video" { 1 } else { 0 };
+                                for f in fields.split(',') {
+                                    let ft = f.trim();
+                                    if let Some(v) = audio_field(ft) {
+                                        lines.push(format!("streams.stream.{a_idx}.{ft}={}", fmt_flat_val(ft, &v)));
+                                    }
+                                }
+                            }
+                        } else if sec_lower == "format" || sec_lower == "format_tags" {
+                            for f in fields.split(',') {
+                                let ft = f.trim();
+                                if let Some(v) = format_field(ft) {
+                                    lines.push(format!("format.{ft}={}", fmt_flat_val(ft, &v)));
+                                }
+                            }
+                        }
+                    }
+                }
+                return ok_out(&format!("{}\n", lines.join("\n")));
             }
             if of_fmt == "flat" {
                 return ok_out(&format!(
-                    "streams.stream.0.codec_type=\"{}\"\nstreams.stream.0.codec_name=\"{}\"\nstreams.stream.0.width={}\nstreams.stream.0.height={}\nstreams.stream.0.sample_rate=\"{}\"\nstreams.stream.0.channels={}\n",
+                    "streams.stream.0.codec_type=\"{}\"\nstreams.stream.0.codec_name=\"{}\"\nstreams.stream.0.width={}\nstreams.stream.0.height={}\nstreams.stream.0.nb_frames=\"{}\"\nstreams.stream.0.sample_rate=\"{}\"\nstreams.stream.0.channels={}\nformat.format_name=\"{}\"\nformat.duration=\"{dur_val:.6}\"\nformat.tags.title=\"{}\"\n",
                     doc.codec_type,
                     doc.codec_name,
                     doc.width,
                     doc.height,
+                    doc.nb_frames,
                     doc.sample_rate,
-                    doc.channels
+                    doc.channels,
+                    doc.format_name,
+                    doc.title
                 ));
             }
-            if of_fmt == "csv=p=0" {
-                if let Some(fields_spec) = show_entries.strip_prefix("stream=") {
-                    let vals: Vec<String> = fields_spec
-                        .split(',')
-                        .map(|f| match f.trim() {
-                            "width" => doc.width.to_string(),
-                            "height" => doc.height.to_string(),
-                            "codec_name" => doc.codec_name.clone(),
-                            "codec_type" => doc.codec_type.clone(),
-                            "sample_rate" => doc.sample_rate.to_string(),
-                            "channels" => doc.channels.to_string(),
-                            "nb_frames" => doc.nb_frames.to_string(),
-                            _ => String::new(),
-                        })
-                        .collect();
-                    let mut out = format!("{}\n", vals.join(","));
-                    if doc.codec_type == "video" && doc.has_audio {
-                        let audio_vals: Vec<String> = fields_spec
-                            .split(',')
-                            .filter_map(|f| match f.trim() {
-                                "codec_name" => Some("aac".to_string()),
-                                "codec_type" => Some("audio".to_string()),
-                                "sample_rate" => Some(doc.sample_rate.to_string()),
-                                "channels" => Some(doc.channels.to_string()),
-                                _ => None,
-                            })
-                            .collect();
-                        if !audio_vals.is_empty() {
-                            out.push_str(&format!("{}\n", audio_vals.join(",")));
+            if of_fmt.starts_with("compact") {
+                let no_key = of_fmt.contains("nk=1") || of_fmt.contains("nokey=1");
+                let no_sec = of_fmt.contains("p=0") || of_fmt.contains("print_section=0");
+                let mut out = String::new();
+                let fields: Vec<&str> = if let Some(s) = show_entries.strip_prefix("stream=") {
+                    s.split(':').next().unwrap_or(s).split(',').collect()
+                } else {
+                    vec!["codec_type", "codec_name", "width", "height"]
+                };
+                if want_video {
+                    let mut parts = Vec::new();
+                    if !no_sec {
+                        parts.push("stream".to_string());
+                    }
+                    for f in &fields {
+                        if let Some(v) = video_field(f) {
+                            parts.push(if no_key { v } else { format!("{}={v}", f.trim()) });
+                        }
+                    }
+                    out.push_str(&parts.join("|"));
+                    out.push('\n');
+                }
+                if want_audio {
+                    let mut parts = Vec::new();
+                    if !no_sec {
+                        parts.push("stream".to_string());
+                    }
+                    for f in &fields {
+                        if let Some(v) = audio_field(f) {
+                            parts.push(if no_key { v } else { format!("{}={v}", f.trim()) });
+                        }
+                    }
+                    out.push_str(&parts.join("|"));
+                    out.push('\n');
+                }
+                return ok_out(&out);
+            }
+            if of_fmt == "csv=p=0" || of_fmt == "csv" {
+                let print_sec = of_fmt == "csv";
+                if !show_entries.is_empty() {
+                    let mut out = String::new();
+                    for sec in show_entries.split(':') {
+                        if let Some((sec_name, fields_spec)) = sec.split_once('=') {
+                            let sec_lower = sec_name.trim().to_ascii_lowercase();
+                            if sec_lower == "stream" {
+                                if want_video {
+                                    let mut vals = Vec::new();
+                                    if print_sec {
+                                        vals.push("stream".to_string());
+                                    }
+                                    for f in fields_spec.split(',') {
+                                        if let Some(v) = video_field(f) {
+                                            vals.push(v);
+                                        }
+                                    }
+                                    if !vals.is_empty() {
+                                        out.push_str(&format!("{}\n", vals.join(",")));
+                                    }
+                                }
+                                if want_audio {
+                                    let mut vals = Vec::new();
+                                    if print_sec {
+                                        vals.push("stream".to_string());
+                                    }
+                                    for f in fields_spec.split(',') {
+                                        if let Some(v) = audio_field(f) {
+                                            vals.push(v);
+                                        }
+                                    }
+                                    if !vals.is_empty() {
+                                        out.push_str(&format!("{}\n", vals.join(",")));
+                                    }
+                                }
+                            } else if sec_lower == "format" || sec_lower == "format_tags" {
+                                let mut vals = Vec::new();
+                                if print_sec {
+                                    vals.push("format".to_string());
+                                }
+                                for f in fields_spec.split(',') {
+                                    if let Some(v) = format_field(f) {
+                                        vals.push(v);
+                                    }
+                                }
+                                if !vals.is_empty() {
+                                    out.push_str(&format!("{}\n", vals.join(",")));
+                                }
+                            }
                         }
                     }
                     return ok_out(&out);
                 }
-            }
-            if of_fmt == "csv" {
-                return ok_out(&format!(
-                    "stream,0,{},{},{},{},{},{}\n",
-                    doc.codec_name,
-                    doc.codec_type,
-                    doc.width,
-                    doc.height,
-                    doc.sample_rate,
-                    doc.channels
-                ));
+                if of_fmt == "csv" {
+                    return ok_out(&format!(
+                        "stream,0,{},{},{},{},{},{}\n",
+                        doc.codec_name,
+                        doc.codec_type,
+                        doc.width,
+                        doc.height,
+                        doc.sample_rate,
+                        doc.channels
+                    ));
+                }
             }
             if of_fmt == "default" {
                 return ok_out(&format!(
@@ -3525,27 +4555,36 @@ fn cmd_media_doc(
                 .iter()
                 .map(|(id, t)| format!("{{\"id\":{id},\"tags\":{{\"title\":\"{t}\"}}}}"))
                 .collect();
-            let dur_val = if doc.duration > 0.0 {
-                doc.duration
+            let read_frames_extra = if count_frames {
+                format!(",\"nb_read_frames\":\"{}\"", doc.nb_frames)
             } else {
-                (doc.nb_frames.max(1) as f64) / (doc.fps.max(1) as f64)
+                String::new()
             };
-            let stream_json = if doc.codec_type == "audio" {
-                format!(
-                    "{{\"codec_type\":\"audio\",\"codec_name\":\"{}\",\"sample_rate\":\"{}\",\"channels\":{},\"duration\":\"{dur_val:.6}\"}}",
-                    doc.codec_name, doc.sample_rate, doc.channels
-                )
-            } else if doc.has_audio {
-                format!(
-                    "{{\"codec_type\":\"video\",\"codec_name\":\"{}\",\"width\":{},\"height\":{},\"nb_frames\":\"{}\",\"duration\":\"{dur_val:.6}\"}},{{\"codec_type\":\"audio\",\"codec_name\":\"aac\",\"sample_rate\":\"{}\",\"channels\":{},\"duration\":\"{dur_val:.6}\"}}",
-                    doc.codec_name, doc.width, doc.height, doc.nb_frames, doc.sample_rate, doc.channels
-                )
+            let read_packets_extra = if count_packets {
+                format!(",\"nb_read_packets\":\"{}\"", doc.nb_frames)
             } else {
-                format!(
-                    "{{\"codec_type\":\"video\",\"codec_name\":\"{}\",\"width\":{},\"height\":{},\"nb_frames\":\"{}\",\"duration\":\"{dur_val:.6}\"}}",
-                    doc.codec_name, doc.width, doc.height, doc.nb_frames
-                )
+                String::new()
             };
+            let mut stream_objs = Vec::new();
+            if want_video {
+                stream_objs.push(format!(
+                    "{{\"index\":0,\"codec_type\":\"video\",\"codec_name\":\"{}\",\"width\":{},\"height\":{},\"r_frame_rate\":\"{}/1\",\"nb_frames\":\"{}\",\"duration\":\"{dur_val:.6}\"{read_frames_extra}{read_packets_extra}}}",
+                    doc.codec_name, doc.width, doc.height, doc.fps, doc.nb_frames
+                ));
+            }
+            if want_audio {
+                let a_codec = if doc.codec_type == "audio" {
+                    doc.codec_name.as_str()
+                } else {
+                    "aac"
+                };
+                let a_idx = if doc.codec_type == "video" { 1 } else { 0 };
+                stream_objs.push(format!(
+                    "{{\"index\":{a_idx},\"codec_type\":\"audio\",\"codec_name\":\"{a_codec}\",\"sample_rate\":\"{}\",\"channels\":{},\"duration\":\"{dur_val:.6}\"{read_frames_extra}{read_packets_extra}}}",
+                    doc.sample_rate, doc.channels
+                ));
+            }
+            let stream_json = stream_objs.join(",");
             ok_out(&format!(
                 "{{\"streams\":[{stream_json}],\"format\":{{\"format_name\":\"{}\",\"duration\":\"{dur_val:.6}\",\"tags\":{{\"title\":\"{}\"}}}},\"chapters\":[{}]}}\n",
                 doc.format_name,
@@ -3554,38 +4593,71 @@ fn cmd_media_doc(
             ))
         }
         "soffice" | "libreoffice" => {
-            if args.iter().any(|a| a == "--version" || a == "--help" || a == "-h") {
-                return ok_out("LibreOffice 24.8.0.0 100% virtual office suite\n");
-            }
             let mut outdir = cwd.to_string();
             let mut convert_to: Option<String> = None;
             let mut cat_mode = false;
             let mut files: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
-                match args[i].as_str() {
-                    "--outdir" if i + 1 < args.len() => {
-                        outdir = resolve_posix_path(cwd, &args[i + 1]);
+                let arg = args[i].as_str();
+                if arg == "--" {
+                    for f in &args[i + 1..] {
+                        files.push(f.clone());
+                    }
+                    break;
+                }
+                if arg == "--help" || arg == "-h" || arg == "-help" || arg == "-?" {
+                    return ok_out(
+                        "LibreOffice 24.8 (@poe-code/pdf-ast)\nUsage: soffice --headless --convert-to <format> [--outdir <dir>] <files...>\n",
+                    );
+                }
+                if arg == "--version" || arg == "-version" {
+                    return ok_out("LibreOffice 24.8.0.0 (@poe-code/pdf-ast)\n");
+                }
+                if arg == "--cat" || arg == "-cat" {
+                    cat_mode = true;
+                    i += 1;
+                    continue;
+                }
+                let opt = arg
+                    .strip_prefix("--")
+                    .or_else(|| arg.strip_prefix('-'))
+                    .unwrap_or("");
+                let (opt_name, eq_val) = match opt.split_once('=') {
+                    Some((n, v)) => (n, Some(v)),
+                    None => (opt, None),
+                };
+                if matches!(
+                    opt_name,
+                    "convert-to" | "outdir" | "infilter" | "pidfile" | "language"
+                ) {
+                    let val = if let Some(v) = eq_val {
+                        if v.is_empty() {
+                            return err_out(&format!("Error: {arg} requires a value\n"), 1);
+                        }
+                        i += 1;
+                        v.to_string()
+                    } else {
+                        let next = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                        if next.is_empty() || next.starts_with('-') {
+                            return err_out(&format!("Error: {arg} requires a value\n"), 1);
+                        }
                         i += 2;
+                        next.to_string()
+                    };
+                    if opt_name == "convert-to" {
+                        convert_to = Some(val);
+                    } else if opt_name == "outdir" {
+                        outdir = resolve_posix_path(cwd, &val);
                     }
-                    "--convert-to" if i + 1 < args.len() => {
-                        convert_to = Some(args[i + 1].clone());
-                        i += 2;
-                    }
-                    "--cat" => {
-                        cat_mode = true;
-                        i += 1;
-                    }
-                    a if !a.starts_with('-') => {
-                        files.push(a.to_string());
-                        i += 1;
-                    }
-                    _ => {
-                        i += 1;
-                    }
+                } else if arg.starts_with('-') {
+                    i += 1;
+                } else {
+                    files.push(arg.to_string());
+                    i += 1;
                 }
             }
-            if cat_mode {
+            if cat_mode && convert_to.is_none() && !files.is_empty() {
                 let mut out = String::new();
                 for f in &files {
                     let full = resolve_posix_path(cwd, f);
@@ -3607,20 +4679,28 @@ fn cmd_media_doc(
                 return ok_out(&out);
             }
             let conv_spec = match convert_to {
-                Some(s) => s,
-                None => {
+                Some(s) if !files.is_empty() => s,
+                _ => {
                     return err_out(
-                        "Error: please specify --convert-to or --cat in headless mode\n",
+                        "Error: --convert-to and at least one input file are required\n",
                         1,
                     )
                 }
             };
             let _ = fs.mkdir_all(&outdir);
-            let target_ext = conv_spec
-                .split(':')
-                .next()
-                .unwrap_or("pdf")
-                .to_ascii_lowercase();
+            let first_colon = conv_spec.find(':');
+            let second_colon = first_colon.and_then(|fc| conv_spec[fc + 1..].find(':').map(|sc| fc + 1 + sc));
+            let target_ext = match first_colon {
+                Some(fc) => conv_spec[..fc].to_ascii_lowercase(),
+                None => conv_spec.to_ascii_lowercase(),
+            };
+            let filter_name_raw = match (first_colon, second_colon) {
+                (Some(fc), Some(sc)) => Some(&conv_spec[fc + 1..sc]),
+                (Some(fc), None) => Some(&conv_spec[fc + 1..]),
+                _ => None,
+            };
+            let filter_opts = second_colon.map(|sc| &conv_spec[sc + 1..]);
+            let mut stdout_msg = String::new();
             for f in &files {
                 let full = resolve_posix_path(cwd, f);
                 let bytes = match fs.read_file(&full) {
@@ -3637,7 +4717,25 @@ fn cmd_media_doc(
                     .rsplit_once('.')
                     .map(|(s, _)| s)
                     .unwrap_or(fname);
+                let lower_in = fname.to_ascii_lowercase();
                 let dest = format!("{}/{stem}.{target_ext}", outdir.trim_end_matches('/'));
+                let default_filter = if target_ext == "pdf" {
+                    if lower_in.ends_with(".xlsx") || lower_in.ends_with(".csv") || lower_in.ends_with(".ods") {
+                        "calc_pdf_Export".to_string()
+                    } else if lower_in.ends_with(".pptx") || lower_in.ends_with(".odp") {
+                        "impress_pdf_Export".to_string()
+                    } else {
+                        "writer_pdf_Export".to_string()
+                    }
+                } else if target_ext == "csv" {
+                    "Text - txt - csv (StarCalc)".to_string()
+                } else {
+                    format!("{target_ext}_Export")
+                };
+                let filter_name = match filter_name_raw {
+                    Some(s) if !s.is_empty() => s.to_string(),
+                    _ => default_filter,
+                };
                 let (paras, rows_opt) = read_office_source(&full, &bytes, fs);
                 match target_ext.as_str() {
                     "pdf" => {
@@ -3780,12 +4878,23 @@ fn cmd_media_doc(
                     }
                     "csv" => {
                         let mut delim = ',';
-                        let parts: Vec<&str> = conv_spec.split(':').collect();
-                        if parts.len() >= 3
-                            && let Some(first_num) = parts[2].split(',').next()
-                            && let Ok(code) = first_num.parse::<u8>()
-                        {
-                            delim = code as char;
+                        let mut quote = '"';
+                        let mut quote_all = false;
+                        if let Some(fopts) = filter_opts {
+                            let fparts: Vec<&str> = fopts.split(',').collect();
+                            if let Some(first_num) = fparts.first()
+                                && let Ok(code) = first_num.parse::<u8>()
+                                && code > 0
+                            {
+                                delim = code as char;
+                            }
+                            if let Some(second_num) = fparts.get(1)
+                                && let Ok(code) = second_num.parse::<u8>()
+                                && code > 0
+                            {
+                                quote = code as char;
+                            }
+                            quote_all = fparts.get(6) == Some(&"true") || fopts.ends_with(",true");
                         }
                         let rows = rows_opt.unwrap_or_else(|| {
                             paras
@@ -3793,14 +4902,21 @@ fn cmd_media_doc(
                                 .map(|l| l.split(',').map(|c| c.to_string()).collect())
                                 .collect()
                         });
-                        let quote_all = conv_spec.ends_with(",true");
                         let mut csv_out = String::new();
+                        let q_str = quote.to_string();
+                        let qq_str = format!("{quote}{quote}");
                         for r in rows {
                             let formatted_cells: Vec<String> = r
                                 .into_iter()
                                 .map(|c| {
-                                    if quote_all {
-                                        format!("\"{c}\"")
+                                    let must_quote = quote_all
+                                        || c.contains(delim)
+                                        || c.contains(quote)
+                                        || c.contains('\n')
+                                        || c.contains('\r');
+                                    if must_quote {
+                                        let escaped = c.replace(&q_str, &qq_str);
+                                        format!("{quote}{escaped}{quote}")
                                     } else {
                                         c
                                     }
@@ -3852,8 +4968,9 @@ fn cmd_media_doc(
                     }
                     _ => {}
                 }
+                stdout_msg.push_str(&format!("convert {f} -> {dest} using filter : {filter_name}\n"));
             }
-            ok_out("")
+            ok_out(&stdout_msg)
         }
         "wkhtmltopdf" => {
             if args.iter().any(|a| a == "--read-args-from-stdin") {

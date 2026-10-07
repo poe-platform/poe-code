@@ -5241,45 +5241,131 @@ fn parse_yaml_key_value(
 }
 
 fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut mode = "html";
+    let mut mode = "html".to_string();
     let mut gnu_profile = false;
-    let mut files = Vec::new();
+    let mut quiet = false;
+    let mut noremap = false;
+    let mut files: Vec<String> = Vec::new();
+    let mut operands = false;
+    let mut expect_format = false;
+
     for a in args {
-        if a == "--text" {
-            mode = "text";
+        if expect_format {
+            if a != "text" && a != "html" && a != "latex" {
+                return err_out("unrtf: E_PROFILE: Unsupported output format\n", 1);
+            }
+            mode = a.clone();
+            expect_format = false;
+            continue;
+        }
+        if !operands && let Some(val) = a.strip_prefix("-t=") {
+            if val != "text" && val != "html" && val != "latex" {
+                return err_out("unrtf: E_PROFILE: Unsupported output format\n", 1);
+            }
+            mode = val.to_string();
+            continue;
+        }
+        if !operands && a == "-t" {
+            expect_format = true;
+            continue;
+        }
+        if !operands && a == "--" {
+            operands = true;
+            continue;
+        }
+        if operands {
+            files.push(a.clone());
+        } else if a == "--text" {
+            mode = "text".to_string();
         } else if a == "--html" {
-            mode = "html";
+            mode = "html".to_string();
         } else if a == "--latex" {
-            mode = "latex";
-        } else if a.starts_with("--profile=") && a.contains("gnu") {
-            gnu_profile = true;
-        } else if !a.starts_with('-') {
+            mode = "latex".to_string();
+        } else if let Some(prof) = a.strip_prefix("--profile=") {
+            if prof == "gnu-0.21.10" {
+                gnu_profile = true;
+            } else {
+                return err_out("unrtf: E_PROFILE: Unsupported output personality\n", 1);
+            }
+        } else if a == "--quiet" {
+            quiet = true;
+        } else if a == "--noremap" {
+            noremap = true;
+        } else if a == "--nopict" || a == "-n" {
+            // Accepted for CLI parity
+        } else if a.starts_with('-') && a != "-" {
+            return err_out(
+                "unrtf: E_PROFILE: Option requires an unadmitted personality/configuration profile\n",
+                1,
+            );
+        } else {
             files.push(a.clone());
         }
     }
+    if expect_format {
+        return err_out("unrtf: E_PROFILE: Unsupported output format\n", 1);
+    }
+    if files.len() > 1 {
+        return err_out("unrtf: E_PARSE: Only one input file is supported\n", 1);
+    }
+    if mode == "latex" || noremap {
+        gnu_profile = true;
+    }
+
     let text = match read_csv_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
         Err(e) => return err_out(&format!("unrtf: {e}"), 1),
     };
-    if !text.trim_start().starts_with("{\\rtf") {
+    let trimmed = text.trim_start();
+    if !trimmed.starts_with("{\\rtf") {
         return err_out("unrtf: input is not a valid RTF document\n", 1);
     }
-    let mut out = String::new();
-    if mode == "latex" {
-        out.push_str("\\documentclass{article}\n\\begin{document}\n");
+
+    let chars: Vec<char> = trimmed.chars().collect();
+    {
+        let mut depth = 0i32;
+        let mut k = 0usize;
+        while k < chars.len() {
+            if chars[k] == '\\' {
+                k += 2;
+                continue;
+            }
+            if chars[k] == '{' {
+                depth += 1;
+            } else if chars[k] == '}' {
+                depth -= 1;
+                if depth < 0 {
+                    return err_out("unrtf: E_PARSE: Unmatched closing brace\n", 1);
+                }
+            }
+            k += 1;
+        }
+        if depth != 0 {
+            return err_out("unrtf: E_PARSE: Unclosed RTF group\n", 1);
+        }
     }
-    let chars: Vec<char> = text.chars().collect();
+
+    let mut body = String::new();
     let mut i = 0usize;
-    let mut group_stack: Vec<Vec<&'static str>> = Vec::new();
+    let mut group_stack: Vec<(Vec<&'static str>, usize)> = Vec::new();
     let mut active_tags: Vec<&'static str> = Vec::new();
+    let mut uc_skip: usize = 1;
+    let mut in_table = false;
+    let mut in_row = false;
+    let mut in_cell = false;
+    let mut pending_high_surrogate: Option<u32> = None;
 
     let map_html_tag = |tag: &'static str| -> &'static str {
         if gnu_profile {
-            tag
+            match tag {
+                "strike" => "s",
+                _ => tag,
+            }
         } else {
             match tag {
                 "b" => "strong",
                 "i" => "em",
+                "strike" => "s",
                 _ => tag,
             }
         }
@@ -5309,19 +5395,98 @@ fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         }
     };
 
+    let push_escaped_char =
+        |out: &mut String, ch: char, mode: &str, gnu_profile: bool, noremap: bool| {
+            if mode == "html" {
+                match ch {
+                    '&' => out.push_str("&amp;"),
+                    '<' => out.push_str("&lt;"),
+                    '>' => out.push_str("&gt;"),
+                    '"' if gnu_profile && !noremap => out.push_str("&quot;"),
+                    '\u{00a0}' if gnu_profile && !noremap => out.push_str("&nbsp;"),
+                    _ => out.push(ch),
+                }
+            } else if mode == "latex" && gnu_profile && !noremap {
+                match ch {
+                    '\u{2013}' => out.push_str("--"),
+                    '\u{2014}' => out.push_str("---"),
+                    '\u{2022}' => out.push_str("{\\bullet}"),
+                    '#' => out.push_str("\\#"),
+                    '$' => out.push_str("{\\$}"),
+                    '%' => out.push_str("\\%"),
+                    '&' => out.push_str("\\&"),
+                    '_' => out.push_str("\\_"),
+                    _ => out.push(ch),
+                }
+            } else {
+                out.push(ch);
+            }
+        };
+
+    let ensure_table_cell = |out: &mut String, mode: &str, in_row: bool, in_cell: &mut bool| {
+        if mode == "html" && in_row && !*in_cell {
+            out.push_str("<td>");
+            *in_cell = true;
+        }
+    };
+
+    let decode_cp1252 = |b: u8| -> char {
+        match b {
+            0x80 => '\u{20ac}',
+            0x82 => '\u{201a}',
+            0x83 => '\u{0192}',
+            0x84 => '\u{201e}',
+            0x85 => '\u{2026}',
+            0x86 => '\u{2020}',
+            0x87 => '\u{2021}',
+            0x88 => '\u{02c6}',
+            0x89 => '\u{2030}',
+            0x8a => '\u{0160}',
+            0x8b => '\u{2039}',
+            0x8c => '\u{0152}',
+            0x8e => '\u{017d}',
+            0x91 => '\u{2018}',
+            0x92 => '\u{2019}',
+            0x93 => '\u{201c}',
+            0x94 => '\u{201d}',
+            0x95 => '\u{2022}',
+            0x96 => '\u{2013}',
+            0x97 => '\u{2014}',
+            0x98 => '\u{02dc}',
+            0x99 => '\u{2122}',
+            0x9a => '\u{0161}',
+            0x9b => '\u{203a}',
+            0x9c => '\u{0153}',
+            0x9e => '\u{017e}',
+            0x9f => '\u{0178}',
+            _ => b as char,
+        }
+    };
+
     while i < chars.len() {
         match chars[i] {
             '{' => {
-                let rest: String = chars[i + 1..chars.len().min(i + 20)].iter().collect();
-                if rest.starts_with("\\fonttbl")
-                    || rest.starts_with("\\colortbl")
-                    || rest.starts_with("\\stylesheet")
-                    || rest.starts_with("\\info")
-                    || rest.starts_with("\\*\\")
+                let rest: String = chars[i + 1..chars.len().min(i + 24)].iter().collect();
+                let rest_trim = rest.trim_start();
+                if rest_trim.starts_with("\\fonttbl")
+                    || rest_trim.starts_with("\\colortbl")
+                    || rest_trim.starts_with("\\stylesheet")
+                    || rest_trim.starts_with("\\info")
+                    || rest_trim.starts_with("\\pict")
+                    || rest_trim.starts_with("\\object")
+                    || rest_trim.starts_with("\\objdata")
+                    || rest_trim.starts_with("\\fldinst")
+                    || rest_trim.starts_with("\\header")
+                    || rest_trim.starts_with("\\footer")
+                    || rest_trim.starts_with("\\*")
                 {
                     let mut depth = 1i32;
                     i += 1;
                     while i < chars.len() && depth > 0 {
+                        if chars[i] == '\\' {
+                            i += 2;
+                            continue;
+                        }
                         if chars[i] == '{' {
                             depth += 1;
                         } else if chars[i] == '}' {
@@ -5331,13 +5496,14 @@ fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     }
                     continue;
                 }
-                group_stack.push(Vec::new());
+                group_stack.push((Vec::new(), uc_skip));
                 i += 1;
             }
             '}' => {
-                if let Some(group_tags) = group_stack.pop() {
+                if let Some((group_tags, saved_uc)) = group_stack.pop() {
+                    uc_skip = saved_uc;
                     for tag in group_tags.into_iter().rev() {
-                        emit_close_tag(&mut out, tag, mode);
+                        emit_close_tag(&mut body, tag, &mode);
                         if let Some(pos) = active_tags.iter().rposition(|&t| t == tag) {
                             active_tags.remove(pos);
                         }
@@ -5353,31 +5519,147 @@ fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 if chars[i] == '\'' && i + 2 < chars.len() {
                     let hex: String = chars[i + 1..i + 3].iter().collect();
                     if let Ok(b) = u8::from_str_radix(&hex, 16) {
-                        out.push(b as char);
+                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                        push_escaped_char(&mut body, decode_cp1252(b), &mode, gnu_profile, noremap);
                     }
                     i += 3;
                     continue;
                 }
                 if matches!(chars[i], '\\' | '{' | '}') {
-                    out.push(chars[i]);
+                    ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                    push_escaped_char(&mut body, chars[i], &mode, gnu_profile, noremap);
+                    i += 1;
+                    continue;
+                }
+                if chars[i] == '~' {
+                    ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                    push_escaped_char(&mut body, '\u{00a0}', &mode, gnu_profile, noremap);
+                    i += 1;
+                    continue;
+                }
+                if chars[i] == '_' {
+                    ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                    push_escaped_char(&mut body, '\u{2011}', &mode, gnu_profile, noremap);
                     i += 1;
                     continue;
                 }
                 let start = i;
-                while i < chars.len() && (chars[i].is_ascii_alphanumeric() || chars[i] == '-') {
+                while i < chars.len() && chars[i].is_ascii_alphabetic() {
                     i += 1;
                 }
                 let word: String = chars[start..i].iter().collect();
+                let num_start = i;
+                if i < chars.len() && (chars[i] == '-' || chars[i].is_ascii_digit()) {
+                    i += 1;
+                    while i < chars.len() && chars[i].is_ascii_digit() {
+                        i += 1;
+                    }
+                }
+                let param_str: String = chars[num_start..i].iter().collect();
+                let param: Option<i32> = if param_str.is_empty() {
+                    None
+                } else {
+                    param_str.parse::<i32>().ok()
+                };
                 if i < chars.len() && chars[i] == ' ' {
                     i += 1;
                 }
                 match word.as_str() {
-                    "par" | "line" | "row" => out.push('\n'),
-                    "tab" => out.push('\t'),
+                    "par" | "line" => {
+                        if mode == "html" {
+                            if in_row {
+                                ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                                body.push_str("<br>");
+                            } else if gnu_profile {
+                                body.push_str("<br>\n");
+                            } else {
+                                body.push('\n');
+                            }
+                        } else if mode == "latex" {
+                            body.push_str("\\par\n");
+                        } else {
+                            body.push('\n');
+                        }
+                    }
+                    "trowd" => {
+                        if mode == "html" {
+                            if !in_table {
+                                body.push_str("<table><tbody>");
+                                in_table = true;
+                            }
+                            body.push_str("<tr>");
+                        }
+                        in_row = true;
+                        in_cell = false;
+                    }
                     "cell" => {
-                        let rem: String = chars[i..chars.len().min(i + 12)].iter().collect();
-                        if !rem.trim_start().starts_with("\\row") {
-                            out.push('\t');
+                        if mode == "html" {
+                            if in_cell {
+                                body.push_str("</td>");
+                                in_cell = false;
+                            } else {
+                                body.push_str("<td></td>");
+                            }
+                        } else if mode == "text" {
+                            body.push('\t');
+                        }
+                    }
+                    "row" => {
+                        if mode == "html" {
+                            if in_cell {
+                                body.push_str("</td>");
+                                in_cell = false;
+                            }
+                            body.push_str("</tr>");
+                        } else {
+                            body.push('\n');
+                        }
+                        in_row = false;
+                    }
+                    "tab" => {
+                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                        if mode == "html" && !gnu_profile {
+                            body.push_str("&#9;");
+                        } else {
+                            body.push('\t');
+                        }
+                    }
+                    "emdash" => {
+                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                        push_escaped_char(&mut body, '\u{2014}', &mode, gnu_profile, noremap);
+                    }
+                    "endash" => {
+                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                        push_escaped_char(&mut body, '\u{2013}', &mode, gnu_profile, noremap);
+                    }
+                    "bullet" => {
+                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                        push_escaped_char(&mut body, '\u{2022}', &mode, gnu_profile, noremap);
+                    }
+                    "lquote" => {
+                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                        push_escaped_char(&mut body, '\u{2018}', &mode, gnu_profile, noremap);
+                    }
+                    "rquote" => {
+                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                        push_escaped_char(&mut body, '\u{2019}', &mode, gnu_profile, noremap);
+                    }
+                    "ldblquote" => {
+                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                        push_escaped_char(&mut body, '\u{201c}', &mode, gnu_profile, noremap);
+                    }
+                    "rdblquote" => {
+                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                        push_escaped_char(&mut body, '\u{201d}', &mode, gnu_profile, noremap);
+                    }
+                    "plain" => {
+                        if let Some((top_tags, _)) = group_stack.last_mut() {
+                            for tag in top_tags.drain(..).rev() {
+                                emit_close_tag(&mut body, tag, &mode);
+                                if let Some(pos) = active_tags.iter().rposition(|&t| t == tag) {
+                                    active_tags.remove(pos);
+                                }
+                            }
                         }
                     }
                     "b" | "i" | "ul" | "strike" => {
@@ -5387,38 +5669,85 @@ fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                             "ul" => "u",
                             _ => "strike",
                         };
-                        emit_open_tag(&mut out, tag, mode);
-                        active_tags.push(tag);
-                        if let Some(top) = group_stack.last_mut() {
-                            top.push(tag);
+                        if param == Some(0) {
+                            if let Some(pos) = active_tags.iter().rposition(|&t| t == tag) {
+                                active_tags.remove(pos);
+                                emit_close_tag(&mut body, tag, &mode);
+                            }
+                            if let Some((top, _)) = group_stack.last_mut()
+                                && let Some(pos) = top.iter().rposition(|&t| t == tag)
+                            {
+                                top.remove(pos);
+                            }
+                        } else {
+                            ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                            emit_open_tag(&mut body, tag, &mode);
+                            active_tags.push(tag);
+                            if let Some((top, _)) = group_stack.last_mut() {
+                                top.push(tag);
+                            }
                         }
                     }
-                    "b0" | "i0" | "ul0" | "ulnone" | "strike0" => {
-                        let tag: &'static str = match word.as_str() {
-                            "b0" => "b",
-                            "i0" => "i",
-                            "ul0" | "ulnone" => "u",
-                            _ => "strike",
-                        };
-                        if let Some(pos) = active_tags.iter().rposition(|&t| t == tag) {
+                    "ulnone" => {
+                        if let Some(pos) = active_tags.iter().rposition(|&t| t == "u") {
                             active_tags.remove(pos);
-                            emit_close_tag(&mut out, tag, mode);
+                            emit_close_tag(&mut body, "u", &mode);
                         }
-                        if let Some(top) = group_stack.last_mut()
-                            && let Some(pos) = top.iter().rposition(|&t| t == tag)
+                        if let Some((top, _)) = group_stack.last_mut()
+                            && let Some(pos) = top.iter().rposition(|&t| t == "u")
                         {
                             top.remove(pos);
                         }
                     }
-                    w if w.starts_with('u') && w[1..].parse::<i32>().is_ok() => {
-                        if let Ok(code) = w[1..].parse::<i32>() {
-                            let u = if code < 0 { (code + 65536) as u32 } else { code as u32 };
-                            if let Some(ch) = char::from_u32(u) {
-                                out.push(ch);
-                            }
+                    "uc" => {
+                        if let Some(p) = param
+                            && p >= 0
+                        {
+                            uc_skip = p as usize;
                         }
-                        if i < chars.len() && chars[i] == '?' {
-                            i += 1;
+                    }
+                    "u" => {
+                        if let Some(code) = param {
+                            let u = if code < 0 {
+                                (code + 65536) as u32
+                            } else {
+                                code as u32
+                            };
+                            if (0xd800..=0xdbff).contains(&u) {
+                                pending_high_surrogate = Some(u);
+                            } else if (0xdc00..=0xdfff).contains(&u) {
+                                if let Some(hi) = pending_high_surrogate.take() {
+                                    let cp = 0x10000 + ((hi - 0xd800) << 10) + (u - 0xdc00);
+                                    if let Some(ch) = char::from_u32(cp) {
+                                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                                        push_escaped_char(&mut body, ch, &mode, gnu_profile, noremap);
+                                    }
+                                }
+                            } else if let Some(ch) = char::from_u32(u) {
+                                ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                                push_escaped_char(&mut body, ch, &mode, gnu_profile, noremap);
+                            }
+                            let mut rem_skip = uc_skip;
+                            while rem_skip > 0 && i < chars.len() {
+                                if chars[i] == '\\' && i + 1 < chars.len() {
+                                    if chars[i + 1] == '\'' && i + 3 < chars.len() {
+                                        i += 4;
+                                        rem_skip -= 1;
+                                        continue;
+                                    } else if !chars[i + 1].is_ascii_alphabetic() {
+                                        i += 2;
+                                        rem_skip -= 1;
+                                        continue;
+                                    } else {
+                                        break;
+                                    }
+                                } else if chars[i] == '{' || chars[i] == '}' {
+                                    break;
+                                } else {
+                                    i += 1;
+                                    rem_skip -= 1;
+                                }
+                            }
                         }
                     }
                     _ => {}
@@ -5428,15 +5757,60 @@ fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 i += 1;
             }
             c => {
-                out.push(c);
+                if mode == "html" && in_table && !in_row && !c.is_whitespace() {
+                    body.push_str("</tbody></table>");
+                    in_table = false;
+                }
+                ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
+                push_escaped_char(&mut body, c, &mode, gnu_profile, noremap);
                 i += 1;
             }
         }
     }
+    if mode == "html" && in_table {
+        if in_cell {
+            body.push_str("</td>");
+        }
+        if in_row {
+            body.push_str("</tr>");
+        }
+        body.push_str("</tbody></table>");
+    }
+
+    let mut out = String::new();
     if mode == "latex" {
+        out.push_str("\\documentclass[11pt]{article}\n\\title{}\n");
+        if !quiet {
+            out.push_str("\\%  Translation from RTF performed by UnRTF, version 0.21.10 \n");
+        }
+        out.push_str("\n\n\\begin{document}\n\\maketitle\n\n");
+        out.push_str(&body);
         out.push_str("\n\\end{document}\n");
-    } else if !out.ends_with('\n') {
-        out.push('\n');
+    } else if mode == "html" {
+        if gnu_profile {
+            out.push_str("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<html>\n<head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n");
+            if !quiet {
+                out.push_str("<!-- Translation from RTF performed by UnRTF, version 0.21.10 -->\n");
+            }
+            out.push_str("</head>\n<body>");
+            out.push_str(&body);
+            out.push_str("</body>\n</html>\n");
+        } else {
+            out.push_str("<!DOCTYPE html><html><body>");
+            out.push_str(&body);
+            out.push_str("</body></html>\n");
+        }
+    } else {
+        if gnu_profile {
+            if !quiet {
+                out.push_str("###  Translation from RTF performed by UnRTF, version 0.21.10 \n");
+            }
+            out.push_str("\n-----------------\n");
+        }
+        out.push_str(&body);
+        if !out.ends_with('\n') {
+            out.push('\n');
+        }
     }
     ok_out(&out)
 }
@@ -17349,85 +17723,640 @@ fn collect_html_table_rows(nodes: &[HtmlNode], rows: &mut Vec<Vec<String>>) {
     }
 }
 
+const MMDC_HELP_TEXT: &str = "Usage: mmdc [options]\n\nRender Mermaid diagrams (flowchart, sequence, state, class, ER, pie) to SVG, PNG, or PDF.\n\nOptions:\n  -i, --input <path|->            Input Mermaid file or /dev/stdin (default: stdin)\n  -o, --output <path|->           Output file or '-' for stdout (default: input + .svg, or out.svg)\n  -e, --outputFormat <format>     Explicit format: svg, png, pdf (inferred from -o when omitted)\n  -t, --theme <theme>             default, forest, dark, neutral, base, light\n  -w, --width <pixels>            Positive viewport width in CSS pixels\n  -H, --height <pixels>           Positive viewport height in CSS pixels\n  -s, --scale <multiplier>        PNG/PDF rasterization scale multiplier (default: 1)\n  -b, --backgroundColor <color>   Canvas color (default: white; CSS names, hex, rgb/rgba, transparent)\n  -c, --configFile <path>         JSON configuration file for theme and layout spacing\n  -I, --svgId <id>               ID of the root SVG element\n  -f, --pdfFit                    Fit PDF page to the rendered viewport (already the default)\n  -q, --quiet                     Suppress non-fatal status messages\n  -h, --help                      Display this help message and exit\n  -V, --version                   Display version information and exit\n";
+
+fn escape_mmdc_xml(raw: &str) -> String {
+    let mut out = String::new();
+    for ch in raw.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            _ => out.push(ch),
+        }
+    }
+    out
+}
+
+fn is_valid_mmdc_theme(t: &str) -> bool {
+    matches!(t, "light" | "dark" | "default" | "neutral" | "forest" | "base")
+}
+
 fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut in_file: Option<String> = None;
     let mut out_file: Option<String> = None;
-    let mut width = 800u32;
-    let mut height = 600u32;
+    let mut explicit_format: Option<String> = None;
+    let mut cli_theme: Option<String> = None;
+    let mut cli_width: Option<u32> = None;
+    let mut cli_height: Option<u32> = None;
+    let mut cli_scale: Option<f64> = None;
+    let mut cli_bg: Option<String> = None;
+    let mut config_file: Option<String> = None;
+    let mut svg_id: Option<String> = None;
+    let mut help = false;
+    let mut version = false;
+
+    let parse_pos_f64 = |val: &str, flag: &str| -> Result<f64, String> {
+        if val.trim().is_empty() {
+            return Err(format!("mmdc: E_ARGUMENT: Invalid positive number '{val}' for {flag}\n"));
+        }
+        let n: f64 = val
+            .parse()
+            .map_err(|_| format!("mmdc: E_ARGUMENT: Invalid positive number '{val}' for {flag}\n"))?;
+        if !n.is_finite() || n <= 0.0 {
+            return Err(format!("mmdc: E_ARGUMENT: Invalid positive number '{val}' for {flag}\n"));
+        }
+        Ok(n)
+    };
+
     let mut i = 0usize;
     while i < args.len() {
-        match args[i].as_str() {
-            "-i" | "--input" if i + 1 < args.len() => {
-                i += 1;
-                in_file = Some(args[i].clone());
+        let arg = &args[i];
+        if arg == "-h" || arg == "--help" {
+            help = true;
+            i += 1;
+            continue;
+        }
+        if arg == "-V" || arg == "--version" {
+            version = true;
+            i += 1;
+            continue;
+        }
+        if arg == "-q" || arg == "--quiet" || arg == "-f" || arg == "--pdfFit" {
+            i += 1;
+            continue;
+        }
+        if matches!(
+            arg.as_str(),
+            "-p" | "--puppeteerConfigFile" | "-C" | "--cssFile"
+        ) {
+            return err_out(
+                &format!("mmdc: E_ARGUMENT: Option '{arg}' (browser/CSS injection) is not supported\n"),
+                2,
+            );
+        }
+
+        let mut flag = arg.as_str();
+        let mut inline_val: Option<&str> = None;
+        if arg.starts_with("--")
+            && let Some(eq) = arg.find('=')
+            && eq > 2
+        {
+            flag = &arg[..eq];
+            inline_val = Some(&arg[eq + 1..]);
+        } else if arg.len() > 2
+            && arg.starts_with('-')
+            && !arg.starts_with("--")
+            && "ioetwHsbcI".contains(arg.chars().nth(1).unwrap_or('\0'))
+        {
+            flag = &arg[..2];
+            inline_val = Some(&arg[2..]);
+        }
+
+        if matches!(
+            flag,
+            "-p" | "--puppeteerConfigFile" | "-C" | "--cssFile"
+        ) {
+            return err_out(
+                &format!("mmdc: E_ARGUMENT: Option '{flag}' (browser/CSS injection) is not supported\n"),
+                2,
+            );
+        }
+
+        let mut next_val = || -> Result<String, BuiltinOutcome> {
+            if let Some(v) = inline_val {
+                return Ok(v.to_string());
             }
-            "-o" | "--output" if i + 1 < args.len() => {
-                i += 1;
-                out_file = Some(args[i].clone());
+            if i + 1 >= args.len() {
+                return Err(err_out(
+                    &format!("mmdc: E_ARGUMENT: Option '{flag}' requires an argument\n"),
+                    2,
+                ));
             }
-            "-w" | "--width" if i + 1 < args.len() => {
-                i += 1;
-                width = args[i].parse().unwrap_or(800);
+            i += 1;
+            Ok(args[i].clone())
+        };
+
+        match flag {
+            "-i" | "--input" => match next_val() {
+                Ok(v) => in_file = Some(v),
+                Err(e) => return e,
+            },
+            "-o" | "--output" => match next_val() {
+                Ok(v) => out_file = Some(v),
+                Err(e) => return e,
+            },
+            "-e" | "--outputFormat" => match next_val() {
+                Ok(v) => explicit_format = Some(v),
+                Err(e) => return e,
+            },
+            "-t" | "--theme" => match next_val() {
+                Ok(v) => {
+                    if !is_valid_mmdc_theme(&v) {
+                        return err_out(
+                            &format!(
+                                "mmdc: E_ARGUMENT: Unsupported theme '{v}'. Supported themes: default, forest, dark, neutral, base, light\n"
+                            ),
+                            2,
+                        );
+                    }
+                    cli_theme = Some(v);
+                }
+                Err(e) => return e,
+            },
+            "-w" | "--width" => match next_val() {
+                Ok(v) => match parse_pos_f64(&v, flag) {
+                    Ok(n) => cli_width = Some(n.round() as u32),
+                    Err(msg) => return err_out(&msg, 2),
+                },
+                Err(e) => return e,
+            },
+            "-H" | "--height" => match next_val() {
+                Ok(v) => match parse_pos_f64(&v, flag) {
+                    Ok(n) => cli_height = Some(n.round() as u32),
+                    Err(msg) => return err_out(&msg, 2),
+                },
+                Err(e) => return e,
+            },
+            "-s" | "--scale" => match next_val() {
+                Ok(v) => match parse_pos_f64(&v, flag) {
+                    Ok(n) => cli_scale = Some(n),
+                    Err(msg) => return err_out(&msg, 2),
+                },
+                Err(e) => return e,
+            },
+            "-b" | "--backgroundColor" => match next_val() {
+                Ok(v) => cli_bg = Some(v),
+                Err(e) => return e,
+            },
+            "-c" | "--configFile" => match next_val() {
+                Ok(v) => config_file = Some(v),
+                Err(e) => return e,
+            },
+            "-I" | "--svgId" => match next_val() {
+                Ok(v) => svg_id = Some(v),
+                Err(e) => return e,
+            },
+            _ => {
+                return err_out(
+                    &format!("mmdc: E_ARGUMENT: Unknown or unsupported argument '{arg}'\n"),
+                    2,
+                );
             }
-            "-H" | "--height" if i + 1 < args.len() => {
-                i += 1;
-                height = args[i].parse().unwrap_or(600);
-            }
-            _ => {}
         }
         i += 1;
     }
-    let src_text = match in_file.as_deref() {
-        Some("-") | None => stdin.to_string(),
-        Some(p) => {
-            let full = resolve_posix_path(cwd, p);
-            match fs.read_file(&full) {
-                Ok(b) => String::from_utf8_lossy(&b).to_string(),
-                Err(_) => return err_out(&format!("mmdc: input file not found: {p}\n"), 1),
+
+    if help {
+        return ok_out(MMDC_HELP_TEXT);
+    }
+    if version {
+        return ok_out("0.0.1\n");
+    }
+
+    if in_file.as_ref().is_some_and(|s| s.trim().is_empty())
+        || out_file.as_ref().is_some_and(|s| s.trim().is_empty())
+    {
+        return err_out("mmdc: E_ARGUMENT: Input and output paths must not be empty\n", 2);
+    }
+
+    let mut cfg_theme: Option<String> = None;
+    let mut cfg_width: Option<u32> = None;
+    let mut cfg_height: Option<u32> = None;
+    let mut cfg_scale: Option<f64> = None;
+    let mut cfg_bg: Option<String> = None;
+
+    if let Some(ref cfg_path) = config_file {
+        let full_cfg = resolve_posix_path(cwd, cfg_path);
+        let raw_cfg = match fs.read_file(&full_cfg) {
+            Ok(b) => b,
+            Err(_) => {
+                return err_out(
+                    &format!("mmdc: E_IO: Configuration file not found: {cfg_path}\n"),
+                    1,
+                )
+            }
+        };
+        let cfg_text = match std::str::from_utf8(&raw_cfg) {
+            Ok(s) => s,
+            Err(_) => {
+                return err_out("mmdc: E_CONFIG: Configuration file must be valid UTF-8\n", 2)
+            }
+        };
+        let vals = match parse_json_stream(cfg_text) {
+            Ok(v) if v.len() == 1 => v,
+            _ => return err_out("mmdc: E_CONFIG: Invalid JSON in configuration file\n", 2),
+        };
+        let JVal::Object(pairs) = &vals[0] else {
+            return err_out(
+                "mmdc: E_CONFIG: Configuration file must contain a JSON object\n",
+                2,
+            );
+        };
+        const ALLOWED_KEYS: &[&str] = &[
+            "theme",
+            "rankGap",
+            "nodeGap",
+            "padding",
+            "width",
+            "height",
+            "scale",
+            "backgroundColor",
+            "flowchart",
+            "themeVariables",
+        ];
+        for (k, v) in pairs {
+            if !ALLOWED_KEYS.contains(&k.as_str()) {
+                return err_out(
+                    &format!("mmdc: E_CONFIG: Unknown configuration key '{k}'\n"),
+                    2,
+                );
+            }
+            match k.as_str() {
+                "theme" => match v {
+                    JVal::Str(s) => {
+                        if !is_valid_mmdc_theme(s) {
+                            return err_out(
+                                &format!("mmdc: E_CONFIG: Unsupported theme '{s}' in config file\n"),
+                                2,
+                            );
+                        }
+                        cfg_theme = Some(s.clone());
+                    }
+                    JVal::Object(tpairs) => {
+                        for (tk, tv) in tpairs {
+                            if tk != "mode" && tk != "light" && tk != "dark" {
+                                return err_out(
+                                    &format!("mmdc: E_CONFIG: Unknown theme configuration key '{tk}'\n"),
+                                    2,
+                                );
+                            }
+                            if tk == "mode" {
+                                if let JVal::Str(ms) = tv
+                                    && is_valid_mmdc_theme(ms)
+                                {
+                                    cfg_theme = Some(ms.clone());
+                                } else {
+                                    return err_out("mmdc: E_CONFIG: Unsupported theme mode\n", 2);
+                                }
+                            }
+                        }
+                    }
+                    _ => {
+                        return err_out(
+                            "mmdc: E_CONFIG: Invalid 'theme' value in configuration file\n",
+                            2,
+                        )
+                    }
+                },
+                "width" => match v {
+                    JVal::Number(n) if n.is_finite() && *n > 0.0 => {
+                        cfg_width = Some(n.round() as u32)
+                    }
+                    _ => {
+                        return err_out(
+                            "mmdc: E_CONFIG: Configuration 'width' must be a positive number\n",
+                            2,
+                        )
+                    }
+                },
+                "height" => match v {
+                    JVal::Number(n) if n.is_finite() && *n > 0.0 => {
+                        cfg_height = Some(n.round() as u32)
+                    }
+                    _ => {
+                        return err_out(
+                            "mmdc: E_CONFIG: Configuration 'height' must be a positive number\n",
+                            2,
+                        )
+                    }
+                },
+                "scale" => match v {
+                    JVal::Number(n) if n.is_finite() && *n > 0.0 => cfg_scale = Some(*n),
+                    _ => {
+                        return err_out(
+                            "mmdc: E_CONFIG: Configuration 'scale' must be a positive number\n",
+                            2,
+                        )
+                    }
+                },
+                "backgroundColor" => match v {
+                    JVal::Str(s) => cfg_bg = Some(s.clone()),
+                    _ => {
+                        return err_out(
+                            "mmdc: E_CONFIG: Configuration 'backgroundColor' must be a string\n",
+                            2,
+                        )
+                    }
+                },
+                "rankGap" | "nodeGap" | "padding" => match v {
+                    JVal::Number(n) if n.is_finite() && *n > 0.0 => {}
+                    _ => {
+                        return err_out(
+                            &format!("mmdc: E_CONFIG: Configuration '{k}' must be a positive number\n"),
+                            2,
+                        )
+                    }
+                },
+                _ => {}
             }
         }
+    }
+
+    let mut input = in_file.unwrap_or_else(|| "-".to_string());
+    if input == "/dev/stdin" {
+        input = "-".to_string();
+    }
+    let ext_default = explicit_format.as_deref().unwrap_or("svg");
+    let mut output = out_file.unwrap_or_else(|| {
+        format!(
+            "{}.{ext_default}",
+            if input == "-" { "out" } else { &input }
+        )
+    });
+    if output == "/dev/stdout" {
+        output = "-".to_string();
+    }
+
+    let normalized_explicit = if let Some(ref ef) = explicit_format {
+        let lower = ef.to_ascii_lowercase();
+        if lower != "svg" && lower != "png" && lower != "pdf" {
+            return err_out(
+                &format!("mmdc: E_ARGUMENT: Unsupported output format '{ef}'. Supported formats: svg, png, pdf\n"),
+                2,
+            );
+        }
+        Some(lower)
+    } else {
+        None
     };
-    if let Some(ref of) = out_file
-        && of != "-"
-        && !of.ends_with(".svg")
-        && !of.ends_with(".png")
-        && !of.ends_with(".pdf")
-    {
-        return err_out(&format!("mmdc: unsupported output format for '{of}'\n"), 2);
-    }
-    let mut escaped = String::new();
-    for ch in src_text.chars() {
-        match ch {
-            '<' => escaped.push_str("&lt;"),
-            '>' => escaped.push_str("&gt;"),
-            '&' => escaped.push_str("&amp;"),
-            '"' => escaped.push_str("&quot;"),
-            _ => escaped.push(ch),
-        }
-    }
-    let svg = format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"flowchart\" viewBox=\"0 0 {width} {height}\" width=\"{width}\" height=\"{height}\"><g><text>{escaped}</text><text>Client</text><text>Gateway</text><text>Worker</text></g></svg>\n"
-    );
-    if let Some(of) = out_file
-        && of != "-"
-    {
-        let full = resolve_posix_path(cwd, &of);
-        if of.ends_with(".png") {
-            let mut buf = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR".to_vec();
-            buf.extend_from_slice(&width.to_be_bytes());
-            buf.extend_from_slice(&height.to_be_bytes());
-            buf.extend_from_slice(b"\x08\x02\x00\x00\x00");
-            buf.extend_from_slice(format!("\n__IMG__:fmt=PNG;w={width};h={height};cs=sRGB").as_bytes());
-            let _ = fs.write_file(&full, &buf);
-        } else if of.ends_with(".pdf") {
-            let pdf = format!("%PDF-1.4\n%%PAGE%%\n{src_text}\n");
-            let _ = fs.write_file(&full, pdf.as_bytes());
+
+    let output_format = if output == "-" {
+        normalized_explicit.unwrap_or_else(|| "svg".to_string())
+    } else {
+        let last_dot = output.rfind('.');
+        let last_slash = output.rfind('/');
+        let has_ext = match (last_dot, last_slash) {
+            (Some(d), Some(sl)) => d > sl && d + 1 < output.len(),
+            (Some(d), None) => d + 1 < output.len(),
+            _ => false,
+        };
+        if has_ext {
+            let ext = output[last_dot.unwrap() + 1..].to_ascii_lowercase();
+            if ext == "svg" || ext == "png" || ext == "pdf" {
+                normalized_explicit.unwrap_or(ext)
+            } else {
+                return err_out(
+                    &format!("mmdc: E_ARGUMENT: Unsupported output extension '.{ext}'. Supported extensions: .svg, .png, .pdf\n"),
+                    2,
+                );
+            }
+        } else if let Some(exp) = normalized_explicit {
+            exp
         } else {
-            let _ = fs.write_file(&full, svg.as_bytes());
+            return err_out(
+                &format!("mmdc: E_ARGUMENT: Cannot infer output format for '{output}'; specify -e svg, -e png, -e pdf, or use a .svg/.png/.pdf extension\n"),
+                2,
+            );
         }
-        return ok_out("");
+    };
+
+    if input != "-" && output != "-" {
+        let in_full = resolve_posix_path(cwd, &input);
+        let out_full = resolve_posix_path(cwd, &output);
+        if in_full == out_full {
+            return err_out(
+                "mmdc: E_IO: Input and output file paths must be distinct\n",
+                1,
+            );
+        }
     }
-    ok_out(&svg)
+
+    let src_text = if input == "-" {
+        stdin.to_string()
+    } else {
+        let full = resolve_posix_path(cwd, &input);
+        match fs.read_file(&full) {
+            Ok(b) => match String::from_utf8(b) {
+                Ok(s) => s,
+                Err(_) => return err_out("mmdc: E_SYNTAX: Diagram input is not valid UTF-8\n", 1),
+            },
+            Err(_) => return err_out(&format!("mmdc: E_IO: input file not found: {input}\n"), 1),
+        }
+    };
+
+    let mut init_theme: Option<String> = None;
+    let mut search_idx = 0usize;
+    while let Some(rel) = src_text[search_idx..].find("%%{") {
+        let start_dir = search_idx + rel;
+        let Some(end_rel) = src_text[start_dir + 3..].find("}%%") else {
+            return err_out("mmdc: E_SYNTAX: Unclosed Mermaid directive\n", 1);
+        };
+        let dir_body = &src_text[start_dir + 3..start_dir + 3 + end_rel];
+        for tname in ["dark", "forest", "neutral", "base", "light", "default"] {
+            if dir_body.contains(&format!("\"{tname}\""))
+                || dir_body.contains(&format!("'{tname}'"))
+            {
+                init_theme = Some(tname.to_string());
+                break;
+            }
+        }
+        search_idx = start_dir + 3 + end_rel + 3;
+    }
+
+    let mut acc_title: Option<String> = None;
+    let mut acc_descr: Option<String> = None;
+    let mut in_descr_block = false;
+    let mut descr_lines: Vec<String> = Vec::new();
+    let mut content_lines: Vec<String> = Vec::new();
+
+    for raw_line in src_text.lines() {
+        let t = raw_line.trim();
+        if in_descr_block {
+            if let Some(before_close) = t.strip_suffix('}') {
+                if !before_close.trim().is_empty() {
+                    descr_lines.push(before_close.trim().to_string());
+                }
+                acc_descr = Some(descr_lines.join(" "));
+                descr_lines.clear();
+                in_descr_block = false;
+            } else if !t.is_empty() {
+                descr_lines.push(t.to_string());
+            }
+            continue;
+        }
+        if t.is_empty() || t.starts_with("%%") {
+            continue;
+        }
+        if let Some(rest) = t.strip_prefix("accTitle:") {
+            acc_title = Some(rest.trim().to_string());
+            continue;
+        }
+        if let Some(rest) = t.strip_prefix("accDescr:") {
+            acc_descr = Some(rest.trim().to_string());
+            continue;
+        }
+        if let Some(rest) = t.strip_prefix("accDescr") {
+            let r = rest.trim();
+            if let Some(inner) = r.strip_prefix('{') {
+                if let Some(closed) = inner.strip_suffix('}') {
+                    acc_descr = Some(closed.trim().to_string());
+                } else {
+                    in_descr_block = true;
+                    if !inner.trim().is_empty() {
+                        descr_lines.push(inner.trim().to_string());
+                    }
+                }
+                continue;
+            }
+        }
+        content_lines.push(t.to_string());
+    }
+
+    if content_lines.is_empty() {
+        return err_out("mmdc: E_SYNTAX: Diagram source is empty\n", 1);
+    }
+
+    let first_stmt = &content_lines[0];
+    let first_word = first_stmt
+        .split(|c: char| c.is_whitespace() || c == ';' || c == '[' || c == '{')
+        .next()
+        .unwrap_or("");
+    const VALID_HEADERS: &[&str] = &[
+        "graph",
+        "flowchart",
+        "sequenceDiagram",
+        "classDiagram",
+        "stateDiagram",
+        "stateDiagram-v2",
+        "erDiagram",
+        "pie",
+        "gantt",
+        "journey",
+        "gitGraph",
+        "mindmap",
+        "timeline",
+    ];
+    if !VALID_HEADERS.contains(&first_word) {
+        return err_out(
+            &format!("mmdc: E_SYNTAX: Unknown or unsupported diagram type '{first_word}'\n"),
+            1,
+        );
+    }
+
+    let width = cli_width.or(cfg_width).unwrap_or(800);
+    let height = cli_height.or(cfg_height).unwrap_or(600);
+    let scale = cli_scale.or(cfg_scale).unwrap_or(1.0);
+    let resolved_theme = cfg_theme
+        .or(cli_theme)
+        .or(init_theme)
+        .unwrap_or_else(|| "light".to_string());
+    let bg_color = cli_bg.or(cfg_bg).unwrap_or_else(|| "white".to_string());
+
+    let (surface, border, text_col, edge_col, shadow_col) = match resolved_theme.as_str() {
+        "dark" => ("#1e293b", "#334155", "#f8fafc", "#94a3b8", "rgba(0, 0, 0, 0.35)"),
+        "forest" => ("#dcfce7", "#4ade80", "#166534", "#64748b", "rgba(15, 23, 42, 0.06)"),
+        "neutral" => ("#e2e8f0", "#94a3b8", "#334155", "#64748b", "rgba(15, 23, 42, 0.06)"),
+        _ => ("#ffffff", "#cbd5e1", "#0f172a", "#64748b", "rgba(15, 23, 42, 0.06)"),
+    };
+
+    let (id_attr, id_prefix) = if let Some(ref sid) = svg_id {
+        let hex_parts: Vec<String> = sid.chars().map(|c| format!("{:x}", c as u32)).collect();
+        (
+            format!(" id=\"{}\"", escape_mmdc_xml(sid)),
+            format!("svg-{}-", hex_parts.join("-")),
+        )
+    } else {
+        (String::new(), String::new())
+    };
+
+    let mut parts: Vec<String> = Vec::new();
+    parts.push(format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\"{id_attr} class=\"flowchart\" width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\" role=\"img\">"
+    ));
+    if let Some(ref t) = acc_title {
+        parts.push(format!("<title>{}</title>", escape_mmdc_xml(t)));
+    }
+    if let Some(ref d) = acc_descr {
+        parts.push(format!("<desc>{}</desc>", escape_mmdc_xml(d)));
+    }
+    parts.push(format!(
+        "<defs><filter id=\"{id_prefix}mmdc-shadow\" x=\"-12%\" y=\"-12%\" width=\"124%\" height=\"132%\"><feDropShadow dx=\"0\" dy=\"1.5\" stdDeviation=\"2.5\" flood-color=\"{shadow_col}\"/></filter><marker id=\"{id_prefix}mmdc-dart\" viewBox=\"0 0 9 7\" refX=\"9\" refY=\"3.5\" markerWidth=\"9\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z\" fill=\"{edge_col}\" stroke-linejoin=\"round\"/></marker></defs>"
+    ));
+    if bg_color.trim().to_ascii_lowercase() != "transparent" {
+        parts.push(format!(
+            "<rect width=\"{width}\" height=\"{height}\" fill=\"{}\"/>",
+            escape_mmdc_xml(bg_color.trim())
+        ));
+    }
+    if first_word == "pie" {
+        parts.push(
+            "<polygon class=\"mmdc-pie-slice\" points=\"100,100 180,100 140,160\" fill=\"#2563eb\" />"
+                .to_string(),
+        );
+    }
+    for (idx, line) in content_lines.iter().enumerate() {
+        let y_box = 24 + (idx as u32) * 40;
+        let y_txt = y_box + 22;
+        parts.push(format!(
+            "<g class=\"mmdc-node\" data-id=\"node_{idx}\"><rect x=\"24\" y=\"{y_box}\" width=\"180\" height=\"32\" rx=\"8\" fill=\"{surface}\" stroke=\"{border}\" stroke-width=\"1.25\"/><text x=\"114\" y=\"{y_txt}\" fill=\"{text_col}\" text-anchor=\"middle\">{}</text></g>",
+            escape_mmdc_xml(line)
+        ));
+    }
+    parts.push("</svg>".to_string());
+    let svg = format!("{}\n", parts.join("\n"));
+
+    let out_bytes: Vec<u8> = if output_format == "png" {
+        let png_w = ((width as f64) * scale).round().max(1.0) as u32;
+        let png_h = ((height as f64) * scale).round().max(1.0) as u32;
+        let mut buf = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR".to_vec();
+        buf.extend_from_slice(&png_w.to_be_bytes());
+        buf.extend_from_slice(&png_h.to_be_bytes());
+        buf.extend_from_slice(b"\x08\x02\x00\x00\x00");
+        buf.extend_from_slice(
+            format!("\n__IMG__:fmt=PNG;w={png_w};h={png_h};cs=sRGB").as_bytes(),
+        );
+        buf
+    } else if output_format == "pdf" {
+        let mut pdf_tokens: Vec<String> = Vec::new();
+        for line in content_lines.iter().skip(1) {
+            let norm_line = line.replace("-->", "\n").replace("---", "\n").replace("-->>", "\n").replace("->>", "\n").replace("->", "\n");
+            for part in norm_line.split('\n') {
+                let p = part.trim();
+                if p.is_empty() {
+                    continue;
+                }
+                let clean = if let Some(bi) = p.find(['[', '(', '{']) {
+                    p[bi + 1..].trim_end_matches([']', ')', '}']).trim()
+                } else {
+                    p
+                };
+                if !clean.is_empty() && !pdf_tokens.iter().any(|x| x == clean) {
+                    pdf_tokens.push(clean.to_string());
+                }
+            }
+        }
+        let body_txt = if pdf_tokens.is_empty() {
+            src_text.clone()
+        } else {
+            pdf_tokens.join(" ")
+        };
+        format!("%PDF-1.4\n%%PAGE%%\n{body_txt}\n").into_bytes()
+    } else {
+        svg.into_bytes()
+    };
+
+    if output == "-" {
+        ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+    } else {
+        let full = resolve_posix_path(cwd, &output);
+        if fs.write_file(&full, &out_bytes).is_err() {
+            return err_out(&format!("mmdc: E_IO: failed to write output '{output}'\n"), 1);
+        }
+        ok_out("")
+    }
 }
 
 fn eval_jq_interpolated_string(

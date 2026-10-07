@@ -57,7 +57,7 @@ def _safe_extract_native_wheel(read, serialized):
  # malformed/truncated fields. Entry objects still belong to native ZipFile.
  from contextlib import contextmanager as _native_contextmanager
  @_native_contextmanager
- def _native_directory_parser():
+ def _native_directory_parser(source):
   import ast, inspect, textwrap
   original = _NativeZip._RealGetContents
   tree = ast.parse(textwrap.dedent(inspect.getsource(original)))
@@ -88,7 +88,23 @@ def _safe_extract_native_wheel(read, serialized):
     return data
   namespace = dict(original.__globals__, _safe_directory_window=Window)
   exec(compile(ast.fix_missing_locations(tree), '<safe ZIP directory>', 'exec'), namespace)
-  _NativeZip._RealGetContents = namespace['_RealGetContents']
+  parse = namespace['_RealGetContents']
+  cached = None
+  def contents(archive):
+   nonlocal cached
+   # Extraction, metadata and dynlib discovery open the same immutable retained
+   # source independently. Share its native read-only index for this call only.
+   # Unrelated files (including imports during installation) keep their own index.
+   encoding = getattr(archive, 'metadata_encoding', None)
+   if archive.fp is not source or archive.mode != 'r':
+    return parse(archive)
+   if cached is not None and encoding == cached[0]:
+    _, archive._comment, archive.start_dir, archive.filelist, archive.NameToInfo, position = cached
+    archive.fp.seek(position)
+    return
+   parse(archive)
+   cached = (encoding, archive._comment, archive.start_dir, archive.filelist, archive.NameToInfo, archive.fp.tell())
+  _NativeZip._RealGetContents = contents
   try:
    yield
   finally:
@@ -105,7 +121,7 @@ def _safe_extract_native_wheel(read, serialized):
    if checksum.hexdigest() != expected:
     raise ValueError('Python package integrity mismatch: ' + algorithm)
    return '""'
-  with _native_directory_parser():
+  with _native_directory_parser(_native_archive):
    if 'metadata_name' in _native_config:
     from micropip.metadata import wheel_dist_info_dir as _native_metadata_dir
     from zipfile import Path as _NativeZipPath

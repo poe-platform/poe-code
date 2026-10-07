@@ -20,7 +20,24 @@ class ObservedWheelBuffer(bytearray):
   super().extend(value)
   ObservedWheelBuffer.maximum = max(ObservedWheelBuffer.maximum, len(self))
 bytearray = ObservedWheelBuffer
+_original_zip_info_init = zipfile.ZipInfo.__init__
+_zip_info_count = 0
+def _observe_zip_info(self, *args, **kwargs):
+ global _zip_info_count
+ _original_zip_info_init(self, *args, **kwargs)
+ if self.filename.startswith('fixture'):_zip_info_count += 1
+zipfile.ZipInfo.__init__ = _observe_zip_info
+_original_directory_parser = zipfile.ZipFile._RealGetContents
 _package_loader.TARGETS['actual'] = Path('/actual')
+_unrelated = io.BytesIO()
+with zipfile.ZipFile(_unrelated, 'w') as archive:archive.writestr('other.txt', 'unrelated archive')
+_unrelated_bytes = _unrelated.getvalue()
+_original_set_metadata = _package_loader.set_wheel_metadata
+def _set_metadata(filename, archive, target, metadata):
+ with zipfile.ZipFile(io.BytesIO(_unrelated_bytes)) as other:
+  assert other.read('other.txt') == b'unrelated archive'
+ return _original_set_metadata(filename, archive, target, metadata)
+_package_loader.set_wheel_metadata = _set_metadata
 def snapshot(root):
  return {str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in Path(root).rglob('*') if p.is_file()}
 def fixture(compression, count=0):
@@ -49,10 +66,12 @@ for(const row of rows){
  const reads=[];
  runtime.globals.set('_safe_native_wheel_read',(offset,length)=>{assert.ok(length<=65536);reads.push([offset,length]);return Uint8Array.from(bytes.subarray(offset,offset+Math.min(length,997)));});
  runtime.globals.set('_safe_native_wheel_config',JSON.stringify({filename:'fixture-1.0-py3-none-any.whl',target:'actual',size:bytes.length,metadata:{INSTALLER:'fixture',PYODIDE_SOURCE:'fixture'}}));
- runtime.runPython('ObservedWheelBuffer.maximum = 0');
+ runtime.runPython('ObservedWheelBuffer.maximum = 0; _zip_info_count = 0');
  const retained=runtime.runPythonAsync(pythonNativeWheel);
  if(row.error)await assert.rejects(retained,error=>error.type===row.error);else assert.equal(await retained,'[]');
  assert.deepEqual(JSON.parse(runtime.runPython("json.dumps(snapshot('/actual'))")),baseline);
+ if(row.layout==='large-directory')assert.equal(runtime.runPython('_zip_info_count'),4100,'one native ZIP index per retained wheel');
+ assert.equal(runtime.runPython('zipfile.ZipFile._RealGetContents is _original_directory_parser'),true,'native parser restored after '+row.layout);
  assert.ok(runtime.runPython('ObservedWheelBuffer.maximum')<=65558,'interpreter buffer '+runtime.runPython('ObservedWheelBuffer.maximum')+': '+row.layout);
  if(row.layout==='truncated')assert.equal(reads.length,0);else assert.ok(reads.length);
  if(row.layout.startsWith('large'))assert.equal(runtime.runPython("Path('/native-wheel-data').read_text()"),'hello data');

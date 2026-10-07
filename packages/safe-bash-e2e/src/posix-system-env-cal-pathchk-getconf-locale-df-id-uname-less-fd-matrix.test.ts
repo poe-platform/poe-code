@@ -325,7 +325,7 @@ describe("POSIX system, environment, and file inspection matrix (cal, pathchk, g
       await h.writeText("/workspace/repo/src/lib/util.ts", "export {};\n");
       await h.writeText("/workspace/repo/src/lib/readme.md", "# Lib\n");
       await h.writeText("/workspace/repo/build.sh", "#!/bin/sh\n");
-      await h.fs.chmod("/workspace/repo/build.sh", 0o755);
+      await h.fs.chmod!("/workspace/repo/build.sh", 0o755);
 
       const r = await h.exec(`
         fd -e ts . repo | sort

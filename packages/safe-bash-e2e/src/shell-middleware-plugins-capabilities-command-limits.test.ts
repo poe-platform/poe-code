@@ -387,7 +387,7 @@ printf 'diag-message\\n' >&2
                   command: req.command,
                   args,
                   tool: req.discovery?.tool,
-                  resourceCount: req.discovery?.resources?.length ?? 0,
+                  resourceCount: (req.discovery as { resources?: unknown[] } | undefined)?.resources?.length ?? 0,
                 });
                 await sb.writeText(
                   req.stdout,

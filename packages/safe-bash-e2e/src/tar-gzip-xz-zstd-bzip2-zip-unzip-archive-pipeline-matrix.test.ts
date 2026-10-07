@@ -114,7 +114,7 @@ describe("tar, gzip, xz, zstd, bzip2, zip, and unzip archive/compression pipelin
   it("6. tar preserves and dereferences (-h) symbolic links and rejects unsafe .. path traversal", async () => {
     await withE2EHarness(async (h) => {
       await h.writeText("/workspace/real/target.txt", "symlinked-content\n");
-      await h.fs.symlink("target.txt", "/workspace/real/link.txt");
+      await h.fs.symlink!("target.txt", "/workspace/real/link.txt");
 
       await h.exec("tar -chf /workspace/deref.tar -C /workspace/real link.txt");
       const derefOut = await h.exec("tar -xOf /workspace/deref.tar link.txt");
@@ -167,7 +167,7 @@ describe("tar, gzip, xz, zstd, bzip2, zip, and unzip archive/compression pipelin
       assert.equal(catRes.exitCode, 0);
       assert.equal(catRes.stdout, "xz-stream-data-".repeat(30) + "\n");
 
-      await h.fs.unlink("/workspace/payload.txt");
+      await h.fs.unlink!("/workspace/payload.txt");
       const unxzRes = await h.exec("unxz /workspace/payload.txt.xz");
       assert.equal(unxzRes.exitCode, 0);
       assert.equal(await h.readText("/workspace/payload.txt"), "xz-stream-data-".repeat(30) + "\n");
@@ -189,7 +189,7 @@ describe("tar, gzip, xz, zstd, bzip2, zip, and unzip archive/compression pipelin
       assert.equal(catRes.exitCode, 0);
       assert.equal(catRes.stdout, "zstd-block-".repeat(40) + "\n");
 
-      await h.fs.unlink("/workspace/fast.log");
+      await h.fs.unlink!("/workspace/fast.log");
       const unzstdRes = await h.exec("unzstd /workspace/fast.log.zst");
       assert.equal(unzstdRes.exitCode, 0);
       assert.equal(await h.readText("/workspace/fast.log"), "zstd-block-".repeat(40) + "\n");
@@ -211,7 +211,7 @@ describe("tar, gzip, xz, zstd, bzip2, zip, and unzip archive/compression pipelin
       assert.equal(catRes.exitCode, 0);
       assert.equal(catRes.stdout, "bwt-huffman-".repeat(40) + "\n");
 
-      await h.fs.unlink("/workspace/doc.txt");
+      await h.fs.unlink!("/workspace/doc.txt");
       const bunzipRes = await h.exec("bunzip2 /workspace/doc.txt.bz2");
       assert.equal(bunzipRes.exitCode, 0);
       assert.equal(await h.readText("/workspace/doc.txt"), "bwt-huffman-".repeat(40) + "\n");

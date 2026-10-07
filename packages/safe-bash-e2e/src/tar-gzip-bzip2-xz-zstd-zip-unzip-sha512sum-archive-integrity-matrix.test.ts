@@ -8,8 +8,8 @@ describe("tar, gzip, bzip2, xz, zstd, zip, unzip, and sha512sum archive integrit
       await h.fs.mkdir("/workspace/src/sub", { recursive: true });
       await h.writeText("/workspace/src/readme.txt", "Archive README\n");
       await h.writeText("/workspace/src/sub/run.sh", "#!/bin/sh\necho ok\n");
-      await h.fs.chmod("/workspace/src/sub/run.sh", 0o755);
-      await h.fs.symlink("sub/run.sh", "/workspace/src/latest.sh");
+      await h.fs.chmod!("/workspace/src/sub/run.sh", 0o755);
+      await h.fs.symlink!("sub/run.sh", "/workspace/src/latest.sh");
 
       const r = await h.exec(`
         tar -cf bundle.tar -C /workspace/src .
@@ -373,7 +373,7 @@ describe("tar, gzip, bzip2, xz, zstd, zip, unzip, and sha512sum archive integrit
     await withE2EHarness(async (h) => {
       await h.fs.mkdir("/workspace/dist/bin", { recursive: true });
       await h.writeText("/workspace/dist/bin/tool", "#!/bin/sh\necho v2.4.0\n");
-      await h.fs.chmod("/workspace/dist/bin/tool", 0o755);
+      await h.fs.chmod!("/workspace/dist/bin/tool", 0o755);
       await h.writeText("/workspace/dist/LICENSE", "MIT\n");
 
       const r = await h.exec(`

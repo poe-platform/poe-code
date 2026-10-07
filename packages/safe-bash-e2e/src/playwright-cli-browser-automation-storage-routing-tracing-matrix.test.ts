@@ -9,13 +9,12 @@ import {
   type PlaywrightLocator,
   type PlaywrightPage,
   type PlaywrightRecorderSink,
-  type PlaywrightRouteHandler,
 } from "@poe-platform/safe-bash/commands/playwright";
 
 interface MockBrowserState {
   readonly actions: string[];
   readonly cookies: PlaywrightCookie[];
-  readonly routes: Map<string, PlaywrightRouteHandler>;
+  readonly routes: Map<string, unknown>;
   readonly consoleListeners: ((msg: unknown) => void)[];
   readonly requestListeners: ((req: unknown) => void)[];
   readonly responseListeners: ((res: unknown) => void)[];
@@ -125,7 +124,7 @@ function createRichPlaywrightHarness() {
       locator: (selector: string): PlaywrightLocator => {
         const ref = selector.startsWith("aria-ref=") ? selector.slice("aria-ref=".length) : selector;
         const handle = makeHandle(ref);
-        return {
+        const loc: PlaywrightLocator = {
           click: (opts) => handle.click(opts),
           fill: (val, opts) => handle.fill(val, opts),
           dblclick: (opts) => handle.dblclick!(opts),
@@ -136,7 +135,6 @@ function createRichPlaywrightHarness() {
           boundingBox: () => handle.boundingBox!(),
           elementHandle: async () => handle,
           elementHandles: async () => [handle],
-          toString: () => `locator(${JSON.stringify(selector)})`,
           ariaSnapshot: async () => `- button "Submit"`,
           highlight: async (opts) => {
             state.actions.push(`highlight:${ref}:${opts?.style ?? "default"}`);
@@ -145,6 +143,8 @@ function createRichPlaywrightHarness() {
             state.actions.push(`hideHighlight:${ref}`);
           },
         };
+        Object.defineProperty(loc, "toString", { value: () => `locator(${JSON.stringify(selector)})` });
+        return loc;
       },
       hideHighlight: async () => {
         state.actions.push("page:hideHighlight");
@@ -262,7 +262,7 @@ function createRichPlaywrightHarness() {
           state.offline = offline;
           state.actions.push(`offline:${offline}`);
         },
-        route: async (pattern: string, handler: PlaywrightRouteHandler) => {
+        route: async (pattern: string, handler: unknown) => {
           state.routes.set(pattern, handler);
           state.actions.push(`route:${pattern}`);
         },

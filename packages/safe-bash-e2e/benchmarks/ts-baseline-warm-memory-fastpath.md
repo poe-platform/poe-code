@@ -2,38 +2,38 @@
 
 - **Backend**: `ts-safe-bash`
 - **Optimization Tag**: `warm-memory-fastpath`
-- **Timestamp**: `2026-10-06T08:03:14.228Z`
-- **Git Commit**: `eefb24200b`
+- **Timestamp**: `2026-10-06T16:42:40.030Z`
+- **Git Commit**: `ec7d1ab7e5`
 - **Platform**: `darwin/arm64` (10 cores, Node `v22.22.2`)
 - **Total Scenarios**: 26
-- **Geometric Mean p50**: 4.534 ms
-- **Total Suite Duration**: 1082.279 ms
+- **Geometric Mean p50**: 4.53 ms
+- **Total Suite Duration**: 1144.718 ms
 
 | Category | Scenario | p50 (ms) | p95 (ms) | Mean (ms) | Min (ms) | Max (ms) | Ops/sec | CPU User (us) |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| shell-grammar | shell-grammar-arithmetic-loops | 6.08 | 6.44 | 6.02 | 5.46 | 6.45 | 166.0 | 10205 |
-| pipelines | pipeline-6-stage-stream | 7.46 | 8.18 | 7.53 | 6.83 | 8.26 | 132.9 | 16669 |
-| search | search-rg-find-monorepo | 5.17 | 5.75 | 5.13 | 4.59 | 5.87 | 194.9 | 7421 |
-| text-processing | text-awk-sed-log-analytics | 1.18 | 1.59 | 1.27 | 1.14 | 1.69 | 786.8 | 1876 |
-| structured-data | structured-jq-yq-pipeline | 2.51 | 3.54 | 2.77 | 2.29 | 3.69 | 361.3 | 3134 |
-| database | sqlite3-join-aggregation | 1.51 | 2.08 | 1.53 | 1.16 | 2.20 | 651.5 | 1493 |
-| archives | archive-tar-gzip-sha256-roundtrip | 7.30 | 13.16 | 8.68 | 6.39 | 14.27 | 115.2 | 19548 |
-| compression | compression-zstd-xz-stream | 16.55 | 22.36 | 17.73 | 14.12 | 23.32 | 56.4 | 38879 |
-| vfs | vfs-tree-clone-chmod-stat | 4.65 | 5.01 | 4.77 | 4.55 | 5.02 | 209.8 | 7421 |
-| math-utils | math-awk-bc-numfmt-reduction | 1.59 | 1.90 | 1.65 | 1.50 | 1.96 | 605.1 | 1927 |
-| chaos | chaos-adversarial-find-xargs0 | 2.18 | 3.51 | 2.49 | 1.95 | 3.74 | 401.9 | 3433 |
-| lifecycle | shell-cold-start-and-exec | 1.93 | 2.15 | 1.93 | 1.69 | 2.18 | 517.1 | 2329 |
-| diff-patch | diff-patch-diff3-merge | 6.38 | 8.43 | 6.72 | 5.51 | 8.84 | 148.9 | 9872 |
-| csv-analytics | csvkit-xan-data-science | 5.26 | 6.22 | 5.37 | 4.45 | 6.34 | 186.1 | 9061 |
-| web-scraping | htmlq-xmllint-web-scraping | 5.19 | 6.60 | 5.65 | 4.95 | 6.62 | 176.9 | 11323 |
-| session-state | session-state-json-roundtrip | 2.32 | 3.63 | 2.46 | 1.57 | 3.93 | 406.6 | 2428 |
-| document-media | document-mermaid-svg-pipeline | 2.00 | 3.33 | 2.18 | 1.44 | 3.60 | 458.0 | 2788 |
-| agent-workflow | agent-refactor-release-pipeline | 15.04 | 16.73 | 15.49 | 14.68 | 16.95 | 64.5 | 28328 |
-| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 2.69 | 2.81 | 2.70 | 2.60 | 2.83 | 370.9 | 4004 |
-| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 2.19 | 2.58 | 2.31 | 2.06 | 2.58 | 433.3 | 5619 |
-| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 34.24 | 45.97 | 36.98 | 33.13 | 48.81 | 27.0 | 68142 |
-| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 6.96 | 7.42 | 6.88 | 6.17 | 7.44 | 145.4 | 11838 |
-| document-media | media-office-ffmpeg-soffice-pipeline | 3.24 | 4.50 | 3.66 | 2.89 | 4.51 | 273.3 | 4182 |
-| structured-data | polyglot-yq-jq-xmllint-config-compiler | 3.56 | 4.61 | 3.73 | 3.18 | 4.83 | 268.0 | 5154 |
-| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 56.78 | 64.53 | 58.10 | 52.27 | 65.78 | 17.2 | 120347 |
-| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.65 | 3.03 | 2.72 | 2.40 | 3.06 | 367.8 | 4000 |
+| shell-grammar | shell-grammar-arithmetic-loops | 6.50 | 6.93 | 6.18 | 5.21 | 6.93 | 161.9 | 10563 |
+| pipelines | pipeline-6-stage-stream | 7.39 | 8.34 | 7.37 | 6.42 | 8.43 | 135.8 | 17035 |
+| search | search-rg-find-monorepo | 4.41 | 5.19 | 4.38 | 3.77 | 5.33 | 228.1 | 6613 |
+| text-processing | text-awk-sed-log-analytics | 1.19 | 1.25 | 1.10 | 0.89 | 1.26 | 905.8 | 1649 |
+| structured-data | structured-jq-yq-pipeline | 4.05 | 7.80 | 4.72 | 2.78 | 8.56 | 212.0 | 13794 |
+| database | sqlite3-join-aggregation | 1.40 | 1.74 | 1.35 | 1.01 | 1.83 | 740.4 | 1326 |
+| archives | archive-tar-gzip-sha256-roundtrip | 8.03 | 10.27 | 8.04 | 5.65 | 10.78 | 124.3 | 20186 |
+| compression | compression-zstd-xz-stream | 15.32 | 20.46 | 16.24 | 12.09 | 21.05 | 61.6 | 35973 |
+| vfs | vfs-tree-clone-chmod-stat | 4.18 | 4.35 | 4.06 | 3.69 | 4.39 | 246.5 | 7017 |
+| math-utils | math-awk-bc-numfmt-reduction | 1.25 | 1.41 | 1.28 | 1.18 | 1.44 | 779.8 | 1553 |
+| chaos | chaos-adversarial-find-xargs0 | 1.69 | 2.79 | 2.01 | 1.64 | 2.98 | 498.3 | 3020 |
+| lifecycle | shell-cold-start-and-exec | 1.66 | 1.88 | 1.70 | 1.54 | 1.91 | 590.1 | 2100 |
+| diff-patch | diff-patch-diff3-merge | 5.90 | 7.17 | 5.95 | 4.63 | 7.46 | 168.1 | 9492 |
+| csv-analytics | csvkit-xan-data-science | 4.56 | 5.52 | 4.70 | 3.71 | 5.53 | 213.0 | 8516 |
+| web-scraping | htmlq-xmllint-web-scraping | 5.45 | 7.50 | 5.86 | 4.50 | 7.78 | 170.6 | 11532 |
+| session-state | session-state-json-roundtrip | 1.90 | 3.29 | 2.18 | 1.51 | 3.61 | 459.3 | 2197 |
+| document-media | document-mermaid-svg-pipeline | 1.79 | 3.06 | 2.02 | 1.39 | 3.30 | 495.4 | 2647 |
+| agent-workflow | agent-refactor-release-pipeline | 14.59 | 17.64 | 15.27 | 14.23 | 18.32 | 65.5 | 30296 |
+| tabular-coreutils | tabular-xan-numfmt-truncate-pipeline | 2.54 | 2.57 | 2.50 | 2.39 | 2.58 | 399.5 | 3844 |
+| binary-crypto | binary-xxd-dd-od-sha256-pipeline | 2.55 | 10.48 | 4.44 | 2.02 | 12.37 | 225.3 | 8554 |
+| archives-compression | archive-multi-format-tar-xz-bzip2-zip-pipeline | 37.14 | 43.53 | 38.51 | 36.37 | 45.08 | 26.0 | 70134 |
+| database-sqlite3 | sqlite3-window-cte-analytics-pipeline | 8.26 | 9.52 | 8.39 | 7.22 | 9.61 | 119.1 | 13066 |
+| document-media | media-office-ffmpeg-soffice-pipeline | 3.87 | 5.47 | 4.30 | 3.70 | 5.74 | 232.8 | 4114 |
+| structured-data | polyglot-yq-jq-xmllint-config-compiler | 4.65 | 5.82 | 4.83 | 4.03 | 6.08 | 207.1 | 5823 |
+| document-media | pdf-imagemagick-wkhtmltopdf-publishing | 65.90 | 78.90 | 68.37 | 62.85 | 81.90 | 14.6 | 138576 |
+| shell-grammar | shell-builtins-parameter-transforms-arrays | 2.60 | 4.73 | 3.22 | 2.43 | 5.01 | 310.3 | 4277 |
